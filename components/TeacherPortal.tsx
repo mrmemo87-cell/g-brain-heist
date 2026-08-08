@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 112458)
-Total output lines: 8926
-
 import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import DOMPurify from 'dompurify';
@@ -2241,7 +2238,4987 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     }
     
     if (!text.match(/[.!?]$/)) {
-      structureIssues.push('Your text doesn\'t end with proper punctuation. Always finish with a period (.), question mark (?)…62458 tokens truncated…size/style attrs before applying our safe defaults
+      structureIssues.push('Your text doesn\'t end with proper punctuation. Always finish with a period (.), question mark (?), or exclamation mark (!).');
+    }
+    
+    // Check for very short sentences
+    const shortSentences = sentences.filter(s => s.trim().split(/\s+/).length < 3);
+    if (shortSentences.length > 0) {
+      structureIssues.push('Some of your sentences are very short. Try combining ideas or adding more detail.');
+    }
+    
+    // Check for repetitive sentence starts
+    const sentenceStarts = sentences.map(s => s.trim().split(/\s+/)[0]?.toLowerCase());
+    const repeatedStarts = sentenceStarts.filter((start, i) => sentenceStarts.indexOf(start) !== i);
+    if (repeatedStarts.length > 0) {
+      structureIssues.push(`You start multiple sentences with "${repeatedStarts[0]}". Vary your sentence beginnings for better flow.`);
+    }
+    
+    if (structureIssues.length > 0) {
+      structureIssues.forEach(issue => {
+        feedbackParts.push(`${issueNumber}. 📝 ${issue}`);
+        issueNumber++;
+      });
+    }
+    
+    if (grammarMistakes.length === 0 && structureIssues.length === 0) {
+      feedbackParts.push('✅ Good job! No major grammar or structure issues found.');
+    }
+    feedbackParts.push('');
+    
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 4: ORGANIZATION & CLARITY
+    // ═══════════════════════════════════════════════════════════
+    feedbackParts.push('📋 SECTION 4: ORGANIZATION & CLARITY');
+    feedbackParts.push('═'.repeat(45));
+    feedbackParts.push('');
+    
+    const clarityPoints: string[] = [];
+    
+    // Check cohesion - linking words
+    const linkingWords = ['however', 'therefore', 'moreover', 'furthermore', 'also', 'in addition', 'firstly', 'secondly', 'finally', 'because', 'although', 'while'];
+    const usedLinkingWords = linkingWords.filter(word => text.toLowerCase().includes(word));
+    
+    if (usedLinkingWords.length > 0) {
+      clarityPoints.push(`✅ Good use of linking words: ${usedLinkingWords.join(', ')}`);
+    } else if (sentences.length > 2) {
+      clarityPoints.push('💡 Tip: Use linking words (however, also, because, therefore) to connect your ideas.');
+    }
+    
+    // Check for clear topic
+    if (isPart1) {
+      if (text.toLowerCase().includes('photography') || text.toLowerCase().includes('photo') || text.toLowerCase().includes('picture')) {
+        clarityPoints.push('✅ You addressed the topic (photography) clearly.');
+      } else {
+        clarityPoints.push('⚠️ Make sure you address the main topic in your response.');
+      }
+    } else {
+      if (text.toLowerCase().includes('shop') || text.toLowerCase().includes('buy') || text.toLowerCase().includes('store') || text.toLowerCase().includes('online')) {
+        clarityPoints.push('✅ You addressed the topic (shopping) in your essay.');
+      }
+    }
+    
+    // Flow check
+    if (sentences.length >= 3) {
+      clarityPoints.push('✅ Good length — you developed your ideas well.');
+    } else if (sentences.length === 2) {
+      clarityPoints.push('💡 Try adding one more sentence to fully develop your point.');
+    }
+    
+    clarityPoints.forEach(point => feedbackParts.push(point));
+    feedbackParts.push('');
+    
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 5: IMPROVED VERSION
+    // ═══════════════════════════════════════════════════════════
+    feedbackParts.push('✨ SECTION 5: IMPROVED VERSION');
+    feedbackParts.push('═'.repeat(45));
+    feedbackParts.push('');
+    feedbackParts.push('Here is your text with all corrections applied:');
+    feedbackParts.push('');
+    feedbackParts.push(`"${correctedText}"`);
+    feedbackParts.push('');
+    feedbackParts.push('📌 Compare this with your original to see the improvements!');
+    feedbackParts.push('');
+    
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 6: TEACHER FEEDBACK FOR THE STUDENT
+    // ═══════════════════════════════════════════════════════════
+    feedbackParts.push('💬 SECTION 6: TEACHER FEEDBACK FOR YOU');
+    feedbackParts.push('═'.repeat(45));
+    feedbackParts.push('');
+    
+    const totalErrors = spellingMistakes.length + grammarMistakes.length + structureIssues.length;
+    
+    if (totalErrors === 0) {
+      feedbackParts.push('🌟 Outstanding work! Your writing is clear, accurate, and well-organized.');
+      feedbackParts.push('');
+      feedbackParts.push('You\'ve shown excellent control of spelling, grammar, and sentence structure.');
+      feedbackParts.push('Keep reading and writing regularly to maintain this high standard!');
+      feedbackParts.push('');
+      feedbackParts.push('⭐ Next challenge: Try using more advanced vocabulary or complex sentences.');
+    } else if (totalErrors <= 3) {
+      feedbackParts.push('👏 Well done! You communicated your ideas clearly with just a few small errors.');
+      feedbackParts.push('');
+      feedbackParts.push('What you did well:');
+      feedbackParts.push('• You expressed your thoughts clearly');
+      feedbackParts.push('• Your message was easy to understand');
+      feedbackParts.push('');
+      feedbackParts.push('To improve:');
+      if (spellingMistakes.length > 0) {
+        feedbackParts.push(`• Review these spellings: ${spellingMistakes.map(m => m.correct).join(', ')}`);
+      }
+      if (grammarMistakes.length > 0) {
+        feedbackParts.push('• Practice using apostrophes in contractions (don\'t, can\'t, it\'s)');
+      }
+      feedbackParts.push('');
+      feedbackParts.push('⭐ Keep practising — you\'re doing great!');
+    } else if (totalErrors <= 6) {
+      feedbackParts.push('📈 Good effort! You\'re making progress, and I can see you\'re trying.');
+      feedbackParts.push('');
+      feedbackParts.push('Focus areas for improvement:');
+      if (spellingMistakes.length > 2) {
+        feedbackParts.push('⭐ Spelling: Keep a vocabulary notebook and write each word 3 times.');
+      }
+      if (grammarMistakes.length > 1) {
+        feedbackParts.push('⭐ Grammar: Read your work aloud — you\'ll catch more mistakes!');
+      }
+      if (structureIssues.length > 1) {
+        feedbackParts.push('⭐ Structure: Plan your writing before you start (beginning, middle, end).');
+      }
+      feedbackParts.push('');
+      feedbackParts.push('💪 You\'re improving! Keep working on the areas above.');
+    } else {
+      feedbackParts.push('💪 Don\'t give up! Every mistake is a chance to learn.');
+      feedbackParts.push('');
+      feedbackParts.push('I noticed you need extra practice with:');
+      feedbackParts.push('');
+      feedbackParts.push('1️⃣ SPELLING');
+      feedbackParts.push('   • Write new words in a notebook');
+      feedbackParts.push('   • Practice each word 5 times');
+      feedbackParts.push('   • Use them in your own sentences');
+      feedbackParts.push('');
+      feedbackParts.push('2️⃣ CAPITALIZATION');
+      feedbackParts.push('   • Always capitalize "I"');
+      feedbackParts.push('   • Capitalize names of people and places');
+      feedbackParts.push('   • Start every sentence with a capital letter');
+      feedbackParts.push('');
+      feedbackParts.push('3️⃣ PUNCTUATION');
+      feedbackParts.push('   • End every sentence with . ? or !');
+      feedbackParts.push('   • Use apostrophes: don\'t, can\'t, I\'m');
+      feedbackParts.push('');
+      feedbackParts.push('⭐ Tip: Read your writing slowly before submitting. You\'ll catch many errors!');
+      feedbackParts.push('');
+      feedbackParts.push('I believe in you! 📚');
+    }
+    
+    // Calculate scores
+    let contentScore = 4;
+    let organisationScore = 4;
+    let languageScore = 4;
+    
+    // Adjust based on word count
+    if (targetMatch) {
+      const [, min] = targetMatch;
+      if (wordCount < parseInt(min) * 0.5) {
+        contentScore = 1;
+      } else if (wordCount < parseInt(min) * 0.75) {
+        contentScore = 2;
+      } else if (wordCount < parseInt(min)) {
+        contentScore = 3;
+      }
+    }
+    
+    // Adjust based on errors
+    if (totalErrors > 8) {
+      languageScore = 1;
+    } else if (totalErrors > 5) {
+      languageScore = 2;
+    } else if (totalErrors > 2) {
+      languageScore = 3;
+    } else if (totalErrors === 0) {
+      languageScore = 5;
+    }
+    
+    // Adjust organisation based on structure
+    if (structureIssues.length > 2) {
+      organisationScore = 2;
+    } else if (structureIssues.length > 0) {
+      organisationScore = 3;
+    } else if (sentences.length >= 3) {
+      organisationScore = 5;
+    }
+
+    let communicativeAchievementScore = 4;
+    if (totalErrors > 8) {
+      communicativeAchievementScore = 1;
+    } else if (totalErrors > 5) {
+      communicativeAchievementScore = 2;
+    } else if (wordCount < 80) {
+      communicativeAchievementScore = 3;
+    } else if (structureIssues.length === 0 && sentences.length >= 4) {
+      communicativeAchievementScore = 5;
+    }
+    
+    const marks: Record<string, number> = isPart1
+      ? { content: contentScore, organisation: organisationScore, language: languageScore }
+      : { content: contentScore, communicativeAchievement: communicativeAchievementScore, organisation: organisationScore, language: languageScore };
+    
+    return {
+      feedback: feedbackParts.join('\n'),
+      correctedVersion: correctedText,
+      suggestedMarks: marks,
+    };
+  };
+
+  // Auto-proofread writing using GPT-4o-mini
+
+  const autoMarkTravelTourism = async () => {
+    if (!selectedCambridgeStudent) return;
+    setAutoProofreadLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error('Not authenticated');
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/travel_tourism_marking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ quiz_score_id: selectedCambridgeStudent.id }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      const suggestion = await response.json();
+      setTravelTourismAiSuggestion(suggestion);
+      if (typeof suggestion.total_suggested_mark === 'number') {
+        setTravelTourismMark(Math.max(0, Math.min(80, Math.round(suggestion.total_suggested_mark))));
+      }
+      brainsAlert('AI marking suggestion generated. Please review and adjust before saving.', 'success');
+    } catch (error) {
+      console.error('Travel & Tourism AI marking failed:', error);
+      brainsAlert('AI marking failed. Please mark manually.', 'error');
+    } finally {
+      setAutoProofreadLoading(false);
+    }
+  };
+
+  const submitTravelTourismMarks = async (releaseToStudent: boolean = false) => {
+    if (!selectedCambridgeStudent) return;
+    const totalScore = Math.max(0, Math.min(80, Number(travelTourismMark) || 0));
+    const percentage = Math.round((totalScore / 80) * 100);
+    setSavingMarks(true);
+    try {
+      const updatePayload = {
+        score: totalScore,
+        percentage,
+        answers: {
+          ...selectedCambridgeStudent.answers,
+          marks: { total: totalScore, max: 80 },
+          feedback: {
+            ...(selectedCambridgeStudent.answers?.feedback || {}),
+            teacher_comment: travelTourismFeedback,
+            releasedToStudent: releaseToStudent,
+          },
+          ai_marking_suggestion: travelTourismAiSuggestion || selectedCambridgeStudent.answers?.ai_marking_suggestion,
+          marked_by: profile.username,
+          marked_at: new Date().toISOString(),
+          requires_marking: false,
+          teacher_marked: true,
+          marking_status: releaseToStudent ? 'released' : 'marked_pending_release',
+        },
+        scores_released: releaseToStudent,
+      };
+      let markQuery = supabase.from('quiz_scores').update(updatePayload).eq('id', selectedCambridgeStudent.id);
+      if (profile.school_id) markQuery = markQuery.eq('school_id', profile.school_id);
+      const { error } = await markQuery;
+      if (error) throw error;
+      brainsAlert(releaseToStudent ? 'Travel & Tourism marks saved and released.' : 'Travel & Tourism marks saved as draft.', 'success');
+      setShowWritingMarkingModal(false);
+      await loadCambridgeScores();
+    } catch (error) {
+      console.error('Failed to save Travel & Tourism marks:', error);
+      brainsAlert('Unable to save marks.', 'error');
+    } finally {
+      setSavingMarks(false);
+    }
+  };
+
+  const autoProofreadWriting = async () => {
+    if (!selectedCambridgeStudent) return;
+    if (isTravelTourismCambridgeTest(selectedCambridgeStudent.quiz_name)) {
+      await autoMarkTravelTourism();
+      return;
+    }
+    
+    const answers = selectedCambridgeStudent.answers || {};
+    const part1Text = answers.part1 || '';
+    const part2Text = answers.part2 || '';
+    
+    if (!part1Text && !part2Text) {
+      brainsAlert('No student writing to proofread.', 'info');
+      return;
+    }
+    
+    setAutoProofreadLoading(true);
+    
+    try {
+      // Get current session for auth token
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      
+      if (!accessToken) {
+        throw new Error('Not authenticated');
+      }
+
+      // Call Edge Function using direct fetch to avoid custom fetch wrapper issues
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/proofread_writing`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          part1Text: part1Text.trim() || undefined,
+          part2Text: part2Text.trim() || undefined,
+          testType: selectedCambridgeStudent.quiz_name || 'Cambridge B2 First Writing'
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data?.part2) {
+        const validation = normalizePart2CommunicativeAchievement(data.part2);
+        if (validation.errors.length > 0) {
+          throw new Error(`Invalid communicative achievement data: ${validation.errors.join('; ')}`);
+        }
+        data.part2 = sanitizePart2Feedback(data.part2);
+      }
+      
+      console.log('=== GPT PROOFREAD RESPONSE ===');
+      console.log('Full response:', JSON.stringify(data, null, 2));
+      console.log('Part 1 spellingMistakes:', data?.part1?.spellingMistakes);
+      console.log('Part 1 grammarMistakes:', data?.part1?.grammarMistakes);
+      console.log('Part 1 markJustifications:', data?.part1?.markJustifications);
+      console.log('Part 1 modelAnswer:', data?.part1?.modelAnswer?.substring(0, 100) + '...');
+      console.log('Part 2 spellingMistakes:', data?.part2?.spellingMistakes);
+      console.log('Part 2 grammarMistakes:', data?.part2?.grammarMistakes);
+
+      // Apply GPT feedback to Part 1
+      if (data?.part1) {
+        const p1 = data.part1;
+        setWritingFeedback(prev => ({
+          ...prev,
+          part1: { 
+            feedback: p1.feedback, 
+            correctedVersion: p1.correctedVersion,
+            spellingMistakes: p1.spellingMistakes || [],
+            grammarMistakes: p1.grammarMistakes || [],
+            markJustifications: p1.markJustifications,
+            modelAnswer: p1.modelAnswer,
+          }
+        }));
+        setWritingMarks(prev => ({
+          ...prev,
+          part1: buildMarkSet(
+            p1.suggestedMarks,
+            prev.part1,
+            true,
+          )
+        }));
+      }
+
+      // Apply GPT feedback to Part 2
+      if (data?.part2) {
+        const p2 = data.part2;
+        setWritingFeedback(prev => ({
+          ...prev,
+          part2: { 
+            feedback: p2.feedback, 
+            correctedVersion: p2.correctedVersion,
+            spellingMistakes: p2.spellingMistakes || [],
+            grammarMistakes: p2.grammarMistakes || [],
+            markJustifications: p2.markJustifications,
+            modelAnswer: p2.modelAnswer,
+          }
+        }));
+        setWritingMarks(prev => ({
+          ...prev,
+          part2: buildMarkSet(
+            p2.suggestedMarks,
+            prev.part2,
+            false,
+          )
+        }));
+      }
+
+      // Set overall comments from GPT
+      const overallComments = [
+        data?.part1?.overallComments,
+        data?.part2?.overallComments
+      ].filter(Boolean).join('\n\n');
+
+      if (overallComments) {
+        setWritingFeedback(prev => ({
+          ...prev,
+          overallComments
+        }));
+      }
+
+      brainsAlert('AI Proofread complete. Please review the suggested feedback and marks, then adjust as needed.', 'success');
+
+    } catch (error) {
+      console.error('Auto-proofread failed:', error);
+      brainsAlert('AI proofread was unavailable. Falling back to basic proofreading.', 'error');
+      // Fall back to local proofreading
+      const answers = selectedCambridgeStudent.answers || {};
+      fallbackLocalProofread(answers.part1 || '', answers.part2 || '');
+    } finally {
+      setAutoProofreadLoading(false);
+    }
+  };
+
+  // Bulk AI Proofread all pending writing submissions
+  const bulkProofreadWriting = async (releaseToStudent: boolean) => {
+    // Get all writing submissions that need marking
+    const writingSubmissions = cambridgeScores.filter(
+      s => WRITING_TEST_NAMES.includes(s.quiz_name) && s.answers?.requires_marking
+    );
+
+    if (writingSubmissions.length === 0) {
+      brainsAlert('No pending writing submissions to proofread.', 'info');
+      return;
+    }
+
+    const confirmMsg = releaseToStudent
+      ? `This will AI proofread ${writingSubmissions.length} submissions and RELEASE marks to students. Continue?`
+      : `This will AI proofread ${writingSubmissions.length} submissions and save as DRAFTS (not visible to students). Continue?`;
+
+    const confirmed = await brainsConfirm({
+      title: releaseToStudent ? 'Proofread and release marks?' : 'Proofread and save drafts?',
+      message: confirmMsg,
+      confirmLabel: releaseToStudent ? 'Proofread and release' : 'Proofread and save',
+      cancelLabel: 'Cancel',
+    });
+    if (!confirmed) return;
+
+    setBulkProofreadLoading(true);
+    setBulkProofreadProgress({ current: 0, total: writingSubmissions.length, currentStudent: '' });
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+
+    if (!accessToken) {
+      brainsAlert('Not authenticated. Please sign in again.', 'error');
+      setBulkProofreadLoading(false);
+      return;
+    }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    let successCount = 0;
+    let failCount = 0;
+
+    for (let i = 0; i < writingSubmissions.length; i++) {
+      const student = writingSubmissions[i];
+      setBulkProofreadProgress({ 
+        current: i + 1, 
+        total: writingSubmissions.length, 
+        currentStudent: student.student_name 
+      });
+
+      try {
+        const answers = student.answers || {};
+        const part1Text = answers.part1 || '';
+        const part2Text = answers.part2 || '';
+
+        if (!part1Text && !part2Text) {
+          console.log(`Skipping ${student.student_name} - no text`);
+          continue;
+        }
+
+        // Call GPT API
+        const response = await fetch(`${supabaseUrl}/functions/v1/proofread_writing`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            part1Text: part1Text.trim() || undefined,
+            part2Text: part2Text.trim() || undefined,
+            testType: 'Cambridge B2 First Writing'
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data?.part2) {
+          const validation = normalizePart2CommunicativeAchievement(data.part2);
+          if (validation.errors.length > 0) {
+            throw new Error(`Invalid communicative achievement data: ${validation.errors.join('; ')}`);
+          }
+          data.part2 = sanitizePart2Feedback(data.part2);
+        }
+        console.log(`GPT response for ${student.student_name}:`, data);
+
+        // Calculate marks from GPT response
+        const existingMarks = answers.marks || {};
+        const part1Marks = buildMarkSet(data?.part1?.suggestedMarks, existingMarks.part1, true);
+        const part2Marks = buildMarkSet(data?.part2?.suggestedMarks, existingMarks.part2, false);
+
+        const part1Total = part1Marks.content + part1Marks.organisation + part1Marks.language;
+        const part2Total = part2Marks.content + part2Marks.communicativeAchievement + 
+                          part2Marks.organisation + part2Marks.language;
+        const totalScore = part1Total + part2Total;
+        const percentage = Math.round((totalScore / 35) * 100);
+
+        // Build feedback object
+        const feedback = {
+          part1: {
+            feedback: data?.part1?.feedback || '',
+            correctedVersion: data?.part1?.correctedVersion || '',
+            spellingMistakes: data?.part1?.spellingMistakes || [],
+            grammarMistakes: data?.part1?.grammarMistakes || [],
+            markJustifications: data?.part1?.markJustifications,
+            modelAnswer: data?.part1?.modelAnswer,
+          },
+          part2: {
+            feedback: data?.part2?.feedback || '',
+            correctedVersion: data?.part2?.correctedVersion || '',
+            spellingMistakes: data?.part2?.spellingMistakes || [],
+            grammarMistakes: data?.part2?.grammarMistakes || [],
+            markJustifications: data?.part2?.markJustifications,
+            modelAnswer: data?.part2?.modelAnswer,
+          },
+          overallComments: [data?.part1?.overallComments, data?.part2?.overallComments].filter(Boolean).join('\n\n'),
+          releasedToStudent: releaseToStudent,
+        };
+
+        // Save to database
+        const updatePayload = {
+          score: totalScore,
+          percentage: percentage,
+          answers: {
+            ...student.answers,
+            marks: { part1: part1Marks, part2: part2Marks },
+            feedback: feedback,
+            marked_by: profile.username,
+            marked_at: new Date().toISOString(),
+            requires_marking: false,
+          }
+        };
+
+        let proofQuery = supabase
+          .from('quiz_scores')
+          .update(updatePayload)
+          .eq('id', student.id);
+        
+        // Defense-in-depth: scope to own school
+        if (profile.school_id) {
+          proofQuery = proofQuery.eq('school_id', profile.school_id);
+        }
+
+        const { error } = await proofQuery;
+
+        if (error) {
+          console.error(`Failed to save ${student.student_name}:`, error);
+          failCount++;
+        } else {
+          successCount++;
+        }
+
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+      } catch (error) {
+        console.error(`Failed to proofread ${student.student_name}:`, error);
+        failCount++;
+      }
+    }
+
+    setBulkProofreadLoading(false);
+    setBulkProofreadProgress({ current: 0, total: 0, currentStudent: '' });
+    loadCambridgeScores(); // Refresh the list
+
+    const releaseText = releaseToStudent ? 'and released to students' : 'as drafts';
+    brainsAlert(`Bulk AI Proofread complete.\n\n${successCount} marked ${releaseText}\n${failCount} failed`, 'success');
+  };
+
+  // Fallback to local regex-based proofreading if GPT fails
+  const fallbackLocalProofread = (part1Text: string, part2Text: string) => {
+    try {
+      if (part1Text.trim()) {
+        const result1 = proofreadText(part1Text, '45-55', true);
+        setWritingFeedback(prev => ({
+          ...prev,
+          part1: { feedback: result1.feedback, correctedVersion: result1.correctedVersion }
+        }));
+        setWritingMarks(prev => ({
+          ...prev,
+          part1: {
+            content: result1.suggestedMarks.content ?? prev.part1.content,
+            organisation: result1.suggestedMarks.organisation ?? prev.part1.organisation,
+            language: result1.suggestedMarks.language ?? prev.part1.language,
+          }
+        }));
+      }
+      
+      if (part2Text.trim()) {
+        const result2 = proofreadText(part2Text, '110-130', false);
+        setWritingFeedback(prev => ({
+          ...prev,
+          part2: { feedback: result2.feedback, correctedVersion: result2.correctedVersion }
+        }));
+        setWritingMarks(prev => ({
+          ...prev,
+          part2: {
+            content: result2.suggestedMarks.content ?? prev.part2.content,
+            communicativeAchievement: result2.suggestedMarks.communicativeAchievement ?? prev.part2.communicativeAchievement,
+            organisation: result2.suggestedMarks.organisation ?? prev.part2.organisation,
+            language: result2.suggestedMarks.language ?? prev.part2.language,
+          }
+        }));
+      }
+      
+      // Generate overall comments based on word counts
+      const p1Words = part1Text.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
+      const p2Words = part2Text.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
+      const totalWords = p1Words + p2Words;
+      
+      let overallMessage = '';
+      if (totalWords > 150) {
+        overallMessage = '👍 Good job on meeting the word count requirements! Review the specific feedback for each part.';
+      } else if (totalWords > 100) {
+        overallMessage = '📈 Making progress! Consider adding more detail to reach the target word counts.';
+      } else {
+        overallMessage = '💪 Keep practising! Try to write more to meet the word count targets.';
+      }
+      
+      setWritingFeedback(prev => ({
+        ...prev,
+        overallComments: overallMessage
+      }));
+      
+      brainsAlert('Basic proofread complete. (AI was unavailable)', 'success');
+    } catch (error) {
+      console.error('Fallback proofread failed:', error);
+      brainsAlert('Proofread failed. Please try again.', 'error');
+    }
+  };
+
+  // Export Cambridge results to CSV
+  const exportCambridgeCSV = () => {
+    if (filteredCambridgeScores.length === 0) return;
+    
+    const headers = ['Student Name', 'Class', 'Test', 'Score', 'Total', 'Percentage', 'Time (seconds)', 'Submitted At'];
+    const rows = filteredCambridgeScores.map(r => [
+      r.student_name,
+      r.student_class || '',
+      r.quiz_name,
+      r.score,
+      r.total_questions,
+      r.percentage,
+      r.time_taken_seconds || '',
+      r.submitted_at
+    ]);
+    
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `cambridge_results_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const loadQuestionsOnDemand = () => {
+    if (questionsLoadRef.current) return questionsLoadRef.current;
+
+    const request = (async () => {
+      const pageSize = 500;
+      const unique = new Map<string, TeacherQuestion>();
+      for (let offset = 0; ; offset += pageSize) {
+        const page = await GameService.get_all_questions({ limit: pageSize, offset });
+        page.forEach((question) => unique.set(question.id, question));
+        if (page.length < pageSize) break;
+      }
+      return [...unique.values()];
+    })()
+      .then(setQuestions)
+      .catch((error) => {
+        console.error('Error loading global question bank:', error);
+        setQuestions([]);
+      })
+      .finally(() => {
+        questionsLoadRef.current = null;
+      });
+
+    questionsLoadRef.current = request;
+    return request;
+  };
+
+  const loadTeacherData = async () => {
+    try {
+      setLoading(true);
+      const teacherProfile = await GameService.get_teacher_profile();
+      if (!teacherProfile) {
+        setTeacher(await GameService.create_teacher_profile());
+      } else {
+        setTeacher(teacherProfile);
+      }
+
+      // The usable dashboard opens as soon as identity is known. Secondary
+      // cards hydrate independently; the global question bank is tab-only.
+      setLoading(false);
+
+      void SchoolAdminService.getTeacherAssignedClasses()
+        .then((classes) => {
+          setAssignedClasses(classes);
+          setTeacherHasClassAssignments(classes.length > 0);
+        })
+        .catch((error) => {
+          console.error('Error loading assigned classes:', error);
+          setAssignedClasses([]);
+          setTeacherHasClassAssignments(false);
+        });
+
+      void GameService.get_students_for_assignment()
+        .then(setAvailableStudents)
+        .catch((error) => {
+          console.error('Error loading students:', error);
+          setAvailableStudents([]);
+        });
+
+      void GameService.get_teacher_assignments()
+        .then(setAssignments)
+        .catch((error) => {
+          console.error('Error loading assignments:', error);
+          setAssignments([]);
+        });
+    } catch (error) {
+      console.error('Error loading teacher data:', error);
+      setLoading(false);
+    }
+  };
+
+  const handleCreateQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Consume pilot quota if applicable
+    const quota = await tryConsumePilotQuota('questions_created');
+    if (!quota.proceed) {
+      brainsAlert(quota.error || 'You\'ve reached the question creation limit on the Pilot plan. Upgrade to continue.', 'error');
+      return;
+    }
+
+    if (topicMode === 'custom' && !customTopicName.trim()) {
+      brainsAlert('Please enter a topic name for your question.', 'info');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      
+      // Upload question image if selected
+      let imageUrl = questionImageUrl;
+      if (questionImage) {
+        try {
+          imageUrl = await GameService.upload_question_image(questionImage);
+        } catch (uploadError) {
+          brainsAlert('Unable to upload question image: ' + (uploadError as Error).message, 'error');
+          setUploadingImage(false);
+          return;
+        }
+      }
+
+      // Upload option images and build final options array
+      let finalOptions: QuestionOption[] | undefined = undefined;
+      if (questionType === 'multiple_choice') {
+        const processedOptions: QuestionOption[] = [];
+        for (let i = 0; i < options.length; i++) {
+          const opt = options[i];
+          if (opt.text.trim()) {
+            let optImageUrl = opt.image_url;
+            // Upload new option image if selected
+            if (optionImages[i]) {
+              try {
+                optImageUrl = await GameService.upload_question_image(optionImages[i]!);
+              } catch (uploadError) {
+                brainsAlert(`Unable to upload image for Option ${String.fromCharCode(65 + i)}: ` + (uploadError as Error).message, 'error');
+                setUploadingImage(false);
+                return;
+              }
+            }
+            processedOptions.push({
+              text: opt.text,
+              image_url: optImageUrl
+            });
+          }
+        }
+        finalOptions = processedOptions;
+      }
+
+      setUploadingImage(false);
+
+      const questionData = {
+        subject,
+        topic: questionTopicLabel,
+        topic_name: questionTopicLabel,
+        difficulty,
+        question_text: questionText,
+        image_url: imageUrl || undefined,
+        question_type: questionType,
+        options: finalOptions,
+        correct_answer: correctAnswer,
+        explanation,
+        points,
+        is_public: false,
+      };
+
+      if (editingQuestion) {
+        if (!teacher || editingQuestion.teacher_id !== teacher.id) {
+          brainsAlert('Brains Heist Pool questions are protected and cannot be edited.', 'error');
+          return;
+        }
+        // Update existing question
+        await GameService.update_question(editingQuestion.id, questionData);
+        brainsAlert('Question updated successfully.', 'success');
+      } else {
+        // Create new question
+        await GameService.create_question(questionData);
+        brainsAlert('Question created successfully.', 'success');
+      }
+
+      // Reset form
+      setQuestionText('');
+      setQuestionImage(null);
+      setQuestionImageUrl('');
+      setOptions([
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined }
+      ]);
+      setOptionImages([null, null, null, null]);
+      setCorrectAnswer('');
+      setExplanation('');
+      setTopicMode('general');
+      setCustomTopicName('');
+      setEditingQuestion(null);
+
+      // Reload the complete authorized library, not only the RPC's first page.
+      await loadQuestionsOnDemand();
+
+      setView('question-bank');
+    } catch (error) {
+      console.error('Error saving question:', error);
+      brainsAlert('Unable to save question: ' + (error as Error).message, 'error');
+    }
+  };
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    const question = questions.find((item) => item.id === questionId);
+    if (!question || !teacher || question.teacher_id !== teacher.id) {
+      brainsAlert('Only questions in My Pool can be deleted.', 'error');
+      return;
+    }
+    const confirmed = await brainsConfirm({
+      title: 'Delete this question?',
+      message: 'This removes the question from My Pool. Existing assignment records will not be rewritten.',
+      confirmLabel: 'Delete question',
+      cancelLabel: 'Keep question',
+      destructive: true,
+    });
+    if (!confirmed) return;
+
+    try {
+      await GameService.delete_question(questionId);
+      const allQuestions = await GameService.get_all_questions();
+      setQuestions(allQuestions);
+      brainsAlert('Question deleted successfully.', 'success');
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      brainsAlert('Unable to delete question. Please try again.', 'error');
+    }
+  };
+
+  // Helper to convert options from various formats to QuestionOption[]
+  const normalizeOptions = (opts: (string | QuestionOption)[] | undefined): QuestionOption[] => {
+    if (!opts || opts.length === 0) {
+      return [
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined }
+      ];
+    }
+    const normalized = opts.map(opt => {
+      if (typeof opt === 'string') {
+        return { text: opt, image_url: undefined };
+      }
+      return { text: opt.text || '', image_url: opt.image_url };
+    });
+    // Ensure we have at least 4 options
+    while (normalized.length < 4) {
+      normalized.push({ text: '', image_url: undefined });
+    }
+    return normalized;
+  };
+
+  const handleEditQuestion = (question: TeacherQuestion) => {
+    if (!teacher || question.teacher_id !== teacher.id) {
+      brainsAlert('Brains Heist Pool questions are protected and cannot be edited.', 'error');
+      return;
+    }
+    // Set editing mode
+    setEditingQuestion(question);
+    
+    // Pre-fill the form with the question data
+    setSubject(question.subject);
+    setDifficulty(question.difficulty);
+    setQuestionType(question.question_type);
+    setQuestionText(question.question_text);
+    setQuestionImage(null);
+    setQuestionImageUrl(question.image_url || '');
+    setOptions(normalizeOptions(question.options));
+    setOptionImages([null, null, null, null]);
+    setCorrectAnswer(question.correct_answer);
+    setExplanation(question.explanation || '');
+    setPoints(question.points);
+    const existingTopic = question.topic_name || question.topic || 'General';
+    if (existingTopic !== 'General') {
+      setTopicMode('custom');
+      setCustomTopicName(existingTopic);
+    } else {
+      setTopicMode('general');
+      setCustomTopicName('');
+    }
+
+    // Switch to create view
+    setView('create-question');
+  };
+
+  const openMyPoolQuestionForm = (preferredSubject?: Subject, preferredTopic?: string) => {
+    setEditingQuestion(null);
+    if (preferredSubject) setSubject(preferredSubject);
+    if (preferredTopic && preferredTopic !== 'General') {
+      setTopicMode('custom');
+      setCustomTopicName(preferredTopic);
+    } else {
+      setTopicMode('general');
+      setCustomTopicName('');
+    }
+    setView('create-question');
+  };
+
+  const handleRenameTopic = async (topicQuestions: TeacherQuestion[], nextTopic: string) => {
+    const owned = topicQuestions.filter((question) => teacher && question.teacher_id === teacher.id);
+    if (!owned.length || owned.length !== topicQuestions.length) {
+      brainsAlert('Only topics in My Pool can be renamed.', 'error');
+      return;
+    }
+    await Promise.all(owned.map((question) => GameService.update_question(question.id, { topic: nextTopic, topic_name: nextTopic })));
+    setQuestions(await GameService.get_all_questions());
+    brainsAlert(`Topic renamed to “${nextTopic}”.`, 'success');
+  };
+
+  const handleDeleteTopic = async (topicQuestions: TeacherQuestion[]) => {
+    const owned = topicQuestions.filter((question) => teacher && question.teacher_id === teacher.id);
+    if (!owned.length || owned.length !== topicQuestions.length) {
+      brainsAlert('Only topics in My Pool can be deleted.', 'error');
+      return;
+    }
+    const confirmed = await brainsConfirm({
+      title: 'Delete this topic?',
+      message: `This will permanently delete ${owned.length} question${owned.length === 1 ? '' : 's'} from My Pool.`,
+      confirmLabel: 'Delete topic',
+      cancelLabel: 'Keep topic',
+      destructive: true,
+    });
+    if (!confirmed) return;
+    await Promise.all(owned.map((question) => GameService.delete_question(question.id)));
+    setQuestions(await GameService.get_all_questions());
+    brainsAlert('Topic deleted from My Pool.', 'success');
+  };
+
+  const handleDuplicateQuestion = (question: TeacherQuestion) => {
+    // Clear editing mode
+    setEditingQuestion(null);
+    
+    // Pre-fill the form with the question data
+    setSubject(question.subject);
+    setDifficulty(question.difficulty);
+    setQuestionType(question.question_type);
+    setQuestionText(question.question_text + ' (Copy)');
+    setQuestionImage(null);
+    setQuestionImageUrl(question.image_url || '');
+    setOptions(normalizeOptions(question.options));
+    setOptionImages([null, null, null, null]);
+    setCorrectAnswer(question.correct_answer);
+    setExplanation(question.explanation || '');
+    setPoints(question.points);
+    const existingTopic = question.topic_name || question.topic || 'General';
+    if (existingTopic !== 'General') {
+      setTopicMode('custom');
+      setCustomTopicName(existingTopic);
+    } else {
+      setTopicMode('general');
+      setCustomTopicName('');
+    }
+
+    // Switch to create view
+    setView('create-question');
+  };
+
+  const toggleAssignmentQuestion = (questionId: string) => {
+    setAssignmentQuestionIds((prev) => (
+      prev.includes(questionId) ? prev.filter((id) => id !== questionId) : [...prev, questionId]
+    ));
+  };
+
+  const setAssignmentQuestionsSelected = (questionIds: string[], shouldSelect: boolean) => {
+    setAssignmentQuestionIds((prev) => {
+      const next = new Set(prev);
+      questionIds.forEach((id) => {
+        if (shouldSelect) {
+          next.add(id);
+        } else {
+          next.delete(id);
+        }
+      });
+      return Array.from(next);
+    });
+  };
+
+  const toggleStudentSelection = (studentId: string) => {
+    setSelectedStudentIds((prev) => 
+      prev.includes(studentId) ? prev.filter((id) => id !== studentId) : [...prev, studentId]
+    );
+  };
+
+  const resetAssignmentDraft = useCallback(() => {
+    localStorage.removeItem('brains_heist_teacher_assignment_draft_v2');
+    questionBankSubjectRef.current = false;
+    setAssignmentLockedSubject(null);
+    setAssignmentQuestionIds([]);
+    setAssignmentTitle('');
+    setAssignmentDescription('');
+    setAssignmentInstructions('');
+    setSelectedStudentIds([]);
+    setAssignmentBatches([]);
+    setStudentSearchTerm('');
+    setAssignmentQuestionSearchTerm('');
+    setAssignmentQuestionDifficultyFilter('all');
+    setAssignmentQuestionTypeFilter('all');
+    setAssignmentTopicMode('general');
+    setAssignmentTopicName('');
+    setAssignmentDueAt('');
+    setAssignmentAssignedAt(new Date().toISOString().slice(0, 16));
+  }, []);
+
+  const openBlankAssignmentForm = useCallback(() => {
+    resetAssignmentDraft();
+    void loadQuestionsOnDemand();
+    setView('create-assignment');
+  }, [resetAssignmentDraft]);
+
+  // Handle "Use Set" from the Blooket-style QuestionBank
+  const handleUseQuestionSet = useCallback((questionIds: string[], subject: Subject, topic: string) => {
+    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(subject)) {
+      brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
+      return;
+    }
+
+    // Pre-select the questions and set subject/topic from the selected set
+    questionBankSubjectRef.current = true; // Prevent the subject-change useEffect from clearing these IDs
+    setAssignmentLockedSubject(subject);
+    setAssignmentQuestionIds(questionIds);
+    setAssignmentSubject(subject);
+    if (topic && topic !== 'General') {
+      setAssignmentTopicMode('custom');
+      setAssignmentTopicName(topic);
+    } else {
+      setAssignmentTopicMode('general');
+      setAssignmentTopicName('');
+    }
+    void loadQuestionsOnDemand();
+    setView('create-assignment');
+  }, [teacherAssignedSubjects]);
+
+  const selectAllStudents = () => {
+    setSelectedStudentIds(filteredStudents.map(s => s.id));
+  };
+
+  const deselectAllStudents = () => {
+    setSelectedStudentIds([]);
+  };
+
+  const handleCreateAssignment = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!assignmentTitle.trim()) {
+      brainsAlert('Assignment title is required.', 'info');
+      return;
+    }
+
+    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(assignmentSubject)) {
+      brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
+      return;
+    }
+
+    if (assignmentTopicMode === 'custom' && !assignmentTopicName.trim()) {
+      brainsAlert('Please enter a topic for this assignment.', 'info');
+      return;
+    }
+
+    if (!assignmentQuestionIds.length) {
+      brainsAlert('Select at least one question to assign.', 'info');
+      return;
+    }
+
+    if (assignmentMode === 'batch' && assignmentBatches.length === 0) {
+      brainsAlert('Please select at least one class/batch for this assignment.', 'info');
+      return;
+    }
+
+    if (assignmentMode === 'custom' && selectedStudentIds.length === 0) {
+      brainsAlert('Please select at least one student for this assignment.', 'info');
+      return;
+    }
+
+    if (assignmentDueAt) {
+      const dueDate = new Date(assignmentDueAt);
+      if (Number.isNaN(dueDate.getTime()) || dueDate.getTime() <= Date.now()) {
+        brainsAlert('Choose a due date and time in the future. Students cannot receive an assignment that is already overdue.', 'error');
+        return;
+      }
+    }
+
+    const toIso = (value: string): string | undefined => {
+      if (!value) return undefined;
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return undefined;
+      return date.toISOString();
+    };
+
+    try {
+      setAssignmentSubmitting(true);
+
+      // Consume pilot quota if applicable
+      const assignQuota = await tryConsumePilotQuota('assignments_created');
+      if (!assignQuota.proceed) {
+        brainsAlert(assignQuota.error || 'You\'ve reached the assignment creation limit on the Pilot plan. Upgrade to continue.', 'error');
+        setAssignmentSubmitting(false);
+        return;
+      }
+
+      let successMessage: string | null = null;
+      let shouldResetAfterCreate = false;
+
+      if (assignmentMode === 'batch') {
+        // Create one assignment per selected batch/class
+        const batchesToAssign = assignmentBatches.includes('All')
+          ? availableBatches
+          : assignmentBatches.filter((batch) => batch !== 'All');
+        const results: string[] = [];
+        const errors: string[] = [];
+
+        for (const batch of batchesToAssign) {
+          try {
+            await GameService.create_assignment({
+              subject: assignmentSubject,
+              topic_name: assignmentTopicLabel,
+              batch: batch as AssignmentBatch,
+              question_ids: assignmentQuestionIds,
+              assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
+              due_at: toIso(assignmentDueAt),
+              title: assignmentTitle.trim(),
+              description: assignmentDescription || undefined,
+              instructions: assignmentInstructions || undefined,
+              difficulty: assignmentDifficulty,
+              assignment_mode: 'batch',
+            });
+            results.push(batch);
+          } catch (err) {
+            errors.push(`${batch}: ${(err as Error).message}`);
+          }
+        }
+
+        if (errors.length > 0) {
+          brainsAlert(`Assignment created for ${results.length} class(es), but failed for:\n${errors.join('\n')}`, 'error');
+          if (results.length === 0) {
+            return;
+          }
+        } else {
+          const classCount = results.length;
+          successMessage = `Assignment created and sent to ${classCount} class${classCount !== 1 ? 'es' : ''}.`;
+        }
+        shouldResetAfterCreate = results.length > 0;
+      } else {
+        // Custom mode — single creation for selected students
+        await GameService.create_assignment({
+          subject: assignmentSubject,
+          topic_name: assignmentTopicLabel,
+          batch: undefined,
+          question_ids: assignmentQuestionIds,
+          assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
+          due_at: toIso(assignmentDueAt),
+          title: assignmentTitle.trim(),
+          description: assignmentDescription || undefined,
+          instructions: assignmentInstructions || undefined,
+          difficulty: assignmentDifficulty,
+          assignment_mode: 'custom',
+          student_ids: selectedStudentIds,
+        });
+        successMessage = `Assignment created and sent to ${selectedStudentIds.length} student${selectedStudentIds.length !== 1 ? 's' : ''}.`;
+        shouldResetAfterCreate = true;
+      }
+
+      if (successMessage) {
+        brainsAlert(successMessage, 'success');
+      }
+      if (shouldResetAfterCreate) {
+        resetAssignmentDraft();
+        await loadAssignments();
+        setView('assignments');
+      }
+    } catch (error) {
+      console.error('Error creating assignment:', error);
+      brainsAlert('Unable to create assignment: ' + (error as Error).message, 'error');
+    } finally {
+      setAssignmentSubmitting(false);
+    }
+  };
+
+  const handleOpenReport = async (assignment: TeacherAssignmentSummary) => {
+    try {
+      setReportLoading(true);
+      setSelectedReportAssignment(assignment);
+      const reportRows = await GameService.get_teacher_assignment_report(assignment.id);
+      // Assignment submissions retain the game username for gameplay history.
+      // Teacher-facing documents must instead use the official roster identity.
+      const officialNames = new Map(availableStudents.map((student) => [student.id, student.display_name]));
+      const rows = reportRows.map((row) => ({
+        ...row,
+        student_name: officialNames.get(row.student_id) || 'Student name unavailable',
+      }));
+      setAssignmentReport(rows);
+      setAssignments((current) => current.map((item) => (
+        item.id === assignment.id
+          ? { ...item, completed_count: rows.length }
+          : item
+      )));
+      setSelectedReportAssignment((current) => (
+        current?.id === assignment.id
+          ? { ...current, completed_count: rows.length }
+          : current
+      ));
+      
+      // Also load question analysis
+      try {
+        const analysis = await GameService.get_assignment_question_analysis(assignment.id);
+        setQuestionAnalysis(analysis);
+      } catch (err) {
+        console.warn('Question analysis not available:', err);
+        setQuestionAnalysis([]);
+      }
+      
+      setView('report-detail');
+    } catch (error) {
+      console.error('Error loading assignment report:', error);
+      brainsAlert('Unable to load report: ' + (error as Error).message, 'error');
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const handleViewStudentAnalysis = async (student: TeacherAssignmentReportRow) => {
+    if (!selectedReportAssignment) return;
+    
+    try {
+      setAnalysisLoading(true);
+      setSelectedAnalysisStudent(student);
+      const answers = await GameService.get_assignment_student_answers(
+        selectedReportAssignment.id,
+        student.student_id
+      );
+      setStudentAnswers(answers);
+      
+      // Student-level reporting uses stored answers and scoring only.
+      // AI analysis remains off until its Edge Function has authenticated,
+      // school-scoped authorization and is deployed.
+      
+      setView('report-analysis');
+    } catch (error) {
+      console.error('Error loading student answers:', error);
+      brainsAlert('Unable to load student analysis: ' + (error as Error).message, 'error');
+    } finally {
+      setAnalysisLoading(false);
+    }
+  };
+
+  const handleExportReport = async () => {
+    if (!selectedReportAssignment || assignmentReport.length === 0) return;
+
+    // Consume pilot quota if applicable
+    const quota = await tryConsumePilotQuota('reports_generated');
+    if (!quota.proceed) {
+      brainsAlert(quota.error || 'You\'ve reached the report export limit on the Pilot plan. Upgrade to continue.', 'error');
+      return;
+    }
+
+    const csvHeader = 'Student,Class,Score,Correct,Incorrect,Accuracy (%),Completed At';
+    const header = csvHeader.split(',').map(safeCsvCell).join(',');
+    const rows = assignmentReport.map((row) => (
+      [
+        row.student_name,
+        row.batch ?? '—',
+        row.score,
+        row.correct,
+        row.incorrect,
+        row.accuracy,
+        new Date(row.completed_at).toLocaleString(),
+      ].map(safeCsvCell).join(',')
+    ));
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${selectedReportAssignment.topic_name || 'assignment'}-report.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handlePrintStudentAnalysis = (audience: SchoolDocumentAudience = 'teacher') => {
+    if (!selectedReportAssignment || !selectedAnalysisStudent) return;
+    const assignmentTitle = selectedReportAssignment.title || selectedReportAssignment.topic_name;
+    const answerRows = audience === 'teacher' && studentAnswers.length
+      ? studentAnswers.map((answer, index) => `
+        <article class="document-card">
+          <strong>Question ${index + 1} · ${answer.is_correct ? 'Correct' : 'Needs review'} · ${Math.round(answer.time_taken_ms / 1000)}s</strong>
+          <p>${escapeSchoolDocumentHtml(answer.question_text)}</p>
+          <div class="document-grid"><div><strong>Student answer</strong><p>${escapeSchoolDocumentHtml(answer.student_answer || 'No answer')}</p></div><div><strong>Correct answer</strong><p>${escapeSchoolDocumentHtml(answer.correct_answer)}</p></div></div>
+          ${answer.explanation ? `<div class="document-callout"><strong>Teacher explanation</strong><p>${escapeSchoolDocumentHtml(answer.explanation)}</p></div>` : ''}
+        </article>`).join('')
+      : '';
+    const supportMessage = selectedAnalysisStudent.accuracy >= 80
+      ? 'The student demonstrated secure understanding. Continue with suitable extension and application tasks.'
+      : selectedAnalysisStudent.accuracy >= 60
+        ? 'The student is developing securely. Revisit the questions marked for review before the next assessment.'
+        : 'The student would benefit from targeted reteaching and a short follow-up check before moving on.';
+    const bodyHtml = `
+      <h2>Performance summary</h2>
+      <div class="document-grid">
+        <div class="document-card"><strong>Accuracy</strong><p>${selectedAnalysisStudent.accuracy}%</p></div>
+        <div class="document-card"><strong>Response summary</strong><p>${selectedAnalysisStudent.correct} correct · ${selectedAnalysisStudent.incorrect} need review</p></div>
+      </div>
+      <div class="document-callout"><strong>Recommended next step</strong><p>${escapeSchoolDocumentHtml(supportMessage)}</p></div>
+      ${audience === 'teacher' ? `<section class="document-appendix"><h2>Teacher evidence appendix</h2>${answerRows || '<p>Question-by-question evidence is not available for this submission.</p>'}</section>` : ''}
+      ${audience === 'family' ? '<p>This family copy provides a concise learning summary. Detailed answer evidence remains available to authorised school staff.</p>' : ''}`;
+    try {
+      openSchoolDocumentPreview({
+        meta: {
+          documentId: createSchoolDocumentId('assignment'),
+          templateVersion: 'assignment-student-v2',
+          title: assignmentTitle,
+          subtitle: audience === 'family' ? 'Student learning summary' : 'Individual performance and answer evidence',
+          schoolName: resolvedBranding.schoolName,
+          schoolLogoUrl: resolvedBranding.schoolLogoUrl,
+          audience,
+          status: 'final',
+          confidentiality: audience === 'family' ? 'family-copy' : 'confidential',
+          generatedAt: new Date().toISOString(),
+          generatedBy: profile.full_name || profile.username || 'Teacher',
+          subject: selectedReportAssignment.subject_name,
+          className: selectedAnalysisStudent.batch || undefined,
+          studentName: selectedAnalysisStudent.student_name,
+          schoolId: profile.school_id,
+          studentUserId: selectedAnalysisStudent.student_id,
+          visibilityScope: audience === 'family' ? 'student_family' : 'private',
+          sourceType: 'teacher_assignment',
+          sourceId: selectedReportAssignment.id,
+        },
+        bodyHtml,
+        orientation: 'portrait',
+        fileName: schoolDocumentFileName(resolvedBranding.schoolName, selectedAnalysisStudent.student_name, assignmentTitle, audience, new Date().toISOString().slice(0, 10)),
+      });
+    } catch (error) {
+      brainsAlert(error instanceof Error ? error.message : 'Unable to open the document preview.', 'info');
+    }
+  };
+
+  // Download CSV template
+  const downloadCSVTemplate = () => {
+    const template = `subject,topic,difficulty,question_type,question_text,option1,option2,option3,option4,correct_answer,explanation,points
+Maths,General,easy,multiple_choice,"What is 2 + 2?","2","3","4","5","4","Addition of two numbers",10
+Science,Lab Safety,medium,true_false,"Water boils at 100°C at sea level","True","False","","","True","Water's boiling point at standard pressure",15
+English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","","went","Irregular verb conjugation",20`;
+    
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'question_template.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const parseCSVRows = (csvText: string): string[][] => {
+    const rows: string[][] = [];
+    let currentRow: string[] = [];
+    let currentValue = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < csvText.length; i++) {
+      const char = csvText[i];
+      const next = csvText[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && next === '"') {
+          currentValue += '"';
+          i++;
+          continue;
+        }
+        inQuotes = !inQuotes;
+        continue;
+      }
+
+      if (char === ',' && !inQuotes) {
+        currentRow.push(currentValue.trim());
+        currentValue = '';
+        continue;
+      }
+
+      if ((char === '\n' || char === '\r') && !inQuotes) {
+        if (char === '\r' && next === '\n') i++;
+        currentRow.push(currentValue.trim());
+        currentValue = '';
+        rows.push(currentRow);
+        currentRow = [];
+        continue;
+      }
+
+      currentValue += char;
+    }
+
+    if (currentValue.length > 0 || currentRow.length > 0) {
+      currentRow.push(currentValue.trim());
+      rows.push(currentRow);
+    }
+
+    return rows;
+  };
+
+  const normalizeSubjectValue = (value: string): Subject | null => {
+    const normalized = value.trim().toLowerCase();
+    const map: Record<string, Subject> = {
+      maths: 'Maths',
+      math: 'Maths',
+      science: 'Science',
+      english: 'English',
+      russian: 'Russian Language',
+      'russian language': 'Russian Language',
+      kyrgyz: 'Kyrgyz Language',
+      'kyrgyz language': 'Kyrgyz Language',
+      german: 'German Language',
+      'german language': 'German Language',
+      geography: 'Geography',
+      'global perspective': 'Global Perspective',
+      ict: 'ICT',
+    };
+    return map[normalized] ?? null;
+  };
+
+  const normalizeDifficultyValue = (value: string): QuestionDifficulty | null => {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'easy' || normalized === 'medium' || normalized === 'hard') {
+      return normalized;
+    }
+    return null;
+  };
+
+  const normalizeQuestionTypeValue = (value: string): 'multiple_choice' | 'true_false' | 'short_answer' | null => {
+    const normalized = value.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    if (normalized === 'multiple_choice' || normalized === 'mcq') return 'multiple_choice';
+    if (normalized === 'true_false' || normalized === 'boolean') return 'true_false';
+    if (normalized === 'short_answer' || normalized === 'shortanswer') return 'short_answer';
+    return null;
+  };
+
+  // Parse and upload CSV
+  const handleCSVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadProgress({ current: 0, total: 0 });
+
+    try {
+      const text = await file.text();
+      const cleanedText = text.replace(/^\uFEFF/, '');
+      const csvRows = parseCSVRows(cleanedText);
+
+      if (csvRows.length < 2) {
+        throw new Error('CSV must include a header row and at least one data row.');
+      }
+
+      const header = csvRows[0].map((value) => value.trim().toLowerCase());
+      const getColumnIndex = (...aliases: string[]) =>
+        aliases
+          .map((alias) => header.indexOf(alias))
+          .find((index) => index >= 0) ?? -1;
+
+      const columnIndex = {
+        subject: getColumnIndex('subject'),
+        topic: getColumnIndex('topic', 'topic_name'),
+        difficulty: getColumnIndex('difficulty'),
+        questionType: getColumnIndex('question_type', 'questiontype'),
+        questionText: getColumnIndex('question_text', 'question'),
+        option1: getColumnIndex('option1', 'option_1'),
+        option2: getColumnIndex('option2', 'option_2'),
+        option3: getColumnIndex('option3', 'option_3'),
+        option4: getColumnIndex('option4', 'option_4'),
+        correctAnswer: getColumnIndex('correct_answer', 'answer'),
+        explanation: getColumnIndex('explanation'),
+        points: getColumnIndex('points', 'xp'),
+      };
+
+      if (
+        columnIndex.subject < 0 ||
+        columnIndex.difficulty < 0 ||
+        columnIndex.questionType < 0 ||
+        columnIndex.questionText < 0 ||
+        columnIndex.correctAnswer < 0
+      ) {
+        throw new Error('Missing required columns. Required: subject, difficulty, question_type, question_text, correct_answer.');
+      }
+
+      const dataRows = csvRows.slice(1).filter((row) => row.some((cell) => cell.trim() !== ''));
+      setUploadProgress({ current: 0, total: dataRows.length });
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+
+      for (let i = 0; i < dataRows.length; i++) {
+        const row = dataRows[i];
+        try {
+          const read = (index: number): string => (index >= 0 ? (row[index] ?? '').trim() : '');
+
+          const subjectStr = normalizeSubjectValue(read(columnIndex.subject));
+          const topicStr = read(columnIndex.topic);
+          const difficultyStr = normalizeDifficultyValue(read(columnIndex.difficulty));
+          const questionType = normalizeQuestionTypeValue(read(columnIndex.questionType));
+          const questionText = read(columnIndex.questionText);
+          const opt1 = read(columnIndex.option1);
+          const opt2 = read(columnIndex.option2);
+          const opt3 = read(columnIndex.option3);
+          const opt4 = read(columnIndex.option4);
+          const correctAnswer = read(columnIndex.correctAnswer);
+          const explanation = read(columnIndex.explanation);
+          const pointsStr = read(columnIndex.points);
+
+          if (!subjectStr) throw new Error('Invalid or missing subject');
+          if (!difficultyStr) throw new Error('Invalid or missing difficulty');
+          if (!questionType) throw new Error('Invalid or missing question_type');
+          if (!questionText) throw new Error('Missing question_text');
+          if (!correctAnswer) throw new Error('Missing correct_answer');
+
+          const options = questionType === 'multiple_choice'
+            ? [opt1, opt2, opt3, opt4].filter(Boolean)
+            : questionType === 'true_false'
+              ? ['True', 'False']
+              : undefined;
+
+          if (questionType === 'multiple_choice' && options.length < 2) {
+            throw new Error('multiple_choice rows require at least 2 options');
+          }
+
+          if (questionType === 'multiple_choice') {
+            const spreadsheetDatePattern = /^(?:20\d{2}[⁄/]\d{1,2}[⁄/]\d{1,2}|\d{1,2}月\d{1,2}日)$/;
+            const convertedValue = [...options, correctAnswer].find(value => spreadsheetDatePattern.test(value));
+            if (convertedValue) {
+              throw new Error(
+                `"${convertedValue}" looks like a fraction converted into a date. Format fraction cells as Text in the spreadsheet, restore values such as 3/4, then export the CSV again.`
+              );
+            }
+
+            const normalizedOptions = options.map(value => value.trim().toLocaleLowerCase());
+            if (new Set(normalizedOptions).size !== normalizedOptions.length) {
+              throw new Error(
+                'Options must be unique. Duplicate TRUE/FALSE values usually mean the spreadsheet evaluated comparison formulas; format option cells as Text before exporting.'
+              );
+            }
+
+            if (!options.includes(correctAnswer)) {
+              throw new Error('correct_answer must exactly match one of the options');
+            }
+          }
+
+          const questionData = {
+            subject: subjectStr,
+            topic: topicStr || 'General',
+            topic_name: topicStr || 'General',
+            difficulty: difficultyStr,
+            question_text: questionText,
+            question_type: questionType,
+            options,
+            correct_answer: correctAnswer,
+            explanation: explanation || '',
+            points: Math.min(Math.max(Number.parseInt(pointsStr, 10) || 10, 1), 30),
+            is_public: true
+          };
+
+          await GameService.create_question(questionData);
+          successCount++;
+          setUploadProgress({ current: i + 1, total: dataRows.length });
+        } catch (err) {
+          errors.push(`Row ${i + 2}: ${(err as Error).message}`);
+          errorCount++;
+        }
+      }
+
+      // Reload questions from global bank
+      const allQuestions = await GameService.get_all_questions();
+      setQuestions(allQuestions);
+
+      // Show results
+      const message = `CSV Upload Complete\n\nCreated questions: ${successCount}\nSkipped/failed rows: ${errorCount}${errors.length > 0 ? '\n\nRow issues:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n... and ${errors.length - 5} more` : '') : ''}`;
+      const alertTone = successCount === 0 ? 'error' : (errorCount > 0 ? 'info' : 'success');
+      brainsAlert(message, alertTone);
+      
+      setView('question-bank');
+    } catch (error) {
+      console.error('CSV upload error:', error);
+      brainsAlert('CSV upload failed: ' + (error as Error).message, 'error');
+    } finally {
+      setUploading(false);
+      setUploadProgress({ current: 0, total: 0 });
+      // Reset file input
+      e.target.value = '';
+    }
+  };
+
+  // Render Dashboard
+  const renderDashboard = () => {
+    const myClasses = Array.from(new Set(assignedClasses.map((cls) => cls.class_code)));
+    const activeAssignments = assignments.filter((a) => a.completed_count < a.student_count).length;
+    const totalSubmissions = assignmentSuccess?.submission_count ?? 0;
+    const hasAssignmentSuccess = totalSubmissions > 0;
+    const successRate = assignmentSuccess?.success_rate ?? 0;
+    const pendingWriting = cambridgeScores.filter(
+      (score) => isTeacherMarkedCambridgeTest(score.quiz_name) && score.answers?.requires_marking
+    ).length;
+    const studentsWithoutClass = availableStudents.filter((student) => !student.batch).length;
+
+    const classHealthRows = myClasses.map((classCode) => {
+      const classStudents = availableStudents.filter((student) => student.batch === classCode);
+      const classAssignments = assignments.filter((assignment) => assignment.batch === classCode);
+      const totalAssigned = classAssignments.reduce((sum, assignment) => sum + (assignment.student_count || 0), 0);
+      const totalCompleted = classAssignments.reduce((sum, assignment) => sum + (assignment.completed_count || 0), 0);
+      const completionRate = totalAssigned > 0 ? Math.round((totalCompleted / totalAssigned) * 100) : null;
+
+      const classCambridgeScores = cambridgeScores.filter((score) => (score.student_class || 'Unknown') === classCode);
+      const averageScore = classCambridgeScores.length > 0
+        ? Math.round(classCambridgeScores.reduce((sum, score) => sum + (score.percentage || 0), 0) / classCambridgeScores.length)
+        : null;
+
+      return {
+        classCode,
+        studentCount: classStudents.length,
+        assignmentsInProgress: classAssignments.filter((assignment) => assignment.completed_count < assignment.student_count).length,
+        completionRate,
+        averageScore,
+      };
+    }).sort((a, b) => (a.completionRate ?? Number.POSITIVE_INFINITY) - (b.completionRate ?? Number.POSITIVE_INFINITY));
+
+    const lowCompletionClasses = classHealthRows.filter((row) => row.completionRate !== null && row.completionRate > 0 && row.completionRate < 60);
+
+    const studentRiskMap = new Map<string, { name: string; batch: string; reasons: string[]; riskScore: number }>();
+    const markRisk = (studentId: string, name: string, batch: string, reason: string, weight: number) => {
+      const existing = studentRiskMap.get(studentId);
+      if (existing) {
+        existing.riskScore += weight;
+        if (!existing.reasons.includes(reason)) existing.reasons.push(reason);
+        return;
+      }
+      studentRiskMap.set(studentId, { name, batch, reasons: [reason], riskScore: weight });
+    };
+
+    availableStudents.forEach((student) => {
+      if (!student.batch) {
+        markRisk(student.id, student.display_name || student.username, 'Unassigned', 'Not mapped to a class/batch yet', 4);
+      }
+    });
+
+    lowCompletionClasses.forEach((row) => {
+      availableStudents
+        .filter((student) => student.batch === row.classCode)
+        .forEach((student) => {
+          markRisk(
+            student.id,
+            student.display_name || student.username,
+            student.batch || 'Unknown',
+            `${row.classCode} completion is ${row.completionRate}%`,
+            2
+          );
+        });
+    });
+
+    cambridgeScores
+      .filter((score) => Number(score.percentage || 0) < 60)
+      .forEach((score) => {
+        const matchedStudent = availableStudents.find((student) => student.username === score.student_name || student.display_name === score.student_name);
+        if (!matchedStudent) return;
+        markRisk(
+          matchedStudent.id,
+          matchedStudent.display_name || matchedStudent.username,
+          matchedStudent.batch || score.student_class || 'Unknown',
+          `Low Cambridge score (${score.percentage}%) on ${score.quiz_name}`,
+          3
+        );
+      });
+
+    const atRiskStudents = Array.from(studentRiskMap.values())
+      .sort((a, b) => b.riskScore - a.riskScore)
+      .slice(0, 6);
+
+    const topIssues: string[] = [];
+    if (!teacherHasClassAssignments) topIssues.push('No class assignments are configured for this teacher account.');
+    if (lowCompletionClasses.length > 0) topIssues.push(`${lowCompletionClasses.length} class(es) are below 60% assignment completion.`);
+    if (studentsWithoutClass > 0) topIssues.push(`${studentsWithoutClass} student(s) have no class/batch mapping.`);
+    if (hasAssignmentSuccess && successRate < 65) topIssues.push(`Assignment success rate is ${successRate}% (below target).`);
+    if (pendingWriting > 0) topIssues.push(`${pendingWriting} Cambridge writing submission(s) still need marking.`);
+
+    const recommendedActions = [
+      lowCompletionClasses.length > 0
+        ? `Run a catch-up check with ${lowCompletionClasses[0].classCode} and review missed assignment blockers.`
+        : 'Keep assignment momentum by scheduling the next formative check this week.',
+      pendingWriting > 0
+        ? 'Open Cambridge Tests and clear pending writing to unlock score release.'
+        : 'Review Cambridge trends and release marked scores to students.',
+      studentsWithoutClass > 0
+        ? 'Coordinate with school admin to map unassigned students into classes.'
+        : 'Use Reports to target the bottom-performing students with a custom assignment.',
+    ];
+
+    const priorityItems = [
+      activeAssignments > 0 ? `Review ${activeAssignments} assignment${activeAssignments > 1 ? 's' : ''} still in progress.` : 'No pending assignments — great pacing today.',
+      teacherHasClassAssignments
+        ? `Prepare next class for ${myClasses.slice(0, 2).join(' • ')}${myClasses.length > 2 ? '…' : ''}.`
+        : 'Coordinate with school admin to finalize class assignments.',
+      !hasAssignmentSuccess
+        ? 'Assignment success will appear after the first student submission.'
+        : successRate < 65
+        ? 'Success rate is below 65% — prioritize revision and targeted support.'
+        : 'Success trend is healthy — keep momentum with formative checks.',
+    ];
+
+    const alertItems: Array<{ tone: 'warning' | 'info'; text: string }> = [];
+    const studentNameById = new Map(
+      availableStudents.map((student) => [student.id, student.display_name || student.username])
+    );
+
+    if (dashboardReportsLoaded) assignments.forEach((assignment) => {
+      const assignmentLabel = assignment.title || assignment.topic_name || 'Untitled assignment';
+      const completedRows = dashboardAssignmentReports[assignment.id] || [];
+      const completedStudentIds = new Set(completedRows.map((row) => row.student_id));
+
+      completedRows
+        .filter((row) => Number(row.accuracy) < 65)
+        .forEach((row) => {
+          const studentName = studentNameById.get(row.student_id) || row.student_name || 'Student name unavailable';
+          alertItems.push({
+            tone: 'info',
+            text: `${studentName} needs help with “${assignmentLabel}” (${Math.round(Number(row.accuracy))}% accuracy).`,
+          });
+        });
+
+      if (assignment.completed_count >= assignment.student_count || assignment.assignment_mode === 'custom' || !assignment.batch) return;
+
+      availableStudents
+        .filter((student) => student.batch === assignment.batch && !completedStudentIds.has(student.id))
+        .forEach((student) => {
+          alertItems.push({
+            tone: 'warning',
+            text: `${student.display_name || student.username} has not completed “${assignmentLabel}”.`,
+          });
+        });
+    });
+
+    const visibleStudentAlerts = alertItems.slice(0, 8);
+    if (alertItems.length > visibleStudentAlerts.length) {
+      visibleStudentAlerts.push({
+        tone: 'warning',
+        text: `${alertItems.length - visibleStudentAlerts.length} more student follow-up${alertItems.length - visibleStudentAlerts.length === 1 ? '' : 's'} — open Reports for the full list.`,
+      });
+    }
+
+    if (activeAssignments > 0 && alertItems.length === 0) {
+      visibleStudentAlerts.push({
+        tone: 'warning',
+        text: `${activeAssignments} in-progress assignment${activeAssignments > 1 ? 's' : ''} — open Reports to review the assigned students.`,
+      });
+    }
+    if (!teacherHasClassAssignments) {
+      visibleStudentAlerts.push({ tone: 'warning', text: 'No class assignments found for this teacher account.' });
+    }
+
+    return (
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="teacher-section-header">
+        <h2 className="teacher-section-title">
+          <span>📊</span> Dashboard Overview
+        </h2>
+        <p className="teacher-section-subtitle">Manage your classes, questions, and track student progress</p>
+      </div>
+
+      {/* Dashboard shortcuts */}
+      <div className="teacher-stats-grid">
+        <button type="button" onClick={() => setView('students')} className="teacher-dashboard-stat cyan text-left" aria-label="Open My Classes">
+          <div className="teacher-dashboard-stat-info">
+            <h4>My Classes</h4>
+            <div className="teacher-dashboard-stat-value">{myClasses.length || 0}</div>
+            <p className="teacher-dashboard-stat-sub">{myClasses.slice(0, 3).join(' · ') || 'No classes assigned'}</p>
+          </div>
+          <div className="teacher-dashboard-stat-icon">🏫</div>
+        </button>
+
+        <button type="button" onClick={() => setView('assignments')} className="teacher-dashboard-stat green text-left" aria-label="Open Assignments">
+          <div className="teacher-dashboard-stat-info">
+            <h4>Assignments</h4>
+            <div className="teacher-dashboard-stat-value">{assignments.length}</div>
+            <p className="teacher-dashboard-stat-sub">{activeAssignments} in progress</p>
+          </div>
+          <div className="teacher-dashboard-stat-icon">📋</div>
+        </button>
+
+        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat amber text-left" aria-label="Open Reports">
+          <div className="teacher-dashboard-stat-info">
+            <h4>Reports</h4>
+            <div className="teacher-dashboard-stat-value">{assignmentSuccess ? totalSubmissions : '—'}</div>
+            <p className="teacher-dashboard-stat-sub">Completed assignment submissions</p>
+          </div>
+          <div className="teacher-dashboard-stat-icon">💬</div>
+        </button>
+
+        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat purple text-left" aria-label="Open Assignment Success reports">
+          <div className="teacher-dashboard-stat-info">
+            <h4>Assignment Success</h4>
+            <div className="teacher-dashboard-stat-value">{assignmentSuccess ? `${successRate}%` : '—'}</div>
+            <p className="teacher-dashboard-stat-sub">
+              {hasAssignmentSuccess
+                ? `${assignmentSuccess?.correct_answer_count ?? 0}/${assignmentSuccess?.answered_question_count ?? 0} answers correct`
+                : 'Appears after the first submission'}
+            </p>
+          </div>
+          <div className="teacher-dashboard-stat-icon">📈</div>
+        </button>
+      </div>
+
+      <div className="teacher-dashboard-grid">
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🎯</span> Today&apos;s Priorities
+          </h3>
+          <ul className="teacher-priority-list">
+            {priorityItems.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Quick Actions Section */}
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>⚡</span> Quick Actions
+          </h3>
+          <div className="teacher-actions-grid teacher-actions-grid-compact">
+          {(() => {
+            // Pilot quota helper
+            const tq = (label: string): PilotQuota | null => getQuotaForFeature(label, pilotQuotas);
+            const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+            const isExhausted = (label: string) => tq(label)?.exhausted === true;
+            const isDisabled = (label: string) => !isProPlan || (isPilot && isExhausted(label));
+            const quotaBadge = (label: string) => {
+              if (!isPilot) return null;
+              const q = tq(label);
+              if (!q) return null;
+              const fid = FEATURE_TO_QUOTA[label];
+              const ql = fid ? QUOTA_LABELS[fid] : '';
+              if (q.exhausted) return <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>;
+              return <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', borderColor: '#22d3ee' }}>{q.remaining}/{q.limit} {ql}</span>;
+            };
+            return <>
+          <button
+            onClick={() => !isDisabled('Create Question') ? setView('create-question') : undefined}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Create Question') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            data-color="pink"
+            disabled={isDisabled('Create Question')}
+          >
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {quotaBadge('Create Question')}
+            <div className="teacher-action-icon">➕</div>
+            <h4 className="teacher-action-title">Create Question</h4>
+            <p className="teacher-action-desc">Add a new question to your library</p>
+          </button>
+
+          <button
+            onClick={() => !isDisabled('Question Bank') ? setView('question-bank') : undefined}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Question Bank') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            data-color="cyan"
+            disabled={isDisabled('Question Bank')}
+          >
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {quotaBadge('Question Bank')}
+            <div className="teacher-action-icon">📚</div>
+            <h4 className="teacher-action-title">Question Bank</h4>
+            <p className="teacher-action-desc">View and manage all questions</p>
+          </button>
+
+          <button
+            onClick={() => !isDisabled('Bulk Upload') ? setView('csv-upload') : undefined}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Bulk Upload') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            data-color="green"
+            disabled={isDisabled('Bulk Upload')}
+          >
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {quotaBadge('Bulk Upload')}
+            <div className="teacher-action-icon">📤</div>
+            <h4 className="teacher-action-title">Bulk Upload</h4>
+            <p className="teacher-action-desc">Import questions via CSV</p>
+          </button>
+
+          <button
+            onClick={() => !isDisabled('New Assignment') ? openBlankAssignmentForm() : undefined}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('New Assignment') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            data-color="purple"
+            disabled={isDisabled('New Assignment')}
+          >
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {quotaBadge('New Assignment')}
+            <div className="teacher-action-icon">📋</div>
+            <h4 className="teacher-action-title">New Assignment</h4>
+            <p className="teacher-action-desc">Assign work to students</p>
+          </button>
+            </>;
+          })()}
+
+          {/* Clan Wars - Free for non-pilot, quota-tracked for pilot */}
+          {(() => {
+            const isPilotLd = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+            const ldQuota = getQuotaForFeature('Lockdown Mode', pilotQuotas);
+            const ldExhausted = isPilotLd && ldQuota?.exhausted === true;
+            return (
+              <button
+                onClick={() => !ldExhausted ? setView('clan-wars') : undefined}
+                className={`teacher-action-card teacher-action-card-lockdown teacher-action-card--mini ${ldExhausted ? 'opacity-50 cursor-not-allowed' : ''}`}
+                data-color="emerald"
+                disabled={ldExhausted}
+              >
+                {!isPilotLd && <span className="teacher-free-badge">FREE</span>}
+                {isPilotLd && ldQuota && !ldQuota.exhausted && (
+                  <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', borderColor: '#22d3ee' }}>
+                    {ldQuota.remaining}/{ldQuota.limit} sessions
+                  </span>
+                )}
+                {ldExhausted && (
+                  <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>
+                )}
+                <div className="teacher-action-icon">⚔️</div>
+                <h4 className="teacher-action-title">Clan Wars</h4>
+                <p className="teacher-action-desc">Host an official class battle</p>
+              </button>
+            );
+          })()}
+        </div>
+      </div>
+      </div>
+
+      <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
+        {/* Recent Activity Section */}
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>📅</span> Recent Assignments
+          </h3>
+          {assignments.length > 0 ? (
+            <div className="teacher-table-container">
+              <table className="teacher-table teacher-responsive-summary-table">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Subject</th>
+                    <th style={{ textAlign: 'center' }}>Completed</th>
+                    <th style={{ textAlign: 'center' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assignments.slice(0, 5).map((a) => (
+                    <tr key={a.id}>
+                      <td data-label="Assignment" style={{ fontWeight: 500 }}>{a.title}</td>
+                      <td data-label="Subject">{a.subject_name}</td>
+                      <td data-label="Completed" style={{ textAlign: 'center' }}>{a.completed_count}/{a.student_count}</td>
+                      <td data-label="Status" style={{ textAlign: 'center' }}>
+                        <span className={`teacher-badge ${
+                          a.completed_count >= a.student_count ? 'success' : 'warning'
+                        }`}>
+                          {a.completed_count >= a.student_count ? '✅ Complete' : '⏳ In Progress'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">No assignments yet. Use Quick Actions to create your first one.</p>
+          )}
+        </div>
+
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🚨</span> Student Alerts
+          </h3>
+          {visibleStudentAlerts.length > 0 ? (
+            <ul className="teacher-alert-list">
+              {visibleStudentAlerts.map((item, idx) => (
+                <li key={idx} className={`teacher-alert-item ${item.tone}`}>
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">No critical alerts right now.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🩺</span> Class Health Dashboard
+          </h3>
+          {classHealthRows.length === 0 ? (
+            <p className="text-sm text-slate-500">No class health data yet. Class metrics will appear after assignments and submissions.</p>
+          ) : (
+            <div className="teacher-table-container">
+              <table className="teacher-table teacher-responsive-summary-table">
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th style={{ textAlign: 'center' }}>Students</th>
+                    <th style={{ textAlign: 'center' }}>In Progress</th>
+                    <th style={{ textAlign: 'center' }}>Completion</th>
+                    <th style={{ textAlign: 'center' }}>Avg Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {classHealthRows.map((row) => (
+                    <tr key={row.classCode}>
+                      <td data-label="Class" style={{ fontWeight: 600 }}>{row.classCode}</td>
+                      <td data-label="Students" style={{ textAlign: 'center' }}>{row.studentCount}</td>
+                      <td data-label="In progress" style={{ textAlign: 'center' }}>{row.assignmentsInProgress}</td>
+                      <td data-label="Completion" style={{ textAlign: 'center' }}>
+                        {row.completionRate === null
+                          ? <span className="teacher-badge neutral">No data</span>
+                          : <span className={`teacher-badge ${row.completionRate >= 75 ? 'success' : row.completionRate >= 50 ? 'warning' : 'danger'}`}>
+                              {row.completionRate}%
+                            </span>}
+                      </td>
+                      <td data-label="Average score" style={{ textAlign: 'center' }}>{row.averageScore !== null ? `${row.averageScore}%` : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🧯</span> At-Risk Students
+          </h3>
+          {atRiskStudents.length === 0 ? (
+            <p className="text-sm text-slate-500">No high-risk students detected from current submissions.</p>
+          ) : (
+            <ul className="space-y-3">
+              {atRiskStudents.map((student, index) => (
+                <li key={`${student.name}-${index}`} className="rounded-lg border border-red-200 bg-red-50 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-semibold text-red-800">{student.name}</div>
+                    <span className="text-xs text-red-700">{student.batch}</span>
+                  </div>
+                  <p className="text-xs text-red-700 mt-1">{student.reasons[0]}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>⚠️</span> Top Issues
+          </h3>
+          {topIssues.length === 0 ? (
+            <p className="text-sm text-slate-500">No major issues detected right now.</p>
+          ) : (
+            <ul className="teacher-alert-list">
+              {topIssues.map((issue, index) => (
+                <li key={index} className="teacher-alert-item warning">
+                  {issue}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>✅</span> Recommended Actions
+          </h3>
+          <ul className="teacher-priority-list">
+            {recommendedActions.map((action, index) => (
+              <li key={index}>{action}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Geometry Builder is the only dashboard tool without its own portal navigation route. */}
+      <div className="teacher-mb-8">
+        <h3 className="teacher-subsection-title">
+          <span>📐</span> Specialist Tool
+        </h3>
+        <div className="teacher-tools-grid teacher-tools-grid--single">
+          {(() => {
+            const tq = (label: string): PilotQuota | null => getQuotaForFeature(label, pilotQuotas);
+            const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+            const isExhausted = (label: string) => tq(label)?.exhausted === true;
+            const isDisabledT = (label: string) => !isProPlan || (isPilot && isExhausted(label));
+            const quotaBadgeSm = (label: string) => {
+              if (!isPilot) return null;
+              const q = tq(label);
+              if (!q) return null;
+              const fid = FEATURE_TO_QUOTA[label];
+              const ql = fid ? QUOTA_LABELS[fid] : '';
+              if (q.exhausted) return <span className="teacher-pro-badge-sm" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>;
+              return <span className="teacher-pro-badge-sm" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', borderColor: '#22d3ee', color: '#e0f2fe' }}>{q.remaining}/{q.limit} {ql}</span>;
+            };
+            return <>
+          <button
+            type="button"
+            onClick={() => !isDisabledT('Geometry Builder') ? setView('geometry-diagrams') : undefined}
+            className={`teacher-tool-card teacher-tool-card--geometry orange ${isDisabledT('Geometry Builder') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isDisabledT('Geometry Builder')}
+          >
+            <div className="teacher-tool-icon">📐</div>
+            <div className="teacher-tool-info">
+              <h4 className="teacher-tool-title">Geometry Builder</h4>
+              <p className="teacher-tool-desc">Create interactive diagram questions</p>
+            </div>
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge-sm">PRO</span>}
+            {quotaBadgeSm('Geometry Builder')}
+          </button>
+            </>;
+          })()}
+        </div>
+      </div>
+    </div>
+  );
+  };
+
+  // Render Create Question Form
+  const renderCreateQuestion = () => {
+    // If teacher has no assigned classes/subjects, show access denied
+    if (!teacherHasClassAssignments) {
+      return (
+        <div className="max-w-3xl mx-auto">
+          <button
+            onClick={() => setView('dashboard')}
+            className="teacher-back-btn"
+          >
+            <span>←</span> Back to Dashboard
+          </button>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center mt-6">
+            <div className="text-4xl mb-4">🔒</div>
+            <h2 className="text-xl font-bold text-amber-800 mb-2">No Class Assignments</h2>
+            <p className="text-amber-700 mb-4">
+              You need to be assigned to at least one class and subject by your school admin before you can create questions.
+            </p>
+            <p className="text-sm text-amber-600">
+              Please contact your school administrator to assign you to classes.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+    <div className="max-w-3xl mx-auto">
+      <button
+        onClick={() => {
+          setEditingQuestion(null);
+          setView('question-bank');
+        }}
+        className="teacher-back-btn"
+      >
+        <span>←</span> Back to Questions
+      </button>
+
+      <h2 className="text-2xl font-bold text-slate-800 mb-6">
+        {editingQuestion ? '✏️ Edit Question' : '➕ Create New Question'}
+      </h2>
+
+      {/* Question type selector */}
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+        <h3 className="text-sm font-semibold text-slate-700 mb-3">Question type</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setQuestionType('multiple_choice');
+              setQuestionText('');
+              setCorrectAnswer('');
+              setOptions([
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined }
+              ]);
+            }}
+            className="p-3 bg-white hover:bg-cyan-50 border border-slate-200 hover:border-cyan-400 rounded-lg transition-all text-sm"
+          >
+            <div className="text-2xl mb-1">📝</div>
+            <div className="text-slate-700 font-semibold">Multiple Choice</div>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              setQuestionType('true_false');
+              setQuestionText('');
+              setCorrectAnswer('True');
+              setOptions([
+                { text: 'True', image_url: undefined },
+                { text: 'False', image_url: undefined }
+              ]);
+            }}
+            className="p-3 bg-white hover:bg-green-50 border border-slate-200 hover:border-green-400 rounded-lg transition-all text-sm"
+          >
+            <div className="text-2xl mb-1">✓✗</div>
+            <div className="text-slate-700 font-semibold">True/False</div>
+          </button>
+          
+          <button
+            type="button"
+            disabled
+            className="cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 p-3 text-sm opacity-65"
+          >
+            <div className="text-2xl mb-1">✏️</div>
+            <div className="font-semibold text-slate-500">Short Answer</div>
+            <div className="mt-1 text-xs text-slate-400">Unavailable</div>
+          </button>
+          
+          <button
+            type="button"
+            disabled
+            className="cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 p-3 text-sm opacity-65"
+          >
+            <div className="text-2xl mb-1">↕</div>
+            <div className="font-semibold text-slate-500">Drag &amp; Drop</div>
+            <div className="mt-1 text-xs text-slate-400">Coming soon</div>
+          </button>
+        </div>
+      </div>
+
+      <div className="teacher-card">
+        <form onSubmit={handleCreateQuestion} className="space-y-6">
+          {/* Subject & Difficulty */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="teacher-form-group">
+              <label className="teacher-label">Subject</label>
+              <select
+                value={subject}
+                onChange={(e) => setSubject(e.target.value as Subject)}
+                className="teacher-select"
+                required
+              >
+                {teacherAssignedSubjects.length > 0 ? (
+                  teacherAssignedSubjects.map(subj => (
+                    <option key={subj} value={subj}>{subj}</option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Maths">Maths</option>
+                    <option value="Science">Science</option>
+                    <option value="English">English</option>
+                    <option value="Russian Language">Russian Language</option>
+                    <option value="Kyrgyz Language">Kyrgyz Language</option>
+                    <option value="German Language">German Language</option>
+                    <option value="Geography">Geography</option>
+                    <option value="Global Perspective">Global Perspective</option>
+                    <option value="ICT">ICT</option>
+                  </>
+                )}
+              </select>
+              {teacherAssignedSubjects.length > 0 && (
+                <p className="text-xs text-slate-500 mt-1">Only subjects assigned to your classes</p>
+              )}
+            </div>
+
+            <div className="teacher-form-group">
+              <label className="teacher-label">Difficulty</label>
+              <select
+                value={difficulty}
+                onChange={(e) => {
+                  const newDifficulty = e.target.value as QuestionDifficulty;
+                  setDifficulty(newDifficulty);
+                  // Auto-set points based on difficulty
+                  setPoints(getDefaultPointsForDifficulty(newDifficulty));
+                }}
+                className="teacher-select"
+                required
+              >
+                <option value="easy">⭐ Easy (10 XP)</option>
+                <option value="medium">⭐⭐ Medium (15 XP)</option>
+                <option value="hard">⭐⭐⭐ Hard (20 XP)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Topic Selection */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">My Pool topic</label>
+            <div className={`teacher-topic-picker ${topicMode === 'custom' && !teacherOwnedTopics.includes(customTopicName) ? 'is-creating' : ''}`}>
+              <select
+                value={topicMode === 'general' ? 'General' : (teacherOwnedTopics.includes(customTopicName) ? customTopicName : '__new__')}
+                onChange={(e) => {
+                  if (e.target.value === 'General') {
+                    setTopicMode('general');
+                    setCustomTopicName('');
+                  } else if (e.target.value === '__new__') {
+                    setTopicMode('custom');
+                    setCustomTopicName('');
+                  } else {
+                    setTopicMode('custom');
+                    setCustomTopicName(e.target.value);
+                  }
+                }}
+                className="teacher-select"
+              >
+                <option value="General">General</option>
+                {teacherOwnedTopics.filter((topic) => topic !== 'General').map((topic) => <option key={topic} value={topic}>{topic}</option>)}
+                <option value="__new__">＋ Create a new topic</option>
+              </select>
+              {topicMode === 'custom' && !teacherOwnedTopics.includes(customTopicName) && (
+                <input
+                  type="text"
+                  value={customTopicName}
+                  onChange={(e) => setCustomTopicName(e.target.value)}
+                  className="teacher-input teacher-topic-picker__new"
+                  placeholder="Name the new topic"
+                  required
+                />
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mt-2">Choose one of your topics or create a new one. The topic is added to My Pool when this question is saved.</p>
+          </div>
+
+          {/* Question Type */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">Question type</label>
+            <select
+              value={questionType}
+              onChange={(e) => {
+                const nextQuestionType = e.target.value as typeof questionType;
+                setQuestionType(nextQuestionType);
+                setCorrectAnswer(nextQuestionType === 'true_false' ? 'True' : '');
+              }}
+              className="teacher-select"
+              required
+            >
+              <option value="multiple_choice">Multiple Choice</option>
+              <option value="true_false">True/False</option>
+              <option value="short_answer" disabled>Short Answer — unavailable</option>
+              <option value="drag_drop" disabled>Drag &amp; Drop — coming soon</option>
+            </select>
+          </div>
+
+          {/* Question Text */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">Question</label>
+            <textarea
+              value={questionText}
+              onChange={(e) => setQuestionText(e.target.value)}
+              onPaste={(e) => {
+                // Handle image paste from clipboard for question image
+                const items = e.clipboardData?.items;
+                if (items) {
+                  for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                      const file = items[i].getAsFile();
+                      if (file) {
+                        setQuestionImage(file);
+                        setQuestionImageUrl('');
+                      }
+                      break;
+                    }
+                  }
+                }
+              }}
+              className="teacher-textarea min-h-[100px]"
+              placeholder="Enter your question here... (paste screenshot to add image)"
+              required
+            />
+          </div>
+
+          {/* Question Image (Optional) */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">Question Image (Optional)</label>
+            <div 
+              className="space-y-3"
+              onPaste={(e) => {
+                // Handle image paste from clipboard
+                const items = e.clipboardData?.items;
+                if (items) {
+                  for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                      e.preventDefault();
+                      const file = items[i].getAsFile();
+                      if (file) {
+                        setQuestionImage(file);
+                        setQuestionImageUrl('');
+                      }
+                      break;
+                    }
+                  }
+                }
+              }}
+              tabIndex={0}
+            >
+              {(questionImageUrl || questionImage) && (
+                <div className="relative inline-block">
+                  <img
+                    src={questionImage ? URL.createObjectURL(questionImage) : questionImageUrl}
+                    alt="Question preview"
+                    className="max-w-full max-h-48 rounded-lg border border-slate-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuestionImage(null);
+                      setQuestionImageUrl('');
+                    }}
+                    className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              {!questionImage && !questionImageUrl && (
+                <div 
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center cursor-pointer hover:border-cyan-500 transition-all bg-slate-50"
+                  onClick={() => document.getElementById('question-image-input')?.click()}
+                >
+                  <div className="text-slate-500">
+                    <span className="text-2xl">📷</span>
+                    <p className="mt-2">Click to upload or <span className="text-cyan-600 font-medium">paste screenshot</span> (Ctrl+V)</p>
+                    <p className="text-xs mt-1">JPEG, PNG, GIF, SVG, or WebP (max 5MB)</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <label className="cursor-pointer bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-lg px-4 py-2 text-purple-700 font-medium transition-all">
+                  📷 {questionImage || questionImageUrl ? 'Change Image' : 'Upload Image'}
+                  <input
+                    id="question-image-input"
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setQuestionImage(file);
+                        setQuestionImageUrl('');
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+                <span className="text-xs text-slate-500">or paste screenshot (Ctrl+V)</span>
+              </div>
+              {uploadingImage && (
+                <div className="text-cyan-600 text-sm animate-pulse">⏳ Uploading image...</div>
+              )}
+            </div>
+          </div>
+
+          {/* Multiple Choice Options */}
+          {questionType === 'multiple_choice' && (
+            <div className="teacher-form-group">
+              <label className="teacher-label">Answer Options (Check the correct answer)</label>
+              <div className="space-y-4">
+                {options.map((option, index) => (
+                  <div 
+                    key={index} 
+                    className={`bg-slate-50 border rounded-xl p-4 transition-all ${
+                      correctAnswer === option.text && option.text.trim() 
+                        ? 'border-emerald-500 bg-emerald-50' 
+                        : 'border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      {/* Correct Answer Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={correctAnswer === option.text && option.text.trim() !== ''}
+                        onChange={(e) => {
+                          if (e.target.checked && option.text.trim()) {
+                            setCorrectAnswer(option.text);
+                          } else if (!e.target.checked && correctAnswer === option.text) {
+                            setCorrectAnswer('');
+                          }
+                        }}
+                        className="w-5 h-5 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
+                        title="Mark as correct answer"
+                      />
+                      <span className="text-cyan-600 font-bold">{String.fromCharCode(65 + index)}.</span>
+                      <input
+                        type="text"
+                        value={option.text}
+                        onChange={(e) => {
+                          const oldText = option.text;
+                          const newOptions = [...options];
+                          newOptions[index] = { ...newOptions[index], text: e.target.value };
+                          setOptions(newOptions);
+                          // Update correct answer if this was the correct one
+                          if (correctAnswer === oldText) {
+                            setCorrectAnswer(e.target.value);
+                          }
+                        }}
+                        onPaste={(e) => {
+                          // Handle image paste from clipboard
+                          const items = e.clipboardData?.items;
+                          if (items) {
+                            for (let i = 0; i < items.length; i++) {
+                              if (items[i].type.indexOf('image') !== -1) {
+                                e.preventDefault();
+                                const file = items[i].getAsFile();
+                                if (file) {
+                                  const newImages = [...optionImages];
+                                  newImages[index] = file;
+                                  setOptionImages(newImages);
+                                  const newOptions = [...options];
+                                  newOptions[index] = { ...newOptions[index], image_url: undefined };
+                                  setOptions(newOptions);
+                                }
+                                break;
+                              }
+                            }
+                          }
+                        }}
+                        className="teacher-input flex-1"
+                        placeholder={`Option ${String.fromCharCode(65 + index)} text (paste image here)`}
+                        required
+                      />
+                      {correctAnswer === option.text && option.text.trim() && (
+                        <span className="text-emerald-600 text-sm font-semibold">✓ Correct</span>
+                      )}
+                    </div>
+                    {/* Option Image */}
+                    <div className="ml-12 flex items-center gap-3">
+                      {(option.image_url || optionImages[index]) && (
+                        <div className="relative inline-block">
+                          <img
+                            src={optionImages[index] ? URL.createObjectURL(optionImages[index]!) : option.image_url}
+                            alt={`Option ${String.fromCharCode(65 + index)} preview`}
+                            className="max-h-20 rounded border border-slate-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newOptions = [...options];
+                              newOptions[index] = { ...newOptions[index], image_url: undefined };
+                              setOptions(newOptions);
+                              const newImages = [...optionImages];
+                              newImages[index] = null;
+                              setOptionImages(newImages);
+                            }}
+                            className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                      <label className="cursor-pointer text-xs bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded px-2 py-1 text-purple-700 font-medium transition-all">
+                        📷 {option.image_url || optionImages[index] ? 'Change' : 'Add Image'}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const newImages = [...optionImages];
+                              newImages[index] = file;
+                              setOptionImages(newImages);
+                              // Clear existing URL when new file is selected
+                              const newOptions = [...options];
+                              newOptions[index] = { ...newOptions[index], image_url: undefined };
+                              setOptions(newOptions);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-xs text-slate-500">or paste screenshot</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* True/False Answer */}
+          {questionType === 'true_false' && (
+            <div className="teacher-form-group">
+              <fieldset>
+                <legend className="teacher-label">
+                Correct Answer
+                </legend>
+                <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Correct answer">
+                  {(['True', 'False'] as const).map((answer) => (
+                    <label
+                      key={answer}
+                      className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border p-3 font-semibold transition-all ${
+                        correctAnswer.toLowerCase() === answer.toLowerCase()
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="true-false-correct-answer"
+                        value={answer}
+                        checked={correctAnswer.toLowerCase() === answer.toLowerCase()}
+                        onChange={() => setCorrectAnswer(answer)}
+                        className="h-5 w-5 border-slate-300 text-emerald-500 focus:ring-emerald-500"
+                        required
+                      />
+                      {answer}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+          )}
+
+          {/* Explanation */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">Explanation (Optional)</label>
+            <textarea
+              value={explanation}
+              onChange={(e) => setExplanation(e.target.value)}
+              className="teacher-textarea"
+              placeholder="Explain why this answer is correct..."
+              rows={3}
+            />
+          </div>
+
+          {/* Points */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">
+              Points (XP Reward) <span className="text-slate-500 font-normal">— Max {MAX_QUESTION_XP} XP</span>
+            </label>
+            <input
+              type="number"
+              value={points}
+              onChange={(e) => {
+                const val = parseInt(e.target.value) || 0;
+                setPoints(Math.min(Math.max(val, 1), MAX_QUESTION_XP));
+              }}
+              className="teacher-input"
+              min="1"
+              max={MAX_QUESTION_XP}
+              required
+            />
+            <p className="text-xs text-slate-500 mt-1">
+              Default: Easy=10, Medium=15, Hard=20. You can adjust up to {MAX_QUESTION_XP} XP.
+            </p>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="teacher-btn teacher-btn-primary w-full py-4 text-lg"
+          >
+            {editingQuestion ? '💾 Save Changes' : '✨ Create Question'}
+          </button>
+        </form>
+      </div>
+    </div>
+    );
+  };
+
+  // Render CSV Upload View
+  const renderCSVUpload = () => (
+    <div className="max-w-3xl mx-auto">
+      <button
+        onClick={() => setView('question-bank')}
+        className="teacher-back-link mb-4"
+      >
+        ← Back to Questions
+      </button>
+
+      <div className="teacher-card">
+        <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <span className="text-2xl">📤</span> Bulk Upload Questions
+        </h2>
+
+        {/* Instructions */}
+        <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-6 mb-6">
+          <h3 className="font-bold text-cyan-700 mb-3 flex items-center gap-2">
+            <span>📋</span> How to Use CSV Upload
+          </h3>
+          <ol className="list-decimal list-inside space-y-2 text-sm text-slate-600">
+            <li>Download the CSV template using the button below</li>
+            <li>Fill in your questions following the template format</li>
+            <li>For fractions and comparisons, format option cells as <strong>Text</strong> so spreadsheets do not convert them into dates or TRUE/FALSE</li>
+            <li>Save your file as a CSV (comma-separated values)</li>
+            <li>Upload the file using the upload button</li>
+            <li>Review the results and fix any errors if needed</li>
+          </ol>
+        </div>
+
+        {/* CSV Format Guide */}
+        <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 mb-6">
+          <h3 className="font-bold text-purple-700 mb-3">📝 CSV Format</h3>
+          <div className="text-xs text-slate-500 mb-2">Columns (in order):</div>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="text-slate-600">1. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">subject</code> - Maths, Science, English, etc.</div>
+            <div className="text-slate-600">2. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">topic</code> - General or any custom topic</div>
+            <div className="text-slate-600">3. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">difficulty</code> - easy, medium, hard</div>
+            <div className="text-slate-600">4. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">question_type</code> - multiple_choice, true_false, short_answer</div>
+            <div className="text-slate-600">5. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">question_text</code> - The question</div>
+            <div className="text-slate-600">6-9. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">option1-4</code> - Answer choices</div>
+            <div className="text-slate-600">10. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">correct_answer</code> - The correct answer</div>
+            <div className="text-slate-600">11. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">explanation</code> - Why it's correct</div>
+            <div className="text-slate-600">12. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">points</code> - Point value (10-50)</div>
+          </div>
+        </div>
+
+        {/* Download Template Button */}
+        <div className="mb-6">
+          <button
+            onClick={downloadCSVTemplate}
+            className="teacher-btn teacher-btn-primary w-full py-4 text-lg"
+          >
+            <span className="text-2xl">📥</span>
+            <span>Download CSV Template</span>
+          </button>
+        </div>
+
+        {/* Upload Section */}
+        <div className="border-2 border-dashed border-emerald-400 rounded-xl p-8 text-center bg-emerald-50/50">
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleCSVUpload}
+            disabled={uploading}
+            className="hidden"
+            id="csv-upload"
+          />
+          <label
+            htmlFor="csv-upload"
+            className={`cursor-pointer inline-block ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <div className="text-6xl mb-4">📤</div>
+            <div className="font-bold text-xl text-emerald-600 mb-2">
+              {uploading ? 'Uploading...' : 'Click to Upload CSV File'}
+            </div>
+            <div className="text-sm text-slate-500">
+              {uploading ? 'Please wait while we process your questions' : 'Select a .csv file from your computer'}
+            </div>
+          </label>
+
+          {/* Upload Progress */}
+          {uploading && uploadProgress.total > 0 && (
+            <div className="mt-6">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-slate-500">Processing questions...</span>
+                <span className="text-cyan-600 font-medium">{uploadProgress.current} / {uploadProgress.total}</span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-300"
+                  style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tips */}
+        <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <h4 className="font-bold text-amber-700 mb-2 flex items-center gap-2">
+            <span>💡</span> Tips for Success
+          </h4>
+          <ul className="text-sm text-slate-600 space-y-1">
+            <li>• Use quotes around text with commas (e.g., "What is 2 + 2, exactly?")</li>
+            <li>• For true/false questions, leave option1-4 empty</li>
+            <li>• For short answer, leave option1-4 empty</li>
+            <li>• Ensure correct_answer matches one of your options exactly</li>
+            <li>• Test with 1-2 questions first before uploading many</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStudents = () => {
+    const classMap = new Map<string, { subjects: Set<string>; students: StudentForAssignment[] }>();
+    assignedClasses
+      .filter((assignedClass) => assignedClass.is_active)
+      .forEach((assignedClass) => {
+        const existing = classMap.get(assignedClass.class_code) || { subjects: new Set<string>(), students: [] };
+        if (assignedClass.subject) existing.subjects.add(assignedClass.subject);
+        classMap.set(assignedClass.class_code, existing);
+      });
+    availableStudents.forEach((student) => {
+      const classCode = student.batch || 'Class not assigned';
+      const existing = classMap.get(classCode) || { subjects: new Set<string>(), students: [] };
+      existing.students.push(student);
+      classMap.set(classCode, existing);
+    });
+    const search = studentSearchTerm.trim().toLocaleLowerCase();
+    const classGroups = [...classMap.entries()]
+      .map(([classCode, value]) => ({
+        classCode,
+        subjects: [...value.subjects].sort(),
+        students: value.students.filter((student) => !search || [
+          student.display_name,
+          student.batch,
+        ].join(' ').toLocaleLowerCase().includes(search)),
+      }))
+      .filter((group) => !search ||
+        group.students.length > 0 ||
+        group.classCode.toLocaleLowerCase().includes(search) ||
+        group.subjects.some((subjectName) => subjectName.toLocaleLowerCase().includes(search)))
+      .sort((left, right) => left.classCode.localeCompare(right.classCode));
+
+    const printClassDocuments = (groups: typeof classGroups, mode: 'roster' | 'register') => {
+      if (!groups.length) return;
+      const today = new Date().toISOString().slice(0, 10);
+      const bodyHtml = groups.map((group, groupIndex) => `
+        <section class="${groupIndex > 0 ? 'document-page-break' : ''}">
+          <h2>Class ${escapeSchoolDocumentHtml(group.classCode)}</h2>
+          <p><strong>Subjects:</strong> ${escapeSchoolDocumentHtml(group.subjects.join(', ') || 'Not linked')}</p>
+          <table>
+            <thead><tr><th style="width:8%">No.</th><th>Official student name</th><th style="width:14%">Grade</th>${mode === 'register' ? '<th>Present</th><th>Absent</th><th>Late</th><th style="width:24%">Notes</th>' : '<th style="width:35%">Teacher notes</th>'}</tr></thead>
+            <tbody>${group.students.length ? group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student.display_name)}</td><td>${escapeSchoolDocumentHtml(student.grade || '—')}</td>${mode === 'register' ? '<td>□</td><td>□</td><td>□</td><td></td>' : '<td></td>'}</tr>`).join('') : `<tr><td colspan="${mode === 'register' ? 7 : 4}">No students are currently enrolled in this class.</td></tr>`}</tbody>
+          </table>
+        </section>`).join('');
+      try {
+        openSchoolDocumentPreview({
+          meta: {
+            documentId: createSchoolDocumentId(mode === 'register' ? 'attendance' : 'roster'),
+            templateVersion: mode === 'register' ? 'class-register-v1' : 'class-roster-v1',
+            title: mode === 'register' ? 'Class Attendance Register' : 'Class Roster',
+            subtitle: groups.length === 1 ? `Class ${groups[0]?.classCode || ''}` : `${groups.length} assigned classes`,
+            schoolName: resolvedBranding.schoolName,
+            schoolLogoUrl: resolvedBranding.schoolLogoUrl,
+            audience: 'teacher',
+            status: 'final',
+            confidentiality: 'confidential',
+            generatedAt: new Date().toISOString(),
+            generatedBy: profile.full_name || profile.username || 'Teacher',
+            className: groups.length === 1 ? groups[0]?.classCode : undefined,
+            schoolId: profile.school_id,
+            sourceType: mode === 'register' ? 'class_register' : 'class_roster',
+            sourceId: groups.length === 1 ? groups[0]?.classCode : 'all-assigned-classes',
+          },
+          bodyHtml,
+          orientation: 'portrait',
+          inkSaver: true,
+          fileName: schoolDocumentFileName(resolvedBranding.schoolName, mode === 'register' ? 'Attendance_Register' : 'Class_Roster', groups.length === 1 ? groups[0]?.classCode : 'All_Classes', today),
+        });
+      } catch (error) {
+        brainsAlert(error instanceof Error ? error.message : 'Unable to open the class document.', 'info');
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="teacher-section-header">
+          <div>
+            <h2>🏫 My Classes</h2>
+            <p className="text-sm text-slate-500 mt-1">Every assigned class, subject, and student in one organised view.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="teacher-btn teacher-btn-secondary" onClick={() => printClassDocuments(classGroups, 'roster')} disabled={!classGroups.length}>Print all rosters</button>
+            <button type="button" className="teacher-btn teacher-btn-primary" onClick={() => printClassDocuments(classGroups, 'register')} disabled={!classGroups.length}>Attendance register</button>
+          </div>
+        </div>
+
+        <div className="teacher-card p-4">
+          <label htmlFor="teacher-student-search" className="sr-only">Search classes and students</label>
+          <input
+            id="teacher-student-search"
+            type="search"
+            value={studentSearchTerm}
+            onChange={(event) => setStudentSearchTerm(event.target.value)}
+            placeholder="Search by class, subject, or student…"
+            className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+          />
+        </div>
+
+        {classGroups.length === 0 ? (
+          <div className="teacher-card p-10 text-center text-slate-500">No classes or students match this search.</div>
+        ) : (
+          <div className="grid gap-5 xl:grid-cols-2">
+            {classGroups.map((group) => (
+                <section key={group.classCode} className="teacher-card p-0 overflow-hidden">
+                  <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="font-bold text-slate-800">Class {group.classCode}</h3>
+                      <div className="flex items-center gap-2"><span className="text-sm text-slate-500">{group.students.length} student{group.students.length === 1 ? '' : 's'}</span><button type="button" className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100" onClick={() => printClassDocuments([group], 'roster')}>Print</button></div>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {group.subjects.length
+                        ? group.subjects.map((subjectName) => <span key={subjectName} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600">{subjectName}</span>)
+                        : <span className="text-xs text-slate-400">No subject linked</span>}
+                    </div>
+                  </div>
+                  {group.students.length ? (
+                    <ul className="divide-y divide-slate-100">
+                    {group.students.map((student) => (
+                      <li key={student.id} className="flex items-center gap-3 px-5 py-3">
+                        <img src={student.avatar_url || '/default-avatar.png'} alt="" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
+                        <div className="min-w-0">
+                          <div className="font-semibold text-slate-800">{student.display_name}</div>
+                          <div className="truncate text-xs text-slate-500">Grade {student.grade || '—'}</div>
+                        </div>
+                      </li>
+                    ))}
+                    </ul>
+                  ) : (
+                    <p className="px-5 py-6 text-sm text-slate-500">No students are currently enrolled in this assigned class.</p>
+                  )}
+                </section>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const handleDeleteAssignment = async (assignment: TeacherAssignmentSummary) => {
+    if (!teacher || assignment.teacher_id !== teacher.id || deletingAssignmentId) {
+      brainsAlert('You can only delete assignments that you created.', 'error');
+      return;
+    }
+
+    const assignmentName = assignment.title || assignment.topic_name;
+    const firstConfirmation = await brainsConfirm({
+      title: `Delete “${assignmentName}”?`,
+      message: 'This will permanently delete the assignment for every assigned student.',
+      confirmLabel: 'Continue to final warning',
+      cancelLabel: 'Keep assignment',
+      destructive: true,
+    });
+    if (!firstConfirmation) return;
+
+    const finalConfirmation = await brainsConfirm({
+      title: 'Final confirmation: this cannot be restored',
+      message: 'Deleting this assignment is permanent. The assignment and all related student submissions, answers, results, and grades will be lost and cannot be recovered.',
+      confirmLabel: 'Permanently delete all data',
+      cancelLabel: 'Cancel deletion',
+      destructive: true,
+    });
+    if (!finalConfirmation) return;
+
+    setDeletingAssignmentId(assignment.id);
+    try {
+      await GameService.delete_teacher_assignment(assignment.id);
+      setAssignments((current) => current.filter((item) => item.id !== assignment.id));
+      if (selectedReportAssignment?.id === assignment.id) {
+        setSelectedReportAssignment(null);
+        setAssignmentReport([]);
+      }
+      brainsAlert('Assignment and all related data were permanently deleted.', 'success');
+    } catch (error) {
+      console.error('Error deleting assignment:', error);
+      brainsAlert(error instanceof Error ? error.message : 'Unable to delete assignment. Please try again.', 'error');
+    } finally {
+      setDeletingAssignmentId(null);
+    }
+  };
+
+  const renderAssignments = () => (
+    <div className="space-y-6">
+      {/* Header with Title and Create Button */}
+      <div className="teacher-section-header">
+        <h2>🗂️ Assignments</h2>
+        <button
+          onClick={openBlankAssignmentForm}
+          className="teacher-btn teacher-btn-primary"
+        >
+          ➕ New Assignment
+        </button>
+      </div>
+
+      {/* Folder Organization: Filters & Search */}
+      {assignments.length > 0 && (
+        <div className="teacher-card p-4">
+          <div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_minmax(0,1.5fr)_minmax(0,1fr)]">
+            {/* Search Bar */}
+            <div className="flex-1 w-full lg:w-auto">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search assignments..."
+                  value={assignmentSearchTerm}
+                  onChange={(e) => setAssignmentSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white text-slate-700"
+                />
+              </div>
+            </div>
+
+            <fieldset className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-500">Subject</legend>
+              <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setAssignmentSubjectFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  assignmentSubjectFilter === 'all'
+                    ? 'bg-cyan-500 text-white shadow-md'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                📁 All Subjects
+              </button>
+              {assignmentSubjects.map(subject => (
+                <button
+                  key={subject}
+                  onClick={() => setAssignmentSubjectFilter(subject as Subject)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    assignmentSubjectFilter === subject
+                      ? 'bg-purple-500 text-white shadow-md'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  📂 {subject}
+                </button>
+              ))}
+              </div>
+            </fieldset>
+
+            <fieldset className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-500">Progress</legend>
+              <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setAssignmentStatusFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  assignmentStatusFilter === 'all'
+                    ? 'bg-slate-700 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setAssignmentStatusFilter('in-progress')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  assignmentStatusFilter === 'in-progress'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                ⏳ In Progress
+              </button>
+              <button
+                onClick={() => setAssignmentStatusFilter('completed')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  assignmentStatusFilter === 'completed'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                ✅ Completed
+              </button>
+              </div>
+            </fieldset>
+          </div>
+
+          {/* Results Summary */}
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-sm text-slate-500">
+              Showing {filteredAssignments.length} of {assignments.length} assignments
+            </span>
+            {(assignmentSearchTerm || assignmentSubjectFilter !== 'all' || assignmentStatusFilter !== 'all') && (
+              <button
+                onClick={() => {
+                  setAssignmentSearchTerm('');
+                  setAssignmentSubjectFilter('all');
+                  setAssignmentStatusFilter('all');
+                }}
+                className="text-sm text-cyan-600 hover:text-cyan-700 font-medium"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {assignments.length === 0 ? (
+        <div className="teacher-card p-12 text-center">
+          <div className="text-6xl mb-4">🧭</div>
+          <p className="text-xl text-slate-500 mb-4">No assignments yet</p>
+          <p className="text-slate-400">Create a mission to block normal quests until students finish.</p>
+        </div>
+      ) : filteredAssignments.length === 0 ? (
+        <div className="teacher-card p-12 text-center">
+          <div className="text-5xl mb-4">🔍</div>
+          <p className="text-lg text-slate-500 mb-2">No assignments match your filters</p>
+          <button
+            onClick={() => {
+              setAssignmentSearchTerm('');
+              setAssignmentSubjectFilter('all');
+              setAssignmentStatusFilter('all');
+            }}
+            className="text-cyan-600 hover:text-cyan-700 font-medium"
+          >
+            Clear all filters
+          </button>
+        </div>
+      ) : (
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4">
+            <div><span className="text-xs font-bold uppercase tracking-wider text-blue-600">All assignments</span><h3 className="mt-1 text-lg font-bold text-slate-800">Assignment workspace</h3></div>
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{filteredAssignments.length} shown</span>
+          </header>
+          <div className="grid gap-3 p-4 xl:grid-cols-2">
+            {filteredAssignments.map((assignment) => {
+                          const completed = assignment.student_count > 0 && assignment.completed_count >= assignment.student_count;
+                          const completionPercent = assignment.student_count > 0
+                            ? Math.round((assignment.completed_count / assignment.student_count) * 100)
+                            : 0;
+                          return (
+                            <article key={assignment.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <span className="text-xs font-bold text-blue-600">{assignment.subject_name} · {assignment.topic_name}</span>
+                                  <h5 className="mt-1 text-lg font-bold text-slate-800">{assignment.title || assignment.topic_name}</h5>
+                                </div>
+                                <span className={`rounded-full px-3 py-1 text-xs font-bold ${completed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{completed ? 'Completed' : `${completionPercent}% complete`}</span>
+                              </div>
+                              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100" aria-label={`${completionPercent}% completed`}>
+                                <span className={`block h-full rounded-full ${completed ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${completionPercent}%` }} />
+                              </div>
+                              <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Class</dt><dd>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(assignment.assigned_at).toLocaleDateString()}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Questions</dt><dd>{assignment.question_count}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{assignment.student_count}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Completed</dt><dd>{assignment.completed_count}/{assignment.student_count}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'None'}</dd></div>
+                              </dl>
+                              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                                <button onClick={() => handleOpenReport(assignment)} className="teacher-btn teacher-btn-secondary w-full">
+                                  View report
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleDeleteAssignment(assignment)}
+                                  disabled={deletingAssignmentId !== null}
+                                  className="teacher-btn w-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                  aria-label={`Delete ${assignment.title || assignment.topic_name}`}
+                                >
+                                  {deletingAssignmentId === assignment.id ? 'Deleting…' : 'Delete assignment'}
+                                </button>
+                              </div>
+                            </article>
+                          );
+            })}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+
+  const renderCreateAssignment = () => {
+    if (!teacherHasClassAssignments) {
+      return (
+        <div className="max-w-3xl mx-auto">
+          <button onClick={() => setView('dashboard')} className="teacher-back-link mb-6">
+            <span>←</span> Back to Dashboard
+          </button>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center mt-6">
+            <div className="text-4xl mb-4">🔒</div>
+            <h2 className="text-xl font-bold text-amber-800 mb-2">No Class Assignments</h2>
+            <p className="text-amber-700 mb-4">
+              You need to be assigned to at least one class and subject by your school admin before you can create assignments.
+            </p>
+            <p className="text-sm text-amber-600">Please contact your school administrator to assign you to classes.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <React.Suspense
+        fallback={(
+          <div className="min-h-[60vh] grid place-items-center rounded-2xl border border-cyan-400/20 bg-slate-950 text-cyan-100">
+            Preparing assignment workspace…
+          </div>
+        )}
+      >
+        <AssignmentWizard
+          initialStep={assignmentLockedSubject ? 2 : 1}
+          lockedSubject={assignmentLockedSubject}
+          assignmentMode={assignmentMode}
+          setAssignmentMode={setAssignmentMode}
+          assignmentBatches={assignmentBatches}
+          setAssignmentBatches={setAssignmentBatches}
+          assignmentSubject={assignmentSubject}
+          setAssignmentSubject={setAssignmentSubject}
+          assignmentTitle={assignmentTitle}
+          setAssignmentTitle={setAssignmentTitle}
+          assignmentDescription={assignmentDescription}
+          setAssignmentDescription={setAssignmentDescription}
+          assignmentInstructions={assignmentInstructions}
+          setAssignmentInstructions={setAssignmentInstructions}
+          assignmentQuestionIds={assignmentQuestionIds}
+          setAssignmentQuestionIds={setAssignmentQuestionIds}
+          assignmentDueAt={assignmentDueAt}
+          setAssignmentDueAt={setAssignmentDueAt}
+          assignmentDifficulty={assignmentDifficulty}
+          setAssignmentDifficulty={setAssignmentDifficulty}
+          assignmentTopicMode={assignmentTopicMode}
+          setAssignmentTopicMode={setAssignmentTopicMode}
+          assignmentTopicName={assignmentTopicName}
+          setAssignmentTopicName={setAssignmentTopicName}
+          assignmentSubmitting={assignmentSubmitting}
+          availableStudents={availableStudents}
+          selectedStudentIds={selectedStudentIds}
+          setSelectedStudentIds={setSelectedStudentIds}
+          assignedClasses={assignedClasses}
+          teacherAssignedSubjects={teacherAssignedSubjects}
+          teacherId={teacher?.id}
+          questions={questions}
+          onSubmit={handleCreateAssignment}
+          onCancel={() => setView('assignments')}
+        />
+      </React.Suspense>
+    );
+  };
+
+  const renderReports = () => (
+    <div>
+      <div className="teacher-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <h2>📊 Assignment Reports</h2>
+        {assignments.length > 0 && (
+          <button
+            onClick={() => setView('collective-report')}
+            className="teacher-btn teacher-btn-primary text-sm flex items-center gap-2"
+          >
+            📋 Collective Report
+          </button>
+        )}
+      </div>
+      {assignments.length === 0 ? (
+        <div className="teacher-card p-10 text-center">
+          <div className="text-5xl mb-3">📄</div>
+          <p className="text-slate-500">Create an assignment to see progress here.</p>
+        </div>
+      ) : (
+        <div className="teacher-card p-0 overflow-hidden">
+          <div className="teacher-mobile-record-list" aria-label="Assignment reports">
+            {assignments.map((assignment) => {
+              const completed = assignment.completed_count >= assignment.student_count;
+              const completionPercent = assignment.student_count > 0
+                ? Math.round((assignment.completed_count / assignment.student_count) * 100)
+                : 0;
+              return (
+                <article key={assignment.id} className="teacher-mobile-record-card">
+                  <div className="teacher-mobile-record-heading">
+                    <div>
+                      <span className="teacher-mobile-record-eyebrow">{assignment.subject_name}</span>
+                      <h3>{assignment.title || assignment.topic_name}</h3>
+                    </div>
+                    <span className={`teacher-badge ${completed ? 'success' : 'warning'}`}>
+                      {completed ? 'Complete' : 'In progress'}
+                    </span>
+                  </div>
+                  <dl className="teacher-mobile-record-meta">
+                    <div><dt>Class</dt><dd>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</dd></div>
+                    <div><dt>Questions</dt><dd>{assignment.question_count}</dd></div>
+                    <div><dt>Created</dt><dd>{new Date(assignment.assigned_at).toLocaleDateString()}</dd></div>
+                    <div><dt>Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'No deadline'}</dd></div>
+                  </dl>
+                  <div className="teacher-mobile-record-progress">
+                    <div>
+                      <span>Student completion</span>
+                      <strong>{assignment.completed_count}/{assignment.student_count}</strong>
+                    </div>
+                    <div className="teacher-mobile-progress-track" aria-label={`${completionPercent}% completed`}>
+                      <span style={{ width: `${completionPercent}%` }} />
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => handleOpenReport(assignment)} className="teacher-mobile-record-action">
+                    View assignment report <span aria-hidden="true">→</span>
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+          <table className="teacher-table teacher-desktop-only-table">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Title</th>
+                <th>Topic</th>
+                <th>Class</th>
+                <th>Created</th>
+                <th>Questions</th>
+                <th>Students</th>
+                <th>Due</th>
+                <th>Completed</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {assignments.map((assignment) => (
+                <tr key={assignment.id}>
+                  <td className="font-medium">{assignment.subject_name}</td>
+                  <td className="font-medium">{assignment.title || assignment.topic_name}</td>
+                  <td>{assignment.topic_name}</td>
+                  <td>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</td>
+                  <td>{new Date(assignment.assigned_at).toLocaleDateString()}</td>
+                  <td>{assignment.question_count}</td>
+                  <td>{assignment.student_count}</td>
+                  <td>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : '—'}</td>
+                  <td>
+                    <span className="teacher-badge teacher-badge-primary">
+                      {assignment.completed_count}/{assignment.student_count}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      onClick={() => handleOpenReport(assignment)}
+                      className="teacher-btn teacher-btn-secondary text-sm"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderReportDetail = () => (
+    <div>
+      <button
+        onClick={() => setView('reports')}
+        className="teacher-back-link mb-4"
+      >
+        <span>←</span> Back to Reports
+      </button>
+
+      {reportLoading ? (
+        <div className="teacher-card p-12 text-center text-cyan-600">Loading report...</div>
+      ) : !selectedReportAssignment ? (
+        <div className="teacher-card p-12 text-center text-slate-500">Select an assignment to view details.</div>
+      ) : (
+        <div className="space-y-6">
+          <div className="teacher-card">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedReportAssignment.title || selectedReportAssignment.topic_name}</h2>
+            <p className="text-slate-600">
+              {selectedReportAssignment.subject_name} · Topic {selectedReportAssignment.topic_name} · Class {selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}
+            </p>
+            <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(selectedReportAssignment.assigned_at).toLocaleDateString()}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Class</dt><dd>{selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Questions</dt><dd>{selectedReportAssignment.question_count}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{selectedReportAssignment.student_count}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{selectedReportAssignment.due_at ? new Date(selectedReportAssignment.due_at).toLocaleDateString() : 'No deadline'}</dd></div>
+            </dl>
+          </div>
+
+          {assignmentReport.length === 0 ? (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center text-slate-500">No students have completed this assignment yet.</div>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
+                <div><h3 className="text-xl font-bold text-slate-800">Student Performance</h3><p className="mt-1 text-sm text-slate-500">Open a student to review every answer and the evidence behind their result.</p></div>
+                <button
+                  onClick={handleExportReport}
+                  className="teacher-btn teacher-btn-secondary"
+                >
+                  Export CSV
+                </button>
+              </div>
+
+              {/* Student Performance Table */}
+              <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="bg-slate-100 border-b border-slate-200">
+                    <tr>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Student</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Class</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">
+                        <span className="inline-flex items-center gap-1">Score <span title="Total XP points earned from correct answers. Each question can carry different points." aria-label="Score explanation" className="cursor-help text-cyan-600">ⓘ</span></span>
+                      </th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Correct</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Incorrect</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Accuracy</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Completed</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {assignmentReport.map((row, i) => (
+                      <tr key={row.student_id} className={`border-b border-slate-100 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
+                        <td className="py-3 px-4 text-slate-800 font-medium">{row.student_name}</td>
+                        <td className="py-3 px-4 text-slate-600">{row.batch ?? '—'}</td>
+                        <td className="py-3 px-4 text-slate-700">{row.score}</td>
+                        <td className="py-3 px-4 text-green-600 font-medium">{row.correct}</td>
+                        <td className="py-3 px-4 text-red-600 font-medium">{row.incorrect}</td>
+                        <td className="py-3 px-4">
+                          <span className={`font-bold ${row.accuracy >= 70 ? 'text-green-600' : row.accuracy >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                            {row.accuracy}%
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-slate-500 text-sm">{new Date(row.completed_at).toLocaleString()}</td>
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => handleViewStudentAnalysis(row)}
+                            className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg text-xs font-medium transition-colors"
+                          >
+                            🔍 Analyze
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Question Analysis follows the complete student roster and stays closed by default. */}
+              <details className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset [&::-webkit-details-marker]:hidden">
+                  <span>
+                    <span className="block text-lg font-bold text-slate-800">📊 Question Analysis</span>
+                    <span className="mt-1 block text-sm text-slate-500">Review accuracy, response time, and common mistakes for every question.</span>
+                  </span>
+                  <span className="flex flex-none items-center gap-2 text-sm font-semibold text-cyan-700">
+                    {questionAnalysis.length > 0 ? `${questionAnalysis.length} questions` : 'No data yet'}
+                    <span aria-hidden="true" className="text-lg transition-transform group-open:rotate-180">⌄</span>
+                  </span>
+                </summary>
+                <div className="border-t border-slate-200 p-4 sm:p-5">
+                  {questionAnalysis.length > 0 ? (
+                    <>
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-sm font-semibold text-slate-600">Choose how questions are arranged</p>
+                        <div className="inline-flex rounded-lg border border-slate-300 p-1 text-xs" aria-label="Question order">
+                          <button type="button" onClick={() => setAnswerOrder('assignment')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'assignment' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Assignment order</button>
+                          <button type="button" onClick={() => setAnswerOrder('review')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'review' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Needs review first</button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {(answerOrder === 'assignment' ? questionAnalysis : [...questionAnalysis].sort((a, b) => a.accuracy_percent - b.accuracy_percent)).map((qa, idx) => (
+                          <div
+                            key={qa.question_id}
+                            className={`rounded-xl border p-4 ${
+                              qa.accuracy_percent < 50
+                                ? 'border-red-300 bg-red-50'
+                                : qa.accuracy_percent < 70
+                                  ? 'border-amber-300 bg-amber-50'
+                                  : 'border-green-300 bg-green-50'
+                            }`}
+                          >
+                            <div className="mb-2 flex items-start justify-between">
+                              <span className="text-xs font-bold text-slate-500">Q{qa.order_index ?? idx + 1}</span>
+                              <span className={`text-lg font-bold ${qa.accuracy_percent < 50 ? 'text-red-600' : qa.accuracy_percent < 70 ? 'text-amber-600' : 'text-green-600'}`}>
+                                {qa.accuracy_percent}%
+                              </span>
+                            </div>
+                            <p className="mb-2 line-clamp-2 text-sm text-slate-700">{qa.question_text}</p>
+                            <div className="flex items-center justify-between text-xs text-slate-500">
+                              <span>✅ {qa.correct_count} / ❌ {qa.incorrect_count}</span>
+                              <span>⏱️ {Math.round(qa.avg_time_ms / 1000)}s avg</span>
+                            </div>
+                            {qa.common_wrong_answers && qa.common_wrong_answers.length > 0 && (
+                              <div className="mt-2 border-t border-slate-200 pt-2">
+                                <span className="text-xs font-semibold text-red-600">Common mistakes:</span>
+                                <ul className="mt-1 text-xs text-slate-600">
+                                  {qa.common_wrong_answers.slice(0, 2).map((w, wi) => (
+                                    <li key={wi}>"{w.answer}" ({w.count}x)</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">Question-level analysis is not available for these submissions yet.</div>
+                  )}
+                </div>
+              </details>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  // Render Student Analysis View - Personalized feedback on mistakes
+  const renderReportAnalysis = () => (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <button
+        onClick={() => setView('report-detail')}
+        className="teacher-back-link mb-4"
+      >
+        <span>←</span> Back to Report
+      </button>
+
+      {analysisLoading ? (
+        <div className="teacher-card p-12 text-center text-cyan-600">Loading student analysis...</div>
+      ) : !selectedAnalysisStudent ? (
+        <div className="teacher-card p-12 text-center text-slate-500">No student selected.</div>
+      ) : (
+        <div className="space-y-6">
+          {/* Student Header */}
+          <div className="teacher-card">
+            <div className="mb-6 border-b border-slate-200 pb-5 text-center">
+              <span className="text-xs font-bold uppercase tracking-[.14em] text-blue-600">Assignment performance report</span>
+              <h1 className="mt-2 text-2xl font-bold text-slate-900">{selectedReportAssignment?.title || selectedReportAssignment?.topic_name || 'Assignment'}</h1>
+              <p className="mt-1 text-sm text-slate-500">{selectedReportAssignment?.subject_name} · {selectedReportAssignment?.topic_name}</p>
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <button type="button" onClick={() => handlePrintStudentAnalysis('family')} className="teacher-btn teacher-btn-secondary">Family report</button>
+                <button type="button" onClick={() => handlePrintStudentAnalysis('teacher')} className="teacher-btn teacher-btn-primary">Teacher report + evidence</button>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                  <span className="text-3xl">👤</span>
+                  {selectedAnalysisStudent.student_name}
+                </h2>
+                <p className="text-slate-600 mt-1">
+                  Class: {selectedAnalysisStudent.batch ?? '—'} ·
+                  Completed: {new Date(selectedAnalysisStudent.completed_at).toLocaleString()}
+                </p>
+              </div>
+              <div className="text-center">
+                <div className={`text-4xl font-bold ${
+                  selectedAnalysisStudent.accuracy >= 70 
+                    ? 'text-green-600' 
+                    : selectedAnalysisStudent.accuracy >= 50 
+                      ? 'text-amber-600' 
+                      : 'text-red-600'
+                }`}>
+                  {selectedAnalysisStudent.accuracy}%
+                </div>
+                <div className="text-sm text-slate-500">Accuracy</div>
+              </div>
+            </div>
+
+            {/* Performance Summary */}
+            <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t border-slate-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{selectedAnalysisStudent.correct}</div>
+                <div className="text-xs text-slate-500">Correct</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">{selectedAnalysisStudent.incorrect}</div>
+                <div className="text-xs text-slate-500">Incorrect</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">{selectedAnalysisStudent.score}</div>
+                <div className="text-xs text-slate-500">Total Score</div>
+                <div className="mt-1 max-w-[180px] text-xs leading-4 text-slate-400">XP points earned from correct answers; questions may have different point values.</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Answers */}
+          {studentAnswers.length === 0 ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
+              <span className="text-4xl mb-2 block">📝</span>
+              <p className="text-amber-800 font-medium">No detailed answer data available yet.</p>
+              <p className="text-amber-600 text-sm mt-1">
+                Answer tracking is enabled for new assignments. Students who complete assignments going forward will have their answers recorded for analysis.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-slate-800">📋 Question-by-Question Analysis</h3>
+              
+              {/* Show incorrect answers first for learning focus */}
+              {studentAnswers.filter(a => !a.is_correct).length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-red-700 mb-3 flex items-center gap-2">
+                    <span>❌</span> Questions to Review ({studentAnswers.filter(a => !a.is_correct).length})
+                  </h4>
+                  {studentAnswers.filter(a => !a.is_correct).map((answer, idx) => (
+                    <div key={answer.question_id} className="bg-red-50 border border-red-200 rounded-xl p-4 mb-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">INCORRECT</span>
+                        <span className="text-xs text-slate-500">⏱️ {Math.round(answer.time_taken_ms / 1000)}s</span>
+                      </div>
+                      <p className="text-slate-800 font-medium mb-3">{answer.question_text}</p>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="bg-red-100 rounded-lg p-3">
+                          <span className="text-xs font-semibold text-red-700 block mb-1">Student's Answer:</span>
+                          <span className="text-red-800">{answer.student_answer}</span>
+                        </div>
+                        <div className="bg-green-100 rounded-lg p-3">
+                          <span className="text-xs font-semibold text-green-700 block mb-1">Correct Answer:</span>
+                          <span className="text-green-800">{answer.correct_answer}</span>
+                        </div>
+                      </div>
+                      {answer.explanation && (
+                        <div className="mt-3 bg-blue-50 rounded-lg p-3">
+                          <span className="text-xs font-semibold text-blue-700 block mb-1">💡 Explanation:</span>
+                          <span className="text-blue-800 text-sm">{answer.explanation}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Correct answers section */}
+              {studentAnswers.filter(a => a.is_correct).length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold text-green-700 mb-3 flex items-center gap-2">
+                    <span>✅</span> Correct Answers ({studentAnswers.filter(a => a.is_correct).length})
+                  </h4>
+                  {studentAnswers.filter(a => a.is_correct).map((answer, idx) => (
+                    <div key={answer.question_id} className="bg-green-50 border border-green-200 rounded-xl p-4 mb-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">CORRECT</span>
+                        <span className="text-xs text-slate-500">⏱️ {Math.round(answer.time_taken_ms / 1000)}s</span>
+                      </div>
+                      <p className="text-slate-800 font-medium mb-2">{answer.question_text}</p>
+                      <div className="bg-green-100 rounded-lg p-3 text-sm">
+                        <span className="text-xs font-semibold text-green-700 block mb-1">Answer:</span>
+                        <span className="text-green-800">{answer.student_answer}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Learning Recommendations */}
+          {studentAnswers.filter(a => !a.is_correct).length > 0 && (
+            <div className="teacher-card bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+              <h4 className="text-lg font-bold text-purple-800 mb-3 flex items-center gap-2">
+                <span>🎯</span> Personalized Recommendations
+              </h4>
+              <ul className="space-y-2 text-slate-700">
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500">•</span>
+                  <span>Review the {studentAnswers.filter(a => !a.is_correct).length} incorrect answer{studentAnswers.filter(a => !a.is_correct).length !== 1 ? 's' : ''} above with the student</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500">•</span>
+                  <span>Focus on understanding why the correct answers are right, not just memorizing them</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500">•</span>
+                  <span>Consider assigning targeted practice on the topics where mistakes occurred</span>
+                </li>
+                {studentAnswers.some(a => !a.is_correct && a.time_taken_ms < 5000) && (
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">⚠️</span>
+                    <span>Some questions were answered very quickly - encourage the student to read more carefully</span>
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  // Render Cambridge Reports View - Compact with Tabs
+  const renderCambridgeReports = () => {
+    const pendingWriting = cambridgeScores.filter(s => isTeacherMarkedCambridgeTest(s.quiz_name) && s.answers?.requires_marking).length;
+    const drawerAttempt = cambridgeDrawerAttempt;
+    const drawerIsWriting = drawerAttempt ? isTeacherMarkedCambridgeTest(drawerAttempt.quiz_name) : false;
+    const drawerNeedsMarking = drawerIsWriting && drawerAttempt?.answers?.requires_marking;
+    const canReleaseDrawerScores = Boolean(drawerAttempt && !drawerNeedsMarking && !drawerAttempt.scores_released);
+    const visibleScores = sortedCambridgeScores;
+    const allVisibleIds = visibleScores.map((score) => score.id);
+    const allVisibleSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => cambridgeSelectedIds.includes(id));
+    const selectedScores = visibleScores.filter((score) => cambridgeSelectedIds.includes(score.id));
+    const pendingCountForActiveTest = cambridgeActiveTab === 'all'
+      ? cambridgeScores.filter(s => isTeacherMarkedCambridgeTest(s.quiz_name) && s.answers?.requires_marking).length
+      : cambridgeScores.filter(s => s.quiz_name === cambridgeActiveTab && s.answers?.requires_marking).length;
+    const selectedReleaseIds = selectedScores
+      .filter((score) => {
+        const needsMarking = isTeacherMarkedCambridgeTest(score.quiz_name) && score.answers?.requires_marking;
+        return !needsMarking && !score.scores_released;
+      })
+      .map((score) => score.id);
+    const releaseMarkedIds = visibleScores
+      .filter((score) => {
+        const needsMarking = isTeacherMarkedCambridgeTest(score.quiz_name) && score.answers?.requires_marking;
+        return !needsMarking && !score.scores_released;
+      })
+      .map((score) => score.id);
+    const filteredTests = uniqueCambridgeQuizNames.filter((name) => name.toLowerCase().includes(cambridgeTestSearch.trim().toLowerCase()));
+    const statusOptions = ['Pending', 'Marked', 'Released'];
+    const canReleaseAll = cambridgeActiveTab !== 'all';
+    const hasRows = visibleScores.length > 0;
+
+    const filtersPanel = (
+      <div className="flex min-h-0 flex-col space-y-4">
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Search</label>
+          <input
+            value={cambridgeSearchTerm}
+            onChange={(event) => setCambridgeSearchTerm(event.target.value)}
+            placeholder="Search student, test, class…"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
+        </div>
+
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40 flex flex-col min-h-0">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Tests</summary>
+          <div className="px-3 pb-3 flex min-h-0 flex-col gap-2">
+            <input
+              value={cambridgeTestSearch}
+              onChange={(event) => setCambridgeTestSearch(event.target.value)}
+              placeholder="Search tests"
+              className="w-full rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-700"
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-1 pr-1">
+              <button
+                onClick={() => setCambridgeActiveTab('all')}
+                className={`w-full text-left px-2 py-1.5 rounded-md text-sm ${
+                  cambridgeActiveTab === 'all' ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 text-slate-600'
+                }`}
+              >
+                All Tests ({cambridgeScores.length})
+              </button>
+              {filteredTests.map((name) => {
+                const count = cambridgeScores.filter((s) => s.quiz_name === name).length;
+                return (
+                  <button
+                    key={name}
+                    onClick={() => setCambridgeActiveTab(name)}
+                    className={`w-full text-left px-2 py-1.5 rounded-md text-sm ${
+                      cambridgeActiveTab === name ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {name.replace('Cambridge ', '')} <span className="text-xs">({count})</span>
+                  </button>
+                );
+              })}
+              {filteredTests.length === 0 && (
+                <p className="text-xs text-slate-400">No tests found.</p>
+              )}
+            </div>
+          </div>
+        </details>
+
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40 flex flex-col min-h-0">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Classes</summary>
+          <div className="px-3 pb-3">
+            {teacherHasClassAssignments && (
+              <p className="text-xs text-slate-500 mb-2">
+                ✓ Showing only students from your {assignedCambridgeClassCodes.length} assigned class{assignedCambridgeClassCodes.length !== 1 ? 'es' : ''}
+              </p>
+            )}
+            <select
+              value={cambridgeClassFilter}
+              onChange={(event) => setCambridgeClassFilter(event.target.value)}
+              className="w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-slate-700 bg-white"
+            >
+              <option value="all">All Classes</option>
+              {uniqueCambridgeClasses.map((cls) => (
+                <option key={cls} value={cls}>{cls}</option>
+              ))}
+            </select>
+          </div>
+        </details>
+
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40 flex flex-col min-h-0">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Students</summary>
+          <div className="px-3 pb-3">
+            {cambridgeClassFilter === 'all' ? (
+              <p className="text-xs text-slate-400">Select a class to filter students.</p>
+            ) : (
+              <select
+                value={cambridgeStudentFilter}
+                onChange={(event) => setCambridgeStudentFilter(event.target.value)}
+                className="w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-slate-700 bg-white"
+              >
+                <option value="all">All Students</option>
+                {uniqueCambridgeStudents.map((student) => (
+                  <option key={student} value={student}>{student}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        </details>
+
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40 flex flex-col min-h-0">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Status</summary>
+          <div className="px-3 pb-3 flex flex-wrap gap-2">
+            {statusOptions.map((status) => {
+              const active = cambridgeStatusFilters.includes(status);
+              return (
+                <button
+                  key={status}
+                  onClick={() => {
+                    setCambridgeStatusFilters((prev) => (
+                      prev.includes(status)
+                        ? prev.filter((item) => item !== status)
+                        : [...prev, status]
+                    ));
+                  }}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                    active ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  {status}
+                </button>
+              );
+            })}
+          </div>
+        </details>
+
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40 flex flex-col min-h-0">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Other</summary>
+          <div className="px-3 pb-3 space-y-2 text-sm text-slate-600">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={cambridgeNeedsMarkingOnly}
+                onChange={(event) => setCambridgeNeedsMarkingOnly(event.target.checked)}
+              />
+              Needs marking only
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={cambridgeReleasedOnly}
+                onChange={(event) => setCambridgeReleasedOnly(event.target.checked)}
+              />
+              Released only
+            </label>
+          </div>
+        </details>
+      </div>
+    );
+
+    return (
+    <div className="cambridge-reports-container">
+      {/* Fixed Header Section - Always Visible */}
+      <div className="cambridge-reports-header">
+        {/* Row 1: Title + Stats */}
+        <div className="cambridge-reports-title-row flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 whitespace-nowrap">
+              <span className="text-xl">📊</span> Cambridge Tests
+            </h2>
+          </div>
+          <div className="cambridge-summary-chips flex flex-wrap items-center gap-2 text-xs flex-shrink-0">
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 border border-slate-200">
+              <span className="text-slate-500">Total:</span>
+              <span className="font-bold text-slate-900">{cambridgeStats.totalSubmissions}</span>
+            </span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 border border-blue-200">
+              <span className="text-blue-600">Avg:</span>
+              <span className="font-bold text-blue-700">{cambridgeStats.avgPercentage}%</span>
+            </span>
+            {pendingWriting > 0 && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-50 border border-amber-300 text-amber-700 font-semibold">
+                ⏳ {pendingWriting} marking
+              </span>
+            )}
+          </div>
+        </div>
+        {/* Row 2: Action Buttons */}
+        <div className="cambridge-header-actions flex flex-wrap items-center gap-2">
+              <details className="relative">
+                <summary className="list-none cursor-pointer select-none bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-blue-700">
+                  Release Scores ▾
+                </summary>
+                <div className="absolute right-0 mt-2 w-56 rounded-lg border border-slate-200 bg-white shadow-lg p-2 text-sm z-10">
+                  <button
+                    onClick={() => releaseScoresByIds(releaseMarkedIds, `✅ Released ${releaseMarkedIds.length} marked attempts.`)}
+                    disabled={releaseMarkedIds.length === 0 || releasingScores}
+                    className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                    title={releaseMarkedIds.length === 0 ? 'No marked attempts available' : 'Release all marked attempts in the current view'}
+                  >
+                    Release all marked
+                  </button>
+                  <button
+                    onClick={() => releaseScoresByIds(selectedReleaseIds, `✅ Released ${selectedReleaseIds.length} selected attempts.`)}
+                    disabled={cambridgeSelectedIds.length === 0 || selectedReleaseIds.length === 0 || releasingScores}
+                    className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                    title={cambridgeSelectedIds.length === 0 ? 'Select attempts to enable' : 'Release selected attempts'}
+                  >
+                    Release selected
+                  </button>
+                  <button
+                    onClick={() => releaseScores(cambridgeActiveTab, cambridgeClassFilter !== 'all' ? cambridgeClassFilter : undefined)}
+                    disabled={!canReleaseAll || releasingScores}
+                    className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                    title={canReleaseAll ? 'Release all attempts for the current test/class' : 'Select a test to enable'}
+                  >
+                    Release all
+                  </button>
+                  {cambridgeActiveTab !== 'all' && (
+                    <button
+                      onClick={() => hideScores(cambridgeActiveTab, cambridgeClassFilter !== 'all' ? cambridgeClassFilter : undefined)}
+                      disabled={releasingScores}
+                      className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                      title="Set scores to pending for the current test/class"
+                    >
+                      Set pending
+                    </button>
+                  )}
+                </div>
+              </details>
+              <details className="relative">
+                <summary className="list-none cursor-pointer select-none bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-teal-700">
+                  📄 Student Report ▾
+                </summary>
+                <div className="absolute right-0 mt-2 w-64 rounded-lg border border-slate-200 bg-white shadow-lg p-2 text-sm z-10 max-h-60 overflow-y-auto">
+                  {(() => {
+                    const studentNames = [...new Set(cambridgeScores.map(s => s.student_name))].sort();
+                    if (studentNames.length === 0) return <p className="text-slate-400 px-3 py-2">No students found.</p>;
+                    return studentNames.map(name => {
+                      const count = cambridgeScores.filter(s => s.student_name === name).length;
+                      return (
+                        <button
+                          key={name}
+                          onClick={() => openStudentOverviewReport(name)}
+                          className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 text-slate-700 flex justify-between items-center"
+                        >
+                          <span className="truncate">{name}</span>
+                          <span className="text-xs text-slate-400 ml-2 shrink-0">{count} test{count !== 1 ? 's' : ''}</span>
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+              </details>
+              <button
+                onClick={exportCambridgeCSV}
+                disabled={cambridgeScores.length === 0}
+                className="border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+              >
+                CSV
+              </button>
+              <button
+                onClick={loadCambridgeScores}
+                disabled={cambridgeLoading}
+                className="border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+              >
+                {cambridgeLoading ? 'Refreshing…' : 'Refresh'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowVisibilityManager(true);
+                  loadTestVisibilitySettings();
+                }}
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-700"
+                title="Manage which tests students can see"
+              >
+                👁️ Test Visibility
+              </button>
+            </div>
+          </div>
+
+      <div className="cambridge-workspace-note mb-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
+        <strong>Your Cambridge workspace:</strong> Your school admin chooses which Cambridge tests the school can use. You can then release available tests to each class you teach; results are limited to your assigned classes and subjects
+        {teacherAssignedSubjects.length > 0 ? ` (${teacherAssignedSubjects.join(', ')})` : ''}. Marking and score release stay limited to the subjects you teach.
+      </div>
+
+      <div className="cambridge-reports-body">
+        {/* Left Sidebar - Filters (Desktop) */}
+        <div className="hidden lg:flex lg:flex-col" style={{ width: '280px', flexShrink: 0 }}>
+          <div className="bg-white border border-slate-200 rounded-2xl p-3 flex flex-col h-full overflow-hidden">
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 flex-shrink-0">
+              <span className="font-semibold text-slate-800 text-sm">🔍 Filters</span>
+              <button
+                onClick={() => {
+                  setCambridgeActiveTab('all');
+                  setCambridgeClassFilter('all');
+                  setCambridgeStudentFilter('all');
+                  setCambridgeSearchTerm('');
+                  setCambridgeStatusFilters([]);
+                  setCambridgeNeedsMarkingOnly(false);
+                  setCambridgeReleasedOnly(false);
+                }}
+                className="text-xs text-slate-500 hover:text-slate-700"
+              >
+                Reset
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 min-h-0 pr-1">
+              {filtersPanel}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0 }}>
+          {/* Toolbar Row */}
+          <div className="cambridge-toolbar flex flex-wrap items-center justify-between gap-3 mb-3 bg-white border border-slate-200 rounded-xl px-3 py-2" style={{ flexShrink: 0 }}>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setCambridgeFiltersOpen(true)}
+                className="lg:hidden border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1"
+              >
+                <span>🔍</span> Filters
+              </button>
+              <span className="text-xs text-slate-600">
+                <strong className="text-slate-900">{visibleScores.length}</strong> results
+              </span>
+              {cambridgeSelectedIds.length > 0 && (
+                <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  {cambridgeSelectedIds.length} selected
+                </span>
+              )}
+              {cambridgeActiveTab !== 'all' && (
+                <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded">
+                  {cambridgeActiveTab.replace('Cambridge ', '')}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {WRITING_TEST_NAMES.includes(cambridgeActiveTab) && pendingCountForActiveTest > 0 && (
+                bulkProofreadLoading ? (
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-semibold">
+                    <span className="animate-spin">⏳</span>
+                    <span>Processing {bulkProofreadProgress.current}/{bulkProofreadProgress.total}</span>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => bulkProofreadWriting(false)}
+                      className="px-2.5 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700"
+                    >
+                      AI Proofread ({pendingCountForActiveTest}) Draft
+                    </button>
+                    <button
+                      onClick={() => bulkProofreadWriting(true)}
+                      className="px-2.5 py-1.5 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700"
+                    >
+                      AI Proofread ({pendingCountForActiveTest}) Release
+                    </button>
+                  </>
+                )
+              )}
+              <select
+                value={cambridgeSort}
+                onChange={(event) => setCambridgeSort(event.target.value)}
+                className="border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 bg-white"
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="highest">Highest %</option>
+                <option value="lowest">Lowest %</option>
+                <option value="student-asc">A–Z</option>
+                <option value="student-desc">Z–A</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Scrollable Results Area */}
+          <div className="cambridge-results-scroll flex-1 min-h-0 overflow-y-auto">
+            {cambridgeScores.length === 0 ? (
+              cambridgeLoading ? (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
+                  <p className="text-slate-600">⏳ Loading submissions...</p>
+                </div>
+              ) : (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
+                  <div className="text-4xl mb-2">📭</div>
+                  <p className="text-slate-600 font-medium">No test submissions yet</p>
+                  <p className="text-sm text-slate-500">Click Refresh to check for new submissions</p>
+                </div>
+              )
+            ) : (
+              <>
+                {cambridgeSelectedIds.length > 0 && (
+                  <div className="sticky top-0 z-20 bg-white border border-slate-200 rounded-xl px-4 py-2 flex flex-wrap items-center gap-3 shadow-sm mb-3">
+                    <span className="text-xs font-semibold text-slate-800">{cambridgeSelectedIds.length} selected</span>
+                    <button
+                      onClick={() => releaseScoresByIds(selectedReleaseIds, `✅ Released ${selectedReleaseIds.length} selected attempts.`)}
+                      disabled={selectedReleaseIds.length === 0 || releasingScores}
+                      className="px-2.5 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
+                      title={selectedReleaseIds.length === 0 ? 'No eligible attempts selected' : 'Release selected attempts'}
+                    >
+                      Release
+                    </button>
+                    <button
+                      onClick={exportCambridgeCSV}
+                      className="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      CSV
+                    </button>
+                    <button
+                      onClick={() => setCambridgeSelectedIds([])}
+                      className="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+
+                <div className="cambridge-mobile-results lg:hidden">
+                  {visibleScores.map((score) => {
+                    const isWritingTest = isTeacherMarkedCambridgeTest(score.quiz_name);
+                    const needsMarking = isWritingTest && score.answers?.requires_marking;
+                    const statusLabel = needsMarking ? 'Needs marking' : score.scores_released ? 'Released' : 'Pending release';
+                    const parsedResponses = parseCambridgeResponses(score.answers);
+                    const attemptedCount = Object.values(parsedResponses).filter((answer) => String(answer ?? '').trim() !== '').length;
+                    return (
+                      <article key={score.id} className="cambridge-attempt-card">
+                        <div className="cambridge-attempt-card__top">
+                          <label className="cambridge-attempt-card__check">
+                            <input
+                              type="checkbox"
+                              checked={cambridgeSelectedIds.includes(score.id)}
+                              onChange={() => toggleCambridgeSelection(score.id)}
+                            />
+                            <span className="sr-only">Select {score.student_name}</span>
+                          </label>
+                          <div className="min-w-0 flex-1">
+                            <h3>{score.student_name}</h3>
+                            <p>{score.student_class || 'No class'} · Attempt {score.attempt_number || 1}</p>
+                          </div>
+                          <span className={`cambridge-attempt-status ${
+                            needsMarking ? 'is-marking' : score.scores_released ? 'is-released' : 'is-pending'
+                          }`}>
+                            {statusLabel}
+                          </span>
+                        </div>
+                        <div className="cambridge-attempt-card__test">
+                          <span>{score.test_subject || 'Cambridge'}</span>
+                          <strong>{score.quiz_name.replace('Cambridge ', '')}</strong>
+                        </div>
+                        <dl className="cambridge-attempt-card__metrics">
+                          <div><dt>Score</dt><dd>{needsMarking ? '—' : `${score.score}/${score.total_questions}`}</dd></div>
+                          <div><dt>Answered</dt><dd>{attemptedCount}/{score.total_questions}</dd></div>
+                          <div><dt>Result</dt><dd>{needsMarking ? 'Pending' : `${score.percentage}%`}</dd></div>
+                          <div><dt>Time</dt><dd>{formatCambridgeTime(score.time_taken_seconds)}</dd></div>
+                        </dl>
+                        <button type="button" onClick={() => openCambridgeDrawer(score)} className="cambridge-attempt-card__action">
+                          {needsMarking ? 'Open marking' : 'Review attempt'} <span aria-hidden="true">→</span>
+                        </button>
+                      </article>
+                    );
+                  })}
+                  {!hasRows && (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                      No results match these filters.
+                    </div>
+                  )}
+                </div>
+
+                <div className="hidden bg-white border border-slate-200 rounded-xl shadow-sm lg:flex lg:flex-col">
+                <div className="overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 scroll-smooth flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+                  <table className="w-full text-sm border-collapse min-w-[1100px]">
+                    <thead className="bg-slate-50 text-slate-600">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-semibold w-10">
+                          <input
+                            type="checkbox"
+                            checked={allVisibleSelected}
+                            onChange={(event) => toggleCambridgeSelectionAll(allVisibleIds, event.target.checked)}
+                            aria-label="Select all visible attempts"
+                          />
+                        </th>
+                        <th className="px-4 py-3 text-left font-semibold">Student</th>
+                        <th className="px-4 py-3 text-left font-semibold">Class</th>
+                        <th className="px-4 py-3 text-left font-semibold">Test</th>
+                        <th className="px-4 py-3 text-center font-semibold">Score</th>
+                        <th className="px-4 py-3 text-center font-semibold">%</th>
+                        <th className="px-4 py-3 text-center font-semibold">Status</th>
+                        <th className="px-4 py-3 text-center font-semibold">Time</th>
+                        <th className="px-4 py-3 text-right font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {visibleScores.map((score) => {
+                        const isWritingTest = isTeacherMarkedCambridgeTest(score.quiz_name);
+                        const needsMarking = isWritingTest && score.answers?.requires_marking;
+                        const statusLabel = needsMarking ? 'Needs marking' : score.scores_released ? 'Released' : 'Pending';
+                        const parsedResponses = parseCambridgeResponses(score.answers);
+                        const attemptedCount = Object.values(parsedResponses).filter((answer) => String(answer ?? '').trim() !== '').length;
+                        return (
+                          <tr
+                            key={score.id}
+                            className={`cursor-pointer hover:bg-slate-50 ${needsMarking ? 'bg-amber-50' : ''}`}
+                            onClick={() => openCambridgeDrawer(score)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                openCambridgeDrawer(score);
+                              }
+                            }}
+                            role="button"
+                            tabIndex={0}
+                          >
+                            <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
+                              <input
+                                type="checkbox"
+                                checked={cambridgeSelectedIds.includes(score.id)}
+                                onClick={(event) => event.stopPropagation()}
+                                onChange={() => toggleCambridgeSelection(score.id)}
+                                aria-label={`Select ${score.student_name}`}
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="font-medium text-slate-900">{score.student_name}</div>
+                              <div className="mt-0.5 text-[11px] font-semibold text-slate-400">Attempt {score.attempt_number || 1}</div>
+                            </td>
+                            <td className="px-4 py-3 text-slate-500">{score.student_class || '-'}</td>
+                            <td className="px-4 py-3">
+                              <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                                {score.quiz_name.replace('Cambridge ', '')}
+                              </span>
+                              {score.test_subject && (
+                                <div className="mt-1 text-[11px] font-semibold text-indigo-600">{score.test_subject}</div>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              {needsMarking ? (
+                                <span className="inline-flex px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">Pending</span>
+                              ) : (
+                                <div>
+                                  <span className="font-mono text-slate-800">{score.score}/{score.total_questions}</span>
+                                  <div className="mt-0.5 text-[11px] text-slate-400">{attemptedCount}/{score.total_questions} answered</div>
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              {needsMarking ? (
+                                <span className="text-amber-600">—</span>
+                              ) : (
+                                <span className={`font-semibold ${
+                                  score.percentage >= 70 ? 'text-green-600' :
+                                  score.percentage >= 50 ? 'text-amber-600' : 'text-red-600'
+                                }`}>{score.percentage}%</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                needsMarking ? 'bg-amber-100 text-amber-700' :
+                                score.scores_released ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                              }`}>
+                                {statusLabel}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center text-slate-500 text-xs">{formatCambridgeTime(score.time_taken_seconds)}</td>
+                            <td className="px-4 py-3 text-right">
+                              <div className="flex justify-end gap-2">
+                                {isWritingTest ? (
+                                  <>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openCambridgeDrawer(score);
+                                        openWritingMarking(score);
+                                      }}
+                                      className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
+                                        needsMarking ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                      }`}
+                                    >
+                                      {needsMarking ? 'Mark' : 'View'}
+                                    </button>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openCambridgeDrawer(score);
+                                        openCambridgeAnswers(score);
+                                      }}
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                    >
+                                      Answers
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openCambridgeDrawer(score);
+                                        openCambridgeAnswers(score);
+                                      }}
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                    >
+                                      Answers
+                                    </button>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openCambridgeDrawer(score);
+                                        openCambridgeReport(score);
+                                      }}
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-purple-100 text-purple-700 hover:bg-purple-200"
+                                    >
+                                      Report
+                                    </button>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openStudentOverviewReport(score.student_name);
+                                      }}
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-teal-100 text-teal-700 hover:bg-teal-200"
+                                      title="View all test results for this student"
+                                    >
+                                      Overview
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {!hasRows && (
+                        <tr>
+                          <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-500">
+                            No results match these filters.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {cambridgeDrawerOpen && drawerAttempt && createPortal(
+        <div className="fixed inset-0 z-[50] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={closeCambridgeDrawer}
+          />
+          <div className="relative flex items-center justify-center p-4 sm:p-6 w-full max-w-lg">
+            <div className="w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] bg-white shadow-2xl flex flex-col rounded-2xl overflow-hidden">
+            <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Attempt Details</p>
+                <h3 className="text-lg font-semibold text-slate-900">Attempt Details</h3>
+              </div>
+              <button
+                onClick={closeCambridgeDrawer}
+                className="text-slate-400 hover:text-slate-700 rounded-md px-2 py-1"
+                aria-label="Close details"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <div>
+                <h4 className="text-2xl font-semibold text-slate-900">{drawerAttempt.student_name}</h4>
+                <div className="flex flex-wrap items-center gap-2 mt-2 text-sm">
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                    {drawerAttempt.student_class || '—'}
+                  </span>
+                  <span className="text-slate-500">{drawerAttempt.quiz_name}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Score</p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {drawerNeedsMarking ? 'Pending' : `${drawerAttempt.score}/${drawerAttempt.total_questions}`}
+                  </p>
+                </div>
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Percentage</p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {drawerNeedsMarking ? '—' : `${drawerAttempt.percentage}%`}
+                  </p>
+                </div>
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Time taken</p>
+                  <p className="text-sm font-medium text-slate-700">{formatCambridgeTime(drawerAttempt.time_taken_seconds)}</p>
+                </div>
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Status</p>
+                  <p className="text-sm font-medium text-slate-700">
+                    {drawerNeedsMarking ? 'Needs marking' : drawerAttempt.scores_released ? 'Released' : 'Pending release'}
+                  </p>
+                </div>
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Submitted</p>
+                  <p className="text-sm font-medium text-slate-700">
+                    {drawerAttempt.submitted_at ? new Date(drawerAttempt.submitted_at).toLocaleString('en-GB') : '—'}
+                  </p>
+                </div>
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Released state</p>
+                  <p className="text-sm font-medium text-slate-700">
+                    {drawerAttempt.scores_released ? 'Released' : 'Pending'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 px-6 py-4 space-y-2">
+              <button
+                onClick={() => openCambridgeAnswers(drawerAttempt)}
+                className="w-full px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700"
+              >
+                View detailed answers
+              </button>
+              {drawerIsWriting ? (
+                <button
+                  onClick={() => openWritingMarking(drawerAttempt)}
+                  className="w-full px-4 py-2 rounded-md bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600"
+                >
+                  {drawerNeedsMarking ? 'Open marking' : 'View marking'}
+                </button>
+              ) : (
+                <button
+                  onClick={() => openCambridgeReport(drawerAttempt)}
+                  className="w-full px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700"
+                >
+                  Create report
+                </button>
+              )}
+              <button
+                onClick={() => openStudentOverviewReport(drawerAttempt.student_name)}
+                className="w-full px-4 py-2 rounded-md bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700"
+                title="View all test results for this student"
+              >
+                📄 Student Overview
+              </button>
+              {drawerAttempt.scores_released ? (
+                <button
+                  className="w-full px-4 py-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-400 cursor-not-allowed"
+                  disabled
+                >
+                  Scores released
+                </button>
+              ) : canReleaseDrawerScores ? (
+                <button
+                  onClick={() => releaseScores(drawerAttempt.quiz_name, drawerAttempt.student_class || undefined)}
+                  className="w-full px-4 py-2 rounded-md border border-green-200 bg-green-50 text-sm font-semibold text-green-700 hover:bg-green-100"
+                  title="Releases scores for this test and class"
+                >
+                  Release score
+                </button>
+              ) : (
+                <button
+                  className="w-full px-4 py-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-400 cursor-not-allowed"
+                  disabled
+                  title="Not available yet"
+                >
+                  Release score
+                </button>
+              )}
+              <button
+                onClick={() => openCambridgeRetake(drawerAttempt)}
+                className="w-full px-4 py-2 rounded-md border border-amber-300 bg-amber-50 text-sm font-semibold text-amber-800 hover:bg-amber-100"
+                title="Preserve this attempt and allow the student to take the test again"
+              >
+                ↻ Allow retake
+              </button>
+            </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {cambridgeRetakeAttempt && createPortal(
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="cambridge-retake-title">
+          <button
+            type="button"
+            className="absolute inset-0 bg-slate-950/60"
+            onClick={closeCambridgeRetake}
+            aria-label="Cancel retake"
+          />
+          <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
+            <div className="border-b border-slate-200 px-6 py-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Cambridge attempt</p>
+              <h3 id="cambridge-retake-title" className="mt-1 text-xl font-bold text-slate-900">Allow this student to retake?</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                The original attempt will be preserved in the audit history. It will stop appearing as the active result, and the student can start a fresh attempt.
+              </p>
+            </div>
+            <div className="space-y-4 px-6 py-5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+                <p className="font-semibold text-slate-900">{cambridgeRetakeAttempt.student_name}</p>
+                <p className="mt-1 text-slate-600">{cambridgeRetakeAttempt.student_class || 'No class'} · {cambridgeRetakeAttempt.quiz_name}</p>
+                <p className="mt-1 text-slate-500">Current result: {cambridgeRetakeAttempt.score}/{cambridgeRetakeAttempt.total_questions} ({cambridgeRetakeAttempt.percentage}%)</p>
+              </div>
+              <label className="block text-sm font-semibold text-slate-800" htmlFor="cambridge-retake-reason">
+                Reason <span className="font-normal text-slate-400">(optional)</span>
+              </label>
+              <textarea
+                id="cambridge-retake-reason"
+                value={cambridgeRetakeReason}
+                onChange={(event) => setCambridgeRetakeReason(event.target.value.slice(0, 500))}
+                rows={3}
+                maxLength={500}
+                autoFocus
+                placeholder="For example: interrupted connection, approved absence, or teacher-authorized second attempt"
+                className="w-full resize-y rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+              />
+              <p className="text-right text-xs text-slate-400">{cambridgeRetakeReason.length}/500</p>
+              {cambridgeRetakeError && (
+                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {cambridgeRetakeError}
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={closeCambridgeRetake}
+                disabled={cambridgeRetakeSubmitting}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={allowCambridgeRetake}
+                disabled={cambridgeRetakeSubmitting}
+                className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:cursor-wait disabled:opacity-60"
+              >
+                {cambridgeRetakeSubmitting ? 'Allowing retake…' : 'Preserve attempt and allow retake'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {cambridgeFiltersOpen && createPortal(
+        <div className="fixed inset-0 z-[50] lg:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setCambridgeFiltersOpen(false)} />
+          <div className="absolute inset-0 flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-white shadow-2xl p-4 rounded-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-900">Filters</h3>
+              <button
+                onClick={() => setCambridgeFiltersOpen(false)}
+                className="text-slate-400 hover:text-slate-700"
+              >
+                ✕
+              </button>
+            </div>
+            {filtersPanel}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      <details className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <summary className="px-4 py-3 cursor-pointer bg-gray-50 hover:bg-gray-100 font-medium text-gray-800 flex items-center gap-2">
+          📊 Class Performance Summary
+        </summary>
+        <div className="p-4 flex flex-wrap gap-2">
+          {Object.entries(cambridgeStats.classStats).sort((a, b) => b[1].avg - a[1].avg).map(([cls, stats]) => (
+            <div key={cls} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+              <p className="font-semibold text-gray-800">{cls}</p>
+              <p className="text-xs text-gray-600">
+                {stats.count} students • <span className={`font-bold ${stats.avg >= 70 ? 'text-green-600' : stats.avg >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{stats.avg}%</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      </details>
+
+      {/* Performance Report Modal - Professional Report with Serial Number */}
+      {showCambridgeReport && selectedCambridgeStudent && (() => {
+        const skillPerf = analyzeSkillPerformance(selectedCambridgeStudent);
+        const reportAnswerKey = (selectedCambridgeStudent.quiz_name?.toLowerCase().includes('chemistry') || selectedCambridgeStudent.quiz_name?.toLowerCase().includes('biology'))
+          ? getScienceAnswerKey(selectedCambridgeStudent.quiz_name, selectedCambridgeStudent)
+          : (correctAnswers[selectedCambridgeStudent.quiz_name] || {});
+        const responseSummary = buildResponseSummary(selectedCambridgeStudent, reportAnswerKey);
+        const fallbackPlan = getGeneralActionPlan(selectedCambridgeStudent, responseSummary);
+        const studentFirstName = selectedCambridgeStudent.student_name?.split(' ')[0] || selectedCambridgeStudent.student_name || 'Student';
+        const accuracy = responseSummary.totalQuestions > 0
+          ? Math.round((responseSummary.correctCount / responseSummary.totalQuestions) * 100)
+          : selectedCambridgeStudent.percentage;
+        const personalizedNote = `${studentFirstName}, you answered ${responseSummary.correctCount}/${responseSummary.totalQuestions || selectedCambridgeStudent.total_questions} correctly (${accuracy}%). ${responseSummary.unansweredCount > 0 ? `There were ${responseSummary.unansweredCount} unanswered questions—aim to attempt every item next time.` : 'Great job attempting every question.'}`;
+        const sortedSkills = Object.entries(skillPerf).sort((a, b) => a[1].percentage - b[1].percentage);
+        const weakAreas = sortedSkills.filter(([_, data]) => data.percentage < 70);
+        const grade = getGrade(selectedCambridgeStudent.percentage);
+        const encouragement = getEncouragement(grade);
+        
+        const reportData: ProfessionalReportData = {
+          id: selectedCambridgeStudent.id || '',
+          studentName: selectedCambridgeStudent.student_name || 'Student',
+          studentClass: selectedCambridgeStudent.student_class,
+          quizName: selectedCambridgeStudent.quiz_name,
+          score: selectedCambridgeStudent.score,
+          totalQuestions: selectedCambridgeStudent.total_questions,
+          percentage: selectedCambridgeStudent.percentage,
+          submittedAt: selectedCambridgeStudent.submitted_at,
+          timeTakenSeconds: selectedCambridgeStudent.time_taken_seconds,
+          skillPerformance: skillPerf,
+          correctCount: responseSummary.correctCount,
+          wrongCount: responseSummary.wrongCount,
+          unansweredCount: responseSummary.unansweredCount,
+          grade,
+          encouragement,
+          actionPlanItems: weakAreas.slice(0, 3).map(([skill, data]) => {
+            const plan = actionPlans[skill];
+            return plan ? { skill, title: plan.title, tips: plan.tips, percentage: data.percentage } : { skill, title: skill, tips: [], percentage: data.percentage };
+          }).filter(item => item.tips.length > 0),
+          fallbackPlan: weakAreas.length === 0 ? fallbackPlan : undefined,
+          personalizedNote,
+          schoolName: profile.school_name || teacher?.school_name || undefined,
+          schoolLogoUrl: profile.school_logo_url,
+          schoolId: profile.school_id,
+        };
+        
+        return <ProfessionalCambridgeReport data={reportData} onClose={() => setShowCambridgeReport(false)} isTeacherView={true} />;
+      })()}
+
+      {/* Student Overview Report Modal */}
+      {showStudentOverviewReport && studentOverviewData && (
+        <StudentOverviewReport data={studentOverviewData} onClose={() => setShowStudentOverviewReport(false)} />
+      )}
+
+      {/* Answer Reflection Modal */}
+      {showCambridgeAnswers && selectedCambridgeStudent && (() => {
+        const answers = selectedCambridgeStudent.answers || {};
+        const quizName = selectedCambridgeStudent.quiz_name;
+        const isChemistryTest = quizName?.toLowerCase().includes('chemistry') || quizName?.toLowerCase().includes('biology');
+
+        const studentResponses = getStudentResponses(selectedCambridgeStudent);
+        
+        // Special handling for Writing Test
+        if (WRITING_TEST_NAMES.includes(quizName)) {
+          const writingMeta = WRITING_TEST_METADATA[quizName] ?? WRITING_TEST_METADATA['Cambridge Writing Test 1'];
+          const feedback = answers.feedback || {};
+          const earlierAttempts = cambridgeScores
+            .filter((row) =>
+              row.student_name === selectedCambridgeStudent.student_name &&
+              WRITING_TEST_NAMES.includes(row.quiz_name) &&
+              row.submitted_at <= selectedCambridgeStudent.submitted_at
+            )
+            .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime())
+            .slice(0, 8);
+          
+          return createPortal(
+            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="bg-white rounded-2xl max-w-4xl sm:max-w-5xl w-full max-h-[90vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+                {/* Header */}
+                <div className="p-6 border-b-4 border-blue-600">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <span className="text-4xl">✏️</span>
+                      <div>
+                        <h1 className="text-2xl font-bold text-blue-800">Writing Test Submission & Feedback</h1>
+                        <p className="text-sm text-gray-500">Student's Written Responses with Teacher Feedback</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowCambridgeAnswers(false)}
+                      className="p-2 hover:bg-red-100 rounded-full text-xl text-gray-600 hover:text-red-600 transition-all font-bold w-10 h-10 flex items-center justify-center"
+                      title="Close (Esc key also works)"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                {/* Student Info */}
+                <div className="bg-gradient-to-r from-blue-700 to-purple-800 text-white p-5 flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
+                    <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()}</p>
+                  </div>
+                  <div className="text-right">
+                    {answers.requires_marking ? (
+                      <div className="text-yellow-300 font-bold">⏳ Awaiting Marking</div>
+                    ) : (
+                      <>
+                        <div className="text-3xl font-bold">{selectedCambridgeStudent.score}/35</div>
+                        <div className="text-sm opacity-80">{selectedCambridgeStudent.percentage}% Score</div>
+                        {feedback.releasedToStudent && <div className="text-green-300 text-xs mt-1">✓ Released to student</div>}
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  {earlierAttempts.length > 0 && (
+                    <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                      <h3 className="text-sm font-bold text-slate-700 mb-3">📚 Earlier Writing Submissions (student timeline)</h3>
+                      <div className="space-y-2">
+                        {earlierAttempts.map((attempt, index) => {
+                          const prev = earlierAttempts[index + 1];
+                          const trend = !prev ? '—' : attempt.percentage > prev.percentage ? '↑' : attempt.percentage < prev.percentage ? '↓' : '→';
+                          const attemptAnswers = attempt.answers || {};
+                          const attemptFeedback = attemptAnswers.feedback || {};
+                          const allIssues = [...(attemptFeedback?.part1?.grammarMistakes || []), ...(attemptFeedback?.part2?.grammarMistakes || [])];
+                          const { grammar, punctuation } = splitGrammarAndPunctuation(allIssues);
+                          const part1Marks = attemptAnswers?.marks?.part1 || null;
+                          const part2Marks = attemptAnswers?.marks?.part2 || null;
+                          return (
+                            <div key={attempt.id || `${attempt.submitted_at}-${index}`} className="grid grid-cols-5 gap-2 text-xs items-center bg-white border border-slate-200 rounded-lg p-2">
+                              <span>{new Date(attempt.submitted_at).toLocaleDateString()}</span>
+                              <span>{attempt.score}/35</span>
+                              <span>{attempt.percentage}%</span>
+                              <span>G:{grammar.length} • P:{punctuation.length}</span>
+                              <span className={trend === '↑' ? 'text-green-600 font-semibold' : trend === '↓' ? 'text-red-600 font-semibold' : 'text-slate-500'}>{trend}</span>
+                              <div className="col-span-5 mt-1 grid gap-1">
+                                {part1Marks && (
+                                  <p className="text-[11px] text-slate-600 m-0">
+                                    Part 1 — Content {part1Marks.content}/5 · Organization {part1Marks.organisation}/5 · Language {part1Marks.language}/5
+                                  </p>
+                                )}
+                                {part2Marks && (
+                                  <p className="text-[11px] text-slate-600 m-0">
+                                    Part 2 — Content {part2Marks.content}/5 · Communicative Achievement {part2Marks.communicativeAchievement}/5 · Organization {part2Marks.organisation}/5 · Language {part2Marks.language}/5
+                                  </p>
+                                )}
+                                {allIssues.length > 0 && (
+                                  <details>
+                                    <summary className="cursor-pointer font-semibold text-[11px] text-slate-700">Word-level corrections ({allIssues.length})</summary>
+                                    <div className="mt-1 grid gap-1">
+                                      {allIssues.slice(0, 8).map((issue, issueIdx) => (
+                                        <p key={`${attempt.id}-issue-${issueIdx}`} className="text-[11px] text-slate-700 m-0">
+                                          <span className="line-through text-red-600">{issue.wrong}</span> → <span className="text-green-700 font-semibold">{issue.correct}</span> — {issue.explanation}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  </details>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {/* Part 1 */}
+                  <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
+                    <div className="bg-blue-100 p-4">
+                      <h3 className="text-lg font-bold text-blue-800">📝 Part 1: {writingMeta.part1Label}</h3>
+                      <p className="text-sm text-blue-600">{writingMeta.part1Context} • Word count: {answers.part1_words || 0} (Target: 45-55)</p>
+                    </div>
+                    <div className="p-4">
+                      <label className="text-sm font-semibold text-gray-700 block mb-2">Student's Original Response:</label>
+                      <div className="rounded-xl border border-slate-200 bg-white/95 p-4 text-slate-900 shadow-sm shadow-slate-900/5 ring-1 ring-slate-100 whitespace-pre-wrap leading-relaxed min-h-[100px]">
+                        {answers.part1 || 'No response submitted'}
+                      </div>
+                      {answers.marks?.part1 && (
+                        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                          <div className="bg-green-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Content</div>
+                            <div className="text-lg font-bold text-green-700">{answers.marks.part1.content}/5</div>
+                          </div>
+                          <div className="bg-blue-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Organisation</div>
+                            <div className="text-lg font-bold text-blue-700">{answers.marks.part1.organisation}/5</div>
+                          </div>
+                          <div className="bg-purple-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Language</div>
+                            <div className="text-lg font-bold text-purple-700">{answers.marks.part1.language}/5</div>
+                          </div>
+                        </div>
+                      )}
+                      {answers.marks?.part1 && (
+                        <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                          <div className={`h-full ${scoreProgressColor(Math.round(((answers.marks.part1.content + answers.marks.part1.organisation + answers.marks.part1.language) / 15) * 100))}`} style={{ width: `${Math.round(((answers.marks.part1.content + answers.marks.part1.organisation + answers.marks.part1.language) / 15) * 100)}%` }} />
+                        </div>
+                      )}
+                      
+                      {/* Teacher Feedback for Part 1 */}
+                      {feedback.part1?.feedback && (
+                        <div className="mt-4 bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+                          <h4 className="text-sm font-bold text-orange-800 mb-2">🔴 Teacher's Comments:</h4>
+                          <p className="text-gray-700 whitespace-pre-wrap">{feedback.part1.feedback}</p>
+                        </div>
+                      )}
+                      
+                      {feedback.part1?.correctedVersion && (
+                        <div className="mt-4 bg-green-50 border-2 border-green-200 rounded-lg p-4">
+                          <h4 className="text-sm font-bold text-green-800 mb-2">✅ Corrected/Model Version:</h4>
+                          <p className="text-gray-700 whitespace-pre-wrap">{feedback.part1.correctedVersion}</p>
+                        </div>
+                      )}
+                      {feedback.part1?.grammarMistakes?.length > 0 && (() => {
+                        const { grammar, punctuation } = splitGrammarAndPunctuation(feedback.part1.grammarMistakes);
+                        return (
+                          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-xs">
+                            <h4 className="text-sm font-bold text-yellow-800 mb-2">🛠️ Grammar & punctuation details</h4>
+                            {grammar.map((m, i) => <p key={`g1-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                            {punctuation.length > 0 && <p className="mt-2 font-semibold text-yellow-800">Punctuation/capitalization</p>}
+                            {punctuation.map((m, i) => <p key={`p1-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Part 2 */}
+                  <div className="border-2 border-indigo-200 rounded-xl overflow-hidden">
+                    <div className="bg-indigo-100 p-4">
+                      <h3 className="text-lg font-bold text-indigo-800">📝 Part 2: {writingMeta.part2Label}</h3>
+                      <p className="text-sm text-indigo-600">{writingMeta.part2Context} • Word count: {answers.part2_words || 0} (Target: 110-130)</p>
+                    </div>
+                    <div className="p-4">
+                      <label className="text-sm font-semibold text-gray-700 block mb-2">Student's Original Response:</label>
+                      <div className="rounded-xl border border-slate-200 bg-white/95 p-4 text-slate-900 shadow-sm shadow-slate-900/5 ring-1 ring-slate-100 whitespace-pre-wrap leading-relaxed min-h-[150px]">
+                        {answers.part2 || 'No response submitted'}
+                      </div>
+                      {answers.marks?.part2 && (
+                        <div className="mt-4 grid grid-cols-4 gap-2 text-center">
+                          <div className="bg-green-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Content</div>
+                            <div className="text-lg font-bold text-green-700">{answers.marks.part2.content}/5</div>
+                          </div>
+                          <div className="bg-yellow-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Comm. Ach.</div>
+                            <div className="text-lg font-bold text-yellow-700">{answers.marks.part2.communicativeAchievement}/5</div>
+                          </div>
+                          <div className="bg-blue-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Organisation</div>
+                            <div className="text-lg font-bold text-blue-700">{answers.marks.part2.organisation}/5</div>
+                          </div>
+                          <div className="bg-purple-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Language</div>
+                            <div className="text-lg font-bold text-purple-700">{answers.marks.part2.language}/5</div>
+                          </div>
+                        </div>
+                      )}
+                      {answers.marks?.part2 && (
+                        <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                          <div className={`h-full ${scoreProgressColor(Math.round(((answers.marks.part2.content + answers.marks.part2.communicativeAchievement + answers.marks.part2.organisation + answers.marks.part2.language) / 20) * 100))}`} style={{ width: `${Math.round(((answers.marks.part2.content + answers.marks.part2.communicativeAchievement + answers.marks.part2.organisation + answers.marks.part2.language) / 20) * 100)}%` }} />
+                        </div>
+                      )}
+                      
+                      {/* Teacher Feedback for Part 2 */}
+                      {feedback.part2?.feedback && (
+                        <div className="mt-4 bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+                          <h4 className="text-sm font-bold text-orange-800 mb-2">🔴 Teacher's Comments:</h4>
+                          <p className="text-gray-700 whitespace-pre-wrap">{feedback.part2.feedback}</p>
+                        </div>
+                      )}
+                      
+                      {feedback.part2?.correctedVersion && (
+                        <div className="mt-4 bg-green-50 border-2 border-green-200 rounded-lg p-4">
+                          <h4 className="text-sm font-bold text-green-800 mb-2">✅ Corrected/Model Version:</h4>
+                          <p className="text-gray-700 whitespace-pre-wrap">{feedback.part2.correctedVersion}</p>
+                        </div>
+                      )}
+                      {feedback.part2?.grammarMistakes?.length > 0 && (() => {
+                        const { grammar, punctuation } = splitGrammarAndPunctuation(feedback.part2.grammarMistakes);
+                        return (
+                          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-xs">
+                            <h4 className="text-sm font-bold text-yellow-800 mb-2">🛠️ Grammar & punctuation details</h4>
+                            {grammar.map((m, i) => <p key={`g2-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                            {punctuation.length > 0 && <p className="mt-2 font-semibold text-yellow-800">Punctuation/capitalization</p>}
+                            {punctuation.map((m, i) => <p key={`p2-${i}`} className="mb-1"><span className="line-through text-red-600">{m.wrong}</span> → <span className="text-green-700 font-semibold">{m.correct}</span> — {m.explanation}</p>)}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Overall Comments */}
+                  {feedback.overallComments && (
+                    <div className="border-2 border-gray-300 rounded-xl overflow-hidden">
+                      <div className="bg-gray-100 p-4">
+                        <h3 className="text-lg font-bold text-gray-800">💬 Overall Teacher Comments</h3>
+                      </div>
+                      <div className="p-4">
+                        <p className="text-gray-700 whitespace-pre-wrap">{feedback.overallComments}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {answers.marked_by && (
+                    <div className="text-center text-sm text-gray-500">
+                      Marked by {answers.marked_by} on {new Date(answers.marked_at).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="p-4 border-t flex justify-between items-center">
+                  <span className="text-xs text-gray-400" style={{ fontFamily: "'Courier New', Courier, monospace" }}>Serial: {generateSerialNumber(selectedCambridgeStudent.id || '', selectedCambridgeStudent.student_name || '', selectedCambridgeStudent.submitted_at || '')}</span>
+                  <div className="flex gap-3">
+                    {(answers.requires_marking || !feedback.releasedToStudent) && (
+                      <button
+                        onClick={() => { setShowCambridgeAnswers(false); openWritingMarking(selectedCambridgeStudent); }}
+                        className="px-4 py-2 bg-purple-100 text-black rounded-lg font-semibold hover:bg-purple-200"
+                      >
+                        ✏️ {answers.requires_marking ? 'Mark This' : 'Edit Feedback'}
+                      </button>
+                    )}
+                    <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-all" title="Close (Press Esc)">✕ Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>,
+            document.body
+          );
+        }
+        
+        // Regular test handling
+        const answerKey = isChemistryTest ? getScienceAnswerKey(quizName, selectedCambridgeStudent) : (correctAnswers[quizName] || {});
+        const sections = testSections[quizName] || [];
+        const summary = buildResponseSummary(selectedCambridgeStudent, answerKey);
+        const questionBank = quizName === 'Cambridge Listening Test 1'
+          ? CAMBRIDGE_LISTENING_TEST_1_QUESTIONS as QuestionData[]
+          : getQuestionsForQuiz(quizName);
+        const questionMap = new Map<number, QuestionData>();
+        questionBank.forEach(q => questionMap.set(q.number, q));
+        const mistakes = summary.details
+          .filter((detail) => detail.status === 'wrong' || detail.status === 'unanswered')
+          .map((detail) => ({
+            q: detail.q,
+            studentAns: detail.status === 'unanswered' ? '(No answer)' : detail.studentAns,
+            correctAns: detail.correctAns,
+            unanswered: detail.status === 'unanswered'
+          }));
+        const hasAnswerKey = Object.keys(answerKey).length > 0;
+        const biologyMetadataUnavailable = isBiologyCambridgeQuiz(quizName) && !buildBiologyAnswerKeyFromSavedMetadata(selectedCambridgeStudent.answers).hasMetadata;
+
+        /** Escape HTML special characters to prevent XSS when interpolating
+         *  captured regex groups back into HTML strings. */
+        const escapeHTML = (s: string) =>
+          s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+           .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+        /** Fix encoding-damaged placeholders in chemistry HTML:
+         *  1) <span aria-label="p orbital" ...>?</span>  →  sanitized badge with escaped label
+         *  2) <sup>N?</sup>  →  <sup>N−</sup>  (superscript minus/charge signs lost to Windows-1252 encoding)
+         *  3) <img ...>  →  normalized to consistent max size, centered; run through DOMPurify */
+        const fixChemHtml = (html: string) => {
+          const replaced = html
+            .replace(/<span\s+aria-label="([^"]+)"[^>]*>\s*\?\s*<\/span>/gi,
+              (_m: string, label: string) => `<span style="font-size:11px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:600;">${escapeHTML(label)}</span>`)
+            .replace(/<sup>(\d*)\?<\/sup>/g, '<sup>$1\u2212</sup>')
+            .replace(/<img\b([^>]*?)(?:\s*\/)?>/gi, (_m: string, attrs: string) => {
+              // Strip any existing size/style attrs before applying our safe defaults
               const cleanAttrs = attrs.replace(/\s*(?:width|height|style)\s*=\s*(?:"[^"]*"|'[^']*'|\S+)/gi, '');
               return `<img${cleanAttrs} style="max-width:100%;max-height:300px;height:auto;display:block;margin:8px auto;border-radius:3px;" />`;
             });
