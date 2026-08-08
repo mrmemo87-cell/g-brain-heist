@@ -8710,6 +8710,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <CollectiveAssignmentReport
               assignments={assignments}
               students={availableStudents}
+              assignedClassCodes={assignedCambridgeClassCodes}
               school={{ id: profile.school_id, name: profile.school_name || teacher?.school_name || 'School', logoUrl: profile.school_logo_url }}
               teacherName={profile.full_name || profile.username || 'Teacher'}
               onBack={() => setView('reports')}
