@@ -57,6 +57,7 @@ interface SchoolAdminPortalProps {
   onNavigate: (view: string) => void;
   addToast: (message: string, type: ToastMessage['type']) => void;
   onOpenTeacherPortal?: () => void;
+  onOpenSchoolHeadPortal?: () => void;
 }
 
 type IeltsSubTab = SchoolAdminIeltsTab;
@@ -101,7 +102,7 @@ const getCambridgeReportKey = (score: any) =>
 const getCambridgeReportLabel = (score: any) =>
   `${score.quiz_name || 'Unknown test'} · ${score.quiz_version || 'legacy-v1'}`;
 
-const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast, onOpenTeacherPortal }) => {
+const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast, onOpenTeacherPortal, onOpenSchoolHeadPortal }) => {
   const initialNavigation = useMemo(() => parseSchoolAdminNavigation(window.location.search), []);
   const [activeTab, setActiveTab] = useState<AdminTab>(initialNavigation.adminTab);
   const [activeIeltsSubTab, setActiveIeltsSubTab] = useState<IeltsSubTab>(initialNavigation.ieltsTab);
@@ -1720,6 +1721,9 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {currentCapabilities?.is_owner && onOpenSchoolHeadPortal && (
+              <button type="button" onClick={onOpenSchoolHeadPortal} className="school-admin-workspace-switch">Executive dashboard</button>
+            )}
             {currentCapabilities?.can_teach && onOpenTeacherPortal && (
               <button type="button" onClick={onOpenTeacherPortal} className="school-admin-workspace-switch">Teacher workspace</button>
             )}
