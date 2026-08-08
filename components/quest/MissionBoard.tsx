@@ -439,7 +439,12 @@ const MissionBoard: React.FC<MissionBoardProps> = ({
       setActionError(null);
     } catch (err) {
       console.error('[MissionBoard] quest_answer_node failed:', err);
-      setActionError('Failed to submit answer. Mission state re-synced from server.');
+      const message = err instanceof Error ? err.message : '';
+      setActionError(
+        /node index mismatch|already completed/i.test(message)
+          ? 'Your answer was already saved. Mission state re-synced from server.'
+          : 'Failed to submit answer. Mission state re-synced from server.'
+      );
       try {
         await syncRunStateFromServer();
       } catch {
