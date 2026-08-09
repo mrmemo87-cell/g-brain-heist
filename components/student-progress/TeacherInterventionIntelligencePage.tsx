@@ -14,7 +14,11 @@ const labels: Record<string, string> = {
 };
 const fmt = (value?: string | null) => value ? new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
-const TeacherInterventionIntelligencePage: React.FC = () => {
+interface TeacherInterventionIntelligencePageProps {
+  onBack?: () => void;
+}
+
+const TeacherInterventionIntelligencePage: React.FC<TeacherInterventionIntelligencePageProps> = ({ onBack }) => {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const [students, setStudents] = useState<TeacherAcademicProfileStudent[]>([]);
   const [context, setContext] = useState<AcademicProgressExperienceContext | null>(null);
@@ -93,7 +97,8 @@ const TeacherInterventionIntelligencePage: React.FC = () => {
       eyebrow="Student Support"
       title="Student Support Plans"
       subtitle="Choose a student, review repeated learning needs, and turn them into clear next steps that can be followed over time."
-      backLabel={context?.viewer.role === 'school_admin' ? 'Back to School Administration' : 'Back to Teacher Workspace'}
+      onBack={onBack}
+      backLabel={onBack ? 'Back to Teacher Workspace' : (context?.viewer.role === 'school_admin' ? 'Back to School Administration' : 'Back to Teacher Workspace')}
     />
 
     <AcademicStudentPicker
