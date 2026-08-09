@@ -7,7 +7,7 @@ const viteConfig = readFileSync('vite.config.ts', 'utf8');
 const report = readFileSync('components/student-progress/IndividualStudentAcademicReport.tsx', 'utf8');
 
 test('teacher academic tools stay inside the teacher portal shell', () => {
-  assert.match(viteConfig, /'\.\/components\/TeacherPortal': path\.resolve\(__dirname, 'components\/TeacherPortalIntegrated\.tsx'\)/);
+  assert.match(viteConfig, /'\.\/components\/TeacherPortal\.tsx': path\.resolve\(__dirname, 'components\/TeacherPortalIntegrated\.tsx'\)/);
   assert.match(wrapper, /<TeacherPortal \{\.\.\.props\} \/>/);
   assert.match(wrapper, /<TeacherAcademicProfilesPage \/>/);
   assert.match(wrapper, /<TeacherInterventionIntelligencePage \/>/);
