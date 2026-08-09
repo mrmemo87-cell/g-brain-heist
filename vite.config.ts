@@ -38,6 +38,9 @@ export default defineConfig(({ mode }) => {
             academicProfile: path.resolve(__dirname, 'academic-profile.html'),
             teacherAcademicProfiles: path.resolve(__dirname, 'teacher-academic-profiles.html'),
             schoolHeadLearningIntelligence: path.resolve(__dirname, 'school-head-learning-intelligence.html'),
+            parentPortal: path.resolve(__dirname, 'parent-portal.html'),
+            guardianManagement: path.resolve(__dirname, 'guardian-management.html'),
+            teacherInterventions: path.resolve(__dirname, 'teacher-interventions.html'),
           },
           output: {
             manualChunks: {
