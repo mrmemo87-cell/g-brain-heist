@@ -63,15 +63,7 @@ Immutable historical evidence. Important fields include school, student, subject
 
 Derived current state per student + normalized skill. It stores first/last observation, occurrence counts, recent evidence, current status, trend, priority, and latest percentage.
 
-Initial statuses:
-
-- `new_focus`
-- `recurring`
-- `persistent`
-- `improving`
-- `resolved`
-- `emerging_strength`
-- `consistent_strength`
+Initial statuses: `new_focus`, `recurring`, `persistent`, `improving`, `resolved`, `emerging_strength`, and `consistent_strength`.
 
 The state can always be rebuilt from observations. Provisional evidence remains visible in the timeline but is excluded from this projection.
 
@@ -90,30 +82,18 @@ Internal teacher notes should remain separate from future parent-visible summari
 
 ### Phase 1 — Learning Memory foundation
 
-1. Append-only observation storage.
-2. Rebuildable current focus projection.
-3. Secure student-learning profile RPC.
-4. Assignment and Writing Hub adapter entry points.
+Append-only observation storage, rebuildable current focus projection, secure student-learning profile RPC, and adapter entry points.
 
 ### Phase 2 — Assignment integration
 
-1. Authoritative completion and integrity gate.
-2. Topic-level historical evidence and future skill/subskill compatibility.
-3. Evidence-quality thresholds.
-4. Deterministic historical backfill.
-5. Automatic future assignment-result capture.
+Authoritative completion/integrity gate, topic-level historical evidence, future skill/subskill compatibility, evidence-quality thresholds, deterministic historical backfill, and automatic future capture.
 
 ### Phase 3 — Writing Hub integration hardening
 
-1. Canonical weakness families instead of raw-tag fragmentation.
-2. Logical-attempt deduplication and synchronization.
-3. Word-count/target-aware evidence quality.
-4. Rubric dimension history.
-5. Conservative, rubric-supported recovery evidence.
-6. Deterministic historical Writing Hub backfill and focus-state rebuild.
+Canonical weakness families, logical-attempt deduplication/synchronization, word-count/target-aware evidence quality, rubric dimension history, conservative rubric-supported recovery evidence, and deterministic historical Writing Hub backfill.
 
 ## Next implementation target
 
-Build the shared client service/types and the Teacher Portal **Student Academic Profile** first. That UI should consume the same secure learning-profile RPC and combine marks, assignment history, Writing Hub evidence, current strengths, persistent focus areas, improvement/resolution timelines, and teacher-approved report generation without recalculating longitudinal state in the browser.
+Build the shared client service/types and the Teacher Portal **Student Academic Profile** first. It should consume the secure learning-profile RPC and combine marks, assignment history, Writing Hub evidence, current strengths, persistent focus areas, improvement/resolution timelines, and teacher-approved report generation without recalculating longitudinal state in the browser.
 
 After that: Student `My Progress`, School Head aggregate academic intelligence, verified guardian relationships and parent dashboard, richer skill/subskill metadata in question authoring, and intervention planning/targeted practice.
