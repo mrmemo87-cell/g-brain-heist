@@ -43,6 +43,14 @@ Phase 3 treats Writing Hub evidence as a real time-based learning source rather 
 
 The current canonical weakness families are Sentence control, Punctuation, Grammar accuracy, Spelling, Vocabulary precision, Content coverage, Genre conventions, Audience & register, Task completion, and Organisation.
 
+### Live Writing Hub audit used for Phase 3
+
+The production read-only audit found 118 stored rows representing 113 canonical logical attempts across 55 students. Five duplicate rows share a logical attempt identity and are collapsed by the backfill rather than counted twice.
+
+Of the 113 canonical attempts, the evidence-quality model currently classifies 96 as strong, 3 as standard, and 14 as provisional. Canonical weakness history produces 439 observations after related tags are collapsed. Existing rubric data yields 366 dimension observations: 86 focus, 236 developing, and 44 strength observations.
+
+This audit changes no production data; it exists to make the migration fit the real Writing Hub payload rather than an assumed shape.
+
 ## Data model
 
 ### `student_learning_observations`
