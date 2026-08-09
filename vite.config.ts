@@ -52,6 +52,7 @@ export default defineConfig(({ mode }) => {
       },
       resolve: {
         alias: {
+          './components/TeacherPortal': path.resolve(__dirname, 'components/TeacherPortalIntegrated.tsx'),
           '@': path.resolve(__dirname, '.'),
           'react-router-dom': path.resolve(__dirname, 'src/lib/router.tsx'),
           '@tanstack/react-query': path.resolve(__dirname, 'src/lib/simple-react-query.tsx'),
