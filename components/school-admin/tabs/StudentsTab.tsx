@@ -9,6 +9,12 @@ const StudentsTab: React.FC = () => {
   const academicYears = React.useMemo(() => Array.from(new Set(activeClasses.map((schoolClass) => Number(schoolClass.grade_level)).filter(Number.isFinite))).sort((a, b) => a - b), [activeClasses]);
   const classesForAcademicYear = React.useMemo(() => activeClasses.filter((schoolClass) => selectedGrade !== '' && String(schoolClass.grade_level) === String(selectedGrade)), [activeClasses, selectedGrade]);
 
+  const openGuardianAccess = React.useCallback((studentId: string) => {
+    const url = new URL('/guardian-management.html', window.location.origin);
+    url.searchParams.set('student', studentId);
+    window.location.assign(url.toString());
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
@@ -84,22 +90,32 @@ const StudentsTab: React.FC = () => {
           </div>
         </div>
         {selectedStudentId && (
-          <p className="text-xs text-gray-500 mt-2">
-            Current class:{' '}
-            {studentAssignments[selectedStudentId] && classById[studentAssignments[selectedStudentId] || '']
-              ? `${classById[studentAssignments[selectedStudentId] || '']?.class_code}`
-              : 'None'}
-          </p>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-700 bg-gray-900/40 px-3 py-2">
+            <p className="text-xs text-gray-500">
+              Current class:{' '}
+              {studentAssignments[selectedStudentId] && classById[studentAssignments[selectedStudentId] || '']
+                ? `${classById[studentAssignments[selectedStudentId] || '']?.class_code}`
+                : 'None'}
+            </p>
+            <button
+              type="button"
+              onClick={() => openGuardianAccess(selectedStudentId)}
+              className="rounded-lg border border-fuchsia-500/40 bg-fuchsia-500/10 px-3 py-1.5 text-xs font-semibold text-fuchsia-200 transition hover:bg-fuchsia-500/20"
+            >
+              Guardian Access
+            </button>
+          </div>
         )}
       </div>
 
       <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
         <div className="p-4 border-b border-gray-700 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <h4 className="text-sm font-semibold text-gray-300">Students in School</h4>
+          <div>
+            <h4 className="text-sm font-semibold text-gray-300">Students in School</h4>
+            <p className="mt-1 text-xs text-gray-500">Manage class placement and verified parent or guardian access from the student roster.</p>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
-            <label htmlFor="student-search" className="sr-only">
-              Search students
-            </label>
+            <label htmlFor="student-search" className="sr-only">Search students</label>
             <input
               id="student-search"
               type="text"
@@ -120,13 +136,13 @@ const StudentsTab: React.FC = () => {
           </div>
         </div>
         <div className="admin-table-scroll" role="region" aria-label="Students table" tabIndex={0}>
-          <table className="min-w-[640px] w-full">
+          <table className="min-w-[760px] w-full">
             <thead className="bg-gray-750 border-b border-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Student</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Email</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Class</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">Action</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
@@ -137,19 +153,26 @@ const StudentsTab: React.FC = () => {
                   <tr key={student.user_id} className="hover:bg-gray-750">
                     <td className="px-4 py-3 text-sm text-gray-200">{student.username}</td>
                     <td className="px-4 py-3 text-sm text-gray-400">{student.email}</td>
-                    <td className="px-4 py-3 text-sm text-gray-300">
-                      {cls ? `${cls.class_code} — ${cls.class_name}` : 'Unassigned'}
-                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-300">{cls ? `${cls.class_code} — ${cls.class_name}` : 'Unassigned'}</td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => {
-                          setSelectedStudentId(student.user_id);
-                          setSelectedClassId(classId || '');
-                        }}
-                        className="text-cyan-400 hover:text-cyan-300 text-sm"
-                      >
-                        Select
-                      </button>
+                      <div className="flex items-center justify-end gap-3">
+                        <button
+                          onClick={() => {
+                            setSelectedStudentId(student.user_id);
+                            setSelectedClassId(classId || '');
+                          }}
+                          className="text-cyan-400 hover:text-cyan-300 text-sm"
+                        >
+                          Select
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openGuardianAccess(student.user_id)}
+                          className="text-fuchsia-300 hover:text-fuchsia-200 text-sm"
+                        >
+                          Guardian Access
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -159,30 +182,14 @@ const StudentsTab: React.FC = () => {
         </div>
         {filteredStudents.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-700 text-sm text-gray-400">
-            <span>
-              Page {studentPage} of {studentTotalPages}
-            </span>
+            <span>Page {studentPage} of {studentTotalPages}</span>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setStudentPage((prev) => Math.max(1, prev - 1))}
-                disabled={studentPage === 1}
-                className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setStudentPage((prev) => Math.min(studentTotalPages, prev + 1))}
-                disabled={studentPage >= studentTotalPages}
-                className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
-              >
-                Next
-              </button>
+              <button onClick={() => setStudentPage((prev) => Math.max(1, prev - 1))} disabled={studentPage === 1} className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50">Previous</button>
+              <button onClick={() => setStudentPage((prev) => Math.min(studentTotalPages, prev + 1))} disabled={studentPage >= studentTotalPages} className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50">Next</button>
             </div>
           </div>
         )}
-        {filteredStudents.length === 0 && (
-          <div className="p-8 text-center text-gray-400">No students found.</div>
-        )}
+        {filteredStudents.length === 0 && <div className="p-8 text-center text-gray-400">No students found.</div>}
       </div>
     </div>
   );

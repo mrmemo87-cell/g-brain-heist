@@ -26,7 +26,10 @@ test('shared admin table scrolling remains touch-safe and width constrained', ()
 });
 
 test('wide school admin tables use the shared mobile scroll region', () => {
-  assert.match(studentsTab, /className="admin-table-scroll"[^>]*aria-label="Students table"[^>]*tabIndex=\{0\}[\s\S]*?<table className="min-w-\[640px\] w-full">/);
+  const studentsTable = studentsTab.match(/className="admin-table-scroll"[^>]*aria-label="Students table"[^>]*tabIndex=\{0\}[\s\S]*?<table className="min-w-\[(\d+)px\] w-full">/);
+  assert.ok(studentsTable, 'Students table must stay inside the shared mobile scroll region with an explicit minimum width');
+  assert.ok(Number(studentsTable[1]) >= 640, 'Students table minimum width must remain at least 640px');
+
   assert.match(classesTab, /className="admin-table-scroll"[^>]*aria-label="Classes table"[^>]*tabIndex=\{0\}[\s\S]*?<table className="min-w-\[640px\] w-full">/);
   assert.match(cambridgeTab, /className="admin-table-scroll"[^>]*aria-label="Cambridge results table"[^>]*tabIndex=\{0\}[\s\S]*?<table className="min-w-\[900px\] w-full">/);
   assert.match(ieltsResultsTab, /className="admin-table-scroll mt-5"[^>]*aria-label="IELTS results table"[^>]*tabIndex=\{0\}[\s\S]*?<table className="min-w-\[920px\]/);
