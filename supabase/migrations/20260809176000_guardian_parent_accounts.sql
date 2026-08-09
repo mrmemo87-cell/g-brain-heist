@@ -197,7 +197,7 @@ begin
 
   return jsonb_build_object(
     'success',true,'invitation_id',v_invitation_id,'token',v_token,
-    'expires_at',now()+make_interval(days=>greatest(1,least(coalesce(p_expires_days,7),30)),
+    'expires_at',now()+make_interval(days=>greatest(1,least(coalesce(p_expires_days,7),30))),
     'invited_email',v_email
   );
 end;
