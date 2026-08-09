@@ -1,1 +1,0 @@
-One-shot trigger for the teacher mobile UI patch workflow.
