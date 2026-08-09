@@ -21,10 +21,10 @@ begin
     select u.school_id into v_school_id from public.users u where u.id = p_student_id;
     if v_school_id is null then raise exception 'Student is not attached to a school'; end if;
   else
-    select s.id into v_school_id
-    from public.schools s
-    where s.school_head_user_id = v_caller
-    order by s.created_at desc nulls last
+    select sm.school_id into v_school_id
+    from public.school_members sm
+    where sm.user_id = v_caller and sm.status = 'active' and sm.is_owner is true
+    order by sm.joined_at desc nulls last
     limit 1;
 
     if v_school_id is null then
