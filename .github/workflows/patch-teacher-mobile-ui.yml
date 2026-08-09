@@ -1,0 +1,59 @@
+name: Patch teacher mobile UI
+
+on:
+  push:
+    branches:
+      - fix/teacher-mobile-header-classes
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/teacher-mobile-header-classes
+          fetch-depth: 0
+
+      - name: Patch TeacherPortal mobile header and class summary
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('components/TeacherPortal.tsx')
+          text = path.read_text(encoding='utf-8')
+          original = text
+
+          text = text.replace(
+              'className="teacher-topbar fixed left-0 right-0 top-0 z-50 border-b border-slate-800 bg-slate-950"',
+              'className="teacher-topbar relative z-30 border-b border-slate-800 bg-slate-950"',
+              1,
+          )
+          text = text.replace(
+              '''      <div\n        aria-hidden\n        style={{ height: `${topNavHeight}px` }}\n      />\n''',
+              '',
+              1,
+          )
+          text = text.replace(
+              "{myClasses.slice(0, 3).join(' · ') || 'No classes assigned'}",
+              "{myClasses.join(' · ') || 'No classes assigned'}",
+              1,
+          )
+
+          if text != original:
+              path.write_text(text, encoding='utf-8')
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          if git diff --quiet -- components/TeacherPortal.tsx; then
+            echo "No code changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/TeacherPortal.tsx
+          git commit -m "Fix teacher mobile header and class summary"
+          git push origin HEAD:fix/teacher-mobile-header-classes
