@@ -12,49 +12,48 @@ Historical evidence is append-only. A later success never deletes an earlier wea
 
 ### School assignments
 
-`student_assignment_results` stores the authoritative completed result and timestamp. `student_assignment_answers` plus `assignment_question_details` provide question-level correctness and topic metadata.
+`student_assignment_results` stores the completed result and timestamp. `student_assignment_answers` plus `assignment_question_details` provide question-level correctness and topic metadata.
 
-Assignment evidence is only accepted after the existing server-side submission invariants have produced a real completed result. Phase 2 additionally verifies that the student assignment is `completed`, the answered-question count matches the assignment question count, and the stored correct + incorrect totals match that count.
-
-Each accepted result is grouped by topic and classified as:
+Phase 2 only ingests a result after the server-authoritative assignment lifecycle says it is completed and all expected questions are represented. Topic evidence is classified as:
 
 - below 60%: `focus`
 - 60–79%: `developing`
 - 80% and above: `strength`
 
-These are evidence classifications, not permanent labels. Persistence is determined from repeated observations over time.
+Evidence quality prevents tiny samples from becoming durable labels:
 
-Evidence quality is also recorded:
+- 1–2 questions: `provisional`, retained in history but excluded from current focus state
+- 3–5 questions: `standard`
+- 6+ questions: `strong`
 
-- 1–2 questions: `provisional` — retained in the timeline, but does not drive the current focus state;
-- 3–5 questions: `standard` — contributes to progress/weakness state;
-- 6+ questions: `strong` — contributes to progress/weakness state with a stronger evidence base.
-
-Current question-bank data is topic-rich but does not yet use `tags` for skills. The assignment adapter is future-ready: `skill:<name>` and `subskill:<name>` question tags will automatically create more precise learning-memory keys when the authoring workflow begins storing them. Until then, topic is used as the skill fallback.
-
-Assignment evidence preserves the source assignment, title, class, teacher, difficulty, correct/incorrect counts, topic question count, total assignment question count, overall accuracy, overall score, and classification thresholds.
+Future question tags can refine topic evidence using `skill:` and `subskill:` metadata without changing the longitudinal model.
 
 ### English Writing Hub
 
-`bh_writing_attempts.payload` already carries assessment weakness tags, weakness occurrence counts, rubric subscores, genre, score, and attempt time. The Writing adapter records:
+`bh_writing_attempts.payload` carries the student's submission, weakness tags/counts, rubric subscores, genre, score, word count, target length, and attempt identity.
 
-- each saved weakness tag as a focus observation, preserving occurrence count;
-- each numeric rubric subscore as focus/developing/strength evidence;
-- the writing genre as context, not as a separate student identity.
+Phase 3 treats Writing Hub evidence as a real time-based learning source rather than importing raw tags literally:
+
+- related raw weakness tags are collapsed into stable academic skills such as Sentence control, Grammar accuracy, Content coverage, Organisation, Audience & register, and Vocabulary precision;
+- multiple related tags in one essay count as one learning observation with occurrence evidence, preventing one submission from masquerading as repeated history;
+- the logical attempt key is used to collapse historical duplicate database rows and to synchronize later payload updates;
+- rubric dimensions create independent focus/developing/strength evidence, so progress is visible even when weakness wording changes;
+- submission quality is based on actual word count relative to the task target. Very short submissions remain provisional rather than becoming durable weakness or strength evidence;
+- a weakness is not considered improved merely because a later attempt omits its tag. Recovery evidence requires a strong-quality later submission, absence of the related weakness, and a supporting rubric score of 4 or 5 in the relevant dimension.
+
+The current canonical weakness families are Sentence control, Punctuation, Grammar accuracy, Spelling, Vocabulary precision, Content coverage, Genre conventions, Audience & register, Task completion, and Organisation.
 
 ## Data model
 
 ### `student_learning_observations`
 
-Immutable historical evidence. Important fields include school, student, subject, topic, skill, subskill/context, normalized skill key, observation type, source type/id/key, observed time, evidence percentage/count, evidence quality, whether the evidence contributes to current state, and source evidence JSON.
+Immutable historical evidence. Important fields include school, student, subject, topic, skill, subskill/context, normalized skill key, observation type, source type/id/key, observed time, evidence percentage/count, evidence quality, whether the observation contributes to current focus state, and source evidence JSON.
 
 `source_key` makes automatic ingestion idempotent.
 
 ### `student_learning_focus_states`
 
 Derived current state per student + normalized skill. It stores first/last observation, occurrence counts, recent evidence, current status, trend, priority, and latest percentage.
-
-Only observations with `contributes_to_focus_state = true` drive the projection. Provisional evidence remains visible historically without prematurely labelling a student.
 
 Initial statuses:
 
@@ -66,7 +65,7 @@ Initial statuses:
 - `emerging_strength`
 - `consistent_strength`
 
-The state can always be rebuilt from observations.
+The state can always be rebuilt from observations. Provisional evidence remains visible in the timeline but is excluded from this projection.
 
 ## Access model
 
@@ -79,34 +78,37 @@ Direct access to both learning-memory tables is denied to `anon` and `authentica
 
 Internal teacher notes should remain separate from future parent-visible summaries.
 
-## Phase 1 release
+## Completed implementation phases
 
-1. Add append-only observation storage and derived focus state.
-2. Backfill existing school assignment evidence.
-3. Backfill existing Writing Hub evidence.
-4. Add triggers so future assignment results and writing attempts are captured automatically.
-5. Add a secure student-learning profile RPC for student/teacher/school views.
-6. Do not redesign current dashboards in this migration.
+### Phase 1 — Learning Memory foundation
 
-## Phase 2 — assignment integration
+1. Append-only observation storage.
+2. Rebuildable current focus projection.
+3. Secure student-learning profile RPC.
+4. Assignment and Writing Hub adapter entry points.
 
-1. Treat `student_assignment_results` as the authoritative assignment-completion event.
-2. Reject incomplete or internally inconsistent historical rows from learning-memory ingestion rather than guessing or repairing them.
-3. Group evidence by topic and preserve question-level evidence counts.
-4. Retain tiny samples as provisional history while preventing them from creating persistent weakness/strength labels.
-5. Use stable source keys so historical reprocessing is deterministic.
-6. Rebuild all assignment-derived observations with the stricter rules, then rebuild current focus state from qualified evidence.
-7. Support future `skill:` / `subskill:` question tags without requiring a later learning-memory redesign.
+### Phase 2 — Assignment integration
 
-Live-data audit before the Phase 2 migration found 648 historical assignment results. 647 satisfy the stricter completion/integrity gate. One legacy result claims two correct answers for an assignment containing one question; it is deliberately excluded from the learning-memory backfill. The eligible data produces 653 topic observations: 11 provisional, 9 standard, and 633 strong.
+1. Authoritative completion and integrity gate.
+2. Topic-level historical evidence and future skill/subskill compatibility.
+3. Evidence-quality thresholds.
+4. Deterministic historical backfill.
+5. Automatic future assignment-result capture.
 
-The earlier Phase 1 combined migration rehearsal completed successfully and was rolled back. A later oversized Phase 2 rehearsal query timed out at the connection layer; a residue check confirmed it left no learning-memory tables or functions in production. Phase 2 logic was therefore additionally validated with smaller live-data eligibility/topic-quality queries plus repository regression contracts, rather than treating the timeout as a successful database rehearsal.
+### Phase 3 — Writing Hub integration hardening
+
+1. Canonical weakness families instead of raw-tag fragmentation.
+2. Logical-attempt deduplication and synchronization.
+3. Word-count/target-aware evidence quality.
+4. Rubric dimension history.
+5. Conservative, rubric-supported recovery evidence.
+6. Deterministic historical Writing Hub backfill and focus-state rebuild.
 
 ## Next phases
 
-- Add client service/types and Teacher Portal student academic profile.
+- Add shared client service/types and Teacher Portal Student Academic Profile.
 - Add Student `My Progress` view.
 - Add School Head aggregate academic intelligence.
 - Add verified guardian relationships and parent dashboard.
-- Extend question authoring to save explicit skill/subskill metadata rather than relying on topic fallback.
+- Add richer skill/subskill metadata to question authoring.
 - Add intervention planning and targeted-practice recommendations after the longitudinal data is trusted.
