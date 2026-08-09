@@ -15,7 +15,11 @@ import {
 } from './AcademicProgressSuite';
 import './StudentAcademicProfile.css';
 
-const TeacherAcademicProfilesPage: React.FC = () => {
+interface TeacherAcademicProfilesPageProps {
+  onBack?: () => void;
+}
+
+const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = ({ onBack }) => {
   const [students, setStudents] = useState<TeacherAcademicProfileStudent[]>([]);
   const [context, setContext] = useState<AcademicProgressExperienceContext | null>(null);
   const [grade, setGrade] = useState('');
@@ -83,6 +87,8 @@ const TeacherAcademicProfilesPage: React.FC = () => {
       eyebrow="Student Progress"
       title="Student Progress & Reports"
       subtitle="Choose a grade, class and student to see attainment, strengths, areas for development and progress over time — then generate a school-ready report."
+      onBack={onBack}
+      backLabel={onBack ? 'Back to Teacher Workspace' : undefined}
     />
 
     {loading ? <div className="aps-empty-state">Loading your authorised students…</div> : null}

@@ -17,6 +17,18 @@ function copyBiologyQuestionAssetsPlugin() {
   };
 }
 
+function teacherAcademicWorkspacePlugin() {
+  return {
+    name: 'teacher-academic-workspace-shell',
+    resolveId(source: string, importer?: string) {
+      if (source === './components/TeacherPortal' && importer?.endsWith('/App.tsx')) {
+        return path.resolve(__dirname, 'components/TeacherPortalShell.tsx');
+      }
+      return null;
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     const geminiKey = env['GEMINI_API_KEY'];
@@ -25,7 +37,7 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
       },
-      plugins: [react(), copyBiologyQuestionAssetsPlugin()],
+      plugins: [react(), teacherAcademicWorkspacePlugin(), copyBiologyQuestionAssetsPlugin()],
       define: {
         'process.env.API_KEY': JSON.stringify(geminiKey),
         'process.env.GEMINI_API_KEY': JSON.stringify(geminiKey)
