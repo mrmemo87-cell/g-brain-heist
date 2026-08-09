@@ -1,1 +1,0 @@
-Temporary trigger for the one-shot School Admin / School Head progress-access patch workflow.
