@@ -1,9 +1,10 @@
 name: Patch teacher mobile UI
 
 on:
-  push:
+  pull_request:
     branches:
-      - fix/teacher-mobile-header-classes
+      - main
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
