@@ -68,7 +68,7 @@ let _cachedPlanDetails: SchoolPlanDetails | null = null;
 let _cachedTeacherTier: AccountTier | null = null;
 
 export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
-type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'documents' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
+type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'interventions' | 'documents' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
@@ -700,6 +700,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const changeSection = async (section: TeacherNavSection) => {
     revealMobileNavigation();
     setMobileWorkspaceMenuOpen(false);
+
+    if (section === 'academic-profiles') {
+      window.location.assign('/teacher-academic-profiles.html');
+      return;
+    }
+
+    if (section === 'interventions') {
+      window.location.assign('/teacher-interventions.html');
+      return;
+    }
     if (view === 'create-assignment') {
       const hasProgress = Boolean(
         assignmentQuestionIds.length ||
@@ -8250,6 +8260,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
+    { id: 'academic-profiles', label: 'Academic Profiles', icon: '🎓', description: 'Progress, Strengths & Focus Areas', proOnly: true },
+    { id: 'interventions', label: 'Interventions', icon: '🎯', description: 'Targeted Support & Follow-up', proOnly: true },
     ...(profile.school_id ? [{ id: 'documents' as const, label: 'Document Center', icon: '🗃️', description: 'Print History & Reprints', proOnly: true }] : []),
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     ...(canAccessWritingInsights
@@ -8286,6 +8298,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       questions: 'Question Bank',
       assignments: 'New Assignment',
       reports: 'Performance Reports',
+      'academic-profiles': 'Performance Reports',
+      interventions: 'Performance Reports',
       documents: 'Performance Reports',
       'writing-hub': 'Performance Reports',
       'clan-wars': 'Lockdown Mode',
