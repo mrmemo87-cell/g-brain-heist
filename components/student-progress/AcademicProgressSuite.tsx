@@ -84,7 +84,7 @@ interface AcademicStudentPickerProps {
 }
 
 const displayGrade = (value: string) => /^\d+$/.test(value) ? `Grade ${value}` : value;
-const gradeKey = (value: string | number | null | undefined) => String(value ?? '').trim();
+const gradeKey = (value: string | number | null | undefined) => String(value ?? '').trim() || 'Unspecified grade';
 
 export const AcademicStudentPicker: React.FC<AcademicStudentPickerProps> = ({
   students,
@@ -101,8 +101,10 @@ export const AcademicStudentPicker: React.FC<AcademicStudentPickerProps> = ({
   subjectAllLabel = 'All available subjects',
 }) => {
   const grades = useMemo(() => {
-    const values = [...new Set(students.map((student) => gradeKey(student.grade)).filter(Boolean))];
+    const values = [...new Set(students.map((student) => gradeKey(student.grade)))];
     return values.sort((a, b) => {
+      if (a === 'Unspecified grade') return 1;
+      if (b === 'Unspecified grade') return -1;
       const an = Number(a); const bn = Number(b);
       if (Number.isFinite(an) && Number.isFinite(bn)) return an - bn;
       return a.localeCompare(b);
