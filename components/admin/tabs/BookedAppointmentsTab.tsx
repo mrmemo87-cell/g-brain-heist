@@ -75,7 +75,7 @@ const BookedAppointmentsTab: React.FC = () => {
     return appointments.filter((appointment) => {
       if (statusFilter !== 'all' && appointment.status !== statusFilter) return false;
       if (!term) return true;
-      return [appointment.school_name, appointment.contact_name, appointment.email, appointment.country, appointment.role_title]
+      return [appointment.school_name, appointment.contact_name, appointment.email, appointment.country, appointment.city, appointment.street_address, appointment.role_title]
         .some((value) => value?.toLowerCase().includes(term));
     });
   }, [appointments, search, statusFilter]);
@@ -126,7 +126,7 @@ const BookedAppointmentsTab: React.FC = () => {
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-[1fr_220px_auto]">
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search school, contact, email or country…" className="rounded-lg border border-white/15 bg-black/35 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-400" />
+          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search school, contact, email or location…" className="rounded-lg border border-white/15 bg-black/35 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-400" />
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="rounded-lg border border-white/15 bg-black/35 px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400">
             <option value="all">All statuses</option>{STATUS_OPTIONS.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
           </select>
@@ -155,7 +155,7 @@ const BookedAppointmentsTab: React.FC = () => {
                   <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs">
                     {appointment.email && <a className="text-cyan-300 hover:text-cyan-200" href={`mailto:${appointment.email}`}>✉ {appointment.email}</a>}
                     {appointment.phone && <a className="text-cyan-300 hover:text-cyan-200" href={`tel:${appointment.phone}`}>☎ {appointment.phone}</a>}
-                    {appointment.country && <span className="text-gray-400">⌖ {appointment.country}{appointment.school_size ? ` · ${appointment.school_size}` : ''}</span>}
+                    {appointment.country && <span className="text-gray-400">⌖ {[appointment.street_address, appointment.city, appointment.country].filter(Boolean).join(', ')}{appointment.school_size ? ` · ${appointment.school_size}` : ''}</span>}
                   </div>
                 </div>
                 <div className="rounded-xl border border-cyan-400/25 bg-cyan-500/5 px-4 py-3 xl:min-w-[285px]">

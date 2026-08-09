@@ -25,6 +25,9 @@ export const DEMO_BOOKING_TIMES = [
   '16:00', '16:30', '17:00', '17:30',
 ] as const;
 
+export const DEMO_BOOKING_TIME_ZONE = 'Asia/Bishkek';
+const DEMO_BOOKING_UTC_OFFSET_HOURS = 6;
+
 export type DemoInterest = (typeof DEMO_INTEREST_OPTIONS)[number]['value'];
 export type DemoBookingDate = (typeof DEMO_BOOKING_DAYS)[number]['date'];
 export type DemoBookingTime = (typeof DEMO_BOOKING_TIMES)[number];
@@ -32,10 +35,15 @@ export type DemoBookingStatus = 'new' | 'contacted' | 'confirmed' | 'completed' 
 export type DemoMeetingFormat = 'online' | 'in_person' | 'either';
 
 export interface DemoBookingInput {
+  school_name: string;
   contact_name: string;
   phone: string;
+  country: string;
+  city: string;
+  street_address: string;
   preferred_date: string;
   preferred_time: string;
+  timezone: string;
   website: string;
 }
 
@@ -60,6 +68,8 @@ export interface DemoBookingRecord {
   phone: string | null;
   role_title: string | null;
   country: string | null;
+  city: string | null;
+  street_address: string | null;
   school_size: string | null;
   preferred_format: DemoMeetingFormat | null;
   preferred_date: string;
@@ -84,18 +94,103 @@ export const formatDemoBookingTime = (time: string): string => {
   return `${displayHour}:${String(minutes).padStart(2, '0')} ${suffix}`;
 };
 
+export const getDemoBookingSlotInstant = (bookingDate: string, bookingTime: string): Date => {
+  const [year, month, day] = bookingDate.split('-').map(Number);
+  const [hours, minutes] = bookingTime.split(':').map(Number);
+  if (![year, month, day, hours, minutes].every(Number.isFinite)) return new Date(Number.NaN);
+  return new Date(Date.UTC(year, month - 1, day, hours - DEMO_BOOKING_UTC_OFFSET_HOURS, minutes));
+};
+
+const supportedTimeZone = (timeZone: string): string => {
+  try {
+    new Intl.DateTimeFormat('en', { timeZone }).format();
+    return timeZone;
+  } catch {
+    return 'UTC';
+  }
+};
+
+export const detectDemoBookingTimeZone = (): string => {
+  try {
+    return supportedTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
+  } catch {
+    return 'UTC';
+  }
+};
+
+export const getDemoBookingLocalDate = (
+  bookingDate: string,
+  bookingTime: string,
+  timeZone: string,
+): string => {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: supportedTimeZone(timeZone),
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(getDemoBookingSlotInstant(bookingDate, bookingTime));
+  const read = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? '';
+  return `${read('year')}-${read('month')}-${read('day')}`;
+};
+
+export const formatDemoBookingLocalTime = (
+  bookingDate: string,
+  bookingTime: string,
+  timeZone: string,
+): string => new Intl.DateTimeFormat('en', {
+  timeZone: supportedTimeZone(timeZone),
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true,
+}).format(getDemoBookingSlotInstant(bookingDate, bookingTime));
+
+export const formatDemoBookingLocalDateTime = (
+  bookingDate: string,
+  bookingTime: string,
+  timeZone: string,
+): string => new Intl.DateTimeFormat('en', {
+  timeZone: supportedTimeZone(timeZone),
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true,
+  timeZoneName: 'short',
+}).format(getDemoBookingSlotInstant(bookingDate, bookingTime));
+
+export const isDemoBookingSlotPast = (
+  bookingDate: string,
+  bookingTime: string,
+  now: number | Date = Date.now(),
+): boolean => {
+  const instant = getDemoBookingSlotInstant(bookingDate, bookingTime).getTime();
+  const comparison = now instanceof Date ? now.getTime() : now;
+  return !Number.isFinite(instant) || instant <= comparison;
+};
+
 export const normalizeDemoBooking = (input: DemoBookingInput): DemoBookingInput => ({
   ...input,
+  school_name: input.school_name.trim(),
   contact_name: input.contact_name.trim(),
   phone: input.phone.trim(),
+  country: input.country.trim(),
+  city: input.city.trim(),
+  street_address: input.street_address.trim(),
   preferred_date: input.preferred_date.trim(),
   preferred_time: input.preferred_time.trim(),
+  timezone: supportedTimeZone(input.timezone.trim() || 'UTC'),
   website: input.website.trim(),
 });
 
 export const validateDemoBooking = (input: DemoBookingInput): string | null => {
+  if (input.school_name.trim().length < 2) return 'Please enter the school name.';
   if (input.contact_name.trim().length < 2) return 'Please enter your full name.';
   if (input.phone.trim().length < 6) return 'Please enter a valid phone or WhatsApp number.';
+  if (input.country.trim().length < 2) return 'Please choose the school country.';
+  if (input.city.trim().length < 2) return 'Please enter the school city.';
+  if (input.street_address.trim().length < 2) return 'Please enter the school street or address.';
   if (!DEMO_BOOKING_DAYS.some((day) => day.date === input.preferred_date)) return 'Please choose a booking day.';
   if (!DEMO_BOOKING_TIMES.some((time) => time === input.preferred_time)) return 'Please choose an available time slot.';
   return null;
@@ -130,6 +225,19 @@ export const submitDemoBooking = async (
   if (error) throw new Error(error.message || 'We could not secure that appointment.');
   if (typeof data !== 'string') throw new Error('The booking response was incomplete. Please try again.');
   return data;
+};
+
+export const checkDemoBookingAvailability = async (
+  bookingDate: string,
+  bookingTime: string,
+  client: DemoBookingClient = supabase,
+): Promise<boolean> => {
+  const { data, error } = await client.rpc('rpc_check_demo_booking_slot', {
+    p_booking_date: bookingDate,
+    p_booking_time: bookingTime,
+  });
+  if (error) throw new Error(error.message || 'We could not verify that appointment time.');
+  return data === true;
 };
 
 export const listDemoBookings = async (
