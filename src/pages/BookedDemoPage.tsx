@@ -522,7 +522,7 @@ const BookedDemoPage: React.FC = () => {
         </form>
 
         {dialogOpen && (
-          <div className={`booked-slot-check booked-slot-check-${bookingDialog.status}`} role="dialog" aria-modal="true" aria-labelledby="booked-dialog-title" aria-describedby="booked-dialog-description" onKeyDown={keepDialogFocused}>
+          <div className={`booked-slot-check booked-slot-check-${bookingDialog.status}`} role="dialog" aria-modal="true" aria-labelledby="booked-dialog-title" aria-describedby="booked-dialog-description" data-dismissal="acknowledge-only" onKeyDown={keepDialogFocused}>
             <div className="booked-slot-check-card" ref={dialogCardRef} tabIndex={-1}>
               {(bookingDialog.status === 'checking' || bookingDialog.status === 'booking') && (
                 <>
