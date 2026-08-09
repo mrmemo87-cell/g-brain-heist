@@ -1,27 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  DEMO_INTEREST_OPTIONS,
+  DEMO_BOOKING_DAYS,
+  DEMO_BOOKING_TIMES,
+  formatDemoBookingTime,
+  listDemoBookingSlots,
   submitDemoBooking,
   type DemoBookingInput,
-  type DemoInterest,
+  type DemoBookingSlot,
 } from '../../services/demoBookingService';
 import './BookedDemoPage.css';
 
 const initialBooking = (): DemoBookingInput => ({
-  school_name: '',
   contact_name: '',
-  email: '',
   phone: '',
-  role_title: '',
-  country: '',
-  school_size: '',
-  preferred_format: 'online',
-  preferred_date: '',
+  preferred_date: DEMO_BOOKING_DAYS[0].date,
   preferred_time: '',
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-  interests: ['admissions', 'analytics'],
-  message: '',
-  consent: false,
   website: '',
 });
 
@@ -30,7 +23,31 @@ const BookedDemoPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [bookingId, setBookingId] = useState('');
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const [slots, setSlots] = useState<DemoBookingSlot[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(true);
+  const [slotsError, setSlotsError] = useState('');
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const [flipSequence, setFlipSequence] = useState(0);
+  const [flipDirection, setFlipDirection] = useState<'next' | 'previous'>('next');
+
+  const selectedDay = DEMO_BOOKING_DAYS[selectedDayIndex];
+  const takenSlots = useMemo(
+    () => new Set(slots.filter((slot) => slot.is_taken).map((slot) => `${slot.booking_date}:${slot.booking_time}`)),
+    [slots],
+  );
+  const availableCount = DEMO_BOOKING_TIMES.filter((time) => !takenSlots.has(`${selectedDay.date}:${time}`)).length;
+
+  const loadAvailability = useCallback(async () => {
+    setSlotsLoading(true);
+    setSlotsError('');
+    try {
+      setSlots(await listDemoBookingSlots());
+    } catch (availabilityError) {
+      setSlotsError(availabilityError instanceof Error ? availabilityError.message : 'The calendar is temporarily unavailable.');
+    } finally {
+      setSlotsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -38,17 +55,20 @@ const BookedDemoPage: React.FC = () => {
     return () => { document.title = previousTitle; };
   }, []);
 
+  useEffect(() => { void loadAvailability(); }, [loadAvailability]);
+
   const setField = <K extends keyof DemoBookingInput>(field: K, value: DemoBookingInput[K]) => {
     setBooking((current) => ({ ...current, [field]: value }));
   };
 
-  const toggleInterest = (interest: DemoInterest) => {
-    setBooking((current) => ({
-      ...current,
-      interests: current.interests.includes(interest)
-        ? current.interests.filter((item) => item !== interest)
-        : [...current.interests, interest],
-    }));
+  const selectDay = (index: number) => {
+    if (index === selectedDayIndex) return;
+    setFlipDirection(index > selectedDayIndex ? 'next' : 'previous');
+    setSelectedDayIndex(index);
+    setFlipSequence((current) => current + 1);
+    setField('preferred_date', DEMO_BOOKING_DAYS[index].date);
+    setField('preferred_time', '');
+    setError('');
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -61,6 +81,7 @@ const BookedDemoPage: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : 'We could not submit your request. Please try again.');
+      void loadAvailability();
     } finally {
       setSubmitting(false);
     }
@@ -80,8 +101,13 @@ const BookedDemoPage: React.FC = () => {
           <p className="booked-eyebrow">REQUEST SECURED</p>
           <h1>Your school demo is on our radar.</h1>
           <p>
-            Thank you. A Brains Heist education specialist will review your priorities and contact you to confirm the meeting time.
+            Your 30-minute Brains Heist demonstration is reserved. We’ll contact you on the number provided if we need anything before the session.
           </p>
+          <div className="booked-success-appointment">
+            <span>{DEMO_BOOKING_DAYS.find((day) => day.date === booking.preferred_date)?.weekday}</span>
+            <strong>August {booking.preferred_date.slice(-2)} · {formatDemoBookingTime(booking.preferred_time)}</strong>
+            <small>Bishkek time · GMT+6</small>
+          </div>
           <div className="booked-reference">
             <span>Booking reference</span>
             <strong>BH-{bookingId.slice(0, 8).toUpperCase()}</strong>
@@ -209,56 +235,77 @@ const BookedDemoPage: React.FC = () => {
         </div>
       </section>
 
-      <section className="booked-demo-section" id="book-demo" aria-labelledby="book-demo-title">
-        <aside className="booked-demo-aside">
-          <p className="booked-eyebrow">YOUR PRIVATE WALKTHROUGH</p>
-          <h2 id="book-demo-title">Let’s focus the demo on your school.</h2>
-          <p>Tell us where your teams lose the most time or visibility. We’ll demonstrate the workflows that matter most.</p>
-          <ol>
-            <li><span>1</span><div><strong>Share your priorities</strong><p>Select the challenges you want to solve.</p></div></li>
-            <li><span>2</span><div><strong>We tailor the session</strong><p>Our team prepares a relevant walkthrough.</p></div></li>
-            <li><span>3</span><div><strong>See Brains Heist live</strong><p>Explore workflows, evidence and next steps.</p></div></li>
-          </ol>
-          <div className="booked-security-note"><span aria-hidden="true">◇</span><p><strong>Your information stays private.</strong><br />It is used only to arrange and tailor your demonstration.</p></div>
-        </aside>
+      <section className="booked-calendar-section" id="book-demo" aria-labelledby="book-demo-title">
+        <div className="booked-calendar-heading">
+          <p className="booked-eyebrow">PICK A MOMENT. WE’LL HANDLE THE REST.</p>
+          <h2 id="book-demo-title">Your demo, booked in seconds.</h2>
+          <p>Just your name, phone number, and one available 30-minute slot. Times are shown in Bishkek time (GMT+6).</p>
+        </div>
 
-        <form className="booked-form" onSubmit={handleSubmit} noValidate>
-          <div className="booked-form-heading"><span>DEMO REQUEST</span><p>Required fields are marked *</p></div>
-          <div className="booked-form-grid">
-            <label className="booked-field booked-field-full">School name *<input required maxLength={180} autoComplete="organization" value={booking.school_name} onChange={(event) => setField('school_name', event.target.value)} placeholder="Your school or education group" /></label>
-            <label className="booked-field">Your name *<input required maxLength={120} autoComplete="name" value={booking.contact_name} onChange={(event) => setField('contact_name', event.target.value)} placeholder="Full name" /></label>
-            <label className="booked-field">Role at school *<input required maxLength={100} autoComplete="organization-title" value={booking.role_title} onChange={(event) => setField('role_title', event.target.value)} placeholder="e.g. Head of School" /></label>
-            <label className="booked-field">Work email *<input required type="email" maxLength={254} autoComplete="email" value={booking.email} onChange={(event) => setField('email', event.target.value)} placeholder="you@school.edu" /></label>
-            <label className="booked-field">Phone / WhatsApp<input maxLength={50} autoComplete="tel" value={booking.phone} onChange={(event) => setField('phone', event.target.value)} placeholder="Include country code" /></label>
-            <label className="booked-field">Country *<input required maxLength={100} autoComplete="country-name" value={booking.country} onChange={(event) => setField('country', event.target.value)} placeholder="Country" /></label>
-            <label className="booked-field">School size<select value={booking.school_size} onChange={(event) => setField('school_size', event.target.value)}><option value="">Select range</option><option>Up to 250 students</option><option>251–500 students</option><option>501–1,000 students</option><option>1,001–2,500 students</option><option>More than 2,500 students</option></select></label>
+        <form className="booked-scheduler" onSubmit={handleSubmit} noValidate>
+          <div className="booked-scheduler-topline">
+            <span>LIVE AVAILABILITY</span>
+            <div><i /> Updating in real time</div>
           </div>
 
-          <fieldset className="booked-fieldset">
-            <legend>What would you like to explore? *</legend>
-            <div className="booked-choice-grid">
-              {DEMO_INTEREST_OPTIONS.map((option) => (
-                <label key={option.value} className={booking.interests.includes(option.value) ? 'booked-choice selected' : 'booked-choice'}>
-                  <input type="checkbox" checked={booking.interests.includes(option.value)} onChange={() => toggleInterest(option.value)} />
-                  <span>{option.label}</span><i aria-hidden="true">✓</i>
-                </label>
-              ))}
-            </div>
-          </fieldset>
+          <div className="booked-identity-fields">
+            <label className="booked-field">Your name<input required maxLength={120} autoComplete="name" value={booking.contact_name} onChange={(event) => setField('contact_name', event.target.value)} placeholder="Full name" /></label>
+            <label className="booked-field">Phone / WhatsApp<input required maxLength={50} autoComplete="tel" inputMode="tel" value={booking.phone} onChange={(event) => setField('phone', event.target.value)} placeholder="+996 555 123 456" /></label>
+          </div>
 
-          <div className="booked-form-grid booked-schedule-grid">
-            <label className="booked-field">Preferred date *<input required type="date" min={today} value={booking.preferred_date} onChange={(event) => setField('preferred_date', event.target.value)} /></label>
-            <label className="booked-field">Preferred time *<select required value={booking.preferred_time} onChange={(event) => setField('preferred_time', event.target.value)}><option value="">Select a window</option><option>08:00–10:00</option><option>10:00–12:00</option><option>12:00–14:00</option><option>14:00–16:00</option><option>16:00–18:00</option><option>Other — contact me</option></select></label>
-            <label className="booked-field">Meeting format *<select required value={booking.preferred_format} onChange={(event) => setField('preferred_format', event.target.value as DemoBookingInput['preferred_format'])}><option value="online">Online meeting</option><option value="in_person">In person</option><option value="either">Either works</option></select></label>
-            <label className="booked-field">Timezone *<input required maxLength={100} value={booking.timezone} onChange={(event) => setField('timezone', event.target.value)} /></label>
-            <label className="booked-field booked-field-full">Anything we should prepare?<textarea maxLength={2000} rows={4} value={booking.message} onChange={(event) => setField('message', event.target.value)} placeholder="Tell us about your current systems, priorities or questions." /></label>
+          <div className="booked-day-strip" role="tablist" aria-label="Choose a demonstration day">
+            {DEMO_BOOKING_DAYS.map((day, index) => {
+              const dayAvailable = DEMO_BOOKING_TIMES.filter((time) => !takenSlots.has(`${day.date}:${time}`)).length;
+              return (
+                <button key={day.date} type="button" role="tab" aria-selected={selectedDayIndex === index} onClick={() => selectDay(index)} className={selectedDayIndex === index ? 'active' : ''}>
+                  <span>{day.shortDay}</span><strong>{day.dayNumber}</strong><small>{slotsLoading ? '···' : dayAvailable === 0 ? 'FULL' : `${dayAvailable} LEFT`}</small>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="booked-calendar-stage">
+            <button type="button" className="booked-calendar-arrow" onClick={() => selectDay(Math.max(0, selectedDayIndex - 1))} disabled={selectedDayIndex === 0} aria-label="Previous day">←</button>
+            <div key={`${selectedDay.date}-${flipSequence}`} className={`booked-calendar-sheet flip-${flipDirection}`}>
+              <div className="booked-calendar-rings" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+              <div className="booked-calendar-date">
+                <div><span>AUGUST 2026</span><h3>{selectedDay.weekday}</h3></div>
+                <strong>{selectedDay.dayNumber}</strong>
+              </div>
+              <div className="booked-availability-line">
+                <span>{slotsLoading ? 'Checking calendar…' : availableCount === 0 ? 'Fully booked' : `${availableCount} times available`}</span>
+                <small>30 min each</small>
+              </div>
+              {slotsError ? (
+                <div className="booked-slots-error" role="alert"><p>{slotsError}</p><button type="button" onClick={() => void loadAvailability()}>Try again</button></div>
+              ) : (
+                <div className="booked-time-grid" role="group" aria-label={`Available times for ${selectedDay.weekday}`}>
+                  {DEMO_BOOKING_TIMES.map((time) => {
+                    const isTaken = slotsLoading || takenSlots.has(`${selectedDay.date}:${time}`);
+                    const isSelected = booking.preferred_date === selectedDay.date && booking.preferred_time === time;
+                    return (
+                      <button key={time} type="button" disabled={isTaken} aria-pressed={isSelected} onClick={() => setField('preferred_time', time)} className={`${isTaken ? 'taken' : 'available'} ${isSelected ? 'selected' : ''}`}>
+                        <span>{formatDemoBookingTime(time)}</span><small>{isTaken ? 'TAKEN' : isSelected ? 'SELECTED' : 'OPEN'}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {!slotsLoading && availableCount === 0 && <p className="booked-full-day-note">Sunday is fully booked. Flip to the next day to find an open time.</p>}
+            </div>
+            <button type="button" className="booked-calendar-arrow" onClick={() => selectDay(Math.min(DEMO_BOOKING_DAYS.length - 1, selectedDayIndex + 1))} disabled={selectedDayIndex === DEMO_BOOKING_DAYS.length - 1} aria-label="Next day">→</button>
           </div>
 
           <label className="booked-honeypot" aria-hidden="true">Website<input tabIndex={-1} autoComplete="off" value={booking.website} onChange={(event) => setField('website', event.target.value)} /></label>
-          <label className="booked-consent"><input type="checkbox" checked={booking.consent} onChange={(event) => setField('consent', event.target.checked)} /><span>I agree that Brains Heist may contact me to arrange and tailor this school demonstration. *</span></label>
+          <div className="booked-selection-summary">
+            <div><span>YOUR SELECTION</span><strong>{booking.preferred_time ? `${selectedDay.weekday}, August ${selectedDay.dayNumber} · ${formatDemoBookingTime(booking.preferred_time)}` : 'Choose an open time above'}</strong></div>
+            <span className="booked-timezone-pill">GMT+6</span>
+          </div>
           {error && <div className="booked-error" role="alert">{error}</div>}
-          <button className="booked-submit" type="submit" disabled={submitting}>{submitting ? 'Securing your request…' : 'Request my school demo'}<span aria-hidden="true">→</span></button>
-          <p className="booked-form-footnote">Submitting a request does not confirm the appointment. Our team will contact you to finalize the date and time.</p>
+          <button className="booked-submit" type="submit" disabled={submitting || slotsLoading || Boolean(slotsError) || !booking.preferred_time}>
+            {submitting ? 'Locking your time…' : 'Book this demo'}<span aria-hidden="true">→</span>
+          </button>
+          <p className="booked-form-footnote">Your number is used only to coordinate this demonstration.</p>
         </form>
       </section>
 
