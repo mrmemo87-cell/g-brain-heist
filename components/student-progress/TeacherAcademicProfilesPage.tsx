@@ -4,26 +4,54 @@ import {
   fetchTeacherAcademicProfileStudents,
   type TeacherAcademicProfileStudent,
 } from '../../services/teacherAcademicProfileDirectoryService';
+import {
+  getAcademicProgressExperienceContext,
+  type AcademicProgressExperienceContext,
+} from '../../services/academicProgressExperienceService';
+import {
+  AcademicProgressHeader,
+  AcademicStudentPicker,
+  selectionFromStudent,
+} from './AcademicProgressSuite';
 import './StudentAcademicProfile.css';
 
 const TeacherAcademicProfilesPage: React.FC = () => {
   const [students, setStudents] = useState<TeacherAcademicProfileStudent[]>([]);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
-  const [classFilter, setClassFilter] = useState('all');
+  const [context, setContext] = useState<AcademicProgressExperienceContext | null>(null);
+  const [grade, setGrade] = useState('');
+  const [classFilter, setClassFilter] = useState('');
+  const [selectedStudentId, setSelectedStudentId] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('all');
+  const [profileOpen, setProfileOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
+      setLoading(true);
       try {
-        const next = await fetchTeacherAcademicProfileStudents();
-        if (!cancelled) setStudents(next);
+        const [nextStudents, nextContext] = await Promise.all([
+          fetchTeacherAcademicProfileStudents(),
+          getAcademicProgressExperienceContext(),
+        ]);
+        if (cancelled) return;
+        setStudents(nextStudents);
+        setContext(nextContext);
+        const params = new URLSearchParams(window.location.search);
+        const requestedStudent = params.get('student') || '';
+        if (requestedStudent) {
+          const selection = selectionFromStudent(nextStudents, requestedStudent);
+          if (selection) {
+            setGrade(selection.grade);
+            setClassFilter(selection.className);
+            setSelectedStudentId(requestedStudent);
+            setSubjectFilter(params.get('subject') || 'all');
+          }
+        }
       } catch (err) {
-        console.error('Failed to load teacher academic profile directory', err);
-        if (!cancelled) setError('Student profiles could not be loaded. Please verify your active class assignments.');
+        console.error('Failed to load academic profile directory', err);
+        if (!cancelled) setError('Student progress could not be loaded. Please check your school access and try again.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -32,40 +60,55 @@ const TeacherAcademicProfilesPage: React.FC = () => {
     return () => { cancelled = true; };
   }, []);
 
-  const classes = useMemo(() => [...new Set(students.map((student) => student.class_name || '—'))].sort(), [students]);
-  const subjects = useMemo(() => [...new Set(students.flatMap((student) => student.subjects || []))].sort(), [students]);
-  const visibleStudents = useMemo(() => students.filter((student) => {
-    const text = `${student.student_name} ${student.username || ''}`.toLowerCase();
-    if (query.trim() && !text.includes(query.trim().toLowerCase())) return false;
-    if (classFilter !== 'all' && (student.class_name || '—') !== classFilter) return false;
-    if (subjectFilter !== 'all' && !(student.subjects || []).includes(subjectFilter)) return false;
-    return true;
-  }), [students, query, classFilter, subjectFilter]);
+  const selected = useMemo(() => students.find((student) => student.student_id === selectedStudentId) || null, [students, selectedStudentId]);
 
-  if (selectedStudentId) {
-    const selected = students.find((student) => student.student_id === selectedStudentId);
-    return <StudentAcademicProfile studentId={selectedStudentId} initialSubject={subjectFilter === 'all' ? null : subjectFilter} mode="teacher" onClose={() => setSelectedStudentId(null)} schoolName={undefined} teacherName={undefined} />;
+  if (profileOpen && selectedStudentId) {
+    return (
+      <StudentAcademicProfile
+        studentId={selectedStudentId}
+        initialSubject={subjectFilter === 'all' ? null : subjectFilter}
+        mode={context?.viewer.role === 'school_admin' ? 'school_admin' : 'teacher'}
+        schoolName={context?.school.name}
+        schoolLogoUrl={context?.school.logo_url}
+        teacherName={context?.viewer.name}
+        backLabel="Back to student selection"
+        onClose={() => setProfileOpen(false)}
+      />
+    );
   }
 
   return <section className="sap-shell">
-    <header className="sap-hero">
-      <div className="sap-identity"><div className="sap-school-mark">BH</div><div><span className="sap-eyebrow">Teacher Reports</span><h1>Student Academic Profiles</h1><p>Track attainment, strengths, recurring needs and progress over time for students within your active class and subject assignments.</p></div></div>
-      <div className="sap-hero-actions"><button type="button" className="sap-btn sap-btn--secondary" onClick={() => window.history.length > 1 ? window.history.back() : window.location.assign('/')}>Back to teacher portal</button></div>
-    </header>
+    <AcademicProgressHeader
+      context={context}
+      eyebrow="Student Progress"
+      title="Student Progress & Reports"
+      subtitle="Choose a grade, class and student to see attainment, strengths, areas for development and progress over time — then generate a school-ready report."
+    />
 
-    <div className="sap-filterbar">
-      <label>Search<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Student name" /></label>
-      <label>Class<select value={classFilter} onChange={(event) => setClassFilter(event.target.value)}><option value="all">All assigned classes</option>{classes.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-      <label>Subject<select value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)}><option value="all">All assigned subjects</option>{subjects.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-      <span className="sap-scope-note">Only students and subjects covered by your active teaching assignments are returned by the server.</span>
-    </div>
+    {loading ? <div className="aps-empty-state">Loading your authorised students…</div> : null}
+    {error ? <div className="aps-empty-state">{error}</div> : null}
 
-    <section className="sap-panel">
-      <div className="sap-panel-heading"><div><span>Authorised students</span><h2>Academic profile directory</h2></div><p>Select a student to open their longitudinal profile and generate an individual academic report.</p></div>
-      {loading ? <div className="sap-empty">Loading authorised students…</div> : null}
-      {error ? <div className="sap-empty">{error}</div> : null}
-      {!loading && !error ? <div className="sap-directory-grid">{visibleStudents.map((student) => <button type="button" key={`${student.student_id}:${student.class_name || ''}`} className="sap-directory-card" onClick={() => setSelectedStudentId(student.student_id)}><span><strong>{student.student_name}</strong><small>{student.class_name ? `Class ${student.class_name}` : 'Class not set'}{student.grade ? ` · Grade ${student.grade}` : ''}</small></span><span className="sap-directory-subjects">{student.subjects.map((item) => <i key={item}>{item}</i>)}</span><b>Open academic profile →</b></button>)}{!visibleStudents.length ? <div className="sap-empty">No students match the selected filters.</div> : null}</div> : null}
-    </section>
+    {!loading && !error ? <>
+      <AcademicStudentPicker
+        students={students}
+        grade={grade}
+        className={classFilter}
+        studentId={selectedStudentId}
+        subject={subjectFilter}
+        onGradeChange={(value) => { setGrade(value); setClassFilter(''); setSelectedStudentId(''); setSubjectFilter('all'); }}
+        onClassChange={(value) => { setClassFilter(value); setSelectedStudentId(''); setSubjectFilter('all'); }}
+        onStudentChange={(value) => { setSelectedStudentId(value); setSubjectFilter('all'); }}
+        onSubjectChange={setSubjectFilter}
+      />
+
+      {selected ? <section className="aps-selection-summary">
+        <div>
+          <strong>{selected.student_name}</strong>
+          <span>{selected.grade ? `Grade ${selected.grade} · ` : ''}Class {selected.class_name || '—'}{subjectFilter !== 'all' ? ` · ${subjectFilter}` : ''}</span>
+        </div>
+        <button type="button" className="aps-primary-button" onClick={() => setProfileOpen(true)}>Open student progress</button>
+      </section> : <div className="aps-empty-state">Start with the grade above. The next step becomes available automatically.</div>}
+    </> : null}
   </section>;
 };
 

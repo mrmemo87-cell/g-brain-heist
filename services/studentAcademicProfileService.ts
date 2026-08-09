@@ -26,7 +26,7 @@ export interface StudentAcademicProfile {
     subject?: string | null;
     date_from?: string | null;
     date_to?: string | null;
-    viewer: 'student' | 'teacher' | 'school_admin';
+    viewer: 'student' | 'teacher' | 'school_admin' | 'school_head';
     allowed_subjects: string[];
   };
   summary: {
