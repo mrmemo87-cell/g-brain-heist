@@ -1,0 +1,1 @@
+Teacher Workspace now exposes Academic Profiles and Interventions in the shared navigation used by desktop and mobile All tools. Both entries route to the existing production pages and retain the Performance Reports entitlement boundary.

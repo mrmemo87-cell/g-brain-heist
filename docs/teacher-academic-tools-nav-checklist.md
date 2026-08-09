@@ -1,0 +1,5 @@
+- Mobile All tools shows Academic Profiles and Interventions.
+- Desktop teacher sidebar shows the same entries.
+- Academic Profiles opens the existing teacher academic profiles page.
+- Interventions opens the existing teacher interventions page.
+- Existing Performance Reports entitlement/quota rules remain in force.
