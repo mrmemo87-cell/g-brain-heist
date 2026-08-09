@@ -8,92 +8,40 @@ Give students, teachers, School Heads/school administrators, and later verified 
 
 Historical evidence is append-only. A later success never deletes an earlier weakness. Current focus state is a rebuildable projection over the evidence timeline.
 
-## Existing evidence sources
+## Assignment evidence
 
-### School assignments
+Phase 2 ingests a result only after the server-authoritative assignment lifecycle says it is completed and all expected questions are represented. Topic evidence is classified below 60% as `focus`, 60–79% as `developing`, and 80%+ as `strength`.
 
-`student_assignment_results` stores the completed result and timestamp. `student_assignment_answers` plus `assignment_question_details` provide question-level correctness and topic metadata.
+Evidence quality prevents tiny samples from becoming durable labels: 1–2 questions are `provisional` and excluded from current focus state; 3–5 are `standard`; 6+ are `strong`. Future `skill:` and `subskill:` question tags can refine topic evidence without changing the model.
 
-Phase 2 only ingests a result after the server-authoritative assignment lifecycle says it is completed and all expected questions are represented. Topic evidence is classified as:
+## Writing Hub evidence
 
-- below 60%: `focus`
-- 60–79%: `developing`
-- 80% and above: `strength`
+Phase 3 uses the saved Writing Hub attempt payload as longitudinal academic evidence. Related raw tags collapse into stable skills such as Sentence control, Grammar accuracy, Content coverage, Organisation, Audience & register, and Vocabulary precision. Multiple related tags in one essay become one observation with occurrence evidence, so one submission cannot masquerade as repeated history.
 
-Evidence quality prevents tiny samples from becoming durable labels:
+Logical attempt identity collapses duplicate database rows and synchronizes later payload updates. Rubric dimensions create independent focus/developing/strength observations. Very short submissions remain provisional using actual word count versus task target.
 
-- 1–2 questions: `provisional`, retained in history but excluded from current focus state
-- 3–5 questions: `standard`
-- 6+ questions: `strong`
+A weakness is not considered improved just because a later attempt omits its tag. Recovery evidence requires a strong-quality later submission, absence of that canonical weakness, and a supporting rubric score of 4 or 5 in the related dimension.
 
-Future question tags can refine topic evidence using `skill:` and `subskill:` metadata without changing the longitudinal model.
-
-### English Writing Hub
-
-`bh_writing_attempts.payload` carries the student's submission, weakness tags/counts, rubric subscores, genre, score, word count, target length, and attempt identity.
-
-Phase 3 treats Writing Hub evidence as a real time-based learning source rather than importing raw tags literally:
-
-- related raw weakness tags are collapsed into stable academic skills such as Sentence control, Grammar accuracy, Content coverage, Organisation, Audience & register, and Vocabulary precision;
-- multiple related tags in one essay count as one learning observation with occurrence evidence, preventing one submission from masquerading as repeated history;
-- the logical attempt key is used to collapse historical duplicate database rows and to synchronize later payload updates;
-- rubric dimensions create independent focus/developing/strength evidence, so progress is visible even when weakness wording changes;
-- submission quality is based on actual word count relative to the task target. Very short submissions remain provisional rather than becoming durable weakness or strength evidence;
-- a weakness is not considered improved merely because a later attempt omits its tag. Recovery evidence requires a strong-quality later submission, absence of the related weakness, and a supporting rubric score of 4 or 5 in the relevant dimension.
-
-The current canonical weakness families are Sentence control, Punctuation, Grammar accuracy, Spelling, Vocabulary precision, Content coverage, Genre conventions, Audience & register, Task completion, and Organisation.
-
-### Live Writing Hub audit used for Phase 3
-
-The production read-only audit found 118 stored rows representing 113 canonical logical attempts across 55 students. Five duplicate rows share a logical attempt identity and are collapsed by the backfill rather than counted twice.
-
-Of the 113 canonical attempts, the evidence-quality model currently classifies 96 as strong, 3 as standard, and 14 as provisional. Canonical weakness history produces 439 observations after related tags are collapsed. Existing rubric data yields 366 dimension observations: 86 focus, 236 developing, and 44 strength observations.
-
-This audit changes no production data; it exists to make the migration fit the real Writing Hub payload rather than an assumed shape.
+The production read-only audit found 118 Writing Hub rows representing 113 canonical logical attempts across 55 students. Five duplicate rows are collapsed. Of the 113 canonical attempts, 96 are strong-quality, 3 standard, and 14 provisional. The current data yields 439 canonical weakness observations and 366 rubric observations: 86 focus, 236 developing, and 44 strength.
 
 ## Data model
 
-### `student_learning_observations`
+`student_learning_observations` is immutable historical evidence containing school/student identity, subject/topic/skill, source identity, timestamp, evidence percentage/count/quality, contribution status, and source evidence JSON. Stable source keys make automatic ingestion idempotent.
 
-Immutable historical evidence. Important fields include school, student, subject, topic, skill, subskill/context, normalized skill key, observation type, source type/id/key, observed time, evidence percentage/count, evidence quality, whether the observation contributes to current focus state, and source evidence JSON.
-
-`source_key` makes automatic ingestion idempotent.
-
-### `student_learning_focus_states`
-
-Derived current state per student + normalized skill. It stores first/last observation, occurrence counts, recent evidence, current status, trend, priority, and latest percentage.
-
-Initial statuses: `new_focus`, `recurring`, `persistent`, `improving`, `resolved`, `emerging_strength`, and `consistent_strength`.
-
-The state can always be rebuilt from observations. Provisional evidence remains visible in the timeline but is excluded from this projection.
+`student_learning_focus_states` is the rebuildable current projection per student and normalized skill. Statuses include `new_focus`, `recurring`, `persistent`, `improving`, `resolved`, `emerging_strength`, and `consistent_strength`. Provisional evidence stays visible in history but does not influence the current projection.
 
 ## Access model
 
-Direct access to both learning-memory tables is denied to `anon` and `authenticated`. Client access goes through scoped RPCs.
+Direct client access to both learning-memory tables is denied. Students can access only themselves through scoped RPCs; teachers are limited by active class/subject assignment; school administrators/School Heads are school-scoped. Guardian access remains intentionally disabled until verified guardian/student relationships exist. Internal teacher notes remain separate from future parent-visible summaries.
 
-- Student: own profile only.
-- Teacher: students in an actively assigned class; subject-specific requests must match the teacher's active subject assignment.
-- School admin / School Head: students in their own school.
-- Guardian: intentionally not enabled until the guardian/student relationship model and verification workflow exist.
+## Completed phases
 
-Internal teacher notes should remain separate from future parent-visible summaries.
-
-## Completed implementation phases
-
-### Phase 1 — Learning Memory foundation
-
-Append-only observation storage, rebuildable current focus projection, secure student-learning profile RPC, and adapter entry points.
-
-### Phase 2 — Assignment integration
-
-Authoritative completion/integrity gate, topic-level historical evidence, future skill/subskill compatibility, evidence-quality thresholds, deterministic historical backfill, and automatic future capture.
-
-### Phase 3 — Writing Hub integration hardening
-
-Canonical weakness families, logical-attempt deduplication/synchronization, word-count/target-aware evidence quality, rubric dimension history, conservative rubric-supported recovery evidence, and deterministic historical Writing Hub backfill.
+- **Phase 1:** append-only memory foundation, rebuildable focus projection, secure profile RPC, adapter entry points.
+- **Phase 2:** authoritative assignment integration, topic evidence, quality thresholds, deterministic backfill, future automatic capture.
+- **Phase 3:** canonical Writing Hub weaknesses, logical-attempt dedupe/sync, word-count quality, rubric history, conservative recovery evidence, deterministic backfill.
 
 ## Next implementation target
 
-Build the shared client service/types and the Teacher Portal **Student Academic Profile** first. It should consume the secure learning-profile RPC and combine marks, assignment history, Writing Hub evidence, current strengths, persistent focus areas, improvement/resolution timelines, and teacher-approved report generation without recalculating longitudinal state in the browser.
+Build the shared client service/types and Teacher Portal **Student Academic Profile**. It should consume the secure learning-profile RPC and combine marks, assignments, Writing Hub evidence, strengths, persistent focus areas, improvement/resolution timelines, and teacher-approved report generation without recalculating longitudinal state in the browser.
 
-After that: Student `My Progress`, School Head aggregate academic intelligence, verified guardian relationships and parent dashboard, richer skill/subskill metadata in question authoring, and intervention planning/targeted practice.
+Then add Student `My Progress`, School Head aggregate intelligence, verified guardian/parent access, richer question skill metadata, and intervention/targeted-practice workflows.
