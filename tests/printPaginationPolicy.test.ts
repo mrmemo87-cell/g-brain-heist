@@ -30,7 +30,7 @@ test('cards, timeline entries, comments and report footer remain indivisible', (
   assert.match(academicCss, /\.sap-print-three>div/);
   assert.match(academicCss, /\.sap-print-timeline p/);
   assert.match(academicCss, /\.sap-print-report blockquote/);
-  assert.match(academicCss, /\.sap-print-footer\{break-inside:avoid!important;page-break-inside:avoid!important\}/);
+  assert.ok(academicCss.includes('.sap-print-footer{break-inside:avoid!important;page-break-inside:avoid!important}'));
 });
 
 test('central school document engine already follows the same pagination contract', () => {
