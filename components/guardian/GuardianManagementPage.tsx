@@ -9,8 +9,9 @@ import {
 import './GuardianManagementPage.css';
 
 const GuardianManagementPage: React.FC = () => {
+  const initialStudentId = useMemo(() => new URLSearchParams(window.location.search).get('student') || '', []);
   const [data, setData] = useState<GuardianManagementSnapshot | null>(null);
-  const [studentId, setStudentId] = useState('');
+  const [studentId, setStudentId] = useState(initialStudentId);
   const [email, setEmail] = useState('');
   const [relationship, setRelationship] = useState('Parent / Guardian');
   const [query, setQuery] = useState('');
@@ -21,6 +22,13 @@ const GuardianManagementPage: React.FC = () => {
 
   const load = async () => { setBusy(true); setError(null); try { setData(await getGuardianManagementSnapshot()); } catch (e) { setError(e instanceof Error ? e.message : 'Guardian management could not be loaded.'); } finally { setBusy(false); } };
   useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    if (!data || !studentId) return;
+    if (!data.students.some((student) => student.student_id === studentId)) {
+      setStudentId('');
+      setError('The selected student is not available in your active school roster.');
+    }
+  }, [data, studentId]);
 
   const students = useMemo(() => (data?.students || []).filter((s) => !query.trim() || `${s.student_name} ${s.class_name || ''}`.toLowerCase().includes(query.toLowerCase().trim())), [data, query]);
 
