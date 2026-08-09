@@ -86,6 +86,11 @@ const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: str
 ];
 
 const SCHOOL_ADMIN_PRIMARY_TAB_IDS = new Set<MainAdminTab>(['dashboard', 'members', 'classes', 'admissions']);
+const SCHOOL_ADMIN_PROGRESS_TOOLS = [
+  { id: 'academic-profiles', icon: '🎓', label: 'Academic Profiles', description: 'Student progress, strengths and focus areas', href: '/teacher-academic-profiles.html' },
+  { id: 'interventions', icon: '🎯', label: 'Interventions', description: 'Targeted academic support and follow-up', href: '/teacher-interventions.html' },
+  { id: 'guardians', icon: '👨‍👩‍👧', label: 'Parents & Guardians', description: 'Invite, verify and manage parent access', href: '/guardian-management.html' },
+] as const;
 const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
   { id: 'ielts-exams', icon: '🧪', label: 'Exams', hint: 'Secure mock exams' },
   { id: 'ielts-practice', icon: '📝', label: 'Assignment Overview', hint: 'Assign & monitor' },
@@ -1765,6 +1770,14 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             {tab.label}
           </button>
         ) : null)}
+        <div className="mt-4 border-t border-slate-700/70 pt-4">
+          <p className="school-admin-nav-label">Student progress</p>
+          {SCHOOL_ADMIN_PROGRESS_TOOLS.map((tool) => (
+            <button key={tool.id} type="button" onClick={() => window.location.assign(tool.href)} data-testid={`school-admin-tool-${tool.id}`}>
+              {tool.label}
+            </button>
+          ))}
+        </div>
       </nav>
       <div className="school-admin-security-note"><strong>Secure school record</strong><span>Changes are limited to authorised administrators.</span></div>
       </aside>
@@ -1958,6 +1971,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
                     <strong>{tab.label}</strong>
                     <small>{tab.description}</small>
                   </span>
+                </button>
+              ))}
+              {SCHOOL_ADMIN_PROGRESS_TOOLS.map((tool) => (
+                <button key={tool.id} type="button" onClick={() => { setMobileAdminMenuOpen(false); window.location.assign(tool.href); }}>
+                  <span className="school-admin-mobile-menu-icon" aria-hidden="true">{tool.icon}</span>
+                  <span><strong>{tool.label}</strong><small>{tool.description}</small></span>
                 </button>
               ))}
             </div>
