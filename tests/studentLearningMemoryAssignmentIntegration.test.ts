@@ -43,7 +43,7 @@ test('assignment observations preserve useful academic evidence', () => {
   ]) {
     assert.match(phase2, new RegExp(`'${field}'`, 'i'));
   }
-  assert.match(phase2, /evidence_count, v_group\.question_count/i);
+  assert.match(phase2, /v_percentage, v_group\.question_count, v_quality, v_contributes/i);
 });
 
 test('historical assignment backfill is deterministic and rebuilds the projection', () => {
