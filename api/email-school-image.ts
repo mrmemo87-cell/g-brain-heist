@@ -12,9 +12,9 @@ const images = {
 type SectionKey = keyof typeof images;
 
 export default function handler(request: VercelRequest, response: VercelResponse) {
-  const rawSection = Array.isArray(request.query.section)
-    ? request.query.section[0]
-    : request.query.section;
+  const rawSection = Array.isArray(request.query['section'])
+    ? request.query['section'][0]
+    : request.query['section'];
   const section = rawSection as SectionKey | undefined;
   const encodedImage = section ? images[section] : undefined;
 
