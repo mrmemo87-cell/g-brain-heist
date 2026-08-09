@@ -10,73 +10,112 @@ export const DEMO_INTEREST_OPTIONS = [
   { value: 'class_activities', label: 'Engaging in-class group activities' },
 ] as const;
 
+export const DEMO_BOOKING_DAYS = [
+  { date: '2026-08-09', weekday: 'Sunday', shortDay: 'SUN', dayNumber: '09' },
+  { date: '2026-08-10', weekday: 'Monday', shortDay: 'MON', dayNumber: '10' },
+  { date: '2026-08-11', weekday: 'Tuesday', shortDay: 'TUE', dayNumber: '11' },
+  { date: '2026-08-12', weekday: 'Wednesday', shortDay: 'WED', dayNumber: '12' },
+  { date: '2026-08-13', weekday: 'Thursday', shortDay: 'THU', dayNumber: '13' },
+] as const;
+
+export const DEMO_BOOKING_TIMES = [
+  '10:00', '10:30', '11:00', '11:30',
+  '12:00', '12:30', '13:00', '13:30',
+  '14:00', '14:30', '15:00', '15:30',
+  '16:00', '16:30', '17:00', '17:30',
+] as const;
+
 export type DemoInterest = (typeof DEMO_INTEREST_OPTIONS)[number]['value'];
+export type DemoBookingDate = (typeof DEMO_BOOKING_DAYS)[number]['date'];
+export type DemoBookingTime = (typeof DEMO_BOOKING_TIMES)[number];
 export type DemoBookingStatus = 'new' | 'contacted' | 'confirmed' | 'completed' | 'cancelled';
 export type DemoMeetingFormat = 'online' | 'in_person' | 'either';
 
 export interface DemoBookingInput {
-  school_name: string;
   contact_name: string;
-  email: string;
   phone: string;
-  role_title: string;
-  country: string;
-  school_size: string;
-  preferred_format: DemoMeetingFormat;
   preferred_date: string;
   preferred_time: string;
-  timezone: string;
-  interests: DemoInterest[];
-  message: string;
-  consent: boolean;
   website: string;
 }
 
-export interface DemoBookingRecord extends Omit<DemoBookingInput, 'consent' | 'website' | 'phone' | 'school_size' | 'message'> {
+export interface DemoBookingSlot {
+  booking_date: string;
+  booking_time: string;
+  is_taken: boolean;
+}
+
+interface DemoBookingSlotRow {
+  booking_date: string;
+  booking_time: string;
+  is_blocked: boolean;
+  booking_id: string | null;
+}
+
+export interface DemoBookingRecord {
   id: string;
+  school_name: string | null;
+  contact_name: string;
+  email: string | null;
+  phone: string | null;
+  role_title: string | null;
+  country: string | null;
+  school_size: string | null;
+  preferred_format: DemoMeetingFormat | null;
+  preferred_date: string;
+  preferred_time: string;
+  timezone: string | null;
+  interests: DemoInterest[] | null;
+  message: string | null;
   status: DemoBookingStatus;
   admin_notes: string | null;
   source: string;
   created_at: string;
   updated_at: string;
-  phone: string | null;
-  school_size: string | null;
-  message: string | null;
 }
 
 type DemoBookingClient = Pick<typeof supabase, 'rpc' | 'from'>;
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const formatDemoBookingTime = (time: string): string => {
+  const [hours, minutes] = time.split(':').map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return time;
+  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const displayHour = hours % 12 || 12;
+  return `${displayHour}:${String(minutes).padStart(2, '0')} ${suffix}`;
+};
 
 export const normalizeDemoBooking = (input: DemoBookingInput): DemoBookingInput => ({
   ...input,
-  school_name: input.school_name.trim(),
   contact_name: input.contact_name.trim(),
-  email: input.email.trim().toLowerCase(),
   phone: input.phone.trim(),
-  role_title: input.role_title.trim(),
-  country: input.country.trim(),
-  school_size: input.school_size.trim(),
+  preferred_date: input.preferred_date.trim(),
   preferred_time: input.preferred_time.trim(),
-  timezone: input.timezone.trim(),
-  interests: [...new Set(input.interests)],
-  message: input.message.trim(),
   website: input.website.trim(),
 });
 
 export const validateDemoBooking = (input: DemoBookingInput): string | null => {
-  if (input.school_name.trim().length < 2) return 'Please enter the school name.';
   if (input.contact_name.trim().length < 2) return 'Please enter your full name.';
-  if (!EMAIL_PATTERN.test(input.email.trim())) return 'Please enter a valid work email.';
-  if (input.role_title.trim().length < 2) return 'Please enter your role at the school.';
-  if (input.country.trim().length < 2) return 'Please enter your country.';
-  if (!input.preferred_date) return 'Please choose a preferred date.';
-  if (input.preferred_date < new Date().toISOString().slice(0, 10)) return 'Please choose today or a future date.';
-  if (!input.preferred_time.trim()) return 'Please choose a preferred time.';
-  if (!input.timezone.trim()) return 'Please provide your timezone.';
-  if (input.interests.length === 0) return 'Please select at least one area to explore.';
-  if (!input.consent) return 'Please allow our team to contact you about the demo.';
+  if (input.phone.trim().length < 6) return 'Please enter a valid phone or WhatsApp number.';
+  if (!DEMO_BOOKING_DAYS.some((day) => day.date === input.preferred_date)) return 'Please choose a booking day.';
+  if (!DEMO_BOOKING_TIMES.some((time) => time === input.preferred_time)) return 'Please choose an available time slot.';
   return null;
+};
+
+export const listDemoBookingSlots = async (
+  client: DemoBookingClient = supabase,
+): Promise<DemoBookingSlot[]> => {
+  const { data, error } = await client
+    .from('demo_booking_slots')
+    .select('booking_date, booking_time, is_blocked, booking_id')
+    .order('booking_date', { ascending: true })
+    .order('booking_time', { ascending: true });
+
+  if (error) throw new Error(error.message || 'Could not load the booking calendar.');
+  return ((data ?? []) as DemoBookingSlotRow[]).map((slot) => ({
+    booking_date: slot.booking_date,
+    booking_time: slot.booking_time,
+    is_taken: Boolean(slot.is_blocked || slot.booking_id),
+  }));
 };
 
 export const submitDemoBooking = async (
@@ -88,7 +127,7 @@ export const submitDemoBooking = async (
   if (validationError) throw new Error(validationError);
 
   const { data, error } = await client.rpc('rpc_create_demo_booking', { p_booking: normalized });
-  if (error) throw new Error(error.message || 'We could not submit your booking request.');
+  if (error) throw new Error(error.message || 'We could not secure that appointment.');
   if (typeof data !== 'string') throw new Error('The booking response was incomplete. Please try again.');
   return data;
 };
