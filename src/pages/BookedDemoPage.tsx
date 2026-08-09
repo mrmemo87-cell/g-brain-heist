@@ -1,26 +1,95 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { strFromU8, unzipSync } from 'fflate';
+import Lottie from 'lottie-react';
 import {
   DEMO_BOOKING_DAYS,
   DEMO_BOOKING_TIMES,
-  formatDemoBookingTime,
+  checkDemoBookingAvailability,
+  detectDemoBookingTimeZone,
+  formatDemoBookingLocalDateTime,
+  formatDemoBookingLocalTime,
+  getDemoBookingLocalDate,
+  getDemoBookingSlotInstant,
+  isDemoBookingSlotPast,
   listDemoBookingSlots,
   submitDemoBooking,
   type DemoBookingInput,
   type DemoBookingSlot,
 } from '../../services/demoBookingService';
+import { DEMO_CITY_SUGGESTIONS, getDemoCountryOptions } from '../data/demoBookingLocations';
 import './BookedDemoPage.css';
 
-const initialBooking = (): DemoBookingInput => ({
+const SLOT_CHECK_ANIMATION_URL = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/lotties/Eye%20scanning%20logo%20Lottie%20JSON%20animation.lottie';
+
+interface LocalBookingSlot {
+  bookingDate: string;
+  bookingTime: string;
+  localDate: string;
+  localTime: string;
+}
+
+interface LocalBookingDay {
+  date: string;
+  weekday: string;
+  shortDay: string;
+  dayNumber: string;
+  monthYear: string;
+  slots: LocalBookingSlot[];
+}
+
+const buildLocalBookingDays = (timeZone: string): LocalBookingDay[] => {
+  const grouped = new Map<string, LocalBookingDay>();
+  for (const day of DEMO_BOOKING_DAYS) {
+    for (const time of DEMO_BOOKING_TIMES) {
+      const instant = getDemoBookingSlotInstant(day.date, time);
+      const localDate = getDemoBookingLocalDate(day.date, time, timeZone);
+      const parts = new Intl.DateTimeFormat('en', {
+        timeZone,
+        weekday: 'long',
+        month: 'long',
+        year: 'numeric',
+        day: '2-digit',
+      }).formatToParts(instant);
+      const read = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? '';
+      const current = grouped.get(localDate) ?? {
+        date: localDate,
+        weekday: read('weekday'),
+        shortDay: read('weekday').slice(0, 3).toUpperCase(),
+        dayNumber: read('day'),
+        monthYear: `${read('month')} ${read('year')}`.toUpperCase(),
+        slots: [],
+      };
+      current.slots.push({
+        bookingDate: day.date,
+        bookingTime: time,
+        localDate,
+        localTime: formatDemoBookingLocalTime(day.date, time, timeZone),
+      });
+      grouped.set(localDate, current);
+    }
+  }
+  return [...grouped.values()].sort((left, right) => left.date.localeCompare(right.date));
+};
+
+const initialBooking = (timeZone: string): DemoBookingInput => ({
+  school_name: '',
   contact_name: '',
   phone: '',
+  country: '',
+  city: '',
+  street_address: '',
   preferred_date: DEMO_BOOKING_DAYS[0].date,
   preferred_time: '',
+  timezone: timeZone,
   website: '',
 });
 
 const BookedDemoPage: React.FC = () => {
-  const [booking, setBooking] = useState<DemoBookingInput>(initialBooking);
-  const [submitting, setSubmitting] = useState(false);
+  const viewerTimeZone = useMemo(detectDemoBookingTimeZone, []);
+  const countryOptions = useMemo(() => getDemoCountryOptions(), []);
+  const localDays = useMemo(() => buildLocalBookingDays(viewerTimeZone), [viewerTimeZone]);
+  const [booking, setBooking] = useState<DemoBookingInput>(() => initialBooking(viewerTimeZone));
+  const [submissionPhase, setSubmissionPhase] = useState<'idle' | 'checking' | 'booking'>('idle');
   const [error, setError] = useState('');
   const [bookingId, setBookingId] = useState('');
   const [slots, setSlots] = useState<DemoBookingSlot[]>([]);
@@ -29,13 +98,22 @@ const BookedDemoPage: React.FC = () => {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [flipSequence, setFlipSequence] = useState(0);
   const [flipDirection, setFlipDirection] = useState<'next' | 'previous'>('next');
+  const [clockNow, setClockNow] = useState(() => Date.now());
+  const [autoSelectedDay, setAutoSelectedDay] = useState(false);
+  const [slotCheckAnimation, setSlotCheckAnimation] = useState<Record<string, unknown> | null>(null);
 
-  const selectedDay = DEMO_BOOKING_DAYS[selectedDayIndex];
+  const submitting = submissionPhase !== 'idle';
+  const selectedDay = localDays[selectedDayIndex] ?? localDays[0];
+  const citySuggestions = DEMO_CITY_SUGGESTIONS[booking.country] ?? [];
   const takenSlots = useMemo(
     () => new Set(slots.filter((slot) => slot.is_taken).map((slot) => `${slot.booking_date}:${slot.booking_time}`)),
     [slots],
   );
-  const availableCount = DEMO_BOOKING_TIMES.filter((time) => !takenSlots.has(`${selectedDay.date}:${time}`)).length;
+  const slotIsTaken = (slot: LocalBookingSlot) => (
+    takenSlots.has(`${slot.bookingDate}:${slot.bookingTime}`)
+    || isDemoBookingSlotPast(slot.bookingDate, slot.bookingTime, clockNow)
+  );
+  const availableCount = selectedDay.slots.filter((slot) => !slotIsTaken(slot)).length;
 
   const loadAvailability = useCallback(async () => {
     setSlotsLoading(true);
@@ -57,6 +135,33 @@ const BookedDemoPage: React.FC = () => {
 
   useEffect(() => { void loadAvailability(); }, [loadAvailability]);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setClockNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    void fetch(SLOT_CHECK_ANIMATION_URL)
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Animation unavailable');
+        const archive = unzipSync(new Uint8Array(await response.arrayBuffer()));
+        const animationPath = Object.keys(archive).find((path) => path.startsWith('animations/') && path.endsWith('.json'));
+        if (!animationPath) throw new Error('Animation data missing');
+        return JSON.parse(strFromU8(archive[animationPath])) as Record<string, unknown>;
+      })
+      .then((animation) => { if (active) setSlotCheckAnimation(animation); })
+      .catch(() => { /* The CSS scanner remains as a graceful fallback. */ });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (slotsLoading || autoSelectedDay) return;
+    const firstAvailableDay = localDays.findIndex((day) => day.slots.some((slot) => !slotIsTaken(slot)));
+    if (firstAvailableDay > 0) setSelectedDayIndex(firstAvailableDay);
+    setAutoSelectedDay(true);
+  }, [autoSelectedDay, clockNow, localDays, slotsLoading, takenSlots]);
+
   const setField = <K extends keyof DemoBookingInput>(field: K, value: DemoBookingInput[K]) => {
     setBooking((current) => ({ ...current, [field]: value }));
   };
@@ -66,16 +171,37 @@ const BookedDemoPage: React.FC = () => {
     setFlipDirection(index > selectedDayIndex ? 'next' : 'previous');
     setSelectedDayIndex(index);
     setFlipSequence((current) => current + 1);
-    setField('preferred_date', DEMO_BOOKING_DAYS[index].date);
+    setField('preferred_date', localDays[index]?.slots[0]?.bookingDate ?? '');
     setField('preferred_time', '');
+    setError('');
+  };
+
+  const selectSlot = (slot: LocalBookingSlot) => {
+    setBooking((current) => ({
+      ...current,
+      preferred_date: slot.bookingDate,
+      preferred_time: slot.bookingTime,
+      timezone: viewerTimeZone,
+    }));
     setError('');
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
-    setSubmitting(true);
+    if (isDemoBookingSlotPast(booking.preferred_date, booking.preferred_time)) {
+      setError('That time has already passed. Please choose another available slot.');
+      void loadAvailability();
+      return;
+    }
+    setSubmissionPhase('checking');
     try {
+      const [isAvailable] = await Promise.all([
+        checkDemoBookingAvailability(booking.preferred_date, booking.preferred_time),
+        new Promise<void>((resolve) => window.setTimeout(resolve, 900)),
+      ]);
+      if (!isAvailable) throw new Error('That time slot was just taken or has already passed. Please choose another one.');
+      setSubmissionPhase('booking');
       const id = await submitDemoBooking(booking);
       setBookingId(id);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -83,7 +209,7 @@ const BookedDemoPage: React.FC = () => {
       setError(submissionError instanceof Error ? submissionError.message : 'We could not submit your request. Please try again.');
       void loadAvailability();
     } finally {
-      setSubmitting(false);
+      setSubmissionPhase('idle');
     }
   };
 
@@ -104,9 +230,9 @@ const BookedDemoPage: React.FC = () => {
             Your 30-minute Brains Heist demonstration is reserved. We’ll contact you on the number provided if we need anything before the session.
           </p>
           <div className="booked-success-appointment">
-            <span>{DEMO_BOOKING_DAYS.find((day) => day.date === booking.preferred_date)?.weekday}</span>
-            <strong>August {booking.preferred_date.slice(-2)} · {formatDemoBookingTime(booking.preferred_time)}</strong>
-            <small>Bishkek time · GMT+6</small>
+            <span>Your local appointment time</span>
+            <strong>{formatDemoBookingLocalDateTime(booking.preferred_date, booking.preferred_time, viewerTimeZone)}</strong>
+            <small>{viewerTimeZone.replaceAll('_', ' ')} · School: {booking.school_name}</small>
           </div>
           <div className="booked-reference">
             <span>Booking reference</span>
@@ -239,10 +365,10 @@ const BookedDemoPage: React.FC = () => {
         <div className="booked-calendar-heading">
           <p className="booked-eyebrow">PICK A MOMENT. WE’LL HANDLE THE REST.</p>
           <h2 id="book-demo-title">Your demo, booked in seconds.</h2>
-          <p>Just your name, phone number, and one available 30-minute slot. Times are shown in Bishkek time (GMT+6).</p>
+          <p>Tell us who and where your school is, then choose an available 30-minute slot. Every time is automatically shown in your local timezone.</p>
         </div>
 
-        <form className="booked-scheduler" onSubmit={handleSubmit} noValidate>
+        <form className="booked-scheduler" onSubmit={handleSubmit} noValidate aria-busy={submitting}>
           <div className="booked-scheduler-topline">
             <span>LIVE AVAILABILITY</span>
             <div><i /> Updating in real time</div>
@@ -251,11 +377,23 @@ const BookedDemoPage: React.FC = () => {
           <div className="booked-identity-fields">
             <label className="booked-field">Your name<input required maxLength={120} autoComplete="name" value={booking.contact_name} onChange={(event) => setField('contact_name', event.target.value)} placeholder="Full name" /></label>
             <label className="booked-field">Phone / WhatsApp<input required maxLength={50} autoComplete="tel" inputMode="tel" value={booking.phone} onChange={(event) => setField('phone', event.target.value)} placeholder="+996 555 123 456" /></label>
+            <label className="booked-field booked-field-wide">School name<input required maxLength={180} autoComplete="organization" value={booking.school_name} onChange={(event) => setField('school_name', event.target.value)} placeholder="Your school’s official name" /></label>
+            <label className="booked-field">Country
+              <select required autoComplete="country-name" value={booking.country} onChange={(event) => setBooking((current) => ({ ...current, country: event.target.value, city: '' }))}>
+                <option value="">Choose country</option>
+                {countryOptions.map((country) => <option key={country.code} value={country.name}>{country.name}</option>)}
+              </select>
+            </label>
+            <label className="booked-field">City
+              <input required list="booked-city-options" maxLength={120} autoComplete="address-level2" value={booking.city} onChange={(event) => setField('city', event.target.value)} placeholder={booking.country ? 'Choose or type the city' : 'Choose a country first'} />
+              <datalist id="booked-city-options">{citySuggestions.map((city) => <option key={city} value={city} />)}</datalist>
+            </label>
+            <label className="booked-field booked-field-wide">Street / school address<input required maxLength={240} autoComplete="street-address" value={booking.street_address} onChange={(event) => setField('street_address', event.target.value)} placeholder="Street, building, district or campus address" /></label>
           </div>
 
           <div className="booked-day-strip" role="tablist" aria-label="Choose a demonstration day">
-            {DEMO_BOOKING_DAYS.map((day, index) => {
-              const dayAvailable = DEMO_BOOKING_TIMES.filter((time) => !takenSlots.has(`${day.date}:${time}`)).length;
+            {localDays.map((day, index) => {
+              const dayAvailable = day.slots.filter((slot) => !slotIsTaken(slot)).length;
               return (
                 <button key={day.date} type="button" role="tab" aria-selected={selectedDayIndex === index} onClick={() => selectDay(index)} className={selectedDayIndex === index ? 'active' : ''}>
                   <span>{day.shortDay}</span><strong>{day.dayNumber}</strong><small>{slotsLoading ? '···' : dayAvailable === 0 ? 'FULL' : `${dayAvailable} LEFT`}</small>
@@ -269,7 +407,7 @@ const BookedDemoPage: React.FC = () => {
             <div key={`${selectedDay.date}-${flipSequence}`} className={`booked-calendar-sheet flip-${flipDirection}`}>
               <div className="booked-calendar-rings" aria-hidden="true"><i /><i /><i /><i /><i /></div>
               <div className="booked-calendar-date">
-                <div><span>AUGUST 2026</span><h3>{selectedDay.weekday}</h3></div>
+                <div><span>{selectedDay.monthYear}</span><h3>{selectedDay.weekday}</h3></div>
                 <strong>{selectedDay.dayNumber}</strong>
               </div>
               <div className="booked-availability-line">
@@ -280,32 +418,45 @@ const BookedDemoPage: React.FC = () => {
                 <div className="booked-slots-error" role="alert"><p>{slotsError}</p><button type="button" onClick={() => void loadAvailability()}>Try again</button></div>
               ) : (
                 <div className="booked-time-grid" role="group" aria-label={`Available times for ${selectedDay.weekday}`}>
-                  {DEMO_BOOKING_TIMES.map((time) => {
-                    const isTaken = slotsLoading || takenSlots.has(`${selectedDay.date}:${time}`);
-                    const isSelected = booking.preferred_date === selectedDay.date && booking.preferred_time === time;
+                  {selectedDay.slots.map((slot) => {
+                    const isTaken = slotsLoading || slotIsTaken(slot);
+                    const isSelected = booking.preferred_date === slot.bookingDate && booking.preferred_time === slot.bookingTime;
                     return (
-                      <button key={time} type="button" disabled={isTaken} aria-pressed={isSelected} onClick={() => setField('preferred_time', time)} className={`${isTaken ? 'taken' : 'available'} ${isSelected ? 'selected' : ''}`}>
-                        <span>{formatDemoBookingTime(time)}</span><small>{isTaken ? 'TAKEN' : isSelected ? 'SELECTED' : 'OPEN'}</small>
+                      <button key={`${slot.bookingDate}:${slot.bookingTime}`} type="button" disabled={isTaken} aria-pressed={isSelected} onClick={() => selectSlot(slot)} className={`${isTaken ? 'taken' : 'available'} ${isSelected ? 'selected' : ''}`} title={isDemoBookingSlotPast(slot.bookingDate, slot.bookingTime, clockNow) ? 'This time has already passed' : undefined}>
+                        <span>{slot.localTime}</span><small>{isTaken ? 'TAKEN' : isSelected ? 'SELECTED' : 'OPEN'}</small>
                       </button>
                     );
                   })}
                 </div>
               )}
-              {!slotsLoading && availableCount === 0 && <p className="booked-full-day-note">Sunday is fully booked. Flip to the next day to find an open time.</p>}
+              {!slotsLoading && availableCount === 0 && <p className="booked-full-day-note">This day has no remaining times. Flip to another day to find an open slot.</p>}
             </div>
-            <button type="button" className="booked-calendar-arrow" onClick={() => selectDay(Math.min(DEMO_BOOKING_DAYS.length - 1, selectedDayIndex + 1))} disabled={selectedDayIndex === DEMO_BOOKING_DAYS.length - 1} aria-label="Next day">→</button>
+            <button type="button" className="booked-calendar-arrow" onClick={() => selectDay(Math.min(localDays.length - 1, selectedDayIndex + 1))} disabled={selectedDayIndex === localDays.length - 1} aria-label="Next day">→</button>
           </div>
 
           <label className="booked-honeypot" aria-hidden="true">Website<input tabIndex={-1} autoComplete="off" value={booking.website} onChange={(event) => setField('website', event.target.value)} /></label>
           <div className="booked-selection-summary">
-            <div><span>YOUR SELECTION</span><strong>{booking.preferred_time ? `${selectedDay.weekday}, August ${selectedDay.dayNumber} · ${formatDemoBookingTime(booking.preferred_time)}` : 'Choose an open time above'}</strong></div>
-            <span className="booked-timezone-pill">GMT+6</span>
+            <div><span>YOUR SELECTION · LOCAL TIME</span><strong>{booking.preferred_time ? formatDemoBookingLocalDateTime(booking.preferred_date, booking.preferred_time, viewerTimeZone) : 'Choose an open time above'}</strong></div>
+            <span className="booked-timezone-pill">{viewerTimeZone.replaceAll('_', ' ')}</span>
           </div>
           {error && <div className="booked-error" role="alert">{error}</div>}
           <button className="booked-submit" type="submit" disabled={submitting || slotsLoading || Boolean(slotsError) || !booking.preferred_time}>
-            {submitting ? 'Locking your time…' : 'Book this demo'}<span aria-hidden="true">→</span>
+            {submissionPhase === 'checking' ? 'Checking availability…' : submissionPhase === 'booking' ? 'Securing your demo…' : 'Book this demo'}<span aria-hidden="true">→</span>
           </button>
           <p className="booked-form-footnote">Your number is used only to coordinate this demonstration.</p>
+
+          {submitting && (
+            <div className="booked-slot-check" role="status" aria-live="polite">
+              <div className="booked-slot-check-card">
+                <div className="booked-slot-check-animation" aria-hidden="true">
+                  {slotCheckAnimation ? <Lottie animationData={slotCheckAnimation} loop autoplay /> : <div className="booked-css-scanner"><i /><span /></div>}
+                </div>
+                <p>{submissionPhase === 'checking' ? 'ONE SEC!' : 'SLOT CONFIRMED'}</p>
+                <h3>{submissionPhase === 'checking' ? 'Making sure this slot is still available…' : 'Securing your school demonstration…'}</h3>
+                <small>Checking the live Brains Heist calendar</small>
+              </div>
+            </div>
+          )}
         </form>
       </section>
 
