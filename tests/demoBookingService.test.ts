@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   DEMO_BOOKING_DAYS,
   DEMO_BOOKING_TIMES,
   checkDemoBookingAvailability,
+  friendlyDemoBookingError,
   formatDemoBookingTime,
   formatDemoBookingLocalTime,
   getDemoBookingLocalDate,
@@ -12,6 +14,9 @@ import {
   validateDemoBooking,
   type DemoBookingInput,
 } from '../services/demoBookingService.js';
+
+const bookedDemoPage = readFileSync('src/pages/BookedDemoPage.tsx', 'utf8');
+const bookedDemoStyles = readFileSync('src/pages/BookedDemoPage.css', 'utf8');
 
 const validBooking = (): DemoBookingInput => ({
   school_name: 'Northbridge International School',
@@ -108,4 +113,31 @@ test('checks live database availability before booking', async () => {
     name: 'rpc_check_demo_booking_slot',
     args: { p_booking_date: '2026-08-10', p_booking_time: '10:00' },
   }]);
+});
+
+test('replaces technical booking errors with instructions the visitor can act on', () => {
+  assert.equal(
+    friendlyDemoBookingError(new Error('typecheck error: invalid input syntax for type date')),
+    'Some booking details could not be read. Please check the school name, country, city, street address, phone number, and selected time, then try again.',
+  );
+  assert.equal(
+    friendlyDemoBookingError(new Error('TypeError: Failed to fetch')),
+    'We could not reach the live booking calendar. Please check your internet connection and try again.',
+  );
+});
+
+test('preserves specific booking validation guidance and hides unknown backend details', () => {
+  assert.equal(friendlyDemoBookingError(new Error('Please enter the school name.')), 'Please enter the school name.');
+  assert.equal(
+    friendlyDemoBookingError(new Error('internal database implementation detail')),
+    'We could not complete the booking. Please check all required details and try again.',
+  );
+});
+
+test('keeps the booking dialog viewport-centered and dismissible only through OK', () => {
+  assert.match(bookedDemoStyles, /\.booked-slot-check \{ position: fixed; z-index: 1000; inset: 0;[\s\S]*place-items: center;/);
+  assert.match(bookedDemoPage, /role="dialog" aria-modal="true"/);
+  assert.match(bookedDemoPage, /event\.key === 'Escape'[\s\S]*event\.preventDefault\(\)/);
+  assert.match(bookedDemoPage, /className="booked-dialog-ok"[\s\S]*onClick=\{acknowledgeBookingDialog\}>OK<\/button>/);
+  assert.doesNotMatch(bookedDemoPage, /booked-slot-check[^\n]*onClick=/);
 });

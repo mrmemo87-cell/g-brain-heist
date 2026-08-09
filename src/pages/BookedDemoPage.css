@@ -195,13 +195,20 @@
 .booked-selection-summary strong { color: #e9f8ff; font-size: 13px; }
 .booked-timezone-pill { flex: 0 0 auto; padding: 7px 9px; border-radius: 7px; background: rgba(140,99,255,.17); color: #c7b9ff !important; }
 .booked-scheduler .booked-error, .booked-scheduler .booked-submit, .booked-scheduler .booked-form-footnote { margin-left: 56px; margin-right: 56px; width: calc(100% - 112px); }
-.booked-slot-check { position: absolute; z-index: 20; inset: 0; display: grid; place-items: center; padding: 22px; background: rgba(3,8,22,.82); backdrop-filter: blur(9px); animation: booked-slot-check-in .22s ease-out both; }
-.booked-slot-check-card { width: min(420px, 100%); padding: 26px 24px 28px; border: 1px solid rgba(21,215,255,.35); border-radius: 20px; background: radial-gradient(circle at 50% 0, rgba(21,215,255,.14), transparent 48%), linear-gradient(145deg, #101a36, #060b1c); text-align: center; box-shadow: 0 30px 90px rgba(0,0,0,.55), 0 0 55px rgba(21,215,255,.11); }
+.booked-slot-check { position: fixed; z-index: 1000; inset: 0; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; overflow-y: auto; overscroll-behavior: contain; padding: max(22px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left)); background: rgba(3,8,22,.86); backdrop-filter: blur(11px); animation: booked-slot-check-in .22s ease-out both; }
+.booked-slot-check-card { width: min(420px, 100%); max-height: calc(100dvh - 44px); overflow-y: auto; padding: 26px 24px 28px; border: 1px solid rgba(21,215,255,.35); border-radius: 20px; background: radial-gradient(circle at 50% 0, rgba(21,215,255,.14), transparent 48%), linear-gradient(145deg, #101a36, #060b1c); text-align: center; box-shadow: 0 30px 90px rgba(0,0,0,.65), 0 0 55px rgba(21,215,255,.14); outline: none; }
 .booked-slot-check-animation { width: 150px; height: 150px; display: grid; place-items: center; margin: 0 auto 4px; }
 .booked-slot-check-animation > div { width: 100%; height: 100%; }
 .booked-slot-check-card > p { margin: 0 0 8px; color: var(--booked-cyan); font-size: 10px; font-weight: 900; letter-spacing: .2em; }
 .booked-slot-check-card h3 { margin: 0; color: #fff; font-size: clamp(20px, 4vw, 28px); line-height: 1.2; letter-spacing: -.025em; }
 .booked-slot-check-card small { display: block; margin-top: 11px; color: #7f8dab; font-size: 10px; }
+.booked-dialog-symbol { width: 72px; height: 72px; display: grid; place-items: center; margin: 2px auto 21px; border: 1px solid; border-radius: 50%; font-size: 30px; font-weight: 900; }
+.booked-dialog-symbol-error { border-color: rgba(255,95,159,.5); background: rgba(255,95,159,.12); color: #ff75ad; box-shadow: 0 0 38px rgba(255,45,145,.17); }
+.booked-dialog-symbol-success { border-color: rgba(50,235,183,.45); background: rgba(50,235,183,.12); color: #32ebb7; box-shadow: 0 0 38px rgba(50,235,183,.16); }
+.booked-dialog-message { margin: 15px auto 0; color: #b9c5da; font-size: 13px; line-height: 1.65; }
+.booked-dialog-ok { min-width: 132px; margin-top: 22px; padding: 12px 25px; cursor: pointer; border: 0; border-radius: 10px; background: linear-gradient(135deg, var(--booked-cyan), #04afdf); color: #03101c; font: inherit; font-size: 12px; font-weight: 900; letter-spacing: .08em; box-shadow: 0 12px 30px rgba(21,215,255,.24); transition: transform .18s ease, box-shadow .18s ease; }
+.booked-dialog-ok:hover { transform: translateY(-2px); box-shadow: 0 15px 34px rgba(21,215,255,.32); }
+.booked-dialog-ok:focus-visible { outline: 3px solid rgba(255,255,255,.95); outline-offset: 3px; }
 .booked-css-scanner { position: relative; width: 108px !important; height: 108px !important; overflow: hidden; border: 2px solid rgba(21,215,255,.42); border-radius: 50%; box-shadow: inset 0 0 30px rgba(21,215,255,.12), 0 0 35px rgba(21,215,255,.16); }
 .booked-css-scanner::before, .booked-css-scanner::after { content: ''; position: absolute; inset: 22px; border: 1px solid rgba(21,215,255,.24); border-radius: 50%; }
 .booked-css-scanner::after { inset: 43px 18px; border-radius: 50%; background: rgba(21,215,255,.12); }
