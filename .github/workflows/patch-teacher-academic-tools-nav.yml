@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  patch:
+  cleanup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,64 +17,27 @@ jobs:
           ref: fix/teacher-academic-tools-nav
           fetch-depth: 0
 
-      - name: Patch TeacherPortal academic navigation
+      - name: Verify teacher academic navigation and remove one-shot workflow
         shell: python
         run: |
           from pathlib import Path
 
-          path = Path('components/TeacherPortal.tsx')
-          text = path.read_text(encoding='utf-8')
-          original = text
-
-          old_union = "type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'documents' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';"
-          new_union = "type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'interventions' | 'documents' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';"
-          if old_union not in text and new_union not in text:
-              raise SystemExit('TeacherNavSection anchor not found')
-          text = text.replace(old_union, new_union, 1)
-
-          nav_anchor = "    { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },\n"
-          nav_insert = nav_anchor + "    { id: 'academic-profiles', label: 'Academic Profiles', icon: '🎓', description: 'Progress, Strengths & Focus Areas', proOnly: true },\n    { id: 'interventions', label: 'Interventions', icon: '🎯', description: 'Targeted Support & Follow-up', proOnly: true },\n"
-          if "label: 'Academic Profiles'" not in text:
-              if nav_anchor not in text:
-                  raise SystemExit('navTabs reports anchor not found')
-              text = text.replace(nav_anchor, nav_insert, 1)
-
-          quota_anchor = "      reports: 'Performance Reports',\n"
-          quota_insert = quota_anchor + "      'academic-profiles': 'Performance Reports',\n      interventions: 'Performance Reports',\n"
-          if "'academic-profiles': 'Performance Reports'" not in text:
-              if quota_anchor not in text:
-                  raise SystemExit('quota anchor not found')
-              text = text.replace(quota_anchor, quota_insert, 1)
-
-          change_anchor = "  const changeSection = async (section: TeacherNavSection) => {\n    revealMobileNavigation();\n    setMobileWorkspaceMenuOpen(false);\n"
-          change_insert = change_anchor + "\n    if (section === 'academic-profiles') {\n      window.location.assign('/teacher-academic-profiles.html');\n      return;\n    }\n\n    if (section === 'interventions') {\n      window.location.assign('/teacher-interventions.html');\n      return;\n    }\n"
-          if "window.location.assign('/teacher-academic-profiles.html')" not in text:
-              if change_anchor not in text:
-                  raise SystemExit('changeSection anchor not found')
-              text = text.replace(change_anchor, change_insert, 1)
-
+          portal = Path('components/TeacherPortal.tsx').read_text(encoding='utf-8')
           required = [
               "label: 'Academic Profiles'",
               "label: 'Interventions'",
               "window.location.assign('/teacher-academic-profiles.html')",
               "window.location.assign('/teacher-interventions.html')",
           ]
-          missing = [item for item in required if item not in text]
+          missing = [item for item in required if item not in portal]
           if missing:
-              raise SystemExit(f'Missing expected navigation changes: {missing}')
+              raise SystemExit(f'Missing expected teacher navigation changes: {missing}')
 
-          if text != original:
-              path.write_text(text, encoding='utf-8')
-
-      - name: Commit patch
+      - name: Self-clean one-shot workflow
         shell: bash
         run: |
-          if git diff --quiet -- components/TeacherPortal.tsx; then
-            echo "No code changes to commit."
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add components/TeacherPortal.tsx
-          git commit -m "Expose academic profiles and interventions to teachers"
+          git rm .github/workflows/patch-teacher-academic-tools-nav.yml
+          git commit -m "Remove one-shot teacher academic navigation workflow"
           git push origin HEAD:fix/teacher-academic-tools-nav
