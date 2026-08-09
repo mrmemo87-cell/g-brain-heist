@@ -10,7 +10,7 @@ test('writing weakness tags collapse into stable parent-facing academic skills',
   assert.match(phase3, /poor_sequencing' then 'Organisation'/i);
   assert.match(phase3, /weak_audience_awareness' then 'Audience & register'/i);
   assert.match(phase3, /sum\(tag_count\)::integer occurrence_count/i);
-  assert.match(phase3, /group by 1,2/i);
+  assert.match(phase3, /from raw_tags group by 1,2/i);
 });
 
 test('writing evidence is quality-gated by actual work completed', () => {
@@ -46,7 +46,8 @@ test('logical attempts are synchronized and historical duplicates are canonicali
 });
 
 test('privileged writing ingestion is not callable by normal clients', () => {
-  assert.match(phase3, /security definer set search_path = ''/i);
+  assert.match(phase3, /security definer/i);
+  assert.match(phase3, /set search_path = ''/i);
   assert.match(phase3, /revoke all on function public\.student_learning_ingest_writing_attempt\(uuid,jsonb,timestamptz\) from public,anon,authenticated/i);
   assert.match(phase3, /grant execute on function public\.student_learning_ingest_writing_attempt\(uuid,jsonb,timestamptz\) to service_role/i);
 });
