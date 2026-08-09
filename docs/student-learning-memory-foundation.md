@@ -100,6 +100,8 @@ Internal teacher notes should remain separate from future parent-visible summari
 
 Live-data audit before the Phase 2 migration found 648 historical assignment results. 647 satisfy the stricter completion/integrity gate. One legacy result claims two correct answers for an assignment containing one question; it is deliberately excluded from the learning-memory backfill. The eligible data produces 653 topic observations: 11 provisional, 9 standard, and 633 strong.
 
+The earlier Phase 1 combined migration rehearsal completed successfully and was rolled back. A later oversized Phase 2 rehearsal query timed out at the connection layer; a residue check confirmed it left no learning-memory tables or functions in production. Phase 2 logic was therefore additionally validated with smaller live-data eligibility/topic-quality queries plus repository regression contracts, rather than treating the timeout as a successful database rehearsal.
+
 ## Next phases
 
 - Add client service/types and Teacher Portal student academic profile.
