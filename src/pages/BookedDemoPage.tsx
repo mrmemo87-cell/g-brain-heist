@@ -40,6 +40,7 @@ interface LocalBookingDay {
   slots: LocalBookingSlot[];
 }
 
+// This dialog intentionally stays modal until the visitor acknowledges the final result.
 type BookingDialogState =
   | { status: 'closed' }
   | { status: 'checking' | 'booking' }
