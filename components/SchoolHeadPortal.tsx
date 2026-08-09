@@ -321,7 +321,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
           {snapshot.academics.grade_performance.map((grade) => <div role="row" key={grade.grade} className="school-head-grade-row"><strong role="cell">Grade {grade.grade}</strong><span role="cell">{grade.students}</span><span role="cell">{grade.assessments}</span><b role="cell">{formatPercent(grade.average)}</b><div role="cell" className="school-head-grade-bar"><i style={{ width: `${Math.max(0, Math.min(100, grade.average ?? 0))}%` }} /></div></div>)}
         </div> : <EmptyState title="No grade performance yet">Assessment results will appear here after school-linked students complete recorded tests.</EmptyState>}
       </section>
-      <section className="school-head-callout"><div><p>Privacy-aware drill-down</p><h3>Need individual or class-level detail?</h3><span>Open controlled academic reports in the administration workspace. Sensitive access remains scoped and auditable.</span></div><button type="button" onClick={() => openAdministration('cambridge')}>Open assessment reports</button></section>
+      <section className="school-head-callout"><div><p>Longitudinal learning intelligence</p><h3>See where progress is improving — and where support is still needed.</h3><span>Open the school-wide learning-memory view for subject, class and student intervention patterns. Persistent areas with stale evidence are flagged for reassessment rather than assumed to remain unresolved.</span></div><button type="button" onClick={() => window.location.assign(`/school-head-learning-intelligence.html?school=${encodeURIComponent(schoolId)}`)}>Open learning intelligence</button></section>
     </div>
   );
 
