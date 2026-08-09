@@ -33,6 +33,10 @@ export default defineConfig(({ mode }) => {
       build: {
         chunkSizeWarningLimit: 800,
         rollupOptions: {
+          input: {
+            main: path.resolve(__dirname, 'index.html'),
+            academicProfile: path.resolve(__dirname, 'academic-profile.html'),
+          },
           output: {
             manualChunks: {
               'vendor-react': ['react', 'react-dom'],
