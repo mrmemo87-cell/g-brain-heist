@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '../AdminContext';
 import {
   DEMO_INTEREST_OPTIONS,
+  formatDemoBookingTime,
   listDemoBookings,
   updateDemoBooking,
   type DemoBookingRecord,
@@ -75,7 +76,7 @@ const BookedAppointmentsTab: React.FC = () => {
       if (statusFilter !== 'all' && appointment.status !== statusFilter) return false;
       if (!term) return true;
       return [appointment.school_name, appointment.contact_name, appointment.email, appointment.country, appointment.role_title]
-        .some((value) => value.toLowerCase().includes(term));
+        .some((value) => value?.toLowerCase().includes(term));
     });
   }, [appointments, search, statusFilter]);
 
@@ -93,7 +94,7 @@ const BookedAppointmentsTab: React.FC = () => {
       const updated = await updateDemoBooking(appointment.id, draft);
       setAppointments((current) => current.map((row) => row.id === updated.id ? updated : row));
       setDrafts((current) => ({ ...current, [updated.id]: { status: updated.status, admin_notes: updated.admin_notes ?? '' } }));
-      addToast(`Appointment for ${appointment.school_name} updated.`, 'success');
+      addToast(`Appointment for ${appointment.school_name ?? appointment.contact_name} updated.`, 'success');
     } catch (error) {
       addToast(error instanceof Error ? error.message : 'Could not update appointment.', 'error');
     } finally {
@@ -147,28 +148,29 @@ const BookedAppointmentsTab: React.FC = () => {
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-3">
-                    <h4 className="text-xl font-bold text-white">{appointment.school_name}</h4>
+                    <h4 className="text-xl font-bold text-white">{appointment.school_name ?? appointment.contact_name}</h4>
                     <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${statusClasses[appointment.status]}`}>{appointment.status}</span>
                   </div>
-                  <p className="mt-1 text-sm text-gray-300">{appointment.contact_name} · {appointment.role_title}</p>
+                  <p className="mt-1 text-sm text-gray-300">{appointment.school_name ? appointment.contact_name : 'Direct demo booking'}{appointment.role_title ? ` · ${appointment.role_title}` : ''}</p>
                   <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs">
-                    <a className="text-cyan-300 hover:text-cyan-200" href={`mailto:${appointment.email}`}>✉ {appointment.email}</a>
+                    {appointment.email && <a className="text-cyan-300 hover:text-cyan-200" href={`mailto:${appointment.email}`}>✉ {appointment.email}</a>}
                     {appointment.phone && <a className="text-cyan-300 hover:text-cyan-200" href={`tel:${appointment.phone}`}>☎ {appointment.phone}</a>}
-                    <span className="text-gray-400">⌖ {appointment.country}{appointment.school_size ? ` · ${appointment.school_size}` : ''}</span>
+                    {appointment.country && <span className="text-gray-400">⌖ {appointment.country}{appointment.school_size ? ` · ${appointment.school_size}` : ''}</span>}
                   </div>
                 </div>
                 <div className="rounded-xl border border-cyan-400/25 bg-cyan-500/5 px-4 py-3 xl:min-w-[285px]">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">Requested appointment</p>
-                  <p className="mt-1 font-bold text-white">{formatDate(appointment.preferred_date)} · {appointment.preferred_time}</p>
-                  <p className="mt-1 text-xs text-gray-400">{appointment.timezone} · {appointment.preferred_format.replace('_', ' ')}</p>
+                  <p className="mt-1 font-bold text-white">{formatDate(appointment.preferred_date)} · {formatDemoBookingTime(appointment.preferred_time)}</p>
+                  <p className="mt-1 text-xs text-gray-400">{appointment.timezone ?? 'Asia/Bishkek'} · {(appointment.preferred_format ?? 'online').replace('_', ' ')}</p>
                 </div>
               </div>
 
               <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_360px]">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Demo priorities</p>
-                  <div className="mt-2 flex flex-wrap gap-2">{appointment.interests.map((interest) => <span key={interest} className="rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1 text-[11px] text-violet-200">{interestLabels.get(interest as never) ?? interest}</span>)}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Booking details</p>
+                  {appointment.interests && appointment.interests.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{appointment.interests.map((interest) => <span key={interest} className="rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1 text-[11px] text-violet-200">{interestLabels.get(interest) ?? interest}</span>)}</div>}
                   {appointment.message && <blockquote className="mt-4 border-l-2 border-cyan-400/50 pl-4 text-sm leading-6 text-gray-300">“{appointment.message}”</blockquote>}
+                  {!appointment.message && (!appointment.interests || appointment.interests.length === 0) && <p className="mt-2 text-sm text-gray-400">Quick booking · name and phone only</p>}
                   <p className="mt-5 text-[10px] text-gray-600">Submitted {formatDate(appointment.created_at, true)} · Ref {appointment.id.slice(0, 8).toUpperCase()}</p>
                 </div>
 
