@@ -112,11 +112,8 @@ Internal teacher notes should remain separate from future parent-visible summari
 5. Conservative, rubric-supported recovery evidence.
 6. Deterministic historical Writing Hub backfill and focus-state rebuild.
 
-## Next phases
+## Next implementation target
 
-- Add shared client service/types and Teacher Portal Student Academic Profile.
-- Add Student `My Progress` view.
-- Add School Head aggregate academic intelligence.
-- Add verified guardian relationships and parent dashboard.
-- Add richer skill/subskill metadata to question authoring.
-- Add intervention planning and targeted-practice recommendations after the longitudinal data is trusted.
+Build the shared client service/types and the Teacher Portal **Student Academic Profile** first. That UI should consume the same secure learning-profile RPC and combine marks, assignment history, Writing Hub evidence, current strengths, persistent focus areas, improvement/resolution timelines, and teacher-approved report generation without recalculating longitudinal state in the browser.
+
+After that: Student `My Progress`, School Head aggregate academic intelligence, verified guardian relationships and parent dashboard, richer skill/subskill metadata in question authoring, and intervention planning/targeted practice.
