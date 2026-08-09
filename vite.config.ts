@@ -36,6 +36,7 @@ export default defineConfig(({ mode }) => {
           input: {
             main: path.resolve(__dirname, 'index.html'),
             academicProfile: path.resolve(__dirname, 'academic-profile.html'),
+            teacherAcademicProfiles: path.resolve(__dirname, 'teacher-academic-profiles.html'),
           },
           output: {
             manualChunks: {
