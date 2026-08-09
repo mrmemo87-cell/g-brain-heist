@@ -4072,7 +4072,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <div className="teacher-dashboard-stat-info">
             <h4>My Classes</h4>
             <div className="teacher-dashboard-stat-value">{myClasses.length || 0}</div>
-            <p className="teacher-dashboard-stat-sub">{myClasses.slice(0, 3).join(' · ') || 'No classes assigned'}</p>
+            <p className="teacher-dashboard-stat-sub">{myClasses.join(' · ') || 'No classes assigned'}</p>
           </div>
           <div className="teacher-dashboard-stat-icon">🏫</div>
         </button>
@@ -8313,7 +8313,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {/* Top Navigation Bar */}
       <header
         ref={topNavRef}
-        className="teacher-topbar fixed left-0 right-0 top-0 z-50 border-b border-slate-800 bg-slate-950"
+        className="teacher-topbar relative z-30 border-b border-slate-800 bg-slate-950"
         style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 20px)' }}
       >
         <div className="teacher-topbar-inner mx-auto flex w-full max-w-[1600px] items-center justify-between px-3 py-2 sm:px-4 lg:px-6">
@@ -8510,10 +8510,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         userRole="teacher"
       />
 
-      <div
-        aria-hidden
-        style={{ height: `${topNavHeight}px` }}
-      />
       <div className="teacher-portal-container">
         {/* Professional Header */}
         <div className="teacher-header">
