@@ -7,6 +7,7 @@ import { SchoolBrand } from '../../src/components/SchoolBrand';
 import { createSchoolBrand } from '../../src/lib/schoolBranding';
 import AcademicReportBuilder from '../student-progress/AcademicReportBuilder';
 import './SchoolHeadLearningIntelligence.css';
+import './SchoolHeadLearningIntelligence.light.css';
 
 const AcademicIntelligenceGovernance = lazy(() => import('./AcademicIntelligenceGovernance'));
 
@@ -79,6 +80,7 @@ const SchoolHeadLearningIntelligence: React.FC<Props> = ({ schoolId, schoolName,
       schoolName={brand.name}
       schoolLogoUrl={brand.logoUrl}
       initialSubject={subject === 'all' ? null : subject}
+      appearance="school-head-light"
       onClose={() => setShowReportBuilder(false)}
     /> : null}
     {showGovernance ? <Suspense fallback={<div className="shli-governance-loading" role="status">Opening governed rollout controls…</div>}><AcademicIntelligenceGovernance schoolId={schoolId} onClose={() => setShowGovernance(false)} /></Suspense> : null}

@@ -1,20 +1,21 @@
 .school-head-portal {
-  --head-bg: #07101d;
-  --head-surface: #0d1929;
-  --head-surface-2: #122237;
-  --head-border: rgba(137, 174, 216, .16);
-  --head-ink: #eef7ff;
-  --head-muted: #95a9bf;
-  --head-cyan: #38d8ef;
-  --head-cyan-2: #0da6c7;
-  --head-magenta: #d668e7;
+  --head-bg: #f5f7fb;
+  --head-surface: #ffffff;
+  --head-surface-2: #f2f6fa;
+  --head-border: #d8e2ec;
+  --head-ink: #10243a;
+  --head-muted: #607389;
+  --head-cyan: #087f96;
+  --head-cyan-2: #0d91aa;
+  --head-magenta: #9545a8;
   min-height: 100vh;
   min-height: 100dvh;
   color: var(--head-ink);
   background:
-    radial-gradient(circle at 78% -8%, rgba(42, 191, 222, .11), transparent 34rem),
-    radial-gradient(circle at 5% 70%, rgba(168, 80, 209, .075), transparent 30rem),
+    radial-gradient(circle at 78% -8%, rgba(13, 145, 170, .09), transparent 34rem),
+    radial-gradient(circle at 5% 70%, rgba(149, 69, 168, .055), transparent 30rem),
     var(--head-bg);
+  color-scheme: light;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -348,4 +349,225 @@
 
 @media (prefers-reduced-motion: reduce) {
   .school-head-portal *, .school-head-portal *::before, .school-head-portal *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}
+
+/* The School Head workspace is intentionally light-only. These grouped rules
+   cover every executive tab, responsive navigation, loading/error state and
+   ownership-transfer dialog while preserving the existing layout contracts. */
+.school-head-header {
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 10px 30px rgba(39, 61, 84, .09);
+}
+.school-head-brand h1,
+.school-head-profile strong,
+.school-head-briefing h2,
+.school-head-page-heading h2,
+.school-head-metric > strong,
+.school-head-panel-heading h3,
+.school-head-priority-list strong,
+.school-head-progress-row div:first-child strong,
+.school-head-program-strip article strong,
+.school-head-decision h3,
+.school-head-assurance strong,
+.school-head-grade-row strong,
+.school-head-grade-row b,
+.school-head-callout h3,
+.school-head-critical-banner h3,
+.school-head-structure-grid > article > strong,
+.school-head-leadership-list strong,
+.school-head-authority-list strong,
+.school-head-value-list strong,
+.school-head-operation-grid strong,
+.school-head-program-grid article > strong,
+.school-head-subscription-hero h3,
+.school-head-subscription-hero dd,
+.school-head-seat-visual strong,
+.school-head-governance-summary strong,
+.school-head-audit-list h4,
+.school-head-empty h3,
+.school-head-error h1,
+.school-head-transfer-warning h2 {
+  color: var(--head-ink);
+}
+.school-head-header-actions label span,
+.school-head-layout aside nav button,
+.school-head-sidebar-actions p,
+.school-head-sidebar-actions button,
+.school-head-data-stamp,
+.school-head-briefing p:last-child,
+.school-head-page-heading > div > p:last-child,
+.school-head-briefing-score span,
+.school-head-briefing-score small,
+.school-head-trend span,
+.school-head-trend small,
+.school-head-metric > span,
+.school-head-metric > small,
+.school-head-panel-heading > span,
+.school-head-priority-list small,
+.school-head-priority-list b,
+.school-head-progress-row div:first-child span,
+.school-head-progress-row > b,
+.school-head-program-strip article span,
+.school-head-program-strip article small,
+.school-head-decision span,
+.school-head-decision p,
+.school-head-assurance p,
+.school-head-grade-header,
+.school-head-grade-row,
+.school-head-callout div > span,
+.school-head-critical-banner p,
+.school-head-structure-grid > article > span,
+.school-head-leadership-list small,
+.school-head-leadership-list b,
+.school-head-authority-list small,
+.school-head-value-list small,
+.school-head-operation-grid small,
+.school-head-program-grid article > div b,
+.school-head-program-grid article > small,
+.school-head-program-grid article > p,
+.school-head-subscription-hero > div > span,
+.school-head-subscription-hero p,
+.school-head-subscription-hero dt,
+.school-head-seat-visual p,
+.school-head-governance-summary span,
+.school-head-governance-summary small,
+.school-head-audit-heading label,
+.school-head-audit-list span,
+.school-head-audit-list time,
+.school-head-audit-list p,
+.school-head-audit-list blockquote,
+.school-head-empty p,
+.school-head-loading p,
+.school-head-transfer-warning p,
+.school-head-transfer-fields small {
+  color: var(--head-muted);
+}
+.school-head-header-actions :is(select, button),
+.school-head-audit-heading select,
+.school-head-error button,
+.school-head-transfer-fields :is(select, input, textarea),
+.school-head-transfer-actions button {
+  color: var(--head-ink);
+  background: #fff;
+}
+.school-head-header-actions button:hover,
+.school-head-header-actions select:hover,
+.school-head-operation-grid button:hover {
+  background: #eef8fa;
+}
+.school-head-header-actions .school-head-signout:hover {
+  color: #b4233b;
+}
+.school-head-layout > aside {
+  background: rgba(248, 250, 252, .96);
+}
+.school-head-profile,
+.school-head-briefing,
+.school-head-page-heading,
+.school-head-metric,
+.school-head-panel,
+.school-head-decision,
+.school-head-assurance > div,
+.school-head-structure-grid > article,
+.school-head-operation-grid button,
+.school-head-program-grid article,
+.school-head-governance-summary article {
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(42, 62, 82, .07);
+}
+.school-head-profile > div,
+.school-head-heading-count,
+.school-head-exclusive {
+  color: #086d82;
+  background: #e8f7fa;
+}
+.school-head-panel-heading button,
+.school-head-panel-heading button:hover,
+.school-head-secondary-action,
+.school-head-program-grid article > button {
+  color: #087f96;
+}
+.school-head-priority-list button > span,
+.school-head-decision-count {
+  color: #8a5800;
+  background: #fff7df;
+}
+.school-head-priority-list button.is-critical > span,
+.school-head-decision.is-critical .school-head-decision-count {
+  color: #b4233b;
+  background: #fff1f2;
+}
+.school-head-security,
+.school-head-governance-note {
+  color: #176b59;
+  background: #effaf6;
+}
+.school-head-security small,
+.school-head-governance-note {
+  color: #3d6f65;
+}
+.school-head-governance-note span { color: #176b59; }
+.school-head-layout aside nav button:hover {
+  color: var(--head-ink);
+  background: #edf3f8;
+}
+.school-head-layout aside nav button.is-active {
+  color: #075f72;
+  background: linear-gradient(90deg, #dff5f8, #eef9fb);
+}
+.school-head-briefing,
+.school-head-page-heading {
+  background: linear-gradient(135deg, #fff, #f0f9fb);
+}
+.school-head-briefing-score,
+.school-head-trend,
+.school-head-subscription-hero dl {
+  background: rgba(255, 255, 255, .78);
+}
+.school-head-callout {
+  background: linear-gradient(120deg, #eff9fb, #f8fbfd);
+}
+.school-head-callout button,
+.school-head-primary-action {
+  color: #fff;
+  background: #087f96;
+}
+.school-head-subscription-hero {
+  background: linear-gradient(120deg, #e9f8fb, #f7fbfd 55%, #faeffc);
+}
+.school-head-critical-banner,
+.school-head-transfer-warning {
+  background: #fff2f4;
+}
+.school-head-critical-banner span,
+.school-head-transfer-warning span,
+.school-head-error section > span {
+  color: #b4233b;
+}
+.school-head-critical-banner button,
+.school-head-danger-action,
+.school-head-transfer-actions button:last-child {
+  color: #fff;
+  background: #b4233b;
+}
+.school-head-error section,
+.school-head-transfer-modal {
+  color: var(--head-ink);
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(25, 40, 58, .2);
+}
+.school-head-transfer-fields label > span { color: #334b61; }
+.school-head-modal-backdrop {
+  background: rgba(30, 45, 62, .42);
+}
+@media (max-width: 930px) {
+  .school-head-layout > aside,
+  .school-head-mobile-nav {
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 18px 50px rgba(35, 53, 72, .18);
+  }
+  .school-head-mobile-nav button.is-active {
+    color: #075f72;
+    background: #e2f5f8;
+  }
 }

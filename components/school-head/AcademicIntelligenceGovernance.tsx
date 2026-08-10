@@ -14,6 +14,7 @@ import {
   type ReleaseDecision,
 } from '../../services/academicIntelligenceGovernanceService';
 import './AcademicIntelligenceGovernance.css';
+import './AcademicIntelligenceGovernance.light.css';
 
 interface Props { schoolId: string; onClose: () => void; }
 

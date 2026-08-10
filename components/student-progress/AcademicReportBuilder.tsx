@@ -13,8 +13,10 @@ import {
 } from '../../services/academicReportingService';
 import { createSchoolBrand } from '../../src/lib/schoolBranding';
 import './AcademicReportBuilder.css';
+import './AcademicReportBuilder.school-head-light.css';
 
 interface Props {
+  appearance?: 'default' | 'school-head-light';
   studentId?: string | null;
   studentName?: string | null;
   fixedReportType?: AcademicReportType;
@@ -34,7 +36,7 @@ const rolePermission: Record<AcademicReportType, keyof AcademicReportingContext[
 };
 
 const AcademicReportBuilder: React.FC<Props> = ({
-  studentId, studentName, fixedReportType, initialSubject, schoolId, schoolName, schoolLogoUrl, onClose,
+  appearance = 'default', studentId, studentName, fixedReportType, initialSubject, schoolId, schoolName, schoolLogoUrl, onClose,
 }) => {
   const [context, setContext] = useState<AcademicReportingContext | null>(null);
   const [reportType, setReportType] = useState<AcademicReportType>(fixedReportType || (studentId ? 'student' : 'school'));
@@ -126,7 +128,7 @@ const AcademicReportBuilder: React.FC<Props> = ({
     finally { setBusy(false); }
   };
 
-  return createPortal(<div className="arb-overlay" role="presentation"><section className="arb-shell" role="dialog" aria-modal="true" aria-label="Academic report builder">
+  return createPortal(<div className={`arb-overlay${appearance === 'school-head-light' ? ' is-school-head-light' : ''}`} role="presentation"><section className="arb-shell" role="dialog" aria-modal="true" aria-label="Academic report builder">
     <header className="arb-toolbar arb-no-print"><div><strong>Reproducible academic reports</strong><span>Year- and term-scoped evidence · immutable versions · Draft → Final approval</span></div><div><button type="button" onClick={onClose}>Close</button><button type="button" className="primary" disabled={!snapshot || snapshot.status !== 'final'} onClick={() => window.print()}>Print / Save PDF</button></div></header>
 
     <div className="arb-controls arb-no-print">

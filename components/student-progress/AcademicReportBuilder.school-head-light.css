@@ -1,0 +1,33 @@
+.arb-overlay.is-school-head-light { background: rgba(30, 45, 62, .42); }
+
+.arb-overlay.is-school-head-light .arb-shell {
+  background: #f5f7fb;
+  color: #10243a;
+  box-shadow: 0 30px 90px rgba(25, 40, 58, .22);
+  color-scheme: light;
+}
+
+.arb-overlay.is-school-head-light .arb-toolbar {
+  border-bottom: 1px solid #d8e2ec;
+  color: #10243a;
+  background: #fff;
+}
+
+.arb-overlay.is-school-head-light .arb-toolbar span { color: #607389; }
+
+.arb-overlay.is-school-head-light .arb-toolbar button {
+  border-color: #cbd8e4;
+  color: #173047;
+  background: #fff;
+}
+
+.arb-overlay.is-school-head-light .arb-toolbar button.primary {
+  border-color: #087f96;
+  color: #fff;
+  background: #087f96;
+}
+
+.arb-overlay.is-school-head-light .arb-controls {
+  border-color: #d8e2ec;
+  background: #eef3f7;
+}
