@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { userFacingError } from './userFacingError';
 
 export interface TeacherAcademicProfileStudent {
   student_id: string;
@@ -12,7 +13,7 @@ export interface TeacherAcademicProfileStudent {
 
 export const fetchTeacherAcademicProfileStudents = async (): Promise<TeacherAcademicProfileStudent[]> => {
   const { data, error } = await supabase.rpc('rpc_teacher_academic_profile_students');
-  if (error) throw error;
+  if (error) throw userFacingError(error, 'We could not open the student progress directory just now. Please try again.');
   if (!Array.isArray(data)) return [];
   return data as TeacherAcademicProfileStudent[];
 };
