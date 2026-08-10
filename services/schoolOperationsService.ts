@@ -154,41 +154,10 @@ export async function removePeriod(id: string) {
   throwIfError(error, 'Could not remove period.');
 }
 
-export async function syncClassesToTeachingGroups(schoolId: string) {
-  const [{ data: classes, error: classesError }, { data: currentGroups, error: groupsError }] = await Promise.all([
-    supabase.from('classes').select('id,class_code,class_name,grade_level,is_active').eq('school_id', schoolId).eq('is_active', true),
-    supabase.from('school_ops_teaching_groups').select('id,class_id,code').eq('school_id', schoolId),
-  ]);
-  throwIfError(classesError, 'Could not load classes.');
-  throwIfError(groupsError, 'Could not load teaching groups.');
-
-  const existingClassIds = new Set((currentGroups || []).map((row: any) => row.class_id).filter(Boolean));
-  const missing = (classes || []).filter((row: any) => !existingClassIds.has(row.id)).map((row: any) => ({
-    school_id: schoolId,
-    class_id: row.id,
-    code: row.class_code,
-    name: row.class_name || row.class_code,
-    group_type: 'class',
-    grade_label: row.grade_level || null,
-  }));
-  if (missing.length) {
-    const { error } = await supabase.from('school_ops_teaching_groups').insert(missing);
-    throwIfError(error, 'Could not create teaching groups.');
-  }
-
-  const { data: groups, error } = await supabase.from('school_ops_teaching_groups').select('*').eq('school_id', schoolId).eq('active', true).order('name');
-  throwIfError(error, 'Could not load teaching groups.');
-
-  for (const group of (groups || []) as any[]) {
-    if (!group.class_id) continue;
-    const { data: students, error: studentsError } = await supabase.from('class_students').select('student_id').eq('class_id', group.class_id);
-    throwIfError(studentsError, 'Could not sync class students.');
-    if (!students?.length) continue;
-    const rows = students.map((row: any) => ({ group_id: group.id, student_id: row.student_id }));
-    const { error: memberError } = await supabase.from('school_ops_group_students').upsert(rows, { onConflict: 'group_id,student_id,valid_from', ignoreDuplicates: true });
-    throwIfError(memberError, 'Could not sync group students.');
-  }
-  return (groups || []) as TeachingGroup[];
+export async function syncClassesToTeachingGroups(schoolId: string): Promise<TeachingGroup[]> {
+  const { error: syncError } = await supabase.rpc('school_ops_sync_class_groups', { p_school_id: schoolId });
+  throwIfError(syncError, 'Could not sync school groups.');
+  return listTeachingGroups(schoolId);
 }
 
 export async function listTeachingGroups(schoolId: string): Promise<TeachingGroup[]> {
