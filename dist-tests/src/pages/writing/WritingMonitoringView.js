@@ -1,6 +1,6 @@
-import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getTeacherAttemptListScoped, getTeacherMonitoringOverviewScoped, getTeacherWritingReport, getWritingMonitoringOverview, saveTeacherReportScoped, } from '../../lib/brains_heist/writingIntegrationService.js';
+import { Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getTeacherAttemptListScoped, getTeacherMonitoringOverviewScoped, getTeacherWritingReport, getWritingMonitoringOverview, saveTeacherReportScoped, setTeacherWritingIntegrityMode, } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { openProfessionalWritingReport } from '../../lib/brains_heist/writingReportDocument.js';
 const SUPPORTED_GENRES = [
@@ -66,15 +66,7 @@ const formatDate = (value) => {
         return value;
     return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 };
-const formatMonitoringPeriod = (month) => {
-    const match = /^(\d{4})-(\d{2})$/.exec(month);
-    if (!match)
-        return month;
-    const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1));
-    return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' });
-};
 const getSubmissionCount = (row) => row.submission_count ?? row.attempts_count ?? 0;
-const getAllTimeSubmissionCount = (row) => row.all_time_submission_count ?? row.attempts_count ?? getSubmissionCount(row);
 const getClassKey = (row) => {
     if (row.class_id?.trim())
         return `id:${row.class_id.trim()}`;
@@ -82,7 +74,7 @@ const getClassKey = (row) => {
         return `name:${row.class_name.trim().toLowerCase()}`;
     return `roster-review:${row.current_grade}`;
 };
-const getClassName = (row) => row.class_name?.trim() || `Grade ${row.current_grade}`;
+const getClassName = (row) => row.class_name?.trim() || `Grade ${row.current_grade} · Class information unavailable`;
 const getStatus = (row) => {
     if (row.status === 'needs_review' || row.status === 'needs_support' || row.stalled) {
         return { label: 'Needs support', tone: 'attention' };
@@ -94,6 +86,18 @@ const getStatus = (row) => {
     if (row.status === 'not_started')
         return { label: 'Not started', tone: 'neutral' };
     return { label: 'On track', tone: 'positive' };
+};
+const getTrendLabel = (row) => {
+    if (getSubmissionCount(row) < 2)
+        return 'Baseline';
+    const deltas = Object.values(row.subscale_trend);
+    const positives = deltas.filter((value) => value > 0).length;
+    const negatives = deltas.filter((value) => value < 0).length;
+    if (positives >= 2 && positives > negatives)
+        return 'Improving';
+    if (negatives >= 2 && negatives > positives)
+        return 'Declining';
+    return 'Stable';
 };
 const extractAttemptScore = (attempt) => {
     const assessment = attempt.assessment ?? {};
@@ -189,6 +193,7 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const [feedbackDraft, setFeedbackDraft] = useState('');
     const [feedbackStatus, setFeedbackStatus] = useState('');
+    const [modeUpdateStatus, setModeUpdateStatus] = useState('');
     const studentRequestRef = useRef(0);
     const filters = parseAdminDrilldownFilters(filterQuery);
     const allRows = useMemo(() => (overview?.student_rows ?? []).map((row) => ({ ...row })), [overview]);
@@ -213,43 +218,26 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
             else
                 groups.set(key, [row]);
         }
-        const rowGroups = [...groups.entries()]
+        return [...groups.entries()]
             .map(([key, rows]) => {
+            const scores = rows
+                .map((row) => row.latest_score)
+                .filter((score) => typeof score === 'number' && Number.isFinite(score));
             const grades = [...new Set(rows.map((row) => row.current_grade))].sort((a, b) => a - b);
-            const rosterClass = overview?.class_rows?.find((item) => (rows[0]?.class_id && item.class_id === rows[0].class_id)
-                || item.class_name === rows[0]?.class_name);
             return {
                 key,
-                name: rosterClass?.class_name || getClassName(rows[0]),
-                gradeLabel: grades.length > 0
-                    ? grades.map((grade) => `Grade ${grade}`).join(' · ')
-                    : rosterClass?.current_grade != null ? `Grade ${rosterClass.current_grade}` : 'Grade not recorded',
+                name: getClassName(rows[0]),
+                gradeLabel: grades.map((grade) => `Grade ${grade}`).join(' · '),
                 rows: [...rows].sort((a, b) => toDisplayLabel(a.student_name, a.student_id).localeCompare(toDisplayLabel(b.student_name, b.student_id))),
-                submissions: rosterClass?.submission_count ?? rows.reduce((sum, row) => sum + getSubmissionCount(row), 0),
-                allTimeSubmissions: rosterClass?.all_time_submission_count
-                    ?? rows.reduce((sum, row) => sum + getAllTimeSubmissionCount(row), 0),
+                submissions: rows.reduce((sum, row) => sum + getSubmissionCount(row), 0),
                 attentionCount: rows.filter((row) => getStatus(row).tone === 'attention').length,
+                averageScore: scores.length > 0
+                    ? Math.round((scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10) / 10
+                    : null,
             };
-        });
-        if (!filters.status && !filters.weakness_tag) {
-            for (const rosterClass of overview?.class_rows ?? []) {
-                if (filters.grade && rosterClass.current_grade !== filters.grade)
-                    continue;
-                if (rowGroups.some((group) => group.key === `id:${rosterClass.class_id}`))
-                    continue;
-                rowGroups.push({
-                    key: `id:${rosterClass.class_id}`,
-                    name: rosterClass.class_name,
-                    gradeLabel: rosterClass.current_grade == null ? 'Grade not recorded' : `Grade ${rosterClass.current_grade}`,
-                    rows: [],
-                    submissions: rosterClass.submission_count,
-                    allTimeSubmissions: rosterClass.all_time_submission_count,
-                    attentionCount: 0,
-                });
-            }
-        }
-        return rowGroups.sort((a, b) => a.name.localeCompare(b.name));
-    }, [filteredRows, filters.grade, filters.status, filters.weakness_tag, overview?.class_rows]);
+        })
+            .sort((a, b) => a.name.localeCompare(b.name));
+    }, [filteredRows]);
     const selectedClass = classGroups.find((group) => group.key === selectedClassKey) ?? null;
     const visibleStudents = useMemo(() => {
         if (!selectedClass)
@@ -279,7 +267,6 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
     const genreAttempts = useMemo(() => attemptRows.filter((attempt) => (attempt.genre?.trim().toLowerCase() || 'other') === selectedGenre), [attemptRows, selectedGenre]);
     const activeAttempt = genreAttempts[attemptIndex] ?? null;
     const totalSubmissions = filteredRows.reduce((sum, row) => sum + getSubmissionCount(row), 0);
-    const allTimeSubmissions = filteredRows.reduce((sum, row) => sum + getAllTimeSubmissionCount(row), 0);
     const attentionCount = filteredRows.filter((row) => getStatus(row).tone === 'attention').length;
     const improvingCount = filteredRows.filter((row) => row.improving).length;
     const toggleCollapsed = (key) => {
@@ -488,6 +475,19 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
             setFeedbackStatus('Copy failed. Select the text and copy manually.');
         }
     };
+    const updateClassIntegrityMode = async (mode) => {
+        if (!selectedRow?.class_id) {
+            setModeUpdateStatus('Class information is unavailable for this student.');
+            return;
+        }
+        setModeUpdateStatus('Updating class writing mode…');
+        const result = await setTeacherWritingIntegrityMode({ class_id: selectedRow.class_id, mode });
+        setModeUpdateStatus(result.ok
+            ? `${result.data?.class_name ?? selectedRow.class_name ?? 'Class'} is now in ${mode} mode.`
+            : result.error ?? 'Unable to update the class writing mode.');
+        if (result.ok)
+            void refreshOverview();
+    };
     if (isLoading) {
         return (_jsxs("div", { className: "writing-monitor writing-monitor--loading", "aria-label": "Loading writing monitor", children: [_jsx("div", { className: "writing-monitor__skeleton writing-monitor__skeleton--hero" }), _jsx("div", { className: "writing-monitor__skeleton-grid", children: [1, 2, 3, 4].map((item) => _jsx("div", { className: "writing-monitor__skeleton" }, item)) }), _jsx("div", { className: "writing-monitor__skeleton writing-monitor__skeleton--panel" })] }));
     }
@@ -498,13 +498,12 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
         return _jsx("div", { className: "writing-monitor__state is-error", children: loadError });
     if (!overview)
         return _jsx("div", { className: "writing-monitor__state", children: "No writing monitoring data available yet." });
-    if (overview.student_rows.length === 0 && (overview.class_rows?.length ?? 0) === 0) {
-        return _jsx("div", { className: "writing-monitor__state", children: "No English classes are assigned to this teacher yet." });
+    if (overview.student_rows.length === 0) {
+        return _jsx("div", { className: "writing-monitor__state", children: "No students with writing records yet." });
     }
     const readerWeaknesses = activeAttempt ? extractAttemptWeaknesses(activeAttempt) : [];
     const readerCorrections = activeAttempt ? extractCorrections(activeAttempt) : [];
     const readerRubric = activeAttempt ? getRubricRows(activeAttempt) : [];
-    const monitoringPeriod = formatMonitoringPeriod(month);
     return (_jsxs("main", { className: "writing-monitor writing-teacher-surface", children: [_jsx("span", { className: "writing-monitor__sr-only", children: "Teacher/Admin Writing Monitor" }), _jsx("span", { className: "writing-monitor__sr-only", children: "Weekly target" }), loadError ? (_jsx("div", { className: "writing-monitor__sync-warning", role: "status", children: "Live refresh paused. Showing the most recently synchronized data." })) : null, _jsxs("section", { className: "writing-monitor__hero", children: [_jsxs("div", { children: [_jsx("span", { className: "writing-monitor__eyebrow", children: "Writing Command Center" }), _jsx("h1", { children: "Writing Monitor" }), _jsx("p", { children: "Move from the school overview to one class, one student, one genre, and finally the exact writing evidence." })] }), _jsxs("div", { className: "writing-monitor__sync", children: [_jsx("span", { "aria-hidden": "true" }), lastSyncedAt
                                 ? `Synced ${lastSyncedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                                 : 'Live school data'] })] }), _jsx("nav", { className: "writing-monitor__path", "aria-label": "Writing monitor drill-down", children: [
@@ -512,12 +511,12 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
                     ['2', selectedClass?.name ?? 'Choose class', Boolean(selectedClass)],
                     ['3', selectedRow ? toDisplayLabel(selectedRow.student_name, selectedRow.student_id) : 'Choose student', Boolean(selectedRow)],
                     ['4', selectedGenre ? toGenreLabel(selectedGenre) : 'Choose genre', Boolean(selectedGenre)],
-                ].map(([number, label, active]) => (_jsxs("div", { className: active ? 'is-complete' : '', children: [_jsx("span", { children: number }), _jsx("strong", { children: label })] }, String(number)))) }), _jsxs("section", { className: "writing-monitor__section", children: [_jsx(CollapsibleHeading, { eyebrow: "School overview", title: "Students and general writing data", description: "A clean starting point before you open a class.", collapsed: collapsed.has('overview'), onToggle: () => toggleCollapsed('overview') }), !collapsed.has('overview') ? (_jsxs("div", { className: "writing-monitor__metrics", children: [_jsxs("article", { children: [_jsx("span", { children: "Total students" }), _jsx("strong", { children: filteredRows.length }), _jsx("small", { children: "From your English rosters" })] }), _jsxs("article", { children: [_jsx("span", { children: "Classes" }), _jsx("strong", { children: classGroups.length }), _jsx("small", { children: "From your live roster" })] }), _jsxs("article", { children: [_jsx("span", { children: "Submissions" }), _jsx("strong", { children: totalSubmissions }), _jsxs("small", { children: ["Across all genres \u00B7 ", monitoringPeriod] })] }), _jsxs("article", { children: [_jsx("span", { children: "All-time submissions" }), _jsx("strong", { children: allTimeSubmissions }), _jsx("small", { children: "All students \u00B7 all saved writing" })] }), _jsxs("article", { className: "is-attention", children: [_jsx("span", { children: "Need support" }), _jsx("strong", { children: attentionCount }), _jsx("small", { children: "Review these students first" })] }), _jsxs("article", { className: "is-positive", children: [_jsx("span", { children: "Improving" }), _jsx("strong", { children: improvingCount }), _jsx("small", { children: "Recent progress detected" })] })] })) : null] }), _jsxs("section", { className: "writing-monitor__section", children: [_jsx(CollapsibleHeading, { eyebrow: "Step 1", title: "Choose a class", description: "Class and grade come from the live school roster. Each card summarizes the students and writing evidence in that class.", collapsed: collapsed.has('classes'), onToggle: () => toggleCollapsed('classes'), actions: selectedClass ? (_jsx("button", { type: "button", className: "writing-monitor__text-button", onClick: () => expandSection('classes'), children: "Change class" })) : undefined }), !collapsed.has('classes') ? (classGroups.length > 0 ? (_jsx("div", { className: "writing-monitor__class-grid", children: classGroups.map((group) => (_jsxs("button", { type: "button", className: `writing-monitor__class-card${selectedClassKey === group.key ? ' is-selected' : ''}`, onClick: () => selectClass(group), "aria-pressed": selectedClassKey === group.key, children: [_jsx("span", { className: "writing-monitor__class-icon", "aria-hidden": "true", children: "\uD83C\uDFEB" }), _jsxs("span", { className: "writing-monitor__card-copy", children: [_jsx("strong", { children: group.name }), _jsx("small", { children: group.gradeLabel })] }), _jsxs("span", { className: "writing-monitor__mini-metrics", children: [_jsxs("span", { children: [_jsx("strong", { children: group.rows.length }), _jsx("small", { children: "Students" })] }), _jsxs("span", { children: [_jsx("strong", { children: group.submissions }), _jsxs("small", { children: ["Submissions \u00B7 ", monitoringPeriod] })] }), _jsxs("span", { children: [_jsx("strong", { children: group.allTimeSubmissions }), _jsx("small", { children: "All-time submissions" })] })] }), _jsx("span", { className: group.attentionCount > 0 ? 'writing-monitor__attention' : 'writing-monitor__on-track', children: group.attentionCount > 0 ? `${group.attentionCount} need support` : 'No priority alerts' }), _jsxs("span", { className: "writing-monitor__open-label", children: ["Open class ", _jsx("span", { "aria-hidden": "true", children: "\u2192" })] })] }, group.key))) })) : (_jsx("div", { className: "writing-monitor__empty", children: "No monitoring matches the current link filters." }))) : null] }), selectedClass ? (_jsxs("section", { className: "writing-monitor__section writing-monitor__section--accent", children: [_jsx(CollapsibleHeading, { eyebrow: "Step 2", title: `Students in ${selectedClass.name}`, description: "Choose a student to see their complete genre portfolio.", collapsed: collapsed.has('students'), onToggle: () => toggleCollapsed('students'), actions: (_jsxs("label", { className: "writing-monitor__search", children: [_jsx("span", { className: "writing-monitor__sr-only", children: "Search students" }), _jsx("input", { type: "search", value: studentSearch, onChange: (event) => setStudentSearch(event.target.value), placeholder: "Search students" })] })) }), !collapsed.has('students') ? (visibleStudents.length > 0 ? (_jsx("div", { className: "writing-monitor__student-grid", children: visibleStudents.map((row) => {
+                ].map(([number, label, active]) => (_jsxs("div", { className: active ? 'is-complete' : '', children: [_jsx("span", { children: number }), _jsx("strong", { children: label })] }, String(number)))) }), _jsxs("section", { className: "writing-monitor__section", children: [_jsx(CollapsibleHeading, { eyebrow: "School overview", title: "Students and general writing data", description: "A clean starting point before you open a class.", collapsed: collapsed.has('overview'), onToggle: () => toggleCollapsed('overview') }), !collapsed.has('overview') ? (_jsxs("div", { className: "writing-monitor__metrics", children: [_jsxs("article", { children: [_jsx("span", { children: "Total students" }), _jsx("strong", { children: filteredRows.length }), _jsx("small", { children: "With writing records" })] }), _jsxs("article", { children: [_jsx("span", { children: "Classes" }), _jsx("strong", { children: classGroups.length }), _jsx("small", { children: "From your live roster" })] }), _jsxs("article", { children: [_jsx("span", { children: "Submissions" }), _jsx("strong", { children: totalSubmissions }), _jsx("small", { children: "Across all genres" })] }), _jsxs("article", { className: "is-attention", children: [_jsx("span", { children: "Need support" }), _jsx("strong", { children: attentionCount }), _jsx("small", { children: "Review these students first" })] }), _jsxs("article", { className: "is-positive", children: [_jsx("span", { children: "Improving" }), _jsx("strong", { children: improvingCount }), _jsx("small", { children: "Recent progress detected" })] })] })) : null] }), _jsxs("section", { className: "writing-monitor__section", children: [_jsx(CollapsibleHeading, { eyebrow: "Step 1", title: "Choose a class", description: "Class and grade come from the live school roster. Each card summarizes the students and writing evidence in that class.", collapsed: collapsed.has('classes'), onToggle: () => toggleCollapsed('classes'), actions: selectedClass ? (_jsx("button", { type: "button", className: "writing-monitor__text-button", onClick: () => expandSection('classes'), children: "Change class" })) : undefined }), !collapsed.has('classes') ? (classGroups.length > 0 ? (_jsx("div", { className: "writing-monitor__class-grid", children: classGroups.map((group) => (_jsxs("button", { type: "button", className: `writing-monitor__class-card${selectedClassKey === group.key ? ' is-selected' : ''}`, onClick: () => selectClass(group), "aria-pressed": selectedClassKey === group.key, children: [_jsx("span", { className: "writing-monitor__class-icon", "aria-hidden": "true", children: "\uD83C\uDFEB" }), _jsxs("span", { className: "writing-monitor__card-copy", children: [_jsx("strong", { children: group.name }), _jsx("small", { children: group.gradeLabel })] }), _jsxs("span", { className: "writing-monitor__mini-metrics", children: [_jsxs("span", { children: [_jsx("strong", { children: group.rows.length }), _jsx("small", { children: "Students" })] }), _jsxs("span", { children: [_jsx("strong", { children: group.submissions }), _jsx("small", { children: "Submissions" })] }), _jsxs("span", { children: [_jsx("strong", { children: formatScoreLabel(group.averageScore) }), _jsx("small", { children: "Average" })] })] }), _jsx("span", { className: group.attentionCount > 0 ? 'writing-monitor__attention' : 'writing-monitor__on-track', children: group.attentionCount > 0 ? `${group.attentionCount} need support` : 'No priority alerts' }), _jsxs("span", { className: "writing-monitor__open-label", children: ["Open class ", _jsx("span", { "aria-hidden": "true", children: "\u2192" })] })] }, group.key))) })) : (_jsx("div", { className: "writing-monitor__empty", children: "No monitoring matches the current link filters." }))) : null] }), selectedClass ? (_jsxs("section", { className: "writing-monitor__section writing-monitor__section--accent", children: [_jsx(CollapsibleHeading, { eyebrow: "Step 2", title: `Students in ${selectedClass.name}`, description: "Choose a student to see their complete genre portfolio.", collapsed: collapsed.has('students'), onToggle: () => toggleCollapsed('students'), actions: (_jsxs("label", { className: "writing-monitor__search", children: [_jsx("span", { className: "writing-monitor__sr-only", children: "Search students" }), _jsx("input", { type: "search", value: studentSearch, onChange: (event) => setStudentSearch(event.target.value), placeholder: "Search students" })] })) }), !collapsed.has('students') ? (visibleStudents.length > 0 ? (_jsx("div", { className: "writing-monitor__student-grid", children: visibleStudents.map((row) => {
                             const status = getStatus(row);
-                            return (_jsxs("button", { type: "button", className: `writing-monitor__student-card${selectedStudentId === row.student_id ? ' is-selected' : ''}`, onClick: () => void selectStudent(row), "aria-pressed": selectedStudentId === row.student_id, children: [_jsxs("span", { className: "writing-monitor__student-topline", children: [_jsxs("span", { children: [_jsx("strong", { children: toDisplayLabel(row.student_name, row.student_id) }), _jsxs("small", { children: ["Grade ", row.current_grade, " \u00B7 ", selectedClass.name] })] }), _jsx("span", { className: `writing-monitor__status is-${status.tone}`, children: status.label })] }), _jsxs("span", { className: "writing-monitor__student-metrics", children: [_jsxs("span", { children: [_jsx("small", { children: "Latest score" }), _jsx("strong", { children: formatScoreLabel(row.latest_score) })] }), _jsxs("span", { children: [_jsxs("small", { children: ["Submissions \u00B7 ", monitoringPeriod] }), _jsx("strong", { children: getSubmissionCount(row) })] }), _jsxs("span", { children: [_jsx("small", { children: "All-time submissions" }), _jsx("strong", { children: getAllTimeSubmissionCount(row) })] })] }), _jsxs("span", { className: "writing-monitor__student-focus", children: [_jsx("strong", { children: "Current focus" }), row.repeated_weakness_hotspots.length > 0
+                            return (_jsxs("button", { type: "button", className: `writing-monitor__student-card${selectedStudentId === row.student_id ? ' is-selected' : ''}`, onClick: () => void selectStudent(row), "aria-pressed": selectedStudentId === row.student_id, children: [_jsxs("span", { className: "writing-monitor__student-topline", children: [_jsxs("span", { children: [_jsx("strong", { children: toDisplayLabel(row.student_name, row.student_id) }), _jsxs("small", { children: ["Grade ", row.current_grade, " \u00B7 ", selectedClass.name] })] }), _jsx("span", { className: `writing-monitor__status is-${status.tone}`, children: status.label })] }), _jsxs("span", { className: "writing-monitor__student-metrics", children: [_jsxs("span", { children: [_jsx("small", { children: "Latest score" }), _jsx("strong", { children: formatScoreLabel(row.latest_score) })] }), _jsxs("span", { children: [_jsx("small", { children: "Submissions" }), _jsx("strong", { children: getSubmissionCount(row) })] }), _jsxs("span", { children: [_jsx("small", { children: "Trend" }), _jsx("strong", { children: getTrendLabel(row) })] }), _jsxs("span", { children: [_jsx("small", { children: "Practice" }), _jsxs("strong", { children: [row.practice_completed_count ?? 0, "/", row.practice_assigned_count ?? 0] })] })] }), _jsxs("span", { className: "writing-monitor__student-focus", children: [_jsx("strong", { children: "Current focus" }), row.repeated_weakness_hotspots.length > 0
                                                 ? row.repeated_weakness_hotspots.slice(0, 2).map(toTeacherWeaknessLabel).join(' · ')
                                                 : row.weekly_target_summary || 'Build more writing evidence'] }), _jsxs("span", { className: "writing-monitor__open-label", children: ["Open writing portfolio ", _jsx("span", { "aria-hidden": "true", children: "\u2192" })] })] }, row.student_id));
-                        }) })) : (_jsx("div", { className: "writing-monitor__empty", children: "No students match this search." }))) : null] })) : null, selectedRow ? (_jsxs("section", { className: "writing-monitor__section writing-monitor__section--accent", children: [_jsx(CollapsibleHeading, { eyebrow: "Step 3", title: `${toDisplayLabel(selectedRow.student_name, selectedRow.student_id)} · Writing genres`, description: "Every genre stays visible, including genres with no submissions yet.", collapsed: collapsed.has('genres'), onToggle: () => toggleCollapsed('genres'), actions: studentReport ? (_jsxs("div", { className: "writing-monitor__student-actions", children: [_jsx("button", { type: "button", className: "writing-monitor__secondary-button", onClick: () => setIsFeedbackOpen(true), children: "Give feedback" }), _jsx("button", { type: "button", className: "writing-monitor__primary-button", onClick: printStudentReport, children: "Preview & print report" })] })) : undefined }), !collapsed.has('genres') ? (_jsxs(_Fragment, { children: [_jsxs("div", { className: "writing-monitor__student-summary", children: [_jsxs("div", { children: [_jsx("span", { children: "Student overview" }), _jsx("strong", { children: formatScoreLabel(selectedRow.latest_score) }), _jsx("small", { children: "Latest formative estimate" })] }), _jsxs("div", { children: [_jsx("span", { children: "Total submissions" }), _jsx("strong", { children: attemptsLoading ? '…' : attemptRows.length }), _jsx("small", { children: "All-time saved writing evidence" })] }), _jsxs("div", { children: [_jsx("span", { children: "Reporting period" }), _jsx("strong", { children: getSubmissionCount(selectedRow) }), _jsxs("small", { children: ["Submissions in ", monitoringPeriod] })] })] }), attemptsLoading ? (_jsxs("div", { className: "writing-monitor__inline-loading", role: "status", children: [_jsx("span", {}), " Loading genres and submissions\u2026"] })) : attemptError ? (_jsx("div", { className: "writing-monitor__inline-error", role: "alert", children: attemptError })) : (_jsx("div", { className: "writing-monitor__genre-grid", children: availableGenres.map((genre) => {
+                        }) })) : (_jsx("div", { className: "writing-monitor__empty", children: "No students match this search." }))) : null] })) : null, selectedRow ? (_jsxs("section", { className: "writing-monitor__section writing-monitor__section--accent", children: [_jsx(CollapsibleHeading, { eyebrow: "Step 3", title: `${toDisplayLabel(selectedRow.student_name, selectedRow.student_id)} · Writing genres`, description: "Every genre stays visible, including genres with no submissions yet.", collapsed: collapsed.has('genres'), onToggle: () => toggleCollapsed('genres'), actions: studentReport ? (_jsxs("div", { className: "writing-monitor__student-actions", children: [_jsx("button", { type: "button", className: "writing-monitor__secondary-button", onClick: () => setIsFeedbackOpen(true), children: "Give feedback" }), _jsx("button", { type: "button", className: "writing-monitor__primary-button", onClick: printStudentReport, children: "Preview & print report" })] })) : undefined }), !collapsed.has('genres') ? (_jsxs(_Fragment, { children: [_jsxs("div", { className: "writing-monitor__student-summary", children: [_jsxs("div", { children: [_jsx("span", { children: "Student overview" }), _jsx("strong", { children: formatScoreLabel(selectedRow.latest_score) }), _jsx("small", { children: "Latest formative estimate" })] }), _jsxs("div", { children: [_jsx("span", { children: "Total submissions" }), _jsx("strong", { children: attemptsLoading ? '…' : attemptRows.length }), _jsx("small", { children: "Saved writing evidence" })] }), _jsxs("div", { children: [_jsx("span", { children: "Practice progress" }), _jsxs("strong", { children: [selectedRow.practice_completed_count ?? 0, "/", selectedRow.practice_assigned_count ?? 0] }), _jsx("small", { children: "Personalized activities" })] }), _jsxs("label", { children: [_jsx("span", { children: "Class writing mode" }), _jsxs("select", { value: selectedRow.integrity_mode ?? 'practice', onChange: (event) => void updateClassIntegrityMode(event.target.value), disabled: !selectedRow.class_id, children: [_jsx("option", { value: "practice", children: "Practice \u00B7 support allowed" }), _jsx("option", { value: "independent", children: "Independent \u00B7 paste blocked" }), _jsx("option", { value: "supervised", children: "Supervised assessment" })] }), _jsx("small", { children: modeUpdateStatus || 'Applies to this class.' })] })] }), attemptsLoading ? (_jsxs("div", { className: "writing-monitor__inline-loading", role: "status", children: [_jsx("span", {}), " Loading genres and submissions\u2026"] })) : attemptError ? (_jsx("div", { className: "writing-monitor__inline-error", role: "alert", children: attemptError })) : (_jsx("div", { className: "writing-monitor__genre-grid", children: availableGenres.map((genre) => {
                                     const count = genreCounts.get(genre) ?? 0;
                                     const genreMeta = GENRE_META[genre];
                                     const scores = attemptRows

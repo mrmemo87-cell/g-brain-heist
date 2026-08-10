@@ -21,11 +21,11 @@ test('submitted and scored attempts expose result, activity notes, and retake ac
     assert.match(hub, /Allow retake/);
     assert.match(hub, /This keeps the old attempt history and creates an audit log/);
 });
-test('advanced support tools are deactivated in the school-facing flow', () => {
-    assert.doesNotMatch(hub, /Advanced \/ Support Tools/);
-    assert.doesNotMatch(hub, /showAdvancedTools/);
-    assert.match(hub, /tabs\.filter\(t => MAIN_TABS\.includes\(t\.key\)\)/);
-    assert.match(hub, /const MAIN_TABS: AdmTab\[\] = \['overview', 'create', 'candidates', 'results'\]/);
+test('advanced support tabs are hidden behind support tools by default', () => {
+    assert.match(hub, /Advanced \/ Support Tools/);
+    assert.match(hub, /showAdvancedTools \|\| MAIN_TABS\.includes/);
+    assert.match(hub, /Advanced: Blueprints/);
+    assert.match(hub, /Advanced: Test Forms/);
 });
 test('light school-friendly UI wording avoids technical terms in normal flow', () => {
     assert.match(hub, /Admission overview/);

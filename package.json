@@ -21,7 +21,7 @@
     "security:tripwire": "pwsh scripts/run-tripwire.ps1",
     "test:e2e:ielts": "playwright test e2e/ielts-pilot-smoke.spec.js",
     "playwright:install": "playwright install --with-deps chromium",
-    "verify": "npm run guard:school-admin-portal && npm run typecheck && npm run security:migrations && npm run build && npm test"
+    "verify": "npm run guard:school-admin-portal && npm run typecheck && npm run security:migrations && npm run build && npm test && git diff --check"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

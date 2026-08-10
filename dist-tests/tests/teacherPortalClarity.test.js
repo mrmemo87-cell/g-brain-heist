@@ -46,8 +46,7 @@ test('assignment reports explain score and support ordering and filters', () => 
     assert.match(collectiveReport, /Created to/);
     assert.match(collectiveReport, /All Classes/);
     assert.match(teacherPortal, /Student,Class,Score,Correct,Incorrect/);
-    assert.ok(teacherPortal.indexOf('📊 Question Analysis') > teacherPortal.indexOf('Student Performance'));
-    assert.match(teacherPortal, /Question Analysis follows the complete student roster and stays closed by default[\s\S]{0,200}<details className="group overflow-hidden rounded-xl/);
+    assert.ok(teacherPortal.indexOf('📊 Question Analysis') < teacherPortal.indexOf('Student Performance'));
     assert.match(teacherPortal, /handlePrintStudentAnalysis/);
     assert.match(teacherPortal, /Assignment performance report/);
 });

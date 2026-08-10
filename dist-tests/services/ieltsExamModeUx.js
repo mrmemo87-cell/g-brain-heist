@@ -6,7 +6,7 @@ const LIFECYCLE_META = {
     },
     scheduled: {
         label: 'Scheduled',
-        description: 'Awaiting confirmed launch. Students cannot start yet.',
+        description: 'Ready for students, but the start time has not arrived.',
         badgeClass: 'bg-indigo-50 text-indigo-700 ring-indigo-200',
     },
     live_now: {
@@ -50,19 +50,13 @@ export const resolveIeltsExamLifecycleState = (rawStatus, startsAt, endsAt, nowM
         return 'ended';
     if (normalized === 'draft')
         return 'draft';
-    // Scheduled is an explicit waiting state. Reaching starts_at does not make an
-    // exam live; only the confirmed server-side launch transition may do that.
-    if (normalized === 'scheduled') {
-        const scheduledEndMs = parseTime(endsAt);
-        return scheduledEndMs !== null && nowMs >= scheduledEndMs ? 'ended' : 'scheduled';
-    }
     const startMs = parseTime(startsAt);
     const endMs = parseTime(endsAt);
     if (endMs !== null && nowMs >= endMs)
         return 'ended';
     if (startMs !== null && nowMs < startMs)
         return 'scheduled';
-    if (['live', 'live_now', 'started', 'in_progress', 'active'].includes(normalized))
+    if (['live', 'live_now', 'started', 'in_progress', 'active', 'scheduled'].includes(normalized))
         return 'live_now';
     return normalized ? 'scheduled' : 'draft';
 };
@@ -94,19 +88,6 @@ export const getIeltsAttemptOperationalLabel = (status, hasConnectionIssue = fal
     return normalized.replace(/_/g, ' ');
 };
 const normalizeExamStatus = (status) => (status ?? '').toLowerCase().trim();
-/**
- * Client-side defense in depth for the start button. The database remains the
- * authority, but a stale or malformed bootstrap response must never present a
- * scheduled exam as startable before the confirmed launch transition.
- */
-export const canStartIeltsExamAttempt = ({ allowed, assignmentId, eventStatus, hasAttempt, isSubmitted, isBeforeStart, isAfterExamWindow, isPaused, }) => (Boolean(allowed)
-    && Boolean(assignmentId)
-    && normalizeExamStatus(eventStatus) === 'live'
-    && !hasAttempt
-    && !isSubmitted
-    && !isBeforeStart
-    && !isAfterExamWindow
-    && !isPaused);
 export const isIeltsExamEventPaused = (eventStatus, reason) => (normalizeExamStatus(eventStatus) === 'paused' || normalizeExamStatus(reason) === 'exam_paused');
 export const isIeltsTerminalAttemptStatus = (status) => (['submitted', 'auto_submitted', 'force_submitted', 'void', 'voided', 'locked', 'not_in_progress'].includes(normalizeExamStatus(status)));
 export const isIeltsTeacherSubmittedStatus = (status) => (['submitted', 'auto_submitted', 'force_submitted'].includes(normalizeExamStatus(status)));

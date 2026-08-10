@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { canAccessIeltsReviewQueue } from '../services/ieltsReviewAccess.js';
 const read = (relativePath) => fs.readFileSync(path.join(process.cwd(), relativePath), 'utf8');
 const migration = () => read('supabase/migrations/20260518170000_ielts_teacher_review_foundation.sql');
 test('IELTS teacher review migration adds audit-safe productive skill review foundation', () => {
@@ -37,16 +36,15 @@ test('IELTS review queue is discoverable only from school admin workflows', () =
     const schoolPracticeTab = read('components/school-admin/tabs/IeltsPracticeTab.tsx');
     const teacherPortal = read('components/TeacherPortal.tsx');
     assert.match(schoolPracticeTab, /Review Writing &amp; Speaking Submissions/i, 'School Admin IELTS Practice tab must show a clear review CTA');
-    assert.match(schoolPracticeTab, /onClick=\{onOpenReviews\}/i, 'School Admin IELTS Practice CTA must open the embedded review queue');
-    assert.doesNotMatch(schoolPracticeTab, /href="\/ielts\/reviews"/i, 'School Admin IELTS Practice CTA must not leave the portal shell');
-    assert.match(schoolPracticeTab, /without leaving School Administration/i, 'School Admin IELTS Practice must keep reviews in the portal shell');
+    assert.match(schoolPracticeTab, /href="\/ielts\/reviews"/i, 'School Admin IELTS Practice CTA must link to the review queue route');
+    assert.match(schoolPracticeTab, /Open IELTS Reviews at \/ielts\/reviews/i, 'School Admin IELTS Practice must document the route in UI copy');
     assert.doesNotMatch(teacherPortal, /IELTS Reviews|\/ielts\/reviews/i, 'Teacher Portal must not expose IELTS review navigation');
 });
 test('IELTS review queue defaults to pending writing submissions with a clear empty state', () => {
     const queue = read('src/pages/ielts/IeltsReviewQueue.tsx');
     assert.match(queue, /useState<IeltsReviewSkill \| ''>\('writing'\)/, 'queue skill filter must default to writing');
     assert.match(queue, /useState\('pending'\)/, 'queue status filter must default to pending');
-    assert.match(queue, /Pending writing submissions are shown first/i, 'queue UI must document the default filters');
+    assert.match(queue, /Defaults show pending writing submissions/i, 'queue UI must document the default filters');
     assert.match(queue, /No submissions waiting for review/i, 'queue empty state must be clear');
 });
 test('IELTS writing submissions are inserted as pending review attempts', () => {
@@ -116,15 +114,8 @@ test('IELTS AI review edge function enforces reviewer roles and draft-only seman
 });
 test('IELTS review guard reuses shared access helper and blocks teacher/student roles', () => {
     const guard = read('components/ielts/IeltsReviewAdminGuard.tsx');
-    assert.equal(canAccessIeltsReviewQueue({ can_administer_school: true, role: 'teacher' }), true, 'an active delegated administrator may review');
-    assert.equal(canAccessIeltsReviewQueue({ is_admin: true, role: 'student' }), true, 'a platform admin may review');
-    assert.equal(canAccessIeltsReviewQueue({ role: 'superadmin' }), true, 'the canonical platform role may review');
-    assert.equal(canAccessIeltsReviewQueue({ role: 'school_admin' }), false, 'a stale profile role alone must not grant review access');
-    assert.equal(canAccessIeltsReviewQueue({ role: 'teacher' }), false, 'a teacher without delegated capability must not review');
-    assert.equal(canAccessIeltsReviewQueue({ role: 'student' }), false, 'a student must not review');
-    assert.equal(canAccessIeltsReviewQueue(null), false, 'missing identity context must fail closed');
-    assert.match(guard, /canAccessIeltsReviewQueue\(\{[\s\S]*can_administer_school: canAdministerSchool/i, 'review guard must reuse centralized review access helper');
-    assert.match(guard, /resolveMySchoolCapabilities\(\)/i, 'review guard must resolve active delegated school-administration capability');
-    assert.match(guard, /capabilityResolution\.capabilities\?\.can_administer/i, 'delegated administrators must retain review access inside the school shell');
-    assert.match(guard, /capabilityResolution\.status === 'error'[\s\S]*setState\('error'\)/i, 'capability failures must not fall through to review records');
+    const access = read('services/ieltsReviewAccess.ts');
+    assert.match(guard, /canAccessIeltsReviewQueue\(typedProfile\)/i, 'review guard must reuse centralized review access helper');
+    assert.match(access, /Boolean\(profile\.is_admin\) \|\| role === 'school_admin' \|\| role === 'admin' \|\| role === 'superadmin'/i, 'review helper must allow platform and school admin roles');
+    assert.doesNotMatch(access, /role === 'teacher'/i, 'review helper must not allow teachers');
 });

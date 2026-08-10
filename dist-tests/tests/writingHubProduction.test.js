@@ -169,7 +169,7 @@ test('teacher dashboard loading/error/empty states render', () => {
     const errorHtml = renderToStaticMarkup(React.createElement(WritingMonitoringView, { errorMessage: 'network unavailable' }));
     assert.ok(errorHtml.includes('Unable to load writing monitor'));
     const emptyHtml = renderToStaticMarkup(React.createElement(WritingMonitoringView, { month: '2026-03' }));
-    assert.ok(emptyHtml.includes('No English classes are assigned to this teacher yet'));
+    assert.ok(emptyHtml.includes('No students with writing records yet'));
 });
 test('progress visual render with monthly data', () => {
     __resetWritingIntegrationStoreForTests();
@@ -347,10 +347,10 @@ test('writing analytics dashboard renders aggregated views with drill-down links
     }));
     assert.ok(html.includes('Writing Analytics Dashboard'));
     assert.ok(html.includes('Most Common Weak Areas'));
-    assert.ok(html.includes('Class and student focus analysis'));
+    assert.ok(html.includes('Prompt Effectiveness'));
     assert.ok(html.includes('Recommended Actions'));
-    assert.ok(html.includes('Choose a class'));
-    assert.ok(html.includes('All-time evidence'));
+    assert.ok(html.includes('View students'));
+    assert.ok(html.includes('Overused prompts to refresh'));
 });
 test('writing analytics dashboard loading/error/empty and warning badge states', () => {
     __resetWritingIntegrationStoreForTests();
@@ -389,7 +389,7 @@ test('writing analytics dashboard loading/error/empty and warning badge states',
         });
     }
     const warningHtml = renderToStaticMarkup(React.createElement(WritingAnalyticsDashboard, { gradeFilter: 9, genreFilter: 'essay' }));
-    assert.ok(warningHtml.includes('Class and student focus analysis'));
+    assert.ok(warningHtml.includes('⚠ Overused prompts to refresh'));
 });
 test('cross-page admin filter query normalization behavior', () => {
     __resetWritingIntegrationStoreForTests();
@@ -425,8 +425,7 @@ test('admin help content and filtered empty-state copy render', () => {
     const monitoringEmpty = renderToStaticMarkup(React.createElement(WritingMonitoringView, { filterQuery: '?status=stalled&grade=9' }));
     assert.ok(monitoringEmpty.includes('No writing monitoring data available yet') ||
         monitoringEmpty.includes('No monitoring matches') ||
-        monitoringEmpty.includes('No students with writing records yet') ||
-        monitoringEmpty.includes('No English classes are assigned to this teacher yet'));
+        monitoringEmpty.includes('No students with writing records yet'));
     const analyticsEmpty = renderToStaticMarkup(React.createElement(WritingAnalyticsDashboard, { gradeFilter: 12, genreFilter: 'story' }));
     assert.ok(analyticsEmpty.includes('No analytics data available for filters'));
     createWritingPrompt({
