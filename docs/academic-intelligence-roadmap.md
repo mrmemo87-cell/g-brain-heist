@@ -101,3 +101,64 @@ hash.
 7. Confirm teachers can read the mapped catalog but cannot mutate curriculum records.
 8. Repeat the same governed process for Mathematics and Science before Phase 3 question
    mapping begins.
+
+## Phase 3 contract
+
+Phase 3 creates a reviewed mapping layer between assessment items and the immutable,
+published curriculum objectives from Phase 2. It does not rewrite source questions,
+copy answer content, or treat an AI suggestion as approved academic evidence.
+
+- `curriculum_assessment_items` is a source-agnostic, content-free registry for standard
+  Question Bank items, Admission Bank questions, Cambridge test items, Writing Hub
+  prompts, and future imports. It stores stable locators, subject/grade context, and a
+  SHA-256 content hash; raw prompts, passages, options, answers, and explanations are
+  rejected.
+- `curriculum_mapping_batches` records whether mappings were manual, imported,
+  rule-based, or AI-assisted. AI batches require model and prompt-version provenance.
+- `curriculum_item_objective_mappings` supports one reviewed primary objective plus
+  secondary, prerequisite, and extension links. Every mapping records a numeric
+  confidence score, rationale, provenance, item hash, and published curriculum-version
+  hash.
+- Suggested mappings must enter review before approval. The proposer cannot approve
+  their own work, approval requires at least `0.70` confidence, and corrections create a
+  superseding mapping instead of editing history.
+- `curriculum_mapping_decisions` preserves an append-only audit trail of submission,
+  review, approval, rejection, and supersession decisions.
+- Changing a source item does not rewrite or delete its approved history. The hash
+  mismatch makes the mapping stale, excludes it from evidence resolution, and requires
+  re-review.
+- The service-only resolver returns only current approved mappings. Future evidence
+  adapters must use this boundary rather than trusting legacy topic strings or Admission
+  Bank compatibility fields as canonical curriculum evidence.
+- School membership-scoped RPCs disclose item coverage, objective coverage, unmapped
+  items, stale mappings, missing grade context, and the review queue. Zero registered
+  items is reported as `no_registered_items`, never as successful coverage.
+
+### Source adapter contract
+
+Each adapter computes a reproducible SHA-256 hash from the complete academically
+meaningful item content in its authoritative source. A Cambridge test uses its test id as
+the source record and a stable question key inside the paper; a Writing prompt uses its
+prompt id; UUID-backed Question Bank and Admission Bank rows use their row ids. Adapters
+send only the hash and non-content descriptors to the curriculum registry. Existing
+`adm_questions.curriculum_objective_id` values remain compatibility metadata until they
+are resolved to a published canonical objective and pass the Phase 3 review workflow.
+
+### Phase 3 rollout gate
+
+1. Verify the Phase 2 English, Mathematics, and Science pilot versions are published and
+   mapped to a confirmed pilot-school year, grade, and subject scope.
+2. Register a small, representative sample from each assessment source without copying
+   raw question content into the mapping registry.
+3. Validate adapter hashes are deterministic and that an academically meaningful source
+   edit makes the prior mapping stale.
+4. Run manual mappings first, then compare rule-based or AI-assisted suggestions against
+   the reviewed set. Suggestions must never auto-approve.
+5. Require a reviewer other than the proposer and record a rationale for every approved
+   primary or secondary objective.
+6. Confirm the evidence resolver returns current approved mappings only and excludes
+   suggested, rejected, superseded, retired-item, and stale-hash rows.
+7. Review school coverage for unmapped items, objectives with no item coverage, missing
+   grade context, and mappings awaiting review.
+8. Begin Phase 4 Cambridge evidence adaptation only when the pilot mapping sample meets
+   the agreed coverage and review-quality threshold; missing data remains visible.
