@@ -16,7 +16,8 @@ test('teacher navigation uses the requested labels and order', () => {
 });
 test('writing hub is limited to English teachers', () => {
     assert.match(portal, /const teachesEnglish = teacherAssignedSubjects\.some/);
-    assert.match(portal, /profile\.role === 'teacher' && teachesEnglish/);
+    assert.match(portal, /profile\.role === 'admin' \|\| teachesEnglish/);
+    assert.doesNotMatch(portal, /profile\.role === 'teacher' && teachesEnglish/);
 });
 test('assignment wizard follows the subject-first light workflow', () => {
     assert.match(wizard, /\{ id: 1, short: 'Subject', question: 'What subject\?'/);
@@ -52,6 +53,12 @@ test('desktop navigation can collapse to create more workspace', () => {
     assert.match(teacherTheme, /\.teacher-sidebar\.is-collapsed \.teacher-nav-text/);
     assert.match(teacherTheme, /\.teacher-sidebar\.is-collapsed \.teacher-nav-btn\s*\{[^}]*width: 3\.5rem;[^}]*justify-self: center;/s);
     assert.match(teacherTheme, /\.teacher-sidebar\.is-collapsed \.teacher-nav-grid--sidebar\s*\{\s*grid-template-columns: minmax\(0, 1fr\);/);
-    assert.match(teacherTheme, /content: attr\(data-label\)/);
+    assert.match(portal, /<CollapsedNavTooltip label=\{navTooltip\.label\} anchor=\{navTooltip\.anchor\}/);
     assert.match(portal, /data-label=\{tab\.label\}/);
+});
+test('teacher navigation has a clean tablet breakpoint and an independently scrollable sidebar', () => {
+    assert.match(teacherTheme, /\.teacher-sidebar\s*\{[^}]*max-height: calc\(100dvh - 104px\);[^}]*overflow-y: auto;[^}]*overscroll-behavior: contain;/s);
+    assert.match(teacherTheme, /\.teacher-sidebar-toggle\s*\{[^}]*position: sticky;[^}]*top: 0;[^}]*z-index: 6;/s);
+    assert.match(teacherTheme, /@media \(max-width: 1024px\)\s*\{[\s\S]*?\.teacher-desktop-sidebar\s*\{\s*display: none;\s*\}/);
+    assert.doesNotMatch(teacherTheme, /@media \(max-width: 1023px\)\s*\{\s*\.teacher-portal-container/);
 });

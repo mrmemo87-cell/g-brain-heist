@@ -259,7 +259,7 @@ test('official admission bank validator reports Grade 7 English longest-answer b
     const result = runValidator(root);
     const output = `${result.stdout}\n${result.stderr}`;
     assert.notEqual(result.status, 0);
-    assert.match(output, /grade 7 english official bank has correct option as uniquely longest/);
+    assert.match(output, /grade 7 english official bank has correct option as uniquely longest|grade_7\.json: questions\[\d+\].*extreme correct-option length imbalance/);
 });
 test('official admission bank validator hard-fails visible placeholder box glyphs', () => {
     const root = mkdtempSync(path.join(tmpdir(), 'adm-official-bank-glyph-'));

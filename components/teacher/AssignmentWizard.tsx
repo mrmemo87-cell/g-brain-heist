@@ -31,6 +31,15 @@ interface AssignmentWizardProps {
   setAssignmentQuestionIds: React.Dispatch<React.SetStateAction<string[]>>;
   assignmentDueAt: string;
   setAssignmentDueAt: (value: string) => void;
+  assignmentAssignedAt: string;
+  setAssignmentAssignedAt: (value: string) => void;
+  assignmentPublishStatus: 'draft' | 'scheduled' | 'published';
+  setAssignmentPublishStatus: (value: 'draft' | 'scheduled' | 'published') => void;
+  assignmentCloseAfterDue: boolean;
+  setAssignmentCloseAfterDue: (value: boolean) => void;
+  assignmentNotifyByEmail: boolean;
+  setAssignmentNotifyByEmail: (value: boolean) => void;
+  editingAssignment?: boolean;
   assignmentDifficulty: QuestionDifficulty;
   setAssignmentDifficulty: (value: QuestionDifficulty) => void;
   assignmentTopicMode: 'general' | 'custom';
@@ -46,6 +55,7 @@ interface AssignmentWizardProps {
   teacherId?: string;
   questions: TeacherQuestion[];
   onSubmit: (event: React.FormEvent) => Promise<void>;
+  onSaveDraft: () => Promise<void>;
   onCancel: () => void;
 }
 
@@ -121,6 +131,15 @@ export default function AssignmentWizard({
   setAssignmentQuestionIds,
   assignmentDueAt,
   setAssignmentDueAt,
+  assignmentAssignedAt,
+  setAssignmentAssignedAt,
+  assignmentPublishStatus,
+  setAssignmentPublishStatus,
+  assignmentCloseAfterDue,
+  setAssignmentCloseAfterDue,
+  assignmentNotifyByEmail,
+  setAssignmentNotifyByEmail,
+  editingAssignment = false,
   assignmentDifficulty,
   setAssignmentDifficulty,
   assignmentTopicMode,
@@ -136,6 +155,7 @@ export default function AssignmentWizard({
   teacherId,
   questions,
   onSubmit,
+  onSaveDraft,
   onCancel,
 }: AssignmentWizardProps) {
   const [step, setStep] = useState<WizardStep>(initialStep);
@@ -304,7 +324,10 @@ export default function AssignmentWizard({
       return brainsAlert('Add an assignment title before continuing.', 'info');
     }
     if (currentStep === 5 && isPastDueDate(assignmentDueAt)) {
-      return brainsAlert('Choose a due date and time in the future. Students cannot receive an assignment that is already overdue.', 'error');
+      return brainsAlert('Choose a due date and time in the future.', 'error');
+    }
+    if (currentStep === 5 && assignmentPublishStatus === 'scheduled' && (!assignmentAssignedAt || new Date(assignmentAssignedAt).getTime() <= Date.now())) {
+      return brainsAlert('Choose a future publication date and time.', 'error');
     }
     if (currentStep < 6) setReviewConfirmed(false);
     goToStep(Math.min(6, currentStep + 1) as WizardStep);
@@ -569,19 +592,32 @@ export default function AssignmentWizard({
                 })}
                 <button type="button" className={customDueDate ? 'aw-due-card is-selected' : 'aw-due-card'} onClick={() => setCustomDueDate(true)}><span>▦</span><strong>Custom date</strong><small>Choose date and time</small></button>
               </div>
-              {customDueDate && <label className="aw-custom-date"><span>Custom due date</span><input type="datetime-local" min={localDateTimeValue()} value={assignmentDueAt} aria-invalid={isPastDueDate(assignmentDueAt)} onChange={(event) => setAssignmentDueAt(event.target.value)} />{isPastDueDate(assignmentDueAt) ? <small className="aw-field-error">Choose a future date and time. This assignment would already be overdue.</small> : null}</label>}
+              {customDueDate && <label className="aw-custom-date"><span>Custom due date</span><input type="datetime-local" min={localDateTimeValue()} value={assignmentDueAt} aria-invalid={isPastDueDate(assignmentDueAt)} onChange={(event) => setAssignmentDueAt(event.target.value)} />{isPastDueDate(assignmentDueAt) ? <small className="aw-field-error">Choose a future date and time.</small> : null}</label>}
+              <div className="mt-5 grid gap-3 rounded-xl border border-slate-200 bg-white p-4">
+                <div><strong className="text-slate-800">Publication</strong><p className="text-sm text-slate-500">Publish now, schedule it, or save a draft from the review step.</p></div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <button type="button" className={assignmentPublishStatus === 'published' ? 'aw-due-card is-selected' : 'aw-due-card'} onClick={() => { setAssignmentPublishStatus('published'); setAssignmentAssignedAt(localDateTimeValue()); }}><strong>Publish now</strong><small>Available immediately</small></button>
+                  <button type="button" className={assignmentPublishStatus === 'scheduled' ? 'aw-due-card is-selected' : 'aw-due-card'} onClick={() => setAssignmentPublishStatus('scheduled')}><strong>Schedule</strong><small>Choose a release time</small></button>
+                </div>
+                {assignmentPublishStatus === 'scheduled' ? <label className="aw-custom-date"><span>Publish at</span><input type="datetime-local" min={localDateTimeValue()} value={assignmentAssignedAt} onChange={(event) => setAssignmentAssignedAt(event.target.value)} /></label> : null}
+                <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm text-slate-700"><input className="mt-1" type="checkbox" checked={assignmentCloseAfterDue} onChange={(event) => setAssignmentCloseAfterDue(event.target.checked)} /><span><strong>Close submissions after due date</strong><br/><small className="text-slate-500">Off by default. When off, late work stays open and is marked Late.</small></span></label>
+                <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm text-slate-700"><input className="mt-1" type="checkbox" checked={assignmentNotifyByEmail} onChange={(event) => setAssignmentNotifyByEmail(event.target.checked)} /><span><strong>Notify students by email?</strong><br/><small className="text-slate-500">The notification is queued for the time the assignment becomes available.</small></span></label>
+              </div>
             </div>
           )}
 
           {step === 6 && (
             <div className="aw-step aw-review">
-              <div className="aw-review__hero"><span>Ready to publish</span><h2>{assignmentTitle || `${assignmentSubject} assignment`}</h2><p>{selectedQuestions.length} questions · {estimatedMinutes} minutes · {totalXp} XP</p></div>
+              <div className="aw-review__hero"><span>{editingAssignment ? 'Ready to save' : 'Ready to publish'}</span><h2>{assignmentTitle || `${assignmentSubject} assignment`}</h2><p>{selectedQuestions.length} questions · {estimatedMinutes} minutes · {totalXp} XP</p></div>
               {[
                 ['Subject', assignmentSubject, 1],
                 ['Audience', assignmentMode === 'batch' ? selectedClasses.map((item) => item.class_code).join(', ') : `${audienceStudents.length} individual students`, 2],
                 ['Questions', `${selectedQuestions.length} across ${new Set(selectedQuestions.map((q) => q.topic_name || q.topic || 'General')).size} topics · ${averageDifficulty}`, 3],
                 ['Details', [assignmentDescription, assignmentInstructions].filter(Boolean).join(' · ') || 'No additional details', 4],
                 ['Due date', formatDueDate(assignmentDueAt), 5],
+                ['Publication', assignmentPublishStatus === 'scheduled' ? `Scheduled · ${formatDueDate(assignmentAssignedAt)}` : 'Publish now', 5],
+                ['Late work', assignmentCloseAfterDue ? 'Close after due date' : 'Allow and mark Late', 5],
+                ['Email', assignmentNotifyByEmail ? 'Notify students' : 'Do not notify', 5],
               ].map(([label, value, target]) => (
                 <div className="aw-review__row" key={String(label)}><span><small>{label}</small><strong>{value}</strong></span><button type="button" onClick={() => goToStep(target as WizardStep)}>Edit</button></div>
               ))}
@@ -612,9 +648,12 @@ export default function AssignmentWizard({
                 Next <span aria-hidden="true">→</span>
               </button>
             ) : (
-              <button type="submit" className="aw-button aw-button--primary" disabled={assignmentSubmitting || !reviewConfirmed}>
-                {assignmentSubmitting ? 'Publishing…' : 'Publish assignment'}
-              </button>
+              <>
+                {!editingAssignment ? <button type="button" className="aw-button aw-button--ghost" disabled={assignmentSubmitting} onClick={() => void onSaveDraft()}>Save as draft</button> : null}
+                <button type="submit" className="aw-button aw-button--primary" disabled={assignmentSubmitting || !reviewConfirmed}>
+                  {assignmentSubmitting ? 'Saving…' : editingAssignment ? 'Save changes' : assignmentPublishStatus === 'scheduled' ? 'Schedule assignment' : 'Publish assignment'}
+                </button>
+              </>
             )}
           </div>
         </footer>

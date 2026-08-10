@@ -5,14 +5,44 @@ import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners 
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage.js';
 import { notificationService } from './notificationService.js';
 import { fetchMyXpStatus } from './xpStatus.js';
+import { normalizeTeacherRoster } from '../src/lib/teacherRoster.js';
 import { audioService } from './audioService.js';
-import { regenerateUserAp, notifyApFull, performHackAttempt, checkAchievements as rpcCheckAchievements, createTeacherProfile as rpcCreateTeacherProfile, recordQuestionAttempt, createAssignment as rpcCreateAssignment, getAssignmentsForTeacher as rpcGetAssignmentsForTeacher, deleteTeacherAssignment as rpcDeleteTeacherAssignment, getTeacherAssignmentSuccessSummary as rpcGetTeacherAssignmentSuccessSummary, getStudentsForAssignment as rpcGetStudentsForAssignment, getStudentActiveAssignment as rpcGetStudentActiveAssignment, getStudentPendingAssignments as rpcGetStudentPendingAssignments, submitAssignmentResult as rpcSubmitAssignmentResult, teacherAssignmentReport as rpcTeacherAssignmentReport, submitAssignmentAnswer as rpcSubmitAssignmentAnswer, getAssignmentStudentAnswers as rpcGetAssignmentStudentAnswers, getAssignmentQuestionAnalysis as rpcGetAssignmentQuestionAnalysis, getStudentCompletedAssignments as rpcGetStudentCompletedAssignments, checkAssignmentAchievements as rpcCheckAssignmentAchievements, getMyAssignmentAnswers as rpcGetMyAssignmentAnswers } from './rpcGateway.js';
+import { regenerateUserAp, notifyApFull, performHackAttempt, checkAchievements as rpcCheckAchievements, createTeacherProfile as rpcCreateTeacherProfile, recordQuestionAttempt, createAssignment as rpcCreateAssignment, getAssignmentsForTeacher as rpcGetAssignmentsForTeacher, deleteTeacherAssignment as rpcDeleteTeacherAssignment, updateTeacherAssignment as rpcUpdateTeacherAssignment, getTeacherAssignmentSuccessSummary as rpcGetTeacherAssignmentSuccessSummary, getStudentsForAssignment as rpcGetStudentsForAssignment, getStudentActiveAssignment as rpcGetStudentActiveAssignment, getStudentPendingAssignments as rpcGetStudentPendingAssignments, submitAssignmentResult as rpcSubmitAssignmentResult, teacherAssignmentReport as rpcTeacherAssignmentReport, submitAssignmentAnswer as rpcSubmitAssignmentAnswer, getAssignmentStudentAnswers as rpcGetAssignmentStudentAnswers, getAssignmentQuestionAnalysis as rpcGetAssignmentQuestionAnalysis, getStudentCompletedAssignments as rpcGetStudentCompletedAssignments, checkAssignmentAchievements as rpcCheckAssignmentAchievements, getMyAssignmentAnswers as rpcGetMyAssignmentAnswers } from './rpcGateway.js';
 const MOCK_DELAY = 500;
 const formatLocalDateKey = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+};
+let pendingDailyStreakReward = null;
+const recordDailyStreakForProfile = async (profile) => {
+    if ((profile.role ?? 'student') !== 'student')
+        return;
+    const { data, error } = await supabase.rpc('rpc_record_daily_streak');
+    if (error) {
+        console.warn('[whoami] Daily streak reward could not be recorded:', error.message);
+        return;
+    }
+    if (!data)
+        return;
+    const receipt = {
+        claimed: data.claimed === true,
+        reward_date: String(data.reward_date ?? formatLocalDateKey(new Date())),
+        streak: Number(data.streak ?? profile.streak ?? 0),
+        coins_awarded: Number(data.coins_awarded ?? 0),
+        coins: Number(data.coins ?? profile.coins ?? 0),
+    };
+    if (receipt.claimed)
+        pendingDailyStreakReward = receipt;
+    profile.streak = receipt.streak;
+    profile.coins = receipt.coins;
+    profile.daily_streak_reward = pendingDailyStreakReward ?? receipt;
+};
+export const consumeDailyStreakReward = () => {
+    const receipt = pendingDailyStreakReward;
+    pendingDailyStreakReward = null;
+    return receipt;
 };
 const createAbortError = (message = 'Request aborted') => {
     const error = new Error(message);
@@ -1120,6 +1150,7 @@ export const whoamiFast = async () => {
         await supabase.auth.signOut();
         throw new Error(BAN_MESSAGE);
     }
+    const streakRewardPromise = recordDailyStreakForProfile(profile);
     if (profile.school_id) {
         const { data: schoolData } = await supabase
             .from('schools')
@@ -1131,6 +1162,7 @@ export const whoamiFast = async () => {
             profile.school_logo_url = schoolData.logo_url;
         }
     }
+    await streakRewardPromise;
     // Presence must never delay the dashboard.
     void supabase.from('users').update({ last_seen: new Date().toISOString() }).eq('id', user.id);
     return profile;
@@ -1306,57 +1338,23 @@ export const whoami = async () => {
             profile.ap_now = profile.ap_max || 100;
             profile.last_ap_update = new Date().toISOString();
         }
-        // ====== STREAK TRACKING LOGIC ======
+        // The database awards at most once per Bishkek calendar day. The one-time
+        // receipt is attached to the hydrated profile for the celebration modal.
+        await recordDailyStreakForProfile(profile);
+        // Show the same temporary shield defense that combat actually uses. Firewall
+        // bonuses are already permanent base-defense updates and must not be doubled.
         const now = new Date();
-        const lastSeen = profile.last_seen ? new Date(profile.last_seen) : null;
-        let newStreak = profile.streak || 0;
-        if (lastSeen) {
-            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const lastSeenStart = new Date(lastSeen.getFullYear(), lastSeen.getMonth(), lastSeen.getDate());
-            const daysDiff = Math.floor((todayStart.getTime() - lastSeenStart.getTime()) / (1000 * 60 * 60 * 24));
-            if (daysDiff === 1) {
-                // User logged in the next day - increment streak
-                newStreak = (profile.streak || 0) + 1;
-            }
-            else if (daysDiff > 1) {
-                // User missed a day - reset streak
-                newStreak = 1;
-            }
-            // If daysDiff === 0, same day login - don't change streak
-        }
-        else {
-            // First time user
-            newStreak = 1;
-        }
-        const updateData = { last_seen: now.toISOString() };
-        if (newStreak !== profile.streak) {
-            updateData.streak = newStreak;
-            profile.streak = newStreak;
-            // ====== NOTIFICATION: STREAK DANGER ======
-            // If streak was broken (reset to 1 after having a streak)
-            if (profile.streak > 1 && newStreak === 1) {
-                try {
-                    await notificationService.createNotification(user.id, 'streak_danger', '🔥 Streak Broken!', `You lost your ${profile.streak} day streak! Log in daily to rebuild it.`, 'medium');
-                }
-                catch (notifError) {
-                    console.error('Failed to send streak notification:', notifError);
-                }
-            }
-        }
-        // Update database with all changes
-        await supabase
-            .from('users')
-            .update(updateData)
-            .eq('id', user.id);
-        // Check inventory for active shields
         const { data: activeShields } = await supabase
             .from('inventory')
-            .select('id')
+            .select('id, defense_bonus')
             .eq('user_id', user.id)
             .eq('kind', 'shield')
-            .eq('state', 'unused')
-            .limit(1);
+            .eq('state', 'active')
+            .or(`expires_at.is.null,expires_at.gt.${now.toISOString()}`);
         const userHasShield = (activeShields?.length ?? 0) > 0;
+        const activeShieldDefense = userHasShield
+            ? Math.max(...(activeShields || []).map((item) => Number(item.defense_bonus) || 20))
+            : 0;
         // Register in shared player list for multiplayer features
         addPlayerToSharedList({
             id: profile.id,
@@ -1449,6 +1447,7 @@ export const whoami = async () => {
             profile.clan_name = null;
             profile.clan_total_score = null;
         }
+        profile.defense_power_effective = (profile.defense_power_effective ?? profile.defense_power) + activeShieldDefense;
         try {
             profile.active_cosmetic_frame = await getActiveCosmeticFrame(profile.id);
         }
@@ -2479,24 +2478,28 @@ export const get_student_subject_progress_with_difficulty = async () => {
 };
 export const raid_targets = async () => {
     const user = await getCurrentUser();
-    // Fetch current user's profile for stats
-    const { data: profileData } = await supabase
-        .from('users')
-        .select('level, batch, attack_power')
-        .eq('id', user.id)
-        .single();
+    // These reads are independent. Starting them together keeps the target list
+    // from waiting on the profile request before the server-scoped RPC begins.
+    const [{ data: profileData }, { data: players, error }] = await Promise.all([
+        supabase
+            .from('users')
+            .select('level, batch, attack_power')
+            .eq('id', user.id)
+            .single(),
+        supabase.rpc('get_attack_targets', { p_limit: 100 }),
+    ]);
     const userLevel = profileData?.level || 1;
     const userBatch = profileData?.batch || '8B';
     const userAttackPower = profileData?.attack_power || 10;
-    // Use school-scoped RPC to get targets (enforces tenant isolation server-side)
-    const { data: players, error } = await supabase.rpc('get_attack_targets', { p_limit: 100 });
     if (error)
         throw error;
     const playerList = players || [];
     const playerIds = playerList.map((p) => p.id);
-    const neonOwners = await fetchNeonFrameOwners(playerIds);
-    const flickerOwners = await fetchFlickerThemeOwners(playerList.map((p) => p.id));
-    const glitchOwners = await fetchGlitchEffectOwners(playerList.map((p) => p.id));
+    const [neonOwners, flickerOwners, glitchOwners] = await Promise.all([
+        fetchNeonFrameOwners(playerIds),
+        fetchFlickerThemeOwners(playerIds),
+        fetchGlitchEffectOwners(playerIds),
+    ]);
     const realTargets = playerList.map((p) => {
         // RPC already returns has_shield, clan_id, clan_name
         const targetHasShield = p.has_shield || false;
@@ -2776,128 +2779,10 @@ export const inventory_list = async () => {
     return mockApiCall(items || []);
 };
 export const inventory_activate = async (inv_id) => {
-    const user = await getCurrentUser();
-    // Fetch the item
-    const { data: item, error } = await supabase
-        .from('inventory')
-        .select('*')
-        .eq('id', inv_id)
-        .eq('user_id', user.id)
-        .single();
-    if (error || !item) {
-        return Promise.reject({ message: 'Item not found in inventory.' });
-    }
-    if (item.state !== 'unused') {
-        return Promise.reject({ message: 'Item cannot be activated.' });
-    }
-    const now = new Date();
-    const expiry = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour for boosters
-    if (item.kind === 'cosmetic') {
-        await supabase
-            .from('inventory')
-            .update({
-            state: 'active',
-            activated_at: now.toISOString(),
-            expires_at: null,
-        })
-            .eq('id', inv_id);
-        // Also update the users table to reflect active cosmetic
-        if (item.item_id === 'item_cosmetic_frame') {
-            await updateProfile(user.id, {
-                active_cosmetic_frame: 'neon',
-            });
-        }
-        else if (item.item_id === 'item_cosmetic_theme') {
-            await updateProfile(user.id, {
-                active_cosmetic_theme: 'flicker',
-            });
-        }
-        else if (item.item_id === 'item_cosmetic_glitch') {
-            await updateProfile(user.id, {
-                active_cosmetic_effect: 'glitch',
-            });
-        }
-        return mockApiCall({
-            state_after: 'active',
-            effect_window: { start: now.toISOString(), end: 'Permanent' }
-        });
-    }
-    // Handle different item types
-    if (item.kind === 'encryption_key' || item.kind === 'exploit_kit') {
-        // Permanent attack boost - add to user's attack_power
-        const attackBonus = item.attack_bonus || 0;
-        if (attackBonus > 0) {
-            const { data: profile } = await supabase
-                .from('users')
-                .select('attack_power')
-                .eq('id', user.id)
-                .single();
-            await updateProfile(user.id, {
-                attack_power: (profile?.attack_power || 10) + attackBonus
-            });
-        }
-        // Mark item as consumed (permanent effect applied)
-        await supabase
-            .from('inventory')
-            .update({ state: 'active', activated_at: now.toISOString() })
-            .eq('id', inv_id);
-        return mockApiCall({
-            state_after: 'active',
-            effect_window: { start: now.toISOString(), end: 'Permanent' }
-        });
-    }
-    if (item.kind === 'firewall') {
-        // Permanent defense boost - add to user's defense_power
-        const defenseBonus = item.defense_bonus || 0;
-        if (defenseBonus > 0) {
-            const { data: profile } = await supabase
-                .from('users')
-                .select('defense_power')
-                .eq('id', user.id)
-                .single();
-            await updateProfile(user.id, {
-                defense_power: (profile?.defense_power || 10) + defenseBonus
-            });
-        }
-        // Mark as consumed
-        await supabase
-            .from('inventory')
-            .update({ state: 'active', activated_at: now.toISOString() })
-            .eq('id', inv_id);
-        return mockApiCall({
-            state_after: 'active',
-            effect_window: { start: now.toISOString(), end: 'Permanent' }
-        });
-    }
-    const isShield = item.kind === 'shield';
-    const expiresAt = isShield ? null : expiry.toISOString();
-    // Deactivate other boosters if a new one is used
-    if (item.kind === 'booster' || item.kind === 'major_booster') {
-        await supabase
-            .from('inventory')
-            .delete()
-            .eq('user_id', user.id)
-            .neq('id', inv_id)
-            .eq('state', 'active')
-            .in('kind', ['booster', 'major_booster']);
-    }
-    // Activate this item
-    await supabase
-        .from('inventory')
-        .update({
-        state: 'active',
-        activated_at: now.toISOString(),
-        expires_at: expiresAt,
-    })
-        .eq('id', inv_id);
-    const result = {
-        state_after: 'active',
-        effect_window: {
-            start: now.toISOString(),
-            end: isShield ? 'Until Cracked' : expiry.toISOString()
-        }
-    };
-    return mockApiCall(result);
+    const { data, error } = await supabase.rpc('inventory_activate', { p_inventory_id: inv_id });
+    if (error)
+        throw new Error(error.message || 'Failed to activate item.');
+    return data;
 };
 export const deactivate_neon_frame = async () => {
     const user = await getCurrentUser();
@@ -4702,10 +4587,14 @@ export const create_assignment = async (payload) => {
         p_assigned_at: payload.assigned_at ?? nowIso(),
         p_due_at: payload.due_at ?? null,
         p_title: payload.title.trim(),
+        p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
         p_assignment_mode: mode,
         p_student_ids: payload.student_ids ?? null,
+        p_publish_status: payload.publish_status ?? 'published',
+        p_close_submissions_after_due: payload.close_submissions_after_due ?? false,
+        p_notify_students_by_email: payload.notify_students_by_email ?? false,
     });
     if (error)
         throw new Error(error.message || 'Failed to create assignment');
@@ -4737,6 +4626,43 @@ export const delete_teacher_assignment = async (assignmentId) => {
     if (data !== true)
         throw new Error('Assignment could not be deleted');
 };
+export const update_teacher_assignment = async (assignmentId, payload) => {
+    if (!assignmentId)
+        throw new Error('Assignment ID is required');
+    if (!payload.question_ids?.length)
+        throw new Error('Select at least one question for the assignment');
+    if (!payload.title?.trim())
+        throw new Error('Assignment title is required');
+    const mode = payload.assignment_mode || 'batch';
+    if (mode === 'batch' && !payload.batch)
+        throw new Error('Batch is required for batch mode assignments');
+    if (mode === 'custom' && (!payload.student_ids || payload.student_ids.length === 0))
+        throw new Error('At least one student is required for custom assignments');
+    const { data, error } = await rpcUpdateTeacherAssignment(assignmentId, {
+        p_subject_id: payload.subject_id ?? resolveSubjectIdentifier(payload.subject),
+        p_subject_name: payload.subject,
+        p_topic_name: normalizeTopicName(payload.topic_name),
+        p_batch: payload.batch ?? null,
+        p_question_ids: payload.question_ids,
+        p_assigned_at: payload.assigned_at ?? nowIso(),
+        p_due_at: payload.due_at ?? null,
+        p_title: payload.title.trim(),
+        p_description: payload.description ?? null,
+        p_instructions: payload.instructions ?? null,
+        p_difficulty: payload.difficulty ?? null,
+        p_assignment_mode: mode,
+        p_student_ids: payload.student_ids ?? null,
+        p_publish_status: payload.publish_status ?? 'published',
+        p_close_submissions_after_due: payload.close_submissions_after_due ?? false,
+        p_notify_students_by_email: payload.notify_students_by_email ?? false,
+    });
+    if (error)
+        throw new Error(error.message || 'Failed to update assignment');
+    const assignment = (Array.isArray(data) ? data[0] : data);
+    if (!assignment)
+        throw new Error('Assignment could not be updated');
+    return assignment;
+};
 export const get_teacher_assignment_success_summary = async () => {
     const { data, error } = await rpcGetTeacherAssignmentSuccessSummary();
     if (error)
@@ -4762,7 +4688,7 @@ export const get_students_for_assignment = async (teacherId) => {
         console.error('RPC error getting students:', error);
         throw new Error(error.message || 'Failed to load students');
     }
-    const result = data || [];
+    const result = normalizeTeacherRoster(data || []);
     console.log('get_students_for_assignment result:', result);
     return result;
 };
@@ -4871,6 +4797,9 @@ export const submit_assignment_result = async (payload) => {
         }
         if (message.includes('ASSIGNMENT_NOT_SUBMITTABLE')) {
             throw new Error('Assignment is no longer in a submittable state.');
+        }
+        if (message.includes('ASSIGNMENT_CLOSED')) {
+            throw new Error('This assignment is closed because its due date has passed.');
         }
         throw new Error(message);
     }

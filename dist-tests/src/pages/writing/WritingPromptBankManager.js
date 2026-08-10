@@ -1,5 +1,4 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import React from 'react';
 import { listWritingPrompts, } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { WRITING_ADMIN_HELP } from '../../lib/brains_heist/writingAdminHelp.js';

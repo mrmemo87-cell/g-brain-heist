@@ -1,0 +1,35 @@
+import fs from 'node:fs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+const admin = fs.readFileSync('components/SchoolAdminPortal.tsx', 'utf8');
+const head = fs.readFileSync('components/SchoolHeadPortal.tsx', 'utf8');
+const guardian = fs.readFileSync('components/guardian/GuardianManagementPage.tsx', 'utf8');
+const parent = fs.readFileSync('components/guardian/ParentPortal.tsx', 'utf8');
+const migration = fs.readFileSync('supabase/migrations/20260809178000_admin_progress_directory.sql', 'utf8');
+test('School Admin exposes academic profiles, interventions and parent access in shared navigation', () => {
+    assert.match(admin, /label: 'Academic Profiles'/);
+    assert.match(admin, /label: 'Interventions'/);
+    assert.match(admin, /label: 'Parents & Guardians'/);
+    assert.match(admin, /\/teacher-academic-profiles\.html/);
+    assert.match(admin, /\/teacher-interventions\.html/);
+    assert.match(admin, /\/guardian-management\.html/);
+});
+test('School Head Academic Performance links to longitudinal learning intelligence', () => {
+    assert.match(head, /Open learning intelligence/);
+    assert.match(head, /school-head-learning-intelligence\.html/);
+});
+test('guardian invitation flow remains email-bound and parent-facing', () => {
+    assert.match(guardian, /Guardian email/);
+    assert.match(guardian, /Generate secure invitation/);
+    assert.match(guardian, /parent-portal\.html/);
+    assert.match(parent, /Create parent account/);
+    assert.match(parent, /My Children/);
+    assert.match(parent, /Current focus areas/);
+    assert.match(parent, /Assignment results/);
+    assert.match(parent, /Learning timeline/);
+});
+test('school admins receive school-roster directory while teacher scope remains preserved', () => {
+    assert.match(migration, /role_in_school = 'school_admin'/);
+    assert.match(migration, /sm\.role_in_school = 'student'/);
+    assert.match(migration, /cta\.teacher_user_id = v_caller/);
+});

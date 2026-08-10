@@ -1,7 +1,8 @@
-import { Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import React, { useEffect, useMemo, useState } from 'react';
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useEffect, useMemo, useState } from 'react';
 import { exportAdminCalibrationReport, exportStudentMonthlyWritingReport, getTeacherAttemptListScoped, getTeacherExportRowsScoped, getTeacherSavedReportsScoped, getTeacherWritingReport, saveTeacherReportScoped, } from '../../lib/brains_heist/writingIntegrationService.js';
 import { humanizeWritingTag, openProfessionalWritingReport, } from '../../lib/brains_heist/writingReportDocument.js';
+import { safeCsvCell } from '../../lib/schoolDocument.js';
 const EMPTY_DRAFT = {
     status: 'draft',
     strengths: '',
@@ -54,6 +55,8 @@ const WritingEvidenceList = ({ attempts, selectedAttemptId, onSelect, }) => (_js
         }), attempts.length === 0 && (_jsx("div", { className: "writing-reports__empty-inline", children: "No writing evidence has been submitted for this student yet." }))] }));
 export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOString().slice(0, 7), isLoading = false, errorMessage, }) => {
     const [teacherRows, setTeacherRows] = useState(null);
+    const [selectedMonth, setSelectedMonth] = useState(month);
+    const [selectedClassId, setSelectedClassId] = useState('all');
     const [selectedStudentId, setSelectedStudentId] = useState('');
     const [teacherSummaryReport, setTeacherSummaryReport] = useState(null);
     const [attempts, setAttempts] = useState([]);
@@ -65,12 +68,25 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
     const [teacherReportError, setTeacherReportError] = useState('');
     const [editorMessage, setEditorMessage] = useState('');
     const [showSubmission, setShowSubmission] = useState(false);
+    const classOptions = useMemo(() => {
+        const classes = new Map();
+        for (const row of teacherRows ?? []) {
+            if (!row.class_id)
+                continue;
+            classes.set(row.class_id, row.class_name?.trim() || `Grade ${row.grade}`);
+        }
+        return [...classes.entries()]
+            .map(([id, name]) => ({ id, name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    }, [teacherRows]);
     const visibleRows = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
-        if (!query)
-            return teacherRows ?? [];
-        return (teacherRows ?? []).filter((row) => `${row.student_name} ${row.grade}`.toLowerCase().includes(query));
-    }, [teacherRows, searchQuery]);
+        return (teacherRows ?? []).filter((row) => {
+            if (selectedClassId !== 'all' && row.class_id !== selectedClassId)
+                return false;
+            return !query || `${row.student_name} ${row.grade} ${row.class_name ?? ''}`.toLowerCase().includes(query);
+        });
+    }, [teacherRows, searchQuery, selectedClassId]);
     const selectedAttempt = useMemo(() => attempts.find((attempt) => attempt.attempt_id === selectedAttemptId) ?? null, [attempts, selectedAttemptId]);
     const editedReport = useMemo(() => {
         if (!teacherSummaryReport)
@@ -96,22 +112,21 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
     const exportCsv = () => {
         if (!teacherRows || typeof window === 'undefined')
             return;
-        const escapeField = (value) => {
-            const escaped = value.replace(/"/g, '""');
-            return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
-        };
-        const header = 'student_name,student_id,grade,practice_completion,latest_formative_score';
-        const lines = teacherRows.map((row) => [
-            escapeField(row.student_name),
-            escapeField(row.student_id),
-            escapeField(String(row.grade)),
-            escapeField(`${Math.round(row.completion_rate * 100)}%`),
-            escapeField(row.latest_score == null ? '' : String(row.latest_score)),
+        const header = ['student_name', 'student_id', 'class', 'grade', 'reporting_month', 'month_submissions', 'all_time_submissions', 'latest_formative_score'].map(safeCsvCell).join(',');
+        const lines = visibleRows.map((row) => [
+            safeCsvCell(row.student_name),
+            safeCsvCell(row.student_id),
+            safeCsvCell(row.class_name ?? ''),
+            safeCsvCell(String(row.grade)),
+            safeCsvCell(selectedMonth),
+            safeCsvCell(String(row.submission_count ?? 0)),
+            safeCsvCell(String(row.all_time_submission_count ?? 0)),
+            safeCsvCell(row.latest_score == null ? '' : String(row.latest_score)),
         ].join(','));
         const blob = new Blob([[header, ...lines].join('\n')], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `writing-class-summary-${month}.csv`;
+        link.download = `writing-evidence-${selectedMonth}.csv`;
         link.click();
         URL.revokeObjectURL(link.href);
     };
@@ -134,7 +149,7 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
             report_id: draft.id,
             student_id: selectedStudentId,
             mode: 'student',
-            month,
+            month: selectedMonth,
             genre: editedReport.genre,
             status,
             teacher_comment: draft.teacher_comment,
@@ -180,8 +195,8 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
         setTeacherLoading(true);
         setTeacherReportError('');
         const request = studentId
-            ? getTeacherWritingReport({ student_id: studentId, month, include_snippet: false })
-            : getTeacherExportRowsScoped(month);
+            ? getTeacherWritingReport({ student_id: studentId, month: selectedMonth, include_snippet: false })
+            : getTeacherExportRowsScoped(selectedMonth);
         void request
             .then((result) => {
             if (cancelled)
@@ -198,7 +213,7 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
             else {
                 const rows = result.data;
                 setTeacherRows(rows);
-                setSelectedStudentId((current) => current || rows[0]?.student_id || '');
+                setSelectedStudentId((current) => rows.some((row) => row.student_id === current) ? current : rows[0]?.student_id || '');
             }
         })
             .catch(() => {
@@ -212,7 +227,7 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
         return () => {
             cancelled = true;
         };
-    }, [mode, studentId, month]);
+    }, [mode, selectedMonth, studentId]);
     useEffect(() => {
         if (mode !== 'teacher' || !selectedStudentId)
             return;
@@ -227,7 +242,7 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
         setShowSubmission(false);
         setDraft(EMPTY_DRAFT);
         void Promise.all([
-            getTeacherWritingReport({ student_id: selectedStudentId, month, include_snippet: true }),
+            getTeacherWritingReport({ student_id: selectedStudentId, month: selectedMonth, include_snippet: true }),
             getTeacherAttemptListScoped({ student_id: selectedStudentId, limit: 30 }),
             getTeacherSavedReportsScoped({ student_id: selectedStudentId }),
         ]).then(([summaryResult, attemptsResult, savedResult]) => {
@@ -238,7 +253,21 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
                 setTeacherReportError('This student does not have enough writing data for a report yet.');
                 return;
             }
-            const report = summaryResult.data;
+            const selectedRow = teacherRows?.find((row) => row.student_id === selectedStudentId);
+            const report = {
+                ...summaryResult.data,
+                period: selectedMonth,
+                student: {
+                    ...summaryResult.data.student,
+                    class_id: selectedRow?.class_id ?? summaryResult.data.student.class_id,
+                    class_name: selectedRow?.class_name ?? summaryResult.data.student.class_name,
+                },
+                overall_summary: {
+                    ...summaryResult.data.overall_summary,
+                    submission_count: selectedRow?.submission_count ?? summaryResult.data.overall_summary.submission_count,
+                    all_time_submission_count: selectedRow?.all_time_submission_count ?? summaryResult.data.overall_summary.all_time_submission_count,
+                },
+            };
             setTeacherSummaryReport(report);
             setDraft({
                 status: 'draft',
@@ -247,7 +276,9 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
                 next_steps: report.teacher_actions.join('\n'),
                 teacher_comment: '',
             });
-            const attemptRows = attemptsResult.ok && attemptsResult.data ? attemptsResult.data : [];
+            const attemptRows = attemptsResult.ok && attemptsResult.data
+                ? attemptsResult.data.filter((attempt) => attempt.created_at.slice(0, 7) === selectedMonth)
+                : [];
             setAttempts(attemptRows);
             setSelectedAttemptId(attemptRows[0]?.attempt_id ?? '');
             setSavedReports(savedResult.ok && savedResult.data ? savedResult.data : []);
@@ -258,7 +289,15 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
         return () => {
             cancelled = true;
         };
-    }, [mode, selectedStudentId, month]);
+    }, [mode, selectedMonth, selectedStudentId, teacherRows]);
+    useEffect(() => {
+        if (!teacherRows || selectedClassId === 'all')
+            return;
+        const classRows = teacherRows.filter((row) => row.class_id === selectedClassId);
+        if (!classRows.some((row) => row.student_id === selectedStudentId)) {
+            setSelectedStudentId(classRows[0]?.student_id ?? '');
+        }
+    }, [selectedClassId, selectedStudentId, teacherRows]);
     if (isLoading) {
         return _jsx("div", { className: "writing-reports__state", children: "Loading Writing Reports\u2026" });
     }
@@ -268,11 +307,12 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
     if (mode === 'teacher') {
         const summary = teacherSummaryReport?.overall_summary;
         const reportedSubmissions = summary?.submission_count ?? 0;
-        const submissions = Math.max(reportedSubmissions, summary?.latest_score != null ? 1 : 0);
-        const practiceCompleted = summary?.practice_completed_count ?? summary?.completed_tasks ?? 0;
-        const practiceAssigned = summary?.practice_assigned_count ?? summary?.total_tasks ?? 0;
+        const submissions = reportedSubmissions;
+        const allTimeSubmissions = summary?.all_time_submission_count
+            ?? teacherRows?.find((row) => row.student_id === selectedStudentId)?.all_time_submission_count
+            ?? submissions;
         const scoreTrend = summary?.score_trend_delta;
-        const trendLabel = submissions < 2
+        const trendLabel = allTimeSubmissions < 2
             ? 'Baseline only'
             : scoreTrend == null
                 ? 'No comparable trend'
@@ -290,8 +330,8 @@ export const WritingExportCenter = ({ mode, studentId, month = new Date().toISOS
             ? 'Review the writing process before sharing this score.'
             : teacherSummaryReport?.integrity?.review_status === 'no_concerns_observed'
                 ? 'No writing-process concerns were observed.'
-                : 'Practice mode: the score supports learning but does not verify authorship.';
-        return (_jsxs("main", { className: "writing-reports", children: [_jsxs("header", { className: "writing-reports__header", children: [_jsxs("div", { children: [_jsx("span", { className: "writing-reports__eyebrow", children: "Writing Hub \u00B7 Reports" }), _jsx("h2", { children: "Turn writing evidence into a clear conversation" }), _jsx("p", { children: "Choose a student, check the learning story, add your professional comment, then print a school-ready report." })] }), _jsxs("div", { className: "writing-reports__period", children: [_jsx("span", { children: "Reporting period" }), _jsx("strong", { children: formatPeriod(month) })] })] }), _jsxs("ol", { className: "writing-reports__steps", "aria-label": "Report workflow", children: [_jsxs("li", { className: selectedStudentId ? 'is-complete' : 'is-current', children: [_jsx("b", { children: "1" }), _jsxs("span", { children: [_jsx("strong", { children: "Choose" }), _jsx("small", { children: "Select a student" })] })] }), _jsxs("li", { className: teacherSummaryReport ? 'is-complete' : selectedStudentId ? 'is-current' : '', children: [_jsx("b", { children: "2" }), _jsxs("span", { children: [_jsx("strong", { children: "Review" }), _jsx("small", { children: "Understand the evidence" })] })] }), _jsxs("li", { className: teacherSummaryReport ? 'is-current' : '', children: [_jsx("b", { children: "3" }), _jsxs("span", { children: [_jsx("strong", { children: "Share" }), _jsx("small", { children: "Comment and print" })] })] })] }), teacherRows && (_jsxs("section", { className: "writing-reports__picker", "aria-labelledby": "writing-student-picker-title", children: [_jsxs("div", { className: "writing-reports__section-heading", children: [_jsxs("div", { children: [_jsx("span", { children: "Step 1" }), _jsx("h3", { id: "writing-student-picker-title", children: "Choose a student" })] }), _jsx("button", { type: "button", className: "writing-reports__button writing-reports__button--quiet", onClick: exportCsv, children: "Export class summary" })] }), _jsxs("label", { className: "writing-reports__search", children: [_jsx("span", { children: "Search by student name or grade" }), _jsx("input", { value: searchQuery, onChange: (event) => setSearchQuery(event.target.value), placeholder: "Start typing a student name\u2026" })] }), _jsxs("div", { className: "writing-reports__student-list", children: [visibleRows.map((row) => (_jsxs("button", { type: "button", className: `writing-reports__student-card${row.student_id === selectedStudentId ? ' is-selected' : ''}`, onClick: () => setSelectedStudentId(row.student_id), "aria-pressed": row.student_id === selectedStudentId, children: [_jsx("span", { className: "writing-reports__avatar", children: getInitials(row.student_name) }), _jsxs("span", { children: [_jsx("strong", { children: row.student_name }), _jsxs("small", { children: ["Grade ", row.grade, " \u00B7 ", formatScore(row.latest_score)] })] }), _jsx("i", { "aria-hidden": "true", children: "\u2192" })] }, row.student_id))), visibleRows.length === 0 && _jsx("div", { className: "writing-reports__empty-inline", children: "No students match that search." })] })] })), teacherReportError && (_jsx("div", { className: "writing-reports__state writing-reports__state--error", role: "alert", children: teacherReportError })), teacherLoading && selectedStudentId && (_jsx("div", { className: "writing-reports__state", "aria-live": "polite", children: "Building the student\u2019s writing story\u2026" })), teacherSummaryReport && !teacherLoading && (_jsxs(_Fragment, { children: [_jsxs("section", { className: "writing-reports__overview", "aria-labelledby": "writing-report-overview-title", children: [_jsxs("div", { className: "writing-reports__student-hero", children: [_jsx("span", { className: "writing-reports__avatar writing-reports__avatar--large", children: getInitials(teacherSummaryReport.student.student_name) }), _jsxs("div", { children: [_jsx("span", { children: "Student writing story" }), _jsx("h3", { id: "writing-report-overview-title", children: teacherSummaryReport.student.student_name }), _jsxs("p", { children: ["Grade ", teacherSummaryReport.student.grade ?? '—', " \u00B7 ", teacherSummaryReport.student.class_name, ' · ', teacherSummaryReport.genre] })] }), _jsx("span", { className: `writing-reports__readiness writing-reports__readiness--${reportStage.tone}`, children: reportStage.label })] }), _jsxs("div", { className: "writing-reports__guidance", children: [_jsx("strong", { children: "What this report means" }), _jsx("span", { children: reportStage.copy })] }), _jsxs("div", { className: "writing-reports__metrics", children: [_jsxs("article", { children: [_jsx("span", { children: "Formative estimate" }), _jsx("strong", { children: formatScore(summary?.latest_score) }), _jsx("small", { children: "Use with teacher judgement" })] }), _jsxs("article", { children: [_jsx("span", { children: "Writing evidence" }), _jsx("strong", { children: submissions }), _jsx("small", { children: submissions === 1 ? 'submission' : 'submissions' })] }), _jsxs("article", { children: [_jsx("span", { children: "Practice plan" }), _jsx("strong", { children: practiceAssigned ? `${practiceCompleted}/${practiceAssigned}` : 'Not assigned' }), _jsx("small", { children: practiceAssigned ? 'tasks completed' : 'No practice tasks yet' })] }), _jsxs("article", { children: [_jsx("span", { children: "Progress trend" }), _jsx("strong", { children: trendLabel }), _jsx("small", { children: submissions < 2 ? 'Needs another submission' : 'Compared with the baseline' })] })] }), _jsxs("div", { className: "writing-reports__learning-grid", children: [_jsxs("article", { className: "writing-reports__learning-card writing-reports__learning-card--strength", children: [_jsx("span", { children: "\u2713" }), _jsxs("div", { children: [_jsx("h4", { children: "What the student is doing well" }), _jsx("ul", { children: (editedReport?.strengths.length ? editedReport.strengths : ['Strengths will appear after a complete writing submission.'])
+                : 'Automated scores are formative evidence. Teacher judgement remains final.';
+        return (_jsxs("main", { className: "writing-reports", children: [_jsxs("header", { className: "writing-reports__header", children: [_jsxs("div", { children: [_jsx("span", { className: "writing-reports__eyebrow", children: "Writing Hub \u00B7 Reports" }), _jsx("h2", { children: "Turn writing evidence into a clear conversation" }), _jsx("p", { children: "Choose a student, check the learning story, add your professional comment, then print a school-ready report." })] }), _jsxs("div", { className: "writing-reports__period", children: [_jsx("span", { children: "Reporting period" }), _jsx("strong", { children: formatPeriod(selectedMonth) })] })] }), teacherRows ? (_jsxs("section", { className: "writing-reports__scope", "aria-label": "Report scope", children: [_jsxs("div", { children: [_jsx("span", { children: "Prepare the evidence set" }), _jsx("h3", { children: "Choose a month, class, and student" }), _jsx("p", { children: "Every preview, saved report, and CSV below uses this reporting scope." })] }), _jsxs("label", { children: [_jsx("span", { children: "Reporting month" }), _jsx("input", { type: "month", value: selectedMonth, max: new Date().toISOString().slice(0, 7), onChange: (event) => setSelectedMonth(event.target.value || month) })] }), _jsxs("label", { children: [_jsx("span", { children: "Class" }), _jsxs("select", { value: selectedClassId, onChange: (event) => setSelectedClassId(event.target.value), children: [_jsx("option", { value: "all", children: "All English classes" }), classOptions.map((classOption) => _jsx("option", { value: classOption.id, children: classOption.name }, classOption.id))] })] })] })) : null, _jsxs("ol", { className: "writing-reports__steps", "aria-label": "Report workflow", children: [_jsxs("li", { className: selectedStudentId ? 'is-complete' : 'is-current', children: [_jsx("b", { children: "1" }), _jsxs("span", { children: [_jsx("strong", { children: "Choose" }), _jsx("small", { children: "Select a student" })] })] }), _jsxs("li", { className: teacherSummaryReport ? 'is-complete' : selectedStudentId ? 'is-current' : '', children: [_jsx("b", { children: "2" }), _jsxs("span", { children: [_jsx("strong", { children: "Review" }), _jsx("small", { children: "Understand the evidence" })] })] }), _jsxs("li", { className: teacherSummaryReport ? 'is-current' : '', children: [_jsx("b", { children: "3" }), _jsxs("span", { children: [_jsx("strong", { children: "Share" }), _jsx("small", { children: "Comment and print" })] })] })] }), teacherRows && (_jsxs("section", { className: "writing-reports__picker", "aria-labelledby": "writing-student-picker-title", children: [_jsxs("div", { className: "writing-reports__section-heading", children: [_jsxs("div", { children: [_jsxs("span", { children: ["Step 1 \u00B7 ", formatPeriod(selectedMonth)] }), _jsxs("h3", { id: "writing-student-picker-title", children: ["Choose a student", selectedClassId === 'all' ? '' : ` from ${classOptions.find((item) => item.id === selectedClassId)?.name ?? 'this class'}`] })] }), _jsx("button", { type: "button", className: "writing-reports__button writing-reports__button--quiet", onClick: exportCsv, children: "Export class summary" })] }), _jsxs("label", { className: "writing-reports__search", children: [_jsx("span", { children: "Search by student name, class, or grade" }), _jsx("input", { value: searchQuery, onChange: (event) => setSearchQuery(event.target.value), placeholder: "Start typing a student name\u2026" })] }), _jsxs("div", { className: "writing-reports__student-list", children: [visibleRows.map((row) => (_jsxs("button", { type: "button", className: `writing-reports__student-card${row.student_id === selectedStudentId ? ' is-selected' : ''}`, onClick: () => setSelectedStudentId(row.student_id), "aria-pressed": row.student_id === selectedStudentId, children: [_jsx("span", { className: "writing-reports__avatar", children: getInitials(row.student_name) }), _jsxs("span", { children: [_jsx("strong", { children: row.student_name }), _jsxs("small", { children: [row.class_name || `Grade ${row.grade}`, " \u00B7 Grade ", row.grade] }), _jsxs("small", { children: [row.submission_count ?? 0, " in ", formatPeriod(selectedMonth), " \u00B7 ", row.all_time_submission_count ?? 0, " all time \u00B7 ", formatScore(row.latest_score)] })] }), _jsx("i", { "aria-hidden": "true", children: "\u2192" })] }, row.student_id))), visibleRows.length === 0 && _jsx("div", { className: "writing-reports__empty-inline", children: "No students match that search." })] })] })), teacherReportError && (_jsx("div", { className: "writing-reports__state writing-reports__state--error", role: "alert", children: teacherReportError })), teacherLoading && selectedStudentId && (_jsx("div", { className: "writing-reports__state", "aria-live": "polite", children: "Building the student\u2019s writing story\u2026" })), teacherSummaryReport && !teacherLoading && (_jsxs(_Fragment, { children: [_jsxs("section", { className: "writing-reports__overview", "aria-labelledby": "writing-report-overview-title", children: [_jsxs("div", { className: "writing-reports__student-hero", children: [_jsx("span", { className: "writing-reports__avatar writing-reports__avatar--large", children: getInitials(teacherSummaryReport.student.student_name) }), _jsxs("div", { children: [_jsx("span", { children: "Student writing story" }), _jsx("h3", { id: "writing-report-overview-title", children: teacherSummaryReport.student.student_name }), _jsxs("p", { children: ["Grade ", teacherSummaryReport.student.grade ?? '—', " \u00B7 ", teacherSummaryReport.student.class_name, ' · ', teacherSummaryReport.genre] })] }), _jsx("span", { className: `writing-reports__readiness writing-reports__readiness--${reportStage.tone}`, children: reportStage.label })] }), _jsxs("div", { className: "writing-reports__guidance", children: [_jsx("strong", { children: "What this report means" }), _jsx("span", { children: reportStage.copy })] }), _jsxs("div", { className: "writing-reports__metrics", children: [_jsxs("article", { children: [_jsx("span", { children: "Formative estimate" }), _jsx("strong", { children: formatScore(summary?.latest_score) }), _jsx("small", { children: "Use with teacher judgement" })] }), _jsxs("article", { children: [_jsxs("span", { children: [formatPeriod(selectedMonth), " evidence"] }), _jsx("strong", { children: submissions }), _jsx("small", { children: submissions === 1 ? 'submission' : 'submissions' })] }), _jsxs("article", { children: [_jsx("span", { children: "All-time evidence" }), _jsx("strong", { children: allTimeSubmissions }), _jsx("small", { children: "saved writing submissions" })] }), _jsxs("article", { children: [_jsx("span", { children: "Progress trend" }), _jsx("strong", { children: trendLabel }), _jsx("small", { children: allTimeSubmissions < 2 ? 'Needs another submission' : 'Compared with the baseline' })] })] }), _jsxs("div", { className: "writing-reports__learning-grid", children: [_jsxs("article", { className: "writing-reports__learning-card writing-reports__learning-card--strength", children: [_jsx("span", { children: "\u2713" }), _jsxs("div", { children: [_jsx("h4", { children: "What the student is doing well" }), _jsx("ul", { children: (editedReport?.strengths.length ? editedReport.strengths : ['Strengths will appear after a complete writing submission.'])
                                                                 .slice(0, 3)
                                                                 .map((item) => _jsx("li", { children: item }, item)) })] })] }), _jsxs("article", { className: "writing-reports__learning-card writing-reports__learning-card--growth", children: [_jsx("span", { children: "\u2191" }), _jsxs("div", { children: [_jsx("h4", { children: "Best focus for the next lesson" }), _jsx("ul", { children: (editedReport?.priority_weak_areas.length
                                                                 ? editedReport.priority_weak_areas.map(humanizeWritingTag)
