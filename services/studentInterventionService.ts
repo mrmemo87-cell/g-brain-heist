@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { userFacingError } from './userFacingError';
 
 export type InterventionType = 'targeted_question_practice' | 'writing_practice' | 'reassessment' | 'teacher_support' | 'custom';
 export interface InterventionRecommendation {
@@ -20,7 +21,7 @@ export interface InterventionIntelligence {
 
 export async function getInterventionIntelligence(studentId: string, subject?: string | null): Promise<InterventionIntelligence> {
   const { data, error } = await supabase.rpc('rpc_teacher_student_intervention_intelligence', { p_student_id: studentId, p_subject: subject || null });
-  if (error) throw new Error(error.message || 'Intervention intelligence could not be loaded.');
+  if (error) throw userFacingError(error, 'We could not open this student’s support recommendations just now. Please try again.');
   return data as InterventionIntelligence;
 }
 
@@ -32,7 +33,7 @@ export async function createLearningIntervention(input: { studentId: string; ski
     p_goal: input.goal || null,
     p_target_date: input.targetDate || null,
   });
-  if (error) throw new Error(error.message || 'Intervention could not be created.');
+  if (error) throw userFacingError(error, 'We could not create the support plan just now. Please try again.');
   return String(data);
 }
 
@@ -43,5 +44,5 @@ export async function updateLearningIntervention(input: { interventionId: string
     p_note: input.note || null,
     p_outcome_status: input.outcomeStatus || null,
   });
-  if (error) throw new Error(error.message || 'Intervention could not be updated.');
+  if (error) throw userFacingError(error, 'We could not update the support plan just now. Please try again.');
 }
