@@ -352,3 +352,66 @@ silently apply a shadow candidate to the learner record.
 8. Define acceptance thresholds with the pilot school before Phase 7. Do not auto-apply
    candidate conclusions or start interventions from shadow results; Phase 7 remains a
    teacher-approved intervention pilot with frozen baselines.
+
+## Phase 7 contract
+
+Phase 7 turns a validated learning need into a small, teacher-controlled intervention
+experiment. It upgrades the existing Student Support Plans workflow rather than creating a
+second intervention system. Brain Heist may calculate and recommend, but a teacher decides
+whether a plan starts and whether measured follow-up supports its final outcome.
+
+- A plan can be drafted only from a current academic-year focus state with a confidence
+  projection and a completed Part 6 shadow comparison. If that comparison requires review,
+  the latest teacher validation must be complete and cannot request more evidence.
+- Creation freezes the exact baseline cutoff, focus status/trend/priority, confidence policy
+  and score, academic context, qualifying evidence totals, observation-level evidence, and a
+  SHA-256 snapshot hash. Later evidence never rewrites that baseline.
+- Every draft defines a measurable target status, review date, minimum qualifying follow-up
+  observations, minimum successful observations, teacher goal, and intervention type.
+  Free-text activity alone cannot prove improvement.
+- Plans begin as `pending`. An authorised subject teacher, School Head, or school
+  administrator must explicitly approve the frozen plan and record a professional rationale
+  before it can become active. Approval does not automatically start the plan.
+- Follow-up evaluation uses only same-year evidence recorded after the baseline cutoff. It
+  stores the exact observation snapshots and evidence hash, compares them with the baseline,
+  and reports `insufficient_follow_up`, `improved`, `resolved`, `no_change`, `declined`, or
+  `contradictory`.
+- A measured checkpoint never closes a plan automatically. The teacher must confirm the
+  measured outcome, override it with a longer professional rationale, or continue collecting
+  evidence. An insufficient follow-up cannot be confirmed as success.
+- Approval, evidence snapshots, evaluated checkpoints, outcome reviews, and lifecycle events
+  are append-only. Completed or evaluated academic records cannot be silently edited later.
+- Existing observations and focus conclusions remain unchanged. Evaluation refreshes only
+  the rebuildable confidence projection; it does not prescribe practice, apply a conclusion,
+  reward activity volume, or change the learner record autonomously.
+- Teacher access remains limited to active class-and-subject assignments. School Heads and
+  administrators remain school-scoped. The enriched read RPC removes the older cross-subject
+  intervention-history widening when a teacher opens an all-subject student view.
+- Existing intervention RPCs remain compatible, but now inherit the approval, evidence,
+  measurement, and confirmation gates. New UI calls use the explicit Part 7 draft contract.
+
+### Phase 7 rollout gate
+
+1. Apply Parts 1–7 on an isolated Supabase branch. Confirm baseline and follow-up tables are
+   RLS-enabled, browser table access is closed, RPC execution is explicit, and every foreign
+   key used for joins or cascades has a supporting index.
+2. Select one authorised roster across English, Mathematics, and Science only after Part 6
+   golden and shadow acceptance. Do not widen the pilot to a whole school automatically.
+3. Draft plans for a reviewed mix of recurring, persistent, improving, stale/reassessment,
+   and exact-match shadow cases. Confirm every baseline hash reproduces from its snapshots.
+4. Require a teacher to approve each goal and measurement target before activation. Confirm
+   pending and rejected plans cannot start and approval never starts a plan automatically.
+5. Collect comparable post-baseline evidence. Separate assigned/completed activity from
+   qualifying evidence and successful evidence; activity volume is not an academic outcome.
+6. Re-run checkpoint evaluation at the same cutoff. Candidate decision, totals, comparison,
+   and follow-up evidence hash must be identical while source observations and focus states
+   remain unchanged.
+7. Review all insufficient, contradictory, declined, no-change, improved, and resolved cases.
+   Measure teacher confirmation, override, continue-collecting, rationale quality, time from
+   alert to action, and outcome by subject/grade—without training on free text automatically.
+8. Confirm students see only appropriate final support outcomes; internal rationale and
+   evidence notes remain confidential professional records. Family-facing reporting must not
+   expose private working notes.
+9. Define pilot acceptance thresholds before Phase 8 reporting. Do not present intervention
+   effectiveness school-wide until baseline coverage, follow-up comparability, and teacher
+   review rates meet the school's agreed minimums.
