@@ -1,6 +1,9 @@
-# Trigger PR validation from the temporary main workflow.
+# Temporary recovery workflow: materialize the assignment-editing feature into real source files.
 name: Agent assignment edit patch
 on:
+  push:
+    branches:
+      - agent/assignment-edit-publishing
   pull_request:
     branches:
       - main
@@ -9,7 +12,7 @@ permissions:
   contents: write
 jobs:
   patch-and-validate:
-    if: github.head_ref == 'agent/assignment-edit-publishing' && github.actor != 'github-actions[bot]'
+    if: (github.head_ref == 'agent/assignment-edit-publishing' || github.ref_name == 'agent/assignment-edit-publishing') && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +36,7 @@ jobs:
         run: |
           rm -f .github/workflows/agent-assignment-edit-patch.yml scripts/patch_assignment_edit_feature.py
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "4189826+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Add assignment editing and publication controls"
+          git commit -m "Materialize assignment editing and publication controls"
           git push
