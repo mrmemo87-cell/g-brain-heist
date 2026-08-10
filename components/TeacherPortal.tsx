@@ -362,6 +362,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [dashboardAssignmentReports, setDashboardAssignmentReports] = useState<Record<string, TeacherAssignmentReportRow[]>>({});
   const [dashboardReportsLoaded, setDashboardReportsLoaded] = useState(false);
   const [deletingAssignmentId, setDeletingAssignmentId] = useState<string | null>(null);
+  const [editingAssignment, setEditingAssignment] = useState<TeacherAssignmentSummary | null>(null);
+  const [assignmentPublishStatus, setAssignmentPublishStatus] = useState<'draft' | 'scheduled' | 'published'>('published');
+  const [assignmentCloseAfterDue, setAssignmentCloseAfterDue] = useState(false);
+  const [assignmentNotifyByEmail, setAssignmentNotifyByEmail] = useState(false);
   const [assignmentSuccess, setAssignmentSuccess] = useState<GameService.TeacherAssignmentSuccessSummary | null>(null);
   const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
   const [assignmentBatches, setAssignmentBatches] = useState<string[]>([]);
@@ -3315,6 +3319,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentTopicName('');
     setAssignmentDueAt('');
     setAssignmentAssignedAt(new Date().toISOString().slice(0, 16));
+    setAssignmentPublishStatus('published');
+    setAssignmentCloseAfterDue(false);
+    setAssignmentNotifyByEmail(false);
+    setEditingAssignment(null);
   }, []);
 
   const openBlankAssignmentForm = useCallback(() => {
@@ -3322,6 +3330,41 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     void loadQuestionsOnDemand();
     setView('create-assignment');
   }, [resetAssignmentDraft]);
+
+  const toLocalAssignmentDateTime = (value?: string | null) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+  };
+
+  const handleEditAssignment = (assignment: TeacherAssignmentSummary) => {
+    if (!teacher || assignment.teacher_id !== teacher.id) {
+      brainsAlert('You can only edit assignments that you created.', 'error');
+      return;
+    }
+    resetAssignmentDraft();
+    setEditingAssignment(assignment);
+    setAssignmentLockedSubject(null);
+    setAssignmentSubject(assignment.subject_name as Subject);
+    setAssignmentTitle(assignment.title || '');
+    setAssignmentDescription(assignment.description || '');
+    setAssignmentInstructions(assignment.instructions || '');
+    setAssignmentQuestionIds(assignment.question_ids || []);
+    setAssignmentDueAt(toLocalAssignmentDateTime(assignment.due_at));
+    setAssignmentAssignedAt(toLocalAssignmentDateTime(assignment.assigned_at) || new Date().toISOString().slice(0, 16));
+    setAssignmentDifficulty((assignment.difficulty || 'easy') as QuestionDifficulty);
+    setAssignmentMode(assignment.assignment_mode || 'batch');
+    setAssignmentBatches(assignment.assignment_mode === 'custom' ? [] : assignment.batch ? [assignment.batch] : []);
+    setSelectedStudentIds(assignment.student_ids || []);
+    setAssignmentPublishStatus(assignment.publish_status || (new Date(assignment.assigned_at).getTime() > Date.now() ? 'scheduled' : 'published'));
+    setAssignmentCloseAfterDue(Boolean(assignment.close_submissions_after_due));
+    setAssignmentNotifyByEmail(Boolean(assignment.notify_students_by_email));
+    if (assignment.topic_name && assignment.topic_name !== 'General') { setAssignmentTopicMode('custom'); setAssignmentTopicName(assignment.topic_name); }
+    else { setAssignmentTopicMode('general'); setAssignmentTopicName(''); }
+    void loadQuestionsOnDemand();
+    setView('create-assignment');
+  };
 
   // Handle "Use Set" from the Blooket-style QuestionBank
   const handleUseQuestionSet = useCallback((questionIds: string[], subject: Subject, topic: string) => {
@@ -3354,142 +3397,98 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setSelectedStudentIds([]);
   };
 
-  const handleCreateAssignment = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!assignmentTitle.trim()) {
-      brainsAlert('Assignment title is required.', 'info');
-      return;
-    }
-
-    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(assignmentSubject)) {
-      brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
-      return;
-    }
-
-    if (assignmentTopicMode === 'custom' && !assignmentTopicName.trim()) {
-      brainsAlert('Please enter a topic for this assignment.', 'info');
-      return;
-    }
-
-    if (!assignmentQuestionIds.length) {
-      brainsAlert('Select at least one question to assign.', 'info');
-      return;
-    }
-
-    if (assignmentMode === 'batch' && assignmentBatches.length === 0) {
-      brainsAlert('Please select at least one class/batch for this assignment.', 'info');
-      return;
-    }
-
-    if (assignmentMode === 'custom' && selectedStudentIds.length === 0) {
-      brainsAlert('Please select at least one student for this assignment.', 'info');
-      return;
-    }
-
+  const saveAssignment = async (publishStatus: 'draft' | 'scheduled' | 'published', e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!assignmentTitle.trim()) return brainsAlert('Assignment title is required.', 'info');
+    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(assignmentSubject)) return brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
+    if (assignmentTopicMode === 'custom' && !assignmentTopicName.trim()) return brainsAlert('Please enter a topic for this assignment.', 'info');
+    if (!assignmentQuestionIds.length) return brainsAlert('Select at least one question to assign.', 'info');
+    if (assignmentMode === 'batch' && assignmentBatches.length === 0) return brainsAlert('Please select at least one class/batch for this assignment.', 'info');
+    if (assignmentMode === 'custom' && selectedStudentIds.length === 0) return brainsAlert('Please select at least one student for this assignment.', 'info');
     if (assignmentDueAt) {
       const dueDate = new Date(assignmentDueAt);
-      if (Number.isNaN(dueDate.getTime()) || dueDate.getTime() <= Date.now()) {
-        brainsAlert('Choose a due date and time in the future. Students cannot receive an assignment that is already overdue.', 'error');
-        return;
-      }
+      if (Number.isNaN(dueDate.getTime()) || dueDate.getTime() <= Date.now()) return brainsAlert('Choose a due date and time in the future.', 'error');
     }
-
-    const toIso = (value: string): string | undefined => {
-      if (!value) return undefined;
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return undefined;
-      return date.toISOString();
-    };
-
+    if (publishStatus === 'scheduled') {
+      const publicationDate = new Date(assignmentAssignedAt);
+      if (Number.isNaN(publicationDate.getTime()) || publicationDate.getTime() <= Date.now()) return brainsAlert('Choose a future publication date and time.', 'error');
+    }
+    const toIso = (value: string): string | undefined => { if (!value) return undefined; const date = new Date(value); return Number.isNaN(date.getTime()) ? undefined : date.toISOString(); };
+    const assignedAt = publishStatus === 'published' ? new Date().toISOString() : (toIso(assignmentAssignedAt) ?? new Date().toISOString());
     try {
       setAssignmentSubmitting(true);
-
-      // Consume pilot quota if applicable
-      const assignQuota = await tryConsumePilotQuota('assignments_created');
-      if (!assignQuota.proceed) {
-        brainsAlert(assignQuota.error || 'You\'ve reached the assignment creation limit on the Pilot plan. Upgrade to continue.', 'error');
-        setAssignmentSubmitting(false);
-        return;
+      if (!editingAssignment) {
+        const assignQuota = await tryConsumePilotQuota('assignments_created');
+        if (!assignQuota.proceed) { brainsAlert(assignQuota.error || 'You\'ve reached the assignment creation limit on the Pilot plan. Upgrade to continue.', 'error'); return; }
       }
+      const basePayload = {
+        subject: assignmentSubject,
+        topic_name: assignmentTopicLabel,
+        question_ids: assignmentQuestionIds,
+        assigned_at: assignedAt,
+        due_at: toIso(assignmentDueAt),
+        title: assignmentTitle.trim(),
+        description: assignmentDescription || undefined,
+        instructions: assignmentInstructions || undefined,
+        difficulty: assignmentDifficulty,
+        publish_status: publishStatus,
+        close_submissions_after_due: assignmentCloseAfterDue,
+        notify_students_by_email: assignmentNotifyByEmail,
+      } as const;
 
-      let successMessage: string | null = null;
-      let shouldResetAfterCreate = false;
-
-      if (assignmentMode === 'batch') {
-        // Create one assignment per selected batch/class
-        const batchesToAssign = assignmentBatches.includes('All')
-          ? availableBatches
-          : assignmentBatches.filter((batch) => batch !== 'All');
-        const results: string[] = [];
-        const errors: string[] = [];
-
-        for (const batch of batchesToAssign) {
-          try {
-            await GameService.create_assignment({
-              subject: assignmentSubject,
-              topic_name: assignmentTopicLabel,
-              batch: batch as AssignmentBatch,
-              question_ids: assignmentQuestionIds,
-              assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
-              due_at: toIso(assignmentDueAt),
-              title: assignmentTitle.trim(),
-              description: assignmentDescription || undefined,
-              instructions: assignmentInstructions || undefined,
-              difficulty: assignmentDifficulty,
-              assignment_mode: 'batch',
-            });
-            results.push(batch);
-          } catch (err) {
-            errors.push(`${batch}: ${(err as Error).message}`);
-          }
+      if (editingAssignment) {
+        const batch = assignmentMode === 'batch' ? assignmentBatches.find((item) => item !== 'All') : undefined;
+        const previousQuestionIds = editingAssignment.question_ids || [];
+        const contentChanged = previousQuestionIds.length !== assignmentQuestionIds.length
+          || previousQuestionIds.some((id) => !assignmentQuestionIds.includes(id));
+        const previousStudentIds = editingAssignment.student_ids || [];
+        const customAudienceChanged = assignmentMode === 'custom'
+          && (previousStudentIds.length !== selectedStudentIds.length
+            || previousStudentIds.some((id) => !selectedStudentIds.includes(id)));
+        const batchAudienceChanged = assignmentMode === 'batch'
+          && (editingAssignment.assignment_mode !== 'batch' || editingAssignment.batch !== batch);
+        const audienceChanged = editingAssignment.assignment_mode !== assignmentMode || customAudienceChanged || batchAudienceChanged;
+        if (contentChanged || audienceChanged) {
+          const confirmed = await brainsConfirm({
+            title: 'Save these assignment changes?',
+            message: 'Removing students or assessment content permanently removes the related submissions, scores, progress, and assignment reporting data for the affected scope.',
+            confirmLabel: 'Save changes',
+            cancelLabel: 'Cancel',
+            destructive: true,
+          });
+          if (!confirmed) return;
         }
-
-        if (errors.length > 0) {
-          brainsAlert(`Assignment created for ${results.length} class(es), but failed for:\n${errors.join('\n')}`, 'error');
-          if (results.length === 0) {
-            return;
-          }
-        } else {
-          const classCount = results.length;
-          successMessage = `Assignment created and sent to ${classCount} class${classCount !== 1 ? 'es' : ''}.`;
-        }
-        shouldResetAfterCreate = results.length > 0;
-      } else {
-        // Custom mode — single creation for selected students
-        await GameService.create_assignment({
-          subject: assignmentSubject,
-          topic_name: assignmentTopicLabel,
-          batch: undefined,
-          question_ids: assignmentQuestionIds,
-          assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
-          due_at: toIso(assignmentDueAt),
-          title: assignmentTitle.trim(),
-          description: assignmentDescription || undefined,
-          instructions: assignmentInstructions || undefined,
-          difficulty: assignmentDifficulty,
-          assignment_mode: 'custom',
-          student_ids: selectedStudentIds,
+        await GameService.update_teacher_assignment(editingAssignment.id, {
+          ...basePayload,
+          assignment_mode: assignmentMode,
+          batch: batch as AssignmentBatch | undefined,
+          student_ids: assignmentMode === 'custom' ? selectedStudentIds : undefined,
         });
-        successMessage = `Assignment created and sent to ${selectedStudentIds.length} student${selectedStudentIds.length !== 1 ? 's' : ''}.`;
-        shouldResetAfterCreate = true;
+        brainsAlert(publishStatus === 'draft' ? 'Assignment saved as a draft.' : publishStatus === 'scheduled' ? 'Assignment updated and scheduled.' : 'Assignment updated.', 'success');
+      } else if (assignmentMode === 'batch') {
+        const batchesToAssign = assignmentBatches.includes('All') ? availableBatches : assignmentBatches.filter((batch) => batch !== 'All');
+        const errors: string[] = [];
+        for (const batch of batchesToAssign) {
+          try { await GameService.create_assignment({ ...basePayload, batch: batch as AssignmentBatch, assignment_mode: 'batch' }); }
+          catch (err) { errors.push(`${batch}: ${(err as Error).message}`); }
+        }
+        if (errors.length) throw new Error(errors.join('\n'));
+        brainsAlert(publishStatus === 'draft' ? `Draft saved for ${batchesToAssign.length} class${batchesToAssign.length === 1 ? '' : 'es'}.` : publishStatus === 'scheduled' ? 'Assignment scheduled.' : 'Assignment published.', 'success');
+      } else {
+        await GameService.create_assignment({ ...basePayload, batch: undefined, assignment_mode: 'custom', student_ids: selectedStudentIds });
+        brainsAlert(publishStatus === 'draft' ? 'Draft saved.' : publishStatus === 'scheduled' ? 'Assignment scheduled.' : 'Assignment published.', 'success');
       }
-
-      if (successMessage) {
-        brainsAlert(successMessage, 'success');
-      }
-      if (shouldResetAfterCreate) {
-        resetAssignmentDraft();
-        await loadAssignments();
-        setView('assignments');
-      }
+      resetAssignmentDraft();
+      await loadAssignments();
+      setView('assignments');
     } catch (error) {
-      console.error('Error creating assignment:', error);
-      brainsAlert('Unable to create assignment: ' + (error as Error).message, 'error');
-    } finally {
-      setAssignmentSubmitting(false);
-    }
+      console.error('Error saving assignment:', error);
+      brainsAlert('Unable to save assignment: ' + (error as Error).message, 'error');
+    } finally { setAssignmentSubmitting(false); }
   };
+
+  const handleCreateAssignment = async (e: React.FormEvent) => saveAssignment(assignmentPublishStatus === 'scheduled' ? 'scheduled' : 'published', e);
+  const handleSaveAssignmentDraft = async () => saveAssignment('draft');
 
   const handleOpenReport = async (assignment: TeacherAssignmentSummary) => {
     try {
@@ -5222,23 +5221,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     }
 
     const assignmentName = assignment.title || assignment.topic_name;
-    const firstConfirmation = await brainsConfirm({
+    const confirmed = await brainsConfirm({
       title: `Delete “${assignmentName}”?`,
-      message: 'This will permanently delete the assignment for every assigned student.',
-      confirmLabel: 'Continue to final warning',
+      message: 'This permanently removes this assignment for every assigned student, including related submissions, scores, progress, and reporting data.',
+      confirmLabel: 'Delete assignment',
       cancelLabel: 'Keep assignment',
       destructive: true,
     });
-    if (!firstConfirmation) return;
-
-    const finalConfirmation = await brainsConfirm({
-      title: 'Final confirmation: this cannot be restored',
-      message: 'Deleting this assignment is permanent. The assignment and all related student submissions, answers, results, and grades will be lost and cannot be recovered.',
-      confirmLabel: 'Permanently delete all data',
-      cancelLabel: 'Cancel deletion',
-      destructive: true,
-    });
-    if (!finalConfirmation) return;
+    if (!confirmed) return;
 
     setDeletingAssignmentId(assignment.id);
     try {
@@ -5408,6 +5398,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           const completionPercent = assignment.student_count > 0
                             ? Math.round((assignment.completed_count / assignment.student_count) * 100)
                             : 0;
+                          const now = Date.now();
+                          const due = assignment.due_at ? new Date(assignment.due_at) : null;
+                          const assigned = new Date(assignment.assigned_at);
+                          const duePast = Boolean(due && due.getTime() < now);
+                          const dueToday = Boolean(due && due.toDateString() === new Date().toDateString());
+                          const dueSoon = Boolean(due && !duePast && due.getTime() - now <= 24 * 60 * 60 * 1000);
+                          const statusLabel = assignment.publish_status === 'draft' ? 'Draft'
+                            : (assignment.publish_status === 'scheduled' && assigned.getTime() > now) ? 'Scheduled'
+                            : completed ? 'Completed'
+                            : duePast && assignment.close_submissions_after_due ? 'Closed'
+                            : duePast ? 'Late / overdue'
+                            : dueToday ? 'Due today'
+                            : dueSoon ? 'Due soon'
+                            : `${completionPercent}% complete`;
                           return (
                             <article key={assignment.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                               <div className="flex items-start justify-between gap-3">
@@ -5415,7 +5419,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                   <span className="text-xs font-bold text-blue-600">{assignment.subject_name} · {assignment.topic_name}</span>
                                   <h5 className="mt-1 text-lg font-bold text-slate-800">{assignment.title || assignment.topic_name}</h5>
                                 </div>
-                                <span className={`rounded-full px-3 py-1 text-xs font-bold ${completed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{completed ? 'Completed' : `${completionPercent}% complete`}</span>
+                                <span className={`rounded-full px-3 py-1 text-xs font-bold ${completed ? 'bg-emerald-100 text-emerald-800' : duePast ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>{statusLabel}</span>
                               </div>
                               <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100" aria-label={`${completionPercent}% completed`}>
                                 <span className={`block h-full rounded-full ${completed ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${completionPercent}%` }} />
@@ -5428,10 +5432,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Completed</dt><dd>{assignment.completed_count}/{assignment.student_count}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'None'}</dd></div>
                               </dl>
-                              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                                <button onClick={() => handleOpenReport(assignment)} className="teacher-btn teacher-btn-secondary w-full">
-                                  View report
-                                </button>
+                              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                                <button onClick={() => handleOpenReport(assignment)} className="teacher-btn teacher-btn-secondary w-full">View report</button>
+                                <button type="button" onClick={() => handleEditAssignment(assignment)} className="teacher-btn teacher-btn-secondary w-full" aria-label={`Edit ${assignment.title || assignment.topic_name}`}>Edit assignment</button>
                                 <button
                                   type="button"
                                   onClick={() => void handleDeleteAssignment(assignment)}
@@ -5497,6 +5500,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           setAssignmentQuestionIds={setAssignmentQuestionIds}
           assignmentDueAt={assignmentDueAt}
           setAssignmentDueAt={setAssignmentDueAt}
+          assignmentAssignedAt={assignmentAssignedAt}
+          setAssignmentAssignedAt={setAssignmentAssignedAt}
+          assignmentPublishStatus={assignmentPublishStatus}
+          setAssignmentPublishStatus={setAssignmentPublishStatus}
+          assignmentCloseAfterDue={assignmentCloseAfterDue}
+          setAssignmentCloseAfterDue={setAssignmentCloseAfterDue}
+          assignmentNotifyByEmail={assignmentNotifyByEmail}
+          setAssignmentNotifyByEmail={setAssignmentNotifyByEmail}
+          editingAssignment={Boolean(editingAssignment)}
           assignmentDifficulty={assignmentDifficulty}
           setAssignmentDifficulty={setAssignmentDifficulty}
           assignmentTopicMode={assignmentTopicMode}
@@ -5512,7 +5524,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           teacherId={teacher?.id}
           questions={questions}
           onSubmit={handleCreateAssignment}
-          onCancel={() => setView('assignments')}
+          onSaveDraft={handleSaveAssignmentDraft}
+          onCancel={() => { resetAssignmentDraft(); setView('assignments'); }}
         />
       </React.Suspense>
     );

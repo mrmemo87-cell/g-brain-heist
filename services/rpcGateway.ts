@@ -95,6 +95,14 @@ export const deleteTeacherAssignment = (
   return execute('rpc_delete_teacher_assignment', { p_assignment_id: assignmentId }, client);
 };
 
+export const updateTeacherAssignment = (
+  assignmentId: string,
+  payload: Record<string, unknown>,
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('rpc_update_teacher_assignment', { p_assignment_id: assignmentId, ...payload }, client);
+};
+
 export const getTeacherAssignmentSuccessSummary = (
   client?: RpcClient
 ): RpcResult<unknown> => {

@@ -1014,9 +1014,16 @@ export interface TeacherAssignmentSummary {
   instructions?: string | null;
   assigned_at: string;
   due_at?: string | null;
+  description?: string | null;
   completed_count: number;
   student_count: number;
   assignment_mode?: 'batch' | 'custom';
+  publish_status?: 'draft' | 'scheduled' | 'published';
+  close_submissions_after_due?: boolean;
+  notify_students_by_email?: boolean;
+  published_at?: string | null;
+  question_ids?: string[];
+  student_ids?: string[];
 }
 
 export interface StudentAssignmentTask {
@@ -1030,6 +1037,10 @@ export interface StudentAssignmentTask {
   due_at?: string | null;
   title?: string | null;
   instructions?: string | null;
+  publish_status?: 'draft' | 'scheduled' | 'published';
+  close_submissions_after_due?: boolean;
+  is_late?: boolean;
+  is_closed?: boolean;
   questions: TeacherQuestion[];
 }
 
@@ -1059,10 +1070,14 @@ export interface CreateAssignmentRequest {
   assigned_at: string;
   due_at?: string;
   title?: string;
+  description?: string;
   instructions?: string;
   difficulty?: QuestionDifficulty;
   assignment_mode?: 'batch' | 'custom';
   student_ids?: string[];
+  publish_status?: 'draft' | 'scheduled' | 'published';
+  close_submissions_after_due?: boolean;
+  notify_students_by_email?: boolean;
 }
 
 export interface StudentForAssignment {

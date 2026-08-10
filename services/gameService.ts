@@ -81,6 +81,7 @@ import {
     createAssignment as rpcCreateAssignment,
     getAssignmentsForTeacher as rpcGetAssignmentsForTeacher,
     deleteTeacherAssignment as rpcDeleteTeacherAssignment,
+    updateTeacherAssignment as rpcUpdateTeacherAssignment,
     getTeacherAssignmentSuccessSummary as rpcGetTeacherAssignmentSuccessSummary,
     getStudentsForAssignment as rpcGetStudentsForAssignment,
     getStudentActiveAssignment as rpcGetStudentActiveAssignment,
@@ -5641,10 +5642,14 @@ export const create_assignment = async (
         p_assigned_at: payload.assigned_at ?? nowIso(),
         p_due_at: payload.due_at ?? null,
         p_title: payload.title.trim(),
+        p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
         p_assignment_mode: mode,
         p_student_ids: payload.student_ids ?? null,
+        p_publish_status: payload.publish_status ?? 'published',
+        p_close_submissions_after_due: payload.close_submissions_after_due ?? false,
+        p_notify_students_by_email: payload.notify_students_by_email ?? false,
     });
 
     if (error) throw new Error(error.message || 'Failed to create assignment');
@@ -5676,6 +5681,41 @@ export const delete_teacher_assignment = async (assignmentId: string): Promise<v
     const { data, error } = await rpcDeleteTeacherAssignment(assignmentId);
     if (error) throw new Error(error.message || 'Failed to delete assignment');
     if (data !== true) throw new Error('Assignment could not be deleted');
+};
+
+export const update_teacher_assignment = async (
+    assignmentId: string,
+    payload: Omit<CreateAssignmentRequest, 'teacher_id'>
+): Promise<TeacherAssignmentSummary> => {
+    if (!assignmentId) throw new Error('Assignment ID is required');
+    if (!payload.question_ids?.length) throw new Error('Select at least one question for the assignment');
+    if (!payload.title?.trim()) throw new Error('Assignment title is required');
+    const mode = payload.assignment_mode || 'batch';
+    if (mode === 'batch' && !payload.batch) throw new Error('Batch is required for batch mode assignments');
+    if (mode === 'custom' && (!payload.student_ids || payload.student_ids.length === 0)) throw new Error('At least one student is required for custom assignments');
+
+    const { data, error } = await rpcUpdateTeacherAssignment(assignmentId, {
+        p_subject_id: payload.subject_id ?? resolveSubjectIdentifier(payload.subject),
+        p_subject_name: payload.subject,
+        p_topic_name: normalizeTopicName(payload.topic_name),
+        p_batch: payload.batch ?? null,
+        p_question_ids: payload.question_ids,
+        p_assigned_at: payload.assigned_at ?? nowIso(),
+        p_due_at: payload.due_at ?? null,
+        p_title: payload.title.trim(),
+        p_description: payload.description ?? null,
+        p_instructions: payload.instructions ?? null,
+        p_difficulty: payload.difficulty ?? null,
+        p_assignment_mode: mode,
+        p_student_ids: payload.student_ids ?? null,
+        p_publish_status: payload.publish_status ?? 'published',
+        p_close_submissions_after_due: payload.close_submissions_after_due ?? false,
+        p_notify_students_by_email: payload.notify_students_by_email ?? false,
+    });
+    if (error) throw new Error(error.message || 'Failed to update assignment');
+    const assignment = (Array.isArray(data) ? data[0] : data) as TeacherAssignmentSummary | undefined;
+    if (!assignment) throw new Error('Assignment could not be updated');
+    return assignment;
 };
 
 export type TeacherAssignmentSuccessSummary = {
@@ -5843,6 +5883,9 @@ export const submit_assignment_result = async (payload: AssignmentResultInput): 
         }
         if (message.includes('ASSIGNMENT_NOT_SUBMITTABLE')) {
             throw new Error('Assignment is no longer in a submittable state.');
+        }
+        if (message.includes('ASSIGNMENT_CLOSED')) {
+            throw new Error('This assignment is closed because its due date has passed.');
         }
         throw new Error(message);
     }
