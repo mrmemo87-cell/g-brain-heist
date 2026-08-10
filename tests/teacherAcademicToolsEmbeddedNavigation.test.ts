@@ -20,5 +20,6 @@ test('academic report sections are immutable evidence outputs', () => {
   assert.match(report, /02 · Intervention outcomes/);
   assert.match(report, /Reporting disclosures/);
   assert.match(report, /Approve & Finalize/);
-  assert.doesNotMatch(report, /teacherComment|textarea/);
+  assert.doesNotMatch(report, /teacherComment/);
+  assert.match(report, /Request governed correction/);
 });

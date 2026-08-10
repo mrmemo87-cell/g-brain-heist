@@ -474,3 +474,72 @@ staff member happened to open.
    selected period lacks sufficient, mapped academic evidence.
 9. Begin Phase 9 only after schools can reproduce sampled historical reports from their exact
    source references and approve the governance, retention, correction, and rollout process.
+
+## Phase 9 contract
+
+Phase 9 closes the academic-intelligence programme with school-owned governance and a
+controlled release. It does not add operational school management or turn incomplete data
+into academic conclusions. Staff can continue a bounded pilot, but student and family
+publication fails closed until the School Head approves the rules, the selected academic
+year passes those exact rules, and the relevant capability is explicitly enabled.
+
+- The School Head approves an immutable, versioned governance policy for one academic year.
+  It records minimum evidence and curriculum coverage, shadow and intervention review rates,
+  historical report reproduction samples, retention duration, correction response time, and
+  the school's written attestation. A new policy supersedes rather than edits the old one.
+- Readiness is a deterministic evidence snapshot with exact source and readiness SHA-256
+  hashes. It reconciles effective-dated enrolment, students with evidence, curriculum
+  coverage, golden validation, the latest shadow comparison and reviews, reviewed measured
+  intervention checkpoints, final reports, and identical report reproductions.
+- A failed or missing gate creates a named blocker. No release button can convert `not_ready`
+  to ready, and a readiness snapshot tied to an older policy cannot authorize a release.
+- `student_reports`, `family_reports`, `schoolwide_reporting`, and
+  `intervention_effectiveness` are separate append-only decisions. The latest enable, pause,
+  or disable decision is authoritative. Only the School Head can decide release.
+- Staff-only Draft and Final snapshots remain available during validation. Student/family
+  finalization is blocked until its capability is enabled. Pausing student reports also
+  blocks subsequent student reads of earlier Final snapshots while preserving staff audit.
+- Corrections never edit a Final report. A request and its review events are append-only; an
+  accepted correction links a later Final version in the same report scope and preserves the
+  original source and payload hashes.
+- Retention actions are a request-and-decision workflow. Export, restriction, or deletion
+  review is recorded separately from execution. No browser RPC automatically deletes learner
+  evidence, reports, corrections, or audit history.
+- The audit manifest exports policy and readiness hashes plus release, report, source,
+  correction, and retention counts for the selected year. It excludes raw evidence and
+  private professional notes.
+- Governance tables are RLS-enabled, browser table access is closed, foreign keys are
+  indexed, and authorised users work only through explicit RPCs. All governance, readiness,
+  release, correction, and retention records are append-only.
+
+### Phase 9 launch and operating gate
+
+1. Apply Parts 1–9 on an isolated Supabase branch and run the migration-security checks.
+   Confirm fail-closed RLS, exact RPC grants, append-only triggers, indexed foreign keys, and
+   that no governance table is directly available to `anon` or `authenticated`.
+2. Have the School Head approve thresholds and terms before viewing readiness. Record why the
+   chosen evidence coverage, curriculum coverage, review rates, reproduction sample, retention
+   duration, and correction response target are appropriate for the school.
+3. Evaluate one accepted academic year. Reconcile every metric to its source table and require
+   zero unresolved high-risk shadow reviews. Re-evaluating unchanged sources must produce the
+   same source and readiness hashes.
+4. Change one governed input at a time and confirm the named blocker appears. A not-ready
+   snapshot, an older-policy snapshot, or a School Admin account must never enable release.
+5. Enable student and family reports separately. Confirm a Draft external report cannot be
+   finalized before enablement, can be finalized after enablement, and student reads stop
+   after a later pause without removing the staff audit copy.
+6. Keep school-wide reporting and intervention effectiveness disabled until the school has
+   explicitly reviewed what those labels mean. Intervention activity volume remains excluded
+   from outcome claims.
+7. Submit and resolve sampled correction cases. Confirm the original Final report is unchanged,
+   a replacement must be a later Final version in the same scope, and all events remain visible.
+8. Submit export, restriction, and deletion-review requests. Confirm none deletes data, every
+   decision names an accountable actor, and destructive execution remains outside the browser
+   workflow pending the school's legal and contractual review.
+9. Export and archive the audit manifest with the school's release record. Re-run readiness on
+   the agreed cadence and after policy, mapping, source-adapter, or confidence-model changes.
+   Pause affected capabilities whenever the school can no longer evidence its approved gate.
+
+Phase 9 is complete when the school—not an opaque score—owns the release decision and can
+reproduce the policy, evidence, report, correction, retention, and audit chain for the entire
+academic year.

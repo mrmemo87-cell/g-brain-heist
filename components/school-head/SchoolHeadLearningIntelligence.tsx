@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
   getSchoolHeadLearningIntelligence,
   type SchoolHeadLearningIntelligence,
@@ -7,6 +7,8 @@ import { SchoolBrand } from '../../src/components/SchoolBrand';
 import { createSchoolBrand } from '../../src/lib/schoolBranding';
 import AcademicReportBuilder from '../student-progress/AcademicReportBuilder';
 import './SchoolHeadLearningIntelligence.css';
+
+const AcademicIntelligenceGovernance = lazy(() => import('./AcademicIntelligenceGovernance'));
 
 interface Props { schoolId: string; schoolName?: string | null; schoolLogoUrl?: string | null; onBack?: () => void; }
 
@@ -22,6 +24,7 @@ const SchoolHeadLearningIntelligence: React.FC<Props> = ({ schoolId, schoolName,
   const [subject, setSubject] = useState('all');
   const [className, setClassName] = useState('all');
   const [showReportBuilder, setShowReportBuilder] = useState(false);
+  const [showGovernance, setShowGovernance] = useState(false);
   const brand = createSchoolBrand({ schoolId, schoolName, schoolLogoUrl });
 
   useEffect(() => {
@@ -53,7 +56,7 @@ const SchoolHeadLearningIntelligence: React.FC<Props> = ({ schoolId, schoolName,
   return <main className="shli-shell">
     <header className="shli-header">
       <div><SchoolBrand brand={brand} className="mb-3 font-semibold" imageClassName="h-12 w-12 rounded-xl object-contain" /><span>School Head · Academic Performance</span><h1>Academic Progress & Support</h1><p>School-wide view of attainment, recurring learning needs, improvement and strengths — with evidence over time.</p></div>
-      <div className="shli-actions"><label>Live view period<select value={days} onChange={(e) => setDays(Number(e.target.value))}><option value={30}>30 days</option><option value={90}>90 days</option><option value={180}>180 days</option><option value={365}>12 months</option></select></label><button className="is-primary" onClick={() => setShowReportBuilder(true)}>Build term / annual report</button><button onClick={onBack || (() => window.history.back())}>Back to Academic Performance</button></div>
+      <div className="shli-actions"><label>Live view period<select value={days} onChange={(e) => setDays(Number(e.target.value))}><option value={30}>30 days</option><option value={90}>90 days</option><option value={180}>180 days</option><option value={365}>12 months</option></select></label><button className="is-primary" onClick={() => setShowReportBuilder(true)}>Build term / annual report</button><button onClick={() => setShowGovernance(true)}>Govern rollout</button><button onClick={onBack || (() => window.history.back())}>Back to Academic Performance</button></div>
     </header>
 
     <section className="shli-assurance"><strong>How to read this view</strong><p>Assignment averages use the selected period. Persistent, improving and resolved learning states use the full qualifying evidence history — not just the selected period. One isolated low result never creates a persistent weakness.</p></section>
@@ -78,6 +81,7 @@ const SchoolHeadLearningIntelligence: React.FC<Props> = ({ schoolId, schoolName,
       initialSubject={subject === 'all' ? null : subject}
       onClose={() => setShowReportBuilder(false)}
     /> : null}
+    {showGovernance ? <Suspense fallback={<div className="shli-governance-loading" role="status">Opening governed rollout controls…</div>}><AcademicIntelligenceGovernance schoolId={schoolId} onClose={() => setShowGovernance(false)} /></Suspense> : null}
   </main>;
 };
 
