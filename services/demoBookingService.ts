@@ -196,6 +196,39 @@ export const validateDemoBooking = (input: DemoBookingInput): string | null => {
   return null;
 };
 
+const readDemoBookingErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) return error.message.trim();
+  if (typeof error === 'string') return error.trim();
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    return error.message.trim();
+  }
+  return '';
+};
+
+export const friendlyDemoBookingError = (
+  error: unknown,
+  fallback = 'We could not complete the booking. Please check all required details and try again.',
+): string => {
+  const message = readDemoBookingErrorMessage(error);
+  const normalized = message.toLowerCase();
+
+  if (/typecheck|type check|type mismatch|invalid input syntax|cannot cast|22p02|pgrst/.test(normalized)) {
+    return 'Some booking details could not be read. Please check the school name, country, city, street address, phone number, and selected time, then try again.';
+  }
+  if (/failed to fetch|network|load failed|connection|offline|timeout|timed out/.test(normalized)) {
+    return 'We could not reach the live booking calendar. Please check your internet connection and try again.';
+  }
+  if (/permission denied|row-level security|schema cache|function .* does not exist|42501/.test(normalized)) {
+    return 'The booking service is temporarily unavailable. Please wait a moment and try again.';
+  }
+  if (
+    /please (enter|choose)|already passed|just taken|time slot|booking response was incomplete|calendar is temporarily unavailable/.test(normalized)
+  ) {
+    return message;
+  }
+  return fallback;
+};
+
 export const listDemoBookingSlots = async (
   client: DemoBookingClient = supabase,
 ): Promise<DemoBookingSlot[]> => {
@@ -205,7 +238,7 @@ export const listDemoBookingSlots = async (
     .order('booking_date', { ascending: true })
     .order('booking_time', { ascending: true });
 
-  if (error) throw new Error(error.message || 'Could not load the booking calendar.');
+  if (error) throw new Error(friendlyDemoBookingError(error, 'The calendar is temporarily unavailable. Please try again.'));
   return ((data ?? []) as DemoBookingSlotRow[]).map((slot) => ({
     booking_date: slot.booking_date,
     booking_time: slot.booking_time,
@@ -222,7 +255,7 @@ export const submitDemoBooking = async (
   if (validationError) throw new Error(validationError);
 
   const { data, error } = await client.rpc('rpc_create_demo_booking', { p_booking: normalized });
-  if (error) throw new Error(error.message || 'We could not secure that appointment.');
+  if (error) throw new Error(friendlyDemoBookingError(error));
   if (typeof data !== 'string') throw new Error('The booking response was incomplete. Please try again.');
   return data;
 };
@@ -236,7 +269,7 @@ export const checkDemoBookingAvailability = async (
     p_booking_date: bookingDate,
     p_booking_time: bookingTime,
   });
-  if (error) throw new Error(error.message || 'We could not verify that appointment time.');
+  if (error) throw new Error(friendlyDemoBookingError(error, 'We could not verify that appointment time. Please try again.'));
   return data === true;
 };
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { strFromU8, unzipSync } from 'fflate';
 import Lottie from 'lottie-react';
 import {
@@ -6,13 +6,16 @@ import {
   DEMO_BOOKING_TIMES,
   checkDemoBookingAvailability,
   detectDemoBookingTimeZone,
+  friendlyDemoBookingError,
   formatDemoBookingLocalDateTime,
   formatDemoBookingLocalTime,
   getDemoBookingLocalDate,
   getDemoBookingSlotInstant,
   isDemoBookingSlotPast,
   listDemoBookingSlots,
+  normalizeDemoBooking,
   submitDemoBooking,
+  validateDemoBooking,
   type DemoBookingInput,
   type DemoBookingSlot,
 } from '../../services/demoBookingService';
@@ -36,6 +39,25 @@ interface LocalBookingDay {
   monthYear: string;
   slots: LocalBookingSlot[];
 }
+
+// This dialog intentionally stays modal until the visitor acknowledges the final result.
+type BookingDialogState =
+  | { status: 'closed' }
+  | { status: 'checking' | 'booking' }
+  | { status: 'error'; title: string; message: string; focusSelector?: string }
+  | { status: 'confirmed'; bookingId: string };
+
+const focusSelectorForBookingError = (message: string): string | undefined => {
+  const normalized = message.toLowerCase();
+  if (normalized.includes('school name')) return '[name="school_name"]';
+  if (normalized.includes('full name')) return '[name="contact_name"]';
+  if (normalized.includes('phone')) return '[name="phone"]';
+  if (normalized.includes('country')) return '[name="country"]';
+  if (normalized.includes('city')) return '[name="city"]';
+  if (normalized.includes('street') || normalized.includes('address')) return '[name="street_address"]';
+  if (normalized.includes('time') || normalized.includes('slot') || normalized.includes('day')) return '.booked-time-grid button.available';
+  return undefined;
+};
 
 const buildLocalBookingDays = (timeZone: string): LocalBookingDay[] => {
   const grouped = new Map<string, LocalBookingDay>();
@@ -89,8 +111,7 @@ const BookedDemoPage: React.FC = () => {
   const countryOptions = useMemo(() => getDemoCountryOptions(), []);
   const localDays = useMemo(() => buildLocalBookingDays(viewerTimeZone), [viewerTimeZone]);
   const [booking, setBooking] = useState<DemoBookingInput>(() => initialBooking(viewerTimeZone));
-  const [submissionPhase, setSubmissionPhase] = useState<'idle' | 'checking' | 'booking'>('idle');
-  const [error, setError] = useState('');
+  const [bookingDialog, setBookingDialog] = useState<BookingDialogState>({ status: 'closed' });
   const [bookingId, setBookingId] = useState('');
   const [slots, setSlots] = useState<DemoBookingSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
@@ -101,8 +122,11 @@ const BookedDemoPage: React.FC = () => {
   const [clockNow, setClockNow] = useState(() => Date.now());
   const [autoSelectedDay, setAutoSelectedDay] = useState(false);
   const [slotCheckAnimation, setSlotCheckAnimation] = useState<Record<string, unknown> | null>(null);
+  const dialogCardRef = useRef<HTMLDivElement>(null);
+  const dialogOkRef = useRef<HTMLButtonElement>(null);
 
-  const submitting = submissionPhase !== 'idle';
+  const submitting = bookingDialog.status === 'checking' || bookingDialog.status === 'booking';
+  const dialogOpen = bookingDialog.status !== 'closed';
   const selectedDay = localDays[selectedDayIndex] ?? localDays[0];
   const citySuggestions = DEMO_CITY_SUGGESTIONS[booking.country] ?? [];
   const takenSlots = useMemo(
@@ -141,6 +165,21 @@ const BookedDemoPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (!dialogOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [dialogOpen]);
+
+  useEffect(() => {
+    if (!dialogOpen) return;
+    window.requestAnimationFrame(() => {
+      if (bookingDialog.status === 'error' || bookingDialog.status === 'confirmed') dialogOkRef.current?.focus();
+      else dialogCardRef.current?.focus();
+    });
+  }, [bookingDialog.status, dialogOpen]);
+
+  useEffect(() => {
     let active = true;
     void fetch(SLOT_CHECK_ANIMATION_URL)
       .then(async (response) => {
@@ -173,7 +212,6 @@ const BookedDemoPage: React.FC = () => {
     setFlipSequence((current) => current + 1);
     setField('preferred_date', localDays[index]?.slots[0]?.bookingDate ?? '');
     setField('preferred_time', '');
-    setError('');
   };
 
   const selectSlot = (slot: LocalBookingSlot) => {
@@ -183,33 +221,71 @@ const BookedDemoPage: React.FC = () => {
       preferred_time: slot.bookingTime,
       timezone: viewerTimeZone,
     }));
-    setError('');
+  };
+
+  const showBookingError = (message: string, title = 'Please check your booking details') => {
+    setBookingDialog({
+      status: 'error',
+      title,
+      message,
+      focusSelector: focusSelectorForBookingError(message),
+    });
+  };
+
+  const acknowledgeBookingDialog = () => {
+    if (bookingDialog.status === 'checking' || bookingDialog.status === 'booking' || bookingDialog.status === 'closed') return;
+    const confirmedBookingId = bookingDialog.status === 'confirmed' ? bookingDialog.bookingId : '';
+    const focusSelector = bookingDialog.status === 'error' ? bookingDialog.focusSelector : undefined;
+    setBookingDialog({ status: 'closed' });
+    if (confirmedBookingId) {
+      setBookingId(confirmedBookingId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (focusSelector) {
+      window.requestAnimationFrame(() => document.querySelector<HTMLElement>(focusSelector)?.focus());
+    }
+  };
+
+  const keepDialogFocused = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      if (bookingDialog.status === 'error' || bookingDialog.status === 'confirmed') dialogOkRef.current?.focus();
+      else dialogCardRef.current?.focus();
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError('');
-    if (isDemoBookingSlotPast(booking.preferred_date, booking.preferred_time)) {
-      setError('That time has already passed. Please choose another available slot.');
+    const normalizedBooking = normalizeDemoBooking(booking);
+    const validationError = validateDemoBooking(normalizedBooking);
+    if (validationError) {
+      showBookingError(validationError);
+      return;
+    }
+    if (isDemoBookingSlotPast(normalizedBooking.preferred_date, normalizedBooking.preferred_time)) {
+      showBookingError('That time has already passed. Please choose another available slot.', 'That appointment has passed');
       void loadAvailability();
       return;
     }
-    setSubmissionPhase('checking');
+    setBookingDialog({ status: 'checking' });
     try {
       const [isAvailable] = await Promise.all([
-        checkDemoBookingAvailability(booking.preferred_date, booking.preferred_time),
+        checkDemoBookingAvailability(normalizedBooking.preferred_date, normalizedBooking.preferred_time),
         new Promise<void>((resolve) => window.setTimeout(resolve, 900)),
       ]);
       if (!isAvailable) throw new Error('That time slot was just taken or has already passed. Please choose another one.');
-      setSubmissionPhase('booking');
-      const id = await submitDemoBooking(booking);
-      setBookingId(id);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setBookingDialog({ status: 'booking' });
+      const id = await submitDemoBooking(normalizedBooking);
+      setBookingDialog({ status: 'confirmed', bookingId: id });
     } catch (submissionError) {
-      setError(submissionError instanceof Error ? submissionError.message : 'We could not submit your request. Please try again.');
+      const message = friendlyDemoBookingError(submissionError);
+      showBookingError(message, message.includes('taken') || message.includes('passed') ? 'Please choose another time' : 'We could not finish the booking');
       void loadAvailability();
-    } finally {
-      setSubmissionPhase('idle');
     }
   };
 
@@ -375,20 +451,20 @@ const BookedDemoPage: React.FC = () => {
           </div>
 
           <div className="booked-identity-fields">
-            <label className="booked-field">Your name<input required maxLength={120} autoComplete="name" value={booking.contact_name} onChange={(event) => setField('contact_name', event.target.value)} placeholder="Full name" /></label>
-            <label className="booked-field">Phone / WhatsApp<input required maxLength={50} autoComplete="tel" inputMode="tel" value={booking.phone} onChange={(event) => setField('phone', event.target.value)} placeholder="+996 555 123 456" /></label>
-            <label className="booked-field booked-field-wide">School name<input required maxLength={180} autoComplete="organization" value={booking.school_name} onChange={(event) => setField('school_name', event.target.value)} placeholder="Your school’s official name" /></label>
+            <label className="booked-field">Your name<input name="contact_name" required maxLength={120} autoComplete="name" value={booking.contact_name} onChange={(event) => setField('contact_name', event.target.value)} placeholder="Full name" /></label>
+            <label className="booked-field">Phone / WhatsApp<input name="phone" required maxLength={50} autoComplete="tel" inputMode="tel" value={booking.phone} onChange={(event) => setField('phone', event.target.value)} placeholder="+996 555 123 456" /></label>
+            <label className="booked-field booked-field-wide">School name<input name="school_name" required maxLength={180} autoComplete="organization" value={booking.school_name} onChange={(event) => setField('school_name', event.target.value)} placeholder="Your school’s official name" /></label>
             <label className="booked-field">Country
-              <select required autoComplete="country-name" value={booking.country} onChange={(event) => setBooking((current) => ({ ...current, country: event.target.value, city: '' }))}>
+              <select name="country" required autoComplete="country-name" value={booking.country} onChange={(event) => setBooking((current) => ({ ...current, country: event.target.value, city: '' }))}>
                 <option value="">Choose country</option>
                 {countryOptions.map((country) => <option key={country.code} value={country.name}>{country.name}</option>)}
               </select>
             </label>
             <label className="booked-field">City
-              <input required list="booked-city-options" maxLength={120} autoComplete="address-level2" value={booking.city} onChange={(event) => setField('city', event.target.value)} placeholder={booking.country ? 'Choose or type the city' : 'Choose a country first'} />
+              <input name="city" required list="booked-city-options" maxLength={120} autoComplete="address-level2" value={booking.city} onChange={(event) => setField('city', event.target.value)} placeholder={booking.country ? 'Choose or type the city' : 'Choose a country first'} />
               <datalist id="booked-city-options">{citySuggestions.map((city) => <option key={city} value={city} />)}</datalist>
             </label>
-            <label className="booked-field booked-field-wide">Street / school address<input required maxLength={240} autoComplete="street-address" value={booking.street_address} onChange={(event) => setField('street_address', event.target.value)} placeholder="Street, building, district or campus address" /></label>
+            <label className="booked-field booked-field-wide">Street / school address<input name="street_address" required maxLength={240} autoComplete="street-address" value={booking.street_address} onChange={(event) => setField('street_address', event.target.value)} placeholder="Street, building, district or campus address" /></label>
           </div>
 
           <div className="booked-day-strip" role="tablist" aria-label="Choose a demonstration day">
@@ -439,25 +515,48 @@ const BookedDemoPage: React.FC = () => {
             <div><span>YOUR SELECTION · LOCAL TIME</span><strong>{booking.preferred_time ? formatDemoBookingLocalDateTime(booking.preferred_date, booking.preferred_time, viewerTimeZone) : 'Choose an open time above'}</strong></div>
             <span className="booked-timezone-pill">{viewerTimeZone.replaceAll('_', ' ')}</span>
           </div>
-          {error && <div className="booked-error" role="alert">{error}</div>}
           <button className="booked-submit" type="submit" disabled={submitting || slotsLoading || Boolean(slotsError) || !booking.preferred_time}>
-            {submissionPhase === 'checking' ? 'Checking availability…' : submissionPhase === 'booking' ? 'Securing your demo…' : 'Book this demo'}<span aria-hidden="true">→</span>
+            {bookingDialog.status === 'checking' ? 'Checking availability…' : bookingDialog.status === 'booking' ? 'Securing your demo…' : 'Book this demo'}<span aria-hidden="true">→</span>
           </button>
           <p className="booked-form-footnote">Your number is used only to coordinate this demonstration.</p>
-
-          {submitting && (
-            <div className="booked-slot-check" role="status" aria-live="polite">
-              <div className="booked-slot-check-card">
-                <div className="booked-slot-check-animation" aria-hidden="true">
-                  {slotCheckAnimation ? <Lottie animationData={slotCheckAnimation} loop autoplay /> : <div className="booked-css-scanner"><i /><span /></div>}
-                </div>
-                <p>{submissionPhase === 'checking' ? 'ONE SEC!' : 'SLOT CONFIRMED'}</p>
-                <h3>{submissionPhase === 'checking' ? 'Making sure this slot is still available…' : 'Securing your school demonstration…'}</h3>
-                <small>Checking the live Brains Heist calendar</small>
-              </div>
-            </div>
-          )}
         </form>
+
+        {dialogOpen && (
+          <div className={`booked-slot-check booked-slot-check-${bookingDialog.status}`} role="dialog" aria-modal="true" aria-labelledby="booked-dialog-title" aria-describedby="booked-dialog-description" data-dismissal="acknowledge-only" onKeyDown={keepDialogFocused}>
+            <div className="booked-slot-check-card" ref={dialogCardRef} tabIndex={-1}>
+              {(bookingDialog.status === 'checking' || bookingDialog.status === 'booking') && (
+                <>
+                  <div className="booked-slot-check-animation" aria-hidden="true">
+                    {slotCheckAnimation ? <Lottie animationData={slotCheckAnimation} loop autoplay /> : <div className="booked-css-scanner"><i /><span /></div>}
+                  </div>
+                  <p>{bookingDialog.status === 'checking' ? 'ONE SEC!' : 'SLOT AVAILABLE'}</p>
+                  <h3 id="booked-dialog-title">{bookingDialog.status === 'checking' ? 'Making sure this slot is still available…' : 'Saving your school demonstration…'}</h3>
+                  <small id="booked-dialog-description">Please keep this window open while we check the live calendar.</small>
+                </>
+              )}
+              {bookingDialog.status === 'error' && (
+                <>
+                  <div className="booked-dialog-symbol booked-dialog-symbol-error" aria-hidden="true">!</div>
+                  <p>BOOKING NEEDS ATTENTION</p>
+                  <h3 id="booked-dialog-title">{bookingDialog.title}</h3>
+                  <div className="booked-dialog-message" id="booked-dialog-description">{bookingDialog.message}</div>
+                  <button className="booked-dialog-ok" type="button" ref={dialogOkRef} onClick={acknowledgeBookingDialog}>OK</button>
+                </>
+              )}
+              {bookingDialog.status === 'confirmed' && (
+                <>
+                  <div className="booked-dialog-symbol booked-dialog-symbol-success" aria-hidden="true">✓</div>
+                  <p>SLOT RESERVED</p>
+                  <h3 id="booked-dialog-title">Your demonstration is booked.</h3>
+                  <div className="booked-dialog-message" id="booked-dialog-description">
+                    {formatDemoBookingLocalDateTime(booking.preferred_date, booking.preferred_time, viewerTimeZone)}
+                  </div>
+                  <button className="booked-dialog-ok" type="button" ref={dialogOkRef} onClick={acknowledgeBookingDialog}>OK</button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </section>
 
       <footer className="booked-footer"><a className="booked-brand" href="/"><img src="/logo.png" alt="" /><span><strong>BRAINS</strong> HEIST</span></a><p>Assessment intelligence. Teacher insight. Student momentum.</p><span>© {new Date().getFullYear()} Brains Heist</span></footer>
