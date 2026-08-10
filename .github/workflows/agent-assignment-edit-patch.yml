@@ -1,3 +1,4 @@
+# Trigger PR validation from the temporary main workflow.
 name: Agent assignment edit patch
 on:
   pull_request:
