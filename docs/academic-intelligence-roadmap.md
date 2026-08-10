@@ -291,3 +291,64 @@ qualified evidence across a configured curriculum scope; it is not mastery.
 8. Begin Phase 6 only with approved golden journeys for weak, recurring, persistent,
    improving, resolved, strength, decline, missing, contradictory, stale, and grade/year
    transition cases.
+
+## Phase 6 contract
+
+Phase 6 validates progress conclusions before wider reporting or intervention automation.
+It makes the classifier executable as one shared contract, proves that contract against
+approved synthetic journeys, compares it with stored production conclusions at a fixed
+evidence cutoff, and records professional teacher review. It does not rewrite evidence or
+silently apply a shadow candidate to the learner record.
+
+- `student_learning_classify_progress` is the single deterministic classifier used by the
+  live focus refresh, golden validation, and shadow comparison. This prevents the test
+  harness from validating a second implementation that can drift away from production.
+- `academic_progress_golden_journeys` contains approved synthetic contracts for missing
+  evidence, low-data focus, new focus, recurring focus, persistence, improvement,
+  resolution, emerging and consistent strength, decline, contradiction, staleness, and
+  academic-year transition. Approved and retired cases are immutable.
+- A golden run records the active confidence policy, expected and actual outcome for every
+  journey, pass/fail totals, and exact classifier version. A production shadow run is
+  blocked unless the latest policy has a completed golden run with zero failures.
+- Shadow comparison is school/year scoped, uses a fixed `as_of` cutoff, accepts an optional
+  reviewed student sample, and is bounded to at most 1,000 student-skill comparisons per
+  run. A school/year advisory lock prevents overlapping runs.
+- Every shadow result records the stored and candidate states, comparison category, risk,
+  confidence gates, evidence count, latest evidence time, and a SHA-256 hash of the exact
+  observation snapshot. Results and completed runs are immutable.
+- Comparison outcomes are `same`, `missing_current_state`, `confidence_withheld`,
+  `contradiction_detected`, or `status_changed`. A changed persistent, resolved,
+  consistent-strength, or contradictory conclusion is high risk.
+- Shadow execution may refresh the rebuildable confidence/coverage projection, but it does
+  not mutate observations, focus states, or source results and does not apply candidate
+  conclusions. The disclosure states each of those boundaries explicitly.
+- Teachers may review only students and subjects assigned to them. School Heads and school
+  administrators may review their own school. Reviews are append-only, versioned, require
+  a meaningful rationale, and support `agree`, `disagree`, or `needs_more_evidence`.
+  Disagreement requires the teacher's expected status; a request for more evidence requires
+  a specific evidence-gap code.
+- Teacher review strengthens professional judgment but does not silently change the learner
+  record. The latest review version is reported while every earlier version remains auditable.
+- The validation read RPC returns only the School Head/admin scope or the assigned teacher's
+  student-and-subject scope. Direct authenticated table access remains closed behind RLS.
+
+### Phase 6 rollout gate
+
+1. Apply Parts 1–6 on an isolated Supabase branch and run the approved golden suite. Do not
+   begin shadow comparison if any journey fails or no active confidence policy is present.
+2. Review every golden journey with English, Mathematics, and Science academic leads.
+   Reviewer-authored changes create a new version rather than editing an approved contract.
+3. Run a small fixed-time shadow sample first. Re-run the same cutoff and student sample;
+   totals, candidate decisions, and evidence hashes must be identical.
+4. Reconcile `missing_current_state`, `confidence_withheld`, `contradiction_detected`, and
+   `status_changed` separately. Never treat a mismatch count alone as model accuracy.
+5. Require teacher review for all high-risk differences, persistent/resolved candidates,
+   contradictions, and a representative sample of exact matches and low-risk cases.
+6. Measure agreement, disagreement, requests for more evidence, common evidence gaps,
+   subject differences, grade differences, and year-transition errors. Keep free-text
+   rationale available for academic review without feeding it back automatically.
+7. Confirm teacher cross-class, cross-subject, and cross-school access is denied; confirm
+   students and anonymous users cannot read or write validation records directly.
+8. Define acceptance thresholds with the pilot school before Phase 7. Do not auto-apply
+   candidate conclusions or start interventions from shadow results; Phase 7 remains a
+   teacher-approved intervention pilot with frozen baselines.
