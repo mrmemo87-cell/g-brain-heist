@@ -5,6 +5,7 @@ import {
 } from '../../services/schoolHeadLearningIntelligenceService';
 import { SchoolBrand } from '../../src/components/SchoolBrand';
 import { createSchoolBrand } from '../../src/lib/schoolBranding';
+import AcademicReportBuilder from '../student-progress/AcademicReportBuilder';
 import './SchoolHeadLearningIntelligence.css';
 
 interface Props { schoolId: string; schoolName?: string | null; schoolLogoUrl?: string | null; onBack?: () => void; }
@@ -20,6 +21,7 @@ const SchoolHeadLearningIntelligence: React.FC<Props> = ({ schoolId, schoolName,
   const [error, setError] = useState<string | null>(null);
   const [subject, setSubject] = useState('all');
   const [className, setClassName] = useState('all');
+  const [showReportBuilder, setShowReportBuilder] = useState(false);
   const brand = createSchoolBrand({ schoolId, schoolName, schoolLogoUrl });
 
   useEffect(() => {
@@ -51,7 +53,7 @@ const SchoolHeadLearningIntelligence: React.FC<Props> = ({ schoolId, schoolName,
   return <main className="shli-shell">
     <header className="shli-header">
       <div><SchoolBrand brand={brand} className="mb-3 font-semibold" imageClassName="h-12 w-12 rounded-xl object-contain" /><span>School Head · Academic Performance</span><h1>Academic Progress & Support</h1><p>School-wide view of attainment, recurring learning needs, improvement and strengths — with evidence over time.</p></div>
-      <div className="shli-actions"><label>Period<select value={days} onChange={(e) => setDays(Number(e.target.value))}><option value={30}>30 days</option><option value={90}>90 days</option><option value={180}>180 days</option><option value={365}>12 months</option></select></label><button onClick={onBack || (() => window.history.back())}>Back to Academic Performance</button></div>
+      <div className="shli-actions"><label>Live view period<select value={days} onChange={(e) => setDays(Number(e.target.value))}><option value={30}>30 days</option><option value={90}>90 days</option><option value={180}>180 days</option><option value={365}>12 months</option></select></label><button className="is-primary" onClick={() => setShowReportBuilder(true)}>Build term / annual report</button><button onClick={onBack || (() => window.history.back())}>Back to Academic Performance</button></div>
     </header>
 
     <section className="shli-assurance"><strong>How to read this view</strong><p>Assignment averages use the selected period. Persistent, improving and resolved learning states use the full qualifying evidence history — not just the selected period. One isolated low result never creates a persistent weakness.</p></section>
@@ -69,6 +71,13 @@ const SchoolHeadLearningIntelligence: React.FC<Props> = ({ schoolId, schoolName,
     <section className="shli-panel"><header><div><span>School strengths</span><h2>Skills showing consistent strength</h2></div><small>Recognise what is working, not only what needs fixing</small></header><div className="shli-strengths">{data.school_strengths.map((row) => <article key={`${row.subject}:${row.skill}`}><span>{row.subject}</span><strong>{row.skill}</strong><small>{row.students} student{row.students === 1 ? '' : 's'} showing consistent strength</small></article>)}</div></section>
 
     <footer className="shli-footer">Generated {new Date(data.generated_at).toLocaleString()} · {brand.name} · School-scoped academic intelligence.</footer>
+    {showReportBuilder ? <AcademicReportBuilder
+      schoolId={schoolId}
+      schoolName={brand.name}
+      schoolLogoUrl={brand.logoUrl}
+      initialSubject={subject === 'all' ? null : subject}
+      onClose={() => setShowReportBuilder(false)}
+    /> : null}
   </main>;
 };
 
