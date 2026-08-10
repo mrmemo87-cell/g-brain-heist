@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient.js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const DEMO_INTEREST_OPTIONS = [
   { value: 'admissions', label: 'Admission tests: English, Maths & Science' },
@@ -84,7 +84,13 @@ export interface DemoBookingRecord {
   updated_at: string;
 }
 
-type DemoBookingClient = Pick<typeof supabase, 'rpc' | 'from'>;
+type DemoBookingClient = Pick<SupabaseClient, 'rpc' | 'from'>;
+
+const resolveDemoBookingClient = async (client?: DemoBookingClient): Promise<DemoBookingClient> => {
+  if (client) return client;
+  const { supabase } = await import('./supabaseClient.js');
+  return supabase;
+};
 
 export const formatDemoBookingTime = (time: string): string => {
   const [hours, minutes] = time.split(':').map(Number);
@@ -230,9 +236,10 @@ export const friendlyDemoBookingError = (
 };
 
 export const listDemoBookingSlots = async (
-  client: DemoBookingClient = supabase,
+  client?: DemoBookingClient,
 ): Promise<DemoBookingSlot[]> => {
-  const { data, error } = await client
+  const bookingClient = await resolveDemoBookingClient(client);
+  const { data, error } = await bookingClient
     .from('demo_booking_slots')
     .select('booking_date, booking_time, is_blocked, booking_id')
     .order('booking_date', { ascending: true })
@@ -248,13 +255,14 @@ export const listDemoBookingSlots = async (
 
 export const submitDemoBooking = async (
   input: DemoBookingInput,
-  client: DemoBookingClient = supabase,
+  client?: DemoBookingClient,
 ): Promise<string> => {
   const normalized = normalizeDemoBooking(input);
   const validationError = validateDemoBooking(normalized);
   if (validationError) throw new Error(validationError);
 
-  const { data, error } = await client.rpc('rpc_create_demo_booking', { p_booking: normalized });
+  const bookingClient = await resolveDemoBookingClient(client);
+  const { data, error } = await bookingClient.rpc('rpc_create_demo_booking', { p_booking: normalized });
   if (error) throw new Error(friendlyDemoBookingError(error));
   if (typeof data !== 'string') throw new Error('The booking response was incomplete. Please try again.');
   return data;
@@ -263,9 +271,10 @@ export const submitDemoBooking = async (
 export const checkDemoBookingAvailability = async (
   bookingDate: string,
   bookingTime: string,
-  client: DemoBookingClient = supabase,
+  client?: DemoBookingClient,
 ): Promise<boolean> => {
-  const { data, error } = await client.rpc('rpc_check_demo_booking_slot', {
+  const bookingClient = await resolveDemoBookingClient(client);
+  const { data, error } = await bookingClient.rpc('rpc_check_demo_booking_slot', {
     p_booking_date: bookingDate,
     p_booking_time: bookingTime,
   });
@@ -274,9 +283,10 @@ export const checkDemoBookingAvailability = async (
 };
 
 export const listDemoBookings = async (
-  client: DemoBookingClient = supabase,
+  client?: DemoBookingClient,
 ): Promise<DemoBookingRecord[]> => {
-  const { data, error } = await client
+  const bookingClient = await resolveDemoBookingClient(client);
+  const { data, error } = await bookingClient
     .from('demo_bookings')
     .select('*')
     .order('created_at', { ascending: false })
@@ -289,9 +299,10 @@ export const listDemoBookings = async (
 export const updateDemoBooking = async (
   id: string,
   update: Pick<DemoBookingRecord, 'status' | 'admin_notes'>,
-  client: DemoBookingClient = supabase,
+  client?: DemoBookingClient,
 ): Promise<DemoBookingRecord> => {
-  const { data, error } = await client
+  const bookingClient = await resolveDemoBookingClient(client);
+  const { data, error } = await bookingClient
     .from('demo_bookings')
     .update({
       status: update.status,

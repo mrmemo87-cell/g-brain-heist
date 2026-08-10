@@ -1,6 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { strFromU8, unzipSync } from 'fflate';
-import Lottie from 'lottie-react';
 import {
   DEMO_BOOKING_DAYS,
   DEMO_BOOKING_TIMES,
@@ -21,8 +19,6 @@ import {
 } from '../../services/demoBookingService';
 import { DEMO_CITY_SUGGESTIONS, getDemoCountryOptions } from '../data/demoBookingLocations';
 import './BookedDemoPage.css';
-
-const SLOT_CHECK_ANIMATION_URL = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/lotties/Eye%20scanning%20logo%20Lottie%20JSON%20animation.lottie';
 
 interface LocalBookingSlot {
   bookingDate: string;
@@ -121,7 +117,8 @@ const BookedDemoPage: React.FC = () => {
   const [flipDirection, setFlipDirection] = useState<'next' | 'previous'>('next');
   const [clockNow, setClockNow] = useState(() => Date.now());
   const [autoSelectedDay, setAutoSelectedDay] = useState(false);
-  const [slotCheckAnimation, setSlotCheckAnimation] = useState<Record<string, unknown> | null>(null);
+  const bookingSectionRef = useRef<HTMLElement>(null);
+  const availabilityRequestedRef = useRef(false);
   const dialogCardRef = useRef<HTMLDivElement>(null);
   const dialogOkRef = useRef<HTMLButtonElement>(null);
 
@@ -157,7 +154,28 @@ const BookedDemoPage: React.FC = () => {
     return () => { document.title = previousTitle; };
   }, []);
 
-  useEffect(() => { void loadAvailability(); }, [loadAvailability]);
+  const requestAvailability = useCallback(() => {
+    if (availabilityRequestedRef.current) return;
+    availabilityRequestedRef.current = true;
+    void loadAvailability();
+  }, [loadAvailability]);
+
+  useEffect(() => {
+    const bookingSection = bookingSectionRef.current;
+    if (!bookingSection || typeof IntersectionObserver === 'undefined') {
+      requestAvailability();
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      requestAvailability();
+      observer.disconnect();
+    }, { rootMargin: '600px 0px' });
+
+    observer.observe(bookingSection);
+    return () => observer.disconnect();
+  }, [requestAvailability]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setClockNow(Date.now()), 30_000);
@@ -178,21 +196,6 @@ const BookedDemoPage: React.FC = () => {
       else dialogCardRef.current?.focus();
     });
   }, [bookingDialog.status, dialogOpen]);
-
-  useEffect(() => {
-    let active = true;
-    void fetch(SLOT_CHECK_ANIMATION_URL)
-      .then(async (response) => {
-        if (!response.ok) throw new Error('Animation unavailable');
-        const archive = unzipSync(new Uint8Array(await response.arrayBuffer()));
-        const animationPath = Object.keys(archive).find((path) => path.startsWith('animations/') && path.endsWith('.json'));
-        if (!animationPath) throw new Error('Animation data missing');
-        return JSON.parse(strFromU8(archive[animationPath])) as Record<string, unknown>;
-      })
-      .then((animation) => { if (active) setSlotCheckAnimation(animation); })
-      .catch(() => { /* The CSS scanner remains as a graceful fallback. */ });
-    return () => { active = false; };
-  }, []);
 
   useEffect(() => {
     if (slotsLoading || autoSelectedDay) return;
@@ -296,7 +299,7 @@ const BookedDemoPage: React.FC = () => {
         <div className="booked-orb booked-orb-two" />
         <section className="booked-success-card" aria-live="polite">
           <a className="booked-brand" href="/" aria-label="Brains Heist home">
-            <img src="/logo.png" alt="" />
+            <img src="/booked-assets/logo.webp" alt="" width={90} height={96} decoding="async" fetchPriority="high" />
             <span><strong>BRAINS</strong> HEIST</span>
           </a>
           <div className="booked-success-mark" aria-hidden="true">✓</div>
@@ -328,7 +331,7 @@ const BookedDemoPage: React.FC = () => {
 
       <header className="booked-header">
         <a className="booked-brand" href="/" aria-label="Brains Heist home">
-          <img src="/logo.png" alt="" />
+          <img src="/booked-assets/logo.webp" alt="" width={90} height={96} decoding="async" fetchPriority="high" />
           <span><strong>BRAINS</strong> HEIST</span>
         </a>
         <a className="booked-header-link" href="#book-demo">Book your school demo <span aria-hidden="true">↗</span></a>
@@ -391,12 +394,12 @@ const BookedDemoPage: React.FC = () => {
               <p>Admission assessments are checked instantly and organized automatically—saving teams hours of marking and administration while giving decision-makers clear, consistent results.</p>
               <ul><li>All-grade assessment coverage</li><li>Instant auto-checking</li><li>Structured candidate results</li></ul>
             </div>
-            <img src="/mission-console-images/cambridge-tests.webp" alt="Digital assessment and results visualization" />
+            <img src="/booked-assets/assessment.webp" alt="Digital assessment and results visualization" width={400} height={400} loading="lazy" decoding="async" />
           </article>
 
           <article className="booked-feature">
             <span className="booked-feature-number">02</span>
-            <img src="/mission-console-images/writing.webp" alt="Writing analysis interface illustration" />
+            <img src="/booked-assets/writing.webp" alt="Writing analysis interface illustration" width={340} height={340} loading="lazy" decoding="async" />
             <p className="booked-feature-kicker">AI + TEACHER JUDGEMENT</p>
             <h3>Writing insight teachers can trust.</h3>
             <p>Advanced writing tasks are analysed by AI, then validated by teachers—combining speed, consistency and professional judgement.</p>
@@ -404,7 +407,7 @@ const BookedDemoPage: React.FC = () => {
 
           <article className="booked-feature">
             <span className="booked-feature-number">03</span>
-            <img src="/mission-console-images/ielts-prep.webp" alt="IELTS preparation and progress illustration" />
+            <img src="/booked-assets/ielts.webp" alt="IELTS preparation and progress illustration" width={340} height={340} loading="lazy" decoding="async" />
             <p className="booked-feature-kicker">GLOBAL READINESS</p>
             <h3>Cambridge and IELTS pathways.</h3>
             <p>Support exam readiness with structured practice, assessment workflows and progress visibility built for international education.</p>
@@ -432,12 +435,12 @@ const BookedDemoPage: React.FC = () => {
               <h3>Group activities students want to join.</h3>
               <p>Transform lesson participation with attractive, engaging in-class activities that encourage collaboration, healthy challenge and purposeful practice.</p>
             </div>
-            <img src="/visuals/Teacher-invite-hero-visual.png" alt="Teachers and students connecting through classroom activities" />
+            <img src="/booked-assets/classroom.webp" alt="Teachers and students connecting through classroom activities" width={540} height={360} loading="lazy" decoding="async" />
           </article>
         </div>
       </section>
 
-      <section className="booked-calendar-section" id="book-demo" aria-labelledby="book-demo-title">
+      <section ref={bookingSectionRef} className="booked-calendar-section" id="book-demo" aria-labelledby="book-demo-title">
         <div className="booked-calendar-heading">
           <p className="booked-eyebrow">PICK A MOMENT. WE’LL HANDLE THE REST.</p>
           <h2 id="book-demo-title">Your demo, booked in seconds.</h2>
@@ -527,7 +530,7 @@ const BookedDemoPage: React.FC = () => {
               {(bookingDialog.status === 'checking' || bookingDialog.status === 'booking') && (
                 <>
                   <div className="booked-slot-check-animation" aria-hidden="true">
-                    {slotCheckAnimation ? <Lottie animationData={slotCheckAnimation} loop autoplay /> : <div className="booked-css-scanner"><i /><span /></div>}
+                    <div className="booked-css-scanner"><i /><span /></div>
                   </div>
                   <p>{bookingDialog.status === 'checking' ? 'ONE SEC!' : 'SLOT AVAILABLE'}</p>
                   <h3 id="booked-dialog-title">{bookingDialog.status === 'checking' ? 'Making sure this slot is still available…' : 'Saving your school demonstration…'}</h3>
@@ -559,7 +562,7 @@ const BookedDemoPage: React.FC = () => {
         )}
       </section>
 
-      <footer className="booked-footer"><a className="booked-brand" href="/"><img src="/logo.png" alt="" /><span><strong>BRAINS</strong> HEIST</span></a><p>Assessment intelligence. Teacher insight. Student momentum.</p><span>© {new Date().getFullYear()} Brains Heist</span></footer>
+      <footer className="booked-footer"><a className="booked-brand" href="/"><img src="/booked-assets/logo.webp" alt="" width={90} height={96} loading="lazy" decoding="async" /><span><strong>BRAINS</strong> HEIST</span></a><p>Assessment intelligence. Teacher insight. Student momentum.</p><span>© {new Date().getFullYear()} Brains Heist</span></footer>
     </main>
   );
 };

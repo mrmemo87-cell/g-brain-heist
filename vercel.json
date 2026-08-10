@@ -16,6 +16,10 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/booked",
+      "destination": "/booked.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
