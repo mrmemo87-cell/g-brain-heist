@@ -64,12 +64,12 @@ test('parent onboarding is explicit and child-specific', () => {
 });
 
 test('student reports are official school-branded documents with discreet product attribution', () => {
-  const report = read('components/student-progress/IndividualStudentAcademicReport.tsx');
+  const report = read('components/student-progress/AcademicReportBuilder.tsx');
   assert.match(report, /createSchoolBrand/);
-  assert.match(report, /Official academic progress report/);
-  assert.match(report, /Student Progress Report/);
-  assert.match(report, /Areas for development/);
-  assert.match(report, /Generated securely through Brain Heist/);
+  assert.match(report, /Confidential academic report/);
+  assert.match(report, /Reproducible academic reports/);
+  assert.match(report, /Subject evidence/);
+  assert.match(report, /Payload/);
   assert.doesNotMatch(report, /Brain Heist School Report/);
 });
 
