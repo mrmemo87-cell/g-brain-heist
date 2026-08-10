@@ -415,3 +415,62 @@ whether a plan starts and whether measured follow-up supports its final outcome.
 9. Define pilot acceptance thresholds before Phase 8 reporting. Do not present intervention
    effectiveness school-wide until baseline coverage, follow-up comparability, and teacher
    review rates meet the school's agreed minimums.
+
+## Phase 8 contract
+
+Phase 8 makes term and annual reporting reproducible. Every report is generated from an
+exact academic-year, optional term, enrolment, subject, audience, and evidence cutoff. It
+is a versioned evidence record rather than an editable copy of whichever live dashboard a
+staff member happened to open.
+
+- Student, class, grade, subject, and whole-school scopes use effective-dated enrolments.
+  Student and family audiences are restricted to one student; broader reports remain staff
+  outputs. Teachers keep their assigned class-and-subject boundary, while School Heads and
+  administrators remain school-scoped.
+- A generated report starts as Draft. Explicit approval is required to make the same exact
+  payload Final and exportable. Finalization is the only permitted snapshot update; source
+  references and audit events are append-only.
+- The snapshot stores the complete rendered payload, reporting period, evidence cutoff,
+  source SHA-256 hash, payload SHA-256 hash, version, and predecessor. Identical inputs and
+  sources reuse the identical report. Changed evidence creates a new version and never
+  rewrites the historical report.
+- Attainment, progress states, strengths, confidence, curriculum coverage, and reviewed
+  intervention outcomes are scoped to the selected year and term. Historical focus and
+  confidence projections are withheld when evidence after the requested cutoff means the
+  current projection cannot truthfully represent that earlier point in time.
+- Missing work is not zero. No evidence is `not_assessed`; sparse evidence is `low_data`;
+  unassessed curriculum is not a weakness. Expected standards remain `not_configured`
+  unless the school has an approved standards model.
+- Confidence is not attainment and coverage is not mastery. Curriculum coverage is clearly
+  labelled academic-year-to-cutoff even on a term report.
+- Intervention activity volume is not an outcome. Reports include measured, approved
+  lifecycle/outcome fields while excluding professional rationale, goals, private notes,
+  raw evidence JSON, and internal validation commentary.
+- Snapshot generation does not mutate observations, current focus states, source results,
+  or intervention decisions. Tables are RLS-enabled with browser access closed; authorised
+  users work through explicit RPCs only.
+- The student profile and School Head intelligence view use one report builder and one
+  database contract. Live dashboard filters do not silently become the historical record.
+
+### Phase 8 rollout gate
+
+1. Apply Parts 1–8 on an isolated Supabase branch. Confirm explicit grants, fail-closed RLS,
+   immutable triggers, indexed foreign keys, RPC authorization, and no browser table access.
+2. Generate student, class, grade, subject, and school reports across annual and term scopes.
+   Reconcile student counts against effective-dated enrolment at both period boundaries.
+3. Re-run every report with the same cutoff. Require the same report ID, source hash, payload
+   hash, and version. Add controlled evidence, move the cutoff, and require a new version
+   linked to its predecessor.
+4. Review every `not_assessed`, `low_data`, stale, contradictory, and historical-projection-
+   withheld disclosure. Confirm no missing value becomes a zero, weakness, or expected result.
+5. Reconcile report subject totals to exact source references. Verify private rationale,
+   notes, raw evidence JSON, and review commentary never appear in student/family payloads.
+6. Require authorised staff to review Draft output before Final. Confirm Draft cannot be
+   printed from the UI and student access requires a Final, student-audience report.
+7. Confirm generating, regenerating, finalizing, and reading reports never changes source
+   observations, focus states, confidence decisions, or intervention outcomes.
+8. Pilot with one accepted year/term, reviewed evidence coverage, and approved Part 7 outcome
+   thresholds. Do not present school-wide effectiveness or release family reports when the
+   selected period lacks sufficient, mapped academic evidence.
+9. Begin Phase 9 only after schools can reproduce sampled historical reports from their exact
+   source references and approve the governance, retention, correction, and rollout process.
