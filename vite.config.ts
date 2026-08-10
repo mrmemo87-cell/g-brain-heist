@@ -68,6 +68,7 @@ export default defineConfig(({ mode }) => {
           '@': path.resolve(__dirname, '.'),
           'react-router-dom': path.resolve(__dirname, 'src/lib/router.tsx'),
           '@tanstack/react-query': path.resolve(__dirname, 'src/lib/simple-react-query.tsx'),
+          'lucide-react': path.resolve(__dirname, 'components/school-operations/SchoolOpsIcons.tsx'),
         }
       }
     };
