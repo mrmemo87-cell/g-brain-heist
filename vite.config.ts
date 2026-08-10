@@ -53,6 +53,7 @@ export default defineConfig(({ mode }) => {
             parentPortal: path.resolve(__dirname, 'parent-portal.html'),
             guardianManagement: path.resolve(__dirname, 'guardian-management.html'),
             teacherInterventions: path.resolve(__dirname, 'teacher-interventions.html'),
+            schoolOperations: path.resolve(__dirname, 'school-operations.html'),
           },
           output: {
             manualChunks: {
