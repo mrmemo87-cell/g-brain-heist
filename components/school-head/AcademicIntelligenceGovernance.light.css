@@ -1,0 +1,72 @@
+.aig-overlay { background: rgba(30, 45, 62, .42); }
+
+.aig-modal {
+  border-color: #d6e1eb;
+  color: #10243a;
+  background: #f7f9fc;
+  box-shadow: 0 30px 90px rgba(25, 40, 58, .22);
+  color-scheme: light;
+}
+
+.aig-header,
+.aig-section > header { border-color: #d8e2ec; }
+
+.aig-header span,
+.aig-section header span,
+.aig-list article span { color: #087f96; }
+
+.aig-header h2,
+.aig-section h3,
+.aig-capabilities article h4,
+.aig-list article strong,
+.aig-metrics strong { color: #10243a; }
+
+.aig-header p,
+.aig-toolbar label,
+.aig-policy-grid label,
+.aig-wide-label,
+.aig-retention-form label,
+.aig-row-actions small,
+.aig-section header small,
+.aig-capabilities article p,
+.aig-list article p,
+.aig-capabilities article small,
+.aig-list article small,
+.aig-hashes,
+.aig-footer,
+.aig-state { color: #607389; }
+
+.aig-modal button,
+.aig-modal input,
+.aig-modal select,
+.aig-modal textarea {
+  border-color: #cbd8e4;
+  color: #173047;
+  background: #fff;
+}
+
+.aig-modal button.is-primary {
+  border-color: #087f96;
+  color: #fff;
+  background: #087f96;
+}
+
+.aig-section,
+.aig-capabilities article,
+.aig-list article,
+.aig-metrics article {
+  border-color: #d8e2ec;
+  background: #fff;
+}
+
+.aig-empty { color: #607389; background: #eef3f7; }
+.aig-blockers { color: #713f12; background: #fffbeb; }
+.aig-clear { color: #166534; background: #ecfdf5; }
+.aig-message.is-error { color: #9f1239; background: #fff1f2; }
+.aig-message.is-success { color: #166534; background: #ecfdf5; }
+.aig-status.is-ready,
+.aig-pill.is-enabled { color: #166534; background: #dcfce7; }
+.aig-status.is-not_ready,
+.aig-pill.is-paused { color: #92400e; background: #fef3c7; }
+.aig-status.is-unconfigured,
+.aig-pill.is-disabled { color: #475569; background: #e2e8f0; }
