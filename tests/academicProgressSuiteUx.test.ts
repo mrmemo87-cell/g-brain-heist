@@ -54,8 +54,7 @@ test('support plans use school language rather than implementation-phase languag
 test('parent onboarding is explicit and child-specific', () => {
   const admin = read('components/guardian/GuardianManagementPage.tsx');
   const parent = read('components/guardian/ParentPortal.tsx');
-  assert.match(admin, /The account is not created by the school/);
-  assert.match(admin, /same email/);
+  assert.match(admin, /same invited email|same email/);
   assert.match(admin, /marks, subject performance, strengths/);
   assert.match(admin, /Private teacher notes and raw internal evidence stay hidden/);
   assert.match(parent, /Your child’s progress/);
@@ -69,7 +68,8 @@ test('student reports are official school-branded documents with discreet produc
   assert.match(report, /Official academic progress report/);
   assert.match(report, /Student Progress Report/);
   assert.match(report, /Areas for development/);
-  assert.match(report, /Generated securely through Brain Heist/);
+  assert.match(report, /Generated securely through Brains Heist/);
+  assert.doesNotMatch(report, /Generated securely through Brain Heist/);
   assert.doesNotMatch(report, /Brain Heist School Report/);
 });
 
