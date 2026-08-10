@@ -1,27 +1,18 @@
 import { supabase } from './supabaseClient';
+import { userFacingError } from './userFacingError';
 
 export type AcademicProgressViewerRole = 'student' | 'teacher' | 'school_admin' | 'school_head';
 
 export interface AcademicProgressExperienceContext {
-  viewer: {
-    id: string;
-    name: string;
-    role: AcademicProgressViewerRole;
-  };
-  school: {
-    id: string;
-    name: string;
-    logo_url?: string | null;
-  };
+  viewer: { id: string; name: string; role: AcademicProgressViewerRole };
+  school: { id: string; name: string; logo_url?: string | null };
 }
 
 export async function getAcademicProgressExperienceContext(studentId?: string | null): Promise<AcademicProgressExperienceContext> {
-  const { data, error } = await supabase.rpc('rpc_academic_progress_experience_context', {
-    p_student_id: studentId ?? null,
-  });
-  if (error) throw error;
+  const { data, error } = await supabase.rpc('rpc_academic_progress_experience_context', { p_student_id: studentId ?? null });
+  if (error) throw userFacingError(error, 'We could not prepare this school progress workspace just now. Please try again.');
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    throw new Error('Academic progress context could not be resolved.');
+    throw new Error('We could not prepare this school progress workspace just now. Please refresh and try again.');
   }
   return data as AcademicProgressExperienceContext;
 }

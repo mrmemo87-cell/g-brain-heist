@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { userFacingError } from './userFacingError';
 
 export type InterventionType = 'targeted_question_practice' | 'writing_practice' | 'reassessment' | 'teacher_support' | 'custom';
 export interface InterventionRecommendation {
@@ -42,8 +43,8 @@ export interface InterventionIntelligence {
 }
 
 export async function getInterventionIntelligence(studentId: string, subject?: string | null): Promise<InterventionIntelligence> {
-  const { data, error } = await supabase.rpc('rpc_teacher_student_intervention_pilot', { p_student_id: studentId, p_subject: subject || null });
-  if (error) throw new Error(error.message || 'Intervention intelligence could not be loaded.');
+  const { data, error } = await supabase.rpc('rpc_teacher_student_intervention_intelligence', { p_student_id: studentId, p_subject: subject || null });
+  if (error) throw userFacingError(error, 'We could not open this student’s support recommendations just now. Please try again.');
   return data as InterventionIntelligence;
 }
 
@@ -62,28 +63,8 @@ export async function createLearningIntervention(input: {
     p_min_followup_observations: input.minimumFollowUpObservations ?? 2,
     p_min_successful_observations: input.minimumSuccessfulObservations ?? 2,
   });
-  if (error) throw new Error(error.message || 'Intervention could not be created.');
-  return String((data as { interventionId?: string } | null)?.interventionId || data);
-}
-
-export async function reviewLearningInterventionPlan(input: {
-  interventionId: string; decision: 'approved' | 'rejected'; rationale: string;
-}): Promise<void> {
-  const { error } = await supabase.rpc('rpc_teacher_review_learning_intervention_plan', {
-    p_intervention_id: input.interventionId,
-    p_decision: input.decision,
-    p_rationale: input.rationale,
-  });
-  if (error) throw new Error(error.message || 'The intervention plan could not be reviewed.');
-}
-
-export async function evaluateLearningIntervention(interventionId: string): Promise<InterventionEvaluation> {
-  const { data, error } = await supabase.rpc('rpc_teacher_evaluate_learning_intervention', {
-    p_intervention_id: interventionId,
-    p_as_of: new Date().toISOString(),
-  });
-  if (error) throw new Error(error.message || 'Follow-up evidence could not be evaluated.');
-  return data as InterventionEvaluation;
+  if (error) throw userFacingError(error, 'We could not create the support plan just now. Please try again.');
+  return String(data);
 }
 
 export async function updateLearningIntervention(input: { interventionId: string; action: 'start' | 'complete' | 'cancel' | 'note'; note?: string; outcomeStatus?: 'improved' | 'resolved' | 'no_change' | 'declined' | 'inconclusive' | 'needs_more_support' }): Promise<void> {
@@ -93,5 +74,5 @@ export async function updateLearningIntervention(input: { interventionId: string
     p_note: input.note || null,
     p_outcome_status: input.outcomeStatus || null,
   });
-  if (error) throw new Error(error.message || 'Intervention could not be updated.');
+  if (error) throw userFacingError(error, 'We could not update the support plan just now. Please try again.');
 }
