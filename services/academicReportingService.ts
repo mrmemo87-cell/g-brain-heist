@@ -123,3 +123,17 @@ export const finalizeAcademicReportSnapshot = async (reportId: string) => {
   if (error) throw error;
   return ensureObject<{ success: boolean; reportId: string; status: 'final'; payloadHash: string; alreadyFinal: boolean }>(data, 'Academic report finalization');
 };
+
+export const requestAcademicReportCorrection = async (
+  reportId: string,
+  reasonCode: 'source_error' | 'scope_error' | 'identity_error' | 'interpretation_concern' | 'privacy_concern' | 'other',
+  detail: string,
+) => {
+  const { data, error } = await supabase.rpc('rpc_request_academic_report_correction', {
+    p_report_id: reportId,
+    p_reason_code: reasonCode,
+    p_detail: detail,
+  });
+  if (error) throw error;
+  return ensureObject<{ success: boolean; correctionRequestId: string; originalReportRemainsImmutable: true }>(data, 'Academic report correction request');
+};
