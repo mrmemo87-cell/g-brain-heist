@@ -162,3 +162,66 @@ are resolved to a published canonical objective and pass the Phase 3 review work
    grade context, and mappings awaiting review.
 8. Begin Phase 4 Cambridge evidence adaptation only when the pilot mapping sample meets
    the agreed coverage and review-quality threshold; missing data remains visible.
+
+## Phase 4 contract
+
+Phase 4 introduces the first traceable evidence adapter for Cambridge-labelled, original
+Brain Heist assessments. It does not claim Cambridge endorsement, reproduce Cambridge
+content, infer question-level attainment from an overall score, or let provisional data
+change a student's current academic status.
+
+- New submissions may include a versioned `item_results` array containing only stable
+  item keys, outcome states, and marks. Raw question text, answer keys, and student
+  response text are not copied into the evidence layer.
+- `cambridge_evidence_runs` makes every adapter decision visible as `materialized`,
+  `partial`, or `blocked`, with counts for unregistered, unmapped, stale, invalid, and
+  unanswered items. Missing item results are `blocked`, never silently treated as no
+  weaknesses.
+- `cambridge_evidence_item_snapshots` captures the exact approved mapping ids,
+  confidence, item hash, curriculum-version hash, role, scope, and objective used at the
+  time of adaptation. Later mapping changes cannot rewrite historical evidence.
+- Current approved mappings are resolved independently for each item. Unregistered,
+  unmapped, or stale items are disclosed and excluded; mapped items may still produce a
+  partial run so useful evidence is not discarded.
+- Evidence is aggregated by canonical curriculum objective, with unanswered items kept
+  separate from incorrect answers. One observation cannot masquerade as several because
+  source keys are unique per run and objective.
+- Unanswered items are kept separate from incorrect answers in both the immutable item
+  trace and every objective-level percentage.
+- Browser-scored outcomes are labelled `stored_client_result`. A service-only boundary
+  accepts `teacher_verified` or `server_verified` outcomes without exposing service
+  credentials to the browser.
+- All Phase 4 Cambridge observations are `provisional` and
+  `contributes_to_focus_state = false`. Phase 5 must qualify sufficiency, recency,
+  source diversity, mapping confidence, and coverage before any observation affects a
+  focus, persistence, improvement, or strength conclusion.
+- Evidence tables are RLS protected and append-only. School users receive readiness
+  totals through a membership-scoped RPC rather than direct table access.
+
+### Item-result contract
+
+Each result supplies `item_key`, `response_state`, `marks_awarded`, and
+`marks_possible`. Allowed states are `correct`, `partial`, `incorrect`, `unanswered`,
+and `unscored`. Item keys must be unique, marks must be internally consistent, and their
+totals must equal the authoritative attempt row. A mismatch blocks the run. The first
+pilot producer is the secure Stage 9 Listening Test 1 submission; other Cambridge test
+shells remain explicitly unprocessed until they emit the same validated contract.
+
+### Phase 4 rollout gate
+
+1. Apply the migration on an isolated Supabase branch and verify trigger/RPC execution,
+   append-only guards, RLS, and service-only grants.
+2. Register and approve mappings for a reviewed sample of Stage 9 Listening Test 1 item
+   keys (`q1` through `q30`) without copying question or answer content.
+3. Submit correct, incorrect, and unanswered pilot responses; confirm outcome totals
+   match the attempt and unanswered items never become weaknesses.
+4. Change an item or curriculum content hash and confirm the run reports a stale mapping
+   rather than reusing it.
+5. Submit missing, duplicate, malformed, and score-mismatched item results; each must
+   produce a visible blocked run with zero observations.
+6. Re-run the same source payload and confirm idempotency. Run a corrected, verified
+   payload and confirm the earlier snapshot remains immutable.
+7. Compare readiness totals to source attempts and reconcile every unprocessed,
+   unregistered, unmapped, stale, partial, and blocked count.
+8. Begin Phase 5 only after the pilot school accepts the evidence trace and explicit
+   missing-data disclosure; no Phase 4 observation may yet modify focus state.
