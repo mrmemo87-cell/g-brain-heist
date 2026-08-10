@@ -133,7 +133,8 @@ test('report UI exposes year term class grade subject and audience controls', ()
   for (const label of ['School year', 'Reporting period', 'Class', 'Grade', 'Subject', 'Audience']) assert.match(builder, new RegExp(label, 'i'));
   assert.match(builder, /Full academic year/i);
   assert.match(builder, /Draft → Final approval/i);
-  assert.doesNotMatch(builder, /teacherComment|textarea/i);
+  assert.doesNotMatch(builder, /teacherComment/i);
+  assert.match(builder, /Request governed correction/i);
 });
 
 test('phase 8 rollout requires database and historical reproducibility gates', () => {
