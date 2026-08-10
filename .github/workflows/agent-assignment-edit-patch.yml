@@ -1,13 +1,14 @@
 name: Agent assignment edit patch
 on:
-  push:
+  pull_request:
     branches:
-      - agent/assignment-edit-publishing
+      - main
+    types: [opened, synchronize, reopened]
 permissions:
   contents: write
 jobs:
   patch-and-validate:
-    if: github.actor != 'github-actions[bot]'
+    if: github.head_ref == 'agent/assignment-edit-publishing' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
