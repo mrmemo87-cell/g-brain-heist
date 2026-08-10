@@ -59,9 +59,12 @@ test('teacher assignments lead with current coverage and open the academic-year-
   assert.match(teachers, /assignmentClasses\.map/);
 });
 
-test('classes use academic year filters and expose no archive action', () => {
-  assert.match(classes, /Filter classes by academic year \(grade\)/);
+test('classes group teaching coverage by academic year and expose no archive action', () => {
+  assert.match(classes, /Grades, classes and teaching coverage/);
+  assert.match(classes, /grades\.map/);
   assert.match(classes, /<select[\s\S]*?Select academic year/);
+  assert.match(classes, /handleEditClass\(row\)/);
+  assert.doesNotMatch(classes, /Filter classes by academic year \(grade\)/);
   assert.doesNotMatch(classes, /Archive Class|>\s*Archive\s*<\/|archiveSchoolClass/);
   assert.doesNotMatch(classes, />Active<\/label>/);
 });

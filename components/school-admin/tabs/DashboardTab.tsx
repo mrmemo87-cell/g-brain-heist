@@ -29,27 +29,6 @@ const DashboardTab: React.FC = () => {
     { label: 'Admins', value: schoolAdmins.length, note: `${schoolAdmins.filter((member: any) => member.is_owner).length} protected owner`, tab: 'members' },
   ];
 
-  const grades = Array.from(new Set(activeClasses.map((item: any) => item.grade_level ?? 'Unassigned')))
-    .sort((a: any, b: any) => {
-      if (a === 'Unassigned') return 1;
-      if (b === 'Unassigned') return -1;
-      return Number(a) - Number(b);
-    });
-
-  const classRows = activeClasses
-    .slice()
-    .sort((a: any, b: any) => String(a.class_code).localeCompare(String(b.class_code), undefined, { numeric: true }))
-    .map((schoolClass: any) => {
-      const assignments = activeAssignments.filter((item: any) => item.class_id === schoolClass.id);
-      const classStudents = students.filter((student: any) => studentAssignments[student.user_id] === schoolClass.id);
-      return {
-        ...schoolClass,
-        studentCount: classStudents.length,
-        teacherCount: new Set(assignments.map((item: any) => item.teacher_user_id)).size,
-        subjects: Array.from(new Set(assignments.map((item: any) => String(item.subject || '').trim()).filter(Boolean))).sort(),
-      };
-    });
-
   const unassignedStudents = students.length - placedStudents.length;
   const unassignedTeachers = teachers.filter((teacher: any) => !assignedTeacherIds.has(teacher.user_id)).length;
   const uncoveredClasses = activeClasses.length - coveredClassIds.size;
@@ -73,29 +52,6 @@ const DashboardTab: React.FC = () => {
       <article><span>Curriculum coverage</span><strong>{assignedSubjectNames.size}/{subjects.length}</strong><small>{unusedSubjects ? `${unusedSubjects} subjects not yet assigned` : 'All subjects are represented'}</small></article>
       <article><span>Teaching staff</span><strong>{assignedTeacherIds.size}/{teachers.length}</strong><small>{unassignedTeachers ? `${unassignedTeachers} active teaching staff without assignments` : 'All active teaching staff are assigned'}</small></article>
       <article><span>Teaching assignments</span><strong>{activeAssignments.length}</strong><small>Active class-subject-teacher links</small></article>
-    </section>
-
-    <section className="admin-table-card school-wide-angle" aria-labelledby="school-structure-title">
-      <div className="admin-card-heading"><div><h3 id="school-structure-title">Grades, classes and teaching coverage</h3><p>Each grade is grouped with its classes, student population, assigned teachers and taught subjects.</p></div></div>
-      {grades.length ? <div className="school-grade-groups">
-        {grades.map((grade: any) => {
-          const rows = classRows.filter((row: any) => (row.grade_level ?? 'Unassigned') === grade);
-          const gradeStudents = rows.reduce((total: number, row: any) => total + row.studentCount, 0);
-          const gradeTeachers = new Set(activeAssignments.filter((item: any) => rows.some((row: any) => row.id === item.class_id)).map((item: any) => item.teacher_user_id)).size;
-          return <section key={String(grade)} className="school-grade-group">
-            <header><div><p className="school-admin-eyebrow">{grade === 'Unassigned' ? 'Grade not set' : `Grade ${grade}`}</p><h4>{rows.length} {rows.length === 1 ? 'class' : 'classes'}</h4></div><div className="school-grade-totals"><span><strong>{gradeStudents}</strong> students</span><span><strong>{gradeTeachers}</strong> teachers</span></div></header>
-            <div className="admin-table-scroll"><table>
-              <thead><tr><th>Class</th><th>Students</th><th>Teachers</th><th>Subjects</th><th>Coverage</th></tr></thead>
-              <tbody>{rows.map((row: any) => <tr key={row.id}>
-                <td><strong>{row.class_code}</strong><span className="admin-table-subline">{row.class_name}</span></td>
-                <td>{row.studentCount}</td><td>{row.teacherCount}</td>
-                <td>{row.subjects.length ? <div className="admin-chip-list">{row.subjects.map((subject: string) => <span key={subject}>{subject}</span>)}</div> : <span className="admin-muted">No subjects assigned</span>}</td>
-                <td><span className={`admin-coverage-badge ${row.studentCount && row.teacherCount && row.subjects.length ? 'is-covered' : 'needs-attention'}`}>{row.studentCount && row.teacherCount && row.subjects.length ? 'Covered' : 'Needs attention'}</span></td>
-              </tr>)}</tbody>
-            </table></div>
-          </section>;
-        })}
-      </div> : <div className="admin-empty-state"><h3>No active classes yet</h3><p>Create classes to start building the whole-school overview.</p></div>}
     </section>
 
     <section className="admin-action-grid">

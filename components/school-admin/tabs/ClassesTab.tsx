@@ -3,14 +3,36 @@ import { useSchoolAdmin } from '../SchoolAdminContext';
 
 const ClassesTab: React.FC = () => {
   const {
-    classForm, classSaving, classes, classesLoading, handleEditClass, handleSaveClass, setClassForm,
+    classForm, classSaving, classes, handleEditClass, handleSaveClass, setClassForm,
+    studentAssignments, students, teacherAssignments, teachers,
   } = useSchoolAdmin();
-  const [academicYearFilter, setAcademicYearFilter] = React.useState('');
   const academicYears = React.useMemo(() => Array.from(new Set([
     ...Array.from({ length: 13 }, (_, index) => index + 1),
     ...classes.map((schoolClass: any) => Number(schoolClass.grade_level)).filter(Number.isFinite),
   ])).sort((a, b) => a - b), [classes]);
-  const visibleClasses = React.useMemo(() => classes.filter((schoolClass: any) => schoolClass.is_active && (!academicYearFilter || String(schoolClass.grade_level) === academicYearFilter)), [academicYearFilter, classes]);
+  const activeClasses = classes.filter((schoolClass: any) => schoolClass.is_active !== false);
+  const activeClassIds = new Set(activeClasses.map((schoolClass: any) => schoolClass.id));
+  const teachingStaffIds = new Set(teachers.map((teacher: any) => teacher.user_id));
+  const activeAssignments = teacherAssignments.filter((assignment: any) => assignment.active !== false && activeClassIds.has(assignment.class_id) && teachingStaffIds.has(assignment.teacher_user_id));
+  const grades = Array.from(new Set(activeClasses.map((schoolClass: any) => schoolClass.grade_level ?? 'Unassigned')))
+    .sort((a: any, b: any) => {
+      if (a === 'Unassigned') return 1;
+      if (b === 'Unassigned') return -1;
+      return Number(a) - Number(b);
+    });
+  const classRows = activeClasses
+    .slice()
+    .sort((a: any, b: any) => String(a.class_code).localeCompare(String(b.class_code), undefined, { numeric: true }))
+    .map((schoolClass: any) => {
+      const assignments = activeAssignments.filter((assignment: any) => assignment.class_id === schoolClass.id);
+      const classStudents = students.filter((student: any) => studentAssignments[student.user_id] === schoolClass.id);
+      return {
+        ...schoolClass,
+        studentCount: classStudents.length,
+        teacherCount: new Set(assignments.map((assignment: any) => assignment.teacher_user_id)).size,
+        subjects: Array.from(new Set(assignments.map((assignment: any) => String(assignment.subject || '').trim()).filter(Boolean))).sort(),
+      };
+    });
 
   return (
     <div className="space-y-6">
@@ -68,43 +90,28 @@ const ClassesTab: React.FC = () => {
         </div>
       </section>
 
-      <section className="admin-table-card">
-        <div className="admin-card-heading">
-          <div><h3>Classes in school</h3><p>{visibleClasses.length} active class records arranged by academic year and code.</p></div>
-          <div className="admin-assignment-filters"><label><span>Academic year (grade)</span><select aria-label="Filter classes by academic year (grade)" value={academicYearFilter} onChange={(event) => setAcademicYearFilter(event.target.value)}><option value="">All academic years</option>{academicYears.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select></label>{classesLoading && <span className="text-xs text-gray-500">Refreshing...</span>}</div>
-        </div>
-        <div className="admin-table-scroll" role="region" aria-label="Classes table" tabIndex={0}>
-          <table className="min-w-[640px] w-full">
-            <thead className="bg-gray-750 border-b border-gray-700">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Code</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Academic year (grade)</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {visibleClasses.map((schoolClass: any) => (
-                <tr key={schoolClass.id} className="hover:bg-gray-750">
-                  <td className="px-4 py-3 text-sm text-white font-semibold">{schoolClass.class_code}</td>
-                  <td className="px-4 py-3 text-sm text-gray-200">{schoolClass.class_name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-400">{schoolClass.grade_level ? `Grade ${schoolClass.grade_level}` : 'Not set'}</td>
-                  <td className="px-4 py-3 text-right space-x-2">
-                    <button
-                      onClick={() => handleEditClass(schoolClass)}
-                      className="text-cyan-400 hover:text-cyan-300 text-sm"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {visibleClasses.length === 0 && (
-          <div className="p-8 text-center text-gray-400">No classes created yet.</div>
-        )}
+      <section className="admin-table-card school-wide-angle" aria-labelledby="school-structure-title">
+        <div className="admin-card-heading"><div><h3 id="school-structure-title">Grades, classes and teaching coverage</h3><p>Each grade is grouped with its classes, student population, assigned teachers and taught subjects.</p></div></div>
+        {grades.length ? <div className="school-grade-groups">
+          {grades.map((grade: any) => {
+            const rows = classRows.filter((row: any) => (row.grade_level ?? 'Unassigned') === grade);
+            const gradeStudents = rows.reduce((total: number, row: any) => total + row.studentCount, 0);
+            const gradeTeachers = new Set(activeAssignments.filter((assignment: any) => rows.some((row: any) => row.id === assignment.class_id)).map((assignment: any) => assignment.teacher_user_id)).size;
+            return <section key={String(grade)} className="school-grade-group">
+              <header><div><p className="school-admin-eyebrow">{grade === 'Unassigned' ? 'Grade not set' : `Grade ${grade}`}</p><h4>{rows.length} {rows.length === 1 ? 'class' : 'classes'}</h4></div><div className="school-grade-totals"><span><strong>{gradeStudents}</strong> students</span><span><strong>{gradeTeachers}</strong> teachers</span></div></header>
+              <div className="admin-table-scroll" role="region" aria-label={`${grade === 'Unassigned' ? 'Unassigned grade' : `Grade ${grade}`} classes table`} tabIndex={0}><table className="min-w-[760px] w-full">
+                <thead><tr><th>Class</th><th>Students</th><th>Teachers</th><th>Subjects</th><th>Coverage</th><th>Action</th></tr></thead>
+                <tbody>{rows.map((row: any) => <tr key={row.id}>
+                  <td><strong>{row.class_code}</strong><span className="admin-table-subline">{row.class_name}</span></td>
+                  <td>{row.studentCount}</td><td>{row.teacherCount}</td>
+                  <td>{row.subjects.length ? <div className="admin-chip-list">{row.subjects.map((subject: string) => <span key={subject}>{subject}</span>)}</div> : <span className="admin-muted">No subjects assigned</span>}</td>
+                  <td><span className={`admin-coverage-badge ${row.studentCount && row.teacherCount && row.subjects.length ? 'is-covered' : 'needs-attention'}`}>{row.studentCount && row.teacherCount && row.subjects.length ? 'Covered' : 'Needs attention'}</span></td>
+                  <td><button type="button" onClick={() => handleEditClass(row)} className="text-cyan-400 hover:text-cyan-300 text-sm" aria-label={`Edit ${row.class_code}`}>Edit</button></td>
+                </tr>)}</tbody>
+              </table></div>
+            </section>;
+          })}
+        </div> : <div className="admin-empty-state"><h3>No active classes yet</h3><p>Create classes to start building the whole-school overview.</p></div>}
       </section>
     </div>
   );

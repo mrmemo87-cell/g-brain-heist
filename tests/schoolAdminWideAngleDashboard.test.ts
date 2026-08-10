@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const read = (file: string) => readFileSync(file, 'utf8');
 const dashboard = read('components/school-admin/tabs/DashboardTab.tsx');
+const classes = read('components/school-admin/tabs/ClassesTab.tsx');
 const teachers = read('components/school-admin/tabs/TeachersTab.tsx');
 const members = read('components/school-admin/modals/MemberActionModal.tsx');
 const memberDirectory = read('components/school-admin/tabs/MembersTab.tsx');
@@ -16,7 +17,7 @@ const capabilitiesMigration = read('supabase/migrations/20260801173000_school_me
 const app = read('App.tsx');
 const workspaceChooser = read('components/SchoolWorkspaceChooser.tsx');
 
-test('overview exposes the requested whole-school totals and grade-class coverage', () => {
+test('overview exposes the requested whole-school totals without duplicating class coverage', () => {
   const labels = ['Classes', 'Subjects', 'Students', 'Teaching staff', 'Admins'];
   let previous = -1;
   labels.forEach((label) => {
@@ -24,11 +25,18 @@ test('overview exposes the requested whole-school totals and grade-class coverag
     assert.ok(position > previous, `${label} should appear in the requested order`);
     previous = position;
   });
-  assert.match(dashboard, /Grades, classes and teaching coverage/);
-  assert.match(dashboard, /studentCount/);
-  assert.match(dashboard, /teacherCount/);
-  assert.match(dashboard, /subjects:/);
+  assert.doesNotMatch(dashboard, /Grades, classes and teaching coverage/);
   assert.doesNotMatch(dashboard, /Setup readiness/);
+});
+
+test('classes and registration owns editable grade-class teaching coverage', () => {
+  assert.doesNotMatch(classes, /Classes in school/);
+  assert.match(classes, /Grades, classes and teaching coverage/);
+  assert.match(classes, /studentCount/);
+  assert.match(classes, /teacherCount/);
+  assert.match(classes, /subjects:/);
+  assert.match(classes, /handleEditClass\(row\)/);
+  assert.match(classes, /aria-label={`Edit \${row\.class_code}`}/);
 });
 
 test('teacher assignment flow is class-subject-teacher with subject filtering and sortable columns', () => {
