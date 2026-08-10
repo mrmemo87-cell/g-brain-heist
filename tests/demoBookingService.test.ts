@@ -17,6 +17,13 @@ import {
 
 const bookedDemoPage = readFileSync('src/pages/BookedDemoPage.tsx', 'utf8');
 const bookedDemoStyles = readFileSync('src/pages/BookedDemoPage.css', 'utf8');
+const demoBookingServiceSource = readFileSync('services/demoBookingService.ts', 'utf8');
+const bookedEntry = readFileSync('booked.tsx', 'utf8');
+const bookedHtml = readFileSync('booked.html', 'utf8');
+const vercelConfig = JSON.parse(readFileSync('vercel.json', 'utf8')) as {
+  rewrites: Array<{ source: string; destination: string }>;
+};
+const viteConfig = readFileSync('vite.config.ts', 'utf8');
 
 const validBooking = (): DemoBookingInput => ({
   school_name: 'Northbridge International School',
@@ -140,4 +147,27 @@ test('keeps the booking dialog viewport-centered and dismissible only through OK
   assert.match(bookedDemoPage, /event\.key === 'Escape'[\s\S]*event\.preventDefault\(\)/);
   assert.match(bookedDemoPage, /className="booked-dialog-ok"[\s\S]*onClick=\{acknowledgeBookingDialog\}>OK<\/button>/);
   assert.doesNotMatch(bookedDemoPage, /booked-slot-check[^\n]*onClick=/);
+});
+
+test('serves the public booking page from its own lightweight entry', () => {
+  assert.match(bookedEntry, /import BookedDemoPage from '.\/src\/pages\/BookedDemoPage'/);
+  assert.doesNotMatch(bookedEntry, /App|RouterProvider|authService/);
+  assert.match(viteConfig, /booked: path\.resolve\(__dirname, 'booked\.html'\)/);
+  assert.deepEqual(
+    vercelConfig.rewrites.find((rewrite) => rewrite.source === '/booked'),
+    { source: '/booked', destination: '/booked.html' },
+  );
+  assert.match(bookedHtml, /family=IBM\+Plex\+Sans[^"']*&display=swap/);
+  assert.match(bookedHtml, /See how every learner becomes visible\./);
+});
+
+test('keeps non-critical booking media off the initial loading path', () => {
+  assert.match(bookedDemoPage, /assessment\.webp[^>]*loading="lazy"[^>]*decoding="async"/);
+  assert.match(bookedDemoPage, /writing\.webp[^>]*loading="lazy"[^>]*decoding="async"/);
+  assert.match(bookedDemoPage, /ielts\.webp[^>]*loading="lazy"[^>]*decoding="async"/);
+  assert.match(bookedDemoPage, /classroom\.webp[^>]*loading="lazy"[^>]*decoding="async"/);
+  assert.match(bookedDemoPage, /new IntersectionObserver[\s\S]*rootMargin: '600px 0px'/);
+  assert.doesNotMatch(bookedDemoPage, /lottie-react|fflate|SLOT_CHECK_ANIMATION_URL/);
+  assert.match(demoBookingServiceSource, /await import\('\.\/supabaseClient\.js'\)/);
+  assert.doesNotMatch(demoBookingServiceSource, /^import \{ supabase \}/m);
 });

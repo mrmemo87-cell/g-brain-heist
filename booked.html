@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Book a Brains Heist School Demo</title>
+    <meta name="description" content="Book a tailored Brains Heist demonstration for your school." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="preload" href="/booked-assets/logo.webp" as="image" type="image/webp" />
+    <style>
+      html { background: #050816; }
+      body { margin: 0; font-family: 'IBM Plex Sans', Inter, system-ui, sans-serif; }
+      .booked-shell {
+        min-height: 100vh;
+        display: grid;
+        align-content: center;
+        gap: 20px;
+        padding: 40px max(24px, calc((100vw - 1180px) / 2));
+        color: #fff;
+        background:
+          radial-gradient(circle at 75% 30%, rgba(255, 45, 145, .13), transparent 34%),
+          radial-gradient(circle at 20% 20%, rgba(0, 208, 232, .14), transparent 30%),
+          #050816;
+      }
+      .booked-shell strong { color: #15d7ff; font-size: 15px; letter-spacing: .16em; }
+      .booked-shell h1 { max-width: 760px; margin: 0; font-size: clamp(44px, 7vw, 78px); line-height: 1; letter-spacing: -.05em; }
+      .booked-shell p { max-width: 620px; margin: 0; color: #b7c1d9; font-size: 18px; line-height: 1.6; }
+      .booked-shell-progress { width: min(280px, 70vw); height: 3px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+      .booked-shell-progress::after { content: ''; display: block; width: 45%; height: 100%; background: linear-gradient(90deg, #15d7ff, #ff2d91); animation: booked-shell-load 1.1s ease-in-out infinite alternate; }
+      @keyframes booked-shell-load { to { transform: translateX(125%); } }
+      @media (prefers-reduced-motion: reduce) { .booked-shell-progress::after { animation: none; } }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <main class="booked-shell" aria-label="Loading the Brains Heist demo booking page">
+        <strong>BRAINS HEIST · SCHOOL DEMO</strong>
+        <h1>See how every learner becomes visible.</h1>
+        <p>Preparing the live demonstration calendar in your local timezone.</p>
+        <div class="booked-shell-progress" aria-hidden="true"></div>
+      </main>
+    </div>
+    <script type="module" src="/booked.tsx"></script>
+  </body>
+</html>
