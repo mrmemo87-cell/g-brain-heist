@@ -17,10 +17,10 @@ test('teacher academic tools stay inside the teacher portal shell', () => {
 
 test('academic report section numbers follow only included sections', () => {
   assert.match(report, /const sectionNumbers = useMemo/);
-  assert.match(report, /focus: includeFocus \? next\+\+ : null/);
-  assert.match(report, /strengths: includeStrengths \? next\+\+ : null/);
-  assert.match(report, /assignments: includeAssignments \? next\+\+ : null/);
-  assert.match(report, /timeline: includeTimeline \? next\+\+ : null/);
-  assert.match(report, /comment: teacherComment\.trim\(\) \? next\+\+ : null/);
+  assert.match(report, /focus: includeFocus \? take\(\) : null/);
+  assert.match(report, /strengths: includeStrengths \? take\(\) : null/);
+  assert.match(report, /assignments: includeAssignments \? take\(\) : null/);
+  assert.match(report, /timeline: includeTimeline \? take\(\) : null/);
+  assert.match(report, /comment: teacherComment\.trim\(\) \? take\(\) : null/);
   assert.doesNotMatch(report, /<span>0[2-6]<\/span>/);
 });

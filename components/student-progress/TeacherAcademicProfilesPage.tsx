@@ -85,11 +85,13 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
     <AcademicProgressHeader
       context={context}
       eyebrow="Student Progress"
-      title="Student Progress & Reports"
+      title="Student Academic Profiles"
       subtitle="Choose a grade, class and student to see attainment, strengths, areas for development and progress over time — then generate a school-ready report."
       onBack={onBack}
       backLabel={onBack ? 'Back to Teacher Workspace' : undefined}
     />
+
+    <p className="aps-scope-note">Only students and subjects covered by your active teaching assignments are shown here.</p>
 
     {loading ? <div className="aps-empty-state">Loading your authorised students…</div> : null}
     {error ? <div className="aps-empty-state">{error}</div> : null}
@@ -112,7 +114,7 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
           <strong>{selected.student_name}</strong>
           <span>{selected.grade ? `Grade ${selected.grade} · ` : ''}Class {selected.class_name || '—'}{subjectFilter !== 'all' ? ` · ${subjectFilter}` : ''}</span>
         </div>
-        <button type="button" className="aps-primary-button" onClick={() => setProfileOpen(true)}>Open student progress</button>
+        <button type="button" className="aps-primary-button" onClick={() => setProfileOpen(true)}>Open academic profile</button>
       </section> : <div className="aps-empty-state">Start with the grade above. The next step becomes available automatically.</div>}
     </> : null}
   </section>;

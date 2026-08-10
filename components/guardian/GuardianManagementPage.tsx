@@ -89,13 +89,13 @@ const GuardianManagementPage: React.FC = () => {
 
     <section className="guardian-admin-grid">
       <article>
-        <h2>Invite a parent or guardian</h2>
+        <h2>Invite and verify guardians</h2>
         <p className="guardian-admin-note">The account is not created by the school. The school verifies the relationship, then the parent signs in or creates their own secure account using the invited email address.</p>
         <form onSubmit={createInvite}>
           <label>Selected student<input readOnly value={selectedStudent ? `${selectedStudent.student_name} · ${selectedStudent.grade ? `Grade ${selectedStudent.grade} · ` : ''}Class ${selectedStudent.class_name || '—'}` : 'Choose the student above'} /></label>
-          <label>Parent / guardian email<input required type="email" disabled={!studentId} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="parent@example.com" /></label>
+          <label>Guardian email<input required type="email" disabled={!studentId} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="parent@example.com" /></label>
           <label>Relationship<select value={relationship} disabled={!studentId} onChange={(e) => setRelationship(e.target.value)}><option>Parent / Guardian</option><option>Mother</option><option>Father</option><option>Guardian</option><option>Carer</option></select></label>
-          <button disabled={busy || !studentId}>{busy ? 'Working…' : 'Create secure invitation'}</button>
+          <button disabled={busy || !studentId}>{busy ? 'Working…' : 'Generate secure invitation'}</button>
         </form>
         {generatedLink ? <div className="guardian-link-box"><small>Send this link only to the invited email owner. They will use it to verify access to this child.</small><input readOnly value={generatedLink} /><button onClick={() => navigator.clipboard.writeText(generatedLink)}>Copy invitation link</button></div> : null}
       </article>

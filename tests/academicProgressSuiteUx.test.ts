@@ -38,8 +38,8 @@ test('shared profile experience has no hard-coded teacher-only return copy', () 
   const profile = read('components/student-progress/StudentAcademicProfile.tsx');
   assert.doesNotMatch(directory, /Back to teacher portal/i);
   assert.doesNotMatch(profile, /Back to teacher portal/i);
-  assert.match(directory, /Student Progress & Reports/);
-  assert.match(profile, /Generate school report/);
+  assert.match(directory, /Student Academic Profiles/);
+  assert.match(profile, /Generate individual report/);
 });
 
 test('support plans use school language rather than implementation-phase language', () => {
@@ -59,7 +59,7 @@ test('parent onboarding is explicit and child-specific', () => {
   assert.match(admin, /marks, subject performance, strengths/);
   assert.match(admin, /Private teacher notes and raw internal evidence stay hidden/);
   assert.match(parent, /Your child’s progress/);
-  assert.match(parent, /Current areas for development/);
+  assert.match(parent, /Current focus areas/);
   assert.match(parent, /SchoolBrand/);
 });
 

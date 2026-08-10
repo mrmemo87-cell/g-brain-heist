@@ -592,7 +592,7 @@ export default function AssignmentWizard({
                 })}
                 <button type="button" className={customDueDate ? 'aw-due-card is-selected' : 'aw-due-card'} onClick={() => setCustomDueDate(true)}><span>▦</span><strong>Custom date</strong><small>Choose date and time</small></button>
               </div>
-              {customDueDate && <label className="aw-custom-date"><span>Custom due date</span><input type="datetime-local" min={localDateTimeValue()} value={assignmentDueAt} aria-invalid={isPastDueDate(assignmentDueAt)} onChange={(event) => setAssignmentDueAt(event.target.value)} />{isPastDueDate(assignmentDueAt) ? <small className="aw-field-error">Choose a future date and time.</small> : null}</label>}
+              {customDueDate && <label className="aw-custom-date"><span>Custom due date</span><input type="datetime-local" min={localDateTimeValue()} value={assignmentDueAt} aria-invalid={isPastDueDate(assignmentDueAt)} onChange={(event) => setAssignmentDueAt(event.target.value)} />{isPastDueDate(assignmentDueAt) ? <small className="aw-field-error">Students cannot receive an assignment that is already overdue.</small> : null}</label>}
               <div className="mt-5 grid gap-3 rounded-xl border border-slate-200 bg-white p-4">
                 <div><strong className="text-slate-800">Publication</strong><p className="text-sm text-slate-500">Publish now, schedule it, or save a draft from the review step.</p></div>
                 <div className="grid gap-2 sm:grid-cols-2">
