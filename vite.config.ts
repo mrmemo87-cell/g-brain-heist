@@ -20,8 +20,12 @@ function copyBiologyQuestionAssetsPlugin() {
 function teacherAcademicWorkspacePlugin() {
   return {
     name: 'teacher-academic-workspace-shell',
-    resolveId(source: string, importer?: string) {
-      if (source === './components/TeacherPortal' && importer?.endsWith('/App.tsx')) {
+    resolveId(source: string) {
+      // App.tsx lazy-loads this exact specifier. Resolve it directly to the
+      // workspace shell so Academic Profiles and Interventions stay mounted
+      // inside the existing Teacher Portal instead of navigating away.
+      // TeacherPortalShell imports './TeacherPortal', so this does not recurse.
+      if (source === './components/TeacherPortal') {
         return path.resolve(__dirname, 'components/TeacherPortalShell.tsx');
       }
       return null;
