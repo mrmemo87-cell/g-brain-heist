@@ -1,0 +1,114 @@
+.shli-shell {
+  color: #10243a;
+  background:
+    radial-gradient(circle at 85% 0, rgba(13, 145, 170, .08), transparent 32rem),
+    radial-gradient(circle at 0 55%, rgba(149, 69, 168, .05), transparent 30rem),
+    #f5f7fb;
+  color-scheme: light;
+}
+
+.shli-header { border-color: #d8e2ec; }
+
+.shli-header span,
+.shli-panel header span,
+.shli-assurance strong,
+.shli-priority-grid article span,
+.shli-state b { color: #087f96; }
+
+.shli-header h1,
+.shli-panel h2,
+.shli-kpis strong,
+.shli-class-list strong,
+.shli-class-list b,
+.shli-priority-grid h3,
+.shli-priority-grid dd,
+.shli-students strong,
+.shli-student-counts b,
+.shli-strengths strong,
+.shli-state h1 { color: #10243a; }
+
+.shli-header p,
+.shli-assurance p,
+.shli-kpis span,
+.shli-kpis small,
+.shli-panel header > small,
+.shli-panel th,
+.shli-panel td,
+.shli-class-list small,
+.shli-priority-grid dt,
+.shli-priority-grid p,
+.shli-students span,
+.shli-students small,
+.shli-strengths small,
+.shli-empty,
+.shli-footer,
+.shli-state p { color: #607389; }
+
+.shli-actions label { color: #536a80; }
+
+.shli-actions select,
+.shli-actions button,
+.shli-filters select,
+.shli-reset,
+.shli-state button {
+  border-color: #cbd8e4;
+  color: #173047;
+  background: #fff;
+}
+
+.shli-actions button.is-primary {
+  border-color: #087f96;
+  color: #fff;
+  background: #087f96;
+}
+
+.shli-assurance,
+.shli-callout,
+.shli-panel,
+.shli-kpis article {
+  border-color: #d8e2ec;
+  background: #fff;
+  box-shadow: 0 14px 36px rgba(42, 62, 82, .07);
+}
+
+.shli-callout.is-warning {
+  border-color: #efd58d;
+  background: #fffbeb;
+}
+
+.shli-callout h2 { color: #713f12; }
+.shli-callout p { color: #7c5c27; }
+.shli-panel th { border-color: #d8e2ec; background: #f6f9fc; }
+.shli-panel td { border-color: #e7edf3; }
+.shli-link,
+.shli-students a { color: #087f96; }
+.shli-panel b.warn { color: #b4233b; }
+.shli-state.is-error b { color: #b4233b; border-color: #e3a4ae; }
+
+.shli-class-list button,
+.shli-priority-grid article,
+.shli-students article {
+  border-color: #dbe4ed;
+  color: #173047;
+  background: #f9fbfd;
+}
+
+.shli-class-list button.active {
+  border-color: #3aa9bc;
+  background: #e8f7fa;
+}
+
+.shli-priority-grid dl div,
+.shli-student-counts span { background: #edf3f7; }
+
+.shli-strengths article {
+  border-color: #bfe4d8;
+  background: #effaf6;
+}
+
+.shli-strengths span { color: #16765f; }
+
+.shli-governance-loading {
+  color: #0b6578;
+  background: rgba(241, 247, 250, .94);
+}
