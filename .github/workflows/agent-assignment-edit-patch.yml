@@ -1,6 +1,9 @@
-# Temporary recovery workflow: materialize the assignment editing feature from the merged patch scripts.
+# Temporary recovery workflow: materialize the assignment-editing feature into real source files.
 name: Agent assignment edit patch
 on:
+  push:
+    branches:
+      - agent/assignment-edit-publishing
   pull_request:
     branches:
       - main
@@ -9,7 +12,7 @@ permissions:
   contents: write
 jobs:
   patch-and-validate:
-    if: github.head_ref == 'agent/assignment-edit-publishing' && github.actor != 'github-actions[bot]'
+    if: (github.head_ref == 'agent/assignment-edit-publishing' || github.ref_name == 'agent/assignment-edit-publishing') && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,29 +22,21 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: Materialize feature source
-        run: |
-          python3 scripts/patch_assignment_edit_feature.py
-          python3 scripts/fix_assignment_patch_output.py
-      - name: Commit feature source before validation
-        run: |
-          rm -f .github/workflows/agent-assignment-edit-patch.yml \
-                scripts/patch_assignment_edit_feature.py \
-                scripts/fix_assignment_patch_output.py \
-                scripts/.assignment-edit-trigger
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Materialize assignment editing and publication controls"
-          git push
+      - name: Apply feature patch
+        run: python3 scripts/patch_assignment_edit_feature.py
       - name: Install dependencies
         run: npm ci
       - name: Typecheck
-        continue-on-error: true
         run: npm run typecheck
       - name: Tests
-        continue-on-error: true
         run: npm test
       - name: Build
-        continue-on-error: true
         run: npm run build
+      - name: Commit validated feature
+        run: |
+          rm -f .github/workflows/agent-assignment-edit-patch.yml scripts/patch_assignment_edit_feature.py
+          git config user.name "github-actions[bot]"
+          git config user.email "4189826+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Materialize assignment editing and publication controls"
+          git push
