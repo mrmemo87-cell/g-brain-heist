@@ -1,7 +1,7 @@
 -- Premium parent/guardian invitation preview.
 -- The bearer invitation token may reveal only presentation context required to help the intended
--- recipient recognise the school and child before authentication. No academic data or raw email
--- address is exposed by this function.
+-- recipient recognise the school and child before authentication. No academic data, raw email,
+-- user UUID or school UUID is exposed by this function.
 
 create or replace function public.rpc_guardian_invitation_preview(p_token text)
 returns jsonb
@@ -37,12 +37,11 @@ begin
     else 'ready'
   end;
 
-  select s.id, s.name, s.logo_url into v_school
+  select s.name, s.logo_url into v_school
   from public.schools s
   where s.id = v_inv.school_id;
 
   select
-    u.id,
     coalesce(nullif(trim(u.full_name), ''), nullif(trim(u.username), ''), 'your child') as student_name,
     coalesce(nullif(trim(c.class_code), ''), nullif(trim(u.batch), ''), null) as class_name,
     coalesce(nullif(trim(c.grade_level::text), ''), nullif(trim(u.grade::text), ''), null) as grade
@@ -64,12 +63,10 @@ begin
     'valid', v_status = 'ready',
     'status', v_status,
     'school', jsonb_build_object(
-      'id', v_school.id,
       'name', coalesce(v_school.name, 'School'),
       'logo_url', v_school.logo_url
     ),
     'student', jsonb_build_object(
-      'id', v_student.id,
       'name', v_student.student_name,
       'class_name', v_student.class_name,
       'grade', v_student.grade
