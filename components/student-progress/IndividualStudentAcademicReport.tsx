@@ -76,7 +76,7 @@ const IndividualStudentAcademicReport: React.FC<IndividualStudentAcademicReportP
 
           {teacherComment.trim() ? <section className="sap-print-section"><div className="sap-print-section-heading"><span>{sectionNumbers.comment}</span><div><h2>Teacher comment</h2><p>Professional context provided by the report author.</p></div></div><blockquote>{teacherComment.trim()}</blockquote></section> : null}
 
-          <footer className="sap-print-footer"><span>{brand.name} · Confidential academic record</span><span>{reportId} · Generated securely through Brain Heist</span></footer>
+          <footer className="sap-print-footer"><span>{brand.name} · Confidential academic record</span><span>{reportId} · Generated securely through Brains Heist</span></footer>
         </article>
       </div>
     </div>,
