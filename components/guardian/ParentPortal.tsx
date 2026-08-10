@@ -79,7 +79,7 @@ const ParentPortal: React.FC = () => {
         const url = new URL(window.location.href); url.searchParams.delete('invite'); window.history.replaceState(null, '', `${url.pathname}${url.search}`);
         await loadChildren();
       })
-      .catch((err) => setError(safeMessage(err, 'We could not confirm this invitation. Please ask the school to check your parent access.'))
+      .catch((err) => setError(safeMessage(err, 'We could not confirm this invitation. Please ask the school to check your parent access.')))
       .finally(() => setClaiming(false));
   }, [signedIn, inviteToken, preview?.status]);
 
@@ -88,7 +88,7 @@ const ParentPortal: React.FC = () => {
     setLoading(true); setError(null);
     void getGuardianChildProgress(selectedId, days)
       .then(setProgress)
-      .catch((err) => setError(safeMessage(err, 'We could not open this progress view just now. Please try again.'))
+      .catch((err) => setError(safeMessage(err, 'We could not open this progress view just now. Please try again.')))
       .finally(() => setLoading(false));
   }, [signedIn, selectedId, days]);
 
@@ -145,7 +145,7 @@ const ParentPortal: React.FC = () => {
 
   return <main className="parent-portal">
     <header className="parent-header"><div className="parent-school-identity"><div className="parent-dashboard-brand"><SchoolBrand brand={brand} className="parent-school-brand" imageClassName="parent-school-logo" /><span className="parent-brand-divider" /><BrainsHeistMark compact /></div><small>Parent Portal · My Children</small></div><div><select aria-label="Reporting period" value={days} onChange={(e) => setDays(Number(e.target.value))}><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option><option value={180}>Last 6 months</option><option value={365}>Last 12 months</option></select><button onClick={() => void parentSignOut()}>Sign out</button></div></header>
-    {error ? <div className="parent-alert is-error"><strong>Something needs your attention</strong><span>{error}</span><button type="button" onClick={() => selectedId ? setSelectedId(selectedId) : void loadChildren()}>Try again</button></div> : null}{message ? <div className="parent-alert"><strong>All set</strong><span>{message}</span></div> : null}
+    {error ? <div className="parent-alert is-error"><strong>Something needs your attention</strong><span>{error}</span><button type="button" onClick={() => void loadChildren()}>Try again</button></div> : null}{message ? <div className="parent-alert"><strong>All set</strong><span>{message}</span></div> : null}
     <div className="parent-layout">
       <aside><h2>My Children</h2><p className="parent-aside-note">Choose a child to view their school-approved progress.</p>{children.map((child) => <button className={child.student_id === selectedId ? 'active' : ''} key={child.relationship_id} onClick={() => setSelectedId(child.student_id)}><strong>{child.student_name}</strong><small>{child.relationship_label} · {child.grade ? `Grade ${child.grade} · ` : ''}Class {child.class_name || '—'}</small></button>)}{!children.length && !loading ? <div className="parent-empty-card"><strong>No children are linked yet</strong><p>Open the secure invitation sent by the school, or ask the school to check your parent access.</p></div> : null}</aside>
       <section className="parent-content">
