@@ -225,3 +225,69 @@ shells remain explicitly unprocessed until they emit the same validated contract
    unregistered, unmapped, stale, partial, and blocked count.
 8. Begin Phase 5 only after the pilot school accepts the evidence trace and explicit
    missing-data disclosure; no Phase 4 observation may yet modify focus state.
+
+## Phase 5 contract
+
+Phase 5 turns traceable observations into transparent, confidence-gated conclusions and
+curriculum-coverage disclosure. Confidence describes the quality of the evidence behind a
+conclusion; it is not the student's attainment score. Coverage describes the breadth of
+qualified evidence across a configured curriculum scope; it is not mastery.
+
+- `academic_evidence_confidence_policies` versions the formula weights and minimum gates.
+  An active or retired policy is immutable so a later policy change cannot silently alter
+  the meaning of an earlier report.
+- `student_learning_confidence_states` is a rebuildable, academic-year-scoped projection.
+  It records qualifying observations, evidence volume and quality, recency, time span,
+  source types and source instances, mapping quality, source coverage, consistency, every
+  component score, every decision gate, the policy version, and projection time.
+- Existing trusted assignment, Writing Hub, import, and teacher evidence qualifies only
+  when its source adapter marks it as contributing. Cambridge evidence qualifies only
+  when item outcomes are `teacher_verified` or `server_verified` and have mapping
+  snapshots. `stored_client_result` observations remain visible but cannot drive a
+  conclusion.
+- The general decision gate requires at least two qualifying observations, four evidence
+  items, a confidence score of 60, and evidence no older than 180 days. A persistent label
+  additionally requires at least three focus observations from two source instances over
+  21 days, a score of 70, and recent evidence. Resolution requires two prior focus
+  observations followed by two recovery observations, two source instances, a score of
+  70, and recent evidence. Consistent strength has its own two-observation, two-instance,
+  seven-day, score-68 gate.
+- Data that is missing, sparse, stale, or recently contradictory is reported as
+  `not_assessed`, `low_data`, `stale`, or `contradictory`. It cannot produce persistent,
+  resolved, or consistent-strength conclusions. Persistent, resolved, and contradictory
+  cases are flagged for teacher review rather than presented as an autonomous diagnosis.
+- The current focus projection stores its confidence state, policy result, academic year,
+  assessment state, review requirement, and computation time. Inserting new evidence
+  refreshes the affected skill only; the service-only rebuild RPC supports reproducible
+  shadow projections without rewriting historical observations.
+- `student_curriculum_coverage_states` reports assessable, observed, qualified,
+  unassessed, low-data, focus, strength, outside-scope, and unmapped counts for each
+  student/year/subject. Readiness is `curriculum_not_configured`, `no_evidence`,
+  `low_coverage`, `partial_coverage`, or `broad_coverage`.
+- An unassessed objective is never classified as a weakness. A broad-coverage result does
+  not mean mastery. Estimated grade-to-scope mappings remain explicitly estimated.
+- The student-confidence RPC uses the same self, School Head, school-admin, and assigned-
+  subject teacher boundaries as the academic profile. Projection tables have fail-closed
+  RLS and no direct authenticated-table access.
+
+### Phase 5 rollout gate
+
+1. Apply the migration on an isolated Supabase branch and validate schema, constraints,
+   RLS, grants, trigger execution, concurrent ingestion, and service-only rebuild access.
+2. Rebuild the reviewed pilot students at a fixed `as_of` time. Confirm identical inputs
+   and policy version produce identical scores and gates without altering observations.
+3. Reconcile excluded evidence by reason: provisional browser scoring, missing mapping,
+   missing year/subject context, insufficient items, stale evidence, and contradictions.
+4. Have subject teachers review borderline scores plus every persistent, resolved, and
+   contradictory result. Record disputed journeys for Phase 6 golden-case validation.
+5. Verify year transitions do not mix the previous academic year's evidence into current
+   decisions, while the original observations remain available for historical reporting.
+6. Compare configured objectives to observed and qualified coverage for each pilot
+   grade/subject. Reconcile every outside-scope and unmapped signal; do not convert an
+   unassessed objective into a focus area.
+7. Run a production shadow comparison against the existing focus projection. Monitor
+   label changes, confidence distributions, stale projections, and teacher disagreement;
+   do not bulk backfill current conclusions until the school accepts the thresholds.
+8. Begin Phase 6 only with approved golden journeys for weak, recurring, persistent,
+   improving, resolved, strength, decline, missing, contradictory, stale, and grade/year
+   transition cases.
