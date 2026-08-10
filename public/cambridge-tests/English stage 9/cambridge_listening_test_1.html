@@ -1431,6 +1431,21 @@
     const timeTaken = startTime ? Math.floor((new Date() - startTime) / 1000) : 0;
     const score = calculateScore(false);
     const percentage = Math.round((score / total) * 100);
+    // Store content-free item outcomes for the Academic Intelligence adapter. The
+    // adapter validates these against the overall score and keeps them provisional;
+    // it never copies answer text or treats browser scoring as verified evidence.
+    const itemResults = [];
+    for (let i = 1; i <= total; i++) {
+      const response = answers[i];
+      const unanswered = !response;
+      const isCorrect = !unanswered && isAnswerCorrect(response, correct[i]);
+      itemResults.push({
+        item_key: `q${i}`,
+        response_state: unanswered ? 'unanswered' : (isCorrect ? 'correct' : 'incorrect'),
+        marks_awarded: isCorrect ? 1 : 0,
+        marks_possible: 1
+      });
+    }
     
     if (timerInterval) {
       clearInterval(timerInterval);
@@ -1465,7 +1480,13 @@
         p_quiz_name: 'Cambridge Listening Test 1',
         p_test_id: TEST_ID,
         p_quiz_version: QUIZ_VERSION,
-        p_answers: { responses: answers, quiz_version: QUIZ_VERSION, auto_submit_reason: autoSubmitReason || null },
+        p_answers: {
+          responses: answers,
+          quiz_version: QUIZ_VERSION,
+          auto_submit_reason: autoSubmitReason || null,
+          evidence_adapter_version: 'cambridge-v1',
+          item_results: itemResults
+        },
         p_score: score,
         p_total_questions: total,
         p_percentage: percentage,
