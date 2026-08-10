@@ -1,7 +1,6 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { formatLearningStatus, type StudentAcademicProfile } from '../../services/studentAcademicProfileService';
-import { createSchoolBrand } from '../../src/lib/schoolBranding';
+import React from 'react';
+import type { StudentAcademicProfile } from '../../services/studentAcademicProfileService';
+import AcademicReportBuilder from './AcademicReportBuilder';
 
 interface IndividualStudentAcademicReportProps {
   profile: StudentAcademicProfile;

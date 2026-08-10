@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const rpc = readFileSync('supabase/migrations/20260809174000_student_academic_profile_rpc.sql', 'utf8');
 const profile = readFileSync('components/student-progress/StudentAcademicProfile.tsx', 'utf8');
-const report = readFileSync('components/student-progress/IndividualStudentAcademicReport.tsx', 'utf8');
+const report = readFileSync('components/student-progress/AcademicReportBuilder.tsx', 'utf8');
 const service = readFileSync('services/studentAcademicProfileService.ts', 'utf8');
 const vite = readFileSync('vite.config.ts', 'utf8');
 
@@ -35,11 +35,10 @@ test('teacher and student profile UI contains the longitudinal academic sections
 });
 
 test('individual report is explicit about evidence accuracy and missing work', () => {
-  assert.match(report, /Individual Student Academic Report/i);
-  assert.match(report, /Isolated low results are not presented as persistent weaknesses/i);
-  assert.match(report, /Missing work is not silently converted into a zero/i);
-  assert.match(report, /Strengths and progress/i);
-  assert.match(report, /Evidence timeline/i);
+  assert.match(report, /Missing evidence will be disclosed as “not assessed,” never/i);
+  assert.match(report, /Missing work is not zero/i);
+  assert.match(report, /Attainment, progress and evidence confidence/i);
+  assert.match(report, /exact references/i);
   assert.match(report, /Confidential/i);
   assert.match(report, /Print \/ Save PDF/i);
 });
