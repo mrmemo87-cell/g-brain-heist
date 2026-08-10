@@ -58,3 +58,46 @@ Phase 1 should be enabled in this order:
 
 The initial Cambridge pilot covers English, Mathematics, and Science. Curriculum content
 and grade-level mappings begin only after this foundation is verified.
+
+## Phase 2 contract
+
+Phase 2 defines the curriculum as governed, versioned reference data. It does not import
+or reproduce any third-party curriculum content by itself.
+
+- `curriculum_frameworks` identifies a global or school-owned curriculum authority.
+- `curriculum_framework_versions` records exact source, licence, effective dates, review
+  state, and a SHA-256 content hash. Published versions cannot be edited in place.
+- `curriculum_framework_subjects`, `curriculum_stages`, and `curriculum_scopes` connect a
+  framework version to the canonical academic subject layer from Phase 1.
+- `curriculum_nodes` represents a validated strand, topic, skill, and subskill hierarchy
+  while allowing a framework to omit levels it does not use.
+- `curriculum_objectives` stores assessable objective wording, cognitive level, command
+  terms, source references, and stable codes inside one immutable version.
+- `curriculum_objective_prerequisites` supports required or recommended learning order
+  without mixing objectives from different versions.
+- `school_curriculum_scope_mappings` maps one school year, grade, and canonical subject
+  to a published subject-stage scope with confirmed or estimated quality.
+- Schools read the catalog and scope detail through membership-checked RPCs. Direct
+  browser writes to global curriculum tables remain closed.
+
+### Version lifecycle
+
+Curriculum versions follow `draft → in_review → approved → published → retired`.
+Review can return a version to the previous editable state, but a published curriculum
+version is immutable. A correction, source update, or local adaptation must create a new
+version so historic evidence and reports continue to resolve against the original content
+hash.
+
+### Phase 2 rollout gate
+
+1. Validate the empty schema and permissions on an isolated database or rollback-only
+   production-schema transaction.
+2. Import one licensed or original English pilot version as `draft` with source and
+   licence metadata.
+3. Review its stages, hierarchy, objective wording, codes, and grade interpretation.
+4. Approve it only when every scope has at least one assessable objective.
+5. Publish through the readiness gate with a reproducible SHA-256 content hash.
+6. Map one pilot school's academic year, grade, English subject, and curriculum scope.
+7. Confirm teachers can read the mapped catalog but cannot mutate curriculum records.
+8. Repeat the same governed process for Mathematics and Science before Phase 3 question
+   mapping begins.
