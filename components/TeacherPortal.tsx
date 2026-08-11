@@ -52,6 +52,11 @@ import {
   schoolDocumentFileName,
   type SchoolDocumentAudience,
 } from '../src/lib/schoolDocument';
+import {
+  parseTeacherQuestionImport,
+  TEACHER_QUESTION_IMPORT_TEMPLATE,
+  type TeacherQuestionImportPreview,
+} from '../src/lib/teacherQuestionBulkImport';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -156,6 +161,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const questionsLoadRef = useRef<Promise<void> | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
+  const [bulkImportPreview, setBulkImportPreview] = useState<TeacherQuestionImportPreview | null>(null);
+  const [bulkImportSource, setBulkImportSource] = useState('');
+  const [bulkPasteText, setBulkPasteText] = useState('');
   const [editingQuestion, setEditingQuestion] = useState<TeacherQuestion | null>(null);
   const [isProPlan, setIsProPlan] = useState(() => isPro(_cachedTeacherTier));
   const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
@@ -226,11 +234,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [points, setPoints] = useState(10);
   const [topicMode, setTopicMode] = useState<'general' | 'custom'>('general');
   const [customTopicName, setCustomTopicName] = useState('');
-  const [curriculumStrand, setCurriculumStrand] = useState('');
-  const [curriculumSkill, setCurriculumSkill] = useState('');
-  const [curriculumSubskill, setCurriculumSubskill] = useState('');
-  const [curriculumObjective, setCurriculumObjective] = useState('');
-  const [eligibleGradeLevels, setEligibleGradeLevels] = useState<number[]>([6, 7]);
+  const [eligibleGradeLevels, setEligibleGradeLevels] = useState<number[]>([]);
 
   useEffect(() => {
     setAvatarUrl(profile.avatar_url || '/BRAINS.svg');
@@ -3025,11 +3029,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       brainsAlert('Please enter a topic name for your question.', 'info');
       return;
     }
-    if (!curriculumStrand.trim() || !curriculumSkill.trim() || !curriculumSubskill.trim() || !curriculumObjective.trim() || !eligibleGradeLevels.length) {
-      brainsAlert('Add the strand, skill, subskill, objective and at least one eligible grade before saving.', 'info');
-      return;
-    }
-
     try {
       setUploadingImage(true);
       
@@ -3086,19 +3085,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         correct_answer: correctAnswer,
         explanation,
         points,
-        curriculum_strand: curriculumStrand.trim(),
-        curriculum_skill: curriculumSkill.trim(),
-        curriculum_subskill: curriculumSubskill.trim(),
-        curriculum_objective: curriculumObjective.trim(),
         eligible_grade_levels: eligibleGradeLevels,
         grade_level: eligibleGradeLevels.join(','),
-        curriculum_review_status: 'in_review' as const,
-        is_public: false,
       };
 
       if (editingQuestion) {
         if (!teacher || editingQuestion.teacher_id !== teacher.id) {
-          brainsAlert('Brains Heist Pool questions are protected and cannot be edited.', 'error');
+          brainsAlert('Brains Heist Verified questions are protected and cannot be edited.', 'error');
           return;
         }
         // Update existing question
@@ -3125,11 +3118,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setExplanation('');
       setTopicMode('general');
       setCustomTopicName('');
-      setCurriculumStrand('');
-      setCurriculumSkill('');
-      setCurriculumSubskill('');
-      setCurriculumObjective('');
-      setEligibleGradeLevels([6, 7]);
+      setEligibleGradeLevels([]);
       setEditingQuestion(null);
 
       // Reload the complete authorized library, not only the RPC's first page.
@@ -3144,7 +3133,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const handleDeleteQuestion = async (questionId: string) => {
     const question = questions.find((item) => item.id === questionId);
-    if (!question || !teacher || question.teacher_id !== teacher.id) {
+    if (!question || !teacher || question.teacher_id !== teacher.id || question.content_origin === 'brain_heist') {
       brainsAlert('Only questions in My Pool can be deleted.', 'error');
       return;
     }
@@ -3192,8 +3181,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const handleEditQuestion = (question: TeacherQuestion) => {
-    if (!teacher || question.teacher_id !== teacher.id) {
-      brainsAlert('Brains Heist Pool questions are protected and cannot be edited.', 'error');
+    if (!teacher || question.teacher_id !== teacher.id || question.content_origin === 'brain_heist') {
+      brainsAlert('Brains Heist Verified questions are protected and cannot be edited.', 'error');
       return;
     }
     // Set editing mode
@@ -3211,11 +3200,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setCorrectAnswer(question.correct_answer);
     setExplanation(question.explanation || '');
     setPoints(question.points);
-    setCurriculumStrand(question.curriculum_strand || '');
-    setCurriculumSkill(question.curriculum_skill || '');
-    setCurriculumSubskill(question.curriculum_subskill || '');
-    setCurriculumObjective(question.curriculum_objective || '');
-    setEligibleGradeLevels(question.eligible_grade_levels?.length ? question.eligible_grade_levels : [6, 7]);
+    setEligibleGradeLevels(question.eligible_grade_levels || []);
     const existingTopic = question.topic_name || question.topic || 'General';
     if (existingTopic !== 'General') {
       setTopicMode('custom');
@@ -3239,16 +3224,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setTopicMode('general');
       setCustomTopicName('');
     }
-    setCurriculumStrand('');
-    setCurriculumSkill('');
-    setCurriculumSubskill('');
-    setCurriculumObjective('');
-    setEligibleGradeLevels([6, 7]);
+    setEligibleGradeLevels([]);
     setView('create-question');
   };
 
   const handleRenameTopic = async (topicQuestions: TeacherQuestion[], nextTopic: string) => {
-    const owned = topicQuestions.filter((question) => teacher && question.teacher_id === teacher.id);
+    const owned = topicQuestions.filter((question) => teacher && question.teacher_id === teacher.id && question.content_origin !== 'brain_heist');
     if (!owned.length || owned.length !== topicQuestions.length) {
       brainsAlert('Only topics in My Pool can be renamed.', 'error');
       return;
@@ -3259,7 +3240,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const handleDeleteTopic = async (topicQuestions: TeacherQuestion[]) => {
-    const owned = topicQuestions.filter((question) => teacher && question.teacher_id === teacher.id);
+    const owned = topicQuestions.filter((question) => teacher && question.teacher_id === teacher.id && question.content_origin !== 'brain_heist');
     if (!owned.length || owned.length !== topicQuestions.length) {
       brainsAlert('Only topics in My Pool can be deleted.', 'error');
       return;
@@ -3293,11 +3274,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setCorrectAnswer(question.correct_answer);
     setExplanation(question.explanation || '');
     setPoints(question.points);
-    setCurriculumStrand(question.curriculum_strand || '');
-    setCurriculumSkill(question.curriculum_skill || '');
-    setCurriculumSubskill(question.curriculum_subskill || '');
-    setCurriculumObjective(question.curriculum_objective || '');
-    setEligibleGradeLevels(question.eligible_grade_levels?.length ? question.eligible_grade_levels : [6, 7]);
+    setEligibleGradeLevels(question.eligible_grade_levels || []);
     const existingTopic = question.topic_name || question.topic || 'General';
     if (existingTopic !== 'General') {
       setTopicMode('custom');
@@ -3686,253 +3663,57 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Download CSV template
   const downloadCSVTemplate = () => {
-    const template = `subject,topic,difficulty,question_type,question_text,option1,option2,option3,option4,correct_answer,explanation,points
-Maths,General,easy,multiple_choice,"What is 2 + 2?","2","3","4","5","4","Addition of two numbers",10
-Science,Lab Safety,medium,true_false,"Water boils at 100°C at sea level","True","False","","","True","Water's boiling point at standard pressure",15
-English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","","went","Irregular verb conjugation",20`;
-    
-    const blob = new Blob([template], { type: 'text/csv' });
+    const blob = new Blob([TEACHER_QUESTION_IMPORT_TEMPLATE], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'question_template.csv';
+    a.download = 'brains-heist-my-pool-question-template.csv';
     a.click();
     window.URL.revokeObjectURL(url);
   };
 
-  const parseCSVRows = (csvText: string): string[][] => {
-    const rows: string[][] = [];
-    let currentRow: string[] = [];
-    let currentValue = '';
-    let inQuotes = false;
-
-    for (let i = 0; i < csvText.length; i++) {
-      const char = csvText[i];
-      const next = csvText[i + 1];
-
-      if (char === '"') {
-        if (inQuotes && next === '"') {
-          currentValue += '"';
-          i++;
-          continue;
-        }
-        inQuotes = !inQuotes;
-        continue;
-      }
-
-      if (char === ',' && !inQuotes) {
-        currentRow.push(currentValue.trim());
-        currentValue = '';
-        continue;
-      }
-
-      if ((char === '\n' || char === '\r') && !inQuotes) {
-        if (char === '\r' && next === '\n') i++;
-        currentRow.push(currentValue.trim());
-        currentValue = '';
-        rows.push(currentRow);
-        currentRow = [];
-        continue;
-      }
-
-      currentValue += char;
+  const previewBulkImport = (text: string, source: string) => {
+    try {
+      const preview = parseTeacherQuestionImport(text);
+      setBulkImportPreview(preview);
+      setBulkImportSource(source);
+    } catch (error) {
+      setBulkImportPreview(null);
+      setBulkImportSource('');
+      brainsAlert(error instanceof Error ? error.message : 'Unable to read these questions.', 'error');
     }
-
-    if (currentValue.length > 0 || currentRow.length > 0) {
-      currentRow.push(currentValue.trim());
-      rows.push(currentRow);
-    }
-
-    return rows;
   };
 
-  const normalizeSubjectValue = (value: string): Subject | null => {
-    const normalized = value.trim().toLowerCase();
-    const map: Record<string, Subject> = {
-      maths: 'Maths',
-      math: 'Maths',
-      science: 'Science',
-      english: 'English',
-      russian: 'Russian Language',
-      'russian language': 'Russian Language',
-      kyrgyz: 'Kyrgyz Language',
-      'kyrgyz language': 'Kyrgyz Language',
-      german: 'German Language',
-      'german language': 'German Language',
-      geography: 'Geography',
-      'global perspective': 'Global Perspective',
-      ict: 'ICT',
-    };
-    return map[normalized] ?? null;
-  };
-
-  const normalizeDifficultyValue = (value: string): QuestionDifficulty | null => {
-    const normalized = value.trim().toLowerCase();
-    if (normalized === 'easy' || normalized === 'medium' || normalized === 'hard') {
-      return normalized;
-    }
-    return null;
-  };
-
-  const normalizeQuestionTypeValue = (value: string): 'multiple_choice' | 'true_false' | 'short_answer' | null => {
-    const normalized = value.trim().toLowerCase().replace(/[\s-]+/g, '_');
-    if (normalized === 'multiple_choice' || normalized === 'mcq') return 'multiple_choice';
-    if (normalized === 'true_false' || normalized === 'boolean') return 'true_false';
-    if (normalized === 'short_answer' || normalized === 'shortanswer') return 'short_answer';
-    return null;
-  };
-
-  // Parse and upload CSV
   const handleCSVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setUploading(true);
-    setUploadProgress({ current: 0, total: 0 });
-
     try {
-      const text = await file.text();
-      const cleanedText = text.replace(/^\uFEFF/, '');
-      const csvRows = parseCSVRows(cleanedText);
+      previewBulkImport(await file.text(), file.name);
+    } catch (error) {
+      brainsAlert('Unable to read this file: ' + (error as Error).message, 'error');
+    } finally {
+      e.target.value = '';
+    }
+  };
 
-      if (csvRows.length < 2) {
-        throw new Error('CSV must include a header row and at least one data row.');
-      }
-
-      const header = csvRows[0].map((value) => value.trim().toLowerCase());
-      const getColumnIndex = (...aliases: string[]) =>
-        aliases
-          .map((alias) => header.indexOf(alias))
-          .find((index) => index >= 0) ?? -1;
-
-      const columnIndex = {
-        subject: getColumnIndex('subject'),
-        topic: getColumnIndex('topic', 'topic_name'),
-        difficulty: getColumnIndex('difficulty'),
-        questionType: getColumnIndex('question_type', 'questiontype'),
-        questionText: getColumnIndex('question_text', 'question'),
-        option1: getColumnIndex('option1', 'option_1'),
-        option2: getColumnIndex('option2', 'option_2'),
-        option3: getColumnIndex('option3', 'option_3'),
-        option4: getColumnIndex('option4', 'option_4'),
-        correctAnswer: getColumnIndex('correct_answer', 'answer'),
-        explanation: getColumnIndex('explanation'),
-        points: getColumnIndex('points', 'xp'),
-      };
-
-      if (
-        columnIndex.subject < 0 ||
-        columnIndex.difficulty < 0 ||
-        columnIndex.questionType < 0 ||
-        columnIndex.questionText < 0 ||
-        columnIndex.correctAnswer < 0
-      ) {
-        throw new Error('Missing required columns. Required: subject, difficulty, question_type, question_text, correct_answer.');
-      }
-
-      const dataRows = csvRows.slice(1).filter((row) => row.some((cell) => cell.trim() !== ''));
-      setUploadProgress({ current: 0, total: dataRows.length });
-
-      let successCount = 0;
-      let errorCount = 0;
-      const errors: string[] = [];
-
-      for (let i = 0; i < dataRows.length; i++) {
-        const row = dataRows[i];
-        try {
-          const read = (index: number): string => (index >= 0 ? (row[index] ?? '').trim() : '');
-
-          const subjectStr = normalizeSubjectValue(read(columnIndex.subject));
-          const topicStr = read(columnIndex.topic);
-          const difficultyStr = normalizeDifficultyValue(read(columnIndex.difficulty));
-          const questionType = normalizeQuestionTypeValue(read(columnIndex.questionType));
-          const questionText = read(columnIndex.questionText);
-          const opt1 = read(columnIndex.option1);
-          const opt2 = read(columnIndex.option2);
-          const opt3 = read(columnIndex.option3);
-          const opt4 = read(columnIndex.option4);
-          const correctAnswer = read(columnIndex.correctAnswer);
-          const explanation = read(columnIndex.explanation);
-          const pointsStr = read(columnIndex.points);
-
-          if (!subjectStr) throw new Error('Invalid or missing subject');
-          if (!difficultyStr) throw new Error('Invalid or missing difficulty');
-          if (!questionType) throw new Error('Invalid or missing question_type');
-          if (!questionText) throw new Error('Missing question_text');
-          if (!correctAnswer) throw new Error('Missing correct_answer');
-
-          const options = questionType === 'multiple_choice'
-            ? [opt1, opt2, opt3, opt4].filter(Boolean)
-            : questionType === 'true_false'
-              ? ['True', 'False']
-              : undefined;
-
-          if (questionType === 'multiple_choice' && options.length < 2) {
-            throw new Error('multiple_choice rows require at least 2 options');
-          }
-
-          if (questionType === 'multiple_choice') {
-            const spreadsheetDatePattern = /^(?:20\d{2}[⁄/]\d{1,2}[⁄/]\d{1,2}|\d{1,2}月\d{1,2}日)$/;
-            const convertedValue = [...options, correctAnswer].find(value => spreadsheetDatePattern.test(value));
-            if (convertedValue) {
-              throw new Error(
-                `"${convertedValue}" looks like a fraction converted into a date. Format fraction cells as Text in the spreadsheet, restore values such as 3/4, then export the CSV again.`
-              );
-            }
-
-            const normalizedOptions = options.map(value => value.trim().toLocaleLowerCase());
-            if (new Set(normalizedOptions).size !== normalizedOptions.length) {
-              throw new Error(
-                'Options must be unique. Duplicate TRUE/FALSE values usually mean the spreadsheet evaluated comparison formulas; format option cells as Text before exporting.'
-              );
-            }
-
-            if (!options.includes(correctAnswer)) {
-              throw new Error('correct_answer must exactly match one of the options');
-            }
-          }
-
-          const questionData = {
-            subject: subjectStr,
-            topic: topicStr || 'General',
-            topic_name: topicStr || 'General',
-            difficulty: difficultyStr,
-            question_text: questionText,
-            question_type: questionType,
-            options,
-            correct_answer: correctAnswer,
-            explanation: explanation || '',
-            points: Math.min(Math.max(Number.parseInt(pointsStr, 10) || 10, 1), 30),
-            is_public: true
-          };
-
-          await GameService.create_question(questionData);
-          successCount++;
-          setUploadProgress({ current: i + 1, total: dataRows.length });
-        } catch (err) {
-          errors.push(`Row ${i + 2}: ${(err as Error).message}`);
-          errorCount++;
-        }
-      }
-
-      // Reload questions from global bank
-      const allQuestions = await GameService.get_all_questions();
-      setQuestions(allQuestions);
-
-      // Show results
-      const message = `CSV Upload Complete\n\nCreated questions: ${successCount}\nSkipped/failed rows: ${errorCount}${errors.length > 0 ? '\n\nRow issues:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n... and ${errors.length - 5} more` : '') : ''}`;
-      const alertTone = successCount === 0 ? 'error' : (errorCount > 0 ? 'info' : 'success');
-      brainsAlert(message, alertTone);
-      
+  const confirmBulkImport = async () => {
+    if (!bulkImportPreview?.questions.length || bulkImportPreview.issues.length) return;
+    setUploading(true);
+    setUploadProgress({ current: 0, total: bulkImportPreview.questions.length });
+    try {
+      const result = await GameService.bulk_create_teacher_questions(bulkImportPreview.questions);
+      setUploadProgress({ current: result.submitted, total: result.submitted });
+      setQuestions(await GameService.get_all_questions());
+      setBulkImportPreview(null);
+      setBulkImportSource('');
+      setBulkPasteText('');
+      brainsAlert(`Added ${result.created} classroom question${result.created === 1 ? '' : 's'} to My Pool.${result.duplicatesSkipped ? ` ${result.duplicatesSkipped} existing duplicate${result.duplicatesSkipped === 1 ? ' was' : 's were'} skipped.` : ''} These questions do not affect official Academic Profile analytics.`, 'success');
       setView('question-bank');
     } catch (error) {
-      console.error('CSV upload error:', error);
-      brainsAlert('CSV upload failed: ' + (error as Error).message, 'error');
+      brainsAlert('Bulk import failed safely; no partial questions were added. ' + (error as Error).message, 'error');
     } finally {
       setUploading(false);
       setUploadProgress({ current: 0, total: 0 });
-      // Reset file input
-      e.target.value = '';
     }
   };
 
@@ -4664,16 +4445,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <p className="text-xs text-slate-500 mt-2">Choose one of your topics or create a new one. The topic is added to My Pool when this question is saved.</p>
           </div>
 
-          <fieldset className="teacher-form-group rounded-xl border border-cyan-200 bg-cyan-50/40 p-4">
-            <legend className="teacher-label px-2">Academic classification <span className="text-red-500">Required</span></legend>
-            <p className="mb-4 text-xs text-slate-600">This is the evidence path used in student progress. Saving places teacher-authored content in curriculum review; it is not added to the protected app pool automatically.</p>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <label className="teacher-form-group"><span className="teacher-label">Strand</span><input className="teacher-input" value={curriculumStrand} onChange={(event) => setCurriculumStrand(event.target.value)} placeholder="For example, Mathematical reasoning" required /></label>
-              <label className="teacher-form-group"><span className="teacher-label">Skill</span><input className="teacher-input" value={curriculumSkill} onChange={(event) => setCurriculumSkill(event.target.value)} placeholder="For example, Fraction operations" required /></label>
-              <label className="teacher-form-group"><span className="teacher-label">Subskill</span><input className="teacher-input" value={curriculumSubskill} onChange={(event) => setCurriculumSubskill(event.target.value)} placeholder="For example, Add unlike denominators" required /></label>
-              <label className="teacher-form-group"><span className="teacher-label">Learning objective</span><textarea className="teacher-textarea min-h-[84px]" value={curriculumObjective} onChange={(event) => setCurriculumObjective(event.target.value)} placeholder="The student can…" required /></label>
-            </div>
-            <div className="mt-4"><span className="teacher-label">Eligible grade levels</span><div className="mt-2 flex flex-wrap gap-2">{Array.from({ length: 12 }, (_, index) => index + 1).map((grade) => <label key={grade} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${eligibleGradeLevels.includes(grade) ? 'border-cyan-500 bg-cyan-100 text-cyan-900' : 'border-slate-200 bg-white text-slate-600'}`}><input type="checkbox" checked={eligibleGradeLevels.includes(grade)} onChange={() => setEligibleGradeLevels((current) => current.includes(grade) ? current.filter((value) => value !== grade) : [...current, grade].sort((a, b) => a - b))} />Grade {grade}</label>)}</div></div>
+          <fieldset className="teacher-form-group rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+            <legend className="teacher-label px-2">Classroom question</legend>
+            <p className="mb-4 text-sm text-slate-700"><strong>This question stays in My Pool.</strong> It can be used in assignments and classroom reports, but it never changes the official Academic Profile. Only Brains Heist Verified Questions contribute to official strands, skills, strengths, weaknesses, or progress trends.</p>
+            <div><span className="teacher-label">Suggested grade levels <span className="font-normal text-slate-500">(optional, for organizing My Pool)</span></span><div className="mt-2 flex flex-wrap gap-2">{Array.from({ length: 12 }, (_, index) => index + 1).map((grade) => <label key={grade} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${eligibleGradeLevels.includes(grade) ? 'border-cyan-500 bg-cyan-100 text-cyan-900' : 'border-slate-200 bg-white text-slate-600'}`}><input type="checkbox" checked={eligibleGradeLevels.includes(grade)} onChange={() => setEligibleGradeLevels((current) => current.includes(grade) ? current.filter((value) => value !== grade) : [...current, grade].sort((a, b) => a - b))} />Grade {grade}</label>)}</div></div>
           </fieldset>
 
           {/* Question Type */}
@@ -4691,7 +4466,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             >
               <option value="multiple_choice">Multiple Choice</option>
               <option value="true_false">True/False</option>
-              <option value="short_answer" disabled>Short Answer — unavailable</option>
+              <option value="short_answer">Short Answer</option>
               <option value="drag_drop" disabled>Drag &amp; Drop — coming soon</option>
             </select>
           </div>
@@ -4963,6 +4738,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           )}
 
+          {questionType === 'short_answer' && (
+            <div className="teacher-form-group">
+              <label className="teacher-label" htmlFor="teacher-short-answer">Accepted answer</label>
+              <input
+                id="teacher-short-answer"
+                type="text"
+                value={correctAnswer}
+                onChange={(event) => setCorrectAnswer(event.target.value)}
+                className="teacher-input"
+                placeholder="Enter the answer students should give"
+                required
+              />
+              <p className="mt-1 text-xs text-slate-500">Keep the answer precise. This is used for classroom marking only.</p>
+            </div>
+          )}
+
           {/* Explanation */}
           <div className="teacher-form-group">
             <label className="teacher-label">Explanation (Optional)</label>
@@ -5012,7 +4803,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   // Render CSV Upload View
   const renderCSVUpload = () => (
-    <div className="max-w-3xl mx-auto">
+    <div className="mx-auto max-w-5xl">
       <button
         onClick={() => setView('question-bank')}
         className="teacher-back-link mb-4"
@@ -5021,106 +4812,48 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       </button>
 
       <div className="teacher-card">
-        <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-          <span className="text-2xl">📤</span> Bulk Upload Questions
-        </h2>
+        <header className="mb-6">
+          <span className="text-sm font-bold uppercase tracking-[0.16em] text-cyan-700">Teacher-owned content</span>
+          <h2 className="mt-2 text-2xl font-bold text-slate-800">Bulk import to My Pool</h2>
+          <p className="mt-2 text-sm text-slate-600">Upload CSV or paste rows copied from Excel or Google Sheets. Nothing is saved until you review and confirm the preview.</p>
+        </header>
 
-        {/* Instructions */}
-        <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-6 mb-6">
-          <h3 className="font-bold text-cyan-700 mb-3 flex items-center gap-2">
-            <span>📋</span> How to Use CSV Upload
-          </h3>
-          <ol className="list-decimal list-inside space-y-2 text-sm text-slate-600">
-            <li>Download the CSV template using the button below</li>
-            <li>Fill in your questions following the template format</li>
-            <li>For fractions and comparisons, format option cells as <strong>Text</strong> so spreadsheets do not convert them into dates or TRUE/FALSE</li>
-            <li>Save your file as a CSV (comma-separated values)</li>
-            <li>Upload the file using the upload button</li>
-            <li>Review the results and fix any errors if needed</li>
-          </ol>
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-slate-700">
+          <strong>Classroom-only by design.</strong> Every imported question stays private and editable in My Pool. It can be assigned and included in classroom reports, but it cannot create official Academic Profile evidence.
         </div>
 
-        {/* CSV Format Guide */}
-        <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 mb-6">
-          <h3 className="font-bold text-purple-700 mb-3">📝 CSV Format</h3>
-          <div className="text-xs text-slate-500 mb-2">Columns (in order):</div>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="text-slate-600">1. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">subject</code> - Maths, Science, English, etc.</div>
-            <div className="text-slate-600">2. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">topic</code> - General or any custom topic</div>
-            <div className="text-slate-600">3. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">difficulty</code> - easy, medium, hard</div>
-            <div className="text-slate-600">4. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">question_type</code> - multiple_choice, true_false, short_answer</div>
-            <div className="text-slate-600">5. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">question_text</code> - The question</div>
-            <div className="text-slate-600">6-9. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">option1-4</code> - Answer choices</div>
-            <div className="text-slate-600">10. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">correct_answer</code> - The correct answer</div>
-            <div className="text-slate-600">11. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">explanation</code> - Why it's correct</div>
-            <div className="text-slate-600">12. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">points</code> - Point value (10-50)</div>
-          </div>
+        <div className="grid gap-5 lg:grid-cols-2">
+          <section className="rounded-xl border border-slate-200 bg-slate-50 p-5" aria-labelledby="bulk-file-title">
+            <h3 id="bulk-file-title" className="font-bold text-slate-800">Upload a CSV</h3>
+            <p className="mt-1 text-sm text-slate-500">Use the template for the cleanest import.</p>
+            <button type="button" onClick={downloadCSVTemplate} className="teacher-btn teacher-btn-secondary mt-4 w-full">Download CSV template</button>
+            <input type="file" accept=".csv,text/csv" onChange={handleCSVUpload} disabled={uploading} className="hidden" id="csv-upload" />
+            <label htmlFor="csv-upload" className={`mt-3 block cursor-pointer rounded-xl border-2 border-dashed border-cyan-300 bg-white p-6 text-center ${uploading ? 'pointer-events-none opacity-50' : ''}`}>
+              <strong className="block text-cyan-700">Choose CSV file</strong>
+              <span className="mt-1 block text-xs text-slate-500">Maximum 500 valid questions per import</span>
+            </label>
+          </section>
+
+          <section className="rounded-xl border border-slate-200 bg-slate-50 p-5" aria-labelledby="bulk-paste-title">
+            <h3 id="bulk-paste-title" className="font-bold text-slate-800">Paste from a spreadsheet</h3>
+            <p className="mt-1 text-sm text-slate-500">Include the header row, then copy and paste the selected cells.</p>
+            <textarea className="teacher-textarea mt-4 min-h-36 font-mono text-xs" value={bulkPasteText} onChange={(event) => setBulkPasteText(event.target.value)} placeholder="subject&#9;topic&#9;grade_levels&#9;difficulty&#9;question_type…" />
+            <button type="button" className="teacher-btn teacher-btn-secondary mt-3 w-full" disabled={!bulkPasteText.trim() || uploading} onClick={() => previewBulkImport(bulkPasteText, 'Pasted spreadsheet rows')}>Review pasted questions</button>
+          </section>
         </div>
 
-        {/* Download Template Button */}
-        <div className="mb-6">
-          <button
-            onClick={downloadCSVTemplate}
-            className="teacher-btn teacher-btn-primary w-full py-4 text-lg"
-          >
-            <span className="text-2xl">📥</span>
-            <span>Download CSV Template</span>
-          </button>
-        </div>
-
-        {/* Upload Section */}
-        <div className="border-2 border-dashed border-emerald-400 rounded-xl p-8 text-center bg-emerald-50/50">
-          <input
-            type="file"
-            accept=".csv"
-            onChange={handleCSVUpload}
-            disabled={uploading}
-            className="hidden"
-            id="csv-upload"
-          />
-          <label
-            htmlFor="csv-upload"
-            className={`cursor-pointer inline-block ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <div className="text-6xl mb-4">📤</div>
-            <div className="font-bold text-xl text-emerald-600 mb-2">
-              {uploading ? 'Uploading...' : 'Click to Upload CSV File'}
+        {bulkImportPreview ? (
+          <section className="mt-6 rounded-xl border border-cyan-200 bg-cyan-50/40 p-5" aria-labelledby="bulk-preview-title">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div><span className="text-xs font-bold uppercase tracking-wider text-cyan-700">Preview · {bulkImportSource}</span><h3 id="bulk-preview-title" className="mt-1 text-xl font-bold text-slate-800">{bulkImportPreview.questions.length} valid question{bulkImportPreview.questions.length === 1 ? '' : 's'}</h3></div>
+              <div className="text-right text-sm"><div className={bulkImportPreview.issues.length ? 'font-bold text-red-600' : 'text-emerald-700'}>{bulkImportPreview.issues.length} row issue{bulkImportPreview.issues.length === 1 ? '' : 's'}</div><div className="text-slate-500">{bulkImportPreview.duplicateRows.length} duplicate row{bulkImportPreview.duplicateRows.length === 1 ? '' : 's'} skipped</div></div>
             </div>
-            <div className="text-sm text-slate-500">
-              {uploading ? 'Please wait while we process your questions' : 'Select a .csv file from your computer'}
-            </div>
-          </label>
-
-          {/* Upload Progress */}
-          {uploading && uploadProgress.total > 0 && (
-            <div className="mt-6">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-slate-500">Processing questions...</span>
-                <span className="text-cyan-600 font-medium">{uploadProgress.current} / {uploadProgress.total}</span>
-              </div>
-              <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-300"
-                  style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Tips */}
-        <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
-          <h4 className="font-bold text-amber-700 mb-2 flex items-center gap-2">
-            <span>💡</span> Tips for Success
-          </h4>
-          <ul className="text-sm text-slate-600 space-y-1">
-            <li>• Use quotes around text with commas (e.g., "What is 2 + 2, exactly?")</li>
-            <li>• For true/false questions, leave option1-4 empty</li>
-            <li>• For short answer, leave option1-4 empty</li>
-            <li>• Ensure correct_answer matches one of your options exactly</li>
-            <li>• Test with 1-2 questions first before uploading many</li>
-          </ul>
-        </div>
+            {bulkImportPreview.issues.length ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4"><strong className="text-red-700">Fix these rows before importing:</strong><ul className="mt-2 space-y-1 text-sm text-red-700">{bulkImportPreview.issues.slice(0, 10).map((issue) => <li key={`${issue.row}-${issue.message}`}>Row {issue.row}: {issue.message}</li>)}</ul>{bulkImportPreview.issues.length > 10 ? <p className="mt-2 text-xs text-red-600">And {bulkImportPreview.issues.length - 10} more.</p> : null}</div> : null}
+            <div className="mt-4 overflow-x-auto rounded-lg border border-slate-200 bg-white"><table className="min-w-full text-left text-sm"><thead className="bg-slate-100 text-xs uppercase text-slate-500"><tr><th className="px-3 py-2">Row</th><th className="px-3 py-2">Subject</th><th className="px-3 py-2">Topic</th><th className="px-3 py-2">Question</th><th className="px-3 py-2">Grades</th></tr></thead><tbody>{bulkImportPreview.questions.slice(0, 12).map((question) => <tr key={question.sourceRow} className="border-t border-slate-100"><td className="px-3 py-2">{question.sourceRow}</td><td className="px-3 py-2">{question.subject}</td><td className="px-3 py-2">{question.topic}</td><td className="max-w-xl px-3 py-2">{question.question_text}</td><td className="px-3 py-2">{question.eligible_grade_levels?.join(', ') || '—'}</td></tr>)}</tbody></table></div>
+            {bulkImportPreview.questions.length > 12 ? <p className="mt-2 text-xs text-slate-500">Showing the first 12 valid questions.</p> : null}
+            <div className="mt-5 flex flex-wrap justify-end gap-3"><button type="button" className="teacher-btn teacher-btn-secondary" onClick={() => { setBulkImportPreview(null); setBulkImportSource(''); }} disabled={uploading}>Clear preview</button><button type="button" className="teacher-btn teacher-btn-primary" onClick={() => { void confirmBulkImport(); }} disabled={uploading || !bulkImportPreview.questions.length || bulkImportPreview.issues.length > 0}>{uploading ? `Importing ${uploadProgress.current}/${uploadProgress.total}…` : `Import ${bulkImportPreview.questions.length} to My Pool`}</button></div>
+          </section>
+        ) : null}
       </div>
     </div>
   );
@@ -8705,6 +8438,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               onEditQuestion={handleEditQuestion}
               onDeleteQuestion={handleDeleteQuestion}
               onCreateQuestion={openMyPoolQuestionForm}
+              onBulkImport={() => setView('csv-upload')}
               onRenameTopic={(topicQuestions, nextTopic) => { void handleRenameTopic(topicQuestions, nextTopic); }}
               onDeleteTopic={(topicQuestions) => { void handleDeleteTopic(topicQuestions); }}
               restrictedSubjects={profile.school_id && teacherAssignedSubjects.length ? teacherAssignedSubjects : undefined}

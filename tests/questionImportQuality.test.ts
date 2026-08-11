@@ -4,6 +4,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 const portal = fs.readFileSync(path.resolve(process.cwd(), 'components/TeacherPortal.tsx'), 'utf8');
+const importer = fs.readFileSync(path.resolve(process.cwd(), 'src/lib/teacherQuestionBulkImport.ts'), 'utf8');
 const migration = fs.readFileSync(
   path.resolve(process.cwd(), 'supabase/migrations/20260722045000_repair_spreadsheet_question_corruption.sql'),
   'utf8'
@@ -30,8 +31,9 @@ test('database rejects future duplicate, mismatched, and date-coerced options', 
 });
 
 test('CSV upload explains and blocks spreadsheet coercion before writing', () => {
-  assert.match(portal, /spreadsheetDatePattern/);
-  assert.match(portal, /looks like a fraction converted into a date/);
-  assert.match(portal, /Duplicate TRUE\/FALSE values/);
-  assert.match(portal, /format option cells as <strong>Text<\/strong>/);
+  assert.match(importer, /spreadsheetDatePattern/);
+  assert.match(importer, /looks like a fraction converted into a date/);
+  assert.match(importer, /Duplicate TRUE\/FALSE values/);
+  assert.match(importer, /format option cells as Text/i);
+  assert.match(portal, /Nothing is saved until you review and confirm the preview/);
 });

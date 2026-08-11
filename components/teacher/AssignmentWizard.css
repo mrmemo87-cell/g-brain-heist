@@ -1039,6 +1039,40 @@
   line-height: 1.45;
 }
 
+.aw-profile-evidence {
+  display: grid;
+  gap: .3rem;
+  border: 1px solid #fed7aa;
+  border-radius: .9rem;
+  background: #fff7ed;
+  padding: 1rem;
+  color: #9a3412;
+}
+
+.aw-profile-evidence[data-has-verified="true"] {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.aw-profile-evidence span {
+  color: #475569;
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.aw-badges span[data-tone="verified"] {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.aw-badges span[data-tone="classroom"] {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  color: #c2410c;
+}
+
 .aw-button:disabled {
   cursor: not-allowed;
   opacity: .55;
