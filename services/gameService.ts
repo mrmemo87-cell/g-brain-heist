@@ -2656,104 +2656,82 @@ export const activity_reaction_toggle = async (activity_id: string, emoji: strin
   }
 };
 
-const SUBJECT_ID_BY_NAME: Record<string, string> = {
-    Math: 'subj_math',
-    Maths: 'subj_math',
-    Mathematics: 'subj_math',
-    Science: 'subj_science',
-    English: 'subj_english',
-    'Russian Language': 'subj_russian_language',
-    'Russian Literature': 'subj_russian_literature',
-    'Kyrgyz Language': 'subj_kyrgyz_language',
-    'Kyrgyz History': 'subj_kyrgyz_history',
-    'German Language': 'subj_german_language',
-    Geography: 'subj_geography',
-    'Global Perspective': 'subj_global_perspective',
-    ICT: 'subj_ict',
+interface StudentAcademicSubjectCatalog {
+    success: boolean;
+    ready: boolean;
+    code?: string;
+    gradeLevel?: string;
+    subjects: Array<{
+        id: string;
+        code: string;
+        name: string;
+        requirement: 'required' | 'elective';
+        scopeId: string;
+        approvedQuestionCount: number;
+    }>;
+}
+
+interface StudentLearningCatalog {
+    success: boolean;
+    ready: boolean;
+    code?: string;
+    questions: TeacherQuestion[];
+}
+
+const ACADEMIC_CODE_BY_LEGACY_ID: Record<string, string> = {
+    subj_math: 'mathematics',
+    subj_mathematics: 'mathematics',
+    subj_science: 'science',
+    subj_english: 'english',
+    subj_russian_language: 'russian-language',
+    subj_russian_literature: 'russian-language',
+    subj_kyrgyz_language: 'kyrgyz-language',
+    subj_german_language: 'german-language',
+    subj_geography: 'geography',
+    subj_global_perspective: 'global-perspectives',
+    subj_ict: 'ict',
 };
 
-const SUBJECT_NAME_BY_ID: Record<string, string> = {
-    subj_science: 'Science',
-    subj_math: 'Mathematics',
-    subj_mathematics: 'Mathematics',
-    subj_english: 'English',
-    subj_russian_language: 'Russian Language',
-    subj_russian_literature: 'Russian Language',
-    subj_kyrgyz_language: 'Kyrgyz Language',
-    subj_kyrgyz_history: 'Kyrgyz History',
-    subj_german_language: 'German Language',
-    subj_geography: 'Geography',
-    subj_global_perspective: 'Global Perspective',
-    subj_ict: 'ICT',
+const academicCodeForSubject = (value: string): string => {
+    if (ACADEMIC_CODE_BY_LEGACY_ID[value]) return ACADEMIC_CODE_BY_LEGACY_ID[value];
+    const normalized = value.trim().toLowerCase();
+    if (['math', 'maths', 'mathematics'].includes(normalized)) return 'mathematics';
+    if (normalized === 'global perspective') return 'global-perspectives';
+    return normalized.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 };
 
-const mapSubjectToId = (subject?: string | null): string | null => {
-    if (!subject) return null;
-    return SUBJECT_ID_BY_NAME[subject] || null;
+const fetchStudentAcademicSubjectCatalog = async (): Promise<StudentAcademicSubjectCatalog> => {
+    const { data, error } = await supabase.rpc('rpc_student_academic_subjects', { p_student_id: null });
+    if (error) throw error;
+    return (data || { success: true, ready: false, subjects: [] }) as StudentAcademicSubjectCatalog;
 };
 
-export const mcq_subjects_list = (): Promise<SubjectData[]> => {
-    const subjects: SubjectData[] = [
-        // Science
-        { id: 'subj_science', name: 'Science', difficulty: 3 },
-        
-        // Cambridge Mathematics
-        { id: 'subj_math', name: 'Mathematics', difficulty: 4 },
-        
-        // English
-        { id: 'subj_english', name: 'English', difficulty: 2 },
-        
-        // Global Perspective
-        { id: 'subj_global_perspective', name: 'Global Perspective', difficulty: 3 },
-        
-        // Russian Language
-        { id: 'subj_russian_language', name: 'Russian Language', difficulty: 3 },
-        
-        // Russian Literature
-        { id: 'subj_russian_literature', name: 'Russian Literature', difficulty: 4 },
-        
-        // German Language
-        { id: 'subj_german_language', name: 'German Language', difficulty: 3 },
-        
-        // Geography
-        { id: 'subj_geography', name: 'Geography', difficulty: 2 },
-        
-        // Kyrgyz Language
-        { id: 'subj_kyrgyz_language', name: 'Kyrgyz Language', difficulty: 3 },
-        
-        // Kyrgyz History
-        { id: 'subj_kyrgyz_history', name: 'Kyrgyz History', difficulty: 3 },
-    ];
-    return mockApiCall(subjects);
+const fetchStudentLearningCatalog = async (subject: string, limit: number): Promise<StudentLearningCatalog> => {
+    const { data, error } = await supabase.rpc('rpc_student_learning_catalog', {
+        p_subject_code: academicCodeForSubject(subject),
+        p_limit: limit,
+    });
+    if (error) throw error;
+    return (data || { success: true, ready: false, questions: [] }) as StudentLearningCatalog;
+};
+
+export const mcq_subjects_list = async (): Promise<SubjectData[]> => {
+    const catalog = await fetchStudentAcademicSubjectCatalog();
+    return catalog.subjects.map((subject) => ({
+        id: `subj_${subject.code.replace(/-/g, '_')}`,
+        name: subject.name,
+        difficulty: subject.approvedQuestionCount > 0 ? 3 : 1,
+    }));
 };
 
 export const mcq_questions_get = async (subject_id: string, limit: number = 5): Promise<Question[]> => {
-    const subjectName = SUBJECT_NAME_BY_ID[subject_id] || 'Science';
-
-    // Fetch teacher questions from database
-    const { data, error } = await supabase
-        .from('questions')
-        .select('*')
-        .eq('subject', subjectName)
-        .eq('is_public', true)
-        .eq('is_active', true)
-        .limit(limit * 2); // Get more to randomize
-
-    if (error) {
-        console.error('Error fetching questions:', error);
-        // Return empty array instead of mock data
+    const subjectCode = ACADEMIC_CODE_BY_LEGACY_ID[subject_id]
+        || subject_id.replace(/^subj_/, '').replace(/_/g, '-');
+    const catalog = await fetchStudentLearningCatalog(subjectCode, limit);
+    if (!catalog.questions.length) {
         return [];
     }
-
-    if (!data || data.length === 0) {
-        return [];
-    }
-
-    // Shuffle and take requested number
-    const shuffled = data.sort(() => Math.random() - 0.5).slice(0, limit);
-
-    // Map to Question format (for compatibility with existing UI)
-    return shuffled.map(q => ({
+    return catalog.questions.map(q => ({
         id: q.id,
         body: q.question_text,
         options: q.options || [],
@@ -2798,23 +2776,7 @@ export const get_student_subject_progress = async (): Promise<{ id: string; name
             console.warn('Failed to fetch attempt counts:', err);
         }
         
-        // Get total available questions per subject
-        let questionData: { id: string; subject: string }[] = [];
-        try {
-            const { data: questionCounts, error: questionsError } = await supabase
-                .from('questions')
-                .select('id, subject')
-                .eq('is_public', true)
-                .eq('is_active', true);
-            
-            if (questionsError) {
-                console.error('Error fetching question counts:', questionsError);
-            } else {
-                questionData = questionCounts || [];
-            }
-        } catch (err) {
-            console.warn('Failed to fetch question counts:', err);
-        }
+        const questionData = (await get_public_questions()).map(({ id, subject }) => ({ id, subject }));
         
         // Build a map of question_id -> subject
         const questionSubjectMap: Record<string, string> = {};
@@ -2937,23 +2899,7 @@ export const get_student_subject_progress_with_difficulty = async (): Promise<Su
         // Build set of answered question IDs
         const answeredQuestionIds = new Set(attemptCounts.map(a => a.question_id));
         
-        // Get all questions with their subject and difficulty
-        let questionData: { id: string; subject: string; difficulty: string | null }[] = [];
-        try {
-            const { data: questions, error: questionsError } = await supabase
-                .from('questions')
-                .select('id, subject, difficulty')
-                .eq('is_public', true)
-                .eq('is_active', true);
-            
-            if (questionsError) {
-                console.error('Error fetching questions:', questionsError);
-            } else {
-                questionData = questions || [];
-            }
-        } catch (err) {
-            console.warn('Failed to fetch questions:', err);
-        }
+        const questionData = (await get_public_questions()).map(({ id, subject, difficulty }) => ({ id, subject, difficulty }));
         
         // Normalize difficulty values (db uses 'med' but UI uses 'medium')
         const normalizeDifficulty = (d: string | null): 'easy' | 'medium' | 'hard' => {
@@ -5310,6 +5256,12 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
             points: finalPoints,
             tags: questionData.tags,
             grade_level: questionData.grade_level,
+            curriculum_strand: questionData.curriculum_strand,
+            curriculum_skill: questionData.curriculum_skill,
+            curriculum_subskill: questionData.curriculum_subskill,
+            curriculum_objective: questionData.curriculum_objective,
+            eligible_grade_levels: questionData.eligible_grade_levels || [],
+            curriculum_review_status: questionData.curriculum_review_status || 'draft',
             is_public: questionData.is_public || false
         })
         .select()
@@ -5334,8 +5286,29 @@ export const get_my_questions = async (): Promise<TeacherQuestion[]> => {
         .order('created_at', { ascending: false });
 
     if (error) throw error;
-
-    return data || [];
+    const questions = (data || []) as (TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[];
+    if (!questions.length) return questions;
+    const { data: metadata, error: metadataError } = await supabase.rpc('rpc_question_curriculum_metadata', {
+        p_question_ids: questions.map((question) => question.id),
+    });
+    if (metadataError) {
+        console.warn('Question curriculum metadata could not be loaded:', metadataError);
+        return questions;
+    }
+    const byQuestion = new Map((metadata || []).map((item: any) => [item.questionId, item]));
+    return questions.map((question) => {
+        const item: any = byQuestion.get(question.id);
+        if (!item) return question;
+        return {
+            ...question,
+            curriculum_strand: item.strand,
+            curriculum_skill: item.skill,
+            curriculum_subskill: item.subskill,
+            curriculum_objective: item.objective,
+            eligible_grade_levels: item.eligibleGradeLevels || [],
+            curriculum_review_status: item.reviewStatus,
+        };
+    });
 };
 
 /**
@@ -5359,8 +5332,28 @@ export const get_all_questions = async (filters?: {
     });
 
     if (error) throw error;
-
-    return data || [];
+    const questions = (data || []) as (TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[];
+    if (!questions.length) return questions;
+    const { data: metadata, error: metadataError } = await supabase.rpc('rpc_question_curriculum_metadata', {
+        p_question_ids: questions.map((question) => question.id),
+    });
+    if (metadataError) {
+        console.warn('Question curriculum metadata could not be loaded:', metadataError);
+        return questions;
+    }
+    const byQuestion = new Map((metadata || []).map((item: any) => [item.questionId, item]));
+    return questions.map((question) => {
+        const item: any = byQuestion.get(question.id);
+        return item ? {
+            ...question,
+            curriculum_strand: item.strand,
+            curriculum_skill: item.skill,
+            curriculum_subskill: item.subskill,
+            curriculum_objective: item.objective,
+            eligible_grade_levels: item.eligibleGradeLevels || [],
+            curriculum_review_status: item.reviewStatus,
+        } : question;
+    });
 };
 
 /**
@@ -5445,20 +5438,15 @@ export const delete_question = async (questionId: string): Promise<void> => {
  * Get public questions (for students to browse)
  */
 export const get_public_questions = async (subject?: string, difficulty?: string): Promise<TeacherQuestion[]> => {
-    let query = supabase
-        .from('questions')
-        .select('*')
-        .eq('is_public', true)
-        .eq('is_active', true);
-
-    if (subject) query = query.eq('subject', subject);
-    if (difficulty) query = query.eq('difficulty', difficulty);
-
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    return data || [];
+    const subjectCatalog = await fetchStudentAcademicSubjectCatalog();
+    const requestedSubjects = subject
+        ? subjectCatalog.subjects.filter((item) => academicCodeForSubject(item.name) === academicCodeForSubject(subject))
+        : subjectCatalog.subjects;
+    const catalogs = await Promise.all(
+        requestedSubjects.map((item) => fetchStudentLearningCatalog(item.code, 500)),
+    );
+    return catalogs.flatMap((catalog) => catalog.questions)
+        .filter((question) => !difficulty || question.difficulty === difficulty);
 };
 
 /**
@@ -5468,21 +5456,8 @@ export const get_public_questions = async (subject?: string, difficulty?: string
 export const get_subject_question_progress = async (subject: string): Promise<{ answeredCount: number; totalCount: number }> => {
     try {
         const user = await getCurrentUser();
-        
-        // Get all public questions for this subject
-        const { data: questions, error: questionsError } = await supabase
-            .from('questions')
-            .select('id')
-            .eq('subject', subject)
-            .eq('is_public', true)
-            .eq('is_active', true);
-        
-        if (questionsError) {
-            console.error('Error fetching questions for progress:', questionsError);
-            return { answeredCount: 0, totalCount: 0 };
-        }
-        
-        const questionIds = (questions || []).map(q => q.id);
+        const questions = await get_public_questions(subject);
+        const questionIds = questions.map(q => q.id);
         const totalCount = questionIds.length;
         
         if (totalCount === 0) {

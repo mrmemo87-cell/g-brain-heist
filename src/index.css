@@ -2379,6 +2379,9 @@ button {
 .admin-row-actions { text-align:right !important; }
 .admin-row-actions > * + * { margin-left:.4rem; }
 .admin-muted { color:#8793a4; }
+.admin-access-note { display:flex; flex-wrap:wrap; gap:.4rem 1rem; margin-top:1rem; padding:.85rem 1rem; border:1px solid #bae6fd; border-radius:.8rem; background:#f0f9ff; color:#334155; font-size:.78rem; }
+.admin-access-note strong { color:#0c4a6e; }
+.admin-access-note span { flex:1 1 28rem; }
 .admin-empty-state { padding:3.5rem 1.25rem; text-align:center; }
 .admin-empty-state h3 { color:var(--school-ink); font-size:1rem; font-weight:750; }
 .admin-empty-state p { max-width:30rem; margin:.35rem auto 0; color:var(--school-muted); font-size:.84rem; }

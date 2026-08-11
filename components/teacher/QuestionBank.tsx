@@ -204,7 +204,7 @@ export default function QuestionBank({
               {selectedTopic.questions.map((question, index) => (
                 <article key={question.id}>
                   <span>{index + 1}</span>
-                  <div><h3>{question.question_text}</h3><p>{formatQuestionType(question.question_type)} · {question.difficulty} · {question.points || 0} points</p></div>
+                  <div><h3>{question.question_text}</h3><p>{formatQuestionType(question.question_type)} · {question.difficulty} · {question.points || 0} points</p>{question.curriculum_skill ? <p><strong>{question.curriculum_skill}</strong>{question.curriculum_subskill ? ` · ${question.curriculum_subskill}` : ''}{question.eligible_grade_levels?.length ? ` · Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p> : <p>Curriculum classification pending</p>}{question.curriculum_objective ? <small>Objective: {question.curriculum_objective}</small> : null}</div>
                   <div><button type="button" onClick={() => setPreviewQuestion(question)}>Preview</button>{activePool === 'mine' && onEditQuestion ? <button type="button" onClick={() => onEditQuestion(question)}>Edit</button> : null}{activePool === 'mine' && onDeleteQuestion ? <button type="button" className="is-danger" onClick={() => onDeleteQuestion(question.id)}>Delete</button> : null}</div>
                 </article>
               ))}

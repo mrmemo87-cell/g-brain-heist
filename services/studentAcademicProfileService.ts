@@ -27,6 +27,15 @@ export interface StudentAcademicProfile {
 
 export interface StudentAcademicProfileQuery { studentId?: string | null; subject?: string | null; dateFrom?: string | null; dateTo?: string | null }
 
+export interface StudentAcademicSubjectOption {
+  id: string;
+  code: string;
+  name: string;
+  requirement: 'required' | 'elective';
+  scopeId: string;
+  approvedQuestionCount: number;
+}
+
 export type AcademicAssessmentState = 'not_assessed' | 'low_data' | 'assessed' | 'stale' | 'contradictory';
 export type AcademicConfidenceBand = 'low' | 'medium' | 'high';
 
@@ -105,6 +114,16 @@ export const fetchStudentAcademicProfile = async (query: StudentAcademicProfileQ
   if (error) throw userFacingError(error, 'We could not open this student’s progress just now. Please try again.');
   if (!data || typeof data !== 'object') return emptyProfile();
   return data as StudentAcademicProfile;
+};
+
+export const fetchStudentAcademicSubjects = async (studentId?: string | null): Promise<StudentAcademicSubjectOption[]> => {
+  const { data, error } = await supabase.rpc('rpc_student_academic_subjects', {
+    p_student_id: studentId ?? null,
+  });
+  if (error) throw userFacingError(error, 'We could not load this student’s current subjects.');
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return [];
+  const result = data as { subjects?: StudentAcademicSubjectOption[] };
+  return result.subjects || [];
 };
 
 export const fetchStudentAcademicConfidence = async (studentId?: string | null): Promise<StudentAcademicConfidence> => {

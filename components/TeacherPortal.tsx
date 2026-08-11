@@ -226,6 +226,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [points, setPoints] = useState(10);
   const [topicMode, setTopicMode] = useState<'general' | 'custom'>('general');
   const [customTopicName, setCustomTopicName] = useState('');
+  const [curriculumStrand, setCurriculumStrand] = useState('');
+  const [curriculumSkill, setCurriculumSkill] = useState('');
+  const [curriculumSubskill, setCurriculumSubskill] = useState('');
+  const [curriculumObjective, setCurriculumObjective] = useState('');
+  const [eligibleGradeLevels, setEligibleGradeLevels] = useState<number[]>([6, 7]);
 
   useEffect(() => {
     setAvatarUrl(profile.avatar_url || '/BRAINS.svg');
@@ -3020,6 +3025,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       brainsAlert('Please enter a topic name for your question.', 'info');
       return;
     }
+    if (!curriculumStrand.trim() || !curriculumSkill.trim() || !curriculumSubskill.trim() || !curriculumObjective.trim() || !eligibleGradeLevels.length) {
+      brainsAlert('Add the strand, skill, subskill, objective and at least one eligible grade before saving.', 'info');
+      return;
+    }
 
     try {
       setUploadingImage(true);
@@ -3077,6 +3086,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         correct_answer: correctAnswer,
         explanation,
         points,
+        curriculum_strand: curriculumStrand.trim(),
+        curriculum_skill: curriculumSkill.trim(),
+        curriculum_subskill: curriculumSubskill.trim(),
+        curriculum_objective: curriculumObjective.trim(),
+        eligible_grade_levels: eligibleGradeLevels,
+        grade_level: eligibleGradeLevels.join(','),
+        curriculum_review_status: 'in_review' as const,
         is_public: false,
       };
 
@@ -3109,6 +3125,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setExplanation('');
       setTopicMode('general');
       setCustomTopicName('');
+      setCurriculumStrand('');
+      setCurriculumSkill('');
+      setCurriculumSubskill('');
+      setCurriculumObjective('');
+      setEligibleGradeLevels([6, 7]);
       setEditingQuestion(null);
 
       // Reload the complete authorized library, not only the RPC's first page.
@@ -3190,6 +3211,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setCorrectAnswer(question.correct_answer);
     setExplanation(question.explanation || '');
     setPoints(question.points);
+    setCurriculumStrand(question.curriculum_strand || '');
+    setCurriculumSkill(question.curriculum_skill || '');
+    setCurriculumSubskill(question.curriculum_subskill || '');
+    setCurriculumObjective(question.curriculum_objective || '');
+    setEligibleGradeLevels(question.eligible_grade_levels?.length ? question.eligible_grade_levels : [6, 7]);
     const existingTopic = question.topic_name || question.topic || 'General';
     if (existingTopic !== 'General') {
       setTopicMode('custom');
@@ -3213,6 +3239,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setTopicMode('general');
       setCustomTopicName('');
     }
+    setCurriculumStrand('');
+    setCurriculumSkill('');
+    setCurriculumSubskill('');
+    setCurriculumObjective('');
+    setEligibleGradeLevels([6, 7]);
     setView('create-question');
   };
 
@@ -3262,6 +3293,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setCorrectAnswer(question.correct_answer);
     setExplanation(question.explanation || '');
     setPoints(question.points);
+    setCurriculumStrand(question.curriculum_strand || '');
+    setCurriculumSkill(question.curriculum_skill || '');
+    setCurriculumSubskill(question.curriculum_subskill || '');
+    setCurriculumObjective(question.curriculum_objective || '');
+    setEligibleGradeLevels(question.eligible_grade_levels?.length ? question.eligible_grade_levels : [6, 7]);
     const existingTopic = question.topic_name || question.topic || 'General';
     if (existingTopic !== 'General') {
       setTopicMode('custom');
@@ -4627,6 +4663,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
             <p className="text-xs text-slate-500 mt-2">Choose one of your topics or create a new one. The topic is added to My Pool when this question is saved.</p>
           </div>
+
+          <fieldset className="teacher-form-group rounded-xl border border-cyan-200 bg-cyan-50/40 p-4">
+            <legend className="teacher-label px-2">Academic classification <span className="text-red-500">Required</span></legend>
+            <p className="mb-4 text-xs text-slate-600">This is the evidence path used in student progress. Saving places teacher-authored content in curriculum review; it is not added to the protected app pool automatically.</p>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <label className="teacher-form-group"><span className="teacher-label">Strand</span><input className="teacher-input" value={curriculumStrand} onChange={(event) => setCurriculumStrand(event.target.value)} placeholder="For example, Mathematical reasoning" required /></label>
+              <label className="teacher-form-group"><span className="teacher-label">Skill</span><input className="teacher-input" value={curriculumSkill} onChange={(event) => setCurriculumSkill(event.target.value)} placeholder="For example, Fraction operations" required /></label>
+              <label className="teacher-form-group"><span className="teacher-label">Subskill</span><input className="teacher-input" value={curriculumSubskill} onChange={(event) => setCurriculumSubskill(event.target.value)} placeholder="For example, Add unlike denominators" required /></label>
+              <label className="teacher-form-group"><span className="teacher-label">Learning objective</span><textarea className="teacher-textarea min-h-[84px]" value={curriculumObjective} onChange={(event) => setCurriculumObjective(event.target.value)} placeholder="The student can…" required /></label>
+            </div>
+            <div className="mt-4"><span className="teacher-label">Eligible grade levels</span><div className="mt-2 flex flex-wrap gap-2">{Array.from({ length: 12 }, (_, index) => index + 1).map((grade) => <label key={grade} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${eligibleGradeLevels.includes(grade) ? 'border-cyan-500 bg-cyan-100 text-cyan-900' : 'border-slate-200 bg-white text-slate-600'}`}><input type="checkbox" checked={eligibleGradeLevels.includes(grade)} onChange={() => setEligibleGradeLevels((current) => current.includes(grade) ? current.filter((value) => value !== grade) : [...current, grade].sort((a, b) => a - b))} />Grade {grade}</label>)}</div></div>
+          </fieldset>
 
           {/* Question Type */}
           <div className="teacher-form-group">
