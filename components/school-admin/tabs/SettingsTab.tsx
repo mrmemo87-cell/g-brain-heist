@@ -1,4 +1,5 @@
 import React from 'react';
+import { CalendarDays, ChevronRight } from 'lucide-react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import InvitesTab from './InvitesTab';
 
@@ -9,6 +10,25 @@ const SettingsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <section className="admin-form-card overflow-hidden">
+        <button
+          type="button"
+          onClick={() => window.location.assign('/school-operations.html')}
+          className="flex w-full items-center justify-between gap-4 p-5 text-left transition hover:bg-slate-50"
+        >
+          <span className="flex min-w-0 items-center gap-4">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white">
+              <CalendarDays className="h-5 w-5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-bold text-slate-950">School Operations</span>
+              <span className="mt-0.5 block text-xs text-slate-500">Attendance · Timetable · Student 360°</span>
+            </span>
+          </span>
+          <ChevronRight className="h-5 w-5 shrink-0 text-slate-300" />
+        </button>
+      </section>
+
       <section className="admin-section-heading"><div><p className="school-admin-eyebrow">Joining & access</p><h2>School identity and access</h2><p>The school code is the single controlled route for teachers and students joining this workspace.</p></div></section>
       <InvitesTab />
       <section className="admin-form-card">
