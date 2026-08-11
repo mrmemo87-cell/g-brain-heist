@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
+import AcademicSetupPanel from '../AcademicSetupPanel';
 
 const formatDate = (value: string) => new Intl.DateTimeFormat('en-GB', {
   day: 'numeric', month: 'short', year: 'numeric',
@@ -24,9 +25,11 @@ const SubjectsTab: React.FC = () => {
         </div>
       </section>
 
+      <AcademicSetupPanel />
+
       <section className="admin-form-card" aria-labelledby="add-subject-title">
         <div className="admin-card-heading">
-          <div><h3 id="add-subject-title">Add subject</h3><p>Create a subject using the name and code used by your school.</p></div>
+          <div><h3 id="add-subject-title">School-specific subject labels</h3><p>Add a local subject label only when it is not already available in the published framework. This does not automatically expose questions to students.</p></div>
         </div>
         <div className="admin-form-grid">
           <label className="admin-field admin-field-wide">

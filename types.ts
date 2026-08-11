@@ -918,6 +918,12 @@ export interface TeacherQuestion {
   // Organization
   tags?: string[];
   grade_level?: string;
+  curriculum_strand?: string | null;
+  curriculum_skill?: string | null;
+  curriculum_subskill?: string | null;
+  curriculum_objective?: string | null;
+  eligible_grade_levels?: number[];
+  curriculum_review_status?: 'draft' | 'in_review' | 'approved' | 'rejected';
   is_public: boolean;
   is_active: boolean;
   
@@ -998,6 +1004,12 @@ export interface CreateQuestionRequest {
   points?: number;
   tags?: string[];
   grade_level?: string;
+  curriculum_strand?: string;
+  curriculum_skill?: string;
+  curriculum_subskill?: string;
+  curriculum_objective?: string;
+  eligible_grade_levels?: number[];
+  curriculum_review_status?: 'draft' | 'in_review' | 'approved' | 'rejected';
   is_public?: boolean;
 }
 

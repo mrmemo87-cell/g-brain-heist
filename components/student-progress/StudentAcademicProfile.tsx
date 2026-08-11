@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   fetchStudentAcademicConfidence,
   fetchStudentAcademicProfile,
+  fetchStudentAcademicSubjects,
   formatLearningStatus,
   type StudentAcademicConfidence,
   type StudentAcademicProfile as StudentAcademicProfileData,
@@ -50,6 +51,7 @@ const StudentAcademicProfile: React.FC<StudentAcademicProfileProps> = ({
   const [profile, setProfile] = useState<StudentAcademicProfileData | null>(null);
   const [confidence, setConfidence] = useState<StudentAcademicConfidence | null>(null);
   const [context, setContext] = useState<AcademicProgressExperienceContext | null>(null);
+  const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [subject, setSubject] = useState<string>(initialSubject || 'all');
@@ -82,13 +84,15 @@ const StudentAcademicProfile: React.FC<StudentAcademicProfileProps> = ({
   useEffect(() => {
     let cancelled = false;
     const loadAcademicContext = async () => {
-      const [contextResult, confidenceResult] = await Promise.allSettled([
+      const [contextResult, confidenceResult, subjectsResult] = await Promise.allSettled([
         getAcademicProgressExperienceContext(studentId),
         fetchStudentAcademicConfidence(studentId),
+        fetchStudentAcademicSubjects(studentId),
       ]);
       if (cancelled) return;
       setContext(contextResult.status === 'fulfilled' ? contextResult.value : null);
       setConfidence(confidenceResult.status === 'fulfilled' ? confidenceResult.value : null);
+      setAvailableSubjects(subjectsResult.status === 'fulfilled' ? subjectsResult.value.map((item) => item.name) : []);
     };
     void loadAcademicContext();
     return () => { cancelled = true; };
@@ -100,8 +104,9 @@ const StudentAcademicProfile: React.FC<StudentAcademicProfileProps> = ({
     profile?.assignments.forEach((entry) => values.add(entry.subject));
     profile?.focus_areas.forEach((entry) => values.add(entry.subject));
     profile?.scope.allowed_subjects.forEach((entry) => values.add(entry));
+    availableSubjects.forEach((entry) => values.add(entry));
     return [...values].sort((a, b) => a.localeCompare(b));
-  }, [profile]);
+  }, [availableSubjects, profile]);
 
   const strengths = useMemo(() => profile?.focus_areas.filter((item) => ['emerging_strength', 'consistent_strength'].includes(item.status)) ?? [], [profile]);
   const improving = useMemo(() => profile?.focus_areas.filter((item) => item.status === 'improving') ?? [], [profile]);
@@ -210,7 +215,18 @@ const StudentAcademicProfile: React.FC<StudentAcademicProfileProps> = ({
 
     <section className="sap-panel"><div className="sap-panel-heading"><div><span>Assessment record</span><h2>Assignment marks and grades</h2></div><p>Completed assignments only. Missing work is never silently converted into a zero.</p></div><div className="sap-table-wrap"><table className="sap-table"><thead><tr><th>Date</th><th>Subject</th><th>Assignment</th><th>Topic</th><th>Correct</th><th>Result</th></tr></thead><tbody>{profile.assignments.map((item) => <tr key={`${item.assignment_id}:${item.completed_at}`}><td>{formatDate(item.completed_at)}</td><td>{item.subject}</td><td><strong>{item.title}</strong></td><td>{item.topic || '—'}</td><td>{item.correct}/{item.correct + item.incorrect}</td><td><span className={`sap-score-chip sap-score-chip--${scoreBand(item.accuracy)}`}>{item.accuracy}%</span></td></tr>)}</tbody></table>{!profile.assignments.length ? <div className="sap-empty">No completed assignment results are available in this scope.</div> : null}</div></section>
 
-    <section className="sap-panel"><div className="sap-panel-heading"><div><span>Progress timeline</span><h2>Learning timeline</h2></div><p>Dated evidence from school assignments, English Writing Hub work and authorised teacher observations.</p></div><div className="sap-timeline">{profile.timeline.slice(0, 60).map((item) => <article key={item.id}><i className={`sap-dot sap-dot--${item.observation_type}`} /><time>{formatDate(item.observed_at)}</time><div><strong>{item.skill}</strong><span>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</span><p>{item.observation_type === 'focus' ? 'Area for development' : item.observation_type === 'strength' ? 'Strength evidence' : 'Developing evidence'}{item.evidence_percentage == null ? '' : ` · ${item.evidence_percentage}%`}</p></div></article>)}{!profile.timeline.length ? <div className="sap-empty">No learning observations are available in this scope.</div> : null}</div></section>
+    <section className="sap-panel"><div className="sap-panel-heading"><div><span>Progress timeline</span><h2>Learning timeline</h2></div><p>Every entry names its evidence source. Only completed, curriculum-linked school assignments and authorised academic observations contribute; standalone game practice does not.</p></div><div className="sap-timeline">{profile.timeline.slice(0, 60).map((item) => {
+      const sourceLabel = item.evidence?.synthetic === true
+        ? 'Synthetic QA evidence'
+        : typeof item.evidence?.source_label === 'string'
+          ? item.evidence.source_label
+          : item.source_type === 'assignment_result' ? 'School assignment'
+            : item.source_type === 'writing_attempt' ? 'English Writing Hub'
+              : item.source_type === 'teacher_observation' ? 'Teacher observation'
+                : item.source_type === 'import' ? 'Imported school evidence' : item.source_type;
+      const objective = typeof item.evidence?.objective === 'string' ? item.evidence.objective : null;
+      return <article key={item.id}><i className={`sap-dot sap-dot--${item.observation_type}`} /><time>{formatDate(item.observed_at)}</time><div><strong>{item.skill}</strong><span>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</span>{objective ? <small>Objective: {objective}</small> : null}<p>{sourceLabel} · {item.observation_type === 'focus' ? 'Area for development' : item.observation_type === 'strength' ? 'Strength evidence' : 'Developing evidence'}{item.evidence_percentage == null ? '' : ` · ${item.evidence_percentage}%`}</p></div></article>;
+    })}{!profile.timeline.length ? <div className="sap-empty">No learning observations are available in this scope.</div> : null}</div></section>
 
     {showReport ? <IndividualStudentAcademicReport profile={profile} schoolName={resolvedSchoolName} schoolLogoUrl={resolvedSchoolLogo} teacherName={preparedBy} onClose={() => setShowReport(false)} /> : null}
   </section>;

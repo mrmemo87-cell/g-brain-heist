@@ -1825,7 +1825,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 />
                 <div>
                   <h2 className="font-heading text-2xl text-white">Explore the Question Bank</h2>
-                  <p className="text-sm text-slate-200">Browse every subject and topic just like your teacher.</p>
+                  <p className="text-sm text-slate-200">Browse the subjects and grade-level questions assigned by your school.</p>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3 text-sm text-slate-200">
@@ -1861,8 +1861,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               </div>
             ) : publicQuestions.length === 0 ? (
               <div className="card-glass p-6 text-center border border-cyan-500/30">
-                <p className="text-white font-heading text-xl mb-2">No questions are available yet.</p>
-                <p className="text-gray-300 text-sm">Once your teacher publishes questions, they will appear here for practice.</p>
+                <p className="text-white font-heading text-xl mb-2">Your academic question set is not ready yet.</p>
+                <p className="text-gray-300 text-sm">Your school needs a current academic year, grade enrolment and subject plan. Elective subjects also require your individual enrolment.</p>
               </div>
             ) : (
               <QuestionBank
