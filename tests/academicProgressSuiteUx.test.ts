@@ -62,15 +62,15 @@ test('parent onboarding is explicit and child-specific', () => {
   assert.match(parent, /SchoolBrand/);
 });
 
-test('student reports are official school-branded documents with discreet product attribution', () => {
+test('academic reports are school-branded, reproducible and evidence-governed', () => {
   const report = read('components/student-progress/AcademicReportBuilder.tsx');
   assert.match(report, /createSchoolBrand/);
-  assert.match(report, /Official academic progress report/);
-  assert.match(report, /Student Progress Report/);
-  assert.match(report, /Areas for development/);
-  assert.match(report, /Generated securely through Brains Heist/);
-  assert.doesNotMatch(report, /Generated securely through Brain Heist/);
-  assert.doesNotMatch(report, /Brain Heist School Report/);
+  assert.match(report, /Confidential academic report/);
+  assert.match(report, /Reproducible academic reports/);
+  assert.match(report, /Attainment, progress and evidence confidence/);
+  assert.match(report, /Reporting disclosures/);
+  assert.match(report, /Payload/);
+  assert.match(report, /Sources/);
 });
 
 test('School Head can use the secure student progress contract', () => {
