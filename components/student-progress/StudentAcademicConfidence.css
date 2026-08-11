@@ -1,0 +1,117 @@
+.sap-confidence-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sap-confidence-summary span {
+  padding: 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.sap-confidence-summary strong {
+  display: block;
+  color: #0f172a;
+  font-size: 20px;
+}
+
+.sap-confidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.sap-confidence-card {
+  display: grid;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #f8fafc, #eff6ff);
+}
+
+.sap-confidence-card header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sap-confidence-card h3 {
+  margin: 0;
+}
+
+.sap-confidence-card header span,
+.sap-confidence-card header small {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.sap-confidence-card header > strong {
+  text-align: right;
+  font-size: 22px;
+  color: #0369a1;
+}
+
+.sap-confidence-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.sap-confidence-card dl div {
+  padding: 8px;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.sap-confidence-card dt {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.sap-confidence-card dd {
+  margin: 3px 0 0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sap-evidence-state {
+  justify-self: start;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #075985;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sap-evidence-state--low_data,
+.sap-evidence-state--not_assessed {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.sap-evidence-state--stale {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.sap-evidence-state--contradictory {
+  background: #ffe4e6;
+  color: #9f1239;
+}
+
+@media (max-width: 900px) {
+  .sap-confidence-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

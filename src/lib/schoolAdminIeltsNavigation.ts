@@ -10,6 +10,7 @@ export const SCHOOL_ADMIN_TABS = [
   'cambridge',
   'ielts',
   'admissions',
+  'academic-profiles',
 ] as const;
 
 export const SCHOOL_ADMIN_IELTS_TABS = [

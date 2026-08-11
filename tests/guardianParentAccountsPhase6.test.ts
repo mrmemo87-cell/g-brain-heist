@@ -28,13 +28,13 @@ test('guardian invitations are one-time email-bound verified claims',()=>{
 test('parent progress contract excludes private teacher notes and raw evidence json',()=>{
  assert.match(migration,/source_type in\('assignment_result','writing_attempt'\)/i);
  assert.doesNotMatch(migration,/'evidence',o\.evidence/i);
- assert.match(portal,/excludes internal staff notes/i);
- assert.match(portal,/one isolated low result is not labelled as a persistent problem/i);
+ assert.match(portal,/Private staff records remain internal/i);
+ assert.match(portal,/one isolated low result is never labelled as a persistent problem/i);
 });
 
 test('school admins can create and revoke guardian access from a dedicated workflow',()=>{
- assert.match(admin,/Invite and verify guardians/i);
- assert.match(admin,/Generate secure invitation/i);
+ assert.match(admin,/Parent & Guardian Access/i);
+ assert.match(admin,/Create secure invitation/i);
  assert.match(admin,/Revoke/i);
  assert.match(migration,/role_in_school='school_admin'/i);
 });

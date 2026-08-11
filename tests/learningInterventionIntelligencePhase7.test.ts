@@ -46,7 +46,7 @@ test('teacher intervention UI supports recommendation to tracked outcome',()=>{
  assert.match(page,/Evidence-led intervention queue/i);
  assert.match(page,/Create intervention/i);
  assert.match(page,/Start plan/i);
- assert.match(page,/Complete & record outcome/i);
- assert.match(page,/Baseline will be locked/i);
+ assert.match(page,/Evaluate follow-up & record outcome/i);
+ assert.match(page,/exact evidence position will be frozen and hashed/i);
  assert.match(vite,/teacherInterventions:\s*path\.resolve\(__dirname, 'teacher-interventions\.html'\)/i);
 });

@@ -67,6 +67,7 @@ type AdminTab = MainAdminTab | IeltsSubTab;
 type IeltsToolNavItem = { id: IeltsSubTab; icon: string; label: string; hint: string };
 
 const IeltsJourneyDashboard = React.lazy(() => import('../src/pages/ielts/IeltsJourneyDashboard'));
+const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
 const IeltsReviewQueue = React.lazy(() => import('../src/pages/ielts/IeltsReviewQueue'));
 const IeltsSubmissionReview = React.lazy(() => import('../src/pages/ielts/IeltsSubmissionReview'));
 const IeltsExamMonitor = React.lazy(() => import('../src/pages/ielts/IeltsExamMonitor'));
@@ -1773,7 +1774,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
         <div className="mt-4 border-t border-slate-700/70 pt-4">
           <p className="school-admin-nav-label">Student progress</p>
           {SCHOOL_ADMIN_PROGRESS_TOOLS.map((tool) => (
-            <button key={tool.id} type="button" onClick={() => window.location.assign(tool.href)} data-testid={`school-admin-tool-${tool.id}`}>
+            <button key={tool.id} type="button" onClick={() => tool.id === 'academic-profiles' ? selectAdminTab('academic-profiles') : window.location.assign(tool.href)} data-testid={`school-admin-tool-${tool.id}`} className={activeTab === tool.id ? 'is-active' : ''} aria-current={activeTab === tool.id ? 'page' : undefined}>
               {tool.label}
             </button>
           ))}
@@ -1789,6 +1790,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       {activeTab === 'classes' && <OrganisationTab />}
       {activeTab === 'subjects' && <SubjectsTab />}
       {activeTab === 'documents' && <DocumentsTab />}
+      {activeTab === 'academic-profiles' && <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading student academic profiles…</div>}><TeacherAcademicProfilesPage onBack={() => selectAdminTab('dashboard')} /></React.Suspense>}
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
       {activeTab === 'cambridge' && effectiveEntitlements?.modules.cambridge && <CambridgeTab />}
@@ -1974,7 +1976,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
                 </button>
               ))}
               {SCHOOL_ADMIN_PROGRESS_TOOLS.map((tool) => (
-                <button key={tool.id} type="button" onClick={() => { setMobileAdminMenuOpen(false); window.location.assign(tool.href); }}>
+                <button key={tool.id} type="button" onClick={() => { setMobileAdminMenuOpen(false); if (tool.id === 'academic-profiles') selectAdminTab('academic-profiles'); else window.location.assign(tool.href); }} className={activeTab === tool.id ? 'is-active' : ''} aria-current={activeTab === tool.id ? 'page' : undefined}>
                   <span className="school-admin-mobile-menu-icon" aria-hidden="true">{tool.icon}</span>
                   <span><strong>{tool.label}</strong><small>{tool.description}</small></span>
                 </button>
