@@ -253,6 +253,11 @@ export default function AssignmentWizard({
     () => subjectQuestions.filter((question) => assignmentQuestionIds.includes(question.id)),
     [assignmentQuestionIds, subjectQuestions],
   );
+  const verifiedProfileQuestions = useMemo(
+    () => selectedQuestions.filter((question) => isBrainsHeistPoolQuestion(question, teacherId)),
+    [selectedQuestions, teacherId],
+  );
+  const classroomOnlyQuestions = selectedQuestions.length - verifiedProfileQuestions.length;
 
   const selectedClasses = useMemo(
     () => uniqueClasses.filter((item) => assignmentBatches.includes('All') || assignmentBatches.includes(item.class_code)),
@@ -498,7 +503,7 @@ export default function AssignmentWizard({
                 <label className="aw-search aw-search--wide"><span>⌕</span><input value={questionSearch} onChange={(event) => setQuestionSearch(event.target.value)} placeholder="Search question, answer, topic, tags…" aria-label="Search question bank" /></label>
                 <select value={questionPool} onChange={(event) => setQuestionPool(event.target.value as QuestionPool)} aria-label="Choose question pool">
                   <option value="all">All pools</option>
-                  <option value="brains-heist">Brains Heist Pool</option>
+                  <option value="brains-heist">Brains Heist Verified</option>
                   <option value="mine">My Pool</option>
                 </select>
                 <select value={topicFilter} onChange={(event) => { setTopicFilter(event.target.value); setAssignmentTopicMode(event.target.value === 'all' ? 'general' : 'custom'); setAssignmentTopicName(event.target.value === 'all' ? '' : event.target.value); }} aria-label="Filter by topic">
@@ -538,6 +543,7 @@ export default function AssignmentWizard({
                             <p>{question.question_text}</p>
                           </button>
                           <div className="aw-badges">
+                            <span data-tone={isBrainsHeistPoolQuestion(question, teacherId) ? 'verified' : 'classroom'}>{isBrainsHeistPoolQuestion(question, teacherId) ? 'Verified profile evidence' : 'Classroom only'}</span>
                             <span data-tone={question.difficulty}>{question.difficulty}</span>
                             <span>{topic}</span>
                             <span>{formatQuestionType(question.question_type)}</span>
@@ -562,6 +568,7 @@ export default function AssignmentWizard({
                           <p>{question.question_text}</p>
                         </button>
                         <div className="aw-badges">
+                          <span data-tone={isBrainsHeistPoolQuestion(question, teacherId) ? 'verified' : 'classroom'}>{isBrainsHeistPoolQuestion(question, teacherId) ? 'Verified profile evidence' : 'Classroom only'}</span>
                           <span>{question.topic_name || question.topic || 'General'}</span>
                           <span>{formatQuestionType(question.question_type)}</span>
                         </div>
@@ -609,6 +616,12 @@ export default function AssignmentWizard({
           {step === 6 && (
             <div className="aw-step aw-review">
               <div className="aw-review__hero"><span>{editingAssignment ? 'Ready to save' : 'Ready to publish'}</span><h2>{assignmentTitle || `${assignmentSubject} assignment`}</h2><p>{selectedQuestions.length} questions · {estimatedMinutes} minutes · {totalXp} XP</p></div>
+              <div className="aw-profile-evidence" data-has-verified={verifiedProfileQuestions.length > 0} role="status">
+                <strong>{verifiedProfileQuestions.length > 0 ? `${verifiedProfileQuestions.length} verified profile question${verifiedProfileQuestions.length === 1 ? '' : 's'}` : 'Classroom results only'}</strong>
+                <span>{verifiedProfileQuestions.length > 0
+                  ? `Only the verified question${verifiedProfileQuestions.length === 1 ? '' : 's'} can contribute to official Academic Profile analytics.${classroomOnlyQuestions ? ` ${classroomOnlyQuestions} teacher question${classroomOnlyQuestions === 1 ? ' is' : 's are'} excluded.` : ''}`
+                  : 'This assignment can be graded and reported in class, but it will not change official strengths, weak areas, skills, or progress.'}</span>
+              </div>
               {[
                 ['Subject', assignmentSubject, 1],
                 ['Audience', assignmentMode === 'batch' ? selectedClasses.map((item) => item.class_code).join(', ') : `${audienceStudents.length} individual students`, 2],

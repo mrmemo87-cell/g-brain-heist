@@ -22,19 +22,23 @@ const question = (values: Partial<TeacherQuestion>): TeacherQuestion => ({
   ...values,
 });
 
-test('an imported official question remains in Brains Heist Pool when it has a content teacher id', () => {
-  const imported = question({ teacher_id: 'platform-content-teacher', is_mine: false });
+test('a verified official question remains in Brains Heist Verified when it has a content teacher id', () => {
+  const imported = question({
+    teacher_id: 'platform-content-teacher', is_mine: false,
+    content_origin: 'brain_heist', verification_status: 'verified', analytics_eligible: true,
+  });
   assert.equal(isBrainsHeistPoolQuestion(imported, 'signed-in-teacher'), true);
   assert.equal(isMyPoolQuestion(imported, 'signed-in-teacher'), false);
 });
 
 test('the RPC ownership flag puts the signed-in teacher question in My Pool', () => {
-  const mine = question({ teacher_id: 'signed-in-teacher', is_mine: true });
+  const mine = question({ teacher_id: 'signed-in-teacher', is_mine: true, content_origin: 'teacher' });
   assert.equal(isMyPoolQuestion(mine, 'signed-in-teacher'), true);
   assert.equal(isBrainsHeistPoolQuestion(mine, 'signed-in-teacher'), false);
 });
 
-test('legacy results without is_mine fall back to comparing teacher ids', () => {
-  assert.equal(isMyPoolQuestion(question({ teacher_id: 'signed-in-teacher' }), 'signed-in-teacher'), true);
-  assert.equal(isBrainsHeistPoolQuestion(question({ teacher_id: null }), 'signed-in-teacher'), true);
+test('legacy results fail closed instead of being guessed official', () => {
+  assert.equal(isMyPoolQuestion(question({ teacher_id: 'signed-in-teacher', content_origin: 'teacher' }), 'signed-in-teacher'), true);
+  assert.equal(isBrainsHeistPoolQuestion(question({ teacher_id: null }), 'signed-in-teacher'), false);
+  assert.equal(isBrainsHeistPoolQuestion(question({ content_origin: 'brain_heist', verification_status: 'verified', analytics_eligible: false }), 'signed-in-teacher'), false);
 });

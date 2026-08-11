@@ -18,6 +18,7 @@ interface QuestionBankProps {
   onEditQuestion?: (question: TeacherQuestion) => void;
   onDeleteQuestion?: (questionId: string) => void;
   onCreateQuestion?: (subject?: Subject, topic?: string) => void;
+  onBulkImport?: () => void;
   onRenameTopic?: (questions: TeacherQuestion[], nextTopic: string) => void;
   onDeleteTopic?: (questions: TeacherQuestion[]) => void;
   useActionLabel?: string;
@@ -51,7 +52,7 @@ const makeTopicGroups = (questions: TeacherQuestion[]) => {
 };
 
 export default function QuestionBank({
-  questions, teacher, onUseSet, onEditQuestion, onDeleteQuestion, onCreateQuestion,
+  questions, teacher, onUseSet, onEditQuestion, onDeleteQuestion, onCreateQuestion, onBulkImport,
   onRenameTopic, onDeleteTopic, useActionLabel = 'Add to a new assignment', restrictedSubjects,
   schoolName = 'Brains Heist', schoolLogoUrl, teacherName = 'Teacher',
   schoolId,
@@ -90,7 +91,7 @@ export default function QuestionBank({
     });
   }, [effectiveSubject, poolQuestions, searchTerm]);
   const topicGroups = useMemo(() => makeTopicGroups(visibleQuestions), [visibleQuestions]);
-  const selectedPoolTitle = activePool === 'brains-heist' ? 'Brains Heist Pool' : 'My Pool';
+  const selectedPoolTitle = activePool === 'brains-heist' ? 'Brains Heist Verified' : 'My Pool';
 
   const choosePool = (pool: PoolKey) => {
     setActivePool(pool);
@@ -140,22 +141,22 @@ export default function QuestionBank({
   return (
     <section className="qb-shell" aria-labelledby="question-bank-title">
       <header className="qb-header">
-        <div><span className="qb-eyebrow">Curriculum workspace</span><h1 id="question-bank-title">Question Bank</h1><p>Open a topic to preview its questions. Your pool is private and fully editable.</p></div>
-        {onCreateQuestion ? <button type="button" className="qb-primary-action" onClick={() => { choosePool('mine'); onCreateQuestion(); }}>Add to My Pool</button> : null}
+        <div><span className="qb-eyebrow">Question workspace</span><h1 id="question-bank-title">Question Bank</h1><p>Use verified academic evidence or build private classroom material in My Pool.</p></div>
+        <div className="flex flex-wrap gap-2">{onBulkImport ? <button type="button" onClick={() => { choosePool('mine'); onBulkImport(); }}>Bulk import</button> : null}{onCreateQuestion ? <button type="button" className="qb-primary-action" onClick={() => { choosePool('mine'); onCreateQuestion(); }}>Add to My Pool</button> : null}</div>
       </header>
 
       <div className="qb-pool-switcher" aria-label="Question pools">
         <button type="button" className={activePool === 'brains-heist' ? 'qb-pool-card is-active' : 'qb-pool-card'} onClick={() => choosePool('brains-heist')} aria-pressed={activePool === 'brains-heist'}>
-          <span className="qb-pool-icon">BH</span><span><strong>Brains Heist Pool</strong><small>Approved app library · read-only</small></span><b>{pools['brains-heist'].length}</b>
+          <span className="qb-pool-icon">BH</span><span><strong>Brains Heist Verified</strong><small>Official Academic Profile evidence · read-only</small></span><b>{pools['brains-heist'].length}</b>
         </button>
         <button type="button" className={activePool === 'mine' ? 'qb-pool-card is-active' : 'qb-pool-card'} onClick={() => choosePool('mine')} aria-pressed={activePool === 'mine'}>
-          <span className="qb-pool-icon qb-pool-icon--mine">MY</span><span><strong>My Pool</strong><small>Your topics and questions · editable</small></span><b>{pools.mine.length}</b>
+          <span className="qb-pool-icon qb-pool-icon--mine">MY</span><span><strong>My Pool</strong><small>Private classroom questions · editable</small></span><b>{pools.mine.length}</b>
         </button>
       </div>
 
       <div className="qb-access-note" data-pool={activePool}>
-        <strong>{activePool === 'brains-heist' ? 'Protected app pool' : 'Teacher-owned workspace'}</strong>
-        <span>{activePool === 'brains-heist' ? 'You can preview and assign these questions, but cannot change or delete them.' : 'Create topics by adding a first question, then edit or delete your own content.'}</span>
+        <strong>{activePool === 'brains-heist' ? 'Brains Heist Verified evidence' : 'Teacher-owned classroom workspace'}</strong>
+        <span>{activePool === 'brains-heist' ? 'These questions are professionally mapped, protected, and accepted in the official Academic Profile.' : 'Use these in assignments and classroom reports. They never affect official Academic Profile analytics.'}</span>
       </div>
 
       <div className="qb-toolbar">
@@ -189,7 +190,7 @@ export default function QuestionBank({
         <div className="qb-modal" role="dialog" aria-modal="true" aria-labelledby="qb-topic-title" onMouseDown={(event) => event.target === event.currentTarget && setSelectedTopic(null)}>
           <article className="qb-modal__card">
             <header>
-              <div><span>{selectedTopic.subject} · {activePool === 'brains-heist' ? 'Brains Heist Pool' : 'My Pool'}</span><h2 id="qb-topic-title">{selectedTopic.topic}</h2><p>{selectedTopic.questions.length} question{selectedTopic.questions.length === 1 ? '' : 's'}</p></div>
+              <div><span>{selectedTopic.subject} · {activePool === 'brains-heist' ? 'Brains Heist Verified' : 'My Pool'}</span><h2 id="qb-topic-title">{selectedTopic.topic}</h2><p>{selectedTopic.questions.length} question{selectedTopic.questions.length === 1 ? '' : 's'}</p></div>
               <div className="qb-modal__header-actions">
                 <button type="button" onClick={() => printTopic(selectedTopic, false)}>Print paper</button>
                 <button type="button" onClick={() => printTopic(selectedTopic, true)}>Answer key</button>
@@ -204,7 +205,7 @@ export default function QuestionBank({
               {selectedTopic.questions.map((question, index) => (
                 <article key={question.id}>
                   <span>{index + 1}</span>
-                  <div><h3>{question.question_text}</h3><p>{formatQuestionType(question.question_type)} · {question.difficulty} · {question.points || 0} points</p>{question.curriculum_skill ? <p><strong>{question.curriculum_skill}</strong>{question.curriculum_subskill ? ` · ${question.curriculum_subskill}` : ''}{question.eligible_grade_levels?.length ? ` · Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p> : <p>Curriculum classification pending</p>}{question.curriculum_objective ? <small>Objective: {question.curriculum_objective}</small> : null}</div>
+                  <div><h3>{question.question_text}</h3><p>{formatQuestionType(question.question_type)} · {question.difficulty} · {question.points || 0} points</p>{activePool === 'brains-heist' ? <>{question.curriculum_skill ? <p><strong>Verified: {question.curriculum_skill}</strong>{question.curriculum_subskill ? ` · ${question.curriculum_subskill}` : ''}{question.eligible_grade_levels?.length ? ` · Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p> : null}{question.curriculum_objective ? <small>Official objective: {question.curriculum_objective}</small> : null}</> : <><p><strong>Classroom only</strong>{question.eligible_grade_levels?.length ? ` · Suggested Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p><small>Excluded from official Academic Profile analytics</small></>}</div>
                   <div><button type="button" onClick={() => setPreviewQuestion(question)}>Preview</button>{activePool === 'mine' && onEditQuestion ? <button type="button" onClick={() => onEditQuestion(question)}>Edit</button> : null}{activePool === 'mine' && onDeleteQuestion ? <button type="button" className="is-danger" onClick={() => onDeleteQuestion(question.id)}>Delete</button> : null}</div>
                 </article>
               ))}

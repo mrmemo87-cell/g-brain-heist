@@ -882,6 +882,8 @@ export interface Teacher {
 
 export type QuestionType = 'multiple_choice' | 'true_false' | 'short_answer';
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
+export type QuestionContentOrigin = 'brain_heist' | 'teacher';
+export type QuestionVerificationStatus = 'unverified' | 'in_review' | 'verified' | 'retired' | 'rejected';
 
 // Option can be either a simple string or an object with text and optional image
 export interface QuestionOption {
@@ -924,6 +926,16 @@ export interface TeacherQuestion {
   curriculum_objective?: string | null;
   eligible_grade_levels?: number[];
   curriculum_review_status?: 'draft' | 'in_review' | 'approved' | 'rejected';
+  content_origin?: QuestionContentOrigin;
+  verification_status?: QuestionVerificationStatus;
+  analytics_eligible?: boolean;
+  verified_at?: string | null;
+  verified_by?: string | null;
+  verified_by_authority?: string | null;
+  verified_content_hash?: string | null;
+  current_content_hash?: string | null;
+  content_version?: string;
+  content_revision?: number;
   is_public: boolean;
   is_active: boolean;
   
@@ -1004,13 +1016,7 @@ export interface CreateQuestionRequest {
   points?: number;
   tags?: string[];
   grade_level?: string;
-  curriculum_strand?: string;
-  curriculum_skill?: string;
-  curriculum_subskill?: string;
-  curriculum_objective?: string;
   eligible_grade_levels?: number[];
-  curriculum_review_status?: 'draft' | 'in_review' | 'approved' | 'rejected';
-  is_public?: boolean;
 }
 
 export interface TeacherAssignmentSummary {

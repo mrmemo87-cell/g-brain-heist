@@ -27,7 +27,7 @@ test('assignment wizard follows the subject-first light workflow', () => {
   assert.match(wizard, /\{ id: 1, short: 'Subject', question: 'What subject\?'/);
   assert.match(wizard, /\{ id: 2, short: 'Audience', question: 'Who is this for\?'/);
   assert.match(wizard, /question: 'Add Title and Description'/);
-  assert.match(wizard, /Brains Heist Pool/);
+  assert.match(wizard, /Brains Heist Verified/);
   assert.match(wizard, />Select all</);
   assert.match(wizard, /Available questions/);
   assert.match(wizard, /Selected questions/);
@@ -41,13 +41,13 @@ test('assignment wizard follows the subject-first light workflow', () => {
   assert.doesNotMatch(wizard, /window\.scrollTo/);
 });
 
-test('question bank uses formal official and teacher-owned pools', () => {
-  assert.match(questionBank, />Brains Heist Pool</);
+test('question bank uses verified official and teacher-owned pools', () => {
+  assert.match(questionBank, />Brains Heist Verified</);
   assert.match(questionBank, />My Pool</);
-  assert.match(questionBank, /Curriculum workspace/);
+  assert.match(questionBank, /Question workspace/);
   assert.doesNotMatch(questionBank, /Mission|Loadout|Quest-ready|🎮/i);
   assert.match(questionBank, /isBrainsHeistPoolQuestion/);
-  assert.match(questionBank, /Protected app pool/);
+  assert.match(questionBank, /Official Academic Profile evidence · read-only/);
   assert.match(questionBank, /Rename topic/);
   assert.match(questionBank, /Delete topic/);
 });

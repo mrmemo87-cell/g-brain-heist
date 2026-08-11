@@ -5256,13 +5256,12 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
             points: finalPoints,
             tags: questionData.tags,
             grade_level: questionData.grade_level,
-            curriculum_strand: questionData.curriculum_strand,
-            curriculum_skill: questionData.curriculum_skill,
-            curriculum_subskill: questionData.curriculum_subskill,
-            curriculum_objective: questionData.curriculum_objective,
             eligible_grade_levels: questionData.eligible_grade_levels || [],
-            curriculum_review_status: questionData.curriculum_review_status || 'draft',
-            is_public: questionData.is_public || false
+            curriculum_review_status: 'draft',
+            content_origin: 'teacher',
+            verification_status: 'unverified',
+            analytics_eligible: false,
+            is_public: false
         })
         .select()
         .single();
@@ -5283,6 +5282,7 @@ export const get_my_questions = async (): Promise<TeacherQuestion[]> => {
         .from('questions')
         .select('*')
         .eq('teacher_id', teacher.id)
+        .eq('content_origin', 'teacher')
         .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -5388,10 +5388,15 @@ export const update_question = async (
     // Max XP limit for teacher questions
     const MAX_XP = 30;
 
-    const payload: Record<string, unknown> = {
-        ...updates,
-        updated_at: new Date().toISOString(),
-    };
+    const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const editableFields: Array<keyof CreateQuestionRequest> = [
+        'subject', 'topic', 'topic_name', 'difficulty', 'question_text', 'image_url',
+        'question_type', 'options', 'correct_answer', 'explanation', 'hints',
+        'time_limit', 'tags', 'grade_level', 'eligible_grade_levels',
+    ];
+    editableFields.forEach((field) => {
+        if (Object.prototype.hasOwnProperty.call(updates, field)) payload[field] = updates[field];
+    });
 
     // Enforce max XP limit if points is being updated
     if (updates.points !== undefined) {
@@ -5411,12 +5416,56 @@ export const update_question = async (
         .update(payload)
         .eq('id', questionId)
         .eq('teacher_id', teacher.id)
+        .eq('content_origin', 'teacher')
         .select()
         .single();
 
     if (error) throw error;
 
     return data as TeacherQuestion;
+};
+
+export interface TeacherQuestionBulkCreateResult {
+    submitted: number;
+    created: number;
+    duplicatesSkipped: number;
+}
+
+/**
+ * Atomically imports teacher-authored classroom questions into the caller's
+ * private pool. Verification and Academic Profile authority are assigned only
+ * by the database and cannot be supplied by the client payload.
+ */
+export const bulk_create_teacher_questions = async (
+    questions: CreateQuestionRequest[]
+): Promise<TeacherQuestionBulkCreateResult> => {
+    const payload = questions.map((question) => ({
+        subject: question.subject,
+        subject_id: resolveSubjectIdentifier(question.subject, question.subject_id),
+        topic: normalizeTopicName(question.topic, question.topic_name),
+        difficulty: question.difficulty,
+        question_text: question.question_text,
+        question_type: question.question_type,
+        options: question.options || [],
+        correct_answer: question.correct_answer,
+        explanation: question.explanation || '',
+        hints: question.hints || [],
+        time_limit: question.time_limit || 30,
+        points: Math.min(Math.max(question.points || 10, 1), 30),
+        tags: question.tags || [],
+        grade_level: question.grade_level || '',
+        eligible_grade_levels: question.eligible_grade_levels || [],
+    }));
+    const { data, error } = await supabase.rpc('rpc_teacher_bulk_create_questions', {
+        p_questions: payload,
+    });
+    if (error) throw error;
+    const result = (data || {}) as Record<string, unknown>;
+    return {
+        submitted: Number(result['submitted'] || 0),
+        created: Number(result['created'] || 0),
+        duplicatesSkipped: Number(result['duplicatesSkipped'] || 0),
+    };
 };
 
 /**
@@ -5429,7 +5478,8 @@ export const delete_question = async (questionId: string): Promise<void> => {
         .from('questions')
         .delete()
         .eq('id', questionId)
-        .eq('teacher_id', teacher.id);
+        .eq('teacher_id', teacher.id)
+        .eq('content_origin', 'teacher');
 
     if (error) throw error;
 };

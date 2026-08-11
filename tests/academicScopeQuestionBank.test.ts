@@ -6,6 +6,7 @@ const read = (path: string) => readFileSync(path, 'utf8');
 const phase1 = read('supabase/migrations/20260812090000_school_academic_setup_and_scoped_learning.sql');
 const phase2 = read('supabase/migrations/20260812093000_existing_question_bank_academic_classification.sql');
 const evidence = read('supabase/migrations/20260812094500_objective_linked_assignment_evidence.sql');
+const authority = read('supabase/migrations/20260812110000_verified_question_authority.sql');
 
 test('phase 1 makes school year grade subjects and electives explicit', () => {
   assert.match(phase1, /subject_requirement in \('required', 'elective'\)/i);
@@ -66,8 +67,21 @@ test('student and teacher interfaces use the governed contracts', () => {
   assert.match(game, /rpc_student_learning_catalog/);
   assert.match(profile, /fetchStudentAcademicSubjects/);
   assert.match(profile, /Synthetic QA evidence/);
-  assert.match(teacher, /Academic classification/);
+  assert.match(teacher, /Classroom question/);
+  assert.match(teacher, /never changes the official Academic Profile/);
   assert.match(teacher, /eligible_grade_levels/);
   assert.match(setup, /Subjects by grade/);
   assert.match(setup, /Elective students/);
+});
+
+test('verified authority is fail closed across catalogue and assignment evidence', () => {
+  assert.match(authority, /content_origin = 'brain_heist'/);
+  assert.match(authority, /verification_status = 'verified'/);
+  assert.match(authority, /current_content_hash = q\.verified_content_hash/);
+  assert.match(authority, /analytics_eligible_snapshot/);
+  assert.match(authority, /'evidence_provenance', 'brains_heist_verified_question'/);
+  assert.match(authority, /question_authority_fields_are_protected/);
+  assert.match(authority, /never trust[\s\S]+browser-supplied question text, answer key, or correctness/i);
+  assert.match(authority, /v_server_correct/);
+  assert.match(authority, /question_snapshot->>'explanation'/);
 });
