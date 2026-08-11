@@ -1,15 +1,39 @@
 import React from 'react';
+import { fetchSchoolAcademicSetup } from '../../../services/schoolAcademicSetupService';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 
 const ClassesTab: React.FC = () => {
   const {
     classForm, classSaving, classes, handleEditClass, handleSaveClass, setClassForm,
-    studentAssignments, students, teacherAssignments, teachers,
+    studentAssignments, students, teacherAssignments, teachers, school, setActiveTab,
   } = useSchoolAdmin();
+  const [configuredGrades, setConfiguredGrades] = React.useState<number[]>([]);
+  const [wizardStep, setWizardStep] = React.useState<1 | 2 | 3>(1);
+  const wasSaving = React.useRef(false);
+
+  React.useEffect(() => {
+    let active = true;
+    void fetchSchoolAcademicSetup(school.id).then((setup) => {
+      if (!active) return;
+      const currentYear = setup.years.find((year) => year.status === 'current') || setup.years[0];
+      const grades = setup.offerings
+        .filter((offering) => !currentYear || offering.academicYearId === currentYear.id)
+        .map((offering) => Number(offering.gradeLevel))
+        .filter(Number.isFinite);
+      setConfiguredGrades(Array.from(new Set(grades)).sort((a, b) => a - b));
+    }).catch(() => { if (active) setConfiguredGrades([]); });
+    return () => { active = false; };
+  }, [school.id]);
+
+  React.useEffect(() => {
+    if (wasSaving.current && !classSaving && !classForm.id && !classForm.class_code) setWizardStep(1);
+    wasSaving.current = classSaving;
+  }, [classForm.class_code, classForm.id, classSaving]);
+
   const academicYears = React.useMemo(() => Array.from(new Set([
-    ...Array.from({ length: 13 }, (_, index) => index + 1),
+    ...configuredGrades,
     ...classes.map((schoolClass: any) => Number(schoolClass.grade_level)).filter(Number.isFinite),
-  ])).sort((a, b) => a - b), [classes]);
+  ])).sort((a, b) => a - b), [classes, configuredGrades]);
   const activeClasses = classes.filter((schoolClass: any) => schoolClass.is_active !== false);
   const activeClassIds = new Set(activeClasses.map((schoolClass: any) => schoolClass.id));
   const teachingStaffIds = new Set(teachers.map((teacher: any) => teacher.user_id));
@@ -34,60 +58,33 @@ const ClassesTab: React.FC = () => {
       };
     });
 
+  const selectGrade = (gradeLevel: string) => {
+    const sameGradeCount = classes.filter((item: any) => String(item.grade_level) === gradeLevel && item.is_active !== false).length;
+    const suffix = String.fromCharCode(65 + Math.min(sameGradeCount, 25));
+    setClassForm((previous: any) => ({
+      ...previous,
+      grade_level: gradeLevel,
+      class_code: previous.class_code || `${gradeLevel}${suffix}`,
+      class_name: previous.class_name || `Grade ${gradeLevel} ${suffix}`,
+    }));
+  };
+
+  const startEdit = (row: any) => {
+    handleEditClass(row);
+    setWizardStep(2);
+  };
+
   return (
     <div className="space-y-6">
-      <section className="admin-form-card">
-        <div className="admin-card-heading"><div><h3>{classForm.id ? 'Edit class' : 'Create class'}</h3><p>Use a unique code and place the class in its correct grade.</p></div></div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Class Code</label>
-            <input
-              type="text"
-              value={classForm.class_code}
-              onChange={(e) => setClassForm((prev) => ({ ...prev, class_code: e.target.value }))}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-              placeholder="e.g. 9A"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-400 mb-1">Class Name</label>
-            <input
-              type="text"
-              value={classForm.class_name}
-              onChange={(e) => setClassForm((prev) => ({ ...prev, class_name: e.target.value }))}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-              placeholder="e.g. Grade 9 Blue"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Academic year (grade)</label>
-            <select
-              value={classForm.grade_level}
-              onChange={(e) => setClassForm((prev) => ({ ...prev, grade_level: e.target.value }))}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-            >
-              <option value="">Select academic year</option>
-              {academicYears.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 px-6 pb-6">
-          <button
-            onClick={handleSaveClass}
-            disabled={classSaving}
-            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors font-medium"
-          >
-            {classSaving ? 'Saving...' : classForm.id ? 'Update Class' : 'Create Class'}
-          </button>
-          {classForm.id && (
-            <button
-              onClick={() => setClassForm({ id: '', class_code: '', class_name: '', grade_level: '', is_active: true })}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-sm"
-            >
-              Cancel Edit
-            </button>
-          )}
-        </div>
+      <section className="admin-form-card class-creation-wizard">
+        <div className="admin-card-heading"><div><h3>{classForm.id ? 'Edit class' : 'Create another class'}</h3><p>Grades come from Curriculum &amp; Subjects. Saving a grade plan already creates its first default class; use this wizard for extra sections such as 7A and 7B.</p></div></div>
+        <ol className="class-wizard-steps" aria-label="Class creation steps">
+          {['Choose grade', 'Class details', 'Review'].map((label, index) => <li key={label} className={wizardStep === index + 1 ? 'is-current' : wizardStep > index + 1 ? 'is-complete' : ''}><span>{index + 1}</span>{label}</li>)}
+        </ol>
+        {!academicYears.length ? <div className="admin-inline-warning"><strong>No configured grades</strong><span>Save a grade and its subjects before creating classes.</span><button type="button" className="admin-button-ghost admin-button-small" onClick={() => setActiveTab('subjects')}>Open Curriculum &amp; Subjects</button></div> : null}
+        {wizardStep === 1 && !classForm.id ? <div className="class-wizard-panel"><label className="admin-field admin-field-wide"><span>Academic year (grade)</span><select value={classForm.grade_level} onChange={(event) => selectGrade(event.target.value)}><option value="">Select academic year</option>{academicYears.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select><small>Only grades already configured in Curriculum &amp; Subjects are offered.</small></label><div className="admin-form-actions"><button type="button" className="admin-button-primary" disabled={!classForm.grade_level} onClick={() => setWizardStep(2)}>Continue to class details</button></div></div> : null}
+        {(wizardStep === 2 || classForm.id) ? <div className="class-wizard-panel"><div className="admin-form-grid admin-form-grid-three"><label className="admin-field"><span>Academic year (grade)</span><select value={classForm.grade_level} onChange={(event) => selectGrade(event.target.value)}><option value="">Select academic year</option>{academicYears.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select></label><label className="admin-field"><span>Class code <i>Required</i></span><input type="text" value={classForm.class_code} onChange={(event) => setClassForm((previous: any) => ({ ...previous, class_code: event.target.value }))} placeholder="For example, 9A" /></label><label className="admin-field"><span>Class name <i>Required</i></span><input type="text" value={classForm.class_name} onChange={(event) => setClassForm((previous: any) => ({ ...previous, class_name: event.target.value }))} placeholder="For example, Grade 9 A" /></label></div><div className="admin-form-actions"><button type="button" className="admin-button-ghost" onClick={() => classForm.id ? setClassForm({ id: '', class_code: '', class_name: '', grade_level: '', is_active: true }) : setWizardStep(1)}>Cancel</button><button type="button" className="admin-button-primary" disabled={!classForm.grade_level || !classForm.class_code.trim() || !classForm.class_name.trim()} onClick={() => classForm.id ? void handleSaveClass() : setWizardStep(3)}>{classForm.id ? 'Update Class' : 'Review class'}</button></div></div> : null}
+        {wizardStep === 3 && !classForm.id ? <div className="class-wizard-panel"><div className="class-review-card"><span>Ready to create</span><strong>{classForm.class_code} — {classForm.class_name}</strong><small>Grade {classForm.grade_level} · active class</small></div><div className="admin-form-actions"><button type="button" className="admin-button-ghost" onClick={() => setWizardStep(2)}>Back</button><button type="button" className="admin-button-primary" disabled={classSaving} onClick={() => void handleSaveClass()}>{classSaving ? 'Creating class…' : 'Create Class'}</button></div></div> : null}
       </section>
 
       <section className="admin-table-card school-wide-angle" aria-labelledby="school-structure-title">
@@ -106,7 +103,7 @@ const ClassesTab: React.FC = () => {
                   <td>{row.studentCount}</td><td>{row.teacherCount}</td>
                   <td>{row.subjects.length ? <div className="admin-chip-list">{row.subjects.map((subject: string) => <span key={subject}>{subject}</span>)}</div> : <span className="admin-muted">No subjects assigned</span>}</td>
                   <td><span className={`admin-coverage-badge ${row.studentCount && row.teacherCount && row.subjects.length ? 'is-covered' : 'needs-attention'}`}>{row.studentCount && row.teacherCount && row.subjects.length ? 'Covered' : 'Needs attention'}</span></td>
-                  <td><button type="button" onClick={() => handleEditClass(row)} className="text-cyan-400 hover:text-cyan-300 text-sm" aria-label={`Edit ${row.class_code}`}>Edit</button></td>
+                  <td><button type="button" onClick={() => startEdit(row)} className="text-cyan-400 hover:text-cyan-300 text-sm" aria-label={`Edit ${row.class_code}`}>Edit</button></td>
                 </tr>)}</tbody>
               </table></div>
             </section>;

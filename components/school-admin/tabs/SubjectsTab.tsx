@@ -27,10 +27,14 @@ const SubjectsTab: React.FC = () => {
 
       <AcademicSetupPanel />
 
+      <details className="admin-advanced-disclosure subject-label-disclosure">
+        <summary><span>Advanced: local subject labels</span><small>Use only for timetable or teacher-allocation names that are missing from the published framework.</small></summary>
+        <div className="admin-advanced-disclosure-body space-y-4">
       <section className="admin-form-card" aria-labelledby="add-subject-title">
         <div className="admin-card-heading">
-          <div><h3 id="add-subject-title">School-specific subject labels</h3><p>Add a local subject label only when it is not already available in the published framework. This does not automatically expose questions to students.</p></div>
+          <div><h3 id="add-subject-title">Create a local scheduling label</h3><p>This label can be used in teacher allocations, but it does not add curriculum objectives or expose questions to students.</p></div>
         </div>
+        <div className="admin-access-note"><strong>Framework subjects come first</strong><span>If the subject already appears in Subjects by grade, do not recreate it here. Local labels are for school-specific names such as Advisory or Homeroom.</span></div>
         <div className="admin-form-grid">
           <label className="admin-field admin-field-wide">
             <span>Subject name <i>Required</i></span>
@@ -67,6 +71,8 @@ const SubjectsTab: React.FC = () => {
           </tr>)}</tbody>
         </table></div> : <div className="admin-empty-state"><h3>No curriculum subjects yet</h3><p>Add the subjects taught at your school so teachers and classes can be assigned correctly.</p></div>}
       </section>
+        </div>
+      </details>
     </div>
   );
 };

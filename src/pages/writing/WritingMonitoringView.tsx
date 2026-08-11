@@ -938,7 +938,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                       <div className="writing-monitor__submission-text">
                         {activeAttempt.student_submission || 'No submission text was saved.'}
                       </div>
-                      <footer>Brain Heist Writing Hub · Evidence page</footer>
+                      <footer>Brains Heist Writing Hub · Evidence page</footer>
                     </section>
 
                     <section className="writing-monitor__book-page writing-monitor__book-page--feedback">
@@ -984,7 +984,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                           </div>
                         </details>
                       ) : null}
-                      <footer>Brain Heist Writing Hub · Feedback page</footer>
+                      <footer>Brains Heist Writing Hub · Feedback page</footer>
                     </section>
                   </div>
                 </article>

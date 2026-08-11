@@ -10,7 +10,7 @@
   const CLIPBOARD_DEDUP_MS = 300;
 
   // Shared Cambridge exam shell: every protected subject receives the same
-  // typography, spacing, focus treatment, and Brain Heist accent system.
+  // typography, spacing, focus treatment, and Brains Heist accent system.
   const installUnifiedExamShell = () => {
     document.documentElement.classList.add('brains-heist-exam');
     if (document.getElementById('brains-heist-exam-shell')) return;

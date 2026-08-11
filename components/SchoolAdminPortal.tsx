@@ -1005,49 +1005,17 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     if (!school) return;
 
     setSavingSettings(true);
-    setSettingsLogoStatus(settingsLogoFile
-      ? { type: 'info', message: 'Uploading your new logo…' }
-      : { type: 'info', message: 'Saving school settings…' });
-    let logoUrl = school.logo_url;
-    if (settingsLogoFile) {
-      const upload = await SchoolAdminService.uploadSchoolLogo(school.id, settingsLogoFile);
-      if (!upload.success || !upload.url) {
-        setSavingSettings(false);
-        const message = friendlySchoolAdminError(upload.error, 'The school logo could not be uploaded. Please try again.');
-        setSettingsLogoStatus({ type: 'error', message: `Logo not updated. ${message}` });
-        addToast(message, 'error');
-        return;
-      }
-      logoUrl = upload.url;
-      setSettingsLogoStatus({ type: 'info', message: 'Logo uploaded. Applying it across the school…' });
-    }
     const result = await SchoolAdminService.updateSchoolSettings(school.id, {
-      name: settingsName,
-      logo_url: logoUrl,
       allow_student_signup: settingsAllowStudent,
       allow_teacher_signup: settingsAllowTeacher,
     });
     setSavingSettings(false);
 
     if (result.success) {
-      // Update this portal immediately rather than waiting for another profile load.
-      setSchool(current => current ? { ...current, name: settingsName, logo_url: logoUrl } : current);
-      setSettingsLogoFile(null);
-      setSettingsLogoPreview('');
-      setSettingsLogoStatus({
-        type: 'success',
-        message: settingsLogoFile
-          ? 'Logo updated successfully. It is now used across school dashboards and reports.'
-          : 'School settings saved successfully.',
-      });
-      window.dispatchEvent(new CustomEvent('school-branding-updated', {
-        detail: { schoolId: school.id, schoolName: settingsName, schoolLogoUrl: logoUrl },
-      }));
-      addToast(settingsLogoFile ? 'School logo updated successfully' : 'Settings saved successfully', 'success');
+      addToast('Registration rules saved successfully', 'success');
       await refreshSchool(school.id);
     } else {
       const message = friendlySchoolAdminError(result.error, 'The school settings could not be saved. Please try again.');
-      setSettingsLogoStatus({ type: 'error', message: `Changes were not applied. ${message}` });
       addToast(message, 'error');
     }
   };

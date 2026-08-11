@@ -161,7 +161,7 @@ const IeltsPrimeDashboard: React.FC<Props> = ({ summary, lapsedPrime, taskTotal,
           })}</div>
         </section>
         {summary.subscription.management_url && <a href={summary.subscription.management_url} style={{ color: '#334155', fontWeight: 850 }}>Manage subscription</a>}
-        <button onClick={() => onNavigate('/')} style={{ padding: '.8rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '.9rem', cursor: 'pointer', fontWeight: 850 }}>← Back to Brain Heist Game</button>
+        <button onClick={() => onNavigate('/')} style={{ padding: '.8rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '.9rem', cursor: 'pointer', fontWeight: 850 }}>← Back to Brains Heist Game</button>
       </main>
       <style>{`@media (max-width: 760px) { .ielts-prime-hero-grid { grid-template-columns: 1fr !important; } }`}</style>
     </div>

@@ -31,7 +31,7 @@ const Entry: React.FC = () => {
     return () => { cancelled = true; };
   }, []);
 
-  if (error) return <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#f5f7fb', color: '#10243a', fontFamily: 'Inter,system-ui' }}><section style={{ maxWidth: 620, padding: 32, textAlign: 'center' }}><h1>Executive access unavailable</h1><p style={{ color: '#607389' }}>{error}</p><button onClick={() => window.location.assign('/')} style={{ padding: '10px 14px', border: '1px solid #cbd8e4', borderRadius: 9, color: '#173047', background: '#fff' }}>Return to Brain Heist</button></section></main>;
+  if (error) return <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#f5f7fb', color: '#10243a', fontFamily: 'Inter,system-ui' }}><section style={{ maxWidth: 620, padding: 32, textAlign: 'center' }}><h1>Executive access unavailable</h1><p style={{ color: '#607389' }}>{error}</p><button onClick={() => window.location.assign('/')} style={{ padding: '10px 14px', border: '1px solid #cbd8e4', borderRadius: 9, color: '#173047', background: '#fff' }}>Return to Brains Heist</button></section></main>;
   if (!schoolId) return <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#f5f7fb', color: '#607389', fontFamily: 'Inter,system-ui' }}>Verifying School Head authority…</main>;
 
   return <SchoolHeadLearningIntelligence schoolId={schoolId} schoolName={schoolName} schoolLogoUrl={schoolLogoUrl} onBack={() => window.history.length > 1 ? window.history.back() : window.location.assign('/?view=school_head&headTab=academic')} />;

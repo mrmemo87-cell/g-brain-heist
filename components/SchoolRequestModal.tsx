@@ -707,7 +707,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
               <p className="mt-1 text-xs text-slate-400">Core is included. Optional programmes are activated only when included in the school agreement.</p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {([
-                  ['core', 'Brain Heist Core'], ['cambridge', 'Cambridge'], ['ielts', 'IELTS'], ['writing', 'Writing Hub'], ['admissions', 'Admission Hub'],
+                  ['core', 'Brains Heist Core'], ['cambridge', 'Cambridge'], ['ielts', 'IELTS'], ['writing', 'Writing Hub'], ['admissions', 'Admission Hub'],
                 ] as const).map(([moduleKey, label]) => (
                   <label key={moduleKey} className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-200">
                     <input type="checkbox" checked={requestedModules.includes(moduleKey)} disabled={moduleKey === 'core'} onChange={(event) => setRequestedModules((current) => event.target.checked ? [...current, moduleKey] : current.filter((item) => item !== moduleKey))} />
