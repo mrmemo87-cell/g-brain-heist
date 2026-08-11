@@ -108,6 +108,23 @@ export const rpcIeltsExamMonitoring = async (examEventId, client) => {
     });
     return assertNoRpcError('rpc_ielts_exam_monitoring', data, error);
 };
+export const rpcIeltsScheduleExam = async (params, client) => {
+    const { data, error } = await withClient(client).rpc('rpc_ielts_schedule_exam', {
+        p_exam_event_id: params.examEventId,
+        p_starts_at: params.startsAt,
+        p_ends_at: params.endsAt,
+        p_duration_minutes: params.durationMinutes,
+    });
+    return assertNoRpcError('rpc_ielts_schedule_exam', data, error);
+};
+export const rpcIeltsLaunchExam = async (params, client) => {
+    const { data, error } = await withClient(client).rpc('rpc_ielts_launch_exam', {
+        p_exam_event_id: params.examEventId,
+        p_confirmation: params.confirmation,
+        p_reason: params.reason ?? null,
+    });
+    return assertNoRpcError('rpc_ielts_launch_exam', data, error);
+};
 export const rpcIeltsPauseExam = async (params, client) => {
     const { data, error } = await withClient(client).rpc('rpc_ielts_pause_exam', {
         p_exam_event_id: params.examEventId,

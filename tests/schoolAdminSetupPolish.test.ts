@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import test from 'node:test';
 
 const read = (path: string) => readFileSync(path, 'utf8');
@@ -56,19 +56,37 @@ test('school identity is immutable to school admins and the supporting portal ta
 });
 
 test('user-facing application code consistently uses the Brains Heist product name', () => {
-  const files = [
-    'components',
-    'src',
-    'services',
-  ];
-  const singularMatches = files.flatMap((directory) => {
+  const pattern = /\bBrain Heist\b/;
+  const matches: string[] = [];
+
+  function scanDir(dir: string): void {
+    let entries: ReturnType<typeof readdirSync>;
     try {
-      return execFileSync('rg', ['-n', '\\bBrain Heist\\b', directory, '--glob', '!**/*.bak'], { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
-    } catch (error) {
-      const result = error as { status?: number };
-      if (result.status === 1) return [];
-      throw error;
+      entries = readdirSync(dir);
+    } catch {
+      return;
     }
-  });
-  assert.deepEqual(singularMatches, []);
+    for (const entry of entries) {
+      const full = join(dir, entry);
+      if (entry.endsWith('.bak')) continue;
+      const st = statSync(full);
+      if (st.isDirectory()) {
+        scanDir(full);
+      } else {
+        const content = readFileSync(full, 'utf8');
+        const lines = content.split('\n');
+        lines.forEach((line, idx) => {
+          if (pattern.test(line)) {
+            matches.push(`${full}:${idx + 1}:${line}`);
+          }
+        });
+      }
+    }
+  }
+
+  for (const directory of ['components', 'src', 'services']) {
+    scanDir(directory);
+  }
+
+  assert.deepEqual(matches, []);
 });

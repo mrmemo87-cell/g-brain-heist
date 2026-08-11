@@ -405,9 +405,9 @@ test('IELTS Practice picker and safe catalog fields do not expose protected solu
     const service = fs.readFileSync(path.join(process.cwd(), 'services/ieltsPracticeContentService.ts'), 'utf8');
     assert.match(service, /content_type[\s\S]*content_id[\s\S]*title[\s\S]*skill[\s\S]*description[\s\S]*difficulty[\s\S]*band/, 'catalog service type should model only safe picker metadata fields');
 });
-test('IELTS Practice pilot polish includes checklist, status helper text, and empty states', () => {
+test('IELTS Practice production UI includes readiness, status helper text, and empty states', () => {
     const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsPracticeTab.tsx'), 'utf8');
-    assert.match(tab, /Pilot checklist/, 'admin practice tab should show a short pilot checklist panel');
+    assert.match(tab, /Assignment readiness/, 'admin practice tab should show a short readiness panel');
     for (const phrase of [
         /Assignments created/,
         /Content selected/,
@@ -415,7 +415,7 @@ test('IELTS Practice pilot polish includes checklist, status helper text, and em
         /Progress visible/,
         /Results visible/,
     ]) {
-        assert.match(tab, phrase, `pilot checklist should include ${phrase}`);
+        assert.match(tab, phrase, `readiness checklist should include ${phrase}`);
     }
     assert.match(tab, /Active = students can work/, 'status helper should explain active assignments');
     assert.match(tab, /Closed = read-only, no new submissions/, 'status helper should explain closed assignments');

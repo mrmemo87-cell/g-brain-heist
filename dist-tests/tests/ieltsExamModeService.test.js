@@ -6,6 +6,17 @@ import { rpcIeltsExamWhoami, rpcIeltsStartAttempt, rpcIeltsAutosaveAttempt, rpcI
 const createClient = (handler) => ({
     rpc: ((name, params) => Promise.resolve({ data: handler(name, params), error: null })),
 });
+test('IELTS event and attempt control responses use separate lifecycle status types', () => {
+    const eventControl = { status: 'live', previous_status: 'scheduled' };
+    const attemptControl = { status: 'submitted', attempt_id: 'attempt-1' };
+    assert.equal(eventControl.status, 'live');
+    assert.equal(attemptControl.status, 'submitted');
+    const service = fs.readFileSync(path.join(process.cwd(), 'services/ieltsExamModeService.ts'), 'utf8');
+    assert.match(service, /export type IeltsExamEventStatus =[\s\S]*'draft'[\s\S]*'scheduled'[\s\S]*'live'[\s\S]*'paused'/);
+    assert.match(service, /interface IeltsExamControlResponse[\s\S]*status\?: IeltsExamEventStatus/);
+    assert.match(service, /interface IeltsExamAttemptControlResponse[\s\S]*status\?: IeltsExamAttemptStatus/);
+    assert.match(service, /interface CreateExamEventParams[\s\S]*status\?: IeltsExamEventStatus/);
+});
 test('IELTS exam service strips answer_key from public form payloads defensively', async () => {
     const client = createClient((name, params) => {
         assert.equal(name, 'rpc_ielts_exam_whoami');

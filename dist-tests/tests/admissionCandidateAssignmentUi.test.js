@@ -55,7 +55,7 @@ test('stale SCI or MAT form codes cannot be displayed as English sendables', () 
     assert.match(hub, /legacy\/stale/);
 });
 test('Admission Candidates tab send cards use in-scope matching form data and keep completed/incomplete actions distinct', () => {
-    const candidatesSection = hub.slice(hub.indexOf("{filteredCandidates.map((c) =>"), hub.indexOf("{activeTab === 'results'"));
+    const candidatesSection = hub.slice(hub.indexOf("{pagedCandidates.map((c, candidateIndex) =>"), hub.indexOf("{activeTab === 'results'"));
     assert.match(candidatesSection, /const matchingForms = AdmService\.getCurrentAdmissionPackageForms/);
     assert.match(candidatesSection, /const assignableForms = showOtherGrades \? \[\.\.\.matchingForms, \.\.\.otherGradeForms\] : matchingForms/);
     assert.match(candidatesSection, /assignableForms\.length > 0 \? assignableForms\.map\(f => \{/);
