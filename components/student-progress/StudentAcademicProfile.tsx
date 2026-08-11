@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  fetchStudentAcademicConfidence,
   fetchStudentAcademicProfile,
   formatLearningStatus,
+  type StudentAcademicConfidence,
   type StudentAcademicProfile as StudentAcademicProfileData,
 } from '../../services/studentAcademicProfileService';
 import {
@@ -12,6 +14,7 @@ import {
 import IndividualStudentAcademicReport from './IndividualStudentAcademicReport';
 import { AcademicProgressHeader } from './AcademicProgressSuite';
 import './StudentAcademicProfile.css';
+import './StudentAcademicConfidence.css';
 
 interface StudentAcademicProfileProps {
   studentId?: string | null;
@@ -31,6 +34,8 @@ const formatDate = (value?: string | null) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 };
+const normalizeSubject = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^maths$/, 'mathematics');
+const formatAssessmentState = (value: string) => value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 const StudentAcademicProfile: React.FC<StudentAcademicProfileProps> = ({
   studentId,
@@ -43,6 +48,7 @@ const StudentAcademicProfile: React.FC<StudentAcademicProfileProps> = ({
   onClose,
 }) => {
   const [profile, setProfile] = useState<StudentAcademicProfileData | null>(null);
+  const [confidence, setConfidence] = useState<StudentAcademicConfidence | null>(null);
   const [context, setContext] = useState<AcademicProgressExperienceContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,19 +62,14 @@ const StudentAcademicProfile: React.FC<StudentAcademicProfileProps> = ({
     const load = async () => {
       setLoading(true); setError(null);
       try {
-        const [profileResult, contextResult] = await Promise.allSettled([
-          fetchStudentAcademicProfile({
-            studentId,
-            subject: subject === 'all' ? null : subject,
-            dateFrom: dateFrom ? `${dateFrom}T00:00:00.000Z` : null,
-            dateTo: dateTo ? `${dateTo}T23:59:59.999Z` : null,
-          }),
-          getAcademicProgressExperienceContext(studentId),
-        ]);
-        if (profileResult.status === 'rejected') throw profileResult.reason;
+        const nextProfile = await fetchStudentAcademicProfile({
+          studentId,
+          subject: subject === 'all' ? null : subject,
+          dateFrom: dateFrom ? `${dateFrom}T00:00:00.000Z` : null,
+          dateTo: dateTo ? `${dateTo}T23:59:59.999Z` : null,
+        });
         if (cancelled) return;
-        setProfile(profileResult.value);
-        if (contextResult.status === 'fulfilled') setContext(contextResult.value);
+        setProfile(nextProfile);
       } catch (err) {
         console.error('Failed to load student academic profile', err);
         if (!cancelled) setError('The student progress record could not be loaded. Please check your access and try again.');
@@ -78,11 +79,27 @@ const StudentAcademicProfile: React.FC<StudentAcademicProfileProps> = ({
     return () => { cancelled = true; };
   }, [studentId, subject, dateFrom, dateTo]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const loadAcademicContext = async () => {
+      const [contextResult, confidenceResult] = await Promise.allSettled([
+        getAcademicProgressExperienceContext(studentId),
+        fetchStudentAcademicConfidence(studentId),
+      ]);
+      if (cancelled) return;
+      setContext(contextResult.status === 'fulfilled' ? contextResult.value : null);
+      setConfidence(confidenceResult.status === 'fulfilled' ? confidenceResult.value : null);
+    };
+    void loadAcademicContext();
+    return () => { cancelled = true; };
+  }, [studentId]);
+
   const allSubjects = useMemo(() => {
     const values = new Set<string>();
     profile?.subjects.forEach((entry) => values.add(entry.subject));
     profile?.assignments.forEach((entry) => values.add(entry.subject));
     profile?.focus_areas.forEach((entry) => values.add(entry.subject));
+    profile?.scope.allowed_subjects.forEach((entry) => values.add(entry));
     return [...values].sort((a, b) => a.localeCompare(b));
   }, [profile]);
 
@@ -90,6 +107,34 @@ const StudentAcademicProfile: React.FC<StudentAcademicProfileProps> = ({
   const improving = useMemo(() => profile?.focus_areas.filter((item) => item.status === 'improving') ?? [], [profile]);
   const resolved = useMemo(() => profile?.focus_areas.filter((item) => item.status === 'resolved') ?? [], [profile]);
   const currentFocus = useMemo(() => profile?.focus_areas.filter((item) => ['new_focus', 'recurring', 'persistent'].includes(item.status)) ?? [], [profile]);
+  const latestConfidenceStates = useMemo(() => {
+    const latest = new Map<string, StudentAcademicConfidence['confidenceStates'][number]>();
+    confidence?.confidenceStates.forEach((item) => {
+      const current = latest.get(item.skillKey);
+      if (!current || String(item.computedAt || '') > String(current.computedAt || '')) latest.set(item.skillKey, item);
+    });
+    return [...latest.values()].filter((item) => subject === 'all' || normalizeSubject(item.subject) === normalizeSubject(subject));
+  }, [confidence, subject]);
+  const confidenceBySubject = useMemo(() => {
+    const subjects = new Map<string, { name: string; states: typeof latestConfidenceStates }>();
+    latestConfidenceStates.forEach((item) => {
+      const key = normalizeSubject(item.subject);
+      const current = subjects.get(key) || { name: item.subject, states: [] };
+      current.states.push(item);
+      subjects.set(key, current);
+    });
+    return [...subjects.entries()].map(([key, entry]) => {
+      const scored = entry.states.filter((item) => item.confidenceScore != null);
+      const averageConfidence = scored.length
+        ? Math.round(scored.reduce((sum, item) => sum + Number(item.confidenceScore), 0) / scored.length)
+        : null;
+      const academicSubjectId = entry.states.find((item) => item.academicSubjectId)?.academicSubjectId;
+      const coverage = confidence?.coverage
+        .filter((item) => item.academicSubjectId === academicSubjectId)
+        .sort((a, b) => String(b.computedAt || '').localeCompare(String(a.computedAt || '')))[0];
+      return { key, ...entry, averageConfidence, coverage };
+    }).sort((a, b) => a.name.localeCompare(b.name));
+  }, [confidence, latestConfidenceStates]);
 
   if (loading) return <section className="sap-shell sap-state"><div className="sap-loader"/><strong>Preparing student progress…</strong><span>Combining marks, writing evidence and progress over time.</span></section>;
   if (error || !profile) return <section className="sap-shell sap-state sap-state--error"><strong>Student progress unavailable</strong><span>{error || 'No progress data was returned.'}</span>{onClose ? <button type="button" onClick={onClose}>Back</button> : null}</section>;
@@ -129,6 +174,29 @@ const StudentAcademicProfile: React.FC<StudentAcademicProfileProps> = ({
       <article><span>Resolved</span><strong className="sap-positive">{profile.summary.resolved_count}</strong><small>Previous needs now secure</small></article>
       <article><span>Strengths</span><strong className="sap-positive">{profile.summary.strength_count}</strong><small>Emerging or consistent</small></article>
     </div>
+
+    <section className="sap-panel">
+      <div className="sap-panel-heading"><div><span>Evidence confidence</span><h2>How reliable and complete is the academic picture?</h2></div><p>Confidence measures the quality, recency and consistency of evidence. Curriculum coverage measures what has been assessed. Neither is a mark or a claim of mastery.</p></div>
+      {confidenceBySubject.length ? <>
+        <div className="sap-confidence-summary" aria-label="Evidence confidence summary">
+          <span><strong>{latestConfidenceStates.filter((item) => item.assessmentState === 'assessed').length}</strong> assessed skills</span>
+          <span><strong>{latestConfidenceStates.filter((item) => ['not_assessed', 'low_data'].includes(item.assessmentState)).length}</strong> low-data skills</span>
+          <span><strong>{latestConfidenceStates.filter((item) => item.assessmentState === 'stale').length}</strong> stale skills</span>
+          <span><strong>{latestConfidenceStates.filter((item) => item.assessmentState === 'contradictory').length}</strong> contradictory skills</span>
+          <span><strong>{latestConfidenceStates.filter((item) => item.teacherReviewRequired).length}</strong> require teacher review</span>
+        </div>
+        <div className="sap-confidence-grid">{confidenceBySubject.map((entry) => {
+          const assessed = entry.states.filter((item) => item.assessmentState === 'assessed').length;
+          const reviewRequired = entry.states.filter((item) => item.teacherReviewRequired).length;
+          const primaryState = entry.states.length === 1 ? entry.states[0].assessmentState : null;
+          return <article key={entry.key} className="sap-confidence-card">
+            <header><div><h3>{entry.name}</h3><span>{entry.states.length} tracked skill{entry.states.length === 1 ? '' : 's'}</span></div><strong>{entry.averageConfidence == null ? '—' : `${entry.averageConfidence}%`}<small>confidence</small></strong></header>
+            <dl><div><dt>Assessed evidence</dt><dd>{assessed}/{entry.states.length}</dd></div><div><dt>Qualified coverage</dt><dd>{entry.coverage?.qualifiedCoveragePercent == null ? 'Not available' : `${entry.coverage.qualifiedCoveragePercent}%`}</dd></div><div><dt>Reporting readiness</dt><dd>{entry.coverage ? formatAssessmentState(entry.coverage.reportingReadiness) : 'Not available'}</dd></div><div><dt>Teacher review</dt><dd>{reviewRequired ? `${reviewRequired} flagged` : 'Not flagged'}</dd></div></dl>
+            {primaryState ? <span className={`sap-evidence-state sap-evidence-state--${primaryState}`}>{formatAssessmentState(primaryState)}</span> : null}
+          </article>;
+        })}</div>
+      </> : <div className="sap-empty">Evidence confidence will appear after this student has qualifying, curriculum-linked academic observations. No data here does not mean low attainment.</div>}
+    </section>
 
     <section className="sap-panel">
       <div className="sap-panel-heading"><div><span>Subject breakdown</span><h2>Attainment and progress</h2></div><p>Marks are shown alongside longer-term learning patterns so staff can distinguish a one-off result from a recurring need.</p></div>

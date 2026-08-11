@@ -5,6 +5,7 @@ import {
   type TeacherAcademicProfileStudent,
 } from '../../services/teacherAcademicProfileDirectoryService';
 import {
+  academicProgressBackDestination,
   getAcademicProgressExperienceContext,
   type AcademicProgressExperienceContext,
 } from '../../services/academicProgressExperienceService';
@@ -65,13 +66,18 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
   }, []);
 
   const selected = useMemo(() => students.find((student) => student.student_id === selectedStudentId) || null, [students, selectedStudentId]);
+  const viewerRole = context?.viewer.role || 'teacher';
+  const profileMode = viewerRole === 'school_admin' || viewerRole === 'school_head' ? viewerRole : 'teacher';
+  const scopeNote = viewerRole === 'teacher'
+    ? 'Only students and subjects covered by your active teaching assignments are shown here.'
+    : 'Only students in your school are shown here. Access remains school-scoped and role-authorised.';
 
   if (profileOpen && selectedStudentId) {
     return (
       <StudentAcademicProfile
         studentId={selectedStudentId}
         initialSubject={subjectFilter === 'all' ? null : subjectFilter}
-        mode={context?.viewer.role === 'school_admin' ? 'school_admin' : 'teacher'}
+        mode={profileMode}
         schoolName={context?.school.name}
         schoolLogoUrl={context?.school.logo_url}
         teacherName={context?.viewer.name}
@@ -88,10 +94,10 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
       title="Student Academic Profiles"
       subtitle="Choose a grade, class and student to see attainment, strengths, areas for development and progress over time — then generate a school-ready report."
       onBack={onBack}
-      backLabel={onBack ? 'Back to Teacher Workspace' : undefined}
+      backLabel={onBack ? academicProgressBackDestination(viewerRole).label : undefined}
     />
 
-    <p className="aps-scope-note">Only students and subjects covered by your active teaching assignments are shown here.</p>
+    <p className="aps-scope-note">{scopeNote}</p>
 
     {loading ? <div className="aps-empty-state">Loading your authorised students…</div> : null}
     {error ? <div className="aps-empty-state">{error}</div> : null}

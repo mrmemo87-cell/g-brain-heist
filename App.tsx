@@ -58,7 +58,7 @@ const RivalryView = lazyRetry(() => import('./components/RivalryView'), 'Rivalry
 const InventoryView = lazyRetry(() => import('./components/InventoryView'), 'InventoryView');
 const LeaderboardView = lazyRetry(() => import('./components/LeaderboardView'), 'LeaderboardView');
 const AchievementView = lazyRetry(() => import('./components/AchievementView'), 'AchievementView');
-const TeacherPortal = lazyRetry(() => import('./components/TeacherPortal'), 'TeacherPortal');
+const TeacherPortal = lazyRetry(() => import('./components/TeacherPortalShell'), 'TeacherPortalShell');
 const AdminPortal = lazyRetry(() => import('./components/AdminPortal'), 'AdminPortal');
 const TournamentHub = lazyRetry(() => import('./components/TournamentHub'), 'TournamentHub');
 const TournamentAdminDashboard = lazyRetry(() => import('./components/TournamentAdminDashboard'), 'TournamentAdminDashboard');
@@ -72,6 +72,7 @@ const ClanTerritoryManager = lazyRetry(() => import('./src/features/clanTerritor
 const CambridgeTestsHub = lazyRetry(() => import('./components/CambridgeTestsHub'), 'CambridgeTestsHub');
 const SchoolAdminPortal = lazyRetry(() => import('./components/SchoolAdminPortal'), 'SchoolAdminPortal');
 const SchoolHeadPortal = lazyRetry(() => import('./components/SchoolHeadPortal'), 'SchoolHeadPortal');
+const StudentAcademicProfile = lazyRetry(() => import('./components/student-progress/StudentAcademicProfile'), 'StudentAcademicProfile');
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   6: ['6A', '6B', '6C', 'N/A'],
@@ -152,6 +153,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [criticalLoading, setCriticalLoading] = useState(true);
   const [view, setView] = useState<'workspace_chooser' | 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'cambridge' | 'school_admin' | 'school_head'>('dashboard');
   const [studentDashboardTab, setStudentDashboardTab] = useState<StudentDashboardDestination>('home');
+  const [studentLearningView, setStudentLearningView] = useState<'catalog' | 'academic-profile'>('catalog');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -2286,6 +2288,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               if (destination === studentDashboardTab) {
                 return;
               }
+              if (destination !== 'learn') setStudentLearningView('catalog');
               setStudentDashboardTab(destination);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             };
@@ -2355,7 +2358,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     )}
 
                     {studentDashboardTab === 'learn' && (
-                      <div className="student-learning-grid">
+                      studentLearningView === 'academic-profile' ? renderLazy(
+                        <StudentAcademicProfile
+                          studentId={profile.id}
+                          mode="student"
+                          backLabel="Back to Learn"
+                          onClose={() => setStudentLearningView('catalog')}
+                        />
+                      ) : <div className="student-learning-grid">
+                        {isStudent && hasSchool && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>📈</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Your learning record</span><h2>Academic Progress</h2><p>See your subject performance, strengths, improvement, focus areas, evidence confidence, and curriculum coverage.</p></div><button type="button" onClick={() => setStudentLearningView('academic-profile')} className="student-primary-button">Open Academic Progress <span aria-hidden>→</span></button></article>}
                         {isStudent && (!hasSchool || canUseSchoolModule('writing')) && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>✍️</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Writing coach</span><h2>Writing Hub</h2><p>Draft, repair, and improve with guided AI coaching.</p></div><button type="button" onMouseEnter={preloadWritingHub} onFocus={preloadWritingHub} onClick={() => handleViewChange('writing')} className="student-primary-button">Open Writing Hub <span aria-hidden>→</span></button></article>}
                         {canUseSchoolModule('ielts') && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>🎯</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Exam preparation</span><h2>IELTS Prep</h2><p>Focused preparation across reading, writing, listening, and speaking.</p></div><button type="button" onClick={() => { window.location.href = '/ielts'; }} className="student-primary-button">Open IELTS Prep <span aria-hidden>→</span></button></article>}
                         {canUseSchoolModule('cambridge') && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>🧪</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Subject practice</span><h2>Cambridge Tests</h2><p>Practice Cambridge reading, grammar, and science tests.</p></div><button type="button" onClick={() => handleViewChange('cambridge')} className="student-primary-button">Open Cambridge Tests <span aria-hidden>→</span></button></article>}

@@ -17,9 +17,10 @@ test('School Admin exposes academic profiles, interventions and parent access in
   assert.match(admin, /\/guardian-management\.html/);
 });
 
-test('School Head Academic Performance links to longitudinal learning intelligence', () => {
-  assert.match(head, /Open learning intelligence/);
-  assert.match(head, /school-head-learning-intelligence\.html/);
+test('School Head Academic Performance embeds student academic profiles', () => {
+  assert.match(head, /TeacherAcademicProfilesPage/);
+  assert.match(head, /Open student profiles/);
+  assert.match(head, /setAcademicProfilesOpen\(true\)/);
 });
 
 test('guardian invitation flow remains email-bound and parent-facing', () => {

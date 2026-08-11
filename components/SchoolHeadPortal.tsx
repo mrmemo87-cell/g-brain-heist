@@ -18,6 +18,8 @@ import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import '../src/styles/school-head.css';
 
+const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
+
 interface SchoolHeadPortalProps {
   schoolId: string;
   onLogout: () => void;
@@ -104,6 +106,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
     return value && VALID_HEAD_TABS.has(value) ? value : 'overview';
   }, []);
   const [activeTab, setActiveTab] = useState<SchoolHeadTab>(initialTab);
+  const [academicProfilesOpen, setAcademicProfilesOpen] = useState(false);
   const [periodDays, setPeriodDays] = useState(30);
   const [snapshot, setSnapshot] = useState<SchoolHeadSnapshot | null>(null);
   const [audit, setAudit] = useState<SchoolGovernanceAuditEntry[]>([]);
@@ -157,6 +160,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
   useEffect(() => { void load(); }, [load]);
 
   const selectTab = useCallback((tab: SchoolHeadTab) => {
+    if (tab !== 'academic') setAcademicProfilesOpen(false);
     setActiveTab(tab);
     setMobileMenuOpen(false);
     const url = new URL(window.location.href);
@@ -321,7 +325,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
           {snapshot.academics.grade_performance.map((grade) => <div role="row" key={grade.grade} className="school-head-grade-row"><strong role="cell">Grade {grade.grade}</strong><span role="cell">{grade.students}</span><span role="cell">{grade.assessments}</span><b role="cell">{formatPercent(grade.average)}</b><div role="cell" className="school-head-grade-bar"><i style={{ width: `${Math.max(0, Math.min(100, grade.average ?? 0))}%` }} /></div></div>)}
         </div> : <EmptyState title="No grade performance yet">Assessment results will appear here after school-linked students complete recorded tests.</EmptyState>}
       </section>
-      <section className="school-head-callout"><div><p>Longitudinal learning intelligence</p><h3>See where progress is improving — and where support is still needed.</h3><span>Open the school-wide learning-memory view for subject, class and student intervention patterns. Persistent areas with stale evidence are flagged for reassessment rather than assumed to remain unresolved.</span></div><button type="button" onClick={() => window.location.assign(`/school-head-learning-intelligence.html?school=${encodeURIComponent(schoolId)}`)}>Open learning intelligence</button></section>
+      <section className="school-head-callout"><div><p>Student academic profiles</p><h3>See where each student is improving — and where support is still needed.</h3><span>Open the school-scoped academic record for subject attainment, strengths, persistent focus areas, evidence confidence, and curriculum coverage.</span></div><button type="button" onClick={() => setAcademicProfilesOpen(true)}>Open student profiles</button></section>
     </div>
   );
 
@@ -393,7 +397,9 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
   const renderActiveTab = () => {
     if (activeTab === 'overview') return renderOverview();
     if (activeTab === 'decisions') return renderDecisions();
-    if (activeTab === 'academic') return renderAcademic();
+    if (activeTab === 'academic') return academicProfilesOpen
+      ? <React.Suspense fallback={<div className="school-head-page">Loading student academic profiles…</div>}><TeacherAcademicProfilesPage onBack={() => setAcademicProfilesOpen(false)} /></React.Suspense>
+      : renderAcademic();
     if (activeTab === 'people') return renderPeople();
     if (activeTab === 'programs') return renderPrograms();
     if (activeTab === 'subscription') return renderSubscription();
