@@ -43,7 +43,7 @@ export interface InterventionIntelligence {
 }
 
 export async function getInterventionIntelligence(studentId: string, subject?: string | null): Promise<InterventionIntelligence> {
-  const { data, error } = await supabase.rpc('rpc_teacher_student_intervention_intelligence', { p_student_id: studentId, p_subject: subject || null });
+  const { data, error } = await supabase.rpc('rpc_teacher_student_intervention_pilot', { p_student_id: studentId, p_subject: subject || null });
   if (error) throw userFacingError(error, 'We could not open this student’s support recommendations just now. Please try again.');
   return data as InterventionIntelligence;
 }
@@ -64,7 +64,27 @@ export async function createLearningIntervention(input: {
     p_min_successful_observations: input.minimumSuccessfulObservations ?? 2,
   });
   if (error) throw userFacingError(error, 'We could not create the support plan just now. Please try again.');
-  return String(data);
+  return String((data as { interventionId?: string } | null)?.interventionId || data);
+}
+
+export async function reviewLearningInterventionPlan(input: {
+  interventionId: string; decision: 'approved' | 'rejected'; rationale: string;
+}): Promise<void> {
+  const { error } = await supabase.rpc('rpc_teacher_review_learning_intervention_plan', {
+    p_intervention_id: input.interventionId,
+    p_decision: input.decision,
+    p_rationale: input.rationale,
+  });
+  if (error) throw userFacingError(error, 'We could not review the support plan just now. Please try again.');
+}
+
+export async function evaluateLearningIntervention(interventionId: string): Promise<InterventionEvaluation> {
+  const { data, error } = await supabase.rpc('rpc_teacher_evaluate_learning_intervention', {
+    p_intervention_id: interventionId,
+    p_as_of: new Date().toISOString(),
+  });
+  if (error) throw userFacingError(error, 'We could not evaluate the follow-up evidence just now. Please try again.');
+  return data as InterventionEvaluation;
 }
 
 export async function updateLearningIntervention(input: { interventionId: string; action: 'start' | 'complete' | 'cancel' | 'note'; note?: string; outcomeStatus?: 'improved' | 'resolved' | 'no_change' | 'declined' | 'inconclusive' | 'needs_more_support' }): Promise<void> {
