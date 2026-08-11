@@ -383,7 +383,7 @@ begin
     framework_version_id, curriculum_scope_id, parent_node_id, node_type,
     code, name, description, sequence_number, source_reference
   )
-  select distinct v_version_id, t.curriculum_scope_id, null, 'strand',
+  select distinct v_version_id, t.curriculum_scope_id, null::uuid, 'strand',
     'strand-' || left(md5(t.classification->>'strand'), 16),
     t.classification->>'strand',
     'Original Brain Heist strand used to organise reviewed question evidence.',
@@ -395,7 +395,7 @@ begin
     code, name, description, sequence_number, source_reference
   )
   select distinct v_version_id, t.curriculum_scope_id, strand.id, 'topic',
-    'topic-' || left(md5(t.classification->>'topic'), 16),
+    'topic-' || left(md5(concat_ws('|', t.classification->>'strand', t.classification->>'topic')), 16),
     t.classification->>'topic',
     'Topic derived from the source question topic and question text.',
     1, 'bh-question-bank-classification-v1'
@@ -409,21 +409,21 @@ begin
     code, name, description, sequence_number, source_reference
   )
   select distinct v_version_id, t.curriculum_scope_id, topic.id, 'skill',
-    'skill-' || left(md5(t.classification->>'skill'), 16),
+    'skill-' || left(md5(concat_ws('|', t.classification->>'strand', t.classification->>'topic', t.classification->>'skill')), 16),
     t.classification->>'skill',
     'Observable academic skill used for progress roll-up.',
     1, 'bh-question-bank-classification-v1'
   from tmp_bh_targets t
   join public.curriculum_nodes topic on topic.curriculum_scope_id = t.curriculum_scope_id
     and topic.node_type = 'topic'
-    and topic.name = t.classification->>'topic';
+    and topic.code = 'topic-' || left(md5(concat_ws('|', t.classification->>'strand', t.classification->>'topic')), 16);
 
   insert into public.curriculum_nodes(
     framework_version_id, curriculum_scope_id, parent_node_id, node_type,
     code, name, description, sequence_number, source_reference
   )
   select distinct v_version_id, t.curriculum_scope_id, skill.id, 'subskill',
-    'subskill-' || left(md5(t.classification->>'subskill'), 16),
+    'subskill-' || left(md5(concat_ws('|', t.classification->>'strand', t.classification->>'topic', t.classification->>'skill', t.classification->>'subskill')), 16),
     t.classification->>'subskill',
     'Difficulty-sensitive evidence descriptor for this skill.',
     case t.difficulty when 'easy' then 1 when 'medium' then 2 else 3 end,
@@ -431,7 +431,7 @@ begin
   from tmp_bh_targets t
   join public.curriculum_nodes skill on skill.curriculum_scope_id = t.curriculum_scope_id
     and skill.node_type = 'skill'
-    and skill.name = t.classification->>'skill';
+    and skill.code = 'skill-' || left(md5(concat_ws('|', t.classification->>'strand', t.classification->>'topic', t.classification->>'skill')), 16);
 
   insert into public.curriculum_objectives(
     framework_version_id, curriculum_scope_id, curriculum_node_id,
@@ -439,7 +439,7 @@ begin
     command_terms, tags, sequence_number, source_reference
   )
   select distinct v_version_id, t.curriculum_scope_id, subskill.id,
-    'objective-' || left(md5(t.classification->>'objective'), 16),
+    'objective-' || left(md5(concat_ws('|', t.classification->>'strand', t.classification->>'topic', t.classification->>'skill', t.classification->>'subskill', t.classification->>'objective')), 16),
     t.classification->>'objective', 'application',
     case t.difficulty when 'easy' then 'understand' when 'hard' then 'analyse' else 'apply' end,
     true,
@@ -451,7 +451,7 @@ begin
   from tmp_bh_targets t
   join public.curriculum_nodes subskill on subskill.curriculum_scope_id = t.curriculum_scope_id
     and subskill.node_type = 'subskill'
-    and subskill.name = t.classification->>'subskill';
+    and subskill.code = 'subskill-' || left(md5(concat_ws('|', t.classification->>'strand', t.classification->>'topic', t.classification->>'skill', t.classification->>'subskill')), 16);
 
   select encode(extensions.digest(coalesce(string_agg(value, E'\n' order by value), ''), 'sha256'), 'hex')
   into v_hash
@@ -530,7 +530,7 @@ begin
     and i.source_record_id = t.question_id::text and i.source_item_key = 'question'
   join public.curriculum_objectives o
     on o.curriculum_scope_id = t.curriculum_scope_id
-    and o.statement = t.classification->>'objective'
+    and o.code = 'objective-' || left(md5(concat_ws('|', t.classification->>'strand', t.classification->>'topic', t.classification->>'skill', t.classification->>'subskill', t.classification->>'objective')), 16)
   join public.curriculum_mapping_batches b
     on b.name = 'Existing question bank academic classification'
     and b.source_version = 'question-bank-2026-1'
