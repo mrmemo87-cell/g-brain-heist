@@ -147,7 +147,7 @@ const StudentAcademicProfile: React.FC<StudentAcademicProfileProps> = ({
   const viewerRole = (context?.viewer.role || profile.scope.viewer || mode) as AcademicProgressViewerRole;
   const resolvedContext: AcademicProgressExperienceContext = context || {
     viewer: { id: '', name: teacherName || '', role: viewerRole },
-    school: { id: profile.student.school_id || '', name: schoolName || 'Brain Heist', logo_url: schoolLogoUrl || null },
+    school: { id: profile.student.school_id || '', name: schoolName || 'Brains Heist', logo_url: schoolLogoUrl || null },
   };
   const canGenerateReport = ['teacher', 'school_admin', 'school_head'].includes(viewerRole);
   const resolvedSchoolName = context?.school.name || schoolName || undefined;

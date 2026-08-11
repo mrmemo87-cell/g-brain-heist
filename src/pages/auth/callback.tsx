@@ -14,7 +14,7 @@ const AuthCallback: React.FC = () => {
 
     const completeSignIn = async () => {
       // Supabase handles the OAuth callback automatically. For IELTS funnel
-      // users, do not let the wildcard Brain Heist app route consume /auth/callback
+      // users, do not let the wildcard Brains Heist app route consume /auth/callback
       // and show general onboarding before the IELTS profile is ready.
       const hasIeltsIntent = Boolean(readIeltsAuthIntent(window.sessionStorage));
       let session: Session | null = null;

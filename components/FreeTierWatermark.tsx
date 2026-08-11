@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchLockdownLimits } from '../services/tierService';
 
 /**
- * Semi-transparent "Powered by Brain Heist" watermark overlay.
+ * Semi-transparent "Powered by Brains Heist" watermark overlay.
  * Self-contained: fetches lockdown limits on mount.
  * Shows for free-tier schools, hides for paid plans.
  */
@@ -34,7 +34,7 @@ export const FreeTierWatermark: React.FC = () => {
           Powered by
         </span>
         <span className="text-[10px] font-bold tracking-wider text-white/50 uppercase">
-          Brain Heist
+          Brains Heist
         </span>
       </div>
     </div>

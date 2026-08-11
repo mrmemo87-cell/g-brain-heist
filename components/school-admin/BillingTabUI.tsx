@@ -106,7 +106,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
                 {PILOT_PLAN.seats.cambridge} Cambridge · {PILOT_PLAN.seats.ielts} IELTS · {PILOT_PLAN.seats.game} Game seats. No credit card needed.
               </p>
             </div>
-            <button onClick={onStartPilot} disabled={billingAction !== null} className={`w-full shrink-0 rounded-lg bg-[#1e4b82] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173d6c] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${focusRing}`}>
+            <button onClick={onStartPilot} disabled={billingAction !== null} className={`billing-on-dark w-full shrink-0 rounded-lg bg-[#1e4b82] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173d6c] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${focusRing}`}>
               {billingAction === 'pilot' ? 'Starting…' : 'Start Free Pilot'}
             </button>
           </div>
@@ -132,7 +132,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
                     type="button"
                     onClick={() => setBillingInterval(interval)}
                     aria-pressed={selected}
-                    className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition sm:flex-none ${focusRing} ${selected ? 'bg-[#1e4b82] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+                    className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition sm:flex-none ${focusRing} ${selected ? 'billing-on-dark bg-[#1e4b82] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
                   >
                     {interval === 'monthly' ? 'Monthly' : 'Annual'}
                     {interval === 'yearly' && <span className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] ${selected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'}`}>Save ~17%</span>}
@@ -157,6 +157,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
                   <div className="min-h-5">
                     {billingInterval === 'yearly' && <p className="text-xs text-slate-600">${Math.round(p.yearly / 12).toLocaleString()}/mo billed annually</p>}
                   </div>
+                  <p className="mt-2 rounded-lg bg-slate-100 px-2.5 py-2 text-xs font-semibold text-slate-700">Best for schools with up to {p.seats.game} active learners</p>
                   <div className="mt-3 space-y-2 text-xs">
                     {([['📚 Cambridge', p.seats.cambridge], ['🎧 IELTS', p.seats.ielts], ['🎮 Game', p.seats.game]] as const).map(([label, seats]) => (
                       <div key={label} className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 ${featureRowClasses}`}>
@@ -166,8 +167,8 @@ const BillingTab: React.FC<BillingTabProps> = ({
                     ))}
                   </div>
                   <div className="flex-1" />
-                  <button onClick={() => onSubscribe(p)} disabled={billingAction !== null} className={`mt-5 w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing} ${isPopular ? 'bg-[#173d6c] hover:bg-[#102f57]' : 'bg-[#1e4b82] hover:bg-[#173d6c]'}`}>
-                    {billingAction === p.id ? 'Redirecting…' : 'Subscribe'}
+                  <button onClick={() => onSubscribe(p)} disabled={billingAction !== null} className={`billing-on-dark mt-5 w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing} ${isPopular ? 'bg-[#173d6c] hover:bg-[#102f57]' : 'bg-[#1e4b82] hover:bg-[#173d6c]'}`}>
+                    {billingAction === p.id ? 'Redirecting…' : `Choose ${p.label} · ${billingInterval}`}
                   </button>
                 </article>
               );
@@ -186,7 +187,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
           <h4 className="mb-2 font-semibold text-slate-900">Manage Subscription</h4>
           <p className="mb-3 text-sm text-slate-600">Update your payment method, change plans, or cancel via the Paddle customer portal.</p>
           <div className="mb-3 flex flex-wrap gap-3">
-            {planDetails.update_payment_url && <a href={planDetails.update_payment_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-1.5 rounded-lg bg-[#1e4b82] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#173d6c] ${focusRing}`}>💳 Update Payment Method</a>}
+            {planDetails.update_payment_url && <a href={planDetails.update_payment_url} target="_blank" rel="noopener noreferrer" className={`billing-on-dark inline-flex items-center gap-1.5 rounded-lg bg-[#1e4b82] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#173d6c] ${focusRing}`}>💳 Update Payment Method</a>}
             {planDetails.management_url && planDetails.management_url !== planDetails.update_payment_url && <a href={planDetails.management_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-50 ${focusRing}`}>⚙️ Cancel / Change Plan</a>}
           </div>
           <p className="text-xs text-slate-500">Contact <a href="mailto:support@brainsheist.com" className="font-medium text-emerald-700 hover:underline">support@brainsheist.com</a> if you need help managing your subscription.</p>

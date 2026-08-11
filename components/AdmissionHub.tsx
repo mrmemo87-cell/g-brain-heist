@@ -1369,7 +1369,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
               <h3 className="font-semibold text-slate-900">Step 3: Question source</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <button onClick={() => setWizardSource('auto')} className={`rounded-xl border p-4 text-left ${wizardSource === 'auto' ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`}><div className="font-semibold text-slate-900">Recommended: auto-select official questions</div><div className="text-xs text-slate-600 mt-1">Use official locked Brain Heist content matching this subject and Grade / Stage.</div></button>
+                <button onClick={() => setWizardSource('auto')} className={`rounded-xl border p-4 text-left ${wizardSource === 'auto' ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`}><div className="font-semibold text-slate-900">Recommended: auto-select official questions</div><div className="text-xs text-slate-600 mt-1">Use official locked Brains Heist content matching this subject and Grade / Stage.</div></button>
                 <button onClick={() => setWizardSource('pool')} className={`rounded-xl border p-4 text-left ${wizardSource === 'pool' ? 'border-cyan-400 bg-cyan-50' : 'border-slate-200 bg-slate-50'}`}><div className="font-semibold text-slate-900">Advanced: choose an official bank pool</div><div className="text-xs text-slate-600 mt-1">Limit this test to one readable official or legacy pool.</div></button>
               </div>
               {wizardSource === 'pool' && <div><label className="block text-xs font-semibold text-slate-700 mb-1">Question pool</label><select className={inputClass} value={wizardPoolId} onChange={e => setWizardPoolId(e.target.value)}><option value="">Choose a pool…</option>{pools.filter(p => p.is_active && p.subject === wizardSubject).map(p => <option key={p.id} value={p.id}>{p.name}{p.stage ? ` (Stage ${p.stage})` : ''}</option>)}</select></div>}
@@ -1516,7 +1516,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
           {/* Available subjects */}
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-3">Official Brain Heist admission content</h4>
+            <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-3">Official Brains Heist admission content</h4>
             <p className="text-sm text-slate-700 mb-3">Locked for assessment fairness. Schools can generate tests, but cannot edit official questions.</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.entries(BLUEPRINT_PRESETS).map(([key, preset]) => {
@@ -1538,7 +1538,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             <div className="card-glass p-8 text-center">
               <span className="text-4xl block mb-3">📝</span>
               <p className="text-slate-600 text-sm">No official question bank pools are visible yet.</p>
-              <p className="text-slate-500 text-xs mt-1">Platform admins can seed locked Brain Heist official admission content.</p>
+              <p className="text-slate-500 text-xs mt-1">Platform admins can seed locked Brains Heist official admission content.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -1551,7 +1551,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       <span className="text-2xl">{preset?.icon || '📄'}</span>
                       <div>
                         <div className="font-semibold text-slate-900">{p.name}</div>
-                        <div className="text-xs text-slate-600">{p.subject} · Stage {p.stage || p.stage_level || 'Any'} {p.is_official ? '· Official Brain Heist admission content' : p.school_id ? '· Legacy school content' : '· Legacy global content'}</div>
+                        <div className="text-xs text-slate-600">{p.subject} · Stage {p.stage || p.stage_level || 'Any'} {p.is_official ? '· Official Brains Heist admission content' : p.school_id ? '· Legacy school content' : '· Legacy global content'}</div>
                         <div className="text-[10px] text-cyan-700 mt-0.5">{p.is_locked ? '🔒 Locked for assessment fairness' : 'Read-only here for school admins'} · {p.source_label || 'Admission content'}</div>
                       </div>
                     </div>

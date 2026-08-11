@@ -10,8 +10,12 @@ test('teacher workspace uses a dedicated small-screen navigation model', () => {
     assert.match(teacherPortal, /className="teacher-mobile-bottom-nav"/);
     assert.match(teacherPortal, /className="teacher-mobile-menu-sheet"/);
     assert.match(teacherPortal, /aria-label="Teacher workspace"/);
-    assert.match(teacherTheme, /@media \(max-width: 1023px\)[\s\S]*\.teacher-desktop-sidebar\s*\{\s*display: none;/);
+    assert.match(teacherPortal, /ref=\{mobileNavigationRef\}/);
+    assert.match(teacherPortal, /onFocus=\{revealMobileNavigation\}/);
+    assert.match(teacherPortal, /className="smart-mobile-nav-reveal"/);
+    assert.match(teacherTheme, /@media \(max-width: 1024px\)[\s\S]*\.teacher-desktop-sidebar\s*\{\s*display: none;/);
     assert.match(teacherTheme, /\.teacher-mobile-bottom-nav[\s\S]*env\(safe-area-inset-bottom/);
+    assert.match(teacherTheme, /\.teacher-mobile-bottom-nav[\s\S]*var\(--smart-nav-translate-y/);
 });
 test('mobile reports and Cambridge results use cards instead of wide tables', () => {
     assert.match(teacherPortal, /className="teacher-mobile-record-list"/);

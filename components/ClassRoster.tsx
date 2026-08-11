@@ -337,12 +337,17 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
 
   return (
     <div className="space-y-6">
-      <PlacementExceptionQueue schoolId={schoolId} classes={classes} addToast={addToast} onChanged={() => { void loadClasses(); setExpandedClasses({}); }} />
+      <details className="admin-advanced-disclosure">
+        <summary><span>Advanced placement checks</span><small>Only needed when a student’s current class conflicts with historical records.</small></summary>
+        <div className="admin-advanced-disclosure-body">
+          <PlacementExceptionQueue schoolId={schoolId} classes={classes} addToast={addToast} onChanged={() => { void loadClasses(); setExpandedClasses({}); }} />
+        </div>
+      </details>
       {/* Header with actions */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-            <span className="text-2xl">📋</span> Class Roster Management
+            <span className="text-2xl">📋</span> Student placement register
           </h3>
           <p className="text-sm text-gray-400 mt-1">
             {classes.length} classes • {classes.reduce((acc, c) => acc + c.student_count, 0)} enrolled students • {unassignedStudents.length} unassigned
@@ -715,7 +720,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
       {filteredClasses.length === 0 && (
         <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-500">
           <p className="text-4xl mb-2">📚</p>
-          <p>No classes found. Create classes first in the Classes tab.</p>
+          <p>No classes found. Complete a grade plan or create a class in Class setup first.</p>
         </div>
       )}
 

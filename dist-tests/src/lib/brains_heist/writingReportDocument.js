@@ -1,3 +1,4 @@
+import { createSchoolDocumentId, schoolDocumentFileName } from '../schoolDocument.js';
 const escapeHtml = (value) => String(value ?? '')
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -74,6 +75,7 @@ export const buildProfessionalWritingReportHtml = (report, options) => {
         ? 0
         : Math.max(0, Math.min(100, Math.round((Number(summary.latest_score) / 20) * 100)));
     const teacherComment = options.teacherComment?.trim() || 'No additional teacher comment has been added.';
+    const documentId = options.documentId || createSchoolDocumentId('writing');
     const intro = options.audience === 'parent'
         ? 'A clear, teacher-guided summary of current writing strengths and the next learning steps.'
         : 'A concise evidence summary for feedback, planning and intervention.';
@@ -137,6 +139,7 @@ export const buildProfessionalWritingReportHtml = (report, options) => {
     .actions{position:sticky;bottom:0;display:flex;justify-content:center;gap:8px;padding:12px;background:rgba(9,26,49,.96)}
     .actions button{border:0;border-radius:9px;padding:10px 14px;background:var(--blue);color:#fff;font-weight:800;cursor:pointer}
     .actions button.secondary{background:#dfe7f2;color:var(--ink)}
+    body.ink-saver{--wash:#fff;--navy:#111827;--teal:#1f2937;--blue:#111827;--rose:#374151;--gold:#4b5563}.ink-saver .score-card,.ink-saver .metric,.ink-saver .integrity{background:#fff!important}.ink-saver .rubric-track i{background:#111827}
     @media(max-width:720px){
       .masthead{grid-template-columns:1fr;padding:30px 20px 22px}.document-state{text-align:left}
       .body{padding:18px 16px 26px}.identity,.summary,.learning-grid,.planning{grid-template-columns:1fr 1fr}
@@ -164,7 +167,7 @@ export const buildProfessionalWritingReportHtml = (report, options) => {
       <h1>${escapeHtml(title)}</h1>
       <p class="intro">${escapeHtml(intro)}</p>
     </div>
-    <div class="document-state"><strong>${escapeHtml(options.reportStatus ?? 'draft')} · ${escapeHtml(stage)}</strong><span>Generated ${escapeHtml(generated)}</span></div>
+    <div class="document-state"><strong>${escapeHtml(options.reportStatus ?? 'draft')} · ${escapeHtml(stage)}</strong><span>${escapeHtml(options.audience === 'parent' ? 'Family copy' : 'Teacher working copy')}</span><span>${escapeHtml(documentId)}</span><span>Generated ${escapeHtml(generated)}</span></div>
   </header>
   <div class="body">
     <section class="identity">
@@ -205,13 +208,21 @@ export const buildProfessionalWritingReportHtml = (report, options) => {
 
     <section class="panel" style="margin-top:9px"><h2><i class="dot"></i>Teacher comment</h2><p class="comment">${escapeHtml(teacherComment.slice(0, 600))}</p></section>
     <section class="signoff"><div>${escapeHtml(teacherName)} · Teacher</div><div>Date / signature</div></section>
-    <footer><span>${escapeHtml(schoolName)} Writing Hub</span><span>Confidential student learning record</span></footer>
+    <footer><span>${escapeHtml(schoolName)} Writing Hub · Writing progress report</span><span>Document reference: ${escapeHtml(documentId)} · Confidential student learning record</span></footer>
   </div>
   <div class="actions">
-    <button onclick="window.print()">Print / Save PDF</button>
+    <button class="secondary" onclick="document.body.classList.toggle('ink-saver')">Ink saver</button>
+    <button onclick="printReport()">Print / Save PDF</button>
     <button class="secondary" onclick="window.close()">Close preview</button>
   </div>
 </main>
+<script>
+  async function printReport(){
+    if(document.fonts){await document.fonts.ready;}
+    await Promise.all(Array.from(document.images).map((image)=>image.complete?Promise.resolve():new Promise((resolve)=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});})));
+    window.print();
+  }
+</script>
 </body>
 </html>`;
 };
@@ -221,8 +232,37 @@ export const openProfessionalWritingReport = (report, options) => {
     const reportWindow = window.open('', '_blank', 'width=1080,height=900');
     if (!reportWindow)
         return false;
+    const documentId = createSchoolDocumentId('writing');
+    const renderedOptions = { ...options, documentId };
+    const rawHtml = buildProfessionalWritingReportHtml(report, renderedOptions);
     reportWindow.document.open();
-    reportWindow.document.write(buildProfessionalWritingReportHtml(report, options));
+    reportWindow.document.write(rawHtml);
     reportWindow.document.close();
+    const schoolId = report.institution?.school_id;
+    if (schoolId) {
+        const fileName = schoolDocumentFileName(report.institution?.school_name, report.student.student_name, 'Writing_Report', report.period);
+        void import('../../../services/supabaseClient').then(({ supabase }) => supabase.from('school_document_records').insert({
+            school_id: schoolId,
+            document_id: documentId,
+            template_key: 'writing-report',
+            template_version: 'writing-report-v2',
+            title: options.audience === 'parent' ? 'Writing Progress Report' : 'Writing Review & Planning',
+            audience: options.audience === 'parent' ? 'family' : 'teacher',
+            status: options.reportStatus ?? 'draft',
+            confidentiality: options.audience === 'parent' ? 'family-copy' : 'confidential',
+            source_type: 'writing_student_period',
+            source_id: `${report.student.student_id}:${report.period}`,
+            student_user_id: report.student.student_id,
+            generated_at: report.generated_at,
+            finalized_at: options.reportStatus === 'final' ? report.generated_at : null,
+            payload: { rawHtml, fileName },
+        }).then(({ error }) => {
+            if (error && import.meta.env.DEV)
+                console.warn('Writing document audit record was not saved', error.message);
+        })).catch((error) => {
+            if (import.meta.env.DEV)
+                console.warn('Writing document registry unavailable', error);
+        });
+    }
     return true;
 };

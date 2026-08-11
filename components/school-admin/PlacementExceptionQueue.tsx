@@ -26,6 +26,7 @@ const PlacementExceptionQueue: React.FC<Props> = ({ schoolId, classes, addToast,
   const [reason, setReason] = useState('Administrator reviewed placement evidence');
   const [effectiveDate, setEffectiveDate] = useState(localDate());
   const [saving, setSaving] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
   const requestId = useRef(0);
   const schoolIdRef = useRef(schoolId);
   schoolIdRef.current = schoolId;
@@ -34,12 +35,20 @@ const PlacementExceptionQueue: React.FC<Props> = ({ schoolId, classes, addToast,
     const currentRequest = ++requestId.current;
     const requestedSchool = schoolId;
     setLoading(true);
+    setUnavailable(false);
     try {
       if (scan) await SchoolAdminService.refreshPlacementExceptions(schoolId);
       const nextItems = await SchoolAdminService.listPlacementExceptions(schoolId);
       if (currentRequest === requestId.current && requestedSchool === schoolIdRef.current) setItems(nextItems);
     } catch (error) {
-      if (currentRequest === requestId.current && requestedSchool === schoolIdRef.current) addToast(error instanceof Error ? error.message : 'Placement review queue could not be loaded.', 'error');
+      if (currentRequest === requestId.current && requestedSchool === schoolIdRef.current) {
+        const message = error instanceof Error ? error.message : '';
+        if (message.includes('PGRST202') || message.includes('rpc_school_admin_list_placement_exceptions')) {
+          setUnavailable(true);
+        } else {
+          addToast(message || 'Placement review queue could not be loaded.', 'error');
+        }
+      }
     } finally {
       if (currentRequest === requestId.current && requestedSchool === schoolIdRef.current) setLoading(false);
     }
@@ -100,16 +109,17 @@ const PlacementExceptionQueue: React.FC<Props> = ({ schoolId, classes, addToast,
   };
 
   return (
-    <section className="mb-6 rounded-xl border border-amber-500/30 bg-amber-950/20 p-4" aria-labelledby="placement-review-title">
+    <section className="placement-review-panel" aria-labelledby="placement-review-title">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 id="placement-review-title" className="font-semibold text-amber-100">Placement review queue</h3>
-          <p className="text-sm text-amber-200/70">Historical reconciliations and placement mismatches require an explicit administrator decision.</p>
+          <h3 id="placement-review-title">Placement review queue</h3>
+          <p>Historical reconciliations and placement mismatches require an explicit administrator decision.</p>
         </div>
-        <button type="button" onClick={() => void load(true)} disabled={loading} className="rounded-lg border border-amber-400/40 px-3 py-2 text-sm text-amber-100 disabled:opacity-50">
+        <button type="button" onClick={() => void load(true)} disabled={loading} className="admin-button-ghost admin-button-small">
           {loading ? 'Checking…' : 'Refresh checks'}
         </button>
       </div>
+      {unavailable ? <div className="admin-access-note"><strong>Advanced check temporarily unavailable</strong><span>Normal student placement still works. This optional historical reconciliation check will return after the database update is deployed.</span></div> : null}
       {!loading && items.length === 0 ? <p className="mt-3 text-sm text-emerald-300">No open placement exceptions.</p> : null}
       {items.length > 0 ? (
         <ul className="mt-4 grid gap-2">

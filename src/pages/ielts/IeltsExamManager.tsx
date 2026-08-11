@@ -485,7 +485,7 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
         <div className="mx-auto max-w-7xl">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">IELTS Exam Admin</p>
           <h1 className="text-2xl font-semibold text-slate-950">Controlled Exam Manager</h1>
-          <p className="mt-1 text-sm text-slate-600">Create controlled IELTS exams, attach forms, and assign existing Brain Heist students.</p>
+          <p className="mt-1 text-sm text-slate-600">Create controlled IELTS exams, attach forms, and assign existing Brains Heist students.</p>
         </div>
       </header>
 
@@ -636,7 +636,7 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
                 </button>
               </Panel>
 
-              <Panel title="Step 3 Assign Students" subtitle="Assign this exam to an entire class or selected existing Brain Heist students.">
+              <Panel title="Step 3 Assign Students" subtitle="Assign this exam to an entire class or selected existing Brains Heist students.">
                 {!activeForm && <Banner tone="warning" message="Cannot assign students until this exam has an active form." />}
                 <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
                   <label className="block text-sm font-medium text-slate-700">Class

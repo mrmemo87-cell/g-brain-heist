@@ -7,12 +7,12 @@ const read = (file: string) => fs.readFileSync(path.join(process.cwd(), file), '
 
 test('student sees extra practice blocks only when enabled', () => {
   const home = read('src/pages/ielts/IeltsHome.tsx');
-  const catalogBranch = home.slice(home.indexOf('showPracticeCatalog ? ('), home.indexOf('← Back to Brain Heist Game', home.indexOf('showPracticeCatalog ? (')));
+  const catalogBranch = home.slice(home.indexOf('showPracticeCatalog ? ('), home.indexOf('← Back to Brains Heist Game', home.indexOf('showPracticeCatalog ? (')));
   assert.match(home, /const showPracticeCatalog = extraPracticeEnabled === true/, 'home should require a verified enabled setting before showing the catalog');
   assert.match(catalogBranch, /Free Trial Test Banner · Reading · Listening · Writing · Speaking/, 'the catalog gate should contain every optional practice skill');
   assert.match(home, /My IELTS Journey/, 'home should always keep My IELTS Journey visible');
   assert.match(home, /Assigned Practice/, 'home should always keep Assigned Practice visible');
-  assert.match(home, /Back to Brain Heist Game/, 'home should always keep back-to-game visible');
+  assert.match(home, /Back to Brains Heist Game/, 'home should always keep back-to-game visible');
 });
 
 test('direct student extra practice route access blocked when disabled', () => {

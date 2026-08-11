@@ -27,7 +27,7 @@ const StreakRewardGuide: React.FC<StreakRewardGuideProps> = ({ currentStreak }) 
       <p className="text-xs font-black uppercase tracking-[0.28em] text-orange-300">Daily streak protocol</p>
       <h2 className="mt-2 font-heading text-2xl text-white sm:text-3xl">Show up. Build heat. Bank coins.</h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-        Open Brain Heist on consecutive days and the vault pays you automatically. Longer streaks unlock much bigger drops.
+        Open Brains Heist on consecutive days and the vault pays you automatically. Longer streaks unlock much bigger drops.
       </p>
       {typeof currentStreak === 'number' && (
         <div className="mt-4 inline-flex items-center gap-3 rounded-xl border border-orange-300/30 bg-black/30 px-4 py-3">
@@ -62,7 +62,7 @@ const StreakRewardGuide: React.FC<StreakRewardGuideProps> = ({ currentStreak }) 
 
     <section className="grid gap-3 sm:grid-cols-3">
       {[
-        ['1', 'Enter the game', 'Your reward is deposited automatically when Brain Heist records your first activity of the day.'],
+        ['1', 'Enter the game', 'Your reward is deposited automatically when Brains Heist records your first activity of the day.'],
         ['2', 'Protect the chain', 'Return on the next calendar day to increase your streak. One reward can be earned per day.'],
         ['3', 'Don’t go cold', 'Miss a full day and your next visit restarts the streak at Day 1.'],
       ].map(([step, title, copy]) => (

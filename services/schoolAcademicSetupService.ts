@@ -137,6 +137,41 @@ export async function saveSubjectOfferings(input: {
   return result.saved ?? 0;
 }
 
+export async function ensureGradeClass(input: {
+  schoolId: string;
+  gradeLevel: number;
+  existingClasses: Array<{ id: string; class_code?: string; grade_level?: number | string | null; is_active?: boolean }>;
+}): Promise<{ created: boolean; classId?: string }> {
+  const existing = input.existingClasses.find((schoolClass) => (
+    schoolClass.is_active !== false && Number(schoolClass.grade_level) === input.gradeLevel
+  ));
+  if (existing) return { created: false, classId: existing.id };
+
+  const usedCodes = new Set(input.existingClasses.map((schoolClass) => String(schoolClass.class_code || '').toUpperCase()));
+  const baseCode = `G${input.gradeLevel}`;
+  let classCode = baseCode;
+  let suffixIndex = 0;
+  while (usedCodes.has(classCode.toUpperCase())) {
+    suffixIndex += 1;
+    classCode = suffixIndex <= 26
+      ? `${baseCode}-${String.fromCharCode(64 + suffixIndex)}`
+      : `${baseCode}-${suffixIndex}`;
+  }
+
+  const { data, error } = await supabase.rpc('school_admin_save_class', {
+    p_school_id: input.schoolId,
+    p_class_id: null,
+    p_class_code: classCode,
+    p_class_name: `Grade ${input.gradeLevel}`,
+    p_grade_level: input.gradeLevel,
+    p_is_active: true,
+  });
+  if (error) throw userFacingError(error, 'The grade plan was saved, but its default class could not be created.');
+  const result = data as { success?: boolean; id?: string; error?: string } | null;
+  if (!result?.success) throw new Error(result?.error || 'default_grade_class_not_created');
+  return { created: true, classId: result.id };
+}
+
 export async function seedCurrentStudentEnrolments(schoolId: string, academicYearId: string): Promise<number> {
   const { data, error } = await supabase.rpc('rpc_school_admin_seed_academic_enrolments', {
     p_school_id: schoolId,
