@@ -122,3 +122,24 @@ body.light-mode .lite-mode-wrapper {
   color: inherit !important;
   background: inherit !important;
 }
+
+/* Preserve dashboard action button glow styling in light mode for visual consistency */
+body.light-mode .dashboard-action.glow-ion {
+  box-shadow: 0 0 15px rgba(0, 208, 232, 0.2) !important;
+}
+
+body.light-mode .dashboard-action.glow-plasma {
+  box-shadow: 0 0 15px rgba(255, 45, 145, 0.2) !important;
+}
+
+body.light-mode .dashboard-action.glow-success {
+  box-shadow: 0 0 15px rgba(22, 226, 161, 0.25) !important;
+}
+
+body.light-mode .dashboard-action.glow-warn {
+  box-shadow: 0 0 15px rgba(255, 176, 32, 0.25) !important;
+}
+
+body.light-mode .dashboard-action.glow-purple {
+  box-shadow: 0 0 15px rgba(158, 93, 255, 0.25) !important;
+}
