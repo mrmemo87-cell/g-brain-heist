@@ -407,7 +407,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
       {classes.length > 0 && classes.every((classInfo) => classInfo.student_count === 0) && unassignedStudents.length === 0 && (
         <div className="class-roster-guidance" role="status">
           <strong>No registered students yet</strong>
-          <span>These classes are ready for enrolment. Registered students will appear here for placement when accounts are added to the school.</span>
+          <span>These classes are ready for enrolment. Students will appear here for placement after they register and join this school.</span>
         </div>
       )}
 

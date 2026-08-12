@@ -61,10 +61,10 @@ const DashboardTab: React.FC = () => {
     </section>
 
     <section className="admin-insight-grid admin-insight-grid-five" aria-label="Administration priorities">
-      <article><span>Student placement</span><strong>{placedStudents.length}/{students.length}</strong><small>{unassignedStudents ? `${unassignedStudents} still need a class` : 'Every student is placed'}</small></article>
-      <article><span>Class coverage</span><strong>{coveredClassIds.size}/{activeClasses.length}</strong><small>{uncoveredClasses ? `${uncoveredClasses} ${uncoveredClasses === 1 ? 'class needs' : 'classes need'} teaching coverage` : 'Every active class is covered'}</small></article>
+      <article><span>Student placement</span><strong>{placedStudents.length}/{students.length}</strong><small>{students.length === 0 ? (activeClasses.length ? 'Ready for enrolment' : 'No students have joined yet') : unassignedStudents ? `${unassignedStudents} still need a class` : 'Every student is placed'}</small></article>
+      <article><span>Class coverage</span><strong>{coveredClassIds.size}/{activeClasses.length}</strong><small>{teachingStaff.length === 0 ? 'No teaching staff have joined yet' : uncoveredClasses ? `${uncoveredClasses} ${uncoveredClasses === 1 ? 'class needs' : 'classes need'} teaching coverage` : 'Every active class is covered'}</small></article>
       <article><span>Grade levels</span><strong>{configuredGrades.size}</strong><small>{configuredGrades.size ? 'Configured in the current academic year' : 'Choose grade levels and subjects to begin'}</small></article>
-      <article><span>Teaching staff</span><strong>{assignedTeacherIds.size}/{teachingStaff.length}</strong><small>{unassignedTeachers ? `${unassignedTeachers} active teaching staff without assignments` : teachingStaff.length ? 'All active teaching staff are assigned' : 'No teaching staff added yet'}</small></article>
+      <article><span>Teaching staff</span><strong>{assignedTeacherIds.size}/{teachingStaff.length}</strong><small>{unassignedTeachers ? `${unassignedTeachers} active teaching staff without assignments` : teachingStaff.length ? 'All active teaching staff are assigned' : 'No teaching staff have joined yet'}</small></article>
       <article><span>Teaching assignments</span><strong>{activeAssignments.length}</strong><small>Active class-subject-teacher links</small></article>
     </section>
 
