@@ -145,7 +145,7 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /strict: true/);
   assert.match(edge, /Assessment evidence failed strict validation/);
   assert.match(edge, /assessment_status = verified \? "verified" : "needs_review"/);
-  assert.match(edge, /independent Brains Heist language diagnostic auditor/);
+  assert.match(edge, /independent Brains Heist forward language auditor/);
   assert.match(edge, /Inspect every sentence and every sentence boundary/);
   assert.match(edge, /diagnostic_coverage_complete/);
   assert.match(edge, /false_positive_free/);
