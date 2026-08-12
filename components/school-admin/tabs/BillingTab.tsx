@@ -2,6 +2,7 @@ import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import BillingTabUI from '../BillingTabUI';
 import BillingStudio from '../BillingStudio';
+import ProgrammeSeatManager from '../ProgrammeSeatManager';
 import {
   fetchSchoolPlanDetails,
   startPilot,
@@ -73,7 +74,7 @@ const BillingTab: React.FC = () => {
           setBillingAction(null);
         }
       }}
-      billingStudio={school?.id ? <BillingStudio schoolId={school.id} addToast={addToast} /> : undefined}
+      billingStudio={school?.id ? <><BillingStudio schoolId={school.id} addToast={addToast} /><ProgrammeSeatManager schoolId={school.id} addToast={addToast} /></> : undefined}
     /></div>
   );
 };
