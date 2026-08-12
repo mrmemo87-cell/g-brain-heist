@@ -823,10 +823,40 @@ const narrowCorrectionRanges = (
   });
 };
 
+const preferCanonicalRange = (current: TextAnchorRange, candidate: TextAnchorRange): TextAnchorRange => {
+  const currentOriginalLength = current.sourceFix?.original.trim().length ?? Number.POSITIVE_INFINITY;
+  const candidateOriginalLength = candidate.sourceFix?.original.trim().length ?? Number.POSITIVE_INFINITY;
+  if (candidateOriginalLength !== currentOriginalLength) {
+    return candidateOriginalLength < currentOriginalLength ? candidate : current;
+  }
+  const currentEvidenceLength = (current.evidenceEnd ?? current.end) - (current.evidenceStart ?? current.start);
+  const candidateEvidenceLength = (candidate.evidenceEnd ?? candidate.end) - (candidate.evidenceStart ?? candidate.start);
+  return candidateEvidenceLength < currentEvidenceLength ? candidate : current;
+};
+
+/**
+ * Canonicalizes the visible spotlight spans after corrections have been narrowed.
+ * Different provider records can collapse onto the same changed characters
+ * (for example, a word-level fix plus a sentence-level rewrite containing it).
+ * The replay and its annotation renderer must consume the same one-span/one-card
+ * inventory or their indexes drift apart.
+ */
+export const dedupeCinematicRanges = (ranges: TextAnchorRange[]): TextAnchorRange[] => {
+  const byVisibleSpan = new Map<string, TextAnchorRange>();
+  ranges.forEach((range) => {
+    const key = `${range.polarity}:${range.start}:${range.end}`;
+    const current = byVisibleSpan.get(key);
+    byVisibleSpan.set(key, current ? preferCanonicalRange(current, range) : range);
+  });
+  return [...byVisibleSpan.values()].sort((a, b) => a.start - b.start || a.end - b.end);
+};
+
 export const buildValidatedCinematicRanges = (
   text: string,
   ai: WritingAiFeedbackAssist | null
-): TextAnchorRange[] => narrowCorrectionRanges(text, buildFallbackHighlightRanges(text, ai));
+): TextAnchorRange[] => dedupeCinematicRanges(
+  narrowCorrectionRanges(text, buildFallbackHighlightRanges(text, ai))
+);
 
 interface ReviewHighlightSpanProps {
   index: number;
