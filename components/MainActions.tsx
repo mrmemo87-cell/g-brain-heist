@@ -265,13 +265,8 @@ const MainActions: React.FC<MainActionsProps> = ({
     if (onUpgrade) onUpgrade(featureLabel);
   };
 
-  // For pilot: if quota exhausted, show upgrade modal; otherwise allow through
+  // Pilot quotas are usage signals only; access lasts for the full 30 days.
   const handlePilotClick = (featureLabel: string, realHandler?: () => void) => () => {
-    const quota = q(featureLabel);
-    if (quota?.exhausted) {
-      if (onUpgrade) onUpgrade(`${featureLabel} — usage limit reached on Pilot plan`);
-      return;
-    }
     realHandler?.();
   };
   const displaySchoolName = schoolName || 'My School';
