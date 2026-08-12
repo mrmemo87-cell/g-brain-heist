@@ -5,7 +5,7 @@ import test from 'node:test';
 const setupWizard = readFileSync('components/onboarding/SetupWizard.tsx', 'utf8');
 const upgradeModal = readFileSync('components/UpgradeModal.tsx', 'utf8');
 const migration = readFileSync(
-  'supabase/migrations/20260812210000_fix_teacher_signup_teaching_status.sql',
+  'supabase/migrations/20260812164653_fix_teacher_signup_teaching_status.sql',
   'utf8',
 );
 
