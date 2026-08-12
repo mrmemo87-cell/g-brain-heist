@@ -3,3 +3,6 @@ verify_jwt = false
 
 [functions.visitor_assistant]
 verify_jwt = false
+
+[functions.school_request_email]
+verify_jwt = true

@@ -552,6 +552,9 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
               <p className="text-sm uppercase tracking-[0.2em] text-cyan-300">Status</p>
               <p className="mt-2 text-lg font-semibold text-white">{statusLabels[requestStatus] ?? 'Pending'}</p>
               {message && <p className="mt-2 text-sm text-slate-300">{message}</p>}
+              <p className="mt-3 text-xs text-slate-400">
+                Review emails are sent only to the verified email address on the Brains Heist account that submitted this request.
+              </p>
             </div>
 
             {requestStatus === 'needs_more_info' && requestId && (
@@ -665,6 +668,9 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                 placeholder="you@school.edu"
                 required
               />
+              <p className="mt-1 text-xs text-slate-400">
+                Used as the school contact. Request confirmations and superadmin updates go to your verified Brains Heist account email.
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-slate-200">Website or domain (optional)</label>
