@@ -53,6 +53,7 @@ export async function resolveMySchoolCapabilities(schoolId, client = supabase) {
         return {
             status: 'ready',
             capabilities: {
+                user_id: typeof payload['user_id'] === 'string' ? payload['user_id'] : '',
                 school_id: resolvedSchoolId,
                 role: role,
                 account_type: accountType === 'school_head' ? 'school_head' : role,
@@ -413,6 +414,26 @@ export async function updateSchoolSettings(schoolId, settings) {
         console.error('Exception updating school settings:', err);
         return { success: false, error: 'An unexpected error occurred' };
     }
+}
+export async function getSchoolIdentityStatus(schoolId) {
+    const { data, error } = await supabase.rpc('rpc_school_admin_identity_status', { p_school_id: schoolId });
+    if (error || !data?.success)
+        throw new Error(error?.message || data?.error || 'School identity status is unavailable.');
+    return {
+        confirmed: Boolean(data.confirmed),
+        confirmedAt: typeof data.confirmedAt === 'string' ? data.confirmedAt : null,
+        confirmedBy: typeof data.confirmedBy === 'string' ? data.confirmedBy : null,
+    };
+}
+export async function confirmSchoolIdentity(schoolId, name, logoUrl) {
+    const { data, error } = await supabase.rpc('rpc_school_admin_confirm_identity', {
+        p_school_id: schoolId,
+        p_name: name,
+        p_logo_url: logoUrl,
+    });
+    if (error || !data?.success)
+        return { success: false, error: error?.message || data?.error || 'School identity could not be confirmed.' };
+    return { success: true };
 }
 /** Upload a school-owned logo and return its public URL. */
 export async function uploadSchoolLogo(schoolId, file) {

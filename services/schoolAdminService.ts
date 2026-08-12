@@ -23,7 +23,7 @@ export interface SchoolStats {
 }
 
 export interface SchoolMember {
-  user_id: string;
+  user_id?: string;
   username: string;
   email: string;
   full_name: string | null;
@@ -44,6 +44,7 @@ export interface SchoolMember {
 }
 
 export interface SchoolCapabilities {
+  user_id?: string;
   school_id: string;
   role: SchoolRole;
   account_type?: SchoolAccountType;
@@ -221,6 +222,7 @@ export async function resolveMySchoolCapabilities(
     return {
       status: 'ready',
       capabilities: {
+        user_id: typeof payload['user_id'] === 'string' ? payload['user_id'] : '',
         school_id: resolvedSchoolId,
         role: role as SchoolRole,
         account_type: accountType === 'school_head' ? 'school_head' : role as SchoolRole,
@@ -652,6 +654,36 @@ export async function updateSchoolSettings(
     console.error('Exception updating school settings:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
+}
+
+export interface SchoolIdentityStatus {
+  confirmed: boolean;
+  confirmedAt: string | null;
+  confirmedBy: string | null;
+}
+
+export async function getSchoolIdentityStatus(schoolId: string): Promise<SchoolIdentityStatus> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_identity_status', { p_school_id: schoolId });
+  if (error || !data?.success) throw new Error(error?.message || data?.error || 'School identity status is unavailable.');
+  return {
+    confirmed: Boolean(data.confirmed),
+    confirmedAt: typeof data.confirmedAt === 'string' ? data.confirmedAt : null,
+    confirmedBy: typeof data.confirmedBy === 'string' ? data.confirmedBy : null,
+  };
+}
+
+export async function confirmSchoolIdentity(
+  schoolId: string,
+  name: string,
+  logoUrl: string | null,
+): Promise<{ success: boolean; error?: string }> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_confirm_identity', {
+    p_school_id: schoolId,
+    p_name: name,
+    p_logo_url: logoUrl,
+  });
+  if (error || !data?.success) return { success: false, error: error?.message || data?.error || 'School identity could not be confirmed.' };
+  return { success: true };
 }
 
 /** Upload a school-owned logo and return its public URL. */

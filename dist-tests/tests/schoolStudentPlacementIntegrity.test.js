@@ -65,15 +65,15 @@ test('the portal sends class identity only and refreshes without an artificial r
     assert.match(enrollmentHandler, /setMembers/);
     assert.match(enrollmentHandler, /listClassStudents/);
 });
-test('student management limits class selection to the chosen academic year', () => {
-    assert.match(memberModal, /aria-label="Academic year \(grade\)"/);
+test('student management limits class selection to the chosen grade level', () => {
+    assert.match(memberModal, /aria-label="Grade level"/);
     assert.match(memberModal, /classesForAcademicYear\.map/);
     assert.match(memberModal, /setSelectedClassId\(''\)/);
     assert.match(memberModal, /disabled=\{studentSaving \|\| !selectedClassId\}/);
     assert.doesNotMatch(memberModal, /handleEnrollStudent\(selectedMember\.user_id, selectedClassId, selectedGrade\)/);
-    assert.match(studentsTab, /aria-label="Academic year \(grade\)"/);
+    assert.match(studentsTab, /aria-label="Grade level"/);
     assert.match(studentsTab, /classesForAcademicYear\.map/);
-    assert.match(studentsTab, /Select academic year first/);
+    assert.match(studentsTab, /Select grade level first/);
     assert.match(memberDirectory, /grade: assignedClass\?\.grade_level \?\? teacherClass\?\.grade_level \?\? member\.grade/);
     assert.match(memberDirectory, /batch: assignedClass\?\.class_code \?\? teacherClass\?\.class_code \?\? member\.batch/);
 });

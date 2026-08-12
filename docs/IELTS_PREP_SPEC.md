@@ -1,7 +1,7 @@
 # IELTS Prep Center Functional Specification
 
 ## 1. Scope Overview
-The IELTS Prep Center is a self-contained academic module within Brain Heist that shares only authentication and the `profiles.id` identity with the broader app. It excludes all game mechanics (XP, coins, items, hacks, PvP, leaderboards, streaks, etc.) and is visually separated via a dedicated layout with muted academic styling.
+The IELTS Prep Center is a self-contained academic module within Brains Heist that shares only authentication and the `profiles.id` identity with the broader app. It excludes all game mechanics (XP, coins, items, hacks, PvP, leaderboards, streaks, etc.) and is visually separated via a dedicated layout with muted academic styling.
 
 Primary audiences:
 - **Students in Bishkek** preparing for academic IELTS.
@@ -160,7 +160,7 @@ Route base: `/ielts` with dedicated layout component (`IeltsLayout`). Layout fet
 - Teacher dashboard uses tables and filters, with summary cards at top.
 
 ## 7. Separation from Game System
-To ensure isolation from Brain Heist’s game mechanics:
+To ensure isolation from Brains Heist’s game mechanics:
 1. **Routing**: All IELTS routes live under `/ielts/*` and use `IeltsLayout` without referencing game HUD components.
 2. **Styling**: Create dedicated Tailwind theme tokens/classes for muted colors; do not import neon/“heist” theme styles.
 3. **State/Data**: IELTS pages only query new `ielts_*` tables plus `profiles` for identity. No hooks or context from XP/coins/inventory modules are imported.
@@ -168,4 +168,4 @@ To ensure isolation from Brain Heist’s game mechanics:
 5. **Access Control**: Auth uses Supabase session from main app; after login, IELTS modules operate independently. Teacher roles are defined via `ielts_teacher_assignments` or a flag on `profiles` (e.g., `is_ielts_teacher`).
 6. **Testing**: Integration tests confirm IELTS pages render without referencing XP/coins selectors or contexts. Lint checks enforce no imports from game-specific directories.
 
-This specification provides the structure needed for implementation while keeping IELTS Prep Center fully separated from the Brain Heist gameplay systems.
+This specification provides the structure needed for implementation while keeping IELTS Prep Center fully separated from the Brains Heist gameplay systems.

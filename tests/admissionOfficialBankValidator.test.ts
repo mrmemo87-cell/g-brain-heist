@@ -32,7 +32,7 @@ function makeInvalidSeedDir() {
         stage_level: 5,
         text: 'Short passage.',
         content_version: 'test',
-        source_label: 'Brain Heist Official Admission Bank — Test',
+        source_label: 'Brains Heist Official Admission Bank — Test',
         is_official: true,
         is_locked: true,
         content_owner: 'brain_heist',
@@ -49,7 +49,7 @@ function makeInvalidSeedDir() {
         max_marks: 10,
         criteria: [{ name: 'Ideas', marks: 10, descriptors: ['Clear ideas'] }],
         content_version: 'test',
-        source_label: 'Brain Heist Official Admission Bank — Test',
+        source_label: 'Brains Heist Official Admission Bank — Test',
         is_official: true,
         is_locked: true,
         content_owner: 'brain_heist',
@@ -57,14 +57,14 @@ function makeInvalidSeedDir() {
     ],
   });
 
-  const empty = { content_version: 'test', source_label: 'Brain Heist Official Admission Bank — Test', pools: [], questions: [] };
+  const empty = { content_version: 'test', source_label: 'Brains Heist Official Admission Bank — Test', pools: [], questions: [] };
   for (const subject of ['english', 'maths', 'science']) {
     for (const grade of [5, 6, 7, 8]) writeJson(path.join(root, subject, `grade_${grade}.json`), empty);
   }
 
   writeJson(path.join(root, 'english', 'grade_5.json'), {
     content_version: 'test',
-    source_label: 'Brain Heist Official Admission Bank — Test',
+    source_label: 'Brains Heist Official Admission Bank — Test',
     pools: [
       {
         external_id: 'pool-ok',
@@ -74,7 +74,7 @@ function makeInvalidSeedDir() {
         placement_band: 'foundation',
         name: 'Pool',
         content_version: 'test',
-        source_label: 'Brain Heist Official Admission Bank — Test',
+        source_label: 'Brains Heist Official Admission Bank — Test',
         is_official: true,
         is_locked: true,
         content_owner: 'brain_heist',
@@ -99,7 +99,7 @@ function makeInvalidSeedDir() {
         marks: 0,
         estimated_seconds: 0,
         content_version: 'test',
-        source_label: 'Brain Heist Official Admission Bank — Test',
+        source_label: 'Brains Heist Official Admission Bank — Test',
         is_official: false,
         is_locked: true,
         content_owner: 'school',
@@ -122,7 +122,7 @@ function makeInvalidSeedDir() {
         marks: 1,
         estimated_seconds: 30,
         content_version: 'test',
-        source_label: 'Brain Heist Official Admission Bank — Test',
+        source_label: 'Brains Heist Official Admission Bank — Test',
         is_official: true,
         is_locked: true,
         content_owner: 'brain_heist',
@@ -144,7 +144,7 @@ function makeInvalidSeedDir() {
         marks: 10,
         estimated_seconds: 600,
         content_version: 'test',
-        source_label: 'Brain Heist Official Admission Bank — Test',
+        source_label: 'Brains Heist Official Admission Bank — Test',
         is_official: true,
         is_locked: true,
         content_owner: 'brain_heist',
@@ -188,7 +188,7 @@ test('official admission bank validator rejects string smallint seed fields', ()
   const root = makeInvalidSeedDir();
   writeJson(path.join(root, 'maths', 'grade_5.json'), {
     content_version: 'test',
-    source_label: 'Brain Heist Official Admission Bank — Test',
+    source_label: 'Brains Heist Official Admission Bank — Test',
     pools: [
       {
         external_id: 'string-stage-pool',
@@ -198,7 +198,7 @@ test('official admission bank validator rejects string smallint seed fields', ()
         placement_band: 'foundation',
         name: 'String stage pool',
         content_version: 'test',
-        source_label: 'Brain Heist Official Admission Bank — Test',
+        source_label: 'Brains Heist Official Admission Bank — Test',
         is_official: true,
         is_locked: true,
         content_owner: 'brain_heist',
@@ -220,21 +220,21 @@ test('official admission bank validator fails synthetic bank where the correct o
   for (const dir of ['english', 'maths', 'science', 'shared']) mkdirSync(path.join(root, dir), { recursive: true });
   writeJson(path.join(root, 'shared', 'reading_passages.json'), { passages: [] });
   writeJson(path.join(root, 'shared', 'writing_rubrics.json'), { rubrics: [] });
-  const empty = { content_version: 'test', source_label: 'Brain Heist Official Admission Bank — Test', pools: [], questions: [] };
+  const empty = { content_version: 'test', source_label: 'Brains Heist Official Admission Bank — Test', pools: [], questions: [] };
   for (const subject of ['english', 'maths', 'science']) for (const grade of [5, 6, 7, 8]) writeJson(path.join(root, subject, `grade_${grade}.json`), empty);
   writeJson(path.join(root, 'english', 'grade_7.json'), {
     content_version: 'test',
-    source_label: 'Brain Heist Official Admission Bank — Test',
+    source_label: 'Brains Heist Official Admission Bank — Test',
     pools: [{
       external_id: 'bias-pool', subject: 'english', grade_level: 7, stage_level: 7, placement_band: 'target', name: 'Bias Pool',
-      content_version: 'test', source_label: 'Brain Heist Official Admission Bank — Test', is_official: true, is_locked: true, content_owner: 'brain_heist',
+      content_version: 'test', source_label: 'Brains Heist Official Admission Bank — Test', is_official: true, is_locked: true, content_owner: 'brain_heist',
     }],
     questions: Array.from({ length: 10 }, (_, index) => ({
       external_id: `bias-q-${index}`, pool_external_id: 'bias-pool', subject: 'english', grade_level: 7, stage_level: 7,
       placement_band: 'target', diagnostic_skill: 'Reading', strand: 'reading', subskill: `bias ${index}`, difficulty: 'medium',
       question_type: 'mcq', prompt: `Synthetic bias prompt ${index}`, options: ['short', 'brief', 'tiny', 'the only very long correct answer every time'],
       correct_index: 3, correct_answer: 'the only very long correct answer every time', explanation: 'Synthetic explanation.', marks: 1,
-      estimated_seconds: 30, content_version: 'test', source_label: 'Brain Heist Official Admission Bank — Test', is_official: true,
+      estimated_seconds: 30, content_version: 'test', source_label: 'Brains Heist Official Admission Bank — Test', is_official: true,
       is_locked: true, content_owner: 'brain_heist',
     })),
   });
@@ -447,7 +447,7 @@ test('official bank validator rejects linked forbidden question type difficulty 
   assert.throws(() => execFileSync(process.execPath, [validator, root], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }), /cognitive_level 'evaluate' is not allowed/);
 });
 
-test('official bank validator accepts Brain Heist International linked content without Cambridge subject code', () => {
+test('official bank validator accepts Brains Heist International linked content without Cambridge subject code', () => {
   const root = linkedOfficialBankFixture({
     map: {
       curriculum_authority: 'brain_heist',
@@ -456,7 +456,7 @@ test('official bank validator accepts Brain Heist International linked content w
       official_affiliation: 'none',
       reference_frameworks: ['NGSS', 'other reviewed public national or international standards'],
       source_references: ['Public science practice framework reviewed for admissions readiness.'],
-      source_licences: ['Public framework reference; original Brain Heist questions only.'],
+      source_licences: ['Public framework reference; original Brains Heist questions only.'],
       copyright_policy: 'original_questions_only',
       source_review_status: 'approved',
       academic_review_status: 'approved',

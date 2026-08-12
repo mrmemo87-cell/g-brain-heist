@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Brain Heist Admission Curriculum Map",
+  "title": "Brains Heist Admission Curriculum Map",
   "type": "object",
   "required": ["map_id", "map_version", "locked", "grade_stage_mapping", "objectives"],
   "properties": {

@@ -6,9 +6,10 @@ const members = readFileSync('components/school-admin/tabs/MembersTab.tsx', 'utf
 const portal = readFileSync('components/SchoolAdminPortal.tsx', 'utf8');
 const service = readFileSync('services/schoolAdminService.ts', 'utf8');
 test('school admin overview guards every asynchronously loaded collection', () => {
-    for (const collection of ['classes', 'dbSubjects', 'students', 'teacherAssignments', 'teachers']) {
+    for (const collection of ['classes', 'students', 'teacherAssignments', 'teachers']) {
         assert.match(dashboard, new RegExp(`Array\\.isArray\\(context\\.${collection}\\)`));
     }
+    assert.match(dashboard, /academicSetup\?\.offerings \|\| \[\]/);
 });
 test('school community remains render-safe while member collections load', () => {
     assert.match(members, /Array\.isArray\(schoolAdmins\)/);

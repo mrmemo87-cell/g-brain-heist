@@ -1,5 +1,5 @@
 -- ============================================================================
--- G-BRAIN HEIST: ENFORCE BAN-AWARE RLS ON CORE GAMEPLAY TABLES
+-- G-BRAINS HEIST: ENFORCE BAN-AWARE RLS ON CORE GAMEPLAY TABLES
 -- ============================================================================
 -- Run this in the Supabase SQL editor after the base schema is in place.
 -- The script rebuilds the RLS policies for the configured tables so that:

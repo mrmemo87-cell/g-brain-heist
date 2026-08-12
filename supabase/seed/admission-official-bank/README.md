@@ -1,4 +1,4 @@
-# Brain Heist Official Admission Bank seeds
+# Brains Heist Official Admission Bank seeds
 
 This folder is the staging area for platform-owned, locked Admission Hub content. It is intentionally small right now and contains **sample/dev content only** so the seed shape, validation, and import process can be reviewed before the real Grade 5–8 bank is authored.
 
@@ -56,7 +56,7 @@ Each grade file has this shape:
 ```json
 {
   "content_version": "2026.1-sample",
-  "source_label": "Brain Heist Official Admission Bank — Sample/Dev Content",
+  "source_label": "Brains Heist Official Admission Bank — Sample/Dev Content",
   "pools": [
     {
       "external_id": "adm-official-english-g5-sample-foundation-pool",
@@ -67,7 +67,7 @@ Each grade file has this shape:
       "name": "English Grade 5 Sample Foundation Pool",
       "description": "Sample/dev content only.",
       "content_version": "2026.1-sample",
-      "source_label": "Brain Heist Official Admission Bank — Sample/Dev Content",
+      "source_label": "Brains Heist Official Admission Bank — Sample/Dev Content",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -116,7 +116,7 @@ Required question metadata:
       "stage_level": 5,
       "text": "Passage text...",
       "content_version": "2026.1-sample",
-      "source_label": "Brain Heist Official Admission Bank — Sample/Dev Content",
+      "source_label": "Brains Heist Official Admission Bank — Sample/Dev Content",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -142,7 +142,7 @@ Writing prompts are stored as questions with `question_type` of `essay_writing` 
         { "name": "Ideas", "marks": 4, "descriptors": ["Clear relevant ideas"] }
       ],
       "content_version": "2026.1-sample",
-      "source_label": "Brain Heist Official Admission Bank — Sample/Dev Content",
+      "source_label": "Brains Heist Official Admission Bank — Sample/Dev Content",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"

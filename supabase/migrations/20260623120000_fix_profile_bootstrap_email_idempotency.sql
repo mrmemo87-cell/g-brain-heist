@@ -1,4 +1,4 @@
--- Make normal Brain Heist profile bootstrap idempotent under repeated OAuth/setup calls
+-- Make normal Brains Heist profile bootstrap idempotent under repeated OAuth/setup calls
 -- and avoid raw users_email_key 409s when an email already exists in public.users.
 
 CREATE OR REPLACE FUNCTION public.profile_bootstrap(
@@ -134,7 +134,7 @@ BEGIN
 
     RETURN jsonb_build_object(
       'success', false,
-      'error', 'A Brain Heist profile already exists for this email. Please sign in with the original login method or contact support to link the account.',
+      'error', 'A Brains Heist profile already exists for this email. Please sign in with the original login method or contact support to link the account.',
       'code', 'email_profile_conflict'
     );
   END IF;
@@ -151,7 +151,7 @@ BEGIN
 EXCEPTION WHEN unique_violation THEN
   RETURN jsonb_build_object(
     'success', false,
-    'error', 'A Brain Heist profile already exists for this email. Please sign in with the original login method or contact support to link the account.',
+    'error', 'A Brains Heist profile already exists for this email. Please sign in with the original login method or contact support to link the account.',
     'code', 'email_profile_conflict'
   );
 END;

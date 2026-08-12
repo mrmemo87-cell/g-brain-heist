@@ -1,6 +1,6 @@
 -- Forward-only repair for IELTS Exam Mode long-term multi-school permissions.
 --
--- Exam Mode is administered through Brain Heist school permissions, not the
+-- Exam Mode is administered through Brains Heist school permissions, not the
 -- legacy IELTS admin flag. Legacy rpc_is_ielts_admin access remains valid for
 -- old IELTS admin pages only; these helpers intentionally do not reference it.
 --
@@ -128,10 +128,10 @@ as $$
     );
 $$;
 
-comment on function public.ielts_exam_mode_is_global_admin(uuid) is 'True for Brain Heist global Exam Mode admins: superadmins, users.is_admin, users.role admin, or users.role superadmin. Does not use legacy IELTS admin status.';
-comment on function public.ielts_exam_mode_is_school_admin(uuid, uuid) is 'True when a user has valid Brain Heist school_admin authority for the given school. Does not use legacy IELTS admin status.';
-comment on function public.can_create_ielts_exam(uuid) is 'Brain Heist Exam Mode create gate: global admins or school admins for the target school only; legacy IELTS admins are not sufficient.';
-comment on function public.can_manage_ielts_exam(uuid) is 'Brain Heist Exam Mode manage gate: global admins or school admins for the exam school only; legacy IELTS admins are not sufficient.';
+comment on function public.ielts_exam_mode_is_global_admin(uuid) is 'True for Brains Heist global Exam Mode admins: superadmins, users.is_admin, users.role admin, or users.role superadmin. Does not use legacy IELTS admin status.';
+comment on function public.ielts_exam_mode_is_school_admin(uuid, uuid) is 'True when a user has valid Brains Heist school_admin authority for the given school. Does not use legacy IELTS admin status.';
+comment on function public.can_create_ielts_exam(uuid) is 'Brains Heist Exam Mode create gate: global admins or school admins for the target school only; legacy IELTS admins are not sufficient.';
+comment on function public.can_manage_ielts_exam(uuid) is 'Brains Heist Exam Mode manage gate: global admins or school admins for the exam school only; legacy IELTS admins are not sufficient.';
 comment on function public.can_assign_ielts_exam_class(uuid, uuid) is 'Allows Exam Mode class assignment by managers or teachers assigned to that exact class.';
 comment on function public.can_monitor_ielts_exam(uuid) is 'Allows Exam Mode monitoring by managers or teachers assigned to classes with assignments in the exam.';
 

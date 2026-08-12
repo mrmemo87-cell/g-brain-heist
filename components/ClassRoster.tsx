@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import type { ClassRosterStudent, ClassWithRosterInfo, ClassStatistics } from '../services/schoolAdminService';
 import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from '../src/lib/schoolDocument';
-import PlacementExceptionQueue from './school-admin/PlacementExceptionQueue';
 
 interface ClassRosterProps {
   schoolId: string;
@@ -320,7 +319,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
     try {
       openSchoolDocumentPreview({
         meta: { documentId: createSchoolDocumentId(register ? 'attendance' : 'roster'), templateVersion: register ? 'admin-class-register-v1' : 'admin-class-roster-v1', title: register ? 'Class Attendance Register' : 'Official Class Roster', subtitle: `${classInfo.class_code} · ${classInfo.class_name}`, schoolName, schoolLogoUrl, audience: 'internal', status: 'final', confidentiality: 'confidential', generatedAt: new Date().toISOString(), schoolId, classId: classInfo.class_id, visibilityScope: 'class_staff', sourceType: register ? 'class_register' : 'class_roster', sourceId: classInfo.class_id, className: classInfo.class_code },
-        bodyHtml: `<p><strong>Grade:</strong> ${escapeSchoolDocumentHtml(classInfo.grade_level || '—')} · <strong>Enrolled:</strong> ${roster.students.length}</p><table><thead><tr><th>No.</th><th>Official student name</th><th>Grade</th>${register ? '<th>Present</th><th>Absent</th><th>Late</th><th>Notes</th>' : '<th>Administrative notes</th>'}</tr></thead><tbody>${rows || `<tr><td colspan="${register ? 7 : 4}">No students are enrolled in this class.</td></tr>`}</tbody></table>`,
+        bodyHtml: `<p><strong>Grade level:</strong> ${escapeSchoolDocumentHtml(classInfo.grade_level || '—')} · <strong>Enrolled:</strong> ${roster.students.length}</p><table><thead><tr><th>No.</th><th>Official student name</th><th>Grade level</th>${register ? '<th>Present</th><th>Absent</th><th>Late</th><th>Notes</th>' : '<th>Administrative notes</th>'}</tr></thead><tbody>${rows || `<tr><td colspan="${register ? 7 : 4}">No students are enrolled in this class.</td></tr>`}</tbody></table>`,
         orientation: 'portrait', inkSaver: true, fileName: schoolDocumentFileName(schoolName, classInfo.class_code, register ? 'Attendance_Register' : 'Class_Roster'),
       });
     } catch (error) { addToast(error instanceof Error ? error.message : 'Unable to open the class document.', 'error'); }
@@ -336,19 +335,11 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
   }
 
   return (
-    <div className="space-y-6">
-      <details className="admin-advanced-disclosure">
-        <summary><span>Advanced placement checks</span><small>Only needed when a student’s current class conflicts with historical records.</small></summary>
-        <div className="admin-advanced-disclosure-body">
-          <PlacementExceptionQueue schoolId={schoolId} classes={classes} addToast={addToast} onChanged={() => { void loadClasses(); setExpandedClasses({}); }} />
-        </div>
-      </details>
+    <div className="space-y-6 class-roster-admin">
       {/* Header with actions */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-            <span className="text-2xl">📋</span> Student placement register
-          </h3>
+          <h3 className="text-lg font-semibold">Student placement register</h3>
           <p className="text-sm text-gray-400 mt-1">
             {classes.length} classes • {classes.reduce((acc, c) => acc + c.student_count, 0)} enrolled students • {unassignedStudents.length} unassigned
           </p>
@@ -366,13 +357,13 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                 }}
                 className="px-3 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium transition-colors"
               >
-                📦 Bulk Add ({selectedStudents.size})
+                Add selected ({selectedStudents.size})
               </button>
               <button
                 onClick={clearSelection}
                 className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
               >
-                ✕ Clear
+                Clear selection
               </button>
             </>
           )}
@@ -384,7 +375,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            👤 Unassigned ({unassignedStudents.length})
+            Unassigned ({unassignedStudents.length})
           </button>
           <button
             onClick={() => {
@@ -393,7 +384,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
             }}
             className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
           >
-            🔄 Refresh
+            Refresh
           </button>
         </div>
       </div>
@@ -407,15 +398,12 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full px-4 py-2 pl-10 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
         />
-        <span className="absolute left-3 top-2.5 text-gray-500">🔍</span>
       </div>
 
       {/* Unassigned Students Panel */}
       {showUnassigned && unassignedStudents.length > 0 && (
         <div className="bg-amber-900/20 border border-amber-600/40 rounded-xl p-4">
-          <h4 className="text-md font-semibold text-amber-300 mb-3 flex items-center gap-2">
-            <span>👤</span> Unassigned Students ({unassignedStudents.length})
-          </h4>
+          <h4 className="text-md font-semibold text-amber-300 mb-3">Unassigned students ({unassignedStudents.length})</h4>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b border-amber-700/50">
@@ -494,9 +482,6 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                 className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-750 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="text-2xl">
-                    {isExpanded ? '📂' : '📁'}
-                  </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h4 className="font-semibold text-white">{classInfo.class_code}</h4>
@@ -516,12 +501,8 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <div className="flex items-center gap-3 text-sm">
-                      <span className="flex items-center gap-1 text-cyan-400">
-                        <span>👥</span> {classInfo.student_count}
-                      </span>
-                      <span className="flex items-center gap-1 text-purple-400">
-                        <span>🧑‍🏫</span> {classInfo.teacher_count}
-                      </span>
+                      <span className="flex items-center gap-1 text-cyan-400">{classInfo.student_count} students</span>
+                      <span className="flex items-center gap-1 text-purple-400">{classInfo.teacher_count} teachers</span>
                     </div>
                   </div>
                   <div className="text-gray-400 text-lg">
@@ -555,7 +536,6 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                       {/* Action Buttons */}
                       <div className="p-3 bg-gray-800 border-b border-gray-700 flex gap-2 flex-wrap">
                         <button type="button" onClick={(event) => { event.stopPropagation(); printClassRoster(classInfo, expanded, false); }} className="px-3 py-1.5 bg-cyan-700 hover:bg-cyan-600 rounded text-sm transition-colors">Print roster</button>
-                        <button type="button" onClick={(event) => { event.stopPropagation(); printClassRoster(classInfo, expanded, true); }} className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded text-sm transition-colors">Attendance register</button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -563,7 +543,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                           }}
                           className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded text-sm transition-colors"
                         >
-                          ☑ Select All
+                          Select all
                         </button>
                         <button
                           onClick={(e) => {
@@ -573,7 +553,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                           disabled={actionLoading}
                           className="px-3 py-1.5 bg-blue-600/50 hover:bg-blue-600 rounded text-sm transition-colors disabled:opacity-50"
                         >
-                          🎯 Auto-Enroll by Grade
+                          Place students by grade level
                         </button>
                       </div>
                       
@@ -672,7 +652,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                                         className="px-2 py-1 text-blue-400 hover:bg-blue-600/20 rounded text-xs transition-colors"
                                         title="Move to another class"
                                       >
-                                        🔄 Move
+                                        Move
                                       </button>
                                       <button
                                         onClick={(e) => {
@@ -683,7 +663,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                                         className="px-2 py-1 text-red-400 hover:bg-red-600/20 rounded text-xs transition-colors"
                                         title="Remove from class"
                                       >
-                                        ✕ Remove
+                                        Remove
                                       </button>
                                     </div>
                                   </td>
@@ -694,7 +674,6 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                         </div>
                       ) : (
                         <div className="p-8 text-center text-gray-500">
-                          <p className="text-3xl mb-2">📭</p>
                           <p>No students enrolled in this class</p>
                           <button
                             onClick={(e) => {
@@ -704,7 +683,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                             disabled={actionLoading}
                             className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm transition-colors"
                           >
-                            🎯 Auto-Enroll Students by Grade
+                            Place students by grade level
                           </button>
                         </div>
                       )}
@@ -719,7 +698,6 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
 
       {filteredClasses.length === 0 && (
         <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-500">
-          <p className="text-4xl mb-2">📚</p>
           <p>No classes found. Complete a grade plan or create a class in Class setup first.</p>
         </div>
       )}

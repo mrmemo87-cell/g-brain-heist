@@ -17,7 +17,7 @@ test('profile_bootstrap repairs orphaned same-email profiles without merging act
   assert.match(migration, /NOT EXISTS \(SELECT 1 FROM auth\.users au WHERE au\.id = v_email_profile\.id\)/);
   assert.match(migration, /SET id = v_uid/);
   assert.match(migration, /email_profile_conflict/);
-  assert.match(migration, /A Brain Heist profile already exists for this email/);
+  assert.match(migration, /A Brains Heist profile already exists for this email/);
 });
 
 test('normal individual setup uses profile_bootstrap instead of id-only users upsert', () => {

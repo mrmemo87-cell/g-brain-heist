@@ -97,7 +97,7 @@ Standard deploy (Vercel/hosting). No new env vars needed client-side.
 - [ ] Click "Subscribe" on Core plan → redirected to Paddle checkout
 - [ ] Complete Paddle checkout (use sandbox test card `4242 4242 4242 4242`)
 - [ ] Redirected back to app with `?upgrade=success`
-- [ ] Toast shows "Welcome to Brain Heist Pro!"
+- [ ] Toast shows "Welcome to Brains Heist Pro!"
 - [ ] `get_effective_tier()` returns `'pro'`
 - [ ] All pro features unlocked (PvP, shop, clans, raids, etc.)
 - [ ] `billing_subscriptions` row exists with status='active', provider='paddle'

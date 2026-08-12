@@ -1,6 +1,6 @@
 # Official Admission Bank seed format
 
-Platform seed scripts should insert **Brain Heist-owned, locked** admission pools and questions. Schools can read this content and generate tests from it, but cannot edit it.
+Platform seed scripts should insert **Brains Heist-owned, locked** admission pools and questions. Schools can read this content and generate tests from it, but cannot edit it.
 
 ## Pool fields
 
@@ -19,7 +19,7 @@ Platform seed scripts should insert **Brain Heist-owned, locked** admission pool
   "is_locked": true,
   "content_owner": "brain_heist",
   "content_version": "2026.1-demo",
-  "source_label": "Brain Heist Official Admission Bank",
+  "source_label": "Brains Heist Official Admission Bank",
   "placement_band": "foundation | target | stretch"
 }
 ```
@@ -60,7 +60,7 @@ Platform seed scripts should insert **Brain Heist-owned, locked** admission pool
   "is_locked": true,
   "content_owner": "brain_heist",
   "content_version": "2026.1-demo",
-  "source_label": "Brain Heist Official Admission Bank"
+  "source_label": "Brains Heist Official Admission Bank"
 }
 ```
 
@@ -69,6 +69,6 @@ Platform seed scripts should insert **Brain Heist-owned, locked** admission pool
 - Use stable UUIDs for repeatable upserts.
 - Keep `school_id` null for official platform pools.
 - Set both `is_official` and `is_locked` to `true` for every official pool and question.
-- Set `source_label` to `Brain Heist Official Admission Bank` unless a later platform label is intentionally chosen.
+- Set `source_label` to `Brains Heist Official Admission Bank` unless a later platform label is intentionally chosen.
 - Do not grant schools insert/update/delete paths for official content; run official bank seeds as service role or platform admin.
 - Tiny demo seeds are acceptable for smoke testing, but must not be represented as the complete official bank.

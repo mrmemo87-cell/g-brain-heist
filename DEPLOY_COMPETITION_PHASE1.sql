@@ -1,5 +1,5 @@
 -- ==============================================================================
--- G-BRAIN HEIST: DEPLOY COMPETITION PHASE 1 RPC FUNCTIONS
+-- G-BRAINS HEIST: DEPLOY COMPETITION PHASE 1 RPC FUNCTIONS
 -- ==============================================================================
 -- Run this in Supabase SQL Editor to deploy all missing competition functions
 -- These functions power the quest/question system and leaderboards

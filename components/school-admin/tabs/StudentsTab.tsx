@@ -44,17 +44,17 @@ const StudentsTab: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Academic year (grade)</label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Grade level</label>
             <select
               value={selectedGrade}
               onChange={(event) => {
                 setSelectedGrade(event.target.value ? Number(event.target.value) : '');
                 setSelectedClassId('');
               }}
-              aria-label="Academic year (grade)"
+              aria-label="Grade level"
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
             >
-              <option value="">Select academic year</option>
+              <option value="">Select grade level</option>
               {academicYears.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}
             </select>
           </div>
@@ -71,7 +71,7 @@ const StudentsTab: React.FC = () => {
               }}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
             >
-              <option value="">{selectedGrade === '' ? 'Select academic year first' : 'Select class'}</option>
+              <option value="">{selectedGrade === '' ? 'Select grade level first' : 'Select class'}</option>
               {classesForAcademicYear.map((cls) => (
                   <option key={cls.id} value={cls.id}>
                     {cls.class_code} — {cls.class_name} · Grade {cls.grade_level ?? 'not set'}

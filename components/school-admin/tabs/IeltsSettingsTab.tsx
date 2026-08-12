@@ -134,7 +134,6 @@ const IeltsSettingsTab: React.FC = () => {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-4">
           <div className="flex gap-3">
-            <div className="mt-0.5 text-xl">📚</div>
             <div>
               <h5 className="font-semibold text-white">When Enabled</h5>
               <ul className="mt-2 space-y-1 text-xs text-gray-300">
@@ -148,7 +147,6 @@ const IeltsSettingsTab: React.FC = () => {
 
         <div className="rounded-xl border border-gray-700 bg-gray-900/80 p-4">
           <div className="flex gap-3">
-            <div className="mt-0.5 text-xl">🔒</div>
             <div>
               <h5 className="font-semibold text-white">When Disabled</h5>
               <ul className="mt-2 space-y-1 text-xs text-gray-300">

@@ -112,7 +112,7 @@ async function requestPackFromOpenAI(module: string, targetBand: number | null) 
       {
         role: "system",
         content:
-          "You are an IELTS preparation assistant. Generate realistic IELTS reading, listening, and writing practice content. Do not mention games, XP, coins, hacks, or Brain Heist. Respond with strict JSON only.",
+          "You are an IELTS preparation assistant. Generate realistic IELTS reading, listening, and writing practice content. Do not mention games, XP, coins, hacks, or Brains Heist. Respond with strict JSON only.",
       },
       {
         role: "user",
@@ -145,7 +145,7 @@ async function requestMarkingFromOpenAI(payload: {
       {
         role: "system",
         content:
-          "You are an IELTS examiner. Provide accurate scoring and constructive feedback. Respond with strict JSON only and never mention XP, coins, hacks, raids, or Brain Heist.",
+          "You are an IELTS examiner. Provide accurate scoring and constructive feedback. Respond with strict JSON only and never mention XP, coins, hacks, raids, or Brains Heist.",
       },
       {
         role: "user",

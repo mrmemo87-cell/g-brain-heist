@@ -1,5 +1,5 @@
 -- Repair admission form generation idempotency so published/closed/stale forms are not reused by new wizard runs.
--- Prefer official locked Brain Heist admission content when generating tests.
+-- Prefer official locked Brains Heist admission content when generating tests.
 -- Falls back to compatible legacy/custom pools so existing schools are not broken.
 
 CREATE OR REPLACE FUNCTION rpc_adm_generate_test_form(
@@ -75,7 +75,7 @@ BEGIN
     END IF;
 
     IF v_pool_ids IS NULL THEN
-        RETURN jsonb_build_object('success', false, 'error', 'No official Brain Heist admission question pools match this blueprint');
+        RETURN jsonb_build_object('success', false, 'error', 'No official Brains Heist admission question pools match this blueprint');
     END IF;
 
     v_base_form_code := COALESCE(p_form_code,

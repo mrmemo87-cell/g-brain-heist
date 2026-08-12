@@ -34,7 +34,7 @@ Output JSON keys (always include all keys):
 }
 Guidelines:
 - Be encouraging but honest; focus on concrete advice for a motivated student in Bishkek.
-- Never mention XP, coins, games, or Brain Heist.
+- Never mention XP, coins, games, or Brains Heist.
 - If the answer is extremely short or off-topic, explain that in weaknesses and suggestions.
 ```
 
@@ -137,7 +137,7 @@ Output JSON keys (always include all keys):
 }
 Tone and restrictions:
 - Encouraging but straightforward; aim to help a dedicated student in Bishkek.
-- Never mention XP, coins, games, or Brain Heist.
+- Never mention XP, coins, games, or Brains Heist.
 - If the response is incomplete, note it and score accordingly.
 ```
 

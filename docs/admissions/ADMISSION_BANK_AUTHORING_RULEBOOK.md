@@ -1,6 +1,6 @@
-# Brain Heist Admission Bank Authoring Rulebook
+# Brains Heist Admission Bank Authoring Rulebook
 
-This is the permanent authoring standard for the Brain Heist International School Admission Test banks for Grades 1–10 English, Maths and Science. No new bank may be authored, generated, imported, staged, or labelled department-head-ready unless it starts from a validated locked curriculum map.
+This is the permanent authoring standard for the Brains Heist International School Admission Test banks for Grades 1–10 English, Maths and Science. No new bank may be authored, generated, imported, staged, or labelled department-head-ready unless it starts from a validated locked curriculum map.
 
 ## Fail-closed workflow
 
@@ -13,11 +13,11 @@ If any step is missing, the work stops. Production RPCs, migrations, seed import
 - AI may generate only from a locked curriculum map with approved `objective_id` records.
 - Every generated question must reference one approved `curriculum_objective_id`.
 - Each item tests one primary objective. Secondary context may appear only when it is prerequisite knowledge, not a second assessed objective.
-- Grade and Cambridge stage are separate when a map is `cambridge_linked`; Brain Heist International maps use explicit grade/level definitions instead of implying Cambridge stages.
+- Grade and Cambridge stage are separate when a map is `cambridge_linked`; Brains Heist International maps use explicit grade/level definitions instead of implying Cambridge stages.
 - Two curriculum-map modes are valid: `cambridge_linked` and `brain_heist_international`.
 - Cambridge-linked content requires Cambridge-specific sources, stage/programme metadata, and Grade 10 IGCSE syllabus metadata when the programme explicitly uses `cambridge_igcse` or Cambridge IGCSE.
-- Brain Heist International content uses `programme: "brain_heist_international"`, approved public reference frameworks, independent Brain Heist objectives, and no claim of official Cambridge affiliation.
-- Brain Heist International Grade 10 maps may define general international admission-readiness levels and prerequisites; they must not require IGCSE syllabus or examination-year metadata unless the map explicitly uses `programme: "cambridge_igcse"`.
+- Brains Heist International content uses `programme: "brain_heist_international"`, approved public reference frameworks, independent Brains Heist objectives, and no claim of official Cambridge affiliation.
+- Brains Heist International Grade 10 maps may define general international admission-readiness levels and prerequisites; they must not require IGCSE syllabus or examination-year metadata unless the map explicitly uses `programme: "cambridge_igcse"`.
 
 ## Objective granularity
 
@@ -74,10 +74,10 @@ A valid subskill names the observable action and content boundary, for example a
 
 ## Source and affiliation policy
 
-- Public marketing and test titles must not imply Cambridge endorsement. The product name is **Brain Heist International School Admission Test**.
-- All questions and passages must be original Brain Heist work.
+- Public marketing and test titles must not imply Cambridge endorsement. The product name is **Brains Heist International School Admission Test**.
+- All questions and passages must be original Brains Heist work.
 - Third-party tests may be used only to study topics, difficulty and task patterns unless their licence explicitly permits adaptation.
-- Cambridge-linked content requires Cambridge-specific sources and metadata. Brain Heist International content requires approved public sources and independently authored objectives.
+- Cambridge-linked content requires Cambridge-specific sources and metadata. Brains Heist International content requires approved public sources and independently authored objectives.
 
 ## Future linked-bank production path
 

@@ -13,10 +13,12 @@ const placement = read('components/school-admin/PlacementExceptionQueue.tsx');
 const documents = read('src/components/SchoolDocumentCenter.tsx');
 const billing = read('components/school-admin/BillingTabUI.tsx');
 const migration = read('supabase/migrations/20260812130000_polish_school_admin_setup.sql');
+const sourceOfTruthMigration = read('supabase/migrations/20260812143000_school_admin_source_of_truth.sql');
 
 test('new school overview excludes admin-only accounts and unused local labels from active totals', () => {
   assert.match(dashboard, /role_in_school === 'teacher'/);
-  assert.match(dashboard, /label: 'Subjects', value: assignedSubjectNames\.size/);
+  assert.match(dashboard, /label: 'Subjects', value: curriculumSubjects\.size/);
+  assert.doesNotMatch(dashboard, /local.*labels.*available/);
   assert.match(dashboard, /No teaching staff added yet/);
 });
 
@@ -24,30 +26,48 @@ test('academic setup guides a valid year, known systems, grade subjects, and def
   assert.match(academicSetup, /previous} — closed/);
   assert.match(academicSetup, /current} — available/);
   assert.match(academicSetup, /The end date must be later than the start date/);
-  assert.match(academicSetup, /setYearCollapsed\(true\)/);
-  for (const system of ['Cambridge International', 'American Standards', 'British National Curriculum', 'International Baccalaureate']) {
+  assert.match(academicSetup, /SetupSection id="year"/);
+  for (const system of ['Cambridge International', 'American Standards']) {
     assert.match(academicSetup, new RegExp(system.replace(/[()]/g, '\\$&')));
   }
+  assert.doesNotMatch(academicSetup, /Not published yet/);
   assert.match(academicSetup, /ensureGradeClass/);
-  assert.match(academicSetup, /Save Grade \$\{activeGrade\} & create class/);
-  assert.match(academicSetup, /This does not create students/);
+  assert.match(academicSetup, /Save Grade \$\{activeGrade\} plan/);
+  assert.match(academicSetup, /This does not create student accounts/);
   assert.match(academicSetup, /Find registered student/);
 });
 
 test('class and placement UX follows the academic plan and hides repair tooling by default', () => {
   assert.match(classes, /fetchSchoolAcademicSetup/);
   assert.match(classes, /class-creation-wizard/);
-  assert.match(classes, /Only grades already configured/);
+  assert.match(classes, /Only grade levels configured/);
+  assert.match(classes, /Ready for enrolment/);
   assert.match(organisation, /1\. Class setup/);
   assert.match(organisation, /2\. Student placement/);
   assert.match(placement, /PGRST202/);
   assert.match(placement, /Advanced check temporarily unavailable/);
 });
 
+test('executive staffing and subject totals come from explicit school records', () => {
+  assert.match(sourceOfTruthMigration, /sm\.role_in_school = 'teacher' or exists/);
+  assert.match(sourceOfTruthMigration, /class_teacher_assignments/);
+  assert.match(sourceOfTruthMigration, /school_curriculum_scope_mappings/);
+  assert.match(sourceOfTruthMigration, /y\.status = 'current'/);
+  assert.match(sourceOfTruthMigration, /item->>'id' <> 'unassigned_teachers'/);
+  assert.doesNotMatch(sourceOfTruthMigration, /count\(\*\) filter \(where sm\.can_teach\)/);
+});
+
+test('saving a grade plan archives subjects the administrator removed', () => {
+  assert.match(sourceOfTruthMigration, /set status = 'archived'/);
+  assert.match(sourceOfTruthMigration, /not exists \(\s*select 1 from jsonb_array_elements\(p_offerings\)/);
+});
+
 test('school identity is immutable to school admins and the supporting portal tabs use formal surfaces', () => {
-  assert.match(settings, /Verified school identity/);
+  assert.match(settings, /Confirm school identity/);
   assert.match(settings, /Request identity change/);
-  assert.doesNotMatch(settings, /type="file"/);
+  assert.match(settings, /type="file"/);
+  assert.match(sourceOfTruthMigration, /School identity is already confirmed/);
+  assert.match(sourceOfTruthMigration, /school_identity_confirmed/);
   assert.match(migration, /school_identity_change_requires_platform_approval/);
   assert.match(migration, /public\.is_superadmin/);
   assert.match(migration, /notify pgrst, 'reload schema'/);
@@ -55,12 +75,12 @@ test('school identity is immutable to school admins and the supporting portal ta
   assert.match(billing, /billing-on-dark/);
 });
 
-test('user-facing application code consistently uses the Brains Heist product name', () => {
-  const pattern = /\bBrain Heist\b/;
+test('the repository consistently uses the Brains Heist product name', () => {
+  const pattern = new RegExp('\\bBrain ' + 'Heist\\b');
   const matches: string[] = [];
 
   function scanDir(dir: string): void {
-    let entries: ReturnType<typeof readdirSync>;
+    let entries: string[];
     try {
       entries = readdirSync(dir);
     } catch {
@@ -84,7 +104,7 @@ test('user-facing application code consistently uses the Brains Heist product na
     }
   }
 
-  for (const directory of ['components', 'src', 'services']) {
+  for (const directory of ['components', 'src', 'services', 'supabase', 'tests', 'docs']) {
     scanDir(directory);
   }
 

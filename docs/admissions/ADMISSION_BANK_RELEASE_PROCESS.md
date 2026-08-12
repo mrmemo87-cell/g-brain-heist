@@ -1,6 +1,6 @@
 # Admission Bank Release Process
 
-This release process is fail-closed for every Brain Heist International School Admission Test subject/grade bank.
+This release process is fail-closed for every Brains Heist International School Admission Test subject/grade bank.
 
 ## Required sequence
 
@@ -18,7 +18,7 @@ This release process is fail-closed for every Brain Heist International School A
 ## Non-negotiable blockers
 
 - `legacy_review_required` banks cannot be `SHIP_READY`.
-- Missing or unapproved maps block release. Cambridge-linked maps require Cambridge-specific metadata; Brain Heist International maps require approved public reference frameworks and original-question policy approval.
+- Missing or unapproved maps block release. Cambridge-linked maps require Cambridge-specific metadata; Brains Heist International maps require approved public reference frameworks and original-question policy approval.
 - Missing or unknown objective IDs block release.
 - Validator failures block release.
 - Missing academic review, department-head approval, or staging verification blocks release.

@@ -162,7 +162,7 @@ function writeBrainHeistInternationalMap(objectives: unknown[], mapOverrides: Re
     assessment_style: 'international_school_admission',
     official_affiliation: 'none',
     reference_frameworks: ['England National Curriculum', 'Common Core'],
-    source_references: ['Public national curriculum references reviewed by Brain Heist academics.'],
+    source_references: ['Public national curriculum references reviewed by Brains Heist academics.'],
     source_licences: ['Public framework references only; original questions only.'],
     copyright_policy: 'original_questions_only',
     source_review_status: 'approved',
@@ -174,7 +174,7 @@ function writeBrainHeistInternationalMap(objectives: unknown[], mapOverrides: Re
   return root;
 }
 
-test('admission curriculum map validator accepts Brain Heist International Grade 10 without Cambridge or IGCSE metadata', async () => {
+test('admission curriculum map validator accepts Brains Heist International Grade 10 without Cambridge or IGCSE metadata', async () => {
   const { validateAdmissionCurriculumMaps } = await loadValidator();
   const result = validateAdmissionCurriculumMaps(writeBrainHeistInternationalMap([brainHeistInternationalObjective()]));
   assert.equal(result.ok, true, result.errors.join('\n'));
@@ -182,7 +182,7 @@ test('admission curriculum map validator accepts Brain Heist International Grade
   assert.deepEqual(result.grades, ['10']);
 });
 
-test('admission curriculum map validator fails Brain Heist International maps without public source basis and original-question policy', async () => {
+test('admission curriculum map validator fails Brains Heist International maps without public source basis and original-question policy', async () => {
   const { validateAdmissionCurriculumMaps } = await loadValidator();
   const result = validateAdmissionCurriculumMaps(writeBrainHeistInternationalMap([
     brainHeistInternationalObjective({ source_references: [], source_review_status: 'draft', academic_review_status: 'draft', level_definition: '', prerequisite_definition: '' }),

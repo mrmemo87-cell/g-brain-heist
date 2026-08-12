@@ -1,7 +1,7 @@
 {
   "curriculum_linkage_status": "legacy_review_required",
   "content_version": "adm-bank-v1-g5-science",
-  "source_label": "Brain Heist Official Admission Bank",
+  "source_label": "Brains Heist Official Admission Bank",
   "pools": [
     {
       "external_id": "adm-g5-science-v1-foundation-pool",
@@ -12,7 +12,7 @@
       "name": "Science Grade 5 Official v1 Foundation Pool",
       "description": "Production-intended Grade 5 Science official admission bank v1.",
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -26,7 +26,7 @@
       "name": "Science Grade 5 Official v1 Target Pool",
       "description": "Production-intended Grade 5 Science official admission bank v1.",
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -40,7 +40,7 @@
       "name": "Science Grade 5 Official v1 Stretch Pool",
       "description": "Production-intended Grade 5 Science official admission bank v1.",
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -72,7 +72,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -102,7 +102,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -132,7 +132,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -162,7 +162,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -192,7 +192,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -222,7 +222,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -252,7 +252,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -282,7 +282,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -312,7 +312,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -342,7 +342,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -372,7 +372,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -402,7 +402,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -432,7 +432,7 @@
       "marks": 1,
       "estimated_seconds": 90,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -462,7 +462,7 @@
       "marks": 1,
       "estimated_seconds": 90,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -492,7 +492,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -522,7 +522,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -552,7 +552,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -582,7 +582,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -612,7 +612,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -642,7 +642,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -672,7 +672,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -702,7 +702,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -732,7 +732,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -762,7 +762,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -792,7 +792,7 @@
       "marks": 1,
       "estimated_seconds": 90,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -822,7 +822,7 @@
       "marks": 1,
       "estimated_seconds": 90,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -852,7 +852,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -882,7 +882,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -912,7 +912,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -942,7 +942,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -972,7 +972,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1002,7 +1002,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1032,7 +1032,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1062,7 +1062,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1092,7 +1092,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1122,7 +1122,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1152,7 +1152,7 @@
       "marks": 1,
       "estimated_seconds": 90,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1182,7 +1182,7 @@
       "marks": 1,
       "estimated_seconds": 90,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1212,7 +1212,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1242,7 +1242,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1272,7 +1272,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1302,7 +1302,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1332,7 +1332,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1362,7 +1362,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1392,7 +1392,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1422,7 +1422,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1452,7 +1452,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1482,7 +1482,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1512,7 +1512,7 @@
       "marks": 1,
       "estimated_seconds": 90,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1542,7 +1542,7 @@
       "marks": 1,
       "estimated_seconds": 90,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1572,7 +1572,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1602,7 +1602,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1632,7 +1632,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1662,7 +1662,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1692,7 +1692,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1722,7 +1722,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1752,7 +1752,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1782,7 +1782,7 @@
       "marks": 1,
       "estimated_seconds": 90,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1812,7 +1812,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1842,7 +1842,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1872,7 +1872,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1902,7 +1902,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1932,7 +1932,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1962,7 +1962,7 @@
       "marks": 1,
       "estimated_seconds": 60,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -1992,7 +1992,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -2022,7 +2022,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -2052,7 +2052,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -2082,7 +2082,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -2112,7 +2112,7 @@
       "marks": 1,
       "estimated_seconds": 75,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"
@@ -2142,7 +2142,7 @@
       "marks": 1,
       "estimated_seconds": 90,
       "content_version": "adm-bank-v1-g5-science",
-      "source_label": "Brain Heist Official Admission Bank",
+      "source_label": "Brains Heist Official Admission Bank",
       "is_official": true,
       "is_locked": true,
       "content_owner": "brain_heist"

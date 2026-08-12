@@ -1,6 +1,6 @@
 -- Admission duplicate-question inspection.
 -- Separates current managed official-bank content from legacy/unmanaged rows.
--- Current managed official bank is Brain Heist content with a non-null external_id and
+-- Current managed official bank is Brains Heist content with a non-null external_id and
 -- adm-bank-v1-g5/g6/g7 content versions only. Grade 8 legacy-import rows
 -- are intentionally reported separately and are not eligible for current official checks.
 

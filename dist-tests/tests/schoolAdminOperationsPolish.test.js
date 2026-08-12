@@ -28,11 +28,11 @@ test('member search uses real names, usernames, and emails and highlights matche
     assert.match(members, /highlightMatch\(member\.email, memberSearch\)/);
     assert.match(styles, /\.community-search-match/);
 });
-test('member filters and student placement share academic-year-first class controls', () => {
+test('member filters and student placement share grade-level-first class controls', () => {
     assert.match(members, /Filter staff and students by role/);
-    assert.match(members, /Academic year \(grade\)/);
+    assert.match(members, /Grade level/);
     assert.match(members, /Account status/);
-    assert.match(memberModal, /Choose academic year first/);
+    assert.match(memberModal, /Choose grade level first/);
     assert.match(memberModal, /classesForAcademicYear/);
     assert.match(memberModal, /setSelectedClassId\(''\)/);
 });
@@ -42,20 +42,21 @@ test('bulk actions omit role changes and report already-active unban selections'
     assert.match(portal, /already active and will be skipped/);
     assert.match(portal, /const bannedMembers = selectedMembers\.filter/);
 });
-test('teacher assignments lead with current coverage and open the academic-year-aware form', () => {
+test('teacher assignments lead with current coverage and use school-created grade offerings', () => {
     const currentPosition = teachers.indexOf('id="current-assignments-title"');
     const formPosition = teachers.indexOf('id="assign-teacher-panel"');
     assert.ok(currentPosition >= 0 && currentPosition < formPosition);
     assert.match(teachers, />Assign Teacher<\/button>/);
     assert.match(teachers, /Print teacher allocation register/);
-    assert.match(teachers, /Filter assignments by academic year \(grade\)/);
-    assert.match(teachers, /Select academic year first/);
+    assert.match(teachers, /Filter assignments by grade level/);
+    assert.match(teachers, /Select grade level first/);
+    assert.match(teachers, /assignableSubjects\.map/);
     assert.match(teachers, /assignmentClasses\.map/);
 });
-test('classes group teaching coverage by academic year and expose no archive action', () => {
+test('classes group teaching coverage by grade level and expose no archive action', () => {
     assert.match(classes, /Grades, classes and teaching coverage/);
     assert.match(classes, /grades\.map/);
-    assert.match(classes, /<select[\s\S]*?Select academic year/);
+    assert.match(classes, /<select[\s\S]*?Select grade level/);
     assert.match(classes, /handleEditClass\(row\)/);
     assert.doesNotMatch(classes, /Filter classes by academic year \(grade\)/);
     assert.doesNotMatch(classes, /Archive Class|>\s*Archive\s*<\/|archiveSchoolClass/);

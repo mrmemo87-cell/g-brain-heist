@@ -773,7 +773,7 @@ declare
   v_weaknesses jsonb := '[]'::jsonb;
   v_actions jsonb := '[]'::jsonb;
   v_snippet text := null;
-  v_school_name text := 'Brain Heist School';
+  v_school_name text := 'Brains Heist School';
   v_school_logo_url text := null;
   v_teacher_name text := 'Writing teacher';
 begin
@@ -804,7 +804,7 @@ begin
   limit 1;
 
   select
-    coalesce(nullif(s.name, ''), 'Brain Heist School'),
+    coalesce(nullif(s.name, ''), 'Brains Heist School'),
     s.logo_url
   into v_school_name, v_school_logo_url
   from public.users student
@@ -856,7 +856,7 @@ begin
     'generated_at', now(),
     'period', v_month,
     'institution', jsonb_build_object(
-      'school_name', coalesce(v_school_name, 'Brain Heist School'),
+      'school_name', coalesce(v_school_name, 'Brains Heist School'),
       'school_logo_url', v_school_logo_url,
       'teacher_name', coalesce(v_teacher_name, 'Writing teacher')
     ),

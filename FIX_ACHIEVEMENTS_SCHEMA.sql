@@ -1,5 +1,5 @@
 -- ==============================================================================
--- G-BRAIN HEIST: FIX ACHIEVEMENTS TABLE SCHEMA
+-- G-BRAINS HEIST: FIX ACHIEVEMENTS TABLE SCHEMA
 -- ==============================================================================
 -- This migration fixes the achievements table to have all required columns
 -- Run this BEFORE running achievements_schema.sql or SETUP_ACHIEVEMENTS.sql

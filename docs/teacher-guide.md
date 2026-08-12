@@ -1,6 +1,6 @@
-# Brain Heist Teacher Quick Start
+# Brains Heist Teacher Quick Start
 
-This guide is for teachers using the Brain Heist web app. You should never need to open Supabase, edit database tables, or know student UUIDs.
+This guide is for teachers using the Brains Heist web app. You should never need to open Supabase, edit database tables, or know student UUIDs.
 
 ## Before you begin
 

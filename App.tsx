@@ -900,7 +900,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         fetchEffectiveTier().then(tier => {
           setAccountTier(tier);
           if (isProTier(tier)) {
-            addToast('🎉 Welcome to Brain Heist Pro! All features unlocked.', 'success');
+            addToast('🎉 Welcome to Brains Heist Pro! All features unlocked.', 'success');
           }
         }).catch(() => {});
       } else if (urlParams.get('upgrade') === 'cancelled') {

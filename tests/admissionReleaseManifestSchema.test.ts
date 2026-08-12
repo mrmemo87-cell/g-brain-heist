@@ -34,7 +34,7 @@ function brainHeistInternationalManifest(overrides: Record<string, unknown> = {}
     map_version: '2026.1',
     reference_frameworks: ['England National Curriculum', 'Common Core'],
     source_references: ['Public national curriculum framework reviewed for admissions readiness.'],
-    source_licences: ['Public framework reference; original Brain Heist questions only.'],
+    source_licences: ['Public framework reference; original Brains Heist questions only.'],
     copyright_policy: 'original_questions_only',
     source_review_status: 'approved',
     academic_review_status: 'approved',
@@ -88,13 +88,13 @@ function errors(validate: ReturnType<typeof compileSchema>) {
   return JSON.stringify(validate.errors ?? []);
 }
 
-test('release manifest schema accepts complete Brain Heist International manifests with null Cambridge fields', () => {
+test('release manifest schema accepts complete Brains Heist International manifests with null Cambridge fields', () => {
   const validate = compileSchema();
   const manifest = brainHeistInternationalManifest();
   assert.equal(validate(manifest), true, errors(validate));
 });
 
-test('release manifest schema rejects Brain Heist International manifests missing public source and originality fields', () => {
+test('release manifest schema rejects Brains Heist International manifests missing public source and originality fields', () => {
   const validate = compileSchema();
   const manifest = brainHeistInternationalManifest({
     reference_frameworks: undefined,

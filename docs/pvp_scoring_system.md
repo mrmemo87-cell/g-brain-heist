@@ -1,4 +1,4 @@
-# Brain Heist PvP Scoring System
+# Brains Heist PvP Scoring System
 
 A lightweight scoring model that layers a **PvP Score** on top of existing XP to produce a **Total Score** per player and a **Clan Score** per clan. The design fits Google Sheets, Supabase, or any small relational store.
 

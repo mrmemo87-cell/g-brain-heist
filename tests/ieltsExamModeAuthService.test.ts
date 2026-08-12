@@ -47,7 +47,7 @@ const createAuthClient = (options: MockClientOptions): IeltsExamModeAuthClient =
   return client;
 };
 
-test('IELTS Exam Mode guard allows Brain Heist school admins without legacy IELTS admin status', async () => {
+test('IELTS Exam Mode guard allows Brains Heist school admins without legacy IELTS admin status', async () => {
   const decision = await checkIeltsExamModeAdminAccess(createAuthClient({
     profile: { role: 'school_admin', is_admin: false },
   }));

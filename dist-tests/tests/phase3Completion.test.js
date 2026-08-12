@@ -43,13 +43,13 @@ test('reviewed placement writes require reason, date, optimistic concurrency, an
     assert.match(placement, /reviewed_placement_workflow_required/i);
     assert.match(placement, /revoke all on public\.class_students from public, anon, authenticated/i);
 });
-test('admin UI exposes the queue and routes placement through reviewed RPCs', () => {
+test('reviewed placement RPCs remain available without exposing repair tooling in the normal roster', () => {
     assert.match(service, /rpc_school_admin_transfer_student_placement/);
     assert.match(service, /rpc_school_admin_bulk_transfer_student_placements/);
     assert.match(service, /rpc_school_admin_list_placement_exceptions/);
     assert.match(portal, /transferStudentPlacement/);
     assert.match(portal, /Effective date \(YYYY-MM-DD\)/);
-    assert.match(roster, /<PlacementExceptionQueue/);
+    assert.doesNotMatch(roster, /PlacementExceptionQueue|Advanced placement checks/);
     assert.match(queue, /Confirm current class/);
     assert.match(queue, /Confirm unassignment/);
     assert.match(queue, /Recent history/);

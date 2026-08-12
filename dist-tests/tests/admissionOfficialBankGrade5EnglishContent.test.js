@@ -25,10 +25,10 @@ test('Grade 5 English official bank v1 has intended placement band distribution'
 });
 test('Grade 5 English official bank v1 uses production metadata and no sample labels', () => {
     assert.equal(grade5.content_version, 'adm-bank-v1-g5-english');
-    assert.equal(grade5.source_label, 'Brain Heist Official Admission Bank');
+    assert.equal(grade5.source_label, 'Brains Heist Official Admission Bank');
     for (const record of [...grade5.pools, ...grade5.questions, ...passages.passages.filter((passage) => passage.grade_level === 5), ...rubrics.rubrics.filter((rubric) => rubric.grade_level === 5)]) {
         assert.equal(record.content_version, 'adm-bank-v1-g5-english');
-        assert.equal(record.source_label, 'Brain Heist Official Admission Bank');
+        assert.equal(record.source_label, 'Brains Heist Official Admission Bank');
         assert.equal(record.is_official, true);
         assert.equal(record.is_locked, true);
         assert.equal(record.content_owner, 'brain_heist');
