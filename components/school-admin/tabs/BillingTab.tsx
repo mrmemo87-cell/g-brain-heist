@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import BillingTabUI from '../BillingTabUI';
+import BillingStudio from '../BillingStudio';
 import {
   fetchSchoolPlanDetails,
   startPilot,
@@ -11,7 +12,7 @@ import {
 
 const BillingTab: React.FC = () => {
   const {
-    addToast, billingAction, billingInterval, billingLoading, currentCapabilities, planDetails, setBillingAction, setBillingInterval, setBillingLoading, setPlanDetails,
+    addToast, billingAction, billingInterval, billingLoading, currentCapabilities, planDetails, school, setBillingAction, setBillingInterval, setBillingLoading, setPlanDetails,
   } = useSchoolAdmin();
 
   return (
@@ -38,7 +39,7 @@ const BillingTab: React.FC = () => {
         try {
           const result = await startPilot();
           if (result.success) {
-            addToast('30-day Core pilot activated.', 'success');
+            addToast('30-day all-programme pilot activated.', 'success');
             invalidateTierCache();
             const details = await fetchSchoolPlanDetails();
             setPlanDetails(details);
@@ -72,6 +73,7 @@ const BillingTab: React.FC = () => {
           setBillingAction(null);
         }
       }}
+      billingStudio={school?.id ? <BillingStudio schoolId={school.id} addToast={addToast} /> : undefined}
     /></div>
   );
 };

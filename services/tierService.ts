@@ -72,7 +72,7 @@ export const PILOT_PLAN = {
   id: 'pilot' as const,
   label: 'Pilot',
   days: 30,
-  seats: { cambridge: 60, ielts: 20, game: 60 },
+  seats: { cambridge: 50, ielts: 50, game: 50 },
 };
 
 // ── Pilot quota types ──
