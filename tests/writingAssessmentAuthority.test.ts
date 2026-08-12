@@ -151,6 +151,12 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /false_positive_free/);
   assert.match(edge, /languageAuditSchema/);
   assert.match(edge, /uncertain_items/);
+  assert.match(edge, /missing_corrections/);
+  assert.match(edge, /rejected_corrections/);
+  assert.match(edge, /repairedCorrections/);
+  assert.match(edge, /Make a forward pass, then a reverse pass/);
+  assert.match(edge, /natural standard-English correction/);
+  assert.match(edge, /accurate grammatical terminology/);
   assert.match(edge, /diagnostic_corrections_count/);
   assert.match(edge, /WRITING_ASSESSMENT_MODEL.*gpt-4o/);
   assert.match(edge, /const shouldVerify = enoughWriting/);
