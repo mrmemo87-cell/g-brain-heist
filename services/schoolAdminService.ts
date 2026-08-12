@@ -771,7 +771,14 @@ export async function saveSchoolClass(
 export async function archiveSchoolClass(
   schoolId: string,
   classId: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{
+  success: boolean;
+  action?: 'archived' | 'already_removed';
+  code?: 'CLASS_IN_USE' | 'LAST_ACTIVE_CLASS' | 'CLASS_NOT_FOUND' | 'SCHOOL_ADMIN_REQUIRED' | 'NOT_AUTHENTICATED';
+  studentCount?: number;
+  assignmentCount?: number;
+  error?: string;
+}> {
   try {
     const { data, error } = await supabase.rpc('school_admin_archive_class', {
       p_school_id: schoolId,
@@ -785,10 +792,16 @@ export async function archiveSchoolClass(
 
     const result = typeof data === 'string' ? JSON.parse(data) : data;
     if (result && result.success === false) {
-      return { success: false, error: result.error };
+      return {
+        success: false,
+        code: result.code,
+        studentCount: Number(result.student_count || 0),
+        assignmentCount: Number(result.assignment_count || 0),
+        error: result.error,
+      };
     }
 
-    return { success: true };
+    return { success: true, action: result?.action || 'archived' };
   } catch (err) {
     console.error('Exception archiving class:', err);
     return { success: false, error: 'An unexpected error occurred' };
