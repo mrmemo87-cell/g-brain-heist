@@ -9,6 +9,7 @@ import {
   type PlanInfo,
 } from '../services/tierService';
 import VisualFallbackImage from './VisualFallbackImage';
+import { getMySchoolCapabilities } from '../services/schoolAdminService';
 import { visualAssets, neonIcon } from './visualAssets';
 import DotLottieAnimation from './DotLottieAnimation';
 
@@ -34,26 +35,77 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [pilotAlreadyUsed, setPilotAlreadyUsed] = useState(false);
   const [planLoading, setPlanLoading] = useState(true);
+  const [viewerIsSchoolMember, setViewerIsSchoolMember] = useState(false);
+  const [canManageSchoolBilling, setCanManageSchoolBilling] = useState(true);
 
-  // Fetch plan details when modal opens to determine pilot eligibility
+  // Fetch the school plan together with the caller's school authority. Billing
+  // controls are never shown to ordinary school members.
   useEffect(() => {
     if (!isOpen) {
       setPlanLoading(true);
+      setViewerIsSchoolMember(false);
+      setCanManageSchoolBilling(true);
       return;
     }
-    fetchSchoolPlanDetails().then((details) => {
-      // Avoid false positives for users not attached to a school yet.
-      // A school-level pilot can be considered "already used" only when this
-      // user has a real school context (plan is not 'none').
-      const hasSchoolContext = details.plan !== 'none';
-      const alreadyUsed = hasSchoolContext
-        && (details.plan === 'pilot' || details.trial_ends_at !== null);
-      setPilotAlreadyUsed(alreadyUsed);
-      setPlanLoading(false);
-    }).catch(() => setPlanLoading(false));
+
+    Promise.all([fetchSchoolPlanDetails(), getMySchoolCapabilities()])
+      .then(([details, capabilities]) => {
+        const hasSchoolContext = Boolean(capabilities?.school_id);
+        const alreadyUsed = hasSchoolContext
+          && (details.plan === 'pilot' || details.trial_ends_at !== null);
+        setPilotAlreadyUsed(alreadyUsed);
+        setViewerIsSchoolMember(hasSchoolContext);
+        setCanManageSchoolBilling(Boolean(capabilities?.can_manage_billing));
+        setPlanLoading(false);
+      })
+      .catch(() => {
+        // Fail closed for school billing controls. If authority cannot be
+        // resolved, do not expose a purchase/pilot action to a school member.
+        setViewerIsSchoolMember(true);
+        setCanManageSchoolBilling(false);
+        setPlanLoading(false);
+      });
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const showSchoolManagedAccess = !planLoading && viewerIsSchoolMember && !canManageSchoolBilling;
+
+  if (showSchoolManagedAccess) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4">
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative z-10 w-full max-w-lg rounded-3xl border border-cyan-500/25 bg-gradient-to-b from-slate-900 to-slate-950 p-6 shadow-2xl sm:p-8">
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white"
+          >
+            ✕
+          </button>
+          <div className="pr-10">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1.5 text-sm font-semibold text-cyan-200">
+              🏫 School-managed access
+            </div>
+            <h2 className="text-2xl font-bold text-white">School Access Not Active</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-300">
+              {featureLabel ? <><span className="font-semibold text-white">{featureLabel}</span> is not active for your school yet. </> : null}
+              Your School Head manages the school plan and the free pilot. You do not need to buy anything from your student or teacher account.
+            </p>
+            <div className="mt-5 rounded-2xl border border-amber-400/20 bg-amber-500/5 p-4 text-sm text-amber-100">
+              Ask your School Head to activate the 30-day pilot or a school plan. Access will update for school members after activation.
+            </div>
+            <button
+              onClick={onClose}
+              className="mt-6 w-full rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubscribe = async (plan: PlanInfo) => {
     setLoading(plan.id);
@@ -168,7 +220,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
           {featureLabel && (
             <div className="mb-4 flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-500/5 p-3">
               <img src={visualAssets.prime.onlyPrime} alt="" className="h-10 w-10 object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-              <p className="text-xs text-amber-200">This feature is available exclusively for Prime users.</p>
+              <p className="text-xs text-amber-200">This feature is included when your school has an active plan or pilot.</p>
             </div>
           )}
           {!planLoading && (
