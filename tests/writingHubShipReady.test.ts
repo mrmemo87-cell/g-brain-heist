@@ -238,3 +238,15 @@ test('student Writing Hub rehydrates by authenticated student before showing pro
   assert.match(hub, /Loading your saved writing and feedback…/);
   assert.match(hub, /if \(!studentHistoryReady\) return;/);
 });
+
+
+test('mobile cinematic feedback keeps the green correction visible without scrolling the detail card', () => {
+  const css = readProjectFile('src/pages/writing/WritingHub.css');
+  const mobileStart = css.indexOf('@media (max-width: 760px)');
+  const mobile = css.slice(mobileStart, css.indexOf('@media (max-width: 420px)', mobileStart));
+  assert.match(mobile, /\.cinematic-feedback__detail--weak\s*\{[\s\S]*display: grid/);
+  assert.match(mobile, /\.cinematic-feedback__detail--weak \.cinematic-feedback__coaching-block/);
+  assert.match(mobile, /\.cinematic-feedback__detail--weak \.cinematic-feedback__upgrade/);
+  assert.match(mobile, /font-size: 0\.86rem/);
+  assert.match(mobile, /line-height: 1\.32/);
+});

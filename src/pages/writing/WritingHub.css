@@ -998,6 +998,38 @@
     max-height: 210px;
   }
 
+  /* Keep the actionable correction visible on phone-sized replay screens.
+     Only the optional writer's rule may scroll below the fold. */
+  .cinematic-feedback__detail--weak {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: 7px;
+    padding: 11px 14px;
+  }
+
+  .cinematic-feedback__detail--weak h3 {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.15;
+  }
+
+  .cinematic-feedback__detail--weak .cinematic-feedback__coaching-block,
+  .cinematic-feedback__detail--weak .cinematic-feedback__upgrade {
+    padding: 9px 11px;
+  }
+
+  .cinematic-feedback__detail--weak .cinematic-feedback__coaching-block p,
+  .cinematic-feedback__detail--weak .cinematic-feedback__upgrade p {
+    margin-top: 4px;
+    font-size: 0.86rem;
+    line-height: 1.32;
+  }
+
+  .cinematic-feedback__detail--weak .cinematic-feedback__why {
+    margin: 0;
+  }
+
   .cinematic-feedback__finale {
     grid-template-columns: 1fr;
     padding: 18px;
