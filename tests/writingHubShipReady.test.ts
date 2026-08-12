@@ -250,3 +250,12 @@ test('mobile cinematic feedback keeps the green correction visible without scrol
   assert.match(mobile, /font-size: 0\.86rem/);
   assert.match(mobile, /line-height: 1\.32/);
 });
+
+
+test('cinematic replay uses every canonical correction and shows scores before revision actions', () => {
+  const hub = readProjectFile('src/pages/writing/WritingHub.tsx');
+  assert.match(hub, /maxItems = Number\.POSITIVE_INFINITY/);
+  assert.match(hub, /buildBalancedReviewSequence\(\s*completeRanges,\s*completeRanges\.length\s*\)/);
+  const finale = hub.slice(hub.indexOf('<section className="cinematic-feedback__finale"'), hub.indexOf('<footer className="cinematic-nav-bar'));
+  assert.ok(finale.indexOf('aria-label="Rubric scores"') < finale.indexOf('<strong>Keep</strong>'));
+});
