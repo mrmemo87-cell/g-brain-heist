@@ -16,6 +16,7 @@ interface BillingTabProps {
   onRefreshPlan: () => void;
   onStartPilot: () => void;
   onSubscribe: (plan: PlanInfo) => void;
+  billingStudio?: React.ReactNode;
 }
 
 const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4b82] focus-visible:ring-offset-2';
@@ -30,6 +31,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
   onRefreshPlan,
   onStartPilot,
   onSubscribe,
+  billingStudio,
 }) => {
   useEffect(() => {
     if (!planDetails) onRefreshPlan();
@@ -102,7 +104,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
             <div>
               <h3 className="text-sm font-semibold text-cyan-900">{PILOT_PLAN.label} — {PILOT_PLAN.days} Days Free</h3>
               <p className="mt-1 text-xs text-slate-600">
-                {PILOT_PLAN.seats.cambridge} Cambridge · {PILOT_PLAN.seats.ielts} IELTS · {PILOT_PLAN.seats.game} Game seats. No credit card needed.
+                All programmes · up to 50 students · 10 teachers · 50 admission candidates. No credit card needed.
               </p>
             </div>
             <button onClick={onStartPilot} disabled={billingAction !== null} className={`billing-on-dark w-full shrink-0 rounded-lg bg-[#1e4b82] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173d6c] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${focusRing}`}>
@@ -112,7 +114,9 @@ const BillingTab: React.FC<BillingTabProps> = ({
         </section>
       )}
 
-      {!isPaid && canManageBilling && (
+      {canManageBilling && billingStudio}
+
+      {!billingStudio && !isPaid && canManageBilling && (
         <>
           <div className="billing-plan-heading flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -194,7 +198,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
       )}
 
       <div className="billing-trust-row flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600">
-        <span>Secure payment via Paddle</span><span>Cancel anytime</span><span>Instant activation</span><span>Covers all teachers and students</span>
+        <span>Server-calculated pricing</span><span>Teachers and admins are free</span><span>Approval before activation</span><span>No surprise overages</span>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3 pt-1.5 text-[11px] text-slate-500">
         {['Pricing', 'Terms', 'Privacy', 'Refunds', 'Contact'].map((label, index) => (
