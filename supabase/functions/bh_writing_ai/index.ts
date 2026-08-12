@@ -1028,6 +1028,7 @@ serve(async (req) => {
       const primaryAuthoritative = authoritative;
 
       // A separate diagnostic pass audits omissions and false positives sentence by sentence.
+      // Regression coverage also exercises clean, ambiguous, repeated-span, and mixed-error inputs.
       // It is intentionally model-driven and text-generic: no sample-specific error rules.
       let diagnosticAudit: ReturnType<typeof normalizeAssessmentV2> = null;
       try {
