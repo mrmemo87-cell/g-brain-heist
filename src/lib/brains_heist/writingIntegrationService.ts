@@ -45,6 +45,7 @@ import {
   WritingIntegrityMode,
   WritingIntegrityReviewStatus,
 } from './writingIntegrity.js';
+import { isAcademicProfileWritingAssessment } from './writingAssessmentAuthority.js';
 
 export interface StudentWritingProfile {
   student_id: string;
@@ -252,6 +253,7 @@ let persistenceStatus: WritingPersistenceStatus = {
   message: null,
   updated_at: null,
 };
+let persistenceQueue: Promise<void> = Promise.resolve();
 const persistenceListeners = new Set<(status: WritingPersistenceStatus) => void>();
 const setPersistenceStatus = (next: WritingPersistenceStatus): void => {
   persistenceStatus = next;
@@ -408,22 +410,31 @@ const hydrateStore = (): Promise<void> => {
 
 const persistStore = (): void => {
   storeMutationVersion += 1;
+  const snapshotVersion = storeMutationVersion;
   const snapshot = serializeStore();
   setPersistenceStatus({ state: 'saving', message: null, updated_at: new Date().toISOString() });
   if (getWritingRepositoryMode() !== 'db') {
     console.warn('[writingIntegrationService] DB persistence is disabled in current runtime; writes will use fallback/local cache only.');
   }
-  void persistWritingStoreSnapshot(snapshot)
+  // Serialize full-snapshot writes so an older, slower request cannot overwrite
+  // a newer score/feedback pair. A failed write does not poison the next save.
+  persistenceQueue = persistenceQueue
+    .catch(() => undefined)
+    .then(() => persistWritingStoreSnapshot(snapshot))
     .then(() => {
-      setPersistenceStatus({ state: 'saved', message: null, updated_at: new Date().toISOString() });
+      if (snapshotVersion === storeMutationVersion) {
+        setPersistenceStatus({ state: 'saved', message: null, updated_at: new Date().toISOString() });
+      }
     })
     .catch((error) => {
       console.warn('Writing integration DB persistence failed.', error);
-      setPersistenceStatus({
-        state: 'failed',
-        message: error instanceof Error ? error.message : 'Unable to save writing progress to DB.',
-        updated_at: new Date().toISOString(),
-      });
+      if (snapshotVersion === storeMutationVersion) {
+        setPersistenceStatus({
+          state: 'failed',
+          message: error instanceof Error ? error.message : 'Unable to save writing progress to DB.',
+          updated_at: new Date().toISOString(),
+        });
+      }
     });
   const storage = getStorage();
   // Production writing records belong in Supabase, not in a shared browser profile.
@@ -734,6 +745,7 @@ const badRequest = <T>(message: string): ServiceResponse<T> => ({ ok: false, err
 const ok = <T>(data: T): ServiceResponse<T> => ({ ok: true, data });
 
 interface SubmitInitialWritingAssessmentInput {
+  attempt_id?: string;
   student_id: string;
   student_name?: string;
   grade: number | string;
@@ -748,6 +760,9 @@ interface SubmitInitialWritingAssessmentInput {
   prompt_id?: string | null;
   attempted_at?: string;
   integrity_signals?: WritingCompositionTelemetry;
+  authoritative_assessment?: WritingAssessmentResult;
+  authoritative_feedback?: unknown;
+  record_in_academic_profile?: boolean;
 }
 
 interface SubmitDailyWritingPracticeInput {
@@ -780,6 +795,23 @@ export const submitInitialWritingAssessment = (
   if (!input.prompt_text?.trim()) return badRequest('prompt_text is required.');
   if (!Number.isFinite(input.target_word_count) || input.target_word_count < 20) return badRequest('target_word_count must be >= 20.');
   if (!input.student_response?.trim()) return badRequest('student_response is required.');
+  if (input.authoritative_assessment) {
+    const authoritative = input.authoritative_assessment;
+    const shouldAffectAcademicProfile = input.record_in_academic_profile !== false;
+    if (shouldAffectAcademicProfile && !isAcademicProfileWritingAssessment(authoritative)) {
+      return badRequest('authoritative_assessment must be verified before it can affect the academic profile.');
+    }
+    if (!shouldAffectAcademicProfile && authoritative.assessment_status !== 'needs_review') {
+      return badRequest('A non-profile assessment must be explicitly marked needs_review.');
+    }
+    if (
+      authoritative.grade !== String(normalizedGrade)
+      || authoritative.genre !== normalizedGenre
+      || authoritative.target_word_count !== Math.round(input.target_word_count)
+    ) {
+      return badRequest('authoritative_assessment does not match the submitted task.');
+    }
+  }
 
   const existingState = getStateForGenre(input.student_id, normalizedGenre) ?? createInitialStudentWritingState(input.student_id, normalizedGrade, normalizedGenre);
   const flow = runInitialWritingAssessmentFlow({
@@ -788,6 +820,7 @@ export const submitInitialWritingAssessment = (
     genre: normalizedGenre,
     current_state: existingState,
     attempted_at: input.attempted_at,
+    assessment_result: input.authoritative_assessment,
   });
 
   const now = input.attempted_at ?? new Date().toISOString();
@@ -803,7 +836,7 @@ export const submitInitialWritingAssessment = (
   store.profiles.set(input.student_id, profile);
   setStateForGenre(input.student_id, normalizedGenre, flow.updated_writing_state);
 
-  const attemptId = buildId('attempt');
+  const attemptId = input.attempt_id?.trim() || buildId('attempt');
   store.attempts.push({
     id: attemptId,
     student_id: input.student_id,
@@ -818,6 +851,10 @@ export const submitInitialWritingAssessment = (
     prompt_text: input.prompt_text,
     student_submission: input.student_response,
     assessment: flow.assessment_result,
+    rich_feedback: input.authoritative_feedback,
+    feedback_weakness_tags: input.authoritative_assessment?.weakness_tags,
+    rich_feedback_source_submission_type: input.authoritative_feedback ? 'initial' : undefined,
+    rich_feedback_created_at: input.authoritative_feedback ? now : undefined,
     integrity_signals: input.integrity_signals,
   });
 
@@ -2526,7 +2563,9 @@ export const getSmartWritingPromptForStudent = async (input: {
           genre: input.genre,
           prompt_id: typeof remote?.['prompt_id'] === 'string' ? remote['prompt_id'] : null,
           difficulty_level: difficulty === 'foundational' || difficulty === 'stretch' ? difficulty : 'core',
-          target_word_count: Number(remote?.['target_word_count']) || (normalizedGrade <= 7 ? 80 : normalizedGrade <= 9 ? 120 : 160),
+          target_word_count: Math.max(20, Math.round(
+            Number(remote?.['target_word_count']) || (normalizedGrade <= 7 ? 80 : normalizedGrade <= 9 ? 120 : 160)
+          )),
           focus_tags: focusTags,
           context_tags: contextTags,
           mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
@@ -2936,13 +2975,18 @@ export const runWritingPilotVerificationChecklist = (): ServiceResponse<{
 };
 
 export const requestWritingAiAssist = async (input: {
-  mode: 'feedback' | 'plan_assist' | 'prompt_rewrite';
+  mode: 'assessment_v2' | 'feedback' | 'plan_assist' | 'prompt_rewrite';
   prompt_text: string;
   student_response?: string;
   weaknesses?: string[];
   grade?: number;
   genre?: SupportedGenre;
-}): Promise<ServiceResponse<{ mode: 'feedback' | 'plan_assist' | 'prompt_rewrite'; result: unknown }>> => {
+  attempt_key?: string;
+  prompt_id?: string | null;
+  target_word_count?: number;
+  difficulty_level?: PromptDifficultyLevel;
+  shadow_assessment?: WritingAssessmentResult;
+}): Promise<ServiceResponse<{ mode: 'assessment_v2' | 'feedback' | 'plan_assist' | 'prompt_rewrite'; result: unknown; meta?: unknown }>> => {
   try {
     const { supabase } = await import('../../../services/supabaseClient.js');
     const {
@@ -2965,6 +3009,11 @@ export const requestWritingAiAssist = async (input: {
         weaknesses: input.weaknesses ?? [],
         grade: normalizeGrade(input.grade) ?? null,
         genre: input.genre ?? null,
+        attemptKey: input.attempt_key ?? null,
+        promptId: input.prompt_id ?? null,
+        targetWordCount: input.target_word_count ?? null,
+        difficultyLevel: input.difficulty_level ?? null,
+        shadowAssessment: input.shadow_assessment ?? null,
       },
     });
 
@@ -2972,9 +3021,94 @@ export const requestWritingAiAssist = async (input: {
       return badRequest(error?.message ?? 'Unable to fetch writing AI assist.');
     }
 
-    return ok(data as { mode: 'feedback' | 'plan_assist' | 'prompt_rewrite'; result: unknown });
+    return ok(data as { mode: 'assessment_v2' | 'feedback' | 'plan_assist' | 'prompt_rewrite'; result: unknown; meta?: unknown });
   } catch (error) {
     return badRequest(error instanceof Error ? error.message : 'Unable to fetch writing AI assist.');
+  }
+};
+
+export const getCanonicalWritingAssessment = async (
+  attemptKey: string
+): Promise<ServiceResponse<Record<string, unknown> | null>> => {
+  if (!attemptKey.trim()) return badRequest('attemptKey is required.');
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_canonical_assessment', {
+      p_attempt_key: attemptKey.trim(),
+    });
+    if (error) return badRequest(error.message);
+    return ok(data && typeof data === 'object' ? data as Record<string, unknown> : null);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load canonical writing assessment.');
+  }
+};
+
+export const submitWritingAssessmentReview = async (input: {
+  assessment_id: string;
+  criterion_scores: {
+    content: number;
+    communicative_achievement: number;
+    organisation: number;
+    language: number;
+  };
+  rationale?: string;
+  is_final?: boolean;
+}): Promise<ServiceResponse<Record<string, unknown>>> => {
+  if (!input.assessment_id.trim()) return badRequest('assessment_id is required.');
+  const scores = Object.values(input.criterion_scores);
+  if (scores.some((score) => !Number.isInteger(score) || score < 0 || score > 5)) {
+    return badRequest('All criterion scores must be integers between 0 and 5.');
+  }
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_submit_assessment_review', {
+      p_assessment_id: input.assessment_id,
+      p_criterion_scores: input.criterion_scores,
+      p_rationale: input.rationale?.trim() || null,
+      p_is_final: input.is_final ?? true,
+    });
+    if (error || !data || typeof data !== 'object') {
+      return badRequest(error?.message ?? 'Unable to save writing assessment review.');
+    }
+    return ok(data as Record<string, unknown>);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to save writing assessment review.');
+  }
+};
+
+export const getWritingCalibrationQueueV2 = async (input: {
+  school_id: string;
+  limit?: number;
+}): Promise<ServiceResponse<Array<Record<string, unknown>>>> => {
+  if (!input.school_id.trim()) return badRequest('school_id is required.');
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_calibration_queue_v2', {
+      p_school_id: input.school_id,
+      p_limit: Math.max(1, Math.min(input.limit ?? 50, 200)),
+    });
+    if (error) return badRequest(error.message);
+    return ok(Array.isArray(data) ? data.filter((row): row is Record<string, unknown> => Boolean(row && typeof row === 'object')) : []);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load writing calibration queue.');
+  }
+};
+
+export const getWritingCalibrationMetricsV2 = async (
+  schoolId: string
+): Promise<ServiceResponse<Record<string, unknown>>> => {
+  if (!schoolId.trim()) return badRequest('schoolId is required.');
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_calibration_metrics_v2', {
+      p_school_id: schoolId.trim(),
+    });
+    if (error || !data || typeof data !== 'object') {
+      return badRequest(error?.message ?? 'Unable to load writing calibration metrics.');
+    }
+    return ok(data as Record<string, unknown>);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load writing calibration metrics.');
   }
 };
 

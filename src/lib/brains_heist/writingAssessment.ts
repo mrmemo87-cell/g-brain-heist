@@ -9,6 +9,38 @@ export type SupportedGenre =
 
 export type ScoreMode = 'A2_3_scale' | 'B1B2_4_scale';
 
+export const WRITING_RUBRIC_VERSION = 'bh-writing-rubric-v2' as const;
+export const WRITING_EVALUATOR_VERSION = 'bh-writing-assessment-v2' as const;
+
+export type WritingAssessmentStatus = 'verified' | 'provisional' | 'needs_review' | 'failed' | 'legacy_estimate';
+export type WritingCriterionKey = 'content' | 'communicative_achievement' | 'organisation' | 'language';
+
+export interface WritingEvidenceSpan {
+  quote: string;
+  start_char: number;
+  end_char: number;
+}
+
+export interface WritingCriterionAssessment {
+  score: number;
+  confidence: number;
+  descriptor_id: string;
+  justification: string;
+  evidence: WritingEvidenceSpan[];
+}
+
+export interface WritingPromptAssessmentDefinition {
+  prompt_id: string | null;
+  prompt_definition_hash: string;
+  grade: number;
+  genre: SupportedGenre;
+  target_word_count: number;
+  audience: string;
+  purpose: string;
+  register: 'informal' | 'neutral' | 'formal' | 'mixed';
+  difficulty_level: 'foundational' | 'core' | 'stretch';
+}
+
 export type ContentWeaknessTag =
   | 'missed_content_point'
   | 'partial_content_coverage'
@@ -168,6 +200,22 @@ export interface WritingAssessmentResult {
   weakness_tags: WeaknessTag[];
   top_3_priorities: string[];
   monthly_tracking_ready: true;
+  /**
+   * Academic analytics may consume an assessment only when this is true.
+   * Older records intentionally omit this field and remain legacy estimates.
+   */
+  academic_profile_ready?: boolean;
+  assessment_id?: string;
+  assessment_status?: WritingAssessmentStatus;
+  rubric_version?: typeof WRITING_RUBRIC_VERSION | string;
+  evaluator_version?: typeof WRITING_EVALUATOR_VERSION | string;
+  evaluator_model?: string;
+  text_fingerprint?: string;
+  prompt_definition?: WritingPromptAssessmentDefinition;
+  criteria?: Record<WritingCriterionKey, WritingCriterionAssessment>;
+  shadow_heuristic_total?: number;
+  adjudication_reason?: string | null;
+  derived_from_assessment_id?: string;
   hidden_coaching_signals?: CoachingSignals;
 }
 

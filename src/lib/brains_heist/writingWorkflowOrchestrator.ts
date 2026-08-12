@@ -51,6 +51,8 @@ export interface InitialAssessmentFlowInput {
   student_response: string;
   current_state?: StudentWritingState;
   attempted_at?: string;
+  /** Verified server assessment. Tests/offline tools may omit this and use the legacy shadow scorer. */
+  assessment_result?: WritingAssessmentResult;
 }
 
 export interface InitialAssessmentFlowOutput {
@@ -136,7 +138,7 @@ export const runInitialWritingAssessmentFlow = (input: InitialAssessmentFlowInpu
     input.current_state ??
     createInitialStudentWritingState(input.student_id, input.grade, input.genre, createEmptyErrorMemory());
 
-  const assessment = assessWritingExam({
+  const assessment = input.assessment_result ?? assessWritingExam({
     promptText: input.prompt_text,
     grade: input.grade,
     genre: input.genre,
@@ -202,6 +204,9 @@ const buildPracticeAttemptAssessment = (
 
   return {
     ...latestAssessment,
+    academic_profile_ready: false,
+    assessment_status: 'legacy_estimate',
+    derived_from_assessment_id: latestAssessment.assessment_id,
     weakness_tags: blendedTags,
     top_3_priorities: latestAssessment.top_3_priorities,
     total_score: latestAssessment.total_score,
