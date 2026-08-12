@@ -154,7 +154,11 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /missing_corrections/);
   assert.match(edge, /rejected_corrections/);
   assert.match(edge, /repairedCorrections/);
-  assert.match(edge, /Make a forward pass, then a reverse pass/);
+  assert.match(edge, /Promise\.all/);
+  assert.match(edge, /forward language auditor/);
+  assert.match(edge, /reverse and boundary auditor/);
+  assert.match(edge, /correctionMap/);
+  assert.match(edge, /diagnostic_pass_count: 2/);
   assert.match(edge, /natural standard-English correction/);
   assert.match(edge, /accurate grammatical terminology/);
   assert.match(edge, /diagnostic_corrections_count/);
