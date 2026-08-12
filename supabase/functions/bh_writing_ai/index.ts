@@ -207,7 +207,6 @@ const WRITING_RUBRIC_VERSION = "bh-writing-rubric-v2";
 const WRITING_EVALUATOR_VERSION = "bh-writing-assessment-v2";
 const WRITING_ASSESSMENT_MODEL = Deno.env.get("BH_WRITING_ASSESSMENT_MODEL")?.trim() || "gpt-4o-mini";
 const WRITING_VERIFIER_MODEL = Deno.env.get("BH_WRITING_VERIFIER_MODEL")?.trim() || WRITING_ASSESSMENT_MODEL;
-const WRITING_ALWAYS_VERIFY = (Deno.env.get("BH_WRITING_ALWAYS_VERIFY")?.trim().toLowerCase() || "true") !== "false";
 const CRITERION_KEYS = ["content", "communicative_achievement", "organisation", "language"] as const;
 
 const evidenceSchema = {
@@ -1069,13 +1068,6 @@ serve(async (req) => {
       }
 
       const shadowTotal = authoritative.assessment.shadow_heuristic_total;
-      const shadowDifference = typeof shadowTotal === "number"
-        ? Math.abs(authoritative.assessment.total_score - shadowTotal)
-        : 0;
-      const sampleNibble = Number.parseInt(authoritative.assessment.text_fingerprint.slice(-1), 16);
-      const sampledForVerification = Number.isFinite(sampleNibble) && sampleNibble % 10 === 0;
-      const confidenceAcceptable = authoritative.confidence.minimum >= 0.65
-        && authoritative.confidence.average >= 0.75;
       const enoughWriting = countWords(payload!.studentResponse ?? "")
         >= Math.max(20, Math.floor(Number(payload!.targetWordCount) * 0.2));
       // Verification is most important when confidence is low. Never skip it for that reason.
