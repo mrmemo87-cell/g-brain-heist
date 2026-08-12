@@ -1,5 +1,5 @@
 -- ==============================================================================
--- G-BRAIN HEIST: HOTFIX FOR PRODUCTION ERRORS
+-- G-BRAINS HEIST: HOTFIX FOR PRODUCTION ERRORS
 -- ==============================================================================
 -- Run this in Supabase SQL Editor to fix:
 -- 1. rpc_event_log missing context column

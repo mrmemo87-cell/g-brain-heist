@@ -125,10 +125,10 @@ const MemberActionModal: React.FC = () => {
               <div className="member-action-section">
                 <h4 className="text-sm font-semibold text-slate-800 mb-2">Academic placement</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <label className="member-placement-field"><span>Academic year (grade)</span><select value={selectedGrade} onChange={e => { setSelectedGrade(e.target.value ? Number(e.target.value) : ''); setSelectedClassId(''); }} aria-label="Academic year (grade)"><option value="">Choose academic year</option>{academicYears.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select></label>
-                  <label className="member-placement-field"><span>Class</span><select value={selectedClassId} disabled={selectedGrade === ''} onChange={e => setSelectedClassId(e.target.value)} aria-label="Class"><option value="">{selectedGrade === '' ? 'Choose academic year first' : 'Choose a class'}</option>{classesForAcademicYear.map((item: any) => <option key={item.id} value={item.id}>{item.class_code} — {item.class_name}</option>)}</select></label>
+                  <label className="member-placement-field"><span>Grade level</span><select value={selectedGrade} onChange={e => { setSelectedGrade(e.target.value ? Number(e.target.value) : ''); setSelectedClassId(''); }} aria-label="Grade level"><option value="">Choose grade level</option>{academicYears.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select></label>
+                  <label className="member-placement-field"><span>Class</span><select value={selectedClassId} disabled={selectedGrade === ''} onChange={e => setSelectedClassId(e.target.value)} aria-label="Class"><option value="">{selectedGrade === '' ? 'Choose grade level first' : 'Choose a class'}</option>{classesForAcademicYear.map((item: any) => <option key={item.id} value={item.id}>{item.class_code} — {item.class_name}</option>)}</select></label>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">Classes are limited to the selected academic year (grade).</p>
+                <p className="mt-2 text-xs text-slate-500">Classes are limited to the selected grade level.</p>
                 <button className="mt-3 w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-medium" disabled={studentSaving || !selectedClassId} onClick={() => handleEnrollStudent(selectedMember.user_id, selectedClassId)}>{studentSaving ? 'Saving…' : 'Save academic placement'}</button>
               </div>
             )}
@@ -256,7 +256,7 @@ const MemberActionModal: React.FC = () => {
                         onClick={() => loadStudentModStatus(modTargetStatus.user_id)}
                         className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg transition-colors text-white font-medium text-sm"
                       >
-                        🔄 Refresh Status
+                        Refresh status
                       </button>
                       <button
                         onClick={handleClearProfileChange}

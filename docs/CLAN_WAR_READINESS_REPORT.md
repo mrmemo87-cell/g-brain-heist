@@ -1,6 +1,6 @@
 # Rivalry Protocol (Clan Wars V1) — Full Game Design + Technical Spec
 
-> Status: Implementation-ready design document for Brain Heist.  
+> Status: Implementation-ready design document for Brains Heist.
 > Principle: Minimal breakage, maximum reuse of stable systems, strict separation from existing solo PvP.
 
 ---
@@ -20,7 +20,7 @@
 4. **Fairness-first**: anti-abuse rails, roster lock, pair cooldowns.
 5. **Implementable V1**: constrained scope with clear lifecycle and RPC boundaries.
 
-### Fantasy/theme fit (Brain Heist)
+### Fantasy/theme fit (Brains Heist)
 - Keeps hacker-ops fantasy: clans execute coordinated digital operations.
 - Structures map to cyber infrastructure (Relay, Vault, Firewall).
 - Actions (Strike/Sabotage/Repair) feel like tactical net-war operations.
@@ -705,7 +705,7 @@ All per-action logs remain in dedicated war tables.
 ### Recommended final V1 architecture
 Build Rivalry Protocol as an isolated Supabase subsystem (`rivalry_*` tables + dedicated RPC layer + dedicated frontend service/view), with controlled milestone mirroring into existing feed and notifications.
 
-### Why this is safest for Brain Heist
+### Why this is safest for Brains Heist
 1. Preserves solo PvP (`rpc_hack_attempt`) behavior and AP economy.
 2. Avoids fragile legacy coupling by introducing clear new domain boundaries.
 3. Works with current App single-shell architecture and existing realtime/toast patterns.
@@ -719,4 +719,3 @@ Build Rivalry Protocol as an isolated Supabase subsystem (`rivalry_*` tables + d
 
 ### Build this first
 **Phase 0 + Phase 1:** production schema validation, then ship rivalry schema + RLS + read-only war state RPC before any action/settlement writes.
-

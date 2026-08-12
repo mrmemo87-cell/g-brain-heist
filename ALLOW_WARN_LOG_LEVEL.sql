@@ -1,5 +1,5 @@
 -- ============================================================================
--- G-BRAIN HEIST: EXPAND rpc_event_log LOG LEVEL CHECK
+-- G-BRAINS HEIST: EXPAND rpc_event_log LOG LEVEL CHECK
 -- ============================================================================
 -- Adds support for the "warn" level so helper functions that log warnings do
 -- not violate the existing CHECK constraint. Run this once after the base

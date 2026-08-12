@@ -1,7 +1,7 @@
 -- Phase 2: classify the existing Brains Heist question bank and make grade reuse
 -- explicit without duplicating question content.
 --
--- This is an original Brain Heist framework. It does not claim Cambridge, IB, or
+-- This is an original Brains Heist framework. It does not claim Cambridge, IB, or
 -- another external authority. The migration preserves the source question as the
 -- single authoritative record, registers a content hash, and maps that record to a
 -- primary objective in every approved grade scope where it may be used.
@@ -325,8 +325,8 @@ begin
     school_id, code, name, provider_name, programme_name,
     jurisdiction, authority_type, visibility, canonical_url, is_active
   ) values (
-    null, 'brain-heist-international', 'Brain Heist International',
-    'Brain Heist', 'International Academic Practice', 'International',
+    null, 'brain-heist-international', 'Brains Heist International',
+    'Brains Heist', 'International Academic Practice', 'International',
     'brain_heist_original', 'global', null, true
   )
   on conflict (code) where school_id is null do update set is_active = true
@@ -336,8 +336,8 @@ begin
     framework_id, version_code, display_name, source_version, source_license,
     status, effective_from, release_notes
   ) values (
-    v_framework_id, '2026-1', 'Brain Heist International 2026.1', '2026.1',
-    'Proprietary Brain Heist original content', 'draft', date '2026-08-01',
+    v_framework_id, '2026-1', 'Brains Heist International 2026.1', '2026.1',
+    'Proprietary Brains Heist original content', 'draft', date '2026-08-01',
     'Initial governed release for the existing question bank. No external curriculum endorsement is claimed.'
   ) returning id into v_version_id;
 
@@ -386,7 +386,7 @@ begin
   select distinct v_version_id, t.curriculum_scope_id, null::uuid, 'strand',
     'strand-' || left(md5(t.classification->>'strand'), 16),
     t.classification->>'strand',
-    'Original Brain Heist strand used to organise reviewed question evidence.',
+    'Original Brains Heist strand used to organise reviewed question evidence.',
     1, 'bh-question-bank-classification-v1'
   from tmp_bh_targets t;
 
@@ -470,8 +470,8 @@ begin
   ) content_rows;
 
   update public.curriculum_framework_versions set
-    reviewed_by_authority = 'Brain Heist Content Quality',
-    approved_by_authority = 'Brain Heist Academic Governance',
+    reviewed_by_authority = 'Brains Heist Content Quality',
+    approved_by_authority = 'Brains Heist Academic Governance',
     content_hash = v_hash,
     status = 'in_review'
   where id = v_version_id;
@@ -503,7 +503,7 @@ begin
     encode(extensions.digest(coalesce((select string_agg(content_hash, '' order by question_id) from tmp_bh_question_classification where is_public), ''), 'sha256'), 'hex'),
     'bh-question-bank-classification-v1', 'completed',
     'Topic-aware original classification. Each source question remains one record and may have a primary mapping in multiple grade scopes.',
-    'Brain Heist Content Quality', now(), now()
+    'Brains Heist Content Quality', now(), now()
   );
 
   insert into public.curriculum_item_objective_mappings(
@@ -516,14 +516,14 @@ begin
   select i.id, o.id, v_version_id, t.curriculum_scope_id, t.academic_subject_id, b.id,
     'primary', 'rule_based', 'approved',
     (t.classification->>'confidence')::numeric,
-    'Approved original Brain Heist mapping based on the source subject, topic, question text and difficulty band.',
+    'Approved original Brains Heist mapping based on the source subject, topic, question text and difficulty band.',
     jsonb_build_object(
       'ruleset', t.classification->>'ruleset', 'eligibleGrade', t.grade_level,
       'sourceQuestionId', t.question_id, 'classification', t.classification,
       'externalAuthorityClaimed', false
     ),
     i.content_hash, v_hash,
-    'Brain Heist Content Quality', 'Brain Heist Academic Governance', now(), now()
+    'Brains Heist Content Quality', 'Brains Heist Academic Governance', now(), now()
   from tmp_bh_targets t
   join public.curriculum_assessment_items i
     on i.source_type = 'question_bank' and i.school_id is null

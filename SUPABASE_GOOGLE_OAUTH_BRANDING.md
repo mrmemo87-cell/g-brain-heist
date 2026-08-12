@@ -4,7 +4,7 @@ This app signs users in with Supabase Auth's Google provider. The in-app OAuth `
 
 ## Current app OAuth redirect flow
 
-- Standard Brain Heist Google sign-in calls `supabase.auth.signInWithOAuth({ provider: 'google' })` with `redirectTo: getAuthRedirectUrl()`.
+- Standard Brains Heist Google sign-in calls `supabase.auth.signInWithOAuth({ provider: 'google' })` with `redirectTo: getAuthRedirectUrl()`.
 - IELTS Google sign-in uses the same `getAuthRedirectUrl()` helper and preserves the IELTS intent in `sessionStorage` before starting OAuth.
 - `getAuthRedirectUrl()` resolves in this order:
   1. `VITE_SUPABASE_AUTH_REDIRECT_URL`
@@ -49,12 +49,12 @@ In **Supabase Dashboard → Authentication → Providers → Google**:
 
 In **Google Cloud Console → Google Auth Platform / Branding**:
 
-- **App name:** `Brain Heist`
-- **App logo:** Brain Heist logo
+- **App name:** `Brains Heist`
+- **App logo:** Brains Heist logo
 - **User support email:** use the production support mailbox
 - **Homepage:** `https://www.brainsheist.com`
-- **Privacy Policy URL:** production Brain Heist privacy-policy URL
-- **Terms of Service URL:** production Brain Heist terms URL
+- **Privacy Policy URL:** production Brains Heist privacy-policy URL
+- **Terms of Service URL:** production Brains Heist terms URL
 - **Authorized domain:** `brainsheist.com`
 - Publish the app / submit verification if Google requires it for the configured scopes or branding state.
 

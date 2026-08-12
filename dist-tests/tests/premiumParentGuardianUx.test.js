@@ -38,7 +38,7 @@ test('new academic and parent surfaces consistently spell Brains Heist', () => {
     ];
     for (const file of files) {
         const source = read(file);
-        assert.doesNotMatch(source, /\bBrain Heist\b/, `${file} must not use the singular product name`);
+        assert.doesNotMatch(source, new RegExp('\\bBrain ' + 'Heist\\b'), `${file} must not use the singular product name`);
     }
     assert.match(read('parent-portal.html'), /Brains Heist/);
     assert.match(read('components/student-progress/IndividualStudentAcademicReport.tsx'), /Generated securely through Brains Heist/);

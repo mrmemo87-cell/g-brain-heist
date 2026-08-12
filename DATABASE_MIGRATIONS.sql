@@ -1,5 +1,5 @@
 -- ==============================================================================
--- G-BRAIN HEIST: COMPLETE DATABASE MIGRATIONS
+-- G-BRAINS HEIST: COMPLETE DATABASE MIGRATIONS
 -- ==============================================================================
 -- Instructions:
 -- 1. Open Supabase Dashboard > SQL Editor

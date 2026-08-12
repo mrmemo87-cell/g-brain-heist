@@ -823,7 +823,7 @@ revoke all on function public.rpc_school_curriculum_item_mapping_detail(uuid, uu
 grant execute on function public.rpc_school_curriculum_item_mapping_detail(uuid, uuid) to authenticated;
 
 comment on table public.curriculum_assessment_items is
-  'Content-free registry of stable question/prompt locators and SHA-256 hashes across Brain Heist assessment sources.';
+  'Content-free registry of stable question/prompt locators and SHA-256 hashes across Brains Heist assessment sources.';
 comment on column public.curriculum_assessment_items.source_metadata is
   'Non-content source descriptors only. Raw questions, prompts, passages, answers, options, and explanations are rejected.';
 comment on table public.curriculum_mapping_batches is

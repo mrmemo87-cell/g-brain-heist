@@ -6,7 +6,7 @@ _Date: 2025-11-16_
 - Database migration for `public.ielts_sessions`
 - `ielts_session` Supabase function
 - Frontend routes `/ielts` and `/ielts/session/:id`
-- Regression spot-check across main Brain Heist pages
+- Regression spot-check across main Brains Heist pages
 
 ## Environment
 - Repository state: 8e0e5ef

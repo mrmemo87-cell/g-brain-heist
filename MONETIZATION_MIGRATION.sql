@@ -5,7 +5,7 @@
 -- Model:
 --   FREE  = Lockdown mode with limited maps/duration/capacity + watermark.
 --           Any teacher can use this without paying.
---   PAID  = Full Brain Heist (PvP, clans, shop, raids, tournaments,
+--   PAID  = Full Brains Heist (PvP, clans, shop, raids, tournaments,
 --           Cambridge, IELTS, leaderboard, achievements, all maps, etc.)
 --
 -- Plans (all school-level, no individual purchase):
@@ -616,7 +616,7 @@ BEGIN
   RETURN jsonb_build_object(
     'success', false,
     'error', 'pro_required',
-    'message', 'Your school needs a Brain Heist subscription to access this feature'
+    'message', 'Your school needs a Brains Heist subscription to access this feature'
   );
 END;
 $$;

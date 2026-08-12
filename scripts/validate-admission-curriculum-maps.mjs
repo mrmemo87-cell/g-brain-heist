@@ -66,7 +66,7 @@ export function validateAdmissionCurriculumMaps(root=DEFAULT_DIR, options={}){
       if(isBlank(o.objective_id)) errors.push(`${loc}: missing objective_id`); else if(ids.has(o.objective_id)) errors.push(`${loc}: duplicate objective_id ${o.objective_id}`); else ids.set(o.objective_id,i);
       if(!Number.isFinite(o.typical_age_min)||!Number.isFinite(o.typical_age_max)) errors.push(`${loc}: missing age range`);
       if(mode === 'brain_heist_international'){
-        if(o.programme !== 'brain_heist_international') errors.push(`${loc}: invalid programme for Brain Heist International map`);
+        if(o.programme !== 'brain_heist_international') errors.push(`${loc}: invalid programme for Brains Heist International map`);
         requireArray(errors, loc, o.source_references, 'source_references');
         if(o.source_review_status !== 'approved') errors.push(`${loc}: unapproved source_review_status ${o.source_review_status}`);
         if(o.academic_review_status !== 'approved') errors.push(`${loc}: unapproved academic_review_status ${o.academic_review_status}`);

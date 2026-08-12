@@ -1,4 +1,4 @@
--- Archive only unreferenced legacy-import Brain Heist admission official-bank rows.
+-- Archive only unreferenced legacy-import Brains Heist admission official-bank rows.
 -- This is intentionally non-destructive: no forms, attempts, answers, or questions are deleted.
 -- Referenced legacy history (for example Grade 6 English legacy-import) remains untouched.
 

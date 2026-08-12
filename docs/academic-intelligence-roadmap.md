@@ -1,6 +1,6 @@
 # Academic Intelligence delivery roadmap
 
-Brain Heist's academic record is evidence-led: source results remain authoritative,
+Brains Heist's academic record is evidence-led: source results remain authoritative,
 historical observations stay intact, and current conclusions are rebuildable projections.
 The work is delivered through gated phases so later reports never outrun the quality of
 their underlying evidence.
@@ -166,7 +166,7 @@ are resolved to a published canonical objective and pass the Phase 3 review work
 ## Phase 4 contract
 
 Phase 4 introduces the first traceable evidence adapter for Cambridge-labelled, original
-Brain Heist assessments. It does not claim Cambridge endorsement, reproduce Cambridge
+Brains Heist assessments. It does not claim Cambridge endorsement, reproduce Cambridge
 content, infer question-level attainment from an overall score, or let provisional data
 change a student's current academic status.
 
@@ -357,7 +357,7 @@ silently apply a shadow candidate to the learner record.
 
 Phase 7 turns a validated learning need into a small, teacher-controlled intervention
 experiment. It upgrades the existing Student Support Plans workflow rather than creating a
-second intervention system. Brain Heist may calculate and recommend, but a teacher decides
+second intervention system. Brains Heist may calculate and recommend, but a teacher decides
 whether a plan starts and whether measured follow-up supports its final outcome.
 
 - A plan can be drafted only from a current academic-year focus state with a confidence

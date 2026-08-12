@@ -40,7 +40,7 @@ BEGIN
 
     v_blueprint_grade := COALESCE(v_bp.target_grade, v_bp.target_stage);
     IF v_blueprint_grade IS NULL OR lower(v_bp.subject) NOT IN ('english', 'maths', 'science') THEN
-        RETURN jsonb_build_object('success', false, 'error', 'No official Brain Heist admission question pools match this blueprint', 'debug_reason', 'Blueprint has no managed bank grade/subject');
+        RETURN jsonb_build_object('success', false, 'error', 'No official Brains Heist admission question pools match this blueprint', 'debug_reason', 'Blueprint has no managed bank grade/subject');
     END IF;
 
     -- Resolve once across the exact blueprint grade and subject so a form cannot mix
@@ -56,7 +56,7 @@ BEGIN
     LIMIT 1;
 
     IF v_managed_content_version IS NULL THEN
-        RETURN jsonb_build_object('success', false, 'error', 'No official Brain Heist admission question pools match this blueprint', 'debug_reason', 'No matching official managed bank version');
+        RETURN jsonb_build_object('success', false, 'error', 'No official Brains Heist admission question pools match this blueprint', 'debug_reason', 'No matching official managed bank version');
     END IF;
 
     IF v_bp.pool_id IS NOT NULL THEN
@@ -73,7 +73,7 @@ BEGIN
           AND content_version = v_managed_content_version;
     END IF;
 
-    IF v_pool_ids IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'No official Brain Heist admission question pools match this blueprint', 'debug_reason', 'No matching safe pools in latest official managed bank version'); END IF;
+    IF v_pool_ids IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'No official Brains Heist admission question pools match this blueprint', 'debug_reason', 'No matching safe pools in latest official managed bank version'); END IF;
 
     v_base_form_code := COALESCE(p_form_code, UPPER(LEFT(v_bp.subject, 3)) || COALESCE(v_bp.target_stage::text, '') || '-' || TO_CHAR(NOW(), 'YYYY') || '-' || UPPER(SUBSTR(gen_random_uuid()::text, 1, 4)));
     v_form_code := v_base_form_code;

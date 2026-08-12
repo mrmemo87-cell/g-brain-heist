@@ -61,5 +61,5 @@ test('official admission questions are selectable but locked against school-user
     assert.match(lockdownSql, /adm_q_school_admin_all/);
     assert.match(lockdownSql, /is_official = false/);
     assert.match(lockdownSql, /adm_prevent_locked_content_mutation/);
-    assert.match(lockdownSql, /Official Brain Heist admission content is locked/);
+    assert.match(lockdownSql, /Official Brains Heist admission content is locked/);
 });

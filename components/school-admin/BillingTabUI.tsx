@@ -86,9 +86,9 @@ const BillingTab: React.FC<BillingTabProps> = ({
           </div>
           {planDetails.seats && (isPaid || (isPilot && isActive)) && (
             <div className="flex flex-wrap gap-2 text-xs text-slate-700">
-              <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5">📚 {planDetails.seats.cambridge ?? '∞'} Cambridge</span>
-              <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5">🎧 {planDetails.seats.ielts ?? '∞'} IELTS</span>
-              <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5">🎮 {planDetails.seats.game ?? '∞'} Game</span>
+              <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5">{planDetails.seats.cambridge ?? '∞'} Cambridge</span>
+              <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5">{planDetails.seats.ielts ?? '∞'} IELTS</span>
+              <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5">{planDetails.seats.game ?? '∞'} Game</span>
             </div>
           )}
         </div>
@@ -159,7 +159,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
                   </div>
                   <p className="mt-2 rounded-lg bg-slate-100 px-2.5 py-2 text-xs font-semibold text-slate-700">Best for schools with up to {p.seats.game} active learners</p>
                   <div className="mt-3 space-y-2 text-xs">
-                    {([['📚 Cambridge', p.seats.cambridge], ['🎧 IELTS', p.seats.ielts], ['🎮 Game', p.seats.game]] as const).map(([label, seats]) => (
+                    {([['Cambridge', p.seats.cambridge], ['IELTS', p.seats.ielts], ['Game', p.seats.game]] as const).map(([label, seats]) => (
                       <div key={label} className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 ${featureRowClasses}`}>
                         <span className="text-slate-600">{label}</span>
                         <span className="text-right font-semibold text-slate-900">up to {seats}</span>
@@ -187,15 +187,15 @@ const BillingTab: React.FC<BillingTabProps> = ({
           <h4 className="mb-2 font-semibold text-slate-900">Manage Subscription</h4>
           <p className="mb-3 text-sm text-slate-600">Update your payment method, change plans, or cancel via the Paddle customer portal.</p>
           <div className="mb-3 flex flex-wrap gap-3">
-            {planDetails.update_payment_url && <a href={planDetails.update_payment_url} target="_blank" rel="noopener noreferrer" className={`billing-on-dark inline-flex items-center gap-1.5 rounded-lg bg-[#1e4b82] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#173d6c] ${focusRing}`}>💳 Update Payment Method</a>}
-            {planDetails.management_url && planDetails.management_url !== planDetails.update_payment_url && <a href={planDetails.management_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-50 ${focusRing}`}>⚙️ Cancel / Change Plan</a>}
+            {planDetails.update_payment_url && <a href={planDetails.update_payment_url} target="_blank" rel="noopener noreferrer" className={`billing-on-dark inline-flex items-center gap-1.5 rounded-lg bg-[#1e4b82] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#173d6c] ${focusRing}`}>Update payment method</a>}
+            {planDetails.management_url && planDetails.management_url !== planDetails.update_payment_url && <a href={planDetails.management_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-50 ${focusRing}`}>Cancel or change plan</a>}
           </div>
           <p className="text-xs text-slate-500">Contact <a href="mailto:support@brainsheist.com" className="font-medium text-emerald-700 hover:underline">support@brainsheist.com</a> if you need help managing your subscription.</p>
         </section>
       )}
 
       <div className="billing-trust-row flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600">
-        <span>🔒 Secure payment via Paddle</span><span>↩️ Cancel anytime</span><span>⚡ Instant activation</span><span>👥 Covers all teachers & students</span>
+        <span>Secure payment via Paddle</span><span>Cancel anytime</span><span>Instant activation</span><span>Covers all teachers and students</span>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3 pt-1.5 text-[11px] text-slate-500">
         {['Pricing', 'Terms', 'Privacy', 'Refunds', 'Contact'].map((label, index) => (

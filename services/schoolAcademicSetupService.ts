@@ -62,6 +62,8 @@ export interface SchoolAcademicSetup {
   electiveEnrolments: Array<{ id: string; studentId: string; academicYearId: string; academicSubjectId: string; subjectName: string; status: 'active' }>;
 }
 
+export type SchoolAcademicSystem = 'cambridge' | 'american';
+
 const assertSuccess = <T extends { success?: boolean; code?: string }>(value: T | null, fallback: string): T => {
   if (!value?.success) throw new Error(value?.code || fallback);
   return value;
@@ -71,6 +73,25 @@ export async function fetchSchoolAcademicSetup(schoolId: string): Promise<School
   const { data, error } = await supabase.rpc('rpc_school_admin_academic_setup', { p_school_id: schoolId });
   if (error) throw userFacingError(error, 'We could not load the academic setup just now.');
   return assertSuccess(data as SchoolAcademicSetup | null, 'academic_setup_unavailable');
+}
+
+export async function fetchSchoolAcademicSystem(schoolId: string): Promise<SchoolAcademicSystem | null> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_academic_system', {
+    p_school_id: schoolId,
+    p_system_code: null,
+  });
+  if (error) throw userFacingError(error, 'We could not load the school system.');
+  const result = assertSuccess(data as { success?: boolean; systemCode?: SchoolAcademicSystem; code?: string } | null, 'academic_system_unavailable');
+  return result.systemCode === 'american' || result.systemCode === 'cambridge' ? result.systemCode : null;
+}
+
+export async function saveSchoolAcademicSystem(schoolId: string, systemCode: SchoolAcademicSystem): Promise<void> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_academic_system', {
+    p_school_id: schoolId,
+    p_system_code: systemCode,
+  });
+  if (error) throw userFacingError(error, 'We could not save the school system.');
+  assertSuccess(data as { success?: boolean; code?: string } | null, 'academic_system_not_saved');
 }
 
 export async function saveAcademicYear(input: {

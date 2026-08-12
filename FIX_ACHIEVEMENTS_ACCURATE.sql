@@ -115,7 +115,7 @@ ALTER TABLE achievements ALTER COLUMN condition_value DROP NOT NULL;
 INSERT INTO achievements (id, name, description, icon, category, rarity, condition_type, condition_value, reward_xp, reward_coins, points) 
 VALUES 
   -- PROGRESSION CATEGORY
-  ('first_login', 'First Steps', 'Welcome to Brain Heist! Complete your first login.', '🎮', 'progression', 'common', 'login_count', 1, 50, 25, 50),
+  ('first_login', 'First Steps', 'Welcome to Brains Heist! Complete your first login.', '🎮', 'progression', 'common', 'login_count', 1, 50, 25, 50),
   ('knowledge_seeker', 'Knowledge Seeker', 'Answer 10 questions correctly.', '📚', 'progression', 'common', 'correct_answers', 10, 100, 50, 100),
   ('scholar', 'Scholar', 'Answer 50 questions correctly.', '🎓', 'progression', 'rare', 'correct_answers', 50, 300, 150, 300),
   ('level_5', 'Rising Star', 'Reach level 5 through dedication.', '⭐', 'progression', 'common', 'level', 5, 150, 75, 150),

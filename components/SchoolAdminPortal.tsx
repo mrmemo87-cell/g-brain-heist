@@ -73,32 +73,32 @@ const IeltsSubmissionReview = React.lazy(() => import('../src/pages/ielts/IeltsS
 const IeltsExamMonitor = React.lazy(() => import('../src/pages/ielts/IeltsExamMonitor'));
 
 const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: string; mobileLabel: string; description: string }> = [
-  { id: 'dashboard', icon: '🏠', label: 'Overview', mobileLabel: 'Overview', description: 'School status and priorities' },
-  { id: 'members', icon: '👥', label: 'Staff & Students', mobileLabel: 'People', description: 'Members, roles and access' },
-  { id: 'teachers', icon: '🎓', label: 'Teacher Assignments', mobileLabel: 'Teachers', description: 'Teaching responsibilities' },
-  { id: 'classes', icon: '🏫', label: 'Classes & Registration', mobileLabel: 'Classes', description: 'Classes and registration' },
-  { id: 'subjects', icon: '📚', label: 'Curriculum & Subjects', mobileLabel: 'Subjects', description: 'Subjects and curriculum' },
-  { id: 'documents', icon: '🗂️', label: 'Document Center', mobileLabel: 'Documents', description: 'Reports, printing and access' },
-  { id: 'admissions', icon: '📝', label: 'Admissions', mobileLabel: 'Admissions', description: 'Admission tests and candidates' },
-  { id: 'cambridge', icon: '🧾', label: 'Cambridge Assessments', mobileLabel: 'Cambridge', description: 'Cambridge assessments' },
-  { id: 'ielts', icon: '🌐', label: 'IELTS Programme', mobileLabel: 'IELTS', description: 'IELTS programme' },
-  { id: 'billing', icon: '💳', label: 'Plan & Billing', mobileLabel: 'Billing', description: 'Plan and billing' },
-  { id: 'settings', icon: '⚙️', label: 'School Settings', mobileLabel: 'Settings', description: 'School configuration' },
+  { id: 'dashboard', icon: 'OV', label: 'Overview', mobileLabel: 'Overview', description: 'School status and priorities' },
+  { id: 'members', icon: 'PE', label: 'Staff & Students', mobileLabel: 'People', description: 'Members, roles and access' },
+  { id: 'teachers', icon: 'TA', label: 'Teacher Assignments', mobileLabel: 'Teachers', description: 'Teaching responsibilities' },
+  { id: 'classes', icon: 'CL', label: 'Classes & Registration', mobileLabel: 'Classes', description: 'Classes and registration' },
+  { id: 'subjects', icon: 'CU', label: 'Curriculum & Subjects', mobileLabel: 'Subjects', description: 'Subjects and curriculum' },
+  { id: 'documents', icon: 'DO', label: 'Document Center', mobileLabel: 'Documents', description: 'Reports, printing and access' },
+  { id: 'admissions', icon: 'AD', label: 'Admissions', mobileLabel: 'Admissions', description: 'Admission tests and candidates' },
+  { id: 'cambridge', icon: 'CA', label: 'Cambridge Assessments', mobileLabel: 'Cambridge', description: 'Cambridge assessments' },
+  { id: 'ielts', icon: 'IE', label: 'IELTS Programme', mobileLabel: 'IELTS', description: 'IELTS programme' },
+  { id: 'billing', icon: 'BI', label: 'Plan & Billing', mobileLabel: 'Billing', description: 'Plan and billing' },
+  { id: 'settings', icon: 'SE', label: 'School Settings', mobileLabel: 'Settings', description: 'School configuration' },
 ];
 
 const SCHOOL_ADMIN_PRIMARY_TAB_IDS = new Set<MainAdminTab>(['dashboard', 'members', 'classes', 'admissions']);
 const SCHOOL_ADMIN_PROGRESS_TOOLS = [
-  { id: 'academic-profiles', icon: '🎓', label: 'Academic Profiles', description: 'Student progress, strengths and focus areas', href: '/teacher-academic-profiles.html' },
-  { id: 'interventions', icon: '🎯', label: 'Interventions', description: 'Targeted academic support and follow-up', href: '/teacher-interventions.html' },
-  { id: 'guardians', icon: '👨‍👩‍👧', label: 'Parents & Guardians', description: 'Invite, verify and manage parent access', href: '/guardian-management.html' },
+  { id: 'academic-profiles', icon: 'AP', label: 'Academic Profiles', description: 'Student progress, strengths and focus areas', href: '/teacher-academic-profiles.html' },
+  { id: 'interventions', icon: 'IN', label: 'Interventions', description: 'Targeted academic support and follow-up', href: '/teacher-interventions.html' },
+  { id: 'guardians', icon: 'PG', label: 'Parents & Guardians', description: 'Invite, verify and manage parent access', href: '/guardian-management.html' },
 ] as const;
 const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
-  { id: 'ielts-exams', icon: '🧪', label: 'Exams', hint: 'Secure mock exams' },
-  { id: 'ielts-practice', icon: '📝', label: 'Assignment Overview', hint: 'Assign & monitor' },
-  { id: 'ielts-reviews', icon: '✍️', label: 'Reviews', hint: 'Writing & speaking' },
-  { id: 'ielts-results', icon: '📈', label: 'Results', hint: 'Student scores' },
+  { id: 'ielts-exams', icon: 'EX', label: 'Exams', hint: 'Secure mock exams' },
+  { id: 'ielts-practice', icon: 'AS', label: 'Assignment Overview', hint: 'Assign & monitor' },
+  { id: 'ielts-reviews', icon: 'RE', label: 'Reviews', hint: 'Writing & speaking' },
+  { id: 'ielts-results', icon: 'RS', label: 'Results', hint: 'Student scores' },
   { id: 'ielts-student-progress', icon: '📊', label: 'Student Progress', hint: 'Journey dashboard' },
-  { id: 'ielts-settings', icon: '⚙️', label: 'Settings', hint: 'Config & features' },
+  { id: 'ielts-settings', icon: 'SE', label: 'Settings', hint: 'Config & features' },
 ];
 
 const getCambridgeReportKey = (score: any) =>
@@ -1020,6 +1020,31 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     }
   };
 
+  const handleConfirmSchoolIdentity = async () => {
+    if (!school || !settingsName.trim()) return;
+    setSavingSettings(true);
+    setSettingsLogoStatus(null);
+    let logoUrl = settingsLogoPreview || school.logo_url || null;
+    if (settingsLogoFile) {
+      const uploaded = await SchoolAdminService.uploadSchoolLogo(school.id, settingsLogoFile);
+      if (!uploaded.success || !uploaded.url) {
+        setSavingSettings(false);
+        setSettingsLogoStatus({ type: 'error', message: uploaded.error || 'The school logo could not be uploaded.' });
+        return;
+      }
+      logoUrl = uploaded.url;
+    }
+    const result = await SchoolAdminService.confirmSchoolIdentity(school.id, settingsName.trim(), logoUrl);
+    setSavingSettings(false);
+    if (!result.success) {
+      addToast(friendlySchoolAdminError(result.error, 'The school identity could not be confirmed.'), 'error');
+      return;
+    }
+    setSettingsLogoFile(null);
+    addToast('School identity confirmed and locked.', 'success');
+    await refreshSchool(school.id);
+  };
+
   const handleSaveClass = async () => {
     if (!school) return;
     const trimmedCode = classForm.class_code.trim();
@@ -1031,7 +1056,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
     const gradeValue = classForm.grade_level.trim() ? Number(classForm.grade_level) : null;
     if (classForm.grade_level.trim() && Number.isNaN(gradeValue)) {
-      addToast('Academic year (grade) must be a number', 'error');
+      addToast('Grade level must be a number', 'error');
       return;
     }
 
@@ -1561,6 +1586,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       handleSaveClass,
       handleSaveEditSubject,
       handleSaveSettings,
+      handleConfirmSchoolIdentity,
       handleStartEditSubject,
       handleSuspendStudent,
       handleUnbanMember,
@@ -1711,7 +1737,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             {currentCapabilities?.is_owner && onOpenSchoolHeadPortal && (
               <button type="button" onClick={onOpenSchoolHeadPortal} className="school-admin-workspace-switch">Executive dashboard</button>
             )}
-            {currentCapabilities?.can_teach && onOpenTeacherPortal && (
+            {currentCapabilities?.can_teach && teacherAssignments.some((assignment) => assignment.active !== false && assignment.teacher_user_id === currentCapabilities.user_id) && onOpenTeacherPortal && (
               <button type="button" onClick={onOpenTeacherPortal} className="school-admin-workspace-switch">Teacher workspace</button>
             )}
             <button

@@ -62,8 +62,8 @@ test('student and teacher interfaces use the governed contracts', () => {
     assert.match(teacher, /Classroom question/);
     assert.match(teacher, /never changes the official Academic Profile/);
     assert.match(teacher, /eligible_grade_levels/);
-    assert.match(setup, /Subjects by grade/);
-    assert.match(setup, /Elective students/);
+    assert.match(setup, /Grade levels and subjects/);
+    assert.match(setup, /Elective enrolment/);
 });
 test('verified authority is fail closed across catalogue and assignment evidence', () => {
     assert.match(authority, /content_origin = 'brain_heist'/);

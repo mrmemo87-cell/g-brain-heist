@@ -1,4 +1,4 @@
--- Admission Hub official Brain Heist admission bank ownership/lockdown.
+-- Admission Hub official Brains Heist admission bank ownership/lockdown.
 -- Prepares adm_question_pools/adm_questions for platform-owned seeded content while
 -- preserving legacy school/global pools for compatibility.
 
@@ -60,7 +60,7 @@ set is_official = true,
     is_locked = true,
     content_owner = 'brain_heist',
     content_version = case when content_version = 'legacy' then 'legacy-import' else content_version end,
-    source_label = 'Brain Heist Official Admission Bank',
+    source_label = 'Brains Heist Official Admission Bank',
     stage_level = coalesce(stage_level, stage)
 where school_id is null;
 
@@ -69,7 +69,7 @@ set is_official = true,
     is_locked = true,
     content_owner = 'brain_heist',
     content_version = case when q.content_version = 'legacy' then 'legacy-import' else q.content_version end,
-    source_label = 'Brain Heist Official Admission Bank',
+    source_label = 'Brains Heist Official Admission Bank',
     grade_level = coalesce(q.grade_level, qp.grade_level),
     stage_level = coalesce(q.stage_level, qp.stage, qp.stage_level),
     strand = coalesce(q.strand, q.diagnostic_skill, q.skill_tag, q.topic)
@@ -166,11 +166,11 @@ begin
   end if;
 
   if tg_op in ('UPDATE', 'DELETE') and (coalesce(old.is_official, false) or coalesce(old.is_locked, false)) then
-    raise exception 'Official Brain Heist admission content is locked for assessment fairness';
+    raise exception 'Official Brains Heist admission content is locked for assessment fairness';
   end if;
 
   if tg_op in ('INSERT', 'UPDATE') and (coalesce(new.is_official, false) or coalesce(new.is_locked, false) or coalesce(new.content_owner, '') = 'brain_heist') then
-    raise exception 'Only platform admins can create or mark official Brain Heist admission content';
+    raise exception 'Only platform admins can create or mark official Brains Heist admission content';
   end if;
 
   return coalesce(new, old);

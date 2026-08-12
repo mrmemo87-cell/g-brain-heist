@@ -1,5 +1,5 @@
 -- ============================================================================
--- G-BRAIN HEIST: BAN-AWARE RLS FOR USERS TABLE
+-- G-BRAINS HEIST: BAN-AWARE RLS FOR USERS TABLE
 -- ============================================================================
 -- Run this after restoring the base users policies. The script refreshes the
 -- policies so banned players lose access while admins keep full control.

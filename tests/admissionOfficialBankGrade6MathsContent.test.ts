@@ -68,14 +68,14 @@ test('Grade 6 Maths international bank v2 fixes the greatest-number answer regre
 
 test('Grade 6 Maths international bank v2 uses production metadata and original-content policy', () => {
   assert.equal(grade6.content_version, 'adm-bank-v2-g6-maths');
-  assert.equal(grade6.source_label, 'Brain Heist International Admission Bank');
+  assert.equal(grade6.source_label, 'Brains Heist International Admission Bank');
   assert.equal(grade6.programme, 'brain_heist_international');
   assert.equal(grade6.copyright_policy, 'original_questions_only');
   assert.equal(map.objectives.length, 36);
 
   for (const record of [...grade6.pools, ...grade6.questions]) {
     assert.equal(record.content_version, 'adm-bank-v2-g6-maths');
-    assert.equal(record.source_label, 'Brain Heist International Admission Bank');
+    assert.equal(record.source_label, 'Brains Heist International Admission Bank');
     assert.equal(record.is_official, true);
     assert.equal(record.is_locked, true);
     assert.equal(record.content_owner, 'brain_heist');

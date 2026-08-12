@@ -1,5 +1,5 @@
 -- Teacher/Admin management RPCs for controlled IELTS Exam Mode.
--- These RPCs create exam events/forms and assign existing Brain Heist users.
+-- These RPCs create exam events/forms and assign existing Brains Heist users.
 -- Student-facing RPCs still receive only public form payloads without answer_key.
 
 create or replace function public.can_create_ielts_exam(p_school_id uuid)
@@ -453,8 +453,8 @@ $$;
 
 comment on function public.rpc_ielts_create_exam_event(text, text, timestamptz, timestamptz, int, text, uuid) is 'Creates a controlled IELTS exam event for an authorized school admin/teacher/superadmin and audits the action.';
 comment on function public.rpc_ielts_create_exam_form(uuid, text, jsonb, jsonb, jsonb, jsonb, jsonb, boolean) is 'Creates or updates an IELTS exam form. answer_key is available only to managers and never returned by student RPCs.';
-comment on function public.rpc_ielts_assign_exam_to_class(uuid, uuid, uuid) is 'Assigns an IELTS exam to existing Brain Heist students in a class using an active exam form.';
-comment on function public.rpc_ielts_assign_exam_to_students(uuid, uuid[], uuid, uuid) is 'Assigns an IELTS exam to selected existing Brain Heist students using an active exam form.';
+comment on function public.rpc_ielts_assign_exam_to_class(uuid, uuid, uuid) is 'Assigns an IELTS exam to existing Brains Heist students in a class using an active exam form.';
+comment on function public.rpc_ielts_assign_exam_to_students(uuid, uuid[], uuid, uuid) is 'Assigns an IELTS exam to selected existing Brains Heist students using an active exam form.';
 comment on function public.rpc_ielts_list_manageable_exams() is 'Lists IELTS exam events manageable or monitorable by the current teacher/admin.';
 comment on function public.rpc_ielts_get_exam_admin_detail(uuid) is 'Returns manager details for forms, school classes, students, and assignments for a controlled IELTS exam.';
 

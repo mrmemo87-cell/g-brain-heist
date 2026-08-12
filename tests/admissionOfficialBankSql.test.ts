@@ -29,7 +29,7 @@ test('school admins cannot mutate official admission bank content', () => {
   assert.match(lockdownSql, /adm_q_official_select/);
   assert.match(lockdownSql, /adm_q_platform_admin_all/);
   assert.match(lockdownSql, /adm_prevent_locked_content_mutation/);
-  assert.match(lockdownSql, /Official Brain Heist admission content is locked for assessment fairness/);
+  assert.match(lockdownSql, /Official Brains Heist admission content is locked for assessment fairness/);
   assert.match(lockdownSql, /is_official = false and is_locked = false and exists/);
 });
 
@@ -66,7 +66,7 @@ test('official bank seed format documents required diagnostic and scoring metada
 });
 
 
-test('legacy official-bank archive migration only targets unreferenced legacy-import Brain Heist rows', () => {
+test('legacy official-bank archive migration only targets unreferenced legacy-import Brains Heist rows', () => {
   assert.match(legacyArchiveSql, /coalesce\(q\.content_version, qp\.content_version\) = 'legacy-import'/);
   assert.match(legacyArchiveSql, /q\.external_id IS NULL/);
   assert.match(legacyArchiveSql, /coalesce\(q\.content_owner, qp\.content_owner\) = 'brain_heist'/);

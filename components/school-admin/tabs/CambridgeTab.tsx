@@ -43,7 +43,7 @@ const CambridgeTab: React.FC = () => {
           <div className="bg-gray-900/70 rounded-xl p-5 border border-purple-500/50 mb-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h4 className="text-lg font-bold text-purple-300">🏫 School-Level Test Visibility</h4>
+                <h4 className="text-lg font-bold text-purple-300">School-level test visibility</h4>
                 <p className="text-xs text-gray-400 mt-1">Choose which tests teachers may release. Disabling a test removes it from every class immediately.</p>
               </div>
               <button
@@ -51,18 +51,16 @@ const CambridgeTab: React.FC = () => {
                 disabled={schoolVisibilityLoading}
                 className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
               >
-                {schoolVisibilityLoading ? '⏳' : '🔄'} Refresh
+                {schoolVisibilityLoading ? 'Loading…' : 'Refresh'}
               </button>
             </div>
 
             {schoolVisibilityLoading ? (
               <div className="text-center py-8 text-gray-400">
-                <div className="text-3xl mb-2">⏳</div>
                 Loading test visibility settings...
               </div>
             ) : schoolVisibility.length === 0 ? (
               <div className="text-center py-8 text-gray-400">
-                <div className="text-3xl mb-2">📋</div>
                 No Cambridge tests found in the catalog.
               </div>
             ) : (
@@ -127,7 +125,7 @@ const CambridgeTab: React.FC = () => {
                       </button>
                       <button
                         onClick={() => setConfirmDialog({
-                          title: '🔒 Hide Selected Tests?',
+                          title: 'Hide selected tests?',
                           description: `This will disable ${selectedSchoolTests.size} test(s) school-wide and remove them from every student, even if a teacher released them.`,
                           confirmLabel: 'Hide Tests',
                           isDestructive: true,
@@ -171,7 +169,7 @@ const CambridgeTab: React.FC = () => {
                       </div>
                       <button
                         onClick={() => setConfirmDialog({
-                          title: test.is_visible ? '🔒 Hide This Test?' : '👁️ Show This Test?',
+                          title: test.is_visible ? 'Hide this test?' : 'Show this test?',
                           description: test.is_visible
                             ? `"${test.test_name}" will be disabled school-wide and removed from every student's test list.`
                             : `"${test.test_name}" will become available for teachers to release to assigned classes.`,
@@ -187,7 +185,7 @@ const CambridgeTab: React.FC = () => {
                             : 'bg-red-600/20 text-red-300 border border-red-500/50 hover:bg-red-600/40'
                         }`}
                       >
-                        {test.is_visible ? '👁️ Visible' : '🔒 Hidden'}
+                        {test.is_visible ? 'Visible' : 'Hidden'}
                       </button>
                     </div>
                   ))}
@@ -208,7 +206,7 @@ const CambridgeTab: React.FC = () => {
             disabled={quizScoresLoading}
             className="cambridge-white-action bg-cyan-600 hover:bg-cyan-500 text-white font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
           >
-            {quizScoresLoading ? '⏳ Loading...' : '🔄 Load/Refresh Reports'}
+            {quizScoresLoading ? 'Loading…' : 'Load or refresh reports'}
           </button>
           {quizScores.length > 0 && (
             <button
@@ -363,7 +361,7 @@ const CambridgeTab: React.FC = () => {
 
         {quizScores.length === 0 && !quizScoresLoading && (
           <div className="text-center p-8 text-gray-400">
-            <p className="text-lg mb-2">📋 No Cambridge test submissions yet</p>
+            <p className="text-lg mb-2">No Cambridge test submissions yet</p>
             <p className="text-sm">Click "Load/Refresh Reports" to check for new submissions</p>
           </div>
         )}

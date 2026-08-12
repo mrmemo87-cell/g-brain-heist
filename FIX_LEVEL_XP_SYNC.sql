@@ -1,5 +1,5 @@
 -- ==============================================================================
--- G-BRAIN HEIST: FIX LEVEL/XP SYNCHRONIZATION
+-- G-BRAINS HEIST: FIX LEVEL/XP SYNCHRONIZATION
 -- ==============================================================================
 -- This migration fixes the level/XP mismatch issue where:
 --   - XP gets updated (e.g., 12015)

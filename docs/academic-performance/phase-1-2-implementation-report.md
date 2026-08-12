@@ -48,7 +48,7 @@ The migration performs the following without duplicating question content:
 - Classifies all 1,055 active questions with a documented deterministic ruleset.
 - Keeps the private teacher question in review.
 - Registers and approves the 1,054 public questions in the governed assessment-item registry.
-- Publishes **Brain Heist International 2026.1**, an original Brain Heist framework. It makes no Cambridge, IB, SAT or other external endorsement claim.
+- Publishes **Brains Heist International 2026.1**, an original Brains Heist framework. It makes no Cambridge, IB, SAT or other external endorsement claim.
 - Creates Grades 1–12 as framework stages.
 - Keeps all 13 active canonical subjects available to schools; subjects without reviewed bank content show zero approved questions.
 - Maps the current bank only to supported Grades 6–9:
@@ -85,7 +85,7 @@ The objective ID is the atomic analytical key. Results can roll up to subskill, 
 
 1. Open **School Administration → Curriculum & Subjects**.
 2. Save the current academic year.
-3. Select the published Brain Heist framework.
+3. Select the published Brains Heist framework.
 4. Open each grade and choose its subjects.
 5. Mark additional languages and other optional subjects as elective where appropriate.
 6. Save each grade to create student academic enrolments from current classes.

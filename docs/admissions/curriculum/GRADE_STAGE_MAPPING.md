@@ -1,8 +1,8 @@
 # Admission Grade-to-Stage Mapping
 
-Grade and curriculum level/stage are separate fields. A curriculum map is valid only when the map includes an explicit mapping decision. Cambridge-linked maps use Cambridge stages; Brain Heist International maps may use general admission-readiness level definitions.
+Grade and curriculum level/stage are separate fields. A curriculum map is valid only when the map includes an explicit mapping decision. Cambridge-linked maps use Cambridge stages; Brains Heist International maps may use general admission-readiness level definitions.
 
-| School grade | Cambridge-linked default | Brain Heist International default |
+| School grade | Cambridge-linked default | Brains Heist International default |
 |---:|---|---:|
 | 1 | Cambridge Primary | 1 |
 | 2 | Cambridge Primary | 2 |

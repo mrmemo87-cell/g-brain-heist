@@ -1,5 +1,5 @@
 -- Admission legacy official-bank cleanup inspection.
--- Reports whether legacy/unmanaged Brain Heist official-looking rows are referenced by forms or attempts.
+-- Reports whether legacy/unmanaged Brains Heist official-looking rows are referenced by forms or attempts.
 -- can_archive is true only when no generated form or attempt references the question rows.
 
 WITH legacy_questions AS (

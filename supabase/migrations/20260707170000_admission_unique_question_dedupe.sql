@@ -78,7 +78,7 @@ BEGIN
         END IF;
     END IF;
 
-    IF v_pool_ids IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'No official Brain Heist admission question pools match this blueprint'); END IF;
+    IF v_pool_ids IS NULL THEN RETURN jsonb_build_object('success', false, 'error', 'No official Brains Heist admission question pools match this blueprint'); END IF;
 
     v_base_form_code := COALESCE(p_form_code, UPPER(LEFT(v_bp.subject, 3)) || COALESCE(v_bp.target_stage::text, '') || '-' || TO_CHAR(NOW(), 'YYYY') || '-' || UPPER(SUBSTR(gen_random_uuid()::text, 1, 4)));
     v_form_code := v_base_form_code;

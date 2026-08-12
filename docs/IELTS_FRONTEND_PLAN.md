@@ -1,6 +1,6 @@
 # IELTS Prep Center Frontend Plan
 
-This document captures the React + TypeScript + Tailwind implementation details for the IELTS Prep Center inside the Brain Heist app.
+This document captures the React + TypeScript + Tailwind implementation details for the IELTS Prep Center inside the Brains Heist app.
 
 ## 1. Route configuration
 
@@ -89,7 +89,7 @@ const IeltsLayout = () => {
       <header className="border-b bg-gradient-to-r from-sky-50 to-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-widest text-sky-500">Brain Heist Academy</p>
+            <p className="text-sm uppercase tracking-widest text-sky-500">Brains Heist Academy</p>
             <h1 className="text-3xl font-semibold text-slate-900">IELTS Prep Center</h1>
             <p className="text-sm text-slate-500">
               Focused training for Reading, Listening, Writing & Speaking
@@ -485,4 +485,4 @@ const WritingTaskPage = ({ task }: { task: IeltsWritingTask }) => {
 };
 ```
 
-These snippets can be dropped directly into a Vite + React + Tailwind + Supabase setup and expanded for the remaining IELTS routes. All UI elements strictly avoid XP, coins, or other Brain Heist game systems and focus solely on IELTS learning flows.
+These snippets can be dropped directly into a Vite + React + Tailwind + Supabase setup and expanded for the remaining IELTS routes. All UI elements strictly avoid XP, coins, or other Brains Heist game systems and focus solely on IELTS learning flows.

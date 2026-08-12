@@ -27,7 +27,7 @@ function makeMinimalSeed(overrides = {}) {
                 stage_level: 'primary',
                 text: overrides.passageText ?? 'A clean shared passage.',
                 content_version: 'test-v1',
-                source_label: 'Brain Heist Official Admission Bank',
+                source_label: 'Brains Heist Official Admission Bank',
             }],
     });
     writeJson(path.join(dir, 'shared', 'writing_rubrics.json'), {
@@ -40,7 +40,7 @@ function makeMinimalSeed(overrides = {}) {
                 max_marks: 6,
                 criteria: [{ name: 'Ideas', max_marks: 3 }],
                 content_version: 'test-v1',
-                source_label: 'Brain Heist Official Admission Bank',
+                source_label: 'Brains Heist Official Admission Bank',
             }],
     });
     for (const subject of ['english', 'maths'])
@@ -55,7 +55,7 @@ function makeMinimalSeed(overrides = {}) {
                 placement_band: 'foundation',
                 name: 'Science pool',
                 content_version: 'test-v1',
-                source_label: 'Brain Heist Official Admission Bank',
+                source_label: 'Brains Heist Official Admission Bank',
             }],
         questions: [{
                 ...official,
@@ -75,7 +75,7 @@ function makeMinimalSeed(overrides = {}) {
                 marks: 1,
                 estimated_seconds: 60,
                 content_version: 'test-v1',
-                source_label: 'Brain Heist Official Admission Bank',
+                source_label: 'Brains Heist Official Admission Bank',
                 options: ['A', 'B', 'C', 'D'],
                 correct_answer: 'A',
                 correct_index: 0,
