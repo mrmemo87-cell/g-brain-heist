@@ -62,13 +62,17 @@ test('teacher assignments lead with current coverage and use school-created grad
   assert.match(teachers, /No teaching staff registered yet/);
 });
 
-test('classes group teaching coverage by grade level and expose no archive action', () => {
+test('classes group teaching coverage by grade level and expose guarded class management', () => {
   assert.match(classes, /Grades, classes and teaching coverage/);
   assert.match(classes, /grades\.map/);
   assert.match(classes, /<select[\s\S]*?Select grade level/);
   assert.match(classes, /handleEditClass\(row\)/);
+  assert.match(classes, /startAddForGrade\(String\(grade\)\)/);
+  assert.match(classes, /requestClassRemoval\(row, rows\.length\)/);
+  assert.match(classes, /Historical reports and school records will remain intact/);
+  assert.match(classes, /SchoolAdminService\.archiveSchoolClass/);
   assert.doesNotMatch(classes, /Filter classes by academic year \(grade\)/);
-  assert.doesNotMatch(classes, /Archive Class|>\s*Archive\s*<\/|archiveSchoolClass/);
+  assert.doesNotMatch(classes, /Archive Class|>\s*Archive\s*</);
   assert.doesNotMatch(classes, />Active<\/label>/);
 });
 
