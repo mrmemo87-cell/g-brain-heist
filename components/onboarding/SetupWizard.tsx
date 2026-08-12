@@ -163,95 +163,44 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
     try {
       if (path === 'school') {
-        // Use profile_bootstrap which handles missing user rows and joins the school atomically.
-        // Falls back to invite code join if school_id is unavailable.
-        if (schoolId) {
-          const bootstrapResult = await AuthService.bootstrapProfile(
-            schoolId,
-            finalRole,
-            finalRole === 'student' ? (grade ?? undefined) : undefined,
-            finalRole === 'student'
-              ? (approvedClasses.find((item) => item.id === selectedClassId)?.class_code as Batch | undefined) ?? 'N/A'
-              : undefined,
-            username || undefined,
+        const schoolBatch = finalRole === 'student'
+          ? (approvedClasses.find((item) => item.id === selectedClassId)?.class_code as Batch | undefined) ?? 'N/A'
+          : undefined;
+
+        // School membership must be created through the governed invite-code flow.
+        // The server keeps membership + profile completion atomic and never trusts
+        // a browser-provided school_id as authority.
+        const { data: schoolSetupResult, error: schoolSetupError } = await AuthService.supabase.rpc(
+          'complete_school_setup_by_code',
+          {
+            p_invite_code: inviteCodeNormalized,
+            p_role: finalRole,
+            p_grade: finalRole === 'student' ? (grade ?? null) : null,
+            p_batch: finalRole === 'student' ? schoolBatch : null,
+            p_username: username.trim() || null,
+          },
+        );
+
+        if (schoolSetupError || !schoolSetupResult?.success) {
+          console.error('School setup failed:', schoolSetupError ?? schoolSetupResult);
+          setError(
+            schoolSetupResult?.error
+              || 'We could not finish joining this school. Please check the invite code and try again.',
           );
+          setStep('invite_code');
+          return;
+        }
 
-          if (!bootstrapResult.success) {
-            setError(bootstrapResult.error || 'Failed to join school');
-            setStep('invite_code');
-            return;
-          }
-
-          if (finalRole === 'student' && grade && selectedClassId) {
-            const classEnrollmentResult = await AuthService.enrollInApprovedSchoolClass(selectedClassId);
-            if (!classEnrollmentResult.success) {
-              setError(classEnrollmentResult.error || 'The selected class is no longer available. Please choose again.');
-              setStep('student_details');
-              return;
-            }
-          } else if (finalRole === 'student' && grade) {
+        if (finalRole === 'student' && grade && selectedClassId) {
+          const classEnrollmentResult = await AuthService.enrollInApprovedSchoolClass(selectedClassId);
+          if (!classEnrollmentResult.success) {
+            console.error('Approved class enrollment failed after school setup:', classEnrollmentResult.error);
             const placementResult = await AuthService.requestSchoolClassPlacement(String(grade), requestedClass);
             if (!placementResult.success) console.error('Placement request failed:', placementResult.error);
           }
-        } else {
-          // Fallback: direct code join (legacy path)
-          const joinResult = await AuthService.joinSchoolByCode(inviteCodeNormalized, finalRole);
-
-          if (!joinResult.success) {
-            setError(joinResult.error || 'Failed to join school');
-            setStep('invite_code');
-            return;
-          }
-
-          // Update grade/batch / clear needs_setup after legacy join
-          const currentUserId = (await AuthService.supabase.auth.getUser()).data.user?.id;
-          if (!currentUserId) {
-            setError('Session expired. Please sign in again.');
-            setStep('invite_code');
-            return;
-          }
-          if (finalRole === 'student' && grade && batch) {
-            const { error: updateError } = await AuthService.supabase
-              .from('users')
-              .update({
-                grade: grade,
-                batch: batch,
-                needs_setup: false,
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', currentUserId);
-
-            if (updateError) {
-              // Membership already created — log the failure but proceed to setup complete
-              // rather than blocking the user in a partial-success state.
-              console.error('Failed to update student details after joining school:', updateError);
-            }
-
-            if (selectedClassId) {
-              const classEnrollmentResult = await AuthService.enrollInApprovedSchoolClass(selectedClassId);
-              if (!classEnrollmentResult.success) {
-                console.error('Setup school class enrollment failed (legacy join):', classEnrollmentResult.error);
-              }
-            } else {
-              const placementResult = await AuthService.requestSchoolClassPlacement(String(grade), requestedClass);
-              if (!placementResult.success) console.error('Placement request failed (legacy join):', placementResult.error);
-            }
-          } else if (finalRole !== 'student') {
-            // Teachers (and other non-student roles) also need needs_setup cleared
-            const { error: updateError } = await AuthService.supabase
-              .from('users')
-              .update({
-                needs_setup: false,
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', currentUserId);
-
-            if (updateError) {
-              // Membership already created — log the failure but proceed to setup complete
-              // rather than blocking the user in a partial-success state.
-              console.error('Failed to clear needs_setup for non-student role:', updateError);
-            }
-          }
+        } else if (finalRole === 'student' && grade) {
+          const placementResult = await AuthService.requestSchoolClassPlacement(String(grade), requestedClass);
+          if (!placementResult.success) console.error('Placement request failed:', placementResult.error);
         }
       } else if (path === 'individual') {
         // Individual setup
