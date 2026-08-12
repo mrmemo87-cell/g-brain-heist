@@ -145,10 +145,14 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /strict: true/);
   assert.match(edge, /Assessment evidence failed strict validation/);
   assert.match(edge, /assessment_status = verified \? "verified" : "needs_review"/);
-  assert.match(edge, /independent Brains Heist writing diagnostic auditor/);
-  assert.match(edge, /Inspect every sentence and boundary/);
+  assert.match(edge, /independent Brains Heist language diagnostic auditor/);
+  assert.match(edge, /Inspect every sentence and every sentence boundary/);
   assert.match(edge, /diagnostic_coverage_complete/);
   assert.match(edge, /false_positive_free/);
+  assert.match(edge, /languageAuditSchema/);
+  assert.match(edge, /uncertain_items/);
+  assert.match(edge, /diagnostic_corrections_count/);
+  assert.match(edge, /WRITING_ASSESSMENT_MODEL.*gpt-4o/);
   assert.match(edge, /const shouldVerify = enoughWriting/);
   assert.match(edge, /Boolean\(diagnosticAudit\)/);
   assert.match(edge, /diagnostic_coverage_incomplete/);
