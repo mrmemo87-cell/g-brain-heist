@@ -1,0 +1,32 @@
+name: Patch school onboarding follow-up
+
+on:
+  push:
+    branches:
+      - fix/school-onboarding-followup
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/school-onboarding-followup
+          fetch-depth: 0
+      - name: Patch onboarding and school access UI
+        run: node scripts/patch-school-onboarding-followup.mjs
+      - name: Commit product patch
+        run: |
+          if git diff --quiet -- components/onboarding/SetupWizard.tsx components/UpgradeModal.tsx; then
+            echo "Product files already patched."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/onboarding/SetupWizard.tsx components/UpgradeModal.tsx
+          git commit -m "Fix school onboarding follow-up issues"
+          git push origin HEAD:fix/school-onboarding-followup
