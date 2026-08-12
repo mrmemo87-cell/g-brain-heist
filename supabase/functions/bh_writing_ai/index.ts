@@ -399,10 +399,15 @@ const normalizeCriterionEvidence = (value: unknown, response: string) => {
     }
     return { quote: span.quote, start_char: start, end_char: end };
   });
-  if (evidence.some((item) => !item)) return null;
+  const groundedEvidence = evidence.filter(
+    (item): item is { quote: string; start_char: number; end_char: number } => Boolean(item),
+  );
+  // A model can supply several citations and miss one offset. Reject only the
+  // ungrounded citation; keep the criterion fail-closed when none are exact.
+  if (groundedEvidence.length === 0) return null;
   return {
     score: Number(record.score), confidence: record.confidence, descriptor_id: record.descriptor_id.trim(),
-    justification: record.justification.trim(), evidence,
+    justification: record.justification.trim(), evidence: groundedEvidence,
   };
 };
 
