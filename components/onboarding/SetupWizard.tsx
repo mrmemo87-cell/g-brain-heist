@@ -58,6 +58,13 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   const inviteCodeReady = inviteCodeNormalized.length >= 6;
 
   const batchOptions = grade ? GRADE_TO_BATCH[grade] : ['N/A'];
+  const schoolGradeOptions = Array.from(new Set(
+    approvedClasses
+      .map((item) => Number(item.grade_level))
+      .filter((value) => Number.isInteger(value) && value >= 6 && value <= 12),
+  )).sort((a, b) => a - b) as Grade[];
+  const schoolHasConfiguredGrades = schoolGradeOptions.length > 0;
+  const studentGradeRequired = path === 'individual' || schoolHasConfiguredGrades;
 
   const getStepNumber = (): number => {
     if (step === 'path') return 1;
@@ -148,8 +155,10 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   const handleSubmit = async (submittedRole?: 'student' | 'teacher') => {
     const finalRole = submittedRole || role;
     
-    if (finalRole === 'student' && !grade) {
-      setError('Please select your grade and class');
+    if (finalRole === 'student' && studentGradeRequired && !grade) {
+      setError(path === 'school'
+        ? 'Please select a grade configured by your school.'
+        : 'Please select your grade and class');
       return;
     }
     if (finalRole === 'student' && (fullName.trim().length < 5 || !fullName.trim().includes(' '))) {
@@ -581,7 +590,9 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium text-gray-300 mb-2 block">Grade *</span>
+          <span className="text-sm font-medium text-gray-300 mb-2 block">
+            {path === 'school' && !schoolHasConfiguredGrades ? 'Grade' : 'Grade *'}
+          </span>
           <select
             value={grade || ''}
             onChange={(e) => {
@@ -592,15 +603,24 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
               setError(null);
             }}
             className="w-full bg-gray-800 border border-gray-600 rounded-lg p-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
-            disabled={isLoading}
+            disabled={isLoading || (path === 'school' && !schoolHasConfiguredGrades)}
           >
-            <option value="">Select your grade</option>
-            {[6, 7, 8, 9, 10, 11, 12].map((g) => (
+            <option value="">
+              {path === 'school' && !schoolHasConfiguredGrades ? 'School will assign your grade' : 'Select your grade'}
+            </option>
+            {(path === 'school' ? schoolGradeOptions : [6, 7, 8, 9, 10, 11, 12]).map((g) => (
               <option key={g} value={g}>
                 Grade {g}
               </option>
             ))}
           </select>
+          {path === 'school' && !schoolHasConfiguredGrades && (
+            <div className="mt-3 rounded-xl border border-cyan-400/30 bg-cyan-400/10 p-3">
+              <p className="text-xs leading-relaxed text-cyan-100">
+                Your school has not configured grades or classes yet. You can finish registration now; your school administrator can place you later.
+              </p>
+            </div>
+          )}
         </label>
 
         {path === 'school' ? <label className="block">
@@ -619,7 +639,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
               <option key={item.id} value={item.id}>{item.class_code}{item.class_name !== item.class_code ? ` · ${item.class_name}` : ''}</option>
             ))}
           </select>
-          {!grade && (
+          {!grade && schoolHasConfiguredGrades && (
             <p className="mt-1 text-xs text-gray-500">Select a grade first</p>
           )}
           {grade && !selectedClassId && <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3">
@@ -635,7 +655,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
         <button
           onClick={() => handleSubmit()}
-          disabled={!grade || fullName.trim().length < 5 || !fullName.trim().includes(' ') || isLoading}
+          disabled={(studentGradeRequired && !grade) || fullName.trim().length < 5 || !fullName.trim().includes(' ') || isLoading}
           className="w-full py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:scale-100"
         >
           {isLoading ? 'Setting up...' : 'Complete Setup'}
