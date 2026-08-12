@@ -30,6 +30,7 @@ import {
   type CambridgeExpectedAnswer,
 } from './cambridgeListeningReview';
 import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, tryConsumePilotQuota, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
+import { getEntitlements, type EntitlementSet } from '../services/entitlementService';
 import ProfessionalCambridgeReport, { generateSerialNumber, StudentOverviewReport, getGradeFromPercentage } from './ProfessionalCambridgeReport';
 import type { ProfessionalReportData, StudentOverviewReportData, StudentTestEntry } from './ProfessionalCambridgeReport';
 const CollectiveAssignmentReport = React.lazy(() => import('./CollectiveAssignmentReport'));
@@ -166,6 +167,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [bulkPasteText, setBulkPasteText] = useState('');
   const [editingQuestion, setEditingQuestion] = useState<TeacherQuestion | null>(null);
   const [isProPlan, setIsProPlan] = useState(() => isPro(_cachedTeacherTier));
+  const [effectiveEntitlements, setEffectiveEntitlements] = useState<EntitlementSet | null>(null);
   const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
   const [questionSearchTerm, setQuestionSearchTerm] = useState('');
   const [questionSubjectFilter, setQuestionSubjectFilter] = useState<'all' | Subject>('all');
@@ -803,9 +805,22 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }).catch(() => {});
     }
 
+    getEntitlements(true).then(setEffectiveEntitlements).catch(() => setEffectiveEntitlements(null));
+
     // Fetch pilot quotas (non-blocking)
     fetchPilotQuotas().then(q => { if (q) setPilotQuotas(q); }).catch(() => {});
   }, []);
+
+  const canUseWritingModule = !profile.school_id || effectiveEntitlements?.modules.writing === true;
+  const canUseCambridgeModule = !profile.school_id || effectiveEntitlements?.modules.cambridge === true;
+
+  useEffect(() => {
+    if (!effectiveEntitlements) return;
+    const writingView = ['writing-hub', 'writing-monitoring', 'writing-analytics', 'writing-export-center'].includes(view);
+    if ((writingView && !canUseWritingModule) || (view === 'cambridge-reports' && !canUseCambridgeModule)) {
+      setView('dashboard');
+    }
+  }, [canUseCambridgeModule, canUseWritingModule, effectiveEntitlements, view]);
 
   // Set default subject to first assigned subject when teacher has class assignments
   useEffect(() => {
@@ -8058,12 +8073,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     { id: 'interventions', label: 'Interventions', icon: '🎯', description: 'Targeted Support & Follow-up', proOnly: true },
     ...(profile.school_id ? [{ id: 'documents' as const, label: 'Document Center', icon: '🗃️', description: 'Print History & Reprints', proOnly: true }] : []),
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
-    ...(canAccessWritingInsights
+    ...(canAccessWritingInsights && canUseWritingModule
       ? [
           { id: 'writing-hub' as const, label: 'Writing Hub', icon: '✍️', description: 'Monitor, analyse, and export writing progress', proOnly: true },
         ]
       : []),
-    { id: 'cambridge', label: 'Cambridge Tests', icon: '🧾', description: 'Writing & Test Results', proOnly: true },
+    ...(canUseCambridgeModule
+      ? [{ id: 'cambridge' as const, label: 'Cambridge Tests', icon: '🧾', description: 'Writing & Test Results', proOnly: true }]
+      : []),
     { id: 'clan-wars', label: 'Clan Wars', icon: '⚔️', description: 'Host official class battles' },
   ];
 
@@ -8101,7 +8118,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     };
     const featureLabel = tabQuotaMap[tab.id];
     const quota = featureLabel ? getQuotaForFeature(featureLabel, pilotQuotas) : null;
-    const pilotExhausted = Boolean(isPilot && quota?.exhausted);
+    const pilotExhausted = false;
     return {
       isPilot,
       quota,

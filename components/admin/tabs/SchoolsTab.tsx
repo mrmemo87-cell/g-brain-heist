@@ -3,14 +3,14 @@ import { useAdmin } from '../AdminContext';
 
 const SchoolsTab: React.FC = () => {
   const {
-    SCHOOL_PLANS, addToast, currentSchoolAdmin, extendDays, filteredSchoolMembers, 
-    handleExtendTrial, handleResetQuotas, handleSetQuota, handleSetSchoolAdmin, isSuperadmin, 
-    loadSchoolMembers, loadSchoolQuotas, pilotTrialEnd, quotaActionLoading, quotaEditFeature, 
-    quotaEditValue, schoolAdminActionLoading, schoolAdminSchoolId, schoolMemberSearch, 
+    currentSchoolAdmin, filteredSchoolMembers,
+    handleSetSchoolAdmin, isSuperadmin,
+    loadSchoolMembers, loadSchoolQuotas, pilotTrialEnd,
+    schoolAdminActionLoading, schoolAdminSchoolId, schoolMemberSearch,
     schoolMembersError, schoolMembersLoading, schoolOptions, schoolQuotas, schoolQuotasLoading, 
-    setExtendDays, setPilotTrialEnd, setQuotaEditFeature, setQuotaEditValue, 
+    setPilotTrialEnd,
     setSchoolAdminSchoolId, setSchoolMemberSearch, setSchoolMembers, setSchoolMembersError, 
-    setSchoolQuotas, supabase, users,
+    setSchoolQuotas, users,
   } = useAdmin();
 
   return (
@@ -86,32 +86,11 @@ const SchoolsTab: React.FC = () => {
             </div>
           )}
 
-          {/* Plan Management */}
+          {/* Billing access is governed from the dedicated Billing tab. */}
           {schoolAdminSchoolId && (
             <div className="mt-4 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-4 py-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-sm font-semibold text-emerald-200">💳 School Plan:</span>
-                <select
-                  defaultValue={schoolOptions.find(s => s.id === schoolAdminSchoolId)?.school_plan || 'none'}
-                  onChange={async (e) => {
-                    const newPlan = e.target.value;
-                    const { data, error } = await supabase.rpc('admin_set_school_plan', {
-                      p_school_id: schoolAdminSchoolId,
-                      p_plan: newPlan,
-                    });
-                    if (error || !data?.success) {
-                      addToast(error?.message || data?.error || 'Failed to set plan', 'error');
-                      return;
-                    }
-                    addToast(`✅ School plan set to ${newPlan}`, 'success');
-                  }}
-                  className="rounded-lg border border-emerald-400/30 bg-black/40 px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                >
-                  {SCHOOL_PLANS.map(p => (
-                    <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
-                  ))}
-                </select>
-              </div>
+              <p className="text-sm font-semibold text-emerald-100">Billing and programme access are managed in Billing.</p>
+              <p className="mt-1 text-xs text-emerald-100/70">A verified agreement must name the exact programmes before access changes.</p>
             </div>
           )}
 
@@ -119,7 +98,7 @@ const SchoolsTab: React.FC = () => {
           {schoolAdminSchoolId && schoolQuotas && (
             <div className="mt-4 rounded-lg border border-amber-400/30 bg-amber-500/5 p-4">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                <h4 className="text-sm font-bold text-amber-200">⚡ Pilot Quota Usage</h4>
+                <div><h4 className="text-sm font-bold text-amber-200">Pilot usage signals</h4><p className="mt-1 text-xs text-amber-100/60">Informational only. Usage never shortens the fixed 30-day all-feature pilot.</p></div>
                 <div className="flex flex-wrap items-center gap-2">
                   {pilotTrialEnd && (
                     <span className="text-xs text-amber-300/80">
@@ -130,30 +109,6 @@ const SchoolsTab: React.FC = () => {
                       )}
                     </span>
                   )}
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min={1}
-                      max={365}
-                      value={extendDays}
-                      onChange={(e) => setExtendDays(Math.max(1, parseInt(e.target.value) || 30))}
-                      className="w-14 rounded border border-amber-400/30 bg-black/40 px-1.5 py-1 text-xs text-white text-center focus:outline-none focus:ring-1 focus:ring-amber-400"
-                    />
-                    <button
-                      onClick={() => handleExtendTrial(schoolAdminSchoolId, extendDays)}
-                      disabled={quotaActionLoading}
-                      className="rounded border border-amber-400/40 bg-amber-500/20 px-2 py-1 text-xs font-semibold text-amber-100 hover:bg-amber-500/30 disabled:opacity-50"
-                    >
-                      ➕ Extend
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => { if (confirm('Reset ALL quotas to 0? Students will get full usage back.')) handleResetQuotas(schoolAdminSchoolId); }}
-                    disabled={quotaActionLoading}
-                    className="rounded border border-red-400/40 bg-red-500/20 px-2.5 py-1 text-xs font-semibold text-red-100 hover:bg-red-500/30 disabled:opacity-50"
-                  >
-                    🔄 Reset All
-                  </button>
                   <button
                     onClick={() => loadSchoolQuotas(schoolAdminSchoolId)}
                     disabled={schoolQuotasLoading}
@@ -167,52 +122,14 @@ const SchoolsTab: React.FC = () => {
               <div className="grid gap-2 md:grid-cols-2">
                 {Object.entries(schoolQuotas).map(([fid, q]) => {
                   const pct = q.limit > 0 ? Math.min((q.used / q.limit) * 100, 100) : 0;
-                  const barColor = q.exhausted ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-emerald-500';
+                  const barColor = pct >= 100 ? 'bg-cyan-500' : pct > 75 ? 'bg-amber-500' : 'bg-emerald-500';
                   const label = fid.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-                  const isEditing = quotaEditFeature === fid;
                   return (
                     <div key={fid} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-semibold text-white/80">{label}</span>
                         <div className="flex items-center gap-1.5">
-                          {isEditing ? (
-                            <>
-                              <input
-                                type="number"
-                                min={0}
-                                max={9999}
-                                value={quotaEditValue}
-                                onChange={(e) => setQuotaEditValue(e.target.value)}
-                                className="w-16 rounded border border-cyan-400/40 bg-black/60 px-1.5 py-0.5 text-xs text-white text-center focus:outline-none focus:ring-1 focus:ring-cyan-400"
-                                autoFocus
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleSetQuota(schoolAdminSchoolId, fid, parseInt(quotaEditValue) || 0);
-                                  if (e.key === 'Escape') setQuotaEditFeature(null);
-                                }}
-                              />
-                              <button
-                                onClick={() => handleSetQuota(schoolAdminSchoolId, fid, parseInt(quotaEditValue) || 0)}
-                                disabled={quotaActionLoading}
-                                className="text-xs text-emerald-400 hover:text-emerald-300 font-bold"
-                              >✓</button>
-                              <button
-                                onClick={() => setQuotaEditFeature(null)}
-                                className="text-xs text-gray-400 hover:text-gray-300"
-                              >✕</button>
-                            </>
-                          ) : (
-                            <>
-                              <span className={`text-xs font-bold ${q.exhausted ? 'text-red-400' : 'text-white/90'}`}>
-                                {q.used}/{q.limit}
-                              </span>
-                              {q.exhausted && <span className="text-[10px] text-red-400 font-bold">EXHAUSTED</span>}
-                              <button
-                                onClick={() => { setQuotaEditFeature(fid); setQuotaEditValue(String(q.used)); }}
-                                className="text-xs text-cyan-400 hover:text-cyan-300 ml-1"
-                                title="Edit usage count"
-                              >✏️</button>
-                            </>
-                          )}
+                          <span className="text-xs font-bold text-white/90">{q.used} recorded</span>
                         </div>
                       </div>
                       <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">

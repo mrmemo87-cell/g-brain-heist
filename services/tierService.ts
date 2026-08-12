@@ -524,8 +524,9 @@ export function getQuotaForFeature(
 /**
  * Try to consume a pilot quota unit for the given feature.
  * - If NOT on a pilot plan, returns { proceed: true } (no quota to track).
- * - If on pilot and quota available, consumes 1 unit and returns { proceed: true }.
- * - If on pilot and quota exhausted, returns { proceed: false }.
+ * - If on pilot, records one usage unit and returns { proceed: true }.
+ * Pilot usage is telemetry only. Every included feature remains available for
+ * the full fixed 30-day period.
  *
  * Call this at the moment the user performs the action (starts PvP, buys item, etc.).
  */
@@ -553,21 +554,16 @@ export async function tryConsumePilotQuota(
       return { proceed: true };
     }
 
-    // Already exhausted — block
-    if (quota.exhausted) {
-      return { proceed: false, remaining: 0, error: 'You\'ve reached the usage limit for this feature on the Pilot plan. Upgrade to a paid plan to continue.' };
-    }
-
     // Consume 1 unit
     const result = await consumePilotQuota(featureId, 1);
     if (!result.success) {
-      return { proceed: false, remaining: result.remaining, error: result.error };
+      return { proceed: true, remaining: result.remaining, error: result.error };
     }
 
     return { proceed: true, remaining: result.remaining };
   } catch (err) {
     console.warn('[tierService] tryConsumePilotQuota error:', err);
-    // Fail closed — don't let errors bypass quotas
-    return { proceed: false, error: 'Unable to verify your plan usage at this time. Please try again shortly.' };
+    // Usage telemetry must never shorten an otherwise active pilot.
+    return { proceed: true, error: 'Pilot usage could not be recorded.' };
   }
 }
