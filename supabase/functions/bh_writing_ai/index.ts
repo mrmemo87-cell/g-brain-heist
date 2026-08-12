@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.1";
 import OpenAI from "https://esm.sh/openai@4.52.3";
+import {
+  applyCanonicalCorrections,
+  reconcileCanonicalCorrections,
+  type CanonicalCorrection,
+} from "./canonical_corrections.ts";
 
 type Mode = "assessment_v2" | "feedback" | "plan_assist" | "prompt_rewrite";
 
@@ -204,7 +209,10 @@ const getUserRole = async (
 };
 
 const WRITING_RUBRIC_VERSION = "bh-writing-rubric-v2";
-const WRITING_EVALUATOR_VERSION = "bh-writing-assessment-v2";
+const WRITING_PIPELINE_VERSION = Deno.env.get("BH_WRITING_PIPELINE_VERSION")?.trim() || "canonical-v3";
+const WRITING_EVALUATOR_VERSION = WRITING_PIPELINE_VERSION === "legacy-v2"
+  ? "bh-writing-assessment-v2"
+  : "bh-writing-assessment-v3";
 const WRITING_ASSESSMENT_MODEL = Deno.env.get("BH_WRITING_ASSESSMENT_MODEL")?.trim() || "gpt-4o";
 const WRITING_VERIFIER_MODEL = Deno.env.get("BH_WRITING_VERIFIER_MODEL")?.trim() || WRITING_ASSESSMENT_MODEL;
 const CRITERION_KEYS = ["content", "communicative_achievement", "organisation", "language"] as const;
@@ -364,6 +372,38 @@ const languageAuditSchema = {
         },
       },
       coverage_complete: { type: "boolean" },
+      uncertain_items: { type: "array", maxItems: 10, items: { type: "string" } },
+    },
+  },
+};
+
+const canonicalAdjudicatorSchema = {
+  name: "brains_heist_writing_canonical_adjudicator_v3",
+  strict: true,
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["corrections", "coverage_complete", "false_positive_free", "uncertain_items", "decision_reason"],
+    properties: {
+      corrections: languageAuditSchema.schema.properties.corrections,
+      coverage_complete: { type: "boolean" },
+      false_positive_free: { type: "boolean" },
+      uncertain_items: { type: "array", maxItems: 10, items: { type: "string" } },
+      decision_reason: { type: "string", minLength: 8 },
+    },
+  },
+};
+
+const residualAuditSchema = {
+  name: "brains_heist_writing_residual_audit_v3",
+  strict: true,
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["residual_errors", "clean", "uncertain_items"],
+    properties: {
+      residual_errors: languageAuditSchema.schema.properties.corrections,
+      clean: { type: "boolean" },
       uncertain_items: { type: "array", maxItems: 10, items: { type: "string" } },
     },
   },
@@ -1078,9 +1118,17 @@ serve(async (req) => {
       if (!authoritative) return json(502, { error: "Assessment evidence failed strict validation" });
       const primaryAuthoritative = authoritative;
 
-      // A dedicated language pass audits omissions and false positives sentence by sentence.
-      // Keeping correction inventory separate prevents rubric/feedback prompt competition.
-      let diagnosticAudit: { coverage_complete: boolean; uncertain_items: string[]; corrections_count: number } | null = null;
+      // Canonical v3 separates candidate discovery from the sole adjudicated
+      // inventory consumed by the UI and analytics. legacy-v2 remains an
+      // environment-variable rollback with no data migration required.
+      let diagnosticAudit: {
+        coverage_complete: boolean;
+        false_positive_free: boolean;
+        residual_clean: boolean;
+        uncertain_items: string[];
+        corrections_count: number;
+        pass_count: number;
+      } | null = null;
       try {
         const auditPayload = JSON.stringify({
           grade: payload!.grade,
@@ -1112,23 +1160,94 @@ serve(async (req) => {
         const rawAudits = [forwardAudit, boundaryAudit].filter(
           (audit): audit is Record<string, unknown> => Boolean(audit),
         );
-        const correctionMap = new Map<string, Record<string, unknown>>();
-        rawAudits.forEach((audit) => {
-          (Array.isArray(audit.corrections) ? audit.corrections : [])
-            .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
-            .forEach((item) => {
-              const key = `${Number(item.start_char)}:${Number(item.end_char)}:${String(item.better_version).trim().toLowerCase()}`;
-              if (!correctionMap.has(key)) correctionMap.set(key, item);
-            });
-        });
-        const corrections = [...correctionMap.values()];
-        const rawAudit = {
-          coverage_complete: rawAudits.length === 2 && rawAudits.every((audit) => audit.coverage_complete === true),
-          uncertain_items: [...new Set(rawAudits.flatMap((audit) =>
+        let corrections: CanonicalCorrection[] = [];
+        let coverageComplete = false;
+        let falsePositiveFree = false;
+        let residualClean = false;
+        let uncertainItems: string[] = [];
+
+        if (WRITING_PIPELINE_VERSION === "legacy-v2") {
+          const correctionMap = new Map<string, CanonicalCorrection>();
+          rawAudits.flatMap((audit) =>
+            (Array.isArray(audit.corrections) ? audit.corrections : []) as CanonicalCorrection[]
+          ).forEach((item) => {
+            const key = `${Number(item.start_char)}:${Number(item.end_char)}:${String(item.better_version).trim().toLowerCase()}`;
+            if (!correctionMap.has(key)) correctionMap.set(key, item);
+          });
+          corrections = [...correctionMap.values()];
+          coverageComplete = rawAudits.length === 2 && rawAudits.every((audit) => audit.coverage_complete === true);
+          // These two v3 gates are delegated to the historical verifier while
+          // rollback mode is active, preserving the previous release contract.
+          falsePositiveFree = true;
+          residualClean = true;
+          uncertainItems = [...new Set(rawAudits.flatMap((audit) =>
             Array.isArray(audit.uncertain_items) ? audit.uncertain_items.map(String) : []
-          ))],
-          pass_count: rawAudits.length,
-        };
+          ))];
+        } else if (rawAudits.length === 2) {
+          const adjudicationCompletion = await withTimeout(
+            openai.chat.completions.create({
+              model: WRITING_VERIFIER_MODEL,
+              response_format: { type: "json_schema", json_schema: canonicalAdjudicatorSchema },
+              temperature: 0,
+              messages: [
+                {
+                  role: "system",
+                  content: "You are the sole senior language adjudicator for Brains Heist. The two audits are candidate proposals, never facts. Independently reread the entire original draft and decide every item. Return one atomic correction per genuine issue. Reject duplicates, overlapping alternative rewrites, stylistic preferences labelled as errors, unnatural replacements, and incorrect grammatical explanations. Preserve meaning and use the natural standard-English form. Cover verb forms, agreement, articles, determiners, pronouns, prepositions, spelling, capitalization, punctuation, fragments, fused sentences, sentence boundaries, comparative forms and clearly incorrect word choice. Each retained original must be a verbatim exact span with zero-based exclusive offsets in the ORIGINAL draft. Set coverage_complete and false_positive_free true only when the returned inventory is defensible and materially complete. Put ambiguity in uncertain_items. Return schema-valid JSON only.",
+                },
+                {
+                  role: "user",
+                  content: JSON.stringify({
+                    grade: payload!.grade,
+                    genre: payload!.genre,
+                    prompt: payload!.promptText,
+                    original_draft: payload!.studentResponse,
+                    candidate_audits: rawAudits,
+                  }),
+                },
+              ],
+            }),
+            20000,
+          );
+          const adjudicationContent = adjudicationCompletion.choices?.[0]?.message?.content;
+          const adjudicated = adjudicationContent
+            ? JSON.parse(adjudicationContent) as Record<string, unknown>
+            : null;
+          corrections = reconcileCanonicalCorrections(
+            (Array.isArray(adjudicated?.corrections) ? adjudicated.corrections : []) as CanonicalCorrection[],
+            payload!.studentResponse ?? "",
+          );
+          coverageComplete = adjudicated?.coverage_complete === true;
+          falsePositiveFree = adjudicated?.false_positive_free === true;
+          uncertainItems = Array.isArray(adjudicated?.uncertain_items)
+            ? adjudicated.uncertain_items.map(String)
+            : [];
+
+          const correctedDraft = applyCanonicalCorrections(payload!.studentResponse ?? "", corrections);
+          const residualCompletion = await withTimeout(
+            openai.chat.completions.create({
+              model: WRITING_VERIFIER_MODEL,
+              response_format: { type: "json_schema", json_schema: residualAuditSchema },
+              temperature: 0,
+              messages: [
+                {
+                  role: "system",
+                  content: "Audit the corrected draft as fresh writing. Find any remaining objective grammar, spelling, capitalization, punctuation, sentence-boundary, agreement, verb-form, pronoun, comparative, or clearly incorrect word-choice errors. Do not repeat acceptable style alternatives. Offsets must refer to the corrected draft. Set clean true only when no material objective language errors remain and there are no uncertain items. Return schema-valid JSON only.",
+                },
+                {
+                  role: "user",
+                  content: JSON.stringify({ original_draft: payload!.studentResponse, corrected_draft: correctedDraft }),
+                },
+              ],
+            }),
+            18000,
+          );
+          const residualContent = residualCompletion.choices?.[0]?.message?.content;
+          const residual = residualContent ? JSON.parse(residualContent) as Record<string, unknown> : null;
+          const residualErrors = Array.isArray(residual?.residual_errors) ? residual.residual_errors : [];
+          const residualUncertain = Array.isArray(residual?.uncertain_items) ? residual.uncertain_items.map(String) : [];
+          residualClean = residual?.clean === true && residualErrors.length === 0 && residualUncertain.length === 0;
+          uncertainItems = [...new Set([...uncertainItems, ...residualUncertain])];
+        }
         const grammarFixes = corrections
           .filter((item) => ["grammar", "spelling", "sentence_structure"].includes(String(item.category)))
           .map((item) => ({
@@ -1160,11 +1279,14 @@ serve(async (req) => {
             text_fingerprint: authoritative.assessment.text_fingerprint,
           };
           diagnosticAudit = {
-            coverage_complete: rawAudit?.coverage_complete === true,
-            uncertain_items: Array.isArray(rawAudit?.uncertain_items) ? rawAudit.uncertain_items.map(String) : [],
+            coverage_complete: coverageComplete,
+            false_positive_free: falsePositiveFree,
+            residual_clean: residualClean,
+            uncertain_items: uncertainItems,
             corrections_count: (auditedFeedback.grammar_fixes?.length ?? 0)
               + (auditedFeedback.punctuation_fixes?.length ?? 0)
               + (auditedFeedback.natural_phrase_upgrades?.length ?? 0),
+            pass_count: rawAudits.length,
           };
         }
       } catch (auditError) {
@@ -1202,7 +1324,7 @@ serve(async (req) => {
                   primary_feedback: primaryAuthoritative.feedback,
                   diagnostic_language_audit: diagnosticAudit,
                   diagnostic_feedback: authoritative.feedback,
-                  diagnostic_pass_count: 2,
+                  diagnostic_pass_count: diagnosticAudit?.pass_count ?? 0,
                 }),
               },
             ],
@@ -1212,54 +1334,55 @@ serve(async (req) => {
         const verificationContent = verificationCompletion.choices?.[0]?.message?.content;
         verifier = verificationContent ? JSON.parse(verificationContent) as Record<string, unknown> : null;
 
-        // The adjudicator repairs the student-facing inventory even when the
-        // academic score remains fail-closed. This prevents a useful review
-        // from stopping at "needs review" while still keeping uncertain data
-        // out of the learner's academic profile.
-        const rejectedSpans = new Set(
-          (Array.isArray(verifier?.rejected_corrections) ? verifier.rejected_corrections : [])
-            .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
-            .map((item) => `${Number(item.start_char)}:${Number(item.end_char)}`),
-        );
-        const existingCorrections = [
-          ...(authoritative.feedback.grammar_fixes ?? []).map((item) => ({ ...item, category: "grammar", explanation: item.issue })),
-          ...(authoritative.feedback.punctuation_fixes ?? []).map((item) => ({ ...item, category: "punctuation", explanation: item.issue })),
-          ...(authoritative.feedback.natural_phrase_upgrades ?? []).map((item) => ({ ...item, category: "word_choice", explanation: item.why_it_helps })),
-        ].filter((item) => !rejectedSpans.has(`${Number(item.start_char)}:${Number(item.end_char)}`));
-        const missingCorrections = (Array.isArray(verifier?.missing_corrections) ? verifier.missing_corrections : [])
-          .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"));
-        const repairedCorrections = [...existingCorrections, ...missingCorrections];
-        const repairedFeedback = normalizeAiResult("feedback", {
-          ...authoritative.feedback,
-          grammar_fixes: repairedCorrections
-            .filter((item) => ["grammar", "spelling", "sentence_structure"].includes(String(item.category)))
-            .map((item) => ({
-              original: item.original, issue: item.explanation, better_version: item.better_version,
-              start_char: item.start_char, end_char: item.end_char, weakness_tag: item.weakness_tag,
-            })),
-          punctuation_fixes: repairedCorrections
-            .filter((item) => ["punctuation", "capitalization"].includes(String(item.category)))
-            .map((item) => ({
-              original: item.original, issue: item.explanation, better_version: item.better_version,
-              start_char: item.start_char, end_char: item.end_char, weakness_tag: item.weakness_tag,
-            })),
-          natural_phrase_upgrades: repairedCorrections
-            .filter((item) => item.category === "word_choice")
-            .map((item) => ({
-              original: item.original, why_it_helps: item.explanation, better_version: item.better_version,
-              start_char: item.start_char, end_char: item.end_char, weakness_tag: item.weakness_tag,
-            })),
-        }, payload!.studentResponse ?? "");
-        if (repairedFeedback) {
-          authoritative.feedback = {
-            ...repairedFeedback,
-            anchor_version: "bh-writing-anchors-v2",
-            text_fingerprint: authoritative.assessment.text_fingerprint,
-          };
-          if (diagnosticAudit) {
-            diagnosticAudit.corrections_count = (repairedFeedback.grammar_fixes?.length ?? 0)
-              + (repairedFeedback.punctuation_fixes?.length ?? 0)
-              + (repairedFeedback.natural_phrase_upgrades?.length ?? 0);
+        // legacy-v2 keeps its historical repair behavior for rollback only.
+        // canonical-v3 never mutates the senior adjudicator's sole inventory;
+        // later disagreement instead fails the academic-profile release gate.
+        if (WRITING_PIPELINE_VERSION === "legacy-v2") {
+          const rejectedSpans = new Set(
+            (Array.isArray(verifier?.rejected_corrections) ? verifier.rejected_corrections : [])
+              .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
+              .map((item) => `${Number(item.start_char)}:${Number(item.end_char)}`),
+          );
+          const existingCorrections = [
+            ...(authoritative.feedback.grammar_fixes ?? []).map((item) => ({ ...item, category: "grammar", explanation: item.issue })),
+            ...(authoritative.feedback.punctuation_fixes ?? []).map((item) => ({ ...item, category: "punctuation", explanation: item.issue })),
+            ...(authoritative.feedback.natural_phrase_upgrades ?? []).map((item) => ({ ...item, category: "word_choice", explanation: item.why_it_helps })),
+          ].filter((item) => !rejectedSpans.has(`${Number(item.start_char)}:${Number(item.end_char)}`));
+          const missingCorrections = (Array.isArray(verifier?.missing_corrections) ? verifier.missing_corrections : [])
+            .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"));
+          const repairedCorrections = [...existingCorrections, ...missingCorrections];
+          const repairedFeedback = normalizeAiResult("feedback", {
+            ...authoritative.feedback,
+            grammar_fixes: repairedCorrections
+              .filter((item) => ["grammar", "spelling", "sentence_structure"].includes(String(item.category)))
+              .map((item) => ({
+                original: item.original, issue: item.explanation, better_version: item.better_version,
+                start_char: item.start_char, end_char: item.end_char, weakness_tag: item.weakness_tag,
+              })),
+            punctuation_fixes: repairedCorrections
+              .filter((item) => ["punctuation", "capitalization"].includes(String(item.category)))
+              .map((item) => ({
+                original: item.original, issue: item.explanation, better_version: item.better_version,
+                start_char: item.start_char, end_char: item.end_char, weakness_tag: item.weakness_tag,
+              })),
+            natural_phrase_upgrades: repairedCorrections
+              .filter((item) => item.category === "word_choice")
+              .map((item) => ({
+                original: item.original, why_it_helps: item.explanation, better_version: item.better_version,
+                start_char: item.start_char, end_char: item.end_char, weakness_tag: item.weakness_tag,
+              })),
+          }, payload!.studentResponse ?? "");
+          if (repairedFeedback) {
+            authoritative.feedback = {
+              ...repairedFeedback,
+              anchor_version: "bh-writing-anchors-v2",
+              text_fingerprint: authoritative.assessment.text_fingerprint,
+            };
+            if (diagnosticAudit) {
+              diagnosticAudit.corrections_count = (repairedFeedback.grammar_fixes?.length ?? 0)
+                + (repairedFeedback.punctuation_fixes?.length ?? 0)
+                + (repairedFeedback.natural_phrase_upgrades?.length ?? 0);
+            }
           }
         }
 
@@ -1271,6 +1394,8 @@ serve(async (req) => {
           && verifier?.false_positive_free === true
           && Boolean(diagnosticAudit)
           && diagnosticAudit?.coverage_complete === true
+          && diagnosticAudit?.false_positive_free === true
+          && diagnosticAudit?.residual_clean === true
           && diagnosticAudit.uncertain_items.length === 0
           && Boolean(checks)
           && CRITERION_KEYS.every((key) => checks?.[key]?.agrees === true
@@ -1279,6 +1404,10 @@ serve(async (req) => {
       }
 
       const diagnosticConfidenceAcceptable = Boolean(diagnosticAudit)
+        && diagnosticAudit?.coverage_complete === true
+        && diagnosticAudit?.false_positive_free === true
+        && diagnosticAudit?.residual_clean === true
+        && diagnosticAudit.uncertain_items.length === 0
         && authoritative.confidence.minimum >= 0.65
         && authoritative.confidence.average >= 0.75;
       const verified = diagnosticConfidenceAcceptable && enoughWriting && verifierAccepted;
@@ -1288,10 +1417,18 @@ serve(async (req) => {
         ? (shouldVerify ? "conditional_verifier_accepted" : "primary_evidence_and_confidence_passed")
         : !enoughWriting
           ? "insufficient_evidence_length"
-          : !diagnosticAudit
-            ? "independent_diagnostic_unavailable"
-            : !diagnosticConfidenceAcceptable
-              ? "criterion_confidence_below_release_gate"
+            : !diagnosticAudit
+              ? "independent_diagnostic_unavailable"
+            : diagnosticAudit.coverage_complete !== true
+              ? "canonical_coverage_incomplete"
+              : diagnosticAudit.false_positive_free !== true
+                ? "canonical_false_positive_risk"
+                : diagnosticAudit.residual_clean !== true
+                  ? "corrected_draft_has_residual_errors"
+                  : diagnosticAudit.uncertain_items.length > 0
+                    ? "canonical_adjudication_uncertain"
+                    : !diagnosticConfidenceAcceptable
+                      ? "criterion_confidence_below_release_gate"
               : verifier?.diagnostic_coverage_complete !== true
                 ? "diagnostic_coverage_incomplete"
                 : verifier?.false_positive_free !== true
@@ -1341,11 +1478,13 @@ serve(async (req) => {
         assessment_status: authoritative.assessment.assessment_status,
         verification_used: shouldVerify,
         diagnostic_audit_used: Boolean(diagnosticAudit),
-        diagnostic_pass_count: 2,
+        writing_pipeline_version: WRITING_PIPELINE_VERSION,
+        diagnostic_pass_count: diagnosticAudit?.pass_count ?? 0,
         diagnostic_corrections_count: diagnosticAudit?.corrections_count ?? 0,
         diagnostic_uncertain_count: diagnosticAudit?.uncertain_items.length ?? 0,
         diagnostic_coverage_complete: verifier?.diagnostic_coverage_complete === true,
         false_positive_free: verifier?.false_positive_free === true,
+        residual_clean: diagnosticAudit?.residual_clean === true,
         verifier_model: shouldVerify ? WRITING_VERIFIER_MODEL : null,
         openai_request_id: openAiRequestId,
         usage,
