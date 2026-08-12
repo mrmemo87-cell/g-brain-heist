@@ -60,6 +60,7 @@ export async function resolveMySchoolCapabilities(schoolId, client = supabase) {
                 is_owner: Boolean(payload['is_owner']),
                 can_administer: Boolean(payload['can_administer']),
                 can_teach: Boolean(payload['can_teach']),
+                has_active_teaching_assignment: Boolean(payload['has_active_teaching_assignment']),
                 can_manage_billing: Boolean(payload['can_manage_billing'] ?? payload['is_owner']),
                 can_manage_admins: Boolean(payload['can_manage_admins'] ?? payload['is_owner']),
                 can_transfer_ownership: Boolean(payload['can_transfer_ownership'] ?? payload['is_owner']),
@@ -541,11 +542,35 @@ export async function listSchoolTeachers(schoolId) {
             role_in_school: row.role_in_school,
             is_owner: Boolean(row.is_owner),
             can_teach: Boolean(row.can_teach),
+            has_active_assignment: Boolean(row.has_active_assignment),
         }));
     }
     catch (err) {
         console.error('Exception fetching teachers:', err);
         return [];
+    }
+}
+export async function setAdministratorTeachingStaffStatus(schoolId, memberUserId, enabled) {
+    try {
+        const { data, error } = await supabase.rpc('rpc_school_admin_set_teaching_staff_status', {
+            p_school_id: schoolId,
+            p_member_user_id: memberUserId,
+            p_enabled: enabled,
+        });
+        if (error)
+            return { success: false, error: error.message };
+        const result = typeof data === 'string' ? JSON.parse(data) : data;
+        if (!result?.success)
+            return { success: false, error: result?.error || 'Teaching staff status could not be updated.' };
+        return {
+            success: true,
+            can_teach: Boolean(result.can_teach),
+            assignment_count: Number(result.assignment_count || 0),
+        };
+    }
+    catch (error) {
+        console.error('Exception updating teaching staff status:', error);
+        return { success: false, error: 'Teaching staff status could not be updated.' };
     }
 }
 export async function listTeacherAssignments(schoolId) {

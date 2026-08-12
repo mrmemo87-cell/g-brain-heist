@@ -23,10 +23,9 @@ const DashboardTab: React.FC = () => {
 
   const activeClasses = classes.filter((item: any) => item.is_active !== false);
   const activeClassIds = new Set(activeClasses.map((item: any) => item.id));
-  // Administrative capability is not the same thing as being teaching staff.
-  // A School Head can retain teacher-workspace access without being provisioned
-  // as a teacher, so only explicit teacher memberships belong in these totals.
-  const teachingStaff = teachers.filter((item: any) => item.role_in_school === 'teacher');
+  // can_teach is an explicit, audited teaching-staff registration. It is not
+  // inherited from administrative access.
+  const teachingStaff = teachers.filter((item: any) => item.can_teach);
   const teachingStaffIds = new Set(teachingStaff.map((item: any) => item.user_id));
   const activeAssignments = teacherAssignments.filter((item: any) => item.active !== false && activeClassIds.has(item.class_id) && teachingStaffIds.has(item.teacher_user_id));
   const assignedTeacherIds = new Set(activeAssignments.map((item: any) => item.teacher_user_id));

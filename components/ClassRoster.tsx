@@ -19,6 +19,14 @@ interface ExpandedClass {
   stats: ClassStatistics | null;
 }
 
+const getClassDescriptor = (classInfo: ClassWithRosterInfo): string => {
+  const gradeLabel = classInfo.grade_level ? `Grade ${classInfo.grade_level}` : '';
+  const className = classInfo.class_name?.trim() || '';
+  if (!className) return gradeLabel || 'Grade level not set';
+  if (gradeLabel && className.toLocaleLowerCase() === gradeLabel.toLocaleLowerCase()) return gradeLabel;
+  return gradeLabel ? `${gradeLabel} · ${className}` : className;
+};
+
 const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh, schoolName = 'Brains Heist', schoolLogoUrl }) => {
   const now = new Date();
   const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -314,22 +322,22 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
     );
   }, [classes, searchQuery]);
 
-  const printClassRoster = (classInfo: ClassWithRosterInfo, roster: ExpandedClass, register: boolean) => {
-    const rows = roster.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student.username)}</td><td>${escapeSchoolDocumentHtml(student.grade || '—')}</td>${register ? '<td>□</td><td>□</td><td>□</td><td></td>' : '<td></td>'}</tr>`).join('');
+  const printClassRoster = (classInfo: ClassWithRosterInfo, roster: ExpandedClass) => {
+    const rows = roster.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student.username)}</td><td>${escapeSchoolDocumentHtml(student.grade || '—')}</td><td></td></tr>`).join('');
     try {
       openSchoolDocumentPreview({
-        meta: { documentId: createSchoolDocumentId(register ? 'attendance' : 'roster'), templateVersion: register ? 'admin-class-register-v1' : 'admin-class-roster-v1', title: register ? 'Class Attendance Register' : 'Official Class Roster', subtitle: `${classInfo.class_code} · ${classInfo.class_name}`, schoolName, schoolLogoUrl, audience: 'internal', status: 'final', confidentiality: 'confidential', generatedAt: new Date().toISOString(), schoolId, classId: classInfo.class_id, visibilityScope: 'class_staff', sourceType: register ? 'class_register' : 'class_roster', sourceId: classInfo.class_id, className: classInfo.class_code },
-        bodyHtml: `<p><strong>Grade level:</strong> ${escapeSchoolDocumentHtml(classInfo.grade_level || '—')} · <strong>Enrolled:</strong> ${roster.students.length}</p><table><thead><tr><th>No.</th><th>Official student name</th><th>Grade level</th>${register ? '<th>Present</th><th>Absent</th><th>Late</th><th>Notes</th>' : '<th>Administrative notes</th>'}</tr></thead><tbody>${rows || `<tr><td colspan="${register ? 7 : 4}">No students are enrolled in this class.</td></tr>`}</tbody></table>`,
-        orientation: 'portrait', inkSaver: true, fileName: schoolDocumentFileName(schoolName, classInfo.class_code, register ? 'Attendance_Register' : 'Class_Roster'),
+        meta: { documentId: createSchoolDocumentId('roster'), templateVersion: 'admin-class-roster-v1', title: 'Official Class Roster', subtitle: `${classInfo.class_code} · ${classInfo.class_name}`, schoolName, schoolLogoUrl, audience: 'internal', status: 'final', confidentiality: 'confidential', generatedAt: new Date().toISOString(), schoolId, classId: classInfo.class_id, visibilityScope: 'class_staff', sourceType: 'class_roster', sourceId: classInfo.class_id, className: classInfo.class_code },
+        bodyHtml: `<p><strong>Grade level:</strong> ${escapeSchoolDocumentHtml(classInfo.grade_level || '—')} · <strong>Enrolled:</strong> ${roster.students.length}</p><table><thead><tr><th>No.</th><th>Official student name</th><th>Grade level</th><th>Administrative notes</th></tr></thead><tbody>${rows || '<tr><td colspan="4">No students are enrolled in this class.</td></tr>'}</tbody></table>`,
+        orientation: 'portrait', inkSaver: true, fileName: schoolDocumentFileName(schoolName, classInfo.class_code, 'Class_Roster'),
       });
     } catch (error) { addToast(error instanceof Error ? error.message : 'Unable to open the class document.', 'error'); }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
-        <span className="ml-3 text-gray-400">Loading class rosters...</span>
+      <div className="class-roster-loading" role="status">
+        <span className="class-roster-spinner" aria-hidden="true" />
+        <span>Loading class rosters…</span>
       </div>
     );
   }
@@ -337,10 +345,10 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
   return (
     <div className="space-y-6 class-roster-admin">
       {/* Header with actions */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div className="class-roster-summary">
         <div>
-          <h3 className="text-lg font-semibold">Student placement register</h3>
-          <p className="text-sm text-gray-400 mt-1">
+          <h3>Student placement</h3>
+          <p>
             {classes.length} classes • {classes.reduce((acc, c) => acc + c.student_count, 0)} enrolled students • {unassignedStudents.length} unassigned
           </p>
         </div>
@@ -355,13 +363,13 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                   setPlacementEffectiveDate(localToday);
                   setShowBulkModal(true);
                 }}
-                className="px-3 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium transition-colors"
+                className="class-roster-primary-action"
               >
                 Add selected ({selectedStudents.size})
               </button>
               <button
                 onClick={clearSelection}
-                className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
+                className="class-roster-secondary-action"
               >
                 Clear selection
               </button>
@@ -369,11 +377,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
           )}
           <button
             onClick={() => setShowUnassigned(!showUnassigned)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              showUnassigned
-                ? 'bg-amber-600 hover:bg-amber-500'
-                : 'bg-gray-700 hover:bg-gray-600'
-            }`}
+            className={showUnassigned ? 'class-roster-secondary-action is-active' : 'class-roster-secondary-action'}
           >
             Unassigned ({unassignedStudents.length})
           </button>
@@ -382,7 +386,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
               loadClasses();
               setExpandedClasses({});
             }}
-            className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
+            className="class-roster-secondary-action"
           >
             Refresh
           </button>
@@ -390,48 +394,56 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
       </div>
 
       {/* Search */}
-      <div className="relative">
+      <div className="class-roster-search">
         <input
           type="text"
           placeholder="Search classes..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 pl-10 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+          aria-label="Search classes"
         />
       </div>
 
+      {classes.length > 0 && classes.every((classInfo) => classInfo.student_count === 0) && unassignedStudents.length === 0 && (
+        <div className="class-roster-guidance" role="status">
+          <strong>No registered students yet</strong>
+          <span>These classes are ready for enrolment. Registered students will appear here for placement when accounts are added to the school.</span>
+        </div>
+      )}
+
       {/* Unassigned Students Panel */}
       {showUnassigned && unassignedStudents.length > 0 && (
-        <div className="bg-amber-900/20 border border-amber-600/40 rounded-xl p-4">
-          <h4 className="text-md font-semibold text-amber-300 mb-3">Unassigned students ({unassignedStudents.length})</h4>
-          <div className="overflow-x-auto">
+        <section className="class-roster-unassigned" aria-labelledby="unassigned-students-title">
+          <div className="class-roster-panel-heading">
+            <div><h4 id="unassigned-students-title">Unassigned students</h4><p>Place each registered student into an active class.</p></div>
+            <strong>{unassignedStudents.length}</strong>
+          </div>
+          <div className="class-roster-table-wrap">
             <table className="w-full">
-              <thead className="border-b border-amber-700/50">
+              <thead>
                 <tr>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-amber-400">Student</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-amber-400">Grade</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-amber-400">Level</th>
-                  <th className="px-3 py-2 text-right text-xs font-medium text-amber-400">Assign To</th>
+                  <th>Student</th>
+                  <th>Grade level</th>
+                  <th className="is-right">Place in class</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-amber-800/30">
+              <tbody>
                 {unassignedStudents.slice(0, 20).map((student) => (
-                  <tr key={student.student_id} className="hover:bg-amber-900/30">
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
+                  <tr key={student.student_id}>
+                    <td>
+                      <div className="class-roster-student-identity">
                         {student.avatar_url ? (
-                          <img src={student.avatar_url} alt="" className="w-6 h-6 rounded-full" />
+                          <img src={student.avatar_url} alt="" />
                         ) : (
-                          <div className="w-6 h-6 rounded-full bg-amber-700 flex items-center justify-center text-xs">
+                          <span aria-hidden="true">
                             {student.username.charAt(0).toUpperCase()}
-                          </div>
+                          </span>
                         )}
-                        <span className="text-white text-sm">{student.username}</span>
+                        <strong>{student.username}</strong>
                       </div>
                     </td>
-                    <td className="px-3 py-2 text-sm text-amber-200">{student.grade || '-'}</td>
-                    <td className="px-3 py-2 text-sm text-amber-200">Lv.{student.level}</td>
-                    <td className="px-3 py-2 text-right">
+                    <td>{student.grade ? `Grade ${student.grade}` : 'Not recorded'}</td>
+                    <td className="is-right">
                       <select
                         onChange={(e) => {
                           if (e.target.value) {
@@ -439,8 +451,8 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                             e.target.value = '';
                           }
                         }}
-                        className="px-2 py-1 bg-amber-800/50 border border-amber-600/50 rounded text-sm text-white focus:outline-none"
                         disabled={actionLoading}
+                        aria-label={`Place ${student.username} in a class`}
                       >
                         <option value="">Select class...</option>
                         {classes.filter((c) => c.is_active).map((c) => (
@@ -455,12 +467,12 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
               </tbody>
             </table>
             {unassignedStudents.length > 20 && (
-              <p className="text-center text-amber-400 text-sm mt-2">
-                + {unassignedStudents.length - 20} more students
+              <p className="class-roster-table-note">
+                {unassignedStudents.length - 20} more students are available
               </p>
             )}
           </div>
-        </div>
+        </section>
       )}
 
       {/* Class List with Expandable Rosters */}
@@ -470,78 +482,68 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
           const isExpanded = !!expanded;
           
           return (
-            <div
+            <section
               key={classInfo.class_id}
-              className={`bg-gray-800 border rounded-xl overflow-hidden transition-all ${
-                isExpanded ? 'border-cyan-500/50' : 'border-gray-700'
-              }`}
+              className={isExpanded ? 'class-roster-card is-expanded' : 'class-roster-card'}
             >
               {/* Class Header - Clickable */}
-              <div
+              <button
+                type="button"
                 onClick={() => toggleExpandClass(classInfo.class_id)}
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-750 transition-colors"
+                className="class-roster-card-trigger"
+                aria-expanded={isExpanded}
               >
-                <div className="flex items-center gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-white">{classInfo.class_code}</h4>
+                <div className="class-roster-class-identity">
+                    <div>
+                      <h4>{classInfo.class_code}</h4>
                       {!classInfo.is_active && (
-                        <span className="px-2 py-0.5 bg-gray-600 text-gray-300 text-xs rounded-full">
+                        <span className="class-roster-status is-inactive">
                           Inactive
                         </span>
                       )}
+                      {classInfo.is_active && classInfo.student_count === 0 && <span className="class-roster-status">Ready for enrolment</span>}
                     </div>
-                    <p className="text-sm text-gray-400">
-                      {classInfo.class_name}
-                      {classInfo.grade_level && ` • Grade ${classInfo.grade_level}`}
-                    </p>
-                  </div>
+                    <p>{getClassDescriptor(classInfo)}</p>
                 </div>
                 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <div className="flex items-center gap-3 text-sm">
-                      <span className="flex items-center gap-1 text-cyan-400">{classInfo.student_count} students</span>
-                      <span className="flex items-center gap-1 text-purple-400">{classInfo.teacher_count} teachers</span>
-                    </div>
-                  </div>
-                  <div className="text-gray-400 text-lg">
-                    {isExpanded ? '▼' : '▶'}
-                  </div>
+                <div className="class-roster-card-meta">
+                  <span><strong>{classInfo.student_count}</strong> students</span>
+                  <span><strong>{classInfo.teacher_count}</strong> teachers</span>
+                  <i aria-hidden="true">{isExpanded ? '−' : '+'}</i>
                 </div>
-              </div>
+              </button>
 
               {/* Expanded Roster */}
               {isExpanded && (
-                <div className="border-t border-gray-700">
+                <div className="class-roster-expanded">
                   {expanded.loading ? (
-                    <div className="p-6 text-center text-gray-400">
-                      <div className="animate-spin inline-block w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full mr-2"></div>
-                      Loading students...
+                    <div className="class-roster-inline-loading" role="status">
+                      <span className="class-roster-spinner" aria-hidden="true" />
+                      Loading students…
                     </div>
                   ) : (
                     <>
                       {/* Keep the register focused on school operations rather than game statistics. */}
                       {expanded.stats && expanded.stats.teachers.length > 0 && (
-                        <div className="p-3 bg-gray-750 border-b border-gray-700 flex flex-wrap gap-4 text-sm">
-                          <div className="flex items-center gap-1">
-                            <span className="text-gray-400">Assigned teachers:</span>
-                            <span className="text-green-400">
+                        <div className="class-roster-teacher-summary">
+                          <div>
+                            <span>Assigned teaching staff</span>
+                            <strong>
                               {expanded.stats.teachers.map((t) => `${t.username} (${t.subject})`).join(', ')}
-                            </span>
+                            </strong>
                           </div>
                         </div>
                       )}
                       
                       {/* Action Buttons */}
-                      <div className="p-3 bg-gray-800 border-b border-gray-700 flex gap-2 flex-wrap">
-                        <button type="button" onClick={(event) => { event.stopPropagation(); printClassRoster(classInfo, expanded, false); }} className="px-3 py-1.5 bg-cyan-700 hover:bg-cyan-600 rounded text-sm transition-colors">Print roster</button>
+                      <div className="class-roster-toolbar">
+                        <button type="button" onClick={(event) => { event.stopPropagation(); printClassRoster(classInfo, expanded); }} className="class-roster-primary-action">Print class roster</button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             selectAllInClass(classInfo.class_id);
                           }}
-                          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded text-sm transition-colors"
+                          className="class-roster-secondary-action"
                         >
                           Select all
                         </button>
@@ -551,7 +553,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                             handleAutoEnroll(classInfo.class_id, classInfo.class_code);
                           }}
                           disabled={actionLoading}
-                          className="px-3 py-1.5 bg-blue-600/50 hover:bg-blue-600 rounded text-sm transition-colors disabled:opacity-50"
+                          className="class-roster-secondary-action"
                         >
                           Place students by grade level
                         </button>
@@ -559,11 +561,11 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                       
                       {/* Student Table */}
                       {expanded.students.length > 0 ? (
-                        <div className="overflow-x-auto">
-                          <table className="w-full">
-                            <thead className="bg-gray-750 border-b border-gray-700">
+                        <div className="class-roster-table-wrap">
+                          <table>
+                            <thead>
                               <tr>
-                                <th className="w-10 px-3 py-2">
+                                <th className="is-checkbox">
                                   <input
                                     type="checkbox"
                                     onChange={(e) => {
@@ -579,77 +581,65 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                                         });
                                       }
                                     }}
-                                    className="rounded border-gray-600 bg-gray-700 text-cyan-500"
+                                    aria-label={`Select every student in ${classInfo.class_code}`}
                                   />
                                 </th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-400">Student</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-400">Email</th>
-                                <th className="px-3 py-2 text-center text-xs font-medium text-gray-400">Level</th>
-                                <th className="px-3 py-2 text-center text-xs font-medium text-gray-400">XP</th>
-                                <th className="px-3 py-2 text-center text-xs font-medium text-gray-400">Status</th>
-                                <th className="px-3 py-2 text-right text-xs font-medium text-gray-400">Actions</th>
+                                <th>Student</th>
+                                <th>Email</th>
+                                <th className="is-center">Status</th>
+                                <th className="is-right">Actions</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-700">
+                            <tbody>
                               {expanded.students.map((student) => (
                                 <tr 
                                   key={student.student_id} 
-                                  className={`hover:bg-gray-750 ${
-                                    selectedStudents.has(student.student_id) ? 'bg-cyan-900/20' : ''
-                                  }`}
+                                  className={selectedStudents.has(student.student_id) ? 'is-selected' : ''}
                                 >
-                                  <td className="px-3 py-2">
+                                  <td className="is-checkbox">
                                     <input
                                       type="checkbox"
                                       checked={selectedStudents.has(student.student_id)}
                                       onChange={() => toggleStudentSelection(student.student_id)}
-                                      className="rounded border-gray-600 bg-gray-700 text-cyan-500"
+                                      aria-label={`Select ${student.username}`}
                                     />
                                   </td>
-                                  <td className="px-3 py-2">
-                                    <div className="flex items-center gap-2">
+                                  <td>
+                                    <div className="class-roster-student-identity">
                                       {student.avatar_url ? (
-                                        <img src={student.avatar_url} alt="" className="w-7 h-7 rounded-full" />
+                                        <img src={student.avatar_url} alt="" />
                                       ) : (
-                                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-600 to-purple-600 flex items-center justify-center text-xs font-bold">
+                                        <span aria-hidden="true">
                                           {student.username.charAt(0).toUpperCase()}
-                                        </div>
+                                        </span>
                                       )}
                                       <div>
-                                        <div className="text-white text-sm font-medium">{student.username}</div>
-                                        <div className="text-gray-500 text-xs">Grade {student.grade || '?'}</div>
+                                        <strong>{student.username}</strong>
+                                        <small>{student.grade ? `Grade ${student.grade}` : 'Grade level not recorded'}</small>
                                       </div>
                                     </div>
                                   </td>
-                                  <td className="px-3 py-2 text-sm text-gray-400">{student.email}</td>
-                                  <td className="px-3 py-2 text-center">
-                                    <span className="px-2 py-0.5 bg-cyan-600/30 text-cyan-300 rounded text-sm font-medium">
-                                      Lv.{student.level}
-                                    </span>
-                                  </td>
-                                  <td className="px-3 py-2 text-center text-sm text-purple-300">
-                                    {student.xp.toLocaleString()}
-                                  </td>
-                                  <td className="px-3 py-2 text-center">
+                                  <td>{student.email}</td>
+                                  <td className="is-center">
                                     {student.is_banned ? (
-                                      <span className="px-2 py-0.5 bg-red-600/30 text-red-300 rounded-full text-xs">
+                                      <span className="class-roster-account-status is-restricted">
                                         Banned
                                       </span>
                                     ) : (
-                                      <span className="px-2 py-0.5 bg-green-600/30 text-green-300 rounded-full text-xs">
+                                      <span className="class-roster-account-status">
                                         Active
                                       </span>
                                     )}
                                   </td>
-                                  <td className="px-3 py-2 text-right">
-                                    <div className="flex items-center justify-end gap-1">
+                                  <td className="is-right">
+                                    <div className="class-roster-row-actions">
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           openMoveModal(student, classInfo.class_id);
                                         }}
                                         disabled={actionLoading}
-                                        className="px-2 py-1 text-blue-400 hover:bg-blue-600/20 rounded text-xs transition-colors"
+                                        className="class-roster-link-action"
                                         title="Move to another class"
                                       >
                                         Move
@@ -660,7 +650,7 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                                           handleRemoveStudent(classInfo.class_id, student.student_id, student.username);
                                         }}
                                         disabled={actionLoading}
-                                        className="px-2 py-1 text-red-400 hover:bg-red-600/20 rounded text-xs transition-colors"
+                                        className="class-roster-link-action is-danger"
                                         title="Remove from class"
                                       >
                                         Remove
@@ -673,15 +663,16 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                           </table>
                         </div>
                       ) : (
-                        <div className="p-8 text-center text-gray-500">
-                          <p>No students enrolled in this class</p>
+                        <div className="class-roster-empty">
+                          <strong>No students enrolled in this class</strong>
+                          <p>Registered students for this grade level can be placed here when they become available.</p>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleAutoEnroll(classInfo.class_id, classInfo.class_code);
                             }}
                             disabled={actionLoading}
-                            className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm transition-colors"
+                            className="class-roster-primary-action"
                           >
                             Place students by grade level
                           </button>
@@ -691,31 +682,30 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                   )}
                 </div>
               )}
-            </div>
+            </section>
           );
         })}
       </div>
 
       {filteredClasses.length === 0 && (
-        <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-500">
-          <p>No classes found. Complete a grade plan or create a class in Class setup first.</p>
+        <div className="class-roster-empty">
+          <strong>No classes found</strong>
+          <p>Complete a grade plan or create a class in Class setup first.</p>
         </div>
       )}
 
       {/* Move Student Modal */}
       {showMoveModal && studentToMove && ReactDOM.createPortal(
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
-            <h3 className="text-lg font-semibold text-white mb-4">
-              Move Student to Another Class
-            </h3>
-            <p className="text-gray-400 mb-4">
-              Moving <strong className="text-white">{studentToMove.student.username}</strong> to:
+        <div className="school-admin-modal-overlay class-roster-modal-overlay" role="presentation">
+          <div className="school-admin-modal class-roster-modal" role="dialog" aria-modal="true" aria-labelledby="move-student-title">
+            <h3 id="move-student-title">Move student to another class</h3>
+            <p>
+              Choose a destination for <strong>{studentToMove.student.username}</strong>.
             </p>
             <select
               value={moveTargetClassId}
               onChange={(e) => setMoveTargetClassId(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500 mb-4"
+              aria-label="Destination class"
             >
               <option value="">Select destination class...</option>
               {classes
@@ -726,28 +716,28 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                   </option>
                 ))}
             </select>
-            <label className="block text-sm text-gray-300 mb-3">Reason
-              <textarea value={placementReason} onChange={(event) => setPlacementReason(event.target.value)} className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" rows={2} />
+            <label>Reason
+              <textarea value={placementReason} onChange={(event) => setPlacementReason(event.target.value)} rows={2} />
             </label>
-            <label className="block text-sm text-gray-300 mb-4">Effective date
-              <input type="date" value={placementEffectiveDate} onChange={(event) => setPlacementEffectiveDate(event.target.value)} className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" />
+            <label>Effective date
+              <input type="date" value={placementEffectiveDate} onChange={(event) => setPlacementEffectiveDate(event.target.value)} />
             </label>
-            <div className="flex gap-3 justify-end">
+            <div className="class-roster-modal-actions">
               <button
                 onClick={() => {
                   setShowMoveModal(false);
                   setStudentToMove(null);
                 }}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                className="class-roster-secondary-action"
               >
                 Cancel
               </button>
               <button
                 onClick={handleMoveStudent}
                 disabled={!moveTargetClassId || placementReason.trim().length < 3 || !placementEffectiveDate || actionLoading}
-                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors"
+                className="class-roster-primary-action"
               >
-                {actionLoading ? 'Moving...' : 'Move Student'}
+                {actionLoading ? 'Moving…' : 'Move student'}
               </button>
             </div>
           </div>
@@ -757,18 +747,16 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
 
       {/* Bulk Action Modal */}
       {showBulkModal && ReactDOM.createPortal(
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
-            <h3 className="text-lg font-semibold text-white mb-4">
-              Bulk Add Students to Class
-            </h3>
-            <p className="text-gray-400 mb-4">
-              Adding <strong className="text-cyan-400">{selectedStudents.size}</strong> selected students to:
+        <div className="school-admin-modal-overlay class-roster-modal-overlay" role="presentation">
+          <div className="school-admin-modal class-roster-modal" role="dialog" aria-modal="true" aria-labelledby="bulk-place-title">
+            <h3 id="bulk-place-title">Place selected students</h3>
+            <p>
+              Choose a destination class for <strong>{selectedStudents.size}</strong> selected students.
             </p>
             <select
               value={bulkTargetClassId}
               onChange={(e) => setBulkTargetClassId(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500 mb-4"
+              aria-label="Destination class"
             >
               <option value="">Select destination class...</option>
               {classes
@@ -779,27 +767,27 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
                   </option>
                 ))}
             </select>
-            <label className="block text-sm text-gray-300 mb-3">Reason
-              <textarea value={placementReason} onChange={(event) => setPlacementReason(event.target.value)} className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" rows={2} />
+            <label>Reason
+              <textarea value={placementReason} onChange={(event) => setPlacementReason(event.target.value)} rows={2} />
             </label>
-            <label className="block text-sm text-gray-300 mb-4">Effective date
-              <input type="date" value={placementEffectiveDate} onChange={(event) => setPlacementEffectiveDate(event.target.value)} className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" />
+            <label>Effective date
+              <input type="date" value={placementEffectiveDate} onChange={(event) => setPlacementEffectiveDate(event.target.value)} />
             </label>
-            <div className="flex gap-3 justify-end">
+            <div className="class-roster-modal-actions">
               <button
                 onClick={() => {
                   setShowBulkModal(false);
                 }}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                className="class-roster-secondary-action"
               >
                 Cancel
               </button>
               <button
                 onClick={handleBulkAction}
                 disabled={!bulkTargetClassId || placementReason.trim().length < 3 || !placementEffectiveDate || actionLoading}
-                className="px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded-lg transition-colors"
+                className="class-roster-primary-action"
               >
-                {actionLoading ? 'Processing...' : 'Add Students'}
+                {actionLoading ? 'Processing…' : 'Place students'}
               </button>
             </div>
           </div>

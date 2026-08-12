@@ -97,7 +97,7 @@ const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
   { id: 'ielts-practice', icon: 'AS', label: 'Assignment Overview', hint: 'Assign & monitor' },
   { id: 'ielts-reviews', icon: 'RE', label: 'Reviews', hint: 'Writing & speaking' },
   { id: 'ielts-results', icon: 'RS', label: 'Results', hint: 'Student scores' },
-  { id: 'ielts-student-progress', icon: '📊', label: 'Student Progress', hint: 'Journey dashboard' },
+  { id: 'ielts-student-progress', icon: 'SP', label: 'Student Progress', hint: 'Journey dashboard' },
   { id: 'ielts-settings', icon: 'SE', label: 'Settings', hint: 'Config & features' },
 ];
 
@@ -619,7 +619,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     link.download = `cambridge_scores_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
 
-    addToast('✅ CSV exported successfully', 'success');
+    addToast('CSV exported successfully', 'success');
   };
 
   const filteredQuizScores = quizScores.filter(s => {
@@ -754,6 +754,41 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
         } else {
           addToast(friendlySchoolAdminError(result.error, 'The member role could not be changed. Please try again.'), 'error');
         }
+      },
+    });
+  };
+
+  const handleSetTeachingStaffStatus = (enabled: boolean) => {
+    if (!school || !selectedMember?.user_id) return;
+    const activeAssignmentCount = teacherAssignments.filter(
+      (item) => item.active !== false && item.teacher_user_id === selectedMember.user_id,
+    ).length;
+    setConfirmReason('');
+    setConfirmDialog({
+      title: enabled ? 'Register this administrator as teaching staff?' : 'Remove teaching staff status?',
+      description: enabled
+        ? `${selectedMember.username} will become available for class and subject assignments. Teacher Workspace will appear only after an active assignment is saved.`
+        : activeAssignmentCount
+          ? `${selectedMember.username} has ${activeAssignmentCount} active teaching assignment${activeAssignmentCount === 1 ? '' : 's'}. Reassign or remove them before changing this status.`
+          : `${selectedMember.username} will no longer appear in teacher assignment lists. Their administrative access will not change.`,
+      confirmLabel: enabled ? 'Register teaching staff' : 'Remove teaching status',
+      cancelLabel: 'Cancel',
+      isDestructive: !enabled,
+      onConfirm: async () => {
+        setActionLoading(true);
+        const result = await SchoolAdminService.setAdministratorTeachingStaffStatus(
+          school.id,
+          selectedMember.user_id!,
+          enabled,
+        );
+        setActionLoading(false);
+        if (!result.success) {
+          addToast(friendlySchoolAdminError(result.error, 'Teaching staff status could not be updated.'), 'error');
+          return;
+        }
+        addToast(enabled ? 'Administrator registered as teaching staff' : 'Teaching staff status removed', 'success');
+        await Promise.all([loadMembers(school.id), loadAdminTools(school.id)]);
+        setShowMemberActionModal(false);
       },
     });
   };
@@ -1592,6 +1627,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       handleUnbanMember,
       handleUnsuspendStudent,
       handleUpdateRole,
+      handleSetTeachingStaffStatus,
       loadAdminTools,
       loadModerationLog,
       loadSchoolVisibility,

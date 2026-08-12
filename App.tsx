@@ -234,7 +234,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const canUseSchoolModule = useCallback((module: 'cambridge' | 'ielts' | 'writing' | 'admissions') => (
     Boolean(hasSchool && effectiveEntitlements?.modules[module])
   ), [effectiveEntitlements, hasSchool]);
-  const isTeacherRole = schoolCapabilities?.can_teach ?? profile?.role === 'teacher';
+  const hasActiveTeachingAssignment = Boolean(schoolCapabilities?.has_active_teaching_assignment);
+  const canOpenTeacherWorkspace = (profile?.role === 'teacher' && !schoolCapabilities?.can_administer)
+    || Boolean(schoolCapabilities?.can_teach && hasActiveTeachingAssignment);
+  const isTeacherRole = canOpenTeacherWorkspace;
   const isSchoolAdminRole = isUserSchoolAdmin;
   const isSchoolHeadRole = Boolean(schoolCapabilities?.is_owner && schoolCapabilities.account_type === 'school_head');
   const isFullScreenView = view === 'workspace_chooser' || view === 'school_admin' || view === 'school_head' || view === 'teacher' || view === 'admin' || (view === 'dashboard' && isTeacherRole) || (view === 'dashboard' && isSchoolAdminRole);
@@ -381,7 +384,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       addToast(`${formatModuleName(gatedModule)} is not included in your school's current agreement.`, 'info');
       return;
     }
-    if (schoolCapabilities?.can_administer && schoolCapabilities.can_teach && (nextView === 'school_admin' || nextView === 'school_head' || nextView === 'teacher')) {
+    if (schoolCapabilities?.can_administer && canOpenTeacherWorkspace && (nextView === 'school_admin' || nextView === 'school_head' || nextView === 'teacher')) {
       localStorage.setItem(`school_workspace:${schoolCapabilities.school_id}`, nextView);
     }
     if (nextView !== 'pvp' && pvpFocusTargetUserId) {
@@ -839,8 +842,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           const requested = new URLSearchParams(window.location.search).get('view');
           setView(requested === 'school_admin' || requested === 'school_head'
             ? requested
-            : requested === 'teacher' && capabilities.can_teach ? 'teacher' : 'school_head');
-        } else if (capabilities?.can_administer && capabilities.can_teach) {
+            : requested === 'teacher' && capabilities.can_teach && capabilities.has_active_teaching_assignment ? 'teacher' : 'school_head');
+        } else if (capabilities?.can_administer && capabilities.can_teach && capabilities.has_active_teaching_assignment) {
           const requested = new URLSearchParams(window.location.search).get('view');
           const preferred = localStorage.getItem(`school_workspace:${capabilities.school_id}`);
           setView(requested === 'school_admin' || requested === 'teacher' ? requested : preferred === 'school_admin' || preferred === 'teacher' ? preferred : 'workspace_chooser');
@@ -869,8 +872,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           const requested = new URLSearchParams(window.location.search).get('view');
           setView(requested === 'school_admin' || requested === 'school_head'
             ? requested
-            : requested === 'teacher' && capabilities.can_teach ? 'teacher' : 'school_head');
-        } else if (capabilities?.can_administer && capabilities.can_teach) {
+            : requested === 'teacher' && capabilities.can_teach && capabilities.has_active_teaching_assignment ? 'teacher' : 'school_head');
+        } else if (capabilities?.can_administer && capabilities.can_teach && capabilities.has_active_teaching_assignment) {
           const requested = new URLSearchParams(window.location.search).get('view');
           const preferred = localStorage.getItem(`school_workspace:${capabilities.school_id}`);
           setView(requested === 'school_admin' || requested === 'teacher' ? requested : preferred === 'school_admin' || preferred === 'teacher' ? preferred : 'workspace_chooser');
@@ -2140,7 +2143,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               onLogout={onLogout}
               onNavigate={handleViewChange}
               addToast={addToast}
-              onOpenTeacherPortal={schoolCapabilities?.can_teach ? () => handleViewChange('teacher') : undefined}
+              onOpenTeacherPortal={canOpenTeacherWorkspace ? () => handleViewChange('teacher') : undefined}
               onOpenSchoolHeadPortal={isSchoolHeadRole ? () => handleViewChange('school_head') : undefined}
             />
           );
@@ -2150,7 +2153,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               schoolId={schoolCapabilities.school_id}
               onLogout={onLogout}
               addToast={addToast}
-              onOpenTeacherPortal={schoolCapabilities.can_teach ? () => handleViewChange('teacher') : undefined}
+              onOpenTeacherPortal={canOpenTeacherWorkspace ? () => handleViewChange('teacher') : undefined}
               onOpenAdministration={(adminTab) => {
                 const url = new URL(window.location.href);
                 url.searchParams.set('view', 'school_admin');
@@ -2167,7 +2170,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               onLogout={onLogout}
               onNavigate={handleViewChange}
               addToast={addToast}
-              onOpenTeacherPortal={schoolCapabilities?.can_teach ? () => handleViewChange('teacher') : undefined}
+              onOpenTeacherPortal={canOpenTeacherWorkspace ? () => handleViewChange('teacher') : undefined}
             />
           );
         case 'dashboard':
@@ -2180,7 +2183,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                             schoolId={schoolCapabilities.school_id}
                             onLogout={onLogout}
                             addToast={addToast}
-                            onOpenTeacherPortal={schoolCapabilities.can_teach ? () => handleViewChange('teacher') : undefined}
+                            onOpenTeacherPortal={canOpenTeacherWorkspace ? () => handleViewChange('teacher') : undefined}
                             onOpenAdministration={(adminTab) => {
                               const url = new URL(window.location.href);
                               url.searchParams.set('view', 'school_admin');
@@ -2199,7 +2202,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         onLogout={onLogout}
                         onNavigate={handleViewChange}
                         addToast={addToast}
-                        onOpenTeacherPortal={schoolCapabilities?.can_teach ? () => handleViewChange('teacher') : undefined}
+                        onOpenTeacherPortal={canOpenTeacherWorkspace ? () => handleViewChange('teacher') : undefined}
                     />
                 );
             }

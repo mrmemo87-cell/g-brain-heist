@@ -15,7 +15,7 @@ test('dual-role teachers are clearly labelled in assignment dropdowns', () => {
         username: 'Mr. English',
         role_in_school: 'school_admin',
         can_teach: true,
-    }), 'Mr. English - Teacher & School Admin');
+    }), 'Mr. English — Teaching staff & School Admin');
     assert.equal(formatAssignableTeacherLabel({
         user_id: 'teacher',
         username: 'Ms. Maths',

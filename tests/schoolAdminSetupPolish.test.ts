@@ -14,9 +14,10 @@ const documents = read('src/components/SchoolDocumentCenter.tsx');
 const billing = read('components/school-admin/BillingTabUI.tsx');
 const migration = read('supabase/migrations/20260812130000_polish_school_admin_setup.sql');
 const sourceOfTruthMigration = read('supabase/migrations/20260812143000_school_admin_source_of_truth.sql');
+const teachingStaffMigration = read('supabase/migrations/20260812153000_teaching_staff_assignment_contract.sql');
 
 test('new school overview excludes admin-only accounts and unused local labels from active totals', () => {
-  assert.match(dashboard, /role_in_school === 'teacher'/);
+  assert.match(dashboard, /teachers\.filter\(\(item: any\) => item\.can_teach\)/);
   assert.match(dashboard, /label: 'Subjects', value: curriculumSubjects\.size/);
   assert.doesNotMatch(dashboard, /local.*labels.*available/);
   assert.match(dashboard, /No teaching staff added yet/);
@@ -49,12 +50,13 @@ test('class and placement UX follows the academic plan and hides repair tooling 
 });
 
 test('executive staffing and subject totals come from explicit school records', () => {
-  assert.match(sourceOfTruthMigration, /sm\.role_in_school = 'teacher' or exists/);
-  assert.match(sourceOfTruthMigration, /class_teacher_assignments/);
-  assert.match(sourceOfTruthMigration, /school_curriculum_scope_mappings/);
-  assert.match(sourceOfTruthMigration, /y\.status = 'current'/);
-  assert.match(sourceOfTruthMigration, /item->>'id' <> 'unassigned_teachers'/);
-  assert.doesNotMatch(sourceOfTruthMigration, /count\(\*\) filter \(where sm\.can_teach\)/);
+  assert.match(teachingStaffMigration, /sm\.role_in_school = 'teacher' or sm\.can_teach or exists/);
+  assert.match(teachingStaffMigration, /class_teacher_assignments/);
+  assert.match(teachingStaffMigration, /school_curriculum_scope_mappings/);
+  assert.match(teachingStaffMigration, /y\.status = 'current'/);
+  assert.match(teachingStaffMigration, /item->>'id' <> 'unassigned_teachers'/);
+  assert.match(teachingStaffMigration, /v_teachers = 0 and item->>'id' = 'uncovered_classes'/);
+  assert.doesNotMatch(teachingStaffMigration, /count\(\*\) filter \(where sm\.can_teach\)/);
 });
 
 test('saving a grade plan archives subjects the administrator removed', () => {

@@ -6,7 +6,7 @@ import type { SchoolRole } from '../../../types';
 
 const MemberActionModal: React.FC = () => {
   const {
-    actionLoading, classes, currentCapabilities, handleEnrollStudent, selectedClassId, selectedGrade, setSelectedClassId, setSelectedGrade, setSelectedStudentId, studentSaving, forceChangeAvatar, forceChangeLoading, forceChangeReason, forceChangeUsername, handleBanMember, handleClearProfileChange, handleForceProfileChange, handleRemoveMember, handleSuspendStudent, handleUnbanMember, handleUnsuspendStudent, handleUpdateRole, loadStudentModStatus, modTargetStatus, selectedMember, setForceChangeAvatar, setForceChangeReason, setForceChangeUsername, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, setSuspendDuration, setSuspendReason, showMemberActionModal, students, suspendDuration, suspendLoading, suspendReason,
+    actionLoading, classes, currentCapabilities, handleEnrollStudent, selectedClassId, selectedGrade, setSelectedClassId, setSelectedGrade, setSelectedStudentId, studentSaving, forceChangeAvatar, forceChangeLoading, forceChangeReason, forceChangeUsername, handleBanMember, handleClearProfileChange, handleForceProfileChange, handleRemoveMember, handleSetTeachingStaffStatus, handleSuspendStudent, handleUnbanMember, handleUnsuspendStudent, handleUpdateRole, loadStudentModStatus, modTargetStatus, selectedMember, setForceChangeAvatar, setForceChangeReason, setForceChangeUsername, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, setSuspendDuration, setSuspendReason, showMemberActionModal, students, suspendDuration, suspendLoading, suspendReason, teacherAssignments,
   } = useSchoolAdmin();
   const [verifiedName, setVerifiedName] = React.useState('');
   const [nameSaving, setNameSaving] = React.useState(false);
@@ -15,7 +15,15 @@ const MemberActionModal: React.FC = () => {
   const isProtectedAdmin = Boolean(selectedMember?.is_owner);
   const isAdministrator = selectedMember?.role === 'school_admin';
   const canChangeRole = !isProtectedAdmin && (!isAdministrator || currentCapabilities?.is_owner);
-  const accessLabel = isProtectedAdmin ? 'School owner' : isAdministrator ? `Delegated admin${selectedMember?.can_teach ? ' + Teacher' : ''}` : selectedMember?.role.replace('_', ' ');
+  const canManageAdministratorTeachingStatus = isAdministrator && Boolean(currentCapabilities?.is_owner);
+  const activeTeachingAssignments = (teacherAssignments || []).filter(
+    (assignment: any) => assignment.active !== false && assignment.teacher_user_id === selectedMember?.user_id,
+  ).length;
+  const accessLabel = isProtectedAdmin
+    ? `School owner${selectedMember?.can_teach ? ' · Teaching staff' : ''}`
+    : isAdministrator
+      ? `Delegated admin${selectedMember?.can_teach ? ' · Teaching staff' : ''}`
+      : selectedMember?.role.replace('_', ' ');
   const activeClasses = React.useMemo(() => (Array.isArray(classes) ? classes : []).filter((item: any) => item.is_active), [classes]);
   const academicYears = React.useMemo(() => Array.from(new Set(activeClasses.map((item: any) => Number(item.grade_level)).filter(Number.isFinite))).sort((a, b) => a - b), [activeClasses]);
   const classesForAcademicYear = React.useMemo(() => activeClasses.filter((item: any) => selectedGrade !== '' && String(item.grade_level) === String(selectedGrade)), [activeClasses, selectedGrade]);
@@ -93,7 +101,26 @@ const MemberActionModal: React.FC = () => {
 
           <div className="space-y-3">
             {isProtectedAdmin && <div className="admin-protected-notice" role="status"><span aria-hidden="true">◆</span><div><strong>Protected school owner</strong><p>Transfer ownership through a dedicated workflow before changing or removing this account.</p></div></div>}
-            {isAdministrator && !isProtectedAdmin && <div className="admin-protected-notice" role="status"><span aria-hidden="true">◇</span><div><strong>Delegated administrator{selectedMember.can_teach ? ' + Teacher' : ''}</strong><p>{currentCapabilities?.is_owner ? 'You can return this account to Teacher or Student. Active teaching assignments are always checked first.' : 'Only the school owner can change this administrator’s access.'}</p></div></div>}
+            {isAdministrator && !isProtectedAdmin && <div className="admin-protected-notice" role="status"><span aria-hidden="true">◇</span><div><strong>Delegated administrator{selectedMember.can_teach ? ' · Teaching staff' : ''}</strong><p>{currentCapabilities?.is_owner ? 'You can manage this administrator’s role and teaching staff status. Active assignments are always checked first.' : 'Only the School Head can change this administrator’s access.'}</p></div></div>}
+            {canManageAdministratorTeachingStatus && (
+              <div className="member-action-section administrator-teaching-status">
+                <div>
+                  <h4>Teaching responsibilities</h4>
+                  <p>{selectedMember.can_teach
+                    ? `This administrator is registered as teaching staff${activeTeachingAssignments ? ` with ${activeTeachingAssignments} active assignment${activeTeachingAssignments === 1 ? '' : 's'}` : ', but has no active assignment yet'}.`
+                    : 'Administrative access does not make this person teaching staff. Register them only if they genuinely teach.'}</p>
+                </div>
+                <button
+                  type="button"
+                  className={selectedMember.can_teach ? 'admin-button-secondary' : 'admin-button-primary'}
+                  disabled={actionLoading || (selectedMember.can_teach && activeTeachingAssignments > 0)}
+                  onClick={() => handleSetTeachingStaffStatus(!selectedMember.can_teach)}
+                >
+                  {selectedMember.can_teach ? 'Remove teaching staff status' : 'Register as teaching staff'}
+                </button>
+                {selectedMember.can_teach && activeTeachingAssignments > 0 && <small>Remove or reassign active teaching assignments before changing this status.</small>}
+              </div>
+            )}
             {selectedMember.role === 'student' && (
               <div className="member-action-section">
                 <div className="flex items-center justify-between gap-3 mb-2">
@@ -179,7 +206,7 @@ const MemberActionModal: React.FC = () => {
             {/* Suspension Controls — students only */}
             {selectedMember.role === 'student' && !selectedMember.is_banned && (
               <div className="member-action-section">
-                <h4 className="text-sm font-medium text-amber-400 mb-2">⏱️ Time-Limited Suspension</h4>
+                <h4 className="text-sm font-medium text-amber-400 mb-2">Time-limited suspension</h4>
                 {modTargetStatus && modTargetStatus.mod_status === 'suspended' ? (
                   <div className="space-y-2">
                     <p className="text-sm text-amber-200">
@@ -237,15 +264,15 @@ const MemberActionModal: React.FC = () => {
             {/* Force Profile Change — students only */}
             {selectedMember.role === 'student' && !selectedMember.is_banned && (
               <div className="member-action-section">
-                <h4 className="text-sm font-medium text-yellow-400 mb-2">✏️ Force Profile Change</h4>
+                <h4 className="text-sm font-medium text-yellow-400 mb-2">Require profile change</h4>
                 {modTargetStatus?.required_changes ? (
                   <div className="space-y-2">
                     <div className="space-y-1">
                       {modTargetStatus.required_changes.username && (
-                        <p className="text-sm text-yellow-200">⬜ Username change pending</p>
+                        <p className="text-sm text-yellow-200">Username change pending</p>
                       )}
                       {modTargetStatus.required_changes.avatar && (
-                        <p className="text-sm text-yellow-200">⬜ Avatar change pending</p>
+                        <p className="text-sm text-yellow-200">Avatar change pending</p>
                       )}
                       {modTargetStatus.required_changes.reason && (
                         <p className="text-xs text-gray-400 mt-1">Reason: {modTargetStatus.required_changes.reason}</p>
