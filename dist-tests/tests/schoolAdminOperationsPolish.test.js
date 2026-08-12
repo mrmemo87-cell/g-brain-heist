@@ -46,12 +46,14 @@ test('teacher assignments lead with current coverage and use school-created grad
     const currentPosition = teachers.indexOf('id="current-assignments-title"');
     const formPosition = teachers.indexOf('id="assign-teacher-panel"');
     assert.ok(currentPosition >= 0 && currentPosition < formPosition);
-    assert.match(teachers, />Assign Teacher<\/button>/);
+    assert.match(teachers, /availableTeachers\.length \? 'Assign teacher'/);
     assert.match(teachers, /Print teacher allocation register/);
     assert.match(teachers, /Filter assignments by grade level/);
     assert.match(teachers, /Select grade level first/);
     assert.match(teachers, /assignableSubjects\.map/);
     assert.match(teachers, /assignmentClasses\.map/);
+    assert.match(teachers, /selectedFilterGrade/);
+    assert.match(teachers, /No teaching staff registered yet/);
 });
 test('classes group teaching coverage by grade level and expose no archive action', () => {
     assert.match(classes, /Grades, classes and teaching coverage/);

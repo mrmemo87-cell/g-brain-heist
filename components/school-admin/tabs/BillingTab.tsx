@@ -38,7 +38,7 @@ const BillingTab: React.FC = () => {
         try {
           const result = await startPilot();
           if (result.success) {
-            addToast('🚀 30-day Core pilot activated.', 'success');
+            addToast('30-day Core pilot activated.', 'success');
             invalidateTierCache();
             const details = await fetchSchoolPlanDetails();
             setPlanDetails(details);

@@ -59,8 +59,8 @@ const IeltsSettingsTab: React.FC = () => {
         setCanManage(result.canManage);
         addToast?.(
           result.enabled
-            ? '✅ Extra Practice enabled for all students'
-            : '⚠️ Extra Practice disabled for all students',
+            ? 'Extra Practice enabled for all students'
+            : 'Extra Practice disabled for all students',
           'success'
         );
       } else {
@@ -97,7 +97,7 @@ const IeltsSettingsTab: React.FC = () => {
             <div className="mt-4 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-cyan-300">Current Status</p>
               <p id="ielts-extra-practice-status" role="status" aria-live="polite" className="mt-1 text-sm font-semibold text-cyan-100">
-                {loadError ? 'Unable to verify' : extraPracticeEnabled === null ? 'Verifying access…' : extraPracticeEnabled ? '✅ Enabled' : '❌ Disabled'}
+                {loadError ? 'Unable to verify' : extraPracticeEnabled === null ? 'Verifying access…' : extraPracticeEnabled ? 'Enabled' : 'Disabled'}
               </p>
               {loadError ? <p className="mt-2 text-sm font-semibold text-red-200" role="alert">{loadError}</p> : null}
             </div>

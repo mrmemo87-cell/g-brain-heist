@@ -37,7 +37,7 @@ test('App routes protected owners to the executive portal and keeps gameplay una
     assert.match(app, /case 'school_head'/);
     assert.match(app, /allowedSchoolAdminViews\.push\('school_head'\)/);
     assert.match(app, /isSchoolHeadRole \? 'school_head' : 'school_admin'/);
-    assert.match(app, /requested === 'teacher' && capabilities\.can_teach \? 'teacher' : 'school_head'/);
+    assert.match(app, /requested === 'teacher' && capabilities\.can_teach && capabilities\.has_active_teaching_assignment \? 'teacher' : 'school_head'/);
 });
 test('executive portal includes every governance area and protected transfer UI', () => {
     for (const label of [

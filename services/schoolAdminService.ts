@@ -51,6 +51,7 @@ export interface SchoolCapabilities {
   is_owner: boolean;
   can_administer: boolean;
   can_teach: boolean;
+  has_active_teaching_assignment?: boolean;
   can_manage_billing?: boolean;
   can_manage_admins?: boolean;
   can_transfer_ownership?: boolean;
@@ -106,6 +107,7 @@ export interface SchoolTeacher {
   role_in_school: SchoolRole;
   is_owner: boolean;
   can_teach: boolean;
+  has_active_assignment?: boolean;
 }
 
 export interface ClassTeacherAssignment {
@@ -229,6 +231,7 @@ export async function resolveMySchoolCapabilities(
         is_owner: Boolean(payload['is_owner']),
         can_administer: Boolean(payload['can_administer']),
         can_teach: Boolean(payload['can_teach']),
+        has_active_teaching_assignment: Boolean(payload['has_active_teaching_assignment']),
         can_manage_billing: Boolean(payload['can_manage_billing'] ?? payload['is_owner']),
         can_manage_admins: Boolean(payload['can_manage_admins'] ?? payload['is_owner']),
         can_transfer_ownership: Boolean(payload['can_transfer_ownership'] ?? payload['is_owner']),
@@ -813,10 +816,36 @@ export async function listSchoolTeachers(schoolId: string): Promise<SchoolTeache
       role_in_school: row.role_in_school as SchoolRole,
       is_owner: Boolean(row.is_owner),
       can_teach: Boolean(row.can_teach),
+      has_active_assignment: Boolean(row.has_active_assignment),
     }));
   } catch (err) {
     console.error('Exception fetching teachers:', err);
     return [];
+  }
+}
+
+export async function setAdministratorTeachingStaffStatus(
+  schoolId: string,
+  memberUserId: string,
+  enabled: boolean,
+): Promise<{ success: boolean; error?: string; can_teach?: boolean; assignment_count?: number }> {
+  try {
+    const { data, error } = await supabase.rpc('rpc_school_admin_set_teaching_staff_status', {
+      p_school_id: schoolId,
+      p_member_user_id: memberUserId,
+      p_enabled: enabled,
+    });
+    if (error) return { success: false, error: error.message };
+    const result = typeof data === 'string' ? JSON.parse(data) : data;
+    if (!result?.success) return { success: false, error: result?.error || 'Teaching staff status could not be updated.' };
+    return {
+      success: true,
+      can_teach: Boolean(result.can_teach),
+      assignment_count: Number(result.assignment_count || 0),
+    };
+  } catch (error) {
+    console.error('Exception updating teaching staff status:', error);
+    return { success: false, error: 'Teaching staff status could not be updated.' };
   }
 }
 

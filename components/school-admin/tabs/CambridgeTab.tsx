@@ -34,7 +34,7 @@ const CambridgeTab: React.FC = () => {
                 : 'bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white'
             }`}
           >
-            👁️ {showSchoolVisibility ? 'Hide' : 'Test'} Visibility Manager
+            {showSchoolVisibility ? 'Hide' : 'Open'} visibility manager
           </button>
         </div>
 
@@ -110,7 +110,7 @@ const CambridgeTab: React.FC = () => {
                     <>
                       <button
                         onClick={() => setConfirmDialog({
-                          title: '✅ Show Selected Tests?',
+                          title: 'Show selected tests?',
                           description: `This will make ${selectedSchoolTests.size} test(s) available for teachers to release to their classes.`,
                           confirmLabel: 'Show Tests',
                           onConfirm: async () => {
@@ -121,7 +121,7 @@ const CambridgeTab: React.FC = () => {
                         disabled={Array.from(selectedSchoolTests).every(id => filteredSchoolVisibility.find(t => t.test_id === id)?.is_visible)}
                         className="px-3 py-1.5 bg-green-600/30 hover:bg-green-600/50 border border-green-500 text-green-300 text-xs font-semibold rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       >
-                        ✅ Show Selected ({selectedSchoolTests.size})
+                        Show selected ({selectedSchoolTests.size})
                       </button>
                       <button
                         onClick={() => setConfirmDialog({
@@ -137,7 +137,7 @@ const CambridgeTab: React.FC = () => {
                         disabled={Array.from(selectedSchoolTests).every(id => !filteredSchoolVisibility.find(t => t.test_id === id)?.is_visible)}
                         className="px-3 py-1.5 bg-red-600/30 hover:bg-red-600/50 border border-red-500 text-red-300 text-xs font-semibold rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       >
-                        🚫 Hide Selected ({selectedSchoolTests.size})
+                        Hide selected ({selectedSchoolTests.size})
                       </button>
                     </>
                   )}
@@ -192,7 +192,7 @@ const CambridgeTab: React.FC = () => {
                 </div>
 
                 <p className="text-xs text-gray-500 mt-3">
-                  💡 School availability is the first gate. Students see an available test only after their teacher releases it to their class.
+                  School availability is the first gate. Students see an available test only after their teacher releases it to their class.
                 </p>
               </>
             )}
@@ -213,7 +213,7 @@ const CambridgeTab: React.FC = () => {
               onClick={exportCSV}
               className="cambridge-white-action bg-green-600 hover:bg-green-500 text-white font-medium px-4 py-2 rounded-lg transition-colors"
             >
-              📥 Export CSV
+              Export CSV
             </button>
           )}
         </div>

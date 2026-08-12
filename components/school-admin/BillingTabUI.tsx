@@ -74,7 +74,6 @@ const BillingTab: React.FC<BillingTabProps> = ({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <h3 className="text-lg font-semibold text-slate-900">
-              {isPaid && '✅ '}{isPilot && isActive && '🚀 '}{trialExpired && '⏰ '}{isNone && '🔓 '}
               {planLabel[plan] || plan}
             </h3>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
@@ -101,7 +100,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
         <section className="rounded-xl border border-cyan-200 bg-cyan-50 p-5 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-sm font-semibold text-cyan-900">🚀 {PILOT_PLAN.label} — {PILOT_PLAN.days} Days Free</h3>
+              <h3 className="text-sm font-semibold text-cyan-900">{PILOT_PLAN.label} — {PILOT_PLAN.days} Days Free</h3>
               <p className="mt-1 text-xs text-slate-600">
                 {PILOT_PLAN.seats.cambridge} Cambridge · {PILOT_PLAN.seats.ielts} IELTS · {PILOT_PLAN.seats.game} Game seats. No credit card needed.
               </p>
@@ -176,7 +175,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
           </div>
 
           <section className="rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm">
-            <p className="text-sm text-slate-600"><span className="font-semibold text-slate-900">🏢 Enterprise</span> — Unlimited seats · Multi-campus · Custom pricing</p>
+            <p className="text-sm text-slate-600"><span className="font-semibold text-slate-900">Enterprise</span> — Unlimited seats · Multi-campus · Custom pricing</p>
             <a href="mailto:sales@brainsheist.com?subject=Enterprise%20Plan%20Inquiry" className={`mt-1 inline-block text-sm font-semibold text-[#1e4b82] transition-colors hover:text-[#173d6c] ${focusRing}`}>Contact sales@brainsheist.com →</a>
           </section>
         </>
