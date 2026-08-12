@@ -9,6 +9,28 @@ const files = fs
   .sort();
 
 const failures = [];
+const seenVersions = new Map();
+const seenNames = new Map();
+
+for (const file of files) {
+  const match = file.match(/^(\d{14})_([a-z0-9_]+)\.sql$/);
+  if (!match) {
+    failures.push(`${file}: migration filename must be <14-digit UTC timestamp>_<snake_case_name>.sql`);
+    continue;
+  }
+
+  const [, version, name] = match;
+  if (seenVersions.has(version)) {
+    failures.push(`${file}: migration version ${version} is already used by ${seenVersions.get(version)}`);
+  } else {
+    seenVersions.set(version, file);
+  }
+  if (seenNames.has(name)) {
+    failures.push(`${file}: migration name ${name} is already used by ${seenNames.get(name)}`);
+  } else {
+    seenNames.set(name, file);
+  }
+}
 
 for (const file of files) {
   const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');

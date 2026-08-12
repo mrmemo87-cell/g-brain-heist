@@ -495,37 +495,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     setSchoolAdminActionLoading(userId);
     try {
-      // Try RPC first - always pass p_is_admin to avoid ambiguity
-      const { data, error } = await supabase.rpc('admin_set_school_admin', {
+      // Role changes must stay on the governed RPC path. Never fall back to a
+      // direct membership or user-role write from the browser.
+      const { error } = await supabase.rpc('admin_set_school_admin', {
         p_school_id: schoolId,
         p_user_id: userId,
         p_is_admin: makeAdmin,
       });
 
       if (error) {
-        console.warn('admin_set_school_admin RPC failed, trying fallback:', error.message);
-        
-        const newRole = makeAdmin ? 'school_admin' : 'student';
-        
-        // Fallback: Try updating school_members table directly
-        const { error: smError } = await supabase
-          .from('school_members')
-          .update({ role_in_school: newRole })
-          .eq('school_id', schoolId)
-          .eq('user_id', userId);
-        
-        if (smError) {
-          // Fallback 2: Try updating users table directly
-          const { error: usersError } = await supabase
-            .from('users')
-            .update({ role: newRole })
-            .eq('id', userId)
-            .eq('school_id', schoolId);
-          
-          if (usersError) {
-            throw usersError;
-          }
-        }
+        throw error;
       }
 
       addToast(makeAdmin ? 'School admin assigned.' : 'School admin removed.', 'success');
