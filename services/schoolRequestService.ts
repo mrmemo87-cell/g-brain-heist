@@ -12,6 +12,7 @@ export interface SchoolRequestResponse {
   success: boolean;
   error?: string;
   message?: string;
+  emailWarning?: string;
   requestId?: string;
   status?: SchoolRequestStatus;
   suggestions?: SchoolRequestSuggestion[];
@@ -77,6 +78,43 @@ export interface SchoolRequestMessageRealtimePayload {
 }
 
 export type SchoolRequestViewerRole = 'admin' | 'applicant';
+
+type SchoolRequestEmailEvent = 'submitted' | 'status_updated';
+
+const notifySchoolRequestByEmail = async (
+  requestId: string,
+  event: SchoolRequestEmailEvent
+): Promise<{ sent: boolean; warning?: string }> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('school_request_email', {
+      body: { requestId, event },
+    });
+
+    if (error || data?.ok !== true) {
+      console.warn('[SchoolRequest] Email delivery unavailable', {
+        requestId,
+        event,
+        message: error?.message || data?.error || 'Unknown email delivery error',
+      });
+      return {
+        sent: false,
+        warning: 'The request was saved, but the email update could not be sent. The current status is still available in My applications.',
+      };
+    }
+
+    return { sent: true };
+  } catch (error) {
+    console.warn('[SchoolRequest] Email delivery failed', {
+      requestId,
+      event,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return {
+      sent: false,
+      warning: 'The request was saved, but the email update could not be sent. The current status is still available in My applications.',
+    };
+  }
+};
 
 const decodeTokenRole = (token?: string | null) => {
   if (!token) return null;
@@ -169,7 +207,18 @@ export const requestSchool = async (payload: SchoolRequestPayload): Promise<Scho
 
   const v3Result = await tryV3();
   if (!v3Result.error) {
-    return parseRequestResponse(v3Result.data);
+    const result = parseRequestResponse(v3Result.data);
+    if (result.success && result.requestId && result.status === 'pending') {
+      const email = await notifySchoolRequestByEmail(result.requestId, 'submitted');
+      return {
+        ...result,
+        message: email.sent
+          ? 'Your request has been submitted. A confirmation was sent to your verified Brains Heist email, and future superadmin updates will be sent there too.'
+          : 'Your request has been submitted. Track it in My applications while email delivery is temporarily unavailable.',
+        emailWarning: email.warning,
+      };
+    }
+    return result;
   }
   const v3Message = v3Result.error?.message || '';
   const v3Status = (v3Result.error as { status?: number } | null)?.status;
@@ -206,7 +255,14 @@ export const reviewSchoolRequest = async (
   action: 'approve' | 'reject' | 'mark_duplicate' | 'needs_more_info',
   notes?: string,
   existingSchoolId?: string | null
-): Promise<{ success: boolean; error?: string; message?: string; inviteCode?: string | null; schoolId?: string | null }> => {
+): Promise<{
+  success: boolean;
+  error?: string;
+  message?: string;
+  inviteCode?: string | null;
+  schoolId?: string | null;
+  emailWarning?: string;
+}> => {
   if (action === 'needs_more_info') {
     const { data, error } = await supabase.rpc('admin_school_request_need_more_info', {
       p_request_id: requestId,
@@ -222,7 +278,12 @@ export const reviewSchoolRequest = async (
       return { success: false, error: result.error || 'Request update failed.' };
     }
 
-    return { success: true, message: result?.message ?? 'Request updated.' };
+    const email = await notifySchoolRequestByEmail(requestId, 'status_updated');
+    return {
+      success: true,
+      message: result?.message ?? 'Request updated.',
+      emailWarning: email.warning,
+    };
   }
 
   const { data, error } = await supabase.rpc('admin_review_school_request', {
@@ -247,11 +308,13 @@ export const reviewSchoolRequest = async (
     return { success: false, error: result.error || 'Request update failed.' };
   }
 
+  const email = await notifySchoolRequestByEmail(requestId, 'status_updated');
   return {
     success: true,
     message: result?.message,
     inviteCode: result?.invite_code ?? null,
     schoolId: result?.school_id ?? null,
+    emailWarning: email.warning,
   };
 };
 
@@ -259,7 +322,7 @@ export const sendSchoolRequestMessage = async (
   requestId: string,
   message: string,
   senderRole: 'applicant' | 'admin' = 'applicant'
-): Promise<{ success: boolean; error?: string }> => {
+): Promise<{ success: boolean; error?: string; emailWarning?: string }> => {
   const rpcName = senderRole === 'admin' ? 'admin_school_request_need_more_info' : 'school_request_reply';
   const { error } = await supabase.rpc(rpcName, {
     p_request_id: requestId,
@@ -268,6 +331,13 @@ export const sendSchoolRequestMessage = async (
 
   if (error) {
     return { success: false, error: error.message || 'Request messaging is not available yet.' };
+  }
+
+  if (senderRole === 'admin') {
+    const email = await notifySchoolRequestByEmail(requestId, 'status_updated');
+    if (email.warning) {
+      return { success: true, emailWarning: email.warning };
+    }
   }
 
   return { success: true };

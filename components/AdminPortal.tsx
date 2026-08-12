@@ -561,6 +561,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       addToast(result.message || 'Request updated.', 'success');
     }
 
+    if (result.emailWarning) {
+      addToast(result.emailWarning, 'warning');
+    }
+
     await Promise.all([loadSchoolRequests(), fetchDashboardStats()]);
     setSchoolRequestActionLoading(null);
   };
