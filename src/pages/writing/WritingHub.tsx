@@ -29,6 +29,8 @@ import {
   StudentWritingHistoryEntry,
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import { FALLBACK_PROMPT_BY_GENRE, WEAKNESS_TAG_TO_MISSION_CATEGORY } from '../../lib/brains_heist/writingPromptProgression.js';
+import { assessWritingExam, WritingAssessmentResult } from '../../lib/brains_heist/writingAssessment.js';
+import { normalizeAuthoritativeWritingAssessment } from '../../lib/brains_heist/writingAssessmentAuthority.js';
 import {
   createWritingCompositionTelemetry,
   finalizeWritingCompositionTelemetry,
@@ -2305,7 +2307,7 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
   useEffect(() => {
     setActiveGenre(genre);
     setPromptText(defaultPromptByGenre[genre]);
-  }, [genre]);
+  }, [genre, grade]);
 
   useEffect(() => {
     setShowTaskTypeGuide(false);
@@ -4919,6 +4921,13 @@ const isLegacyForced = (): boolean => {
 };
 
 const createRevisionCycleId = (): string => `rev_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+const createWritingAttemptKey = (): string => {
+  const runtimeCrypto = typeof globalThis !== 'undefined' ? globalThis.crypto : undefined;
+  return runtimeCrypto?.randomUUID
+    ? `attempt_${runtimeCrypto.randomUUID()}`
+    : `attempt_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+};
+const defaultWritingTarget = (grade: number): number => grade <= 7 ? 80 : grade <= 9 ? 120 : 160;
 const buildWritingDraftStorageKey = (studentId: string, genre: SupportedGenre, promptText: string): string =>
   `writing_hub_draft:${studentId}:${genre}:${normalizePromptForComparison(promptText).slice(0, 120)}`;
 
@@ -4930,16 +4939,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('Write your response, submit for feedback, then choose retry or a new prompt.');
-  const [assessment, setAssessment] = useState<{
-    total_score: number;
-    weakness_tags: string[];
-    subscores: {
-      content: number;
-      communicative_achievement: number | null;
-      organisation: number;
-      language: number;
-    };
-  } | null>(null);
+  const [assessment, setAssessment] = useState<WritingAssessmentResult | null>(null);
   const [aiFeedback, setAiFeedback] = useState<WritingAiFeedbackAssist | null>(null);
   const [submittedText, setSubmittedText] = useState('');
   const [showCinematicFeedback, setShowCinematicFeedback] = useState(false);
@@ -4961,6 +4961,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [revisionOriginText, setRevisionOriginText] = useState('');
   const [promptHistoryCount, setPromptHistoryCount] = useState<number>(0);
   const [availablePromptCount, setAvailablePromptCount] = useState<number>(1);
+  const [targetWordCount, setTargetWordCount] = useState<number>(() => defaultWritingTarget(grade));
+  const [promptDifficulty, setPromptDifficulty] = useState<'foundational' | 'core' | 'stretch'>(
+    () => grade <= 7 ? 'foundational' : grade <= 9 ? 'core' : 'stretch'
+  );
   const [hydratedForStudentId, setHydratedForStudentId] = useState<string | null>(null);
   const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
   const [persistenceStatus, setPersistenceStatus] = useState(getWritingPersistenceStatus());
@@ -4970,7 +4974,6 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const cinematicTracePathRef = useRef<SVGPathElement | null>(null);
   const managedPromptLoadKeyRef = useRef('');
   const pastedCharactersToIgnoreRef = useRef(0);
-  const targetWordCount = 110;
   const wordCount = countWords(draft);
   const wordTone = useMemo(() => getWordCounterTone(wordCount, targetWordCount), [wordCount, targetWordCount]);
   const isVeryShortDraft = wordCount > 0 && wordCount < Math.max(10, Math.floor(targetWordCount * 0.2));
@@ -4996,6 +4999,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setActiveGenre(genre);
     setPromptText(defaultPromptByGenre[genre]);
     setPromptId(null);
+    setTargetWordCount(defaultWritingTarget(grade));
+    setPromptDifficulty(grade <= 7 ? 'foundational' : grade <= 9 ? 'core' : 'stretch');
     setDraft('');
     setAssessment(null);
     setAiFeedback(null);
@@ -5172,9 +5177,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         resolvedPrompt = nextPrompt.data.prompt_text.trim();
         resolvedPromptId = nextPrompt.data.prompt_id;
         setPromptId(resolvedPromptId);
+        setTargetWordCount(nextPrompt.data.target_word_count);
+        setPromptDifficulty(nextPrompt.data.difficulty_level);
         setAvailablePromptCount(Math.max(1, nextPrompt.data.pool_size ?? availablePromptCount));
       } else {
         setPromptId(null);
+        setTargetWordCount(defaultWritingTarget(grade));
+        setPromptDifficulty(grade <= 7 ? 'foundational' : grade <= 9 ? 'core' : 'stretch');
       }
       const samePromptIdentity = Boolean(
         previousPromptId
@@ -5241,8 +5250,60 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       draft,
       retryKind === 'same_prompt' ? revisionOriginText : ''
     );
+    const attemptKey = createWritingAttemptKey();
+    const shadowAssessment = assessWritingExam({
+      promptText,
+      grade,
+      genre: activeGenre,
+      targetWordCount,
+      studentResponse: draft,
+    });
+
+    let authority;
+    try {
+      const ai = await requestWritingAiAssist({
+        mode: 'assessment_v2',
+        prompt_text: promptText,
+        student_response: draft,
+        weaknesses: [],
+        grade,
+        genre: activeGenre,
+        attempt_key: attemptKey,
+        prompt_id: promptId,
+        target_word_count: targetWordCount,
+        difficulty_level: promptDifficulty,
+        shadow_assessment: shadowAssessment,
+      });
+      if (!ai.ok || !ai.data) {
+        setError(ai.error ?? 'We could not verify this assessment. Your writing was not added to your academic profile.');
+        setBusy(false);
+        return;
+      }
+      const normalized = normalizeAuthoritativeWritingAssessment(ai.data.result, {
+        grade,
+        genre: activeGenre,
+        targetWordCount,
+        promptId,
+        studentResponse: draft,
+      });
+      if (!normalized.ok) {
+        setError(`${normalized.error} Your writing was not added to your academic profile.`);
+        setBusy(false);
+        return;
+      }
+      authority = normalized.data;
+    } catch (assessmentError) {
+      setError(
+        assessmentError instanceof Error
+          ? assessmentError.message
+          : 'We could not verify this assessment. Your writing was not added to your academic profile.'
+      );
+      setBusy(false);
+      return;
+    }
 
     const result = submitInitialWritingAssessment({
+      attempt_id: attemptKey,
       student_id: studentId,
       student_name: studentName,
       grade,
@@ -5256,6 +5317,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       retry_kind: retryKind,
       parent_attempt_id: retryKind === 'same_prompt' ? lastAttemptId : null,
       integrity_signals: finalizedIntegritySignals,
+      authoritative_assessment: authority.assessment,
+      authoritative_feedback: authority.feedback,
+      record_in_academic_profile: authority.assessment.academic_profile_ready === true,
     });
 
     if (!result.ok || !result.data) {
@@ -5265,6 +5329,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     }
 
     setAssessment(result.data.assessment_result);
+    setAiFeedback(authority.feedback as unknown as WritingAiFeedbackAssist);
     setSubmittedText(draft);
     setLastAttemptId(result.data.attempt_id ?? null);
     setRevisionCycleId(currentCycleId);
@@ -5275,40 +5340,16 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       window.localStorage.removeItem(draftStorageKey);
     }
 
-    try {
-      const ai = await requestWritingAiAssist({
-        mode: 'feedback',
-        prompt_text: promptText,
-        student_response: draft,
-        weaknesses: result.data.assessment_result.weakness_tags.slice(0, 5),
-        grade,
-        genre: activeGenre,
-      });
-      if (ai.ok && ai.data) {
-        const parsedFeedback = (ai.data.result ?? null) as WritingAiFeedbackAssist | null;
-        setAiFeedback(parsedFeedback);
-        if (parsedFeedback) {
-          persistInitialWritingRichFeedback({
-            student_id: studentId,
-            genre: activeGenre,
-            attempt_id: result.data.attempt_id,
-            rich_feedback: parsedFeedback,
-            created_at: new Date().toISOString(),
-          });
-          setCinematicReplaySource(null);
-          setCinematicIndex(null);
-          setCinematicDone(false);
-          setShowCinematicFeedback(true);
-        }
-      } else {
-        setAiFeedback(null);
-      }
-    } catch {
-      setAiFeedback(null);
-    } finally {
-      setBusy(false);
-      setNotice('Feedback is ready below. Revise and submit again when you are ready.');
-    }
+    setCinematicReplaySource(null);
+    setCinematicIndex(null);
+    setCinematicDone(false);
+    setShowCinematicFeedback(true);
+    setBusy(false);
+    setNotice(
+      authority.assessment.assessment_status === 'verified'
+        ? 'Feedback is ready below. Revise and submit again when you are ready.'
+        : 'Feedback is ready. This assessment needs teacher review before it affects your academic profile.'
+    );
   };
 
   const playSavedCinematicFeedback = (entry: StudentWritingHistoryEntry) => {
