@@ -255,7 +255,7 @@ test('mobile cinematic feedback keeps the green correction visible without scrol
 test('cinematic replay deduplicates corrections only after narrowing to visible spans', () => {
   const hub = readProjectFile('src/pages/writing/WritingHub.tsx');
   assert.match(hub, /export const dedupeCinematicRanges/);
-  assert.match(hub, /const key = \`\\\$\{range\\.polarity\}:\\\$\{range\\.start\}:\\\$\{range\\.end\}\`/);
+  assert.ok(hub.includes('const key = `${range.polarity}:${range.start}:${range.end}`'));
   assert.match(hub, /dedupeCinematicRanges\(\s*narrowCorrectionRanges/);
   assert.match(hub, /candidateOriginalLength < currentOriginalLength/);
 });
