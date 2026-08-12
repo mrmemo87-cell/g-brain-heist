@@ -5464,7 +5464,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               kind === 'strength' ? 'Strong example' : 'Writing issue';
     const diagnosis = simplifyStudentLanguage(activeLessonFix?.why || activeCinematicDetail.detail).trim() || `Improve this sentence: "${originalSentence}"`;
     const whyThisIsStronger = kind === 'grammar'
-      ? `The revision fixes grammar so the sentence reads correctly: "${originalSentence}".`
+      ? `The revision fixes the grammar. The corrected version is: "${improvedSentence || originalSentence}".`
       : kind === 'punctuation'
         ? `The revision improves punctuation, which makes your sentence easier to read.`
         : kind === 'support'
