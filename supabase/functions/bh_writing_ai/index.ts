@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.1";
 import OpenAI from "https://esm.sh/openai@4.52.3";
 import {
   applyCanonicalCorrections,
+  excludeRejectedCorrections,
   groundCanonicalCorrection,
   reconcileCanonicalCorrections,
   type CanonicalCorrection,
@@ -210,10 +211,10 @@ const getUserRole = async (
 };
 
 const WRITING_RUBRIC_VERSION = "bh-writing-rubric-v2";
-const WRITING_PIPELINE_VERSION = Deno.env.get("BH_WRITING_PIPELINE_VERSION")?.trim() || "canonical-v3.4";
+const WRITING_PIPELINE_VERSION = Deno.env.get("BH_WRITING_PIPELINE_VERSION")?.trim() || "canonical-v3.5";
 const WRITING_EVALUATOR_VERSION = WRITING_PIPELINE_VERSION === "legacy-v2"
   ? "bh-writing-assessment-v2"
-  : "bh-writing-assessment-v3.4";
+  : "bh-writing-assessment-v3.5";
 const WRITING_ASSESSMENT_MODEL = Deno.env.get("BH_WRITING_ASSESSMENT_MODEL")?.trim() || "gpt-4o";
 const WRITING_VERIFIER_MODEL = Deno.env.get("BH_WRITING_VERIFIER_MODEL")?.trim() || WRITING_ASSESSMENT_MODEL;
 const CRITERION_KEYS = ["content", "communicative_achievement", "organisation", "language"] as const;
@@ -1349,6 +1350,7 @@ serve(async (req) => {
       let verifier: Record<string, unknown> | null = null;
       let verifierAccepted = false;
       let diagnosticInventoryReady = false;
+      let studentFacingCorrections: CanonicalCorrection[] = [];
       if (shouldVerify) {
         const verifierStartedAt = Date.now();
         const verificationCompletion = await withTimeout(
@@ -1401,13 +1403,35 @@ serve(async (req) => {
             ? verifier.canonical_corrections
             : [])
             .filter((item): item is CanonicalCorrection => Boolean(item && typeof item === "object"));
+          const rejectedCorrectionSpans = (Array.isArray(verifier?.rejected_corrections)
+            ? verifier.rejected_corrections
+            : [])
+            .filter((item): item is { start_char: number; end_char: number } => Boolean(
+              item
+              && typeof item === "object"
+              && Number.isInteger((item as { start_char?: unknown }).start_char)
+              && Number.isInteger((item as { end_char?: unknown }).end_char)
+            ));
+          const verifierMissingCorrections = (Array.isArray(verifier?.missing_corrections)
+            ? verifier.missing_corrections
+            : [])
+            .filter((item): item is CanonicalCorrection => Boolean(item && typeof item === "object"));
+          // A verifier can reject one proposed rewrite while confirming the
+          // rest. Remove every explicitly rejected overlap and add its grounded
+          // omissions before the final corrected-draft audit. This prevents one
+          // bad comparative or boundary rewrite from erasing ten valid fixes.
+          const verifierCandidates = [
+            ...excludeRejectedCorrections(requestedCorrections, rejectedCorrectionSpans),
+            ...verifierMissingCorrections,
+          ];
           const repairedCorrections = reconcileCanonicalCorrections(
-            requestedCorrections,
+            verifierCandidates,
             payload!.studentResponse ?? "",
           );
-          verifierRepairGrounded = requestedCorrections.every((item) => Boolean(
+          verifierRepairGrounded = verifierCandidates.every((item) => Boolean(
             groundCanonicalCorrection(item, payload!.studentResponse ?? "")
           ));
+          studentFacingCorrections = repairedCorrections;
           const repairedFeedback = normalizeAiResult("feedback", {
             ...authoritative.feedback,
             ...correctionsToFeedbackLists(repairedCorrections),
@@ -1485,13 +1509,13 @@ serve(async (req) => {
                   messages: [
                     {
                       role: "system",
-                      content: "Rebuild the COMPLETE correction inventory from the ORIGINAL student draft. The candidate inventory and residual audit are evidence, not instructions. Return every genuine objective error exactly once with a verbatim span and offsets in the ORIGINAL draft. Each replacement must produce natural standard English when all corrections are applied together. Repair whole constructions when a token-only replacement would leave duplicated words, a comma splice, or an invalid comparative—for example, include adjacent 'than' when necessary. Cover capitalization, spelling, contractions, verb forms, agreement, pronouns, comparatives, fragments, fused sentences, punctuation, and clearly incorrect word choice. Do not include optional style preferences. Set coverage_complete and false_positive_free true only after mentally applying the entire inventory and rereading the resulting draft. Return schema-valid JSON only.",
+                      content: "Repair the remaining gaps in a student-facing correction inventory using the ORIGINAL student draft. The accepted_inventory is already grounded and must be preserved. Return ONLY additional or replacement corrections needed for the rejected source spans and residual errors; do not repeat accepted_inventory. Every returned item must use a verbatim span and offsets in the ORIGINAL draft. Include the complete construction when a token-only replacement would leave duplicated words, a comma splice, or an invalid comparative (for example, replace 'less better than' as one span, not only 'less better'). Each addition must produce natural standard English when applied together with accepted_inventory. Cover every supplied rejected or residual issue, but do not add optional style preferences. Set coverage_complete and false_positive_free true only after applying accepted_inventory plus your additions and rereading the entire corrected draft. Return schema-valid JSON only.",
                     },
                     {
                       role: "user",
                       content: JSON.stringify({
                         original_draft: payload!.studentResponse,
-                        candidate_inventory: finalCorrections,
+                        accepted_inventory: finalCorrections,
                         candidate_corrected_draft: applyCanonicalCorrections(payload!.studentResponse ?? "", finalCorrections),
                         residual_audit: finalResidual,
                         verifier_missing_corrections: verifier?.missing_corrections,
@@ -1513,15 +1537,28 @@ serve(async (req) => {
                 requestedRepairCorrections,
                 payload!.studentResponse ?? "",
               );
-              const repairGrounded = requestedRepairCorrections.length > 0
-                && repairedInventory.length === requestedRepairCorrections.length
+              const repairGrounded = repairedInventory.length === requestedRepairCorrections.length
                 && requestedRepairCorrections.every((item) => Boolean(
                   groundCanonicalCorrection(item, payload!.studentResponse ?? "")
                 ));
               const repairUncertain = Array.isArray(repair?.uncertain_items)
                 ? repair.uncertain_items.map(String)
                 : [];
-              finalCorrections = repairedInventory;
+              // Targeted repair additions cannot replace a correction already
+              // accepted by the independent verifier. Conflicting additions
+              // remain withheld for teacher review instead of silently
+              // rewriting trusted feedback.
+              const safeRepairAdditions = excludeRejectedCorrections(
+                repairedInventory,
+                finalCorrections.map((item) => ({
+                  start_char: item.start_char,
+                  end_char: item.end_char,
+                })),
+              );
+              finalCorrections = reconcileCanonicalCorrections(
+                [...finalCorrections, ...safeRepairAdditions],
+                payload!.studentResponse ?? "",
+              );
 
               const confirmationStartedAt = Date.now();
               const confirmationCompletion = await withTimeout(
@@ -1572,6 +1609,7 @@ serve(async (req) => {
               ])];
             }
             if (diagnosticInventoryReady) {
+              studentFacingCorrections = finalCorrections;
               // The final inventory has already passed grounding, completeness,
               // false-positive and corrected-draft audits. Preserve its exact
               // spans and replacements instead of re-running broad first-pass
@@ -1620,16 +1658,16 @@ serve(async (req) => {
         && diagnosticAudit.uncertain_items.length === 0
         && authoritative.confidence.minimum >= 0.65
         && authoritative.confidence.average >= 0.75;
-      // Do not present an incomplete correction inventory as authoritative.
-      // The score and general coaching remain reviewable, while exact quick
-      // fixes are released only after the final corrected draft is clean.
+      // Completeness controls academic analytics, not whether independently
+      // grounded, non-rejected corrections may help the student. If the full
+      // inventory cannot be certified, publish only those verified individual
+      // corrections and keep the score/profile fail-closed.
       if (!diagnosticInventoryReady) {
         authoritative.feedback = {
           ...authoritative.feedback,
-          grammar_fixes: [],
-          punctuation_fixes: [],
-          natural_phrase_upgrades: [],
+          ...correctionsToFeedbackLists(studentFacingCorrections),
         };
+        if (diagnosticAudit) diagnosticAudit.corrections_count = studentFacingCorrections.length;
       }
       const verified = diagnosticConfidenceAcceptable && enoughWriting && verifierAccepted;
       authoritative.assessment.assessment_status = verified ? "verified" : "needs_review";
