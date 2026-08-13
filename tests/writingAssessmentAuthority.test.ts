@@ -198,7 +198,11 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /accurate grammatical terminology/);
   assert.match(edge, /diagnostic_corrections_count/);
   assert.match(edge, /BH_WRITING_PIPELINE_VERSION/);
-  assert.match(edge, /canonical-v3\.6/);
+  assert.match(edge, /canonical-v3\.7/);
+  assert.match(edge, /bh-writing-assessment-v3\.7/);
+  assert.match(edge, /"primary-assessment"/);
+  assert.match(edge, /writing_assessment_timeout/);
+  assert.match(edge, /Do not spend two additional sequential/);
   assert.match(edge, /https:\/\/api\.openai\.com\/v1\/responses/);
   assert.match(edge, /reasoning: \{ effort: WRITING_REASONING_EFFORT \}/);
   assert.match(edge, /text: \{[\s\S]*format: \{[\s\S]*type: "json_schema"/);

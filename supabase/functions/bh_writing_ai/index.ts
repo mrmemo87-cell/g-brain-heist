@@ -120,6 +120,18 @@ class OpenAiRequestError extends Error {
   }
 }
 
+class PipelineTimeoutError extends Error {
+  stage: string;
+  timeoutMs: number;
+
+  constructor(stage: string, timeoutMs: number) {
+    super(`Writing assessment stage '${stage}' timed out after ${timeoutMs}ms`);
+    this.name = "PipelineTimeoutError";
+    this.stage = stage;
+    this.timeoutMs = timeoutMs;
+  }
+}
+
 const isGpt5Family = (model: string) => /^gpt-5(?:[.-]|$)/i.test(model.trim());
 
 const parseOpenAiError = async (response: Response): Promise<OpenAiRequestError> => {
@@ -265,13 +277,18 @@ const json = (status: number, body: unknown) =>
     },
   });
 
-const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
-  return await Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`Timed out after ${timeoutMs}ms`)), timeoutMs)
-    ),
-  ]);
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, stage: string): Promise<T> => {
+  let timer: number | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new PipelineTimeoutError(stage, timeoutMs)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
 };
 
 const normalizeGrade = (value: unknown): number | undefined => {
@@ -369,10 +386,12 @@ const getUserRole = async (
 };
 
 const WRITING_RUBRIC_VERSION = "bh-writing-rubric-v2";
-const WRITING_PIPELINE_VERSION = Deno.env.get("BH_WRITING_PIPELINE_VERSION")?.trim() || "canonical-v3.6";
+const WRITING_PIPELINE_VERSION = Deno.env.get("BH_WRITING_PIPELINE_VERSION")?.trim() || "canonical-v3.7";
 const WRITING_EVALUATOR_VERSION = WRITING_PIPELINE_VERSION === "legacy-v2"
   ? "bh-writing-assessment-v2"
-  : "bh-writing-assessment-v3.6";
+  : WRITING_PIPELINE_VERSION === "canonical-v3.6"
+    ? "bh-writing-assessment-v3.6"
+    : "bh-writing-assessment-v3.7";
 const WRITING_ASSESSMENT_MODEL = Deno.env.get("BH_WRITING_ASSESSMENT_MODEL")?.trim() || "gpt-4o";
 const WRITING_VERIFIER_MODEL = Deno.env.get("BH_WRITING_VERIFIER_MODEL")?.trim() || WRITING_ASSESSMENT_MODEL;
 const configuredReasoningEffort = Deno.env.get("BH_WRITING_REASONING_EFFORT")?.trim().toLowerCase() || "medium";
@@ -1294,7 +1313,8 @@ serve(async (req) => {
               { role: "user", content: auditPayload ?? "{}" },
             ],
           }),
-          18000,
+          35000,
+          "language-audit",
         );
         const auditContent = auditCompletion.choices?.[0]?.message?.content;
         return auditContent ? JSON.parse(auditContent) as Record<string, unknown> : null;
@@ -1331,7 +1351,8 @@ serve(async (req) => {
           },
         ],
       }),
-      25000,
+      45000,
+      "primary-assessment",
     );
     const primaryDurationMs = Date.now() - primaryStartedAt;
     pipelineTimings.primary_ms = primaryDurationMs;
@@ -1399,6 +1420,24 @@ serve(async (req) => {
           uncertainItems = [...new Set(rawAudits.flatMap((audit) =>
             Array.isArray(audit.uncertain_items) ? audit.uncertain_items.map(String) : []
           ))];
+        } else if (WRITING_PIPELINE_VERSION === "canonical-v3.7" && rawAudits.length === 2) {
+          // GPT-5.6 receives both independent discovery inventories in the
+          // release adjudication below. Do not spend two additional sequential
+          // model calls pre-adjudicating the same evidence: the release model
+          // is the sole authority and deterministically grounded spans remain
+          // the only corrections eligible for students or analytics.
+          corrections = reconcileCanonicalCorrections(
+            rawAudits.flatMap((audit) =>
+              (Array.isArray(audit.corrections) ? audit.corrections : []) as CanonicalCorrection[]
+            ),
+            payload!.studentResponse ?? "",
+          );
+          coverageComplete = rawAudits.every((audit) => audit.coverage_complete === true);
+          falsePositiveFree = false;
+          residualClean = false;
+          uncertainItems = [...new Set(rawAudits.flatMap((audit) =>
+            Array.isArray(audit.uncertain_items) ? audit.uncertain_items.map(String) : []
+          ))];
         } else if (rawAudits.length === 2) {
           const adjudicationStartedAt = Date.now();
           const adjudicationCompletion = await withTimeout(
@@ -1423,7 +1462,8 @@ serve(async (req) => {
                 },
               ],
             }),
-            20000,
+            45000,
+            "candidate-adjudication",
           );
           pipelineTimings.adjudication_ms = Date.now() - adjudicationStartedAt;
           const adjudicationContent = adjudicationCompletion.choices?.[0]?.message?.content;
@@ -1458,7 +1498,8 @@ serve(async (req) => {
                 },
               ],
             }),
-            18000,
+            40000,
+            "candidate-residual-audit",
           );
           pipelineTimings.residual_audit_ms = Date.now() - residualStartedAt;
           const residualContent = residualCompletion.choices?.[0]?.message?.content;
@@ -1550,7 +1591,8 @@ serve(async (req) => {
               },
             ],
           }),
-          18000,
+          45000,
+          "release-adjudication",
         );
         pipelineTimings.release_verifier_ms = Date.now() - verifierStartedAt;
         const verificationContent = verificationCompletion.choices?.[0]?.message?.content;
@@ -1615,7 +1657,32 @@ serve(async (req) => {
           // Re-audit the exact corrected draft, and when it still contains an
           // error, rebuild the complete inventory from the original draft before
           // deciding whether detailed corrections are safe to show.
-          if (verifierRepairGrounded && repairedFeedback) {
+          if (
+            WRITING_PIPELINE_VERSION === "canonical-v3.7"
+            && verifierRepairGrounded
+            && repairedFeedback
+          ) {
+            // The v3.7 release adjudicator is explicitly responsible for a
+            // complete replacement inventory and full corrected-draft check.
+            // This keeps GPT-5.6 inside the request budget while retaining the
+            // strict coverage, false-positive, grounding and uncertainty gates.
+            diagnosticAudit.coverage_complete = verifier?.diagnostic_coverage_complete === true;
+            diagnosticAudit.false_positive_free = verifier?.false_positive_free === true;
+            diagnosticInventoryReady = verifier?.verdict === "accept"
+              && diagnosticAudit.coverage_complete
+              && diagnosticAudit.false_positive_free
+              && diagnosticAudit.uncertain_items.length === 0;
+            diagnosticAudit.residual_clean = diagnosticInventoryReady;
+            if (diagnosticInventoryReady) {
+              authoritative.feedback = {
+                ...authoritative.feedback,
+                ...correctionsToFeedbackLists(repairedCorrections),
+                anchor_version: "bh-writing-anchors-v2",
+                text_fingerprint: authoritative.assessment.text_fingerprint,
+              };
+              diagnosticAudit.corrections_count = repairedCorrections.length;
+            }
+          } else if (verifierRepairGrounded && repairedFeedback) {
             let finalCorrections = reconcileCanonicalCorrections(
               repairedCorrections,
               payload!.studentResponse ?? "",
@@ -1640,7 +1707,8 @@ serve(async (req) => {
                   },
                 ],
               }),
-              18000,
+              40000,
+              "final-residual-audit",
             );
             pipelineTimings.final_residual_audit_ms = Date.now() - finalResidualStartedAt;
             const finalResidualContent = finalResidualCompletion.choices?.[0]?.message?.content;
@@ -1687,7 +1755,8 @@ serve(async (req) => {
                     },
                   ],
                 }),
-                18000,
+                40000,
+                "inventory-repair",
               );
               pipelineTimings.final_residual_audit_ms = (pipelineTimings.final_residual_audit_ms ?? 0)
                 + (Date.now() - repairStartedAt);
@@ -1742,7 +1811,8 @@ serve(async (req) => {
                     },
                   ],
                 }),
-                18000,
+                40000,
+                "release-confirmation",
               );
               pipelineTimings.final_residual_audit_ms = (pipelineTimings.final_residual_audit_ms ?? 0)
                 + (Date.now() - confirmationStartedAt);
@@ -1964,6 +2034,20 @@ serve(async (req) => {
       },
     });
   } catch (error) {
+    if (error instanceof PipelineTimeoutError) {
+      console.error("[bh_writing_ai] assessment stage timed out", {
+        stage: error.stage,
+        timeout_ms: error.timeoutMs,
+        assessment_model: WRITING_ASSESSMENT_MODEL,
+        verifier_model: WRITING_VERIFIER_MODEL,
+        reasoning_effort: WRITING_REASONING_EFFORT,
+      });
+      return json(504, {
+        error: "The writing assessment model took too long to respond. Please retry.",
+        code: "writing_assessment_timeout",
+        stage: error.stage,
+      });
+    }
     if (error instanceof OpenAiRequestError) {
       console.error("[bh_writing_ai] OpenAI request failed", {
         status: error.status,
