@@ -18,6 +18,29 @@ export const WRITING_CRITERIA: WritingCriterionKey[] = [
   'language',
 ];
 
+export const WRITING_STRENGTH_TAGS = [
+  'strong_content_coverage',
+  'strong_task_completion',
+  'strong_idea_development',
+  'strong_organisation',
+  'strong_genre_convention',
+  'strong_audience_awareness',
+  'strong_vocabulary',
+  'strong_sentence_control',
+  'strong_language_accuracy',
+  'strong_punctuation',
+  'strong_spelling',
+] as const;
+
+export type WritingStrengthTag = typeof WRITING_STRENGTH_TAGS[number];
+export interface WritingStrengthEvidence {
+  strength_tag: WritingStrengthTag;
+  evidence: string;
+  explanation: string;
+  start_char: number;
+  end_char: number;
+}
+
 export interface AuthoritativeWritingFeedback {
   task_understanding: string;
   submission_read: string;
@@ -31,6 +54,7 @@ export interface AuthoritativeWritingFeedback {
   next_move: string;
   example_revision_start: string;
   strengths: string[];
+  strength_evidence: WritingStrengthEvidence[];
   weaknesses: string[];
   weakness_tags: WeaknessTag[];
   next_steps: string[];
@@ -85,6 +109,7 @@ const allowedWeaknessTags = new Set<WeaknessTag>([
   'spelling_error',
   'punctuation_error',
 ]);
+const allowedStrengthTags = new Set<WritingStrengthTag>(WRITING_STRENGTH_TAGS);
 
 const asRecord = (value: unknown): Record<string, unknown> | null =>
   value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
@@ -196,7 +221,7 @@ const normalizePromptDefinition = (
   };
 };
 
-const normalizeFeedback = (value: unknown, fingerprint: string): AuthoritativeWritingFeedback | null => {
+const normalizeFeedback = (value: unknown, fingerprint: string, studentResponse: string): AuthoritativeWritingFeedback | null => {
   const record = asRecord(value);
   if (!record || record['text_fingerprint'] !== fingerprint) return null;
   const alignment = record['alignment'];
@@ -211,12 +236,26 @@ const normalizeFeedback = (value: unknown, fingerprint: string): AuthoritativeWr
   const nextMove = asNonEmptyString(record['next_move']);
   const monthlySummary = asNonEmptyString(record['monthly_report_summary']);
   const strengths = asStringArray(record['strengths'], 1);
+  const strengthEvidence = Array.isArray(record['strength_evidence'])
+    ? record['strength_evidence'].flatMap((item): WritingStrengthEvidence[] => {
+        const evidenceRecord = asRecord(item);
+        const tag = evidenceRecord?.['strength_tag'];
+        const evidence = asNonEmptyString(evidenceRecord?.['evidence']);
+        const explanation = asNonEmptyString(evidenceRecord?.['explanation']);
+        const start = evidenceRecord?.['start_char'];
+        const end = evidenceRecord?.['end_char'];
+        if (!allowedStrengthTags.has(tag as WritingStrengthTag) || !evidence || !explanation) return [];
+        if (!Number.isInteger(start) || !Number.isInteger(end) || Number(start) < 0 || Number(end) <= Number(start)) return [];
+        if (studentResponse.slice(Number(start), Number(end)) !== evidence) return [];
+        return [{ strength_tag: tag as WritingStrengthTag, evidence, explanation, start_char: Number(start), end_char: Number(end) }];
+      })
+    : [];
   const weaknesses = asStringArray(record['weaknesses'], 0);
   const nextSteps = asStringArray(record['next_steps'], 1);
   const whatIsWorking = asStringArray(record['what_is_working'], 1);
   const whatIsMissing = asStringArray(record['what_is_missing'], 0);
   if (!validAlignment || !taskUnderstanding || !submissionRead || !nextMove || !monthlySummary) return null;
-  if (!strengths || !weaknesses || !nextSteps || !whatIsWorking || !whatIsMissing) return null;
+  if (!strengths || strengthEvidence.length === 0 || !weaknesses || !nextSteps || !whatIsWorking || !whatIsMissing) return null;
   const weaknessTags = Array.isArray(record['weakness_tags'])
     ? [...new Set(record['weakness_tags'].map(String).filter((tag): tag is WeaknessTag => allowedWeaknessTags.has(tag as WeaknessTag)))].slice(0, 12)
     : [];
@@ -233,6 +272,7 @@ const normalizeFeedback = (value: unknown, fingerprint: string): AuthoritativeWr
     next_move: nextMove,
     example_revision_start: typeof record['example_revision_start'] === 'string' ? record['example_revision_start'] : '',
     strengths,
+    strength_evidence: strengthEvidence,
     weaknesses,
     weakness_tags: weaknessTags,
     next_steps: nextSteps,
@@ -290,7 +330,7 @@ export const normalizeAuthoritativeWritingAssessment = (
   if (assessmentStatus === 'verified' && !releaseGatePassed) {
     return { ok: false, error: 'Verified assessment confidence does not pass the release gate.' };
   }
-  const feedback = normalizeFeedback(payload['feedback'], fingerprint);
+  const feedback = normalizeFeedback(payload['feedback'], fingerprint, context.studentResponse);
   if (!feedback) return { ok: false, error: 'Cinematic feedback evidence is incomplete.' };
   const actualWordCount = countWords(context.studentResponse);
   const assessment: WritingAssessmentResult = {

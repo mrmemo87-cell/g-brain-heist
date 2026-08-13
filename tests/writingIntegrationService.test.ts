@@ -354,6 +354,13 @@ test('rich feedback persists complete weakness memory and remains replayable in 
       task_understanding: 'You addressed the event and gave a recommendation.',
       next_move: 'Correct agreement and punctuation before adding detail.',
       weakness_tags: ['agreement_error', 'spelling_error'],
+      strength_evidence: [{
+        strength_tag: 'strong_content_coverage',
+        evidence: 'the class should do more activity like this',
+        explanation: 'This recommendation answers the requested task directly.',
+        start_char: 71,
+        end_char: 114,
+      }],
       grammar_fixes: [
         {
           issue: 'subject-verb agreement',
@@ -415,6 +422,9 @@ test('rich feedback persists complete weakness memory and remains replayable in 
   assert.strictEqual(essayEntry.weakness_tag_counts.spelling_error, 1);
   assert.strictEqual(essayEntry.weakness_tag_counts.punctuation_error, 1);
   assert.ok(essayEntry.rich_feedback);
+  assert.strictEqual(essayEntry.strength_evidence.length, 1);
+  assert.strictEqual(essayEntry.strength_evidence[0]?.strength_tag, 'strong_content_coverage');
+  assert.strictEqual(essayEntry.strength_tag_counts.strong_content_coverage, 1);
 
   const analytics = getWritingAnalyticsDashboard();
   assert.strictEqual(analytics.ok, true);
