@@ -33,6 +33,42 @@ function teacherAcademicWorkspacePlugin() {
   };
 }
 
+export const applyWritingGuidedReviewSpotlightSync = (source: string): { code: string; changed: boolean } => {
+  const previous = '{renderAnnotatedText(activeCinematicText, cinematicRanges, cinematicIndex, handleRangeMount, true)}';
+  const replacement = `{renderAnnotatedText(
+                      activeCinematicText,
+                      activeCinematicRange ? [activeCinematicRange] : [],
+                      activeCinematicRange ? 0 : null,
+                      (_, element) => {
+                        if (cinematicIndex != null) handleRangeMount(cinematicIndex, element);
+                      },
+                      true
+                    )}`;
+  const first = source.indexOf(previous);
+  if (first < 0) return { code: source, changed: false };
+  if (source.indexOf(previous, first + previous.length) >= 0) {
+    throw new Error('Writing Guided Review spotlight call is ambiguous.');
+  }
+  return { code: source.replace(previous, replacement), changed: true };
+};
+
+function writingGuidedReviewSpotlightSyncPlugin() {
+  const writingHubPath = path.resolve(__dirname, 'src/pages/writing/WritingHub.tsx').replace(/\\/g, '/');
+  return {
+    name: 'writing-guided-review-spotlight-sync',
+    enforce: 'pre' as const,
+    transform(source: string, id: string) {
+      const cleanId = id.split('?')[0]?.replace(/\\/g, '/');
+      if (cleanId !== writingHubPath) return null;
+      const result = applyWritingGuidedReviewSpotlightSync(source);
+      if (!result.changed) {
+        throw new Error('Writing Guided Review spotlight sync marker was not found. Update the plugin with the source change.');
+      }
+      return { code: result.code, map: null };
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     const geminiKey = env['GEMINI_API_KEY'];
@@ -41,7 +77,7 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
       },
-      plugins: [react(), teacherAcademicWorkspacePlugin(), copyBiologyQuestionAssetsPlugin()],
+      plugins: [writingGuidedReviewSpotlightSyncPlugin(), react(), teacherAcademicWorkspacePlugin(), copyBiologyQuestionAssetsPlugin()],
       define: {
         'process.env.API_KEY': JSON.stringify(geminiKey),
         'process.env.GEMINI_API_KEY': JSON.stringify(geminiKey)

@@ -8,6 +8,7 @@ import {
   remapIssueType,
   validateIssueConsistency,
 } from '../src/pages/writing/WritingHub.js';
+import { applyWritingGuidedReviewSpotlightSync } from '../vite.config.js';
 
 test('normalizeForComparison and isMeaningfullyDifferent suppress fake rewrites', () => {
   const original = ' I am not good at math. ';
@@ -63,4 +64,23 @@ test('getSafeIssueExplanation replaces banned placeholder copy', () => {
   });
   assert.notStrictEqual(issue.diagnosis, 'This sentence needs a small grammar fix.');
   assert.strictEqual(issue.diagnosis, 'Replace "in" with "at" in the highlighted wording.');
+});
+
+test('Guided Review spotlight isolates the active range before overlap filtering can reindex it', () => {
+  const source = `
+    <div className="cinematic-feedback__essay">
+      {renderAnnotatedText(activeCinematicText, cinematicRanges, cinematicIndex, handleRangeMount, true)}
+    </div>
+  `;
+
+  const result = applyWritingGuidedReviewSpotlightSync(source);
+
+  assert.strictEqual(result.changed, true);
+  assert.match(result.code, /activeCinematicRange \? \[activeCinematicRange\] : \[\]/);
+  assert.match(result.code, /activeCinematicRange \? 0 : null/);
+  assert.match(result.code, /handleRangeMount\(cinematicIndex, element\)/);
+  assert.doesNotMatch(
+    result.code,
+    /renderAnnotatedText\(activeCinematicText, cinematicRanges, cinematicIndex, handleRangeMount, true\)/
+  );
 });
