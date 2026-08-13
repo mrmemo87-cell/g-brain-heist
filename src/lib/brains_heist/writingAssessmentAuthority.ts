@@ -168,9 +168,16 @@ const normalizePromptDefinition = (
   const register = record['register'];
   const difficulty = record['difficulty_level'];
   const promptId = record['prompt_id'];
+  // `public.users.grade` is a text column in the deployed schema. Some route
+  // callers therefore pass a numeric-looking string at runtime even though the
+  // TypeScript contract is numeric. Normalize that trusted route value before
+  // comparing it with the Edge Function's canonical numeric grade, while
+  // keeping every other provenance field exact and fail-closed.
+  const contextGrade = Number(context.grade);
   const validRegister = register === 'informal' || register === 'neutral' || register === 'formal' || register === 'mixed';
   const validDifficulty = difficulty === 'foundational' || difficulty === 'core' || difficulty === 'stretch';
-  if (grade !== context.grade || genre !== context.genre || targetWordCount !== context.targetWordCount) return null;
+  if (!Number.isInteger(contextGrade) || contextGrade < 6 || contextGrade > 12) return null;
+  if (grade !== contextGrade || genre !== context.genre || targetWordCount !== context.targetWordCount) return null;
   if (promptId !== context.promptId || !validRegister || !validDifficulty) return null;
   const promptDefinitionHash = asNonEmptyString(record['prompt_definition_hash']);
   const audience = asNonEmptyString(record['audience']);
@@ -179,7 +186,7 @@ const normalizePromptDefinition = (
   return {
     prompt_id: promptId as string | null,
     prompt_definition_hash: promptDefinitionHash,
-    grade: context.grade,
+    grade: contextGrade,
     genre: context.genre,
     target_word_count: context.targetWordCount,
     audience,
