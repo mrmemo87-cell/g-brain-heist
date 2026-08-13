@@ -73,6 +73,13 @@ const buildPayload = () => {
       next_move: 'Next, add one concrete example from the club.',
       example_revision_start: '',
       strengths: ['Clear purpose'],
+      strength_evidence: [{
+        strength_tag: 'strong_content_coverage',
+        evidence: evidenceQuote,
+        explanation: 'This exact detail explains a concrete benefit of the club.',
+        start_char: evidenceStart,
+        end_char: evidenceStart + evidenceQuote.length,
+      }],
       weaknesses: ['Development could be fuller'],
       weakness_tags: ['partial_content_coverage'],
       next_steps: ['Add one concrete supporting example.'],
@@ -132,6 +139,17 @@ test('assessment authority fails closed on a wrong draft fingerprint or provisio
   }
 });
 
+test('assessment authority rejects invented or misanchored strength evidence', () => {
+  const invented = buildPayload();
+  invented.feedback.strength_evidence[0]!.evidence = 'an invented strength';
+  assert.equal(normalizeAuthoritativeWritingAssessment(invented, context).ok, false);
+
+  const shifted = buildPayload();
+  shifted.feedback.strength_evidence[0]!.start_char += 1;
+  shifted.feedback.strength_evidence[0]!.end_char += 1;
+  assert.equal(normalizeAuthoritativeWritingAssessment(shifted, context).ok, false);
+});
+
 test('assessment authority accepts the audited v2 rollback and current v3 evaluator versions only', () => {
   const earlier = buildPayload();
   (earlier.assessment as { evaluator_version: string }).evaluator_version = WRITING_EARLIER_EVALUATOR_VERSION;
@@ -189,7 +207,7 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /canonical_corrections/);
   assert.match(edge, /repairedCorrections/);
   assert.match(edge, /groundCanonicalCorrection/);
-  assert.match(edge, /pendingLanguageAudits = assessmentMode && WRITING_PIPELINE_VERSION !== "canonical-v3\.8"/);
+  assert.match(edge, /pendingLanguageAudits = assessmentMode && !SINGLE_AUTHORITY_PIPELINE/);
   assert.match(edge, /single_authority_self_audit_with_deterministic_grounding/);
   assert.match(edge, /singlePassGrounded/);
   assert.match(edge, /correctionMap/);
@@ -198,8 +216,10 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /accurate grammatical terminology/);
   assert.match(edge, /diagnostic_corrections_count/);
   assert.match(edge, /BH_WRITING_PIPELINE_VERSION/);
-  assert.match(edge, /canonical-v3\.8/);
-  assert.match(edge, /bh-writing-assessment-v3\.8/);
+  assert.match(edge, /canonical-v3\.9/);
+  assert.match(edge, /bh-writing-assessment-v3\.9/);
+  assert.match(edge, /strength_evidence/);
+  assert.match(edge, /Every strength_evidence value must also be an exact unique span/);
   assert.match(edge, /"primary-assessment"/);
   assert.match(edge, /writing_assessment_timeout/);
   assert.match(edge, /Do not spend two additional sequential/);
@@ -237,6 +257,10 @@ test('production source uses one strict assessment result for score and cinemati
   assert.doesNotMatch(edge, /shouldVerify = confidenceAcceptable/);
   assert.match(hub, /The corrected version is:/);
   assert.doesNotMatch(hub, /reads correctly: "\$\{originalSentence\}"/);
+  assert.match(hub, /personalizedRevisionMission/);
+  assert.match(hub, /<strong>Focus memory:<\/strong>/);
+  assert.match(hub, /<strong>Strength memory:<\/strong>/);
+  assert.match(hub, /strength_evidence/);
   assert.match(edge, /grade: String\(payload\.grade\)/);
   assert.match(edge, /genre: payload\.genre/);
   const finale = activeLoop.slice(activeLoop.indexOf('className="cinematic-feedback__finale"'));

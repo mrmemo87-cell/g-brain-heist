@@ -46,6 +46,7 @@ import {
   WritingIntegrityReviewStatus,
 } from './writingIntegrity.js';
 import { isAcademicProfileWritingAssessment } from './writingAssessmentAuthority.js';
+import type { WritingStrengthEvidence, WritingStrengthTag } from './writingAssessmentAuthority.js';
 
 export interface StudentWritingProfile {
   student_id: string;
@@ -73,6 +74,9 @@ export interface WritingAttempt {
   rich_feedback?: unknown;
   feedback_weakness_tags?: WeaknessTag[];
   feedback_weakness_tag_counts?: Partial<Record<WeaknessTag, number>>;
+  feedback_strength_evidence?: WritingStrengthEvidence[];
+  feedback_strength_tags?: WritingStrengthTag[];
+  feedback_strength_tag_counts?: Partial<Record<WritingStrengthTag, number>>;
   rich_feedback_source_submission_type?: 'initial';
   rich_feedback_created_at?: string;
   integrity_signals?: WritingCompositionTelemetry;
@@ -652,6 +656,25 @@ const inferFeedbackWeaknessTagCounts = (feedback: Record<string, unknown>): Part
 const inferFeedbackWeaknessTags = (feedback: Record<string, unknown>): WeaknessTag[] =>
   Object.keys(inferFeedbackWeaknessTagCounts(feedback)) as WeaknessTag[];
 
+const inferFeedbackStrengthEvidence = (feedback: Record<string, unknown>): WritingStrengthEvidence[] =>
+  readObjectArray(feedback['strength_evidence']).flatMap((item) => {
+    const strengthTag = typeof item['strength_tag'] === 'string' ? item['strength_tag'] as WritingStrengthTag : null;
+    const evidence = typeof item['evidence'] === 'string' ? item['evidence'].trim() : '';
+    const explanation = typeof item['explanation'] === 'string' ? item['explanation'].trim() : '';
+    const start = Number.isInteger(item['start_char']) ? Number(item['start_char']) : -1;
+    const end = Number.isInteger(item['end_char']) ? Number(item['end_char']) : -1;
+    if (!strengthTag || !evidence || !explanation || start < 0 || end <= start) return [];
+    return [{ strength_tag: strengthTag, evidence, explanation, start_char: start, end_char: end }];
+  });
+
+const inferFeedbackStrengthTagCounts = (feedback: Record<string, unknown>): Partial<Record<WritingStrengthTag, number>> => {
+  const counts = new Map<WritingStrengthTag, number>();
+  inferFeedbackStrengthEvidence(feedback).forEach(({ strength_tag }) => {
+    counts.set(strength_tag, (counts.get(strength_tag) ?? 0) + 1);
+  });
+  return Object.fromEntries(counts);
+};
+
 const rebuildRepeatedErrorMemoryForGenre = (
   studentId: string,
   genre: SupportedGenre
@@ -678,6 +701,9 @@ const synchronizeSavedFeedbackWeaknessMemory = (
       const feedback = attempt.rich_feedback as Record<string, unknown>;
       const feedbackTagCounts = inferFeedbackWeaknessTagCounts(feedback);
       const feedbackTags = Object.keys(feedbackTagCounts) as WeaknessTag[];
+      const feedbackStrengthEvidence = inferFeedbackStrengthEvidence(feedback);
+      const feedbackStrengthTagCounts = inferFeedbackStrengthTagCounts(feedback);
+      const feedbackStrengthTags = Object.keys(feedbackStrengthTagCounts) as WritingStrengthTag[];
       const mergedTags = [...new Set([...attempt.assessment.weakness_tags, ...feedbackTags])];
       const storedFeedbackTags = attempt.feedback_weakness_tags ?? [];
       const storedFeedbackTagCounts = attempt.feedback_weakness_tag_counts ?? {};
@@ -686,10 +712,16 @@ const synchronizeSavedFeedbackWeaknessMemory = (
         && feedbackTags.length === storedFeedbackTags.length
         && feedbackTags.every((tag) => storedFeedbackTags.includes(tag))
         && feedbackTags.every((tag) => storedFeedbackTagCounts[tag] === feedbackTagCounts[tag])
+        && feedbackStrengthEvidence.length === (attempt.feedback_strength_evidence ?? []).length
+        && feedbackStrengthTags.every((tag) => attempt.feedback_strength_tag_counts?.[tag] === feedbackStrengthTagCounts[tag])
       ) return;
       attempt.feedback_weakness_tags = feedbackTags;
       attempt.feedback_weakness_tag_counts = feedbackTagCounts;
       feedback['weakness_tag_counts'] = feedbackTagCounts;
+      attempt.feedback_strength_evidence = feedbackStrengthEvidence;
+      attempt.feedback_strength_tags = feedbackStrengthTags;
+      attempt.feedback_strength_tag_counts = feedbackStrengthTagCounts;
+      feedback['strength_tag_counts'] = feedbackStrengthTagCounts;
       attempt.assessment = {
         ...attempt.assessment,
         weakness_tags: mergedTags,
@@ -853,6 +885,18 @@ export const submitInitialWritingAssessment = (
     assessment: flow.assessment_result,
     rich_feedback: input.authoritative_feedback,
     feedback_weakness_tags: input.authoritative_assessment?.weakness_tags,
+    feedback_weakness_tag_counts: input.authoritative_feedback && typeof input.authoritative_feedback === 'object'
+      ? inferFeedbackWeaknessTagCounts(input.authoritative_feedback as Record<string, unknown>)
+      : undefined,
+    feedback_strength_evidence: input.authoritative_feedback && typeof input.authoritative_feedback === 'object'
+      ? inferFeedbackStrengthEvidence(input.authoritative_feedback as Record<string, unknown>)
+      : undefined,
+    feedback_strength_tags: input.authoritative_feedback && typeof input.authoritative_feedback === 'object'
+      ? Object.keys(inferFeedbackStrengthTagCounts(input.authoritative_feedback as Record<string, unknown>)) as WritingStrengthTag[]
+      : undefined,
+    feedback_strength_tag_counts: input.authoritative_feedback && typeof input.authoritative_feedback === 'object'
+      ? inferFeedbackStrengthTagCounts(input.authoritative_feedback as Record<string, unknown>)
+      : undefined,
     rich_feedback_source_submission_type: input.authoritative_feedback ? 'initial' : undefined,
     rich_feedback_created_at: input.authoritative_feedback ? now : undefined,
     integrity_signals: input.integrity_signals,
@@ -942,6 +986,8 @@ export interface StudentWritingHistoryEntry {
   integrity_signals: WritingCompositionTelemetry | null;
   weakness_tags: WeaknessTag[];
   weakness_tag_counts: Partial<Record<WeaknessTag, number>>;
+  strength_evidence: WritingStrengthEvidence[];
+  strength_tag_counts: Partial<Record<WritingStrengthTag, number>>;
   has_feedback: boolean;
   feedback_summary: string | null;
   feedback_next_move: string | null;
@@ -1039,8 +1085,13 @@ export const listStudentWritingHistoryByGenre = (studentId: string): ServiceResp
       assessment: attempt.assessment ?? null,
       rich_feedback: feedback,
       integrity_signals: attempt.integrity_signals ?? null,
-      weakness_tags: attempt.assessment?.weakness_tags ?? [],
+      weakness_tags: [...new Set([
+        ...(attempt.assessment?.weakness_tags ?? []),
+        ...(Object.keys(attempt.feedback_weakness_tag_counts ?? {}) as WeaknessTag[]),
+      ])],
       weakness_tag_counts: attempt.feedback_weakness_tag_counts ?? {},
+      strength_evidence: attempt.feedback_strength_evidence ?? inferFeedbackStrengthEvidence(feedback ?? {}),
+      strength_tag_counts: attempt.feedback_strength_tag_counts ?? inferFeedbackStrengthTagCounts(feedback ?? {}),
       has_feedback: Boolean(feedback),
       feedback_summary: summary,
       feedback_next_move: nextMove,
@@ -1154,9 +1205,15 @@ export const persistInitialWritingRichFeedback = (input: {
   targetAttempt.rich_feedback = richFeedbackClone;
   const feedbackWeaknessTagCounts = inferFeedbackWeaknessTagCounts(richFeedbackClone);
   const feedbackWeaknessTags = inferFeedbackWeaknessTags(richFeedbackClone);
+  const feedbackStrengthEvidence = inferFeedbackStrengthEvidence(richFeedbackClone);
+  const feedbackStrengthTagCounts = inferFeedbackStrengthTagCounts(richFeedbackClone);
   targetAttempt.feedback_weakness_tags = feedbackWeaknessTags;
   targetAttempt.feedback_weakness_tag_counts = feedbackWeaknessTagCounts;
+  targetAttempt.feedback_strength_evidence = feedbackStrengthEvidence;
+  targetAttempt.feedback_strength_tags = Object.keys(feedbackStrengthTagCounts) as WritingStrengthTag[];
+  targetAttempt.feedback_strength_tag_counts = feedbackStrengthTagCounts;
   richFeedbackClone['weakness_tag_counts'] = feedbackWeaknessTagCounts;
+  richFeedbackClone['strength_tag_counts'] = feedbackStrengthTagCounts;
   targetAttempt.assessment = {
     ...targetAttempt.assessment,
     weakness_tags: [...new Set([

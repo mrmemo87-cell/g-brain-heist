@@ -26,6 +26,20 @@ type Payload = {
 
 type UserRole = "student" | "teacher" | "admin";
 
+const STRENGTH_TAGS = [
+  "strong_content_coverage",
+  "strong_task_completion",
+  "strong_idea_development",
+  "strong_organisation",
+  "strong_genre_convention",
+  "strong_audience_awareness",
+  "strong_vocabulary",
+  "strong_sentence_control",
+  "strong_language_accuracy",
+  "strong_punctuation",
+  "strong_spelling",
+] as const;
+
 type AiResult = {
   task_understanding?: string;
   submission_read?: string;
@@ -45,6 +59,13 @@ type AiResult = {
   next_move?: string;
   example_revision_start?: string;
   strengths?: string[];
+  strength_evidence?: Array<{
+    strength_tag: string;
+    evidence: string;
+    explanation: string;
+    start_char: number;
+    end_char: number;
+  }>;
   weaknesses?: string[];
   weakness_tags?: string[];
   next_steps?: string[];
@@ -389,14 +410,16 @@ const getUserRole = async (
 };
 
 const WRITING_RUBRIC_VERSION = "bh-writing-rubric-v2";
-const WRITING_PIPELINE_VERSION = Deno.env.get("BH_WRITING_PIPELINE_VERSION")?.trim() || "canonical-v3.8";
+const WRITING_PIPELINE_VERSION = Deno.env.get("BH_WRITING_PIPELINE_VERSION")?.trim() || "canonical-v3.9";
 const WRITING_EVALUATOR_VERSION = WRITING_PIPELINE_VERSION === "legacy-v2"
   ? "bh-writing-assessment-v2"
   : WRITING_PIPELINE_VERSION === "canonical-v3.6"
     ? "bh-writing-assessment-v3.6"
     : WRITING_PIPELINE_VERSION === "canonical-v3.7"
       ? "bh-writing-assessment-v3.7"
-      : "bh-writing-assessment-v3.8";
+      : WRITING_PIPELINE_VERSION === "canonical-v3.8"
+        ? "bh-writing-assessment-v3.8"
+        : "bh-writing-assessment-v3.9";
 const WRITING_ASSESSMENT_MODEL = Deno.env.get("BH_WRITING_ASSESSMENT_MODEL")?.trim() || "gpt-4o";
 const WRITING_VERIFIER_MODEL = Deno.env.get("BH_WRITING_VERIFIER_MODEL")?.trim() || WRITING_ASSESSMENT_MODEL;
 const configuredReasoningEffort = Deno.env.get("BH_WRITING_REASONING_EFFORT")?.trim().toLowerCase() || "medium";
@@ -408,6 +431,8 @@ const WRITING_PRIMARY_REASONING_EFFORT = ["none", "low", "medium"].includes(conf
   ? configuredPrimaryReasoningEffort
   : "low";
 const CRITERION_KEYS = ["content", "communicative_achievement", "organisation", "language"] as const;
+const SINGLE_AUTHORITY_PIPELINE = WRITING_PIPELINE_VERSION === "canonical-v3.8"
+  || WRITING_PIPELINE_VERSION === "canonical-v3.9";
 
 const evidenceSchema = {
   type: "array",
@@ -490,7 +515,7 @@ const assessmentV2Schema = {
         required: [
           "task_understanding", "submission_read", "alignment", "what_is_working", "what_is_missing",
           "grammar_fixes", "punctuation_fixes", "natural_phrase_upgrades", "style_tone_feedback",
-          "next_move", "example_revision_start", "strengths", "weaknesses", "weakness_tags", "next_steps",
+          "next_move", "example_revision_start", "strengths", "strength_evidence", "weaknesses", "weakness_tags", "next_steps",
           "monthly_report_summary", "anchor_version", "highlights", "repair_steps"
         ],
         properties: {
@@ -524,6 +549,23 @@ const assessmentV2Schema = {
           next_move: { type: "string", minLength: 4 },
           example_revision_start: { type: "string" },
           strengths: { type: "array", minItems: 1, maxItems: 4, items: { type: "string" } },
+          strength_evidence: {
+            type: "array",
+            minItems: 1,
+            maxItems: 4,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["strength_tag", "evidence", "explanation", "start_char", "end_char"],
+              properties: {
+                strength_tag: { type: "string", enum: [...STRENGTH_TAGS] },
+                evidence: { type: "string", minLength: 1 },
+                explanation: { type: "string", minLength: 8 },
+                start_char: { type: "integer", minimum: 0 },
+                end_char: { type: "integer", minimum: 1 },
+              },
+            },
+          },
           weaknesses: { type: "array", maxItems: 4, items: { type: "string" } },
           weakness_tags: { type: "array", maxItems: 12, items: { type: "string" } },
           next_steps: { type: "array", minItems: 1, maxItems: 4, items: { type: "string" } },
@@ -770,7 +812,7 @@ const normalizeAssessmentV2 = (raw: unknown, payload: Payload) => {
   const requiredFeedbackStrings = ["task_understanding", "submission_read", "next_move", "monthly_report_summary"];
   if (requiredFeedbackStrings.some((key) => typeof feedbackRaw[key] !== "string" || String(feedbackRaw[key]).trim().length < 4)) return null;
   if (!["on_task", "partially_on_task", "off_topic", "too_short", "underdeveloped", "mostly_correct_but_needs_polish"].includes(String(feedbackRaw.alignment))) return null;
-  for (const key of ["what_is_working", "what_is_missing", "strengths", "weaknesses", "next_steps", "weakness_tags"]) {
+  for (const key of ["what_is_working", "what_is_missing", "strengths", "strength_evidence", "weaknesses", "next_steps", "weakness_tags"]) {
     if (!Array.isArray(feedbackRaw[key])) return null;
   }
   const normalizedFeedback = normalizeAiResult("feedback", feedbackRaw, payload.studentResponse);
@@ -1005,6 +1047,33 @@ const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiRe
       ? [...new Set(value.weakness_tags.map(String).filter((tag) => allowedWeaknessTags.has(tag)))].slice(0, 12)
       : [];
 
+    const allowedStrengthTags = new Set<string>(STRENGTH_TAGS);
+    const strengthEvidence = Array.isArray(value.strength_evidence)
+      ? value.strength_evidence.flatMap((item) => {
+          if (!item || typeof item !== "object") return [];
+          const obj = item as Record<string, unknown>;
+          const evidence = typeof obj.evidence === "string" ? obj.evidence.trim() : "";
+          const explanation = typeof obj.explanation === "string" ? obj.explanation.trim() : "";
+          const strengthTag = typeof obj.strength_tag === "string" ? obj.strength_tag : "";
+          let start = typeof obj.start_char === "number" && Number.isInteger(obj.start_char) ? obj.start_char : -1;
+          let end = typeof obj.end_char === "number" && Number.isInteger(obj.end_char) ? obj.end_char : -1;
+          const suppliedPositionIsExact = start >= 0
+            && end === start + evidence.length
+            && studentResponse.slice(start, end) === evidence;
+          if (!suppliedPositionIsExact) {
+            const first = studentResponse.indexOf(evidence);
+            const repeated = first >= 0 && studentResponse.indexOf(evidence, first + Math.max(1, evidence.length)) >= 0;
+            if (first < 0 || repeated) return [];
+            start = first;
+            end = first + evidence.length;
+          }
+          if (!evidence || explanation.length < 8 || !allowedStrengthTags.has(strengthTag)) return [];
+          return [{ strength_tag: strengthTag, evidence, explanation, start_char: start, end_char: end }];
+        }).filter((item, index, items) =>
+          items.findIndex((candidate) => candidate.start_char === item.start_char && candidate.end_char === item.end_char) === index
+        ).slice(0, 4)
+      : [];
+
     const normalizeHighlights = (input: unknown): AiResult["highlights"] => {
       if (!Array.isArray(input)) return [];
       return input
@@ -1079,6 +1148,7 @@ const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiRe
       example_revision_start:
         typeof value.example_revision_start === "string" ? value.example_revision_start : "",
       strengths: Array.isArray(value.strengths) ? value.strengths.map(String) : [],
+      strength_evidence: strengthEvidence,
       weaknesses: Array.isArray(value.weaknesses) ? value.weaknesses.map(String) : [],
       weakness_tags: weaknessTags,
       next_steps: Array.isArray(value.next_steps) ? value.next_steps.map(String) : [],
@@ -1138,6 +1208,10 @@ const buildUserPrompt = (payload: Payload): string => {
       "Use confidence conservatively. Below 0.65 means the mark should receive human review. Do not raise confidence just to avoid review.",
       "All feedback and corrections must be derived from the same criterion analysis and exact response.",
       "Before returning, apply the complete correction inventory mentally and reread the corrected draft. In release_audit, certify completeness, absence of false positives, corrected-draft cleanliness, grounded evidence, and defensible scores only when each claim is genuinely true; otherwise choose needs_review and explain the uncertainty.",
+      "Return 1-4 strength_evidence records for genuine successful choices. Each record must contain one canonical strength_tag, an exact unique verbatim evidence span with zero-based exclusive offsets, and a specific explanation of why that exact choice succeeds. Do not invent praise or use a corrected version as strength evidence.",
+      "For conditional clauses, decide the intended time and modality from the complete sentence. Keep the condition and result clause coherent (for example, a hypothetical condition with might normally requires a past-form condition). Do not label an ordinary conditional as subjunctive unless the construction truly requires it.",
+      "Treat apostrophes, capitalization, and sentence-boundary marks as punctuation/mechanics, not grammar. Do not combine two independently teachable issues in one correction record.",
+      "Correct a pronoun only when its intended referent is unambiguous from the full context. If more than one person or group is plausible, put the item in uncertain_items and do not present a correction as fact.",
       "Return only the structured response matching the supplied schema.",
     ].join("\n");
   }
@@ -1162,6 +1236,7 @@ const buildUserPrompt = (payload: Payload): string => {
       '- next_move: one best next revision move',
       '- example_revision_start: one concrete improved sentence/starter when useful',
       "- strengths: 2 short specific positives",
+      "- strength_evidence: 1 to 4 genuine strengths with keys strength_tag, evidence, explanation, start_char, end_char. strength_tag must be one of strong_content_coverage | strong_task_completion | strong_idea_development | strong_organisation | strong_genre_convention | strong_audience_awareness | strong_vocabulary | strong_sentence_control | strong_language_accuracy | strong_punctuation | strong_spelling",
       "- weaknesses: 2 short plain-English weakness summaries",
       "- weakness_tags: every detected weakness as canonical machine-readable tags selected only from missed_content_point | partial_content_coverage | irrelevant_detail | under_length | wrong_tone | weak_register_control | weak_genre_convention | weak_audience_awareness | weak_paragraphing | poor_sequencing | weak_linking | repetitive_flow | tense_error | agreement_error | article_error | preposition_error | fragment | run_on | weak_word_choice | spelling_error | punctuation_error",
       "- next_steps: 2 or 3 clear actionable next steps",
@@ -1178,6 +1253,7 @@ const buildUserPrompt = (payload: Payload): string => {
       "- Do not repeat one mistake in multiple correction lists; return one record under the most accurate category.",
       "- Give every correction record the single most accurate canonical weakness_tag from the allowed weakness_tags list so repeated patterns can be counted.",
       "- Every original/evidence value must be copied verbatim from exactly one place in the student response.",
+      "- Every strength_evidence value must also be an exact unique span. Explain the successful reader effect of that precise choice; never return generic praise as evidence.",
       "- Every better_version must correct only its own original value, preserve the student's meaning, and must never be borrowed from a neighbouring sentence.",
       "- For insertions or one-character errors, include enough verbatim surrounding words to identify one unique location; never return only a common neighbouring token.",
       "- Do not return a correction when its evidence is repeated and cannot be uniquely identified.",
@@ -1201,6 +1277,8 @@ const buildUserPrompt = (payload: Payload): string => {
       "  - If clear grammar issues exist, include them in grammar_fixes and do not claim there are no grammar fixes.",
       "  - If one sentence has both grammar and punctuation issues, classify by the core issue: grammar_fixes for grammar, punctuation_fixes for punctuation.",
       "  - Be conservative and accurate. Do not invent errors.",
+      "  - Read the whole sentence before correcting a conditional. Make its condition and result clause coherent in time and modality; do not choose a locally grammatical form that makes the full sentence less natural.",
+      "  - Correct pronouns only when the referent is certain. If singular they, a group, or an individual are all plausible, treat the item as uncertain rather than wrong.",
       "- what_is_working should sound encouraging and specific, like a coach noticing real wins.",
       "- what_is_missing should sound constructive and revision-focused, not harsh.",
       "- In grammar_fixes issue text, use supportive wording like 'This sentence needs a small grammar fix.' when accurate.",
@@ -1365,7 +1443,7 @@ serve(async (req) => {
     };
     // These scans depend only on canonical request data, so running them with
     // the rubric assessment removes one full sequential network stage.
-    const pendingLanguageAudits = assessmentMode && WRITING_PIPELINE_VERSION !== "canonical-v3.8"
+    const pendingLanguageAudits = assessmentMode && !SINGLE_AUTHORITY_PIPELINE
       ? Promise.all([
           auditPass(`You are the independent Brains Heist forward language auditor. Inspect every token and sentence from the first character to the last. Keep a sentence-by-sentence coverage ledger internally before setting coverage_complete. ${commonAuditRules}`),
           auditPass(`You are the independent Brains Heist reverse and boundary auditor. Begin at the final character and work backward to the first. Focus especially on sentence starts, sentence boundaries, contractions, comparative forms, complement patterns, pronoun reference, comma splices, fused sentences, and errors near the end of the draft. ${commonAuditRules}`),
@@ -1376,10 +1454,10 @@ serve(async (req) => {
     const completion = await withTimeout(
       createStructuredCompletion({
         model: assessmentMode ? WRITING_ASSESSMENT_MODEL : "gpt-4o-mini",
-        reasoning_effort: assessmentMode && WRITING_PIPELINE_VERSION === "canonical-v3.8"
+        reasoning_effort: assessmentMode && SINGLE_AUTHORITY_PIPELINE
           ? WRITING_PRIMARY_REASONING_EFFORT
           : undefined,
-        max_output_tokens: assessmentMode && WRITING_PIPELINE_VERSION === "canonical-v3.8" ? 12000 : undefined,
+        max_output_tokens: assessmentMode && SINGLE_AUTHORITY_PIPELINE ? 12000 : undefined,
         response_format: assessmentMode
           ? { type: "json_schema", json_schema: assessmentV2Schema }
           : { type: "json_object" },
@@ -1395,7 +1473,7 @@ serve(async (req) => {
           },
         ],
       }),
-      assessmentMode && WRITING_PIPELINE_VERSION === "canonical-v3.8" ? 105000 : 45000,
+      assessmentMode && SINGLE_AUTHORITY_PIPELINE ? 105000 : 45000,
       "primary-assessment",
     );
     const primaryDurationMs = Date.now() - primaryStartedAt;
@@ -1439,7 +1517,7 @@ serve(async (req) => {
       let singlePassReleaseAudit: Record<string, unknown> | null = null;
       let singlePassGrounded = false;
       try {
-        if (WRITING_PIPELINE_VERSION === "canonical-v3.8") {
+        if (SINGLE_AUTHORITY_PIPELINE) {
           singlePassReleaseAudit = parsed.release_audit && typeof parsed.release_audit === "object"
             ? parsed.release_audit as Record<string, unknown>
             : null;
@@ -1653,7 +1731,7 @@ serve(async (req) => {
       let verifierAccepted = false;
       let diagnosticInventoryReady = false;
       let studentFacingCorrections: CanonicalCorrection[] = [];
-      if (WRITING_PIPELINE_VERSION === "canonical-v3.8") {
+      if (SINGLE_AUTHORITY_PIPELINE) {
         const checks = singlePassReleaseAudit?.criterion_checks
           && typeof singlePassReleaseAudit.criterion_checks === "object"
           ? singlePassReleaseAudit.criterion_checks as Record<string, Record<string, unknown>>
@@ -2034,7 +2112,7 @@ serve(async (req) => {
       authoritative.assessment.assessment_status = verified ? "verified" : "needs_review";
       authoritative.assessment.academic_profile_ready = verified;
       authoritative.assessment.adjudication_reason = verified
-        ? (WRITING_PIPELINE_VERSION === "canonical-v3.8"
+        ? (SINGLE_AUTHORITY_PIPELINE
             ? "single_authority_release_audit_accepted"
             : shouldVerify ? "conditional_verifier_accepted" : "primary_evidence_and_confidence_passed")
         : !enoughWriting
@@ -2071,7 +2149,7 @@ serve(async (req) => {
         verifier_verdict: typeof verifier?.verdict === "string" ? verifier.verdict : null,
         verifier_missing_count: Array.isArray(verifier?.missing_corrections) ? verifier.missing_corrections.length : 0,
         verifier_rejected_count: Array.isArray(verifier?.rejected_corrections) ? verifier.rejected_corrections.length : 0,
-        verification_mode: WRITING_PIPELINE_VERSION === "canonical-v3.8"
+        verification_mode: SINGLE_AUTHORITY_PIPELINE
           ? "single_authority_self_audit_with_deterministic_grounding"
           : shouldVerify ? "independent_release_adjudication" : "primary_only",
         release_verified: verified,
@@ -2119,7 +2197,7 @@ serve(async (req) => {
       console.info("[bh_writing_ai] assessment_v2 metadata", {
         assessment_id: authoritative.assessment.assessment_id,
         assessment_status: authoritative.assessment.assessment_status,
-        verification_used: WRITING_PIPELINE_VERSION === "canonical-v3.8" ? false : shouldVerify,
+        verification_used: SINGLE_AUTHORITY_PIPELINE ? false : shouldVerify,
         verification_mode: pipelineDiagnostics.verification_mode,
         diagnostic_audit_used: Boolean(diagnosticAudit),
         writing_pipeline_version: WRITING_PIPELINE_VERSION,

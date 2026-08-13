@@ -92,6 +92,13 @@ interface WritingAiFeedbackAssist {
   next_move?: string;
   example_revision_start?: string;
   strengths?: string[];
+  strength_evidence?: Array<{
+    strength_tag: string;
+    evidence: string;
+    explanation: string;
+    start_char: number;
+    end_char: number;
+  }>;
   weaknesses?: string[];
   weakness_tags?: string[];
   next_steps?: string[];
@@ -755,6 +762,24 @@ const buildFallbackHighlightRanges = (text: string, ai: WritingAiFeedbackAssist 
     sourceFix: fix,
   }));
   const claimedRanges = ranges.map(({ start, end }) => ({ start, end }));
+  (ai.strength_evidence ?? []).forEach((strength) => {
+    const start = strength.start_char;
+    const end = strength.end_char;
+    if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start) return;
+    if (text.slice(start, end) !== strength.evidence) return;
+    if (claimedRanges.some((claimed) => start < claimed.end && end > claimed.start)) return;
+    ranges.push({
+      start,
+      end,
+      evidenceStart: start,
+      evidenceEnd: end,
+      polarity: 'strong',
+      reason: strength.explanation,
+      sourceCategory: strength.strength_tag,
+      sourceExactText: strength.evidence,
+    });
+    claimedRanges.push({ start, end });
+  });
   const addStrength = (snippet: string) => {
     const clean = snippet.trim();
     const occurrences = findAllExactOccurrences(text, clean);
@@ -1168,6 +1193,17 @@ const describeHighlight = (
   if (prefersPhrase && phrase) {
     return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps), correction: phrase.better_version };
   }
+  const groundedStrength = (ai.strength_evidence ?? []).find((item) =>
+    item.start_char === range.start
+      && item.end_char === range.end
+      && item.evidence === text.slice(range.start, range.end)
+  );
+  if (prefersStrength && groundedStrength) {
+    return {
+      label: 'Why this is strong',
+      detail: simplifyStudentLanguage(groundedStrength.explanation),
+    };
+  }
   const strength = [...(ai.what_is_working ?? []), ...(ai.strengths ?? [])].find((item) => {
     const quoted = extractQuotedSnippet(item) ?? '';
     const normalizedQuoted = normalize(quoted);
@@ -1175,7 +1211,7 @@ const describeHighlight = (
     return normalize(item).includes(normalizedSnippet) && normalizedSnippet.length > 10;
   });
   if (prefersStrength && strength) return { label: 'Why this is strong', detail: simplifyStudentLanguage(strength) };
-if (!prefersStrength && grammar) return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue, grammar.original, grammar.better_version), correction: grammar.better_version };
+  if (!prefersStrength && grammar) return { label: 'Grammar fix', detail: toTeacherDetail('grammar', grammar.issue, grammar.original, grammar.better_version), correction: grammar.better_version };
     if (!prefersStrength && punctuation) return { label: 'Punctuation fix', detail: toTeacherDetail('punctuation', punctuation.issue, punctuation.original, punctuation.better_version), correction: punctuation.better_version };
     if (!prefersStrength && phrase) return { label: 'Phrase upgrade', detail: toTeacherDetail('phrase', phrase.why_it_helps, phrase.original, phrase.better_version), correction: phrase.better_version };
 
@@ -5440,6 +5476,22 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     ].filter(Boolean).join(' ') || 'Focus on the mistake tags, then rewrite for clearer task coverage and language control.',
     [activeCinematicFeedback]
   );
+  const personalizedRevisionMission = useMemo(() => {
+    const strengthEvidence = activeCinematicFeedback?.strength_evidence?.[0];
+    const strengthText = strengthEvidence
+      ? `“${strengthEvidence.evidence}” because ${strengthEvidence.explanation.replace(/^[A-Z]/, (letter) => letter.toLowerCase())}`
+      : activeCinematicFeedback?.what_is_working?.[0] || activeCinematicFeedback?.strengths?.[0]
+        || 'Keep the green choices that already help your reader';
+    const firstFix = buildValidatedWritingFixes(activeCinematicText, activeCinematicFeedback)[0];
+    const upgradeText = firstFix
+      ? `“${firstFix.original}” to “${firstFix.betterVersion}”`
+      : activeCinematicFeedback?.next_move || activeCinematicFeedback?.next_steps?.[0]
+        || 'Upgrade one coral passage using the stronger version as a guide';
+    const resubmitText = firstFix
+      ? `after checking this ${firstFix.kind} pattern throughout your draft`
+      : 'Resubmit your own improved draft to measure real progress';
+    return { strengthText, upgradeText, resubmitText };
+  }, [activeCinematicText, activeCinematicFeedback]);
   const cinematicModeLabel =
     cinematicTrust.mode === 'trusted'
       ? 'Precision review mode'
@@ -5728,6 +5780,28 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     betterVersion: item.betterVersion,
     explanation: item.explanation,
   }));
+  const currentFocusMemory = useMemo(() => {
+    if (!aiFeedback) return [] as Array<{ tag: string; count: number }>;
+    const counts = new Map<string, number>();
+    const add = (tag: string | undefined) => {
+      if (!tag?.trim()) return;
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    };
+    aiFeedback.grammar_fixes?.forEach((fix) => add(fix.weakness_tag || 'language_accuracy'));
+    aiFeedback.punctuation_fixes?.forEach((fix) => add(fix.weakness_tag || 'punctuation_error'));
+    aiFeedback.natural_phrase_upgrades?.forEach((fix) => add(fix.weakness_tag || 'weak_word_choice'));
+    aiFeedback.weakness_tags?.forEach((tag) => {
+      if (!counts.has(tag)) add(tag);
+    });
+    return [...counts.entries()].map(([tag, count]) => ({ tag, count }));
+  }, [aiFeedback]);
+  const currentStrengthMemory = useMemo(() => {
+    const counts = new Map<string, number>();
+    aiFeedback?.strength_evidence?.forEach(({ strength_tag: tag }) => {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    });
+    return [...counts.entries()].map(([tag, count]) => ({ tag, count }));
+  }, [aiFeedback]);
   const rubricScores = assessment ? [
     { key: 'content', label: 'Content', value: assessment.subscores.content },
     { key: 'language', label: 'Language', value: assessment.subscores.language },
@@ -6029,6 +6103,25 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             </div>
           )}
 
+          {(currentFocusMemory.length > 0 || currentStrengthMemory.length > 0) && (
+            <div style={{ display: 'grid', gap: 6 }} aria-label="Writing learning memory">
+              {currentFocusMemory.length > 0 && (
+                <p style={{ margin: 0, color: '#475569', fontSize: 14 }}>
+                  <strong>Focus memory:</strong> {currentFocusMemory.map(({ tag, count }) =>
+                    `${tag.replaceAll('_', ' ')}${count > 1 ? ` ×${count}` : ''}`
+                  ).join(' · ')}
+                </p>
+              )}
+              {currentStrengthMemory.length > 0 && (
+                <p style={{ margin: 0, color: '#166534', fontSize: 14 }}>
+                  <strong>Strength memory:</strong> {currentStrengthMemory.map(({ tag, count }) =>
+                    `${tag.replace(/^strong_/, '').replaceAll('_', ' ')}${count > 1 ? ` ×${count}` : ''}`
+                  ).join(' · ')}
+                </p>
+              )}
+            </div>
+          )}
+
           {quickFixes.length > 0 && (
             <div>
               <p style={{ margin: '2px 0 8px' }}><strong>✏️ Quick fixes</strong></p>
@@ -6106,6 +6199,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                           const count = entry.weakness_tag_counts[tag] ?? 1;
                           return `${tag.replaceAll('_', ' ')}${count > 1 ? ` ×${count}` : ''}`;
                         }).join(' · ')}
+                      </p>
+                    )}
+                    {entry.strength_evidence.length > 0 && (
+                      <p style={{ margin: 0, color: '#166534', fontSize: 13 }}>
+                        <strong>Strength memory:</strong> {entry.strength_evidence.map((strength) =>
+                          `${strength.strength_tag.replace(/^strong_/, '').replaceAll('_', ' ')} — “${strength.evidence}”`
+                        ).join(' · ')}
                       </p>
                     )}
                     {entry.has_feedback && entry.assessment && entry.student_submission.trim() && (
@@ -6244,15 +6344,15 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   <p>{improvementGuidance}</p>
                   <div>
                     <strong>Keep</strong>
-                    <span>the green choices that already help your reader</span>
+                    <span>{personalizedRevisionMission.strengthText}</span>
                   </div>
                   <div>
                     <strong>Upgrade</strong>
-                    <span>one coral passage using the stronger version as a guide</span>
+                    <span>{personalizedRevisionMission.upgradeText}</span>
                   </div>
                   <div>
                     <strong>Resubmit</strong>
-                    <span>your own improved draft to measure real progress</span>
+                    <span>{personalizedRevisionMission.resubmitText}</span>
                   </div>
                 </div>
                 <section className="cinematic-rubric-section cinematic-feedback__rubric" aria-label="Rubric scores">
