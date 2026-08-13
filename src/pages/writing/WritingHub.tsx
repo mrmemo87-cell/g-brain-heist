@@ -5559,12 +5559,15 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     if (!card) return;
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     tl.fromTo(card, { opacity: 0, y: 20, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.45 });
-    tl.fromTo(
-      card.querySelectorAll('.feedback-insight-row'),
-      { opacity: 0, x: -10 },
-      { opacity: 1, x: 0, duration: 0.3, stagger: 0.1 },
-      '-=0.15'
-    );
+    const insightRows = card.querySelectorAll('.feedback-insight-row');
+    if (insightRows.length > 0) {
+      tl.fromTo(
+        insightRows,
+        { opacity: 0, x: -10 },
+        { opacity: 1, x: 0, duration: 0.3, stagger: 0.1 },
+        '-=0.15'
+      );
+    }
     return () => { tl.kill(); };
   }, [assessment]);
 
@@ -5582,9 +5585,12 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     tl.fromTo(panel, { opacity: 0, scale: 0.97, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.5 });
-    tl.fromTo(panel.querySelector('.cinematic-text-panel'), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4 }, '-=0.2');
-    tl.fromTo('.cinematic-detail-card', { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.35 }, '-=0.15');
-    tl.fromTo('.cinematic-nav-bar', { opacity: 0 }, { opacity: 1, duration: 0.25 }, '-=0.1');
+    const textPanel = panel.querySelector('.cinematic-text-panel');
+    const detailCard = panel.querySelector('.cinematic-detail-card');
+    const navBar = panel.querySelector('.cinematic-nav-bar');
+    if (textPanel) tl.fromTo(textPanel, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4 }, '-=0.2');
+    if (detailCard) tl.fromTo(detailCard, { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.35 }, '-=0.15');
+    if (navBar) tl.fromTo(navBar, { opacity: 0 }, { opacity: 1, duration: 0.25 }, '-=0.1');
 
     if (cinematicRanges.length === 0) {
       setCinematicDone(true);
@@ -5606,12 +5612,15 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     if (prefersReducedMotion) return;
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     tl.fromTo(finale, { opacity: 0, y: 16, scale: 0.985 }, { opacity: 1, y: 0, scale: 1, duration: 0.42 });
-    tl.fromTo(
-      finale.querySelectorAll('.cinematic-feedback__rubric > div'),
-      { opacity: 0, y: 10 },
-      { opacity: 1, y: 0, duration: 0.28, stagger: 0.07 },
-      '-=0.18'
-    );
+    const rubricRows = finale.querySelectorAll('.cinematic-feedback__rubric > div');
+    if (rubricRows.length > 0) {
+      tl.fromTo(
+        rubricRows,
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.28, stagger: 0.07 },
+        '-=0.18'
+      );
+    }
     tl.add(() => {
       finale.querySelectorAll('.rubric-bar-fill').forEach((bar) => {
         const target = (bar as HTMLElement).style.width || '0%';
