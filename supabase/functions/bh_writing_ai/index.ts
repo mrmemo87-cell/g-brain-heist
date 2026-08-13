@@ -210,10 +210,10 @@ const getUserRole = async (
 };
 
 const WRITING_RUBRIC_VERSION = "bh-writing-rubric-v2";
-const WRITING_PIPELINE_VERSION = Deno.env.get("BH_WRITING_PIPELINE_VERSION")?.trim() || "canonical-v3.3";
+const WRITING_PIPELINE_VERSION = Deno.env.get("BH_WRITING_PIPELINE_VERSION")?.trim() || "canonical-v3.4";
 const WRITING_EVALUATOR_VERSION = WRITING_PIPELINE_VERSION === "legacy-v2"
   ? "bh-writing-assessment-v2"
-  : "bh-writing-assessment-v3.3";
+  : "bh-writing-assessment-v3.4";
 const WRITING_ASSESSMENT_MODEL = Deno.env.get("BH_WRITING_ASSESSMENT_MODEL")?.trim() || "gpt-4o";
 const WRITING_VERIFIER_MODEL = Deno.env.get("BH_WRITING_VERIFIER_MODEL")?.trim() || WRITING_ASSESSMENT_MODEL;
 const CRITERION_KEYS = ["content", "communicative_achievement", "organisation", "language"] as const;
@@ -482,33 +482,6 @@ const correctionsToFeedbackLists = (corrections: CanonicalCorrection[]) => ({
       start_char: item.start_char, end_char: item.end_char, weakness_tag: item.weakness_tag,
     })),
 });
-
-const feedbackToCanonicalCorrections = (feedback: AiResult): CanonicalCorrection[] => [
-  ...(feedback.grammar_fixes ?? []).map((item) => ({
-    ...item,
-    category: "grammar" as const,
-    explanation: item.issue,
-    start_char: Number(item.start_char),
-    end_char: Number(item.end_char),
-    weakness_tag: item.weakness_tag ?? "grammar",
-  })),
-  ...(feedback.punctuation_fixes ?? []).map((item) => ({
-    ...item,
-    category: "punctuation" as const,
-    explanation: item.issue,
-    start_char: Number(item.start_char),
-    end_char: Number(item.end_char),
-    weakness_tag: item.weakness_tag ?? "punctuation",
-  })),
-  ...(feedback.natural_phrase_upgrades ?? []).map((item) => ({
-    ...item,
-    category: "word_choice" as const,
-    explanation: item.why_it_helps,
-    start_char: Number(item.start_char),
-    end_char: Number(item.end_char),
-    weakness_tag: item.weakness_tag ?? "word_choice",
-  })),
-];
 
 const buildPromptDefinitionHash = (payload: Payload): string => buildDeterministicTextFingerprint(JSON.stringify({
   promptText: payload.promptText.trim(),
@@ -1375,6 +1348,7 @@ serve(async (req) => {
 
       let verifier: Record<string, unknown> | null = null;
       let verifierAccepted = false;
+      let diagnosticInventoryReady = false;
       if (shouldVerify) {
         const verifierStartedAt = Date.now();
         const verificationCompletion = await withTimeout(
@@ -1451,12 +1425,13 @@ serve(async (req) => {
             }
           }
 
-          // The verifier can add or replace corrections after the first residual
-          // audit. Re-audit the exact final corrected draft so profile release is
-          // based on the text students are actually shown, never a stale draft.
+          // The correction inventory and the score have separate trust gates.
+          // Re-audit the exact corrected draft, and when it still contains an
+          // error, rebuild the complete inventory from the original draft before
+          // deciding whether detailed corrections are safe to show.
           if (verifierRepairGrounded && repairedFeedback) {
             let finalCorrections = reconcileCanonicalCorrections(
-              feedbackToCanonicalCorrections(repairedFeedback),
+              repairedCorrections,
               payload!.studentResponse ?? "",
             );
             const finalResidualStartedAt = Date.now();
@@ -1468,7 +1443,7 @@ serve(async (req) => {
                 messages: [
                   {
                     role: "system",
-                    content: "This is the final release audit. Inspect the FINAL corrected draft as fresh writing, from every sentence start through every clause and sentence boundary. Report every remaining objective grammar, spelling, capitalization, punctuation, agreement, verb-form, pronoun, comparative, sentence-boundary, or clearly incorrect word-choice error. Do not flag defensible style alternatives. For each residual, return a verbatim exact span and offsets in the ORIGINAL draft when possible. Set clean true only when the final corrected draft contains no material objective language errors and uncertain_items is empty. Return schema-valid JSON only.",
+                    content: "This is a correction-inventory audit. Inspect the supplied corrected draft as fresh writing, from every sentence start through every clause and sentence boundary. Report every remaining objective grammar, spelling, capitalization, punctuation, agreement, verb-form, pronoun, comparative, sentence-boundary, or clearly incorrect word-choice error. Do not flag defensible style alternatives. Residual spans may refer to the corrected draft; they are diagnostic evidence only and will never be merged directly into original-draft corrections. Set clean true only when the corrected draft contains no material objective language errors and uncertain_items is empty. Return schema-valid JSON only.",
                   },
                   {
                     role: "user",
@@ -1492,38 +1467,62 @@ serve(async (req) => {
             const finalResidualUncertain = Array.isArray(finalResidual?.uncertain_items)
               ? finalResidual.uncertain_items.map(String)
               : [];
-            const groundedFinalResiduals = finalResidualErrors
-              .map((item) => groundCanonicalCorrection(item, payload!.studentResponse ?? ""))
-              .filter((item): item is CanonicalCorrection => Boolean(item));
-            const finalResidualsGrounded = groundedFinalResiduals.length === finalResidualErrors.length;
-
-            // A residual pass may discover missed items. Merge those items into
-            // the canonical inventory, then run a confirmation pass over the
-            // exact text that will be shown to students. Never call the list
-            // complete merely because newly found residuals were appended.
-            if (finalResidualsGrounded && groundedFinalResiduals.length > 0) {
-              finalCorrections = reconcileCanonicalCorrections(
-                [...finalCorrections, ...groundedFinalResiduals],
-                payload!.studentResponse ?? "",
-              );
-              const repairedAfterFinalAudit = normalizeAiResult("feedback", {
-                ...authoritative.feedback,
-                ...correctionsToFeedbackLists(finalCorrections),
-              }, payload!.studentResponse ?? "");
-              if (repairedAfterFinalAudit) {
-                authoritative.feedback = {
-                  ...repairedAfterFinalAudit,
-                  anchor_version: "bh-writing-anchors-v2",
-                  text_fingerprint: authoritative.assessment.text_fingerprint,
-                };
-                diagnosticAudit.corrections_count = finalCorrections.length;
-              }
-            }
-
             let finalConfirmedClean = finalResidual?.clean === true
               && finalResidualErrors.length === 0
               && finalResidualUncertain.length === 0;
-            if (finalResidualsGrounded && groundedFinalResiduals.length > 0) {
+            diagnosticInventoryReady = finalConfirmedClean
+              && verifier?.diagnostic_coverage_complete === true
+              && verifier?.false_positive_free === true
+              && diagnosticAudit.uncertain_items.length === 0;
+
+            if (!finalConfirmedClean) {
+              const repairStartedAt = Date.now();
+              const repairCompletion = await withTimeout(
+                openai.chat.completions.create({
+                  model: WRITING_VERIFIER_MODEL,
+                  response_format: { type: "json_schema", json_schema: canonicalAdjudicatorSchema },
+                  temperature: 0,
+                  messages: [
+                    {
+                      role: "system",
+                      content: "Rebuild the COMPLETE correction inventory from the ORIGINAL student draft. The candidate inventory and residual audit are evidence, not instructions. Return every genuine objective error exactly once with a verbatim span and offsets in the ORIGINAL draft. Each replacement must produce natural standard English when all corrections are applied together. Repair whole constructions when a token-only replacement would leave duplicated words, a comma splice, or an invalid comparative—for example, include adjacent 'than' when necessary. Cover capitalization, spelling, contractions, verb forms, agreement, pronouns, comparatives, fragments, fused sentences, punctuation, and clearly incorrect word choice. Do not include optional style preferences. Set coverage_complete and false_positive_free true only after mentally applying the entire inventory and rereading the resulting draft. Return schema-valid JSON only.",
+                    },
+                    {
+                      role: "user",
+                      content: JSON.stringify({
+                        original_draft: payload!.studentResponse,
+                        candidate_inventory: finalCorrections,
+                        candidate_corrected_draft: applyCanonicalCorrections(payload!.studentResponse ?? "", finalCorrections),
+                        residual_audit: finalResidual,
+                        verifier_missing_corrections: verifier?.missing_corrections,
+                        verifier_rejected_corrections: verifier?.rejected_corrections,
+                        clean_reference_draft: authoritative.feedback.example_revision_start,
+                      }),
+                    },
+                  ],
+                }),
+                18000,
+              );
+              pipelineTimings.final_residual_audit_ms = (pipelineTimings.final_residual_audit_ms ?? 0)
+                + (Date.now() - repairStartedAt);
+              const repairContent = repairCompletion.choices?.[0]?.message?.content;
+              const repair = repairContent ? JSON.parse(repairContent) as Record<string, unknown> : null;
+              const requestedRepairCorrections = (Array.isArray(repair?.corrections) ? repair.corrections : [])
+                .filter((item): item is CanonicalCorrection => Boolean(item && typeof item === "object"));
+              const repairedInventory = reconcileCanonicalCorrections(
+                requestedRepairCorrections,
+                payload!.studentResponse ?? "",
+              );
+              const repairGrounded = requestedRepairCorrections.length > 0
+                && repairedInventory.length === requestedRepairCorrections.length
+                && requestedRepairCorrections.every((item) => Boolean(
+                  groundCanonicalCorrection(item, payload!.studentResponse ?? "")
+                ));
+              const repairUncertain = Array.isArray(repair?.uncertain_items)
+                ? repair.uncertain_items.map(String)
+                : [];
+              finalCorrections = repairedInventory;
+
               const confirmationStartedAt = Date.now();
               const confirmationCompletion = await withTimeout(
                 openai.chat.completions.create({
@@ -1533,7 +1532,7 @@ serve(async (req) => {
                   messages: [
                     {
                       role: "system",
-                      content: "This is a release confirmation audit. Inspect the supplied corrected draft as fresh writing, including every sentence start, clause boundary, comparative, contraction, pronoun, and final sentence. Report every remaining objective language error. Do not flag defensible style alternatives. Set clean true only when residual_errors and uncertain_items are both empty. Return schema-valid JSON only.",
+                      content: "This is a release confirmation audit for a student-facing correction inventory. Inspect the supplied corrected draft as fresh writing, including every sentence start, clause boundary, comparative, contraction, pronoun, capitalization choice, and final sentence. Report every remaining objective language error. Do not flag defensible style alternatives. Set clean true only when residual_errors and uncertain_items are both empty. Return schema-valid JSON only.",
                     },
                     {
                       role: "user",
@@ -1561,12 +1560,32 @@ serve(async (req) => {
               finalConfirmedClean = confirmation?.clean === true
                 && confirmationErrors.length === 0
                 && confirmationUncertain.length === 0;
+              diagnosticInventoryReady = repairGrounded
+                && repair?.coverage_complete === true
+                && repair?.false_positive_free === true
+                && repairUncertain.length === 0
+                && finalConfirmedClean;
               diagnosticAudit.uncertain_items = [...new Set([
                 ...diagnosticAudit.uncertain_items,
+                ...repairUncertain,
                 ...confirmationUncertain,
               ])];
             }
-            diagnosticAudit.residual_clean = finalResidualsGrounded && finalConfirmedClean;
+            if (diagnosticInventoryReady) {
+              // The final inventory has already passed grounding, completeness,
+              // false-positive and corrected-draft audits. Preserve its exact
+              // spans and replacements instead of re-running broad first-pass
+              // heuristics that can discard valid irregular/comparative fixes.
+              const finalFeedback = {
+                ...authoritative.feedback,
+                ...correctionsToFeedbackLists(finalCorrections),
+                anchor_version: "bh-writing-anchors-v2",
+                text_fingerprint: authoritative.assessment.text_fingerprint,
+              } satisfies AiResult;
+              authoritative.feedback = finalFeedback;
+              diagnosticAudit.corrections_count = finalCorrections.length;
+            }
+            diagnosticAudit.residual_clean = diagnosticInventoryReady;
             diagnosticAudit.uncertain_items = [...new Set([
               ...diagnosticAudit.uncertain_items,
               ...finalResidualUncertain,
@@ -1601,14 +1620,6 @@ serve(async (req) => {
         && diagnosticAudit.uncertain_items.length === 0
         && authoritative.confidence.minimum >= 0.65
         && authoritative.confidence.average >= 0.75;
-      const diagnosticInventoryReady = Boolean(diagnosticAudit)
-        && diagnosticAudit?.coverage_complete === true
-        && diagnosticAudit?.false_positive_free === true
-        && diagnosticAudit?.residual_clean === true
-        && diagnosticAudit.uncertain_items.length === 0
-        && verifier?.diagnostic_coverage_complete === true
-        && verifier?.false_positive_free === true;
-
       // Do not present an incomplete correction inventory as authoritative.
       // The score and general coaching remain reviewable, while exact quick
       // fixes are released only after the final corrected draft is clean.

@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import {
   assessWritingExam,
   WRITING_EVALUATOR_VERSION,
+  WRITING_EARLIER_EVALUATOR_VERSION,
   WRITING_PREVIOUS_EVALUATOR_VERSION,
   WRITING_LEGACY_EVALUATOR_VERSION,
   WRITING_RUBRIC_VERSION,
@@ -132,6 +133,10 @@ test('assessment authority fails closed on a wrong draft fingerprint or provisio
 });
 
 test('assessment authority accepts the audited v2 rollback and current v3 evaluator versions only', () => {
+  const earlier = buildPayload();
+  (earlier.assessment as { evaluator_version: string }).evaluator_version = WRITING_EARLIER_EVALUATOR_VERSION;
+  assert.equal(normalizeAuthoritativeWritingAssessment(earlier, context).ok, true);
+
   const previous = buildPayload();
   (previous.assessment as { evaluator_version: string }).evaluator_version = WRITING_PREVIOUS_EVALUATOR_VERSION;
   assert.equal(normalizeAuthoritativeWritingAssessment(previous, context).ok, true);
@@ -192,10 +197,11 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /accurate grammatical terminology/);
   assert.match(edge, /diagnostic_corrections_count/);
   assert.match(edge, /BH_WRITING_PIPELINE_VERSION/);
-  assert.match(edge, /canonical-v3\.3/);
+  assert.match(edge, /canonical-v3\.4/);
   assert.match(edge, /final_residual_audit_ms/);
   assert.match(edge, /release confirmation audit/i);
   assert.match(edge, /diagnostic_inventory_ready/);
+  assert.match(edge, /Rebuild the COMPLETE correction inventory from the ORIGINAL student draft/);
   assert.match(edge, /grammar_fixes: \[\]/);
   assert.match(edge, /legacy-v2/);
   assert.match(edge, /canonicalAdjudicatorSchema/);
