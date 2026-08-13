@@ -31,10 +31,11 @@ test('anti-rotation protocol preserves corrections, transfers, cooldowns and aud
   assert.match(migration,/released_at is null or cooldown_until>now\(\)/);
 });
 
-test('school admin UI shows capacity and requires a release reason', () => {
-  assert.match(manager,/Programme licences/);
-  assert.match(manager,/transfers left/);
-  assert.match(manager,/Release reason/);
+test('school admin UI explains capacity and previews release consequences', () => {
+  assert.match(manager,/Named-seat command centre/);
+  assert.match(manager,/transfers/);
+  assert.match(manager,/Release this seat/);
+  assert.match(manager,/Protected transfer/);
   assert.match(manager,/Assign seat/);
   assert.match(manager,/Confirm release/);
 });

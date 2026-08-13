@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  acceptSchoolBillingQuote,
   billingPercent,
   calculateSchoolQuote,
   formatBillingMoney,
@@ -59,6 +60,8 @@ const BillingStudio: React.FC<BillingStudioProps> = ({ schoolId, addToast }) => 
   const [note, setNote] = useState('');
   const [calculating, setCalculating] = useState(true);
   const [saving, setSaving] = useState<'save' | 'submit' | null>(null);
+  const [accepting, setAccepting] = useState<string | null>(null);
+  const [acceptConfirmed, setAcceptConfirmed] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadQuotes = useCallback(async () => {
@@ -142,6 +145,17 @@ const BillingStudio: React.FC<BillingStudioProps> = ({ schoolId, addToast }) => 
     } catch (saveError) {
       addToast(saveError instanceof Error ? saveError.message : 'The scenario could not be saved.', 'error');
     } finally { setSaving(null); }
+  };
+
+  const acceptQuote = async (quote: SchoolBillingQuote) => {
+    setAccepting(quote.id);
+    try {
+      await acceptSchoolBillingQuote(quote.id);
+      addToast('Package accepted. Access remains unchanged until Brains Heist verifies payment and activates the exact seats.', 'success');
+      setAcceptConfirmed(null);
+      await loadQuotes();
+    } catch (acceptError) { addToast(acceptError instanceof Error ? acceptError.message : 'The quote could not be accepted.', 'error'); }
+    finally { setAccepting(null); }
   };
 
   return (
@@ -246,7 +260,11 @@ const BillingStudio: React.FC<BillingStudioProps> = ({ schoolId, addToast }) => 
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-700">Saved scenarios &amp; requests</p><h4 className="mt-1 text-lg font-bold text-slate-950">Compare without changing the live agreement</h4></div><button type="button" onClick={() => void loadQuotes()} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700">Refresh</button></div>
-        {quotes.length === 0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No saved scenarios yet. Build one above and keep up to three editable versions.</p> : <div className="mt-4 grid gap-3 lg:grid-cols-3">{quotes.slice(0, 9).map((quote) => <article key={quote.id} className="rounded-xl border border-slate-200 p-4"><div className="flex items-start justify-between gap-3"><div><h5 className="font-bold text-slate-950">{quote.title}</h5><p className="mt-1 text-xs text-slate-500">{quote.platform_seats} students · {quote.contract_term.replace('_',' ')}</p></div><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${quote.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : quote.status === 'revision_requested' ? 'bg-amber-100 text-amber-800' : quote.status === 'submitted' ? 'bg-cyan-100 text-cyan-800' : 'bg-slate-100 text-slate-700'}`}>{statusLabel[quote.status] ?? quote.status}</span></div><p className="mt-3 text-lg font-bold text-slate-950">{formatBillingMoney(quote.calculation.totals.contract_total_minor, quote.calculation.pricing_version.currency)}</p>{quote.review_note && <p className="mt-2 rounded-lg bg-amber-50 p-2 text-xs text-amber-900">Brains Heist: {quote.review_note}</p>}{['draft','revision_requested'].includes(quote.status) && <button type="button" onClick={() => useQuote(quote)} className="mt-3 text-xs font-bold text-cyan-800">Open and edit →</button>}</article>)}</div>}
+        {quotes.length === 0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No saved scenarios yet. Build one above and keep up to three editable versions.</p> : <div className="mt-4 grid gap-3 lg:grid-cols-3">{quotes.slice(0, 9).map((quote) => <article key={quote.id} className={`rounded-xl border p-4 ${quote.activated_at ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200'}`}><div className="flex items-start justify-between gap-3"><div><h5 className="font-bold text-slate-950">{quote.title}</h5><p className="mt-1 text-xs text-slate-500">{quote.platform_seats} platform · Cambridge {quote.cambridge_seats} · IELTS {quote.ielts_seats} · Writing {quote.writing_seats}</p></div><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${quote.activated_at ? 'bg-emerald-700 text-white' : quote.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : quote.status === 'accepted' ? 'bg-violet-100 text-violet-800' : quote.status === 'revision_requested' ? 'bg-amber-100 text-amber-800' : quote.status === 'submitted' ? 'bg-cyan-100 text-cyan-800' : 'bg-slate-100 text-slate-700'}`}>{quote.activated_at ? 'Active agreement' : statusLabel[quote.status] ?? quote.status}</span></div><p className="mt-3 text-lg font-bold text-slate-950">{formatBillingMoney(quote.calculation.totals.contract_total_minor, quote.calculation.pricing_version.currency)}</p>{quote.review_note && <p className="mt-2 rounded-lg bg-amber-50 p-2 text-xs text-amber-900">Brains Heist: {quote.review_note}</p>}
+          {quote.status === 'approved' && <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3"><p className="text-xs leading-5 text-emerald-950"><strong>Step 2 of 3 · Your decision.</strong> Accepting locks this approved package for activation. It does not charge the school or enable access.</p><label className="mt-2 flex items-start gap-2 text-xs text-emerald-950"><input type="checkbox" checked={acceptConfirmed === quote.id} onChange={(event) => setAcceptConfirmed(event.target.checked ? quote.id : null)} className="mt-0.5" />I confirm these exact named-seat quantities and contract total.</label><button type="button" disabled={acceptConfirmed !== quote.id || accepting !== null} onClick={() => void acceptQuote(quote)} className="mt-3 rounded-lg bg-emerald-800 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{accepting === quote.id ? 'Accepting…' : 'Accept approved package'}</button>{quote.expires_at && <p className="mt-2 text-[11px] text-emerald-800">Approval expires {new Date(quote.expires_at).toLocaleDateString()}.</p>}</div>}
+          {quote.status === 'accepted' && !quote.activated_at && <div className="mt-3 rounded-lg bg-violet-50 p-3 text-xs leading-5 text-violet-950"><strong>Step 3 of 3 · Awaiting verified activation.</strong><p>Your current access has not changed. Brains Heist will activate exactly Cambridge {quote.cambridge_seats}, IELTS {quote.ielts_seats}, and Writing {quote.writing_seats} after payment or complimentary authority is verified.</p></div>}
+          {quote.activated_at && <p className="mt-3 rounded-lg bg-emerald-100 p-3 text-xs text-emerald-950"><strong>Active since {new Date(quote.activated_at).toLocaleDateString()}.</strong> The quoted programme quantities now control named-seat assignment.</p>}
+          {['draft','revision_requested'].includes(quote.status) && <button type="button" onClick={() => useQuote(quote)} className="mt-3 text-xs font-bold text-cyan-800">Open and edit →</button>}</article>)}</div>}
       </section>
     </section>
   );

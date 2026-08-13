@@ -92,6 +92,10 @@ export interface SchoolBillingQuote {
   submitted_at: string | null;
   reviewed_at: string | null;
   review_note: string | null;
+  expires_at: string | null;
+  accepted_at: string | null;
+  activated_at: string | null;
+  activated_subscription_id: string | null;
   created_at: string;
   updated_at: string;
   school_head?: { name: string; email: string } | null;
@@ -175,5 +179,13 @@ export async function reviewSchoolBillingQuote(
   if (error) throw new Error(error.message || 'The quote could not be reviewed.');
   const payload = data as { success?: boolean; quote?: SchoolBillingQuote; error?: string } | null;
   if (!payload?.success || !payload.quote) throw new Error(payload?.error || 'The quote could not be reviewed.');
+  return payload.quote;
+}
+
+export async function acceptSchoolBillingQuote(quoteId: string): Promise<SchoolBillingQuote> {
+  const { data, error } = await supabase.rpc('school_head_accept_billing_quote', { p_quote_id: quoteId });
+  if (error) throw new Error(error.message || 'The approved quote could not be accepted.');
+  const payload = data as { success?: boolean; quote?: SchoolBillingQuote; error?: string } | null;
+  if (!payload?.success || !payload.quote) throw new Error(payload?.error || 'The approved quote could not be accepted.');
   return payload.quote;
 }
