@@ -1,3 +1,23 @@
+export const WRITING_RUBRIC_VERSION = 'bh-writing-rubric-v2';
+export const WRITING_EVALUATOR_VERSION = 'bh-writing-assessment-v3.9';
+export const WRITING_PREVIOUS_EVALUATOR_VERSION = 'bh-writing-assessment-v3.8';
+export const WRITING_EARLIER_EVALUATOR_VERSION = 'bh-writing-assessment-v3.7';
+export const WRITING_OLDER_EVALUATOR_VERSION = 'bh-writing-assessment-v3.5';
+export const WRITING_ARCHIVED_EVALUATOR_VERSIONS = [
+    'bh-writing-assessment-v3.6',
+    'bh-writing-assessment-v3.4',
+    'bh-writing-assessment-v3.3',
+    'bh-writing-assessment-v3.2',
+];
+export const WRITING_LEGACY_EVALUATOR_VERSION = 'bh-writing-assessment-v2';
+export const TRUSTED_WRITING_EVALUATOR_VERSIONS = [
+    WRITING_EVALUATOR_VERSION,
+    WRITING_PREVIOUS_EVALUATOR_VERSION,
+    WRITING_EARLIER_EVALUATOR_VERSION,
+    WRITING_OLDER_EVALUATOR_VERSION,
+    ...WRITING_ARCHIVED_EVALUATOR_VERSIONS,
+    WRITING_LEGACY_EVALUATOR_VERSION,
+];
 export const GRADE_TO_DIFFICULTY_CONFIG = {
     6: { expectedCeiling: 'A2', strictness: 0.65, minParagraphs: 1, registerSensitivity: 0.25, developmentWeight: 0.25 },
     7: { expectedCeiling: 'A2', strictness: 0.72, minParagraphs: 2, registerSensitivity: 0.35, developmentWeight: 0.35 },

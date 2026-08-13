@@ -18,7 +18,7 @@ test('new school overview excludes admin-only accounts and unused local labels f
     assert.match(dashboard, /teachers\.filter\(\(item: any\) => item\.can_teach\)/);
     assert.match(dashboard, /label: 'Subjects', value: curriculumSubjects\.size/);
     assert.doesNotMatch(dashboard, /local.*labels.*available/);
-    assert.match(dashboard, /No teaching staff added yet/);
+    assert.match(dashboard, /No teaching staff have joined yet/);
 });
 test('academic setup guides a valid year, known systems, grade subjects, and default class creation', () => {
     assert.match(academicSetup, /previous} — closed/);

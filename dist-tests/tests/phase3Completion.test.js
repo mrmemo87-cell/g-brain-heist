@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const read = (path) => readFileSync(path, 'utf8');
 const authority = read('supabase/migrations/20260808143000_phase3_user_authority_guard.sql');
-const placement = read('supabase/migrations/20260808150000_complete_phase3_student_placement_integrity.sql');
+const placement = read('supabase/migrations/20260812172227_complete_phase3_student_placement_integrity.sql');
 const provenance = read('supabase/migrations/20260808153000_phase3_historical_class_provenance.sql');
 const service = read('services/schoolAdminService.ts');
 const portal = read('components/SchoolAdminPortal.tsx');

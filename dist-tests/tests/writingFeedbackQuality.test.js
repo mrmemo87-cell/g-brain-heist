@@ -145,3 +145,48 @@ test('repeated identical mistakes are all retained when each has verified offset
     assert.deepStrictEqual(fixes.map((fix) => fix.start), [firstStart, secondStart]);
     assert.ok(fixes.every((fix) => text.slice(fix.start, fix.end) === 'walk'));
 });
+test('overlapping punctuation/style ranges before a make grammar range do not shift its cinematic index', () => {
+    // The punctuation fix spans the same characters as the phrase upgrade (overlap).
+    // After deduplication only one of those two leading ranges survives, but the
+    // grammar fix for "make" must still appear as the final range at its own
+    // position so that ranges[activeIndex] resolves correctly in spotlight mode.
+    const text = 'Every day he make sure the door are closed properly.';
+    const overlapStart = text.indexOf('Every day he');
+    const overlapEnd = overlapStart + 'Every day he'.length;
+    const ranges = buildValidatedCinematicRanges(text, {
+        punctuation_fixes: [
+            {
+                original: 'Every day he',
+                issue: 'This phrase should start with a capital and have a comma after it.',
+                better_version: 'Every day, he',
+                start_char: overlapStart,
+                end_char: overlapEnd,
+            },
+        ],
+        natural_phrase_upgrades: [
+            {
+                original: 'Every day he',
+                why_it_helps: 'Restructuring clarifies the subject.',
+                better_version: 'Every day, he',
+                start_char: overlapStart,
+                end_char: overlapEnd,
+            },
+        ],
+        grammar_fixes: [
+            {
+                original: 'make',
+                issue: 'Use third-person singular agreement.',
+                better_version: 'makes',
+            },
+        ],
+    });
+    // The two overlapping leading ranges collapse to one; the make fix is separate.
+    assert.ok(ranges.length >= 1, 'at least the make grammar range must survive');
+    const makeRange = ranges.find((r) => text.slice(r.start, r.end) === 'make');
+    assert.ok(makeRange != null, 'the make grammar range must be present');
+    // Confirm ranges[activeIndex] directly identifies the make range (spotlight alignment).
+    const activeIndex = ranges.indexOf(makeRange);
+    assert.ok(activeIndex >= 0);
+    assert.strictEqual(ranges[activeIndex], makeRange);
+    assert.strictEqual(text.slice(ranges[activeIndex].start, ranges[activeIndex].end), 'make');
+});

@@ -961,15 +961,19 @@ const renderAnnotatedText = (
   if (normalizedRanges.length === 0) return text;
   const nodes: React.ReactNode[] = [];
   let cursor = 0;
+  const activeRange = spotlightMode && activeIndex != null ? ranges[activeIndex] ?? null : null;
   normalizedRanges.forEach((range, idx) => {
     if (cursor < range.start) nodes.push(<span key={`plain-${idx}`}>{text.slice(cursor, range.start)}</span>);
     const segment = text.slice(range.start, range.end);
+    const isActive = spotlightMode
+      ? activeRange != null && range.start === activeRange.start && range.end === activeRange.end
+      : idx === activeIndex;
     nodes.push(
       <ReviewHighlightSpan
         index={idx}
         range={range}
         segment={segment}
-        isActive={idx === activeIndex}
+        isActive={isActive}
         spotlightMode={spotlightMode}
         onMount={onHighlightMount}
       />

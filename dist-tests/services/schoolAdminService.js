@@ -514,9 +514,15 @@ export async function archiveSchoolClass(schoolId, classId) {
         }
         const result = typeof data === 'string' ? JSON.parse(data) : data;
         if (result && result.success === false) {
-            return { success: false, error: result.error };
+            return {
+                success: false,
+                code: result.code,
+                studentCount: Number(result.student_count || 0),
+                assignmentCount: Number(result.assignment_count || 0),
+                error: result.error,
+            };
         }
-        return { success: true };
+        return { success: true, action: result?.action || 'archived' };
     }
     catch (err) {
         console.error('Exception archiving class:', err);
