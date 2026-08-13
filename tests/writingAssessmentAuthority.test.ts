@@ -180,6 +180,7 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /uncertain_items/);
   assert.match(edge, /missing_corrections/);
   assert.match(edge, /rejected_corrections/);
+  assert.match(edge, /canonical_corrections/);
   assert.match(edge, /repairedCorrections/);
   assert.match(edge, /groundCanonicalCorrection/);
   assert.match(edge, /Promise\.all/);
@@ -191,8 +192,11 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /accurate grammatical terminology/);
   assert.match(edge, /diagnostic_corrections_count/);
   assert.match(edge, /BH_WRITING_PIPELINE_VERSION/);
-  assert.match(edge, /canonical-v3\.2/);
+  assert.match(edge, /canonical-v3\.3/);
   assert.match(edge, /final_residual_audit_ms/);
+  assert.match(edge, /release confirmation audit/i);
+  assert.match(edge, /diagnostic_inventory_ready/);
+  assert.match(edge, /grammar_fixes: \[\]/);
   assert.match(edge, /legacy-v2/);
   assert.match(edge, /canonicalAdjudicatorSchema/);
   assert.match(edge, /The two audits are candidate proposals, never facts/);
