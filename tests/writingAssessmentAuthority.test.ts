@@ -100,6 +100,13 @@ test('verified assessment authority accepts only complete grounded rubric eviden
   assert.equal(isAcademicProfileWritingAssessment(result.data.assessment), true);
 });
 
+test('assessment provenance normalizes a numeric grade stored as text', () => {
+  const textGradeContext = { ...context, grade: '9' as unknown as number };
+  const result = normalizeAuthoritativeWritingAssessment(buildPayload(), textGradeContext);
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.data.assessment.prompt_definition?.grade, 9);
+});
+
 test('assessment authority fails closed when a criterion quote is not grounded', () => {
   const payload = buildPayload();
   payload.assessment.criteria.language.evidence[0].start_char += 1;

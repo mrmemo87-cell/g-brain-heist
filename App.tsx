@@ -2098,7 +2098,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       <WritingHub
                         studentId={profile.id}
                         studentName={profile.username ?? undefined}
-                        grade={profile?.grade ?? 8}
+                        grade={Number(profile?.grade) || 8}
                         genre="essay"
                         onOpenQuestMission={(missionId?: string) => {
                           setPendingQuestMissionId(missionId ?? null);
