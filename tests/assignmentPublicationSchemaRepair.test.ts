@@ -23,3 +23,9 @@ test('assignment publication repair preserves the newer verified student RPCs', 
   assert.match(migration, /create or replace function public\.rpc_update_teacher_assignment/);
   assert.match(migration, /create function public\.rpc_create_assignment/);
 });
+
+test('assignment update RPC keeps its composite row out of a mixed INTO list', () => {
+  assert.match(migration, /select a\.\* into v_assignment from public\.assignments/);
+  assert.match(migration, /select t\.user_id,u\.school_id into v_teacher_user_id,v_teacher_school_id/);
+  assert.doesNotMatch(migration, /select a,t\.user_id,u\.school_id into v_assignment,/);
+});

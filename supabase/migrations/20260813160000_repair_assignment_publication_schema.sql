@@ -100,7 +100,8 @@ declare
   v_old_students uuid[]; v_new_students uuid[]; v_removed_students uuid[]; v_old_questions uuid[]; v_removed_questions uuid[]; v_content_changed boolean; v_focus record;
 begin
   if v_actor is null then raise exception 'Authentication required'; end if;
-  select a,t.user_id,u.school_id into v_assignment,v_teacher_user_id,v_teacher_school_id from public.assignments a join public.teachers t on t.id=a.teacher_id join public.users u on u.id=t.user_id where a.id=p_assignment_id;
+  select a.* into v_assignment from public.assignments a where a.id=p_assignment_id;
+  select t.user_id,u.school_id into v_teacher_user_id,v_teacher_school_id from public.teachers t join public.users u on u.id=t.user_id where t.id=v_assignment.teacher_id;
   if v_assignment.id is null or v_teacher_user_id<>v_actor then raise exception 'Assignment not found or you are not its creator'; end if;
   if coalesce(array_length(p_question_ids,1),0)=0 then raise exception 'Assignment must include at least one question'; end if;
   if p_publish_status not in ('draft','scheduled','published') then raise exception 'Invalid publish status'; end if;
