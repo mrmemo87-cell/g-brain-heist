@@ -104,18 +104,18 @@ export const reconcileCanonicalCorrections = (
       return CATEGORY_PRIORITY[b.category] - CATEGORY_PRIORITY[a.category];
     })
     .reduce<CanonicalCorrection[]>((accepted, candidate) => {
-      const conflictIndex = accepted.findIndex((item) => overlaps(item, candidate));
-      if (conflictIndex < 0) return [...accepted, candidate];
-      const current = accepted[conflictIndex];
+      const conflicts = accepted.filter((item) => overlaps(item, candidate));
+      if (conflicts.length === 0) return [...accepted, candidate];
       const candidateRank = CATEGORY_PRIORITY[candidate.category];
-      const currentRank = CATEGORY_PRIORITY[current.category];
-      if (candidateRank > currentRank || (
-        candidateRank === currentRank
-        && candidate.original.length < current.original.length
-      )) {
-        return accepted.map((item, index) => index === conflictIndex ? candidate : item);
-      }
-      return accepted;
+      const candidateWinsEveryConflict = conflicts.every((current) => {
+        const currentRank = CATEGORY_PRIORITY[current.category];
+        return candidateRank > currentRank || (
+          candidateRank === currentRank
+          && candidate.original.length < current.original.length
+        );
+      });
+      if (!candidateWinsEveryConflict) return accepted;
+      return [...accepted.filter((item) => !overlaps(item, candidate)), candidate];
     }, []);
 };
 

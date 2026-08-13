@@ -92,3 +92,21 @@ test('canonical reconciliation keeps a complete sentence-boundary repair over a 
   assert.deepEqual(canonical, [completeBoundaryRepair]);
   assert.equal(applyCanonicalCorrections(source, canonical), 'Amir made a quick decision: he ran home.');
 });
+
+test('canonical reconciliation replaces every smaller overlap with one complete sentence repair', () => {
+  const source = "If he leave, the teacher may object, however he couldnt abandon Daniel.";
+  const leave = correction(source, 'leave', 'left', 'grammar');
+  const contraction = correction(source, 'couldnt', "couldn't", 'spelling');
+  const wholeSentence = correction(
+    source,
+    source,
+    "If he left, the teacher might object; however, he couldn't abandon Daniel.",
+    'sentence_structure',
+  );
+  const canonical = reconcileCanonicalCorrections([leave, contraction, wholeSentence], source);
+  assert.deepEqual(canonical, [wholeSentence]);
+  assert.equal(
+    applyCanonicalCorrections(source, canonical),
+    "If he left, the teacher might object; however, he couldn't abandon Daniel.",
+  );
+});
