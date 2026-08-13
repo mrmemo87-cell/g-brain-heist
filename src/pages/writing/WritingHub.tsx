@@ -6229,18 +6229,6 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               </div>
             ) : (
               <section className="cinematic-feedback__finale" aria-label="Feedback review complete">
-                <section className="cinematic-rubric-section cinematic-feedback__rubric" aria-label="Rubric scores">
-                  {rubricRows.map((row) => {
-                    const score = Math.max(0, Math.min(5, Number(row.value ?? 0)));
-                    return (
-                      <div key={row.key}>
-                        <span>{row.label}</span>
-                        <div><i className="rubric-bar-fill" style={{ width: `${(score / 5) * 100}%` }} /></div>
-                        <strong>{row.value ?? '—'}/5</strong>
-                      </div>
-                    );
-                  })}
-                </section>
                 <div className="cinematic-feedback__finale-copy">
                   <span className="cinematic-feedback__detail-label">Review complete</span>
                   <h3>Your revision mission is ready</h3>
@@ -6258,6 +6246,18 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                     <span>your own improved draft to measure real progress</span>
                   </div>
                 </div>
+                <section className="cinematic-rubric-section cinematic-feedback__rubric" aria-label="Rubric scores">
+                  {rubricRows.map((row) => {
+                    const score = Math.max(0, Math.min(5, Number(row.value ?? 0)));
+                    return (
+                      <div key={row.key}>
+                        <span>{row.label}</span>
+                        <div><i className="rubric-bar-fill" style={{ width: `${(score / 5) * 100}%` }} /></div>
+                        <strong>{row.value ?? '—'}/5</strong>
+                      </div>
+                    );
+                  })}
+                </section>
               </section>
             )}
 
