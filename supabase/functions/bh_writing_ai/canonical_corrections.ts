@@ -16,6 +16,11 @@ export type CanonicalCorrection = {
   weakness_tag: string;
 };
 
+export type RejectedCorrectionSpan = {
+  start_char: number;
+  end_char: number;
+};
+
 const CATEGORY_PRIORITY: Record<CorrectionCategory, number> = {
   sentence_structure: 6,
   grammar: 5,
@@ -70,6 +75,21 @@ export const groundCanonicalCorrection = (
 
 const overlaps = (a: CanonicalCorrection, b: CanonicalCorrection): boolean =>
   a.start_char < b.end_char && b.start_char < a.end_char;
+
+/**
+ * Removes every candidate that intersects a verifier-rejected source span.
+ * Rejections may cover a whole sentence while the candidate only covers one
+ * token, so exact offset equality is not sufficient.
+ */
+export const excludeRejectedCorrections = (
+  corrections: CanonicalCorrection[],
+  rejected: RejectedCorrectionSpan[],
+): CanonicalCorrection[] => corrections.filter((correction) => !rejected.some((item) =>
+  Number.isInteger(item.start_char)
+  && Number.isInteger(item.end_char)
+  && item.start_char < correction.end_char
+  && correction.start_char < item.end_char
+));
 
 const correctionKey = (correction: CanonicalCorrection): string => [
   correction.start_char,

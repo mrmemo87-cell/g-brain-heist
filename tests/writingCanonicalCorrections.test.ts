@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   applyCanonicalCorrections,
+  excludeRejectedCorrections,
   reconcileCanonicalCorrections,
   type CanonicalCorrection,
 } from '../supabase/functions/bh_writing_ai/canonical_corrections.js';
@@ -109,4 +110,16 @@ test('canonical reconciliation replaces every smaller overlap with one complete 
     applyCanonicalCorrections(source, canonical),
     "If he left, the teacher might object; however, he couldn't abandon Daniel.",
   );
+});
+
+test('verifier rejection removes every candidate overlapping its broader source span', () => {
+  const source = 'Although his work was less better than usual, he smiled.';
+  const comparative = correction(source, 'less better', 'not as good as', 'word_choice');
+  const unrelated = correction(source, 'smiled', 'was proud', 'word_choice');
+  const rejectedStart = source.indexOf('his work');
+  const kept = excludeRejectedCorrections([comparative, unrelated], [{
+    start_char: rejectedStart,
+    end_char: source.indexOf(', he'),
+  }]);
+  assert.deepEqual(kept, [unrelated]);
 });
