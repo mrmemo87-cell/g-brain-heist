@@ -1,5 +1,6 @@
 import {
   SupportedGenre,
+  TRUSTED_WRITING_EVALUATOR_VERSIONS,
   WeaknessTag,
   WRITING_EVALUATOR_VERSION,
   WRITING_RUBRIC_VERSION,
@@ -247,7 +248,11 @@ export const normalizeAuthoritativeWritingAssessment = (
   if (assessmentRecord['text_fingerprint'] !== fingerprint) {
     return { ok: false, error: 'Assessment response does not match this draft.' };
   }
-  if (assessmentRecord['rubric_version'] !== WRITING_RUBRIC_VERSION || assessmentRecord['evaluator_version'] !== WRITING_EVALUATOR_VERSION) {
+  const evaluatorVersion = assessmentRecord['evaluator_version'];
+  if (
+    assessmentRecord['rubric_version'] !== WRITING_RUBRIC_VERSION
+    || !TRUSTED_WRITING_EVALUATOR_VERSIONS.includes(evaluatorVersion as typeof TRUSTED_WRITING_EVALUATOR_VERSIONS[number])
+  ) {
     return { ok: false, error: 'Assessment version is not trusted.' };
   }
   const assessmentId = asNonEmptyString(assessmentRecord['assessment_id']);
@@ -313,7 +318,7 @@ export const normalizeAuthoritativeWritingAssessment = (
     assessment_id: assessmentId,
     assessment_status: assessmentStatus,
     rubric_version: WRITING_RUBRIC_VERSION,
-    evaluator_version: WRITING_EVALUATOR_VERSION,
+    evaluator_version: String(evaluatorVersion),
     evaluator_model: evaluatorModel,
     text_fingerprint: fingerprint,
     prompt_definition: promptDefinition,
@@ -341,4 +346,7 @@ export const isAcademicProfileWritingAssessment = (assessment: WritingAssessment
     && assessment.academic_profile_ready === true
     && assessment.assessment_status === 'verified'
     && assessment.rubric_version === WRITING_RUBRIC_VERSION
+    && TRUSTED_WRITING_EVALUATOR_VERSIONS.includes(
+      assessment.evaluator_version as typeof TRUSTED_WRITING_EVALUATOR_VERSIONS[number]
+    )
   );

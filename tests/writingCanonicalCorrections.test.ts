@@ -54,3 +54,20 @@ test('canonical reconciliation rejects no-op rewrites', () => {
     correction(source, 'ready', ' ready '),
   ], source), []);
 });
+
+test('canonical reconciliation safely repairs a wrong model offset for a unique verbatim span', () => {
+  const source = 'The rules says students must stay.';
+  const valid = correction(source, 'says', 'say');
+  const wrongOffset = { ...valid, start_char: 0, end_char: 4 };
+  assert.deepEqual(reconcileCanonicalCorrections([wrongOffset], source), [valid]);
+});
+
+test('canonical reconciliation rejects offset recovery when the original span is ambiguous', () => {
+  const source = 'He run and they run.';
+  const ambiguous = {
+    ...correction(source, 'run', 'runs'),
+    start_char: 999,
+    end_char: 1002,
+  };
+  assert.deepEqual(reconcileCanonicalCorrections([ambiguous], source), []);
+});
