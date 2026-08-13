@@ -940,7 +940,7 @@ const ReviewHighlightSpan: React.FC<ReviewHighlightSpanProps> = ({
   );
 };
 
-const renderAnnotatedText = (
+export const renderAnnotatedText = (
   text: string,
   ranges: TextAnchorRange[],
   activeIndex: number | null = null,
@@ -948,6 +948,33 @@ const renderAnnotatedText = (
   spotlightMode = false
 ): React.ReactNode => {
   if (!text) return text;
+
+  // In spotlight/cinematic mode render only the active range using its original source
+  // index so that cinematicRangeRefs and cinematicIndex stay in sync even when
+  // consecutive ranges overlap in the text (which would otherwise cause the
+  // overlap-filter below to reassign sequential idx values, shifting all refs).
+  if (spotlightMode && activeIndex != null) {
+    const activeRange = ranges[activeIndex];
+    if (!activeRange) return text;
+    const nodes: React.ReactNode[] = [];
+    if (activeRange.start > 0) nodes.push(<span key="plain-before">{text.slice(0, activeRange.start)}</span>);
+    const segment = text.slice(activeRange.start, activeRange.end);
+    nodes.push(
+      <React.Fragment key={`spotlight-${activeIndex}`}>
+        <ReviewHighlightSpan
+          index={activeIndex}
+          range={activeRange}
+          segment={segment}
+          isActive={true}
+          spotlightMode={spotlightMode}
+          onMount={onHighlightMount}
+        />
+      </React.Fragment>
+    );
+    if (activeRange.end < text.length) nodes.push(<span key="plain-after">{text.slice(activeRange.end)}</span>);
+    return nodes;
+  }
+
   const normalizedRanges = [...ranges]
     .sort((a, b) => a.start - b.start || a.end - b.end)
     .reduce<TextAnchorRange[]>((acc, range) => {

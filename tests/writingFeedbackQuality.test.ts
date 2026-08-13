@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
-import { buildValidatedCinematicRanges, buildValidatedWritingFixes } from '../src/pages/writing/WritingHub.js';
+import { buildValidatedCinematicRanges, buildValidatedWritingFixes, dedupeCinematicRanges, renderAnnotatedText } from '../src/pages/writing/WritingHub.js';
 
 const submission = [
   'Ahmed immediately realize that they have drifted away and took a wrong entrance to he city.',
@@ -160,4 +162,71 @@ test('repeated identical mistakes are all retained when each has verified offset
 
   assert.deepStrictEqual(fixes.map((fix) => fix.start), [firstStart, secondStart]);
   assert.ok(fixes.every((fix) => text.slice(fix.start, fix.end) === 'walk'));
+});
+
+// Regression: overlapping ranges must survive dedupeCinematicRanges and retain their
+// original source indices. The spotlight renderer fix (renderAnnotatedText spotlight
+// branch) uses ranges[cinematicIndex] directly, so source indices must not shift.
+test('overlapping cinematic ranges preserve source indices: punctuation, style, then grammar', () => {
+  // Mirrors the production scenario from attempt_4f8de101:
+  // index 0 – "However phones" (punctuation, 0..14)
+  // index 1 – "However phones can be distracting" (style, overlapping same start, 0..32)
+  // index 2 – "make" (grammar, non-overlapping, 50..54)
+  const punctuationRange = { start: 0, end: 14, polarity: 'weak' as const, reason: 'punctuation' };
+  const styleRange       = { start: 0, end: 32, polarity: 'weak' as const, reason: 'style' };
+  const grammarRange     = { start: 50, end: 54, polarity: 'weak' as const, reason: 'grammar' };
+
+  // dedupeCinematicRanges keys by polarity:start:end; the two overlap ranges have
+  // different ends so both must survive. Grammar range must remain at index 2.
+  const deduped = dedupeCinematicRanges([punctuationRange, styleRange, grammarRange]);
+
+  assert.strictEqual(deduped.length, 3, 'all three ranges must survive deduplication');
+  assert.strictEqual(deduped[0]!.end, 14, 'punctuation range is at source index 0');
+  assert.strictEqual(deduped[1]!.end, 32, 'style range is at source index 1 (must not be dropped)');
+  assert.strictEqual(deduped[2]!.start, 50, 'grammar range is at source index 2 (must not shift to 1)');
+
+  const grammarIdx = deduped.findIndex((r) => r.reason === 'grammar');
+  assert.strictEqual(grammarIdx, 2, 'grammar range must be at index 2, not shifted to 1 after overlap');
+});
+
+// Regression: spotlight branch of renderAnnotatedText must render the range at the
+// given activeIndex, not the re-indexed range that the overlap-filter would pick.
+test('spotlight mode renders the range at activeIndex even when prior ranges overlap', () => {
+  // Three ranges where index 0 and index 1 share the same start char (overlap).
+  // The overlap-filter path would silently drop index 1 and renumber index 2 → 1.
+  // The spotlight branch must bypass that and always use ranges[activeIndex] directly.
+  const text = 'However phones can be distracting. Last year this rule make things worse.';
+  const ranges = [
+    { start: 0, end: 14,  polarity: 'weak' as const, reason: 'punctuation' },  // "However phones"
+    { start: 0, end: 33,  polarity: 'weak' as const, reason: 'style' },         // "However phones can be distracting"
+    { start: 55, end: 59, polarity: 'weak' as const, reason: 'grammar' },        // "make"
+  ];
+
+  // When the style range (index 1) is active, the rendered markup must contain its
+  // text ("However phones can be distracting"), not the punctuation range's text.
+  const styleMarkup = renderToStaticMarkup(
+    React.createElement(React.Fragment, null, renderAnnotatedText(text, ranges, 1, undefined, true))
+  );
+  assert.ok(
+    styleMarkup.includes('However phones can be distracting'),
+    'spotlight on index 1 must highlight the style range text, not the punctuation range'
+  );
+  assert.ok(
+    styleMarkup.includes('data-review-highlight-index="1"'),
+    'spotlight span must carry source index 1'
+  );
+
+  // When the grammar range (index 2) is active, the rendered markup must contain
+  // "make", not the text that would be at position 2 after overlap-filtering.
+  const grammarMarkup = renderToStaticMarkup(
+    React.createElement(React.Fragment, null, renderAnnotatedText(text, ranges, 2, undefined, true))
+  );
+  assert.ok(
+    grammarMarkup.includes('>make<'),
+    'spotlight on index 2 must highlight the grammar range text "make"'
+  );
+  assert.ok(
+    grammarMarkup.includes('data-review-highlight-index="2"'),
+    'spotlight span must carry source index 2'
+  );
 });
