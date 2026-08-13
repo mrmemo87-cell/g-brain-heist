@@ -960,16 +960,14 @@ export const renderAnnotatedText = (
     if (activeRange.start > 0) nodes.push(<span key="plain-before">{text.slice(0, activeRange.start)}</span>);
     const segment = text.slice(activeRange.start, activeRange.end);
     nodes.push(
-      <React.Fragment key={`spotlight-${activeIndex}`}>
-        <ReviewHighlightSpan
-          index={activeIndex}
-          range={activeRange}
-          segment={segment}
-          isActive={true}
-          spotlightMode={spotlightMode}
-          onMount={onHighlightMount}
-        />
-      </React.Fragment>
+      <ReviewHighlightSpan
+        index={activeIndex}
+        range={activeRange}
+        segment={segment}
+        isActive={true}
+        spotlightMode={spotlightMode}
+        onMount={onHighlightMount}
+      />
     );
     if (activeRange.end < text.length) nodes.push(<span key="plain-after">{text.slice(activeRange.end)}</span>);
     return nodes;
