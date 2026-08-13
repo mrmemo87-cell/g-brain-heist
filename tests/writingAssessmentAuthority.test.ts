@@ -165,6 +165,7 @@ test('production source uses one strict assessment result for score and cinemati
   const hub = readFileSync('src/pages/writing/WritingHub.tsx', 'utf8');
   const activeLoop = hub.slice(hub.indexOf('const WritingHubSimpleLoop'));
   const edge = readFileSync('supabase/functions/bh_writing_ai/index.ts', 'utf8');
+  const integration = readFileSync('src/lib/brains_heist/writingIntegrationService.ts', 'utf8');
   const migration = readFileSync('supabase/migrations/20260812190000_writing_assessment_authority_v2.sql', 'utf8');
 
   assert.match(activeLoop, /mode: 'assessment_v2'/);
@@ -197,7 +198,15 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /accurate grammatical terminology/);
   assert.match(edge, /diagnostic_corrections_count/);
   assert.match(edge, /BH_WRITING_PIPELINE_VERSION/);
-  assert.match(edge, /canonical-v3\.5/);
+  assert.match(edge, /canonical-v3\.6/);
+  assert.match(edge, /https:\/\/api\.openai\.com\/v1\/responses/);
+  assert.match(edge, /reasoning: \{ effort: WRITING_REASONING_EFFORT \}/);
+  assert.match(edge, /text: \{[\s\S]*format: \{[\s\S]*type: "json_schema"/);
+  assert.match(edge, /const isGpt5Family/);
+  assert.doesNotMatch(edge, /openai@4\.52\.3/);
+  assert.doesNotMatch(edge, /openai\.chat\.completions\.create/);
+  assert.match(integration, /readWritingAiFunctionError/);
+  assert.match(integration, /record\.context\.clone\(\)\.json\(\)/);
   assert.match(edge, /final_residual_audit_ms/);
   assert.match(edge, /release confirmation audit/i);
   assert.match(edge, /diagnostic_inventory_ready/);

@@ -2974,6 +2974,22 @@ export const runWritingPilotVerificationChecklist = (): ServiceResponse<{
   return ok({ checks });
 };
 
+const readWritingAiFunctionError = async (error: unknown): Promise<string> => {
+  if (!error || typeof error !== 'object') return 'Unable to fetch writing AI assist.';
+  const record = error as { message?: unknown; context?: unknown };
+  if (record.context instanceof Response) {
+    try {
+      const body = await record.context.clone().json() as { error?: unknown };
+      if (typeof body?.error === 'string' && body.error.trim()) return body.error.trim();
+    } catch {
+      // Fall through to the SDK's transport message when the response is not JSON.
+    }
+  }
+  return typeof record.message === 'string' && record.message.trim()
+    ? record.message.trim()
+    : 'Unable to fetch writing AI assist.';
+};
+
 export const requestWritingAiAssist = async (input: {
   mode: 'assessment_v2' | 'feedback' | 'plan_assist' | 'prompt_rewrite';
   prompt_text: string;
@@ -3018,7 +3034,7 @@ export const requestWritingAiAssist = async (input: {
     });
 
     if (error || !data) {
-      return badRequest(error?.message ?? 'Unable to fetch writing AI assist.');
+      return badRequest(error ? await readWritingAiFunctionError(error) : 'Unable to fetch writing AI assist.');
     }
 
     return ok(data as { mode: 'assessment_v2' | 'feedback' | 'plan_assist' | 'prompt_rewrite'; result: unknown; meta?: unknown });
