@@ -2,7 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-import { assessWritingExam, WRITING_EVALUATOR_VERSION, WRITING_RUBRIC_VERSION } from '../src/lib/brains_heist/writingAssessment.js';
+import {
+  assessWritingExam,
+  WRITING_EVALUATOR_VERSION,
+  WRITING_LEGACY_EVALUATOR_VERSION,
+  WRITING_RUBRIC_VERSION,
+} from '../src/lib/brains_heist/writingAssessment.js';
 import {
   buildWritingTextFingerprint,
   isAcademicProfileWritingAssessment,
@@ -118,6 +123,16 @@ test('assessment authority fails closed on a wrong draft fingerprint or provisio
   }
 });
 
+test('assessment authority accepts the audited v2 rollback and current v3 evaluator versions only', () => {
+  const legacy = buildPayload();
+  (legacy.assessment as { evaluator_version: string }).evaluator_version = WRITING_LEGACY_EVALUATOR_VERSION;
+  assert.equal(normalizeAuthoritativeWritingAssessment(legacy, context).ok, true);
+
+  const unknown = buildPayload();
+  (unknown.assessment as { evaluator_version: string }).evaluator_version = 'bh-writing-assessment-untrusted';
+  assert.equal(normalizeAuthoritativeWritingAssessment(unknown, context).ok, false);
+});
+
 test('legacy heuristic output is never academic-profile-ready', () => {
   const legacy = assessWritingExam({
     promptText: 'Write an email. Explain the event, its benefit, and one recommendation.',
@@ -154,6 +169,7 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /missing_corrections/);
   assert.match(edge, /rejected_corrections/);
   assert.match(edge, /repairedCorrections/);
+  assert.match(edge, /groundCanonicalCorrection/);
   assert.match(edge, /Promise\.all/);
   assert.match(edge, /forward language auditor/);
   assert.match(edge, /reverse and boundary auditor/);
@@ -163,14 +179,16 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /accurate grammatical terminology/);
   assert.match(edge, /diagnostic_corrections_count/);
   assert.match(edge, /BH_WRITING_PIPELINE_VERSION/);
-  assert.match(edge, /canonical-v3/);
+  assert.match(edge, /canonical-v3\.1/);
   assert.match(edge, /legacy-v2/);
   assert.match(edge, /canonicalAdjudicatorSchema/);
   assert.match(edge, /The two audits are candidate proposals, never facts/);
   assert.match(edge, /applyCanonicalCorrections/);
   assert.match(edge, /residualAuditSchema/);
   assert.match(edge, /residual_clean/);
-  assert.match(edge, /sole inventory/);
+  assert.match(edge, /release verifier is the final adjudicator/i);
+  assert.match(edge, /pipeline_timings_ms/);
+  assert.match(edge, /request_metadata: \{ openai_request_id: openAiRequestId, usage, pipeline: pipelineDiagnostics \}/);
   assert.match(edge, /WRITING_ASSESSMENT_MODEL.*gpt-4o/);
   assert.match(edge, /const shouldVerify = enoughWriting/);
   assert.match(edge, /Boolean\(diagnosticAudit\)/);
@@ -181,6 +199,11 @@ test('production source uses one strict assessment result for score and cinemati
   assert.doesNotMatch(hub, /reads correctly: "\$\{originalSentence\}"/);
   assert.match(edge, /grade: String\(payload\.grade\)/);
   assert.match(edge, /genre: payload\.genre/);
+  const finale = activeLoop.slice(activeLoop.indexOf('className="cinematic-feedback__finale"'));
+  assert.ok(
+    finale.indexOf('className="cinematic-feedback__finale-copy"') < finale.indexOf('aria-label="Rubric scores"'),
+    'revision mission should appear before rubric scores in the cinematic finale',
+  );
 
   assert.match(migration, /bh_writing_assessments/);
   assert.match(migration, /bh_writing_assessment_reviews/);
