@@ -2,10 +2,14 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '../AdminContext';
 import {
   SCHOOL_MODULES,
+  activateAcceptedQuote,
   listSchoolBillingOverview,
+  listProgrammeTransferExceptions,
   recordManualSubscription,
+  reviewProgrammeTransferException,
   type SchoolBillingOverview,
   type SchoolModuleKey,
+  type ProgrammeTransferException,
 } from '../../../services/platformBillingService';
 import {
   formatBillingMoney,
@@ -21,9 +25,19 @@ const BillingAccessTab: React.FC = () => {
   const { addToast } = useAdmin();
   const [schools, setSchools] = useState<SchoolBillingOverview[]>([]);
   const [quotes, setQuotes] = useState<SchoolBillingQuote[]>([]);
+  const [exceptions, setExceptions] = useState<ProgrammeTransferException[]>([]);
   const [quoteFilter, setQuoteFilter] = useState<BillingQuoteStatus | 'all'>('submitted');
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [reviewing, setReviewing] = useState<string | null>(null);
+  const [exceptionNotes, setExceptionNotes] = useState<Record<string, string>>({});
+  const [activationQuote, setActivationQuote] = useState<SchoolBillingQuote | null>(null);
+  const [activationMethod, setActivationMethod] = useState<'cash' | 'bank_transfer' | 'invoice' | 'complimentary'>('bank_transfer');
+  const [activationAmount, setActivationAmount] = useState('');
+  const [activationCurrency, setActivationCurrency] = useState('USD');
+  const [activationReference, setActivationReference] = useState('');
+  const [activationEnd, setActivationEnd] = useState('');
+  const [activationNotes, setActivationNotes] = useState('');
+  const [activating, setActivating] = useState(false);
   const [schoolId, setSchoolId] = useState('');
   const [plan, setPlan] = useState<'pilot' | 'core' | 'standard' | 'pro' | 'enterprise'>('core');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer' | 'invoice' | 'complimentary'>('cash');
@@ -40,12 +54,14 @@ const BillingAccessTab: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [schoolRows, quoteRows] = await Promise.all([
+      const [schoolRows, quoteRows, exceptionRows] = await Promise.all([
         listSchoolBillingOverview(),
         listAdminBillingQuotes(quoteFilter === 'all' ? null : quoteFilter),
+        listProgrammeTransferExceptions(),
       ]);
       setSchools(schoolRows);
       setQuotes(quoteRows);
+      setExceptions(exceptionRows);
     }
     catch (error) { addToast(error instanceof Error ? error.message : 'Unable to load billing records.', 'error'); }
     finally { setLoading(false); }
@@ -77,10 +93,37 @@ const BillingAccessTab: React.FC = () => {
     finally { setReviewing(null); }
   };
 
+  const reviewException = async (request: ProgrammeTransferException, action: 'approve' | 'reject') => {
+    const reviewNote = exceptionNotes[request.id]?.trim() || '';
+    if (reviewNote.length < 5) { addToast('Add a clear review note of at least five characters.', 'error'); return; }
+    setReviewing(`exception:${request.id}:${action}`);
+    try {
+      await reviewProgrammeTransferException(request.id, action, reviewNote);
+      addToast(action === 'approve' ? `${request.requested_transfers} temporary transfers approved for this programme period.` : 'Transfer exception rejected with an explanation.', 'success');
+      await load();
+    } catch (error) { addToast(error instanceof Error ? error.message : 'The exception could not be reviewed.', 'error'); }
+    finally { setReviewing(null); }
+  };
+
+  const submitActivation = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!activationQuote || !activationEnd) return;
+    setActivating(true);
+    try {
+      await activateAcceptedQuote({ quoteId: activationQuote.id, paymentMethod: activationMethod,
+        amountMinor: Math.round(Number(activationAmount || 0) * 100), currency: activationCurrency.trim().toUpperCase(),
+        reference: activationReference, periodEnd: new Date(`${activationEnd}T23:59:59`).toISOString(), notes: activationNotes });
+      addToast(`Agreement activated with exact named-seat limits: Cambridge ${activationQuote.cambridge_seats}, IELTS ${activationQuote.ielts_seats}, Writing ${activationQuote.writing_seats}.`, 'success');
+      setActivationQuote(null); setActivationAmount(''); setActivationReference(''); setActivationEnd(''); setActivationNotes('');
+      await load();
+    } catch (error) { addToast(error instanceof Error ? error.message : 'The accepted agreement could not be activated.', 'error'); }
+    finally { setActivating(false); }
+  };
+
   return <div className="space-y-6">
     <section className="card-glass border border-emerald-400/30 p-6"><h3 className="text-3xl font-heading font-bold text-emerald-300">School Billing &amp; Access</h3><p className="mt-1 text-sm text-gray-400">Record cash, transfer, invoice, or complimentary agreements. Only verified active records enable programmes.</p></section>
     <section className="card-glass space-y-4 border border-cyan-400/20 p-6">
-      <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-300">Quote review centre</p><h4 className="mt-1 text-xl font-bold text-white">School package requests</h4><p className="mt-1 text-sm text-gray-400">Review the exact server receipt. Approval never changes access or records payment.</p></div><label className="text-xs font-semibold text-gray-300">Queue<select value={quoteFilter} onChange={(event) => setQuoteFilter(event.target.value as typeof quoteFilter)} className="ml-2 rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-white"><option value="submitted">Awaiting review</option><option value="revision_requested">Revision requested</option><option value="approved">Approved</option><option value="all">All quotes</option></select></label></div>
+      <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-300">Quote review centre</p><h4 className="mt-1 text-xl font-bold text-white">School package requests</h4><p className="mt-1 text-sm text-gray-400">Review → School Head accepts → payment is verified → exact seats activate. Each step is explicit and auditable.</p></div><label className="text-xs font-semibold text-gray-300">Queue<select value={quoteFilter} onChange={(event) => setQuoteFilter(event.target.value as typeof quoteFilter)} className="ml-2 rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-white"><option value="submitted">Awaiting review</option><option value="revision_requested">Revision requested</option><option value="approved">Approved</option><option value="accepted">Accepted · ready to activate</option><option value="all">All quotes</option></select></label></div>
       {loading ? <p className="rounded-xl bg-white/5 p-4 text-sm text-gray-400">Loading quote queue…</p> : quotes.length === 0 ? <p className="rounded-xl border border-dashed border-white/10 p-5 text-sm text-gray-400">No quotes in this queue.</p> : <div className="grid gap-4 xl:grid-cols-2">{quotes.map((quote) => {
         const calculation = quote.calculation;
         const currencyCode = calculation.pricing_version.currency;
@@ -93,9 +136,23 @@ const BillingAccessTab: React.FC = () => {
           {(calculation.discounts.combination_bps > 0 || calculation.discounts.term_bps > 0 || calculation.discounts.launch_minor > 0) && <p className="mt-3 text-xs text-emerald-300">Discounts: {calculation.discounts.combination_bps / 100}% combination · {calculation.discounts.term_bps / 100}% term{calculation.discounts.launch_minor > 0 ? ' · 15% Launch first year' : ''}</p>}
           {quote.school_note && <p className="mt-3 rounded-lg bg-white/5 p-3 text-xs text-gray-300">School note: {quote.school_note}</p>}
           {isSubmitted && <><textarea rows={2} value={reviewNotes[quote.id] || ''} onChange={(event) => setReviewNotes((current) => ({ ...current, [quote.id]: event.target.value }))} className="mt-4 w-full rounded-lg border border-white/10 bg-black/60 p-3 text-sm text-white" placeholder="Approval note, requested change, or reason" /><div className="mt-3 flex flex-wrap gap-2"><button type="button" disabled={reviewing !== null} onClick={() => void reviewQuote(quote,'approve')} className="rounded-lg bg-emerald-400 px-3 py-2 text-xs font-bold text-black disabled:opacity-50">{reviewing === `${quote.id}:approve` ? 'Approving…' : 'Approve quote'}</button><button type="button" disabled={reviewing !== null} onClick={() => void reviewQuote(quote,'request_revision')} className="rounded-lg border border-amber-300/40 px-3 py-2 text-xs font-bold text-amber-200 disabled:opacity-50">Request revision</button><button type="button" disabled={reviewing !== null} onClick={() => void reviewQuote(quote,'reject')} className="rounded-lg border border-red-300/30 px-3 py-2 text-xs font-bold text-red-200 disabled:opacity-50">Reject</button></div></>}
+          {quote.status === 'accepted' && !quote.activated_at && <div className="mt-4 rounded-xl border border-violet-300/30 bg-violet-500/10 p-3"><p className="text-xs leading-5 text-violet-100"><strong>School Head accepted these exact quantities.</strong> Activation remains blocked until you verify payment or complimentary authority.</p><button type="button" onClick={() => { setActivationQuote(quote); setActivationCurrency(quote.calculation.pricing_version.currency); setActivationAmount(String(quote.calculation.totals.contract_total_minor / 100)); }} className="mt-3 rounded-lg bg-violet-300 px-3 py-2 text-xs font-bold text-violet-950">Prepare verified activation</button></div>}
           {quote.review_note && <p className="mt-3 text-xs text-gray-400">Review note: {quote.review_note}</p>}
         </article>;
       })}</div>}
+    </section>
+    {activationQuote && <form onSubmit={submitActivation} className="card-glass grid gap-4 border border-violet-400/30 p-6 lg:grid-cols-2">
+      <div className="lg:col-span-2"><p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-300">Final controlled step</p><h4 className="mt-1 text-xl font-bold text-white">Activate accepted agreement · {activationQuote.school_name}</h4><p className="mt-1 text-sm text-gray-400">The database will copy these immutable quoted capacities: Cambridge <strong className="text-white">{activationQuote.cambridge_seats}</strong>, IELTS <strong className="text-white">{activationQuote.ielts_seats}</strong>, Writing <strong className="text-white">{activationQuote.writing_seats}</strong>. No manual seat entry is possible here.</p></div>
+      <label className="text-sm text-gray-300">Verified method<select value={activationMethod} onChange={(event) => setActivationMethod(event.target.value as typeof activationMethod)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/60 p-3 text-white"><option value="cash">Cash</option><option value="bank_transfer">Bank transfer</option><option value="invoice">Invoice</option><option value="complimentary">Complimentary authority</option></select></label>
+      <div className="grid grid-cols-2 gap-3"><label className="text-sm text-gray-300">Verified amount<input type="number" min="0" step="0.01" disabled={activationMethod === 'complimentary'} value={activationAmount} onChange={(event) => setActivationAmount(event.target.value)} required={activationMethod !== 'complimentary'} className="mt-1 w-full rounded-lg border border-white/10 bg-black/60 p-3 text-white" /></label><label className="text-sm text-gray-300">Currency<input maxLength={3} value={activationCurrency} onChange={(event) => setActivationCurrency(event.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/60 p-3 uppercase text-white" /></label></div>
+      <label className="text-sm text-gray-300">Receipt / authority reference<input value={activationReference} onChange={(event) => setActivationReference(event.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/60 p-3 text-white" /></label>
+      <label className="text-sm text-gray-300">Access expires<input type="date" value={activationEnd} onChange={(event) => setActivationEnd(event.target.value)} required className="mt-1 w-full rounded-lg border border-white/10 bg-black/60 p-3 text-white" /></label>
+      <label className="text-sm text-gray-300 lg:col-span-2">Internal verification note<textarea rows={3} value={activationNotes} onChange={(event) => setActivationNotes(event.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/60 p-3 text-white" /></label>
+      <div className="flex flex-wrap items-center gap-3 lg:col-span-2"><button type="submit" disabled={activating || !activationEnd || (activationMethod !== 'complimentary' && Number(activationAmount) <= 0)} className="rounded-lg bg-violet-300 px-5 py-3 font-bold text-violet-950 disabled:opacity-40">{activating ? 'Verifying and activating…' : 'Verify payment & activate exact seats'}</button><button type="button" onClick={() => setActivationQuote(null)} className="rounded-lg border border-white/20 px-4 py-3 text-sm text-white">Cancel</button><span className="text-xs text-gray-400">Atomic: subscription, entitlements, seat limits and quote audit update together.</span></div>
+    </form>}
+    <section className="card-glass space-y-4 border border-amber-400/20 p-6">
+      <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-300">Governed flexibility</p><h4 className="mt-1 text-xl font-bold text-white">Transfer exception requests</h4><p className="mt-1 text-sm text-gray-400">Approve genuine cohort changes without weakening the standard anti-rotation policy. Overrides expire with the current programme period.</p></div>
+      {exceptions.length === 0 ? <p className="rounded-xl border border-dashed border-white/10 p-5 text-sm text-gray-400">No transfer exceptions await review.</p> : <div className="grid gap-3 lg:grid-cols-2">{exceptions.map((request) => <article key={request.id} className="rounded-xl border border-white/10 bg-black/30 p-4"><div className="flex justify-between gap-3"><div><strong className="text-white">{request.school_name}</strong><p className="text-xs capitalize text-amber-200">{request.module_key} · +{request.requested_transfers} transfers</p></div><span className="text-xs text-gray-500">{new Date(request.created_at).toLocaleDateString()}</span></div><p className="mt-3 text-sm leading-6 text-gray-300">{request.reason}</p><textarea rows={2} value={exceptionNotes[request.id] || ''} onChange={(event) => setExceptionNotes((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Decision note (required)" className="mt-3 w-full rounded-lg border border-white/10 bg-black/60 p-3 text-sm text-white" /><div className="mt-3 flex gap-2"><button type="button" disabled={reviewing !== null} onClick={() => void reviewException(request, 'approve')} className="rounded-lg bg-amber-300 px-3 py-2 text-xs font-bold text-amber-950 disabled:opacity-40">Approve for this period</button><button type="button" disabled={reviewing !== null} onClick={() => void reviewException(request, 'reject')} className="rounded-lg border border-red-300/30 px-3 py-2 text-xs font-bold text-red-200 disabled:opacity-40">Reject</button></div></article>)}</div>}
     </section>
     <form onSubmit={submit} className="card-glass grid gap-4 border border-white/10 p-6 lg:grid-cols-2">
       <div className="lg:col-span-2"><h4 className="text-lg font-bold text-white">Verified manual agreement</h4><p className="mt-1 text-xs text-gray-400">This remains separate from quote approval. Use only after payment or complimentary authority is verified.</p></div>
