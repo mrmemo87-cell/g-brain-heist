@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.1";
-import OpenAI from "https://esm.sh/openai@4.52.3";
 import {
   applyCanonicalCorrections,
   excludeRejectedCorrections,
@@ -90,7 +89,166 @@ if (!supabaseUrl || !serviceKey || !openAiKey) {
 }
 
 const supabase = createClient(supabaseUrl, serviceKey);
-const openai = new OpenAI({ apiKey: openAiKey });
+
+type ModelMessage = { role: "system" | "user" | "assistant"; content: string };
+type StructuredCompletionRequest = {
+  model: string;
+  response_format: Record<string, unknown>;
+  temperature?: number;
+  messages: ModelMessage[];
+};
+type StructuredCompletion = {
+  id: string | null;
+  choices: Array<{ message: { content: string | null } }>;
+  usage: { prompt_tokens: number | null; completion_tokens: number | null; total_tokens: number | null } | null;
+  _request_id: string | null;
+};
+
+class OpenAiRequestError extends Error {
+  status: number;
+  code: string | null;
+  type: string | null;
+  requestId: string | null;
+
+  constructor(input: { status: number; message: string; code?: string | null; type?: string | null; requestId?: string | null }) {
+    super(input.message);
+    this.name = "OpenAiRequestError";
+    this.status = input.status;
+    this.code = input.code ?? null;
+    this.type = input.type ?? null;
+    this.requestId = input.requestId ?? null;
+  }
+}
+
+const isGpt5Family = (model: string) => /^gpt-5(?:[.-]|$)/i.test(model.trim());
+
+const parseOpenAiError = async (response: Response): Promise<OpenAiRequestError> => {
+  let body: Record<string, unknown> | null = null;
+  try {
+    body = await response.json() as Record<string, unknown>;
+  } catch {
+    body = null;
+  }
+  const detail = body?.error && typeof body.error === "object"
+    ? body.error as Record<string, unknown>
+    : body;
+  return new OpenAiRequestError({
+    status: response.status,
+    message: typeof detail?.message === "string" ? detail.message : `OpenAI request failed with status ${response.status}`,
+    code: typeof detail?.code === "string" ? detail.code : null,
+    type: typeof detail?.type === "string" ? detail.type : null,
+    requestId: response.headers.get("x-request-id"),
+  });
+};
+
+const extractResponsesText = (body: Record<string, unknown>): string | null => {
+  if (!Array.isArray(body.output)) return null;
+  for (const item of body.output) {
+    if (!item || typeof item !== "object") continue;
+    const content = (item as Record<string, unknown>).content;
+    if (!Array.isArray(content)) continue;
+    for (const part of content) {
+      if (!part || typeof part !== "object") continue;
+      const record = part as Record<string, unknown>;
+      if (record.type === "output_text" && typeof record.text === "string") return record.text;
+    }
+  }
+  return null;
+};
+
+// GPT-5.6 is a reasoning model. Use its native Responses API and translate the
+// result into the narrow completion shape consumed by the existing authority
+// pipeline. GPT-4o coaching modes retain Chat Completions for rollback safety.
+const createStructuredCompletion = async (request: StructuredCompletionRequest): Promise<StructuredCompletion> => {
+  const headers = {
+    Authorization: `Bearer ${openAiKey}`,
+    "content-type": "application/json",
+  };
+
+  if (isGpt5Family(request.model)) {
+    const systemInstructions = request.messages
+      .filter((message) => message.role === "system")
+      .map((message) => message.content)
+      .join("\n\n");
+    const input = request.messages
+      .filter((message) => message.role !== "system")
+      .map((message) => ({ role: message.role, content: message.content }));
+    const chatFormat = request.response_format;
+    const jsonSchema = chatFormat.type === "json_schema" && chatFormat.json_schema
+      && typeof chatFormat.json_schema === "object"
+      ? chatFormat.json_schema as Record<string, unknown>
+      : null;
+    if (!jsonSchema) throw new Error("GPT-5 assessment requests require a strict JSON schema.");
+
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model: request.model,
+        instructions: systemInstructions,
+        input,
+        reasoning: { effort: WRITING_REASONING_EFFORT },
+        text: {
+          verbosity: "low",
+          format: {
+            type: "json_schema",
+            name: jsonSchema.name,
+            schema: jsonSchema.schema,
+            strict: jsonSchema.strict === true,
+          },
+        },
+        store: false,
+      }),
+    });
+    if (!response.ok) throw await parseOpenAiError(response);
+    const body = await response.json() as Record<string, unknown>;
+    const usage = body.usage && typeof body.usage === "object"
+      ? body.usage as Record<string, unknown>
+      : null;
+    return {
+      id: typeof body.id === "string" ? body.id : null,
+      choices: [{ message: { content: extractResponsesText(body) } }],
+      usage: usage
+        ? {
+            prompt_tokens: typeof usage.input_tokens === "number" ? usage.input_tokens : null,
+            completion_tokens: typeof usage.output_tokens === "number" ? usage.output_tokens : null,
+            total_tokens: typeof usage.total_tokens === "number" ? usage.total_tokens : null,
+          }
+        : null,
+      _request_id: response.headers.get("x-request-id"),
+    };
+  }
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers,
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) throw await parseOpenAiError(response);
+  const body = await response.json() as Record<string, unknown>;
+  const choices = Array.isArray(body.choices) ? body.choices : [];
+  const firstChoice = choices[0] && typeof choices[0] === "object"
+    ? choices[0] as Record<string, unknown>
+    : null;
+  const message = firstChoice?.message && typeof firstChoice.message === "object"
+    ? firstChoice.message as Record<string, unknown>
+    : null;
+  const usage = body.usage && typeof body.usage === "object"
+    ? body.usage as Record<string, unknown>
+    : null;
+  return {
+    id: typeof body.id === "string" ? body.id : null,
+    choices: [{ message: { content: typeof message?.content === "string" ? message.content : null } }],
+    usage: usage
+      ? {
+          prompt_tokens: typeof usage.prompt_tokens === "number" ? usage.prompt_tokens : null,
+          completion_tokens: typeof usage.completion_tokens === "number" ? usage.completion_tokens : null,
+          total_tokens: typeof usage.total_tokens === "number" ? usage.total_tokens : null,
+        }
+      : null,
+    _request_id: response.headers.get("x-request-id"),
+  };
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -211,12 +369,16 @@ const getUserRole = async (
 };
 
 const WRITING_RUBRIC_VERSION = "bh-writing-rubric-v2";
-const WRITING_PIPELINE_VERSION = Deno.env.get("BH_WRITING_PIPELINE_VERSION")?.trim() || "canonical-v3.5";
+const WRITING_PIPELINE_VERSION = Deno.env.get("BH_WRITING_PIPELINE_VERSION")?.trim() || "canonical-v3.6";
 const WRITING_EVALUATOR_VERSION = WRITING_PIPELINE_VERSION === "legacy-v2"
   ? "bh-writing-assessment-v2"
-  : "bh-writing-assessment-v3.5";
+  : "bh-writing-assessment-v3.6";
 const WRITING_ASSESSMENT_MODEL = Deno.env.get("BH_WRITING_ASSESSMENT_MODEL")?.trim() || "gpt-4o";
 const WRITING_VERIFIER_MODEL = Deno.env.get("BH_WRITING_VERIFIER_MODEL")?.trim() || WRITING_ASSESSMENT_MODEL;
+const configuredReasoningEffort = Deno.env.get("BH_WRITING_REASONING_EFFORT")?.trim().toLowerCase() || "medium";
+const WRITING_REASONING_EFFORT = ["none", "low", "medium", "high", "xhigh", "max"].includes(configuredReasoningEffort)
+  ? configuredReasoningEffort
+  : "medium";
 const CRITERION_KEYS = ["content", "communicative_achievement", "organisation", "language"] as const;
 
 const evidenceSchema = {
@@ -1123,7 +1285,7 @@ serve(async (req) => {
     const auditPass = async (systemContent: string) => {
       try {
         const auditCompletion = await withTimeout(
-          openai.chat.completions.create({
+          createStructuredCompletion({
             model: WRITING_VERIFIER_MODEL,
             response_format: { type: "json_schema", json_schema: languageAuditSchema },
             temperature: 0,
@@ -1152,7 +1314,7 @@ serve(async (req) => {
 
     const primaryStartedAt = Date.now();
     const completion = await withTimeout(
-      openai.chat.completions.create({
+          createStructuredCompletion({
         model: assessmentMode ? WRITING_ASSESSMENT_MODEL : "gpt-4o-mini",
         response_format: assessmentMode
           ? { type: "json_schema", json_schema: assessmentV2Schema }
@@ -1240,7 +1402,7 @@ serve(async (req) => {
         } else if (rawAudits.length === 2) {
           const adjudicationStartedAt = Date.now();
           const adjudicationCompletion = await withTimeout(
-            openai.chat.completions.create({
+          createStructuredCompletion({
               model: WRITING_VERIFIER_MODEL,
               response_format: { type: "json_schema", json_schema: canonicalAdjudicatorSchema },
               temperature: 0,
@@ -1281,7 +1443,7 @@ serve(async (req) => {
           const correctedDraft = applyCanonicalCorrections(payload!.studentResponse ?? "", corrections);
           const residualStartedAt = Date.now();
           const residualCompletion = await withTimeout(
-            openai.chat.completions.create({
+          createStructuredCompletion({
               model: WRITING_VERIFIER_MODEL,
               response_format: { type: "json_schema", json_schema: residualAuditSchema },
               temperature: 0,
@@ -1354,7 +1516,7 @@ serve(async (req) => {
       if (shouldVerify) {
         const verifierStartedAt = Date.now();
         const verificationCompletion = await withTimeout(
-          openai.chat.completions.create({
+          createStructuredCompletion({
             model: WRITING_VERIFIER_MODEL,
             response_format: { type: "json_schema", json_schema: verifierSchema },
             temperature: 0,
@@ -1460,7 +1622,7 @@ serve(async (req) => {
             );
             const finalResidualStartedAt = Date.now();
             const finalResidualCompletion = await withTimeout(
-              openai.chat.completions.create({
+          createStructuredCompletion({
                 model: WRITING_VERIFIER_MODEL,
                 response_format: { type: "json_schema", json_schema: residualAuditSchema },
                 temperature: 0,
@@ -1502,7 +1664,7 @@ serve(async (req) => {
             if (!finalConfirmedClean) {
               const repairStartedAt = Date.now();
               const repairCompletion = await withTimeout(
-                openai.chat.completions.create({
+          createStructuredCompletion({
                   model: WRITING_VERIFIER_MODEL,
                   response_format: { type: "json_schema", json_schema: canonicalAdjudicatorSchema },
                   temperature: 0,
@@ -1562,7 +1724,7 @@ serve(async (req) => {
 
               const confirmationStartedAt = Date.now();
               const confirmationCompletion = await withTimeout(
-                openai.chat.completions.create({
+          createStructuredCompletion({
                   model: WRITING_VERIFIER_MODEL,
                   response_format: { type: "json_schema", json_schema: residualAuditSchema },
                   temperature: 0,
@@ -1802,9 +1964,42 @@ serve(async (req) => {
       },
     });
   } catch (error) {
+    if (error instanceof OpenAiRequestError) {
+      console.error("[bh_writing_ai] OpenAI request failed", {
+        status: error.status,
+        code: error.code,
+        type: error.type,
+        request_id: error.requestId,
+        model: WRITING_ASSESSMENT_MODEL,
+      });
+      if (error.status === 401 || error.status === 403) {
+        return json(503, {
+          error: "The writing assessment model is unavailable. Verify the OpenAI API key and model access.",
+          code: "openai_auth_or_model_access",
+          request_id: error.requestId,
+        });
+      }
+      if (error.status === 429) {
+        return json(503, {
+          error: "The writing assessment model has no available API capacity. Verify OpenAI API billing and quota, then retry.",
+          code: "openai_quota_or_rate_limit",
+          request_id: error.requestId,
+        });
+      }
+      if (error.status === 400 || error.status === 404 || error.status === 422) {
+        return json(502, {
+          error: "The configured writing assessment model rejected the request. Check the model name and request configuration.",
+          code: "openai_request_rejected",
+          request_id: error.requestId,
+        });
+      }
+      return json(502, {
+        error: "The writing assessment provider is temporarily unavailable.",
+        code: "openai_provider_error",
+        request_id: error.requestId,
+      });
+    }
     console.error("[bh_writing_ai] request failed", error);
-    return json(502, {
-      error: error instanceof Error ? error.message : "AI request failed",
-    });
+    return json(502, { error: "Writing assessment failed safely. Please retry.", code: "writing_assessment_failed" });
   }
 });
