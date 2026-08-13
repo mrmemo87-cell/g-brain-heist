@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import {
   assessWritingExam,
   WRITING_EVALUATOR_VERSION,
+  WRITING_PREVIOUS_EVALUATOR_VERSION,
   WRITING_LEGACY_EVALUATOR_VERSION,
   WRITING_RUBRIC_VERSION,
 } from '../src/lib/brains_heist/writingAssessment.js';
@@ -131,6 +132,10 @@ test('assessment authority fails closed on a wrong draft fingerprint or provisio
 });
 
 test('assessment authority accepts the audited v2 rollback and current v3 evaluator versions only', () => {
+  const previous = buildPayload();
+  (previous.assessment as { evaluator_version: string }).evaluator_version = WRITING_PREVIOUS_EVALUATOR_VERSION;
+  assert.equal(normalizeAuthoritativeWritingAssessment(previous, context).ok, true);
+
   const legacy = buildPayload();
   (legacy.assessment as { evaluator_version: string }).evaluator_version = WRITING_LEGACY_EVALUATOR_VERSION;
   assert.equal(normalizeAuthoritativeWritingAssessment(legacy, context).ok, true);
@@ -186,7 +191,8 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /accurate grammatical terminology/);
   assert.match(edge, /diagnostic_corrections_count/);
   assert.match(edge, /BH_WRITING_PIPELINE_VERSION/);
-  assert.match(edge, /canonical-v3\.1/);
+  assert.match(edge, /canonical-v3\.2/);
+  assert.match(edge, /final_residual_audit_ms/);
   assert.match(edge, /legacy-v2/);
   assert.match(edge, /canonicalAdjudicatorSchema/);
   assert.match(edge, /The two audits are candidate proposals, never facts/);
