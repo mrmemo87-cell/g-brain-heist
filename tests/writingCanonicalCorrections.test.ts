@@ -71,3 +71,24 @@ test('canonical reconciliation rejects offset recovery when the original span is
   };
   assert.deepEqual(reconcileCanonicalCorrections([ambiguous], source), []);
 });
+
+test('canonical reconciliation recovers a verifier correction with wrong offsets when its text is unique', () => {
+  const source = 'Amir waited. she brought the project.';
+  const capitalization = {
+    ...correction(source, 'she brought the project.', 'She brought the project.', 'capitalization'),
+    start_char: 999,
+    end_char: 999 + 'she brought the project.'.length,
+  };
+  const canonical = reconcileCanonicalCorrections([capitalization], source);
+  assert.equal(canonical.length, 1);
+  assert.equal(applyCanonicalCorrections(source, canonical), 'Amir waited. She brought the project.');
+});
+
+test('canonical reconciliation keeps a complete sentence-boundary repair over a comma-only overlap', () => {
+  const source = 'Amir made a quick decision he ran home.';
+  const invalidCommaOnly = correction(source, 'decision he ran', 'decision, he ran', 'punctuation');
+  const completeBoundaryRepair = correction(source, 'decision he ran', 'decision: he ran', 'sentence_structure');
+  const canonical = reconcileCanonicalCorrections([invalidCommaOnly, completeBoundaryRepair], source);
+  assert.deepEqual(canonical, [completeBoundaryRepair]);
+  assert.equal(applyCanonicalCorrections(source, canonical), 'Amir made a quick decision: he ran home.');
+});

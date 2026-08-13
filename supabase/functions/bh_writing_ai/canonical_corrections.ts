@@ -26,6 +26,7 @@ const CATEGORY_PRIORITY: Record<CorrectionCategory, number> = {
 };
 
 const normalize = (value: string) => value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+const normalizeForNoOp = (value: string) => value.trim().replace(/\s+/g, " ");
 
 export const isGroundedCorrection = (
   correction: CanonicalCorrection,
@@ -33,7 +34,7 @@ export const isGroundedCorrection = (
 ): boolean => correction.start_char >= 0
   && correction.end_char === correction.start_char + correction.original.length
   && source.slice(correction.start_char, correction.end_char) === correction.original
-  && normalize(correction.original) !== normalize(correction.better_version)
+  && normalizeForNoOp(correction.original) !== normalizeForNoOp(correction.better_version)
   && correction.explanation.trim().length >= 4;
 
 /**
@@ -50,7 +51,7 @@ export const groundCanonicalCorrection = (
   if (typeof correction.original !== "string" || correction.original.length === 0) return null;
   if (typeof correction.better_version !== "string" || correction.better_version.length === 0) return null;
   if (typeof correction.explanation !== "string" || correction.explanation.trim().length < 4) return null;
-  if (normalize(correction.original) === normalize(correction.better_version)) return null;
+  if (normalizeForNoOp(correction.original) === normalizeForNoOp(correction.better_version)) return null;
 
   if (isGroundedCorrection(correction, source)) return correction;
 

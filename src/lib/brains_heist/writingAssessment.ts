@@ -10,10 +10,12 @@ export type SupportedGenre =
 export type ScoreMode = 'A2_3_scale' | 'B1B2_4_scale';
 
 export const WRITING_RUBRIC_VERSION = 'bh-writing-rubric-v2' as const;
-export const WRITING_EVALUATOR_VERSION = 'bh-writing-assessment-v3.1' as const;
+export const WRITING_EVALUATOR_VERSION = 'bh-writing-assessment-v3.2' as const;
+export const WRITING_PREVIOUS_EVALUATOR_VERSION = 'bh-writing-assessment-v3.1' as const;
 export const WRITING_LEGACY_EVALUATOR_VERSION = 'bh-writing-assessment-v2' as const;
 export const TRUSTED_WRITING_EVALUATOR_VERSIONS = [
   WRITING_EVALUATOR_VERSION,
+  WRITING_PREVIOUS_EVALUATOR_VERSION,
   WRITING_LEGACY_EVALUATOR_VERSION,
 ] as const;
 
