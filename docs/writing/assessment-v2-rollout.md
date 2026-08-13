@@ -16,9 +16,12 @@ The Writing Hub is an academic evidence source. A release is complete only when 
 - `OPENAI_API_KEY`
 - `BH_WRITING_ASSESSMENT_MODEL`: frozen primary evaluator model/configuration.
 - `BH_WRITING_VERIFIER_MODEL`: frozen independent verifier model/configuration.
+- `BH_WRITING_REASONING_EFFORT`: GPT-5 reasoning level. Defaults to `medium`; allowed values are `none`, `low`, `medium`, `high`, `xhigh`, and `max`.
 - `BH_WRITING_ALWAYS_VERIFY`: defaults to `true`. Keep it true until calibration evidence supports conditional verification.
 
 Changing either model is an evaluator-version event. Update `WRITING_EVALUATOR_VERSION`, rerun the complete benchmark, and preserve old records.
+
+GPT-5-family assessment models use the OpenAI Responses API with strict structured output. GPT-4-family coaching and rollback models continue to use Chat Completions. Do not send GPT-4-only sampling parameters to a GPT-5 reasoning request.
 
 ## Benchmark data
 
