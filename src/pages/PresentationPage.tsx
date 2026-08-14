@@ -1,269 +1,296 @@
-import { useEffect, useId, useRef } from 'react';
+import { useRef, type ReactNode } from 'react';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import DotLottieAnimation from '../../components/DotLottieAnimation';
+import './presentation.css';
 
-const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+gsap.registerPlugin(useGSAP, ScrollTrigger, MotionPathPlugin);
 
-const missionStats = [
-  { label: 'Knowledge secured', value: '84%', className: 'border-cyan-300/15 text-cyan-200' },
-  { label: 'Current streak', value: '12 days', className: 'border-fuchsia-400/15 text-fuchsia-300' },
-  { label: 'Next reward', value: '+250 XP', className: 'border-amber-300/15 text-amber-300' },
+const STORAGE = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public';
+const presentationAsset = (filename: string) => `${STORAGE}/presentation/${encodeURIComponent(filename)}`;
+const lottieAsset = (filename: string) => `${STORAGE}/lotties/${encodeURIComponent(filename)}`;
+
+const assets = {
+  logo: `${STORAGE}/logo/logo.svg`,
+  eyeScan: lottieAsset('Eye scanning logo Lottie JSON animation.lottie'),
+  connectedSchool: presentationAsset('brains-heist-connected-school-ecosystem-finale-no-bg.png'),
+  teacherPresenting: presentationAsset('brains-heist-teacher-presenting-alpha.png'),
+  studentThinking: presentationAsset('brains-heist-student-thinking-alpha.png'),
+  studentVictory: presentationAsset('brains-heist-student-clan-victory-alpha.png'),
+  rival: presentationAsset('brains-heist-rival-clan-student-challenge-no-bg.png'),
+  aiMentor: presentationAsset('brains-heist-ai-mentor-presenting-alpha.png'),
+  teacherValidation: presentationAsset('brains-heist-teacher-ai-writing-validation-true-no-bg-v2.png'),
+  academicProfile: presentationAsset('brains-heist-student-academic-profile-no-bg.png'),
+  parentDashboard: presentationAsset('brains-heist-parent-dashboard-correct-phone-no-bg.png'),
+  principalOversight: presentationAsset('brains-heist-principal-school-oversight-alpha.png'),
+} as const;
+
+const chapters = ['Connect', 'Create', 'Learn', 'Compete', 'Validate', 'Understand', 'Act', 'Reassure', 'Lead', 'Expand'] as const;
+
+const modules = [
+  { title: 'Admissions', copy: 'Diagnostic applicant profiles', icon: '/mission-console-images/lockdown.webp', accent: 'cyan' },
+  { title: 'IELTS', copy: 'Preparation and assessment', icon: '/mission-console-images/ielts-prep.webp', accent: 'violet' },
+  { title: 'Cambridge', copy: 'Exam-ready practice', icon: '/mission-console-images/cambridge-tests.webp', accent: 'pink' },
+  { title: 'Writing Hub', copy: 'Evidence-led feedback', icon: '/mission-console-images/writing.webp', accent: 'gold' },
+  { title: 'Tournaments', copy: 'Whole-school competition', icon: '/mission-console-images/tournament.webp', accent: 'cyan' },
 ] as const;
 
-const title = 'Steal knowledge. Level up.';
-
-const BrainLockGraphic = () => {
-  const id = useId().replace(/:/g, '');
-  const brainGradientId = `${id}-brain`;
-  const lockGradientId = `${id}-lock`;
-  const coreGradientId = `${id}-core`;
-  const glowId = `${id}-glow`;
-
-  return (
-    <svg aria-hidden="true" className="h-full w-full overflow-visible" viewBox="0 0 620 620" fill="none">
-      <defs>
-        <linearGradient id={brainGradientId} x1="104" y1="96" x2="530" y2="526">
-          <stop stopColor="#00E7FF" />
-          <stop offset="0.48" stopColor="#8B5CFF" />
-          <stop offset="1" stopColor="#FF2D91" />
-        </linearGradient>
-        <linearGradient id={lockGradientId} x1="245" y1="240" x2="405" y2="435">
-          <stop stopColor="#E8FDFF" />
-          <stop offset="0.5" stopColor="#00D0E8" />
-          <stop offset="1" stopColor="#7B61FF" />
-        </linearGradient>
-        <radialGradient id={coreGradientId} cx="0" cy="0" r="1" gradientTransform="translate(310 310) rotate(90) scale(248)">
-          <stop stopColor="#00D0E8" stopOpacity="0.34" />
-          <stop offset="0.48" stopColor="#7B61FF" stopOpacity="0.14" />
-          <stop offset="1" stopColor="#020817" stopOpacity="0" />
-        </radialGradient>
-        <filter id={glowId} x="-80%" y="-80%" width="260%" height="260%">
-          <feGaussianBlur stdDeviation="10" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-
-      <circle cx="310" cy="310" r="285" fill={`url(#${coreGradientId})`} />
-      <circle cx="310" cy="310" r="246" stroke="#00D0E8" strokeOpacity="0.12" />
-      <circle cx="310" cy="310" r="214" stroke="#FF2D91" strokeOpacity="0.09" strokeDasharray="6 18" />
-
-      <g filter={`url(#${glowId})`} stroke={`url(#${brainGradientId})`} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M307 174c-24-59-112-63-142-7-45 0-69 51-49 85-35 28-25 87 11 104-12 48 33 91 77 76 20 43 83 43 103 5V174Z" strokeWidth="12" />
-        <path d="M313 174c24-59 112-63 142-7 45 0 69 51 49 85 35 28 25 87-11 104 12 48-33 91-77 76-20 43-83 43-103 5V174Z" strokeWidth="12" />
-        <path d="M181 190c28 4 50 25 54 53M132 271c28-13 66-2 80 25M130 359c31-14 70 0 80 33M210 430c-5-34 15-63 46-72M439 190c-28 4-50 25-54 53M488 271c-28-13-66-2-80 25M490 359c-31-14-70 0-80 33M410 430c5-34-15-63-46-72" strokeWidth="8" strokeOpacity="0.75" />
-        <path d="M307 227c-26 0-49 21-49 48M313 227c26 0 49 21 49 48M307 405c-28 0-51-22-51-50M313 405c28 0 51-22 51-50" strokeWidth="7" strokeOpacity="0.6" />
-      </g>
-
-      <g filter={`url(#${glowId})`}>
-        <rect x="235" y="285" width="150" height="132" rx="30" fill="#040B1C" stroke={`url(#${lockGradientId})`} strokeWidth="9" />
-        <path d="M270 287v-25c0-28 18-52 40-52s40 24 40 52v25" stroke={`url(#${lockGradientId})`} strokeWidth="13" strokeLinecap="round" />
-        <circle cx="310" cy="348" r="17" fill="#E8FDFF" />
-        <path d="M310 361v24" stroke="#E8FDFF" strokeWidth="10" strokeLinecap="round" />
-      </g>
-
-      {([
-        [104, 174, '#00E7FF'],
-        [508, 187, '#FF2D91'],
-        [82, 346, '#7B61FF'],
-        [534, 350, '#00E7FF'],
-        [185, 496, '#FF2D91'],
-        [438, 493, '#7B61FF'],
-      ] as const).map(([cx, cy, fill], index) => (
-        <g key={index} filter={`url(#${glowId})`}>
-          <circle cx={cx} cy={cy} r="7" fill={fill} />
-          <circle cx={cx} cy={cy} r="17" stroke={fill} strokeOpacity="0.24" />
-        </g>
-      ))}
-    </svg>
-  );
+type SceneHeadingProps = {
+  eyebrow: string;
+  title: string;
+  children: ReactNode;
+  align?: 'left' | 'center';
 };
 
+const SceneHeading = ({ eyebrow, title, children, align = 'left' }: SceneHeadingProps) => (
+  <div className={`bhp-copy bhp-copy--${align}`}>
+    <div className="bhp-eyebrow" data-reveal><span aria-hidden="true" />{eyebrow}</div>
+    <h2 data-reveal>{title}</h2>
+    <p data-reveal>{children}</p>
+  </div>
+);
+
+const HudCorners = () => (
+  <div className="bhp-hud-corners" aria-hidden="true"><i /><i /><i /><i /></div>
+);
+
+const LearningSignal = () => (
+  <svg className="bhp-signal-map" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="bhp-path-gradient" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#35f6ff" />
+        <stop offset=".5" stopColor="#8b5cff" />
+        <stop offset="1" stopColor="#ff4aa2" />
+      </linearGradient>
+      <filter id="bhp-signal-glow" x="-200%" y="-200%" width="500%" height="500%">
+        <feGaussianBlur stdDeviation="12" result="blur" />
+        <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+      </filter>
+    </defs>
+    <path id="bhp-signal-path" data-signal-path d="M110 710 C165 475 285 355 430 470 S690 775 866 590 S750 248 530 286 S230 145 132 356 S370 860 650 728 S904 525 850 240" />
+    <g data-learning-signal filter="url(#bhp-signal-glow)">
+      <circle r="34" fill="#35f6ff" opacity=".12" /><circle r="17" fill="#35f6ff" opacity=".28" /><circle r="7" fill="#f4feff" />
+    </g>
+  </svg>
+);
+
+const NeuralProfile = () => (
+  <svg className="bhp-neural" viewBox="0 0 620 540" aria-label="A living academic profile connecting evidence across skills">
+    <defs><linearGradient id="bhp-neural-gradient" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#35f6ff" /><stop offset=".55" stopColor="#8b5cff" /><stop offset="1" stopColor="#ff4aa2" /></linearGradient></defs>
+    <g className="bhp-neural__links" fill="none" stroke="url(#bhp-neural-gradient)">
+      <path d="M310 270L108 104M310 270L514 102M310 270L530 282M310 270L472 458M310 270L148 456" />
+      <path d="M108 104L514 102M514 102L530 282M530 282L472 458M472 458L148 456M148 456L108 104" opacity=".22" />
+    </g>
+    <g className="bhp-neural__nodes">
+      <g transform="translate(310 270)"><circle r="68" /><text textAnchor="middle" y="-3">LIVING</text><text textAnchor="middle" y="20">PROFILE</text></g>
+      <g transform="translate(108 104)"><circle r="48" /><text textAnchor="middle" y="5">STRENGTHS</text></g>
+      <g transform="translate(514 102)"><circle r="48" /><text textAnchor="middle" y="-4">FOCUS</text><text textAnchor="middle" y="14">AREAS</text></g>
+      <g transform="translate(530 282)"><circle r="48" /><text textAnchor="middle" y="-4">SKILLS</text><text textAnchor="middle" y="14">IMPROVED</text></g>
+      <g transform="translate(472 458)"><circle r="48" /><text textAnchor="middle" y="-4">NEXT</text><text textAnchor="middle" y="14">PRACTICE</text></g>
+      <g transform="translate(148 456)"><circle r="48" /><text textAnchor="middle" y="-4">VALIDATED</text><text textAnchor="middle" y="14">EVIDENCE</text></g>
+    </g>
+  </svg>
+);
+
 const PresentationPage = () => {
-  const sectionRef = useRef<HTMLElement>(null);
+  const rootRef = useRef<HTMLElement>(null);
+  const storyRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return undefined;
+  useGSAP(() => {
+    const root = rootRef.current;
+    const story = storyRef.current;
+    if (!root || !story) return;
 
-    let frame = 0;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const titleCharacters = Array.from(section.querySelectorAll<HTMLElement>('[data-bh-title-character]'));
+    const scenes = gsap.utils.toArray<HTMLElement>('[data-scene]', root);
+    const railItems = gsap.utils.toArray<HTMLElement>('[data-rail-item]', root);
+    const signal = root.querySelector<SVGGElement>('[data-learning-signal]');
+    const signalPath = root.querySelector<SVGPathElement>('[data-signal-path]');
+    const matchMedia = gsap.matchMedia();
 
-    const updateTitle = (progress: number) => {
-      titleCharacters.forEach((character) => {
-        const delay = Number(character.dataset.delay ?? 0);
-        const angle = Number(character.dataset.angle ?? 0);
-        const localProgress = clamp((progress - delay) * 10);
-        character.style.opacity = localProgress.toFixed(4);
-        character.style.transform = `scale(${localProgress.toFixed(4)}) rotate(${((1 - localProgress) * angle).toFixed(2)}deg)`;
+    matchMedia.add('(prefers-reduced-motion: no-preference)', () => {
+      gsap.set(scenes, { autoAlpha: 0 });
+      gsap.set(scenes[0], { autoAlpha: 1 });
+      gsap.set(scenes[0].querySelectorAll('[data-reveal]'), { autoAlpha: 1, y: 0 });
+      if (signalPath) gsap.set(signalPath, { strokeDasharray: 18, strokeDashoffset: 520 });
+
+      const setActiveChapter = (progress: number) => {
+        const activeIndex = Math.min(chapters.length - 1, Math.floor(progress * chapters.length));
+        root.style.setProperty('--bhp-progress', `${progress * 100}%`);
+        railItems.forEach((item, index) => item.toggleAttribute('data-active', index === activeIndex));
+      };
+
+      const timeline = gsap.timeline({
+        defaults: { ease: 'power2.inOut' },
+        scrollTrigger: {
+          trigger: story,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 0.8,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => setActiveChapter(self.progress),
+        },
       });
-    };
 
-    const update = () => {
-      frame = 0;
-
-      if (reducedMotion.matches) {
-        section.style.setProperty('--bh-clip-x', '0%');
-        section.style.setProperty('--bh-clip-y', '0%');
-        section.style.setProperty('--bh-visual-scale', '1');
-        section.style.setProperty('--bh-art-scale', '1');
-        section.style.setProperty('--bh-art-y', '0%');
-        section.style.setProperty('--bh-copy-opacity', '1');
-        section.style.setProperty('--bh-scroll-opacity', '0');
-        updateTitle(1);
-        return;
+      if (signal && signalPath) {
+        timeline.to(signal, { motionPath: { path: signalPath, align: signalPath, alignOrigin: [0.5, 0.5] }, duration: 20, ease: 'none' }, 0);
+        timeline.to(signalPath, { strokeDashoffset: 0, duration: 20, ease: 'none' }, 0);
       }
 
-      const rect = section.getBoundingClientRect();
-      const distance = Math.max(rect.height - window.innerHeight, 1);
-      const progress = clamp(-rect.top / distance);
-      const reveal = clamp((progress - 0.14) / 0.46);
-      const settle = clamp((progress - 0.62) / 0.38);
-      const copy = clamp((progress - 0.68) / 0.2);
+      scenes.forEach((scene, index) => {
+        const at = index * 2;
+        const reveals = scene.querySelectorAll('[data-reveal]');
+        const cinematic = scene.querySelectorAll('[data-cinematic]');
 
-      section.style.setProperty('--bh-clip-x', `${(1 - reveal) * 50}%`);
-      section.style.setProperty('--bh-clip-y', `${(1 - reveal) * 10}%`);
-      section.style.setProperty('--bh-visual-scale', `${0.56 + reveal * 0.44 - settle * 0.06}`);
-      section.style.setProperty('--bh-art-scale', `${2.35 - reveal * 1.15 - settle * 0.2}`);
-      section.style.setProperty('--bh-art-y', `${(1 - reveal) * 26}%`);
-      section.style.setProperty('--bh-copy-opacity', copy.toFixed(4));
-      section.style.setProperty('--bh-scroll-opacity', (1 - clamp(progress / 0.18)).toFixed(4));
-      updateTitle(progress);
-    };
+        if (index > 0) {
+          timeline.to(scenes[index - 1], { autoAlpha: 0, duration: 0.38 }, at - 0.28);
+          timeline.fromTo(scene, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.42 }, at - 0.04);
+        }
+        timeline.fromTo(reveals, { autoAlpha: index === 0 ? 1 : 0, y: index === 0 ? 0 : 34 }, { autoAlpha: 1, y: 0, duration: 0.66, stagger: 0.06 }, at + 0.02);
+        timeline.fromTo(cinematic, { autoAlpha: index === 0 ? 1 : 0, scale: index === 0 ? 1 : 0.9, y: index === 0 ? 0 : 38 }, { autoAlpha: 1, scale: 1, y: 0, duration: 0.9, stagger: 0.08 }, at + 0.12);
+        if (index < scenes.length - 1) timeline.to(cinematic, { scale: 1.025, duration: 0.78, ease: 'none' }, at + 1.04);
+      });
 
-    const requestUpdate = () => {
-      if (!frame) frame = window.requestAnimationFrame(update);
-    };
+      if (signal) timeline.to(signal, { scale: 1.8, duration: 1.5, ease: 'power2.out' }, 18.5);
+      setActiveChapter(0);
 
-    update();
-    window.addEventListener('scroll', requestUpdate, { passive: true });
-    window.addEventListener('resize', requestUpdate);
-    reducedMotion.addEventListener('change', requestUpdate);
+      const refresh = () => ScrollTrigger.refresh();
+      window.addEventListener('load', refresh, { once: true });
+      return () => window.removeEventListener('load', refresh);
+    });
 
-    return () => {
-      if (frame) window.cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', requestUpdate);
-      window.removeEventListener('resize', requestUpdate);
-      reducedMotion.removeEventListener('change', requestUpdate);
-    };
-  }, []);
+    return () => matchMedia.revert();
+  }, { scope: rootRef });
 
   return (
-    <main className="min-h-screen bg-[#020611] text-white">
-      <section
-        ref={sectionRef}
-        aria-label="Brains Heist mission presentation"
-        className="relative h-[320svh] overflow-clip bg-[#020611] [--bh-art-scale:2.35] [--bh-art-y:26%] [--bh-clip-x:50%] [--bh-clip-y:10%] [--bh-copy-opacity:0] [--bh-scroll-opacity:1] [--bh-visual-scale:.56]"
-      >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(0,208,232,.13),transparent_31%),radial-gradient(circle_at_78%_57%,rgba(255,45,145,.1),transparent_28%),linear-gradient(rgba(7,16,38,.6)_1px,transparent_1px),linear-gradient(90deg,rgba(7,16,38,.6)_1px,transparent_1px)] [background-size:auto,auto,44px_44px,44px_44px]" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/60 to-transparent" />
+    <main ref={rootRef} className="bhp-shell">
+      <a className="bhp-home" href="/" aria-label="Return to Brains Heist home"><img src={assets.logo} alt="" /><span>Brains Heist</span></a>
 
-        <div className="sticky top-0 flex h-svh items-center overflow-hidden px-4 py-8 sm:px-6 lg:px-10">
-          <a
-            href="/"
-            className="absolute left-5 top-5 z-30 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100 backdrop-blur-md transition hover:border-cyan-300/40 hover:bg-cyan-300/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 sm:left-8 sm:top-7"
-          >
-            <span aria-hidden="true">←</span> Brains Heist
-          </a>
+      <section ref={storyRef} className="bhp-story" aria-label="The Brains Heist school journey">
+        <div className="bhp-stage">
+          <div className="bhp-aurora" aria-hidden="true" /><div className="bhp-grid" aria-hidden="true" /><div className="bhp-grain" aria-hidden="true" />
+          <HudCorners /><LearningSignal />
 
-          <div className="mx-auto grid w-full max-w-7xl items-center gap-7 lg:grid-cols-[.85fr_1.15fr] lg:gap-10">
-            <div className="relative z-20 order-2 lg:order-1">
-              <div style={{ opacity: 'var(--bh-copy-opacity)' }}>
-                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[.06] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.22em] text-cyan-200 shadow-[0_0_28px_rgba(0,208,232,.08)]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_12px_#00d0e8]" />
-                  Mission protocol 01
-                </div>
+          <header className="bhp-system-bar" aria-label="Presentation status">
+            <div><span className="bhp-status-dot" /> Learning ecosystem online</div>
+            <div className="bhp-system-bar__center">Scroll to direct the journey</div>
+            <div>BH / SCHOOL.OS</div>
+          </header>
 
-                <p className="max-w-xl text-balance text-base leading-7 text-slate-300 sm:text-lg">
-                  Every lesson is a vault. Crack the challenge, secure the knowledge, and turn your progress into power.
-                </p>
-
-                <div className="mt-7 flex flex-wrap gap-3">
-                  <a
-                    href="/"
-                    className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-[#020611] shadow-[0_0_34px_rgba(0,208,232,.32)] transition hover:-translate-y-0.5 hover:bg-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-4 focus-visible:ring-offset-[#020611]"
-                  >
-                    Enter Brains Heist
-                    <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
-                  </a>
-                  <a
-                    href="/ielts/trial-test-2"
-                    className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/10 bg-white/[.04] px-5 py-3 text-sm font-bold text-slate-100 transition hover:-translate-y-0.5 hover:border-fuchsia-400/40 hover:bg-fuchsia-400/[.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-300 focus-visible:ring-offset-4 focus-visible:ring-offset-[#020611]"
-                  >
-                    Try free diagnostic
-                  </a>
-                </div>
+          <div className="bhp-scenes">
+            <article className="bhp-scene bhp-scene--connect" data-scene="0">
+              <SceneHeading eyebrow="01 / The school connects" title="Four roles. One learning signal.">Classes, subjects, teachers, students and parents enter one connected ecosystem—each seeing the part of the story they need.</SceneHeading>
+              <div className="bhp-connect-visual" data-cinematic>
+                <div className="bhp-orbit bhp-orbit--one" /><div className="bhp-orbit bhp-orbit--two" />
+                <img src={assets.connectedSchool} alt="A student, teacher, parent and school leader connected in one school ecosystem" fetchPriority="high" />
+                <div className="bhp-node-label bhp-node-label--teacher">Teacher</div><div className="bhp-node-label bhp-node-label--student">Student</div><div className="bhp-node-label bhp-node-label--parent">Parent</div><div className="bhp-node-label bhp-node-label--leader">Leader</div>
               </div>
-
-              <div className="mt-8 hidden max-w-2xl grid-cols-3 gap-2 sm:grid sm:gap-3" style={{ opacity: 'var(--bh-copy-opacity)' }}>
-                {missionStats.map((stat) => (
-                  <div key={stat.label} className={`rounded-xl border bg-white/[.025] p-3 backdrop-blur-sm sm:p-4 ${stat.className}`}>
-                    <div className="text-lg font-black tracking-tight sm:text-2xl">{stat.value}</div>
-                    <div className="mt-1 text-[9px] font-bold uppercase leading-4 tracking-[0.13em] text-slate-500 sm:text-[10px]">{stat.label}</div>
-                  </div>
-                ))}
+              <div className="bhp-boot-card" data-reveal>
+                <DotLottieAnimation src={assets.eyeScan} width={190} height={126} respectLightMode={false} />
+                <div><small>Identity confirmed</small><strong>School ecosystem connected</strong></div>
               </div>
-            </div>
+            </article>
 
-            <div className="relative order-1 flex min-h-[38svh] items-center justify-center lg:order-2 lg:min-h-[76svh]">
-              <h1 className="pointer-events-none absolute left-1/2 top-1/2 z-0 w-[120vw] -translate-x-1/2 -translate-y-1/2 text-center text-[clamp(3.2rem,11vw,10rem)] font-black uppercase leading-[.82] tracking-[-.065em] text-white lg:w-[92vw]">
-                <span className="sr-only">{title}</span>
-                <span aria-hidden="true">
-                  {Array.from(title).map((character, index) => {
-                    const count = Math.max(title.length - 1, 1);
-                    const delay = (index / count) * 0.22;
-                    const angle = (index % 2 ? 1 : -1) * (22 + (index % 5) * 8);
-                    return (
-                      <span
-                        key={`${character}-${index}`}
-                        data-angle={angle}
-                        data-bh-title-character
-                        data-delay={delay}
-                        className="inline-block bg-gradient-to-br from-white via-cyan-100 to-fuchsia-300 bg-clip-text text-transparent will-change-transform"
-                        style={{ opacity: 0, transform: `scale(0) rotate(${angle}deg)`, textShadow: '0 0 44px rgba(0, 208, 232, .1)' }}
-                      >
-                        {character === ' ' ? '\u00A0' : character}
-                      </span>
-                    );
-                  })}
-                </span>
-              </h1>
-
-              <div
-                className="relative z-10 aspect-square w-[min(68vw,34rem)] overflow-hidden rounded-[2rem] border border-cyan-200/15 bg-[#040a19]/90 shadow-[0_0_0_1px_rgba(255,255,255,.025),0_32px_120px_rgba(0,208,232,.14),0_16px_80px_rgba(255,45,145,.09)] backdrop-blur-xl will-change-transform sm:w-[min(76vw,34rem)]"
-                style={{
-                  clipPath: 'inset(var(--bh-clip-y) var(--bh-clip-x) var(--bh-clip-y) var(--bh-clip-x) round 2rem)',
-                  transform: 'scale(var(--bh-visual-scale))',
-                }}
-              >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(0,231,255,.14),transparent_28%),radial-gradient(circle_at_70%_75%,rgba(255,45,145,.16),transparent_32%)]" />
-                <div className="absolute left-5 top-5 z-10 flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-100 backdrop-blur-md sm:left-7 sm:top-7 sm:text-[10px]">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300 shadow-[0_0_10px_#6ee7b7]" /> Vault online
-                </div>
-                <div className="absolute right-5 top-5 z-10 rounded-full border border-fuchsia-400/20 bg-fuchsia-400/[.08] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-fuchsia-200 sm:right-7 sm:top-7 sm:text-[10px]">Level 07</div>
-
-                <div className="absolute inset-[7%] will-change-transform" style={{ transform: 'translateY(var(--bh-art-y)) scale(var(--bh-art-scale))' }}>
-                  <BrainLockGraphic />
-                </div>
-
-                <div className="absolute inset-x-7 bottom-7 z-10 flex items-end justify-between gap-4">
-                  <div>
-                    <div className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 sm:text-[10px]">Security status</div>
-                    <div className="mt-1 text-sm font-black uppercase tracking-[0.12em] text-white sm:text-base">Brain encrypted</div>
-                  </div>
-                  <div className="h-1.5 w-20 overflow-hidden rounded-full bg-white/10 sm:w-28">
-                    <div className="h-full w-[84%] rounded-full bg-gradient-to-r from-cyan-300 via-violet-400 to-fuchsia-400 shadow-[0_0_14px_#00d0e8]" />
-                  </div>
-                </div>
+            <article className="bhp-scene bhp-scene--create" data-scene="1">
+              <SceneHeading eyebrow="02 / Mission forge" title="Teachers create work effortlessly.">Select questions, assign academic missions or writing tasks, choose students, then publish now or schedule for later.</SceneHeading>
+              <div className="bhp-character bhp-character--teacher" data-cinematic><div className="bhp-character-glow" /><img src={assets.teacherPresenting} alt="Teacher presenting a newly created academic mission" loading="lazy" decoding="async" /></div>
+              <div className="bhp-forge" data-cinematic>
+                <div className="bhp-forge__header"><span>MISSION FORGE</span><em>Draft secured</em></div>
+                <div className="bhp-forge__row"><b>01</b><span>Choose content</span><i>Questions + writing</i></div>
+                <div className="bhp-forge__row"><b>02</b><span>Select learners</span><i>Class 7B</i></div>
+                <div className="bhp-forge__row"><b>03</b><span>Set the launch</span><i>Schedule</i></div>
+                <button type="button" tabIndex={-1}>Publish mission <span>→</span></button>
               </div>
-            </div>
+            </article>
+
+            <article className="bhp-scene bhp-scene--learn" data-scene="2">
+              <SceneHeading eyebrow="03 / Student missions" title="Learning becomes something you do.">Students answer questions, write responses, earn XP and see immediate progress—without losing sight of the academic goal.</SceneHeading>
+              <div className="bhp-character bhp-character--student" data-cinematic>
+                <img className="bhp-student-thinking" src={assets.studentThinking} alt="Student thinking through an academic mission" loading="lazy" decoding="async" />
+                <img className="bhp-student-victory" src={assets.studentVictory} alt="Student celebrating completed learning progress" loading="lazy" decoding="async" />
+              </div>
+              <div className="bhp-mission-path" data-cinematic aria-label="Mission progress from question to reward">
+                <div><img src="/nodes/Start-Node-Icon.png" alt="" /><span>Start</span></div><i /><div><img src="/nodes/Question-Node-Icon.png" alt="" /><span>Respond</span></div><i /><div><img src="/nodes/Reward-Node-Icon.png" alt="" /><span>+ XP</span></div>
+              </div>
+              <div className="bhp-xp-burst" data-cinematic>+120 <span>XP</span></div>
+            </article>
+
+            <article className="bhp-scene bhp-scene--war" data-scene="3">
+              <div className="bhp-war-flare" aria-hidden="true" />
+              <SceneHeading eyebrow="04 / Clan Wars" title="Now the whole classroom is in the game.">Student teams compete through academic performance in a high-energy, group-based class activity. Every correct move powers the clan.</SceneHeading>
+              <div className="bhp-war-arena" data-cinematic>
+                <img className="bhp-war-bg" src="/rivalry_assets/backgrounds/live-war.png" alt="" loading="lazy" decoding="async" />
+                <img className="bhp-war-student" src={assets.rival} alt="Student challenging a rival clan in a live academic battle" loading="lazy" decoding="async" />
+                <img className="bhp-war-strike" src="/rivalry_assets/fx/strike.png" alt="" loading="lazy" decoding="async" />
+                <div className="bhp-score bhp-score--left"><small>NEON WOLVES</small><strong>ROUND READY</strong></div><div className="bhp-versus">VS</div><div className="bhp-score bhp-score--right"><small>VOID RUNNERS</small><strong>ANSWER LOCKED</strong></div>
+              </div>
+              <div className="bhp-war-callout" data-reveal><span>Academic energy</span><b>→</b><span>Team momentum</span></div>
+            </article>
+
+            <article className="bhp-scene bhp-scene--validate" data-scene="4">
+              <SceneHeading eyebrow="05 / Human-in-the-loop AI" title="AI analyzes. Teachers validate.">The system identifies writing strengths, weaknesses and supporting evidence. The teacher reviews and confirms what becomes part of the student record.</SceneHeading>
+              <div className="bhp-validation" data-cinematic>
+                <div className="bhp-validation__side bhp-validation__side--ai"><img src={assets.aiMentor} alt="AI mentor surfacing patterns in student writing" loading="lazy" decoding="async" /><span>AI analysis</span></div>
+                <div className="bhp-evidence-sheet"><small>WRITING EVIDENCE / 04</small><p>The learner states a clear position and supports it with relevant examples.</p><mark>Clear position</mark><mark>Supporting evidence</mark><div className="bhp-scan-line" /></div>
+                <div className="bhp-validation__side bhp-validation__side--teacher"><img src={assets.teacherValidation} alt="Teacher validating AI-supported writing feedback" loading="lazy" decoding="async" /><span>Teacher validated ✓</span></div>
+              </div>
+              <div className="bhp-trust-chain" data-reveal><span>AI analysis</span><b>→</b><span>Teacher review</span><b>→</b><strong>Validated record</strong></div>
+            </article>
+
+            <article className="bhp-scene bhp-scene--profile" data-scene="5">
+              <SceneHeading eyebrow="06 / Academic profile" title="Evidence becomes understanding.">Every validated task adds to a living profile: recurring strengths, persistent weaknesses, improved skills, unresolved focus areas and recommended next practice.</SceneHeading>
+              <div className="bhp-profile-visual" data-cinematic><NeuralProfile /><img src={assets.academicProfile} alt="Student beside a growing evidence-based academic profile" loading="lazy" decoding="async" /></div>
+              <div className="bhp-profile-proof" data-reveal><span>14 Mar</span><b>Evidence connected</b><em>Teacher validated</em></div>
+            </article>
+
+            <article className="bhp-scene bhp-scene--act" data-scene="6">
+              <SceneHeading eyebrow="07 / Targeted action" title="The next move is already visible.">A teacher converts an identified gap into personalized practice or a focused intervention—closing the loop from insight to action.</SceneHeading>
+              <div className="bhp-action-loop" data-cinematic>
+                <div className="bhp-gap-card"><small>FOCUS AREA</small><strong>Supporting an argument</strong><span>Evidence appears across 3 writing tasks</span></div>
+                <div className="bhp-action-arrow"><i /><b>Turn insight into action</b></div>
+                <div className="bhp-intervention-card"><div><small>PERSONAL MISSION</small><strong>Evidence Builder</strong></div><img src="/mission-console-images/writing.webp" alt="" /><p>3 targeted prompts · Teacher selected</p><span>Ready to assign</span></div>
+              </div>
+              <div className="bhp-mini-teacher" data-cinematic><img src={assets.teacherPresenting} alt="" loading="lazy" decoding="async" /></div>
+            </article>
+
+            <article className="bhp-scene bhp-scene--parent" data-scene="7">
+              <SceneHeading eyebrow="08 / Parent confidence" title="Not a score dump. A clear progress story.">Parents see progress, achievements, strengths, current focus areas and teacher-validated feedback in language they can understand.</SceneHeading>
+              <div className="bhp-parent-compare" data-cinematic>
+                <div className="bhp-parent-noise" aria-label="Confusing raw score report"><small>TERM DATA EXPORT</small><b>72 8/12 B- 14 6.4 81%</b><span>Q4 / L2 / R7 / Δ-0.2</span><i>?</i></div>
+                <div className="bhp-parent-story"><img src={assets.parentDashboard} alt="Parent viewing a clear student progress story on a phone" loading="lazy" decoding="async" /><div><small>CURRENT STORY</small><strong>Writing confidence is growing</strong><span>Next focus: use stronger supporting evidence</span><em>Teacher validated</em></div></div>
+                <div className="bhp-clarity-wipe" />
+              </div>
+              <blockquote data-reveal>Strengthen parent confidence through continuous visibility, evidence-based progress and teacher-validated feedback.</blockquote>
+            </article>
+
+            <article className="bhp-scene bhp-scene--lead" data-scene="8">
+              <SceneHeading eyebrow="09 / School leadership" title="Zoom out. See the whole school move.">Leaders monitor engagement, class coverage, academic activity and intervention needs—without losing the human story beneath the patterns.</SceneHeading>
+              <div className="bhp-leadership" data-cinematic>
+                <div className="bhp-leadership__map">{['7A', '7B', '8A', '8B', '9A', '9B'].map((name, index) => <div key={name} className={index === 4 ? 'is-focus' : ''}><span>{name}</span><i /><small>{index === 4 ? 'Review focus' : 'Learning active'}</small></div>)}</div>
+                <img src={assets.principalOversight} alt="School leader reviewing whole-school learning activity" loading="lazy" decoding="async" />
+              </div>
+              <div className="bhp-lead-key" data-reveal><span><i className="is-active" />Activity</span><span><i className="is-focus" />Focus area</span><span><i className="is-validated" />Validated</span></div>
+            </article>
+
+            <article className="bhp-scene bhp-scene--vault" data-scene="9">
+              <SceneHeading eyebrow="10 / The vault opens" title="One platform. A much bigger future.">The connected school journey becomes the foundation for admissions, IELTS, Cambridge assessments, writing, tournaments and the modules still to come.</SceneHeading>
+              <div className="bhp-vault" data-cinematic>
+                <div className="bhp-vault__rings" aria-hidden="true"><i /><i /><i /></div><div className="bhp-vault__core"><img src={assets.logo} alt="Brains Heist" /><span>ECOSYSTEM</span></div>
+                <div className="bhp-module-wheel">{modules.map((module) => <div key={module.title} className={`bhp-module bhp-module--${module.accent}`}><img src={module.icon} alt="" loading="lazy" decoding="async" /><div><strong>{module.title}</strong><span>{module.copy}</span></div></div>)}</div>
+              </div>
+              <div className="bhp-finale" data-reveal><p>One connected journey. Every learner understood. Every next step made visible.</p><strong>Learn. Compete. Grow.</strong><a href="/">Enter Brains Heist <span aria-hidden="true">→</span></a></div>
+            </article>
           </div>
 
-          <div className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 text-center text-[9px] font-black uppercase tracking-[0.28em] text-slate-600" style={{ opacity: 'var(--bh-scroll-opacity)' }}>
-            Scroll to breach
-          </div>
+          <nav className="bhp-rail" aria-label="Presentation chapters">
+            <div className="bhp-rail__track"><i /></div>
+            {chapters.map((chapter, index) => <div key={chapter} className="bhp-rail__item" data-rail-item data-active={index === 0 ? '' : undefined}><span>{String(index + 1).padStart(2, '0')}</span><b>{chapter}</b></div>)}
+          </nav>
+          <div className="bhp-scroll-cue" aria-hidden="true"><span>Direct the signal</span><i /></div>
         </div>
+
+        <div className="bhp-story-space" aria-hidden="true">{chapters.map((chapter) => <div key={chapter} />)}</div>
       </section>
     </main>
   );
