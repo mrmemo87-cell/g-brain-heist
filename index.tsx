@@ -61,6 +61,7 @@ const IeltsObjectiveResult = lazyRetry(() => import('./src/pages/ielts/IeltsObje
 const IeltsReviewAdminGuard = lazyRetry(() => import('./components/ielts/IeltsReviewAdminGuard'), 'IeltsReviewAdminGuard');
 const IeltsExtraPracticeGuard = lazyRetry(() => import('./src/pages/ielts/IeltsExtraPracticeGuard'), 'IeltsExtraPracticeGuard');
 const BookedDemoPage = lazyRetry(() => import('./src/pages/BookedDemoPage'), 'BookedDemoPage');
+const PresentationPage = lazyRetry(() => import('./src/pages/PresentationPage'), 'PresentationPage');
 
 const queryClient = new QueryClient();
 
@@ -769,6 +770,10 @@ const root = ReactDOM.createRoot(rootElement);
 
 // Create router with IELTS routes
 const router = createBrowserRouter([
+  {
+    path: '/presentation',
+    element: <Suspense fallback={<BrainsLoader message="Loading Brains Heist presentation…" />}><PresentationPage /></Suspense>,
+  },
   {
     path: '/booked',
     element: <Suspense fallback={<BrainsLoader message="Preparing your school demo…" />}><BookedDemoPage /></Suspense>,
