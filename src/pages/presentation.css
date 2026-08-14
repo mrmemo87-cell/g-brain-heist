@@ -765,22 +765,23 @@
   .profile-network { right: 20%; bottom: calc(var(--phrase-lane) + 12px); width: 76vw; }
   .proof-panel--act .action-character {
     right: -2vw;
-    top: 39%;
-    bottom: auto;
-    width: 52vw;
-    height: 36%;
+    top: auto;
+    bottom: var(--phrase-lane);
+    width: 50vw;
+    height: 53%;
   }
   .proof-panel--act .action-transform {
     left: 4vw;
     right: auto;
     bottom: calc(var(--phrase-lane) + 14px);
-    width: 88vw;
-    gap: 5px;
+    grid-template-columns: 1fr;
+    width: 48vw;
+    gap: 4px;
   }
-  .action-transform > div { min-height: 118px; padding: 11px; border-radius: 13px; }
+  .action-transform > div { min-height: 96px; padding: 11px; border-radius: 13px; }
   .action-transform strong { margin: 10px 0 7px; font-size: 13px; }
   .action-transform span { font-size: 7px; }
-  .action-transform > b { font-size: 17px; }
+  .action-transform > b { justify-self: center; font-size: 17px; line-height: .7; transform: rotate(90deg); }
 
   /* Scene 9: leadership has a left analytics lane and a right character lane. */
   .lead-map { left: 4vw; right: auto; top: 48%; width: 51vw; }
@@ -856,7 +857,7 @@
   .war-score { left: 2%; right: 2%; }
   .proof-panel .proof-character { height: 51%; }
   .proof-panel--ai .ai-character { width: 49vw; height: 55%; }
-  .proof-panel--act .action-character { width: 54vw; height: 36%; }
+  .proof-panel--act .action-character { width: 50vw; height: 53%; }
   .lead-map { width: 51vw; }
   .leader-character { width: 48vw; height: 57%; }
 }
