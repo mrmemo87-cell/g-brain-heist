@@ -20,7 +20,7 @@ type StatDisplayProps = {
 
 const StatDisplay: React.FC<StatDisplayProps> = ({ icon, label, value, accentClass, subtitle, containerClassName }) => (
   <div
-    className={`flex items-center gap-2.5 rounded-xl border border-white/10 bg-slate-900/70 p-2.5 shadow-[0_8px_20px_rgba(0,0,0,0.4)] ${
+    className={`student-profile-stat flex items-center gap-2.5 rounded-xl border border-white/10 bg-slate-900/70 p-2.5 shadow-[0_8px_20px_rgba(0,0,0,0.4)] ${
       containerClassName ?? ''
     }`}
   >
@@ -183,9 +183,9 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
     },
   ];
   return (
-    <div data-testid="dashboard-profile-card" className="animate-fade-in-up rounded-2xl border border-pink-500/30 bg-slate-950/90 p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
+    <div data-testid="dashboard-profile-card" className="student-profile-panel animate-fade-in-up rounded-2xl border border-pink-500/30 bg-slate-950/90 p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-pink-500/25 bg-black/40 p-3 shadow-[0_10px_30px_rgba(255,45,145,0.15)]">
+        <div className="student-profile-summary flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-pink-500/25 bg-black/40 p-3 shadow-[0_10px_30px_rgba(255,45,145,0.15)]">
           <div className="flex items-center gap-3">
             <AvatarWithFrame
               src={profile.avatar_url}

@@ -547,10 +547,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     ⚡ Ultra Performance Mode
                   </h4>
                   <p className="text-sm text-gray-400">
-                    Strips all animations, effects, shadows, and gradients. Perfect for low-end devices.
+                    Replaces liquid glass with static battery-saving surfaces. Ideal for low-end devices and longer battery life.
                   </p>
                   <div className="mt-2 text-xs text-gray-500">
-                    <strong>Disables:</strong> Lottie animations, particles, backdrop blur, transitions, 
+                    <strong>Disables:</strong> Liquid blur and refraction, spring motion, Lottie animations, particles,
                     cinematic effects, toast animations, and GPU-heavy rendering.
                   </div>
                 </div>
@@ -575,7 +575,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
               {isLightMode && (
                 <div className="bg-green-900/20 border border-green-700/50 rounded p-3 text-sm text-green-300">
-                  <strong>⚡ Performance mode active!</strong> All heavy effects disabled.
+                  <strong>⚡ Performance mode active!</strong> Static dashboard surfaces are in use.
                 </div>
               )}
 
