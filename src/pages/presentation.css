@@ -95,6 +95,13 @@
 .vault-module { position: absolute; z-index: 6; display: flex; align-items: center; gap: 10px; width: min(22vw,260px); min-height: 78px; padding: 11px; text-align: left; border: 1px solid rgba(255,255,255,.11); border-radius: 14px; background: rgba(4,11,28,.88); box-shadow: 0 20px 45px rgba(0,0,0,.35); }.vault-module img { width: 54px; height: 54px; object-fit: contain; }.vault-module strong, .vault-module span { display: block; }.vault-module strong { font-size: 14px; }.vault-module span { margin-top: 4px; color: #7f93aa; font-size: 9px; }.vault-module--1 { left: 2%; top: 24%; }.vault-module--2 { left: 8%; bottom: 20%; }.vault-module--3 { right: 2%; top: 24%; }.vault-module--4 { right: 8%; bottom: 20%; }.vault-module--5 { left: 50%; top: 4%; transform: translateX(-50%); }
 .vault-finale { margin-top: -5vh; }.vault-finale p { color: #9eb2c7; font-size: 12px; }.vault-finale > strong { display: block; font-size: clamp(25px,2.5vw,38px); }.vault-finale a { display: inline-flex; gap: 18px; align-items: center; margin-top: 18px; padding: 13px 18px; border-radius: 99px; background: var(--cyan); color: #031019; text-decoration: none; font: 900 9px 'IBM Plex Mono', monospace; letter-spacing: .13em; box-shadow: 0 0 35px rgba(53,246,255,.25); }
 
+/* Live composition polish: keep interface layers clear of the narrative copy. */
+.forge-scene .journey-copy { width: min(29vw, 470px); }
+.forge-scene .journey-copy h2 { font-size: clamp(44px, 4.8vw, 76px); }
+.war-backdrop { inset: auto 0 0; top: -13%; height: 113%; }
+.parent-dashboard { top: 48%; height: 34%; }
+.lead-map { top: 48%; }
+
 @keyframes signal-drop { 0% { transform: translateY(0); opacity: 0; } 35% { opacity: 1; } 100% { transform: translateY(16px); opacity: 0; } }
 @keyframes scan-card { 0%,100% { top: 2%; opacity: .4; } 50% { top: 97%; opacity: 1; } }
 @keyframes vault-spin { to { transform: rotate(360deg); } }
