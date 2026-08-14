@@ -78,10 +78,16 @@ const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps
     onNavigate(destination);
   };
 
+  const activeIndex = Math.max(
+    0,
+    mobileDestinations.findIndex(({ id }) => id === activeDestination),
+  );
+
   return (
     <nav
       ref={navigationRef}
       className="student-dashboard-bottom-nav"
+      style={{ '--student-nav-active-index': activeIndex } as React.CSSProperties}
       onFocus={revealNavigation}
       aria-label="Student dashboard mobile navigation"
     >

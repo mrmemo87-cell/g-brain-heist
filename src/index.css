@@ -187,6 +187,9 @@ body.lite-mode [class*="border-gray-7"] {
 
 /* Student dashboard: a feed-first shell with stable desktop and mobile navigation. */
 .student-dashboard-shell {
+  --student-liquid-border: rgba(207, 250, 254, 0.25);
+  --student-liquid-highlight: rgba(255, 255, 255, 0.24);
+  --student-liquid-shadow: rgba(2, 6, 23, 0.48);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
@@ -397,13 +400,255 @@ body.lite-mode [class*="border-gray-7"] {
 .student-dashboard-bottom-nav[data-reveal-visible='true'] > .smart-mobile-nav-reveal { display:grid; }
 .student-dashboard-bottom-nav > .smart-mobile-nav-reveal > span { width:2.2rem; height:.24rem; border-radius:999px; background:rgba(224,242,254,.78); box-shadow:0 0 12px rgba(34,211,238,.34); }
 
+/* Student liquid glass v1. Full refraction is opt-in via Ultra Performance Mode. */
+body.performance-mode-disabled .student-dashboard-bottom-nav {
+  border-color: rgba(207, 250, 254, 0.3);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 18% -20%, rgba(103, 232, 249, 0.24), transparent 45%),
+    radial-gradient(circle at 82% 115%, rgba(168, 85, 247, 0.19), transparent 42%),
+    rgba(7, 14, 29, 0.68);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    inset 0 -1px 0 rgba(148, 163, 184, 0.11),
+    0 24px 55px rgba(2, 6, 23, 0.58),
+    0 0 30px rgba(34, 211, 238, 0.08);
+  backdrop-filter: blur(28px) saturate(185%);
+  -webkit-backdrop-filter: blur(28px) saturate(185%);
+}
+
+body.performance-mode-disabled .student-dashboard-bottom-nav::before {
+  content: '';
+  position: absolute;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  left: 0.35rem;
+  z-index: 0;
+  width: calc((100% - 0.7rem) / 5);
+  border: 1px solid rgba(207, 250, 254, 0.38);
+  border-radius: 0.9rem;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(34, 211, 238, 0.08) 48%, rgba(139, 92, 246, 0.13)),
+    rgba(15, 23, 42, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -8px 20px rgba(2, 6, 23, 0.2),
+    0 8px 22px rgba(2, 6, 23, 0.3),
+    0 0 18px rgba(34, 211, 238, 0.14);
+  transform: translate3d(calc(var(--student-nav-active-index, 0) * 100%), 0, 0);
+  transition: transform 500ms cubic-bezier(0.34, 1.2, 0.64, 1);
+  pointer-events: none;
+}
+
+body.performance-mode-disabled .student-dashboard-bottom-nav::after {
+  content: '';
+  position: absolute;
+  inset: 1px 12% auto;
+  z-index: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.58), transparent);
+  pointer-events: none;
+}
+
+.student-dashboard-bottom-link {
+  position: relative;
+  z-index: 1;
+}
+
+body.performance-mode-disabled .student-dashboard-bottom-link,
+body.performance-mode-disabled .student-dashboard-nav-link,
+body.performance-mode-disabled .student-primary-button,
+body.performance-mode-disabled .student-secondary-button,
+body.performance-mode-disabled .student-reaction-button {
+  transition-duration: 500ms;
+  transition-timing-function: cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+body.performance-mode-disabled .student-dashboard-bottom-link:active,
+body.performance-mode-disabled .student-dashboard-nav-link:active,
+body.performance-mode-disabled .student-primary-button:active,
+body.performance-mode-disabled .student-secondary-button:active,
+body.performance-mode-disabled .student-reaction-button:active {
+  transform: scale(0.94);
+  transition-duration: 90ms;
+}
+
+body.performance-mode-disabled .student-dashboard-bottom-link.is-active .student-dashboard-bottom-icon {
+  background: rgba(207, 250, 254, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 16px rgba(34, 211, 238, 0.22);
+}
+
+body.performance-mode-disabled .student-dashboard-rail {
+  border-color: rgba(207, 250, 254, 0.2);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.1), transparent 28%),
+    radial-gradient(circle at 18% 0%, rgba(103, 232, 249, 0.12), transparent 34%),
+    rgba(7, 14, 29, 0.76);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset -1px 0 0 rgba(148, 163, 184, 0.08),
+    0 20px 48px rgba(2, 6, 23, 0.4);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+}
+
+body.performance-mode-disabled .student-dashboard-sidebar-toggle {
+  border-color: rgba(207, 250, 254, 0.18);
+  background: rgba(15, 23, 42, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body.performance-mode-disabled .student-dashboard-nav-link.is-active {
+  border: 1px solid rgba(165, 243, 252, 0.24);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.13), transparent 50%),
+    rgba(8, 145, 178, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 8px 22px rgba(2, 6, 23, 0.18);
+}
+
+body.performance-mode-disabled .student-next-mission {
+  position: relative;
+  border-color: rgba(207, 250, 254, 0.34);
+  background:
+    radial-gradient(circle at 15% 5%, rgba(103, 232, 249, 0.2), transparent 36%),
+    radial-gradient(circle at 92% 86%, rgba(168, 85, 247, 0.22), transparent 44%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(15, 23, 42, 0.64) 36%, rgba(2, 6, 23, 0.72));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -16px 40px rgba(2, 6, 23, 0.18),
+    0 24px 60px rgba(2, 6, 23, 0.42),
+    0 0 34px rgba(34, 211, 238, 0.09);
+  backdrop-filter: blur(24px) saturate(175%);
+  -webkit-backdrop-filter: blur(24px) saturate(175%);
+}
+
+body.performance-mode-disabled .student-next-mission::before,
+body.performance-mode-disabled .student-next-mission::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+body.performance-mode-disabled .student-next-mission::before {
+  inset: 1px 7% auto;
+  height: 38%;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at top, rgba(255, 255, 255, 0.3), transparent 70%);
+  opacity: 0.72;
+}
+
+body.performance-mode-disabled .student-next-mission::after {
+  right: -8%;
+  bottom: -42%;
+  width: 52%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.18), rgba(139, 92, 246, 0.09) 42%, transparent 68%);
+  mix-blend-mode: screen;
+}
+
+body.performance-mode-disabled .student-next-mission > * {
+  z-index: 1;
+}
+
+body.performance-mode-disabled .student-primary-button {
+  border: 1px solid rgba(207, 250, 254, 0.64);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.58), transparent 34%),
+    linear-gradient(135deg, #67e8f9, #22d3ee 55%, #06b6d4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -5px 12px rgba(8, 145, 178, 0.2),
+    0 12px 28px rgba(34, 211, 238, 0.24);
+}
+
+body.performance-mode-disabled .student-secondary-button,
+body.performance-mode-disabled .student-reaction-button.is-active {
+  border-color: rgba(221, 214, 254, 0.42);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.16), transparent 42%),
+    rgba(124, 58, 237, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 9px 24px rgba(2, 6, 23, 0.22);
+}
+
+.student-profile-panel {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+body.performance-mode-disabled .student-profile-panel {
+  border-color: rgba(244, 114, 182, 0.3);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.12), transparent 30%),
+    radial-gradient(circle at 84% 0%, rgba(168, 85, 247, 0.17), transparent 38%),
+    rgba(7, 14, 29, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 22px 54px rgba(2, 6, 23, 0.44);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+}
+
+body.performance-mode-disabled .student-profile-panel::before {
+  content: '';
+  position: absolute;
+  inset: 1px 10% auto;
+  z-index: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.56), transparent);
+  pointer-events: none;
+}
+
+body.performance-mode-disabled .student-profile-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+body.performance-mode-disabled .student-profile-summary,
+body.performance-mode-disabled .student-profile-stat {
+  background-color: rgba(8, 15, 30, 0.88) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 20px rgba(2, 6, 23, 0.28);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.performance-mode-disabled .student-quick-stat {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.09), transparent 38%),
+    rgba(8, 15, 30, 0.78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 10px 28px rgba(2, 6, 23, 0.22);
+  backdrop-filter: blur(14px) saturate(135%);
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+}
+
+body.performance-mode-disabled .student-activity-feed {
+  border-color: rgba(207, 250, 254, 0.18);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.07), transparent 30%),
+    rgba(7, 14, 29, 0.82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 18px 42px rgba(2, 6, 23, 0.32);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+body.performance-mode-disabled .student-activity-item {
+  border-color: rgba(100, 116, 139, 0.42);
+  background: rgba(8, 15, 30, 0.76);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .student-dashboard-shell,
   .student-dashboard-rail,
   .student-dashboard-sidebar-toggle,
   .student-dashboard-bottom-nav,
   .student-dashboard-bottom-link,
-  .student-dashboard-bottom-label { transition-duration: 1ms; }
+  .student-dashboard-bottom-label,
+  .student-dashboard-bottom-nav::before,
+  .student-dashboard-nav-link,
+  .student-primary-button,
+  .student-secondary-button,
+  .student-reaction-button { transition-duration: 1ms !important; }
 }
 @media (min-width: 640px) {
   .student-learning-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

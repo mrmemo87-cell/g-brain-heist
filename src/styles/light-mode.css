@@ -122,3 +122,64 @@ body.light-mode .lite-mode-wrapper {
   color: inherit !important;
   background: inherit !important;
 }
+
+/* Student dashboard: static counterparts for the optional liquid-glass layer. */
+body.light-mode .student-dashboard-bottom-nav,
+body.light-mode .student-dashboard-rail,
+body.light-mode .student-next-mission,
+body.light-mode .student-profile-panel,
+body.light-mode .student-quick-stat,
+body.light-mode .student-activity-feed {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+body.light-mode .student-dashboard-bottom-nav,
+body.light-mode .student-dashboard-rail,
+body.light-mode .student-next-mission,
+body.light-mode .student-activity-feed {
+  border-color: rgba(71, 85, 105, 0.78) !important;
+  background: #0f172a !important;
+}
+
+body.light-mode .student-profile-panel {
+  border-color: rgba(244, 114, 182, 0.28) !important;
+  background: #020617 !important;
+}
+
+body.light-mode .student-profile-summary,
+body.light-mode .student-profile-stat,
+body.light-mode .student-quick-stat,
+body.light-mode .student-activity-item {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #0f172a !important;
+  box-shadow: none !important;
+}
+
+body.light-mode .student-primary-button,
+body.light-mode .student-secondary-button,
+body.light-mode .student-reaction-button,
+body.light-mode .student-dashboard-nav-link.is-active,
+body.light-mode .student-dashboard-bottom-link.is-active .student-dashboard-bottom-icon {
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+body.light-mode .student-primary-button {
+  background: #22d3ee !important;
+}
+
+body.light-mode .student-secondary-button,
+body.light-mode .student-reaction-button.is-active {
+  background: #312e81 !important;
+}
+
+body.light-mode .student-dashboard-bottom-nav::before,
+body.light-mode .student-dashboard-bottom-nav::after,
+body.light-mode .student-next-mission::before,
+body.light-mode .student-next-mission::after,
+body.light-mode .student-profile-panel::before {
+  display: none !important;
+}
