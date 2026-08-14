@@ -36,6 +36,8 @@ uniform float u_liquidScale;
 uniform float u_liquidBright;
 uniform float u_filament;
 uniform float u_core;
+uniform int u_steps;
+uniform int u_innerSteps;
 
 mat2 rot(float a) {
   float c = cos(a), s = sin(a);
@@ -130,7 +132,8 @@ void main() {
   vec3 pos = ro;
   float minD = 1e3;
 
-  for (int i = 0; i < 128; i++) {
+  for (int i = 0; i < 96; i++) {
+    if (i >= u_steps) break;
     pos = ro + rd * t;
     float d = mapBlob(pos);
     minD = min(minD, d);
@@ -153,6 +156,7 @@ void main() {
     vec3 inner = vec3(0.0);
 
     for (int k = 0; k < 8; k++) {
+      if (k >= u_innerSteps) break;
       float raw = liquid(rp);
       float dens = smoothstep(0.30, 0.70, raw);
       float fil = pow(1.0 - abs(2.0 * raw - 1.0), 5.0);
@@ -221,6 +225,32 @@ const GooeyOrb = ({ className = '' }: GooeyOrbProps) => {
     const canvas = canvasRef.current;
     if (!host || !canvas) return;
 
+    type NavigatorWithHints = Navigator & {
+      connection?: { saveData?: boolean };
+      deviceMemory?: number;
+    };
+    type OrbQuality = 'high' | 'balanced' | 'lite';
+
+    const browserHints = navigator as NavigatorWithHints;
+    const mobile = window.matchMedia('(max-width: 820px)').matches;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const saveData = browserHints.connection?.saveData === true;
+    const lowMemory = typeof browserHints.deviceMemory === 'number' && browserHints.deviceMemory <= 4;
+    const lowCpu = typeof browserHints.hardwareConcurrency === 'number' && browserHints.hardwareConcurrency <= 4;
+    const quality: OrbQuality = reducedMotion || saveData || (lowMemory && lowCpu)
+      ? 'lite'
+      : mobile || lowMemory || lowCpu
+        ? 'balanced'
+        : 'high';
+    const journey = host.closest<HTMLElement>('.journey');
+    host.dataset.quality = quality;
+    if (journey) journey.dataset.quality = quality;
+
+    if (quality === 'lite') {
+      host.dataset.webgl = 'fallback';
+      return;
+    }
+
     const gl = canvas.getContext('webgl2', {
       alpha: false,
       antialias: false,
@@ -248,8 +278,18 @@ const GooeyOrb = ({ className = '' }: GooeyOrbProps) => {
     };
 
     let program: WebGLProgram | null = null;
+    let vao: WebGLVertexArrayObject | null = null;
+    let buffer: WebGLBuffer | null = null;
     let frameId = 0;
     let stopped = false;
+    let visible = true;
+    let lastDraw = 0;
+    let sampleStartedAt = 0;
+    let sampledFrames = 0;
+    let resizeObserver: ResizeObserver | null = null;
+    let visibilityObserver: IntersectionObserver | null = null;
+    let handleContextLost: ((event: Event) => void) | null = null;
+    let handleVisibilityChange: (() => void) | null = null;
 
     try {
       const vertex = compile(gl.VERTEX_SHADER, VERTEX_SHADER);
@@ -266,8 +306,8 @@ const GooeyOrb = ({ className = '' }: GooeyOrbProps) => {
       }
       gl.useProgram(program);
 
-      const vao = gl.createVertexArray();
-      const buffer = gl.createBuffer();
+      vao = gl.createVertexArray();
+      buffer = gl.createBuffer();
       gl.bindVertexArray(vao);
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
@@ -295,6 +335,8 @@ const GooeyOrb = ({ className = '' }: GooeyOrbProps) => {
         liquidBright: uniform('u_liquidBright'),
         filament: uniform('u_filament'),
         core: uniform('u_core'),
+        steps: uniform('u_steps'),
+        innerSteps: uniform('u_innerSteps'),
       };
 
       gl.uniform1f(u.radius, VALUES.radius);
@@ -314,10 +356,12 @@ const GooeyOrb = ({ className = '' }: GooeyOrbProps) => {
       gl.uniform1f(u.liquidBright, VALUES.liquidBright);
       gl.uniform1f(u.filament, VALUES.filament);
       gl.uniform1f(u.core, VALUES.core);
+      gl.uniform1i(u.steps, quality === 'balanced' ? 48 : 88);
+      gl.uniform1i(u.innerSteps, quality === 'balanced' ? 4 : 7);
 
       const resize = () => {
         const rect = canvas.getBoundingClientRect();
-        const dprCap = window.innerWidth <= 560 ? 1 : 1.35;
+        const dprCap = quality === 'balanced' ? 0.72 : 1.1;
         const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
         const width = Math.max(2, Math.round(rect.width * dpr));
         const height = Math.max(2, Math.round(rect.height * dpr));
@@ -327,21 +371,68 @@ const GooeyOrb = ({ className = '' }: GooeyOrbProps) => {
         }
       };
 
-      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const frameInterval = quality === 'balanced' ? 1000 / 30 : 1000 / 50;
       const draw = (now: number) => {
+        frameId = 0;
         if (stopped) return;
-        resize();
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.clearColor(0, 0, 0, 1);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.uniform1f(u.time, now * 0.001);
-        gl.uniform2f(u.res, canvas.width, canvas.height);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        if (!reducedMotion) frameId = requestAnimationFrame(draw);
+        if (visible && !document.hidden) {
+          if (quality === 'balanced') {
+            if (!sampleStartedAt) sampleStartedAt = now;
+            sampledFrames += 1;
+            const sampleDuration = now - sampleStartedAt;
+            if (sampleDuration >= 2400 && sampledFrames * 1000 / sampleDuration < 42) {
+              host.dataset.webgl = 'fallback';
+              if (journey) journey.dataset.quality = 'lite';
+              stopped = true;
+              return;
+            }
+          }
+          if (now - lastDraw >= frameInterval) {
+            lastDraw = now;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.clearColor(0, 0, 0, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.uniform1f(u.time, now * 0.001);
+            gl.uniform2f(u.res, canvas.width, canvas.height);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          }
+          frameId = requestAnimationFrame(draw);
+        }
+      };
+      const start = () => {
+        if (!stopped && visible && !document.hidden && frameId === 0) frameId = requestAnimationFrame(draw);
+      };
+
+      resizeObserver = new ResizeObserver(resize);
+      visibilityObserver = new IntersectionObserver(entries => {
+        visible = entries[0]?.isIntersecting ?? false;
+        if (visible) start();
+        else if (frameId) {
+          cancelAnimationFrame(frameId);
+          frameId = 0;
+        }
+      }, { rootMargin: '120px' });
+      handleVisibilityChange = () => {
+        if (document.hidden && frameId) {
+          cancelAnimationFrame(frameId);
+          frameId = 0;
+        } else start();
+      };
+      handleContextLost = (event: Event) => {
+        event.preventDefault();
+        host.dataset.webgl = 'fallback';
+        stopped = true;
+        cancelAnimationFrame(frameId);
+        frameId = 0;
       };
 
       host.dataset.webgl = 'ready';
-      draw(0);
+      resize();
+      resizeObserver.observe(canvas);
+      visibilityObserver.observe(host);
+      canvas.addEventListener('webglcontextlost', handleContextLost);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      start();
     } catch (error) {
       console.warn('Brains Heist orb fallback enabled.', error);
       host.dataset.webgl = 'fallback';
@@ -350,6 +441,12 @@ const GooeyOrb = ({ className = '' }: GooeyOrbProps) => {
     return () => {
       stopped = true;
       cancelAnimationFrame(frameId);
+      resizeObserver?.disconnect();
+      visibilityObserver?.disconnect();
+      if (handleContextLost) canvas.removeEventListener('webglcontextlost', handleContextLost);
+      if (handleVisibilityChange) document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (buffer) gl.deleteBuffer(buffer);
+      if (vao) gl.deleteVertexArray(vao);
       if (program) gl.deleteProgram(program);
     };
   }, []);
