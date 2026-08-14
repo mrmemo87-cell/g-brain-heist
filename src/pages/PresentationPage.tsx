@@ -38,7 +38,7 @@ const WORLD_PATH = 'M505 80 C760 380 220 710 505 1060 S800 1600 555 2050 S210 25
 const WorldLine = () => <svg className="world-line" viewBox="0 0 1000 11600" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="world-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#35f6ff"/><stop offset=".46" stopColor="#8b5cff"/><stop offset=".72" stopColor="#ff4aa2"/><stop offset="1" stopColor="#35f6ff"/></linearGradient></defs><path className="world-line__ghost" d={WORLD_PATH}/><path data-world-path className="world-line__live" d={WORLD_PATH}/></svg>;
 
 const Bars = ({ labels }: { labels: string[] }) => <div className="metric-bars">{labels.map((label, i) => <div className="metric-bar" key={label}><div><span>{label}</span><em>{['growing','connected','validated'][i % 3]}</em></div><i><b data-fill style={{ '--fill': `${64 + i * 11}%` } as React.CSSProperties}/></i></div>)}</div>;
-const Gauge = ({ label, value }: { label: string; value: number }) => <div className="radial-gauge"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48"/><circle data-gauge cx="60" cy="60" r="48" pathLength="100"/></svg><div><strong>{value}</strong><span>{label}</span></div></div>;
+const Gauge = ({ label, value, className = '' }: { label: string; value: number; className?: string }) => <div className={`radial-gauge ${className}`.trim()}><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48"/><circle data-gauge cx="60" cy="60" r="48" pathLength="100"/></svg><div><strong>{value}</strong><span>{label}</span></div></div>;
 
 const PresentationPage = () => {
   const rootRef = useRef<HTMLElement>(null);
@@ -83,7 +83,7 @@ const PresentationPage = () => {
         if (copy) gsap.fromTo(copy.children, { y: 55, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: .08, ease: 'power3.out', scrollTrigger: { trigger: scene, start: 'top 74%', end: 'top 28%', scrub: .55 } });
       });
 
-      const desktop = window.matchMedia('(min-width: 821px)').matches;
+      const mobile = window.matchMedia('(max-width: 820px)').matches;
       const scenePhrases = gsap.utils.toArray<HTMLElement>('.journey-scene > .signal-phrase');
       scenePhrases.forEach(phrase => {
         const phraseTrack = phrase.querySelector<HTMLElement>('.signal-phrase__track');
@@ -94,20 +94,14 @@ const PresentationPage = () => {
           {
             x: () => -phraseTrack.scrollWidth - 48,
             ease: 'none',
-            scrollTrigger: desktop ? {
+            scrollTrigger: {
               trigger: scene,
               start: 'top top',
-              end: () => `+=${Math.max(window.innerWidth * 1.4, phraseTrack.scrollWidth + window.innerWidth)}`,
+              end: () => `+=${Math.max(window.innerWidth * (mobile ? 2.35 : 1.4), phraseTrack.scrollWidth + window.innerWidth)}`,
               pin: scene,
               pinSpacing: true,
               anticipatePin: 1,
               scrub: .18,
-              invalidateOnRefresh: true,
-            } : {
-              trigger: scene,
-              start: 'top 82%',
-              end: 'bottom 12%',
-              scrub: .2,
               invalidateOnRefresh: true,
             },
           }
@@ -128,7 +122,7 @@ const PresentationPage = () => {
       const proofJourney = root.querySelector<HTMLElement>('.proof-journey');
       const proofTrack = root.querySelector<HTMLElement>('.proof-track');
       const proofPanels = gsap.utils.toArray<HTMLElement>('.proof-panel');
-      if (proofJourney && proofTrack && desktop) {
+      if (proofJourney && proofTrack) {
         gsap.set(proofTrack, { x: 0 });
         const proofTimeline = gsap.timeline({
           scrollTrigger: {
@@ -152,16 +146,6 @@ const PresentationPage = () => {
             proofTimeline.fromTo(panel.querySelectorAll('.neural-link'), { strokeDasharray: 420, strokeDashoffset: 420 }, { strokeDashoffset: 0, duration: .5, stagger: .04 }, '<.18');
           }
         });
-      } else {
-        proofPanels.forEach(panel => {
-          const phraseTrack = panel.querySelector<HTMLElement>('.signal-phrase__track');
-          if (!phraseTrack) return;
-          gsap.fromTo(phraseTrack,
-            { x: () => window.innerWidth + 32 },
-            { x: () => -phraseTrack.scrollWidth - 32, ease: 'none', scrollTrigger: { trigger: panel, start: 'top 84%', end: 'bottom 12%', scrub: .2, invalidateOnRefresh: true } }
-          );
-        });
-        gsap.fromTo('.neural-link', { strokeDasharray: 420, strokeDashoffset: 420 }, { strokeDashoffset: 0, stagger: .08, scrollTrigger: { trigger: '.profile-proof', start: 'top 70%', end: 'center 45%', scrub: .5 } });
       }
 
       gsap.fromTo('.parent-data', { xPercent: 0 }, { xPercent: -102, scrollTrigger: { trigger: '.parent-scene', start: 'top 52%', end: 'center 46%', scrub: .45 } });
@@ -184,7 +168,7 @@ const PresentationPage = () => {
     <section className="journey-hero" aria-labelledby="journey-title"><nav className="hero-nav"><a href="/"><img src={assets.logo} alt=""/><span>Brains Heist</span></a><small>CONNECTED SCHOOL JOURNEY / 01</small></nav><div className="hero-lockup"><div className="hero-kicker"><span/>LEARNING ECOSYSTEM ONLINE</div><h1 id="journey-title">Follow one signal.<br/><em>See the whole learner.</em></h1><p>Scroll into a school where every mission, insight and human decision strengthens the next move.</p><div className="hero-direct"><i/><span>Direct the signal downward</span></div></div><div className="hero-depth" aria-hidden="true"><b>DISCOVER</b><b>PROVE</b><b>GROW</b></div></section>
     <section className="journey-scene connect-scene" data-journey><div className="scene-glow scene-glow--cyan"/><Heading number="01" label="THE SCHOOL CONNECTS" title={<>Four roles.<br/>One learning signal.</>}>Classes, subjects, teachers, students and parents enter one ecosystem—each seeing the part of the story they need.</Heading><div className="connect-world"><i className="connect-ring connect-ring--one"/><i className="connect-ring connect-ring--two"/><i className="connect-ring connect-ring--three"/><img className="connect-cast" src={assets.connected} alt="A student, teacher, parent and school leader connected in one learning ecosystem"/><div className="role-tag role-tag--teacher">Teacher <span>creates</span></div><div className="role-tag role-tag--student">Student <span>learns</span></div><div className="role-tag role-tag--parent">Parent <span>understands</span></div><div className="role-tag role-tag--leader">Leader <span>sees</span></div></div><Phrase>EVERY ROLE SEES WHAT MATTERS</Phrase></section>
     <section className="journey-scene forge-scene" data-journey><div className="scene-glow scene-glow--violet"/><Heading number="02" label="MISSION FORGE" title={<>The teacher turns intent<br/>into action.</>}>Select questions, assign academic missions or writing tasks, choose students, then publish now or schedule for later.</Heading><img className="scene-character teacher-main" src={assets.teacher} alt="Teacher presenting a newly created academic mission" loading="lazy"/><div className="forge-panel"><header><span>MISSION FORGE</span><em>DRAFT SECURED</em></header>{['Choose content','Select learners','Set the launch'].map((x,i)=><div className="forge-step" key={x}><b>0{i+1}</b><span>{x}</span><small>{['Questions + writing','Class 8A','Now or scheduled'][i]}</small></div>)}<Bars labels={['Mission built','Learners selected','Launch ready']}/><button type="button" tabIndex={-1}>PUBLISH MISSION <span>→</span></button></div></section>
-    <section className="journey-scene student-scene" data-journey><div className="scene-glow scene-glow--blue"/><Heading number="03" label="STUDENT MISSIONS" title={<>Learning becomes<br/>something you do.</>}>Students answer questions, write responses, earn XP and see immediate progress—without losing sight of the academic goal.</Heading><div className="student-zone"><img className="scene-character student-main" src={assets.student} alt="Student thinking through an academic mission" loading="lazy"/><Gauge label="XP" value={72}/><div className="mission-route">{[['Start-Node-Icon.png','ENTER'],['Question-Node-Icon.png','RESPOND'],['Reward-Node-Icon.png','LEVEL UP']].map(([icon,label],i)=><span key={label} className="mission-fragment"><div className="mission-node"><img src={`/nodes/${icon}`} alt=""/><span>{label}</span></div>{i<2&&<i/>}</span>)}</div></div><Phrase>ANSWER. ADAPT. ADVANCE.</Phrase></section>
+    <section className="journey-scene student-scene" data-journey><div className="scene-glow scene-glow--blue"/><Heading number="03" label="STUDENT MISSIONS" title={<>Learning becomes<br/>something you do.</>}>Students answer questions, write responses, earn XP and coins, and see immediate progress—without losing sight of the academic goal.</Heading><div className="student-zone"><img className="scene-character student-main" src={assets.student} alt="Student thinking through an academic mission" loading="lazy"/><div className="student-rewards" aria-label="Mission rewards"><Gauge label="XP WON" value={72}/><Gauge label="COINS WON" value={36}/></div><div className="mission-route">{[['Start-Node-Icon.png','ENTER'],['Question-Node-Icon.png','RESPOND'],['Reward-Node-Icon.png','LEVEL UP']].map(([icon,label],i)=><span key={label} className="mission-fragment"><div className="mission-node"><img src={`/nodes/${icon}`} alt=""/><span>{label}</span></div>{i<2&&<i/>}</span>)}</div></div><Phrase>ANSWER. ADAPT. ADVANCE.</Phrase></section>
     <section className="journey-scene war-scene" data-journey><Heading number="04" label="CLAN WARS" title={<>Now the whole classroom<br/>is in the game.</>}>Teams compete through academic performance in a high-energy class activity. Every correct move powers the clan.</Heading><div className="war-arena"><img className="war-backdrop" src="/rivalry_assets/backgrounds/live-war.png" alt="" loading="lazy"/><div className="war-score"><div><span>NEON WOLVES</span><strong>ACADEMIC ENERGY</strong><i><b data-fill style={{'--fill':'84%'} as React.CSSProperties}/></i></div><em>VS</em><div><span>VOID RUNNERS</span><strong>TEAM MOMENTUM</strong><i><b data-fill style={{'--fill':'67%'} as React.CSSProperties}/></i></div></div><img className="war-character" src={assets.rival} alt="Student leading a live academic clan battle" loading="lazy"/><img className="war-impact" src="/rivalry_assets/fx/strike.png" alt="" loading="lazy"/></div><Phrase>KNOWLEDGE BECOMES MOMENTUM</Phrase></section>
     <section className="proof-journey" aria-label="From analysis to targeted action"><div className="proof-viewport"><div className="proof-track">
       <article className="proof-panel proof-panel--ai"><Heading number="05" label="AI ANALYSIS" title={<>AI finds the pattern.</>}>The system identifies writing strengths, weaknesses and exact supporting evidence.</Heading><img className="proof-character ai-character" src={assets.ai} alt="AI mentor surfacing patterns in student writing" loading="lazy"/><div className="scan-card"><small>WRITING EVIDENCE / 04</small><p>The learner states a clear position and supports it with relevant examples.</p><span>Clear position</span><span>Supporting evidence</span><i/></div><Phrase>AI ANALYZES</Phrase></article>
