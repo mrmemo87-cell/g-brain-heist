@@ -633,7 +633,7 @@
     left: 4vw;
     right: auto;
     top: 48%;
-    width: 57vw;
+    width: 54vw;
     padding: clamp(10px, 2.5vw, 15px);
     border-radius: 16px;
   }
@@ -645,10 +645,10 @@
   .forge-panel button { margin-top: 10px; padding: 10px 11px; font-size: 7px; }
   .forge-panel .metric-bars { gap: 6px; margin-top: 10px; }
   .teacher-main {
-    right: -2vw;
+    right: -3vw;
     bottom: 0;
-    width: 39vw;
-    height: 54%;
+    width: 45vw;
+    height: 60%;
   }
 
   /* Scene 3: reward UI has its own lane, separate from the learner. */
@@ -736,12 +736,23 @@
   .proof-panel .scan-card {
     left: 4vw;
     bottom: calc(var(--phrase-lane) + 12px);
-    width: 57vw;
+    width: 47vw;
     padding: 12px;
   }
   .proof-panel .scan-card p { font-size: 12px; }
+  .proof-panel--ai .ai-character {
+    right: 1vw;
+    width: 48vw;
+    height: 56%;
+  }
   .proof-panel--validate .validation-character { right: -12%; width: 78vw; }
-  .validation-stamp { right: 7%; top: 51%; width: 92px; padding: 12px; }
+  .validation-stamp {
+    left: 5vw;
+    right: auto;
+    top: 52%;
+    width: 92px;
+    padding: 12px;
+  }
   .validation-stamp strong { font-size: 10px; }
   .validation-stamp i { font-size: 24px; }
   .proof-panel .evidence-bars {
@@ -752,7 +763,13 @@
   }
   .profile-proof .profile-character { right: -8%; width: 68vw; }
   .profile-network { right: 20%; bottom: calc(var(--phrase-lane) + 12px); width: 76vw; }
-  .proof-panel--act .action-character { right: -4%; width: 43vw; height: 50%; }
+  .proof-panel--act .action-character {
+    right: -2vw;
+    top: 39%;
+    bottom: auto;
+    width: 52vw;
+    height: 36%;
+  }
   .proof-panel--act .action-transform {
     left: 4vw;
     right: auto;
@@ -766,8 +783,8 @@
   .action-transform > b { font-size: 17px; }
 
   /* Scene 9: leadership has a left analytics lane and a right character lane. */
-  .lead-map { left: 4vw; right: auto; top: 48%; width: 58vw; }
-  .leader-character { right: -1vw; bottom: var(--phrase-lane); width: 38vw; height: 51%; }
+  .lead-map { left: 4vw; right: auto; top: 48%; width: 51vw; }
+  .leader-character { right: -2vw; bottom: var(--phrase-lane); width: 47vw; height: 57%; }
   .lead-gauges .radial-gauge { width: clamp(52px, 14vw, 72px); }
   .lead-gauges { gap: 6px; margin-bottom: 7px; }
   .class-grid { gap: 4px; }
@@ -833,13 +850,15 @@
   .role-tag--student { left: 37%; }
   .role-tag--leader { left: 68%; }
   .role-tag--parent { left: 85%; }
-  .forge-panel { width: 58vw; }
-  .teacher-main { width: 38vw; }
+  .forge-panel { width: 54vw; }
+  .teacher-main { right: -4vw; width: 46vw; height: 60%; }
   .mission-route { transform: scale(.72); }
   .war-score { left: 2%; right: 2%; }
   .proof-panel .proof-character { height: 51%; }
-  .lead-map { width: 59vw; }
-  .leader-character { width: 37vw; }
+  .proof-panel--ai .ai-character { width: 49vw; height: 55%; }
+  .proof-panel--act .action-character { width: 54vw; height: 36%; }
+  .lead-map { width: 51vw; }
+  .leader-character { width: 48vw; height: 57%; }
 }
 
 /* Adaptive performance profile: preserve choreography while reducing mobile repaint cost. */
