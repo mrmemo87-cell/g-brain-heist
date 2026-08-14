@@ -96,7 +96,7 @@
 .vault-finale { margin-top: -5vh; }.vault-finale p { color: #9eb2c7; font-size: 12px; }.vault-finale > strong { display: block; font-size: clamp(25px,2.5vw,38px); }.vault-finale a { display: inline-flex; gap: 18px; align-items: center; margin-top: 18px; padding: 13px 18px; border-radius: 99px; background: var(--cyan); color: #031019; text-decoration: none; font: 900 9px 'IBM Plex Mono', monospace; letter-spacing: .13em; box-shadow: 0 0 35px rgba(53,246,255,.25); }
 
 /* Live composition polish: keep interface layers clear of the narrative copy. */
-.forge-scene .journey-copy { width: min(29vw, 470px); }
+.forge-scene .journey-copy { width: min(25vw, 410px); }
 .forge-scene .journey-copy h2 { font-size: clamp(44px, 4.8vw, 76px); }
 .war-backdrop { inset: auto 0 0; top: -13%; height: 113%; }
 .parent-dashboard { top: 48%; height: 34%; }
