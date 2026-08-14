@@ -307,3 +307,14 @@
   }
   .gooey-orb[data-webgl="fallback"] > i { animation: none; }
 }
+
+
+@media (min-width: 821px) {
+  .connect-scene,
+  .student-scene,
+  .war-scene,
+  .lead-scene {
+    min-height: 100svh;
+    height: 100svh;
+  }
+}
