@@ -841,3 +841,57 @@
   .lead-map { width: 59vw; }
   .leader-character { width: 37vw; }
 }
+
+/* Adaptive performance profile: preserve choreography while reducing mobile repaint cost. */
+.journey[data-quality="balanced"] .scan-card i { animation-duration: 5s; }
+.journey[data-quality="balanced"] .vault-rings i { animation-play-state: paused; }
+.journey[data-quality="lite"] .vault-rings i,
+.journey[data-quality="lite"] .hero-direct i::after,
+.journey[data-quality="lite"] .scan-card i { animation: none; }
+
+@media (max-width: 820px) {
+  .journey-atmosphere {
+    background: #020510;
+  }
+  .journey-atmosphere::before {
+    opacity: .075;
+    background-size: 72px 72px;
+    transform: none;
+  }
+  .journey-atmosphere i,
+  .scene-glow {
+    display: none;
+  }
+  .world-line__live {
+    display: none;
+  }
+  .world-line__ghost {
+    opacity: .24;
+  }
+  .role-tag,
+  .forge-panel,
+  .mission-route {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .connect-cast,
+  .scene-character,
+  .proof-character,
+  .war-character {
+    filter: none;
+  }
+  .war-arena {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .war-impact {
+    mix-blend-mode: normal;
+    opacity: .2;
+  }
+  .proof-track,
+  .signal-phrase__track,
+  .world-signal {
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+  }
+}

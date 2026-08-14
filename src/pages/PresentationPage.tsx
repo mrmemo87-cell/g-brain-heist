@@ -6,6 +6,7 @@ import GooeyOrb from '../../components/presentation/GooeyOrb';
 import './presentation.css';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
+ScrollTrigger.config({ ignoreMobileResize: true, limitCallbacks: true });
 
 const STORAGE = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public';
 const pAsset = (name: string) => `${STORAGE}/presentation/${encodeURIComponent(name)}`;
@@ -53,24 +54,34 @@ const PresentationPage = () => {
     const mm = gsap.matchMedia();
 
     mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const mobile = window.matchMedia('(max-width: 820px)').matches;
       if (path && signal && worldSvg) {
         const length = path.getTotalLength();
+        let worldWidth = Math.max(1, worldSvg.clientWidth);
+        let worldHeight = Math.max(1, worldSvg.clientHeight);
+        const cacheWorldSize = () => {
+          worldWidth = Math.max(1, worldSvg.clientWidth);
+          worldHeight = Math.max(1, worldSvg.clientHeight);
+        };
         const placeSignal = (progress: number) => {
           const point = path.getPointAtLength(length * progress);
           gsap.set(signal, {
-            x: point.x / 1000 * worldSvg.clientWidth,
-            y: point.y / 11600 * worldSvg.clientHeight,
+            x: point.x / 1000 * worldWidth,
+            y: point.y / 11600 * worldHeight,
             xPercent: -50,
             yPercent: -50,
           });
         };
-        gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
-        gsap.to(path, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: root, start: 'top top', end: 'bottom bottom', scrub: .35 } });
+        if (!mobile) {
+          gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
+          gsap.to(path, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: root, start: 'top top', end: 'bottom bottom', scrub: .35 } });
+        }
         ScrollTrigger.create({
           trigger: root,
           start: 'top top',
           end: 'bottom bottom',
           invalidateOnRefresh: true,
+          onRefreshInit: cacheWorldSize,
           onRefresh: self => placeSignal(self.progress),
           onUpdate: self => placeSignal(self.progress),
         });
@@ -80,10 +91,11 @@ const PresentationPage = () => {
       gsap.from('.hero-lockup > *', { y: 70, autoAlpha: 0, rotateX: -10, duration: 1.15, stagger: .09, ease: 'power4.out' });
       root.querySelectorAll<HTMLElement>('[data-journey]').forEach(scene => {
         const copy = scene.querySelector('[data-copy]');
-        if (copy) gsap.fromTo(copy.children, { y: 55, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: .08, ease: 'power3.out', scrollTrigger: { trigger: scene, start: 'top 74%', end: 'top 28%', scrub: .55 } });
+        if (!copy) return;
+        const copyTarget = mobile ? copy : copy.children;
+        gsap.fromTo(copyTarget, { y: mobile ? 28 : 55, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: mobile ? 0 : .08, ease: 'power3.out', scrollTrigger: { trigger: scene, start: 'top 74%', end: 'top 28%', scrub: .55 } });
       });
 
-      const mobile = window.matchMedia('(max-width: 820px)').matches;
       const scenePhrases = gsap.utils.toArray<HTMLElement>('.journey-scene > .signal-phrase');
       scenePhrases.forEach(phrase => {
         const phraseTrack = phrase.querySelector<HTMLElement>('.signal-phrase__track');
@@ -108,16 +120,20 @@ const PresentationPage = () => {
         );
       });
 
-      gsap.fromTo('.connect-cast', { scale: .7, autoAlpha: 0, filter: 'blur(14px)' }, { scale: 1, autoAlpha: 1, filter: 'blur(0px)', scrollTrigger: { trigger: '.connect-scene', start: 'top 65%', end: 'center 55%', scrub: .5 } });
+      gsap.fromTo('.connect-cast', { scale: .78, yPercent: 5, autoAlpha: 0 }, { scale: 1, yPercent: 0, autoAlpha: 1, scrollTrigger: { trigger: '.connect-scene', start: 'top 65%', end: 'center 55%', scrub: .5 } });
       gsap.fromTo('.connect-ring', { scale: .25, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, stagger: .12, ease: 'back.out(1.5)', scrollTrigger: { trigger: '.connect-scene', start: 'top 55%', end: 'center 50%', scrub: .5 } });
       gsap.fromTo('.forge-panel > *', { x: -65, autoAlpha: 0 }, { x: 0, autoAlpha: 1, stagger: .1, ease: 'expo.out', scrollTrigger: { trigger: '.forge-scene', start: 'top 58%', end: 'center 50%', scrub: .45 } });
       gsap.fromTo('.teacher-main', { xPercent: 32, rotate: 3, autoAlpha: 0 }, { xPercent: 0, rotate: 0, autoAlpha: 1, scrollTrigger: { trigger: '.forge-scene', start: 'top 62%', end: 'center 48%', scrub: .45 } });
       gsap.fromTo('.mission-node', { y: (i) => i % 2 ? 50 : -50, autoAlpha: 0, rotate: -12 }, { y: 0, autoAlpha: 1, rotate: 0, stagger: .15, ease: 'back.out(1.7)', scrollTrigger: { trigger: '.student-scene', start: 'top 58%', end: 'center 52%', scrub: .4 } });
-      gsap.fromTo('.student-main', { clipPath: 'inset(100% 0 0 0)', scale: .88 }, { clipPath: 'inset(0% 0 0 0)', scale: 1, scrollTrigger: { trigger: '.student-scene', start: 'top 60%', end: 'center 45%', scrub: .5 } });
+      gsap.fromTo('.student-main', { yPercent: 18, scale: .9, autoAlpha: 0 }, { yPercent: 0, scale: 1, autoAlpha: 1, scrollTrigger: { trigger: '.student-scene', start: 'top 60%', end: 'center 45%', scrub: .5 } });
       gsap.to('.student-scene [data-gauge]', { strokeDashoffset: 28, ease: 'none', scrollTrigger: { trigger: '.student-scene', start: 'top 48%', end: 'bottom 60%', scrub: .4 } });
-      gsap.fromTo('.war-arena', { scale: 1.12, xPercent: -6, filter: 'saturate(.5)' }, { scale: 1, xPercent: 0, filter: 'saturate(1.08)', scrollTrigger: { trigger: '.war-scene', start: 'top 65%', end: 'center 50%', scrub: .35 } });
+      gsap.fromTo('.war-arena', { scale: 1.08, xPercent: -4, autoAlpha: .72 }, { scale: 1, xPercent: 0, autoAlpha: 1, scrollTrigger: { trigger: '.war-scene', start: 'top 65%', end: 'center 50%', scrub: .35 } });
       gsap.fromTo('.war-character', { xPercent: 36, rotate: 4 }, { xPercent: 0, rotate: 0, scrollTrigger: { trigger: '.war-scene', start: 'top 54%', end: 'center 46%', scrub: .4 } });
-      gsap.utils.toArray<HTMLElement>('[data-fill]').forEach(fill => gsap.to(fill, { scaleX: 1, ease: 'none', scrollTrigger: { trigger: fill.closest('section') || fill, start: 'top 65%', end: 'bottom 55%', scrub: .35 } }));
+      gsap.utils.toArray<HTMLElement>('section').forEach(section => {
+        const fills = section.querySelectorAll<HTMLElement>('[data-fill]');
+        if (!fills.length) return;
+        gsap.to(fills, { scaleX: 1, stagger: .04, ease: 'none', scrollTrigger: { trigger: section, start: 'top 65%', end: 'bottom 55%', scrub: .35 } });
+      });
 
       const proofJourney = root.querySelector<HTMLElement>('.proof-journey');
       const proofTrack = root.querySelector<HTMLElement>('.proof-track');
@@ -150,7 +166,7 @@ const PresentationPage = () => {
 
       gsap.fromTo('.parent-data', { xPercent: 0 }, { xPercent: -102, scrollTrigger: { trigger: '.parent-scene', start: 'top 52%', end: 'center 46%', scrub: .45 } });
       gsap.fromTo('.parent-character', { xPercent: 25, scale: .88, autoAlpha: 0 }, { xPercent: 0, scale: 1, autoAlpha: 1, scrollTrigger: { trigger: '.parent-scene', start: 'top 64%', end: 'center 52%', scrub: .4 } });
-      gsap.fromTo('.lead-map', { scale: 2, xPercent: -18, yPercent: 14, filter: 'blur(8px)' }, { scale: 1, xPercent: 0, yPercent: 0, filter: 'blur(0px)', scrollTrigger: { trigger: '.lead-scene', start: 'top 65%', end: 'center 45%', scrub: .5 } });
+      gsap.fromTo('.lead-map', { scale: 1.35, xPercent: -12, yPercent: 10, autoAlpha: .3 }, { scale: 1, xPercent: 0, yPercent: 0, autoAlpha: 1, scrollTrigger: { trigger: '.lead-scene', start: 'top 65%', end: 'center 45%', scrub: .5 } });
       gsap.fromTo('.leader-character', { xPercent: 24, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1, scrollTrigger: { trigger: '.lead-scene', start: 'top 55%', end: 'center 45%', scrub: .4 } });
       gsap.fromTo('.vault-module', { scale: .15, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, stagger: .1, ease: 'back.out(1.7)', scrollTrigger: { trigger: '.vault-scene', start: 'top 60%', end: 'center 48%', scrub: .4 } });
       gsap.fromTo('.vault-core', { rotate: -90, scale: .6 }, { rotate: 0, scale: 1, scrollTrigger: { trigger: '.vault-scene', start: 'top 62%', end: 'center 42%', scrub: .5 } });
