@@ -198,7 +198,7 @@ const PresentationPage = () => {
               <div className="bhp-forge" data-cinematic>
                 <div className="bhp-forge__header"><span>MISSION FORGE</span><em>Draft secured</em></div>
                 <div className="bhp-forge__row"><b>01</b><span>Choose content</span><i>Questions + writing</i></div>
-                <div className="bhp-forge__row"><b>02</b><span>Select learners</span><i>Class 7B</i></div>
+                <div className="bhp-forge__row"><b>02</b><span>Select learners</span><i>Selected class</i></div>
                 <div className="bhp-forge__row"><b>03</b><span>Set the launch</span><i>Schedule</i></div>
                 <button type="button" tabIndex={-1}>Publish mission <span>→</span></button>
               </div>
@@ -241,13 +241,13 @@ const PresentationPage = () => {
             <article className="bhp-scene bhp-scene--profile" data-scene="5">
               <SceneHeading eyebrow="06 / Academic profile" title="Evidence becomes understanding.">Every validated task adds to a living profile: recurring strengths, persistent weaknesses, improved skills, unresolved focus areas and recommended next practice.</SceneHeading>
               <div className="bhp-profile-visual" data-cinematic><NeuralProfile /><img src={assets.academicProfile} alt="Student beside a growing evidence-based academic profile" loading="lazy" decoding="async" /></div>
-              <div className="bhp-profile-proof" data-reveal><span>14 Mar</span><b>Evidence connected</b><em>Teacher validated</em></div>
+              <div className="bhp-profile-proof" data-reveal><span>Latest task</span><b>Evidence connected</b><em>Teacher validated</em></div>
             </article>
 
             <article className="bhp-scene bhp-scene--act" data-scene="6">
               <SceneHeading eyebrow="07 / Targeted action" title="The next move is already visible.">A teacher converts an identified gap into personalized practice or a focused intervention—closing the loop from insight to action.</SceneHeading>
               <div className="bhp-action-loop" data-cinematic>
-                <div className="bhp-gap-card"><small>FOCUS AREA</small><strong>Supporting an argument</strong><span>Evidence appears across 3 writing tasks</span></div>
+                <div className="bhp-gap-card"><small>FOCUS AREA</small><strong>Supporting an argument</strong><span>Recurring evidence across writing tasks</span></div>
                 <div className="bhp-action-arrow"><i /><b>Turn insight into action</b></div>
                 <div className="bhp-intervention-card"><div><small>PERSONAL MISSION</small><strong>Evidence Builder</strong></div><img src="/mission-console-images/writing.webp" alt="" /><p>3 targeted prompts · Teacher selected</p><span>Ready to assign</span></div>
               </div>
