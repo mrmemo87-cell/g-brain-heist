@@ -3,7 +3,6 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import DotLottieAnimation from '../../components/DotLottieAnimation';
 import './presentation.css';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, MotionPathPlugin);
@@ -12,7 +11,6 @@ const STORAGE = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/publ
 const pAsset = (name: string) => `${STORAGE}/presentation/${encodeURIComponent(name)}`;
 const assets = {
   logo: `${STORAGE}/logo/logo.svg`,
-  eye: `${STORAGE}/lotties/${encodeURIComponent('Eye scanning logo Lottie JSON animation.lottie')}`,
   connected: pAsset('brains-heist-connected-school-ecosystem-finale-no-bg.png'),
   teacher: pAsset('brains-heist-teacher-presenting-alpha.png'),
   student: pAsset('brains-heist-student-thinking-alpha.png'),
@@ -34,9 +32,20 @@ const modules = [
 
 type HeadingProps = { number: string; label: string; title: ReactNode; children: ReactNode };
 const Heading = ({ number, label, title, children }: HeadingProps) => <div className="journey-copy" data-copy><div className="journey-kicker"><span>{number}</span><i />{label}</div><h2>{title}</h2><p>{children}</p></div>;
-const Phrase = ({ children }: { children: string }) => <div className="signal-phrase" aria-label={children}>{children.split(' ').map((word, i) => <span key={`${word}-${i}`} aria-hidden="true">{word}</span>)}</div>;
+const Phrase = ({ children }: { children: string }) => <div className="signal-phrase" aria-label={children}><div className="signal-phrase__track" aria-hidden="true"><span>{children}</span><i>{children}</i></div></div>;
 
-const WorldLine = () => <svg className="world-line" viewBox="0 0 1000 11600" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="world-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#35f6ff"/><stop offset=".46" stopColor="#8b5cff"/><stop offset=".72" stopColor="#ff4aa2"/><stop offset="1" stopColor="#35f6ff"/></linearGradient><filter id="signal-glow" x="-250%" y="-250%" width="600%" height="600%"><feGaussianBlur stdDeviation="12" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path className="world-line__ghost" d="M505 80 C760 380 220 710 505 1060 S800 1600 555 2050 S210 2590 455 3100 S810 3610 585 4160 S225 4680 490 5200 S800 5740 535 6300 S190 6900 500 7480 S830 8090 560 8700 S190 9300 485 9940 S790 10700 500 11520"/><path data-world-path className="world-line__live" d="M505 80 C760 380 220 710 505 1060 S800 1600 555 2050 S210 2590 455 3100 S810 3610 585 4160 S225 4680 490 5200 S800 5740 535 6300 S190 6900 500 7480 S830 8090 560 8700 S190 9300 485 9940 S790 10700 500 11520"/><g data-signal-orb className="world-line__orb" filter="url(#signal-glow)"><circle r="62" fill="#35f6ff" opacity=".08"/><circle r="34" fill="#35f6ff" opacity=".18"/><ellipse rx="25" ry="15" fill="#35f6ff" opacity=".58"/><circle r="7" fill="#f5ffff"/></g></svg>;
+const LiquidOrbMark = ({ hero = false }: { hero?: boolean }) => <span className={`liquid-orb-mark${hero ? ' liquid-orb-mark--hero' : ''}`} aria-hidden="true"><i className="liquid-orb-mark__body"/><i className="liquid-orb-mark__flow"/><b className="liquid-orb-mark__caustic"/><em className="liquid-orb-mark__spark"/></span>;
+
+const particleSeeds = [
+  [6, 12, 2, -18, -7], [14, 72, 1, 22, -3], [21, 36, 2, -28, -11], [29, 89, 1, 15, -5],
+  [37, 18, 1, -20, -13], [44, 57, 2, 27, -9], [51, 80, 1, -16, -2], [58, 29, 2, 19, -14],
+  [64, 67, 1, -24, -6], [71, 8, 2, 18, -10], [76, 48, 1, -17, -4], [82, 86, 2, 25, -12],
+  [88, 24, 1, -21, -8], [93, 61, 2, 16, -1], [10, 47, 1, 24, -15], [33, 64, 1, -19, -6],
+  [69, 38, 2, 21, -11], [96, 34, 1, -23, -5],
+] as const;
+const VelocityParticles = () => <div className="velocity-particles" aria-hidden="true">{particleSeeds.map(([x,y,size,drift,delay], i) => <i key={i} style={{ '--x': `${x}%`, '--y': `${y}%`, '--size': `${size}px`, '--drift': `${drift}px`, '--delay': `${delay}s` } as React.CSSProperties}/>)}</div>;
+
+const WorldLine = () => <svg className="world-line" viewBox="0 0 1000 11600" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="world-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#35f6ff"/><stop offset=".46" stopColor="#8b5cff"/><stop offset=".72" stopColor="#ff4aa2"/><stop offset="1" stopColor="#35f6ff"/></linearGradient><radialGradient id="liquid-orb-fill" cx="32%" cy="24%" r="78%"><stop offset="0" stopColor="#f4ffff"/><stop offset=".18" stopColor="#68fbff"/><stop offset=".52" stopColor="#5a78ff"/><stop offset=".78" stopColor="#b64cff"/><stop offset="1" stopColor="#ff4aa2"/></radialGradient><filter id="liquid-orb-warp" x="-260%" y="-260%" width="620%" height="620%"><feTurbulence type="fractalNoise" baseFrequency=".015 .024" numOctaves="2" seed="9" result="noise"><animate attributeName="baseFrequency" dur="8s" values=".015 .024;.021 .013;.015 .024" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="noise" scale="13" xChannelSelector="R" yChannelSelector="B" result="warped"/><feGaussianBlur in="warped" stdDeviation="11" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="warped"/></feMerge></filter></defs><path className="world-line__ghost" d="M505 80 C760 380 220 710 505 1060 S800 1600 555 2050 S210 2590 455 3100 S810 3610 585 4160 S225 4680 490 5200 S800 5740 535 6300 S190 6900 500 7480 S830 8090 560 8700 S190 9300 485 9940 S790 10700 500 11520"/><path data-world-path className="world-line__live" d="M505 80 C760 380 220 710 505 1060 S800 1600 555 2050 S210 2590 455 3100 S810 3610 585 4160 S225 4680 490 5200 S800 5740 535 6300 S190 6900 500 7480 S830 8090 560 8700 S190 9300 485 9940 S790 10700 500 11520"/><g data-signal-orb className="world-line__orb"><circle className="world-line__orb-halo" r="78"/><circle className="world-line__orb-ring" r="48"/><g className="world-line__orb-liquid" filter="url(#liquid-orb-warp)"><circle className="world-line__orb-shell" r="28" fill="url(#liquid-orb-fill)"/><ellipse className="world-line__orb-caustic" cx="-8" cy="-9" rx="11" ry="6"/><circle className="world-line__orb-spark" cx="8" cy="-8" r="3"/></g></g></svg>;
 
 const Bars = ({ labels }: { labels: string[] }) => <div className="metric-bars">{labels.map((label, i) => <div className="metric-bar" key={label}><div><span>{label}</span><em>{['growing','connected','validated'][i % 3]}</em></div><i><b data-fill style={{ '--fill': `${64 + i * 11}%` } as React.CSSProperties}/></i></div>)}</div>;
 const Gauge = ({ label, value }: { label: string; value: number }) => <div className="radial-gauge"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48"/><circle data-gauge cx="60" cy="60" r="48" pathLength="100"/></svg><div><strong>{value}</strong><span>{label}</span></div></div>;
@@ -58,7 +67,21 @@ const PresentationPage = () => {
         gsap.to(orb, { motionPath: { path, align: path, alignOrigin: [.5,.5] }, ease: 'none', scrollTrigger: { trigger: root, start: 'top top', end: 'bottom bottom', scrub: .35 } });
       }
       gsap.from('.hero-lockup > *', { y: 70, autoAlpha: 0, rotateX: -10, duration: 1.15, stagger: .09, ease: 'power4.out' });
+      gsap.fromTo('.liquid-orb-mark--hero', { scale: .55, rotate: -22, autoAlpha: 0 }, { scale: 1, rotate: 0, autoAlpha: 1, duration: 1.6, ease: 'elastic.out(1, .55)' });
       root.querySelectorAll<HTMLElement>('[data-journey]').forEach(scene => { const copy = scene.querySelector('[data-copy]'); if (copy) gsap.fromTo(copy.children, { y: 55, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: .08, ease: 'power3.out', scrollTrigger: { trigger: scene, start: 'top 74%', end: 'top 28%', scrub: .55 } }); });
+      gsap.utils.toArray<HTMLElement>('.journey-scene > .signal-phrase').forEach((phrase, index) => {
+        const phraseTrack = phrase.querySelector<HTMLElement>('.signal-phrase__track');
+        const scene = phrase.closest<HTMLElement>('.journey-scene');
+        if (!phraseTrack || !scene) return;
+        const reverse = index % 2 === 1;
+        gsap.fromTo(phraseTrack, { xPercent: reverse ? -46 : -4, rotateX: -34, rotateZ: reverse ? -1.2 : 1.2, autoAlpha: .2 }, { xPercent: reverse ? -6 : -44, rotateX: 0, rotateZ: 0, autoAlpha: 1, ease: 'none', scrollTrigger: { trigger: scene, start: 'top bottom', end: 'bottom top', scrub: .42 } });
+      });
+      const rushSettle = gsap.to(root, { '--rush': 0, duration: .68, ease: 'power3.out', paused: true });
+      ScrollTrigger.create({ trigger: root, start: 'top top', end: 'bottom bottom', onUpdate: self => {
+        const rush = Math.min(1, Math.abs(self.getVelocity()) / 2200);
+        gsap.set(root, { '--rush': rush });
+        rushSettle.invalidate().restart();
+      } });
       gsap.fromTo('.connect-cast', { scale: .7, autoAlpha: 0, filter: 'blur(14px)' }, { scale: 1, autoAlpha: 1, filter: 'blur(0px)', scrollTrigger: { trigger: '.connect-scene', start: 'top 65%', end: 'center 55%', scrub: .5 } });
       gsap.fromTo('.connect-ring', { scale: .25, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, stagger: .12, ease: 'back.out(1.5)', scrollTrigger: { trigger: '.connect-scene', start: 'top 55%', end: 'center 50%', scrub: .5 } });
       gsap.fromTo('.forge-panel > *', { x: -65, autoAlpha: 0 }, { x: 0, autoAlpha: 1, stagger: .1, ease: 'expo.out', scrollTrigger: { trigger: '.forge-scene', start: 'top 58%', end: 'center 50%', scrub: .45 } });
@@ -72,7 +95,7 @@ const PresentationPage = () => {
       const track = root.querySelector<HTMLElement>('.proof-track');
       if (track && window.matchMedia('(min-width: 821px)').matches) {
         const horizontal = gsap.to(track, { xPercent: -75, ease: 'none', scrollTrigger: { trigger: '.proof-journey', start: 'top top', end: 'bottom bottom', scrub: .55 } });
-        gsap.utils.toArray<HTMLElement>('.proof-panel').forEach(panel => gsap.fromTo(panel.querySelectorAll('.signal-phrase span'), { yPercent: 115, rotate: 7, autoAlpha: 0 }, { yPercent: 0, rotate: 0, autoAlpha: 1, stagger: .05, scrollTrigger: { trigger: panel, containerAnimation: horizontal, start: 'left 68%', end: 'center 55%', scrub: .4 } }));
+        gsap.utils.toArray<HTMLElement>('.proof-panel').forEach(panel => { const phraseTrack = panel.querySelector<HTMLElement>('.signal-phrase__track'); if (phraseTrack) gsap.fromTo(phraseTrack, { xPercent: -8, rotateX: -58, rotateZ: 2, autoAlpha: 0 }, { xPercent: -31, rotateX: 0, rotateZ: 0, autoAlpha: 1, scrollTrigger: { trigger: panel, containerAnimation: horizontal, start: 'left 72%', end: 'center 52%', scrub: .42 } }); });
       }
       gsap.fromTo('.neural-link', { strokeDasharray: 420, strokeDashoffset: 420 }, { strokeDashoffset: 0, stagger: .08, scrollTrigger: { trigger: '.profile-proof', start: 'left 85%', end: 'center 45%', scrub: .5 } });
       gsap.fromTo('.parent-data', { xPercent: 0 }, { xPercent: -102, scrollTrigger: { trigger: '.parent-scene', start: 'top 52%', end: 'center 46%', scrub: .45 } });
@@ -87,8 +110,8 @@ const PresentationPage = () => {
   }, { scope: rootRef });
 
   return <main className="journey" ref={rootRef}>
-    <div className="journey-atmosphere" aria-hidden="true"><i/><i/><i/></div><WorldLine/>
-    <section className="journey-hero" aria-labelledby="journey-title"><nav className="hero-nav"><a href="/"><img src={assets.logo} alt=""/><span>Brains Heist</span></a><small>CONNECTED SCHOOL JOURNEY / 01</small></nav><div className="hero-lockup"><div className="hero-kicker"><span/>LEARNING ECOSYSTEM ONLINE</div><h1 id="journey-title">Follow one signal.<br/><em>See the whole learner.</em></h1><p>Scroll into a school where every mission, insight and human decision strengthens the next move.</p><div className="hero-direct"><i/><span>Direct the signal downward</span></div></div><div className="hero-eye" aria-hidden="true"><DotLottieAnimation src={assets.eye} width={440} height={300} respectLightMode={false}/></div><div className="hero-depth" aria-hidden="true"><b>DISCOVER</b><b>PROVE</b><b>GROW</b></div></section>
+    <div className="journey-atmosphere" aria-hidden="true"><i/><i/><i/></div><VelocityParticles/><WorldLine/>
+    <section className="journey-hero" aria-labelledby="journey-title"><nav className="hero-nav"><a href="/"><img src={assets.logo} alt=""/><span>Brains Heist</span></a><small>CONNECTED SCHOOL JOURNEY / 01</small></nav><div className="hero-lockup"><div className="hero-kicker"><span/>LEARNING ECOSYSTEM ONLINE</div><h1 id="journey-title">Follow one signal.<br/><em>See the whole learner.</em></h1><p>Scroll into a school where every mission, insight and human decision strengthens the next move.</p><div className="hero-direct"><i/><span>Direct the signal downward</span></div></div><div className="hero-eye" aria-hidden="true"><LiquidOrbMark hero/></div><div className="hero-depth" aria-hidden="true"><b>DISCOVER</b><b>PROVE</b><b>GROW</b></div></section>
     <section className="journey-scene connect-scene" data-journey><div className="scene-glow scene-glow--cyan"/><Heading number="01" label="THE SCHOOL CONNECTS" title={<>Four roles.<br/>One learning signal.</>}>Classes, subjects, teachers, students and parents enter one ecosystem—each seeing the part of the story they need.</Heading><div className="connect-world"><i className="connect-ring connect-ring--one"/><i className="connect-ring connect-ring--two"/><i className="connect-ring connect-ring--three"/><img className="connect-cast" src={assets.connected} alt="A student, teacher, parent and school leader connected in one learning ecosystem"/><div className="role-tag role-tag--teacher">Teacher <span>creates</span></div><div className="role-tag role-tag--student">Student <span>learns</span></div><div className="role-tag role-tag--parent">Parent <span>understands</span></div><div className="role-tag role-tag--leader">Leader <span>sees</span></div></div><Phrase>EVERY ROLE SEES WHAT MATTERS</Phrase></section>
     <section className="journey-scene forge-scene" data-journey><div className="scene-glow scene-glow--violet"/><Heading number="02" label="MISSION FORGE" title={<>The teacher turns intent<br/>into action.</>}>Select questions, assign academic missions or writing tasks, choose students, then publish now or schedule for later.</Heading><img className="scene-character teacher-main" src={assets.teacher} alt="Teacher presenting a newly created academic mission" loading="lazy"/><div className="forge-panel"><header><span>MISSION FORGE</span><em>DRAFT SECURED</em></header>{['Choose content','Select learners','Set the launch'].map((x,i)=><div className="forge-step" key={x}><b>0{i+1}</b><span>{x}</span><small>{['Questions + writing','Class 8A','Now or scheduled'][i]}</small></div>)}<Bars labels={['Mission built','Learners selected','Launch ready']}/><button type="button" tabIndex={-1}>PUBLISH MISSION <span>→</span></button></div></section>
     <section className="journey-scene student-scene" data-journey><div className="scene-glow scene-glow--blue"/><Heading number="03" label="STUDENT MISSIONS" title={<>Learning becomes<br/>something you do.</>}>Students answer questions, write responses, earn XP and see immediate progress—without losing sight of the academic goal.</Heading><div className="student-zone"><img className="scene-character student-main" src={assets.student} alt="Student thinking through an academic mission" loading="lazy"/><Gauge label="XP" value={72}/><div className="mission-route">{[['Start-Node-Icon.png','ENTER'],['Question-Node-Icon.png','RESPOND'],['Reward-Node-Icon.png','LEVEL UP']].map(([icon,label],i)=><span key={label} className="mission-fragment"><div className="mission-node"><img src={`/nodes/${icon}`} alt=""/><span>{label}</span></div>{i<2&&<i/>}</span>)}</div></div><Phrase>ANSWER. ADAPT. ADVANCE.</Phrase></section>
