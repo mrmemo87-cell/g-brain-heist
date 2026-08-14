@@ -532,3 +532,312 @@
   .vault-module--3 { right: 0; top: 20%; }
   .vault-module--4 { right: 0; bottom: 18%; }
 }
+
+/* Mobile cinematic parity: each scene owns a protected viewport and reading gate. */
+.student-rewards {
+  position: absolute;
+  z-index: 8;
+  left: 45%;
+  top: 19%;
+  display: flex;
+  gap: 8px;
+}
+.student-rewards .radial-gauge { width: clamp(82px, 8vw, 118px); }
+
+@media (max-width: 820px) {
+  .journey { --phrase-lane: clamp(72px, 10svh, 88px); }
+
+  .connect-scene,
+  .student-scene,
+  .war-scene,
+  .lead-scene {
+    min-height: 100svh;
+    height: 100svh;
+    padding: clamp(46px, 6.5svh, 66px) 5vw calc(var(--phrase-lane) + 12px);
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+  .connect-scene .journey-copy,
+  .student-scene .journey-copy,
+  .war-scene .journey-copy,
+  .lead-scene .journey-copy {
+    align-self: auto;
+    width: 90vw;
+    max-width: 90vw;
+    margin-top: 0;
+  }
+  .connect-scene .journey-copy h2,
+  .student-scene .journey-copy h2,
+  .war-scene .journey-copy h2,
+  .lead-scene .journey-copy h2 {
+    margin: clamp(10px, 1.8svh, 16px) 0;
+    font-size: clamp(36px, 9.2vw, 58px);
+    line-height: .92;
+  }
+  .connect-scene .journey-copy p,
+  .student-scene .journey-copy p,
+  .war-scene .journey-copy p,
+  .lead-scene .journey-copy p {
+    max-width: 90vw;
+    font-size: clamp(12px, 3vw, 16px);
+    line-height: 1.45;
+  }
+
+  /* Scene 1: the full cast and its labels share the same bounded stage. */
+  .connect-scene .connect-world {
+    left: 0;
+    right: auto;
+    top: 43%;
+    bottom: var(--phrase-lane);
+    width: 100%;
+    height: auto;
+  }
+  .connect-cast {
+    left: 50%;
+    right: auto;
+    width: 100%;
+    height: 91%;
+    transform: translateX(-50%);
+    object-position: center bottom;
+  }
+  .role-tag {
+    top: 5%;
+    padding: 5px 7px;
+    font-size: clamp(5px, 1.45vw, 7px);
+    translate: -50% 0;
+  }
+  .role-tag--teacher { left: 17%; }
+  .role-tag--student { left: 39%; }
+  .role-tag--leader { left: 68%; right: auto; }
+  .role-tag--parent { left: 85%; right: auto; }
+
+  /* Scene 2: a true split stage, so the forge never masks the teacher. */
+  .forge-scene {
+    min-height: max(100svh, 760px);
+    padding: clamp(48px, 7svh, 72px) 5vw 24px;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+  .forge-scene .journey-copy {
+    width: 90vw;
+    max-width: 90vw;
+    margin-top: 0;
+  }
+  .forge-scene .journey-copy h2 {
+    margin: 12px 0;
+    font-size: clamp(36px, 9.4vw, 58px);
+    line-height: .92;
+  }
+  .forge-scene .journey-copy p { max-width: 88vw; font-size: clamp(12px, 3vw, 16px); line-height: 1.45; }
+  .forge-panel {
+    left: 4vw;
+    right: auto;
+    top: 48%;
+    width: 57vw;
+    padding: clamp(10px, 2.5vw, 15px);
+    border-radius: 16px;
+  }
+  .forge-panel header { font-size: 6px; }
+  .forge-step { grid-template-columns: 26px 1fr; gap: 7px; padding: 8px 0; }
+  .forge-step b { width: 24px; height: 24px; font-size: 7px; }
+  .forge-step span { font-size: clamp(9px, 2.5vw, 12px); }
+  .forge-step small { display: none; }
+  .forge-panel button { margin-top: 10px; padding: 10px 11px; font-size: 7px; }
+  .forge-panel .metric-bars { gap: 6px; margin-top: 10px; }
+  .teacher-main {
+    right: -2vw;
+    bottom: 0;
+    width: 39vw;
+    height: 54%;
+  }
+
+  /* Scene 3: reward UI has its own lane, separate from the learner. */
+  .student-scene .student-zone {
+    left: 0;
+    top: 39%;
+    bottom: var(--phrase-lane);
+    width: 100%;
+    height: auto;
+  }
+  .student-main { left: -2%; width: 58%; height: 100%; }
+  .student-rewards {
+    left: auto;
+    right: 4vw;
+    top: 10%;
+    display: grid;
+    gap: 5px;
+  }
+  .student-rewards .radial-gauge { width: clamp(66px, 18vw, 88px); }
+  .student-rewards .radial-gauge strong { font-size: clamp(17px, 5vw, 23px); }
+  .student-rewards .radial-gauge span { font-size: 6px; }
+  .mission-route {
+    left: auto;
+    right: 3vw;
+    bottom: 3%;
+    padding: 7px 9px;
+    transform: scale(.78);
+    transform-origin: right bottom;
+  }
+
+  /* Scene 4: copy ends before the battle arena begins. */
+  .war-scene::before { background: linear-gradient(180deg, #020510 0 38%, transparent 60%), radial-gradient(circle at 72% 64%, rgba(255,74,162,.16), transparent 38%); }
+  .war-scene .war-arena {
+    z-index: 1;
+    inset: 44% -8% var(--phrase-lane) 0;
+    mask-image: linear-gradient(180deg, transparent 0, #000 8%);
+  }
+  .war-score { left: 4%; right: 4%; top: 4%; gap: 6px; }
+  .war-score > div { padding: 7px; }
+  .war-score span, .war-score strong { font-size: 5px; }
+  .war-score strong { margin: 5px 0 6px; }
+  .war-score em { font-size: 18px; }
+  .war-character { right: 8%; width: 76vw; height: 82%; }
+  .war-impact { right: 28%; top: 45%; width: 38vw; }
+
+  /* Slides 5–7 remain one pinned horizontal chapter on phones. */
+  .proof-journey { height: 1050svh; }
+  .proof-viewport {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: hidden;
+  }
+  .proof-viewport::after { display: block; top: 18px; right: 5vw; font-size: 5px; }
+  .proof-track {
+    display: flex;
+    width: 400vw;
+    height: 100%;
+    transform: translate3d(0,0,0);
+  }
+  .proof-panel {
+    flex: 0 0 100vw;
+    width: 100vw;
+    min-height: 100svh;
+    height: 100svh;
+    padding: clamp(46px, 6.5svh, 66px) 5vw calc(var(--phrase-lane) + 12px);
+  }
+  .proof-panel .journey-copy {
+    width: 90vw;
+    max-width: 90vw;
+    margin: 0;
+  }
+  .proof-panel .journey-copy h2 {
+    margin: 12px 0;
+    font-size: clamp(34px, 8.8vw, 54px);
+    line-height: .92;
+  }
+  .proof-panel .journey-copy p { max-width: 88vw; font-size: clamp(12px, 3vw, 15px); line-height: 1.42; }
+  .proof-panel .proof-character {
+    right: -5%;
+    bottom: var(--phrase-lane);
+    width: 67vw;
+    height: 54%;
+  }
+  .proof-panel .scan-card {
+    left: 4vw;
+    bottom: calc(var(--phrase-lane) + 12px);
+    width: 57vw;
+    padding: 12px;
+  }
+  .proof-panel .scan-card p { font-size: 12px; }
+  .proof-panel--validate .validation-character { right: -12%; width: 78vw; }
+  .validation-stamp { right: 7%; top: 51%; width: 92px; padding: 12px; }
+  .validation-stamp strong { font-size: 10px; }
+  .validation-stamp i { font-size: 24px; }
+  .proof-panel .evidence-bars {
+    left: 4vw;
+    bottom: calc(var(--phrase-lane) + 12px);
+    width: 55vw;
+    padding: 11px;
+  }
+  .profile-proof .profile-character { right: -8%; width: 68vw; }
+  .profile-network { right: 20%; bottom: calc(var(--phrase-lane) + 12px); width: 76vw; }
+  .proof-panel--act .action-character { right: -4%; width: 43vw; height: 50%; }
+  .proof-panel--act .action-transform {
+    left: 4vw;
+    right: auto;
+    bottom: calc(var(--phrase-lane) + 14px);
+    width: 88vw;
+    gap: 5px;
+  }
+  .action-transform > div { min-height: 118px; padding: 11px; border-radius: 13px; }
+  .action-transform strong { margin: 10px 0 7px; font-size: 13px; }
+  .action-transform span { font-size: 7px; }
+  .action-transform > b { font-size: 17px; }
+
+  /* Scene 9: leadership has a left analytics lane and a right character lane. */
+  .lead-map { left: 4vw; right: auto; top: 48%; width: 58vw; }
+  .leader-character { right: -1vw; bottom: var(--phrase-lane); width: 38vw; height: 51%; }
+  .lead-gauges .radial-gauge { width: clamp(52px, 14vw, 72px); }
+  .lead-gauges { gap: 6px; margin-bottom: 7px; }
+  .class-grid { gap: 4px; }
+  .class-grid > div { min-height: 54px; padding: 6px; }
+  .class-grid span { font-size: 10px; }
+  .class-grid small { margin: 3px 0 7px; font-size: 4px; }
+
+  /* Finale: heading, all five programs, and CTA are one complete viewport. */
+  .vault-scene {
+    min-height: 100svh;
+    height: 100svh;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: clamp(4px, 1svh, 9px);
+    padding: clamp(18px, 3svh, 30px) 4vw max(12px, env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+  .vault-heading .journey-copy { width: 92vw; }
+  .vault-heading .journey-kicker { font-size: 6px; }
+  .vault-heading .journey-kicker span { width: 25px; height: 25px; }
+  .vault-heading .journey-copy h2 {
+    margin: clamp(6px, 1svh, 10px) 0;
+    font-size: clamp(32px, 8.2vw, 48px);
+    line-height: .89;
+  }
+  .vault-heading .journey-copy p {
+    max-width: 90vw;
+    font-size: clamp(9px, 2.45vw, 12px);
+    line-height: 1.35;
+  }
+  .vault-system {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    margin: 0;
+  }
+  .vault-rings { width: min(42vw, 190px); }
+  .vault-core { width: min(18vw, 82px); }
+  .vault-module {
+    width: 43%;
+    min-height: clamp(48px, 8svh, 66px);
+    padding: 6px 7px;
+    gap: 6px;
+    border-radius: 11px;
+  }
+  .vault-module img { width: clamp(30px, 8vw, 40px); height: clamp(30px, 8vw, 40px); }
+  .vault-module strong { font-size: clamp(9px, 2.5vw, 12px); }
+  .vault-module span { display: none; }
+  .vault-module--1 { left: 0; top: 19%; }
+  .vault-module--2 { left: 0; bottom: 8%; }
+  .vault-module--3 { right: 0; top: 19%; }
+  .vault-module--4 { right: 0; bottom: 8%; }
+  .vault-module--5 { left: 50%; top: 0; width: 50%; translate: -50% 0; }
+  .vault-finale { min-height: 72px; justify-content: flex-start; }
+  .vault-finale p { margin: 0; font-size: clamp(7px, 2vw, 9px); }
+  .vault-finale > strong { font-size: clamp(17px, 4.8vw, 23px); }
+  .vault-finale a { margin-top: 5px; padding: 9px 13px; font-size: 6px; }
+}
+
+@media (max-width: 420px) {
+  .role-tag { top: 4%; }
+  .role-tag--teacher { left: 15%; }
+  .role-tag--student { left: 37%; }
+  .role-tag--leader { left: 68%; }
+  .role-tag--parent { left: 85%; }
+  .forge-panel { width: 58vw; }
+  .teacher-main { width: 38vw; }
+  .mission-route { transform: scale(.72); }
+  .war-score { left: 2%; right: 2%; }
+  .proof-panel .proof-character { height: 51%; }
+  .lead-map { width: 59vw; }
+  .leader-character { width: 37vw; }
+}
