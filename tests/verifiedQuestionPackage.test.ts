@@ -7,8 +7,9 @@ const importerMigration = readFileSync('supabase/migrations/20260815120000_verif
 const repairMigration = readFileSync('supabase/migrations/20260815121000_repair_verified_question_bank.sql', 'utf8');
 const curriculumMigration = readFileSync('supabase/migrations/20260815122000_brain_heist_curriculum_2026_2.sql', 'utf8');
 const releaseIndexMigration = readFileSync('supabase/migrations/20260815123000_index_verified_question_release_framework.sql', 'utf8');
+const grade12CurriculumMigration = readFileSync('supabase/migrations/20260815124000_brains_heist_curriculum_2026_3.sql', 'utf8');
 
-test('first verified question package passes its quality and balance validator', () => {
+test('all verified question packages pass their quality and balance profiles', () => {
   const result = spawnSync(process.execPath, ['scripts/validate-verified-question-package.mjs'], {
     cwd: process.cwd(), encoding: 'utf8',
   });
@@ -17,6 +18,8 @@ test('first verified question package passes its quality and balance validator',
   for (const subject of ['Chemistry 20', 'English 20', 'Biology 20', 'Travel & Tourism 20']) {
     assert.match(result.stdout, new RegExp(subject.replace(/[&]/g, '\\&')));
   }
+  assert.match(result.stdout, /brain-heist-g12-core-2026-3@2026\.3\.0 passed/);
+  assert.match(result.stdout, /Physics 20/);
 });
 
 test('verified importer is atomic, idempotent and service-role only', () => {
@@ -57,6 +60,21 @@ test('2026.2 curriculum is a new immutable snapshot with the four required scope
   assert.match(curriculumMigration, /status = 'approved'/);
   assert.match(curriculumMigration, /status = 'published'/);
   assert.match(curriculumMigration, /extensions\.digest/);
+});
+
+test('2026.3 curriculum immutably adds the four Grade 12 core scopes', () => {
+  assert.match(grade12CurriculumMigration, /version_code = '2026-2'/);
+  assert.match(grade12CurriculumMigration, /'2026-3'/);
+  for (const scope of ['chemistry-grade-12', 'biology-grade-12', 'english-grade-12', 'physics-grade-12']) {
+    assert.match(grade12CurriculumMigration, new RegExp(scope));
+  }
+  for (const objective of ['chem12-quantitative-equilibria', 'bio12-molecular-genetics', 'eng12-close-reading', 'phys12-mechanics']) {
+    assert.match(grade12CurriculumMigration, new RegExp(objective));
+  }
+  assert.match(grade12CurriculumMigration, /status = 'in_review'/);
+  assert.match(grade12CurriculumMigration, /status = 'approved'/);
+  assert.match(grade12CurriculumMigration, /status = 'published'/);
+  assert.match(grade12CurriculumMigration, /extensions\.digest/);
 });
 
 test('verified importer CLI refuses missing service-role credentials and production confirmation', () => {

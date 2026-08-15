@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "packageId": "brain-heist-g12-core-2026-3",
+  "packageVersion": "2026.3.0",
+  "contentVersion": "brain-heist-2026-3",
+  "authority": "Brains Heist Academic Governance",
+  "releaseNotes": "Second production package with 80 original, explained and curriculum-mapped Grade 12 questions across Chemistry, Biology, English and Physics.",
+  "curriculum": {
+    "frameworkCode": "brain-heist-international",
+    "versionCode": "2026-3"
+  },
+  "files": [
+    "chemistry-grade-12.json",
+    "biology-grade-12.json",
+    "english-grade-12.json",
+    "physics-grade-12.json"
+  ]
+}
