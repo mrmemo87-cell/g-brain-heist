@@ -37,6 +37,22 @@ const TeachersTab: React.FC = () => {
   const assignmentClasses = React.useMemo(() => activeClasses.filter((schoolClass: any) => assignmentGradeLevel && String(schoolClass.grade_level) === assignmentGradeLevel), [activeClasses, assignmentGradeLevel]);
   const filterClasses = React.useMemo(() => activeClasses.filter((schoolClass: any) => !filterGradeLevel || String(schoolClass.grade_level) === filterGradeLevel), [activeClasses, filterGradeLevel]);
   const availableTeachers = React.useMemo(() => getAssignableTeachers(teachers || []), [teachers]);
+  const teacherFilterOptions = React.useMemo(() => {
+    const options = new Map<string, { user_id: string; username: string; email: string; can_teach: boolean; role_in_school: string; is_owner: boolean }>();
+    availableTeachers.forEach((teacher: any) => options.set(teacher.user_id, teacher));
+    (teacherAssignments || []).forEach((assignment: any) => {
+      if (!assignment.teacher_user_id || options.has(assignment.teacher_user_id)) return;
+      options.set(assignment.teacher_user_id, {
+        user_id: assignment.teacher_user_id,
+        username: assignment.teacher_name || assignment.teacher_username || 'Unknown teacher',
+        email: assignment.teacher_email || '',
+        can_teach: Boolean(assignment.teacher_can_teach),
+        role_in_school: 'teacher',
+        is_owner: false,
+      });
+    });
+    return Array.from(options.values()).sort((left, right) => left.username.localeCompare(right.username));
+  }, [availableTeachers, teacherAssignments]);
   const currentYear = academicSetup?.years.find((year) => year.status === 'current') || academicSetup?.years[0];
   const currentOfferings = React.useMemo(() => (academicSetup?.offerings || []).filter((offering) => !currentYear || offering.academicYearId === currentYear.id), [academicSetup?.offerings, currentYear]);
   const selectedClassGradeLevel = activeClasses.find((schoolClass: any) => schoolClass.id === assignmentClassId)?.grade_level;
@@ -72,7 +88,7 @@ const TeachersTab: React.FC = () => {
   const sortedAssignments = React.useMemo(() => {
     const rows = (teacherAssignments || []).filter((assignment: any) => {
       const schoolClass = classById[assignment.class_id];
-      if (filterGradeLevel && String(schoolClass?.grade_level ?? '') !== filterGradeLevel) return false;
+      if (filterGradeLevel && String(schoolClass?.grade_level ?? assignment.grade_level ?? '') !== filterGradeLevel) return false;
       if (filterClassId && assignment.class_id !== filterClassId) return false;
       if (filterSubject && assignment.subject !== filterSubject) return false;
       if (filterTeacherId && assignment.teacher_user_id !== filterTeacherId) return false;
@@ -88,7 +104,7 @@ const TeachersTab: React.FC = () => {
         academic_year: [String(leftClass?.grade_level ?? ''), String(rightClass?.grade_level ?? '')],
         class: [leftClass?.class_code || '', rightClass?.class_code || ''],
         subject: [left.subject || '', right.subject || ''],
-        teacher: [leftTeacher?.username || '', rightTeacher?.username || ''],
+        teacher: [left.teacher_name || leftTeacher?.username || '', right.teacher_name || rightTeacher?.username || ''],
         assigned_at: [left.assigned_at || '', right.assigned_at || ''],
       };
       return values[sortKey][0].localeCompare(values[sortKey][1], undefined, { numeric: true }) * direction;
@@ -111,7 +127,7 @@ const TeachersTab: React.FC = () => {
     const rows = sortedAssignments.map((assignment: any, index: number) => {
       const schoolClass = classById[assignment.class_id];
       const teacher = teachers.find((item: any) => item.user_id === assignment.teacher_user_id);
-      return `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(schoolClass?.grade_level ?? '—')}</td><td>${escapeSchoolDocumentHtml(schoolClass?.class_code || 'Unknown')}</td><td>${escapeSchoolDocumentHtml(schoolClass?.class_name || '—')}</td><td>${escapeSchoolDocumentHtml(assignment.subject)}</td><td>${escapeSchoolDocumentHtml(teacher?.username || 'Unknown teacher')}</td><td>${escapeSchoolDocumentHtml(formatAdminDate(assignment.assigned_at))}</td></tr>`;
+      return `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(schoolClass?.grade_level ?? assignment.grade_level ?? '—')}</td><td>${escapeSchoolDocumentHtml(schoolClass?.class_code || assignment.class_code || 'Unknown')}</td><td>${escapeSchoolDocumentHtml(schoolClass?.class_name || assignment.class_name || '—')}</td><td>${escapeSchoolDocumentHtml(assignment.subject)}</td><td>${escapeSchoolDocumentHtml(assignment.teacher_name || teacher?.username || 'Unknown teacher')}</td><td>${escapeSchoolDocumentHtml(formatAdminDate(assignment.assigned_at))}</td></tr>`;
     }).join('');
     try {
       openSchoolDocumentPreview({
@@ -134,7 +150,7 @@ const TeachersTab: React.FC = () => {
         <label><span>Grade level</span><select aria-label="Filter assignments by grade level" value={filterGradeLevel} onChange={(event) => { setFilterGradeLevel(event.target.value); setFilterClassId(''); setFilterSubject(''); }}><option value="">All grade levels</option>{gradeLevels.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select></label>
         <label><span>Class</span><select aria-label="Filter assignments by class" value={filterClassId} onChange={(event) => { setFilterClassId(event.target.value); setFilterSubject(''); }}><option value="">All classes</option>{filterClasses.map((schoolClass: any) => <option key={schoolClass.id} value={schoolClass.id}>{schoolClass.class_code}</option>)}</select></label>
         <label><span>Subject</span><select aria-label="Filter assignments by subject" value={filterSubject} onChange={(event) => setFilterSubject(event.target.value)}><option value="">All subjects</option>{subjectOptions.map((subject) => <option key={String(subject)} value={String(subject)}>{String(subject)}</option>)}</select></label>
-        <label><span>Teacher</span><select aria-label="Filter assignments by teacher" value={filterTeacherId} onChange={(event) => setFilterTeacherId(event.target.value)}><option value="">All teachers</option>{availableTeachers.map((teacher: any) => <option key={teacher.user_id} value={teacher.user_id}>{formatAssignableTeacherLabel(teacher)}</option>)}</select></label>
+        <label><span>Teacher</span><select aria-label="Filter assignments by teacher" value={filterTeacherId} onChange={(event) => setFilterTeacherId(event.target.value)}><option value="">All teachers</option>{teacherFilterOptions.map((teacher: any) => <option key={teacher.user_id} value={teacher.user_id}>{formatAssignableTeacherLabel(teacher)}</option>)}</select></label>
         <label><span>Rows</span><select aria-label="Assignments per page" value={assignmentPageSize} onChange={(event) => setAssignmentPageSize(Number(event.target.value))}><option value={5}>5 rows</option><option value={10}>10 rows</option><option value={20}>20 rows</option></select></label>
       </div>
       {pagedAssignments.length ? <div className="admin-table-scroll"><table>
@@ -142,8 +158,15 @@ const TeachersTab: React.FC = () => {
         <tbody>{pagedAssignments.map((assignment: any) => {
           const schoolClass = classById[assignment.class_id];
           const teacher = teachers.find((item: any) => item.user_id === assignment.teacher_user_id);
-          return <tr key={assignment.id}><td>{schoolClass?.grade_level != null ? `Grade ${schoolClass.grade_level}` : 'Not set'}</td><td><strong>{schoolClass?.class_code || 'Unknown class'}</strong><span className="admin-table-subline">{schoolClass?.class_name || 'Class record unavailable'}</span></td><td>{assignment.subject}</td><td><strong>{teacher?.username || 'Unknown teacher'}</strong>{teacher?.email && <span className="admin-table-subline">{teacher.email}</span>}</td><td>{formatAdminDate(assignment.assigned_at)}</td><td className="admin-row-actions"><button className="admin-button-danger admin-button-small" onClick={() => {
-            setConfirmReason(''); setConfirmDialog({ title: 'Delete teaching assignment?', description: `Remove ${teacher?.username || 'this teacher'} from ${assignment.subject} in ${schoolClass?.class_code || 'this class'}? The class and user accounts will remain unchanged.`, confirmLabel: 'Delete assignment', cancelLabel: 'Keep assignment', isDestructive: true, onConfirm: async () => {
+          const teacherName = assignment.teacher_name || teacher?.username || 'Unknown teacher';
+          const teacherEmail = assignment.teacher_email || teacher?.email || '';
+          const classCode = schoolClass?.class_code || assignment.class_code || 'Unknown class';
+          const className = schoolClass?.class_name || assignment.class_name || 'Class record unavailable';
+          const gradeLevel = schoolClass?.grade_level ?? assignment.grade_level;
+          const teacherUnavailable = assignment.teacher_membership_status != null
+            && (assignment.teacher_membership_status !== 'active' || !assignment.teacher_can_teach);
+          return <tr key={assignment.id}><td>{gradeLevel != null ? `Grade ${gradeLevel}` : 'Not set'}</td><td><strong>{classCode}</strong><span className="admin-table-subline">{className}</span></td><td>{assignment.subject}</td><td><strong>{teacherName}</strong>{teacherEmail && <span className="admin-table-subline">{teacherEmail}</span>}{teacherUnavailable && <span className="admin-table-subline text-amber-700">Assignment needs staff-status review</span>}</td><td>{formatAdminDate(assignment.assigned_at)}</td><td className="admin-row-actions"><button className="admin-button-danger admin-button-small" onClick={() => {
+            setConfirmReason(''); setConfirmDialog({ title: 'Delete teaching assignment?', description: `Remove ${teacherName} from ${assignment.subject} in ${classCode}? The class and user accounts will remain unchanged.`, confirmLabel: 'Delete assignment', cancelLabel: 'Keep assignment', isDestructive: true, onConfirm: async () => {
               const result = await SchoolAdminService.deleteTeacherAssignment(assignment.id, school?.id);
               if (result.success) { addToast('Teaching assignment deleted', 'success'); if (school) await loadAdminTools(school.id); }
               else addToast(friendlySchoolAdminError(result.error, 'The teaching assignment could not be deleted. Please try again.'), 'error');

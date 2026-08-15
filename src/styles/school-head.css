@@ -152,7 +152,23 @@
 .school-head-decision span { color: #8297aa; font-size: .55rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .school-head-decision h3 { margin: .25rem 0 .35rem; color: #e9f4fc; font-size: .87rem; }
 .school-head-decision p { margin: 0; color: #8297aa; font-size: .68rem; line-height: 1.5; }
+.school-head-decision-meta { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .65rem; }
+.school-head-decision-meta small { padding: .28rem .45rem; border: 1px solid var(--head-border); border-radius: 999px; color: #9db2c4; background: rgba(255,255,255,.025); font-size: .56rem; }
+.school-head-decision .school-head-decision-why { margin-top: .65rem; color: #a8bac9; }
+.school-head-decision-why strong { color: #dce9f2; }
+.school-head-decision-affected { display: grid; gap: .35rem; margin-top: .7rem; }
+.school-head-decision-affected > div { padding: .5rem .6rem; border-left: 2px solid rgba(27,196,220,.45); border-radius: .3rem; background: rgba(9,20,34,.5); }
+.school-head-decision-affected strong, .school-head-decision-affected small { display: block; }
+.school-head-decision-affected strong { color: #dce9f2; font-size: .64rem; }
+.school-head-decision-affected small { margin-top: .15rem; color: #8198aa; font-size: .57rem; }
+.school-head-decision .school-head-decision-notification { margin-top: .65rem; color: #65b8c8; font-size: .58rem; font-weight: 700; }
 .school-head-decision button { grid-column: 1 / -1; display: flex; justify-content: space-between; padding: .7rem 0 0; border: 0; border-top: 1px solid var(--head-border); color: var(--head-cyan); background: transparent; font-size: .65rem; font-weight: 750; }
+.school-head-notification-policy { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .65rem; padding: 1rem; border: 1px solid var(--head-border); border-radius: .9rem; background: rgba(13,27,44,.62); }
+.school-head-notification-policy > div { padding: .7rem; border-radius: .65rem; background: rgba(255,255,255,.025); }
+.school-head-notification-policy strong, .school-head-notification-policy span { display: block; }
+.school-head-notification-policy strong { color: #e6f3fb; font-size: .66rem; }
+.school-head-notification-policy span, .school-head-notification-policy p { color: #8297aa; font-size: .59rem; line-height: 1.45; }
+.school-head-notification-policy p { grid-column: 1 / -1; margin: 0; }
 .school-head-assurance { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
 .school-head-assurance > div { padding: 1rem; border: 1px solid var(--head-border); border-radius: .85rem; background: rgba(13, 27, 44, .62); }
 .school-head-assurance span { color: #5fd7bd; font-size: .56rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
@@ -322,7 +338,8 @@
   .school-head-briefing, .school-head-page-heading { align-items: flex-start; flex-direction: column; gap: 1rem; padding: 1.2rem; }
   .school-head-briefing-score, .school-head-trend { width: 100%; text-align: left; }
   .school-head-metric-grid, .school-head-metric-grid-four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .school-head-overview-grid, .school-head-two-column, .school-head-decision-list, .school-head-structure-grid, .school-head-assurance, .school-head-governance-summary { grid-template-columns: 1fr; }
+  .school-head-overview-grid, .school-head-two-column, .school-head-decision-list, .school-head-structure-grid, .school-head-assurance, .school-head-governance-summary, .school-head-notification-policy { grid-template-columns: 1fr; }
+  .school-head-notification-policy p { grid-column: 1; }
   .school-head-program-strip > div:last-child, .school-head-admission-summary > div:last-child { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .school-head-program-strip article:nth-child(2) { border-right: 0; }
   .school-head-grade-header { display: none; }
@@ -475,6 +492,17 @@
   background: #fff;
   box-shadow: 0 12px 32px rgba(42, 62, 82, .07);
 }
+.school-head-notification-policy { background: #fff; box-shadow: 0 12px 32px rgba(42, 62, 82, .07); }
+.school-head-notification-policy > div,
+.school-head-decision-affected > div { background: #f7fafc; }
+.school-head-decision-meta small { color: #52697d; background: #f8fafc; }
+.school-head-decision-affected strong,
+.school-head-decision-why strong,
+.school-head-notification-policy strong { color: var(--head-ink); }
+.school-head-decision-affected small,
+.school-head-notification-policy span,
+.school-head-notification-policy p { color: var(--head-muted); }
+.school-head-decision .school-head-decision-notification { color: #087f96; }
 .school-head-profile > div,
 .school-head-heading-count,
 .school-head-exclusive {

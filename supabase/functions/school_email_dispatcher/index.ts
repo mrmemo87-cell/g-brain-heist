@@ -54,6 +54,11 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
   const status = cleanText(payload.status, 80).replaceAll("_", " ");
   const attemptType = cleanText(payload.attempt_type, 30) || "IELTS";
   const role = cleanText(payload.role, 60).replaceAll("_", " ");
+  const decisionAlerts = Array.isArray(payload.alerts)
+    ? payload.alerts.slice(0, 10).flatMap((value): Array<Record<string, unknown>> => (
+      value && typeof value === "object" && !Array.isArray(value) ? [value as Record<string, unknown>] : []
+    ))
+    : [];
 
   switch (row.template_key) {
     case "school_request_status":
@@ -245,6 +250,20 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
         intro: "Review your plan and billing details before the next period begins.",
         details: [{ label: "Plan", value: cleanText(payload.plan, 80) }, { label: "Renewal date", value: fmt(payload.period_end) }],
         action: { label: "Review billing", url: cleanText(payload.management_url, 1500) || appRoute("/") },
+      };
+    case "school_head_decision_digest":
+      return {
+        subject: `${payload.has_critical === true ? "Action required" : "Decision Center update"} | ${schoolName} × Brains Heist`,
+        preview: `${cleanText(payload.alert_count, 10) || decisionAlerts.length} school leadership item(s) need attention.`,
+        kicker: payload.has_critical === true ? "School Head · action required" : "School Head · decision digest",
+        headline: payload.has_critical === true ? "Important school decisions need your attention" : "Your Decision Center has new priorities",
+        intro: "Open the protected School Head workspace for the complete school-scoped evidence and recommended action. Sensitive student and staff details stay inside Brains Heist.",
+        details: decisionAlerts.map((alert) => ({
+          label: `${cleanText(alert.severity, 20).toUpperCase()} · ${cleanText(alert.title, 140)}`,
+          value: `${cleanText(alert.count, 10) || "1"} affected`,
+        })),
+        action: { label: "Open Decision Center", url: appRoute("/?view=school_head&headTab=decisions") },
+        note: "Resolved alerts close automatically. Reminder emails are deduplicated and follow the school leadership notification cadence.",
       };
     case "demo_request_confirmation":
       return {
