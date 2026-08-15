@@ -3,22 +3,18 @@ import { buildMetaUserData, sendMetaCapiEvent } from '../_shared/metaCapiClient.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 
 // ============================================================================
-// Paddle Edge Function — School Subscription Checkout + Webhook
+// Paddle Edge Function — IELTS Prime checkout + legacy billing webhooks
 // ============================================================================
 // Routes:
-//   POST /paddle/create-checkout   — school admin → Paddle checkout URL
+//   POST /paddle/create-checkout   — retired school-tier checkout (HTTP 410)
 //   POST /paddle/webhook           — Paddle → updates subscription in DB
 //   POST /paddle/get-portal-url    — returns Paddle subscription management URL
 //
 // Env vars required:
 //   PADDLE_API_KEY              — Paddle API key (live or sandbox)
 //   PADDLE_WEBHOOK_SECRET       — Paddle webhook signature secret (pdl_ntfset_xxx)
-//   PADDLE_PRICE_CORE_MONTHLY   — Paddle price ID (pri_xxx)
-//   PADDLE_PRICE_CORE_YEARLY
-//   PADDLE_PRICE_STANDARD_MONTHLY
-//   PADDLE_PRICE_STANDARD_YEARLY
-//   PADDLE_PRICE_PRO_MONTHLY
-//   PADDLE_PRICE_PRO_YEARLY
+//   PADDLE_PRICE_{CORE,STANDARD,PRO}_{MONTHLY,YEARLY}
+//                                 — legacy webhook reconciliation only
 //   PADDLE_PRICE_IELTS_PRIME_MONTHLY
 //   PADDLE_PRICE_IELTS_PRIME_QUARTERLY
 //   PADDLE_PRICE_IELTS_PRIME_YEARLY
@@ -238,111 +234,15 @@ async function downgradeIeltsPrimeUserIfNeeded(
 }
 
 // ─────────────────────────────────────────────────
-// ROUTE: POST /paddle/create-checkout
-// Body: { plan: 'core'|'standard'|'pro', interval: 'monthly'|'yearly' }
+// ROUTE: POST /paddle/create-checkout (retired)
 // ─────────────────────────────────────────────────
 async function handleCreateCheckout(req: Request): Promise<Response> {
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
-    return jsonResponse(401, { error: "Not authenticated" });
-  }
-
-  const supabase = getSupabaseFromAuth(authHeader);
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return jsonResponse(401, { error: "Invalid session" });
-  }
-
-  const body = await req.json().catch(() => ({}));
-  const plan: string = body.plan || "core";
-  const interval: string = body.interval || "monthly";
-
-  // Validate plan
-  if (!["core", "standard", "pro"].includes(plan)) {
-    return jsonResponse(400, {
-      error: `Invalid plan: ${plan}. Use core, standard, or pro.`,
-    });
-  }
-
-  if (!["monthly", "yearly"].includes(interval)) {
-    return jsonResponse(400, { error: `Invalid interval: ${interval}` });
-  }
-
-  // Resolve Paddle price ID
-  const priceKey = `PADDLE_PRICE_${plan.toUpperCase()}_${interval.toUpperCase()}`;
-  const priceId = Deno.env.get(priceKey);
-  if (!priceId) {
-    return jsonResponse(500, { error: `Price not configured: ${priceKey}` });
-  }
-
-  // Billing authority belongs to the one active School Head, not every school admin.
-  const admin = getSupabaseAdmin();
-  const head = await requireSchoolHead(admin, user.id);
-  if (!head) {
-    return jsonResponse(403, {
-      error: "Only the active School Head can change school billing.",
-    });
-  }
-
-  // Prevent duplicate active subscriptions
-  const { data: existingSub } = await admin
-    .from("billing_subscriptions")
-    .select("id, status, provider")
-    .eq("school_id", head.schoolId)
-    .in("status", ["active", "trialing"])
-    .limit(1)
-    .single();
-
-  if (existingSub) {
-    return jsonResponse(409, {
-      error: "This school already has an active subscription. Manage it from the billing page.",
-    });
-  }
-
-  const appUrl = Deno.env.get("APP_URL") || "https://www.brainsheist.com";
-
-  // Build custom_data for webhook passthrough
-  const customData = {
-    school_id: head.schoolId,
-    purchased_by: user.id,
-    plan,
-    module_keys: ["core"],
-  };
-
-  // Create Paddle Checkout (Paddle Billing — transaction-based)
-  const transaction = (await paddleRequest("/transactions", {
-    items: [
-      {
-        price_id: priceId,
-        quantity: 1,
-      },
-    ],
-    customer_email: user.email || undefined,
-    custom_data: customData,
-    checkout: {
-      url: `${appUrl}?upgrade=success`,
-    },
-    // Paddle's success/return URLs are set at checkout level
-  })) as { data: { id: string; checkout?: { url: string } } };
-
-  // Paddle returns a checkout URL in the transaction response
-  const checkoutUrl = transaction?.data?.checkout?.url;
-  if (!checkoutUrl) {
-    // Fallback: build Paddle hosted checkout URL manually
-    return jsonResponse(200, {
-      success: true,
-      checkout_url: `${getPaddleBaseUrl().replace("api", "checkout")}/transactions/${transaction.data.id}`,
-      transaction_id: transaction.data.id,
-    });
-  }
-
-  return jsonResponse(200, {
-    success: true,
-    checkout_url: checkoutUrl,
-    transaction_id: transaction.data.id,
+  // Consume the body so callers that reuse a keep-alive connection receive a
+  // clean response, but never create a transaction for legacy school tiers.
+  await req.json().catch(() => ({}));
+  return jsonResponse(410, {
+    error: "Fixed school tiers have been retired. Build and request a package in School Admin > Plan & Billing.",
+    billing_path: "/?view=school_admin&adminTab=billing",
   });
 }
 
@@ -1167,7 +1067,7 @@ serve(async (req: Request) => {
       if (isSchoolCheckoutBody(body)) {
         return await handleCreateCheckout(req);
       }
-      return jsonResponse(400, { error: "Unknown Paddle checkout request. Expected IELTS Prime checkout or school subscription checkout." });
+      return jsonResponse(400, { error: "Unknown Paddle checkout request. Expected an IELTS Prime checkout." });
     }
 
     if (req.method === "POST" && path === "/webhook") {
