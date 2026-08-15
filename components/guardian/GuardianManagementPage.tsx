@@ -54,16 +54,23 @@ const GuardianManagementPage: React.FC = () => {
   const schoolName = context?.school.name || 'Your school';
 
   const createInvite = async (event: React.FormEvent) => {
-    event.preventDefault(); setBusy(true); setError(null); setMessage(null); setGeneratedLink(null); setGeneratedEmail(null);
+    event.preventDefault();
+    const recipientEmail = email.trim().toLowerCase();
+    const studentName = selectedStudent?.student_name || 'this student';
+    const confirmed = window.confirm(
+      `Send a secure parent invitation by email?\n\nTo: ${recipientEmail}\nStudent: ${studentName}\nFrom: ${schoolName} × ${PRODUCT_NAME}\n\nThe email will be queued automatically as soon as you confirm.`
+    );
+    if (!confirmed) return;
+
+    setBusy(true); setError(null); setMessage(null); setGeneratedLink(null); setGeneratedEmail(null);
     try {
-      const result = await createGuardianInvitation({ studentId, email, relationshipLabel: relationship });
+      const result = await createGuardianInvitation({ studentId, email: recipientEmail, relationshipLabel: relationship });
       const url = new URL('/parent-portal.html', window.location.origin); url.searchParams.set('invite', result.token);
       const link = url.toString();
-      const studentName = selectedStudent?.student_name || 'your child';
       const invitationMessage = `${schoolName} has invited you to securely follow ${studentName}’s academic progress through ${PRODUCT_NAME}.\n\nYou’ll be able to see school-approved marks, subject progress, strengths and areas where support may be needed. Private staff notes are never shared.\n\nOpen your secure invitation:\n${link}\n\nPlease use the same email address this invitation was sent to: ${result.invited_email}\n\nThis invitation is time-limited and can be withdrawn by ${schoolName}.`;
       setGeneratedLink(link);
       setGeneratedEmail(invitationMessage);
-      setMessage(`Secure ${schoolName} × ${PRODUCT_NAME} invitation queued for email to ${result.invited_email}. The copy buttons below are a backup if you also want to share it manually.`);
+      setMessage(`Secure ${schoolName} × ${PRODUCT_NAME} invitation queued for automatic email delivery to ${result.invited_email}. The copy buttons below are only a backup.`);
       setEmail('');
       const refreshed = await getGuardianManagementSnapshot(); setData(refreshed);
     } catch (e) { setError(safeMessage(e, 'We could not create or queue the parent invitation just now. Please check the details and try again.')); }
@@ -98,12 +105,13 @@ const GuardianManagementPage: React.FC = () => {
       <article className="guardian-invite-card">
         <span className="guardian-card-eyebrow">1 · Create access</span>
         <h2>Email a secure parent invitation</h2>
-        <p className="guardian-admin-note">The school approves who may see a child. When you create the invitation, a school × {PRODUCT_NAME} email is queued automatically. The parent then creates or signs into their own secure account with the exact invited email address.</p>
+        <p className="guardian-admin-note">The school approves who may see a child. When you create the invitation, a school × {PRODUCT_NAME} email is queued automatically. You will see a final confirmation with the exact recipient before anything is sent.</p>
         <form onSubmit={createInvite}>
           <label>Selected student<input readOnly value={selectedStudent ? `${selectedStudent.student_name} · ${selectedStudent.grade ? `Grade ${selectedStudent.grade} · ` : ''}Class ${selectedStudent.class_name || '—'}` : 'Choose the student above'} /></label>
           <label>Parent / guardian email<input required type="email" disabled={!studentId} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="parent@example.com" /></label>
           <label>Relationship<select value={relationship} disabled={!studentId} onChange={(e) => setRelationship(e.target.value)}><option>Parent / Guardian</option><option>Mother</option><option>Father</option><option>Guardian</option><option>Carer</option></select></label>
-          <button disabled={busy || !studentId}>{busy ? 'Creating & queuing email…' : 'Create & email secure invitation'}</button>
+          {studentId && email.trim() ? <p className="guardian-admin-note"><strong>Email delivery:</strong> clicking the button below will first ask you to confirm automatic delivery to <strong>{email.trim()}</strong>.</p> : null}
+          <button disabled={busy || !studentId}>{busy ? 'Creating & queuing email…' : 'Review & send secure invitation'}</button>
         </form>
       </article>
 
