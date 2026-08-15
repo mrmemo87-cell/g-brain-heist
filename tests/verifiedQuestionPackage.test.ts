@@ -8,6 +8,7 @@ const repairMigration = readFileSync('supabase/migrations/20260815121000_repair_
 const curriculumMigration = readFileSync('supabase/migrations/20260815122000_brain_heist_curriculum_2026_2.sql', 'utf8');
 const releaseIndexMigration = readFileSync('supabase/migrations/20260815123000_index_verified_question_release_framework.sql', 'utf8');
 const grade12CurriculumMigration = readFileSync('supabase/migrations/20260815124000_brains_heist_curriculum_2026_3.sql', 'utf8');
+const grade11CompletionMigration = readFileSync('supabase/migrations/20260815125000_brains_heist_curriculum_2026_4.sql', 'utf8');
 
 test('all verified question packages pass their quality and balance profiles', () => {
   const result = spawnSync(process.execPath, ['scripts/validate-verified-question-package.mjs'], {
@@ -20,6 +21,7 @@ test('all verified question packages pass their quality and balance profiles', (
   }
   assert.match(result.stdout, /brain-heist-g12-core-2026-3@2026\.3\.0 passed/);
   assert.match(result.stdout, /Physics 20/);
+  assert.match(result.stdout, /brain-heist-g11-completion-2026-4@2026\.4\.0 passed/);
 });
 
 test('verified importer is atomic, idempotent and service-role only', () => {
@@ -75,6 +77,19 @@ test('2026.3 curriculum immutably adds the four Grade 12 core scopes', () => {
   assert.match(grade12CurriculumMigration, /status = 'approved'/);
   assert.match(grade12CurriculumMigration, /status = 'published'/);
   assert.match(grade12CurriculumMigration, /extensions\.digest/);
+});
+
+test('2026.4 curriculum completes and deepens the four Grade 11 scopes', () => {
+  assert.match(grade11CompletionMigration, /version_code = '2026-3'/);
+  assert.match(grade11CompletionMigration, /'2026-4'/);
+  for (const scope of ['chemistry-grade-11', 'biology-grade-11', 'physics-grade-11', 'travel-tourism-grade-11']) {
+    assert.match(grade11CompletionMigration, new RegExp(scope));
+  }
+  for (const objective of ['chem11-depth-quantitative', 'bio11-depth-cell-processes', 'phys11-measurement-motion', 'tt11-industry-motivation']) {
+    assert.match(grade11CompletionMigration, new RegExp(objective));
+  }
+  assert.match(grade11CompletionMigration, /status = 'published'/);
+  assert.match(grade11CompletionMigration, /extensions\.digest/);
 });
 
 test('verified importer CLI refuses missing service-role credentials and production confirmation', () => {

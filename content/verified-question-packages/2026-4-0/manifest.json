@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "packageId": "brain-heist-g11-completion-2026-4",
+  "packageVersion": "2026.4.0",
+  "contentVersion": "brain-heist-2026-4",
+  "authority": "Brains Heist Academic Governance",
+  "releaseNotes": "Third production package with 80 original Grade 11 questions: first verified Physics and Travel & Tourism sets plus deeper Chemistry and Biology application sets.",
+  "curriculum": {
+    "frameworkCode": "brain-heist-international",
+    "versionCode": "2026-4"
+  },
+  "files": [
+    "chemistry-grade-11-depth.json",
+    "biology-grade-11-depth.json",
+    "physics-grade-11.json",
+    "travel-tourism-grade-11.json"
+  ]
+}

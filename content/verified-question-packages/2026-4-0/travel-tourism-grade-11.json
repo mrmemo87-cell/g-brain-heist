@@ -1,0 +1,668 @@
+{
+  "subject": "Travel & Tourism",
+  "subjectCode": "travel-tourism",
+  "grade": 11,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g11-tt-2026.4-001",
+      "topic": "Industry structure and motivation",
+      "difficulty": "easy",
+      "questionText": "Which tourism sector includes hotels and guesthouses?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Accommodation",
+        "Transportation",
+        "Attractions",
+        "Travel distribution"
+      ],
+      "correctAnswer": "Accommodation",
+      "explanation": "Hotels and guesthouses provide overnight lodging and belong to the accommodation sector.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "industry sectors",
+        "accommodation"
+      ],
+      "curriculum": {
+        "strand": "Industry structure and motivation",
+        "skill": "Apply industry structure and motivation",
+        "subskill": "accommodation",
+        "objective": "Explain tourism-sector relationships and use visitor motivation to interpret demand and product choices."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-industry-motivation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-002",
+      "topic": "Industry structure and motivation",
+      "difficulty": "medium",
+      "questionText": "A visitor travels mainly to relax on a beach and escape work pressure. What is the primary motivation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Business",
+        "Leisure",
+        "Education",
+        "Visiting relatives"
+      ],
+      "correctAnswer": "Leisure",
+      "explanation": "Relaxation and escape are leisure motivations rather than business, study or visiting-friends-and-relatives travel.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "motivation",
+        "leisure tourism"
+      ],
+      "curriculum": {
+        "strand": "Industry structure and motivation",
+        "skill": "Apply industry structure and motivation",
+        "subskill": "leisure tourism",
+        "objective": "Explain tourism-sector relationships and use visitor motivation to interpret demand and product choices."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-industry-motivation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-003",
+      "topic": "Industry structure and motivation",
+      "difficulty": "medium",
+      "questionText": "Which example best shows interdependence in tourism?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A museum changes its logo colour",
+        "A hotel replaces room curtains",
+        "An airline delay disrupts transfers and hotel check-in",
+        "A visitor buys a postcard"
+      ],
+      "correctAnswer": "An airline delay disrupts transfers and hotel check-in",
+      "explanation": "Transport, transfers and accommodation form a connected chain, so failure in one sector affects the others.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "interdependence",
+        "tourism chain"
+      ],
+      "curriculum": {
+        "strand": "Industry structure and motivation",
+        "skill": "Apply industry structure and motivation",
+        "subskill": "tourism chain",
+        "objective": "Explain tourism-sector relationships and use visitor motivation to interpret demand and product choices."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-industry-motivation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-004",
+      "topic": "Industry structure and motivation",
+      "difficulty": "hard",
+      "questionText": "Which condition most reduces a destination’s tourism multiplier effect?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Local farms supplying hotels",
+        "Residents owning tour companies",
+        "Visitors purchasing local crafts",
+        "Hotels importing most supplies and sending profits abroad"
+      ],
+      "correctAnswer": "Hotels importing most supplies and sending profits abroad",
+      "explanation": "Imports and externally transferred profits create leakage, so less visitor spending recirculates through the local economy.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "multiplier effect",
+        "leakage"
+      ],
+      "curriculum": {
+        "strand": "Industry structure and motivation",
+        "skill": "Apply industry structure and motivation",
+        "subskill": "leakage",
+        "objective": "Explain tourism-sector relationships and use visitor motivation to interpret demand and product choices."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-industry-motivation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-005",
+      "topic": "Destination development and impacts",
+      "difficulty": "easy",
+      "questionText": "What is destination carrying capacity?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The number of aircraft using an airport",
+        "The visitor level supportable without unacceptable damage or experience decline",
+        "The maximum price tourists will pay",
+        "The number of hotels owned locally"
+      ],
+      "correctAnswer": "The visitor level supportable without unacceptable damage or experience decline",
+      "explanation": "Carrying capacity concerns the amount and type of use a destination can support before environmental, social or visitor-quality limits are exceeded.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "carrying capacity",
+        "destination management"
+      ],
+      "curriculum": {
+        "strand": "Destination development and impacts",
+        "skill": "Apply destination development and impacts",
+        "subskill": "destination management",
+        "objective": "Analyse carrying capacity, seasonality, lifecycle position and tourism impacts when evaluating destination decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-destination-impacts"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-006",
+      "topic": "Destination development and impacts",
+      "difficulty": "medium",
+      "questionText": "Which is a likely positive economic impact of tourism?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Loss of every traditional occupation",
+        "Guaranteed equal income for all residents",
+        "Creation of jobs and income in connected local businesses",
+        "Permanent removal of seasonal demand"
+      ],
+      "correctAnswer": "Creation of jobs and income in connected local businesses",
+      "explanation": "Visitor spending can support direct and indirect employment and income across accommodation, food, transport and suppliers.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "economic impacts",
+        "employment"
+      ],
+      "curriculum": {
+        "strand": "Destination development and impacts",
+        "skill": "Apply destination development and impacts",
+        "subskill": "employment",
+        "objective": "Analyse carrying capacity, seasonality, lifecycle position and tourism impacts when evaluating destination decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-destination-impacts"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-007",
+      "topic": "Destination development and impacts",
+      "difficulty": "medium",
+      "questionText": "Why can strong seasonality be difficult for a tourism business?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Demand remains identical all year",
+        "Every visitor spends the same amount",
+        "Fixed costs disappear in low season",
+        "Revenue and staffing needs fluctuate sharply across the year"
+      ],
+      "correctAnswer": "Revenue and staffing needs fluctuate sharply across the year",
+      "explanation": "Seasonal peaks and troughs create unstable cash flow, capacity use and employment needs while many fixed costs continue.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "seasonality",
+        "business impacts"
+      ],
+      "curriculum": {
+        "strand": "Destination development and impacts",
+        "skill": "Apply destination development and impacts",
+        "subskill": "business impacts",
+        "objective": "Analyse carrying capacity, seasonality, lifecycle position and tourism impacts when evaluating destination decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-destination-impacts"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-008",
+      "topic": "Destination development and impacts",
+      "difficulty": "hard",
+      "questionText": "A mature destination has falling repeat visits and outdated attractions. Which response best supports responsible renewal?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Diversify products and upgrade them using resident and environmental input",
+        "Maximise visitor numbers without limits",
+        "Remove all local businesses from the centre",
+        "Stop collecting visitor feedback"
+      ],
+      "correctAnswer": "Diversify products and upgrade them using resident and environmental input",
+      "explanation": "Responsible rejuvenation refreshes appeal while involving residents and managing environmental and social constraints.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "destination lifecycle",
+        "rejuvenation"
+      ],
+      "curriculum": {
+        "strand": "Destination development and impacts",
+        "skill": "Apply destination development and impacts",
+        "subskill": "rejuvenation",
+        "objective": "Analyse carrying capacity, seasonality, lifecycle position and tourism impacts when evaluating destination decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-destination-impacts"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-009",
+      "topic": "Customer care and communication",
+      "difficulty": "easy",
+      "questionText": "Which facility most directly improves access for a visitor using a wheelchair?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Decorative lighting",
+        "A premium souvenir shop",
+        "Step-free routes and accessible toilets",
+        "Advertising videos with decorative captions only"
+      ],
+      "correctAnswer": "Step-free routes and accessible toilets",
+      "explanation": "Step-free movement and accessible facilities remove physical barriers and support independent use of the destination.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "accessibility",
+        "visitor needs"
+      ],
+      "curriculum": {
+        "strand": "Customer care and communication",
+        "skill": "Apply customer care and communication",
+        "subskill": "visitor needs",
+        "objective": "Apply inclusive communication and service-recovery principles to meet visitor needs and resolve service failures."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-customer-communication"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-010",
+      "topic": "Customer care and communication",
+      "difficulty": "medium",
+      "questionText": "What is the best first response to a reasonable customer complaint?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Explain immediately why the customer is wrong",
+        "Offer compensation before hearing details",
+        "Transfer the customer repeatedly",
+        "Listen, acknowledge the problem and clarify the desired resolution"
+      ],
+      "correctAnswer": "Listen, acknowledge the problem and clarify the desired resolution",
+      "explanation": "Active listening and clarification show respect, establish facts and allow a proportionate solution.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "complaints",
+        "customer care"
+      ],
+      "curriculum": {
+        "strand": "Customer care and communication",
+        "skill": "Apply customer care and communication",
+        "subskill": "customer care",
+        "objective": "Apply inclusive communication and service-recovery principles to meet visitor needs and resolve service failures."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-customer-communication"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-011",
+      "topic": "Customer care and communication",
+      "difficulty": "medium",
+      "questionText": "Which communication approach is most suitable for visitors with varied language backgrounds?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Use plain language, avoid idioms and confirm understanding",
+        "Speak faster and more loudly in every case",
+        "Provide only dense legal text",
+        "Assume silence means full understanding"
+      ],
+      "correctAnswer": "Use plain language, avoid idioms and confirm understanding",
+      "explanation": "Clear wording, reduced idiom and a respectful understanding check lower avoidable language barriers.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "inclusive communication",
+        "language"
+      ],
+      "curriculum": {
+        "strand": "Customer care and communication",
+        "skill": "Apply customer care and communication",
+        "subskill": "language",
+        "objective": "Apply inclusive communication and service-recovery principles to meet visitor needs and resolve service failures."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-customer-communication"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-012",
+      "topic": "Customer care and communication",
+      "difficulty": "hard",
+      "questionText": "A family’s booked excursion is cancelled at short notice. Which service recovery is strongest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "State that cancellations are normal",
+        "Offer a suitable alternative or refund promptly, then confirm the arrangement",
+        "Ignore the complaint until departure",
+        "Give the same solution without checking family needs"
+      ],
+      "correctAnswer": "Offer a suitable alternative or refund promptly, then confirm the arrangement",
+      "explanation": "Prompt choice, clear confirmation and a remedy matched to the family’s needs address both practical loss and trust.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "service recovery",
+        "customer needs"
+      ],
+      "curriculum": {
+        "strand": "Customer care and communication",
+        "skill": "Apply customer care and communication",
+        "subskill": "customer needs",
+        "objective": "Apply inclusive communication and service-recovery principles to meet visitor needs and resolve service failures."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-customer-communication"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-013",
+      "topic": "Marketing and research",
+      "difficulty": "easy",
+      "questionText": "Grouping potential visitors by age, income and family stage is which type of segmentation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Psychographic",
+        "Behavioural",
+        "Geographic",
+        "Demographic"
+      ],
+      "correctAnswer": "Demographic",
+      "explanation": "Age, income and family lifecycle are demographic characteristics used to define market segments.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "segmentation",
+        "demographics"
+      ],
+      "curriculum": {
+        "strand": "Marketing and research",
+        "skill": "Apply marketing and research",
+        "subskill": "demographics",
+        "objective": "Use segmentation, primary research, product lifecycle and the marketing mix to support tourism decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-marketing-research"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-014",
+      "topic": "Marketing and research",
+      "difficulty": "medium",
+      "questionText": "Which activity produces primary market research?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Surveying recent visitors directly",
+        "Reading a national tourism report",
+        "Using an existing census table",
+        "Summarising a competitor’s website"
+      ],
+      "correctAnswer": "Surveying recent visitors directly",
+      "explanation": "A survey conducted for the current decision gathers new first-hand data and is therefore primary research.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "market research",
+        "primary data"
+      ],
+      "curriculum": {
+        "strand": "Marketing and research",
+        "skill": "Apply marketing and research",
+        "subskill": "primary data",
+        "objective": "Use segmentation, primary research, product lifecycle and the marketing mix to support tourism decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-marketing-research"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-015",
+      "topic": "Marketing and research",
+      "difficulty": "medium",
+      "questionText": "What usually characterises the growth stage of a tourism product lifecycle?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Sales collapse and the product leaves the market",
+        "Sales rise and competitors begin entering",
+        "No customer knows the product exists",
+        "Demand remains permanently fixed"
+      ],
+      "correctAnswer": "Sales rise and competitors begin entering",
+      "explanation": "During growth, awareness and sales increase, often attracting competitors and requiring expansion or differentiation.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "product lifecycle",
+        "growth"
+      ],
+      "curriculum": {
+        "strand": "Marketing and research",
+        "skill": "Apply marketing and research",
+        "subskill": "growth",
+        "objective": "Use segmentation, primary research, product lifecycle and the marketing mix to support tourism decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-marketing-research"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-016",
+      "topic": "Marketing and research",
+      "difficulty": "hard",
+      "questionText": "Which plan best applies the marketing mix to a budget adventure segment?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Luxury pricing with no online information",
+        "One identical message for every traveller",
+        "An affordable activity bundle sold through mobile channels with targeted promotion",
+        "A high price unrelated to product features"
+      ],
+      "correctAnswer": "An affordable activity bundle sold through mobile channels with targeted promotion",
+      "explanation": "The product, price, distribution and promotion are aligned with the segment’s budget, activity interest and booking behaviour.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "marketing mix",
+        "target market"
+      ],
+      "curriculum": {
+        "strand": "Marketing and research",
+        "skill": "Apply marketing and research",
+        "subskill": "target market",
+        "objective": "Use segmentation, primary research, product lifecycle and the marketing mix to support tourism decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-marketing-research"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-017",
+      "topic": "Operations and itinerary planning",
+      "difficulty": "easy",
+      "questionText": "What is essential in a workable multi-stop itinerary?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Realistic travel times and a logical visit sequence",
+        "The maximum possible number of stops",
+        "No rest or meal allowance",
+        "Identical time at every attraction"
+      ],
+      "correctAnswer": "Realistic travel times and a logical visit sequence",
+      "explanation": "A feasible itinerary accounts for routing, travel duration, opening times and human needs rather than only listing attractions.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "itinerary",
+        "feasibility"
+      ],
+      "curriculum": {
+        "strand": "Operations and itinerary planning",
+        "skill": "Apply operations and itinerary planning",
+        "subskill": "feasibility",
+        "objective": "Calculate and plan feasible tourism operations using itineraries, capacity, contingency and commercial information."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-operations-itinerary"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-018",
+      "topic": "Operations and itinerary planning",
+      "difficulty": "medium",
+      "questionText": "A coach has 200 seats and carries 150 passengers. What is its passenger load factor?",
+      "questionType": "multiple_choice",
+      "options": [
+        "50%",
+        "75%",
+        "80%",
+        "133%"
+      ],
+      "correctAnswer": "75%",
+      "explanation": "Load factor = occupied capacity ÷ available capacity × 100 = 150 ÷ 200 × 100 = 75%.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "capacity",
+        "load factor"
+      ],
+      "curriculum": {
+        "strand": "Operations and itinerary planning",
+        "skill": "Apply operations and itinerary planning",
+        "subskill": "load factor",
+        "objective": "Calculate and plan feasible tourism operations using itineraries, capacity, contingency and commercial information."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-operations-itinerary"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-019",
+      "topic": "Operations and itinerary planning",
+      "difficulty": "medium",
+      "questionText": "An outdoor heritage walk may be cancelled by severe weather. What is the strongest contingency?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Continue regardless of official warnings",
+        "Tell visitors only after the scheduled start",
+        "Pre-arrange an indoor alternative and a clear notification process",
+        "Remove weather checks from planning"
+      ],
+      "correctAnswer": "Pre-arrange an indoor alternative and a clear notification process",
+      "explanation": "A safe alternative plus timely communication preserves value and reduces confusion when the primary activity cannot operate.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "contingency",
+        "risk management"
+      ],
+      "curriculum": {
+        "strand": "Operations and itinerary planning",
+        "skill": "Apply operations and itinerary planning",
+        "subskill": "risk management",
+        "objective": "Calculate and plan feasible tourism operations using itineraries, capacity, contingency and commercial information."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-operations-itinerary"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-tt-2026.4-020",
+      "topic": "Operations and itinerary planning",
+      "difficulty": "hard",
+      "questionText": "A package costs $800 to provide. What selling price gives a 25% markup on cost?",
+      "questionType": "multiple_choice",
+      "options": [
+        "$825",
+        "$900",
+        "$1,200",
+        "$1,000"
+      ],
+      "correctAnswer": "$1,000",
+      "explanation": "A 25% markup is 0.25 × 800 = $200, so selling price is $800 + $200 = $1,000.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "pricing",
+        "markup"
+      ],
+      "curriculum": {
+        "strand": "Operations and itinerary planning",
+        "skill": "Apply operations and itinerary planning",
+        "subskill": "markup",
+        "objective": "Calculate and plan feasible tourism operations using itineraries, capacity, contingency and commercial information."
+      },
+      "mappings": [
+        {
+          "scopeCode": "travel-tourism-grade-11",
+          "objectiveCode": "tt11-operations-itinerary"
+        }
+      ]
+    }
+  ]
+}
