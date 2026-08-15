@@ -32,7 +32,7 @@ import EmailVerificationGate from './components/EmailVerificationGate';
 import UpgradeModal from './components/UpgradeModal';
 import DashboardTourOverlay from './components/onboarding/DashboardTourOverlay';
 import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoolPlanDetails, type AccountTier } from './services/tierService';
-import { getEntitlements, type EntitlementSet } from './services/entitlementService';
+import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey } from './services/entitlementService';
 
 // Lazy-loaded: only fetched when the user actually opens these views/modals
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
@@ -231,6 +231,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const isPlayerMode = appMode === 'player';
   const hasSchool = Boolean(profile?.school_id);
   const isProUser = isProTier(accountTier);
+  const canUsePlanFeature = useCallback((featureKey: FeatureKey, allowIndividual = false) => (
+    (!hasSchool && allowIndividual) || effectiveEntitlements?.canUse(featureKey) === true
+  ), [effectiveEntitlements, hasSchool]);
   const canUseSchoolModule = useCallback((module: 'cambridge' | 'ielts' | 'writing' | 'admissions') => (
     Boolean(hasSchool && effectiveEntitlements?.modules[module])
   ), [effectiveEntitlements, hasSchool]);
@@ -420,16 +423,26 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       addToast('Cambridge and IELTS prep are available to school members. Join a school to unlock.', 'info');
       return;
     }
-    // Pro-gated views: free users see upgrade modal instead
-    // Individuals (no school) get free access to core competitive features
-    const individualFreeViews = ['pvp', 'shop', 'clan', 'inventory', 'leaderboard', 'achievements', 'tournament', 'raids', 'quest'];
-    const proOnlyViews = ['pvp', 'shop', 'clan', 'inventory', 'leaderboard', 'achievements', 'tournament', 'raids', 'cambridge', 'ielts'];
-    const isIndividual = !hasSchool;
-    if (!isProUser && proOnlyViews.includes(nextView) && !(isIndividual && individualFreeViews.includes(nextView))) {
+    // Every route uses the same feature keys as the database authority.
+    const viewFeatures: Partial<Record<typeof view, { key: FeatureKey; allowIndividual?: boolean }>> = {
+      pvp: { key: FEATURE_KEYS.PVP_BATTLES, allowIndividual: true },
+      shop: { key: FEATURE_KEYS.SHOP, allowIndividual: true },
+      clan: { key: FEATURE_KEYS.CLANS, allowIndividual: true },
+      rivalry: { key: FEATURE_KEYS.CLANS, allowIndividual: true },
+      inventory: { key: FEATURE_KEYS.SHOP, allowIndividual: true },
+      leaderboard: { key: FEATURE_KEYS.PVP_BATTLES, allowIndividual: true },
+      achievements: { key: FEATURE_KEYS.PVP_BATTLES, allowIndividual: true },
+      tournament: { key: FEATURE_KEYS.TOURNAMENTS, allowIndividual: true },
+      raids: { key: FEATURE_KEYS.RAIDS, allowIndividual: true },
+      cambridge: { key: FEATURE_KEYS.CAMBRIDGE_TESTS },
+      ielts: { key: FEATURE_KEYS.IELTS_TESTS },
+    };
+    const requiredFeature = viewFeatures[nextView];
+    if (requiredFeature && !canUsePlanFeature(requiredFeature.key, requiredFeature.allowIndividual)) {
       const labels: Record<string, string> = {
         pvp: 'Launch Attack', shop: 'Shop', clan: 'Clans', inventory: 'Inventory',
         leaderboard: 'Leaderboard', achievements: 'Achievements', tournament: 'Tournaments',
-        raids: 'Raids', cambridge: 'Cambridge Tests', ielts: 'IELTS Prep',
+        raids: 'Raids', rivalry: 'Clan Rivalry', cambridge: 'Cambridge Tests', ielts: 'IELTS Prep',
       };
       setUpgradeFeatureLabel(labels[nextView] || nextView);
       setShowUpgradeModal(true);
@@ -2282,7 +2295,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
             const dashboardNavigate = (destination: StudentDashboardDestination) => {
               if (destination === 'clan' || destination === 'leaderboard') {
-                if (!isProUser && hasSchool) {
+                const allowed = destination === 'clan'
+                  ? canUsePlanFeature(FEATURE_KEYS.CLANS, true)
+                  : canUsePlanFeature(FEATURE_KEYS.PVP_BATTLES, true);
+                if (!allowed) {
                   setUpgradeFeatureLabel(destination === 'clan' ? 'Clan' : 'Leaderboard');
                   setShowUpgradeModal(true);
                   return;
