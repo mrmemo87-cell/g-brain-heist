@@ -866,28 +866,6 @@ export const fetchIeltsContent = async () => {
   };
 };
 
-export const markNotificationSent = async (
-  attemptType: string, 
-  attemptId: number | string, 
-  notificationType: 'email' | 'sms' | 'in_app'
-) => {
-  const columnMap = {
-    email: 'email_sent_at',
-    sms: 'sms_sent_at',
-    in_app: 'in_app_shown_at',
-  };
-
-  const { error } = await supabase
-    .from('ielts_notification_preferences')
-    .update({ [columnMap[notificationType]]: new Date().toISOString() })
-    .eq('attempt_type', attemptType)
-    .eq('attempt_id', attemptId);
-
-  if (error) {
-    console.error('Error marking notification sent:', error);
-  }
-};
-
 // ============================================================
 // USER COMPLETION TRACKING
 // ============================================================

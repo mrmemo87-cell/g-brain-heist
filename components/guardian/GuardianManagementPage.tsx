@@ -29,7 +29,13 @@ type StatusToast = {
 const emailStatusLabel = (status?: string) => ({
   pending: 'Pending',
   processing: 'Sending',
-  sent: 'Sent',
+  sent: 'Accepted by email service',
+  accepted: 'Accepted by email service',
+  delivered: 'Delivered',
+  delayed: 'Delivery delayed',
+  bounced: 'Bounced',
+  complained: 'Spam complaint',
+  suppressed: 'Suppressed',
   failed: 'Failed',
   cancelled: 'Cancelled',
   not_sent: 'Not sent',
@@ -100,8 +106,8 @@ const GuardianManagementPage: React.FC = () => {
       if (invitation.email_status === 'sent') {
         setStatusToast({
           tone: 'success',
-          title: 'Invitation sent',
-          message: `The secure invitation was emailed successfully to ${recipientEmail}.\n${schoolName} × ${PRODUCT_NAME}`,
+          title: 'Invitation accepted for delivery',
+          message: `The secure invitation was accepted by the email service for ${recipientEmail}. Final inbox delivery is tracked separately.\n${schoolName} × ${PRODUCT_NAME}`,
         });
         return;
       }
@@ -246,7 +252,7 @@ const GuardianManagementPage: React.FC = () => {
 
     <section className="guardian-admin-panel"><div><h2>Verified parents & guardians</h2><span>{data?.relationships.filter((x) => x.status === 'active').length || 0} active</span></div><div className="guardian-admin-table"><table><thead><tr><th>Student</th><th>Parent / Guardian</th><th>Relationship</th><th>Status</th><th>Verified</th><th></th></tr></thead><tbody>{(data?.relationships || []).map((r) => <tr key={r.id}><td>{r.student_name}</td><td><strong>{r.guardian_name || 'Guardian'}</strong><small>{r.guardian_email || '—'}</small></td><td>{r.relationship_label}</td><td>{r.status}</td><td>{new Date(r.verified_at).toLocaleDateString()}</td><td>{r.status === 'active' ? <button onClick={async () => { if (!confirm('Remove this parent or guardian’s access to the student?')) return; setBusy(true); try { await revokeGuardianRelationship(r.id); await load(); } catch (e) { setError(safeMessage(e, 'We could not remove this access just now. Please try again.')); } finally { setBusy(false); } }}>Revoke</button> : null}</td></tr>)}</tbody></table></div></section>
 
-    <section className="guardian-admin-panel"><div><h2>Invitation history</h2><span>{data?.invitations.length || 0} invitations</span></div><div className="guardian-admin-table"><table><thead><tr><th>Student</th><th>Email</th><th>Invitation</th><th>Email delivery</th><th>Sent</th><th>Expires</th><th></th></tr></thead><tbody>{(data?.invitations || []).map((i) => <tr key={i.id}><td>{i.student_name}</td><td>{i.invited_email}</td><td>{i.status}</td><td><strong>{emailStatusLabel(i.email_status)}</strong>{i.email_status === 'failed' ? <small>Delivery failed — create a new invitation to retry.</small> : null}</td><td>{i.email_sent_at ? new Date(i.email_sent_at).toLocaleString() : '—'}</td><td>{new Date(i.expires_at).toLocaleDateString()}</td><td>{i.status === 'pending' ? <button onClick={async () => { setBusy(true); try { await revokeGuardianInvitation(i.id); await load(); } catch (e) { setError(safeMessage(e, 'We could not cancel this invitation just now. Please try again.')); } finally { setBusy(false); } }}>Revoke</button> : null}</td></tr>)}</tbody></table></div></section>
+    <section className="guardian-admin-panel"><div><h2>Invitation history</h2><span>{data?.invitations.length || 0} invitations</span></div><div className="guardian-admin-table"><table><thead><tr><th>Student</th><th>Email</th><th>Invitation</th><th>Email status</th><th>Latest event</th><th>Expires</th><th></th></tr></thead><tbody>{(data?.invitations || []).map((i) => <tr key={i.id}><td>{i.student_name}</td><td>{i.invited_email}</td><td>{i.status}</td><td><strong>{emailStatusLabel(i.email_delivery_status || i.email_status)}</strong>{['failed', 'bounced', 'complained', 'suppressed'].includes(i.email_delivery_status || i.email_status || '') ? <small>Delivery needs attention — verify the address before retrying.</small> : null}</td><td>{i.email_delivered_at ? new Date(i.email_delivered_at).toLocaleString() : i.email_sent_at ? new Date(i.email_sent_at).toLocaleString() : '—'}</td><td>{new Date(i.expires_at).toLocaleDateString()}</td><td>{i.status === 'pending' ? <button onClick={async () => { setBusy(true); try { await revokeGuardianInvitation(i.id); await load(); } catch (e) { setError(safeMessage(e, 'We could not cancel this invitation just now. Please try again.')); } finally { setBusy(false); } }}>Revoke</button> : null}</td></tr>)}</tbody></table></div></section>
   </main>;
 };
 

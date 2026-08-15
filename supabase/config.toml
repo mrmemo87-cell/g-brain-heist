@@ -6,3 +6,15 @@ verify_jwt = false
 
 [functions.school_request_email]
 verify_jwt = true
+
+[functions.school_email_dispatcher]
+verify_jwt = false
+
+[functions.resend_webhook]
+verify_jwt = false
+
+[functions.demo_request]
+verify_jwt = false
+
+[functions.new_user_email]
+verify_jwt = false
