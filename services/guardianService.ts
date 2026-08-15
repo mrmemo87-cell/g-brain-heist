@@ -21,6 +21,7 @@ export interface GuardianInvitationPreview {
   relationship_label?: string | null;
   expires_at?: string | null;
   invited_email_hint?: string | null;
+  email_matches_current_account?: boolean | null;
 }
 
 export interface ParentFocusArea {
@@ -89,7 +90,7 @@ const friendlyError = (raw: unknown, fallback: string): Error => {
   if (lower.includes('already registered') || lower.includes('user already registered')) return new Error('An account already exists for this email. Please sign in instead.');
   if (lower.includes('expired')) return new Error('This invitation has expired. Please ask the school for a new invitation.');
   if (lower.includes('revoked')) return new Error('This invitation is no longer active. Please contact the school if you still need access.');
-  if (lower.includes('email') && lower.includes('match')) return new Error('Please sign in with the same email address the school invited.');
+  if ((lower.includes('email') && lower.includes('match')) || lower.includes('email address this guardian invitation was sent to')) return new Error('This invitation belongs to a different email account. Switch accounts and sign in with the email address the school invited.');
   if (lower.includes('not authorized') || lower.includes('not authorised') || lower.includes('permission')) return new Error('This account does not have access to that information. Please contact the school if you think this is unexpected.');
   if (lower.includes('network') || lower.includes('fetch') || lower.includes('load failed') || lower.includes('failed to fetch')) return new Error('We could not connect just now. Please check your connection and try again.');
   return new Error(fallback);
