@@ -118,6 +118,14 @@ export interface ClassTeacherAssignment {
   subject: string;
   active: boolean;
   assigned_at: string | null;
+  teacher_name: string;
+  teacher_username: string | null;
+  teacher_email: string | null;
+  teacher_membership_status: string | null;
+  teacher_can_teach: boolean;
+  class_code: string | null;
+  class_name: string | null;
+  grade_level: string | null;
 }
 
 export interface ClassStudentAssignment {
@@ -870,7 +878,7 @@ export async function listTeacherAssignments(schoolId: string): Promise<ClassTea
 
     if (error) {
       console.error('Error fetching teacher assignments:', error);
-      return [];
+      throw new Error(error.message || 'Teaching assignments could not be loaded.');
     }
 
     const rows = (typeof data === 'string' ? JSON.parse(data) : data) || [];
@@ -882,6 +890,14 @@ export async function listTeacherAssignments(schoolId: string): Promise<ClassTea
       subject: row.subject,
       active: !!row.active,
       assigned_at: row.assigned_at ?? row.created_at ?? null,
+      teacher_name: row.teacher_name || row.teacher_username || row.teacher_email || 'Unknown teacher',
+      teacher_username: row.teacher_username || null,
+      teacher_email: row.teacher_email || null,
+      teacher_membership_status: row.teacher_membership_status || null,
+      teacher_can_teach: Boolean(row.teacher_can_teach),
+      class_code: row.class_code || null,
+      class_name: row.class_name || null,
+      grade_level: row.grade_level == null ? null : String(row.grade_level),
     }));
   } catch (err) {
     console.error('Exception fetching teacher assignments:', err);
