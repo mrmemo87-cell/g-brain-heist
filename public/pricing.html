@@ -3,189 +3,333 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pricing — Brains Heist</title>
-  <meta name="description" content="Brains Heist school subscription pricing. Core, Standard, Pro, and Enterprise plans for schools." />
+  <title>School Pricing — Brains Heist</title>
+  <meta name="description" content="Build a transparent Brains Heist school package with platform seats and optional Cambridge, IELTS, Writing Hub, and Admission Hub programmes." />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <style>
-    :root { --bg: #0f172a; --surface: #1e293b; --border: #334155; --text: #e2e8f0; --muted: #94a3b8; --accent: #10b981; --accent2: #06b6d4; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
-    header { text-align: center; padding: 3rem 0 2rem; }
-    header img { height: 48px; margin-bottom: 1rem; }
-    h1 { font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .subtitle { color: var(--muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
-    .toggle-wrap { display: flex; justify-content: center; margin: 2rem 0; }
-    .toggle { display: inline-flex; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); padding: 4px; }
-    .toggle button { padding: 0.5rem 1.25rem; border: none; background: transparent; color: var(--muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
-    .toggle button.active { background: var(--border); color: #fff; }
-    .toggle .badge { display: inline-block; margin-left: 6px; background: rgba(16,185,129,0.15); color: var(--accent); font-size: 0.7rem; padding: 2px 6px; border-radius: 999px; font-weight: 700; }
-    .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; position: relative; transition: transform 0.2s; }
-    .card:hover { transform: translateY(-4px); }
-    .card.popular { border-color: rgba(16,185,129,0.4); box-shadow: 0 0 30px rgba(16,185,129,0.08); }
-    .pop-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #fff; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 14px; border-radius: 999px; }
-    .card h3 { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .card.popular h3 { color: var(--accent); }
-    .price { font-size: 2rem; font-weight: 800; margin: 0.5rem 0 0.25rem; }
-    .price span { font-size: 0.9rem; font-weight: 400; color: var(--muted); }
-    .annual-note { font-size: 0.8rem; color: rgba(16,185,129,0.7); margin-bottom: 1rem; }
-    .seats { margin: 1rem 0; }
-    .seat-row { display: flex; justify-content: space-between; background: rgba(15,23,42,0.5); border-radius: 8px; padding: 0.5rem 0.75rem; margin-bottom: 0.4rem; font-size: 0.85rem; }
-    .seat-row .label { color: var(--muted); }
-    .seat-row .count { font-weight: 700; }
-    .cta { display: block; width: 100%; padding: 0.75rem; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; text-decoration: none; }
-    .cta-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
-    .cta-primary:hover { filter: brightness(1.1); }
-    .cta-secondary { background: var(--border); color: #fff; }
-    .cta-secondary:hover { background: #475569; }
-    .enterprise { text-align: center; padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; margin: 2rem 0; }
-    .enterprise p { color: var(--muted); }
-    .enterprise a { color: var(--accent); text-decoration: none; font-weight: 600; }
-    .enterprise a:hover { text-decoration: underline; }
-    .pilot { text-align: center; background: rgba(6,182,212,0.05); border: 1px solid rgba(6,182,212,0.2); border-radius: 16px; padding: 1.5rem; margin: 2rem 0; }
-    .pilot h3 { color: var(--accent2); font-size: 1.1rem; }
-    .pilot p { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; }
-    .features { margin: 2.5rem 0; }
-    .features h2 { text-align: center; margin-bottom: 1.5rem; font-size: 1.5rem; }
-    .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; }
-    .feat-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.65rem 1rem; }
-    .feat-item .check { color: var(--accent); font-weight: 700; }
-    .trust { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin: 2rem 0; font-size: 0.85rem; color: var(--muted); }
-    footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--border); margin-top: 3rem; font-size: 0.8rem; color: var(--muted); }
-    footer a { color: var(--accent); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
-    .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; }
-    @media (max-width: 640px) { h1 { font-size: 1.75rem; } .plans { grid-template-columns: 1fr; } }
+    :root {
+      --ink: #eaf2ff; --muted: #9fb0c9; --navy: #071120; --panel: #101d30;
+      --panel-2: #14243a; --line: #29405e; --cyan: #2dd4bf; --blue: #38bdf8;
+      --gold: #fbbf24; --violet: #a78bfa; --danger: #fda4af;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: radial-gradient(circle at 85% 0, #123255 0, transparent 30rem), var(--navy); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.55; }
+    button, input { font: inherit; }
+    a { color: inherit; }
+    .skip { position: absolute; left: -9999px; top: 1rem; z-index: 20; padding: .7rem 1rem; color: #071120; background: white; border-radius: .6rem; }
+    .skip:focus { left: 1rem; }
+    .shell { width: min(1160px, calc(100% - 2rem)); margin: 0 auto; }
+    nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem 0; }
+    .brand { display: inline-flex; align-items: center; gap: .7rem; text-decoration: none; font-weight: 850; letter-spacing: -.02em; }
+    .brand img { width: 2.6rem; height: 2.6rem; object-fit: contain; }
+    .nav-actions { display: flex; align-items: center; gap: .65rem; }
+    .nav-link { color: var(--muted); text-decoration: none; font-size: .9rem; font-weight: 700; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .72rem 1rem; border: 1px solid transparent; border-radius: .75rem; color: #06121f; background: linear-gradient(135deg, var(--cyan), var(--blue)); text-decoration: none; font-weight: 850; cursor: pointer; }
+    .button.secondary { color: var(--ink); background: transparent; border-color: var(--line); }
+    .button:focus-visible, button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid rgba(56,189,248,.45); outline-offset: 3px; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(18rem, .8fr); gap: 2rem; align-items: center; padding: 4.5rem 0 3rem; }
+    .eyebrow { margin: 0 0 .75rem; color: var(--cyan); font-size: .72rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { max-width: 12ch; margin: 0; font-size: clamp(2.65rem, 7vw, 5.3rem); line-height: .98; letter-spacing: -.055em; }
+    .hero-copy { max-width: 43rem; margin: 1.35rem 0 0; color: var(--muted); font-size: clamp(1rem, 2vw, 1.18rem); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.7rem; }
+    .starting-card { padding: 1.6rem; border: 1px solid var(--line); border-radius: 1.5rem; background: linear-gradient(145deg, rgba(20,36,58,.96), rgba(12,25,43,.96)); box-shadow: 0 28px 70px rgba(0,0,0,.25); }
+    .starting-card small { color: var(--muted); }
+    .starting-price { display: block; margin: .3rem 0; font-size: clamp(2.2rem, 6vw, 3.5rem); line-height: 1; letter-spacing: -.04em; }
+    .starting-price span { color: var(--muted); font-size: .95rem; font-weight: 500; letter-spacing: 0; }
+    .starting-note { margin: .8rem 0 0; color: var(--cyan); font-size: .85rem; }
+    .pilot { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center; margin: 1rem 0 4rem; padding: 1.25rem 1.4rem; border: 1px solid rgba(45,212,191,.35); border-radius: 1rem; background: rgba(45,212,191,.08); }
+    .pilot-icon { display: grid; width: 3rem; height: 3rem; place-items: center; border-radius: .8rem; color: #071120; background: var(--cyan); font-weight: 900; }
+    .pilot h2, .pilot p { margin: 0; }
+    .pilot h2 { font-size: 1.05rem; }
+    .pilot p { margin-top: .2rem; color: var(--muted); font-size: .88rem; }
+    section { scroll-margin-top: 1rem; }
+    .section-heading { max-width: 47rem; margin-bottom: 1.5rem; }
+    .section-heading h2 { margin: 0; font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -.035em; }
+    .section-heading p:not(.eyebrow) { margin: .65rem 0 0; color: var(--muted); }
+    .catalogue { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .8rem; }
+    .price-card { min-width: 0; padding: 1.2rem; border: 1px solid var(--line); border-radius: 1rem; background: var(--panel); }
+    .price-card.platform { border-color: rgba(56,189,248,.55); background: linear-gradient(145deg, rgba(56,189,248,.11), var(--panel)); }
+    .price-card h3 { margin: 0; font-size: .95rem; }
+    .unit-price { margin: .55rem 0 .2rem; font-size: 1.55rem; font-weight: 900; letter-spacing: -.03em; }
+    .unit-price span { color: var(--muted); font-size: .7rem; font-weight: 600; letter-spacing: 0; }
+    .minimum { margin: 0; color: var(--muted); font-size: .74rem; }
+    .allowance { margin: .75rem 0 0; color: var(--cyan); font-size: .7rem; }
+    .pricing-status { grid-column: 1 / -1; padding: 1rem; border: 1px solid var(--line); border-radius: .8rem; color: var(--muted); background: var(--panel); text-align: center; }
+    .calculator-section { padding: 5rem 0 2rem; }
+    .calculator { display: grid; grid-template-columns: minmax(0, 1fr) 23rem; gap: 1.25rem; align-items: start; }
+    .builder { display: grid; gap: 1rem; }
+    .step { padding: 1.35rem; border: 1px solid var(--line); border-radius: 1.1rem; background: var(--panel); }
+    .step-head { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+    .step-kicker { color: var(--blue); font-size: .7rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    .step h3 { margin: .15rem 0 0; font-size: 1.12rem; }
+    .free-chip { padding: .3rem .55rem; border-radius: 999px; color: var(--cyan); background: rgba(45,212,191,.09); font-size: .7rem; font-weight: 800; }
+    .seat-control { display: grid; grid-template-columns: 1fr 7rem; gap: 1rem; align-items: end; margin-top: 1rem; }
+    label { color: var(--muted); font-size: .78rem; font-weight: 700; }
+    input[type="number"] { width: 100%; margin-top: .35rem; padding: .72rem; border: 1px solid var(--line); border-radius: .65rem; color: var(--ink); background: #091525; font-weight: 800; }
+    input[type="range"] { width: 100%; margin-top: .8rem; accent-color: var(--cyan); }
+    input[type="checkbox"] { width: 1.05rem; height: 1.05rem; margin: .15rem 0 0; accent-color: var(--cyan); }
+    .programmes { display: grid; gap: .65rem; margin-top: 1rem; }
+    .programme { display: grid; grid-template-columns: minmax(0, 1fr) 7rem; gap: .8rem; align-items: center; padding: .85rem; border: 1px solid var(--line); border-radius: .8rem; background: rgba(7,17,32,.35); }
+    .programme.enabled { border-color: rgba(45,212,191,.5); background: rgba(45,212,191,.06); }
+    .programme-toggle { display: flex; align-items: start; gap: .65rem; }
+    .programme-toggle strong, .programme-toggle small { display: block; }
+    .programme-toggle strong { color: var(--ink); font-size: .84rem; }
+    .programme-toggle small { margin-top: .15rem; color: var(--muted); font-size: .7rem; font-weight: 500; }
+    .programme input:disabled { opacity: .45; }
+    .terms { display: grid; grid-template-columns: repeat(4, 1fr); gap: .55rem; margin-top: 1rem; }
+    .term { padding: .75rem; border: 1px solid var(--line); border-radius: .75rem; color: var(--ink); background: #0b1728; text-align: left; cursor: pointer; }
+    .term strong, .term span { display: block; }
+    .term span { margin-top: .1rem; color: var(--muted); font-size: .66rem; }
+    .term.active { color: #06121f; border-color: var(--cyan); background: var(--cyan); }
+    .term.active span { color: #123246; }
+    .launch { display: flex; gap: .7rem; margin-top: .8rem; padding: .85rem; border: 1px solid rgba(167,139,250,.35); border-radius: .75rem; color: #ddd6fe; background: rgba(167,139,250,.08); }
+    .launch small { display: block; margin-top: .15rem; color: #bfb3ea; font-weight: 500; }
+    .receipt { position: sticky; top: 1rem; overflow: hidden; border: 1px solid #35516f; border-radius: 1.15rem; background: #050d18; box-shadow: 0 25px 60px rgba(0,0,0,.3); }
+    .receipt-head { padding: 1.25rem; border-bottom: 1px solid rgba(255,255,255,.09); }
+    .receipt-head p, .receipt-head h3 { margin: 0; }
+    .receipt-head p { color: var(--cyan); font-size: .68rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+    .receipt-head h3 { margin-top: .25rem; font-size: 1.2rem; }
+    .receipt-body { padding: 1.25rem; }
+    .receipt-list { display: grid; gap: .65rem; margin: 0; }
+    .receipt-row { display: flex; justify-content: space-between; gap: 1rem; font-size: .78rem; }
+    .receipt-row dt { color: var(--muted); }
+    .receipt-row dd { margin: 0; font-weight: 800; text-align: right; }
+    .receipt-row.discount { color: #86efac; }
+    .divider { height: 1px; margin: 1rem 0; background: rgba(255,255,255,.1); }
+    .total-label { color: var(--muted); font-size: .72rem; }
+    .total { display: flex; align-items: end; justify-content: space-between; gap: .5rem; margin-top: .2rem; }
+    .total strong { font-size: 2rem; letter-spacing: -.04em; }
+    .total span { padding-bottom: .3rem; color: var(--muted); font-size: .7rem; }
+    .renewal { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-top: 1rem; }
+    .renewal div { padding: .7rem; border-radius: .7rem; background: rgba(255,255,255,.05); }
+    .renewal small, .renewal strong { display: block; }
+    .renewal small { color: var(--muted); font-size: .64rem; }
+    .renewal strong { margin-top: .2rem; font-size: .78rem; }
+    .effective { margin: .8rem 0 0; padding: .75rem; border-radius: .7rem; color: #b9f7ed; background: rgba(45,212,191,.1); font-size: .72rem; }
+    .receipt .button { width: 100%; margin-top: 1rem; }
+    .rules { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; padding: 4rem 0; }
+    .rule { padding: 1rem; border-top: 2px solid var(--blue); color: var(--muted); background: rgba(16,29,48,.6); font-size: .78rem; }
+    .rule strong { display: block; margin-bottom: .25rem; color: var(--ink); }
+    .process { padding: 3rem 0; }
+    .process-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .process-step { position: relative; padding: 1.25rem; border: 1px solid var(--line); border-radius: 1rem; background: var(--panel); }
+    .process-step span { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: 50%; color: #071120; background: var(--gold); font-weight: 900; }
+    .process-step h3 { margin: .75rem 0 .25rem; font-size: 1rem; }
+    .process-step p { margin: 0; color: var(--muted); font-size: .78rem; }
+    .final-cta { margin: 3rem 0; padding: 2rem; border: 1px solid rgba(56,189,248,.4); border-radius: 1.4rem; background: linear-gradient(135deg, rgba(56,189,248,.13), rgba(167,139,250,.12)); text-align: center; }
+    .final-cta h2 { margin: 0; font-size: clamp(1.7rem, 4vw, 2.6rem); }
+    .final-cta p { margin: .6rem auto 1.2rem; color: var(--muted); }
+    footer { margin-top: 4rem; padding: 2rem 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .75rem; }
+    .footer-inner, .footer-links { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-links { justify-content: flex-end; }
+    .footer-links a { text-decoration: none; }
+    .error { color: var(--danger); }
+    @media (max-width: 940px) {
+      .hero, .calculator { grid-template-columns: 1fr; }
+      .catalogue { grid-template-columns: repeat(2, 1fr); }
+      .receipt { position: static; }
+      .rules { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 1.2rem, 1160px); }
+      nav { align-items: flex-start; }
+      .nav-actions .nav-link { display: none; }
+      .hero { padding-top: 2.5rem; }
+      .pilot { grid-template-columns: auto 1fr; }
+      .pilot .button { grid-column: 1 / -1; }
+      .catalogue, .terms, .rules, .process-grid { grid-template-columns: 1fr; }
+      .programme, .seat-control { grid-template-columns: 1fr; }
+      .footer-inner { justify-content: center; text-align: center; }
+      .footer-links { justify-content: center; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; } }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <a href="/"><img src="/logo.png" alt="Brains Heist" /></a>
-      <h1>School Subscription Plans</h1>
-      <p class="subtitle">Unlock the full Brains Heist platform for your school. PvP battles, Cambridge &amp; IELTS prep, lockdown mode, and more.</p>
-    </header>
+  <a class="skip" href="#pricing">Skip to pricing</a>
+  <div class="shell">
+    <nav aria-label="Main navigation">
+      <a class="brand" href="/"><img src="/logo.png" alt="" /> Brains Heist</a>
+      <div class="nav-actions"><a class="nav-link" href="/contact.html">Talk to us</a><a class="button secondary" href="/?view=school_admin&amp;adminTab=billing">School sign in</a></div>
+    </nav>
 
-    <div class="pilot">
-      <h3>🚀 30-Day Free Pilot</h3>
-      <p>Try everything free for 30 days — 60 Cambridge seats, 20 IELTS seats, 60 Game seats. No credit card required.</p>
-    </div>
-
-    <div class="toggle-wrap">
-      <div class="toggle">
-        <button id="btn-monthly">Monthly</button>
-        <button id="btn-yearly" class="active">Annual <span class="badge">Save ~17%</span></button>
-      </div>
-    </div>
-
-    <div class="plans" id="plans">
-      <!-- Core -->
-      <div class="card">
-        <h3>Core</h3>
-        <div class="price" data-monthly="449" data-yearly="4,490">$4,490<span>/yr</span></div>
-        <div class="annual-note" data-show="yearly">$374/mo billed annually</div>
-        <div class="seats">
-          <div class="seat-row"><span class="label">📚 Cambridge</span><span class="count">up to 120</span></div>
-          <div class="seat-row"><span class="label">🎧 IELTS</span><span class="count">up to 40</span></div>
-          <div class="seat-row"><span class="label">🎮 Game</span><span class="count">up to 120</span></div>
+    <main>
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Transparent school pricing</p>
+          <h1>Build the package your school actually needs.</h1>
+          <p class="hero-copy">Start with platform seats, then add Cambridge, IELTS, Writing Hub, or Admission Hub only for the learners who use them. Teachers and administrators are free.</p>
+          <div class="hero-actions"><a class="button" href="#calculator">Build a live estimate</a><a class="button secondary" href="/?view=school_admin&amp;adminTab=billing">Open Plan &amp; Billing</a></div>
         </div>
-        <a href="/" class="cta cta-secondary">Get Started</a>
-      </div>
+        <aside class="starting-card" aria-live="polite">
+          <small>Platform pricing starts at</small>
+          <strong id="starting-price" class="starting-price">Loading…</strong>
+          <small id="starting-minimum">Fetching the active Brains Heist catalogue</small>
+          <p id="starting-annual" class="starting-note"></p>
+        </aside>
+      </header>
 
-      <!-- Standard -->
-      <div class="card popular">
-        <div class="pop-badge">Most Popular</div>
-        <h3>Standard</h3>
-        <div class="price" data-monthly="649" data-yearly="6,490">$6,490<span>/yr</span></div>
-        <div class="annual-note" data-show="yearly">$541/mo billed annually</div>
-        <div class="seats">
-          <div class="seat-row"><span class="label">📚 Cambridge</span><span class="count">up to 220</span></div>
-          <div class="seat-row"><span class="label">🎧 IELTS</span><span class="count">up to 80</span></div>
-          <div class="seat-row"><span class="label">🎮 Game</span><span class="count">up to 220</span></div>
+      <section class="pilot" aria-labelledby="pilot-title">
+        <div class="pilot-icon" aria-hidden="true">30</div>
+        <div><h2 id="pilot-title">30-day all-programme pilot</h2><p id="pilot-copy">Up to 50 students · 10 teachers · 50 admission candidates · no card required.</p></div>
+        <a class="button secondary" href="/?view=school_admin&amp;adminTab=billing">Start through your School Head</a>
+      </section>
+
+      <section id="pricing" aria-labelledby="pricing-title">
+        <div class="section-heading"><p class="eyebrow">One platform, flexible programmes</p><h2 id="pricing-title">Pay for the capacity you assign.</h2><p>Programme seats are separate from platform seats, so a learner can use the school platform without automatically creating a Cambridge, IELTS, Writing, or Admissions charge.</p></div>
+        <div id="catalogue" class="catalogue" aria-live="polite"><div class="pricing-status">Loading the active pricing catalogue…</div></div>
+      </section>
+
+      <section id="calculator" class="calculator-section" aria-labelledby="calculator-title">
+        <div class="section-heading"><p class="eyebrow">Public estimate</p><h2 id="calculator-title">Test your real numbers.</h2><p>This estimate uses the same active catalogue and discount rules as the School Admin Billing Studio. Your School Head can save and submit the final scenario after signing in.</p></div>
+        <div class="calculator">
+          <div class="builder">
+            <section class="step" aria-labelledby="step-size"><div class="step-head"><div><span class="step-kicker">1 · School size</span><h3 id="step-size">Platform student seats</h3></div><span class="free-chip">Teachers &amp; admins free</span></div><div class="seat-control"><label>Adjust seats<input id="platform-range" type="range" min="50" max="2000" step="5" value="50" /></label><label>Exact number<input id="platform-seats" type="number" min="50" step="1" value="50" inputmode="numeric" /></label></div></section>
+            <section class="step" aria-labelledby="step-programmes"><div class="step-head"><div><span class="step-kicker">2 · Programmes</span><h3 id="step-programmes">Choose optional programme seats</h3></div></div><div id="programmes" class="programmes"></div></section>
+            <section class="step" aria-labelledby="step-term"><div class="step-head"><div><span class="step-kicker">3 · Agreement</span><h3 id="step-term">Choose a billing term</h3></div></div><div id="terms" class="terms"></div><label class="launch"><input id="launch-discount" type="checkbox" checked /><span><strong id="launch-label">Request the Launch discount</strong><small>First contract year only, subject to approval. Combined discounts never exceed the catalogue maximum.</small></span></label></section>
+          </div>
+          <aside class="receipt" aria-live="polite" aria-label="Pricing estimate"><div class="receipt-head"><p>Live estimate</p><h3 id="receipt-version">Loading catalogue</h3></div><div id="receipt-body" class="receipt-body"><p class="pricing-status">Preparing your estimate…</p></div></aside>
         </div>
-        <a href="/" class="cta cta-primary">Get Started</a>
-      </div>
+      </section>
 
-      <!-- Pro -->
-      <div class="card">
-        <h3>Pro</h3>
-        <div class="price" data-monthly="1,149" data-yearly="11,490">$11,490<span>/yr</span></div>
-        <div class="annual-note" data-show="yearly">$957/mo billed annually</div>
-        <div class="seats">
-          <div class="seat-row"><span class="label">📚 Cambridge</span><span class="count">up to 450</span></div>
-          <div class="seat-row"><span class="label">🎧 IELTS</span><span class="count">up to 150</span></div>
-          <div class="seat-row"><span class="label">🎮 Game</span><span class="count">up to 450</span></div>
-        </div>
-        <a href="/" class="cta cta-secondary">Get Started</a>
-      </div>
-    </div>
+      <section class="rules" aria-label="Commercial rules"><div class="rule"><strong>No surprise overages</strong>Your school approves exact capacities before activation.</div><div class="rule"><strong>Immediate seat increases</strong>Add capacity when learners need it.</div><div class="rule"><strong>Decreases at renewal</strong>Committed capacity stays stable through the term.</div><div class="rule"><strong>Named programme seats</strong>Assign optional programmes only to enrolled learners.</div></section>
 
-    <div class="enterprise">
-      <p><strong style="color:#fff;">🏢 Enterprise</strong> — Unlimited seats · Multi-campus · Custom pricing</p>
-      <p style="margin-top:0.5rem;"><a href="mailto:sales@brainsheist.com?subject=Enterprise%20Plan%20Inquiry">Contact sales@brainsheist.com →</a></p>
-    </div>
+      <section class="process" aria-labelledby="process-title"><div class="section-heading"><p class="eyebrow">How activation works</p><h2 id="process-title">Clear approval before access changes.</h2></div><div class="process-grid"><article class="process-step"><span>1</span><h3>Build and submit</h3><p>Your School Head tests scenarios in Plan &amp; Billing and requests the selected package.</p></article><article class="process-step"><span>2</span><h3>Review and accept</h3><p>Brains Heist reviews the request. Your School Head confirms the approved quantities and total.</p></article><article class="process-step"><span>3</span><h3>Verify and activate</h3><p>The exact agreed seats activate only after payment or complimentary authority is verified.</p></article></div></section>
 
-    <div class="features">
-      <h2>All Paid Plans Include</h2>
-      <div class="feat-grid">
-        <div class="feat-item"><span class="check">✓</span> PvP Hacking Battles</div>
-        <div class="feat-item"><span class="check">✓</span> Clans &amp; Syndicates</div>
-        <div class="feat-item"><span class="check">✓</span> Shop &amp; Inventory</div>
-        <div class="feat-item"><span class="check">✓</span> Leaderboard Rankings</div>
-        <div class="feat-item"><span class="check">✓</span> Achievements &amp; Badges</div>
-        <div class="feat-item"><span class="check">✓</span> Raid Boss Battles</div>
-        <div class="feat-item"><span class="check">✓</span> Tournaments</div>
-        <div class="feat-item"><span class="check">✓</span> Cambridge Test Library</div>
-        <div class="feat-item"><span class="check">✓</span> IELTS Prep Suite</div>
-        <div class="feat-item"><span class="check">✓</span> Unlimited Lockdown</div>
-        <div class="feat-item"><span class="check">✓</span> Custom Questions</div>
-        <div class="feat-item"><span class="check">✓</span> Performance Reports</div>
-        <div class="feat-item"><span class="check">✓</span> Admission Tests</div>
-        <div class="feat-item"><span class="check">✓</span> Assignment Builder</div>
-        <div class="feat-item"><span class="check">✓</span> Question Bank</div>
-        <div class="feat-item"><span class="check">✓</span> All Lockdown Maps</div>
-      </div>
-    </div>
+      <section class="final-cta"><h2>Ready to plan your school rollout?</h2><p>Sign in as the School Head to save scenarios, request a package, or begin the free pilot.</p><a class="button" href="/?view=school_admin&amp;adminTab=billing">Open Plan &amp; Billing</a></section>
+    </main>
 
-    <div class="trust">
-      <span>🔒 Secure checkout via Paddle</span>
-      <span>↩️ Cancel anytime</span>
-      <span>⚡ Instant activation</span>
-      <span>💳 All major cards accepted</span>
-    </div>
-
-    <footer>
-      <div class="footer-links">
-        <a href="/pricing.html">Pricing</a>
-        <a href="/terms.html">Terms of Service</a>
-        <a href="/privacy.html">Privacy Policy</a>
-        <a href="/refund.html">Refund &amp; Cancellation</a>
-        <a href="/contact.html">Contact</a>
-      </div>
-      <p>&copy; 2026 Brains Heist. All rights reserved. Payments processed by <a href="https://www.paddle.com" target="_blank" rel="noopener">Paddle</a>.</p>
-    </footer>
+    <footer><div class="footer-inner"><span>&copy; 2026 Brains Heist. All rights reserved.</span><div class="footer-links"><a href="/pricing.html">Pricing</a><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="/refund.html">Refunds</a><a href="/contact.html">Contact</a></div></div></footer>
   </div>
 
   <script>
-    const monthly = document.getElementById('btn-monthly');
-    const yearly = document.getElementById('btn-yearly');
-    function setInterval(mode) {
-      const isYearly = mode === 'yearly';
-      monthly.className = isYearly ? '' : 'active';
-      yearly.className = isYearly ? 'active' : '';
-      document.querySelectorAll('.price').forEach(el => {
-        const val = isYearly ? el.dataset.yearly : el.dataset.monthly;
-        const suffix = isYearly ? '/yr' : '/mo';
-        el.innerHTML = `$${val}<span>${suffix}</span>`;
-      });
-      document.querySelectorAll('[data-show]').forEach(el => {
-        el.style.display = el.dataset.show === mode ? 'block' : 'none';
-      });
-    }
-    monthly.addEventListener('click', () => setInterval('monthly'));
-    yearly.addEventListener('click', () => setInterval('yearly'));
-    setInterval('yearly');
+    (() => {
+      const state = { payload: null, term: 'monthly', platformSeats: 50, launch: true, programmes: {} };
+      const termDefinitions = [
+        ['monthly', 'Monthly', 'No term discount'], ['annual', 'Annual', 'Annual discount'],
+        ['two_year', '2 years', 'Prepaid discount'], ['three_year', '3 years', 'Best term discount'],
+      ];
+      const programmeDescriptions = {
+        cambridge: 'Only students enrolled in Cambridge', ielts: 'Only students enrolled in IELTS',
+        writing: '10 AI reviews per student each month', admissions: 'Candidate seats, separate from platform seats',
+      };
+      const byId = (id) => document.getElementById(id);
+      const itemMap = () => new Map((state.payload?.catalogue || []).map((item) => [item.key, item]));
+      const money = (minor) => new Intl.NumberFormat('en-US', { style: 'currency', currency: state.payload?.pricing_version?.currency || 'USD', minimumFractionDigits: 2 }).format(minor / 100);
+      const percent = (bps) => `${Number(bps || 0) / 100}%`;
+      const escapeHtml = (value) => String(value).replace(/[&<>\"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' })[character]);
+      const safeInt = (value, fallback) => { const parsed = Number.parseInt(value, 10); return Number.isFinite(parsed) ? Math.max(0, parsed) : fallback; };
+      const discountForTerm = (discounts, term) => ({ monthly: 0, annual: discounts.annual_bps, two_year: discounts.two_year_bps, three_year: discounts.three_year_bps }[term] || 0);
+      const monthsForTerm = (term) => ({ monthly: 1, annual: 12, two_year: 24, three_year: 36 }[term] || 1);
+
+      function calculate() {
+        const items = itemMap();
+        const discounts = state.payload.discounts;
+        const platform = items.get('platform');
+        const lineItems = [{ ...platform, quantity: state.platformSeats }];
+        let addOns = 0;
+        let enabledCount = 0;
+        for (const key of ['cambridge', 'ielts', 'writing', 'admissions']) {
+          const item = items.get(key);
+          const quantity = state.programmes[key] || 0;
+          lineItems.push({ ...item, quantity });
+          if (quantity > 0) { addOns += quantity * item.unit_amount_minor; enabledCount += 1; }
+        }
+        const platformMonthly = state.platformSeats * platform.unit_amount_minor;
+        const comboBps = enabledCount === 2 ? discounts.combination_two_bps : enabledCount === 3 ? discounts.combination_three_bps : enabledCount === 4 ? discounts.combination_four_bps : 0;
+        const comboMinor = Math.round(addOns * comboBps / 10000);
+        const monthlyAfterCombo = platformMonthly + addOns - comboMinor;
+        const months = monthsForTerm(state.term);
+        const termBps = discountForTerm(discounts, state.term);
+        const contractList = (platformMonthly + addOns) * months;
+        const termMinor = Math.round(monthlyAfterCombo * months * termBps / 10000);
+        const existingDiscount = comboMinor * months + termMinor;
+        const maxDiscount = Math.round(contractList * discounts.maximum_discount_bps / 10000);
+        let launchMinor = 0;
+        if (state.launch) {
+          const launchBase = state.term === 'monthly' ? monthlyAfterCombo : monthlyAfterCombo * 12 - Math.round(monthlyAfterCombo * 12 * termBps / 10000);
+          launchMinor = Math.max(0, Math.min(Math.round(launchBase * discounts.launch_bps / 10000), maxDiscount - existingDiscount));
+        }
+        const contractTotal = monthlyAfterCombo * months - termMinor - launchMinor;
+        const firstYear = state.term === 'monthly' ? contractTotal * 12 : monthlyAfterCombo * 12 - Math.round(monthlyAfterCombo * 12 * termBps / 10000) - launchMinor;
+        const renewal = state.term === 'monthly' ? monthlyAfterCombo : monthlyAfterCombo * months - termMinor;
+        return { lineItems, comboBps, comboMinor, months, termBps, termMinor, launchMinor, contractTotal, firstYear, renewal, effectiveMonthly: Math.round(contractTotal / months), effectiveStudent: Math.round(contractTotal / months / state.platformSeats) };
+      }
+
+      function renderCatalogue() {
+        const catalogue = byId('catalogue');
+        catalogue.innerHTML = state.payload.catalogue.map((item) => {
+          const suffix = item.key === 'admissions' ? 'candidate/mo' : 'student/mo';
+          const allowance = item.key === 'platform' ? 'Unlimited teachers and administrators' : item.key === 'writing' ? 'Includes 10 AI reviews/student/month' : 'Optional named-seat programme';
+          return `<article class="price-card ${item.key === 'platform' ? 'platform' : ''}"><h3>${escapeHtml(item.name)}</h3><p class="unit-price">${money(item.unit_amount_minor)} <span>/${suffix}</span></p><p class="minimum">Minimum ${item.minimum_quantity} ${escapeHtml(item.quantity_label)}</p><p class="allowance">${allowance}</p></article>`;
+        }).join('');
+      }
+
+      function renderProgrammes() {
+        const items = itemMap();
+        byId('programmes').innerHTML = ['cambridge', 'ielts', 'writing', 'admissions'].map((key) => {
+          const item = items.get(key); const value = state.programmes[key] || 0; const enabled = value > 0;
+          return `<div class="programme ${enabled ? 'enabled' : ''}" data-programme="${key}"><label class="programme-toggle"><input type="checkbox" data-enable="${key}" ${enabled ? 'checked' : ''}/><span><strong>${escapeHtml(item.name)} · ${money(item.unit_amount_minor)}/${key === 'admissions' ? 'candidate' : 'student'}/mo</strong><small>${programmeDescriptions[key]} · minimum ${item.minimum_quantity}</small></span></label><label>${key === 'admissions' ? 'Candidates' : 'Students'}<input type="number" data-quantity="${key}" min="${item.minimum_quantity}" ${key === 'admissions' ? '' : `max="${state.platformSeats}"`} value="${enabled ? value : item.minimum_quantity}" ${enabled ? '' : 'disabled'} inputmode="numeric"/></label></div>`;
+        }).join('');
+        document.querySelectorAll('[data-enable]').forEach((input) => input.addEventListener('change', () => { const key = input.dataset.enable; state.programmes[key] = input.checked ? itemMap().get(key).minimum_quantity : 0; renderAll(); }));
+        document.querySelectorAll('[data-quantity]').forEach((input) => input.addEventListener('change', () => { const key = input.dataset.quantity; const item = itemMap().get(key); const max = key === 'admissions' ? Number.MAX_SAFE_INTEGER : state.platformSeats; state.programmes[key] = Math.min(max, Math.max(item.minimum_quantity, safeInt(input.value, item.minimum_quantity))); renderAll(); }));
+      }
+
+      function renderTerms() {
+        const discounts = state.payload.discounts;
+        byId('terms').innerHTML = termDefinitions.map(([key, label, fallback]) => { const bps = discountForTerm(discounts, key); const note = bps ? `${percent(bps)} term discount` : fallback; return `<button type="button" class="term ${state.term === key ? 'active' : ''}" data-term="${key}" aria-pressed="${state.term === key}"><strong>${label}</strong><span>${note}</span></button>`; }).join('');
+        document.querySelectorAll('[data-term]').forEach((button) => button.addEventListener('click', () => { state.term = button.dataset.term; renderAll(); }));
+      }
+
+      function renderReceipt() {
+        const result = calculate();
+        const title = state.term === 'monthly' ? 'Estimated monthly invoice' : `${result.months}-month prepaid total`;
+        const rows = result.lineItems.filter((item) => item.quantity > 0).map((item) => `<div class="receipt-row"><dt>${escapeHtml(item.name)}<br><small>${item.quantity} × ${money(item.unit_amount_minor)}</small></dt><dd>${money(item.quantity * item.unit_amount_minor)}</dd></div>`).join('');
+        const discounts = `${result.comboMinor > 0 ? `<div class="receipt-row discount"><dt>Programme combination · ${percent(result.comboBps)}</dt><dd>−${money(result.comboMinor)}/mo</dd></div>` : ''}${result.termMinor > 0 ? `<div class="receipt-row discount"><dt>Term discount · ${percent(result.termBps)}</dt><dd>−${money(result.termMinor)}</dd></div>` : ''}${result.launchMinor > 0 ? `<div class="receipt-row discount"><dt>Launch discount · first year</dt><dd>−${money(result.launchMinor)}</dd></div>` : ''}`;
+        byId('receipt-body').innerHTML = `<dl class="receipt-list">${rows}</dl><div class="divider"></div><dl class="receipt-list">${discounts || '<div class="receipt-row"><dt>Discounts</dt><dd>None selected</dd></div>'}</dl><div class="divider"></div><span class="total-label">${title}</span><div class="total"><strong>${money(result.contractTotal)}</strong><span>${money(result.effectiveMonthly)}/mo effective</span></div><div class="renewal"><div><small>First year</small><strong>${money(result.firstYear)}</strong></div><div><small>Renewal, no Launch discount</small><strong>${money(result.renewal)}</strong></div></div><p class="effective">Effective package cost: <strong>${money(result.effectiveStudent)}</strong> per platform student/month. Estimate only; approval and verified activation are required.</p><a class="button" href="/?view=school_admin&amp;adminTab=billing">Save this in Plan &amp; Billing</a>`;
+      }
+
+      function renderAll() {
+        if (!state.payload) return;
+        const platform = itemMap().get('platform');
+        state.platformSeats = Math.max(platform.minimum_quantity, state.platformSeats);
+        for (const key of ['cambridge', 'ielts', 'writing']) if ((state.programmes[key] || 0) > state.platformSeats) state.programmes[key] = state.platformSeats;
+        byId('platform-range').min = platform.minimum_quantity; byId('platform-range').value = state.platformSeats; byId('platform-seats').min = platform.minimum_quantity; byId('platform-seats').value = state.platformSeats;
+        renderProgrammes(); renderTerms(); renderReceipt();
+        byId('launch-discount').checked = state.launch;
+      }
+
+      async function loadPricing() {
+        try {
+          const response = await fetch('/api/public-school-pricing', { headers: { Accept: 'application/json' } });
+          const payload = await response.json();
+          const expectedKeys = ['platform', 'cambridge', 'ielts', 'writing', 'admissions'];
+          if (!response.ok || !payload?.success || !Array.isArray(payload.catalogue) || !expectedKeys.every((key) => payload.catalogue.some((item) => item?.key === key))) throw new Error('Invalid pricing response');
+          state.payload = payload;
+          const platform = itemMap().get('platform'); state.platformSeats = platform.minimum_quantity;
+          for (const key of ['cambridge', 'ielts', 'writing', 'admissions']) state.programmes[key] = 0;
+          byId('receipt-version').textContent = payload.pricing_version.name;
+          byId('starting-price').innerHTML = `${money(platform.unit_amount_minor * platform.minimum_quantity)}<span>/month</span>`;
+          byId('starting-minimum').textContent = `${platform.minimum_quantity}-student minimum · platform only`;
+          const annualMinor = Math.round(platform.unit_amount_minor * platform.minimum_quantity * 12 * (1 - payload.discounts.annual_bps / 10000));
+          byId('starting-annual').textContent = `${money(annualMinor)}/year after the ${percent(payload.discounts.annual_bps)} annual discount`;
+          byId('launch-label').textContent = `Request the ${percent(payload.discounts.launch_bps)} Launch discount`;
+          const pilot = payload.pilot; byId('pilot-copy').textContent = `All programmes · up to ${pilot.platform_students} students · ${pilot.teachers} teachers · ${pilot.admission_candidates} admission candidates · no card required.`;
+          renderCatalogue(); renderAll();
+        } catch (error) {
+          console.error('[pricing] catalogue unavailable', error);
+          byId('starting-price').textContent = 'Contact us'; byId('starting-minimum').textContent = 'Live pricing is temporarily unavailable';
+          byId('catalogue').innerHTML = '<div class="pricing-status error">Live pricing is temporarily unavailable. Please contact sales@brainsheist.com.</div>';
+          byId('receipt-body').innerHTML = '<p class="pricing-status error">We could not load the active catalogue. No estimate has been produced.</p><a class="button" href="mailto:sales@brainsheist.com?subject=School%20Pricing%20Inquiry">Contact sales</a>';
+        }
+      }
+
+      byId('platform-range').addEventListener('input', (event) => { state.platformSeats = safeInt(event.target.value, state.platformSeats); renderAll(); });
+      byId('platform-seats').addEventListener('change', (event) => { state.platformSeats = safeInt(event.target.value, state.platformSeats); renderAll(); });
+      byId('launch-discount').addEventListener('change', (event) => { state.launch = event.target.checked; renderAll(); });
+      loadPricing();
+    })();
   </script>
 </body>
 </html>

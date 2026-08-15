@@ -6,14 +6,12 @@ import ProgrammeSeatManager from '../ProgrammeSeatManager';
 import {
   fetchSchoolPlanDetails,
   startPilot,
-  createCheckoutSession,
   invalidateTierCache,
-  type PlanInfo,
 } from '../../../services/tierService';
 
 const BillingTab: React.FC = () => {
   const {
-    addToast, billingAction, billingInterval, billingLoading, currentCapabilities, planDetails, school, setBillingAction, setBillingInterval, setBillingLoading, setPlanDetails,
+    addToast, billingAction, billingLoading, currentCapabilities, planDetails, school, setBillingAction, setBillingLoading, setPlanDetails,
   } = useSchoolAdmin();
 
   return (
@@ -22,8 +20,6 @@ const BillingTab: React.FC = () => {
       canManageBilling={Boolean(currentCapabilities?.can_manage_billing)}
       loading={billingLoading}
       billingAction={billingAction}
-      billingInterval={billingInterval}
-      setBillingInterval={setBillingInterval}
       onRefreshPlan={async () => {
         setBillingLoading(true);
         try {
@@ -50,27 +46,6 @@ const BillingTab: React.FC = () => {
         } catch {
           addToast('Unable to start the pilot right now. Please try again.', 'error');
         } finally {
-          setBillingAction(null);
-        }
-      }}
-      onSubscribe={async (plan: PlanInfo) => {
-        setBillingAction(plan.id);
-        try {
-          const result = await createCheckoutSession({
-            plan: plan.id as 'core' | 'standard' | 'pro',
-            interval: billingInterval,
-          });
-          if ('checkout_url' in result && typeof result.checkout_url === 'string') {
-            const checkoutUrl = new URL(result.checkout_url);
-            if (checkoutUrl.protocol === 'https:' || checkoutUrl.protocol === 'http:') {
-              window.location.href = checkoutUrl.href;
-              return;
-            }
-          }
-          addToast('error' in result ? result.error || 'Checkout failed' : 'Checkout failed. Please try again.', 'error');
-          setBillingAction(null);
-        } catch {
-          addToast('Unable to open checkout right now. Please try again.', 'error');
           setBillingAction(null);
         }
       }}

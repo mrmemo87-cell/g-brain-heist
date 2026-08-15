@@ -2704,13 +2704,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             setUpgradeFeatureLabel(undefined);
           }}
           featureLabel={upgradeFeatureLabel}
-          onPilotStarted={() => {
-            invalidateTierCache();
-            fetchEffectiveTier().then(tier => setAccountTier(tier));
-            setShowUpgradeModal(false);
-            setUpgradeFeatureLabel(undefined);
-            addToast('🚀 30-day pilot activated! All features unlocked.', 'success');
-          }}
         />
 
         {/* Toast Notifications */}
