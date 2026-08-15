@@ -1,0 +1,668 @@
+{
+  "subject": "Geography",
+  "subjectCode": "geography",
+  "grade": 11,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g11-geo-2026.6-001",
+      "topic": "Physical landscapes and processes",
+      "difficulty": "easy",
+      "questionText": "Which process breaks rock down in place without moving it?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Weathering",
+        "Transportation",
+        "Deposition",
+        "Mass migration"
+      ],
+      "correctAnswer": "Weathering",
+      "explanation": "Weathering breaks rock down at or near Earth’s surface, while erosion and transportation involve movement.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo11-physical-processes",
+        "physical landscapes and processes"
+      ],
+      "curriculum": {
+        "strand": "Physical landscapes and processes",
+        "skill": "Apply physical landscapes and processes",
+        "subskill": "physical landscapes and processes",
+        "objective": "Explain how tectonic, fluvial, coastal and weathering processes create and change physical landscapes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-physical-processes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-002",
+      "topic": "Physical landscapes and processes",
+      "difficulty": "medium",
+      "questionText": "Why does deposition often occur where a river enters a lake?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Channel gradient suddenly becomes steeper",
+        "Velocity and carrying capacity decrease",
+        "Water discharge always becomes zero",
+        "The sediment becomes chemically weightless"
+      ],
+      "correctAnswer": "Velocity and carrying capacity decrease",
+      "explanation": "Entering still water reduces the river’s velocity and energy, so it can no longer carry as much sediment.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo11-physical-processes",
+        "physical landscapes and processes"
+      ],
+      "curriculum": {
+        "strand": "Physical landscapes and processes",
+        "skill": "Apply physical landscapes and processes",
+        "subskill": "physical landscapes and processes",
+        "objective": "Explain how tectonic, fluvial, coastal and weathering processes create and change physical landscapes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-physical-processes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-003",
+      "topic": "Physical landscapes and processes",
+      "difficulty": "medium",
+      "questionText": "At a destructive plate boundary, what commonly happens to denser oceanic crust?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It rises permanently above continental crust",
+        "It stops moving at the boundary",
+        "It subducts beneath the less dense plate",
+        "It changes directly into sedimentary rock"
+      ],
+      "correctAnswer": "It subducts beneath the less dense plate",
+      "explanation": "The denser oceanic lithosphere is forced beneath the other plate, producing earthquakes and often volcanic activity.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo11-physical-processes",
+        "physical landscapes and processes"
+      ],
+      "curriculum": {
+        "strand": "Physical landscapes and processes",
+        "skill": "Apply physical landscapes and processes",
+        "subskill": "physical landscapes and processes",
+        "objective": "Explain how tectonic, fluvial, coastal and weathering processes create and change physical landscapes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-physical-processes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-004",
+      "topic": "Physical landscapes and processes",
+      "difficulty": "hard",
+      "questionText": "A river meander becomes more pronounced over time. Which paired processes best explain this?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Inner-bank erosion and outer-bank deposition",
+        "Equal deposition on both banks",
+        "Vertical erosion without lateral movement",
+        "Outer-bank erosion and inner-bank deposition"
+      ],
+      "correctAnswer": "Outer-bank erosion and inner-bank deposition",
+      "explanation": "Faster flow erodes the outer bend, while slower water deposits material on the inner bend, increasing sinuosity.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "geo11-physical-processes",
+        "physical landscapes and processes"
+      ],
+      "curriculum": {
+        "strand": "Physical landscapes and processes",
+        "skill": "Apply physical landscapes and processes",
+        "subskill": "physical landscapes and processes",
+        "objective": "Explain how tectonic, fluvial, coastal and weathering processes create and change physical landscapes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-physical-processes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-005",
+      "topic": "Population and settlement",
+      "difficulty": "easy",
+      "questionText": "What is population density?",
+      "questionType": "multiple_choice",
+      "options": [
+        "People per unit area",
+        "Births per thousand people",
+        "People leaving a country",
+        "Average household income"
+      ],
+      "correctAnswer": "People per unit area",
+      "explanation": "Population density measures how many people occupy a specified unit of land area.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo11-population-settlement",
+        "population and settlement"
+      ],
+      "curriculum": {
+        "strand": "Population and settlement",
+        "skill": "Apply population and settlement",
+        "subskill": "population and settlement",
+        "objective": "Interpret population and settlement patterns using demographic change, migration, service provision and site factors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-population-settlement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-006",
+      "topic": "Population and settlement",
+      "difficulty": "medium",
+      "questionText": "Which is a likely pull factor for rural-to-urban migration?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Loss of crops after drought",
+        "Greater access to employment",
+        "Declining rural soil fertility",
+        "Conflict in the home village"
+      ],
+      "correctAnswer": "Greater access to employment",
+      "explanation": "A pull factor attracts migrants to a destination; urban jobs and services commonly provide that attraction.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo11-population-settlement",
+        "population and settlement"
+      ],
+      "curriculum": {
+        "strand": "Population and settlement",
+        "skill": "Apply population and settlement",
+        "subskill": "population and settlement",
+        "objective": "Interpret population and settlement patterns using demographic change, migration, service provision and site factors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-population-settlement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-007",
+      "topic": "Population and settlement",
+      "difficulty": "medium",
+      "questionText": "A country has a broad-based population pyramid and a narrow top. What does this most strongly suggest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Low birth rate and a strongly ageing population",
+        "Equal numbers in every age group",
+        "High birth rate and relatively low life expectancy",
+        "No migration or mortality at any age"
+      ],
+      "correctAnswer": "High birth rate and relatively low life expectancy",
+      "explanation": "A wide base represents many young people, while a narrow top indicates relatively few surviving to older ages.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo11-population-settlement",
+        "population and settlement"
+      ],
+      "curriculum": {
+        "strand": "Population and settlement",
+        "skill": "Apply population and settlement",
+        "subskill": "population and settlement",
+        "objective": "Interpret population and settlement patterns using demographic change, migration, service provision and site factors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-population-settlement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-008",
+      "topic": "Population and settlement",
+      "difficulty": "hard",
+      "questionText": "A settlement first developed at a river crossing and road junction. Which combination best describes these advantages?",
+      "questionType": "multiple_choice",
+      "options": [
+        "An isolated site and weak accessibility",
+        "A declining hierarchy and zero function",
+        "A dispersed pattern caused only by relief",
+        "A favorable site and strong connectivity"
+      ],
+      "correctAnswer": "A favorable site and strong connectivity",
+      "explanation": "The crossing supports the physical site, while intersecting transport routes improve accessibility and interaction.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "geo11-population-settlement",
+        "population and settlement"
+      ],
+      "curriculum": {
+        "strand": "Population and settlement",
+        "skill": "Apply population and settlement",
+        "subskill": "population and settlement",
+        "objective": "Interpret population and settlement patterns using demographic change, migration, service provision and site factors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-population-settlement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-009",
+      "topic": "Development and resources",
+      "difficulty": "easy",
+      "questionText": "Which indicator directly measures average income per person?",
+      "questionType": "multiple_choice",
+      "options": [
+        "GNI per capita",
+        "Infant mortality rate",
+        "Adult literacy rate",
+        "Life expectancy"
+      ],
+      "correctAnswer": "GNI per capita",
+      "explanation": "Gross national income per capita divides national income by population to estimate average income per person.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo11-development-resources",
+        "development and resources"
+      ],
+      "curriculum": {
+        "strand": "Development and resources",
+        "skill": "Apply development and resources",
+        "subskill": "development and resources",
+        "objective": "Use indicators and resource evidence to explain development differences and evaluate sustainable resource decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-development-resources"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-010",
+      "topic": "Development and resources",
+      "difficulty": "medium",
+      "questionText": "Why is the Human Development Index more informative than income alone?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It measures only national exports",
+        "It combines income, health and education",
+        "It excludes every social indicator",
+        "It gives the location of each household"
+      ],
+      "correctAnswer": "It combines income, health and education",
+      "explanation": "HDI includes income, life expectancy and education, giving a broader view of human development.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo11-development-resources",
+        "development and resources"
+      ],
+      "curriculum": {
+        "strand": "Development and resources",
+        "skill": "Apply development and resources",
+        "subskill": "development and resources",
+        "objective": "Use indicators and resource evidence to explain development differences and evaluate sustainable resource decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-development-resources"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-011",
+      "topic": "Development and resources",
+      "difficulty": "medium",
+      "questionText": "Which energy source is renewable but can flood habitats and displace communities?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Coal-fired generation",
+        "Diesel combustion",
+        "Hydroelectric power",
+        "Natural-gas heating"
+      ],
+      "correctAnswer": "Hydroelectric power",
+      "explanation": "Hydroelectricity is renewable, but large reservoirs can inundate ecosystems and settlements.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo11-development-resources",
+        "development and resources"
+      ],
+      "curriculum": {
+        "strand": "Development and resources",
+        "skill": "Apply development and resources",
+        "subskill": "development and resources",
+        "objective": "Use indicators and resource evidence to explain development differences and evaluate sustainable resource decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-development-resources"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-012",
+      "topic": "Development and resources",
+      "difficulty": "hard",
+      "questionText": "A region exports unprocessed minerals but imports expensive manufactured goods. Which strategy could most directly increase retained value?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Export a larger share of raw ore immediately",
+        "Reduce all technical education spending",
+        "Ban maintenance of transport infrastructure",
+        "Develop local processing and skilled manufacturing"
+      ],
+      "correctAnswer": "Develop local processing and skilled manufacturing",
+      "explanation": "Processing resources locally adds value, builds skills and can retain more income within the regional economy.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "geo11-development-resources",
+        "development and resources"
+      ],
+      "curriculum": {
+        "strand": "Development and resources",
+        "skill": "Apply development and resources",
+        "subskill": "development and resources",
+        "objective": "Use indicators and resource evidence to explain development differences and evaluate sustainable resource decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-development-resources"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-013",
+      "topic": "Weather and climate",
+      "difficulty": "easy",
+      "questionText": "Which instrument measures atmospheric pressure?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Barometer",
+        "Rain gauge",
+        "Anemometer",
+        "Thermometer"
+      ],
+      "correctAnswer": "Barometer",
+      "explanation": "A barometer measures atmospheric pressure; the other instruments measure rainfall, wind speed and temperature.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo11-weather-climate",
+        "weather and climate"
+      ],
+      "curriculum": {
+        "strand": "Weather and climate",
+        "skill": "Apply weather and climate",
+        "subskill": "weather and climate",
+        "objective": "Interpret atmospheric data and explain weather and climate patterns using energy, pressure, moisture and circulation processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-014",
+      "topic": "Weather and climate",
+      "difficulty": "medium",
+      "questionText": "Why does rising moist air often produce clouds?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Compression causes rapid heating and evaporation",
+        "Expansion causes cooling and condensation",
+        "Gravity removes every water droplet",
+        "Air pressure increases with altitude"
+      ],
+      "correctAnswer": "Expansion causes cooling and condensation",
+      "explanation": "As air rises into lower pressure it expands and cools, allowing water vapor to condense when saturation is reached.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo11-weather-climate",
+        "weather and climate"
+      ],
+      "curriculum": {
+        "strand": "Weather and climate",
+        "skill": "Apply weather and climate",
+        "subskill": "weather and climate",
+        "objective": "Interpret atmospheric data and explain weather and climate patterns using energy, pressure, moisture and circulation processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-015",
+      "topic": "Weather and climate",
+      "difficulty": "medium",
+      "questionText": "A coastal location has cooler summers and milder winters than an inland location at the same latitude. What best explains this?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The coast always receives vertical sunlight",
+        "Inland air contains no water vapor",
+        "The sea heats and cools more slowly than land",
+        "Ocean water prevents any wind movement"
+      ],
+      "correctAnswer": "The sea heats and cools more slowly than land",
+      "explanation": "Water’s high heat capacity moderates temperature changes, reducing the annual range near coasts.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo11-weather-climate",
+        "weather and climate"
+      ],
+      "curriculum": {
+        "strand": "Weather and climate",
+        "skill": "Apply weather and climate",
+        "subskill": "weather and climate",
+        "objective": "Interpret atmospheric data and explain weather and climate patterns using energy, pressure, moisture and circulation processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-016",
+      "topic": "Weather and climate",
+      "difficulty": "hard",
+      "questionText": "On the windward side of a mountain, why is precipitation often greater?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Air descends, warms and becomes saturated",
+        "Pressure remains identical at every height",
+        "The mountain blocks all solar radiation",
+        "Air is forced upward, cools and condenses"
+      ],
+      "correctAnswer": "Air is forced upward, cools and condenses",
+      "explanation": "Relief forces moist air to rise; adiabatic cooling promotes condensation and orographic precipitation.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "geo11-weather-climate",
+        "weather and climate"
+      ],
+      "curriculum": {
+        "strand": "Weather and climate",
+        "skill": "Apply weather and climate",
+        "subskill": "weather and climate",
+        "objective": "Interpret atmospheric data and explain weather and climate patterns using energy, pressure, moisture and circulation processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-017",
+      "topic": "Geographical fieldwork and data",
+      "difficulty": "easy",
+      "questionText": "Which sampling method gives every member of a population an equal chance of selection?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Simple random sampling",
+        "Convenience sampling",
+        "Quota sampling",
+        "Judgment sampling"
+      ],
+      "correctAnswer": "Simple random sampling",
+      "explanation": "Simple random sampling uses a random process so each population member has an equal selection chance.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo11-fieldwork-data",
+        "geographical fieldwork and data"
+      ],
+      "curriculum": {
+        "strand": "Geographical fieldwork and data",
+        "skill": "Apply geographical fieldwork and data",
+        "subskill": "geographical fieldwork and data",
+        "objective": "Design, present and evaluate geographical investigations using sampling, mapping, data analysis and risk control."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-fieldwork-data"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-018",
+      "topic": "Geographical fieldwork and data",
+      "difficulty": "medium",
+      "questionText": "Which graph is most suitable for showing river velocity measured at successive sites downstream?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Pie chart",
+        "Line graph",
+        "Pictogram",
+        "Population pyramid"
+      ],
+      "correctAnswer": "Line graph",
+      "explanation": "A line graph clearly shows how a continuous measurement changes across an ordered sequence of sites.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo11-fieldwork-data",
+        "geographical fieldwork and data"
+      ],
+      "curriculum": {
+        "strand": "Geographical fieldwork and data",
+        "skill": "Apply geographical fieldwork and data",
+        "subskill": "geographical fieldwork and data",
+        "objective": "Design, present and evaluate geographical investigations using sampling, mapping, data analysis and risk control."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-fieldwork-data"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-019",
+      "topic": "Geographical fieldwork and data",
+      "difficulty": "medium",
+      "questionText": "Students compare pedestrian counts at two shopping streets. Why should both sites be measured at the same times?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To guarantee both streets have equal counts",
+        "To remove the need for repeated measurements",
+        "To control variation caused by time of day",
+        "To convert observations into secondary data"
+      ],
+      "correctAnswer": "To control variation caused by time of day",
+      "explanation": "Using matched time periods controls a major variable, making differences between locations more meaningful.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo11-fieldwork-data",
+        "geographical fieldwork and data"
+      ],
+      "curriculum": {
+        "strand": "Geographical fieldwork and data",
+        "skill": "Apply geographical fieldwork and data",
+        "subskill": "geographical fieldwork and data",
+        "objective": "Design, present and evaluate geographical investigations using sampling, mapping, data analysis and risk control."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-fieldwork-data"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-geo-2026.6-020",
+      "topic": "Geographical fieldwork and data",
+      "difficulty": "hard",
+      "questionText": "A fieldwork correlation is strong, but data came from only three nearby sites. What is the main limitation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Correlation can never use numerical data",
+        "Nearby sites always represent an entire country",
+        "Three sites automatically prove causation",
+        "The sample is too small and spatially restricted"
+      ],
+      "correctAnswer": "The sample is too small and spatially restricted",
+      "explanation": "Few clustered sites may not represent the wider area, so the relationship may not generalize.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "geo11-fieldwork-data",
+        "geographical fieldwork and data"
+      ],
+      "curriculum": {
+        "strand": "Geographical fieldwork and data",
+        "skill": "Apply geographical fieldwork and data",
+        "subskill": "geographical fieldwork and data",
+        "objective": "Design, present and evaluate geographical investigations using sampling, mapping, data analysis and risk control."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-11",
+          "objectiveCode": "geo11-fieldwork-data"
+        }
+      ]
+    }
+  ]
+}

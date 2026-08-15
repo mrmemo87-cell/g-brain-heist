@@ -1,0 +1,668 @@
+{
+  "subject": "Global Perspectives",
+  "subjectCode": "global-perspectives",
+  "grade": 12,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g12-gp-2026.6-001",
+      "topic": "Evidence synthesis",
+      "difficulty": "easy",
+      "questionText": "What does it mean to synthesize sources?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Combine evidence to develop an integrated understanding",
+        "Copy each source word for word and preserve its original order",
+        "Choose the source with the longest title",
+        "Remove every disagreement from the record"
+      ],
+      "correctAnswer": "Combine evidence to develop an integrated understanding",
+      "explanation": "Synthesis connects findings, methods and perspectives across sources to form a coherent understanding.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "gp12-evidence-synthesis",
+        "evidence synthesis"
+      ],
+      "curriculum": {
+        "strand": "Evidence synthesis",
+        "skill": "Apply evidence synthesis",
+        "subskill": "evidence synthesis",
+        "objective": "Synthesize diverse evidence by evaluating quality, reconciling disagreement and producing appropriately qualified conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-evidence-synthesis"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-002",
+      "topic": "Evidence synthesis",
+      "difficulty": "medium",
+      "questionText": "Two strong studies disagree. What is the best first analytical response?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Average their conclusions without inspection",
+        "Compare their methods, samples and contexts",
+        "Reject both because disagreement exists",
+        "Select the conclusion you preferred beforehand"
+      ],
+      "correctAnswer": "Compare their methods, samples and contexts",
+      "explanation": "Differences in design, population or setting may explain disagreement and help define where each result applies.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp12-evidence-synthesis",
+        "evidence synthesis"
+      ],
+      "curriculum": {
+        "strand": "Evidence synthesis",
+        "skill": "Apply evidence synthesis",
+        "subskill": "evidence synthesis",
+        "objective": "Synthesize diverse evidence by evaluating quality, reconciling disagreement and producing appropriately qualified conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-evidence-synthesis"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-003",
+      "topic": "Evidence synthesis",
+      "difficulty": "medium",
+      "questionText": "Which conclusion is most appropriate when evidence is consistent but comes only from high-income countries?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The pattern must apply identically in every country and social context",
+        "Geographic scope has no effect on inference",
+        "The pattern is supported there, but wider generalization is uncertain",
+        "The evidence proves a universal law"
+      ],
+      "correctAnswer": "The pattern is supported there, but wider generalization is uncertain",
+      "explanation": "A strong conclusion should reflect both consistent findings and the geographic limitation of the evidence base.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp12-evidence-synthesis",
+        "evidence synthesis"
+      ],
+      "curriculum": {
+        "strand": "Evidence synthesis",
+        "skill": "Apply evidence synthesis",
+        "subskill": "evidence synthesis",
+        "objective": "Synthesize diverse evidence by evaluating quality, reconciling disagreement and producing appropriately qualified conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-evidence-synthesis"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-004",
+      "topic": "Evidence synthesis",
+      "difficulty": "hard",
+      "questionText": "A review gives equal weight to a large controlled study and an anonymous unsupported post. What is the main synthesis error?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Using more than one source",
+        "Acknowledging that sources can differ",
+        "Writing a conclusion after reviewing several independent sources",
+        "Failing to weight evidence by quality and relevance"
+      ],
+      "correctAnswer": "Failing to weight evidence by quality and relevance",
+      "explanation": "Synthesis should not treat all claims equally; methodological strength, transparency and relevance determine evidential weight.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "gp12-evidence-synthesis",
+        "evidence synthesis"
+      ],
+      "curriculum": {
+        "strand": "Evidence synthesis",
+        "skill": "Apply evidence synthesis",
+        "subskill": "evidence synthesis",
+        "objective": "Synthesize diverse evidence by evaluating quality, reconciling disagreement and producing appropriately qualified conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-evidence-synthesis"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-005",
+      "topic": "Global systems and interdependence",
+      "difficulty": "easy",
+      "questionText": "What is interdependence?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Mutual reliance between connected actors or systems",
+        "Complete isolation from outside influence, exchange or consequences",
+        "A policy made by one person only",
+        "A measurement with no variables"
+      ],
+      "correctAnswer": "Mutual reliance between connected actors or systems",
+      "explanation": "Interdependence means actions and outcomes are linked because actors or systems rely on one another.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "gp12-global-systems",
+        "global systems and interdependence"
+      ],
+      "curriculum": {
+        "strand": "Global systems and interdependence",
+        "skill": "Apply global systems and interdependence",
+        "subskill": "global systems and interdependence",
+        "objective": "Analyse global issues as interconnected systems involving feedbacks, trade-offs, power and cross-border effects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-global-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-006",
+      "topic": "Global systems and interdependence",
+      "difficulty": "medium",
+      "questionText": "Why can one country’s carbon emissions affect people elsewhere?",
+      "questionType": "multiple_choice",
+      "options": [
+        "National borders permanently block all atmospheric circulation",
+        "Greenhouse gases mix globally in the atmosphere",
+        "Climate processes occur only locally",
+        "Carbon dioxide immediately becomes solid"
+      ],
+      "correctAnswer": "Greenhouse gases mix globally in the atmosphere",
+      "explanation": "Atmospheric circulation distributes greenhouse gases, so emissions contribute to global rather than purely national change.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp12-global-systems",
+        "global systems and interdependence"
+      ],
+      "curriculum": {
+        "strand": "Global systems and interdependence",
+        "skill": "Apply global systems and interdependence",
+        "subskill": "global systems and interdependence",
+        "objective": "Analyse global issues as interconnected systems involving feedbacks, trade-offs, power and cross-border effects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-global-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-007",
+      "topic": "Global systems and interdependence",
+      "difficulty": "medium",
+      "questionText": "A food-export ban protects domestic supply but raises prices in importing countries. What does this illustrate?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A decision with no external consequences",
+        "The end of all international markets",
+        "A policy trade-off transmitted through an interconnected system",
+        "A purely cultural issue without material effects"
+      ],
+      "correctAnswer": "A policy trade-off transmitted through an interconnected system",
+      "explanation": "National action can improve one goal locally while shifting costs through trade networks to other populations.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp12-global-systems",
+        "global systems and interdependence"
+      ],
+      "curriculum": {
+        "strand": "Global systems and interdependence",
+        "skill": "Apply global systems and interdependence",
+        "subskill": "global systems and interdependence",
+        "objective": "Analyse global issues as interconnected systems involving feedbacks, trade-offs, power and cross-border effects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-global-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-008",
+      "topic": "Global systems and interdependence",
+      "difficulty": "hard",
+      "questionText": "Which intervention best addresses antibiotic resistance as a global system problem?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Treat resistance as one hospital’s private issue",
+        "Increase unnecessary prescribing everywhere",
+        "Stop sharing outbreak and laboratory data",
+        "Coordinate stewardship, surveillance and access across countries"
+      ],
+      "correctAnswer": "Coordinate stewardship, surveillance and access across countries",
+      "explanation": "Resistance crosses borders and sectors, requiring coordinated use, monitoring, infection control and equitable treatment access.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "gp12-global-systems",
+        "global systems and interdependence"
+      ],
+      "curriculum": {
+        "strand": "Global systems and interdependence",
+        "skill": "Apply global systems and interdependence",
+        "subskill": "global systems and interdependence",
+        "objective": "Analyse global issues as interconnected systems involving feedbacks, trade-offs, power and cross-border effects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-global-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-009",
+      "topic": "Ethics and policy evaluation",
+      "difficulty": "easy",
+      "questionText": "Which ethical principle focuses on fair distribution of benefits and burdens?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Justice",
+        "Popularity",
+        "Tradition alone",
+        "Technical speed"
+      ],
+      "correctAnswer": "Justice",
+      "explanation": "Justice concerns fairness in how benefits, risks, opportunities and burdens are distributed.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "gp12-ethics-policy",
+        "ethics and policy evaluation"
+      ],
+      "curriculum": {
+        "strand": "Ethics and policy evaluation",
+        "skill": "Apply ethics and policy evaluation",
+        "subskill": "ethics and policy evaluation",
+        "objective": "Evaluate policy options using rights, consequences, justice, feasibility, stakeholder power and uncertainty."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-ethics-policy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-010",
+      "topic": "Ethics and policy evaluation",
+      "difficulty": "medium",
+      "questionText": "A health policy produces large overall benefits but places most costs on a vulnerable minority. What tension is central?",
+      "questionType": "multiple_choice",
+      "options": [
+        "File size versus internet speed",
+        "Aggregate benefit versus distributive justice",
+        "Weather forecasting versus map scale",
+        "Grammar versus visual design"
+      ],
+      "correctAnswer": "Aggregate benefit versus distributive justice",
+      "explanation": "The policy may maximize total benefit while distributing burdens unfairly, creating a consequential and justice-based conflict.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp12-ethics-policy",
+        "ethics and policy evaluation"
+      ],
+      "curriculum": {
+        "strand": "Ethics and policy evaluation",
+        "skill": "Apply ethics and policy evaluation",
+        "subskill": "ethics and policy evaluation",
+        "objective": "Evaluate policy options using rights, consequences, justice, feasibility, stakeholder power and uncertainty."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-ethics-policy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-011",
+      "topic": "Ethics and policy evaluation",
+      "difficulty": "medium",
+      "questionText": "Why should policy evaluation include feasibility as well as desirability?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Desirable policies never require implementation",
+        "Feasibility measures only public popularity",
+        "A preferred option may lack resources, capacity or compliance",
+        "Ethics is unrelated to real-world effects"
+      ],
+      "correctAnswer": "A preferred option may lack resources, capacity or compliance",
+      "explanation": "An option cannot achieve intended outcomes if institutions, budgets, technology or public cooperation are insufficient.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp12-ethics-policy",
+        "ethics and policy evaluation"
+      ],
+      "curriculum": {
+        "strand": "Ethics and policy evaluation",
+        "skill": "Apply ethics and policy evaluation",
+        "subskill": "ethics and policy evaluation",
+        "objective": "Evaluate policy options using rights, consequences, justice, feasibility, stakeholder power and uncertainty."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-ethics-policy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-012",
+      "topic": "Ethics and policy evaluation",
+      "difficulty": "hard",
+      "questionText": "A government tests facial recognition in public spaces without notice or appeal. Which safeguard most directly improves procedural fairness?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Secret criteria controlled by the vendor",
+        "Permanent retention of every captured image",
+        "Removal of accuracy and bias audits",
+        "Transparent rules, independent oversight and challenge rights"
+      ],
+      "correctAnswer": "Transparent rules, independent oversight and challenge rights",
+      "explanation": "Procedural fairness requires understandable rules, accountable review and a meaningful way to contest decisions.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "gp12-ethics-policy",
+        "ethics and policy evaluation"
+      ],
+      "curriculum": {
+        "strand": "Ethics and policy evaluation",
+        "skill": "Apply ethics and policy evaluation",
+        "subskill": "ethics and policy evaluation",
+        "objective": "Evaluate policy options using rights, consequences, justice, feasibility, stakeholder power and uncertainty."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-ethics-policy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-013",
+      "topic": "Advanced research evaluation",
+      "difficulty": "easy",
+      "questionText": "What does reliability mean in research?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A method gives consistent results when repeated",
+        "A result supports the researcher’s preference",
+        "Every participant gives the same opinion",
+        "The study uses only qualitative evidence"
+      ],
+      "correctAnswer": "A method gives consistent results when repeated",
+      "explanation": "Reliability concerns consistency of measurement or procedure across repetitions, observers or items.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "gp12-research-evaluation",
+        "advanced research evaluation"
+      ],
+      "curriculum": {
+        "strand": "Advanced research evaluation",
+        "skill": "Apply advanced research evaluation",
+        "subskill": "advanced research evaluation",
+        "objective": "Evaluate research validity, reliability, causality, ethics and uncertainty using design and statistical reasoning."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-research-evaluation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-014",
+      "topic": "Advanced research evaluation",
+      "difficulty": "medium",
+      "questionText": "Why does random assignment strengthen a controlled experiment?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It guarantees a very large sample",
+        "It helps balance confounding factors between groups",
+        "It removes the need for an outcome measure",
+        "It ensures participants know their group"
+      ],
+      "correctAnswer": "It helps balance confounding factors between groups",
+      "explanation": "Random assignment reduces systematic group differences, making the treatment a more plausible cause of outcome differences.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp12-research-evaluation",
+        "advanced research evaluation"
+      ],
+      "curriculum": {
+        "strand": "Advanced research evaluation",
+        "skill": "Apply advanced research evaluation",
+        "subskill": "advanced research evaluation",
+        "objective": "Evaluate research validity, reliability, causality, ethics and uncertainty using design and statistical reasoning."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-research-evaluation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-015",
+      "topic": "Advanced research evaluation",
+      "difficulty": "medium",
+      "questionText": "A study finds a statistically significant effect with a very small effect size. What is the best interpretation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The effect must be large in real life",
+        "Statistical significance proves perfect measurement",
+        "The effect may be real but have limited practical importance",
+        "The null hypothesis becomes impossible forever"
+      ],
+      "correctAnswer": "The effect may be real but have limited practical importance",
+      "explanation": "Statistical significance addresses evidence against chance under a model, while effect size addresses magnitude and practical relevance.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp12-research-evaluation",
+        "advanced research evaluation"
+      ],
+      "curriculum": {
+        "strand": "Advanced research evaluation",
+        "skill": "Apply advanced research evaluation",
+        "subskill": "advanced research evaluation",
+        "objective": "Evaluate research validity, reliability, causality, ethics and uncertainty using design and statistical reasoning."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-research-evaluation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-016",
+      "topic": "Advanced research evaluation",
+      "difficulty": "hard",
+      "questionText": "Researchers stop collecting data as soon as p falls below 0.05 without a pre-set rule. What risk increases?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Perfect replication across future samples",
+        "Elimination of sampling variability",
+        "Automatic correction of measurement bias",
+        "A false-positive result from optional stopping"
+      ],
+      "correctAnswer": "A false-positive result from optional stopping",
+      "explanation": "Repeatedly checking and stopping at significance inflates the chance of finding a seemingly significant result by chance.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "gp12-research-evaluation",
+        "advanced research evaluation"
+      ],
+      "curriculum": {
+        "strand": "Advanced research evaluation",
+        "skill": "Apply advanced research evaluation",
+        "subskill": "advanced research evaluation",
+        "objective": "Evaluate research validity, reliability, causality, ethics and uncertainty using design and statistical reasoning."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-research-evaluation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-017",
+      "topic": "Communication and reflection",
+      "difficulty": "easy",
+      "questionText": "Why should communication be adapted for its audience?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Different audiences need appropriate context and language",
+        "Evidence changes truth for each audience",
+        "Technical terms are always clearer",
+        "One format is equally accessible to everyone"
+      ],
+      "correctAnswer": "Different audiences need appropriate context and language",
+      "explanation": "Audience knowledge, needs and access shape which explanations, formats and detail levels communicate accurately.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "gp12-communication-reflection",
+        "communication and reflection"
+      ],
+      "curriculum": {
+        "strand": "Communication and reflection",
+        "skill": "Apply communication and reflection",
+        "subskill": "communication and reflection",
+        "objective": "Communicate complex conclusions for audiences and critically reflect on limitations, positionality and future improvement."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-communication-reflection"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-018",
+      "topic": "Communication and reflection",
+      "difficulty": "medium",
+      "questionText": "Which visual choice best communicates uncertainty in a numerical estimate?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Display only a precise number with no context",
+        "Show an interval or range around the estimate",
+        "Remove labels from the axes",
+        "Use decorative icons instead of values"
+      ],
+      "correctAnswer": "Show an interval or range around the estimate",
+      "explanation": "An interval makes the plausible range visible and avoids presenting an estimate as exact.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp12-communication-reflection",
+        "communication and reflection"
+      ],
+      "curriculum": {
+        "strand": "Communication and reflection",
+        "skill": "Apply communication and reflection",
+        "subskill": "communication and reflection",
+        "objective": "Communicate complex conclusions for audiences and critically reflect on limitations, positionality and future improvement."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-communication-reflection"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-019",
+      "topic": "Communication and reflection",
+      "difficulty": "medium",
+      "questionText": "What is positionality in reflective research?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The geographic coordinates of every participant",
+        "A rule that prevents any interpretation",
+        "How a researcher’s identity and context may shape the work",
+        "The order of slides in a presentation"
+      ],
+      "correctAnswer": "How a researcher’s identity and context may shape the work",
+      "explanation": "Positionality examines how the researcher’s background, relationships and assumptions can influence questions and interpretation.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp12-communication-reflection",
+        "communication and reflection"
+      ],
+      "curriculum": {
+        "strand": "Communication and reflection",
+        "skill": "Apply communication and reflection",
+        "subskill": "communication and reflection",
+        "objective": "Communicate complex conclusions for audiences and critically reflect on limitations, positionality and future improvement."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-communication-reflection"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-gp-2026.6-020",
+      "topic": "Communication and reflection",
+      "difficulty": "hard",
+      "questionText": "A presentation gives a strong recommendation but hides major evidence gaps. Which revision is most responsible?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Delete all references to limitations",
+        "Express greater certainty than the data supports",
+        "Replace analysis with emotional slogans",
+        "State the gaps and qualify the recommendation accordingly"
+      ],
+      "correctAnswer": "State the gaps and qualify the recommendation accordingly",
+      "explanation": "Responsible communication makes uncertainty and limitations visible so audiences can judge the recommendation proportionately.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "gp12-communication-reflection",
+        "communication and reflection"
+      ],
+      "curriculum": {
+        "strand": "Communication and reflection",
+        "skill": "Apply communication and reflection",
+        "subskill": "communication and reflection",
+        "objective": "Communicate complex conclusions for audiences and critically reflect on limitations, positionality and future improvement."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-12",
+          "objectiveCode": "gp12-communication-reflection"
+        }
+      ]
+    }
+  ]
+}
