@@ -17,7 +17,7 @@ returns void language plpgsql as $$
 begin
   perform set_config('request.path', p_path, true);
   begin
-    perform public.enforce_request_entitlement();
+    perform private.enforce_request_entitlement();
     raise exception 'assertion failed: % (route was allowed)', p_message;
   exception when sqlstate 'PGRST' then null;
   end;
