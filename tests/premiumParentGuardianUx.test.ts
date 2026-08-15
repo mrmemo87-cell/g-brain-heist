@@ -48,12 +48,15 @@ test('parent portal blocks wrong-account claims and offers a safe account switch
 });
 
 test('school transactional email header includes both school and Brains Heist logos', () => {
+  const branding = read('supabase/functions/_shared/email.ts');
   const dispatcher = read('supabase/functions/school_email_dispatcher/index.ts');
-  assert.match(dispatcher, /PRODUCT_LOGO_URL = "https:\/\/brainsheist\.com\/logo\.png"/);
-  assert.match(dispatcher, /alt="Brains Heist logo"/);
-  assert.match(dispatcher, /School communication/);
-  assert.match(dispatcher, />×</);
-  assert.match(dispatcher, /Academic progress platform/);
+  assert.match(branding, /PRODUCT_LOGO_URL = "https:\/\/www\.brainsheist\.com\/logo\.png"/);
+  assert.match(branding, /alt=\"Brains Heist logo\"/);
+  assert.match(branding, /school\.logo_url/);
+  assert.match(branding, /School communication/);
+  assert.match(branding, />×</);
+  assert.match(branding, /Academic progress platform/);
+  assert.match(dispatcher, /renderBrandedEmail/);
 });
 
 test('guardian send confirmation uses the standalone guardian modal instead of Tailwind Toast utilities', () => {

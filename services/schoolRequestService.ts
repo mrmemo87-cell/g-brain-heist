@@ -213,7 +213,7 @@ export const requestSchool = async (payload: SchoolRequestPayload): Promise<Scho
       return {
         ...result,
         message: email.sent
-          ? 'Your request has been submitted. A confirmation was sent to your verified Brains Heist email, and future superadmin updates will be sent there too.'
+          ? 'Your request has been submitted. A confirmation is queued for your verified Brains Heist email, and future superadmin updates will be queued there too.'
           : 'Your request has been submitted. Track it in My applications while email delivery is temporarily unavailable.',
         emailWarning: email.warning,
       };

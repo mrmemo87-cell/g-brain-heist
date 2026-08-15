@@ -768,7 +768,7 @@ const IeltsAdminDashboard: React.FC = () => {
     }
   };
 
-  const markNotificationSent = async (pref: any, channel: 'email' | 'sms' | 'in_app') => {
+  const markNotificationSent = async (pref: any, channel: 'sms' | 'in_app') => {
     const result = await handleRpc('admin_ielts_mark_notification_sent', {
       p_pref_id: String(pref.id),
       p_channel: channel,
@@ -1704,7 +1704,7 @@ const IeltsAdminDashboard: React.FC = () => {
           <section className="space-y-4">
             <header>
               <h2 className="text-2xl font-semibold">Notification operations</h2>
-              <p className="text-sm text-slate-400">Track delivery and mark messages as sent.</p>
+              <p className="text-sm text-slate-400">Email requests are queued automatically. Manual controls remain only for channels that are handled outside the email dispatcher.</p>
             </header>
             {sectionLoading.notifications && <div className="text-sm text-slate-400">Loading notifications...</div>}
             <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
@@ -1730,12 +1730,9 @@ const IeltsAdminDashboard: React.FC = () => {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {pref.notify_by_email && !pref.email_sent_at && (
-                            <button
-                              className="rounded-full border border-cyan-500 px-3 py-1 text-xs text-cyan-200"
-                              onClick={() => markNotificationSent(pref, 'email')}
-                            >
-                              Mark email sent
-                            </button>
+                            <span className="rounded-full border border-cyan-500 px-3 py-1 text-xs text-cyan-200">
+                              Email queued automatically
+                            </span>
                           )}
                           {pref.notify_by_sms && !pref.sms_sent_at && (
                             <button
@@ -2302,9 +2299,9 @@ const IeltsAdminDashboard: React.FC = () => {
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {pref.notify_by_email && !pref.email_sent_at && (
-                              <button className="rounded-full border border-cyan-400 px-3 py-1 text-xs" onClick={() => markNotificationSent(pref, 'email')}>
-                                Mark email sent
-                              </button>
+                              <span className="rounded-full border border-cyan-400 px-3 py-1 text-xs text-cyan-200">
+                                Email queued automatically
+                              </span>
                             )}
                             {pref.notify_by_sms && !pref.sms_sent_at && (
                               <button className="rounded-full border border-purple-400 px-3 py-1 text-xs" onClick={() => markNotificationSent(pref, 'sms')}>
@@ -2319,7 +2316,7 @@ const IeltsAdminDashboard: React.FC = () => {
                           </div>
                         </div>
                         <div className="mt-2 grid gap-1 text-xs text-slate-400">
-                          <span>Email sent: {formatDate(pref.email_sent_at)}</span>
+                          <span>Email accepted: {formatDate(pref.email_sent_at)}</span>
                           <span>SMS sent: {formatDate(pref.sms_sent_at)}</span>
                           <span>In-app sent: {formatDate(pref.in_app_shown_at)}</span>
                         </div>

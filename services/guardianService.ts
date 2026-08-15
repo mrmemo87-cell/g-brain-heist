@@ -76,7 +76,9 @@ export interface GuardianManagementSnapshot {
     revoked_at?: string | null;
     status: 'pending' | 'claimed' | 'expired' | 'revoked';
     email_status?: 'pending' | 'processing' | 'sent' | 'failed' | 'cancelled' | 'not_sent';
+    email_delivery_status?: 'not_sent' | 'accepted' | 'delivered' | 'delayed' | 'bounced' | 'complained' | 'suppressed' | 'failed';
     email_sent_at?: string | null;
+    email_delivered_at?: string | null;
     email_last_error?: string | null;
     email_attempts?: number;
   }>;
