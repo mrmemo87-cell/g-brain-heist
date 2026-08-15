@@ -63,7 +63,22 @@ export interface GuardianManagementSnapshot {
   school_id: string;
   students: Array<{ student_id: string; student_name: string; class_name?: string | null; grade?: string | null }>;
   relationships: Array<{ id: string; student_id: string; student_name: string; guardian_user_id: string; guardian_email?: string | null; guardian_name?: string | null; relationship_label: string; status: string; verified_at: string; revoked_at?: string | null }>;
-  invitations: Array<{ id: string; student_id: string; student_name: string; invited_email: string; relationship_label: string; expires_at: string; created_at: string; claimed_at?: string | null; revoked_at?: string | null; status: 'pending' | 'claimed' | 'expired' | 'revoked' }>;
+  invitations: Array<{
+    id: string;
+    student_id: string;
+    student_name: string;
+    invited_email: string;
+    relationship_label: string;
+    expires_at: string;
+    created_at: string;
+    claimed_at?: string | null;
+    revoked_at?: string | null;
+    status: 'pending' | 'claimed' | 'expired' | 'revoked';
+    email_status?: 'pending' | 'processing' | 'sent' | 'failed' | 'cancelled' | 'not_sent';
+    email_sent_at?: string | null;
+    email_last_error?: string | null;
+    email_attempts?: number;
+  }>;
 }
 
 const friendlyError = (raw: unknown, fallback: string): Error => {
@@ -113,7 +128,7 @@ export async function getGuardianManagementSnapshot(): Promise<GuardianManagemen
 export async function createGuardianInvitation(input: { studentId: string; email: string; relationshipLabel: string; expiresDays?: number }) {
   const { data, error } = await supabase.rpc('rpc_school_create_guardian_invitation', { p_student_id: input.studentId, p_invited_email: input.email, p_relationship_label: input.relationshipLabel, p_expires_days: input.expiresDays ?? 7 });
   if (error) throw friendlyError(error, 'We could not create the parent invitation just now. Please check the details and try again.');
-  return data as { success: boolean; invitation_id: string; token: string; expires_at: string; invited_email: string };
+  return data as { success: boolean; invitation_id: string; token: string; expires_at: string; invited_email: string; email_status?: string };
 }
 
 export async function revokeGuardianInvitation(invitationId: string): Promise<void> {
