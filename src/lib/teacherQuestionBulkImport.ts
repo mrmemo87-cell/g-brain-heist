@@ -26,6 +26,9 @@ const SUBJECTS: Record<string, Subject> = {
   math: 'Maths',
   mathematics: 'Maths',
   science: 'Science',
+  biology: 'Biology',
+  chemistry: 'Chemistry',
+  physics: 'Physics',
   english: 'English',
   'english language': 'English',
   russian: 'Russian Language',
@@ -37,6 +40,9 @@ const SUBJECTS: Record<string, Subject> = {
   geography: 'Geography',
   'global perspective': 'Global Perspective',
   'global perspectives': 'Global Perspective',
+  'travel & tourism': 'Travel & Tourism',
+  'travel and tourism': 'Travel & Tourism',
+  'travel tourism': 'Travel & Tourism',
   ict: 'ICT',
 };
 

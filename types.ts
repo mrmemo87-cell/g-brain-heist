@@ -245,7 +245,7 @@ export interface QuestProgress {
 
 export type RecommendedDifficulty = 'easy' | 'medium' | 'hard' | 'done';
 
-export type Subject = 'Maths' | 'Science' | 'English' | 'Russian Language' | 'Kyrgyz Language' | 'German Language' | 'Geography' | 'Global Perspective' | 'ICT';
+export type Subject = 'Maths' | 'Science' | 'Biology' | 'Chemistry' | 'Physics' | 'English' | 'Russian Language' | 'Kyrgyz Language' | 'German Language' | 'Geography' | 'Global Perspective' | 'Travel & Tourism' | 'ICT';
 export type AssignmentBatch = Batch | 'All';
 
 export interface Question {

@@ -237,12 +237,16 @@ const nowIso = (): string => new Date().toISOString();
 const SUBJECT_ID_LOOKUP: Record<Subject, string> = {
     Maths: 'maths',
     Science: 'science',
+    Biology: 'biology',
+    Chemistry: 'chemistry',
+    Physics: 'physics',
     English: 'english',
     'Russian Language': 'russian_language',
     'Kyrgyz Language': 'kyrgyz_language',
     'German Language': 'german_language',
     Geography: 'geography',
     'Global Perspective': 'global_perspective',
+    'Travel & Tourism': 'travel_tourism',
     ICT: 'ict',
 };
 
