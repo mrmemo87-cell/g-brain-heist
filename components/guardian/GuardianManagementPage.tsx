@@ -9,18 +9,21 @@ import {
 import { getAcademicProgressExperienceContext, type AcademicProgressExperienceContext } from '../../services/academicProgressExperienceService';
 import { AcademicProgressHeader, AcademicStudentPicker, selectionFromStudent } from '../student-progress/AcademicProgressSuite';
 import { PRODUCT_LOGO_URL, PRODUCT_NAME } from '../../src/lib/schoolBranding';
-import Toast from '../Toast';
-import type { ToastMessage } from '../../types';
 import './GuardianManagementPage.css';
 
 const safeMessage = (err: unknown, fallback: string) => err instanceof Error && err.message ? err.message : fallback;
 const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
-type LocalToast = ToastMessage & {
-  persistent?: boolean;
-  actionLabel?: string;
-  cancelLabel?: string;
-  onCancel?: () => void;
+type PendingInvitation = {
+  email: string;
+  studentName: string;
+  relationshipLabel: string;
+};
+
+type StatusToast = {
+  tone: 'success' | 'error' | 'info';
+  title: string;
+  message: string;
 };
 
 const emailStatusLabel = (status?: string) => ({
@@ -45,10 +48,8 @@ const GuardianManagementPage: React.FC = () => {
   const [generatedEmail, setGeneratedEmail] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<LocalToast | null>(null);
-
-  const showToast = (next: Omit<LocalToast, 'id'>) => setToast({ id: Date.now(), ...next });
-  const dismissToast = (id: number) => setToast((current) => current?.id === id ? null : current);
+  const [pendingInvitation, setPendingInvitation] = useState<PendingInvitation | null>(null);
+  const [statusToast, setStatusToast] = useState<StatusToast | null>(null);
 
   const load = async () => {
     setBusy(true); setError(null);
@@ -72,6 +73,20 @@ const GuardianManagementPage: React.FC = () => {
     }
   }, [data, studentId]);
 
+  useEffect(() => {
+    if (!pendingInvitation) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !busy) setPendingInvitation(null);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [pendingInvitation, busy]);
+
   const selectedStudent = data?.students.find((student) => student.student_id === studentId) || null;
   const schoolName = context?.school.name || 'Your school';
 
@@ -83,37 +98,34 @@ const GuardianManagementPage: React.FC = () => {
       const invitation = refreshed.invitations.find((item) => item.id === invitationId);
       if (!invitation) continue;
       if (invitation.email_status === 'sent') {
-        showToast({
-          message: `Invitation sent successfully to ${recipientEmail}.\n${schoolName} × ${PRODUCT_NAME}`,
-          type: 'success',
-          persistent: true,
-          actionLabel: 'OK',
+        setStatusToast({
+          tone: 'success',
+          title: 'Invitation sent',
+          message: `The secure invitation was emailed successfully to ${recipientEmail}.\n${schoolName} × ${PRODUCT_NAME}`,
         });
         return;
       }
       if (invitation.email_status === 'failed') {
-        showToast({
-          message: `The invitation was created, but email delivery failed for ${recipientEmail}.${invitation.email_last_error ? `\n${invitation.email_last_error}` : ''}`,
-          type: 'error',
-          persistent: true,
-          actionLabel: 'OK',
+        setStatusToast({
+          tone: 'error',
+          title: 'Email delivery failed',
+          message: `The secure invitation was created, but the email could not be delivered to ${recipientEmail}. Check the address and create a new invitation to retry.`,
         });
         return;
       }
     }
 
-    showToast({
-      message: `The secure invitation was created for ${recipientEmail} and is still being delivered. Invitation History will update automatically when delivery completes.`,
-      type: 'info',
-      persistent: true,
-      actionLabel: 'OK',
+    setStatusToast({
+      tone: 'info',
+      title: 'Invitation queued',
+      message: `The secure invitation was created for ${recipientEmail} and is still being delivered. Invitation History will update when delivery completes.`,
     });
   };
 
-  const sendInvite = async (recipientEmail: string, targetStudentName: string) => {
-    setBusy(true); setError(null); setGeneratedLink(null); setGeneratedEmail(null);
+  const sendInvite = async (recipientEmail: string, targetStudentName: string, relationshipLabel: string) => {
+    setBusy(true); setError(null); setGeneratedLink(null); setGeneratedEmail(null); setStatusToast(null);
     try {
-      const result = await createGuardianInvitation({ studentId, email: recipientEmail, relationshipLabel: relationship });
+      const result = await createGuardianInvitation({ studentId, email: recipientEmail, relationshipLabel });
       const url = new URL('/parent-portal.html', window.location.origin); url.searchParams.set('invite', result.token);
       const link = url.toString();
       const invitationMessage = `${schoolName} has invited you to securely follow ${targetStudentName}’s academic progress through ${PRODUCT_NAME}.\n\nYou’ll be able to see school-approved marks, subject progress, strengths and areas where support may be needed. Private staff notes are never shared.\n\nOpen your secure invitation:\n${link}\n\nPlease use the same email address this invitation was sent to: ${result.invited_email}\n\nThis invitation is time-limited and can be withdrawn by ${schoolName}.`;
@@ -122,11 +134,10 @@ const GuardianManagementPage: React.FC = () => {
       setEmail('');
       await waitForDelivery(result.invitation_id, result.invited_email);
     } catch (e) {
-      showToast({
+      setStatusToast({
+        tone: 'error',
+        title: 'Invitation not sent',
         message: safeMessage(e, 'We could not create or send the parent invitation just now. Please check the details and try again.'),
-        type: 'error',
-        persistent: true,
-        actionLabel: 'OK',
       });
     } finally { setBusy(false); }
   };
@@ -135,18 +146,52 @@ const GuardianManagementPage: React.FC = () => {
     event.preventDefault();
     const recipientEmail = email.trim().toLowerCase();
     const targetStudentName = selectedStudent?.student_name || 'this student';
-    showToast({
-      message: `Send a secure parent invitation?\n\nTo: ${recipientEmail}\nStudent: ${targetStudentName}\nFrom: ${schoolName} × ${PRODUCT_NAME}`,
-      type: 'warning',
-      persistent: true,
-      actionLabel: 'Send invitation',
-      cancelLabel: 'Cancel',
-      retryAction: () => { void sendInvite(recipientEmail, targetStudentName); },
+    setStatusToast(null);
+    setPendingInvitation({
+      email: recipientEmail,
+      studentName: targetStudentName,
+      relationshipLabel: relationship,
     });
   };
 
+  const confirmSend = () => {
+    if (!pendingInvitation || busy) return;
+    const invitation = pendingInvitation;
+    setPendingInvitation(null);
+    void sendInvite(invitation.email, invitation.studentName, invitation.relationshipLabel);
+  };
+
   return <main className="guardian-admin">
-    {toast ? <div className="fixed inset-0 z-[10050] flex items-center justify-center px-4 pointer-events-none"><Toast {...toast} onDismiss={dismissToast} /></div> : null}
+    {pendingInvitation ? <div className="guardian-modal-backdrop" role="presentation" onMouseDown={() => { if (!busy) setPendingInvitation(null); }}>
+      <section className="guardian-modal" role="dialog" aria-modal="true" aria-labelledby="guardian-confirm-title" onMouseDown={(event) => event.stopPropagation()}>
+        <button type="button" className="guardian-modal-close" aria-label="Close confirmation" disabled={busy} onClick={() => setPendingInvitation(null)}>×</button>
+        <div className="guardian-modal-brand">
+          <img src={PRODUCT_LOGO_URL} alt={`${PRODUCT_NAME} logo`} />
+          <span><strong>{schoolName} × {PRODUCT_NAME}</strong><small>Secure parent invitation</small></span>
+        </div>
+        <div className="guardian-modal-body">
+          <span>Confirm action</span>
+          <h3 id="guardian-confirm-title">Send this parent invitation?</h3>
+          <p>Review the details before {PRODUCT_NAME} sends the secure school-branded email.</p>
+          <div className="guardian-modal-details">
+            <div><span>Parent / guardian</span><strong>{pendingInvitation.email}</strong></div>
+            <div><span>Student</span><strong>{pendingInvitation.studentName}</strong></div>
+            <div><span>Relationship</span><strong>{pendingInvitation.relationshipLabel}</strong></div>
+            <div><span>From</span><strong>{schoolName} × {PRODUCT_NAME}</strong></div>
+          </div>
+          <div className="guardian-modal-actions">
+            <button type="button" disabled={busy} onClick={() => setPendingInvitation(null)}>Cancel</button>
+            <button type="button" className="primary" disabled={busy} onClick={confirmSend}>{busy ? 'Sending…' : 'Send invitation'}</button>
+          </div>
+        </div>
+      </section>
+    </div> : null}
+
+    {statusToast ? <aside className={`guardian-status-toast ${statusToast.tone}`} role={statusToast.tone === 'error' ? 'alert' : 'status'} aria-live="polite">
+      <strong>{statusToast.title}</strong>
+      <p>{statusToast.message}</p>
+      <button type="button" onClick={() => setStatusToast(null)}>OK</button>
+    </aside> : null}
 
     <AcademicProgressHeader
       context={context}
@@ -195,13 +240,13 @@ const GuardianManagementPage: React.FC = () => {
     {generatedLink && generatedEmail ? <section className="guardian-share-pack">
       <div className="guardian-share-heading"><div><span>Secure invitation created</span><h2>Manual sharing backup</h2><p>Email delivery is tracked below. Use these controls only if you also need to share the same secure child-specific invitation manually.</p></div><div className="guardian-share-brand"><span>{schoolName}</span><b>×</b><img src={PRODUCT_LOGO_URL} alt={`${PRODUCT_NAME} logo`} /><strong>{PRODUCT_NAME}</strong></div></div>
       <div className="guardian-share-message"><pre>{generatedEmail}</pre></div>
-      <div className="guardian-share-actions"><button type="button" className="primary" onClick={async () => { await navigator.clipboard.writeText(generatedEmail); showToast({ message: 'Backup branded invitation message copied.', type: 'success', actionLabel: 'OK' }); }}>Copy backup message</button><button type="button" onClick={async () => { await navigator.clipboard.writeText(generatedLink); showToast({ message: 'Backup secure invitation link copied.', type: 'success', actionLabel: 'OK' }); }}>Copy backup secure link</button></div>
+      <div className="guardian-share-actions"><button type="button" className="primary" onClick={async () => { await navigator.clipboard.writeText(generatedEmail); setStatusToast({ tone: 'success', title: 'Backup copied', message: 'The branded invitation message was copied.' }); }}>Copy backup message</button><button type="button" onClick={async () => { await navigator.clipboard.writeText(generatedLink); setStatusToast({ tone: 'success', title: 'Backup link copied', message: 'The secure invitation link was copied.' }); }}>Copy backup secure link</button></div>
       <small>The secure link is intended only for the invited parent or guardian and still requires the exact invited email address.</small>
     </section> : null}
 
     <section className="guardian-admin-panel"><div><h2>Verified parents & guardians</h2><span>{data?.relationships.filter((x) => x.status === 'active').length || 0} active</span></div><div className="guardian-admin-table"><table><thead><tr><th>Student</th><th>Parent / Guardian</th><th>Relationship</th><th>Status</th><th>Verified</th><th></th></tr></thead><tbody>{(data?.relationships || []).map((r) => <tr key={r.id}><td>{r.student_name}</td><td><strong>{r.guardian_name || 'Guardian'}</strong><small>{r.guardian_email || '—'}</small></td><td>{r.relationship_label}</td><td>{r.status}</td><td>{new Date(r.verified_at).toLocaleDateString()}</td><td>{r.status === 'active' ? <button onClick={async () => { if (!confirm('Remove this parent or guardian’s access to the student?')) return; setBusy(true); try { await revokeGuardianRelationship(r.id); await load(); } catch (e) { setError(safeMessage(e, 'We could not remove this access just now. Please try again.')); } finally { setBusy(false); } }}>Revoke</button> : null}</td></tr>)}</tbody></table></div></section>
 
-    <section className="guardian-admin-panel"><div><h2>Invitation history</h2><span>{data?.invitations.length || 0} invitations</span></div><div className="guardian-admin-table"><table><thead><tr><th>Student</th><th>Email</th><th>Invitation</th><th>Email delivery</th><th>Sent</th><th>Expires</th><th></th></tr></thead><tbody>{(data?.invitations || []).map((i) => <tr key={i.id}><td>{i.student_name}</td><td>{i.invited_email}</td><td>{i.status}</td><td><strong>{emailStatusLabel(i.email_status)}</strong>{i.email_status === 'failed' && i.email_last_error ? <small>{i.email_last_error}</small> : null}</td><td>{i.email_sent_at ? new Date(i.email_sent_at).toLocaleString() : '—'}</td><td>{new Date(i.expires_at).toLocaleDateString()}</td><td>{i.status === 'pending' ? <button onClick={async () => { setBusy(true); try { await revokeGuardianInvitation(i.id); await load(); } catch (e) { setError(safeMessage(e, 'We could not cancel this invitation just now. Please try again.')); } finally { setBusy(false); } }}>Revoke</button> : null}</td></tr>)}</tbody></table></div></section>
+    <section className="guardian-admin-panel"><div><h2>Invitation history</h2><span>{data?.invitations.length || 0} invitations</span></div><div className="guardian-admin-table"><table><thead><tr><th>Student</th><th>Email</th><th>Invitation</th><th>Email delivery</th><th>Sent</th><th>Expires</th><th></th></tr></thead><tbody>{(data?.invitations || []).map((i) => <tr key={i.id}><td>{i.student_name}</td><td>{i.invited_email}</td><td>{i.status}</td><td><strong>{emailStatusLabel(i.email_status)}</strong>{i.email_status === 'failed' ? <small>Delivery failed — create a new invitation to retry.</small> : null}</td><td>{i.email_sent_at ? new Date(i.email_sent_at).toLocaleString() : '—'}</td><td>{new Date(i.expires_at).toLocaleDateString()}</td><td>{i.status === 'pending' ? <button onClick={async () => { setBusy(true); try { await revokeGuardianInvitation(i.id); await load(); } catch (e) { setError(safeMessage(e, 'We could not cancel this invitation just now. Please try again.')); } finally { setBusy(false); } }}>Revoke</button> : null}</td></tr>)}</tbody></table></div></section>
   </main>;
 };
 
