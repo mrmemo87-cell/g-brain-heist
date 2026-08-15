@@ -9,9 +9,28 @@ import {
 import { getAcademicProgressExperienceContext, type AcademicProgressExperienceContext } from '../../services/academicProgressExperienceService';
 import { AcademicProgressHeader, AcademicStudentPicker, selectionFromStudent } from '../student-progress/AcademicProgressSuite';
 import { PRODUCT_LOGO_URL, PRODUCT_NAME } from '../../src/lib/schoolBranding';
+import Toast from '../Toast';
+import type { ToastMessage } from '../../types';
 import './GuardianManagementPage.css';
 
 const safeMessage = (err: unknown, fallback: string) => err instanceof Error && err.message ? err.message : fallback;
+const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+type LocalToast = ToastMessage & {
+  persistent?: boolean;
+  actionLabel?: string;
+  cancelLabel?: string;
+  onCancel?: () => void;
+};
+
+const emailStatusLabel = (status?: string) => ({
+  pending: 'Pending',
+  processing: 'Sending',
+  sent: 'Sent',
+  failed: 'Failed',
+  cancelled: 'Cancelled',
+  not_sent: 'Not sent',
+}[status || 'not_sent'] || 'Not sent');
 
 const GuardianManagementPage: React.FC = () => {
   const initialStudentId = useMemo(() => new URLSearchParams(window.location.search).get('student') || '', []);
@@ -26,7 +45,10 @@ const GuardianManagementPage: React.FC = () => {
   const [generatedEmail, setGeneratedEmail] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<LocalToast | null>(null);
+
+  const showToast = (next: Omit<LocalToast, 'id'>) => setToast({ id: Date.now(), ...next });
+  const dismissToast = (id: number) => setToast((current) => current?.id === id ? null : current);
 
   const load = async () => {
     setBusy(true); setError(null);
@@ -53,31 +75,79 @@ const GuardianManagementPage: React.FC = () => {
   const selectedStudent = data?.students.find((student) => student.student_id === studentId) || null;
   const schoolName = context?.school.name || 'Your school';
 
-  const createInvite = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const recipientEmail = email.trim().toLowerCase();
-    const studentName = selectedStudent?.student_name || 'this student';
-    const confirmed = window.confirm(
-      `Send a secure parent invitation by email?\n\nTo: ${recipientEmail}\nStudent: ${studentName}\nFrom: ${schoolName} × ${PRODUCT_NAME}\n\nThe email will be queued automatically as soon as you confirm.`
-    );
-    if (!confirmed) return;
+  const waitForDelivery = async (invitationId: string, recipientEmail: string) => {
+    for (let attempt = 0; attempt < 24; attempt += 1) {
+      if (attempt > 0) await sleep(1250);
+      const refreshed = await getGuardianManagementSnapshot();
+      setData(refreshed);
+      const invitation = refreshed.invitations.find((item) => item.id === invitationId);
+      if (!invitation) continue;
+      if (invitation.email_status === 'sent') {
+        showToast({
+          message: `Invitation sent successfully to ${recipientEmail}.\n${schoolName} × ${PRODUCT_NAME}`,
+          type: 'success',
+          persistent: true,
+          actionLabel: 'OK',
+        });
+        return;
+      }
+      if (invitation.email_status === 'failed') {
+        showToast({
+          message: `The invitation was created, but email delivery failed for ${recipientEmail}.${invitation.email_last_error ? `\n${invitation.email_last_error}` : ''}`,
+          type: 'error',
+          persistent: true,
+          actionLabel: 'OK',
+        });
+        return;
+      }
+    }
 
-    setBusy(true); setError(null); setMessage(null); setGeneratedLink(null); setGeneratedEmail(null);
+    showToast({
+      message: `The secure invitation was created for ${recipientEmail} and is still being delivered. Invitation History will update automatically when delivery completes.`,
+      type: 'info',
+      persistent: true,
+      actionLabel: 'OK',
+    });
+  };
+
+  const sendInvite = async (recipientEmail: string, targetStudentName: string) => {
+    setBusy(true); setError(null); setGeneratedLink(null); setGeneratedEmail(null);
     try {
       const result = await createGuardianInvitation({ studentId, email: recipientEmail, relationshipLabel: relationship });
       const url = new URL('/parent-portal.html', window.location.origin); url.searchParams.set('invite', result.token);
       const link = url.toString();
-      const invitationMessage = `${schoolName} has invited you to securely follow ${studentName}’s academic progress through ${PRODUCT_NAME}.\n\nYou’ll be able to see school-approved marks, subject progress, strengths and areas where support may be needed. Private staff notes are never shared.\n\nOpen your secure invitation:\n${link}\n\nPlease use the same email address this invitation was sent to: ${result.invited_email}\n\nThis invitation is time-limited and can be withdrawn by ${schoolName}.`;
+      const invitationMessage = `${schoolName} has invited you to securely follow ${targetStudentName}’s academic progress through ${PRODUCT_NAME}.\n\nYou’ll be able to see school-approved marks, subject progress, strengths and areas where support may be needed. Private staff notes are never shared.\n\nOpen your secure invitation:\n${link}\n\nPlease use the same email address this invitation was sent to: ${result.invited_email}\n\nThis invitation is time-limited and can be withdrawn by ${schoolName}.`;
       setGeneratedLink(link);
       setGeneratedEmail(invitationMessage);
-      setMessage(`Secure ${schoolName} × ${PRODUCT_NAME} invitation queued for automatic email delivery to ${result.invited_email}. The copy buttons below are only a backup.`);
       setEmail('');
-      const refreshed = await getGuardianManagementSnapshot(); setData(refreshed);
-    } catch (e) { setError(safeMessage(e, 'We could not create or queue the parent invitation just now. Please check the details and try again.')); }
-    finally { setBusy(false); }
+      await waitForDelivery(result.invitation_id, result.invited_email);
+    } catch (e) {
+      showToast({
+        message: safeMessage(e, 'We could not create or send the parent invitation just now. Please check the details and try again.'),
+        type: 'error',
+        persistent: true,
+        actionLabel: 'OK',
+      });
+    } finally { setBusy(false); }
+  };
+
+  const createInvite = (event: React.FormEvent) => {
+    event.preventDefault();
+    const recipientEmail = email.trim().toLowerCase();
+    const targetStudentName = selectedStudent?.student_name || 'this student';
+    showToast({
+      message: `Send a secure parent invitation?\n\nTo: ${recipientEmail}\nStudent: ${targetStudentName}\nFrom: ${schoolName} × ${PRODUCT_NAME}`,
+      type: 'warning',
+      persistent: true,
+      actionLabel: 'Send invitation',
+      cancelLabel: 'Cancel',
+      retryAction: () => { void sendInvite(recipientEmail, targetStudentName); },
+    });
   };
 
   return <main className="guardian-admin">
+    {toast ? <div className="fixed inset-0 z-[10050] flex items-center justify-center px-4 pointer-events-none"><Toast {...toast} onDismiss={dismissToast} /></div> : null}
+
     <AcademicProgressHeader
       context={context}
       eyebrow="Parent Communication"
@@ -88,7 +158,6 @@ const GuardianManagementPage: React.FC = () => {
     />
 
     {error ? <div className="guardian-admin-alert error"><strong>We couldn’t complete that step</strong><span>{error}</span><button type="button" onClick={() => void load()}>Try again</button></div> : null}
-    {message ? <div className="guardian-admin-alert"><strong>Email queued</strong><span>{message}</span></div> : null}
 
     <AcademicStudentPicker
       students={data?.students || []}
@@ -105,13 +174,12 @@ const GuardianManagementPage: React.FC = () => {
       <article className="guardian-invite-card">
         <span className="guardian-card-eyebrow">1 · Create access</span>
         <h2>Email a secure parent invitation</h2>
-        <p className="guardian-admin-note">The school approves who may see a child. When you create the invitation, a school × {PRODUCT_NAME} email is queued automatically. You will see a final confirmation with the exact recipient before anything is sent.</p>
+        <p className="guardian-admin-note">The school approves who may see a child. A branded confirmation appears before the invitation is sent, and delivery is tracked in Invitation History.</p>
         <form onSubmit={createInvite}>
           <label>Selected student<input readOnly value={selectedStudent ? `${selectedStudent.student_name} · ${selectedStudent.grade ? `Grade ${selectedStudent.grade} · ` : ''}Class ${selectedStudent.class_name || '—'}` : 'Choose the student above'} /></label>
           <label>Parent / guardian email<input required type="email" disabled={!studentId} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="parent@example.com" /></label>
           <label>Relationship<select value={relationship} disabled={!studentId} onChange={(e) => setRelationship(e.target.value)}><option>Parent / Guardian</option><option>Mother</option><option>Father</option><option>Guardian</option><option>Carer</option></select></label>
-          {studentId && email.trim() ? <p className="guardian-admin-note"><strong>Email delivery:</strong> clicking the button below will first ask you to confirm automatic delivery to <strong>{email.trim()}</strong>.</p> : null}
-          <button disabled={busy || !studentId}>{busy ? 'Creating & queuing email…' : 'Review & send secure invitation'}</button>
+          <button disabled={busy || !studentId}>{busy ? 'Sending invitation…' : 'Review & send secure invitation'}</button>
         </form>
       </article>
 
@@ -125,15 +193,15 @@ const GuardianManagementPage: React.FC = () => {
     </section>
 
     {generatedLink && generatedEmail ? <section className="guardian-share-pack">
-      <div className="guardian-share-heading"><div><span>Email queued automatically</span><h2>Manual sharing backup</h2><p>The official invitation is already queued for email. Use these controls only if you also need to share the same secure child-specific invitation manually.</p></div><div className="guardian-share-brand"><span>{schoolName}</span><b>×</b><img src={PRODUCT_LOGO_URL} alt={`${PRODUCT_NAME} logo`} /><strong>{PRODUCT_NAME}</strong></div></div>
+      <div className="guardian-share-heading"><div><span>Secure invitation created</span><h2>Manual sharing backup</h2><p>Email delivery is tracked below. Use these controls only if you also need to share the same secure child-specific invitation manually.</p></div><div className="guardian-share-brand"><span>{schoolName}</span><b>×</b><img src={PRODUCT_LOGO_URL} alt={`${PRODUCT_NAME} logo`} /><strong>{PRODUCT_NAME}</strong></div></div>
       <div className="guardian-share-message"><pre>{generatedEmail}</pre></div>
-      <div className="guardian-share-actions"><button type="button" className="primary" onClick={async () => { await navigator.clipboard.writeText(generatedEmail); setMessage('Backup branded invitation message copied.'); }}>Copy backup message</button><button type="button" onClick={async () => { await navigator.clipboard.writeText(generatedLink); setMessage('Backup secure invitation link copied.'); }}>Copy backup secure link</button></div>
+      <div className="guardian-share-actions"><button type="button" className="primary" onClick={async () => { await navigator.clipboard.writeText(generatedEmail); showToast({ message: 'Backup branded invitation message copied.', type: 'success', actionLabel: 'OK' }); }}>Copy backup message</button><button type="button" onClick={async () => { await navigator.clipboard.writeText(generatedLink); showToast({ message: 'Backup secure invitation link copied.', type: 'success', actionLabel: 'OK' }); }}>Copy backup secure link</button></div>
       <small>The secure link is intended only for the invited parent or guardian and still requires the exact invited email address.</small>
     </section> : null}
 
     <section className="guardian-admin-panel"><div><h2>Verified parents & guardians</h2><span>{data?.relationships.filter((x) => x.status === 'active').length || 0} active</span></div><div className="guardian-admin-table"><table><thead><tr><th>Student</th><th>Parent / Guardian</th><th>Relationship</th><th>Status</th><th>Verified</th><th></th></tr></thead><tbody>{(data?.relationships || []).map((r) => <tr key={r.id}><td>{r.student_name}</td><td><strong>{r.guardian_name || 'Guardian'}</strong><small>{r.guardian_email || '—'}</small></td><td>{r.relationship_label}</td><td>{r.status}</td><td>{new Date(r.verified_at).toLocaleDateString()}</td><td>{r.status === 'active' ? <button onClick={async () => { if (!confirm('Remove this parent or guardian’s access to the student?')) return; setBusy(true); try { await revokeGuardianRelationship(r.id); await load(); } catch (e) { setError(safeMessage(e, 'We could not remove this access just now. Please try again.')); } finally { setBusy(false); } }}>Revoke</button> : null}</td></tr>)}</tbody></table></div></section>
 
-    <section className="guardian-admin-panel"><div><h2>Invitation history</h2><span>{data?.invitations.length || 0} invitations</span></div><div className="guardian-admin-table"><table><thead><tr><th>Student</th><th>Email</th><th>Status</th><th>Expires</th><th></th></tr></thead><tbody>{(data?.invitations || []).map((i) => <tr key={i.id}><td>{i.student_name}</td><td>{i.invited_email}</td><td>{i.status}</td><td>{new Date(i.expires_at).toLocaleDateString()}</td><td>{i.status === 'pending' ? <button onClick={async () => { setBusy(true); try { await revokeGuardianInvitation(i.id); await load(); } catch (e) { setError(safeMessage(e, 'We could not cancel this invitation just now. Please try again.')); } finally { setBusy(false); } }}>Revoke</button> : null}</td></tr>)}</tbody></table></div></section>
+    <section className="guardian-admin-panel"><div><h2>Invitation history</h2><span>{data?.invitations.length || 0} invitations</span></div><div className="guardian-admin-table"><table><thead><tr><th>Student</th><th>Email</th><th>Invitation</th><th>Email delivery</th><th>Sent</th><th>Expires</th><th></th></tr></thead><tbody>{(data?.invitations || []).map((i) => <tr key={i.id}><td>{i.student_name}</td><td>{i.invited_email}</td><td>{i.status}</td><td><strong>{emailStatusLabel(i.email_status)}</strong>{i.email_status === 'failed' && i.email_last_error ? <small>{i.email_last_error}</small> : null}</td><td>{i.email_sent_at ? new Date(i.email_sent_at).toLocaleString() : '—'}</td><td>{new Date(i.expires_at).toLocaleDateString()}</td><td>{i.status === 'pending' ? <button onClick={async () => { setBusy(true); try { await revokeGuardianInvitation(i.id); await load(); } catch (e) { setError(safeMessage(e, 'We could not cancel this invitation just now. Please try again.')); } finally { setBusy(false); } }}>Revoke</button> : null}</td></tr>)}</tbody></table></div></section>
   </main>;
 };
 
