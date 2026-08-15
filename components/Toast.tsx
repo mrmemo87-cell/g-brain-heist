@@ -3,32 +3,40 @@ import { ToastMessage } from '../types';
 
 interface ToastProps extends ToastMessage {
   onDismiss: (id: number) => void;
+  persistent?: boolean;
+  actionLabel?: string;
+  cancelLabel?: string;
+  onCancel?: () => void;
 }
 
 const LOGO_SRC = '/logo.png';
 
-const Toast: React.FC<ToastProps> = ({ id, message, type, retryAction, onDismiss }) => {
+const Toast: React.FC<ToastProps> = ({ id, message, type, retryAction, onDismiss, persistent = false, actionLabel, cancelLabel, onCancel }) => {
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
+    if (persistent) return;
     const timer = setTimeout(() => {
       setExiting(true);
       setTimeout(() => onDismiss(id), 300);
-    }, retryAction ? 8000 : 4000); // Longer duration if there's a retry action
+    }, retryAction ? 8000 : 4000);
 
     return () => clearTimeout(timer);
-  }, [id, onDismiss, retryAction]);
+  }, [id, onDismiss, persistent, retryAction]);
 
   const handleDismiss = () => {
     setExiting(true);
     setTimeout(() => onDismiss(id), 300);
   };
 
-  const handleRetry = () => {
-    if (retryAction) {
-      retryAction();
-      handleDismiss();
-    }
+  const handlePrimaryAction = () => {
+    if (retryAction) retryAction();
+    handleDismiss();
+  };
+
+  const handleCancel = () => {
+    onCancel?.();
+    handleDismiss();
   };
 
   const typeStyles = {
@@ -36,7 +44,7 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, retryAction, onDismiss
       container: 'border-emerald-300 bg-emerald-950 text-emerald-50',
       badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40',
       title: 'Success update',
-      action: 'Got it',
+      action: 'OK',
     },
     error: {
       container: 'border-rose-300 bg-rose-950 text-rose-50',
@@ -53,8 +61,8 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, retryAction, onDismiss
     warning: {
       container: 'border-amber-300 bg-amber-950 text-amber-50',
       badge: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
-      title: 'Warning',
-      action: 'Review',
+      title: 'Confirm action',
+      action: retryAction ? 'Confirm' : 'Review',
     },
   } as const;
 
@@ -87,15 +95,25 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, retryAction, onDismiss
               </span>
             </div>
 
-            <p className="text-sm font-medium leading-relaxed text-white/95 break-words">{message}</p>
+            <p className="text-sm font-medium leading-relaxed text-white/95 break-words whitespace-pre-line">{message}</p>
 
             <div className="mt-3 flex items-center justify-between gap-2">
-              <button
-                onClick={retryAction && type === 'error' ? handleRetry : handleDismiss}
-                className="rounded-lg border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20"
-              >
-                {style.action}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={retryAction ? handlePrimaryAction : handleDismiss}
+                  className="rounded-lg border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20"
+                >
+                  {actionLabel || style.action}
+                </button>
+                {cancelLabel ? (
+                  <button
+                    onClick={handleCancel}
+                    className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-semibold text-white/85 transition hover:bg-white/10 hover:text-white"
+                  >
+                    {cancelLabel}
+                  </button>
+                ) : null}
+              </div>
               <button
                 onClick={handleDismiss}
                 className="rounded-lg px-2 py-1 text-xs font-bold text-white/80 transition hover:bg-white/10 hover:text-white"
