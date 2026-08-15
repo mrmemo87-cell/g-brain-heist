@@ -63,10 +63,10 @@ const GuardianManagementPage: React.FC = () => {
       const invitationMessage = `${schoolName} has invited you to securely follow ${studentName}’s academic progress through ${PRODUCT_NAME}.\n\nYou’ll be able to see school-approved marks, subject progress, strengths and areas where support may be needed. Private staff notes are never shared.\n\nOpen your secure invitation:\n${link}\n\nPlease use the same email address this invitation was sent to: ${result.invited_email}\n\nThis invitation is time-limited and can be withdrawn by ${schoolName}.`;
       setGeneratedLink(link);
       setGeneratedEmail(invitationMessage);
-      setMessage(`Invitation ready for ${result.invited_email}.`);
+      setMessage(`Secure ${schoolName} × ${PRODUCT_NAME} invitation queued for email to ${result.invited_email}. The copy buttons below are a backup if you also want to share it manually.`);
       setEmail('');
       const refreshed = await getGuardianManagementSnapshot(); setData(refreshed);
-    } catch (e) { setError(safeMessage(e, 'We could not prepare the parent invitation just now. Please check the details and try again.')); }
+    } catch (e) { setError(safeMessage(e, 'We could not create or queue the parent invitation just now. Please check the details and try again.')); }
     finally { setBusy(false); }
   };
 
@@ -81,7 +81,7 @@ const GuardianManagementPage: React.FC = () => {
     />
 
     {error ? <div className="guardian-admin-alert error"><strong>We couldn’t complete that step</strong><span>{error}</span><button type="button" onClick={() => void load()}>Try again</button></div> : null}
-    {message ? <div className="guardian-admin-alert"><strong>Ready to share</strong><span>{message}</span></div> : null}
+    {message ? <div className="guardian-admin-alert"><strong>Email queued</strong><span>{message}</span></div> : null}
 
     <AcademicStudentPicker
       students={data?.students || []}
@@ -97,13 +97,13 @@ const GuardianManagementPage: React.FC = () => {
     <section className="guardian-admin-grid">
       <article className="guardian-invite-card">
         <span className="guardian-card-eyebrow">1 · Create access</span>
-        <h2>Prepare a parent invitation</h2>
-        <p className="guardian-admin-note">The school approves who may see a child. The parent then creates or signs into their own secure account with the invited email address.</p>
+        <h2>Email a secure parent invitation</h2>
+        <p className="guardian-admin-note">The school approves who may see a child. When you create the invitation, a school × {PRODUCT_NAME} email is queued automatically. The parent then creates or signs into their own secure account with the exact invited email address.</p>
         <form onSubmit={createInvite}>
           <label>Selected student<input readOnly value={selectedStudent ? `${selectedStudent.student_name} · ${selectedStudent.grade ? `Grade ${selectedStudent.grade} · ` : ''}Class ${selectedStudent.class_name || '—'}` : 'Choose the student above'} /></label>
           <label>Parent / guardian email<input required type="email" disabled={!studentId} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="parent@example.com" /></label>
           <label>Relationship<select value={relationship} disabled={!studentId} onChange={(e) => setRelationship(e.target.value)}><option>Parent / Guardian</option><option>Mother</option><option>Father</option><option>Guardian</option><option>Carer</option></select></label>
-          <button disabled={busy || !studentId}>{busy ? 'Preparing invitation…' : 'Create secure invitation'}</button>
+          <button disabled={busy || !studentId}>{busy ? 'Creating & queuing email…' : 'Create & email secure invitation'}</button>
         </form>
       </article>
 
@@ -111,16 +111,16 @@ const GuardianManagementPage: React.FC = () => {
         <span className="guardian-card-eyebrow">2 · Parent experience</span>
         <h2>What the family will see</h2>
         <div className="guardian-co-brand-preview"><span className="guardian-school-preview"><span>{schoolName.slice(0,1).toUpperCase()}</span><strong>{schoolName}</strong></span><i /><span className="guardian-brains-preview"><img src={PRODUCT_LOGO_URL} alt="" /><strong>{PRODUCT_NAME}</strong></span></div>
-        <ol><li>The invitation opens with <strong>{schoolName}</strong> and {PRODUCT_NAME} branding.</li><li>The parent signs in or creates an account using the same invited email.</li><li><strong>My Children</strong> shows only children explicitly connected by the school.</li></ol>
+        <ol><li>The email and invitation open with <strong>{schoolName}</strong> and {PRODUCT_NAME} branding.</li><li>The parent signs in or creates an account using the same invited email.</li><li><strong>My Children</strong> shows only children explicitly connected by the school.</li></ol>
         <p className="guardian-admin-note">Parents see marks, subject performance, strengths, recurring areas for development, improvement, resolved areas, overdue work and a clear progress timeline. Private teacher notes and raw internal evidence stay hidden.</p>
       </article>
     </section>
 
     {generatedLink && generatedEmail ? <section className="guardian-share-pack">
-      <div className="guardian-share-heading"><div><span>Invitation ready</span><h2>Send the official parent invitation</h2><p>This message is already written in school language and includes the secure child-specific link.</p></div><div className="guardian-share-brand"><span>{schoolName}</span><b>×</b><img src={PRODUCT_LOGO_URL} alt={`${PRODUCT_NAME} logo`} /><strong>{PRODUCT_NAME}</strong></div></div>
+      <div className="guardian-share-heading"><div><span>Email queued automatically</span><h2>Manual sharing backup</h2><p>The official invitation is already queued for email. Use these controls only if you also need to share the same secure child-specific invitation manually.</p></div><div className="guardian-share-brand"><span>{schoolName}</span><b>×</b><img src={PRODUCT_LOGO_URL} alt={`${PRODUCT_NAME} logo`} /><strong>{PRODUCT_NAME}</strong></div></div>
       <div className="guardian-share-message"><pre>{generatedEmail}</pre></div>
-      <div className="guardian-share-actions"><button type="button" className="primary" onClick={async () => { await navigator.clipboard.writeText(generatedEmail); setMessage('Branded invitation message copied.'); }}>Copy invitation message</button><button type="button" onClick={async () => { await navigator.clipboard.writeText(generatedLink); setMessage('Secure invitation link copied.'); }}>Copy secure link</button></div>
-      <small>The invitation link itself opens a school-branded {PRODUCT_NAME} parent experience. It should only be sent to the intended parent or guardian.</small>
+      <div className="guardian-share-actions"><button type="button" className="primary" onClick={async () => { await navigator.clipboard.writeText(generatedEmail); setMessage('Backup branded invitation message copied.'); }}>Copy backup message</button><button type="button" onClick={async () => { await navigator.clipboard.writeText(generatedLink); setMessage('Backup secure invitation link copied.'); }}>Copy backup secure link</button></div>
+      <small>The secure link is intended only for the invited parent or guardian and still requires the exact invited email address.</small>
     </section> : null}
 
     <section className="guardian-admin-panel"><div><h2>Verified parents & guardians</h2><span>{data?.relationships.filter((x) => x.status === 'active').length || 0} active</span></div><div className="guardian-admin-table"><table><thead><tr><th>Student</th><th>Parent / Guardian</th><th>Relationship</th><th>Status</th><th>Verified</th><th></th></tr></thead><tbody>{(data?.relationships || []).map((r) => <tr key={r.id}><td>{r.student_name}</td><td><strong>{r.guardian_name || 'Guardian'}</strong><small>{r.guardian_email || '—'}</small></td><td>{r.relationship_label}</td><td>{r.status}</td><td>{new Date(r.verified_at).toLocaleDateString()}</td><td>{r.status === 'active' ? <button onClick={async () => { if (!confirm('Remove this parent or guardian’s access to the student?')) return; setBusy(true); try { await revokeGuardianRelationship(r.id); await load(); } catch (e) { setError(safeMessage(e, 'We could not remove this access just now. Please try again.')); } finally { setBusy(false); } }}>Revoke</button> : null}</td></tr>)}</tbody></table></div></section>
