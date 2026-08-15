@@ -12,7 +12,7 @@ const Entry: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     const resolve = async () => {
-      const { data, error: capabilityError } = await supabase.rpc('school_admin_get_my_capabilities', { p_school_id: null });
+      const { data, error: capabilityError } = await supabase.rpc('school_admin_get_my_allocation_capabilities', { p_school_id: null });
       if (cancelled) return;
       if (capabilityError) { setError(capabilityError.message || 'School Head authority could not be verified.'); return; }
       const payload = data && typeof data === 'object' && !Array.isArray(data) ? data as Record<string, unknown> : {};

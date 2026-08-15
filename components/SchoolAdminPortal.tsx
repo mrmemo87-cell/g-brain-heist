@@ -14,7 +14,7 @@ import type {
   SchoolInfo,
   SchoolClass,
   SchoolTeacher,
-  ClassTeacherAssignment,
+  ClassTeacherAllocation,
   ModerationLogEntry,
   StudentModStatus,
 } from '../services/schoolAdminService';
@@ -76,7 +76,7 @@ const IeltsExamMonitor = React.lazy(() => import('../src/pages/ielts/IeltsExamMo
 const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: string; mobileLabel: string; description: string }> = [
   { id: 'dashboard', icon: 'OV', label: 'Overview', mobileLabel: 'Overview', description: 'School status and priorities' },
   { id: 'members', icon: 'PE', label: 'Staff & Students', mobileLabel: 'People', description: 'Members, roles and access' },
-  { id: 'teachers', icon: 'TA', label: 'Teacher Assignments', mobileLabel: 'Teachers', description: 'Teaching responsibilities' },
+  { id: 'teachers', icon: 'TA', label: 'Teacher Allocation', mobileLabel: 'Teachers', description: 'Teaching coverage' },
   { id: 'classes', icon: 'CL', label: 'Classes & Registration', mobileLabel: 'Classes', description: 'Classes and registration' },
   { id: 'subjects', icon: 'CU', label: 'Curriculum & Subjects', mobileLabel: 'Subjects', description: 'Subjects and curriculum' },
   { id: 'documents', icon: 'DO', label: 'Document Center', mobileLabel: 'Documents', description: 'Reports, printing and access' },
@@ -305,18 +305,18 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [editingSubjectCode, setEditingSubjectCode] = useState('');
   const [editingSubjectSaving, setEditingSubjectSaving] = useState(false);
 
-  // Teacher assignment state
+  // Teacher allocation state
   const [teachers, setTeachers] = useState<SchoolTeacher[]>([]);
-  const [teacherAssignments, setTeacherAssignments] = useState<ClassTeacherAssignment[]>([]);
-  const [assignmentClassId, setAssignmentClassId] = useState('');
-  const [assignmentTeacherId, setAssignmentTeacherId] = useState('');
-  const [assignmentSubjectInput, setAssignmentSubjectInput] = useState('');
-  const [assignmentActive, setAssignmentActive] = useState(true);
-  const [assignmentFilterClassId, setAssignmentFilterClassId] = useState('');
-  const [assignmentFilterTeacherId, setAssignmentFilterTeacherId] = useState('');
-  const [assignmentSaving, setAssignmentSaving] = useState(false);
-  const [assignmentPage, setAssignmentPage] = useState(1);
-  const [assignmentPageSize, setAssignmentPageSize] = useState(10);
+  const [teacherAllocations, setTeacherAllocations] = useState<ClassTeacherAllocation[]>([]);
+  const [allocationClassId, setAllocationClassId] = useState('');
+  const [allocationTeacherId, setAllocationTeacherId] = useState('');
+  const [allocationSubjectInput, setAllocationSubjectInput] = useState('');
+  const [allocationActive, setAllocationActive] = useState(true);
+  const [allocationFilterClassId, setAllocationFilterClassId] = useState('');
+  const [allocationFilterTeacherId, setAllocationFilterTeacherId] = useState('');
+  const [allocationSaving, setAllocationSaving] = useState(false);
+  const [allocationPage, setAllocationPage] = useState(1);
+  const [allocationPageSize, setAllocationPageSize] = useState(10);
 
   // Student enrollment state
   const [students, setStudents] = useState<SchoolMember[]>([]);
@@ -430,10 +430,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const loadAdminTools = useCallback(async (schoolId: string) => {
     setClassesLoading(true);
     try {
-      const [classList, teacherList, assignmentsList, studentList, subjectList, adminList] = await Promise.all([
+      const [classList, teacherList, allocationsList, studentList, subjectList, adminList] = await Promise.all([
         SchoolAdminService.listSchoolClasses(schoolId),
         SchoolAdminService.listSchoolTeachers(schoolId),
-        SchoolAdminService.listTeacherAssignments(schoolId),
+        SchoolAdminService.listTeacherAllocations(schoolId),
         SchoolAdminService.listSchoolMembers(schoolId, { role: 'student', limit: 10000 }).then((res) => res.members),
         SchoolAdminService.listSchoolSubjects(schoolId),
         SchoolAdminService.listSchoolMembers(schoolId, { role: 'school_admin', limit: 100 }).then((res) => res.members),
@@ -443,7 +443,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       // partially deployed backend returns null or an object-shaped payload.
       setClasses(Array.isArray(classList) ? classList : []);
       setTeachers(Array.isArray(teacherList) ? teacherList : []);
-      setTeacherAssignments(Array.isArray(assignmentsList) ? assignmentsList : []);
+      setTeacherAllocations(Array.isArray(allocationsList) ? allocationsList : []);
       setStudents(Array.isArray(studentList) ? studentList : []);
       setDbSubjects(Array.isArray(subjectList) ? subjectList : []);
       setSchoolAdmins(Array.isArray(adminList) ? adminList : []);
@@ -457,7 +457,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       setStudentAssignments(assignmentMap);
     } catch (err) {
       console.error('Error loading admin tools:', err);
-      addToast('Failed to load classes and assignments', 'error');
+      addToast('Failed to load classes and teacher allocations', 'error');
     } finally {
       setClassesLoading(false);
     }
@@ -762,7 +762,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       addToast('Only the school owner can promote or demote delegated administrators.', 'error');
       return;
     }
-    const activeAssignmentCount = teacherAssignments.filter((item) => item.active !== false && item.teacher_user_id === selectedMember.user_id).length;
+    const activeAllocationCount = teacherAllocations.filter((item) => item.active !== false && item.teacher_user_id === selectedMember.user_id).length;
     const keepTeaching = newRole === 'teacher' || (newRole === 'school_admin' && selectedMember.can_teach);
     const accessLabel = newRole === 'school_admin'
       ? (keepTeaching ? 'Delegated Admin + Teacher' : 'Delegated Admin')
@@ -770,7 +770,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     setConfirmReason('');
     setConfirmDialog({
       title: 'Change this member’s role?',
-      description: `Change ${selectedMember.username} to ${accessLabel}? ${keepTeaching && activeAssignmentCount ? `Their ${activeAssignmentCount} active teaching assignment${activeAssignmentCount === 1 ? '' : 's'} will be retained.` : activeAssignmentCount ? `They have ${activeAssignmentCount} active teaching assignment${activeAssignmentCount === 1 ? '' : 's'}; the change will be blocked until those assignments are resolved.` : 'Their portal access will update immediately.'}`,
+      description: `Change ${selectedMember.username} to ${accessLabel}? ${keepTeaching && activeAllocationCount ? `Their ${activeAllocationCount} active teaching allocation${activeAllocationCount === 1 ? '' : 's'} will be retained.` : activeAllocationCount ? `They have ${activeAllocationCount} active teaching allocation${activeAllocationCount === 1 ? '' : 's'}; the change will be blocked until those allocations are resolved.` : 'Their portal access will update immediately.'}`,
       confirmLabel: 'Change role',
       cancelLabel: 'Keep current role',
       isDestructive: true,
@@ -794,17 +794,17 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
   const handleSetTeachingStaffStatus = (enabled: boolean) => {
     if (!school || !selectedMember?.user_id) return;
-    const activeAssignmentCount = teacherAssignments.filter(
+    const activeAllocationCount = teacherAllocations.filter(
       (item) => item.active !== false && item.teacher_user_id === selectedMember.user_id,
     ).length;
     setConfirmReason('');
     setConfirmDialog({
       title: enabled ? 'Register this administrator as teaching staff?' : 'Remove teaching staff status?',
       description: enabled
-        ? `${selectedMember.username} will become available for class and subject assignments. Teacher Workspace will appear only after an active assignment is saved.`
-        : activeAssignmentCount
-          ? `${selectedMember.username} has ${activeAssignmentCount} active teaching assignment${activeAssignmentCount === 1 ? '' : 's'}. Reassign or remove them before changing this status.`
-          : `${selectedMember.username} will no longer appear in teacher assignment lists. Their administrative access will not change.`,
+        ? `${selectedMember.username} will become available for class and subject allocations. Teacher Workspace will appear only after an active allocation is saved.`
+        : activeAllocationCount
+          ? `${selectedMember.username} has ${activeAllocationCount} active teaching allocation${activeAllocationCount === 1 ? '' : 's'}. Reallocate or remove them before changing this status.`
+          : `${selectedMember.username} will no longer appear in teacher allocation lists. Their administrative access will not change.`,
       confirmLabel: enabled ? 'Register teaching staff' : 'Remove teaching status',
       cancelLabel: 'Cancel',
       isDestructive: !enabled,
@@ -1158,32 +1158,32 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     });
   };
 
-  const handleAssignTeacher = async () => {
+  const handleAllocateTeacher = async () => {
     if (!school) return;
-    if (!assignmentClassId || !assignmentTeacherId || !assignmentSubjectInput.trim()) {
+    if (!allocationClassId || !allocationTeacherId || !allocationSubjectInput.trim()) {
       addToast('Select a class, teacher, and subject', 'error');
       return;
     }
 
-    setAssignmentSaving(true);
-    const result = await SchoolAdminService.assignTeacherToClassSubject(
+    setAllocationSaving(true);
+    const result = await SchoolAdminService.allocateTeacherToClassSubject(
       school.id,
-      assignmentClassId,
-      assignmentTeacherId,
-      assignmentSubjectInput.trim(),
+      allocationClassId,
+      allocationTeacherId,
+      allocationSubjectInput.trim(),
       true
     );
-    setAssignmentSaving(false);
+    setAllocationSaving(false);
 
     if (!result.success) {
-      addToast(friendlySchoolAdminError(result.error, 'The teacher assignment could not be saved. Check the selections and try again.'), 'error');
+      addToast(friendlySchoolAdminError(result.error, 'The teacher allocation could not be saved. Check the selections and try again.'), 'error');
       return;
     }
 
-    addToast('Teacher assigned successfully', 'success');
-    setAssignmentClassId('');
-    setAssignmentTeacherId('');
-    setAssignmentSubjectInput('');
+    addToast('Teacher allocated successfully', 'success');
+    setAllocationClassId('');
+    setAllocationTeacherId('');
+    setAllocationSubjectInput('');
     await loadAdminTools(school.id);
   };
 
@@ -1532,9 +1532,9 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     return acc;
   }, {});
 
-  const filteredTeacherAssignments = teacherAssignments.filter((assignment) => {
-    if (assignmentFilterClassId && assignment.class_id !== assignmentFilterClassId) return false;
-    if (assignmentFilterTeacherId && assignment.teacher_user_id !== assignmentFilterTeacherId) return false;
+  const filteredTeacherAllocations = teacherAllocations.filter((allocation) => {
+    if (allocationFilterClassId && allocation.class_id !== allocationFilterClassId) return false;
+    if (allocationFilterTeacherId && allocation.teacher_user_id !== allocationFilterTeacherId) return false;
     return true;
   });
 
@@ -1545,8 +1545,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   });
 
   useEffect(() => {
-    setAssignmentPage(1);
-  }, [assignmentFilterClassId, assignmentFilterTeacherId, assignmentPageSize]);
+    setAllocationPage(1);
+  }, [allocationFilterClassId, allocationFilterTeacherId, allocationPageSize]);
 
   useEffect(() => {
     setStudentPage(1);
@@ -1556,12 +1556,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const sortedMembers = members;
 
   const memberTotalPages = Math.max(1, Math.ceil(membersTotal / memberPageSize));
-  const assignmentTotalPages = Math.max(1, Math.ceil(filteredTeacherAssignments.length / assignmentPageSize));
+  const allocationTotalPages = Math.max(1, Math.ceil(filteredTeacherAllocations.length / allocationPageSize));
   const studentTotalPages = Math.max(1, Math.ceil(filteredStudents.length / studentPageSize));
 
-  const pagedTeacherAssignments = filteredTeacherAssignments.slice(
-    (assignmentPage - 1) * assignmentPageSize,
-    assignmentPage * assignmentPageSize
+  const pagedTeacherAllocations = filteredTeacherAllocations.slice(
+    (allocationPage - 1) * allocationPageSize,
+    allocationPage * allocationPageSize
   );
 
   const pagedStudents = filteredStudents.slice(
@@ -1596,16 +1596,16 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const contextValue = {
       actionLoading,
       addToast,
-      assignmentActive,
-      assignmentClassId,
-      assignmentFilterClassId,
-      assignmentFilterTeacherId,
-      assignmentPage,
-      assignmentPageSize,
-      assignmentSaving,
-      assignmentSubjectInput,
-      assignmentTeacherId,
-      assignmentTotalPages,
+      allocationActive,
+      allocationClassId,
+      allocationFilterClassId,
+      allocationFilterTeacherId,
+      allocationPage,
+      allocationPageSize,
+      allocationSaving,
+      allocationSubjectInput,
+      allocationTeacherId,
+      allocationTotalPages,
       billingAction,
       billingInterval,
       billingLoading,
@@ -1632,7 +1632,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       filteredQuizScores,
       filteredSchoolVisibility,
       filteredStudents,
-      filteredTeacherAssignments,
+      filteredTeacherAllocations,
       forceChangeAvatar,
       forceChangeLoading,
       forceChangeReason,
@@ -1641,7 +1641,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       getRoleBadgeColor,
       handleAddSubject,
       handleAddSubjectTemplate,
-      handleAssignTeacher,
+      handleAllocateTeacher,
       handleBanMember,
       handleBulkMemberAction,
       handleCancelEditSubject,
@@ -1681,7 +1681,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       modLogLoading,
       modTargetStatus,
       pagedStudents,
-      pagedTeacherAssignments,
+      pagedTeacherAllocations,
       planDetails,
       quizFilter,
       quizScores,
@@ -1701,14 +1701,14 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       selectedSchoolTests,
       selectedStudentId,
       setActiveTab,
-      setAssignmentActive,
-      setAssignmentClassId,
-      setAssignmentFilterClassId,
-      setAssignmentFilterTeacherId,
-      setAssignmentPage,
-      setAssignmentPageSize,
-      setAssignmentSubjectInput,
-      setAssignmentTeacherId,
+      setAllocationActive,
+      setAllocationClassId,
+      setAllocationFilterClassId,
+      setAllocationFilterTeacherId,
+      setAllocationPage,
+      setAllocationPageSize,
+      setAllocationSubjectInput,
+      setAllocationTeacherId,
       setBillingAction,
       setBillingInterval,
       setBillingLoading,
@@ -1778,7 +1778,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       suspendLoading,
       suspendReason,
       teachers,
-      teacherAssignments,
+      teacherAllocations,
       friendlySchoolAdminError,
       toggleMemberSelection,
       toggleMemberSort,
@@ -1807,7 +1807,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             {currentCapabilities?.is_owner && onOpenSchoolHeadPortal && (
               <button type="button" onClick={onOpenSchoolHeadPortal} className="school-admin-workspace-switch">Executive dashboard</button>
             )}
-            {currentCapabilities?.can_teach && teacherAssignments.some((assignment) => assignment.active !== false && assignment.teacher_user_id === currentCapabilities.user_id) && onOpenTeacherPortal && (
+            {currentCapabilities?.can_teach && teacherAllocations.some((allocation) => allocation.active !== false && allocation.teacher_user_id === currentCapabilities.user_id) && onOpenTeacherPortal && (
               <button type="button" onClick={onOpenTeacherPortal} className="school-admin-workspace-switch">Teacher workspace</button>
             )}
             <button

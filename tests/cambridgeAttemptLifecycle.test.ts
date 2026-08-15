@@ -42,7 +42,7 @@ test('teacher score access and actions require matching class and subject', () =
   assert.match(migration, /public\.cambridge_assignment_matches_test/);
   assert.match(migration, /cta\.can_grade = true/);
   assert.match(migration, /Only the assigned class and subject teacher can allow this retake/);
-  assert.match(teacherPortal, /results are limited to your assigned classes and subjects/);
+  assert.match(teacherPortal, /results are limited to your allocated classes and subjects/);
 });
 
 test('test submission stops exam activity and closes only after acknowledgement', () => {

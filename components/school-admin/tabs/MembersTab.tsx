@@ -28,7 +28,7 @@ const MembersTab: React.FC = () => {
     selectedMemberIds, setActiveTab, setBulkMemberAction, setMemberPage, setMemberPageSize,
     setMemberRoleFilter, setMemberSearch, setModTargetId, setModTargetStatus, setSelectedClassId,
     setSelectedGrade, setSelectedMember, setSelectedStudentId, setShowMemberActionModal,
-    studentAssignments, students, teacherAssignments, toggleMemberSelection, toggleSelectAllMembers,
+    studentAssignments, students, teacherAllocations, toggleMemberSelection, toggleSelectAllMembers,
   } = useSchoolAdmin();
   const [academicYearFilter, setAcademicYearFilter] = React.useState('');
   const [classFilter, setClassFilter] = React.useState('');
@@ -50,7 +50,7 @@ const MembersTab: React.FC = () => {
     const assignedClassId = studentAssignments[member.user_id] || '';
     return activeClasses.find((schoolClass: any) => schoolClass.id === assignedClassId) || null;
   }, [activeClasses, studentAssignments]);
-  const getTeacherClassIds = React.useCallback((member: any) => new Set((teacherAssignments || []).filter((assignment: any) => assignment.teacher_user_id === member.user_id).map((assignment: any) => assignment.class_id)), [teacherAssignments]);
+  const getTeacherClassIds = React.useCallback((member: any) => new Set((teacherAllocations || []).filter((allocation: any) => allocation.teacher_user_id === member.user_id).map((allocation: any) => allocation.class_id)), [teacherAllocations]);
   const getDisplayPlacement = React.useCallback((member: any) => {
     const assignedClass = getAssignedClass(member);
     const teacherClass = member.role === 'teacher'
@@ -128,7 +128,7 @@ const MembersTab: React.FC = () => {
 
     {activePeopleTab === 'teacher' && <section className="teacher-assignment-callout" aria-label="Teacher class and subject assignments">
       <div><strong>Assign teaching responsibilities</strong><span>Connect a teacher to a subject and class, or review existing assignments.</span></div>
-      <button onClick={() => setActiveTab('teachers')}>Assign teachers →</button>
+      <button onClick={() => setActiveTab('teachers')}>Allocate teachers →</button>
     </section>}
 
     <section className="community-directory">

@@ -301,7 +301,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
           <div className="school-head-progress-list">
             <ProgressLine label="Students placed" value={snapshot.structure.placed_students} total={snapshot.totals.students} />
             <ProgressLine label="Classes covered" value={snapshot.structure.covered_classes} total={snapshot.totals.classes} />
-            <ProgressLine label="Teachers assigned" value={snapshot.structure.assigned_teachers} total={snapshot.totals.teachers} />
+            <ProgressLine label="Teachers allocated" value={snapshot.structure.allocated_teachers} total={snapshot.totals.teachers} />
             <ProgressLine label="Students active this month" value={snapshot.engagement.active_students_30d} total={snapshot.totals.students} />
           </div>
           <button type="button" className="school-head-secondary-action" onClick={() => selectTab('people')}>Review people and structure</button>
@@ -349,7 +349,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
       <section className="school-head-page-heading"><div><p className="school-head-kicker">People & structure</p><h2>Coverage, delegation and accountability</h2><p>A governance view of the school organisation. Daily roster changes remain in Operational Administration.</p></div><button type="button" className="school-head-primary-action" onClick={() => openAdministration('members')}>Open administration</button></section>
       <section className="school-head-structure-grid">
         <article><span>Students</span><strong>{snapshot.totals.students}</strong><ProgressLine label="Placed in classes" value={snapshot.structure.placed_students} total={snapshot.totals.students} /></article>
-        <article><span>Teaching staff</span><strong>{snapshot.totals.teachers}</strong><ProgressLine label="With active assignments" value={snapshot.structure.assigned_teachers} total={snapshot.totals.teachers} /></article>
+        <article><span>Teaching staff</span><strong>{snapshot.totals.teachers}</strong><ProgressLine label="With active allocations" value={snapshot.structure.allocated_teachers} total={snapshot.totals.teachers} /></article>
         <article><span>Active classes</span><strong>{snapshot.totals.classes}</strong><ProgressLine label="With teaching coverage" value={snapshot.structure.covered_classes} total={snapshot.totals.classes} /></article>
       </section>
       <div className="school-head-two-column">
@@ -365,7 +365,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
           <ul className="school-head-authority-list"><li><span>✓</span><div><strong>Appoint or remove delegated administrators</strong><small>Daily staff and class operations can be delegated.</small></div></li><li><span>✓</span><div><strong>Full subscription and value visibility</strong><small>Billing authority is not inherited by ordinary admins.</small></div></li><li><span>✓</span><div><strong>School-wide governance history</strong><small>Sensitive events remain visible and immutable to school users.</small></div></li><li><span>✓</span><div><strong>Protected ownership transfer</strong><small>Requires an eligible admin, exact confirmation and a reason.</small></div></li></ul>
         </section>
       </div>
-      <section className="school-head-operation-grid"><button type="button" onClick={() => openAdministration('members')}><span>People</span><strong>Staff & students</strong><small>Roles, access, moderation and member records.</small></button><button type="button" onClick={() => openAdministration('teachers')}><span>Coverage</span><strong>Teacher assignments</strong><small>Class, subject and teaching responsibility.</small></button><button type="button" onClick={() => openAdministration('classes')}><span>Structure</span><strong>Classes & registration</strong><small>Academic years, classes and student placement.</small></button><button type="button" onClick={() => openAdministration('subjects')}><span>Curriculum</span><strong>Subjects</strong><small>School curriculum and active subject records.</small></button></section>
+      <section className="school-head-operation-grid"><button type="button" onClick={() => openAdministration('members')}><span>People</span><strong>Staff & students</strong><small>Roles, access, moderation and member records.</small></button><button type="button" onClick={() => openAdministration('teachers')}><span>Coverage</span><strong>Teacher allocation</strong><small>Class, subject and teaching responsibility.</small></button><button type="button" onClick={() => openAdministration('classes')}><span>Structure</span><strong>Classes & registration</strong><small>Academic years, classes and student placement.</small></button><button type="button" onClick={() => openAdministration('subjects')}><span>Curriculum</span><strong>Subjects</strong><small>School curriculum and active subject records.</small></button></section>
     </div>
   );
 

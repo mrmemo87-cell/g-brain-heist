@@ -237,9 +237,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const canUseSchoolModule = useCallback((module: 'cambridge' | 'ielts' | 'writing' | 'admissions') => (
     Boolean(hasSchool && effectiveEntitlements?.modules[module])
   ), [effectiveEntitlements, hasSchool]);
-  const hasActiveTeachingAssignment = Boolean(schoolCapabilities?.has_active_teaching_assignment);
+  const hasActiveTeacherAllocation = Boolean(schoolCapabilities?.has_active_teacher_allocation);
   const canOpenTeacherWorkspace = (profile?.role === 'teacher' && !schoolCapabilities?.can_administer)
-    || Boolean(schoolCapabilities?.can_teach && hasActiveTeachingAssignment);
+    || Boolean(schoolCapabilities?.can_teach && hasActiveTeacherAllocation);
   const isTeacherRole = canOpenTeacherWorkspace;
   const isSchoolAdminRole = isUserSchoolAdmin;
   const isSchoolHeadRole = Boolean(schoolCapabilities?.is_owner && schoolCapabilities.account_type === 'school_head');
@@ -855,8 +855,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           const requested = new URLSearchParams(window.location.search).get('view');
           setView(requested === 'school_admin' || requested === 'school_head'
             ? requested
-            : requested === 'teacher' && capabilities.can_teach && capabilities.has_active_teaching_assignment ? 'teacher' : 'school_head');
-        } else if (capabilities?.can_administer && capabilities.can_teach && capabilities.has_active_teaching_assignment) {
+            : requested === 'teacher' && capabilities.can_teach && capabilities.has_active_teacher_allocation ? 'teacher' : 'school_head');
+        } else if (capabilities?.can_administer && capabilities.can_teach && capabilities.has_active_teacher_allocation) {
           const requested = new URLSearchParams(window.location.search).get('view');
           const preferred = localStorage.getItem(`school_workspace:${capabilities.school_id}`);
           setView(requested === 'school_admin' || requested === 'teacher' ? requested : preferred === 'school_admin' || preferred === 'teacher' ? preferred : 'workspace_chooser');
@@ -885,8 +885,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           const requested = new URLSearchParams(window.location.search).get('view');
           setView(requested === 'school_admin' || requested === 'school_head'
             ? requested
-            : requested === 'teacher' && capabilities.can_teach && capabilities.has_active_teaching_assignment ? 'teacher' : 'school_head');
-        } else if (capabilities?.can_administer && capabilities.can_teach && capabilities.has_active_teaching_assignment) {
+            : requested === 'teacher' && capabilities.can_teach && capabilities.has_active_teacher_allocation ? 'teacher' : 'school_head');
+        } else if (capabilities?.can_administer && capabilities.can_teach && capabilities.has_active_teacher_allocation) {
           const requested = new URLSearchParams(window.location.search).get('view');
           const preferred = localStorage.getItem(`school_workspace:${capabilities.school_id}`);
           setView(requested === 'school_admin' || requested === 'teacher' ? requested : preferred === 'school_admin' || preferred === 'teacher' ? preferred : 'workspace_chooser');

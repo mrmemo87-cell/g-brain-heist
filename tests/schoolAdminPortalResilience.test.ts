@@ -8,7 +8,7 @@ const portal = readFileSync('components/SchoolAdminPortal.tsx', 'utf8');
 const service = readFileSync('services/schoolAdminService.ts', 'utf8');
 
 test('school admin overview guards every asynchronously loaded collection', () => {
-  for (const collection of ['classes', 'students', 'teacherAssignments', 'teachers']) {
+  for (const collection of ['classes', 'students', 'teacherAllocations', 'teachers']) {
     assert.match(dashboard, new RegExp(`Array\\.isArray\\(context\\.${collection}\\)`));
   }
   assert.match(dashboard, /academicSetup\?\.offerings \|\| \[\]/);
@@ -20,7 +20,7 @@ test('school community remains render-safe while member collections load', () =>
 });
 
 test('school admin RPC payloads are normalized before entering render state', () => {
-  for (const collection of ['classList', 'teacherList', 'assignmentsList', 'studentList', 'subjectList', 'adminList']) {
+  for (const collection of ['classList', 'teacherList', 'allocationsList', 'studentList', 'subjectList', 'adminList']) {
     assert.match(portal, new RegExp(`Array\\.isArray\\(${collection}\\)`));
   }
   assert.match(service, /Invalid school subjects response: expected an array/);

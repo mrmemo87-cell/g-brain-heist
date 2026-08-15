@@ -51,7 +51,7 @@ export interface SchoolCapabilities {
   is_owner: boolean;
   can_administer: boolean;
   can_teach: boolean;
-  has_active_teaching_assignment?: boolean;
+  has_active_teacher_allocation?: boolean;
   can_manage_billing?: boolean;
   can_manage_admins?: boolean;
   can_transfer_ownership?: boolean;
@@ -107,17 +107,17 @@ export interface SchoolTeacher {
   role_in_school: SchoolRole;
   is_owner: boolean;
   can_teach: boolean;
-  has_active_assignment?: boolean;
+  has_active_allocation?: boolean;
 }
 
-export interface ClassTeacherAssignment {
+export interface ClassTeacherAllocation {
   id: string;
   school_id: string;
   class_id: string;
   teacher_user_id: string;
   subject: string;
   active: boolean;
-  assigned_at: string | null;
+  allocated_at: string | null;
   teacher_name: string;
   teacher_username: string | null;
   teacher_email: string | null;
@@ -133,7 +133,7 @@ export interface ClassStudentAssignment {
   student_id: string;
 }
 
-export interface TeacherAssignedClass {
+export interface TeacherAllocatedClass {
   class_id: string;
   class_code: string;
   class_name: string;
@@ -154,7 +154,7 @@ export interface SchoolSubject {
   created_by: string | null;
 }
 
-export interface TeacherProfileWithClasses {
+export interface TeacherProfileWithAllocations {
   success: boolean;
   profile: {
     user_id: string;
@@ -164,7 +164,7 @@ export interface TeacherProfileWithClasses {
     avatar_url: string | null;
     school_id: string | null;
   };
-  assigned_classes: TeacherAssignedClass[];
+  allocated_classes: TeacherAllocatedClass[];
   school: {
     id: string;
     name: string;
@@ -205,7 +205,7 @@ export async function resolveMySchoolCapabilities(
   client: SchoolCapabilitiesRpcClient = supabase as unknown as SchoolCapabilitiesRpcClient,
 ): Promise<SchoolCapabilitiesResolution> {
   try {
-    const { data, error } = await client.rpc('school_admin_get_my_capabilities', { p_school_id: schoolId || null });
+    const { data, error } = await client.rpc('school_admin_get_my_allocation_capabilities', { p_school_id: schoolId || null });
     if (error) {
       return { status: 'error', capabilities: null, message: error.message || 'School access could not be verified.' };
     }
@@ -239,7 +239,9 @@ export async function resolveMySchoolCapabilities(
         is_owner: Boolean(payload['is_owner']),
         can_administer: Boolean(payload['can_administer']),
         can_teach: Boolean(payload['can_teach']),
-        has_active_teaching_assignment: Boolean(payload['has_active_teaching_assignment']),
+        has_active_teacher_allocation: Boolean(
+          payload['has_active_teacher_allocation'] ?? payload['has_active_teaching_assignment'],
+        ),
         can_manage_billing: Boolean(payload['can_manage_billing'] ?? payload['is_owner']),
         can_manage_admins: Boolean(payload['can_manage_admins'] ?? payload['is_owner']),
         can_transfer_ownership: Boolean(payload['can_transfer_ownership'] ?? payload['is_owner']),
@@ -472,7 +474,7 @@ export async function updateMemberRole(
   targetUserId: string,
   newRole: SchoolRole,
   options?: { keepTeaching?: boolean; reason?: string }
-): Promise<{ success: boolean; error?: string; assignmentCount?: number }> {
+): Promise<{ success: boolean; error?: string; allocationCount?: number }> {
   try {
     const { data, error } = await supabase.rpc('school_admin_transition_member_role', {
       p_school_id: schoolId,
@@ -488,7 +490,11 @@ export async function updateMemberRole(
     }
 
     if (!data?.success) {
-      return { success: false, error: data?.error || 'Failed to update role', assignmentCount: data?.assignment_count };
+      return {
+        success: false,
+        error: data?.error || 'Failed to update role',
+        allocationCount: Number(data?.allocation_count ?? data?.assignment_count ?? 0),
+      };
     }
 
     return { success: true };
@@ -784,7 +790,7 @@ export async function archiveSchoolClass(
   action?: 'archived' | 'already_removed';
   code?: 'CLASS_IN_USE' | 'LAST_ACTIVE_CLASS' | 'CLASS_NOT_FOUND' | 'SCHOOL_ADMIN_REQUIRED' | 'NOT_AUTHENTICATED';
   studentCount?: number;
-  assignmentCount?: number;
+  allocationCount?: number;
   error?: string;
 }> {
   try {
@@ -804,7 +810,7 @@ export async function archiveSchoolClass(
         success: false,
         code: result.code,
         studentCount: Number(result.student_count || 0),
-        assignmentCount: Number(result.assignment_count || 0),
+        allocationCount: Number(result.allocation_count ?? result.assignment_count ?? 0),
         error: result.error,
       };
     }
@@ -818,7 +824,7 @@ export async function archiveSchoolClass(
 
 export async function listSchoolTeachers(schoolId: string): Promise<SchoolTeacher[]> {
   try {
-    const { data, error } = await supabase.rpc('school_admin_list_teachers', {
+    const { data, error } = await supabase.rpc('school_admin_list_allocation_teachers', {
       p_school_id: schoolId,
     });
 
@@ -837,7 +843,7 @@ export async function listSchoolTeachers(schoolId: string): Promise<SchoolTeache
       role_in_school: row.role_in_school as SchoolRole,
       is_owner: Boolean(row.is_owner),
       can_teach: Boolean(row.can_teach),
-      has_active_assignment: Boolean(row.has_active_assignment),
+      has_active_allocation: Boolean(row.has_active_allocation ?? row.has_active_assignment),
     }));
   } catch (err) {
     console.error('Exception fetching teachers:', err);
@@ -849,7 +855,7 @@ export async function setAdministratorTeachingStaffStatus(
   schoolId: string,
   memberUserId: string,
   enabled: boolean,
-): Promise<{ success: boolean; error?: string; can_teach?: boolean; assignment_count?: number }> {
+): Promise<{ success: boolean; error?: string; can_teach?: boolean; allocation_count?: number }> {
   try {
     const { data, error } = await supabase.rpc('rpc_school_admin_set_teaching_staff_status', {
       p_school_id: schoolId,
@@ -862,7 +868,7 @@ export async function setAdministratorTeachingStaffStatus(
     return {
       success: true,
       can_teach: Boolean(result.can_teach),
-      assignment_count: Number(result.assignment_count || 0),
+      allocation_count: Number(result.allocation_count ?? result.assignment_count ?? 0),
     };
   } catch (error) {
     console.error('Exception updating teaching staff status:', error);
@@ -870,15 +876,15 @@ export async function setAdministratorTeachingStaffStatus(
   }
 }
 
-export async function listTeacherAssignments(schoolId: string): Promise<ClassTeacherAssignment[]> {
+export async function listTeacherAllocations(schoolId: string): Promise<ClassTeacherAllocation[]> {
   try {
-    const { data, error } = await supabase.rpc('school_admin_list_teacher_assignments', {
+    const { data, error } = await supabase.rpc('school_admin_list_teacher_allocations', {
       p_school_id: schoolId,
     });
 
     if (error) {
-      console.error('Error fetching teacher assignments:', error);
-      throw new Error(error.message || 'Teaching assignments could not be loaded.');
+      console.error('Error fetching teacher allocations:', error);
+      throw new Error(error.message || 'Teacher allocations could not be loaded.');
     }
 
     const rows = (typeof data === 'string' ? JSON.parse(data) : data) || [];
@@ -889,7 +895,7 @@ export async function listTeacherAssignments(schoolId: string): Promise<ClassTea
       teacher_user_id: row.teacher_user_id,
       subject: row.subject,
       active: !!row.active,
-      assigned_at: row.assigned_at ?? row.created_at ?? null,
+      allocated_at: row.allocated_at ?? row.created_at ?? null,
       teacher_name: row.teacher_name || row.teacher_username || row.teacher_email || 'Unknown teacher',
       teacher_username: row.teacher_username || null,
       teacher_email: row.teacher_email || null,
@@ -900,14 +906,14 @@ export async function listTeacherAssignments(schoolId: string): Promise<ClassTea
       grade_level: row.grade_level == null ? null : String(row.grade_level),
     }));
   } catch (err) {
-    console.error('Exception fetching teacher assignments:', err);
+    console.error('Exception fetching teacher allocations:', err);
     throw err instanceof Error
       ? err
-      : new Error('Teaching assignments could not be loaded.');
+      : new Error('Teacher allocations could not be loaded.');
   }
 }
 
-export async function assignTeacherToClassSubject(
+export async function allocateTeacherToClassSubject(
   schoolId: string,
   classId: string,
   teacherUserId: string,
@@ -915,7 +921,7 @@ export async function assignTeacherToClassSubject(
   active: boolean
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { data, error } = await supabase.rpc('admin_assign_teacher_to_class_subject', {
+    const { data, error } = await supabase.rpc('admin_allocate_teacher_to_class_subject', {
       p_school_id: schoolId,
       p_class_id: classId,
       p_teacher_user_id: teacherUserId,
@@ -924,22 +930,22 @@ export async function assignTeacherToClassSubject(
     });
 
     if (error) {
-      console.error('Error assigning teacher:', error);
+      console.error('Error allocating teacher:', error);
       return { success: false, error: error.message };
     }
 
     if (data && data.success === false) {
-      return { success: false, error: data.error || 'Failed to assign teacher' };
+      return { success: false, error: data.error || 'Failed to allocate teacher' };
     }
 
     return { success: true };
   } catch (err) {
-    console.error('Exception assigning teacher:', err);
+    console.error('Exception allocating teacher:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
 
-export async function deleteTeacherAssignment(assignmentId: string, schoolId?: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteTeacherAllocation(allocationId: string, schoolId?: string): Promise<{ success: boolean; error?: string }> {
   try {
     // Get school ID if not provided
     let effectiveSchoolId = schoolId;
@@ -951,13 +957,13 @@ export async function deleteTeacherAssignment(assignmentId: string, schoolId?: s
       return { success: false, error: 'Could not determine school' };
     }
 
-    const { data, error } = await supabase.rpc('school_admin_delete_teacher_assignment', {
+    const { data, error } = await supabase.rpc('school_admin_delete_teacher_allocation', {
       p_school_id: effectiveSchoolId,
-      p_assignment_id: assignmentId,
+      p_allocation_id: allocationId,
     });
 
     if (error) {
-      console.error('Error deleting teacher assignment:', error);
+      console.error('Error deleting teacher allocation:', error);
       return { success: false, error: error.message };
     }
 
@@ -968,7 +974,7 @@ export async function deleteTeacherAssignment(assignmentId: string, schoolId?: s
 
     return { success: true };
   } catch (err) {
-    console.error('Exception deleting teacher assignment:', err);
+    console.error('Exception deleting teacher allocation:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -1072,16 +1078,16 @@ export async function linkCambridgeAttemptStudent(
 // ============================================
 
 /**
- * Get teacher's assigned classes
+ * Get the classes and subjects allocated to a teacher.
  */
-export async function getTeacherAssignedClasses(teacherUserId?: string): Promise<TeacherAssignedClass[]> {
+export async function getTeacherAllocatedClasses(teacherUserId?: string): Promise<TeacherAllocatedClass[]> {
   try {
-    const { data, error } = await supabase.rpc('get_teacher_assigned_classes', {
+    const { data, error } = await supabase.rpc('get_teacher_allocated_classes', {
       p_teacher_user_id: teacherUserId || null,
     });
 
     if (error) {
-      console.error('Error fetching teacher assigned classes:', error);
+      console.error('Error fetching teacher allocated classes:', error);
       return [];
     }
 
@@ -1096,22 +1102,24 @@ export async function getTeacherAssignedClasses(teacherUserId?: string): Promise
       school_name: row.school_name,
     }));
   } catch (err) {
-    console.error('Exception fetching teacher assigned classes:', err);
+    console.error('Exception fetching teacher allocated classes:', err);
     return [];
   }
 }
 
 /**
- * Get teacher profile with assigned classes
+ * Get a teacher profile together with their allocated classes.
  */
-export async function getTeacherProfileWithClasses(teacherUserId?: string): Promise<TeacherProfileWithClasses | null> {
+export async function getTeacherProfileWithAllocations(
+  teacherUserId?: string,
+): Promise<TeacherProfileWithAllocations | null> {
   try {
     const { data, error } = await supabase.rpc('get_teacher_profile_with_classes', {
       p_teacher_user_id: teacherUserId || null,
     });
 
     if (error) {
-      console.error('Error fetching teacher profile with classes:', error);
+      console.error('Error fetching teacher profile with allocations:', error);
       return null;
     }
 
@@ -1119,9 +1127,12 @@ export async function getTeacherProfileWithClasses(teacherUserId?: string): Prom
       return null;
     }
 
-    return data as TeacherProfileWithClasses;
+    return {
+      ...data,
+      allocated_classes: data.allocated_classes ?? data.assigned_classes ?? [],
+    } as TeacherProfileWithAllocations;
   } catch (err) {
-    console.error('Exception fetching teacher profile with classes:', err);
+    console.error('Exception fetching teacher profile with allocations:', err);
     return null;
   }
 }

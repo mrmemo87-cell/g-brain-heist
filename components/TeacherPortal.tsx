@@ -205,9 +205,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [questionDifficultyFilter, setQuestionDifficultyFilter] = useState<'all' | QuestionDifficulty>('all');
   const [questionTypeFilter, setQuestionTypeFilter] = useState<'all' | 'multiple_choice' | 'true_false' | 'short_answer'>('all');
 
-  // Teacher class assignments state
-  const [assignedClasses, setAssignedClasses] = useState<SchoolAdminService.TeacherAssignedClass[]>([]);
-  const [teacherHasClassAssignments, setTeacherHasClassAssignments] = useState(false);
+  // Teacher class allocation state
+  const [allocatedClasses, setAllocatedClasses] = useState<SchoolAdminService.TeacherAllocatedClass[]>([]);
+  const [teacherHasClassAllocations, setTeacherHasClassAllocations] = useState(false);
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -674,22 +674,22 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return Array.from(batches).sort();
   }, [availableStudents]);
 
-  // Get unique subjects teacher is assigned to teach (from class assignments)
+  // Get the subjects this teacher is allocated to teach.
   const teacherAssignedSubjects = useMemo(() => {
     const subjects = new Set<string>();
-    assignedClasses.forEach(cls => {
+    allocatedClasses.forEach(cls => {
       if (cls.subject) subjects.add(cls.subject);
     });
     // Sort alphabetically
     return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-  }, [assignedClasses]);
+  }, [allocatedClasses]);
 
   // A class may appear more than once when a teacher has multiple subject
-  // assignments. Keep the Cambridge class picker based on the current class
-  // assignments, rather than only the historical class labels on submissions.
-  const assignedCambridgeClassCodes = useMemo(() => (
-    [...new Set(assignedClasses.map((cls) => cls.class_code).filter(Boolean))].sort()
-  ), [assignedClasses]);
+  // allocations. Keep the Cambridge class picker based on current allocations,
+  // rather than only the historical class labels on submissions.
+  const allocatedCambridgeClassCodes = useMemo(() => (
+    [...new Set(allocatedClasses.map((cls) => cls.class_code).filter(Boolean))].sort()
+  ), [allocatedClasses]);
 
   // Get unique subjects from assignments for folder tabs
   const assignmentSubjects = useMemo(() => {
@@ -867,7 +867,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     }
   }, [canUseCambridgeModule, canUseTeacherFeature, canUseWritingModule, effectiveEntitlements, view]);
 
-  // Set default subject to first assigned subject when teacher has class assignments
+  // Default to the first subject in the teacher's allocations.
   useEffect(() => {
     if (teacherAssignedSubjects.length > 0) {
       // Only update if current subject is not in the assigned subjects list
@@ -1450,7 +1450,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Get unique quiz names and classes for filters
   const uniqueCambridgeQuizNames = [...new Set(cambridgeScores.map(s => s.quiz_name))];
   const uniqueCambridgeClasses = [...new Set([
-    ...assignedCambridgeClassCodes,
+    ...allocatedCambridgeClassCodes,
     ...cambridgeScores.map(s => s.student_class || 'Unknown'),
   ])].sort();
   const uniqueCambridgeStudents = useMemo(() => {
@@ -3069,15 +3069,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       // cards hydrate independently; the global question bank is tab-only.
       setLoading(false);
 
-      void SchoolAdminService.getTeacherAssignedClasses()
+      void SchoolAdminService.getTeacherAllocatedClasses()
         .then((classes) => {
-          setAssignedClasses(classes);
-          setTeacherHasClassAssignments(classes.length > 0);
+          setAllocatedClasses(classes);
+          setTeacherHasClassAllocations(classes.length > 0);
         })
         .catch((error) => {
-          console.error('Error loading assigned classes:', error);
-          setAssignedClasses([]);
-          setTeacherHasClassAssignments(false);
+          console.error('Error loading allocated classes:', error);
+          setAllocatedClasses([]);
+          setTeacherHasClassAllocations(false);
         });
 
     } catch (error) {
@@ -3806,7 +3806,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Render Dashboard
   const renderDashboard = () => {
-    const myClasses = Array.from(new Set(assignedClasses.map((cls) => cls.class_code)));
+    const myClasses = Array.from(new Set(allocatedClasses.map((cls) => cls.class_code)));
     const activeAssignments = assignments.filter((a) => a.completed_count < a.student_count).length;
     const totalSubmissions = assignmentSuccess?.submission_count ?? 0;
     const hasAssignmentSuccess = totalSubmissions > 0;
@@ -3889,7 +3889,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       .slice(0, 6);
 
     const topIssues: string[] = [];
-    if (!teacherHasClassAssignments) topIssues.push('No class assignments are configured for this teacher account.');
+    if (!teacherHasClassAllocations) topIssues.push('No class allocations are configured for this teacher account.');
     if (lowCompletionClasses.length > 0) topIssues.push(`${lowCompletionClasses.length} class(es) are below 60% assignment completion.`);
     if (studentsWithoutClass > 0) topIssues.push(`${studentsWithoutClass} student(s) have no class/batch mapping.`);
     if (hasAssignmentSuccess && successRate < 65) topIssues.push(`Assignment success rate is ${successRate}% (below target).`);
@@ -3909,9 +3909,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     const priorityItems = [
       activeAssignments > 0 ? `Review ${activeAssignments} assignment${activeAssignments > 1 ? 's' : ''} still in progress.` : 'No pending assignments — great pacing today.',
-      teacherHasClassAssignments
+      teacherHasClassAllocations
         ? `Prepare next class for ${myClasses.slice(0, 2).join(' • ')}${myClasses.length > 2 ? '…' : ''}.`
-        : 'Coordinate with school admin to finalize class assignments.',
+        : 'Coordinate with your school admin to finalize class allocations.',
       !hasAssignmentSuccess
         ? 'Assignment success will appear after the first student submission.'
         : successRate < 65
@@ -3965,8 +3965,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         text: `${activeAssignments} in-progress assignment${activeAssignments > 1 ? 's' : ''} — open Reports to review the assigned students.`,
       });
     }
-    if (!teacherHasClassAssignments) {
-      visibleStudentAlerts.push({ tone: 'warning', text: 'No class assignments found for this teacher account.' });
+    if (!teacherHasClassAllocations) {
+      visibleStudentAlerts.push({ tone: 'warning', text: 'No class allocations found for this teacher account.' });
     }
 
     return (
@@ -4363,8 +4363,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Render Create Question Form
   const renderCreateQuestion = () => {
-    // If teacher has no assigned classes/subjects, show access denied
-    if (!teacherHasClassAssignments) {
+    // If a teacher has no allocated classes or subjects, show access denied.
+    if (!teacherHasClassAllocations) {
       return (
         <div className="max-w-3xl mx-auto">
           <button
@@ -4974,12 +4974,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const renderStudents = () => {
     const classMap = new Map<string, { subjects: Set<string>; students: StudentForAssignment[] }>();
-    assignedClasses
-      .filter((assignedClass) => assignedClass.is_active)
-      .forEach((assignedClass) => {
-        const existing = classMap.get(assignedClass.class_code) || { subjects: new Set<string>(), students: [] };
-        if (assignedClass.subject) existing.subjects.add(assignedClass.subject);
-        classMap.set(assignedClass.class_code, existing);
+    allocatedClasses
+      .filter((allocatedClass) => allocatedClass.is_active)
+      .forEach((allocatedClass) => {
+        const existing = classMap.get(allocatedClass.class_code) || { subjects: new Set<string>(), students: [] };
+        if (allocatedClass.subject) existing.subjects.add(allocatedClass.subject);
+        classMap.set(allocatedClass.class_code, existing);
       });
     availableStudents.forEach((student) => {
       const classCode = student.batch || 'Class not assigned';
@@ -5021,7 +5021,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             documentId: createSchoolDocumentId(mode === 'register' ? 'attendance' : 'roster'),
             templateVersion: mode === 'register' ? 'class-register-v1' : 'class-roster-v1',
             title: mode === 'register' ? 'Class Attendance Register' : 'Class Roster',
-            subtitle: groups.length === 1 ? `Class ${groups[0]?.classCode || ''}` : `${groups.length} assigned classes`,
+            subtitle: groups.length === 1 ? `Class ${groups[0]?.classCode || ''}` : `${groups.length} allocated classes`,
             schoolName: resolvedBranding.schoolName,
             schoolLogoUrl: resolvedBranding.schoolLogoUrl,
             audience: 'teacher',
@@ -5351,7 +5351,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   );
 
   const renderCreateAssignment = () => {
-    if (!teacherHasClassAssignments) {
+    if (!teacherHasClassAllocations) {
       return (
         <div className="max-w-3xl mx-auto">
           <button onClick={() => setView('dashboard')} className="teacher-back-link mb-6">
@@ -5415,7 +5415,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           availableStudents={availableStudents}
           selectedStudentIds={selectedStudentIds}
           setSelectedStudentIds={setSelectedStudentIds}
-          assignedClasses={assignedClasses}
+          allocatedClasses={allocatedClasses}
           teacherAssignedSubjects={teacherAssignedSubjects}
           teacherId={teacher?.id}
           questions={questions}
@@ -5952,9 +5952,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         <details open className="rounded-xl border border-slate-200 bg-slate-50/40 flex flex-col min-h-0">
           <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Classes</summary>
           <div className="px-3 pb-3">
-            {teacherHasClassAssignments && (
+            {teacherHasClassAllocations && (
               <p className="text-xs text-slate-500 mb-2">
-                ✓ Showing only students from your {assignedCambridgeClassCodes.length} assigned class{assignedCambridgeClassCodes.length !== 1 ? 'es' : ''}
+                ✓ Showing only students from your {allocatedCambridgeClassCodes.length} allocated class{allocatedCambridgeClassCodes.length !== 1 ? 'es' : ''}
               </p>
             )}
             <select
@@ -6162,7 +6162,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           </div>
 
       <div className="cambridge-workspace-note mb-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
-        <strong>Your Cambridge workspace:</strong> Your school admin chooses which Cambridge tests the school can use. You can then release available tests to each class you teach; results are limited to your assigned classes and subjects
+        <strong>Your Cambridge workspace:</strong> Your school admin chooses which Cambridge tests the school can use. You can then release available tests to each class you teach; results are limited to your allocated classes and subjects
         {teacherAssignedSubjects.length > 0 ? ` (${teacherAssignedSubjects.join(', ')})` : ''}. Marking and score release stay limited to the subjects you teach.
       </div>
 
@@ -8165,7 +8165,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const navTabs: Array<{ id: TeacherNavSection; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
-    { id: 'students', label: 'My Classes', icon: '🏫', description: 'Assigned Classes & Students' },
+    { id: 'students', label: 'My Classes', icon: '🏫', description: 'Allocated Classes & Students' },
     ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
@@ -8451,30 +8451,30 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               </h1>
 
               
-              {/* Display Assigned Classes */}
-              {teacherHasClassAssignments && assignedClasses.length > 0 && (
+              {/* Display allocated classes. */}
+              {teacherHasClassAllocations && allocatedClasses.length > 0 && (
                 <div className="teacher-assigned-classes mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sky-700 font-semibold text-sm">📚 Your Assigned Classes ({assignedClasses.length})</span>
+                    <span className="text-sky-700 font-semibold text-sm">📚 Your Allocated Classes ({allocatedClasses.length})</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {assignedClasses.slice(0, 6).map((cls, index) => (
+                    {allocatedClasses.slice(0, 6).map((cls, index) => (
                       <div key={index} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs">
                         <span className="font-semibold text-slate-700">{cls.class_code}</span>
                         <span className="text-slate-400">•</span>
                         <span className="text-slate-600">{cls.subject}</span>
                       </div>
                     ))}
-                    {assignedClasses.length > 6 && (
+                    {allocatedClasses.length > 6 && (
                       <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs text-slate-600">
-                        +{assignedClasses.length - 6} more
+                        +{allocatedClasses.length - 6} more
                       </span>
                     )}
                   </div>
                 </div>
               )}
               
-              {!teacherHasClassAssignments && (
+              {!teacherHasClassAllocations && (
                 <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3">
                   <p className="text-sm text-amber-900">
                     ⚠️ No classes assigned yet. Contact your school admin to assign you to classes.
@@ -8623,7 +8623,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 playerName={profile.username || 'Teacher'}
                 clanId={profile.clan_id}
                 clanName={profile.clan_name}
-                assignedClasses={assignedClasses}
+                allocatedClasses={allocatedClasses}
               />
             </React.Suspense>
           )}
@@ -8633,7 +8633,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <CollectiveAssignmentReport
               assignments={assignments}
               students={availableStudents}
-              assignedClassCodes={assignedCambridgeClassCodes}
+              allocatedClassCodes={allocatedCambridgeClassCodes}
               school={{ id: profile.school_id, name: profile.school_name || teacher?.school_name || 'School', logoUrl: profile.school_logo_url }}
               teacherName={profile.full_name || profile.username || 'Teacher'}
               onBack={() => setView('reports')}

@@ -6,7 +6,7 @@ import type { SchoolRole } from '../../../types';
 
 const MemberActionModal: React.FC = () => {
   const {
-    actionLoading, classes, currentCapabilities, handleEnrollStudent, selectedClassId, selectedGrade, setSelectedClassId, setSelectedGrade, setSelectedStudentId, studentSaving, forceChangeAvatar, forceChangeLoading, forceChangeReason, forceChangeUsername, handleBanMember, handleClearProfileChange, handleForceProfileChange, handleRemoveMember, handleSetTeachingStaffStatus, handleSuspendStudent, handleUnbanMember, handleUnsuspendStudent, handleUpdateRole, loadStudentModStatus, modTargetStatus, selectedMember, setForceChangeAvatar, setForceChangeReason, setForceChangeUsername, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, setSuspendDuration, setSuspendReason, showMemberActionModal, students, suspendDuration, suspendLoading, suspendReason, teacherAssignments,
+    actionLoading, classes, currentCapabilities, handleEnrollStudent, selectedClassId, selectedGrade, setSelectedClassId, setSelectedGrade, setSelectedStudentId, studentSaving, forceChangeAvatar, forceChangeLoading, forceChangeReason, forceChangeUsername, handleBanMember, handleClearProfileChange, handleForceProfileChange, handleRemoveMember, handleSetTeachingStaffStatus, handleSuspendStudent, handleUnbanMember, handleUnsuspendStudent, handleUpdateRole, loadStudentModStatus, modTargetStatus, selectedMember, setForceChangeAvatar, setForceChangeReason, setForceChangeUsername, setModTargetId, setModTargetStatus, setSelectedMember, setShowMemberActionModal, setSuspendDuration, setSuspendReason, showMemberActionModal, students, suspendDuration, suspendLoading, suspendReason, teacherAllocations,
   } = useSchoolAdmin();
   const [verifiedName, setVerifiedName] = React.useState('');
   const [nameSaving, setNameSaving] = React.useState(false);
@@ -16,8 +16,8 @@ const MemberActionModal: React.FC = () => {
   const isAdministrator = selectedMember?.role === 'school_admin';
   const canChangeRole = !isProtectedAdmin && (!isAdministrator || currentCapabilities?.is_owner);
   const canManageAdministratorTeachingStatus = isAdministrator && Boolean(currentCapabilities?.is_owner);
-  const activeTeachingAssignments = (teacherAssignments || []).filter(
-    (assignment: any) => assignment.active !== false && assignment.teacher_user_id === selectedMember?.user_id,
+  const activeTeachingAllocations = (teacherAllocations || []).filter(
+    (allocation: any) => allocation.active !== false && allocation.teacher_user_id === selectedMember?.user_id,
   ).length;
   const accessLabel = isProtectedAdmin
     ? `School owner${selectedMember?.can_teach ? ' · Teaching staff' : ''}`
@@ -107,18 +107,18 @@ const MemberActionModal: React.FC = () => {
                 <div>
                   <h4>Teaching responsibilities</h4>
                   <p>{selectedMember.can_teach
-                    ? `This administrator is registered as teaching staff${activeTeachingAssignments ? ` with ${activeTeachingAssignments} active assignment${activeTeachingAssignments === 1 ? '' : 's'}` : ', but has no active assignment yet'}.`
+                    ? `This administrator is registered as teaching staff${activeTeachingAllocations ? ` with ${activeTeachingAllocations} active allocation${activeTeachingAllocations === 1 ? '' : 's'}` : ', but has no active allocation yet'}.`
                     : 'Administrative access does not make this person teaching staff. Register them only if they genuinely teach.'}</p>
                 </div>
                 <button
                   type="button"
                   className={selectedMember.can_teach ? 'admin-button-secondary' : 'admin-button-primary'}
-                  disabled={actionLoading || (selectedMember.can_teach && activeTeachingAssignments > 0)}
+                  disabled={actionLoading || (selectedMember.can_teach && activeTeachingAllocations > 0)}
                   onClick={() => handleSetTeachingStaffStatus(!selectedMember.can_teach)}
                 >
                   {selectedMember.can_teach ? 'Remove teaching staff status' : 'Register as teaching staff'}
                 </button>
-                {selectedMember.can_teach && activeTeachingAssignments > 0 && <small>Remove or reassign active teaching assignments before changing this status.</small>}
+                {selectedMember.can_teach && activeTeachingAllocations > 0 && <small>Remove or reallocate active teacher allocations before changing this status.</small>}
               </div>
             )}
             {selectedMember.role === 'student' && (

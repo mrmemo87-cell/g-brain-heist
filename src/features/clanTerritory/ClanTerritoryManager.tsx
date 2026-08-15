@@ -33,7 +33,7 @@ interface ClanTerritoryManagerProps {
   clanName?: string | null;
   onRefreshProfile?: () => Promise<void>;
   onGoToClan?: () => void;
-  assignedClasses?: SchoolAdminService.TeacherAssignedClass[];
+  allocatedClasses?: SchoolAdminService.TeacherAllocatedClass[];
 }
 
 const CLANLESS_CLAN_ID_PREFIX = "clanless-agent";
@@ -112,7 +112,7 @@ const createClanlessIdentity = (playerName: string, playerId?: string | null) =>
   };
 };
 
-const EMPTY_CLASSES: SchoolAdminService.TeacherAssignedClass[] = [];
+const EMPTY_CLASSES: SchoolAdminService.TeacherAllocatedClass[] = [];
 
 const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   onExit,
@@ -123,7 +123,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   clanName,
   onRefreshProfile,
   onGoToClan,
-  assignedClasses,
+  allocatedClasses,
 }) => {
   const canHost = isTeacher && (canHostProp ?? true);
   const [transport] = useState(() => new SupabaseClanTerritoryTransport());
@@ -168,11 +168,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [storedHostRooms, setStoredHostRooms] = useState<StoredHostRoom[]>([]);
   const [hostArenaPage, setHostArenaPage] = useState(1);
   const [liveArenaPage, setLiveArenaPage] = useState(1);
-  const stableAssignedClasses = assignedClasses && assignedClasses.length > 0 ? assignedClasses : EMPTY_CLASSES;
-  const [loadedAssignedClasses, setLoadedAssignedClasses] = useState<SchoolAdminService.TeacherAssignedClass[]>(stableAssignedClasses);
-  const assignedClassesLoadedRef = useRef(false);
-  const providedAssignedClassesRef = useRef(assignedClasses);
-  providedAssignedClassesRef.current = assignedClasses;
+  const stableAllocatedClasses = allocatedClasses && allocatedClasses.length > 0 ? allocatedClasses : EMPTY_CLASSES;
+  const [loadedAllocatedClasses, setLoadedAllocatedClasses] = useState<SchoolAdminService.TeacherAllocatedClass[]>(stableAllocatedClasses);
+  const allocatedClassesLoadedRef = useRef(false);
+  const providedAllocatedClassesRef = useRef(allocatedClasses);
+  providedAllocatedClassesRef.current = allocatedClasses;
   const batchAutoSelectedRef = useRef(false);
   const previousBgMusicEnabled = useRef<boolean | null>(null);
   const discoveredRoomsRef = useRef<Record<string, DiscoveredRoom>>({});
@@ -233,44 +233,44 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     loadTeacherId();
   }, [canHost]);
 
-  // Load teacher's assigned classes if not provided
+  // Load the teacher's allocated classes if they were not provided.
   useEffect(() => {
-    if (!isTeacher || assignedClassesLoadedRef.current) return;
+    if (!isTeacher || allocatedClassesLoadedRef.current) return;
     // If parent already provided classes, skip fetching
-    if (stableAssignedClasses.length > 0) {
-      assignedClassesLoadedRef.current = true;
+    if (stableAllocatedClasses.length > 0) {
+      allocatedClassesLoadedRef.current = true;
       return;
     }
 
-    assignedClassesLoadedRef.current = true;
-    const loadAssignedClasses = async () => {
+    allocatedClassesLoadedRef.current = true;
+    const loadAllocatedClasses = async () => {
       try {
-        console.log("📚 Loading teacher assigned classes...");
-        const classes = await SchoolAdminService.getTeacherAssignedClasses();
-        if (providedAssignedClassesRef.current?.length) return;
-        setLoadedAssignedClasses(classes);
-        console.log("✅ Loaded assigned classes:", classes);
+        console.log("📚 Loading teacher allocated classes...");
+        const classes = await SchoolAdminService.getTeacherAllocatedClasses();
+        if (providedAllocatedClassesRef.current?.length) return;
+        setLoadedAllocatedClasses(classes);
+        console.log("✅ Loaded allocated classes:", classes);
       } catch (error) {
-        console.warn("Failed to load assigned classes:", error);
-        if (!providedAssignedClassesRef.current?.length) setLoadedAssignedClasses([]);
+        console.warn("Failed to load allocated classes:", error);
+        if (!providedAllocatedClassesRef.current?.length) setLoadedAllocatedClasses([]);
       }
     };
 
-    loadAssignedClasses();
-  }, [isTeacher, stableAssignedClasses]);
+    loadAllocatedClasses();
+  }, [isTeacher, stableAllocatedClasses]);
 
   // Parent data commonly arrives after this manager mounts. Keep the local copy in
   // sync so Clan Wars receives the teacher's actual subject instead of retaining
   // the empty initial value used while the portal is loading.
   useEffect(() => {
-    if (assignedClasses && assignedClasses.length > 0) {
-      assignedClassesLoadedRef.current = true;
-      setLoadedAssignedClasses(assignedClasses);
+    if (allocatedClasses && allocatedClasses.length > 0) {
+      allocatedClassesLoadedRef.current = true;
+      setLoadedAllocatedClasses(allocatedClasses);
     }
-  }, [assignedClasses]);
+  }, [allocatedClasses]);
 
-  // Stable count of loaded assigned classes to avoid re-triggering batch effect on array ref change
-  const assignedClassCount = loadedAssignedClasses.length;
+  // Stable count avoids re-triggering the batch effect on an array reference change.
+  const allocatedClassCount = loadedAllocatedClasses.length;
 
   const pruneExpiredHostRooms = useCallback((rooms: StoredHostRoom[]) => {
     const now = Date.now();
@@ -525,19 +525,19 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     const loadBatches = async () => {
       let batches = await fetchSchoolBatches();
       
-      // Filter batches for teachers - only show their assigned classes
-      // If teacher has NO assignments, show empty list (not all classes)
+      // Filter batches for teachers so they only see allocated classes.
+      // If a teacher has no allocations, show an empty list.
       if (isTeacher) {
-        if (loadedAssignedClasses.length > 0) {
-          const assignedClassCodes = loadedAssignedClasses.map((cls) => cls.class_code);
-          batches = batches.filter((batch) => assignedClassCodes.includes(batch.batch));
+        if (loadedAllocatedClasses.length > 0) {
+          const allocatedClassCodes = loadedAllocatedClasses.map((cls) => cls.class_code);
+          batches = batches.filter((batch) => allocatedClassCodes.includes(batch.batch));
           console.log(`🔒 Teacher class filtering: showing ${batches.length} of total batches`, {
-            assignedClasses: assignedClassCodes,
+            allocatedClasses: allocatedClassCodes,
             filteredBatches: batches.map((b) => b.batch),
           });
         } else {
-          // No assignments = no access to any classes
-          console.log(`⚠️ Teacher has no assigned classes - showing empty list`);
+          // No allocations means no access to any classes.
+          console.log(`⚠️ Teacher has no allocated classes - showing empty list`);
           batches = [];
         }
       }
@@ -557,7 +557,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     };
 
     loadBatches();
-  }, [isTeacher, studentBatch, assignedClassCount]);
+  }, [isTeacher, studentBatch, allocatedClassCount]);
 
   // Fetch available clans for the host
   useEffect(() => {
@@ -1171,8 +1171,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             restrictedSubjects={
               isTeacher
                 ? (userSchoolId
-                    ? (loadedAssignedClasses.length > 0
-                        ? [...new Set(loadedAssignedClasses.map((cls) => cls.subject))]
+                    ? (loadedAllocatedClasses.length > 0
+                        ? [...new Set(loadedAllocatedClasses.map((cls) => cls.subject))]
                         : [])
                     : undefined)
                 : undefined
@@ -1318,7 +1318,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             <div className="space-y-3">
               <label className="block text-sm font-bold text-white">Target Classes</label>
               <p className="text-xs text-gray-400 -mt-1">
-                Select one or more assigned classes. Only students in these classes can join.
+                Select one or more allocated classes. Only students in these classes can join.
               </p>
               {availableBatches.length > 0 ? (
                 <div className="space-y-2 max-h-48 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900/60 p-3">
@@ -1718,7 +1718,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           restrictedSubjects={
             isTeacher
               ? (userSchoolId
-                  ? [...new Set(loadedAssignedClasses.map((cls) => cls.subject))]
+                  ? [...new Set(loadedAllocatedClasses.map((cls) => cls.subject))]
                   : undefined)
               : undefined
           }

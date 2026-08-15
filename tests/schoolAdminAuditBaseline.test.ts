@@ -37,7 +37,7 @@ test('school administration features stay within one complete portal shell', () 
   const expectedTabs = [
     ['dashboard', 'Overview'],
     ['members', 'Staff & Students'],
-    ['teachers', 'Teacher Assignments'],
+    ['teachers', 'Teacher Allocation'],
     ['classes', 'Classes & Registration'],
     ['subjects', 'Curriculum & Subjects'],
     ['documents', 'Document Center'],

@@ -68,7 +68,7 @@ const requiredContracts = [
     patterns: [
       'Array.isArray(classList)',
       'Array.isArray(teacherList)',
-      'Array.isArray(assignmentsList)',
+      'Array.isArray(allocationsList)',
       'Array.isArray(studentList)',
       'Array.isArray(subjectList)',
       'Array.isArray(adminList)',

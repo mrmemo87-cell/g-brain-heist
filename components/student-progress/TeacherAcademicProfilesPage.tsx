@@ -69,7 +69,7 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
   const viewerRole = context?.viewer.role || 'teacher';
   const profileMode = viewerRole === 'school_admin' || viewerRole === 'school_head' ? viewerRole : 'teacher';
   const scopeNote = viewerRole === 'teacher'
-    ? 'Only students and subjects covered by your active teaching assignments are shown here.'
+    ? 'Only students and subjects covered by your active teacher allocations are shown here.'
     : 'Only students in your school are shown here. Access remains school-scoped and role-authorised.';
 
   if (profileOpen && selectedStudentId) {

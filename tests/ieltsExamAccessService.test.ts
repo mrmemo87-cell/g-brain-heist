@@ -108,14 +108,14 @@ test('IELTS Exam Mode access reuses canonical school capability resolution', asy
   const result = await checkIeltsExamModeAdminAccess(client as never);
 
   assert.deepEqual(result, { allowed: true, reason: 'school_admin_capability' });
-  assert.deepEqual(calls, ['school_admin_get_my_capabilities']);
+  assert.deepEqual(calls, ['school_admin_get_my_allocation_capabilities']);
 });
 
 test('IELTS Exam Mode access preserves manageable-exam fallback when capability resolution fails', async () => {
   const calls: string[] = [];
   const client = authenticatedAccessClient(async (name) => {
     calls.push(name);
-    if (name === 'school_admin_get_my_capabilities') {
+    if (name === 'school_admin_get_my_allocation_capabilities') {
       return { data: null, error: { message: 'capability unavailable' } };
     }
     return {
@@ -127,7 +127,7 @@ test('IELTS Exam Mode access preserves manageable-exam fallback when capability 
   const result = await checkIeltsExamModeAdminAccess(client as never);
 
   assert.deepEqual(result, { allowed: true, reason: 'manageable_exam_scope' });
-  assert.deepEqual(calls, ['school_admin_get_my_capabilities', 'rpc_ielts_list_manageable_exams']);
+  assert.deepEqual(calls, ['school_admin_get_my_allocation_capabilities', 'rpc_ielts_list_manageable_exams']);
 });
 
 test('IELTS Exam Mode guard hides previously authorized content during every recheck', () => {
