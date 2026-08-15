@@ -45,6 +45,7 @@ import { createSchoolBrand } from '../src/lib/schoolBranding';
 import { friendlySchoolAdminError } from '../src/lib/schoolAdminPresentation';
 import { getEntitlements, type EntitlementSet } from '../services/entitlementService';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
+import CollapsedNavTooltip from './CollapsedNavTooltip';
 import {
   buildSchoolAdminNavigationUrl,
   parseSchoolAdminNavigation,
@@ -87,11 +88,21 @@ const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: str
 ];
 
 const SCHOOL_ADMIN_PRIMARY_TAB_IDS = new Set<MainAdminTab>(['dashboard', 'members', 'classes', 'admissions']);
+const SCHOOL_ADMIN_SIDEBAR_STORAGE_KEY = 'brains-heist:school-admin-sidebar-collapsed';
+const SCHOOL_ADMIN_SIDEBAR_COMPACT_QUERY = '(max-width: 1279px)';
 const SCHOOL_ADMIN_PROGRESS_TOOLS = [
   { id: 'academic-profiles', icon: 'AP', label: 'Academic Profiles', description: 'Student progress, strengths and focus areas', href: '/teacher-academic-profiles.html' },
   { id: 'interventions', icon: 'IN', label: 'Interventions', description: 'Targeted academic support and follow-up', href: '/teacher-interventions.html' },
   { id: 'guardians', icon: 'PG', label: 'Parents & Guardians', description: 'Invite, verify and manage parent access', href: '/guardian-management.html' },
 ] as const;
+
+const getInitialSchoolAdminSidebarCollapsed = () => {
+  if (typeof window === 'undefined') return false;
+  const savedPreference = window.localStorage.getItem(SCHOOL_ADMIN_SIDEBAR_STORAGE_KEY);
+  if (savedPreference !== null) return savedPreference === 'true';
+  return window.matchMedia(SCHOOL_ADMIN_SIDEBAR_COMPACT_QUERY).matches;
+};
+
 const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
   { id: 'ielts-exams', icon: 'EX', label: 'Exams', hint: 'Secure mock exams' },
   { id: 'ielts-practice', icon: 'AS', label: 'Assignment Overview', hint: 'Assign & monitor' },
@@ -115,6 +126,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [activeIeltsMonitorExamId, setActiveIeltsMonitorExamId] = useState<string | null>(initialNavigation.monitorExamId);
   const ieltsTabRefs = useRef<Partial<Record<IeltsSubTab, HTMLButtonElement | null>>>({});
   const [mobileAdminMenuOpen, setMobileAdminMenuOpen] = useState(false);
+  const [desktopAdminSidebarCollapsed, setDesktopAdminSidebarCollapsed] = useState(getInitialSchoolAdminSidebarCollapsed);
+  const [desktopAdminNavTooltip, setDesktopAdminNavTooltip] = useState<{ label: string; anchor: HTMLElement } | null>(null);
   const {
     navigationRef: mobileAdminNavigationRef,
     revealNavigation: revealMobileAdminNavigation,
@@ -235,11 +248,32 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [mobileAdminMenuOpen]);
 
+  useEffect(() => {
+    const compactViewport = window.matchMedia(SCHOOL_ADMIN_SIDEBAR_COMPACT_QUERY);
+    const adaptSidebarToViewport = (event: MediaQueryListEvent) => {
+      if (window.localStorage.getItem(SCHOOL_ADMIN_SIDEBAR_STORAGE_KEY) === null) {
+        setDesktopAdminSidebarCollapsed(event.matches);
+      }
+    };
+
+    compactViewport.addEventListener('change', adaptSidebarToViewport);
+    return () => compactViewport.removeEventListener('change', adaptSidebarToViewport);
+  }, []);
+
+  const toggleDesktopAdminSidebar = useCallback(() => {
+    setDesktopAdminNavTooltip(null);
+    setDesktopAdminSidebarCollapsed((collapsed) => {
+      const nextCollapsed = !collapsed;
+      window.localStorage.setItem(SCHOOL_ADMIN_SIDEBAR_STORAGE_KEY, String(nextCollapsed));
+      return nextCollapsed;
+    });
+  }, []);
+
   // Billing / Plan state
   const [planDetails, setPlanDetails] = useState<SchoolPlanDetails | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingAction, setBillingAction] = useState<string | null>(null);
-  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('yearly');
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
   const [membersTotal, setMembersTotal] = useState(0);
   const [memberPage, setMemberPage] = useState(1);
   const [memberPageSize, setMemberPageSize] = useState(25);
@@ -1786,26 +1820,46 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
         </div>
       </header>
 
-      <div className="school-admin-layout">
-      <aside className="school-admin-sidebar" aria-label="School administration sections">
+      <div className={`school-admin-layout ${desktopAdminSidebarCollapsed ? 'is-sidebar-collapsed' : ''}`}>
+      <aside className={`school-admin-sidebar ${desktopAdminSidebarCollapsed ? 'is-collapsed' : ''}`} aria-label="School administration sections">
+        <button
+          type="button"
+          className="school-admin-sidebar-toggle"
+          onClick={toggleDesktopAdminSidebar}
+          aria-label={desktopAdminSidebarCollapsed ? 'Expand side navigation' : 'Collapse side navigation'}
+          aria-expanded={!desktopAdminSidebarCollapsed}
+          aria-controls="school-admin-primary-navigation"
+          title={desktopAdminSidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+        >
+          <span aria-hidden="true">{desktopAdminSidebarCollapsed ? '›' : '‹'}</span>
+          <strong>{desktopAdminSidebarCollapsed ? 'Expand' : 'Collapse'}</strong>
+        </button>
         <p className="school-admin-nav-label">Administration</p>
-      <nav className="school-admin-tabs" aria-label="School admin navigation">
+      <nav id="school-admin-primary-navigation" className="school-admin-tabs" aria-label="School admin navigation">
         {SCHOOL_ADMIN_NAV_ITEMS.map((tab) => visibleNavItems.some((visible) => visible.id === tab.id) ? (
           <button
             key={tab.id}
-            onClick={() => selectAdminTab(tab.id)}
+            onClick={() => { setDesktopAdminNavTooltip(null); selectAdminTab(tab.id); }}
             data-testid={`school-admin-tab-${tab.id}`}
             aria-current={activeTab === tab.id ? 'page' : undefined}
+            aria-label={tab.label}
+            title={desktopAdminSidebarCollapsed ? tab.label : undefined}
+            onMouseEnter={(event) => desktopAdminSidebarCollapsed && setDesktopAdminNavTooltip({ label: tab.label, anchor: event.currentTarget })}
+            onMouseLeave={() => setDesktopAdminNavTooltip(null)}
+            onFocus={(event) => desktopAdminSidebarCollapsed && setDesktopAdminNavTooltip({ label: tab.label, anchor: event.currentTarget })}
+            onBlur={() => setDesktopAdminNavTooltip(null)}
             className={activeTab === tab.id ? 'is-active' : ''}
           >
-            {tab.label}
+            <span className="school-admin-nav-icon" aria-hidden="true">{tab.icon}</span>
+            <span className="school-admin-nav-text">{tab.label}</span>
           </button>
         ) : null)}
-        <div className="mt-4 border-t border-slate-700/70 pt-4">
+        <div className="school-admin-progress-navigation mt-4 border-t border-slate-700/70 pt-4">
           <p className="school-admin-nav-label">Student progress</p>
           {SCHOOL_ADMIN_PROGRESS_TOOLS.map((tool) => (
-            <button key={tool.id} type="button" onClick={() => tool.id === 'academic-profiles' ? selectAdminTab('academic-profiles') : window.location.assign(tool.href)} data-testid={`school-admin-tool-${tool.id}`} className={activeTab === tool.id ? 'is-active' : ''} aria-current={activeTab === tool.id ? 'page' : undefined}>
-              {tool.label}
+            <button key={tool.id} type="button" onClick={() => { setDesktopAdminNavTooltip(null); if (tool.id === 'academic-profiles') selectAdminTab('academic-profiles'); else window.location.assign(tool.href); }} data-testid={`school-admin-tool-${tool.id}`} className={activeTab === tool.id ? 'is-active' : ''} aria-current={activeTab === tool.id ? 'page' : undefined} aria-label={tool.label} title={desktopAdminSidebarCollapsed ? tool.label : undefined} onMouseEnter={(event) => desktopAdminSidebarCollapsed && setDesktopAdminNavTooltip({ label: tool.label, anchor: event.currentTarget })} onMouseLeave={() => setDesktopAdminNavTooltip(null)} onFocus={(event) => desktopAdminSidebarCollapsed && setDesktopAdminNavTooltip({ label: tool.label, anchor: event.currentTarget })} onBlur={() => setDesktopAdminNavTooltip(null)}>
+              <span className="school-admin-nav-icon" aria-hidden="true">{tool.icon}</span>
+              <span className="school-admin-nav-text">{tool.label}</span>
             </button>
           ))}
         </div>
@@ -2016,6 +2070,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
         </div>,
         document.body,
       )}
+
+      {desktopAdminNavTooltip && <CollapsedNavTooltip label={desktopAdminNavTooltip.label} anchor={desktopAdminNavTooltip.anchor} />}
 
       {/* Modals */}
       <MemberActionModal />
