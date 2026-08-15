@@ -25,7 +25,8 @@ test('School Head Academic Performance embeds student academic profiles', () => 
 
 test('guardian invitation flow remains email-bound and parent-facing', () => {
   assert.match(guardian, /Parent \/ guardian email/);
-  assert.match(guardian, /Create secure invitation/);
+  assert.match(guardian, /Review & send secure invitation/);
+  assert.match(guardian, /Send this parent invitation\?/);
   assert.match(guardian, /parent-portal\.html/);
   assert.match(parent, /Create secure account/);
   assert.match(parent, /My Children/);
