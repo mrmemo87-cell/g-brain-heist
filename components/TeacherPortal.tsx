@@ -29,8 +29,8 @@ import {
   parseCambridgeResponses,
   type CambridgeExpectedAnswer,
 } from './cambridgeListeningReview';
-import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, tryConsumePilotQuota, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
-import { getEntitlements, type EntitlementSet } from '../services/entitlementService';
+import { fetchSchoolPlanDetails, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, tryConsumePilotQuota, type SchoolPlanDetails, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
+import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey } from '../services/entitlementService';
 import ProfessionalCambridgeReport, { generateSerialNumber, StudentOverviewReport, getGradeFromPercentage } from './ProfessionalCambridgeReport';
 import type { ProfessionalReportData, StudentOverviewReportData, StudentTestEntry } from './ProfessionalCambridgeReport';
 const CollectiveAssignmentReport = React.lazy(() => import('./CollectiveAssignmentReport'));
@@ -71,11 +71,42 @@ interface TeacherPortalProps {
 
 // Plan details state (fetched once)
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
-let _cachedTeacherTier: AccountTier | null = null;
 
 export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
 type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'interventions' | 'documents' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
+
+const TEACHER_VIEW_FEATURES: Partial<Record<PortalView, FeatureKey>> = {
+  'create-question': FEATURE_KEYS.CUSTOM_QUESTIONS,
+  'question-bank': FEATURE_KEYS.QUESTION_BANK,
+  'csv-upload': FEATURE_KEYS.CUSTOM_QUESTIONS,
+  assignments: FEATURE_KEYS.ASSIGNMENTS,
+  'create-assignment': FEATURE_KEYS.ASSIGNMENTS,
+  reports: FEATURE_KEYS.REPORTS,
+  'report-detail': FEATURE_KEYS.REPORTS,
+  'report-analysis': FEATURE_KEYS.REPORTS,
+  'collective-report': FEATURE_KEYS.REPORTS,
+  documents: FEATURE_KEYS.REPORTS,
+  'writing-hub': FEATURE_KEYS.WRITING_HUB,
+  'writing-monitoring': FEATURE_KEYS.WRITING_HUB,
+  'writing-analytics': FEATURE_KEYS.WRITING_HUB,
+  'writing-export-center': FEATURE_KEYS.WRITING_HUB,
+  'clan-wars': FEATURE_KEYS.CLANS,
+  'geometry-diagrams': FEATURE_KEYS.CUSTOM_QUESTIONS,
+  'cambridge-reports': FEATURE_KEYS.CAMBRIDGE_TESTS,
+};
+
+const TEACHER_SECTION_FEATURES: Partial<Record<TeacherNavSection, FeatureKey>> = {
+  questions: FEATURE_KEYS.QUESTION_BANK,
+  assignments: FEATURE_KEYS.ASSIGNMENTS,
+  reports: FEATURE_KEYS.REPORTS,
+  'academic-profiles': FEATURE_KEYS.REPORTS,
+  interventions: FEATURE_KEYS.REPORTS,
+  documents: FEATURE_KEYS.REPORTS,
+  'writing-hub': FEATURE_KEYS.WRITING_HUB,
+  cambridge: FEATURE_KEYS.CAMBRIDGE_TESTS,
+  'clan-wars': FEATURE_KEYS.CLANS,
+};
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -141,7 +172,7 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
   return { grammar, punctuation };
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard' }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard' }) => {
   const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
   const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
   const initialWritingSection: WritingHubSection =
@@ -166,7 +197,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [bulkImportSource, setBulkImportSource] = useState('');
   const [bulkPasteText, setBulkPasteText] = useState('');
   const [editingQuestion, setEditingQuestion] = useState<TeacherQuestion | null>(null);
-  const [isProPlan, setIsProPlan] = useState(() => isPro(_cachedTeacherTier));
   const [effectiveEntitlements, setEffectiveEntitlements] = useState<EntitlementSet | null>(null);
   const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
   const [questionSearchTerm, setQuestionSearchTerm] = useState('');
@@ -195,6 +225,24 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
+
+  const canUseTeacherFeature = useCallback((featureKey: FeatureKey) => (
+    effectiveEntitlements?.canUse(featureKey) === true
+  ), [effectiveEntitlements]);
+
+  const showFeatureUnavailable = useCallback((label: string) => {
+    brainsAlert(`${label} is not included in this school's current plan. Ask the school administrator to start the Pilot or upgrade.`, 'info');
+  }, []);
+
+  const openEntitledView = useCallback((targetView: PortalView, label: string) => {
+    const featureKey = TEACHER_VIEW_FEATURES[targetView];
+    if (featureKey && !canUseTeacherFeature(featureKey)) {
+      showFeatureUnavailable(label);
+      return false;
+    }
+    setView(targetView);
+    return true;
+  }, [canUseTeacherFeature, showFeatureUnavailable]);
 
   useEffect(() => {
     const compactViewport = window.matchMedia(TEACHER_SIDEBAR_COMPACT_QUERY);
@@ -716,6 +764,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     revealMobileNavigation();
     setMobileWorkspaceMenuOpen(false);
 
+    const requiredFeature = TEACHER_SECTION_FEATURES[section];
+    if (requiredFeature && !canUseTeacherFeature(requiredFeature)) {
+      showFeatureUnavailable(section.split('-').map((word) => word[0]?.toUpperCase() + word.slice(1)).join(' '));
+      return;
+    }
+
     if (section === 'academic-profiles') {
       window.location.assign('/teacher-academic-profiles.html');
       return;
@@ -795,16 +849,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     loadTeacherData();
 
-    // Fetch tier in parallel (non-blocking)
-    if (_cachedTeacherTier) {
-      setIsProPlan(isPro(_cachedTeacherTier));
-    } else {
-      fetchEffectiveTier().then(tier => {
-        _cachedTeacherTier = tier;
-        setIsProPlan(isPro(tier));
-      }).catch(() => {});
-    }
-
     getEntitlements(true).then(setEffectiveEntitlements).catch(() => setEffectiveEntitlements(null));
 
     // Fetch pilot quotas (non-blocking)
@@ -817,10 +861,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   useEffect(() => {
     if (!effectiveEntitlements) return;
     const writingView = ['writing-hub', 'writing-monitoring', 'writing-analytics', 'writing-export-center'].includes(view);
-    if ((writingView && !canUseWritingModule) || (view === 'cambridge-reports' && !canUseCambridgeModule)) {
+    const requiredFeature = TEACHER_VIEW_FEATURES[view];
+    if ((requiredFeature && !canUseTeacherFeature(requiredFeature)) || (writingView && !canUseWritingModule) || (view === 'cambridge-reports' && !canUseCambridgeModule)) {
       setView('dashboard');
     }
-  }, [canUseCambridgeModule, canUseWritingModule, effectiveEntitlements, view]);
+  }, [canUseCambridgeModule, canUseTeacherFeature, canUseWritingModule, effectiveEntitlements, view]);
 
   // Set default subject to first assigned subject when teacher has class assignments
   useEffect(() => {
@@ -892,13 +937,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   }, []);
 
   useEffect(() => {
-    if (view === 'dashboard') {
+    if (view === 'dashboard' && canUseTeacherFeature(FEATURE_KEYS.REPORTS)) {
       void loadAssignmentSuccess();
+    } else if (view === 'dashboard') {
+      setAssignmentSuccess(null);
     }
-  }, [view, loadAssignmentSuccess]);
+  }, [canUseTeacherFeature, view, loadAssignmentSuccess]);
 
   useEffect(() => {
-    if (view !== 'dashboard' || assignments.length === 0) {
+    if (view !== 'dashboard' || assignments.length === 0 || !canUseTeacherFeature(FEATURE_KEYS.REPORTS)) {
       setDashboardAssignmentReports({});
       setDashboardReportsLoaded(false);
       return;
@@ -921,7 +968,29 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return () => {
       cancelled = true;
     };
-  }, [view, assignments]);
+  }, [canUseTeacherFeature, view, assignments]);
+
+  useEffect(() => {
+    if (!effectiveEntitlements) return;
+    if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {
+      setAvailableStudents([]);
+      setAssignments([]);
+      return;
+    }
+
+    void GameService.get_students_for_assignment()
+      .then(setAvailableStudents)
+      .catch((error) => {
+        console.error('Error loading students:', error);
+        setAvailableStudents([]);
+      });
+    void GameService.get_teacher_assignments()
+      .then(setAssignments)
+      .catch((error) => {
+        console.error('Error loading assignments:', error);
+        setAssignments([]);
+      });
+  }, [canUseTeacherFeature, effectiveEntitlements]);
 
   // Correct answers for Cambridge tests
   const correctAnswers: Record<string, Record<number, CambridgeExpectedAnswer>> = {
@@ -3011,19 +3080,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           setTeacherHasClassAssignments(false);
         });
 
-      void GameService.get_students_for_assignment()
-        .then(setAvailableStudents)
-        .catch((error) => {
-          console.error('Error loading students:', error);
-          setAvailableStudents([]);
-        });
-
-      void GameService.get_teacher_assignments()
-        .then(setAssignments)
-        .catch((error) => {
-          console.error('Error loading assignments:', error);
-          setAssignments([]);
-        });
     } catch (error) {
       console.error('Error loading teacher data:', error);
       setLoading(false);
@@ -3354,10 +3410,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   }, []);
 
   const openBlankAssignmentForm = useCallback(() => {
+    if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {
+      showFeatureUnavailable('Assignments');
+      return;
+    }
     resetAssignmentDraft();
     void loadQuestionsOnDemand();
     setView('create-assignment');
-  }, [resetAssignmentDraft]);
+  }, [canUseTeacherFeature, resetAssignmentDraft, showFeatureUnavailable]);
 
   const toLocalAssignmentDateTime = (value?: string | null) => {
     if (!value) return '';
@@ -3367,6 +3427,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const handleEditAssignment = (assignment: TeacherAssignmentSummary) => {
+    if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {
+      showFeatureUnavailable('Assignments');
+      return;
+    }
     if (!teacher || assignment.teacher_id !== teacher.id) {
       brainsAlert('You can only edit assignments that you created.', 'error');
       return;
@@ -3396,6 +3460,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Handle "Use Set" from the Blooket-style QuestionBank
   const handleUseQuestionSet = useCallback((questionIds: string[], subject: Subject, topic: string) => {
+    if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {
+      showFeatureUnavailable('Assignments');
+      return;
+    }
     if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(subject)) {
       brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
       return;
@@ -3415,7 +3483,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     }
     void loadQuestionsOnDemand();
     setView('create-assignment');
-  }, [teacherAssignedSubjects]);
+  }, [canUseTeacherFeature, showFeatureUnavailable, teacherAssignedSubjects]);
 
   const selectAllStudents = () => {
     setSelectedStudentIds(filteredStudents.map(s => s.id));
@@ -3427,6 +3495,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const saveAssignment = async (publishStatus: 'draft' | 'scheduled' | 'published', e?: React.FormEvent) => {
     e?.preventDefault();
+    if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {
+      showFeatureUnavailable('Assignments');
+      return;
+    }
     if (!assignmentTitle.trim()) return brainsAlert('Assignment title is required.', 'info');
     if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(assignmentSubject)) return brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
     if (assignmentTopicMode === 'custom' && !assignmentTopicName.trim()) return brainsAlert('Please enter a topic for this assignment.', 'info');
@@ -3918,7 +3990,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           <div className="teacher-dashboard-stat-icon">🏫</div>
         </button>
 
-        <button type="button" onClick={() => setView('assignments')} className="teacher-dashboard-stat green text-left" aria-label="Open Assignments">
+        <button
+          type="button"
+          onClick={() => openEntitledView('assignments', 'Assignments')}
+          className={`teacher-dashboard-stat green text-left ${!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          aria-label="Open Assignments"
+          disabled={!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
+        >
           <div className="teacher-dashboard-stat-info">
             <h4>Assignments</h4>
             <div className="teacher-dashboard-stat-value">{assignments.length}</div>
@@ -3927,7 +4005,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           <div className="teacher-dashboard-stat-icon">📋</div>
         </button>
 
-        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat amber text-left" aria-label="Open Reports">
+        <button
+          type="button"
+          onClick={() => openEntitledView('reports', 'Reports')}
+          className={`teacher-dashboard-stat amber text-left ${!canUseTeacherFeature(FEATURE_KEYS.REPORTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          aria-label="Open Reports"
+          disabled={!canUseTeacherFeature(FEATURE_KEYS.REPORTS)}
+        >
           <div className="teacher-dashboard-stat-info">
             <h4>Reports</h4>
             <div className="teacher-dashboard-stat-value">{assignmentSuccess ? totalSubmissions : '—'}</div>
@@ -3936,7 +4020,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           <div className="teacher-dashboard-stat-icon">💬</div>
         </button>
 
-        <button type="button" onClick={() => setView('reports')} className="teacher-dashboard-stat purple text-left" aria-label="Open Assignment Success reports">
+        <button
+          type="button"
+          onClick={() => openEntitledView('reports', 'Reports')}
+          className={`teacher-dashboard-stat purple text-left ${!canUseTeacherFeature(FEATURE_KEYS.REPORTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          aria-label="Open Assignment Success reports"
+          disabled={!canUseTeacherFeature(FEATURE_KEYS.REPORTS)}
+        >
           <div className="teacher-dashboard-stat-info">
             <h4>Assignment Success</h4>
             <div className="teacher-dashboard-stat-value">{assignmentSuccess ? `${successRate}%` : '—'}</div>
@@ -3973,7 +4063,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             const tq = (label: string): PilotQuota | null => getQuotaForFeature(label, pilotQuotas);
             const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
             const isExhausted = (label: string) => tq(label)?.exhausted === true;
-            const isDisabled = (label: string) => !isProPlan || (isPilot && isExhausted(label));
+            const featureForAction: Record<string, FeatureKey> = {
+              'Create Question': FEATURE_KEYS.CUSTOM_QUESTIONS,
+              'Question Bank': FEATURE_KEYS.QUESTION_BANK,
+              'Bulk Upload': FEATURE_KEYS.CUSTOM_QUESTIONS,
+              'New Assignment': FEATURE_KEYS.ASSIGNMENTS,
+            };
+            const isDisabled = (label: string) => !canUseTeacherFeature(featureForAction[label]) || (isPilot && isExhausted(label));
             const quotaBadge = (label: string) => {
               if (!isPilot) return null;
               const q = tq(label);
@@ -3990,7 +4086,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             data-color="pink"
             disabled={isDisabled('Create Question')}
           >
-            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {isDisabled('Create Question') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
             {quotaBadge('Create Question')}
             <div className="teacher-action-icon">➕</div>
             <h4 className="teacher-action-title">Create Question</h4>
@@ -4003,7 +4099,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             data-color="cyan"
             disabled={isDisabled('Question Bank')}
           >
-            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {isDisabled('Question Bank') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
             {quotaBadge('Question Bank')}
             <div className="teacher-action-icon">📚</div>
             <h4 className="teacher-action-title">Question Bank</h4>
@@ -4016,7 +4112,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             data-color="green"
             disabled={isDisabled('Bulk Upload')}
           >
-            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {isDisabled('Bulk Upload') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
             {quotaBadge('Bulk Upload')}
             <div className="teacher-action-icon">📤</div>
             <h4 className="teacher-action-title">Bulk Upload</h4>
@@ -4029,7 +4125,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             data-color="purple"
             disabled={isDisabled('New Assignment')}
           >
-            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {isDisabled('New Assignment') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
             {quotaBadge('New Assignment')}
             <div className="teacher-action-icon">📋</div>
             <h4 className="teacher-action-title">New Assignment</h4>
@@ -4038,33 +4134,36 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             </>;
           })()}
 
-          {/* Clan Wars - Free for non-pilot, quota-tracked for pilot */}
+          {/* Clan Wars follows the Clans entitlement; Lockdown remains Free. */}
           {(() => {
-            const isPilotLd = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
-            const ldQuota = getQuotaForFeature('Lockdown Mode', pilotQuotas);
-            const ldExhausted = isPilotLd && ldQuota?.exhausted === true;
+            const clanLocked = !canUseTeacherFeature(FEATURE_KEYS.CLANS);
             return (
               <button
-                onClick={() => !ldExhausted ? setView('clan-wars') : undefined}
-                className={`teacher-action-card teacher-action-card-lockdown teacher-action-card--mini ${ldExhausted ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={() => !clanLocked ? setView('clan-wars') : showFeatureUnavailable('Clan Wars')}
+                className={`teacher-action-card teacher-action-card-lockdown teacher-action-card--mini ${clanLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                 data-color="emerald"
-                disabled={ldExhausted}
+                disabled={clanLocked}
               >
-                {!isPilotLd && <span className="teacher-free-badge">FREE</span>}
-                {isPilotLd && ldQuota && !ldQuota.exhausted && (
-                  <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', borderColor: '#22d3ee' }}>
-                    {ldQuota.remaining}/{ldQuota.limit} sessions
-                  </span>
-                )}
-                {ldExhausted && (
-                  <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>
-                )}
+                {clanLocked && <span className="teacher-pro-badge">PRO</span>}
                 <div className="teacher-action-icon">⚔️</div>
                 <h4 className="teacher-action-title">Clan Wars</h4>
                 <p className="teacher-action-desc">Host an official class battle</p>
               </button>
             );
           })()}
+
+          {onLockdown && (
+            <button
+              onClick={onLockdown}
+              className="teacher-action-card teacher-action-card-lockdown teacher-action-card--mini"
+              data-color="emerald"
+            >
+              {effectiveEntitlements?.plan === 'free' && <span className="teacher-free-badge">FREE</span>}
+              <div className="teacher-action-icon">🔒</div>
+              <h4 className="teacher-action-title">Lockdown Mode</h4>
+              <p className="teacher-action-desc">Run a limited live classroom session</p>
+            </button>
+          )}
         </div>
       </div>
       </div>
@@ -4229,7 +4328,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             const tq = (label: string): PilotQuota | null => getQuotaForFeature(label, pilotQuotas);
             const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
             const isExhausted = (label: string) => tq(label)?.exhausted === true;
-            const isDisabledT = (label: string) => !isProPlan || (isPilot && isExhausted(label));
+            const isDisabledT = (label: string) => !canUseTeacherFeature(FEATURE_KEYS.CUSTOM_QUESTIONS) || (isPilot && isExhausted(label));
             const quotaBadgeSm = (label: string) => {
               if (!isPilot) return null;
               const q = tq(label);
@@ -4251,7 +4350,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               <h4 className="teacher-tool-title">Geometry Builder</h4>
               <p className="teacher-tool-desc">Create interactive diagram questions</p>
             </div>
-            {!isProPlan && !isPilot && <span className="teacher-pro-badge-sm">PRO</span>}
+            {isDisabledT('Geometry Builder') && !isPilot && <span className="teacher-pro-badge-sm">PRO</span>}
             {quotaBadgeSm('Geometry Builder')}
           </button>
             </>;
@@ -5050,7 +5149,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         <h2>🗂️ Assignments</h2>
         <button
           onClick={openBlankAssignmentForm}
-          className="teacher-btn teacher-btn-primary"
+          className={`teacher-btn teacher-btn-primary ${!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
         >
           ➕ New Assignment
         </button>
@@ -8119,11 +8219,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const featureLabel = tabQuotaMap[tab.id];
     const quota = featureLabel ? getQuotaForFeature(featureLabel, pilotQuotas) : null;
     const pilotExhausted = false;
+    const requiredFeature = TEACHER_SECTION_FEATURES[tab.id];
     return {
       isPilot,
       quota,
       pilotExhausted,
-      locked: Boolean((tab.proOnly && !isProPlan) || pilotExhausted),
+      locked: Boolean((requiredFeature && !canUseTeacherFeature(requiredFeature)) || pilotExhausted),
     };
   };
   const mobilePrimaryTabs = navTabs.filter((tab) =>

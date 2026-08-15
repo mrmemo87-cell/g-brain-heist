@@ -72,7 +72,7 @@ export const PILOT_PLAN = {
   id: 'pilot' as const,
   label: 'Pilot',
   days: 30,
-  seats: { cambridge: 50, ielts: 50, game: 50 },
+  seats: { cambridge: 60, ielts: 20, game: 60 },
 };
 
 // ── Pilot quota types ──
@@ -262,7 +262,7 @@ export const FREE_LOCKDOWN_LIMITS: LockdownLimits = {
   tier: 'free',
   max_duration_minutes: 15,
   max_students: 20,
-  allowed_maps: ['default', 'city', 'downtown'],
+  allowed_maps: ['default', 'downtown', 'compound'],
   custom_questions: false,
   save_results: false,
   watermark: true,
