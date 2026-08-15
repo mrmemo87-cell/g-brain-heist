@@ -39,7 +39,7 @@ test('School Head view surfaces subject class curriculum and student interventio
 });
 
 test('School Head standalone entry verifies the canonical account persona', () => {
-  assert.match(entry, /school_admin_get_my_capabilities/i);
+  assert.match(entry, /school_admin_get_my_allocation_capabilities/i);
   assert.match(entry, /account_type.*school_head/i);
   assert.match(entry, /reserved for the active School Head/i);
   assert.match(service, /school_head_get_learning_intelligence/i);

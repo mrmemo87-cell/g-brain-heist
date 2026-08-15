@@ -41,7 +41,7 @@ export interface SchoolHeadSnapshot {
     inactive_students_14d: number;
     active_teachers_7d: number;
   };
-  structure: { placed_students: number; covered_classes: number; assigned_teachers: number };
+  structure: { placed_students: number; covered_classes: number; allocated_teachers: number };
   academics: {
     average: number | null;
     previous_average: number | null;
@@ -221,7 +221,7 @@ export function normalizeSchoolHeadSnapshot(value: unknown): SchoolHeadSnapshot 
     structure: {
       placed_students: numberValue(structure['placed_students']),
       covered_classes: numberValue(structure['covered_classes']),
-      assigned_teachers: numberValue(structure['assigned_teachers']),
+      allocated_teachers: numberValue(structure['allocated_teachers'] ?? structure['assigned_teachers']),
     },
     academics: {
       average: nullableNumber(academics['average']),

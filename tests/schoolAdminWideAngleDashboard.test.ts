@@ -39,17 +39,17 @@ test('classes and registration owns editable grade-class teaching coverage', () 
   assert.match(classes, /aria-label={`Edit \${row\.class_code}`}/);
 });
 
-test('teacher assignment flow is class-subject-teacher with subject filtering and sortable columns', () => {
+test('teacher allocation flow is class-subject-teacher with subject filtering and sortable columns', () => {
   const classPosition = teachers.indexOf('>Class <');
   const subjectPosition = teachers.indexOf('>Subject <');
   const teacherPosition = teachers.indexOf('>Teacher <');
   assert.ok(classPosition >= 0 && classPosition < subjectPosition && subjectPosition < teacherPosition);
-  assert.match(teachers, /Filter assignments by subject/);
-  for (const key of ['class', 'subject', 'teacher', 'assigned_at']) assert.match(teachers, new RegExp(`changeSort\\('${key}'\\)`));
+  assert.match(teachers, /Filter allocations by subject/);
+  for (const key of ['class', 'subject', 'teacher', 'allocated_at']) assert.match(teachers, new RegExp(`changeSort\\('${key}'\\)`));
   assert.doesNotMatch(teachers, /Active assignment/);
-  assert.match(service, /assigned_at: row\.assigned_at/);
+  assert.match(service, /allocated_at: row\.allocated_at \?\? row\.created_at/);
   assert.match(migration, /'assigned_at'/);
-  assert.match(teachers, /getAssignableTeachers\(teachers \|\| \[\]\)/);
+  assert.match(teachers, /getAllocatableTeachers\(teachers \|\| \[\]\)/);
   assert.doesNotMatch(teachers, /protectedAdminIds/);
   assert.doesNotMatch(teachers, /school administrators are excluded/);
 });

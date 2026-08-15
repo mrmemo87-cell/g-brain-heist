@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { QuestionDifficulty, QuestionType, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
-import type { TeacherAssignedClass } from '../../services/schoolAdminService';
+import type { TeacherAllocatedClass } from '../../services/schoolAdminService';
 import { brainsAlert, brainsConfirm } from '../../src/utils/brainsAlert';
 import QuestionPreviewModal from './QuestionPreviewModal';
 import { isBrainsHeistPoolQuestion, isMyPoolQuestion } from './questionPool.js';
@@ -50,7 +50,7 @@ interface AssignmentWizardProps {
   availableStudents: StudentForAssignment[];
   selectedStudentIds: string[];
   setSelectedStudentIds: React.Dispatch<React.SetStateAction<string[]>>;
-  assignedClasses: TeacherAssignedClass[];
+  allocatedClasses: TeacherAllocatedClass[];
   teacherAssignedSubjects: string[];
   teacherId?: string;
   questions: TeacherQuestion[];
@@ -150,7 +150,7 @@ export default function AssignmentWizard({
   availableStudents,
   selectedStudentIds,
   setSelectedStudentIds,
-  assignedClasses,
+  allocatedClasses,
   teacherAssignedSubjects,
   teacherId,
   questions,
@@ -174,12 +174,12 @@ export default function AssignmentWizard({
   const wizardTopRef = useRef<HTMLDivElement>(null);
 
   const uniqueClasses = useMemo(() => {
-    const classes = new Map<string, TeacherAssignedClass>();
-    assignedClasses.forEach((item) => {
+    const classes = new Map<string, TeacherAllocatedClass>();
+    allocatedClasses.forEach((item) => {
       if (item.is_active && !classes.has(item.class_code)) classes.set(item.class_code, item);
     });
     return [...classes.values()];
-  }, [assignedClasses]);
+  }, [allocatedClasses]);
 
   const uniqueQuestions = useMemo(() => {
     const ids = new Set<string>();
@@ -429,7 +429,7 @@ export default function AssignmentWizard({
             <div className="aw-step">
               <div className="aw-choice-grid aw-choice-grid--two" role="radiogroup" aria-label="Assignment audience">
                 <button type="button" role="radio" aria-checked={assignmentMode === 'batch'} className={assignmentMode === 'batch' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('batch')}>
-                  <span>🏫</span><strong>Entire class</strong><small>Choose one or more assigned classes</small>
+                  <span>🏫</span><strong>Entire class</strong><small>Choose one or more allocated classes</small>
                 </button>
                 <button type="button" role="radio" aria-checked={assignmentMode === 'custom'} className={assignmentMode === 'custom' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('custom')}>
                   <span>👤</span><strong>Individual students</strong><small>Build a custom student group</small>

@@ -23,7 +23,7 @@ const SchoolWorkspaceChooser: React.FC<SchoolWorkspaceChooserProps> = ({ schoolN
         </button>
         <button type="button" onClick={onOpenTeaching} className="school-workspace-option">
           <span className="school-workspace-option-icon" aria-hidden="true">📚</span>
-          <span className="school-workspace-option-copy"><strong>Teacher Portal</strong><small>Your assigned classes, students, assessments and teaching tools</small></span>
+          <span className="school-workspace-option-copy"><strong>Teacher Portal</strong><small>Your allocated classes, students, assessments and teaching tools</small></span>
           <span className="school-workspace-option-arrow" aria-hidden="true">→</span>
         </button>
       </div>

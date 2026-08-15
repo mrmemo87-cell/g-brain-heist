@@ -172,7 +172,7 @@ const CambridgeTab: React.FC = () => {
                           title: test.is_visible ? 'Hide this test?' : 'Show this test?',
                           description: test.is_visible
                             ? `"${test.test_name}" will be disabled school-wide and removed from every student's test list.`
-                            : `"${test.test_name}" will become available for teachers to release to assigned classes.`,
+                            : `"${test.test_name}" will become available for teachers to release to allocated classes.`,
                           confirmLabel: test.is_visible ? 'Hide Test' : 'Show Test',
                           isDestructive: test.is_visible,
                           onConfirm: async () => {

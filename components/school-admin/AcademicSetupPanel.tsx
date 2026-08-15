@@ -307,8 +307,8 @@ const AcademicSetupPanel: React.FC = () => {
       <div className="admin-form-actions"><button type="button" className="admin-button-primary" disabled={saving || !electiveStudentId || !electiveSubjectId} onClick={handleAddElective}>Add elective access</button></div>
     </SetupSection>
 
-    <SetupSection id="next" number={5} title="Classes and teaching" description="Continue with student placement and teacher assignments." summary={`${classes.length} active class${classes.length === 1 ? '' : 'es'}`} open={openSection === 'next'} onToggle={toggleSection}>
-      <div className="admin-access-note"><strong>Next step</strong><span>Each saved grade plan creates its first class. Use Classes &amp; Registration for extra class sections and student placement, then assign teachers to the subjects selected for each grade level.</span></div>
+    <SetupSection id="next" number={5} title="Classes and teaching" description="Continue with student placement and teacher allocation." summary={`${classes.length} active class${classes.length === 1 ? '' : 'es'}`} open={openSection === 'next'} onToggle={toggleSection}>
+      <div className="admin-access-note"><strong>Next step</strong><span>Each saved grade plan creates its first class. Use Classes &amp; Registration for extra class sections and student placement, then allocate teachers to the subjects selected for each grade level.</span></div>
     </SetupSection>
   </div>;
 };

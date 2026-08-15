@@ -9,7 +9,7 @@ import { createSchoolDocumentId, registerSchoolDocumentRecord, schoolDocumentFil
 
 // localStorage key prefix for persisted custom orders
 const CUSTOM_ORDER_STORAGE_KEY = 'brains_collective_report_custom_order';
-const EMPTY_ASSIGNED_CLASS_CODES: string[] = [];
+const EMPTY_ALLOCATED_CLASS_CODES: string[] = [];
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
@@ -18,7 +18,7 @@ const EMPTY_ASSIGNED_CLASS_CODES: string[] = [];
 interface CollectiveAssignmentReportProps {
   assignments: TeacherAssignmentSummary[];
   students?: StudentForAssignment[];
-  assignedClassCodes?: string[];
+  allocatedClassCodes?: string[];
   onBack: () => void;
   onViewAssignment?: (assignment: TeacherAssignmentSummary) => void;
   school: { id?: string | null; name: string; logoUrl?: string | null };
@@ -65,7 +65,7 @@ interface StudentRow {
 const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   assignments,
   students = [],
-  assignedClassCodes = EMPTY_ASSIGNED_CLASS_CODES,
+  allocatedClassCodes = EMPTY_ALLOCATED_CLASS_CODES,
   onBack,
   onViewAssignment,
   school,
@@ -250,12 +250,12 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
 
   // ── Unique batches for filter ────────────────────────────────────────────
   const uniqueBatches = useMemo(() => {
-    const batches = new Set(assignedClassCodes.filter(Boolean));
+    const batches = new Set(allocatedClassCodes.filter(Boolean));
     assignments.forEach((assignment) => {
       batches.add(assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || 'Unspecified');
     });
     return Array.from(batches).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-  }, [assignments, assignedClassCodes]);
+  }, [assignments, allocatedClassCodes]);
 
   // ── Load saved custom order from localStorage ─────────────────────────
   useEffect(() => {

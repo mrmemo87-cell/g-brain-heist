@@ -8,7 +8,7 @@ const ClassesTab: React.FC = () => {
   const {
     addToast, classForm, classSaving, classes, handleEditClass, handleSaveClass, loadAdminTools,
     setClassForm, setConfirmDialog, setConfirmReason, studentAssignments, students,
-    teacherAssignments, teachers, school, setActiveTab,
+    teacherAllocations, teachers, school, setActiveTab,
   } = useSchoolAdmin();
   const [academicSetup, setAcademicSetup] = React.useState<SchoolAcademicSetup | null>(null);
   const [wizardStep, setWizardStep] = React.useState<1 | 2 | 3>(1);
@@ -40,7 +40,7 @@ const ClassesTab: React.FC = () => {
   const activeClasses = classes.filter((schoolClass: any) => schoolClass.is_active !== false);
   const activeClassIds = new Set(activeClasses.map((schoolClass: any) => schoolClass.id));
   const teachingStaffIds = new Set(teachers.map((teacher: any) => teacher.user_id));
-  const activeAssignments = teacherAssignments.filter((assignment: any) => assignment.active !== false && activeClassIds.has(assignment.class_id) && teachingStaffIds.has(assignment.teacher_user_id));
+  const activeAllocations = teacherAllocations.filter((allocation: any) => allocation.active !== false && activeClassIds.has(allocation.class_id) && teachingStaffIds.has(allocation.teacher_user_id));
   const grades = Array.from(new Set(activeClasses.map((schoolClass: any) => schoolClass.grade_level ?? 'Unassigned')))
     .sort((a: any, b: any) => {
       if (a === 'Unassigned') return 1;
@@ -51,13 +51,13 @@ const ClassesTab: React.FC = () => {
     .slice()
     .sort((a: any, b: any) => String(a.class_code).localeCompare(String(b.class_code), undefined, { numeric: true }))
     .map((schoolClass: any) => {
-      const assignments = activeAssignments.filter((assignment: any) => assignment.class_id === schoolClass.id);
+      const allocations = activeAllocations.filter((allocation: any) => allocation.class_id === schoolClass.id);
       const classStudents = students.filter((student: any) => studentAssignments[student.user_id] === schoolClass.id);
       return {
         ...schoolClass,
         studentCount: classStudents.length,
-        assignmentCount: assignments.length,
-        teacherCount: new Set(assignments.map((assignment: any) => assignment.teacher_user_id)).size,
+        allocationCount: allocations.length,
+        teacherCount: new Set(allocations.map((allocation: any) => allocation.teacher_user_id)).size,
         subjects: Array.from(new Set(currentOfferings.filter((offering) => Number(offering.gradeLevel) === Number(schoolClass.grade_level)).map((offering) => offering.subjectName))).sort(),
       };
     });
@@ -121,9 +121,9 @@ const ClassesTab: React.FC = () => {
   };
 
   const requestClassRemoval = (row: any, gradeClassCount: number) => {
-    if (row.studentCount > 0 || row.assignmentCount > 0) {
+    if (row.studentCount > 0 || row.allocationCount > 0) {
       const studentPart = `${row.studentCount} ${row.studentCount === 1 ? 'student' : 'students'}`;
-      const teacherPart = `${row.assignmentCount} active ${row.assignmentCount === 1 ? 'teacher assignment' : 'teacher assignments'}`;
+      const teacherPart = `${row.allocationCount} active teacher allocation${row.allocationCount === 1 ? '' : 's'}`;
       addToast(`Move ${studentPart} and remove ${teacherPart} before removing ${row.class_code}.`, 'warning');
       return;
     }
@@ -168,12 +168,12 @@ const ClassesTab: React.FC = () => {
       </section>
 
       <section className="admin-table-card school-wide-angle" aria-labelledby="school-structure-title">
-        <div className="admin-card-heading"><div><h3 id="school-structure-title">Grades, classes and teaching coverage</h3><p>Each grade is grouped with its classes, student population, assigned teachers and taught subjects.</p></div></div>
+        <div className="admin-card-heading"><div><h3 id="school-structure-title">Grades, classes and teaching coverage</h3><p>Each grade is grouped with its classes, student population, allocated teachers and taught subjects.</p></div></div>
         {grades.length ? <div className="school-grade-groups">
           {grades.map((grade: any) => {
             const rows = classRows.filter((row: any) => (row.grade_level ?? 'Unassigned') === grade);
             const gradeStudents = rows.reduce((total: number, row: any) => total + row.studentCount, 0);
-            const gradeTeachers = new Set(activeAssignments.filter((assignment: any) => rows.some((row: any) => row.id === assignment.class_id)).map((assignment: any) => assignment.teacher_user_id)).size;
+            const gradeTeachers = new Set(activeAllocations.filter((allocation: any) => rows.some((row: any) => row.id === allocation.class_id)).map((allocation: any) => allocation.teacher_user_id)).size;
             return <section key={String(grade)} className="school-grade-group">
               <header><div><h4>{grade === 'Unassigned' ? 'Grade level not set' : `Grade ${grade}`}</h4><p>{rows.length} {rows.length === 1 ? 'class' : 'classes'}</p></div><div className="school-grade-header-actions"><div className="school-grade-totals"><span><strong>{gradeStudents}</strong> students</span><span><strong>{gradeTeachers}</strong> teachers</span></div>{grade !== 'Unassigned' ? <button type="button" className="admin-button-primary admin-button-small" onClick={() => startAddForGrade(String(grade))} aria-label={`Add another class to Grade ${grade}`}>Add class</button> : null}</div></header>
               <div className="admin-table-scroll" role="region" aria-label={`${grade === 'Unassigned' ? 'Unassigned grade' : `Grade ${grade}`} classes table`} tabIndex={0}><table className="min-w-[760px] w-full">
