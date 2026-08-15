@@ -28,6 +28,7 @@ const ParentPortal: React.FC = () => {
   const inviteToken = params.get('invite') || '';
   const [sessionReady, setSessionReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const [sessionEmail, setSessionEmail] = useState('');
   const [preview, setPreview] = useState<GuardianInvitationPreview | null>(null);
   const [previewReady, setPreviewReady] = useState(!inviteToken);
   const [children, setChildren] = useState<GuardianChild[]>([]);
@@ -43,21 +44,31 @@ const ParentPortal: React.FC = () => {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
 
   useEffect(() => {
-    if (!inviteToken) return;
     let mounted = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setSignedIn(Boolean(data.session));
+      setSessionEmail(data.session?.user?.email || '');
+      setSessionReady(true);
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSignedIn(Boolean(session));
+      setSessionEmail(session?.user?.email || '');
+    });
+    return () => { mounted = false; data.subscription.unsubscribe(); };
+  }, []);
+
+  useEffect(() => {
+    if (!inviteToken) { setPreviewReady(true); return; }
+    if (!sessionReady) return;
+    let mounted = true;
+    setPreviewReady(false);
     void getGuardianInvitationPreview(inviteToken)
       .then((value) => { if (mounted) setPreview(value); })
       .catch(() => { if (mounted) setPreview({ valid: false, status: 'not_found' }); })
       .finally(() => { if (mounted) setPreviewReady(true); });
     return () => { mounted = false; };
-  }, [inviteToken]);
-
-  useEffect(() => {
-    let mounted = true;
-    void supabase.auth.getSession().then(({ data }) => { if (mounted) { setSignedIn(Boolean(data.session)); setSessionReady(true); } });
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => setSignedIn(Boolean(session)));
-    return () => { mounted = false; data.subscription.unsubscribe(); };
-  }, []);
+  }, [inviteToken, sessionReady, signedIn]);
 
   const loadChildren = async () => {
     setLoading(true); setError(null);
@@ -67,10 +78,12 @@ const ParentPortal: React.FC = () => {
     } catch (err) { setError(safeMessage(err, 'We could not open your family dashboard just now. Please try again.')); }
     finally { setLoading(false); }
   };
-  useEffect(() => { if (signedIn) void loadChildren(); }, [signedIn]);
+  useEffect(() => {
+    if (signedIn && (!inviteToken || preview?.email_matches_current_account !== false)) void loadChildren();
+  }, [signedIn, inviteToken, preview?.email_matches_current_account]);
 
   useEffect(() => {
-    if (!signedIn || !inviteToken || claiming || (preview && preview.status !== 'ready')) return;
+    if (!signedIn || !inviteToken || claiming || (preview && preview.status !== 'ready') || preview?.email_matches_current_account === false) return;
     setClaiming(true); setError(null);
     void claimGuardianInvitation(inviteToken)
       .then(async (result) => {
@@ -81,7 +94,7 @@ const ParentPortal: React.FC = () => {
       })
       .catch((err) => setError(safeMessage(err, 'We could not confirm this invitation. Please ask the school to check your parent access.')))
       .finally(() => setClaiming(false));
-  }, [signedIn, inviteToken, preview?.status]);
+  }, [signedIn, inviteToken, preview?.status, preview?.email_matches_current_account]);
 
   useEffect(() => {
     if (!signedIn || !selectedId) { setProgress(null); return; }
@@ -104,10 +117,45 @@ const ParentPortal: React.FC = () => {
     finally { setLoading(false); }
   };
 
+  const switchAccount = async () => {
+    setLoading(true); setError(null); setMessage(null);
+    try {
+      await parentSignOut();
+      setChildren([]); setSelectedId(null); setProgress(null); setEmail(''); setPassword('');
+    } catch (err) {
+      setError(safeMessage(err, 'We could not switch accounts just now. Please sign out and reopen this invitation.'));
+    } finally { setLoading(false); }
+  };
+
   const invitationBrand = createSchoolBrand({ schoolId: preview?.school?.id, schoolName: preview?.school?.name, schoolLogoUrl: preview?.school?.logo_url });
   const invitationUnavailable = inviteToken && previewReady && preview && preview.status !== 'ready';
+  const accountMismatch = Boolean(signedIn && inviteToken && preview?.status === 'ready' && preview.email_matches_current_account === false);
 
   if (!sessionReady || !previewReady) return <main className="parent-portal parent-auth-shell"><section className="parent-premium-loader"><BrainsHeistMark /><div className="parent-loader-ring" /><strong>Preparing your secure school invitation</strong><small>This will only take a moment.</small></section></main>;
+
+  if (accountMismatch) return <main className="parent-portal parent-auth-shell">
+    <section className="parent-invite-layout">
+      <div className="parent-invite-brand-panel">
+        <div className="parent-co-brand">
+          {preview?.school ? <SchoolBrand brand={invitationBrand} className="parent-invite-school" imageClassName="parent-invite-school-logo" /> : <span className="parent-invite-school"><span className="parent-invite-school-logo fallback">S</span><strong>Your school</strong></span>}
+          <span className="parent-brand-divider" aria-hidden="true" />
+          <BrainsHeistMark compact />
+        </div>
+        <span className="parent-invite-eyebrow">Secure parent access</span>
+        <h1>This invitation belongs to another account</h1>
+        <p>{preview?.school?.name || 'The school'} invited {preview?.invited_email_hint || 'a different email address'} to follow {preview?.student?.name || 'this student'}’s progress.</p>
+        {preview?.student ? <div className="parent-invite-child"><span>Student</span><strong>{preview.student.name}</strong><small>{preview.student.grade ? `Grade ${preview.student.grade}` : ''}{preview.student.grade && preview.student.class_name ? ' · ' : ''}{preview.student.class_name ? `Class ${preview.student.class_name}` : ''}</small></div> : null}
+        <div className="parent-trust-list"><span>✓ No child has been linked to the wrong account</span><span>✓ Your invitation remains active while you switch accounts</span><span>✓ Parent access stays bound to the invited email</span></div>
+      </div>
+      <section className="parent-auth-card premium">
+        <div className="parent-auth-heading"><span>Account check</span><h2>Switch to the invited parent email</h2><p>This browser is currently signed in as <strong>{sessionEmail || 'another Brains Heist account'}</strong>, but the invitation was issued to <strong>{preview?.invited_email_hint || 'a different email address'}</strong>.</p></div>
+        <div className="parent-alert is-error"><strong>Account doesn’t match the invitation</strong><span>For privacy, Brains Heist will never attach a student to a different signed-in account.</span></div>
+        {error ? <div className="parent-alert is-error"><strong>We couldn’t switch accounts</strong><span>{error}</span></div> : null}
+        <button className="parent-google" type="button" disabled={loading} onClick={() => void switchAccount()}>{loading ? 'Switching account…' : 'Switch account'}</button>
+        <small className="parent-security-note">After switching, sign in or create the parent account using {preview?.invited_email_hint || 'the email address invited by the school'}. This invitation is still valid and has not been claimed.</small>
+      </section>
+    </section>
+  </main>;
 
   if (!signedIn) return <main className="parent-portal parent-auth-shell">
     <section className="parent-invite-layout">
