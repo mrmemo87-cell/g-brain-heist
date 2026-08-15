@@ -6,6 +6,7 @@ import { test } from 'node:test';
 const importerMigration = readFileSync('supabase/migrations/20260815120000_verified_question_package_importer.sql', 'utf8');
 const repairMigration = readFileSync('supabase/migrations/20260815121000_repair_verified_question_bank.sql', 'utf8');
 const curriculumMigration = readFileSync('supabase/migrations/20260815122000_brain_heist_curriculum_2026_2.sql', 'utf8');
+const releaseIndexMigration = readFileSync('supabase/migrations/20260815123000_index_verified_question_release_framework.sql', 'utf8');
 
 test('first verified question package passes its quality and balance validator', () => {
   const result = spawnSync(process.execPath, ['scripts/validate-verified-question-package.mjs'], {
@@ -27,6 +28,7 @@ test('verified importer is atomic, idempotent and service-role only', () => {
   assert.match(importerMigration, /grant execute on function public\.rpc_import_verified_question_package\(jsonb, boolean\)[\s\S]*to service_role/i);
   assert.match(importerMigration, /active_verified_question_duplicate/);
   assert.match(importerMigration, /verified_question_import_releases/);
+  assert.match(releaseIndexMigration, /verified_question_import_releases\(framework_version_id\)/);
 });
 
 test('repair migration preserves history while retiring reviewed defects and duplicates', () => {
