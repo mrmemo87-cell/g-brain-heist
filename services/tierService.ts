@@ -32,42 +32,6 @@ export interface SchoolPlanDetails {
   error?: string;
 }
 
-// ── Plan metadata (client-side constants) ──
-
-export interface PlanInfo {
-  id: SchoolPlan;
-  label: string;
-  seats: { cambridge: number; ielts: number; game: number };
-  monthly: number;
-  yearly: number;
-  popular?: boolean;
-}
-
-export const PAID_PLANS: PlanInfo[] = [
-  {
-    id: 'core',
-    label: 'Core',
-    seats: { cambridge: 120, ielts: 40, game: 120 },
-    monthly: 449,
-    yearly: 4490,
-  },
-  {
-    id: 'standard',
-    label: 'Standard',
-    seats: { cambridge: 220, ielts: 80, game: 220 },
-    monthly: 649,
-    yearly: 6490,
-    popular: true,
-  },
-  {
-    id: 'pro',
-    label: 'Pro',
-    seats: { cambridge: 450, ielts: 150, game: 450 },
-    monthly: 1149,
-    yearly: 11490,
-  },
-];
-
 export const PILOT_PLAN = {
   id: 'pilot' as const,
   label: 'Pilot',
@@ -293,40 +257,6 @@ export async function startPilot(): Promise<{ success: boolean; error?: string }
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Network error' };
-  }
-}
-
-// ── Payment provider: 'paddle' (default) or 'stripe' (legacy) ──
-
-export const PAYMENT_PROVIDER: 'paddle' | 'stripe' = 'paddle';
-
-// ── Checkout (school subscription via Paddle or Stripe) ──
-
-export async function createCheckoutSession(options: {
-  plan: 'core' | 'standard' | 'pro';
-  interval: 'monthly' | 'yearly';
-}): Promise<{ checkout_url: string } | { error: string }> {
-  try {
-    const functionName = PAYMENT_PROVIDER === 'paddle' ? 'paddle' : 'stripe';
-    const { data, error } = await supabase.functions.invoke(functionName, {
-      body: {
-        plan: options.plan,
-        interval: options.interval,
-      },
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (error) {
-      return { error: error.message || 'Failed to create checkout session' };
-    }
-    if (data?.checkout_url) {
-      return { checkout_url: data.checkout_url };
-    }
-    return { error: data?.error || 'Unknown error' };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Network error' };
   }
 }
 
