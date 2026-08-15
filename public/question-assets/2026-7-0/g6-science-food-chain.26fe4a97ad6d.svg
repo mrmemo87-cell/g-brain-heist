@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>Food chain</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32" y="42" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">FOOD CHAIN</text>
+  <path d="M32 58H608" stroke="#334155" stroke-width="2"/>
+  <circle cx="83" cy="180" r="55" fill="#22c55e" opacity=".25" stroke="#22c55e" stroke-width="4"/><text x="83" y="187" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800" text-anchor="middle">GRASS</text><path d="M142 180H175" stroke="#e2e8f0" stroke-width="5"/><path d="M169 169l18 11-18 11" fill="#e2e8f0"/><circle cx="241" cy="180" r="55" fill="#84cc16" opacity=".25" stroke="#84cc16" stroke-width="4"/><text x="241" y="187" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="800" text-anchor="middle">GRASSHOPPER</text><path d="M142 180H175" stroke="#e2e8f0" stroke-width="5"/><path d="M169 169l18 11-18 11" fill="#e2e8f0"/><circle cx="399" cy="180" r="55" fill="#14b8a6" opacity=".25" stroke="#14b8a6" stroke-width="4"/><text x="399" y="187" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800" text-anchor="middle">FROG</text><path d="M142 180H175" stroke="#e2e8f0" stroke-width="5"/><path d="M169 169l18 11-18 11" fill="#e2e8f0"/><circle cx="557" cy="180" r="55" fill="#f59e0b" opacity=".25" stroke="#f59e0b" stroke-width="4"/><text x="557" y="187" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800" text-anchor="middle">HAWK</text>
+</svg>

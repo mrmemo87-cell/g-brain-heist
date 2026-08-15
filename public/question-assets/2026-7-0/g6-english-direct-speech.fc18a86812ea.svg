@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>Direct speech</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32" y="42" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">DIRECT SPEECH</text>
+  <path d="M32 58H608" stroke="#334155" stroke-width="2"/>
+  <circle cx="150" cy="202" r="48" fill="#fbbf24"/><path d="M150 250v50m0-25-44 24m44-24 44 24" stroke="#e2e8f0" stroke-width="9" stroke-linecap="round"/><path d="M245 105H560a24 24 0 0 1 24 24v98a24 24 0 0 1-24 24H340l-54 46 10-46h-51a24 24 0 0 1-24-24v-98a24 24 0 0 1 24-24Z" fill="#1e293b" stroke="#22d3ee" stroke-width="4"/><text x="402" y="170" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="700" text-anchor="middle">I finished my project</text><text x="150" y="115" fill="#fbbf24" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" text-anchor="middle">Maya</text>
+</svg>

@@ -37,7 +37,7 @@ export default function QuestionPreviewModal({ question, onClose, onEdit }: Ques
           <span>Question prompt</span>
           <p>{question.question_text}</p>
         </section>
-        {question.image_url ? <img className="question-preview__image" src={question.image_url} alt="Question visual" /> : null}
+        {question.image_url ? <img className="question-preview__image" src={question.image_url} alt={question.image_alt_text || 'Question visual'} /> : null}
         {question.options?.length ? (
           <section className="question-preview__section">
             <h3>Answer choices</h3>

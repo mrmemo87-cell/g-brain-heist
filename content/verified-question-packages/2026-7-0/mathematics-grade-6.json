@@ -1,0 +1,675 @@
+{
+  "subject": "Mathematics",
+  "subjectCode": "mathematics",
+  "grade": 6,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g6-math-2026.7-001",
+      "topic": "Number and operations",
+      "difficulty": "easy",
+      "questionText": "What is the value of the digit 7 in the number shown?",
+      "questionType": "multiple_choice",
+      "options": [
+        "70,000",
+        "7,000",
+        "700",
+        "700,000"
+      ],
+      "correctAnswer": "70,000",
+      "explanation": "The digit 7 is in the ten-thousands column, so its value is 70,000.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math6-number-operations",
+        "number and operations"
+      ],
+      "visualAssetId": "g6-math-place-value",
+      "curriculum": {
+        "strand": "Number and operations",
+        "skill": "Apply number and operations",
+        "subskill": "number and operations",
+        "objective": "Use place value, estimation and the order of operations to solve and check whole-number problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-number-operations"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-002",
+      "topic": "Number and operations",
+      "difficulty": "medium",
+      "questionText": "Calculate 3,480 ÷ 12.",
+      "questionType": "multiple_choice",
+      "options": [
+        "29",
+        "290",
+        "280",
+        "2,900"
+      ],
+      "correctAnswer": "290",
+      "explanation": "Since 12 × 290 = 3,480, the quotient is 290.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math6-number-operations",
+        "number and operations"
+      ],
+      "curriculum": {
+        "strand": "Number and operations",
+        "skill": "Apply number and operations",
+        "subskill": "number and operations",
+        "objective": "Use place value, estimation and the order of operations to solve and check whole-number problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-number-operations"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-003",
+      "topic": "Number and operations",
+      "difficulty": "medium",
+      "questionText": "Which is the best estimate for 598 × 41?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2,400",
+        "240,000",
+        "24,000",
+        "6,000"
+      ],
+      "correctAnswer": "24,000",
+      "explanation": "Rounding 598 to 600 and 41 to 40 gives 600 × 40 = 24,000.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math6-number-operations",
+        "number and operations"
+      ],
+      "curriculum": {
+        "strand": "Number and operations",
+        "skill": "Apply number and operations",
+        "subskill": "number and operations",
+        "objective": "Use place value, estimation and the order of operations to solve and check whole-number problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-number-operations"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-004",
+      "topic": "Number and operations",
+      "difficulty": "hard",
+      "questionText": "Evaluate 48 − 3 × (7 + 5).",
+      "questionType": "multiple_choice",
+      "options": [
+        "540",
+        "180",
+        "36",
+        "12"
+      ],
+      "correctAnswer": "12",
+      "explanation": "Brackets give 12, multiplication gives 36, and 48 − 36 equals 12.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math6-number-operations",
+        "number and operations"
+      ],
+      "curriculum": {
+        "strand": "Number and operations",
+        "skill": "Apply number and operations",
+        "subskill": "number and operations",
+        "objective": "Use place value, estimation and the order of operations to solve and check whole-number problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-number-operations"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-005",
+      "topic": "Fractions, decimals and ratio",
+      "difficulty": "easy",
+      "questionText": "What fraction of the bar is shaded, written in simplest form?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3/4",
+        "6/7",
+        "2/8",
+        "4/3"
+      ],
+      "correctAnswer": "3/4",
+      "explanation": "Six of eight equal parts are shaded, and 6/8 simplifies to 3/4.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math6-fractions-ratio",
+        "fractions, decimals and ratio"
+      ],
+      "visualAssetId": "g6-math-fraction-bar",
+      "curriculum": {
+        "strand": "Fractions, decimals and ratio",
+        "skill": "Apply fractions, decimals and ratio",
+        "subskill": "fractions, decimals and ratio",
+        "objective": "Represent, compare and calculate with fractions, decimals, percentages and simple ratios."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-fractions-ratio"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-006",
+      "topic": "Fractions, decimals and ratio",
+      "difficulty": "medium",
+      "questionText": "Which mixed number is represented by point P?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1 1/4",
+        "1 1/2",
+        "1 3/4",
+        "2 1/2"
+      ],
+      "correctAnswer": "1 1/2",
+      "explanation": "Point P is halfway between 1 and 2, which is 1 1/2.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math6-fractions-ratio",
+        "fractions, decimals and ratio"
+      ],
+      "visualAssetId": "g6-math-number-line",
+      "curriculum": {
+        "strand": "Fractions, decimals and ratio",
+        "skill": "Apply fractions, decimals and ratio",
+        "subskill": "fractions, decimals and ratio",
+        "objective": "Represent, compare and calculate with fractions, decimals, percentages and simple ratios."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-fractions-ratio"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-007",
+      "topic": "Fractions, decimals and ratio",
+      "difficulty": "medium",
+      "questionText": "Red and blue counters are in the ratio 3:5. There are 24 counters altogether. How many are red?",
+      "questionType": "multiple_choice",
+      "options": [
+        "8",
+        "15",
+        "9",
+        "18"
+      ],
+      "correctAnswer": "9",
+      "explanation": "The ratio has 8 parts; 24 ÷ 8 = 3 per part, and 3 red parts give 9 counters.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math6-fractions-ratio",
+        "fractions, decimals and ratio"
+      ],
+      "curriculum": {
+        "strand": "Fractions, decimals and ratio",
+        "skill": "Apply fractions, decimals and ratio",
+        "subskill": "fractions, decimals and ratio",
+        "objective": "Represent, compare and calculate with fractions, decimals, percentages and simple ratios."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-fractions-ratio"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-008",
+      "topic": "Fractions, decimals and ratio",
+      "difficulty": "hard",
+      "questionText": "A recipe uses 2.5 cups of flour for 10 portions. How much flour is needed for 18 portions?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3.6 cups",
+        "5 cups",
+        "6.25 cups",
+        "4.5 cups"
+      ],
+      "correctAnswer": "4.5 cups",
+      "explanation": "Each portion uses 0.25 cup, so 18 portions need 18 × 0.25 = 4.5 cups.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math6-fractions-ratio",
+        "fractions, decimals and ratio"
+      ],
+      "curriculum": {
+        "strand": "Fractions, decimals and ratio",
+        "skill": "Apply fractions, decimals and ratio",
+        "subskill": "fractions, decimals and ratio",
+        "objective": "Represent, compare and calculate with fractions, decimals, percentages and simple ratios."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-fractions-ratio"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-009",
+      "topic": "Algebra and patterns",
+      "difficulty": "easy",
+      "questionText": "The figures contain 4, 7 and 10 tiles. How many tiles will Figure 10 contain?",
+      "questionType": "multiple_choice",
+      "options": [
+        "31",
+        "28",
+        "30",
+        "34"
+      ],
+      "correctAnswer": "31",
+      "explanation": "The rule is 3n + 1, so Figure 10 contains 3 × 10 + 1 = 31 tiles.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math6-algebra-patterns",
+        "algebra and patterns"
+      ],
+      "visualAssetId": "g6-math-tile-pattern",
+      "curriculum": {
+        "strand": "Algebra and patterns",
+        "skill": "Apply algebra and patterns",
+        "subskill": "algebra and patterns",
+        "objective": "Generalise numerical patterns, form expressions and solve simple equations in context."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-algebra-patterns"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-010",
+      "topic": "Algebra and patterns",
+      "difficulty": "medium",
+      "questionText": "Solve 5x + 7 = 32.",
+      "questionType": "multiple_choice",
+      "options": [
+        "x = 3",
+        "x = 5",
+        "x = 7",
+        "x = 8"
+      ],
+      "correctAnswer": "x = 5",
+      "explanation": "Subtracting 7 gives 5x = 25, then dividing by 5 gives x = 5.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math6-algebra-patterns",
+        "algebra and patterns"
+      ],
+      "curriculum": {
+        "strand": "Algebra and patterns",
+        "skill": "Apply algebra and patterns",
+        "subskill": "algebra and patterns",
+        "objective": "Generalise numerical patterns, form expressions and solve simple equations in context."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-algebra-patterns"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-011",
+      "topic": "Algebra and patterns",
+      "difficulty": "medium",
+      "questionText": "A rectangle has width x and length x + 3. Which expression gives its perimeter?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2x + 3",
+        "2x + 6",
+        "4x + 6",
+        "4x + 3"
+      ],
+      "correctAnswer": "4x + 6",
+      "explanation": "Perimeter is 2x + 2(x + 3), which simplifies to 4x + 6.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math6-algebra-patterns",
+        "algebra and patterns"
+      ],
+      "curriculum": {
+        "strand": "Algebra and patterns",
+        "skill": "Apply algebra and patterns",
+        "subskill": "algebra and patterns",
+        "objective": "Generalise numerical patterns, form expressions and solve simple equations in context."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-algebra-patterns"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-012",
+      "topic": "Algebra and patterns",
+      "difficulty": "hard",
+      "questionText": "Plan A costs 4n + 12 soms and Plan B costs 6n soms. For what value of n do they cost the same?",
+      "questionType": "multiple_choice",
+      "options": [
+        "n = 2",
+        "n = 3",
+        "n = 12",
+        "n = 6"
+      ],
+      "correctAnswer": "n = 6",
+      "explanation": "Setting 4n + 12 equal to 6n gives 12 = 2n, so n = 6.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math6-algebra-patterns",
+        "algebra and patterns"
+      ],
+      "curriculum": {
+        "strand": "Algebra and patterns",
+        "skill": "Apply algebra and patterns",
+        "subskill": "algebra and patterns",
+        "objective": "Generalise numerical patterns, form expressions and solve simple equations in context."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-algebra-patterns"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-013",
+      "topic": "Geometry and measurement",
+      "difficulty": "easy",
+      "questionText": "What is the value of x in the diagram?",
+      "questionType": "multiple_choice",
+      "options": [
+        "62°",
+        "52°",
+        "72°",
+        "118°"
+      ],
+      "correctAnswer": "62°",
+      "explanation": "Angles on a straight line total 180°, so x = 180° − 118° = 62°.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math6-geometry-measurement",
+        "geometry and measurement"
+      ],
+      "visualAssetId": "g6-math-straight-angle",
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Apply angle, coordinate, area and volume relationships to solve geometric problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-geometry-measurement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-014",
+      "topic": "Geometry and measurement",
+      "difficulty": "medium",
+      "questionText": "Point A is translated by (+5, −3). What are the coordinates of its image?",
+      "questionType": "multiple_choice",
+      "options": [
+        "(−7, 4)",
+        "(3, −2)",
+        "(3, 4)",
+        "(−3, 2)"
+      ],
+      "correctAnswer": "(3, −2)",
+      "explanation": "Starting at (−2, 1), add 5 to x and subtract 3 from y to get (3, −2).",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math6-geometry-measurement",
+        "geometry and measurement"
+      ],
+      "visualAssetId": "g6-math-coordinate-translation",
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Apply angle, coordinate, area and volume relationships to solve geometric problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-geometry-measurement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-015",
+      "topic": "Geometry and measurement",
+      "difficulty": "medium",
+      "questionText": "A 10 cm by 8 cm rectangle has a 4 cm by 3 cm corner removed. What is the remaining area?",
+      "questionType": "multiple_choice",
+      "options": [
+        "56 cm²",
+        "72 cm²",
+        "68 cm²",
+        "92 cm²"
+      ],
+      "correctAnswer": "68 cm²",
+      "explanation": "The full area is 80 cm² and the removed area is 12 cm², leaving 68 cm².",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math6-geometry-measurement",
+        "geometry and measurement"
+      ],
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Apply angle, coordinate, area and volume relationships to solve geometric problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-geometry-measurement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-016",
+      "topic": "Geometry and measurement",
+      "difficulty": "hard",
+      "questionText": "A rectangular prism measures 6 cm by 4 cm by 5 cm. What is its volume?",
+      "questionType": "multiple_choice",
+      "options": [
+        "30 cm³",
+        "60 cm³",
+        "150 cm³",
+        "120 cm³"
+      ],
+      "correctAnswer": "120 cm³",
+      "explanation": "Volume equals length × width × height: 6 × 4 × 5 = 120 cm³.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math6-geometry-measurement",
+        "geometry and measurement"
+      ],
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Apply angle, coordinate, area and volume relationships to solve geometric problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-geometry-measurement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-017",
+      "topic": "Data and probability",
+      "difficulty": "easy",
+      "questionText": "How many books did the four groups read altogether?",
+      "questionType": "multiple_choice",
+      "options": [
+        "26",
+        "22",
+        "24",
+        "30"
+      ],
+      "correctAnswer": "26",
+      "explanation": "Adding the four bar values gives 6 + 9 + 4 + 7 = 26 books.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math6-data-probability",
+        "data and probability"
+      ],
+      "visualAssetId": "g6-math-books-bar-chart",
+      "curriculum": {
+        "strand": "Data and probability",
+        "skill": "Apply data and probability",
+        "subskill": "data and probability",
+        "objective": "Interpret data displays and use averages, range and probability to draw justified conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-data-probability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-018",
+      "topic": "Data and probability",
+      "difficulty": "medium",
+      "questionText": "A fair spinner has 8 equal sectors and 3 are blue. What is the probability of landing on blue?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3/5",
+        "3/8",
+        "5/8",
+        "1/3"
+      ],
+      "correctAnswer": "3/8",
+      "explanation": "Three of the eight equally likely sectors are blue, so the probability is 3/8.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math6-data-probability",
+        "data and probability"
+      ],
+      "curriculum": {
+        "strand": "Data and probability",
+        "skill": "Apply data and probability",
+        "subskill": "data and probability",
+        "objective": "Interpret data displays and use averages, range and probability to draw justified conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-data-probability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-019",
+      "topic": "Data and probability",
+      "difficulty": "medium",
+      "questionText": "What is the mean of 8, 10, 12, 14 and 16?",
+      "questionType": "multiple_choice",
+      "options": [
+        "10",
+        "13",
+        "12",
+        "60"
+      ],
+      "correctAnswer": "12",
+      "explanation": "The total is 60 and there are five values, so the mean is 60 ÷ 5 = 12.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math6-data-probability",
+        "data and probability"
+      ],
+      "curriculum": {
+        "strand": "Data and probability",
+        "skill": "Apply data and probability",
+        "subskill": "data and probability",
+        "objective": "Interpret data displays and use averages, range and probability to draw justified conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-data-probability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-math-2026.7-020",
+      "topic": "Data and probability",
+      "difficulty": "hard",
+      "questionText": "A graph comparing 92% and 96% begins its vertical axis at 90%. Why might the bars be misleading?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The values are percentages",
+        "The bars use equal widths",
+        "The categories have labels",
+        "The shortened axis exaggerates the difference"
+      ],
+      "correctAnswer": "The shortened axis exaggerates the difference",
+      "explanation": "Starting at 90% makes a four-point difference look much larger than it is on a full zero-to-100 scale.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math6-data-probability",
+        "data and probability"
+      ],
+      "curriculum": {
+        "strand": "Data and probability",
+        "skill": "Apply data and probability",
+        "subskill": "data and probability",
+        "objective": "Interpret data displays and use averages, range and probability to draw justified conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-6",
+          "objectiveCode": "math6-data-probability"
+        }
+      ]
+    }
+  ]
+}

@@ -257,6 +257,7 @@ export interface Question {
   reward_coins: number;
   explanation?: string;
   image_url?: string | null; // Optional image for the question
+  image_alt_text?: string | null; // Accessible description for the question visual
   points?: number;
   times_answered?: number;
   times_correct?: number;
@@ -905,6 +906,7 @@ export interface TeacherQuestion {
   difficulty: QuestionDifficulty;
   question_text: string;
   image_url?: string | null; // Optional image for the question
+  image_alt_text?: string | null; // Accessible description for the question visual
   
   // Answer data
   question_type: QuestionType;
@@ -1007,6 +1009,7 @@ export interface CreateQuestionRequest {
   difficulty: QuestionDifficulty;
   question_text: string;
   image_url?: string; // Optional image URL for the question
+  image_alt_text?: string; // Accessible description for the question visual
   question_type: QuestionType;
   options?: (string | QuestionOption)[]; // Can be strings or objects with images
   correct_answer: string;

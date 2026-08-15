@@ -1,0 +1,675 @@
+{
+  "subject": "Geography",
+  "subjectCode": "geography",
+  "grade": 6,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g6-geo-2026.7-001",
+      "topic": "Map and spatial skills",
+      "difficulty": "easy",
+      "questionText": "Which direction lies halfway between north and east?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Northeast",
+        "Northwest",
+        "Southeast",
+        "Southwest"
+      ],
+      "correctAnswer": "Northeast",
+      "explanation": "Northeast is the intermediate compass direction exactly between north and east.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo6-map-skills",
+        "map and spatial skills"
+      ],
+      "visualAssetId": "g6-geo-compass",
+      "curriculum": {
+        "strand": "Map and spatial skills",
+        "skill": "Apply map and spatial skills",
+        "subskill": "map and spatial skills",
+        "objective": "Use direction, grid references, scale and contour patterns to locate and interpret places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-map-skills"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-002",
+      "topic": "Map and spatial skills",
+      "difficulty": "medium",
+      "questionText": "What is the museum’s grid reference?",
+      "questionType": "multiple_choice",
+      "options": [
+        "B2",
+        "C2",
+        "C3",
+        "D2"
+      ],
+      "correctAnswer": "C2",
+      "explanation": "The museum lies in column C and row 2, so its grid reference is C2.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo6-map-skills",
+        "map and spatial skills"
+      ],
+      "visualAssetId": "g6-geo-grid-map",
+      "curriculum": {
+        "strand": "Map and spatial skills",
+        "skill": "Apply map and spatial skills",
+        "subskill": "map and spatial skills",
+        "objective": "Use direction, grid references, scale and contour patterns to locate and interpret places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-map-skills"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-003",
+      "topic": "Map and spatial skills",
+      "difficulty": "medium",
+      "questionText": "A map scale states 1 cm represents 2 km. Two places are 4.5 cm apart. What is the real distance?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2.25 km",
+        "6.5 km",
+        "9 km",
+        "11 km"
+      ],
+      "correctAnswer": "9 km",
+      "explanation": "Multiplying 4.5 cm by 2 km per centimetre gives a real distance of 9 km.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo6-map-skills",
+        "map and spatial skills"
+      ],
+      "curriculum": {
+        "strand": "Map and spatial skills",
+        "skill": "Apply map and spatial skills",
+        "subskill": "map and spatial skills",
+        "objective": "Use direction, grid references, scale and contour patterns to locate and interpret places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-map-skills"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-004",
+      "topic": "Map and spatial skills",
+      "difficulty": "hard",
+      "questionText": "What do very closely spaced contour lines usually show?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A flat plain",
+        "A river mouth",
+        "A political boundary",
+        "A steep slope"
+      ],
+      "correctAnswer": "A steep slope",
+      "explanation": "Closely spaced contours show that height changes quickly over a short horizontal distance, indicating a steep slope.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo6-map-skills",
+        "map and spatial skills"
+      ],
+      "curriculum": {
+        "strand": "Map and spatial skills",
+        "skill": "Apply map and spatial skills",
+        "subskill": "map and spatial skills",
+        "objective": "Use direction, grid references, scale and contour patterns to locate and interpret places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-map-skills"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-005",
+      "topic": "Weather and climate",
+      "difficulty": "easy",
+      "questionText": "Which month recorded the highest rainfall?",
+      "questionType": "multiple_choice",
+      "options": [
+        "March",
+        "January",
+        "April",
+        "June"
+      ],
+      "correctAnswer": "March",
+      "explanation": "March has the tallest bar at 78 mm, the highest monthly total shown.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo6-weather-climate",
+        "weather and climate"
+      ],
+      "visualAssetId": "g6-geo-rainfall-chart",
+      "curriculum": {
+        "strand": "Weather and climate",
+        "skill": "Apply weather and climate",
+        "subskill": "weather and climate",
+        "objective": "Interpret weather data and explain basic differences and controls affecting weather and climate."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-006",
+      "topic": "Weather and climate",
+      "difficulty": "medium",
+      "questionText": "Which statement correctly distinguishes weather from climate?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Weather and climate both mean today’s rainfall",
+        "Weather is short-term; climate is a long-term pattern",
+        "Climate changes every hour",
+        "Weather describes only temperature"
+      ],
+      "correctAnswer": "Weather is short-term; climate is a long-term pattern",
+      "explanation": "Weather describes current atmospheric conditions, while climate summarises patterns over many years.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo6-weather-climate",
+        "weather and climate"
+      ],
+      "curriculum": {
+        "strand": "Weather and climate",
+        "skill": "Apply weather and climate",
+        "subskill": "weather and climate",
+        "objective": "Interpret weather data and explain basic differences and controls affecting weather and climate."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-007",
+      "topic": "Weather and climate",
+      "difficulty": "medium",
+      "questionText": "Where should a rain gauge be placed for the fairest measurement?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Directly beneath a roof edge",
+        "Under a large tree",
+        "In an open area away from buildings and trees",
+        "Beside a sprinkler"
+      ],
+      "correctAnswer": "In an open area away from buildings and trees",
+      "explanation": "An open site reduces obstruction, dripping and splash effects that would distort the rainfall measurement.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo6-weather-climate",
+        "weather and climate"
+      ],
+      "curriculum": {
+        "strand": "Weather and climate",
+        "skill": "Apply weather and climate",
+        "subskill": "weather and climate",
+        "objective": "Interpret weather data and explain basic differences and controls affecting weather and climate."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-008",
+      "topic": "Weather and climate",
+      "difficulty": "hard",
+      "questionText": "Why do coastal places often have smaller temperature ranges than inland places?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Sea level is always higher than the land",
+        "Coastal winds contain no moisture",
+        "The Sun is closer to the coast",
+        "The sea heats and cools more slowly than land"
+      ],
+      "correctAnswer": "The sea heats and cools more slowly than land",
+      "explanation": "Water changes temperature slowly, moderating nearby air temperatures through the seasons.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo6-weather-climate",
+        "weather and climate"
+      ],
+      "curriculum": {
+        "strand": "Weather and climate",
+        "skill": "Apply weather and climate",
+        "subskill": "weather and climate",
+        "objective": "Interpret weather data and explain basic differences and controls affecting weather and climate."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-009",
+      "topic": "Rivers and landforms",
+      "difficulty": "easy",
+      "questionText": "At which labelled point is river flow usually fastest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "X",
+        "Y",
+        "Both are always equal",
+        "Neither point has moving water"
+      ],
+      "correctAnswer": "X",
+      "explanation": "Flow is fastest along the outside bend at X, where erosion is usually strongest.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo6-rivers-landforms",
+        "rivers and landforms"
+      ],
+      "visualAssetId": "g6-geo-river-bend",
+      "curriculum": {
+        "strand": "Rivers and landforms",
+        "skill": "Apply rivers and landforms",
+        "subskill": "rivers and landforms",
+        "objective": "Explain basic river processes, landforms and human factors that influence flood risk."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-rivers-landforms"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-010",
+      "topic": "Rivers and landforms",
+      "difficulty": "medium",
+      "questionText": "What is the mouth of a river?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The highest point in its drainage basin",
+        "The place where it enters a sea, lake or another river",
+        "A small stream joining it",
+        "A bend in its upper course"
+      ],
+      "correctAnswer": "The place where it enters a sea, lake or another river",
+      "explanation": "The mouth is the end of a river where its water flows into a larger body of water.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo6-rivers-landforms",
+        "rivers and landforms"
+      ],
+      "curriculum": {
+        "strand": "Rivers and landforms",
+        "skill": "Apply rivers and landforms",
+        "subskill": "rivers and landforms",
+        "objective": "Explain basic river processes, landforms and human factors that influence flood risk."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-rivers-landforms"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-011",
+      "topic": "Rivers and landforms",
+      "difficulty": "medium",
+      "questionText": "Why can extensive concrete surfaces increase urban flood risk?",
+      "questionType": "multiple_choice",
+      "options": [
+        "They absorb all rainfall immediately",
+        "They stop water moving downhill",
+        "They reduce infiltration and increase surface runoff",
+        "They make evaporation impossible everywhere"
+      ],
+      "correctAnswer": "They reduce infiltration and increase surface runoff",
+      "explanation": "Concrete is largely impermeable, so more rain runs rapidly across the surface into drains and rivers.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo6-rivers-landforms",
+        "rivers and landforms"
+      ],
+      "curriculum": {
+        "strand": "Rivers and landforms",
+        "skill": "Apply rivers and landforms",
+        "subskill": "rivers and landforms",
+        "objective": "Explain basic river processes, landforms and human factors that influence flood risk."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-rivers-landforms"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-012",
+      "topic": "Rivers and landforms",
+      "difficulty": "hard",
+      "questionText": "Why does a delta often form near a river mouth?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The river becomes permanently faster",
+        "Sea water removes all sediment",
+        "The valley becomes much steeper",
+        "The river loses energy and deposits sediment"
+      ],
+      "correctAnswer": "The river loses energy and deposits sediment",
+      "explanation": "As a river enters still water it slows, loses carrying capacity and deposits sediment.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo6-rivers-landforms",
+        "rivers and landforms"
+      ],
+      "curriculum": {
+        "strand": "Rivers and landforms",
+        "skill": "Apply rivers and landforms",
+        "subskill": "rivers and landforms",
+        "objective": "Explain basic river processes, landforms and human factors that influence flood risk."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-rivers-landforms"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-013",
+      "topic": "Population and settlement",
+      "difficulty": "easy",
+      "questionText": "What does the broad base of this population pyramid suggest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A high birth rate",
+        "A very small child population",
+        "No migration at any age",
+        "Most people are elderly"
+      ],
+      "correctAnswer": "A high birth rate",
+      "explanation": "A broad 0–14 bar shows that children form a large share of the population, indicating a high birth rate.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo6-population-settlement",
+        "population and settlement"
+      ],
+      "visualAssetId": "g6-geo-population-pyramid",
+      "curriculum": {
+        "strand": "Population and settlement",
+        "skill": "Apply population and settlement",
+        "subskill": "population and settlement",
+        "objective": "Interpret population structure, density, urbanisation and settlement site factors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-population-settlement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-014",
+      "topic": "Population and settlement",
+      "difficulty": "medium",
+      "questionText": "Why did many early settlements develop beside rivers?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Rivers prevented all flooding",
+        "Rivers provided water, transport and fertile land",
+        "River valleys had no other communities",
+        "People could not travel on land"
+      ],
+      "correctAnswer": "Rivers provided water, transport and fertile land",
+      "explanation": "Rivers offered several useful site advantages, including water, transport routes and fertile floodplain soils.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo6-population-settlement",
+        "population and settlement"
+      ],
+      "curriculum": {
+        "strand": "Population and settlement",
+        "skill": "Apply population and settlement",
+        "subskill": "population and settlement",
+        "objective": "Interpret population structure, density, urbanisation and settlement site factors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-population-settlement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-015",
+      "topic": "Population and settlement",
+      "difficulty": "medium",
+      "questionText": "What is urbanisation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A fall in the number of all buildings",
+        "The movement of rivers through cities",
+        "An increasing proportion of people living in towns and cities",
+        "A change from industry to farming only"
+      ],
+      "correctAnswer": "An increasing proportion of people living in towns and cities",
+      "explanation": "Urbanisation is the growth in the share of a population living in urban areas.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo6-population-settlement",
+        "population and settlement"
+      ],
+      "curriculum": {
+        "strand": "Population and settlement",
+        "skill": "Apply population and settlement",
+        "subskill": "population and settlement",
+        "objective": "Interpret population structure, density, urbanisation and settlement site factors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-population-settlement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-016",
+      "topic": "Population and settlement",
+      "difficulty": "hard",
+      "questionText": "A region has 45,000 people and an area of 300 km². What is its population density?",
+      "questionType": "multiple_choice",
+      "options": [
+        "15 people per km²",
+        "135 people per km²",
+        "13,500 people per km²",
+        "150 people per km²"
+      ],
+      "correctAnswer": "150 people per km²",
+      "explanation": "Population density equals population divided by area: 45,000 ÷ 300 = 150 people per km².",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo6-population-settlement",
+        "population and settlement"
+      ],
+      "curriculum": {
+        "strand": "Population and settlement",
+        "skill": "Apply population and settlement",
+        "subskill": "population and settlement",
+        "objective": "Interpret population structure, density, urbanisation and settlement site factors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-population-settlement"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-017",
+      "topic": "Environments and sustainability",
+      "difficulty": "easy",
+      "questionText": "Which proposed factory site is furthest from the river, forest and homes while remaining beside the main road?",
+      "questionType": "multiple_choice",
+      "options": [
+        "D",
+        "A",
+        "B",
+        "C"
+      ],
+      "correctAnswer": "D",
+      "explanation": "Site D has road access but is positioned away from the mapped river, forest and residential area.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo6-environments-sustainability",
+        "environments and sustainability"
+      ],
+      "visualAssetId": "g6-geo-land-use-map",
+      "curriculum": {
+        "strand": "Environments and sustainability",
+        "skill": "Apply environments and sustainability",
+        "subskill": "environments and sustainability",
+        "objective": "Evaluate simple environmental decisions using systems, evidence, stakeholders and sustainability criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-environments-sustainability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-018",
+      "topic": "Environments and sustainability",
+      "difficulty": "medium",
+      "questionText": "How can trees reduce storm runoff in a drainage basin?",
+      "questionType": "multiple_choice",
+      "options": [
+        "They make all soil impermeable",
+        "They intercept rain and encourage infiltration",
+        "They prevent evaporation completely",
+        "They force rivers to flow uphill"
+      ],
+      "correctAnswer": "They intercept rain and encourage infiltration",
+      "explanation": "Leaves intercept rainfall and roots improve soil structure, allowing more water to infiltrate before reaching streams.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo6-environments-sustainability",
+        "environments and sustainability"
+      ],
+      "visualAssetId": "g6-geo-catchment-trees",
+      "curriculum": {
+        "strand": "Environments and sustainability",
+        "skill": "Apply environments and sustainability",
+        "subskill": "environments and sustainability",
+        "objective": "Evaluate simple environmental decisions using systems, evidence, stakeholders and sustainability criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-environments-sustainability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-019",
+      "topic": "Environments and sustainability",
+      "difficulty": "medium",
+      "questionText": "Which is a likely trade-off of building a large wind farm?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Unlimited energy with no local effects",
+        "More fossil-fuel use and no electricity",
+        "Low-carbon electricity but possible landscape and wildlife impacts",
+        "No construction cost or maintenance"
+      ],
+      "correctAnswer": "Low-carbon electricity but possible landscape and wildlife impacts",
+      "explanation": "Wind power produces low-carbon electricity, but location decisions must consider landscape, habitats and communities.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo6-environments-sustainability",
+        "environments and sustainability"
+      ],
+      "curriculum": {
+        "strand": "Environments and sustainability",
+        "skill": "Apply environments and sustainability",
+        "subskill": "environments and sustainability",
+        "objective": "Evaluate simple environmental decisions using systems, evidence, stakeholders and sustainability criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-environments-sustainability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-geo-2026.7-020",
+      "topic": "Environments and sustainability",
+      "difficulty": "hard",
+      "questionText": "Which evidence set best supports a sustainable transport decision?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Only the colour of the vehicles",
+        "One person’s preference alone",
+        "Advertising slogans without data",
+        "Cost, emissions, access, safety and community feedback"
+      ],
+      "correctAnswer": "Cost, emissions, access, safety and community feedback",
+      "explanation": "A sustainable decision balances environmental, economic and social evidence rather than relying on one unsupported preference.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo6-environments-sustainability",
+        "environments and sustainability"
+      ],
+      "curriculum": {
+        "strand": "Environments and sustainability",
+        "skill": "Apply environments and sustainability",
+        "subskill": "environments and sustainability",
+        "objective": "Evaluate simple environmental decisions using systems, evidence, stakeholders and sustainability criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-6",
+          "objectiveCode": "geo6-environments-sustainability"
+        }
+      ]
+    }
+  ]
+}

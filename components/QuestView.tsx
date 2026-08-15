@@ -2188,7 +2188,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               <div className="mt-4 flex justify-center">
                 <img
                   src={resolveQuestionImageUrl(mode === 'practice' ? question?.image_url : activeTeacherQuestion?.image_url) || ''}
-                  alt="Question"
+                  alt={(mode === 'practice' ? question?.image_alt_text : activeTeacherQuestion?.image_alt_text) || 'Question visual'}
                   className="max-w-full max-h-64 rounded-lg border border-gray-600 object-contain"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />

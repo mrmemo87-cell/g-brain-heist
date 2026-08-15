@@ -1,0 +1,675 @@
+{
+  "subject": "Science",
+  "subjectCode": "science",
+  "grade": 6,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g6-sci-2026.7-001",
+      "topic": "Living systems",
+      "difficulty": "easy",
+      "questionText": "Which cell structure is labelled X?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Cell wall",
+        "Nucleus",
+        "Vacuole",
+        "Cell membrane"
+      ],
+      "correctAnswer": "Cell wall",
+      "explanation": "The arrow points to the thick, rigid outer boundary that supports a plant cell: the cell wall.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci6-living-systems",
+        "living systems"
+      ],
+      "visualAssetId": "g6-science-plant-cell",
+      "curriculum": {
+        "strand": "Living systems",
+        "skill": "Apply living systems",
+        "subskill": "living systems",
+        "objective": "Explain how cells, organs, food chains and adaptations support living organisms and ecosystems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-living-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-002",
+      "topic": "Living systems",
+      "difficulty": "medium",
+      "questionText": "If the grasshopper population suddenly decreases, what is the most likely immediate effect on frogs?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Frogs receive more energy from grass",
+        "Frogs have less food available",
+        "Hawks stop eating frogs immediately",
+        "Grass disappears more quickly"
+      ],
+      "correctAnswer": "Frogs have less food available",
+      "explanation": "Grasshoppers transfer energy to frogs, so fewer grasshoppers mean less food is immediately available to frogs.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci6-living-systems",
+        "living systems"
+      ],
+      "visualAssetId": "g6-science-food-chain",
+      "curriculum": {
+        "strand": "Living systems",
+        "skill": "Apply living systems",
+        "subskill": "living systems",
+        "objective": "Explain how cells, organs, food chains and adaptations support living organisms and ecosystems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-living-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-003",
+      "topic": "Living systems",
+      "difficulty": "medium",
+      "questionText": "Where are most digested nutrients absorbed into the blood?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Stomach",
+        "Large intestine",
+        "Small intestine",
+        "Oesophagus"
+      ],
+      "correctAnswer": "Small intestine",
+      "explanation": "The small intestine has a large surface area and is the main site where digested nutrients enter the blood.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci6-living-systems",
+        "living systems"
+      ],
+      "curriculum": {
+        "strand": "Living systems",
+        "skill": "Apply living systems",
+        "subskill": "living systems",
+        "objective": "Explain how cells, organs, food chains and adaptations support living organisms and ecosystems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-living-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-004",
+      "topic": "Living systems",
+      "difficulty": "hard",
+      "questionText": "Why do many desert plants have small leaves or spines?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To attract more large animals",
+        "To absorb salt from the air",
+        "To increase shade on nearby plants",
+        "To reduce water loss"
+      ],
+      "correctAnswer": "To reduce water loss",
+      "explanation": "A smaller leaf surface reduces water loss by transpiration in hot, dry conditions.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci6-living-systems",
+        "living systems"
+      ],
+      "curriculum": {
+        "strand": "Living systems",
+        "skill": "Apply living systems",
+        "subskill": "living systems",
+        "objective": "Explain how cells, organs, food chains and adaptations support living organisms and ecosystems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-living-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-005",
+      "topic": "Matter and materials",
+      "difficulty": "easy",
+      "questionText": "Which particle model represents a gas?",
+      "questionType": "multiple_choice",
+      "options": [
+        "C",
+        "A",
+        "B",
+        "A and B"
+      ],
+      "correctAnswer": "C",
+      "explanation": "Gas particles are widely spaced and move throughout their container, as shown in model C.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci6-matter-materials",
+        "matter and materials"
+      ],
+      "visualAssetId": "g6-science-particles",
+      "curriculum": {
+        "strand": "Matter and materials",
+        "skill": "Apply matter and materials",
+        "subskill": "matter and materials",
+        "objective": "Use particle ideas and material properties to explain changes and select separation methods."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-matter-materials"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-006",
+      "topic": "Matter and materials",
+      "difficulty": "medium",
+      "questionText": "Salt dissolves in 100 g of water. The total mass is 115 g. What mass of salt was added?",
+      "questionType": "multiple_choice",
+      "options": [
+        "85 g",
+        "15 g",
+        "100 g",
+        "215 g"
+      ],
+      "correctAnswer": "15 g",
+      "explanation": "Mass is conserved, so the salt mass is 115 g − 100 g = 15 g.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci6-matter-materials",
+        "matter and materials"
+      ],
+      "curriculum": {
+        "strand": "Matter and materials",
+        "skill": "Apply matter and materials",
+        "subskill": "matter and materials",
+        "objective": "Use particle ideas and material properties to explain changes and select separation methods."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-matter-materials"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-007",
+      "topic": "Matter and materials",
+      "difficulty": "medium",
+      "questionText": "Which change produces a new substance?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Ice melting",
+        "Sugar dissolving",
+        "Iron rusting",
+        "Water freezing"
+      ],
+      "correctAnswer": "Iron rusting",
+      "explanation": "Rusting is a chemical reaction that forms iron oxide, a substance with new properties.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci6-matter-materials",
+        "matter and materials"
+      ],
+      "curriculum": {
+        "strand": "Matter and materials",
+        "skill": "Apply matter and materials",
+        "subskill": "matter and materials",
+        "objective": "Use particle ideas and material properties to explain changes and select separation methods."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-matter-materials"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-008",
+      "topic": "Matter and materials",
+      "difficulty": "hard",
+      "questionText": "What is the best sequence for separating a mixture of sand and salt?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Filter, add water, then freeze",
+        "Evaporate, sieve, then add water",
+        "Use a magnet, filter, then melt",
+        "Add water, filter, then evaporate"
+      ],
+      "correctAnswer": "Add water, filter, then evaporate",
+      "explanation": "Water dissolves the salt, filtration removes the sand, and evaporation recovers the salt.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci6-matter-materials",
+        "matter and materials"
+      ],
+      "curriculum": {
+        "strand": "Matter and materials",
+        "skill": "Apply matter and materials",
+        "subskill": "matter and materials",
+        "objective": "Use particle ideas and material properties to explain changes and select separation methods."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-matter-materials"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-009",
+      "topic": "Forces and energy",
+      "difficulty": "easy",
+      "questionText": "What is the resultant force on the box?",
+      "questionType": "multiple_choice",
+      "options": [
+        "4 N to the right",
+        "8 N to the right",
+        "4 N to the left",
+        "2 N to the right"
+      ],
+      "correctAnswer": "4 N to the right",
+      "explanation": "Opposing forces subtract: 6 N right minus 2 N left gives a resultant of 4 N to the right.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci6-forces-energy",
+        "forces and energy"
+      ],
+      "visualAssetId": "g6-science-force-arrows",
+      "curriculum": {
+        "strand": "Forces and energy",
+        "skill": "Apply forces and energy",
+        "subskill": "forces and energy",
+        "objective": "Analyse simple force, energy and electrical systems and plan fair tests of their behaviour."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-forces-energy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-010",
+      "topic": "Forces and energy",
+      "difficulty": "medium",
+      "questionText": "What happens if one lamp is removed from this circuit?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The other lamp becomes a battery",
+        "Both lamps go out",
+        "Only the removed lamp gets brighter",
+        "Current takes a second branch"
+      ],
+      "correctAnswer": "Both lamps go out",
+      "explanation": "A series circuit has one path, so removing one lamp breaks the path and both lamps go out.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci6-forces-energy",
+        "forces and energy"
+      ],
+      "visualAssetId": "g6-science-series-circuit",
+      "curriculum": {
+        "strand": "Forces and energy",
+        "skill": "Apply forces and energy",
+        "subskill": "forces and energy",
+        "objective": "Analyse simple force, energy and electrical systems and plan fair tests of their behaviour."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-forces-energy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-011",
+      "topic": "Forces and energy",
+      "difficulty": "medium",
+      "questionText": "Which energy transfer occurs in a battery-powered torch?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Light to chemical to sound",
+        "Thermal to nuclear to light",
+        "Chemical to electrical to light and thermal",
+        "Electrical to chemical only"
+      ],
+      "correctAnswer": "Chemical to electrical to light and thermal",
+      "explanation": "The battery stores chemical energy, which becomes electrical energy and then light with some thermal energy.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci6-forces-energy",
+        "forces and energy"
+      ],
+      "curriculum": {
+        "strand": "Forces and energy",
+        "skill": "Apply forces and energy",
+        "subskill": "forces and energy",
+        "objective": "Analyse simple force, energy and electrical systems and plan fair tests of their behaviour."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-forces-energy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-012",
+      "topic": "Forces and energy",
+      "difficulty": "hard",
+      "questionText": "To test how lubricant affects friction, which variable should be changed?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Mass of the block and surface type",
+        "Distance pulled and block material",
+        "Spring balance and pulling direction",
+        "Amount of lubricant"
+      ],
+      "correctAnswer": "Amount of lubricant",
+      "explanation": "A fair test changes the amount of lubricant while keeping the other relevant variables constant.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci6-forces-energy",
+        "forces and energy"
+      ],
+      "curriculum": {
+        "strand": "Forces and energy",
+        "skill": "Apply forces and energy",
+        "subskill": "forces and energy",
+        "objective": "Analyse simple force, energy and electrical systems and plan fair tests of their behaviour."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-forces-energy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-013",
+      "topic": "Earth and space",
+      "difficulty": "easy",
+      "questionText": "What causes the regular cycle of day and night?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Earth rotating on its axis",
+        "The Sun orbiting Earth daily",
+        "Earth moving closer to the Sun",
+        "The Moon blocking sunlight"
+      ],
+      "correctAnswer": "Earth rotating on its axis",
+      "explanation": "As Earth rotates, different parts face toward and then away from the Sun, producing day and night.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci6-earth-space",
+        "earth and space"
+      ],
+      "visualAssetId": "g6-science-earth-rotation",
+      "curriculum": {
+        "strand": "Earth and space",
+        "skill": "Apply earth and space",
+        "subskill": "earth and space",
+        "objective": "Use models to explain rotation, orbit, lunar light, seasons and the water cycle."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-earth-space"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-014",
+      "topic": "Earth and space",
+      "difficulty": "medium",
+      "questionText": "Why can the Moon be seen from Earth?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It produces its own visible light",
+        "It reflects light from the Sun",
+        "It reflects light from Earth only",
+        "It is made entirely of fire"
+      ],
+      "correctAnswer": "It reflects light from the Sun",
+      "explanation": "The Moon does not make visible light; sunlight reflects from its surface toward Earth.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci6-earth-space",
+        "earth and space"
+      ],
+      "curriculum": {
+        "strand": "Earth and space",
+        "skill": "Apply earth and space",
+        "subskill": "earth and space",
+        "objective": "Use models to explain rotation, orbit, lunar light, seasons and the water cycle."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-earth-space"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-015",
+      "topic": "Earth and space",
+      "difficulty": "medium",
+      "questionText": "Which process forms clouds when water vapour cools?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Evaporation",
+        "Melting",
+        "Condensation",
+        "Infiltration"
+      ],
+      "correctAnswer": "Condensation",
+      "explanation": "Cooling water vapour changes it into tiny liquid droplets through condensation, forming clouds.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci6-earth-space",
+        "earth and space"
+      ],
+      "curriculum": {
+        "strand": "Earth and space",
+        "skill": "Apply earth and space",
+        "subskill": "earth and space",
+        "objective": "Use models to explain rotation, orbit, lunar light, seasons and the water cycle."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-earth-space"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-016",
+      "topic": "Earth and space",
+      "difficulty": "hard",
+      "questionText": "What is the main reason Earth has seasons?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Daily changes in Earth’s rotation speed",
+        "The Moon changing its distance from Earth",
+        "Clouds moving between hemispheres",
+        "Earth’s tilted axis as it orbits the Sun"
+      ],
+      "correctAnswer": "Earth’s tilted axis as it orbits the Sun",
+      "explanation": "Earth’s axial tilt changes the angle and duration of sunlight in each hemisphere during its orbit.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci6-earth-space",
+        "earth and space"
+      ],
+      "curriculum": {
+        "strand": "Earth and space",
+        "skill": "Apply earth and space",
+        "subskill": "earth and space",
+        "objective": "Use models to explain rotation, orbit, lunar light, seasons and the water cycle."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-earth-space"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-017",
+      "topic": "Scientific enquiry",
+      "difficulty": "easy",
+      "questionText": "During which interval did temperature increase most quickly?",
+      "questionType": "multiple_choice",
+      "options": [
+        "0–2 minutes",
+        "2–4 minutes",
+        "4–6 minutes",
+        "6–8 minutes"
+      ],
+      "correctAnswer": "0–2 minutes",
+      "explanation": "The graph rises by 12°C in the first two minutes, more than in any later equal interval.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci6-scientific-enquiry",
+        "scientific enquiry"
+      ],
+      "visualAssetId": "g6-science-temperature-graph",
+      "curriculum": {
+        "strand": "Scientific enquiry",
+        "skill": "Apply scientific enquiry",
+        "subskill": "scientific enquiry",
+        "objective": "Identify variables, interpret data and evaluate reliability and limits in scientific investigations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-scientific-enquiry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-018",
+      "topic": "Scientific enquiry",
+      "difficulty": "medium",
+      "questionText": "A student tests how distance from a lamp affects plant growth. What is the independent variable?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Plant growth",
+        "Distance from the lamp",
+        "Plant species",
+        "Amount of soil"
+      ],
+      "correctAnswer": "Distance from the lamp",
+      "explanation": "The independent variable is the factor deliberately changed: the plant’s distance from the lamp.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci6-scientific-enquiry",
+        "scientific enquiry"
+      ],
+      "curriculum": {
+        "strand": "Scientific enquiry",
+        "skill": "Apply scientific enquiry",
+        "subskill": "scientific enquiry",
+        "objective": "Identify variables, interpret data and evaluate reliability and limits in scientific investigations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-scientific-enquiry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-019",
+      "topic": "Scientific enquiry",
+      "difficulty": "medium",
+      "questionText": "Why should a measurement be repeated several times?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To guarantee the hypothesis is correct",
+        "To change the independent variable",
+        "To reduce the effect of random error",
+        "To remove the need for units"
+      ],
+      "correctAnswer": "To reduce the effect of random error",
+      "explanation": "Repeats reveal variation and allow a mean, reducing the influence of random measurement error.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci6-scientific-enquiry",
+        "scientific enquiry"
+      ],
+      "curriculum": {
+        "strand": "Scientific enquiry",
+        "skill": "Apply scientific enquiry",
+        "subskill": "scientific enquiry",
+        "objective": "Identify variables, interpret data and evaluate reliability and limits in scientific investigations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-scientific-enquiry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-sci-2026.7-020",
+      "topic": "Scientific enquiry",
+      "difficulty": "hard",
+      "questionText": "Four plants with fertiliser grew slightly taller than four without it. What is the best conclusion?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Fertiliser always doubles plant growth",
+        "The result proves every fertiliser is safe",
+        "Plant growth cannot be investigated",
+        "The evidence suggests an effect, but more repeats are needed"
+      ],
+      "correctAnswer": "The evidence suggests an effect, but more repeats are needed",
+      "explanation": "The small sample suggests a possible effect but is not enough to justify a universal or causal claim.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci6-scientific-enquiry",
+        "scientific enquiry"
+      ],
+      "curriculum": {
+        "strand": "Scientific enquiry",
+        "skill": "Apply scientific enquiry",
+        "subskill": "scientific enquiry",
+        "objective": "Identify variables, interpret data and evaluate reliability and limits in scientific investigations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-6",
+          "objectiveCode": "sci6-scientific-enquiry"
+        }
+      ]
+    }
+  ]
+}
