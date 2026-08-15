@@ -1,4 +1,4 @@
--- Publish the complete Brain Heist International 2026.2 snapshot.
+-- Publish the complete Brains Heist International 2026.2 snapshot.
 --
 -- 2026.1 remains immutable for historical evidence. This version clones that
 -- snapshot and adds original, assessable objectives for the four new verified
@@ -31,7 +31,7 @@ begin
     id, framework_id, version_code, display_name, source_version, source_uri,
     source_license, status, effective_from, release_notes
   ) values (
-    v_new_version_id, v_framework_id, '2026-2', 'Brain Heist International 2026.2',
+    v_new_version_id, v_framework_id, '2026-2', 'Brains Heist International 2026.2',
     '2026.2', 'repository:content/verified-question-packages/2026-2-0',
     'Brains Heist original educational content', 'draft', date '2026-08-15',
     'Full 2026.1 snapshot plus Grade 11 Chemistry, English and Biology, and Grade 12 Travel & Tourism assessable objectives.'
