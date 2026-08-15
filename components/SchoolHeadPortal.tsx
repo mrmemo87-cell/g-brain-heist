@@ -85,6 +85,15 @@ const DecisionCard: React.FC<{ decision: SchoolHeadDecision; onOpen: (tab: Schoo
       <span>{decision.severity === 'critical' ? 'Action required' : decision.severity === 'warning' ? 'Monitor closely' : 'For review'}</span>
       <h3>{decision.title}</h3>
       <p>{decision.description}</p>
+      <div className="school-head-decision-meta">
+        <small>{decision.category}</small><small>Owner · {decision.owner}</small>{decision.age_days > 0 && <small>Open {decision.age_days}d</small>}
+      </div>
+      {decision.why && <p className="school-head-decision-why"><strong>Why this matters:</strong> {decision.why}</p>}
+      {decision.affected.length > 0 && <div className="school-head-decision-affected" aria-label="Affected records">
+        {decision.affected.slice(0, 6).map((item, index) => <div key={`${decision.id}-${String(item['label'])}-${index}`}><strong>{item.label}</strong>{item.detail && <small>{item.detail}</small>}</div>)}
+        {decision.count > 6 && <small>+{decision.count - 6} more affected record{decision.count - 6 === 1 ? '' : 's'}</small>}
+      </div>}
+      <p className="school-head-decision-notification">{decision.notification_level}</p>
     </div>
     <button type="button" onClick={() => onOpen(decision.destination)}>{decision.action}<span aria-hidden="true">→</span></button>
   </article>
@@ -310,6 +319,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
     <div className="school-head-page">
       <section className="school-head-page-heading"><div><p className="school-head-kicker">Decision Center</p><h2>Senior attention, clearly prioritised</h2><p>Only material issues are shown here. Operational alerts remain in the administration workspace.</p></div><span className="school-head-heading-count">{snapshot.decisions.length} open</span></section>
       {snapshot.decisions.length ? <section className="school-head-decision-list">{snapshot.decisions.map((decision) => <DecisionCard key={decision.id} decision={decision} onOpen={selectTab} />)}</section> : <EmptyState title="Everything important is under control">There are no executive-level decision items in the current snapshot.</EmptyState>}
+      <section className="school-head-notification-policy" aria-label="Decision notification policy"><div><strong>Critical</strong><span>Immediate in-app and branded email, then daily while unresolved.</span></div><div><strong>Warning</strong><span>In-app notification and daily branded email digest.</span></div><div><strong>Notice</strong><span>Decision Center and weekly branded email digest.</span></div><p>Resolved records close automatically when the underlying school data is corrected. Repeated alerts are deduplicated.</p></section>
       <section className="school-head-assurance"><div><span>Healthy</span><strong>Every decision is generated from school-scoped records.</strong><p>No cross-school or unverified profile data is used.</p></div><div><span>Traceable</span><strong>Sensitive changes are written to governance history.</strong><p>Actor, target, reason and timestamp stay visible to the School Head.</p></div><div><span>Delegated</span><strong>Daily operations remain with school administrators.</strong><p>The Head retains final authority without becoming a daily operator.</p></div></section>
     </div>
   );

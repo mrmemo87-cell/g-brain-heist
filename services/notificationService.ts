@@ -25,7 +25,8 @@ export type NotificationType =
   | 'cambridge_test_taken' // 📝 Student took a Cambridge test
   | 'student_improvement'  // 📈 Student showed academic improvement
   | 'new_submission'       // 📬 New work submitted for review
-  | 'class_milestone';     // 🎯 Class reached a milestone
+  | 'class_milestone'      // 🎯 Class reached a milestone
+  | 'school_head_decision'; // 🏫 Executive school decision
 
 export type NotificationAction = {
   label: string;
@@ -113,6 +114,7 @@ class NotificationService {
       student_improvement: 'tada',
       new_submission: 'notification',
       class_milestone: 'tada',
+      school_head_decision: 'notification',
     };
 
     const sound = soundMap[type];
@@ -252,6 +254,7 @@ class NotificationService {
       student_improvement: { emoji: '📈', color: 'text-emerald-400', bgColor: 'bg-emerald-500/20' },
       new_submission: { emoji: '📬', color: 'text-purple-400', bgColor: 'bg-purple-500/20' },
       class_milestone: { emoji: '🎯', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20' },
+      school_head_decision: { emoji: '🏫', color: 'text-cyan-500', bgColor: 'bg-cyan-500/20' },
     };
 
     return styles[type];
