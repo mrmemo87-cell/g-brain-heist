@@ -84,6 +84,17 @@ The release adds five deeper application objectives to Chemistry and Biology and
 
 The release supplies the first five assessable objectives for each grade-subject scope and targets the immutable `brain-heist-international@2026-5` curriculum snapshot. Every 20-question grade set contains four questions for each objective, 5 easy / 10 medium / 5 hard questions, balanced A–D answer positions, explanations and one approved primary mapping per question.
 
+## 2026.6 Geography and Global Perspectives foundation package
+
+`brain-heist-geography-global-perspectives-2026-6@2026.6.0` contains 80 original multiple-choice questions:
+
+- Grade 11 Geography: 20
+- Grade 12 Geography: 20
+- Grade 11 Global Perspectives: 20
+- Grade 12 Global Perspectives: 20
+
+The release supplies the first five assessable objectives for each grade-subject scope and targets the immutable `brain-heist-international@2026-6` curriculum snapshot. It applies the same four-questions-per-objective, difficulty, answer-position, explanation and approved-mapping controls as the earlier production packages.
+
 ## 2026.1.1 repair record
 
 The repair migration creates five new immutable records for answer-key or option defects, copies their approved curriculum mappings, and retires the originals. It also records and retires the 96 reviewed exact duplicate rows without changing assignment snapshots, attempts or student answers. The temporary Grade 8 QA framework is retired after its eight school mappings are archived.

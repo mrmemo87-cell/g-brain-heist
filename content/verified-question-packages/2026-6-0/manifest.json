@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "packageId": "brain-heist-geography-global-perspectives-2026-6",
+  "packageVersion": "2026.6.0",
+  "contentVersion": "brain-heist-2026-6",
+  "authority": "Brains Heist Academic Governance",
+  "releaseNotes": "Fifth production package with 80 original questions establishing complete Grade 11 and Grade 12 foundations for Geography and Global Perspectives.",
+  "curriculum": {
+    "frameworkCode": "brain-heist-international",
+    "versionCode": "2026-6"
+  },
+  "files": [
+    "geography-grade-11.json",
+    "geography-grade-12.json",
+    "global-perspectives-grade-11.json",
+    "global-perspectives-grade-12.json"
+  ]
+}

@@ -1,0 +1,668 @@
+{
+  "subject": "Global Perspectives",
+  "subjectCode": "global-perspectives",
+  "grade": 11,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g11-gp-2026.6-001",
+      "topic": "Source evaluation",
+      "difficulty": "easy",
+      "questionText": "Which source detail is most useful when checking possible expertise?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The author’s relevant qualifications",
+        "The background color of the page",
+        "The length of the website address",
+        "The number and decorative style of images displayed on the page"
+      ],
+      "correctAnswer": "The author’s relevant qualifications",
+      "explanation": "Relevant qualifications help assess whether an author has appropriate knowledge, though expertise does not remove the need to check evidence.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "gp11-source-evaluation",
+        "source evaluation"
+      ],
+      "curriculum": {
+        "strand": "Source evaluation",
+        "skill": "Apply source evaluation",
+        "subskill": "source evaluation",
+        "objective": "Evaluate the credibility, relevance and limitations of sources using authorship, evidence, context and corroboration."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-source-evaluation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-002",
+      "topic": "Source evaluation",
+      "difficulty": "medium",
+      "questionText": "A company report claims its product reduces emissions. What should a researcher check first for possible bias?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Whether the report uses numbered pages and consistent heading styles",
+        "The company’s financial interest in the claim",
+        "Whether the logo is professionally designed",
+        "The time taken to download the file"
+      ],
+      "correctAnswer": "The company’s financial interest in the claim",
+      "explanation": "A direct commercial interest may influence selection or presentation of evidence and should be considered when judging credibility.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp11-source-evaluation",
+        "source evaluation"
+      ],
+      "curriculum": {
+        "strand": "Source evaluation",
+        "skill": "Apply source evaluation",
+        "subskill": "source evaluation",
+        "objective": "Evaluate the credibility, relevance and limitations of sources using authorship, evidence, context and corroboration."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-source-evaluation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-003",
+      "topic": "Source evaluation",
+      "difficulty": "medium",
+      "questionText": "Two independent studies using different methods reach similar conclusions. How does this affect confidence?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Different methods make both studies invalid",
+        "Agreement proves that neither study has methods or limitations",
+        "Corroboration increases confidence in the conclusion",
+        "The studies should be treated as one source"
+      ],
+      "correctAnswer": "Corroboration increases confidence in the conclusion",
+      "explanation": "Converging findings from independent methods reduce the likelihood that one method or source alone produced the result.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp11-source-evaluation",
+        "source evaluation"
+      ],
+      "curriculum": {
+        "strand": "Source evaluation",
+        "skill": "Apply source evaluation",
+        "subskill": "source evaluation",
+        "objective": "Evaluate the credibility, relevance and limitations of sources using authorship, evidence, context and corroboration."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-source-evaluation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-004",
+      "topic": "Source evaluation",
+      "difficulty": "hard",
+      "questionText": "An article uses accurate statistics from 15 years ago to describe current internet access. What is its main limitation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "All numerical evidence is automatically unreliable",
+        "Old evidence can never be used to describe or compare historical change",
+        "Internet access cannot be measured",
+        "The evidence may no longer represent present conditions"
+      ],
+      "correctAnswer": "The evidence may no longer represent present conditions",
+      "explanation": "Even accurate data can lose relevance when technology and access patterns change rapidly over time.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "gp11-source-evaluation",
+        "source evaluation"
+      ],
+      "curriculum": {
+        "strand": "Source evaluation",
+        "skill": "Apply source evaluation",
+        "subskill": "source evaluation",
+        "objective": "Evaluate the credibility, relevance and limitations of sources using authorship, evidence, context and corroboration."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-source-evaluation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-005",
+      "topic": "Perspectives and context",
+      "difficulty": "easy",
+      "questionText": "What is a perspective?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A viewpoint shaped by values and experience",
+        "A fixed fact that cannot be questioned or interpreted differently",
+        "A random list of unrelated numbers",
+        "A rule used only in mathematics"
+      ],
+      "correctAnswer": "A viewpoint shaped by values and experience",
+      "explanation": "A perspective is a way of seeing an issue influenced by experience, values, interests and context.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "gp11-perspectives-culture",
+        "perspectives and context"
+      ],
+      "curriculum": {
+        "strand": "Perspectives and context",
+        "skill": "Apply perspectives and context",
+        "subskill": "perspectives and context",
+        "objective": "Compare how cultural, social, economic and political contexts shape perspectives on global issues."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-perspectives-culture"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-006",
+      "topic": "Perspectives and context",
+      "difficulty": "medium",
+      "questionText": "Why might farmers and urban consumers view water pricing differently?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Only farmers can understand prices",
+        "Their needs, costs and dependence on water differ",
+        "Urban consumers never use water",
+        "Perspectives are unrelated to interests"
+      ],
+      "correctAnswer": "Their needs, costs and dependence on water differ",
+      "explanation": "Groups experience a policy differently, so economic roles and dependence can shape their judgments.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp11-perspectives-culture",
+        "perspectives and context"
+      ],
+      "curriculum": {
+        "strand": "Perspectives and context",
+        "skill": "Apply perspectives and context",
+        "subskill": "perspectives and context",
+        "objective": "Compare how cultural, social, economic and political contexts shape perspectives on global issues."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-perspectives-culture"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-007",
+      "topic": "Perspectives and context",
+      "difficulty": "medium",
+      "questionText": "Which response best demonstrates respectful comparison of perspectives?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Describe one view as irrational without evidence",
+        "Ignore values that differ from your own",
+        "Explain each view in context before evaluating it",
+        "Assume every group is internally identical"
+      ],
+      "correctAnswer": "Explain each view in context before evaluating it",
+      "explanation": "Fair comparison first represents views accurately and considers the context and reasons behind them.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp11-perspectives-culture",
+        "perspectives and context"
+      ],
+      "curriculum": {
+        "strand": "Perspectives and context",
+        "skill": "Apply perspectives and context",
+        "subskill": "perspectives and context",
+        "objective": "Compare how cultural, social, economic and political contexts shape perspectives on global issues."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-perspectives-culture"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-008",
+      "topic": "Perspectives and context",
+      "difficulty": "hard",
+      "questionText": "A national survey reports one average opinion for a culturally diverse country. What should a researcher avoid assuming?",
+      "questionType": "multiple_choice",
+      "options": [
+        "That surveys can contain quantitative data",
+        "That national samples require any planning",
+        "That opinions may change over time",
+        "That the average represents every subgroup equally"
+      ],
+      "correctAnswer": "That the average represents every subgroup equally",
+      "explanation": "A national mean can hide regional, cultural or demographic differences and should not be assigned to every subgroup.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "gp11-perspectives-culture",
+        "perspectives and context"
+      ],
+      "curriculum": {
+        "strand": "Perspectives and context",
+        "skill": "Apply perspectives and context",
+        "subskill": "perspectives and context",
+        "objective": "Compare how cultural, social, economic and political contexts shape perspectives on global issues."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-perspectives-culture"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-009",
+      "topic": "Research methods",
+      "difficulty": "easy",
+      "questionText": "Which method is best for exploring detailed personal experiences?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Semi-structured interview",
+        "Closed numerical tally only",
+        "Automated file compression",
+        "Random password generation"
+      ],
+      "correctAnswer": "Semi-structured interview",
+      "explanation": "Semi-structured interviews allow consistent topics while giving participants space to explain experiences in depth.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "gp11-research-methods",
+        "research methods"
+      ],
+      "curriculum": {
+        "strand": "Research methods",
+        "skill": "Apply research methods",
+        "subskill": "research methods",
+        "objective": "Select and apply ethical quantitative and qualitative research methods using valid sampling, questions and data handling."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-research-methods"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-010",
+      "topic": "Research methods",
+      "difficulty": "medium",
+      "questionText": "Which survey question is leading?",
+      "questionType": "multiple_choice",
+      "options": [
+        "How often do you recycle each week?",
+        "How much do you support the excellent recycling plan?",
+        "Which recycling service do you use?",
+        "What is your age group?"
+      ],
+      "correctAnswer": "How much do you support the excellent recycling plan?",
+      "explanation": "Calling the plan excellent encourages approval and biases responses rather than asking neutrally.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp11-research-methods",
+        "research methods"
+      ],
+      "curriculum": {
+        "strand": "Research methods",
+        "skill": "Apply research methods",
+        "subskill": "research methods",
+        "objective": "Select and apply ethical quantitative and qualitative research methods using valid sampling, questions and data handling."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-research-methods"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-011",
+      "topic": "Research methods",
+      "difficulty": "medium",
+      "questionText": "Why is informed consent important in human research?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It guarantees every participant agrees with results",
+        "It removes the need to protect personal data",
+        "Participants understand the study and choose freely",
+        "It allows researchers to hide all risks"
+      ],
+      "correctAnswer": "Participants understand the study and choose freely",
+      "explanation": "Informed consent requires adequate information, voluntary participation and awareness of relevant risks and rights.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp11-research-methods",
+        "research methods"
+      ],
+      "curriculum": {
+        "strand": "Research methods",
+        "skill": "Apply research methods",
+        "subskill": "research methods",
+        "objective": "Select and apply ethical quantitative and qualitative research methods using valid sampling, questions and data handling."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-research-methods"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-012",
+      "topic": "Research methods",
+      "difficulty": "hard",
+      "questionText": "A student surveys only close friends about school rules. Which problem most threatens generalization?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Friends can never answer any survey",
+        "The sample contains qualitative opinions",
+        "School rules cannot be researched",
+        "Convenience sampling creates selection bias"
+      ],
+      "correctAnswer": "Convenience sampling creates selection bias",
+      "explanation": "Close friends may share similar experiences and views, so they are unlikely to represent the wider student population.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "gp11-research-methods",
+        "research methods"
+      ],
+      "curriculum": {
+        "strand": "Research methods",
+        "skill": "Apply research methods",
+        "subskill": "research methods",
+        "objective": "Select and apply ethical quantitative and qualitative research methods using valid sampling, questions and data handling."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-research-methods"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-013",
+      "topic": "Argument and reasoning",
+      "difficulty": "easy",
+      "questionText": "What is evidence in an argument?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Information used to support a claim",
+        "The title of every document",
+        "A conclusion with no reasons",
+        "A personal attack on an opponent"
+      ],
+      "correctAnswer": "Information used to support a claim",
+      "explanation": "Evidence consists of information or observations offered as support for a claim or conclusion.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "gp11-argument-reasoning",
+        "argument and reasoning"
+      ],
+      "curriculum": {
+        "strand": "Argument and reasoning",
+        "skill": "Apply argument and reasoning",
+        "subskill": "argument and reasoning",
+        "objective": "Construct and assess arguments by distinguishing claims, evidence, assumptions, counterarguments and reasoning errors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-argument-reasoning"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-014",
+      "topic": "Argument and reasoning",
+      "difficulty": "medium",
+      "questionText": "Which statement is an assumption in the argument “The library should open later because students need quiet study space”?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The library currently has a door",
+        "Later opening will provide usable quiet study time",
+        "Some students own pens",
+        "Books are arranged on shelves"
+      ],
+      "correctAnswer": "Later opening will provide usable quiet study time",
+      "explanation": "The reasoning depends on the unstated link that later hours would meet students’ need for quiet study space.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp11-argument-reasoning",
+        "argument and reasoning"
+      ],
+      "curriculum": {
+        "strand": "Argument and reasoning",
+        "skill": "Apply argument and reasoning",
+        "subskill": "argument and reasoning",
+        "objective": "Construct and assess arguments by distinguishing claims, evidence, assumptions, counterarguments and reasoning errors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-argument-reasoning"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-015",
+      "topic": "Argument and reasoning",
+      "difficulty": "medium",
+      "questionText": "A speaker dismisses a climate proposal because its author is young. Which reasoning error is this?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Using a representative random sample",
+        "Drawing a conclusion from direct measurements",
+        "Attacking the person instead of the argument",
+        "Acknowledging a strong counterargument"
+      ],
+      "correctAnswer": "Attacking the person instead of the argument",
+      "explanation": "The author’s age does not address the proposal’s evidence or reasoning, so the response is an ad hominem attack.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp11-argument-reasoning",
+        "argument and reasoning"
+      ],
+      "curriculum": {
+        "strand": "Argument and reasoning",
+        "skill": "Apply argument and reasoning",
+        "subskill": "argument and reasoning",
+        "objective": "Construct and assess arguments by distinguishing claims, evidence, assumptions, counterarguments and reasoning errors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-argument-reasoning"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-016",
+      "topic": "Argument and reasoning",
+      "difficulty": "hard",
+      "questionText": "Which revision most strengthens an argument with a serious counterclaim?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Pretend the counterclaim does not exist",
+        "Repeat the original claim more loudly",
+        "Replace evidence with an unrelated anecdote",
+        "Address the counterclaim using relevant evidence"
+      ],
+      "correctAnswer": "Address the counterclaim using relevant evidence",
+      "explanation": "Engaging directly with a credible objection shows why the conclusion remains justified or needs qualification.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "gp11-argument-reasoning",
+        "argument and reasoning"
+      ],
+      "curriculum": {
+        "strand": "Argument and reasoning",
+        "skill": "Apply argument and reasoning",
+        "subskill": "argument and reasoning",
+        "objective": "Construct and assess arguments by distinguishing claims, evidence, assumptions, counterarguments and reasoning errors."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-argument-reasoning"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-017",
+      "topic": "Collaboration and action",
+      "difficulty": "easy",
+      "questionText": "What is the clearest benefit of assigning roles in a team project?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Responsibilities become visible and coordinated",
+        "Every member completes identical work",
+        "The project no longer needs a goal",
+        "Disagreement becomes impossible"
+      ],
+      "correctAnswer": "Responsibilities become visible and coordinated",
+      "explanation": "Clear roles help distribute work, reduce duplication and make accountability easier to manage.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "gp11-collaboration-action",
+        "collaboration and action"
+      ],
+      "curriculum": {
+        "strand": "Collaboration and action",
+        "skill": "Apply collaboration and action",
+        "subskill": "collaboration and action",
+        "objective": "Collaborate to plan, implement and evaluate responsible action using roles, stakeholders, evidence and reflection."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-collaboration-action"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-018",
+      "topic": "Collaboration and action",
+      "difficulty": "medium",
+      "questionText": "A team wants to reduce cafeteria waste. What should it do before choosing an intervention?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Print posters before defining the problem",
+        "Collect baseline evidence about types and amounts of waste",
+        "Assume one solution works in every school",
+        "Measure results only before the project"
+      ],
+      "correctAnswer": "Collect baseline evidence about types and amounts of waste",
+      "explanation": "Baseline data identifies the scale and causes of the problem and later provides a comparison for evaluating change.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp11-collaboration-action",
+        "collaboration and action"
+      ],
+      "curriculum": {
+        "strand": "Collaboration and action",
+        "skill": "Apply collaboration and action",
+        "subskill": "collaboration and action",
+        "objective": "Collaborate to plan, implement and evaluate responsible action using roles, stakeholders, evidence and reflection."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-collaboration-action"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-019",
+      "topic": "Collaboration and action",
+      "difficulty": "medium",
+      "questionText": "Which indicator best measures whether a reusable-cup campaign changed behavior?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Number of colors in the campaign logo",
+        "Length of the final presentation",
+        "Change in disposable cups used per customer",
+        "Total followers of an unrelated account"
+      ],
+      "correctAnswer": "Change in disposable cups used per customer",
+      "explanation": "This outcome indicator directly measures the target behavior while accounting for changes in customer numbers.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "gp11-collaboration-action",
+        "collaboration and action"
+      ],
+      "curriculum": {
+        "strand": "Collaboration and action",
+        "skill": "Apply collaboration and action",
+        "subskill": "collaboration and action",
+        "objective": "Collaborate to plan, implement and evaluate responsible action using roles, stakeholders, evidence and reflection."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-collaboration-action"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-gp-2026.6-020",
+      "topic": "Collaboration and action",
+      "difficulty": "hard",
+      "questionText": "A project met its target but excluded a stakeholder group affected by the action. What is the strongest evaluation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The target proves the process was fully ethical",
+        "Stakeholder participation never affects quality",
+        "The project cannot have produced any useful result",
+        "The outcome succeeded, but the process lacked inclusion"
+      ],
+      "correctAnswer": "The outcome succeeded, but the process lacked inclusion",
+      "explanation": "Evaluation should distinguish outcome achievement from weaknesses in participation, fairness and legitimacy.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "gp11-collaboration-action",
+        "collaboration and action"
+      ],
+      "curriculum": {
+        "strand": "Collaboration and action",
+        "skill": "Apply collaboration and action",
+        "subskill": "collaboration and action",
+        "objective": "Collaborate to plan, implement and evaluate responsible action using roles, stakeholders, evidence and reflection."
+      },
+      "mappings": [
+        {
+          "scopeCode": "global-perspectives-grade-11",
+          "objectiveCode": "gp11-collaboration-action"
+        }
+      ]
+    }
+  ]
+}

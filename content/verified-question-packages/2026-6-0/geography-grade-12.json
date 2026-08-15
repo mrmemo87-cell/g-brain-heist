@@ -1,0 +1,668 @@
+{
+  "subject": "Geography",
+  "subjectCode": "geography",
+  "grade": 12,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g12-geo-2026.6-001",
+      "topic": "Hazards and resilience",
+      "difficulty": "easy",
+      "questionText": "Which term describes the people and assets located where a hazard may occur?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Exposure",
+        "Magnitude",
+        "Recurrence",
+        "Weathering"
+      ],
+      "correctAnswer": "Exposure",
+      "explanation": "Exposure identifies populations, infrastructure and assets situated in places that could be affected by a hazard.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo12-hazards-resilience",
+        "hazards and resilience"
+      ],
+      "curriculum": {
+        "strand": "Hazards and resilience",
+        "skill": "Apply hazards and resilience",
+        "subskill": "hazards and resilience",
+        "objective": "Analyse hazard risk as an interaction of physical processes, exposure, vulnerability, preparedness and recovery capacity."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-hazards-resilience"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-002",
+      "topic": "Hazards and resilience",
+      "difficulty": "medium",
+      "questionText": "Why can earthquakes of similar magnitude produce very different death tolls?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Magnitude has no relationship to shaking",
+        "Vulnerability and preparedness differ between places",
+        "Every building responds in exactly the same way",
+        "Population distribution never affects hazard risk or mortality"
+      ],
+      "correctAnswer": "Vulnerability and preparedness differ between places",
+      "explanation": "Building quality, density, response capacity and preparedness strongly influence impacts beyond physical magnitude.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo12-hazards-resilience",
+        "hazards and resilience"
+      ],
+      "curriculum": {
+        "strand": "Hazards and resilience",
+        "skill": "Apply hazards and resilience",
+        "subskill": "hazards and resilience",
+        "objective": "Analyse hazard risk as an interaction of physical processes, exposure, vulnerability, preparedness and recovery capacity."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-hazards-resilience"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-003",
+      "topic": "Hazards and resilience",
+      "difficulty": "medium",
+      "questionText": "Which measure most directly reduces coastal storm-surge mortality without preventing the surge itself?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Building more homes directly inside the storm-surge floodplain",
+        "Removing emergency communication systems",
+        "Reliable warnings and planned evacuation routes",
+        "Reducing the number of weather stations"
+      ],
+      "correctAnswer": "Reliable warnings and planned evacuation routes",
+      "explanation": "Early warning and evacuation reduce exposure during the event even though they do not stop the physical surge.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo12-hazards-resilience",
+        "hazards and resilience"
+      ],
+      "curriculum": {
+        "strand": "Hazards and resilience",
+        "skill": "Apply hazards and resilience",
+        "subskill": "hazards and resilience",
+        "objective": "Analyse hazard risk as an interaction of physical processes, exposure, vulnerability, preparedness and recovery capacity."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-hazards-resilience"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-004",
+      "topic": "Hazards and resilience",
+      "difficulty": "hard",
+      "questionText": "A city rebuilds damaged infrastructure to higher standards and restores wetlands after a flood. Which resilience principle is illustrated?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Return every system exactly to its previous level of vulnerability",
+        "Transfer all risk without adaptation",
+        "Ignore future hazard probabilities",
+        "Build back better while increasing natural protection"
+      ],
+      "correctAnswer": "Build back better while increasing natural protection",
+      "explanation": "Stronger reconstruction and restored wetlands reduce future vulnerability and improve adaptive capacity.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "geo12-hazards-resilience",
+        "hazards and resilience"
+      ],
+      "curriculum": {
+        "strand": "Hazards and resilience",
+        "skill": "Apply hazards and resilience",
+        "subskill": "hazards and resilience",
+        "objective": "Analyse hazard risk as an interaction of physical processes, exposure, vulnerability, preparedness and recovery capacity."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-hazards-resilience"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-005",
+      "topic": "Globalisation and uneven development",
+      "difficulty": "easy",
+      "questionText": "What is a transnational corporation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A company operating in more than one country",
+        "A charity funded by one village",
+        "A government department without trade",
+        "A business serving customers only within one neighborhood"
+      ],
+      "correctAnswer": "A company operating in more than one country",
+      "explanation": "A transnational corporation coordinates business activities across national borders.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo12-globalisation-development",
+        "globalisation and uneven development"
+      ],
+      "curriculum": {
+        "strand": "Globalisation and uneven development",
+        "skill": "Apply globalisation and uneven development",
+        "subskill": "globalisation and uneven development",
+        "objective": "Evaluate how trade, investment, migration and global production networks shape places and uneven development."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-globalisation-development"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-006",
+      "topic": "Globalisation and uneven development",
+      "difficulty": "medium",
+      "questionText": "How can foreign direct investment benefit a host region?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It always removes every local supplier",
+        "It can create jobs, capital and technology transfer",
+        "It prevents any infrastructure investment",
+        "It guarantees that every dollar of profit remains in the host economy"
+      ],
+      "correctAnswer": "It can create jobs, capital and technology transfer",
+      "explanation": "FDI may add employment, finance, skills and technology, although benefits depend on linkages and governance.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo12-globalisation-development",
+        "globalisation and uneven development"
+      ],
+      "curriculum": {
+        "strand": "Globalisation and uneven development",
+        "skill": "Apply globalisation and uneven development",
+        "subskill": "globalisation and uneven development",
+        "objective": "Evaluate how trade, investment, migration and global production networks shape places and uneven development."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-globalisation-development"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-007",
+      "topic": "Globalisation and uneven development",
+      "difficulty": "medium",
+      "questionText": "Why may export-led economic growth fail to reduce inequality?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Exports automatically equalize every household income",
+        "Trade removes all differences in education",
+        "Gains may concentrate among owners, regions or skilled workers",
+        "Economic growth cannot change employment"
+      ],
+      "correctAnswer": "Gains may concentrate among owners, regions or skilled workers",
+      "explanation": "Growth can be unevenly distributed when profits, opportunities and infrastructure favor particular groups or locations.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo12-globalisation-development",
+        "globalisation and uneven development"
+      ],
+      "curriculum": {
+        "strand": "Globalisation and uneven development",
+        "skill": "Apply globalisation and uneven development",
+        "subskill": "globalisation and uneven development",
+        "objective": "Evaluate how trade, investment, migration and global production networks shape places and uneven development."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-globalisation-development"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-008",
+      "topic": "Globalisation and uneven development",
+      "difficulty": "hard",
+      "questionText": "A clothing brand outsources production to several countries and changes suppliers quickly. What feature of global production does this show?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A fully local economy without external links",
+        "A fixed chain controlled only by consumers",
+        "The disappearance of comparative advantage",
+        "A flexible network coordinated across borders"
+      ],
+      "correctAnswer": "A flexible network coordinated across borders",
+      "explanation": "Global firms coordinate dispersed suppliers and can relocate contracts in response to cost, risk and market conditions.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "geo12-globalisation-development",
+        "globalisation and uneven development"
+      ],
+      "curriculum": {
+        "strand": "Globalisation and uneven development",
+        "skill": "Apply globalisation and uneven development",
+        "subskill": "globalisation and uneven development",
+        "objective": "Evaluate how trade, investment, migration and global production networks shape places and uneven development."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-globalisation-development"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-009",
+      "topic": "Urban systems and change",
+      "difficulty": "easy",
+      "questionText": "What is urbanisation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "An increasing share of people living in urban areas",
+        "The movement of every city resident to villages",
+        "A decrease in all settlement populations",
+        "The conversion of rainfall into runoff"
+      ],
+      "correctAnswer": "An increasing share of people living in urban areas",
+      "explanation": "Urbanisation is the growth in the proportion of a population living in towns and cities.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo12-urban-systems",
+        "urban systems and change"
+      ],
+      "curriculum": {
+        "strand": "Urban systems and change",
+        "skill": "Apply urban systems and change",
+        "subskill": "urban systems and change",
+        "objective": "Analyse urban growth, land use, inequality, mobility and regeneration as interconnected spatial systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-urban-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-010",
+      "topic": "Urban systems and change",
+      "difficulty": "medium",
+      "questionText": "Why can improving a rail line increase land values near its stations?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Travel times necessarily become longer",
+        "Accessibility to jobs and services improves",
+        "Every business moves away from the route",
+        "Public transport eliminates all housing demand"
+      ],
+      "correctAnswer": "Accessibility to jobs and services improves",
+      "explanation": "Better connectivity raises the attractiveness of nearby locations for households and businesses, increasing demand.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo12-urban-systems",
+        "urban systems and change"
+      ],
+      "curriculum": {
+        "strand": "Urban systems and change",
+        "skill": "Apply urban systems and change",
+        "subskill": "urban systems and change",
+        "objective": "Analyse urban growth, land use, inequality, mobility and regeneration as interconnected spatial systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-urban-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-011",
+      "topic": "Urban systems and change",
+      "difficulty": "medium",
+      "questionText": "Which policy best addresses spatial mismatch between low-income housing and employment centers?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Removing all bus routes from peripheral districts",
+        "Concentrating every job in inaccessible zones",
+        "Affordable transit connecting residents to job locations",
+        "Increasing fares without improving service"
+      ],
+      "correctAnswer": "Affordable transit connecting residents to job locations",
+      "explanation": "Reliable affordable transport improves access when disadvantaged residents live far from available employment.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo12-urban-systems",
+        "urban systems and change"
+      ],
+      "curriculum": {
+        "strand": "Urban systems and change",
+        "skill": "Apply urban systems and change",
+        "subskill": "urban systems and change",
+        "objective": "Analyse urban growth, land use, inequality, mobility and regeneration as interconnected spatial systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-urban-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-012",
+      "topic": "Urban systems and change",
+      "difficulty": "hard",
+      "questionText": "A regeneration project raises environmental quality but displaces long-term low-income residents. What trade-off is most evident?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Higher rainfall versus lower relief",
+        "Primary industry versus tectonic stability",
+        "Map accuracy versus scale",
+        "Place improvement versus social equity"
+      ],
+      "correctAnswer": "Place improvement versus social equity",
+      "explanation": "Physical and economic improvements can generate gentrification, creating conflict between investment gains and inclusive access.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "geo12-urban-systems",
+        "urban systems and change"
+      ],
+      "curriculum": {
+        "strand": "Urban systems and change",
+        "skill": "Apply urban systems and change",
+        "subskill": "urban systems and change",
+        "objective": "Analyse urban growth, land use, inequality, mobility and regeneration as interconnected spatial systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-urban-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-013",
+      "topic": "Environmental systems and management",
+      "difficulty": "easy",
+      "questionText": "What is a carbon sink?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A store that absorbs more carbon than it releases",
+        "A source that releases only methane",
+        "A device that measures river discharge",
+        "A market where energy is sold"
+      ],
+      "correctAnswer": "A store that absorbs more carbon than it releases",
+      "explanation": "Forests, soils and oceans can act as sinks when their carbon uptake exceeds their carbon release.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo12-environmental-management",
+        "environmental systems and management"
+      ],
+      "curriculum": {
+        "strand": "Environmental systems and management",
+        "skill": "Apply environmental systems and management",
+        "subskill": "environmental systems and management",
+        "objective": "Evaluate environmental change and management strategies using systems, feedbacks, stakeholders and sustainability criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-environmental-management"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-014",
+      "topic": "Environmental systems and management",
+      "difficulty": "medium",
+      "questionText": "Why can deforestation create a positive feedback in climate change?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Trees permanently stop the greenhouse effect",
+        "Carbon release and reduced uptake can amplify warming",
+        "Bare soil always stores more carbon than forests",
+        "Warming automatically restores every forest"
+      ],
+      "correctAnswer": "Carbon release and reduced uptake can amplify warming",
+      "explanation": "Forest loss releases stored carbon and removes future uptake, strengthening the processes that drive warming.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo12-environmental-management",
+        "environmental systems and management"
+      ],
+      "curriculum": {
+        "strand": "Environmental systems and management",
+        "skill": "Apply environmental systems and management",
+        "subskill": "environmental systems and management",
+        "objective": "Evaluate environmental change and management strategies using systems, feedbacks, stakeholders and sustainability criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-environmental-management"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-015",
+      "topic": "Environmental systems and management",
+      "difficulty": "medium",
+      "questionText": "Which water-management approach most closely follows integrated river-basin management?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Manage each river section without sharing information",
+        "Ignore groundwater and land-use connections",
+        "Coordinate upstream and downstream users across the catchment",
+        "Give one user unlimited extraction rights"
+      ],
+      "correctAnswer": "Coordinate upstream and downstream users across the catchment",
+      "explanation": "Integrated management treats the basin as a linked system and balances users, ecosystems and flows across locations.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo12-environmental-management",
+        "environmental systems and management"
+      ],
+      "curriculum": {
+        "strand": "Environmental systems and management",
+        "skill": "Apply environmental systems and management",
+        "subskill": "environmental systems and management",
+        "objective": "Evaluate environmental change and management strategies using systems, feedbacks, stakeholders and sustainability criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-environmental-management"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-016",
+      "topic": "Environmental systems and management",
+      "difficulty": "hard",
+      "questionText": "A conservation policy protects biodiversity but removes local access to traditional resources. Which improvement best supports long-term legitimacy?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Exclude local knowledge from every decision",
+        "Use enforcement without consultation or compensation",
+        "Hide monitoring results from stakeholders",
+        "Co-design rules and benefits with affected communities"
+      ],
+      "correctAnswer": "Co-design rules and benefits with affected communities",
+      "explanation": "Participation and fair benefit sharing can align conservation goals with livelihoods and improve compliance.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "geo12-environmental-management",
+        "environmental systems and management"
+      ],
+      "curriculum": {
+        "strand": "Environmental systems and management",
+        "skill": "Apply environmental systems and management",
+        "subskill": "environmental systems and management",
+        "objective": "Evaluate environmental change and management strategies using systems, feedbacks, stakeholders and sustainability criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-environmental-management"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-017",
+      "topic": "Geospatial research and evaluation",
+      "difficulty": "easy",
+      "questionText": "What does GIS allow a geographer to do?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Combine and analyse spatial data layers",
+        "Measure temperature without any sensor",
+        "Prove causation from one observation",
+        "Replace every field investigation"
+      ],
+      "correctAnswer": "Combine and analyse spatial data layers",
+      "explanation": "A geographic information system stores, overlays and analyses data linked to geographic locations.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo12-geospatial-research",
+        "geospatial research and evaluation"
+      ],
+      "curriculum": {
+        "strand": "Geospatial research and evaluation",
+        "skill": "Apply geospatial research and evaluation",
+        "subskill": "geospatial research and evaluation",
+        "objective": "Use GIS, remote sensing, spatial statistics and research evaluation to investigate geographical patterns and decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-geospatial-research"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-018",
+      "topic": "Geospatial research and evaluation",
+      "difficulty": "medium",
+      "questionText": "Which remote-sensing data would best compare vegetation condition across a large region over time?",
+      "questionType": "multiple_choice",
+      "options": [
+        "One interview from a city center",
+        "Repeated multispectral satellite imagery",
+        "A single handwritten weather note",
+        "An undated street photograph"
+      ],
+      "correctAnswer": "Repeated multispectral satellite imagery",
+      "explanation": "Repeated satellite observations provide consistent wide-area coverage, while spectral bands support vegetation indices.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo12-geospatial-research",
+        "geospatial research and evaluation"
+      ],
+      "curriculum": {
+        "strand": "Geospatial research and evaluation",
+        "skill": "Apply geospatial research and evaluation",
+        "subskill": "geospatial research and evaluation",
+        "objective": "Use GIS, remote sensing, spatial statistics and research evaluation to investigate geographical patterns and decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-geospatial-research"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-019",
+      "topic": "Geospatial research and evaluation",
+      "difficulty": "medium",
+      "questionText": "A map shows high disease rates near polluted water sources. What additional evidence is most important before claiming causation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Use brighter colors on the same map",
+        "Remove locations with low disease rates",
+        "Control for population, poverty and other confounders",
+        "Assume proximity proves the mechanism"
+      ],
+      "correctAnswer": "Control for population, poverty and other confounders",
+      "explanation": "Spatial association alone may reflect confounding variables, so alternative explanations and exposure pathways require testing.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo12-geospatial-research",
+        "geospatial research and evaluation"
+      ],
+      "curriculum": {
+        "strand": "Geospatial research and evaluation",
+        "skill": "Apply geospatial research and evaluation",
+        "subskill": "geospatial research and evaluation",
+        "objective": "Use GIS, remote sensing, spatial statistics and research evaluation to investigate geographical patterns and decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-geospatial-research"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-geo-2026.6-020",
+      "topic": "Geospatial research and evaluation",
+      "difficulty": "hard",
+      "questionText": "A GIS suitability model weights slope 60% and road access 40%. Why should the weighting be sensitivity-tested?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Weights can never influence a model result",
+        "All criteria must always receive zero weight",
+        "Sensitivity testing removes spatial data",
+        "Different reasonable weights may change selected locations"
+      ],
+      "correctAnswer": "Different reasonable weights may change selected locations",
+      "explanation": "Testing alternative plausible weights shows whether the decision is robust or depends heavily on subjective assumptions.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "geo12-geospatial-research",
+        "geospatial research and evaluation"
+      ],
+      "curriculum": {
+        "strand": "Geospatial research and evaluation",
+        "skill": "Apply geospatial research and evaluation",
+        "subskill": "geospatial research and evaluation",
+        "objective": "Use GIS, remote sensing, spatial statistics and research evaluation to investigate geographical patterns and decisions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-12",
+          "objectiveCode": "geo12-geospatial-research"
+        }
+      ]
+    }
+  ]
+}

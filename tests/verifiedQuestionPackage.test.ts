@@ -10,6 +10,7 @@ const releaseIndexMigration = readFileSync('supabase/migrations/20260815123000_i
 const grade12CurriculumMigration = readFileSync('supabase/migrations/20260815124000_brains_heist_curriculum_2026_3.sql', 'utf8');
 const grade11CompletionMigration = readFileSync('supabase/migrations/20260815125000_brains_heist_curriculum_2026_4.sql', 'utf8');
 const mathematicsIctMigration = readFileSync('supabase/migrations/20260815130000_brains_heist_curriculum_2026_5.sql', 'utf8');
+const geographyGlobalPerspectivesMigration = readFileSync('supabase/migrations/20260815131000_brains_heist_curriculum_2026_6.sql', 'utf8');
 
 test('all verified question packages pass their quality and balance profiles', () => {
   const result = spawnSync(process.execPath, ['scripts/validate-verified-question-package.mjs'], {
@@ -25,6 +26,8 @@ test('all verified question packages pass their quality and balance profiles', (
   assert.match(result.stdout, /brain-heist-g11-completion-2026-4@2026\.4\.0 passed/);
   assert.match(result.stdout, /brain-heist-mathematics-ict-2026-5@2026\.5\.0 passed/);
   assert.match(result.stdout, /Mathematics 40, ICT 40/);
+  assert.match(result.stdout, /brain-heist-geography-global-perspectives-2026-6@2026\.6\.0 passed/);
+  assert.match(result.stdout, /Geography 40, Global Perspectives 40/);
 });
 
 test('verified importer is atomic, idempotent and service-role only', () => {
@@ -108,6 +111,21 @@ test('2026.5 curriculum establishes Grade 11 and 12 Mathematics and ICT', () => 
   assert.match(mathematicsIctMigration, /status = 'approved'/);
   assert.match(mathematicsIctMigration, /status = 'published'/);
   assert.match(mathematicsIctMigration, /extensions\.digest/);
+});
+
+test('2026.6 curriculum establishes Grade 11 and 12 Geography and Global Perspectives', () => {
+  assert.match(geographyGlobalPerspectivesMigration, /version_code = '2026-5'/);
+  assert.match(geographyGlobalPerspectivesMigration, /'2026-6'/);
+  for (const scope of ['geography-grade-11', 'geography-grade-12', 'global-perspectives-grade-11', 'global-perspectives-grade-12']) {
+    assert.match(geographyGlobalPerspectivesMigration, new RegExp(scope));
+  }
+  for (const objective of ['geo11-physical-processes', 'geo12-hazards-resilience', 'gp11-source-evaluation', 'gp12-evidence-synthesis']) {
+    assert.match(geographyGlobalPerspectivesMigration, new RegExp(objective));
+  }
+  assert.match(geographyGlobalPerspectivesMigration, /status = 'in_review'/);
+  assert.match(geographyGlobalPerspectivesMigration, /status = 'approved'/);
+  assert.match(geographyGlobalPerspectivesMigration, /status = 'published'/);
+  assert.match(geographyGlobalPerspectivesMigration, /extensions\.digest/);
 });
 
 test('verified importer CLI refuses missing service-role credentials and production confirmation', () => {

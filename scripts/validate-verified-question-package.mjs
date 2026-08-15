@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGES_ROOT = path.resolve(__dirname, '..', 'content', 'verified-question-packages');
-export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-5-0');
+export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-6-0');
 const VALID_DIFFICULTIES = new Set(['easy', 'medium', 'hard']);
 const VALID_TYPES = new Set(['multiple_choice', 'true_false', 'short_answer']);
 const PACKAGE_EXPECTATIONS = new Map([
@@ -41,6 +41,13 @@ const PACKAGE_EXPECTATIONS = new Map([
     scopes: new Map([
       ['mathematics', { subject: 'Mathematics', grades: [11, 12], scopes: ['mathematics-grade-11', 'mathematics-grade-12'] }],
       ['ict', { subject: 'ICT', grades: [11, 12], scopes: ['ict-grade-11', 'ict-grade-12'] }],
+    ]),
+  }],
+  ['brain-heist-geography-global-perspectives-2026-6', {
+    curriculumVersion: '2026-6',
+    scopes: new Map([
+      ['geography', { subject: 'Geography', grades: [11, 12], scopes: ['geography-grade-11', 'geography-grade-12'] }],
+      ['global-perspectives', { subject: 'Global Perspectives', grades: [11, 12], scopes: ['global-perspectives-grade-11', 'global-perspectives-grade-12'] }],
     ]),
   }],
 ]);
