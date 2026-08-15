@@ -2476,13 +2476,33 @@ button {
 .school-admin-signout { padding:.58rem .9rem; border:1px solid #cbd5e1; border-radius:.55rem; background:#fff; color:#334155; font-size:.8rem; font-weight:700; }
 .school-admin-signout:hover { border-color:#9f1239; color:#9f1239; background:#fff7f8; }
 
-.school-admin-layout { display:grid; grid-template-columns: 250px minmax(0, 1fr); gap:1.5rem; max-width:1600px; margin:0 auto; }
-.school-admin-sidebar { align-self:start; position:sticky; top:1rem; padding:1rem; border:1px solid #dce3ea; border-radius:.9rem; background:#fff; box-shadow:0 8px 30px rgba(23,36,59,.055); }
+.school-admin-layout { display:grid; grid-template-columns:250px minmax(0,1fr); gap:1.5rem; max-width:1600px; margin:0 auto; transition:grid-template-columns .22s ease; }
+.school-admin-layout.is-sidebar-collapsed { grid-template-columns:76px minmax(0,1fr); }
+.school-admin-sidebar { align-self:start; position:sticky; top:1rem; min-width:0; padding:1rem; overflow-x:clip; border:1px solid #dce3ea; border-radius:.9rem; background:#fff; box-shadow:0 8px 30px rgba(23,36,59,.055); transition:padding .22s ease; }
+.school-admin-sidebar-toggle { display:flex; width:100%; min-height:2.45rem; align-items:center; justify-content:center; gap:.4rem; margin-bottom:.65rem; border:1px solid #dbe4ef; border-radius:.65rem; color:#475569; background:#f8fafc; font-size:.72rem; font-weight:800; transition:border-color .18s ease,background .18s ease,color .18s ease; }
+.school-admin-sidebar-toggle:hover { border-color:#7dd3fc; color:#0369a1; background:#f0f9ff; }
+.school-admin-sidebar-toggle:focus-visible { outline:3px solid rgba(14,165,233,.28); outline-offset:2px; }
+.school-admin-sidebar-toggle > span { font-size:1.2rem; line-height:1; }
 .school-admin-nav-label { padding:.25rem .65rem .65rem; color:#8793a4; font-size:.65rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
 .school-admin-tabs { display:flex; flex-direction:column; gap:.2rem; }
-.school-admin-tabs button { width:100%; padding:.62rem .7rem; border:0; border-radius:.5rem; color:#526176; background:transparent; text-align:left; font-size:.82rem; font-weight:650; transition:background .15s,color .15s; }
+.school-admin-tabs button { display:flex; width:100%; min-width:0; align-items:center; gap:.62rem; padding:.52rem .58rem; border:0; border-radius:.55rem; color:#526176; background:transparent; text-align:left; font-size:.82rem; font-weight:650; transition:background .15s,color .15s,transform .15s; }
+.school-admin-nav-icon { display:grid; flex:0 0 1.85rem; width:1.85rem; height:1.85rem; place-items:center; border:1px solid #dbe4ef; border-radius:.5rem; color:#617187; background:#f8fafc; font-size:.58rem; font-weight:850; letter-spacing:.04em; transition:background .15s,border-color .15s,color .15s,transform .15s; }
+.school-admin-nav-text { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .school-admin-tabs button:hover { color:var(--school-blue); background:#f1f5f9; }
+.school-admin-tabs button:hover .school-admin-nav-icon { border-color:#bae6fd; color:#0369a1; background:#f0f9ff; }
 .school-admin-tabs button.is-active { color:#fff; background:var(--school-blue); box-shadow:inset 3px 0 var(--school-gold); }
+.school-admin-tabs button.is-active .school-admin-nav-icon { border-color:#ffffff38; color:#fff; background:#ffffff18; }
+.school-admin-sidebar.is-collapsed { padding:.65rem .55rem; }
+.school-admin-sidebar.is-collapsed .school-admin-sidebar-toggle strong,
+.school-admin-sidebar.is-collapsed > .school-admin-nav-label,
+.school-admin-sidebar.is-collapsed .school-admin-progress-navigation .school-admin-nav-label,
+.school-admin-sidebar.is-collapsed .school-admin-nav-text,
+.school-admin-sidebar.is-collapsed .school-admin-security-note { display:none; }
+.school-admin-sidebar.is-collapsed .school-admin-tabs button { min-height:3.35rem; justify-content:center; gap:0; padding:.5rem; }
+.school-admin-sidebar.is-collapsed .school-admin-nav-icon { width:2.15rem; height:2.15rem; flex-basis:2.15rem; border-radius:.65rem; font-size:.63rem; }
+.school-admin-sidebar.is-collapsed .school-admin-tabs button:hover .school-admin-nav-icon,
+.school-admin-sidebar.is-collapsed .school-admin-tabs button:focus-visible .school-admin-nav-icon { transform:scale(1.06); }
+.school-admin-sidebar.is-collapsed .school-admin-progress-navigation { margin-top:.65rem; padding-top:.65rem; }
 .school-admin-security-note { display:flex; flex-direction:column; gap:.2rem; margin-top:1rem; padding:.75rem; border-top:1px solid #e8edf2; color:#778397; font-size:.67rem; line-height:1.4; }
 .school-admin-security-note strong { color:#456078; font-size:.7rem; }
 .school-admin-content { min-width:0; }
@@ -2513,6 +2533,8 @@ button {
 /* Keep high-contrast billing copy white when it sits on intentionally dark
    surfaces; the legacy light-theme adapter above otherwise recolours it. */
 .school-admin-content .billing-tab-ui .billing-on-dark { color:#fff !important; }
+.school-admin-content .billing-tab-ui .billing-choice[aria-pressed="true"],
+.school-admin-content .billing-tab-ui .billing-choice[aria-pressed="true"] * { color:#fff !important; }
 
 /* Billing and IELTS use the same light surfaces as every other admin tool. */
 .school-admin-ielts-tab [class*="bg-gradient-to"],
