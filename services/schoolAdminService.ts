@@ -901,7 +901,9 @@ export async function listTeacherAssignments(schoolId: string): Promise<ClassTea
     }));
   } catch (err) {
     console.error('Exception fetching teacher assignments:', err);
-    return [];
+    throw err instanceof Error
+      ? err
+      : new Error('Teaching assignments could not be loaded.');
   }
 }
 
