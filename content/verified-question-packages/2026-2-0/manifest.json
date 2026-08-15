@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "packageId": "brain-heist-g11-g12-core-2026-2",
+  "packageVersion": "2026.2.0",
+  "contentVersion": "brain-heist-2026-2",
+  "authority": "Brains Heist Academic Governance",
+  "releaseNotes": "First production package for Grade 11 Chemistry, English and Biology, plus Grade 12 Travel & Tourism. Contains 80 original, explained and curriculum-mapped multiple-choice questions.",
+  "curriculum": {
+    "frameworkCode": "brain-heist-international",
+    "versionCode": "2026-2"
+  },
+  "files": [
+    "chemistry-grade-11.json",
+    "english-grade-11.json",
+    "biology-grade-11.json",
+    "travel-tourism-grade-12.json"
+  ]
+}
