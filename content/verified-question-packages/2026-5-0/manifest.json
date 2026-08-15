@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "packageId": "brain-heist-mathematics-ict-2026-5",
+  "packageVersion": "2026.5.0",
+  "contentVersion": "brain-heist-2026-5",
+  "authority": "Brains Heist Academic Governance",
+  "releaseNotes": "Fourth production package with 80 original questions establishing complete Grade 11 and Grade 12 foundations for Mathematics and ICT.",
+  "curriculum": {
+    "frameworkCode": "brain-heist-international",
+    "versionCode": "2026-5"
+  },
+  "files": [
+    "mathematics-grade-11.json",
+    "mathematics-grade-12.json",
+    "ict-grade-11.json",
+    "ict-grade-12.json"
+  ]
+}

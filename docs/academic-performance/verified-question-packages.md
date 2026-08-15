@@ -73,6 +73,17 @@ The importer defaults to the repository's current latest package. To rehearse or
 
 The release adds five deeper application objectives to Chemistry and Biology and supplies the first five assessable objectives for Grade 11 Physics and Travel & Tourism. It targets the immutable `brain-heist-international@2026-4` curriculum snapshot and preserves the same balance, explanation and mapping requirements as earlier packages.
 
+## 2026.5 Mathematics and ICT foundation package
+
+`brain-heist-mathematics-ict-2026-5@2026.5.0` contains 80 original multiple-choice questions:
+
+- Grade 11 Mathematics: 20
+- Grade 12 Mathematics: 20
+- Grade 11 ICT: 20
+- Grade 12 ICT: 20
+
+The release supplies the first five assessable objectives for each grade-subject scope and targets the immutable `brain-heist-international@2026-5` curriculum snapshot. Every 20-question grade set contains four questions for each objective, 5 easy / 10 medium / 5 hard questions, balanced A–D answer positions, explanations and one approved primary mapping per question.
+
 ## 2026.1.1 repair record
 
 The repair migration creates five new immutable records for answer-key or option defects, copies their approved curriculum mappings, and retires the originals. It also records and retires the 96 reviewed exact duplicate rows without changing assignment snapshots, attempts or student answers. The temporary Grade 8 QA framework is retired after its eight school mappings are archived.
