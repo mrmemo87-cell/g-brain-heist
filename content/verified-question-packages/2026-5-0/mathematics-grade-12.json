@@ -1,0 +1,668 @@
+{
+  "subject": "Mathematics",
+  "subjectCode": "mathematics",
+  "grade": 12,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g12-math-2026.5-001",
+      "topic": "Advanced algebra and functions",
+      "difficulty": "easy",
+      "questionText": "Which expression is equivalent to log₁₀(1000)?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3",
+        "10",
+        "100",
+        "1000"
+      ],
+      "correctAnswer": "3",
+      "explanation": "Because 10³ = 1000, the base-10 logarithm of 1000 is 3.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math12-advanced-algebra",
+        "advanced algebra and functions"
+      ],
+      "curriculum": {
+        "strand": "Advanced algebra and functions",
+        "skill": "Apply advanced algebra and functions",
+        "subskill": "advanced algebra and functions",
+        "objective": "Manipulate advanced algebraic expressions and solve polynomial, exponential, logarithmic and functional equations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-advanced-algebra"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-002",
+      "topic": "Advanced algebra and functions",
+      "difficulty": "medium",
+      "questionText": "Solve 3^(x+1) = 81.",
+      "questionType": "multiple_choice",
+      "options": [
+        "x = 4",
+        "x = 3",
+        "x = 2",
+        "x = 5"
+      ],
+      "correctAnswer": "x = 3",
+      "explanation": "Since 81 = 3⁴, equating exponents gives x + 1 = 4 and therefore x = 3.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math12-advanced-algebra",
+        "advanced algebra and functions"
+      ],
+      "curriculum": {
+        "strand": "Advanced algebra and functions",
+        "skill": "Apply advanced algebra and functions",
+        "subskill": "advanced algebra and functions",
+        "objective": "Manipulate advanced algebraic expressions and solve polynomial, exponential, logarithmic and functional equations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-advanced-algebra"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-003",
+      "topic": "Advanced algebra and functions",
+      "difficulty": "medium",
+      "questionText": "What is the coefficient of x² in the expansion of (1 + 2x)⁴?",
+      "questionType": "multiple_choice",
+      "options": [
+        "16",
+        "12",
+        "24",
+        "32"
+      ],
+      "correctAnswer": "24",
+      "explanation": "The x² term is C(4,2)(2x)² = 6 × 4x² = 24x², so the coefficient is 24.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math12-advanced-algebra",
+        "advanced algebra and functions"
+      ],
+      "curriculum": {
+        "strand": "Advanced algebra and functions",
+        "skill": "Apply advanced algebra and functions",
+        "subskill": "advanced algebra and functions",
+        "objective": "Manipulate advanced algebraic expressions and solve polynomial, exponential, logarithmic and functional equations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-advanced-algebra"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-004",
+      "topic": "Advanced algebra and functions",
+      "difficulty": "hard",
+      "questionText": "The polynomial p(x) = x³ − 4x² − x + 4 has factor x − 1. What is its complete factorization?",
+      "questionType": "multiple_choice",
+      "options": [
+        "(x − 1)(x − 2)²",
+        "(x + 1)(x − 4)²",
+        "(x − 1)(x² − 4)",
+        "(x − 1)(x − 4)(x + 1)"
+      ],
+      "correctAnswer": "(x − 1)(x − 4)(x + 1)",
+      "explanation": "Factoring by grouping gives x²(x−4)−1(x−4) = (x²−1)(x−4) = (x−1)(x+1)(x−4).",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "math12-advanced-algebra",
+        "advanced algebra and functions"
+      ],
+      "curriculum": {
+        "strand": "Advanced algebra and functions",
+        "skill": "Apply advanced algebra and functions",
+        "subskill": "advanced algebra and functions",
+        "objective": "Manipulate advanced algebraic expressions and solve polynomial, exponential, logarithmic and functional equations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-advanced-algebra"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-005",
+      "topic": "Calculus and change",
+      "difficulty": "easy",
+      "questionText": "Differentiate y = 5x³.",
+      "questionType": "multiple_choice",
+      "options": [
+        "15x²",
+        "5x²",
+        "15x",
+        "3x⁴"
+      ],
+      "correctAnswer": "15x²",
+      "explanation": "The power rule gives d(5x³)/dx = 5 × 3x² = 15x².",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math12-calculus",
+        "calculus and change"
+      ],
+      "curriculum": {
+        "strand": "Calculus and change",
+        "skill": "Apply calculus and change",
+        "subskill": "calculus and change",
+        "objective": "Differentiate and integrate functions to analyse rates, accumulation, stationary points and motion."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-calculus"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-006",
+      "topic": "Calculus and change",
+      "difficulty": "medium",
+      "questionText": "For f(x) = x² − 6x + 5, at what x-value is the stationary point?",
+      "questionType": "multiple_choice",
+      "options": [
+        "x = −3",
+        "x = 3",
+        "x = 5",
+        "x = 6"
+      ],
+      "correctAnswer": "x = 3",
+      "explanation": "The derivative is 2x − 6. Setting it equal to zero gives 2x = 6, so x = 3.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math12-calculus",
+        "calculus and change"
+      ],
+      "curriculum": {
+        "strand": "Calculus and change",
+        "skill": "Apply calculus and change",
+        "subskill": "calculus and change",
+        "objective": "Differentiate and integrate functions to analyse rates, accumulation, stationary points and motion."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-calculus"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-007",
+      "topic": "Calculus and change",
+      "difficulty": "medium",
+      "questionText": "Evaluate ∫ from 0 to 2 of 3x² dx.",
+      "questionType": "multiple_choice",
+      "options": [
+        "6",
+        "4",
+        "8",
+        "12"
+      ],
+      "correctAnswer": "8",
+      "explanation": "An antiderivative of 3x² is x³, and x³ evaluated from 0 to 2 is 8 − 0 = 8.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math12-calculus",
+        "calculus and change"
+      ],
+      "curriculum": {
+        "strand": "Calculus and change",
+        "skill": "Apply calculus and change",
+        "subskill": "calculus and change",
+        "objective": "Differentiate and integrate functions to analyse rates, accumulation, stationary points and motion."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-calculus"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-008",
+      "topic": "Calculus and change",
+      "difficulty": "hard",
+      "questionText": "A particle has velocity v(t) = 6t − 2t². When does it first return to rest after t = 0?",
+      "questionType": "multiple_choice",
+      "options": [
+        "t = 2",
+        "t = 4",
+        "t = 6",
+        "t = 3"
+      ],
+      "correctAnswer": "t = 3",
+      "explanation": "Setting velocity to zero gives 2t(3−t)=0, so after t=0 the next rest time is t=3.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "math12-calculus",
+        "calculus and change"
+      ],
+      "curriculum": {
+        "strand": "Calculus and change",
+        "skill": "Apply calculus and change",
+        "subskill": "calculus and change",
+        "objective": "Differentiate and integrate functions to analyse rates, accumulation, stationary points and motion."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-calculus"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-009",
+      "topic": "Vectors and coordinate geometry",
+      "difficulty": "easy",
+      "questionText": "What is the magnitude of vector (3, 4)?",
+      "questionType": "multiple_choice",
+      "options": [
+        "5",
+        "7",
+        "12",
+        "25"
+      ],
+      "correctAnswer": "5",
+      "explanation": "The magnitude is √(3² + 4²) = √25 = 5.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math12-vectors-geometry",
+        "vectors and coordinate geometry"
+      ],
+      "curriculum": {
+        "strand": "Vectors and coordinate geometry",
+        "skill": "Apply vectors and coordinate geometry",
+        "subskill": "vectors and coordinate geometry",
+        "objective": "Use vector, coordinate and trigonometric methods to reason about lines, circles, angles and geometric relationships."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-vectors-geometry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-010",
+      "topic": "Vectors and coordinate geometry",
+      "difficulty": "medium",
+      "questionText": "The line has vector equation r = (1,2) + λ(3,−1). Which vector is parallel to the line?",
+      "questionType": "multiple_choice",
+      "options": [
+        "(1, 2)",
+        "(3, −1)",
+        "(−1, 3)",
+        "(3, 1)"
+      ],
+      "correctAnswer": "(3, −1)",
+      "explanation": "The coefficient of the parameter λ is the direction vector, so (3,−1) is parallel to the line.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math12-vectors-geometry",
+        "vectors and coordinate geometry"
+      ],
+      "curriculum": {
+        "strand": "Vectors and coordinate geometry",
+        "skill": "Apply vectors and coordinate geometry",
+        "subskill": "vectors and coordinate geometry",
+        "objective": "Use vector, coordinate and trigonometric methods to reason about lines, circles, angles and geometric relationships."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-vectors-geometry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-011",
+      "topic": "Vectors and coordinate geometry",
+      "difficulty": "medium",
+      "questionText": "A circle has equation x² + y² − 6x + 4y − 12 = 0. What is its center?",
+      "questionType": "multiple_choice",
+      "options": [
+        "(−3, 2)",
+        "(6, −4)",
+        "(3, −2)",
+        "(3, 2)"
+      ],
+      "correctAnswer": "(3, −2)",
+      "explanation": "Completing squares gives (x−3)² + (y+2)² = 25, so the center is (3,−2).",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math12-vectors-geometry",
+        "vectors and coordinate geometry"
+      ],
+      "curriculum": {
+        "strand": "Vectors and coordinate geometry",
+        "skill": "Apply vectors and coordinate geometry",
+        "subskill": "vectors and coordinate geometry",
+        "objective": "Use vector, coordinate and trigonometric methods to reason about lines, circles, angles and geometric relationships."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-vectors-geometry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-012",
+      "topic": "Vectors and coordinate geometry",
+      "difficulty": "hard",
+      "questionText": "Vectors a and b have magnitudes 4 and 6 with angle 60° between them. What is a · b?",
+      "questionType": "multiple_choice",
+      "options": [
+        "24",
+        "10",
+        "20",
+        "12"
+      ],
+      "correctAnswer": "12",
+      "explanation": "The dot product is |a||b|cos60° = 4 × 6 × 1/2 = 12.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "math12-vectors-geometry",
+        "vectors and coordinate geometry"
+      ],
+      "curriculum": {
+        "strand": "Vectors and coordinate geometry",
+        "skill": "Apply vectors and coordinate geometry",
+        "subskill": "vectors and coordinate geometry",
+        "objective": "Use vector, coordinate and trigonometric methods to reason about lines, circles, angles and geometric relationships."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-vectors-geometry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-013",
+      "topic": "Probability and statistics",
+      "difficulty": "easy",
+      "questionText": "For X ~ Bin(5, 0.4), what is E(X)?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2",
+        "0.4",
+        "5",
+        "2.5"
+      ],
+      "correctAnswer": "2",
+      "explanation": "The expected value of a binomial variable is np, so E(X) = 5 × 0.4 = 2.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math12-probability-statistics",
+        "probability and statistics"
+      ],
+      "curriculum": {
+        "strand": "Probability and statistics",
+        "skill": "Apply probability and statistics",
+        "subskill": "probability and statistics",
+        "objective": "Apply discrete and continuous probability models and statistical inference to interpret data and uncertainty."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-probability-statistics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-014",
+      "topic": "Probability and statistics",
+      "difficulty": "medium",
+      "questionText": "A normal distribution has mean 50 and standard deviation 5. What is the z-score of x = 60?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1",
+        "2",
+        "5",
+        "10"
+      ],
+      "correctAnswer": "2",
+      "explanation": "The standardized score is z = (60−50)/5 = 2.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math12-probability-statistics",
+        "probability and statistics"
+      ],
+      "curriculum": {
+        "strand": "Probability and statistics",
+        "skill": "Apply probability and statistics",
+        "subskill": "probability and statistics",
+        "objective": "Apply discrete and continuous probability models and statistical inference to interpret data and uncertainty."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-probability-statistics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-015",
+      "topic": "Probability and statistics",
+      "difficulty": "medium",
+      "questionText": "For X ~ Bin(4, 0.5), what is P(X = 2)?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1/4",
+        "1/2",
+        "3/8",
+        "5/8"
+      ],
+      "correctAnswer": "3/8",
+      "explanation": "P(X=2) = C(4,2)(0.5)²(0.5)² = 6/16 = 3/8.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math12-probability-statistics",
+        "probability and statistics"
+      ],
+      "curriculum": {
+        "strand": "Probability and statistics",
+        "skill": "Apply probability and statistics",
+        "subskill": "probability and statistics",
+        "objective": "Apply discrete and continuous probability models and statistical inference to interpret data and uncertainty."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-probability-statistics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-016",
+      "topic": "Probability and statistics",
+      "difficulty": "hard",
+      "questionText": "A hypothesis test gives p = 0.018 at the 5% significance level. What is the correct decision?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Accept the null as certainly true",
+        "Increase p to 0.05",
+        "Reject the alternative hypothesis",
+        "Reject the null hypothesis"
+      ],
+      "correctAnswer": "Reject the null hypothesis",
+      "explanation": "Because 0.018 is below 0.05, the result is statistically significant and the null hypothesis is rejected.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "math12-probability-statistics",
+        "probability and statistics"
+      ],
+      "curriculum": {
+        "strand": "Probability and statistics",
+        "skill": "Apply probability and statistics",
+        "subskill": "probability and statistics",
+        "objective": "Apply discrete and continuous probability models and statistical inference to interpret data and uncertainty."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-probability-statistics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-017",
+      "topic": "Modelling and numerical methods",
+      "difficulty": "easy",
+      "questionText": "Which formula is the trapezium-rule estimate using one strip from x = a to x = b?",
+      "questionType": "multiple_choice",
+      "options": [
+        "(b − a)(f(a) + f(b))/2",
+        "(b − a)f(a)f(b)",
+        "(f(b) − f(a))/(b − a)",
+        "(a + b)(f(a) − f(b))/2"
+      ],
+      "correctAnswer": "(b − a)(f(a) + f(b))/2",
+      "explanation": "One trapezium has width b−a and average parallel height (f(a)+f(b))/2, so their product gives the estimate.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math12-modelling-numerical",
+        "modelling and numerical methods"
+      ],
+      "curriculum": {
+        "strand": "Modelling and numerical methods",
+        "skill": "Apply modelling and numerical methods",
+        "subskill": "modelling and numerical methods",
+        "objective": "Use iteration, numerical approximation and differential models while evaluating accuracy, assumptions and limitations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-modelling-numerical"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-018",
+      "topic": "Modelling and numerical methods",
+      "difficulty": "medium",
+      "questionText": "The iteration xₙ₊₁ = √(6 + xₙ) converges to a positive limit L. Which equation must L satisfy?",
+      "questionType": "multiple_choice",
+      "options": [
+        "L² + L − 6 = 0",
+        "L² − L − 6 = 0",
+        "L − 6 = 0",
+        "L² − 6L + 1 = 0"
+      ],
+      "correctAnswer": "L² − L − 6 = 0",
+      "explanation": "At a limit, L = √(6+L). Squaring gives L² = 6+L, hence L²−L−6=0.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math12-modelling-numerical",
+        "modelling and numerical methods"
+      ],
+      "curriculum": {
+        "strand": "Modelling and numerical methods",
+        "skill": "Apply modelling and numerical methods",
+        "subskill": "modelling and numerical methods",
+        "objective": "Use iteration, numerical approximation and differential models while evaluating accuracy, assumptions and limitations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-modelling-numerical"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-019",
+      "topic": "Modelling and numerical methods",
+      "difficulty": "medium",
+      "questionText": "For the differential equation dy/dx = 2y with y(0)=3, which function is the solution?",
+      "questionType": "multiple_choice",
+      "options": [
+        "y = 2e^(3x)",
+        "y = 3e^x + 2",
+        "y = 3e^(2x)",
+        "y = 6x + 3"
+      ],
+      "correctAnswer": "y = 3e^(2x)",
+      "explanation": "Solutions of dy/dx=2y have form Ce^(2x); applying y(0)=3 gives C=3.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math12-modelling-numerical",
+        "modelling and numerical methods"
+      ],
+      "curriculum": {
+        "strand": "Modelling and numerical methods",
+        "skill": "Apply modelling and numerical methods",
+        "subskill": "modelling and numerical methods",
+        "objective": "Use iteration, numerical approximation and differential models while evaluating accuracy, assumptions and limitations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-modelling-numerical"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-math-2026.5-020",
+      "topic": "Modelling and numerical methods",
+      "difficulty": "hard",
+      "questionText": "A population model assumes a constant percentage growth rate forever. Which limitation is most important for long-term prediction?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Percentages cannot describe growth",
+        "Time cannot be a model variable",
+        "Initial population never matters",
+        "Resources and carrying capacity are ignored"
+      ],
+      "correctAnswer": "Resources and carrying capacity are ignored",
+      "explanation": "Unlimited exponential growth becomes unrealistic because real populations face finite resources and environmental carrying limits.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "math12-modelling-numerical",
+        "modelling and numerical methods"
+      ],
+      "curriculum": {
+        "strand": "Modelling and numerical methods",
+        "skill": "Apply modelling and numerical methods",
+        "subskill": "modelling and numerical methods",
+        "objective": "Use iteration, numerical approximation and differential models while evaluating accuracy, assumptions and limitations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-12",
+          "objectiveCode": "math12-modelling-numerical"
+        }
+      ]
+    }
+  ]
+}
