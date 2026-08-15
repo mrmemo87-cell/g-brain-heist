@@ -8,10 +8,10 @@ const cambridge = readFileSync('components/school-admin/tabs/CambridgeTab.tsx', 
 const ieltsPortal = readFileSync('components/SchoolAdminPortal.tsx', 'utf8');
 const styles = readFileSync('src/index.css', 'utf8');
 
-test('billing uses a consistent formal light surface with readable plan cards', () => {
+test('billing uses a consistent formal light surface around the canonical Billing Studio', () => {
   assert.match(billing, /billing-tab-ui max-w-none/);
-  assert.match(billing, /billing-plan-card/);
-  assert.match(billing, /is-popular border-\[#1e4b82\] bg-blue-50/);
+  assert.match(billing, /canManageBilling && billingStudio/);
+  assert.match(billing, /billing-trust-row/);
   assert.doesNotMatch(billing, /bg-\[#0d2929\]/);
   assert.match(styles, /\.billing-tab-ui\{padding:1\.25rem;border:1px solid #dbe4ee/);
 });

@@ -30,12 +30,14 @@ test('module entitlements preserve legacy schools but explicitly gate new school
   assert.match(migration, /can_manage_cambridge_score[\s\S]*school_has_module_access\(s\.school_id,'cambridge'\)/);
 });
 
-test('Paddle checkout and portal access require active ownership', () => {
+test('legacy school checkout is retired while portal access and Core activation stay protected', () => {
   const paddle = read('supabase/functions/paddle/index.ts');
   assert.match(paddle, /requireSchoolHead/);
   assert.match(paddle, /\.eq\("role_in_school", "school_admin"\)/);
   assert.match(paddle, /\.eq\("is_owner", true\)/);
-  assert.match(paddle, /module_keys: \["core"\]/);
+  assert.match(paddle, /return jsonResponse\(410/);
+  assert.match(paddle, /module_key: "core"/);
+  assert.match(paddle, /school_module_entitlements/);
 });
 
 test('verified student onboarding selects an approved class and never creates one', () => {

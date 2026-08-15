@@ -25,8 +25,9 @@ test('school onboarding gets grade choices from approved school classes', () => 
 
 test('ordinary school members never receive school checkout or pilot controls', () => {
   assert.match(upgradeModal, /getMySchoolCapabilities/);
-  assert.match(upgradeModal, /showSchoolManagedAccess/);
-  assert.match(upgradeModal, /School Access Not Active/);
-  assert.match(upgradeModal, /School Head manages the school plan and the free pilot/);
+  assert.match(upgradeModal, /const isSchoolHead = !loading && viewerIsSchoolMember && canManageSchoolBilling/);
+  assert.match(upgradeModal, /const isSchoolMember = !loading && viewerIsSchoolMember && !canManageSchoolBilling/);
+  assert.match(upgradeModal, /Your School Head manages programme access/);
+  assert.match(upgradeModal, /You do not need to purchase anything from a student or teacher account/);
   assert.doesNotMatch(upgradeModal, /exclusively for Prime users/);
 });
