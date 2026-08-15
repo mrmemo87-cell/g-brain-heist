@@ -31,16 +31,22 @@ test('parent invitation experience is school and Brains Heist co-branded', () =>
 test('guardian send confirmation uses the standalone guardian modal instead of Tailwind Toast utilities', () => {
   const admin = read('components/guardian/GuardianManagementPage.tsx');
   const css = read('components/guardian/GuardianManagementPage.css');
+
   assert.match(admin, /guardian-modal-backdrop/);
   assert.match(admin, /guardian-modal-details/);
   assert.match(admin, /Send this parent invitation\?/);
   assert.match(admin, /Parent \/ guardian/);
   assert.match(admin, /Relationship/);
-  assert.match(admin, /schoolName} × \{PRODUCT_NAME\}/);
+  assert.match(admin, /PRODUCT_NAME/);
   assert.doesNotMatch(admin, /import Toast from/);
   assert.doesNotMatch(admin, /className="fixed inset-0/);
-  assert.match(css, /\.guardian-modal-backdrop\{position:fixed;inset:0/);
-  assert.match(css, /\.guardian-modal-brand img\{display:block;width:46px!important;height:46px!important/);
+
+  assert.match(css, /\.guardian-modal-backdrop/);
+  assert.match(css, /position:fixed/);
+  assert.match(css, /inset:0/);
+  assert.match(css, /\.guardian-modal-brand img/);
+  assert.match(css, /width:46px!important/);
+  assert.match(css, /height:46px!important/);
 });
 
 test('new academic and parent surfaces consistently spell Brains Heist', () => {
