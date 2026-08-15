@@ -1,0 +1,668 @@
+{
+  "subject": "Biology",
+  "subjectCode": "biology",
+  "grade": 11,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g11-bio-2026.4-001",
+      "topic": "Cell processes and membranes",
+      "difficulty": "easy",
+      "questionText": "What is the main structural basis of a cell-surface membrane?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A phospholipid bilayer with embedded proteins",
+        "A cellulose sheet with free DNA",
+        "A protein wall containing starch",
+        "A triglyceride layer around ribosomes"
+      ],
+      "correctAnswer": "A phospholipid bilayer with embedded proteins",
+      "explanation": "The fluid-mosaic model describes a phospholipid bilayer containing proteins and other components.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "membranes",
+        "fluid mosaic"
+      ],
+      "curriculum": {
+        "strand": "Cell processes and membranes",
+        "skill": "Apply cell processes and membranes",
+        "subskill": "fluid mosaic",
+        "objective": "Apply membrane, organelle and transport models to explain cell responses and energy-dependent processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-cell-processes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-002",
+      "topic": "Cell processes and membranes",
+      "difficulty": "medium",
+      "questionText": "In osmosis, water moves across a partially permeable membrane in which direction?",
+      "questionType": "multiple_choice",
+      "options": [
+        "From lower to higher pressure only",
+        "From higher to lower water potential",
+        "From higher to lower solute concentration in every case",
+        "From lower to higher temperature"
+      ],
+      "correctAnswer": "From higher to lower water potential",
+      "explanation": "Net osmosis is movement of water from a region of higher water potential to lower water potential through a partially permeable membrane.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "osmosis",
+        "water potential"
+      ],
+      "curriculum": {
+        "strand": "Cell processes and membranes",
+        "skill": "Apply cell processes and membranes",
+        "subskill": "water potential",
+        "objective": "Apply membrane, organelle and transport models to explain cell responses and energy-dependent processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-cell-processes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-003",
+      "topic": "Cell processes and membranes",
+      "difficulty": "medium",
+      "questionText": "Where is the electron transport chain for aerobic respiration located in a eukaryotic cell?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Cytosol",
+        "Outer mitochondrial membrane",
+        "Inner mitochondrial membrane",
+        "Nuclear envelope"
+      ],
+      "correctAnswer": "Inner mitochondrial membrane",
+      "explanation": "Electron carriers and ATP synthase are located in the inner mitochondrial membrane, including the cristae.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "respiration",
+        "mitochondria"
+      ],
+      "curriculum": {
+        "strand": "Cell processes and membranes",
+        "skill": "Apply cell processes and membranes",
+        "subskill": "mitochondria",
+        "objective": "Apply membrane, organelle and transport models to explain cell responses and energy-dependent processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-cell-processes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-004",
+      "topic": "Cell processes and membranes",
+      "difficulty": "hard",
+      "questionText": "Cyanide blocks the final electron carrier in aerobic respiration. What is the most immediate consequence?",
+      "questionType": "multiple_choice",
+      "options": [
+        "DNA replication accelerates",
+        "Glycolysis produces unlimited ATP",
+        "Oxygen production rises in mitochondria",
+        "Oxidative phosphorylation stops and ATP output falls sharply"
+      ],
+      "correctAnswer": "Oxidative phosphorylation stops and ATP output falls sharply",
+      "explanation": "Blocking electron transfer prevents proton pumping and chemiosmosis, so mitochondrial ATP production rapidly collapses.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "respiration",
+        "inhibitors"
+      ],
+      "curriculum": {
+        "strand": "Cell processes and membranes",
+        "skill": "Apply cell processes and membranes",
+        "subskill": "inhibitors",
+        "objective": "Apply membrane, organelle and transport models to explain cell responses and energy-dependent processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-cell-processes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-005",
+      "topic": "Biochemistry and enzymes",
+      "difficulty": "easy",
+      "questionText": "What determines an enzyme active site’s specificity most directly?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The total volume of the cell",
+        "Its three-dimensional shape and chemical groups",
+        "The colour of the substrate",
+        "The number of chromosomes"
+      ],
+      "correctAnswer": "Its three-dimensional shape and chemical groups",
+      "explanation": "The active site’s shape and chemical properties create complementary interactions with particular substrates.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "enzymes",
+        "specificity"
+      ],
+      "curriculum": {
+        "strand": "Biochemistry and enzymes",
+        "skill": "Apply biochemistry and enzymes",
+        "subskill": "specificity",
+        "objective": "Relate molecular structure and enzyme evidence to biological function, inhibition and reaction conditions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-biochemistry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-006",
+      "topic": "Biochemistry and enzymes",
+      "difficulty": "medium",
+      "questionText": "How can the effect of a competitive inhibitor often be reduced?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Lower the enzyme concentration to zero",
+        "Remove all products permanently",
+        "Increase substrate concentration",
+        "Decrease temperature until freezing"
+      ],
+      "correctAnswer": "Increase substrate concentration",
+      "explanation": "More substrate increases the chance that substrate rather than inhibitor occupies the active site.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "competitive inhibition",
+        "substrate"
+      ],
+      "curriculum": {
+        "strand": "Biochemistry and enzymes",
+        "skill": "Apply biochemistry and enzymes",
+        "subskill": "substrate",
+        "objective": "Relate molecular structure and enzyme evidence to biological function, inhibition and reaction conditions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-biochemistry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-007",
+      "topic": "Biochemistry and enzymes",
+      "difficulty": "medium",
+      "questionText": "What is a protein’s primary structure?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The final three-dimensional shape",
+        "The arrangement of several polypeptide subunits",
+        "The pattern of alpha helices only",
+        "The amino-acid sequence of its polypeptide chain"
+      ],
+      "correctAnswer": "The amino-acid sequence of its polypeptide chain",
+      "explanation": "Primary structure is the linear sequence of amino acids joined by peptide bonds.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "proteins",
+        "primary structure"
+      ],
+      "curriculum": {
+        "strand": "Biochemistry and enzymes",
+        "skill": "Apply biochemistry and enzymes",
+        "subskill": "primary structure",
+        "objective": "Relate molecular structure and enzyme evidence to biological function, inhibition and reaction conditions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-biochemistry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-008",
+      "topic": "Biochemistry and enzymes",
+      "difficulty": "hard",
+      "questionText": "An enzyme rate rises from 20 to 40 °C but falls steeply at 50 °C. Which conclusion is best supported?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The tested optimum is near 40 °C and higher temperature may disrupt active-site shape",
+        "The enzyme works only at 20 °C",
+        "Substrate concentration must be zero at 50 °C",
+        "All enzymes have an exact optimum of 40 °C"
+      ],
+      "correctAnswer": "The tested optimum is near 40 °C and higher temperature may disrupt active-site shape",
+      "explanation": "The highest tested rate occurs near 40 °C, while the fall at 50 °C is consistent with heat-induced loss of functional structure.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "enzyme data",
+        "temperature"
+      ],
+      "curriculum": {
+        "strand": "Biochemistry and enzymes",
+        "skill": "Apply biochemistry and enzymes",
+        "subskill": "temperature",
+        "objective": "Relate molecular structure and enzyme evidence to biological function, inhibition and reaction conditions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-biochemistry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-009",
+      "topic": "Genetics and variation",
+      "difficulty": "easy",
+      "questionText": "Which process normally produces two genetically similar diploid daughter cells?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Fertilisation",
+        "Meiosis",
+        "Mitosis",
+        "Crossing over"
+      ],
+      "correctAnswer": "Mitosis",
+      "explanation": "Mitosis copies and separates chromosomes to form two daughter cells with the same chromosome number and usually the same genetic information.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "mitosis",
+        "cell division"
+      ],
+      "curriculum": {
+        "strand": "Genetics and variation",
+        "skill": "Apply genetics and variation",
+        "subskill": "cell division",
+        "objective": "Use cell division, inheritance and chromosome evidence to predict genetic outcomes and sources of variation."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-genetics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-010",
+      "topic": "Genetics and variation",
+      "difficulty": "medium",
+      "questionText": "How does crossing over during meiosis increase variation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It doubles every chromosome number",
+        "It prevents independent assortment",
+        "It creates new mutations in every gene",
+        "It exchanges DNA between homologous chromosomes"
+      ],
+      "correctAnswer": "It exchanges DNA between homologous chromosomes",
+      "explanation": "Exchange between homologous chromatids creates new combinations of alleles on chromosomes.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "meiosis",
+        "crossing over"
+      ],
+      "curriculum": {
+        "strand": "Genetics and variation",
+        "skill": "Apply genetics and variation",
+        "subskill": "crossing over",
+        "objective": "Use cell division, inheritance and chromosome evidence to predict genetic outcomes and sources of variation."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-genetics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-011",
+      "topic": "Genetics and variation",
+      "difficulty": "medium",
+      "questionText": "What offspring ratio is expected from the test cross Aa × aa, assuming complete dominance?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1 dominant : 1 recessive",
+        "3 dominant : 1 recessive",
+        "All dominant",
+        "All recessive"
+      ],
+      "correctAnswer": "1 dominant : 1 recessive",
+      "explanation": "The heterozygote makes A and a gametes equally, while aa makes only a, producing equal Aa and aa offspring.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "test cross",
+        "inheritance"
+      ],
+      "curriculum": {
+        "strand": "Genetics and variation",
+        "skill": "Apply genetics and variation",
+        "subskill": "inheritance",
+        "objective": "Use cell division, inheritance and chromosome evidence to predict genetic outcomes and sources of variation."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-genetics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-012",
+      "topic": "Genetics and variation",
+      "difficulty": "hard",
+      "questionText": "An affected male has an X-linked recessive condition. From whom did he receive the affected X chromosome?",
+      "questionType": "multiple_choice",
+      "options": [
+        "His father only",
+        "His mother",
+        "Both parents equally",
+        "Neither parent"
+      ],
+      "correctAnswer": "His mother",
+      "explanation": "A male receives his X chromosome from his mother and his Y chromosome from his father.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "X-linked inheritance",
+        "pedigree"
+      ],
+      "curriculum": {
+        "strand": "Genetics and variation",
+        "skill": "Apply genetics and variation",
+        "subskill": "pedigree",
+        "objective": "Use cell division, inheritance and chromosome evidence to predict genetic outcomes and sources of variation."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-genetics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-013",
+      "topic": "Exchange and physiology",
+      "difficulty": "easy",
+      "questionText": "Which feature helps a red blood cell transport oxygen efficiently?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A thick cellulose wall",
+        "A large nucleus",
+        "Many chloroplasts",
+        "A biconcave shape and abundant haemoglobin"
+      ],
+      "correctAnswer": "A biconcave shape and abundant haemoglobin",
+      "explanation": "The biconcave shape increases surface-area-to-volume ratio, and haemoglobin binds oxygen while loss of the nucleus creates more space.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "red blood cells",
+        "oxygen transport"
+      ],
+      "curriculum": {
+        "strand": "Exchange and physiology",
+        "skill": "Apply exchange and physiology",
+        "subskill": "oxygen transport",
+        "objective": "Analyse exchange, transport and excretory adaptations that maintain efficient organism function."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-physiology"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-014",
+      "topic": "Exchange and physiology",
+      "difficulty": "medium",
+      "questionText": "What is a likely immediate effect when stomata close?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Water loss by transpiration decreases",
+        "Carbon dioxide uptake increases greatly",
+        "Xylem vessels become wider",
+        "Root pressure becomes zero"
+      ],
+      "correctAnswer": "Water loss by transpiration decreases",
+      "explanation": "Closing stomata reduces diffusion of water vapour from the leaf, although it also limits carbon dioxide entry.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "stomata",
+        "transpiration"
+      ],
+      "curriculum": {
+        "strand": "Exchange and physiology",
+        "skill": "Apply exchange and physiology",
+        "subskill": "transpiration",
+        "objective": "Analyse exchange, transport and excretory adaptations that maintain efficient organism function."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-physiology"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-015",
+      "topic": "Exchange and physiology",
+      "difficulty": "medium",
+      "questionText": "How is cardiac output calculated?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Blood pressure × vessel radius",
+        "Heart rate × stroke volume",
+        "Stroke volume ÷ heart rate",
+        "Heart rate + breathing rate"
+      ],
+      "correctAnswer": "Heart rate × stroke volume",
+      "explanation": "Cardiac output is the volume pumped per beat multiplied by the number of beats per unit time.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "circulation",
+        "cardiac output"
+      ],
+      "curriculum": {
+        "strand": "Exchange and physiology",
+        "skill": "Apply exchange and physiology",
+        "subskill": "cardiac output",
+        "objective": "Analyse exchange, transport and excretory adaptations that maintain efficient organism function."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-physiology"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-016",
+      "topic": "Exchange and physiology",
+      "difficulty": "hard",
+      "questionText": "How does the loop of Henle help produce concentrated urine?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It filters proteins into the nephron",
+        "It secretes glucose into the collecting duct",
+        "Countercurrent flow establishes a medullary water-potential gradient",
+        "It prevents all sodium movement"
+      ],
+      "correctAnswer": "Countercurrent flow establishes a medullary water-potential gradient",
+      "explanation": "Different permeabilities and active ion transport in opposing limbs create a medullary gradient that supports water reabsorption.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "kidney",
+        "countercurrent multiplier"
+      ],
+      "curriculum": {
+        "strand": "Exchange and physiology",
+        "skill": "Apply exchange and physiology",
+        "subskill": "countercurrent multiplier",
+        "objective": "Analyse exchange, transport and excretory adaptations that maintain efficient organism function."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-physiology"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-017",
+      "topic": "Ecology and investigation",
+      "difficulty": "easy",
+      "questionText": "Which method is most suitable for estimating the abundance of small plants in a field?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Random quadrat sampling",
+        "One photograph from the field edge",
+        "A single animal trap",
+        "Counting only the largest plants"
+      ],
+      "correctAnswer": "Random quadrat sampling",
+      "explanation": "Randomly placed quadrats provide repeatable area samples and reduce deliberate placement bias.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "quadrats",
+        "sampling"
+      ],
+      "curriculum": {
+        "strand": "Ecology and investigation",
+        "skill": "Apply ecology and investigation",
+        "subskill": "sampling",
+        "objective": "Interpret ecological patterns and design valid biological investigations using sampling, controls and quantitative evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-ecology-data"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-018",
+      "topic": "Ecology and investigation",
+      "difficulty": "medium",
+      "questionText": "A study finds that bird abundance and tree cover rise together. What can be concluded from correlation alone?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Tree cover definitely causes every increase",
+        "An association exists, but causation is not established",
+        "Birds must create the tree cover",
+        "No relationship is present"
+      ],
+      "correctAnswer": "An association exists, but causation is not established",
+      "explanation": "Correlation describes an association; other variables or reverse causation must be considered before claiming cause.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "correlation",
+        "causation"
+      ],
+      "curriculum": {
+        "strand": "Ecology and investigation",
+        "skill": "Apply ecology and investigation",
+        "subskill": "causation",
+        "objective": "Interpret ecological patterns and design valid biological investigations using sampling, controls and quantitative evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-ecology-data"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-019",
+      "topic": "Ecology and investigation",
+      "difficulty": "medium",
+      "questionText": "Two communities have equal species richness. Which one has greater diversity?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The one dominated by a single species",
+        "The one with the fewest total organisms",
+        "The one with a more even distribution among species",
+        "They must have identical diversity"
+      ],
+      "correctAnswer": "The one with a more even distribution among species",
+      "explanation": "Diversity includes both richness and evenness, so more even relative abundances produce greater diversity when richness is equal.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "biodiversity",
+        "evenness"
+      ],
+      "curriculum": {
+        "strand": "Ecology and investigation",
+        "skill": "Apply ecology and investigation",
+        "subskill": "evenness",
+        "objective": "Interpret ecological patterns and design valid biological investigations using sampling, controls and quantitative evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-ecology-data"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-bio-2026.4-020",
+      "topic": "Ecology and investigation",
+      "difficulty": "hard",
+      "questionText": "A hillside has strong moisture differences from top to bottom. Which sampling design best compares plant distribution along that gradient?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Sample only the wettest location",
+        "Choose sites that are easiest to reach",
+        "Use one very large quadrat at the midpoint",
+        "Place repeated quadrats systematically along transects spanning the slope"
+      ],
+      "correctAnswer": "Place repeated quadrats systematically along transects spanning the slope",
+      "explanation": "Transects spanning the gradient with repeated quadrats capture ordered change while providing replication at multiple positions.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "transects",
+        "experimental design"
+      ],
+      "curriculum": {
+        "strand": "Ecology and investigation",
+        "skill": "Apply ecology and investigation",
+        "subskill": "experimental design",
+        "objective": "Interpret ecological patterns and design valid biological investigations using sampling, controls and quantitative evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "biology-grade-11",
+          "objectiveCode": "bio11-depth-ecology-data"
+        }
+      ]
+    }
+  ]
+}

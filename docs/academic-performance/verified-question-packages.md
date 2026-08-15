@@ -60,7 +60,18 @@ Each subject has five assessable objectives, four questions per objective, a 5 e
 
 The package targets the immutable `brain-heist-international@2026-3` curriculum snapshot. Each subject again contains five objectives with four questions each, 5 easy / 10 medium / 5 hard questions, balanced A–D answer positions, explanations and one approved primary mapping per question.
 
-The importer defaults to this latest package. To rehearse or re-check an older release, pass its directory explicitly with `--package-dir`.
+The importer defaults to the repository's current latest package. To rehearse or re-check an older release, pass its directory explicitly with `--package-dir`.
+
+## 2026.4 Grade 11 completion package
+
+`brain-heist-g11-completion-2026-4@2026.4.0` contains 80 original multiple-choice questions:
+
+- Grade 11 Chemistry depth set: 20
+- Grade 11 Biology depth set: 20
+- Grade 11 Physics: 20
+- Grade 11 Travel & Tourism: 20
+
+The release adds five deeper application objectives to Chemistry and Biology and supplies the first five assessable objectives for Grade 11 Physics and Travel & Tourism. It targets the immutable `brain-heist-international@2026-4` curriculum snapshot and preserves the same balance, explanation and mapping requirements as earlier packages.
 
 ## 2026.1.1 repair record
 

@@ -1,0 +1,668 @@
+{
+  "subject": "Physics",
+  "subjectCode": "physics",
+  "grade": 11,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g11-phys-2026.4-001",
+      "topic": "Measurement and motion",
+      "difficulty": "easy",
+      "questionText": "Which quantity is a scalar?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Distance",
+        "Displacement",
+        "Velocity",
+        "Force"
+      ],
+      "correctAnswer": "Distance",
+      "explanation": "Distance has magnitude only, whereas displacement, velocity and force also have direction.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "scalars",
+        "vectors"
+      ],
+      "curriculum": {
+        "strand": "Measurement and motion",
+        "skill": "Apply measurement and motion",
+        "subskill": "vectors",
+        "objective": "Use scalar, vector, graphical and kinematic relationships to describe and calculate motion."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-measurement-motion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-002",
+      "topic": "Measurement and motion",
+      "difficulty": "medium",
+      "questionText": "A car’s speed increases from 5.0 to 20.0 m s⁻¹ in 3.0 s. What is its average acceleration?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3.0 m s⁻²",
+        "5.0 m s⁻²",
+        "8.3 m s⁻²",
+        "15 m s⁻²"
+      ],
+      "correctAnswer": "5.0 m s⁻²",
+      "explanation": "Acceleration is change in velocity divided by time: (20.0 − 5.0) ÷ 3.0 = 5.0 m s⁻².",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "acceleration",
+        "kinematics"
+      ],
+      "curriculum": {
+        "strand": "Measurement and motion",
+        "skill": "Apply measurement and motion",
+        "subskill": "kinematics",
+        "objective": "Use scalar, vector, graphical and kinematic relationships to describe and calculate motion."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-measurement-motion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-003",
+      "topic": "Measurement and motion",
+      "difficulty": "medium",
+      "questionText": "What does the area under a velocity–time graph represent?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Acceleration",
+        "Speed",
+        "Displacement",
+        "Force"
+      ],
+      "correctAnswer": "Displacement",
+      "explanation": "Integrating velocity over time gives signed displacement; geometrically this is the area under the graph.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "graphs",
+        "displacement"
+      ],
+      "curriculum": {
+        "strand": "Measurement and motion",
+        "skill": "Apply measurement and motion",
+        "subskill": "displacement",
+        "objective": "Use scalar, vector, graphical and kinematic relationships to describe and calculate motion."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-measurement-motion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-004",
+      "topic": "Measurement and motion",
+      "difficulty": "hard",
+      "questionText": "A ball is launched horizontally at 10 m s⁻¹ from a 20 m cliff. Using g = 10 m s⁻² and ignoring air resistance, how far horizontally does it travel?",
+      "questionType": "multiple_choice",
+      "options": [
+        "10 m",
+        "14 m",
+        "40 m",
+        "20 m"
+      ],
+      "correctAnswer": "20 m",
+      "explanation": "Vertical fall time satisfies 20 = ½ × 10 × t², so t = 2 s. Horizontal distance is 10 × 2 = 20 m.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "projectiles",
+        "two-dimensional motion"
+      ],
+      "curriculum": {
+        "strand": "Measurement and motion",
+        "skill": "Apply measurement and motion",
+        "subskill": "two-dimensional motion",
+        "objective": "Use scalar, vector, graphical and kinematic relationships to describe and calculate motion."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-measurement-motion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-005",
+      "topic": "Forces, energy and power",
+      "difficulty": "easy",
+      "questionText": "Which expression gives the weight of an object of mass m in gravitational field strength g?",
+      "questionType": "multiple_choice",
+      "options": [
+        "m/g",
+        "mg",
+        "g/m",
+        "m+g"
+      ],
+      "correctAnswer": "mg",
+      "explanation": "Weight is the gravitational force on a mass and equals W = mg.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "weight",
+        "gravity"
+      ],
+      "curriculum": {
+        "strand": "Forces, energy and power",
+        "skill": "Apply forces, energy and power",
+        "subskill": "gravity",
+        "objective": "Apply force, work, energy and power principles to balanced and accelerating mechanical systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-forces-energy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-006",
+      "topic": "Forces, energy and power",
+      "difficulty": "medium",
+      "questionText": "A constant 50 N force moves an object 4.0 m in the force direction. How much work is done?",
+      "questionType": "multiple_choice",
+      "options": [
+        "12.5 J",
+        "54 J",
+        "200 J",
+        "400 J"
+      ],
+      "correctAnswer": "200 J",
+      "explanation": "Work done is force multiplied by displacement in the force direction: 50 × 4.0 = 200 J.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "work",
+        "energy"
+      ],
+      "curriculum": {
+        "strand": "Forces, energy and power",
+        "skill": "Apply forces, energy and power",
+        "subskill": "energy",
+        "objective": "Apply force, work, energy and power principles to balanced and accelerating mechanical systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-forces-energy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-007",
+      "topic": "Forces, energy and power",
+      "difficulty": "medium",
+      "questionText": "A machine transfers 600 J of energy in 3.0 s. What is its power?",
+      "questionType": "multiple_choice",
+      "options": [
+        "50 W",
+        "180 W",
+        "300 W",
+        "200 W"
+      ],
+      "correctAnswer": "200 W",
+      "explanation": "Power is energy transferred per unit time: 600 ÷ 3.0 = 200 W.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "power",
+        "energy transfer"
+      ],
+      "curriculum": {
+        "strand": "Forces, energy and power",
+        "skill": "Apply forces, energy and power",
+        "subskill": "energy transfer",
+        "objective": "Apply force, work, energy and power principles to balanced and accelerating mechanical systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-forces-energy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-008",
+      "topic": "Forces, energy and power",
+      "difficulty": "hard",
+      "questionText": "A 5.0 kg block is pulled up a 30° slope at constant speed. Friction is 10 N and g = 10 m s⁻². What pulling force parallel to the slope is required?",
+      "questionType": "multiple_choice",
+      "options": [
+        "35 N",
+        "25 N",
+        "50 N",
+        "60 N"
+      ],
+      "correctAnswer": "35 N",
+      "explanation": "At constant speed forces balance: downslope weight component is 5 × 10 × sin30° = 25 N, so pull = 25 + 10 = 35 N.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "inclined planes",
+        "force balance"
+      ],
+      "curriculum": {
+        "strand": "Forces, energy and power",
+        "skill": "Apply forces, energy and power",
+        "subskill": "force balance",
+        "objective": "Apply force, work, energy and power principles to balanced and accelerating mechanical systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-forces-energy"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-009",
+      "topic": "Waves and thermal physics",
+      "difficulty": "easy",
+      "questionText": "When a wave crosses into a new medium, which quantity remains unchanged?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Speed",
+        "Wavelength",
+        "Frequency",
+        "Direction in every case"
+      ],
+      "correctAnswer": "Frequency",
+      "explanation": "The source fixes frequency, while speed and wavelength may change at the boundary.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "waves",
+        "frequency"
+      ],
+      "curriculum": {
+        "strand": "Waves and thermal physics",
+        "skill": "Apply waves and thermal physics",
+        "subskill": "frequency",
+        "objective": "Explain and calculate wave and thermal behaviour using particle, energy-transfer and refraction models."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-waves-thermal"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-010",
+      "topic": "Waves and thermal physics",
+      "difficulty": "medium",
+      "questionText": "Light travels at 2.0 × 10⁸ m s⁻¹ in a material. What is its refractive index if c = 3.0 × 10⁸ m s⁻¹?",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.67",
+        "1.0",
+        "2.0",
+        "1.5"
+      ],
+      "correctAnswer": "1.5",
+      "explanation": "Refractive index n = c/v = 3.0 × 10⁸ ÷ 2.0 × 10⁸ = 1.5.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "refraction",
+        "refractive index"
+      ],
+      "curriculum": {
+        "strand": "Waves and thermal physics",
+        "skill": "Apply waves and thermal physics",
+        "subskill": "refractive index",
+        "objective": "Explain and calculate wave and thermal behaviour using particle, energy-transfer and refraction models."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-waves-thermal"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-011",
+      "topic": "Waves and thermal physics",
+      "difficulty": "medium",
+      "questionText": "How much energy heats 2.0 kg of water by 5.0 °C? Use c = 4200 J kg⁻¹ °C⁻¹.",
+      "questionType": "multiple_choice",
+      "options": [
+        "42 000 J",
+        "4 200 J",
+        "21 000 J",
+        "84 000 J"
+      ],
+      "correctAnswer": "42 000 J",
+      "explanation": "Q = mcΔT = 2.0 × 4200 × 5.0 = 42 000 J.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "specific heat capacity",
+        "thermal energy"
+      ],
+      "curriculum": {
+        "strand": "Waves and thermal physics",
+        "skill": "Apply waves and thermal physics",
+        "subskill": "thermal energy",
+        "objective": "Explain and calculate wave and thermal behaviour using particle, energy-transfer and refraction models."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-waves-thermal"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-012",
+      "topic": "Waves and thermal physics",
+      "difficulty": "hard",
+      "questionText": "Why are metals generally good thermal conductors?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Their ions flow through the solid",
+        "Mobile electrons transfer energy rapidly through the lattice",
+        "They contain no internal energy",
+        "Their nuclei collide with air molecules"
+      ],
+      "correctAnswer": "Mobile electrons transfer energy rapidly through the lattice",
+      "explanation": "Delocalised electrons gain and transfer kinetic energy quickly, supplementing lattice vibrations.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "conduction",
+        "metals"
+      ],
+      "curriculum": {
+        "strand": "Waves and thermal physics",
+        "skill": "Apply waves and thermal physics",
+        "subskill": "metals",
+        "objective": "Explain and calculate wave and thermal behaviour using particle, energy-transfer and refraction models."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-waves-thermal"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-013",
+      "topic": "Electricity and fields",
+      "difficulty": "easy",
+      "questionText": "What is electric current?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Energy transferred per charge",
+        "Resistance multiplied by voltage",
+        "Charge stored per volt",
+        "Rate of flow of charge"
+      ],
+      "correctAnswer": "Rate of flow of charge",
+      "explanation": "Current is defined as charge passing a point per unit time, I = Q/t.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "current",
+        "charge"
+      ],
+      "curriculum": {
+        "strand": "Electricity and fields",
+        "skill": "Apply electricity and fields",
+        "subskill": "charge",
+        "objective": "Analyse charge, current, resistance, power and potential-divider behaviour in electric circuits."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-electricity-fields"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-014",
+      "topic": "Electricity and fields",
+      "difficulty": "medium",
+      "questionText": "What is the same at every point in a simple series circuit?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Current",
+        "Potential difference across each component",
+        "Resistance of each component",
+        "Power of each component"
+      ],
+      "correctAnswer": "Current",
+      "explanation": "There is one path in a series circuit, so charge flow rate and therefore current are the same throughout.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "series circuits",
+        "current"
+      ],
+      "curriculum": {
+        "strand": "Electricity and fields",
+        "skill": "Apply electricity and fields",
+        "subskill": "current",
+        "objective": "Analyse charge, current, resistance, power and potential-divider behaviour in electric circuits."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-electricity-fields"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-015",
+      "topic": "Electricity and fields",
+      "difficulty": "medium",
+      "questionText": "A 6.0 Ω resistor is connected across 12 V. What power does it dissipate?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2 W",
+        "24 W",
+        "72 W",
+        "144 W"
+      ],
+      "correctAnswer": "24 W",
+      "explanation": "P = V²/R = 12² ÷ 6.0 = 24 W.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "electrical power",
+        "resistance"
+      ],
+      "curriculum": {
+        "strand": "Electricity and fields",
+        "skill": "Apply electricity and fields",
+        "subskill": "resistance",
+        "objective": "Analyse charge, current, resistance, power and potential-divider behaviour in electric circuits."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-electricity-fields"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-016",
+      "topic": "Electricity and fields",
+      "difficulty": "hard",
+      "questionText": "A 4.0 Ω and an 8.0 Ω resistor form a series potential divider across 12 V. What is the voltage across the 8.0 Ω resistor?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3.0 V",
+        "4.0 V",
+        "8.0 V",
+        "12 V"
+      ],
+      "correctAnswer": "8.0 V",
+      "explanation": "The 8.0 Ω resistor receives 8/(4+8) of the supply: 8/12 × 12 = 8.0 V.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "potential divider",
+        "circuits"
+      ],
+      "curriculum": {
+        "strand": "Electricity and fields",
+        "skill": "Apply electricity and fields",
+        "subskill": "circuits",
+        "objective": "Analyse charge, current, resistance, power and potential-divider behaviour in electric circuits."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-electricity-fields"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-017",
+      "topic": "Practical physics and data",
+      "difficulty": "easy",
+      "questionText": "What does high precision mean for repeated measurements?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The readings are closely grouped",
+        "The readings equal the true value",
+        "There is no systematic error",
+        "The instrument has no scale"
+      ],
+      "correctAnswer": "The readings are closely grouped",
+      "explanation": "Precision describes the spread of repeated readings; close agreement indicates high precision but not necessarily accuracy.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "precision",
+        "measurement"
+      ],
+      "curriculum": {
+        "strand": "Practical physics and data",
+        "skill": "Apply practical physics and data",
+        "subskill": "measurement",
+        "objective": "Interpret graphs and evaluate physical measurements using uncertainty, calibration and valid variable control."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-practical-data"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-018",
+      "topic": "Practical physics and data",
+      "difficulty": "medium",
+      "questionText": "A time is measured as 2.0 ± 0.1 s. What is the percentage uncertainty?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2%",
+        "5%",
+        "10%",
+        "20%"
+      ],
+      "correctAnswer": "5%",
+      "explanation": "Percentage uncertainty is 0.1 ÷ 2.0 × 100 = 5%.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "uncertainty",
+        "percentage"
+      ],
+      "curriculum": {
+        "strand": "Practical physics and data",
+        "skill": "Apply practical physics and data",
+        "subskill": "percentage",
+        "objective": "Interpret graphs and evaluate physical measurements using uncertainty, calibration and valid variable control."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-practical-data"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-019",
+      "topic": "Practical physics and data",
+      "difficulty": "medium",
+      "questionText": "For F = ma with fixed mass, which graph is linear with gradient 1/m?",
+      "questionType": "multiple_choice",
+      "options": [
+        "F against a",
+        "F² against a",
+        "a against F",
+        "a² against F"
+      ],
+      "correctAnswer": "a against F",
+      "explanation": "Rearranging gives a = (1/m)F, so plotting acceleration vertically against force horizontally gives gradient 1/m.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "linear graphs",
+        "Newton second law"
+      ],
+      "curriculum": {
+        "strand": "Practical physics and data",
+        "skill": "Apply practical physics and data",
+        "subskill": "Newton second law",
+        "objective": "Interpret graphs and evaluate physical measurements using uncertainty, calibration and valid variable control."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-practical-data"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-phys-2026.4-020",
+      "topic": "Practical physics and data",
+      "difficulty": "hard",
+      "questionText": "A balance reads 0.30 g when empty and shifts every mass upward by 0.30 g. What should be done?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Repeat each reading without changing the balance",
+        "Increase the sample mass only",
+        "Ignore the offset because it is small",
+        "Zero or calibrate the balance and correct the systematic error"
+      ],
+      "correctAnswer": "Zero or calibrate the balance and correct the systematic error",
+      "explanation": "A consistent zero offset is systematic and is not removed by repeats; calibration or correction is required.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "systematic error",
+        "calibration"
+      ],
+      "curriculum": {
+        "strand": "Practical physics and data",
+        "skill": "Apply practical physics and data",
+        "subskill": "calibration",
+        "objective": "Interpret graphs and evaluate physical measurements using uncertainty, calibration and valid variable control."
+      },
+      "mappings": [
+        {
+          "scopeCode": "physics-grade-11",
+          "objectiveCode": "phys11-practical-data"
+        }
+      ]
+    }
+  ]
+}

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGES_ROOT = path.resolve(__dirname, '..', 'content', 'verified-question-packages');
-export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-3-0');
+export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-4-0');
 const VALID_DIFFICULTIES = new Set(['easy', 'medium', 'hard']);
 const VALID_TYPES = new Set(['multiple_choice', 'true_false', 'short_answer']);
 const PACKAGE_EXPECTATIONS = new Map([
@@ -25,6 +25,15 @@ const PACKAGE_EXPECTATIONS = new Map([
       ['biology', { subject: 'Biology', grade: 12, scope: 'biology-grade-12' }],
       ['english', { subject: 'English', grade: 12, scope: 'english-grade-12' }],
       ['physics', { subject: 'Physics', grade: 12, scope: 'physics-grade-12' }],
+    ]),
+  }],
+  ['brain-heist-g11-completion-2026-4', {
+    curriculumVersion: '2026-4',
+    scopes: new Map([
+      ['chemistry', { subject: 'Chemistry', grade: 11, scope: 'chemistry-grade-11' }],
+      ['biology', { subject: 'Biology', grade: 11, scope: 'biology-grade-11' }],
+      ['physics', { subject: 'Physics', grade: 11, scope: 'physics-grade-11' }],
+      ['travel-tourism', { subject: 'Travel & Tourism', grade: 11, scope: 'travel-tourism-grade-11' }],
     ]),
   }],
 ]);

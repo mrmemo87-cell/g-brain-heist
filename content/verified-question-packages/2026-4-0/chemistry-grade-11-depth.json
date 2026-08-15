@@ -1,0 +1,668 @@
+{
+  "subject": "Chemistry",
+  "subjectCode": "chemistry",
+  "grade": 11,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g11-chem-2026.4-001",
+      "topic": "Quantitative chemistry and data",
+      "difficulty": "easy",
+      "questionText": "How many moles are present in 11.0 g of carbon dioxide, CO₂?",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.250 mol",
+        "0.500 mol",
+        "2.00 mol",
+        "4.00 mol"
+      ],
+      "correctAnswer": "0.250 mol",
+      "explanation": "The molar mass of CO₂ is 44.0 g mol⁻¹, so amount = 11.0 ÷ 44.0 = 0.250 mol.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "moles",
+        "molar mass"
+      ],
+      "curriculum": {
+        "strand": "Quantitative chemistry and data",
+        "skill": "Apply quantitative chemistry and data",
+        "subskill": "molar mass",
+        "objective": "Solve multi-step stoichiometric, composition and measurement problems using chemically valid assumptions and units."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-quantitative"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-002",
+      "topic": "Quantitative chemistry and data",
+      "difficulty": "medium",
+      "questionText": "For H₂ + Cl₂ → 2HCl, 3.0 mol H₂ reacts with 2.0 mol Cl₂. What maximum amount of HCl forms?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2.0 mol",
+        "4.0 mol",
+        "5.0 mol",
+        "6.0 mol"
+      ],
+      "correctAnswer": "4.0 mol",
+      "explanation": "Chlorine is limiting: 2.0 mol Cl₂ reacts with 2.0 mol H₂ and produces 4.0 mol HCl.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "limiting reagent",
+        "stoichiometry"
+      ],
+      "curriculum": {
+        "strand": "Quantitative chemistry and data",
+        "skill": "Apply quantitative chemistry and data",
+        "subskill": "stoichiometry",
+        "objective": "Solve multi-step stoichiometric, composition and measurement problems using chemically valid assumptions and units."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-quantitative"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-003",
+      "topic": "Quantitative chemistry and data",
+      "difficulty": "medium",
+      "questionText": "A compound is 40.0% carbon, 6.7% hydrogen and 53.3% oxygen by mass. What is its empirical formula?",
+      "questionType": "multiple_choice",
+      "options": [
+        "C₂H₄O₂",
+        "CH₄O",
+        "CH₂O",
+        "C₂H₂O"
+      ],
+      "correctAnswer": "CH₂O",
+      "explanation": "Dividing by relative atomic masses gives about 3.33:6.7:3.33, which simplifies to 1:2:1 and therefore CH₂O.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "empirical formula",
+        "composition"
+      ],
+      "curriculum": {
+        "strand": "Quantitative chemistry and data",
+        "skill": "Apply quantitative chemistry and data",
+        "subskill": "composition",
+        "objective": "Solve multi-step stoichiometric, composition and measurement problems using chemically valid assumptions and units."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-quantitative"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-004",
+      "topic": "Quantitative chemistry and data",
+      "difficulty": "hard",
+      "questionText": "Heating 4.20 g of MgSO₄·xH₂O leaves 2.40 g MgSO₄. Using Mr(MgSO₄)=120 and Mr(H₂O)=18, what is x?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "correctAnswer": "5",
+      "explanation": "There are 2.40/120 = 0.0200 mol MgSO₄ and 1.80/18 = 0.100 mol water, giving a 1:5 ratio.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "hydrates",
+        "multi-step calculation"
+      ],
+      "curriculum": {
+        "strand": "Quantitative chemistry and data",
+        "skill": "Apply quantitative chemistry and data",
+        "subskill": "multi-step calculation",
+        "objective": "Solve multi-step stoichiometric, composition and measurement problems using chemically valid assumptions and units."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-quantitative"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-005",
+      "topic": "Bonding and material properties",
+      "difficulty": "easy",
+      "questionText": "Why do metals conduct electricity when solid?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Their atoms exchange protons",
+        "Delocalised electrons move through the lattice",
+        "Positive ions flow to the electrodes",
+        "Metallic bonds break into molecules"
+      ],
+      "correctAnswer": "Delocalised electrons move through the lattice",
+      "explanation": "Metallic bonding contains mobile delocalised electrons that carry charge through the fixed lattice of positive ions.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "metallic bonding",
+        "conductivity"
+      ],
+      "curriculum": {
+        "strand": "Bonding and material properties",
+        "skill": "Apply bonding and material properties",
+        "subskill": "conductivity",
+        "objective": "Use bonding, structure and intermolecular-force models to explain and predict material properties."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-materials"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-006",
+      "topic": "Bonding and material properties",
+      "difficulty": "medium",
+      "questionText": "Why does silicon dioxide have a very high melting point?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It contains strong bonds inside small molecules",
+        "It is made of oppositely charged simple ions",
+        "Many strong covalent bonds extend through a giant network",
+        "Its atoms have no electrons"
+      ],
+      "correctAnswer": "Many strong covalent bonds extend through a giant network",
+      "explanation": "Silicon dioxide is a giant covalent structure, so melting requires many strong Si–O bonds to be overcome.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "giant covalent",
+        "melting point"
+      ],
+      "curriculum": {
+        "strand": "Bonding and material properties",
+        "skill": "Apply bonding and material properties",
+        "subskill": "melting point",
+        "objective": "Use bonding, structure and intermolecular-force models to explain and predict material properties."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-materials"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-007",
+      "topic": "Bonding and material properties",
+      "difficulty": "medium",
+      "questionText": "Why is ice less dense than liquid water?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Ice molecules lose most of their mass",
+        "Covalent O–H bonds become much shorter",
+        "Liquid water contains no hydrogen bonds",
+        "Hydrogen bonds hold ice in an open lattice"
+      ],
+      "correctAnswer": "Hydrogen bonds hold ice in an open lattice",
+      "explanation": "The ordered hydrogen-bonded lattice in ice spaces molecules farther apart than their average separation in liquid water.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "hydrogen bonding",
+        "density"
+      ],
+      "curriculum": {
+        "strand": "Bonding and material properties",
+        "skill": "Apply bonding and material properties",
+        "subskill": "density",
+        "objective": "Use bonding, structure and intermolecular-force models to explain and predict material properties."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-materials"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-008",
+      "topic": "Bonding and material properties",
+      "difficulty": "hard",
+      "questionText": "Why is the boiling point of water much higher than that of hydrogen sulfide?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Water molecules form stronger hydrogen bonds",
+        "Water has weaker covalent bonds",
+        "Hydrogen sulfide is an ionic solid",
+        "Water molecules contain more atoms"
+      ],
+      "correctAnswer": "Water molecules form stronger hydrogen bonds",
+      "explanation": "Water forms extensive strong hydrogen bonding between molecules, requiring more energy to separate them during boiling.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "intermolecular forces",
+        "boiling point"
+      ],
+      "curriculum": {
+        "strand": "Bonding and material properties",
+        "skill": "Apply bonding and material properties",
+        "subskill": "boiling point",
+        "objective": "Use bonding, structure and intermolecular-force models to explain and predict material properties."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-materials"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-009",
+      "topic": "Energetics, rates and equilibrium",
+      "difficulty": "easy",
+      "questionText": "Why does increasing temperature usually increase reaction rate?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Every collision produces products",
+        "Activation energy becomes zero",
+        "A larger fraction of particles exceeds activation energy",
+        "The equilibrium constant always rises"
+      ],
+      "correctAnswer": "A larger fraction of particles exceeds activation energy",
+      "explanation": "Higher temperature broadens the energy distribution, so a greater fraction of collisions has energy at least equal to the activation energy.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "kinetics",
+        "activation energy"
+      ],
+      "curriculum": {
+        "strand": "Energetics, rates and equilibrium",
+        "skill": "Apply energetics, rates and equilibrium",
+        "subskill": "activation energy",
+        "objective": "Interpret energetic, kinetic and equilibrium evidence to calculate outcomes and explain changes in chemical systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-physical"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-010",
+      "topic": "Energetics, rates and equilibrium",
+      "difficulty": "medium",
+      "questionText": "For an exothermic reversible reaction, which change favours products at equilibrium?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Adding an inert solid",
+        "Using a catalyst",
+        "Increasing temperature",
+        "Decreasing temperature"
+      ],
+      "correctAnswer": "Decreasing temperature",
+      "explanation": "Heat behaves as a product in an exothermic reaction, so lowering temperature shifts equilibrium toward products.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "equilibrium",
+        "temperature"
+      ],
+      "curriculum": {
+        "strand": "Energetics, rates and equilibrium",
+        "skill": "Apply energetics, rates and equilibrium",
+        "subskill": "temperature",
+        "objective": "Interpret energetic, kinetic and equilibrium evidence to calculate outcomes and explain changes in chemical systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-physical"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-011",
+      "topic": "Energetics, rates and equilibrium",
+      "difficulty": "medium",
+      "questionText": "Given C + O₂ → CO₂, ΔH = −394 kJ mol⁻¹, and CO + ½O₂ → CO₂, ΔH = −283 kJ mol⁻¹, what is ΔH for C + ½O₂ → CO?",
+      "questionType": "multiple_choice",
+      "options": [
+        "−111 kJ mol⁻¹",
+        "−677 kJ mol⁻¹",
+        "+111 kJ mol⁻¹",
+        "+677 kJ mol⁻¹"
+      ],
+      "correctAnswer": "−111 kJ mol⁻¹",
+      "explanation": "By Hess’s law, the required change is −394 − (−283) = −111 kJ mol⁻¹.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "Hess law",
+        "enthalpy"
+      ],
+      "curriculum": {
+        "strand": "Energetics, rates and equilibrium",
+        "skill": "Apply energetics, rates and equilibrium",
+        "subskill": "enthalpy",
+        "objective": "Interpret energetic, kinetic and equilibrium evidence to calculate outcomes and explain changes in chemical systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-physical"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-012",
+      "topic": "Energetics, rates and equilibrium",
+      "difficulty": "hard",
+      "questionText": "Doubling [A] doubles rate; then doubling [B] while [A] is fixed quadruples rate. Which orders fit?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Second order in A and first in B",
+        "First order in A and second in B",
+        "First order in both A and B",
+        "Second order in both A and B"
+      ],
+      "correctAnswer": "First order in A and second in B",
+      "explanation": "A twofold rate response indicates first order in A; a fourfold response indicates second order in B.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "rate equation",
+        "reaction order"
+      ],
+      "curriculum": {
+        "strand": "Energetics, rates and equilibrium",
+        "skill": "Apply energetics, rates and equilibrium",
+        "subskill": "reaction order",
+        "objective": "Interpret energetic, kinetic and equilibrium evidence to calculate outcomes and explain changes in chemical systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-physical"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-013",
+      "topic": "Inorganic chemistry and redox",
+      "difficulty": "easy",
+      "questionText": "What occurs when a species is reduced?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It releases protons",
+        "Its mass always decreases",
+        "Its oxidation number always rises",
+        "It gains electrons"
+      ],
+      "correctAnswer": "It gains electrons",
+      "explanation": "Reduction is gain of electrons, normally accompanied by a decrease in oxidation number.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "reduction",
+        "electrons"
+      ],
+      "curriculum": {
+        "strand": "Inorganic chemistry and redox",
+        "skill": "Apply inorganic chemistry and redox",
+        "subskill": "electrons",
+        "objective": "Apply periodic, inorganic and electron-transfer principles to predict reactions and balance redox processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-inorganic-redox"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-014",
+      "topic": "Inorganic chemistry and redox",
+      "difficulty": "medium",
+      "questionText": "Which ionic equation represents chlorine oxidising bromide ions?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Cl₂ + 2Br⁻ → 2Cl⁻ + Br₂",
+        "Br₂ + 2Cl⁻ → 2Br⁻ + Cl₂",
+        "Cl₂ + Br₂ → 2ClBr",
+        "Cl⁻ + Br⁻ → Cl₂ + Br₂"
+      ],
+      "correctAnswer": "Cl₂ + 2Br⁻ → 2Cl⁻ + Br₂",
+      "explanation": "Chlorine gains electrons to form chloride while bromide loses electrons to form bromine.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "halogens",
+        "displacement"
+      ],
+      "curriculum": {
+        "strand": "Inorganic chemistry and redox",
+        "skill": "Apply inorganic chemistry and redox",
+        "subskill": "displacement",
+        "objective": "Apply periodic, inorganic and electron-transfer principles to predict reactions and balance redox processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-inorganic-redox"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-015",
+      "topic": "Inorganic chemistry and redox",
+      "difficulty": "medium",
+      "questionText": "How does the solubility of Group 2 hydroxides generally change down the group?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It becomes exactly zero",
+        "It increases",
+        "It decreases",
+        "It alternates regularly"
+      ],
+      "correctAnswer": "It increases",
+      "explanation": "Group 2 hydroxides generally become more soluble down the group as lattice and hydration effects change.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "Group 2",
+        "solubility"
+      ],
+      "curriculum": {
+        "strand": "Inorganic chemistry and redox",
+        "skill": "Apply inorganic chemistry and redox",
+        "subskill": "solubility",
+        "objective": "Apply periodic, inorganic and electron-transfer principles to predict reactions and balance redox processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-inorganic-redox"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-016",
+      "topic": "Inorganic chemistry and redox",
+      "difficulty": "hard",
+      "questionText": "In acidic solution, one MnO₄⁻ ion oxidises how many Fe²⁺ ions to Fe³⁺?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2",
+        "3",
+        "5",
+        "8"
+      ],
+      "correctAnswer": "5",
+      "explanation": "Mn(VII) gains five electrons to become Mn²⁺, while each Fe²⁺ loses one electron, so the ratio is 1:5.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "redox balancing",
+        "permanganate"
+      ],
+      "curriculum": {
+        "strand": "Inorganic chemistry and redox",
+        "skill": "Apply inorganic chemistry and redox",
+        "subskill": "permanganate",
+        "objective": "Apply periodic, inorganic and electron-transfer principles to predict reactions and balance redox processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-inorganic-redox"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-017",
+      "topic": "Organic pathways and identification",
+      "difficulty": "easy",
+      "questionText": "Which products form when ethanol reacts reversibly with ethanoic acid?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Ethyl ethanoate and water",
+        "Ethanal and hydrogen",
+        "Ethene and oxygen",
+        "Sodium ethanoate and water"
+      ],
+      "correctAnswer": "Ethyl ethanoate and water",
+      "explanation": "An alcohol and carboxylic acid undergo esterification to form ethyl ethanoate and water.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "esterification",
+        "organic reactions"
+      ],
+      "curriculum": {
+        "strand": "Organic pathways and identification",
+        "skill": "Apply organic pathways and identification",
+        "subskill": "organic reactions",
+        "objective": "Predict organic products and select reaction or analytical evidence to distinguish structures and pathways."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-organic"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-018",
+      "topic": "Organic pathways and identification",
+      "difficulty": "medium",
+      "questionText": "What is the major product when propene reacts with hydrogen bromide under normal electrophilic-addition conditions?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1-bromopropane",
+        "2-bromopropane",
+        "Propan-1-ol",
+        "Propane"
+      ],
+      "correctAnswer": "2-bromopropane",
+      "explanation": "Protonation forms the more stable secondary carbocation, so bromide attack mainly produces 2-bromopropane.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "alkenes",
+        "electrophilic addition"
+      ],
+      "curriculum": {
+        "strand": "Organic pathways and identification",
+        "skill": "Apply organic pathways and identification",
+        "subskill": "electrophilic addition",
+        "objective": "Predict organic products and select reaction or analytical evidence to distinguish structures and pathways."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-organic"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-019",
+      "topic": "Organic pathways and identification",
+      "difficulty": "medium",
+      "questionText": "Which observation is expected when an aldehyde is warmed with Tollens’ reagent?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A blue solution forms",
+        "The sample turns purple",
+        "A silver mirror forms",
+        "A white precipitate forms"
+      ],
+      "correctAnswer": "A silver mirror forms",
+      "explanation": "Aldehydes reduce silver(I) ions in Tollens’ reagent to metallic silver, producing a silver mirror.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "aldehydes",
+        "qualitative analysis"
+      ],
+      "curriculum": {
+        "strand": "Organic pathways and identification",
+        "skill": "Apply organic pathways and identification",
+        "subskill": "qualitative analysis",
+        "objective": "Predict organic products and select reaction or analytical evidence to distinguish structures and pathways."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-organic"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-chem-2026.4-020",
+      "topic": "Organic pathways and identification",
+      "difficulty": "hard",
+      "questionText": "Which evidence best distinguishes propanone from propanal?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Both rapidly decolourise bromine water",
+        "Both produce only one proton NMR signal",
+        "Propanone gives a silver mirror but propanal does not",
+        "Propanal gives a silver mirror and an aldehydic proton signal"
+      ],
+      "correctAnswer": "Propanal gives a silver mirror and an aldehydic proton signal",
+      "explanation": "Propanal is an aldehyde, so it reacts with Tollens’ reagent and has an aldehydic proton; propanone does neither.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "structural identification",
+        "spectroscopy"
+      ],
+      "curriculum": {
+        "strand": "Organic pathways and identification",
+        "skill": "Apply organic pathways and identification",
+        "subskill": "spectroscopy",
+        "objective": "Predict organic products and select reaction or analytical evidence to distinguish structures and pathways."
+      },
+      "mappings": [
+        {
+          "scopeCode": "chemistry-grade-11",
+          "objectiveCode": "chem11-depth-organic"
+        }
+      ]
+    }
+  ]
+}
