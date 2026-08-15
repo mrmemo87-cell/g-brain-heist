@@ -5,9 +5,14 @@ import path from 'node:path';
 
 const read = (filePath: string) => fs.readFileSync(path.resolve(process.cwd(), filePath), 'utf8');
 const migration = read('supabase/migrations/20260815165505_school_head_decision_center_v2.sql');
+const teacherAllocationGateMigration = read('supabase/migrations/20260815180000_fix_teacher_allocation_entitlement_gate.sql');
 const portal = read('components/SchoolHeadPortal.tsx');
 const headService = read('services/schoolHeadService.ts');
 const adminService = read('services/schoolAdminService.ts');
+const listTeacherAssignmentsService = adminService.slice(
+  adminService.indexOf('export async function listTeacherAssignments'),
+  adminService.indexOf('export async function assignTeacherToClassSubject'),
+);
 const teachersTab = read('components/school-admin/tabs/TeachersTab.tsx');
 const dispatcher = read('supabase/functions/school_email_dispatcher/index.ts');
 
@@ -54,10 +59,21 @@ test('Decision Center exposes accountable evidence and notification policy', () 
 test('teacher assignments carry and render teacher identity independently of eligibility list', () => {
   assert.match(migration, /'teacher_name',coalesce\(nullif\(u\.full_name,''\),nullif\(u\.username,''\),u\.email,'Unknown teacher'\)/);
   assert.match(migration, /'teacher_email',u\.email/);
-  assert.match(adminService, /teacher_name: row\.teacher_name \|\| row\.teacher_username \|\| row\.teacher_email/);
-  assert.match(adminService, /throw new Error\(error\.message \|\| 'Teaching assignments could not be loaded\.'/);
+  assert.match(listTeacherAssignmentsService, /teacher_name: row\.teacher_name \|\| row\.teacher_username \|\| row\.teacher_email/);
+  assert.match(listTeacherAssignmentsService, /throw new Error\(error\.message \|\| 'Teaching assignments could not be loaded\.'/);
+  assert.match(listTeacherAssignmentsService, /catch \(err\)[\s\S]*?throw err instanceof Error/);
+  assert.doesNotMatch(listTeacherAssignmentsService, /return \[\];/);
   assert.match(teachersTab, /assignment\.teacher_name \|\| teacher\?\.username/);
   assert.match(teachersTab, /Assignment needs staff-status review/);
+});
+
+test('core teacher allocation administration is not gated by the student assignments add-on', () => {
+  assert.match(teacherAllocationGateMigration, /Core teacher allocation is school administration/);
+  assert.match(teacherAllocationGateMigration, /'\/rpc\/school_admin_list_teacher_assignments'/);
+  assert.match(teacherAllocationGateMigration, /'\/rpc\/school_admin_delete_teacher_assignment'/);
+  assert.match(teacherAllocationGateMigration, /then\s+return;\s+end if;/);
+  assert.match(teacherAllocationGateMigration, /'\/assignments','\/assignment_questions'/);
+  assert.match(teacherAllocationGateMigration, /v_feature := 'assignments'/);
 });
 
 test('new service-role and authenticated RPC boundaries remain fail closed', () => {
