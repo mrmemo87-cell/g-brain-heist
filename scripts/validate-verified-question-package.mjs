@@ -1,17 +1,32 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const DEFAULT_PACKAGE_DIR = path.resolve(__dirname, '..', 'content', 'verified-question-packages', '2026-2-0');
+const PACKAGES_ROOT = path.resolve(__dirname, '..', 'content', 'verified-question-packages');
+export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-3-0');
 const VALID_DIFFICULTIES = new Set(['easy', 'medium', 'hard']);
 const VALID_TYPES = new Set(['multiple_choice', 'true_false', 'short_answer']);
-const EXPECTED_SCOPES = new Map([
-  ['chemistry', { subject: 'Chemistry', grade: 11, scope: 'chemistry-grade-11' }],
-  ['english', { subject: 'English', grade: 11, scope: 'english-grade-11' }],
-  ['biology', { subject: 'Biology', grade: 11, scope: 'biology-grade-11' }],
-  ['travel-tourism', { subject: 'Travel & Tourism', grade: 12, scope: 'travel-tourism-grade-12' }],
+const PACKAGE_EXPECTATIONS = new Map([
+  ['brain-heist-g11-g12-core-2026-2', {
+    curriculumVersion: '2026-2',
+    scopes: new Map([
+      ['chemistry', { subject: 'Chemistry', grade: 11, scope: 'chemistry-grade-11' }],
+      ['english', { subject: 'English', grade: 11, scope: 'english-grade-11' }],
+      ['biology', { subject: 'Biology', grade: 11, scope: 'biology-grade-11' }],
+      ['travel-tourism', { subject: 'Travel & Tourism', grade: 12, scope: 'travel-tourism-grade-12' }],
+    ]),
+  }],
+  ['brain-heist-g12-core-2026-3', {
+    curriculumVersion: '2026-3',
+    scopes: new Map([
+      ['chemistry', { subject: 'Chemistry', grade: 12, scope: 'chemistry-grade-12' }],
+      ['biology', { subject: 'Biology', grade: 12, scope: 'biology-grade-12' }],
+      ['english', { subject: 'English', grade: 12, scope: 'english-grade-12' }],
+      ['physics', { subject: 'Physics', grade: 12, scope: 'physics-grade-12' }],
+    ]),
+  }],
 ]);
 
 const readJson = (filePath) => JSON.parse(readFileSync(filePath, 'utf8'));
@@ -59,8 +74,12 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
   if (!/^[a-z0-9][a-z0-9._-]{2,119}$/.test(pkg.packageId ?? '')) errors.push('packageId is invalid');
   if (!/^[0-9]+\.[0-9]+\.[0-9]+(?:-[a-z0-9.-]+)?$/.test(pkg.packageVersion ?? '')) errors.push('packageVersion must be semantic versioning');
   if (!pkg.contentVersion || !pkg.authority) errors.push('contentVersion and authority are required');
-  if (pkg.curriculum?.frameworkCode !== 'brain-heist-international' || pkg.curriculum?.versionCode !== '2026-2') {
-    errors.push('the first release must target brain-heist-international 2026-2');
+  const packageExpectation = PACKAGE_EXPECTATIONS.get(pkg.packageId);
+  const expectedScopes = packageExpectation?.scopes ?? new Map();
+  if (!packageExpectation) errors.push(`packageId ${pkg.packageId ?? 'missing'} has no reviewed validation profile`);
+  if (pkg.curriculum?.frameworkCode !== 'brain-heist-international'
+      || pkg.curriculum?.versionCode !== packageExpectation?.curriculumVersion) {
+    errors.push(`package must target brain-heist-international ${packageExpectation?.curriculumVersion ?? 'reviewed version'}`);
   }
 
   const externalIds = new Set();
@@ -73,7 +92,7 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
 
   for (const q of pkg.questions) {
     const label = `${q.__file}:${q.externalId ?? 'missing-id'}`;
-    const expected = EXPECTED_SCOPES.get(q.subjectCode);
+    const expected = expectedScopes.get(q.subjectCode);
     if (!expected || expected.subject !== q.subject || expected.grade !== q.grade) errors.push(`${label} has an invalid subject/grade combination`);
     if (!/^[a-z0-9][a-z0-9._-]{5,119}$/.test(q.externalId ?? '')) errors.push(`${label} has an invalid externalId`);
     if (externalIds.has(q.externalId)) errors.push(`${label} repeats externalId`);
@@ -124,7 +143,7 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
     objectiveCounts.set(objectiveKey, (objectiveCounts.get(objectiveKey) ?? 0) + 1);
   }
 
-  for (const subjectCode of EXPECTED_SCOPES.keys()) {
+  for (const subjectCode of expectedScopes.keys()) {
     if (subjectCounts.get(subjectCode) !== 20) errors.push(`${subjectCode} must contain exactly 20 questions`);
     for (const [difficulty, expected] of [['easy', 5], ['medium', 10], ['hard', 5]]) {
       if (difficultyCounts.get(`${subjectCode}:${difficulty}`) !== expected) errors.push(`${subjectCode} must contain ${expected} ${difficulty} questions`);
@@ -142,14 +161,27 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const packageDir = process.argv[2] ? path.resolve(process.argv[2]) : DEFAULT_PACKAGE_DIR;
-  const result = validateVerifiedQuestionPackage(packageDir);
-  if (!result.valid) {
-    console.error('Verified question package validation failed:');
-    for (const error of result.errors) console.error(`- ${error}`);
-    process.exit(1);
+  const packageDirs = process.argv[2]
+    ? [path.resolve(process.argv[2])]
+    : readdirSync(PACKAGES_ROOT, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => path.join(PACKAGES_ROOT, entry.name))
+      .filter((directory) => {
+        try { readFileSync(path.join(directory, 'manifest.json')); return true; } catch { return false; }
+      })
+      .sort();
+  let failed = false;
+  for (const packageDir of packageDirs) {
+    const result = validateVerifiedQuestionPackage(packageDir);
+    if (!result.valid) {
+      failed = true;
+      console.error(`Verified question package validation failed for ${path.basename(packageDir)}:`);
+      for (const error of result.errors) console.error(`- ${error}`);
+      continue;
+    }
+    const counts = new Map();
+    for (const question of result.package.questions) counts.set(question.subject, (counts.get(question.subject) ?? 0) + 1);
+    console.log(`Verified question package ${result.package.packageId}@${result.package.packageVersion} passed (${result.package.questions.length} questions: ${[...counts].map(([subject, count]) => `${subject} ${count}`).join(', ')}).`);
   }
-  const counts = new Map();
-  for (const question of result.package.questions) counts.set(question.subject, (counts.get(question.subject) ?? 0) + 1);
-  console.log(`Verified question package ${result.package.packageId}@${result.package.packageVersion} passed (${result.package.questions.length} questions: ${[...counts].map(([subject, count]) => `${subject} ${count}`).join(', ')}).`);
+  if (failed) process.exit(1);
 }

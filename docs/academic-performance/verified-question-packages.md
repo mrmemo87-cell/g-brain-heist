@@ -5,7 +5,7 @@ Brains Heist Verified content is immutable academic evidence. It is published th
 ## Release workflow
 
 1. Create a versioned folder under `content/verified-question-packages/` with a manifest and one or more subject files.
-2. Run `npm run questions:validate-verified-package`.
+2. Run `npm run questions:validate-verified-package`. With no path, the validator checks every reviewed package in the repository.
 3. Apply the schema/curriculum migrations to the target Supabase project.
 4. Rehearse against the target database:
 
@@ -48,6 +48,19 @@ Teacher imports intentionally cannot promote questions into the verified pool.
 - Grade 12 Travel & Tourism: 20
 
 Each subject has five assessable objectives, four questions per objective, a 5 easy / 10 medium / 5 hard distribution, and a 5 / 5 / 5 / 5 correct-option distribution across A–D.
+
+## 2026.3 Grade 12 core package
+
+`brain-heist-g12-core-2026-3@2026.3.0` contains 80 original multiple-choice questions:
+
+- Grade 12 Chemistry: 20
+- Grade 12 Biology: 20
+- Grade 12 English: 20
+- Grade 12 Physics: 20
+
+The package targets the immutable `brain-heist-international@2026-3` curriculum snapshot. Each subject again contains five objectives with four questions each, 5 easy / 10 medium / 5 hard questions, balanced A–D answer positions, explanations and one approved primary mapping per question.
+
+The importer defaults to this latest package. To rehearse or re-check an older release, pass its directory explicitly with `--package-dir`.
 
 ## 2026.1.1 repair record
 
