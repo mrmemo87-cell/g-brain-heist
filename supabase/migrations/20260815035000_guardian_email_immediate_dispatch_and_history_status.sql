@@ -47,7 +47,7 @@ create or replace function public.rpc_school_guardian_management_snapshot()
 returns jsonb
 language plpgsql
 security definer
-set search_path to ''
+set search_path = ''
 as $$
 declare
   v_caller uuid := (select auth.uid());
@@ -122,4 +122,5 @@ begin
 end;
 $$;
 
+revoke all on function public.rpc_school_guardian_management_snapshot() from public, anon;
 grant execute on function public.rpc_school_guardian_management_snapshot() to authenticated;
