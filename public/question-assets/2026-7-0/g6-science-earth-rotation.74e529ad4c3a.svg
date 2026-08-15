@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>Earth and Sun</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32" y="42" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">EARTH AND SUN</text>
+  <path d="M32 58H608" stroke="#334155" stroke-width="2"/>
+  <circle cx="145" cy="190" r="67" fill="#f59e0b" stroke="#fde68a" stroke-width="7"/><text x="145" y="196" fill="#422006" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="900" text-anchor="middle">SUN</text><circle cx="455" cy="190" r="82" fill="#0e7490" stroke="#67e8f9" stroke-width="5"/><path d="M455 108A82 82 0 0 1 455 272Z" fill="#020617" opacity=".82"/><path d="M390 96A108 108 0 0 1 522 101" fill="none" stroke="#fbbf24" stroke-width="5"/><path d="M510 88l20 14-23 8" fill="#fbbf24"/><path d="M220 170H345M220 210H345" stroke="#fde68a" stroke-width="4" stroke-dasharray="10 8"/>
+</svg>

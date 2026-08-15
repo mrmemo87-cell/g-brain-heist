@@ -937,7 +937,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                     <div className="mb-4 flex justify-center">
                       <img
                         src={currentQuestion.image_url}
-                        alt="Question"
+                        alt={currentQuestion.image_alt_text || 'Question visual'}
                         className="max-w-full max-h-36 lg:max-h-48 rounded-lg border border-gray-700 object-contain"
                       />
                     </div>

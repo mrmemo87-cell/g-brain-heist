@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>River bend</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32" y="42" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">RIVER BEND</text>
+  <path d="M32 58H608" stroke="#334155" stroke-width="2"/>
+  <path d="M80 90C500 80 190 270 560 292" fill="none" stroke="#0e7490" stroke-width="92" stroke-linecap="round"/><path d="M80 90C500 80 190 270 560 292" fill="none" stroke="#67e8f9" stroke-width="4" stroke-dasharray="14 12"/><circle cx="395" cy="129" r="20" fill="#f43f5e"/><text x="395" y="136" fill="#fff" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="900" text-anchor="middle">X</text><circle cx="290" cy="216" r="20" fill="#fbbf24"/><text x="290" y="223" fill="#422006" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="900" text-anchor="middle">Y</text>
+</svg>

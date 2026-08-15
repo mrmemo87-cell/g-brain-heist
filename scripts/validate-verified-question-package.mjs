@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-import { readdirSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const REPOSITORY_ROOT = path.resolve(__dirname, '..');
 const PACKAGES_ROOT = path.resolve(__dirname, '..', 'content', 'verified-question-packages');
-export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-6-0');
+export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-7-0');
 const VALID_DIFFICULTIES = new Set(['easy', 'medium', 'hard']);
 const VALID_TYPES = new Set(['multiple_choice', 'true_false', 'short_answer']);
 const PACKAGE_EXPECTATIONS = new Map([
@@ -50,6 +52,16 @@ const PACKAGE_EXPECTATIONS = new Map([
       ['global-perspectives', { subject: 'Global Perspectives', grades: [11, 12], scopes: ['global-perspectives-grade-11', 'global-perspectives-grade-12'] }],
     ]),
   }],
+  ['brain-heist-grade-6-core-2026-7', {
+    curriculumVersion: '2026-7',
+    visualAssetRange: [20, 25],
+    scopes: new Map([
+      ['mathematics', { subject: 'Mathematics', grade: 6, scope: 'mathematics-grade-6' }],
+      ['english', { subject: 'English', grade: 6, scope: 'english-grade-6' }],
+      ['science', { subject: 'Science', grade: 6, scope: 'science-grade-6' }],
+      ['geography', { subject: 'Geography', grade: 6, scope: 'geography-grade-6' }],
+    ]),
+  }],
 ]);
 
 const readJson = (filePath) => JSON.parse(readFileSync(filePath, 'utf8'));
@@ -80,6 +92,8 @@ export function loadVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR) {
     authority: manifest.authority,
     releaseNotes: manifest.releaseNotes,
     curriculum: manifest.curriculum,
+    assetBaseUrl: manifest.assetBaseUrl,
+    assets: manifest.assets ?? [],
     questions,
   };
 }
@@ -93,7 +107,7 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
     return { valid: false, errors: [error instanceof Error ? error.message : String(error)], package: null };
   }
 
-  if (pkg.schemaVersion !== 1) errors.push('schemaVersion must be 1');
+  if (![1, 2].includes(pkg.schemaVersion)) errors.push('schemaVersion must be 1 or 2');
   if (!/^[a-z0-9][a-z0-9._-]{2,119}$/.test(pkg.packageId ?? '')) errors.push('packageId is invalid');
   if (!/^[0-9]+\.[0-9]+\.[0-9]+(?:-[a-z0-9.-]+)?$/.test(pkg.packageVersion ?? '')) errors.push('packageVersion must be semantic versioning');
   if (!pkg.contentVersion || !pkg.authority) errors.push('contentVersion and authority are required');
@@ -105,6 +119,57 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
     errors.push(`package must target brain-heist-international ${packageExpectation?.curriculumVersion ?? 'reviewed version'}`);
   }
 
+  const assetsById = new Map();
+  if (pkg.schemaVersion === 1 && pkg.assets.length) errors.push('schemaVersion 1 packages cannot declare visual assets');
+  if (pkg.schemaVersion === 2) {
+    if (pkg.assetBaseUrl !== 'https://www.brainsheist.com') errors.push('schemaVersion 2 assetBaseUrl must be https://www.brainsheist.com');
+    const [minimumAssets, maximumAssets] = packageExpectation?.visualAssetRange ?? [1, 100];
+    if (pkg.assets.length < minimumAssets || pkg.assets.length > maximumAssets) {
+      errors.push(`package must contain ${minimumAssets}–${maximumAssets} visual assets; found ${pkg.assets.length}`);
+    }
+    for (const asset of pkg.assets) {
+      const label = `asset:${asset?.assetId ?? 'missing-id'}`;
+      if (!/^[a-z0-9][a-z0-9-]{5,100}$/.test(asset?.assetId ?? '')) errors.push(`${label} has an invalid assetId`);
+      if (assetsById.has(asset?.assetId)) errors.push(`${label} repeats assetId`);
+      assetsById.set(asset?.assetId, asset);
+      if (asset?.mimeType !== 'image/svg+xml') errors.push(`${label} must use image/svg+xml for this pilot`);
+      if (!/^[0-9a-f]{64}$/.test(asset?.sha256 ?? '')) errors.push(`${label} has an invalid SHA-256`);
+      if (asset?.width !== 640 || asset?.height !== 360) errors.push(`${label} must be 640×360`);
+      if (String(asset?.altText ?? '').trim().length < 20 || String(asset?.altText ?? '').trim().length > 240) errors.push(`${label} altText must be 20–240 characters`);
+      if (/correct answer|the answer is/i.test(asset?.altText ?? '')) errors.push(`${label} altText must not reveal the answer`);
+      if (asset?.license !== 'Brains Heist original educational artwork' || asset?.source !== 'Brains Heist Visual System') {
+        errors.push(`${label} must carry the reviewed Brains Heist source and license`);
+      }
+      if (!/^public\/question-assets\/2026-7-0\/[a-z0-9-]+\.[0-9a-f]{12}\.svg$/.test(asset?.sourceFile ?? '')) {
+        errors.push(`${label} has an invalid immutable sourceFile`);
+        continue;
+      }
+      const expectedPublicPath = `/${asset.sourceFile.slice('public/'.length)}`;
+      if (asset.publicPath !== expectedPublicPath) errors.push(`${label} publicPath must match sourceFile`);
+      if (!asset.sourceFile.includes(`.${String(asset.sha256).slice(0, 12)}.svg`)) errors.push(`${label} filename must include its checksum prefix`);
+      try {
+        const filePath = path.resolve(REPOSITORY_ROOT, asset.sourceFile);
+        const allowedRoot = path.join(REPOSITORY_ROOT, 'public', 'question-assets', '2026-7-0') + path.sep;
+        if (!filePath.startsWith(allowedRoot)) throw new Error('asset escapes the reviewed public asset directory');
+        const fileBytes = readFileSync(filePath);
+        if (statSync(filePath).size > 100_000) errors.push(`${label} exceeds the 100 KB SVG limit`);
+        const actualHash = createHash('sha256').update(fileBytes).digest('hex');
+        if (actualHash !== asset.sha256) errors.push(`${label} checksum does not match sourceFile`);
+        const svg = fileBytes.toString('utf8');
+        if (!/^<svg\b[^>]*xmlns="http:\/\/www\.w3\.org\/2000\/svg"/i.test(svg)) errors.push(`${label} is not a standalone SVG`);
+        if (!/viewBox="0 0 640 360"/i.test(svg) || !/<title>[^<]+<\/title>/i.test(svg)) errors.push(`${label} needs the reviewed viewBox and a title`);
+        if (/<(?:script|foreignObject|iframe|object|embed)\b/i.test(svg)
+            || /\son[a-z]+\s*=/i.test(svg)
+            || /(?:href|xlink:href)\s*=\s*["'](?:https?:|\/\/|data:)/i.test(svg)
+            || /<image\b/i.test(svg)) {
+          errors.push(`${label} contains unsafe or externally embedded SVG content`);
+        }
+      } catch (error) {
+        errors.push(`${label} cannot be read: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  }
+
   const externalIds = new Set();
   const prompts = new Map();
   const subjectCounts = new Map();
@@ -112,6 +177,7 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
   const answerPositionCounts = new Map();
   const uniquelyLongestCorrectCounts = new Map();
   const objectiveCounts = new Map();
+  const referencedAssetIds = new Set();
 
   for (const q of pkg.questions) {
     const label = `${q.__file}:${q.externalId ?? 'missing-id'}`;
@@ -128,6 +194,11 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
     if (!VALID_TYPES.has(q.questionType)) errors.push(`${label} has invalid questionType`);
     if (!Number.isInteger(q.points) || q.points < 1 || q.points > 100) errors.push(`${label} points must be 1–100`);
     if (!Number.isInteger(q.timeLimit) || q.timeLimit < 10 || q.timeLimit > 600) errors.push(`${label} timeLimit must be 10–600 seconds`);
+    if (q.visualAssetId !== undefined) {
+      if (pkg.schemaVersion !== 2) errors.push(`${label} cannot reference a visual asset in schemaVersion 1`);
+      if (!assetsById.has(q.visualAssetId)) errors.push(`${label} references an unknown visualAssetId`);
+      referencedAssetIds.add(q.visualAssetId);
+    }
 
     const promptKey = normalize(q.questionText);
     if (prompts.has(promptKey)) errors.push(`${label} duplicates the prompt from ${prompts.get(promptKey)}`);
@@ -190,8 +261,33 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
     if (coveredObjectives.size !== 5 || [...coveredObjectives.values()].some((count) => count !== 4)) errors.push(`${groupKey} must cover five objectives with four questions each`);
   }
   if (pkg.questions.length !== 80) errors.push(`package must contain exactly 80 questions; found ${pkg.questions.length}`);
+  if (pkg.schemaVersion === 2) {
+    if (referencedAssetIds.size !== pkg.assets.length) errors.push('every declared visual asset must be referenced by at least one question');
+    const visualQuestionCount = pkg.questions.filter((question) => question.visualAssetId).length;
+    const [minimumAssets, maximumAssets] = packageExpectation?.visualAssetRange ?? [1, 100];
+    if (visualQuestionCount < minimumAssets || visualQuestionCount > maximumAssets) {
+      errors.push(`package must contain ${minimumAssets}–${maximumAssets} visual questions; found ${visualQuestionCount}`);
+    }
+  }
 
-  const cleanPackage = { ...pkg, questions: pkg.questions.map(({ __file, ...question }) => question) };
+  const cleanAssets = pkg.assets.map((asset) => ({
+    ...asset,
+    publicUrl: `${pkg.assetBaseUrl}${asset.publicPath}`,
+  }));
+  const cleanAssetsById = new Map(cleanAssets.map((asset) => [asset.assetId, asset]));
+  const cleanPackage = {
+    ...pkg,
+    assets: cleanAssets,
+    questions: pkg.questions.map(({ __file, ...question }) => {
+      const asset = cleanAssetsById.get(question.visualAssetId);
+      return asset ? {
+        ...question,
+        imageUrl: asset.publicUrl,
+        imageAltText: asset.altText,
+        visualAssetSha256: asset.sha256,
+      } : question;
+    }),
+  };
   return { valid: errors.length === 0, errors, package: cleanPackage };
 }
 

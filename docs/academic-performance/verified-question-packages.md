@@ -7,7 +7,8 @@ Brains Heist Verified content is immutable academic evidence. It is published th
 1. Create a versioned folder under `content/verified-question-packages/` with a manifest and one or more subject files.
 2. Run `npm run questions:validate-verified-package`. With no path, the validator checks every reviewed package in the repository.
 3. Apply the schema/curriculum migrations to the target Supabase project.
-4. Rehearse against the target database:
+4. For schema v2 visual packages, deploy the checksum-addressed files under `public/question-assets/` before the database import. Production imports download every deployed asset and reject any byte or content-type mismatch.
+5. Rehearse against the target database:
 
    ```bash
    SUPABASE_URL=... \
@@ -16,7 +17,7 @@ Brains Heist Verified content is immutable academic evidence. It is published th
    node scripts/import-verified-question-package.mjs --dry-run
    ```
 
-5. Import only after review. Production requires the explicit confirmation flag:
+6. Import only after review. Production requires the explicit confirmation flag:
 
    ```bash
    SUPABASE_URL=... \
@@ -25,7 +26,7 @@ Brains Heist Verified content is immutable academic evidence. It is published th
    node scripts/import-verified-question-package.mjs --confirm-production
    ```
 
-The database validates the package again, acquires a transaction-scoped advisory lock, rejects changed content under an existing package version, checks every subject/scope/objective, blocks active duplicates, and commits questions, assessment items, approved mappings, batch provenance and the release receipt atomically.
+The database validates the package again, acquires a transaction-scoped advisory lock, rejects changed content under an existing package version, checks every subject/scope/objective, blocks active duplicates, and commits questions, assessment items, approved mappings, batch provenance and the release receipt atomically. Schema v2 also records immutable visual metadata and question-to-asset links. SVG validation rejects scripts, event handlers, embedded images, external references, invalid dimensions, missing titles, weak alt text and checksum/path mismatches.
 
 ## Ways questions enter the product
 
@@ -94,6 +95,19 @@ The release supplies the first five assessable objectives for each grade-subject
 - Grade 12 Global Perspectives: 20
 
 The release supplies the first five assessable objectives for each grade-subject scope and targets the immutable `brain-heist-international@2026-6` curriculum snapshot. It applies the same four-questions-per-objective, difficulty, answer-position, explanation and approved-mapping controls as the earlier production packages.
+
+## 2026.7 Grade 6 visual pilot
+
+`brain-heist-grade-6-core-2026-7@2026.7.0` contains 80 original multiple-choice questions:
+
+- Grade 6 Mathematics: 20
+- Grade 6 English: 20
+- Grade 6 Integrated Science: 20
+- Grade 6 Geography: 20
+
+This is the first schema v2 release. It includes 24 original 640×360 SVG learning assets: seven Mathematics diagrams, three English visual stimuli, seven Science diagrams and seven Geography maps/charts. Every asset uses a content-addressed filename, SHA-256 receipt, reviewed source/licence metadata and an answer-safe accessibility description.
+
+The package targets `brain-heist-international@2026-7`. In the four pilot scopes, broad legacy auto-classified objectives remain in history but become non-assessable; five curated objectives per subject become the governed mapping targets. Each subject retains the production balance of four questions per objective, 5 easy / 10 medium / 5 hard questions and five correct answers in each A–D position.
 
 ## 2026.1.1 repair record
 

@@ -105,7 +105,7 @@ export default function QuestionBank({
       return `<section class="document-card">
         <strong>${index + 1}. ${escapeSchoolDocumentHtml(question.question_text)}</strong>
         ${options.length ? `<ol type="A">${options.map((option) => `<li>${escapeSchoolDocumentHtml(option)}</li>`).join('')}</ol>` : '<div style="height:18mm;border-bottom:1px solid #cbd5e1"></div>'}
-        ${question.image_url ? `<img src="${escapeSchoolDocumentHtml(question.image_url)}" alt="Question ${index + 1} diagram" style="display:block;max-width:100%;max-height:70mm;margin:3mm auto;object-fit:contain">` : ''}
+        ${question.image_url ? `<img src="${escapeSchoolDocumentHtml(question.image_url)}" alt="${escapeSchoolDocumentHtml(question.image_alt_text || `Question ${index + 1} diagram`)}" style="display:block;max-width:100%;max-height:70mm;margin:3mm auto;object-fit:contain">` : ''}
         ${includeAnswers ? `<div class="document-callout"><strong>Answer</strong><p>${escapeSchoolDocumentHtml(question.correct_answer)}</p>${question.explanation ? `<p>${escapeSchoolDocumentHtml(question.explanation)}</p>` : ''}</div>` : ''}
       </section>`;
     }).join('');

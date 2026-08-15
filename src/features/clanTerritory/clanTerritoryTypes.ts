@@ -665,6 +665,7 @@ export interface BattleQuestion {
   difficulty?: string;
   question_type?: string;
   image_url?: string; // Optional question image
+  image_alt_text?: string; // Accessible description for the question visual
 }
 
 export interface ClanTerritoryGameState {

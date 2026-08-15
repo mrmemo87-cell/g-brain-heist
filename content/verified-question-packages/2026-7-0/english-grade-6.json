@@ -1,0 +1,671 @@
+{
+  "subject": "English",
+  "subjectCode": "english",
+  "grade": 6,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g6-eng-2026.7-001",
+      "topic": "Reading and inference",
+      "difficulty": "easy",
+      "questionText": "What can the reader infer from the visual sequence?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The student protected the books from the rain",
+        "The student threw the books away",
+        "The box was empty at the end",
+        "The rain damaged every book"
+      ],
+      "correctAnswer": "The student protected the books from the rain",
+      "explanation": "The covered box is later opened with dry books inside, showing that the student protected them.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng6-reading-inference",
+        "reading and inference"
+      ],
+      "visualAssetId": "g6-english-story-sequence",
+      "curriculum": {
+        "strand": "Reading and inference",
+        "skill": "Apply reading and inference",
+        "subskill": "reading and inference",
+        "objective": "Retrieve evidence, infer meaning and identify purpose and main ideas across age-appropriate texts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-002",
+      "topic": "Reading and inference",
+      "difficulty": "medium",
+      "questionText": "Lina checked the clock twice, packed her bag by the door and kept her shoes on. What can be inferred?",
+      "questionType": "multiple_choice",
+      "options": [
+        "She had lost her shoes",
+        "She expected to leave soon",
+        "She wanted to go to sleep",
+        "She planned to unpack the bag"
+      ],
+      "correctAnswer": "She expected to leave soon",
+      "explanation": "The clock checks, packed bag and shoes all suggest that Lina expected to leave soon.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng6-reading-inference",
+        "reading and inference"
+      ],
+      "curriculum": {
+        "strand": "Reading and inference",
+        "skill": "Apply reading and inference",
+        "subskill": "reading and inference",
+        "objective": "Retrieve evidence, infer meaning and identify purpose and main ideas across age-appropriate texts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-003",
+      "topic": "Reading and inference",
+      "difficulty": "medium",
+      "questionText": "A character says, “I am fine,” but avoids eye contact and tears the edge of a tissue. Which detail best challenges the spoken claim?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The character uses the word fine",
+        "The sentence is written in quotation marks",
+        "The character avoids eye contact and tears the tissue",
+        "The tissue has an edge"
+      ],
+      "correctAnswer": "The character avoids eye contact and tears the tissue",
+      "explanation": "The nervous physical actions provide evidence that the character may not actually feel fine.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng6-reading-inference",
+        "reading and inference"
+      ],
+      "curriculum": {
+        "strand": "Reading and inference",
+        "skill": "Apply reading and inference",
+        "subskill": "reading and inference",
+        "objective": "Retrieve evidence, infer meaning and identify purpose and main ideas across age-appropriate texts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-004",
+      "topic": "Reading and inference",
+      "difficulty": "hard",
+      "questionText": "A paragraph explains how reusable bottles reduce waste and save money over time. What is its main purpose?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To narrate a journey to a factory",
+        "To describe the colour of one bottle",
+        "To argue that water is unnecessary",
+        "To explain benefits of choosing reusable bottles"
+      ],
+      "correctAnswer": "To explain benefits of choosing reusable bottles",
+      "explanation": "Both supporting points explain practical benefits of using a reusable bottle.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng6-reading-inference",
+        "reading and inference"
+      ],
+      "curriculum": {
+        "strand": "Reading and inference",
+        "skill": "Apply reading and inference",
+        "subskill": "reading and inference",
+        "objective": "Retrieve evidence, infer meaning and identify purpose and main ideas across age-appropriate texts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-005",
+      "topic": "Vocabulary in context",
+      "difficulty": "easy",
+      "questionText": "Nuri was reluctant to enter the competition, but his friends eventually persuaded him. What does reluctant mean?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Unwilling at first",
+        "Certain to win",
+        "Extremely noisy",
+        "Ready immediately"
+      ],
+      "correctAnswer": "Unwilling at first",
+      "explanation": "The contrast with being persuaded shows that Nuri was unwilling or hesitant at first.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng6-vocabulary-context",
+        "vocabulary in context"
+      ],
+      "curriculum": {
+        "strand": "Vocabulary in context",
+        "skill": "Apply vocabulary in context",
+        "subskill": "vocabulary in context",
+        "objective": "Use context, word parts and figurative language to determine precise meanings and effects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-vocabulary-context"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-006",
+      "topic": "Vocabulary in context",
+      "difficulty": "medium",
+      "questionText": "In “The river was a silver ribbon through the valley,” which technique is used?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Rhyme",
+        "Metaphor",
+        "Onomatopoeia",
+        "Alliteration"
+      ],
+      "correctAnswer": "Metaphor",
+      "explanation": "The river is directly described as a silver ribbon without using like or as, making it a metaphor.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng6-vocabulary-context",
+        "vocabulary in context"
+      ],
+      "curriculum": {
+        "strand": "Vocabulary in context",
+        "skill": "Apply vocabulary in context",
+        "subskill": "vocabulary in context",
+        "objective": "Use context, word parts and figurative language to determine precise meanings and effects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-vocabulary-context"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-007",
+      "topic": "Vocabulary in context",
+      "difficulty": "medium",
+      "questionText": "What does the prefix mis- mean in the word miscalculate?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Again",
+        "Before",
+        "Wrongly",
+        "Without"
+      ],
+      "correctAnswer": "Wrongly",
+      "explanation": "The prefix mis- means wrongly or badly, so miscalculate means to calculate incorrectly.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng6-vocabulary-context",
+        "vocabulary in context"
+      ],
+      "curriculum": {
+        "strand": "Vocabulary in context",
+        "skill": "Apply vocabulary in context",
+        "subskill": "vocabulary in context",
+        "objective": "Use context, word parts and figurative language to determine precise meanings and effects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-vocabulary-context"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-008",
+      "topic": "Vocabulary in context",
+      "difficulty": "hard",
+      "questionText": "Which word suggests someone walked in a relaxed, unhurried way?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Marched",
+        "Raced",
+        "Stumbled",
+        "Strolled"
+      ],
+      "correctAnswer": "Strolled",
+      "explanation": "Strolled carries the precise meaning of walking in a relaxed and unhurried manner.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng6-vocabulary-context",
+        "vocabulary in context"
+      ],
+      "curriculum": {
+        "strand": "Vocabulary in context",
+        "skill": "Apply vocabulary in context",
+        "subskill": "vocabulary in context",
+        "objective": "Use context, word parts and figurative language to determine precise meanings and effects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-vocabulary-context"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-009",
+      "topic": "Grammar and sentence control",
+      "difficulty": "easy",
+      "questionText": "Which sentence correctly punctuates Maya’s exact words?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Maya said, “I finished my project.”",
+        "Maya said “I finished my project”.",
+        "Maya said, I finished my project.",
+        "Maya said “I finished, my project.”"
+      ],
+      "correctAnswer": "Maya said, “I finished my project.”",
+      "explanation": "A reporting clause is followed by a comma, and the spoken sentence is enclosed in quotation marks with punctuation inside.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng6-grammar-sentences",
+        "grammar and sentence control"
+      ],
+      "visualAssetId": "g6-english-direct-speech",
+      "curriculum": {
+        "strand": "Grammar and sentence control",
+        "skill": "Apply grammar and sentence control",
+        "subskill": "grammar and sentence control",
+        "objective": "Control agreement, pronouns, punctuation and clause structures to create accurate sentences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-grammar-sentences"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-010",
+      "topic": "Grammar and sentence control",
+      "difficulty": "medium",
+      "questionText": "Choose the sentence with correct subject–verb agreement.",
+      "questionType": "multiple_choice",
+      "options": [
+        "The basket of apples are on the table.",
+        "The basket of apples is on the table.",
+        "The students in my class enjoys reading.",
+        "Each of the players have a number."
+      ],
+      "correctAnswer": "The basket of apples is on the table.",
+      "explanation": "The subject is the singular noun basket, so the correct verb is is.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng6-grammar-sentences",
+        "grammar and sentence control"
+      ],
+      "curriculum": {
+        "strand": "Grammar and sentence control",
+        "skill": "Apply grammar and sentence control",
+        "subskill": "grammar and sentence control",
+        "objective": "Control agreement, pronouns, punctuation and clause structures to create accurate sentences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-grammar-sentences"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-011",
+      "topic": "Grammar and sentence control",
+      "difficulty": "medium",
+      "questionText": "In “When Sara met Amina, she was carrying a violin,” what is the main problem?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The sentence has no verb",
+        "The comma creates a fragment",
+        "The pronoun she has an unclear reference",
+        "Violin is spelled incorrectly"
+      ],
+      "correctAnswer": "The pronoun she has an unclear reference",
+      "explanation": "She could refer to Sara or Amina, so the pronoun reference is ambiguous.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng6-grammar-sentences",
+        "grammar and sentence control"
+      ],
+      "curriculum": {
+        "strand": "Grammar and sentence control",
+        "skill": "Apply grammar and sentence control",
+        "subskill": "grammar and sentence control",
+        "objective": "Control agreement, pronouns, punctuation and clause structures to create accurate sentences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-grammar-sentences"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-012",
+      "topic": "Grammar and sentence control",
+      "difficulty": "hard",
+      "questionText": "Which sentence combines the ideas most clearly: The path was steep. We continued climbing.",
+      "questionType": "multiple_choice",
+      "options": [
+        "The path steep and continued climbing.",
+        "We continued because steep the path.",
+        "Steep, the path we climbing continued.",
+        "Although the path was steep, we continued climbing."
+      ],
+      "correctAnswer": "Although the path was steep, we continued climbing.",
+      "explanation": "Although creates a clear subordinate clause showing contrast between the difficulty and the continued action.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng6-grammar-sentences",
+        "grammar and sentence control"
+      ],
+      "curriculum": {
+        "strand": "Grammar and sentence control",
+        "skill": "Apply grammar and sentence control",
+        "subskill": "grammar and sentence control",
+        "objective": "Control agreement, pronouns, punctuation and clause structures to create accurate sentences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-grammar-sentences"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-013",
+      "topic": "Writing organisation",
+      "difficulty": "easy",
+      "questionText": "Which step should replace the missing card after a claim?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Evidence",
+        "A new title",
+        "An unrelated fact",
+        "A repeated claim"
+      ],
+      "correctAnswer": "Evidence",
+      "explanation": "Evidence should follow and support a claim before the writer explains its significance and links back.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng6-writing-organisation",
+        "writing organisation"
+      ],
+      "visualAssetId": "g6-english-paragraph-plan",
+      "curriculum": {
+        "strand": "Writing organisation",
+        "skill": "Apply writing organisation",
+        "subskill": "writing organisation",
+        "objective": "Organise ideas into coherent paragraphs using evidence, explanation, transitions and purposeful editing."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-writing-organisation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-014",
+      "topic": "Writing organisation",
+      "difficulty": "medium",
+      "questionText": "Which transition best shows contrast?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Similarly",
+        "However",
+        "Therefore",
+        "For example"
+      ],
+      "correctAnswer": "However",
+      "explanation": "However signals that the next idea contrasts with the one that came before it.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng6-writing-organisation",
+        "writing organisation"
+      ],
+      "curriculum": {
+        "strand": "Writing organisation",
+        "skill": "Apply writing organisation",
+        "subskill": "writing organisation",
+        "objective": "Organise ideas into coherent paragraphs using evidence, explanation, transitions and purposeful editing."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-writing-organisation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-015",
+      "topic": "Writing organisation",
+      "difficulty": "medium",
+      "questionText": "Which is the strongest topic sentence for a paragraph about school gardens?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Our garden has a blue gate.",
+        "Yesterday was Tuesday.",
+        "School gardens improve learning, wellbeing and environmental awareness.",
+        "Some students wear green shoes."
+      ],
+      "correctAnswer": "School gardens improve learning, wellbeing and environmental awareness.",
+      "explanation": "The sentence introduces the paragraph’s central idea and previews the main areas the paragraph can develop.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng6-writing-organisation",
+        "writing organisation"
+      ],
+      "curriculum": {
+        "strand": "Writing organisation",
+        "skill": "Apply writing organisation",
+        "subskill": "writing organisation",
+        "objective": "Organise ideas into coherent paragraphs using evidence, explanation, transitions and purposeful editing."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-writing-organisation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-016",
+      "topic": "Writing organisation",
+      "difficulty": "hard",
+      "questionText": "Which revision removes unnecessary repetition?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The final outcome at the end surprised everyone.",
+        "The outcome was final at the end and surprising.",
+        "Everyone was surprised by the final end outcome.",
+        "The final outcome surprised everyone."
+      ],
+      "correctAnswer": "The final outcome surprised everyone.",
+      "explanation": "Final and at the end repeat the same idea, so the concise version communicates the meaning clearly.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng6-writing-organisation",
+        "writing organisation"
+      ],
+      "curriculum": {
+        "strand": "Writing organisation",
+        "skill": "Apply writing organisation",
+        "subskill": "writing organisation",
+        "objective": "Organise ideas into coherent paragraphs using evidence, explanation, transitions and purposeful editing."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-writing-organisation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-017",
+      "topic": "Audience and language choices",
+      "difficulty": "easy",
+      "questionText": "Which sentence is most suitable for a formal email to a school principal?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Could we arrange a meeting to discuss the proposal?",
+        "Hey, can we chat about this thing?",
+        "You need to meet us right now.",
+        "What’s up with our proposal?"
+      ],
+      "correctAnswer": "Could we arrange a meeting to discuss the proposal?",
+      "explanation": "The wording is polite, specific and appropriately formal for communication with a principal.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng6-language-choices",
+        "audience and language choices"
+      ],
+      "curriculum": {
+        "strand": "Audience and language choices",
+        "skill": "Apply audience and language choices",
+        "subskill": "audience and language choices",
+        "objective": "Select tone, voice and persuasive techniques that suit purpose, audience and communication context."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-language-choices"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-018",
+      "topic": "Audience and language choices",
+      "difficulty": "medium",
+      "questionText": "“Join the clean-up and help create a safer park for every family.” Which persuasive appeal is strongest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A scientific definition",
+        "Shared community benefit",
+        "A personal insult",
+        "A comic rhyme"
+      ],
+      "correctAnswer": "Shared community benefit",
+      "explanation": "The sentence appeals to a benefit shared by families and the wider community.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng6-language-choices",
+        "audience and language choices"
+      ],
+      "curriculum": {
+        "strand": "Audience and language choices",
+        "skill": "Apply audience and language choices",
+        "subskill": "audience and language choices",
+        "objective": "Select tone, voice and persuasive techniques that suit purpose, audience and communication context."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-language-choices"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-019",
+      "topic": "Audience and language choices",
+      "difficulty": "medium",
+      "questionText": "Which tone best suits safety instructions for a science experiment?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Mysterious and vague",
+        "Playful but incomplete",
+        "Clear and direct",
+        "Sarcastic and doubtful"
+      ],
+      "correctAnswer": "Clear and direct",
+      "explanation": "Safety instructions must be unambiguous, concise and direct so readers can follow them accurately.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng6-language-choices",
+        "audience and language choices"
+      ],
+      "curriculum": {
+        "strand": "Audience and language choices",
+        "skill": "Apply audience and language choices",
+        "subskill": "audience and language choices",
+        "objective": "Select tone, voice and persuasive techniques that suit purpose, audience and communication context."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-language-choices"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g6-eng-2026.7-020",
+      "topic": "Audience and language choices",
+      "difficulty": "hard",
+      "questionText": "Which sentence uses active voice to make responsibility clearest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The bridge was repaired.",
+        "The bridge had been repaired somehow.",
+        "There was a repairing of the bridge.",
+        "The council repaired the bridge."
+      ],
+      "correctAnswer": "The council repaired the bridge.",
+      "explanation": "The active sentence clearly identifies the council as the person or group responsible for the action.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng6-language-choices",
+        "audience and language choices"
+      ],
+      "curriculum": {
+        "strand": "Audience and language choices",
+        "skill": "Apply audience and language choices",
+        "subskill": "audience and language choices",
+        "objective": "Select tone, voice and persuasive techniques that suit purpose, audience and communication context."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-6",
+          "objectiveCode": "eng6-language-choices"
+        }
+      ]
+    }
+  ]
+}

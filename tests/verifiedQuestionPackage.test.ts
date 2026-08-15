@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { test } from 'node:test';
 
 const importerMigration = readFileSync('supabase/migrations/20260815120000_verified_question_package_importer.sql', 'utf8');
@@ -11,6 +13,9 @@ const grade12CurriculumMigration = readFileSync('supabase/migrations/20260815124
 const grade11CompletionMigration = readFileSync('supabase/migrations/20260815125000_brains_heist_curriculum_2026_4.sql', 'utf8');
 const mathematicsIctMigration = readFileSync('supabase/migrations/20260815130000_brains_heist_curriculum_2026_5.sql', 'utf8');
 const geographyGlobalPerspectivesMigration = readFileSync('supabase/migrations/20260815131000_brains_heist_curriculum_2026_6.sql', 'utf8');
+const visualImporterMigration = readFileSync('supabase/migrations/20260815132000_verified_question_visual_asset_importer.sql', 'utf8');
+const grade6CurriculumMigration = readFileSync('supabase/migrations/20260815133000_brains_heist_curriculum_2026_7.sql', 'utf8');
+const visualAccessibilityMigration = readFileSync('supabase/migrations/20260815134000_question_visual_accessibility.sql', 'utf8');
 
 test('all verified question packages pass their quality and balance profiles', () => {
   const result = spawnSync(process.execPath, ['scripts/validate-verified-question-package.mjs'], {
@@ -28,6 +33,39 @@ test('all verified question packages pass their quality and balance profiles', (
   assert.match(result.stdout, /Mathematics 40, ICT 40/);
   assert.match(result.stdout, /brain-heist-geography-global-perspectives-2026-6@2026\.6\.0 passed/);
   assert.match(result.stdout, /Geography 40, Global Perspectives 40/);
+  assert.match(result.stdout, /brain-heist-grade-6-core-2026-7@2026\.7\.0 passed/);
+  for (const subject of ['Mathematics 20', 'English 20', 'Science 20', 'Geography 20']) {
+    assert.match(result.stdout, new RegExp(subject));
+  }
+});
+
+test('schema v2 verifies all visual bytes, metadata and question links', () => {
+  const manifest = JSON.parse(readFileSync('content/verified-question-packages/2026-7-0/manifest.json', 'utf8'));
+  assert.equal(manifest.schemaVersion, 2);
+  assert.equal(manifest.assets.length, 24);
+  assert.equal(new Set(manifest.assets.map((asset: any) => asset.assetId)).size, 24);
+  assert.ok(manifest.assets.every((asset: any) => asset.publicPath.includes(asset.sha256.slice(0, 12))));
+
+  const visualQuestions = manifest.files.flatMap((file: string) => {
+    const source = JSON.parse(readFileSync(path.join('content/verified-question-packages/2026-7-0', file), 'utf8'));
+    return source.questions.filter((question: any) => question.visualAssetId);
+  });
+  assert.equal(visualQuestions.length, 24);
+
+  const tempPackage = mkdtempSync(path.join(tmpdir(), 'bh-visual-package-'));
+  try {
+    cpSync('content/verified-question-packages/2026-7-0', tempPackage, { recursive: true });
+    const tampered = JSON.parse(readFileSync(path.join(tempPackage, 'manifest.json'), 'utf8'));
+    tampered.assets[0].sha256 = '0'.repeat(64);
+    writeFileSync(path.join(tempPackage, 'manifest.json'), JSON.stringify(tampered));
+    const result = spawnSync(process.execPath, ['scripts/validate-verified-question-package.mjs', tempPackage], {
+      cwd: process.cwd(), encoding: 'utf8',
+    });
+    assert.notEqual(result.status, 0);
+    assert.match(`${result.stdout}\n${result.stderr}`, /checksum|filename must include its checksum prefix/i);
+  } finally {
+    rmSync(tempPackage, { recursive: true, force: true });
+  }
 });
 
 test('verified importer is atomic, idempotent and service-role only', () => {
@@ -40,6 +78,18 @@ test('verified importer is atomic, idempotent and service-role only', () => {
   assert.match(importerMigration, /active_verified_question_duplicate/);
   assert.match(importerMigration, /verified_question_import_releases/);
   assert.match(releaseIndexMigration, /verified_question_import_releases\(framework_version_id\)/);
+});
+
+test('visual importer is immutable, service-role only and hash-aware', () => {
+  assert.match(visualImporterMigration, /rpc_import_verified_question_package_v2/);
+  assert.match(visualImporterMigration, /verified_question_visual_assets/);
+  assert.match(visualImporterMigration, /verified_question_visual_links/);
+  assert.match(visualImporterMigration, /p_package::text, 'sha256'/);
+  assert.match(visualImporterMigration, /p_image_url|v_image_url/);
+  assert.match(visualImporterMigration, /enable row level security/);
+  assert.match(visualImporterMigration, /revoke all on function public\.rpc_import_verified_question_package_v2\(jsonb, boolean\)[\s\S]*from public, anon, authenticated/i);
+  assert.match(visualImporterMigration, /grant execute on function public\.rpc_import_verified_question_package_v2\(jsonb, boolean\)[\s\S]*to service_role/i);
+  assert.match(visualAccessibilityMigration, /'image_alt_text', q\.image_alt_text/);
 });
 
 test('repair migration preserves history while retiring reviewed defects and duplicates', () => {
@@ -126,6 +176,20 @@ test('2026.6 curriculum establishes Grade 11 and 12 Geography and Global Perspec
   assert.match(geographyGlobalPerspectivesMigration, /status = 'approved'/);
   assert.match(geographyGlobalPerspectivesMigration, /status = 'published'/);
   assert.match(geographyGlobalPerspectivesMigration, /extensions\.digest/);
+});
+
+test('2026.7 curriculum establishes curated Grade 6 core objectives', () => {
+  assert.match(grade6CurriculumMigration, /version_code = '2026-6'/);
+  assert.match(grade6CurriculumMigration, /'2026-7'/);
+  for (const scope of ['mathematics-grade-6', 'english-grade-6', 'science-grade-6', 'geography-grade-6']) {
+    assert.match(grade6CurriculumMigration, new RegExp(scope));
+  }
+  for (const objective of ['math6-number-operations', 'eng6-reading-inference', 'sci6-living-systems', 'geo6-map-skills']) {
+    assert.match(grade6CurriculumMigration, new RegExp(objective));
+  }
+  assert.match(grade6CurriculumMigration, /legacy-classification/);
+  assert.match(grade6CurriculumMigration, /status = 'published'/);
+  assert.match(grade6CurriculumMigration, /extensions\.digest/);
 });
 
 test('verified importer CLI refuses missing service-role credentials and production confirmation', () => {
