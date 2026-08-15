@@ -1,0 +1,668 @@
+{
+  "subject": "ICT",
+  "subjectCode": "ict",
+  "grade": 12,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g12-ict-2026.5-001",
+      "topic": "System architecture and performance",
+      "difficulty": "easy",
+      "questionText": "What is the purpose of cache memory near the CPU?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Store frequently used data for faster access",
+        "Archive rarely used files for long-term preservation",
+        "Replace every network connection",
+        "Display graphics without processing"
+      ],
+      "correctAnswer": "Store frequently used data for faster access",
+      "explanation": "Cache keeps frequently needed instructions and data close to the processor, reducing average access time.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "ict12-system-architecture",
+        "system architecture and performance"
+      ],
+      "curriculum": {
+        "strand": "System architecture and performance",
+        "skill": "Apply system architecture and performance",
+        "subskill": "system architecture and performance",
+        "objective": "Analyse computer architecture, virtualization, cloud services and performance trade-offs for organizational requirements."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-system-architecture"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-002",
+      "topic": "System architecture and performance",
+      "difficulty": "medium",
+      "questionText": "Which cloud model provides virtual machines, storage and networking while the customer manages the operating system?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Fully managed Software as a Service",
+        "Infrastructure as a Service",
+        "Desktop publishing service",
+        "Peer-to-peer licensing"
+      ],
+      "correctAnswer": "Infrastructure as a Service",
+      "explanation": "IaaS supplies virtualized infrastructure, while the customer typically controls the operating system and deployed applications.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict12-system-architecture",
+        "system architecture and performance"
+      ],
+      "curriculum": {
+        "strand": "System architecture and performance",
+        "skill": "Apply system architecture and performance",
+        "subskill": "system architecture and performance",
+        "objective": "Analyse computer architecture, virtualization, cloud services and performance trade-offs for organizational requirements."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-system-architecture"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-003",
+      "topic": "System architecture and performance",
+      "difficulty": "medium",
+      "questionText": "Why can adding CPU cores fail to double an application’s speed?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Every task becomes perfectly parallel when extra cores are added",
+        "More cores automatically remove RAM",
+        "Some tasks are sequential or limited by other resources",
+        "Applications cannot use operating systems"
+      ],
+      "correctAnswer": "Some tasks are sequential or limited by other resources",
+      "explanation": "Parallel speed-up is limited by sequential work and bottlenecks such as memory, storage or synchronization.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict12-system-architecture",
+        "system architecture and performance"
+      ],
+      "curriculum": {
+        "strand": "System architecture and performance",
+        "skill": "Apply system architecture and performance",
+        "subskill": "system architecture and performance",
+        "objective": "Analyse computer architecture, virtualization, cloud services and performance trade-offs for organizational requirements."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-system-architecture"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-004",
+      "topic": "System architecture and performance",
+      "difficulty": "hard",
+      "questionText": "An organization runs several isolated servers on one physical machine. What technology enables this most directly?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Lossless audio compression",
+        "Optical character recognition",
+        "Single-factor authentication",
+        "Hypervisor-based virtualization"
+      ],
+      "correctAnswer": "Hypervisor-based virtualization",
+      "explanation": "A hypervisor allocates physical resources among isolated virtual machines, allowing multiple server environments on one host.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "ict12-system-architecture",
+        "system architecture and performance"
+      ],
+      "curriculum": {
+        "strand": "System architecture and performance",
+        "skill": "Apply system architecture and performance",
+        "subskill": "system architecture and performance",
+        "objective": "Analyse computer architecture, virtualization, cloud services and performance trade-offs for organizational requirements."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-system-architecture"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-005",
+      "topic": "Advanced networks and cybersecurity",
+      "difficulty": "easy",
+      "questionText": "What does a subnet mask determine in an IPv4 network?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Which address bits identify network and host",
+        "The encryption key for every packet",
+        "The physical length of a cable",
+        "The maximum monitor brightness"
+      ],
+      "correctAnswer": "Which address bits identify network and host",
+      "explanation": "The mask separates the network prefix from the host portion so devices can determine whether a destination is local.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "ict12-networks-cybersecurity",
+        "advanced networks and cybersecurity"
+      ],
+      "curriculum": {
+        "strand": "Advanced networks and cybersecurity",
+        "skill": "Apply advanced networks and cybersecurity",
+        "subskill": "advanced networks and cybersecurity",
+        "objective": "Evaluate network designs, cryptographic controls, authentication and incident responses against advanced threats and operational needs."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-networks-cybersecurity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-006",
+      "topic": "Advanced networks and cybersecurity",
+      "difficulty": "medium",
+      "questionText": "Why are passwords normally stored as salted hashes?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To make passwords readable by administrators",
+        "To resist password recovery and precomputed attacks",
+        "To transmit passwords without encryption",
+        "To guarantee users choose unique usernames"
+      ],
+      "correctAnswer": "To resist password recovery and precomputed attacks",
+      "explanation": "Hashing avoids storing plaintext, and a unique salt makes identical passwords differ and defeats many precomputed hash tables.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict12-networks-cybersecurity",
+        "advanced networks and cybersecurity"
+      ],
+      "curriculum": {
+        "strand": "Advanced networks and cybersecurity",
+        "skill": "Apply advanced networks and cybersecurity",
+        "subskill": "advanced networks and cybersecurity",
+        "objective": "Evaluate network designs, cryptographic controls, authentication and incident responses against advanced threats and operational needs."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-networks-cybersecurity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-007",
+      "topic": "Advanced networks and cybersecurity",
+      "difficulty": "medium",
+      "questionText": "What security property does a digital signature primarily provide?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Confidentiality of all public information",
+        "Permanent internet availability",
+        "Authenticity and integrity of the signed data",
+        "Anonymous access without credentials"
+      ],
+      "correctAnswer": "Authenticity and integrity of the signed data",
+      "explanation": "A valid digital signature shows that the holder of the private key signed the data and that it has not been altered.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict12-networks-cybersecurity",
+        "advanced networks and cybersecurity"
+      ],
+      "curriculum": {
+        "strand": "Advanced networks and cybersecurity",
+        "skill": "Apply advanced networks and cybersecurity",
+        "subskill": "advanced networks and cybersecurity",
+        "objective": "Evaluate network designs, cryptographic controls, authentication and incident responses against advanced threats and operational needs."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-networks-cybersecurity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-008",
+      "topic": "Advanced networks and cybersecurity",
+      "difficulty": "hard",
+      "questionText": "After ransomware is detected on one workstation, what is the best immediate containment action?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Pay immediately without investigation",
+        "Delete every organizational backup",
+        "Publish administrator passwords internally",
+        "Isolate the affected device from the network"
+      ],
+      "correctAnswer": "Isolate the affected device from the network",
+      "explanation": "Network isolation limits lateral spread while preserving the device for investigation and coordinated recovery.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "ict12-networks-cybersecurity",
+        "advanced networks and cybersecurity"
+      ],
+      "curriculum": {
+        "strand": "Advanced networks and cybersecurity",
+        "skill": "Apply advanced networks and cybersecurity",
+        "subskill": "advanced networks and cybersecurity",
+        "objective": "Evaluate network designs, cryptographic controls, authentication and incident responses against advanced threats and operational needs."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-networks-cybersecurity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-009",
+      "topic": "Databases and data analytics",
+      "difficulty": "easy",
+      "questionText": "What does a foreign key represent in a relational database?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A reference to a key in another table",
+        "An encrypted copy of every record",
+        "A field that must contain decimal values",
+        "A temporary formatting instruction"
+      ],
+      "correctAnswer": "A reference to a key in another table",
+      "explanation": "A foreign key links related rows by referencing a candidate or primary key in another table.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "ict12-databases-analytics",
+        "databases and data analytics"
+      ],
+      "curriculum": {
+        "strand": "Databases and data analytics",
+        "skill": "Apply databases and data analytics",
+        "subskill": "databases and data analytics",
+        "objective": "Design relational databases, use queries and transactions, and evaluate data quality and analytical conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-databases-analytics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-010",
+      "topic": "Databases and data analytics",
+      "difficulty": "medium",
+      "questionText": "Which transaction property ensures committed data survives a system failure?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Atomicity",
+        "Durability",
+        "Isolation",
+        "Volatility"
+      ],
+      "correctAnswer": "Durability",
+      "explanation": "Durability means that once a transaction commits, its changes persist even after a crash or power loss.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict12-databases-analytics",
+        "databases and data analytics"
+      ],
+      "curriculum": {
+        "strand": "Databases and data analytics",
+        "skill": "Apply databases and data analytics",
+        "subskill": "databases and data analytics",
+        "objective": "Design relational databases, use queries and transactions, and evaluate data quality and analytical conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-databases-analytics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-011",
+      "topic": "Databases and data analytics",
+      "difficulty": "medium",
+      "questionText": "Which SQL operation combines related rows from customers and orders using a shared customer ID?",
+      "questionType": "multiple_choice",
+      "options": [
+        "DROP",
+        "TRUNCATE",
+        "JOIN",
+        "GRANT"
+      ],
+      "correctAnswer": "JOIN",
+      "explanation": "A JOIN combines rows from tables using a relationship condition such as matching customer identifiers.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict12-databases-analytics",
+        "databases and data analytics"
+      ],
+      "curriculum": {
+        "strand": "Databases and data analytics",
+        "skill": "Apply databases and data analytics",
+        "subskill": "databases and data analytics",
+        "objective": "Design relational databases, use queries and transactions, and evaluate data quality and analytical conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-databases-analytics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-012",
+      "topic": "Databases and data analytics",
+      "difficulty": "hard",
+      "questionText": "A dashboard shows sales rising after an advertising campaign. Why does this alone not prove the campaign caused the rise?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Dashboards cannot display numerical data",
+        "Sales cannot change over time",
+        "Advertising is never measurable",
+        "Other variables may explain the correlation"
+      ],
+      "correctAnswer": "Other variables may explain the correlation",
+      "explanation": "A time association is correlation, and seasonality, pricing or other changes may be confounding causes.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "ict12-databases-analytics",
+        "databases and data analytics"
+      ],
+      "curriculum": {
+        "strand": "Databases and data analytics",
+        "skill": "Apply databases and data analytics",
+        "subskill": "databases and data analytics",
+        "objective": "Design relational databases, use queries and transactions, and evaluate data quality and analytical conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-databases-analytics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-013",
+      "topic": "Software development and testing",
+      "difficulty": "easy",
+      "questionText": "What is decomposition in software development?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Breaking a complex problem into smaller parts",
+        "Combining every function into one statement",
+        "Removing all user requirements",
+        "Converting source code into an image"
+      ],
+      "correctAnswer": "Breaking a complex problem into smaller parts",
+      "explanation": "Decomposition makes a complex system manageable by dividing it into modules or subproblems with clearer responsibilities.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "ict12-software-development",
+        "software development and testing"
+      ],
+      "curriculum": {
+        "strand": "Software development and testing",
+        "skill": "Apply software development and testing",
+        "subskill": "software development and testing",
+        "objective": "Apply decomposition, algorithms, version control and systematic testing to develop maintainable software solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-software-development"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-014",
+      "topic": "Software development and testing",
+      "difficulty": "medium",
+      "questionText": "What is the main benefit of version control branching?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Prevent any previous version from being recovered",
+        "Develop changes independently before integration",
+        "Execute code without testing",
+        "Store passwords directly in source files"
+      ],
+      "correctAnswer": "Develop changes independently before integration",
+      "explanation": "Branches isolate work so features or fixes can be reviewed and tested before they are merged into the shared codebase.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict12-software-development",
+        "software development and testing"
+      ],
+      "curriculum": {
+        "strand": "Software development and testing",
+        "skill": "Apply software development and testing",
+        "subskill": "software development and testing",
+        "objective": "Apply decomposition, algorithms, version control and systematic testing to develop maintainable software solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-software-development"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-015",
+      "topic": "Software development and testing",
+      "difficulty": "medium",
+      "questionText": "Which test best verifies that two modules exchange data correctly?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Unit test of one isolated function",
+        "Color contrast inspection only",
+        "Integration test",
+        "Disk defragmentation test"
+      ],
+      "correctAnswer": "Integration test",
+      "explanation": "Integration testing focuses on interfaces and interactions between components after their individual behavior is tested.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict12-software-development",
+        "software development and testing"
+      ],
+      "curriculum": {
+        "strand": "Software development and testing",
+        "skill": "Apply software development and testing",
+        "subskill": "software development and testing",
+        "objective": "Apply decomposition, algorithms, version control and systematic testing to develop maintainable software solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-software-development"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-016",
+      "topic": "Software development and testing",
+      "difficulty": "hard",
+      "questionText": "An algorithm repeatedly halves a sorted search range. What is its time complexity?",
+      "questionType": "multiple_choice",
+      "options": [
+        "O(n²)",
+        "O(2ⁿ)",
+        "O(n!)",
+        "O(log n)"
+      ],
+      "correctAnswer": "O(log n)",
+      "explanation": "Binary search halves the remaining range each step, so the number of comparisons grows logarithmically with input size.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "ict12-software-development",
+        "software development and testing"
+      ],
+      "curriculum": {
+        "strand": "Software development and testing",
+        "skill": "Apply software development and testing",
+        "subskill": "software development and testing",
+        "objective": "Apply decomposition, algorithms, version control and systematic testing to develop maintainable software solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-software-development"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-017",
+      "topic": "Information systems and digital ethics",
+      "difficulty": "easy",
+      "questionText": "What is a disaster-recovery plan designed to support?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Restoration of critical services after disruption",
+        "Permanent removal of all backup copies",
+        "Elimination of every operational risk",
+        "Public access to confidential systems"
+      ],
+      "correctAnswer": "Restoration of critical services after disruption",
+      "explanation": "A disaster-recovery plan defines people, procedures and resources for restoring priority technology services after serious disruption.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "ict12-information-systems-ethics",
+        "information systems and digital ethics"
+      ],
+      "curriculum": {
+        "strand": "Information systems and digital ethics",
+        "skill": "Apply information systems and digital ethics",
+        "subskill": "information systems and digital ethics",
+        "objective": "Evaluate information systems using governance, usability, privacy, reliability, sustainability and ethical decision-making criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-information-systems-ethics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-018",
+      "topic": "Information systems and digital ethics",
+      "difficulty": "medium",
+      "questionText": "Why is an audit trail important in an information system?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It makes every user an administrator",
+        "It records actions for accountability and investigation",
+        "It replaces access control entirely",
+        "It guarantees data is always unbiased"
+      ],
+      "correctAnswer": "It records actions for accountability and investigation",
+      "explanation": "Audit logs provide evidence of who performed actions and when, supporting monitoring, investigation and compliance.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict12-information-systems-ethics",
+        "information systems and digital ethics"
+      ],
+      "curriculum": {
+        "strand": "Information systems and digital ethics",
+        "skill": "Apply information systems and digital ethics",
+        "subskill": "information systems and digital ethics",
+        "objective": "Evaluate information systems using governance, usability, privacy, reliability, sustainability and ethical decision-making criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-information-systems-ethics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-019",
+      "topic": "Information systems and digital ethics",
+      "difficulty": "medium",
+      "questionText": "An automated hiring model rejects applicants from one demographic at a much higher rate. What should the organization examine first?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Whether the interface uses animated icons",
+        "Whether every applicant owns the same device",
+        "Bias in data, features and decision thresholds",
+        "Whether the database name is short"
+      ],
+      "correctAnswer": "Bias in data, features and decision thresholds",
+      "explanation": "Disparate outcomes can result from unrepresentative training data, proxy variables or thresholds, so these should be audited.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict12-information-systems-ethics",
+        "information systems and digital ethics"
+      ],
+      "curriculum": {
+        "strand": "Information systems and digital ethics",
+        "skill": "Apply information systems and digital ethics",
+        "subskill": "information systems and digital ethics",
+        "objective": "Evaluate information systems using governance, usability, privacy, reliability, sustainability and ethical decision-making criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-information-systems-ethics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g12-ict-2026.5-020",
+      "topic": "Information systems and digital ethics",
+      "difficulty": "hard",
+      "questionText": "A hospital is choosing between maximum data collection and patient privacy. Which approach is most defensible?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Collect everything because storage is inexpensive",
+        "Share identifiable records without controls",
+        "Avoid documenting any processing decision",
+        "Use purpose limitation, consent and proportionate safeguards"
+      ],
+      "correctAnswer": "Use purpose limitation, consent and proportionate safeguards",
+      "explanation": "A defensible system limits processing to legitimate purposes, respects consent requirements and applies safeguards proportionate to risk.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "ict12-information-systems-ethics",
+        "information systems and digital ethics"
+      ],
+      "curriculum": {
+        "strand": "Information systems and digital ethics",
+        "skill": "Apply information systems and digital ethics",
+        "subskill": "information systems and digital ethics",
+        "objective": "Evaluate information systems using governance, usability, privacy, reliability, sustainability and ethical decision-making criteria."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-12",
+          "objectiveCode": "ict12-information-systems-ethics"
+        }
+      ]
+    }
+  ]
+}

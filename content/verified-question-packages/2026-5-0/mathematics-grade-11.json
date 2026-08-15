@@ -1,0 +1,668 @@
+{
+  "subject": "Mathematics",
+  "subjectCode": "mathematics",
+  "grade": 11,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g11-math-2026.5-001",
+      "topic": "Number and algebra",
+      "difficulty": "easy",
+      "questionText": "Simplify 3x + 5x − 2.",
+      "questionType": "multiple_choice",
+      "options": [
+        "8x − 2",
+        "8x + 2",
+        "15x − 2",
+        "6x"
+      ],
+      "correctAnswer": "8x − 2",
+      "explanation": "Like terms combine to give 3x + 5x = 8x, while the constant −2 remains unchanged.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math11-number-algebra",
+        "number and algebra"
+      ],
+      "curriculum": {
+        "strand": "Number and algebra",
+        "skill": "Apply number and algebra",
+        "subskill": "number and algebra",
+        "objective": "Apply number properties, algebraic manipulation, equations and sequences to solve multi-step problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-number-algebra"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-002",
+      "topic": "Number and algebra",
+      "difficulty": "medium",
+      "questionText": "Solve 4(2x − 3) = 20.",
+      "questionType": "multiple_choice",
+      "options": [
+        "x = 2",
+        "x = 4",
+        "x = 3",
+        "x = 7"
+      ],
+      "correctAnswer": "x = 4",
+      "explanation": "Dividing by 4 gives 2x − 3 = 5, so 2x = 8 and therefore x = 4.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math11-number-algebra",
+        "number and algebra"
+      ],
+      "curriculum": {
+        "strand": "Number and algebra",
+        "skill": "Apply number and algebra",
+        "subskill": "number and algebra",
+        "objective": "Apply number properties, algebraic manipulation, equations and sequences to solve multi-step problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-number-algebra"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-003",
+      "topic": "Number and algebra",
+      "difficulty": "medium",
+      "questionText": "The sequence 7, 12, 17, 22, ... is arithmetic. What is its nth term?",
+      "questionType": "multiple_choice",
+      "options": [
+        "5n + 7",
+        "7n − 2",
+        "5n + 2",
+        "12n − 5"
+      ],
+      "correctAnswer": "5n + 2",
+      "explanation": "The common difference is 5, so the nth term is 5n plus the adjustment 2, which gives 7 when n = 1.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math11-number-algebra",
+        "number and algebra"
+      ],
+      "curriculum": {
+        "strand": "Number and algebra",
+        "skill": "Apply number and algebra",
+        "subskill": "number and algebra",
+        "objective": "Apply number properties, algebraic manipulation, equations and sequences to solve multi-step problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-number-algebra"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-004",
+      "topic": "Number and algebra",
+      "difficulty": "hard",
+      "questionText": "Simplify √72 completely.",
+      "questionType": "multiple_choice",
+      "options": [
+        "8√2",
+        "12√2",
+        "36√2",
+        "6√2"
+      ],
+      "correctAnswer": "6√2",
+      "explanation": "Since 72 = 36 × 2, √72 = √36 × √2 = 6√2 in simplest surd form.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "math11-number-algebra",
+        "number and algebra"
+      ],
+      "curriculum": {
+        "strand": "Number and algebra",
+        "skill": "Apply number and algebra",
+        "subskill": "number and algebra",
+        "objective": "Apply number properties, algebraic manipulation, equations and sequences to solve multi-step problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-number-algebra"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-005",
+      "topic": "Functions and graphs",
+      "difficulty": "easy",
+      "questionText": "For f(x) = 2x − 5, what is f(4)?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3",
+        "8",
+        "11",
+        "13"
+      ],
+      "correctAnswer": "3",
+      "explanation": "Substituting x = 4 gives f(4) = 2(4) − 5 = 8 − 5 = 3.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math11-functions-graphs",
+        "functions and graphs"
+      ],
+      "curriculum": {
+        "strand": "Functions and graphs",
+        "skill": "Apply functions and graphs",
+        "subskill": "functions and graphs",
+        "objective": "Interpret, construct and transform linear, quadratic and other functions using algebraic and graphical representations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-functions-graphs"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-006",
+      "topic": "Functions and graphs",
+      "difficulty": "medium",
+      "questionText": "Which point is the y-intercept of y = 3x − 7?",
+      "questionType": "multiple_choice",
+      "options": [
+        "(−7, 0)",
+        "(0, −7)",
+        "(0, 3)",
+        "(3, 0)"
+      ],
+      "correctAnswer": "(0, −7)",
+      "explanation": "At the y-intercept x = 0, so y = 3(0) − 7 = −7 and the point is (0, −7).",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math11-functions-graphs",
+        "functions and graphs"
+      ],
+      "curriculum": {
+        "strand": "Functions and graphs",
+        "skill": "Apply functions and graphs",
+        "subskill": "functions and graphs",
+        "objective": "Interpret, construct and transform linear, quadratic and other functions using algebraic and graphical representations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-functions-graphs"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-007",
+      "topic": "Functions and graphs",
+      "difficulty": "medium",
+      "questionText": "The graph of y = x² is translated 4 units right. Which equation describes the new graph?",
+      "questionType": "multiple_choice",
+      "options": [
+        "y = (x + 4)²",
+        "y = x² − 4",
+        "y = (x − 4)²",
+        "y = 4x²"
+      ],
+      "correctAnswer": "y = (x − 4)²",
+      "explanation": "A horizontal shift four units right replaces x by x − 4, giving y = (x − 4)².",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math11-functions-graphs",
+        "functions and graphs"
+      ],
+      "curriculum": {
+        "strand": "Functions and graphs",
+        "skill": "Apply functions and graphs",
+        "subskill": "functions and graphs",
+        "objective": "Interpret, construct and transform linear, quadratic and other functions using algebraic and graphical representations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-functions-graphs"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-008",
+      "topic": "Functions and graphs",
+      "difficulty": "hard",
+      "questionText": "A quadratic has roots 2 and −5 and leading coefficient 1. Which expression defines it?",
+      "questionType": "multiple_choice",
+      "options": [
+        "(x + 2)(x − 5)",
+        "(x − 2)(x − 5)",
+        "(x + 2)(x + 5)",
+        "(x − 2)(x + 5)"
+      ],
+      "correctAnswer": "(x − 2)(x + 5)",
+      "explanation": "A root r produces factor x − r, so roots 2 and −5 give factors (x − 2) and (x + 5).",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "math11-functions-graphs",
+        "functions and graphs"
+      ],
+      "curriculum": {
+        "strand": "Functions and graphs",
+        "skill": "Apply functions and graphs",
+        "subskill": "functions and graphs",
+        "objective": "Interpret, construct and transform linear, quadratic and other functions using algebraic and graphical representations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-functions-graphs"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-009",
+      "topic": "Geometry and trigonometry",
+      "difficulty": "easy",
+      "questionText": "A right triangle has perpendicular sides 6 cm and 8 cm. What is the hypotenuse?",
+      "questionType": "multiple_choice",
+      "options": [
+        "10 cm",
+        "12 cm",
+        "14 cm",
+        "48 cm"
+      ],
+      "correctAnswer": "10 cm",
+      "explanation": "Pythagoras gives c² = 6² + 8² = 36 + 64 = 100, so c = 10 cm.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math11-geometry-trigonometry",
+        "geometry and trigonometry"
+      ],
+      "curriculum": {
+        "strand": "Geometry and trigonometry",
+        "skill": "Apply geometry and trigonometry",
+        "subskill": "geometry and trigonometry",
+        "objective": "Use geometric reasoning, similarity and trigonometric relationships to calculate lengths, angles and areas."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-geometry-trigonometry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-010",
+      "topic": "Geometry and trigonometry",
+      "difficulty": "medium",
+      "questionText": "In a right triangle, the side opposite angle θ is 5 and the hypotenuse is 13. Which equation finds θ?",
+      "questionType": "multiple_choice",
+      "options": [
+        "cos θ = 5/13",
+        "sin θ = 5/13",
+        "tan θ = 13/5",
+        "sin θ = 13/5"
+      ],
+      "correctAnswer": "sin θ = 5/13",
+      "explanation": "Sine is opposite divided by hypotenuse, so the required relationship is sin θ = 5/13.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math11-geometry-trigonometry",
+        "geometry and trigonometry"
+      ],
+      "curriculum": {
+        "strand": "Geometry and trigonometry",
+        "skill": "Apply geometry and trigonometry",
+        "subskill": "geometry and trigonometry",
+        "objective": "Use geometric reasoning, similarity and trigonometric relationships to calculate lengths, angles and areas."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-geometry-trigonometry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-011",
+      "topic": "Geometry and trigonometry",
+      "difficulty": "medium",
+      "questionText": "Two similar triangles have corresponding side ratio small:large = 2:5. If the small area is 24 cm², what is the large area?",
+      "questionType": "multiple_choice",
+      "options": [
+        "60 cm²",
+        "96 cm²",
+        "150 cm²",
+        "240 cm²"
+      ],
+      "correctAnswer": "150 cm²",
+      "explanation": "Areas scale with the square of the length ratio, so 24 × (5/2)² = 24 × 25/4 = 150 cm².",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math11-geometry-trigonometry",
+        "geometry and trigonometry"
+      ],
+      "curriculum": {
+        "strand": "Geometry and trigonometry",
+        "skill": "Apply geometry and trigonometry",
+        "subskill": "geometry and trigonometry",
+        "objective": "Use geometric reasoning, similarity and trigonometric relationships to calculate lengths, angles and areas."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-geometry-trigonometry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-012",
+      "topic": "Geometry and trigonometry",
+      "difficulty": "hard",
+      "questionText": "Two sides of a triangle are 7 cm and 10 cm with included angle 60°. What is the exact area?",
+      "questionType": "multiple_choice",
+      "options": [
+        "35 cm²",
+        "70√3 cm²",
+        "17√3/2 cm²",
+        "35√3/2 cm²"
+      ],
+      "correctAnswer": "35√3/2 cm²",
+      "explanation": "Using area = 1/2 ab sin C gives 1/2 × 7 × 10 × sin 60° = 35√3/2 cm².",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "math11-geometry-trigonometry",
+        "geometry and trigonometry"
+      ],
+      "curriculum": {
+        "strand": "Geometry and trigonometry",
+        "skill": "Apply geometry and trigonometry",
+        "subskill": "geometry and trigonometry",
+        "objective": "Use geometric reasoning, similarity and trigonometric relationships to calculate lengths, angles and areas."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-geometry-trigonometry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-013",
+      "topic": "Statistics and probability",
+      "difficulty": "easy",
+      "questionText": "What is the mean of 4, 7, 7 and 10?",
+      "questionType": "multiple_choice",
+      "options": [
+        "7",
+        "7.5",
+        "8",
+        "28"
+      ],
+      "correctAnswer": "7",
+      "explanation": "The total is 4 + 7 + 7 + 10 = 28, and dividing by four values gives a mean of 7.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math11-statistics-probability",
+        "statistics and probability"
+      ],
+      "curriculum": {
+        "strand": "Statistics and probability",
+        "skill": "Apply statistics and probability",
+        "subskill": "statistics and probability",
+        "objective": "Summarize data and calculate probabilities using appropriate representations, measures and conditional reasoning."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-statistics-probability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-014",
+      "topic": "Statistics and probability",
+      "difficulty": "medium",
+      "questionText": "A fair die is rolled once. What is the probability of obtaining a prime number?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1/3",
+        "1/2",
+        "2/3",
+        "5/6"
+      ],
+      "correctAnswer": "1/2",
+      "explanation": "The prime outcomes are 2, 3 and 5, so three of the six equally likely outcomes are favorable: 3/6 = 1/2.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math11-statistics-probability",
+        "statistics and probability"
+      ],
+      "curriculum": {
+        "strand": "Statistics and probability",
+        "skill": "Apply statistics and probability",
+        "subskill": "statistics and probability",
+        "objective": "Summarize data and calculate probabilities using appropriate representations, measures and conditional reasoning."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-statistics-probability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-015",
+      "topic": "Statistics and probability",
+      "difficulty": "medium",
+      "questionText": "A bag contains 3 red and 2 blue counters. Two are drawn without replacement. What is the probability both are red?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2/5",
+        "1/2",
+        "3/10",
+        "9/25"
+      ],
+      "correctAnswer": "3/10",
+      "explanation": "The probability is 3/5 for the first red and 2/4 for the second, so 3/5 × 2/4 = 3/10.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math11-statistics-probability",
+        "statistics and probability"
+      ],
+      "curriculum": {
+        "strand": "Statistics and probability",
+        "skill": "Apply statistics and probability",
+        "subskill": "statistics and probability",
+        "objective": "Summarize data and calculate probabilities using appropriate representations, measures and conditional reasoning."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-statistics-probability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-016",
+      "topic": "Statistics and probability",
+      "difficulty": "hard",
+      "questionText": "A data set has mean 20 and standard deviation 3. Every value is transformed by y = 2x + 5. What are the new mean and standard deviation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Mean 45, SD 11",
+        "Mean 40, SD 6",
+        "Mean 25, SD 3",
+        "Mean 45, SD 6"
+      ],
+      "correctAnswer": "Mean 45, SD 6",
+      "explanation": "A linear transformation y = 2x + 5 changes the mean to 2(20)+5 = 45 and scales the standard deviation by |2| to 6.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "math11-statistics-probability",
+        "statistics and probability"
+      ],
+      "curriculum": {
+        "strand": "Statistics and probability",
+        "skill": "Apply statistics and probability",
+        "subskill": "statistics and probability",
+        "objective": "Summarize data and calculate probabilities using appropriate representations, measures and conditional reasoning."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-statistics-probability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-017",
+      "topic": "Mathematical modelling and proof",
+      "difficulty": "easy",
+      "questionText": "If y is directly proportional to x and y = 18 when x = 6, what is y when x = 10?",
+      "questionType": "multiple_choice",
+      "options": [
+        "30",
+        "24",
+        "28",
+        "60"
+      ],
+      "correctAnswer": "30",
+      "explanation": "Direct proportion gives y = kx. Since k = 18/6 = 3, when x = 10 the value is y = 30.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math11-modelling-proof",
+        "mathematical modelling and proof"
+      ],
+      "curriculum": {
+        "strand": "Mathematical modelling and proof",
+        "skill": "Apply mathematical modelling and proof",
+        "subskill": "mathematical modelling and proof",
+        "objective": "Construct, test and evaluate mathematical models, bounds and arguments in contextual and abstract problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-modelling-proof"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-018",
+      "topic": "Mathematical modelling and proof",
+      "difficulty": "medium",
+      "questionText": "A length is 8.4 cm correct to the nearest 0.1 cm. What is its upper bound?",
+      "questionType": "multiple_choice",
+      "options": [
+        "8.44 cm",
+        "8.45 cm",
+        "8.50 cm",
+        "8.35 cm"
+      ],
+      "correctAnswer": "8.45 cm",
+      "explanation": "Rounding to the nearest 0.1 creates a half-unit interval of 0.05, so the upper bound is 8.45 cm.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math11-modelling-proof",
+        "mathematical modelling and proof"
+      ],
+      "curriculum": {
+        "strand": "Mathematical modelling and proof",
+        "skill": "Apply mathematical modelling and proof",
+        "subskill": "mathematical modelling and proof",
+        "objective": "Construct, test and evaluate mathematical models, bounds and arguments in contextual and abstract problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-modelling-proof"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-019",
+      "topic": "Mathematical modelling and proof",
+      "difficulty": "medium",
+      "questionText": "Which expression proves that the sum of two consecutive integers is always odd?",
+      "questionType": "multiple_choice",
+      "options": [
+        "n + n = 2n",
+        "n(n + 1) = n² + n",
+        "n + (n + 1) = 2n + 1",
+        "2n + 2 = 2(n + 1)"
+      ],
+      "correctAnswer": "n + (n + 1) = 2n + 1",
+      "explanation": "Writing consecutive integers as n and n+1 gives 2n+1, which is one more than an even number and is therefore odd.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math11-modelling-proof",
+        "mathematical modelling and proof"
+      ],
+      "curriculum": {
+        "strand": "Mathematical modelling and proof",
+        "skill": "Apply mathematical modelling and proof",
+        "subskill": "mathematical modelling and proof",
+        "objective": "Construct, test and evaluate mathematical models, bounds and arguments in contextual and abstract problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-modelling-proof"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-math-2026.5-020",
+      "topic": "Mathematical modelling and proof",
+      "difficulty": "hard",
+      "questionText": "A rectangle has perimeter 40 m. If its width is x, which expression for area should be maximized?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A = x(40 − x)",
+        "A = 20x",
+        "A = 40 − 2x",
+        "A = x(20 − x)"
+      ],
+      "correctAnswer": "A = x(20 − x)",
+      "explanation": "From 2x + 2L = 40, the length is 20 − x, so the area model is A = x(20 − x).",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "math11-modelling-proof",
+        "mathematical modelling and proof"
+      ],
+      "curriculum": {
+        "strand": "Mathematical modelling and proof",
+        "skill": "Apply mathematical modelling and proof",
+        "subskill": "mathematical modelling and proof",
+        "objective": "Construct, test and evaluate mathematical models, bounds and arguments in contextual and abstract problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-11",
+          "objectiveCode": "math11-modelling-proof"
+        }
+      ]
+    }
+  ]
+}

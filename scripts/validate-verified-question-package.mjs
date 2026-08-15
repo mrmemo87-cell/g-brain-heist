@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGES_ROOT = path.resolve(__dirname, '..', 'content', 'verified-question-packages');
-export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-4-0');
+export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-5-0');
 const VALID_DIFFICULTIES = new Set(['easy', 'medium', 'hard']);
 const VALID_TYPES = new Set(['multiple_choice', 'true_false', 'short_answer']);
 const PACKAGE_EXPECTATIONS = new Map([
@@ -34,6 +34,13 @@ const PACKAGE_EXPECTATIONS = new Map([
       ['biology', { subject: 'Biology', grade: 11, scope: 'biology-grade-11' }],
       ['physics', { subject: 'Physics', grade: 11, scope: 'physics-grade-11' }],
       ['travel-tourism', { subject: 'Travel & Tourism', grade: 11, scope: 'travel-tourism-grade-11' }],
+    ]),
+  }],
+  ['brain-heist-mathematics-ict-2026-5', {
+    curriculumVersion: '2026-5',
+    scopes: new Map([
+      ['mathematics', { subject: 'Mathematics', grades: [11, 12], scopes: ['mathematics-grade-11', 'mathematics-grade-12'] }],
+      ['ict', { subject: 'ICT', grades: [11, 12], scopes: ['ict-grade-11', 'ict-grade-12'] }],
     ]),
   }],
 ]);
@@ -102,7 +109,9 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
   for (const q of pkg.questions) {
     const label = `${q.__file}:${q.externalId ?? 'missing-id'}`;
     const expected = expectedScopes.get(q.subjectCode);
-    if (!expected || expected.subject !== q.subject || expected.grade !== q.grade) errors.push(`${label} has an invalid subject/grade combination`);
+    const validGrade = expected?.grades ? expected.grades.includes(q.grade) : expected?.grade === q.grade;
+    const validScope = expected?.scopes ? expected.scopes.includes(q.mappings?.[0]?.scopeCode) : expected?.scope === q.mappings?.[0]?.scopeCode;
+    if (!expected || expected.subject !== q.subject || !validGrade) errors.push(`${label} has an invalid subject/grade combination`);
     if (!/^[a-z0-9][a-z0-9._-]{5,119}$/.test(q.externalId ?? '')) errors.push(`${label} has an invalid externalId`);
     if (externalIds.has(q.externalId)) errors.push(`${label} repeats externalId`);
     externalIds.add(q.externalId);
@@ -119,7 +128,7 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
 
     if (!Array.isArray(q.mappings) || q.mappings.length !== 1) errors.push(`${label} must have exactly one primary mapping`);
     const mapping = q.mappings?.[0];
-    if (mapping?.scopeCode !== expected?.scope || !/^[a-z0-9][a-z0-9-]{5,80}$/.test(mapping?.objectiveCode ?? '')) {
+    if (!validScope || !/^[a-z0-9][a-z0-9-]{5,80}$/.test(mapping?.objectiveCode ?? '')) {
       errors.push(`${label} has an invalid curriculum mapping`);
     }
     for (const field of ['strand', 'skill', 'subskill', 'objective']) {
@@ -152,16 +161,26 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
     objectiveCounts.set(objectiveKey, (objectiveCounts.get(objectiveKey) ?? 0) + 1);
   }
 
-  for (const subjectCode of expectedScopes.keys()) {
-    if (subjectCounts.get(subjectCode) !== 20) errors.push(`${subjectCode} must contain exactly 20 questions`);
+  const expectedGroups = new Map();
+  for (const q of pkg.questions) expectedGroups.set(`${q.subjectCode}:g${q.grade}`, q.subjectCode);
+  for (const [groupKey, subjectCode] of expectedGroups) {
+    const groupQuestions = pkg.questions.filter((q) => `${q.subjectCode}:g${q.grade}` === groupKey);
+    if (groupQuestions.length !== 20) errors.push(`${groupKey} must contain exactly 20 questions`);
     for (const [difficulty, expected] of [['easy', 5], ['medium', 10], ['hard', 5]]) {
-      if (difficultyCounts.get(`${subjectCode}:${difficulty}`) !== expected) errors.push(`${subjectCode} must contain ${expected} ${difficulty} questions`);
+      const count = groupQuestions.filter((q) => q.difficulty === difficulty).length;
+      if (count !== expected) errors.push(`${groupKey} must contain ${expected} ${difficulty} questions`);
     }
-    const positions = answerPositionCounts.get(subjectCode) ?? [];
-    if (positions.length !== 4 || positions.some((count) => count !== 5)) errors.push(`${subjectCode} must balance correct options 5/5/5/5 across A–D`);
-    if ((uniquelyLongestCorrectCounts.get(subjectCode) ?? 0) > 12) errors.push(`${subjectCode} has the correct option as uniquely longest in more than 60% of questions`);
-    const coveredObjectives = [...objectiveCounts.entries()].filter(([key]) => key.startsWith(`${subjectCode}:`));
-    if (coveredObjectives.length !== 5 || coveredObjectives.some(([, count]) => count !== 4)) errors.push(`${subjectCode} must cover five objectives with four questions each`);
+    const positions = [0, 1, 2, 3].map((index) => groupQuestions.filter((q) => q.options?.indexOf(q.correctAnswer) === index).length);
+    if (positions.some((count) => count !== 5)) errors.push(`${groupKey} must balance correct options 5/5/5/5 across A–D`);
+    const longestCorrect = groupQuestions.filter((q) => {
+      const lengths = q.options.map((option) => String(option).trim().length);
+      const answerIndex = q.options.indexOf(q.correctAnswer);
+      return lengths[answerIndex] === Math.max(...lengths) && lengths.filter((length) => length === lengths[answerIndex]).length === 1;
+    }).length;
+    if (longestCorrect > 12) errors.push(`${groupKey} has the correct option as uniquely longest in more than 60% of questions`);
+    const coveredObjectives = new Map();
+    for (const q of groupQuestions) coveredObjectives.set(q.mappings?.[0]?.objectiveCode, (coveredObjectives.get(q.mappings?.[0]?.objectiveCode) ?? 0) + 1);
+    if (coveredObjectives.size !== 5 || [...coveredObjectives.values()].some((count) => count !== 4)) errors.push(`${groupKey} must cover five objectives with four questions each`);
   }
   if (pkg.questions.length !== 80) errors.push(`package must contain exactly 80 questions; found ${pkg.questions.length}`);
 

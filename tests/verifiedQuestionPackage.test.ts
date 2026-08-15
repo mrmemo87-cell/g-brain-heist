@@ -9,6 +9,7 @@ const curriculumMigration = readFileSync('supabase/migrations/20260815122000_bra
 const releaseIndexMigration = readFileSync('supabase/migrations/20260815123000_index_verified_question_release_framework.sql', 'utf8');
 const grade12CurriculumMigration = readFileSync('supabase/migrations/20260815124000_brains_heist_curriculum_2026_3.sql', 'utf8');
 const grade11CompletionMigration = readFileSync('supabase/migrations/20260815125000_brains_heist_curriculum_2026_4.sql', 'utf8');
+const mathematicsIctMigration = readFileSync('supabase/migrations/20260815130000_brains_heist_curriculum_2026_5.sql', 'utf8');
 
 test('all verified question packages pass their quality and balance profiles', () => {
   const result = spawnSync(process.execPath, ['scripts/validate-verified-question-package.mjs'], {
@@ -22,6 +23,8 @@ test('all verified question packages pass their quality and balance profiles', (
   assert.match(result.stdout, /brain-heist-g12-core-2026-3@2026\.3\.0 passed/);
   assert.match(result.stdout, /Physics 20/);
   assert.match(result.stdout, /brain-heist-g11-completion-2026-4@2026\.4\.0 passed/);
+  assert.match(result.stdout, /brain-heist-mathematics-ict-2026-5@2026\.5\.0 passed/);
+  assert.match(result.stdout, /Mathematics 40, ICT 40/);
 });
 
 test('verified importer is atomic, idempotent and service-role only', () => {
@@ -90,6 +93,21 @@ test('2026.4 curriculum completes and deepens the four Grade 11 scopes', () => {
   }
   assert.match(grade11CompletionMigration, /status = 'published'/);
   assert.match(grade11CompletionMigration, /extensions\.digest/);
+});
+
+test('2026.5 curriculum establishes Grade 11 and 12 Mathematics and ICT', () => {
+  assert.match(mathematicsIctMigration, /version_code = '2026-4'/);
+  assert.match(mathematicsIctMigration, /'2026-5'/);
+  for (const scope of ['mathematics-grade-11', 'mathematics-grade-12', 'ict-grade-11', 'ict-grade-12']) {
+    assert.match(mathematicsIctMigration, new RegExp(scope));
+  }
+  for (const objective of ['math11-number-algebra', 'math12-calculus', 'ict11-networks-security', 'ict12-databases-analytics']) {
+    assert.match(mathematicsIctMigration, new RegExp(objective));
+  }
+  assert.match(mathematicsIctMigration, /status = 'in_review'/);
+  assert.match(mathematicsIctMigration, /status = 'approved'/);
+  assert.match(mathematicsIctMigration, /status = 'published'/);
+  assert.match(mathematicsIctMigration, /extensions\.digest/);
 });
 
 test('verified importer CLI refuses missing service-role credentials and production confirmation', () => {

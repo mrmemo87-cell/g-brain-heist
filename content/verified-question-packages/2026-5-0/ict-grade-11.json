@@ -1,0 +1,668 @@
+{
+  "subject": "ICT",
+  "subjectCode": "ict",
+  "grade": 11,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g11-ict-2026.5-001",
+      "topic": "Hardware and computer systems",
+      "difficulty": "easy",
+      "questionText": "Which component performs most arithmetic and logical operations in a computer?",
+      "questionType": "multiple_choice",
+      "options": [
+        "CPU",
+        "SSD",
+        "Monitor",
+        "Keyboard"
+      ],
+      "correctAnswer": "CPU",
+      "explanation": "The central processing unit executes instructions and performs arithmetic and logical operations.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "ict11-hardware-systems",
+        "hardware and computer systems"
+      ],
+      "curriculum": {
+        "strand": "Hardware and computer systems",
+        "skill": "Apply hardware and computer systems",
+        "subskill": "hardware and computer systems",
+        "objective": "Explain how hardware components, operating systems and input-output devices work together to meet user requirements."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-hardware-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-002",
+      "topic": "Hardware and computer systems",
+      "difficulty": "medium",
+      "questionText": "Why is RAM described as volatile memory?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It can only store video files",
+        "Its contents are lost when power is removed",
+        "It is slower than magnetic tape",
+        "Its contents can never be changed"
+      ],
+      "correctAnswer": "Its contents are lost when power is removed",
+      "explanation": "RAM requires continuous electrical power to retain its current data, so stored contents disappear when power is removed.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict11-hardware-systems",
+        "hardware and computer systems"
+      ],
+      "curriculum": {
+        "strand": "Hardware and computer systems",
+        "skill": "Apply hardware and computer systems",
+        "subskill": "hardware and computer systems",
+        "objective": "Explain how hardware components, operating systems and input-output devices work together to meet user requirements."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-hardware-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-003",
+      "topic": "Hardware and computer systems",
+      "difficulty": "medium",
+      "questionText": "A designer needs to print large architectural drawings accurately. Which output device is most suitable?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Laser barcode reader",
+        "Flatbed scanner",
+        "Large-format plotter",
+        "Touchscreen display"
+      ],
+      "correctAnswer": "Large-format plotter",
+      "explanation": "A large-format plotter produces precise line drawings on paper sizes suitable for architectural plans.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict11-hardware-systems",
+        "hardware and computer systems"
+      ],
+      "curriculum": {
+        "strand": "Hardware and computer systems",
+        "skill": "Apply hardware and computer systems",
+        "subskill": "hardware and computer systems",
+        "objective": "Explain how hardware components, operating systems and input-output devices work together to meet user requirements."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-hardware-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-004",
+      "topic": "Hardware and computer systems",
+      "difficulty": "hard",
+      "questionText": "A school replaces hard drives with solid-state drives in laptops. Which combined effect is most likely?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Slower access and higher mechanical wear",
+        "Unlimited capacity and zero cost",
+        "More moving parts and greater noise",
+        "Faster access and better shock resistance"
+      ],
+      "correctAnswer": "Faster access and better shock resistance",
+      "explanation": "SSDs have no moving parts, so they generally access data faster and resist physical shock better than hard disks.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "ict11-hardware-systems",
+        "hardware and computer systems"
+      ],
+      "curriculum": {
+        "strand": "Hardware and computer systems",
+        "skill": "Apply hardware and computer systems",
+        "subskill": "hardware and computer systems",
+        "objective": "Explain how hardware components, operating systems and input-output devices work together to meet user requirements."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-hardware-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-005",
+      "topic": "Data representation",
+      "difficulty": "easy",
+      "questionText": "How many different values can one byte represent?",
+      "questionType": "multiple_choice",
+      "options": [
+        "256",
+        "8",
+        "16",
+        "1024"
+      ],
+      "correctAnswer": "256",
+      "explanation": "A byte contains eight bits, so it can represent 2⁸ = 256 distinct binary patterns.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "ict11-data-representation",
+        "data representation"
+      ],
+      "curriculum": {
+        "strand": "Data representation",
+        "skill": "Apply data representation",
+        "subskill": "data representation",
+        "objective": "Represent and convert text, number, image and sound data while explaining how resolution and encoding affect quality and size."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-data-representation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-006",
+      "topic": "Data representation",
+      "difficulty": "medium",
+      "questionText": "What is decimal 13 in binary?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1011",
+        "1101",
+        "1110",
+        "1001"
+      ],
+      "correctAnswer": "1101",
+      "explanation": "Decimal 13 equals 8 + 4 + 1, producing binary place values 1101.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict11-data-representation",
+        "data representation"
+      ],
+      "curriculum": {
+        "strand": "Data representation",
+        "skill": "Apply data representation",
+        "subskill": "data representation",
+        "objective": "Represent and convert text, number, image and sound data while explaining how resolution and encoding affect quality and size."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-data-representation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-007",
+      "topic": "Data representation",
+      "difficulty": "medium",
+      "questionText": "If the color depth of an image increases while all other factors stay fixed, what usually happens?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Fewer colors appear and file size increases",
+        "Resolution falls but storage is unchanged",
+        "More colors are possible and file size increases",
+        "The image becomes vector graphics automatically"
+      ],
+      "correctAnswer": "More colors are possible and file size increases",
+      "explanation": "Greater color depth uses more bits per pixel, allowing more colors but requiring more storage.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict11-data-representation",
+        "data representation"
+      ],
+      "curriculum": {
+        "strand": "Data representation",
+        "skill": "Apply data representation",
+        "subskill": "data representation",
+        "objective": "Represent and convert text, number, image and sound data while explaining how resolution and encoding affect quality and size."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-data-representation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-008",
+      "topic": "Data representation",
+      "difficulty": "hard",
+      "questionText": "Uncompressed stereo audio is sampled at 44,000 samples per second with 16 bits per sample. Approximately how many bits are stored per second?",
+      "questionType": "multiple_choice",
+      "options": [
+        "704,000 bits",
+        "88,000 bits",
+        "2,816,000 bits",
+        "1,408,000 bits"
+      ],
+      "correctAnswer": "1,408,000 bits",
+      "explanation": "The bit rate is 44,000 × 16 × 2 channels = 1,408,000 bits per second.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "ict11-data-representation",
+        "data representation"
+      ],
+      "curriculum": {
+        "strand": "Data representation",
+        "skill": "Apply data representation",
+        "subskill": "data representation",
+        "objective": "Represent and convert text, number, image and sound data while explaining how resolution and encoding affect quality and size."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-data-representation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-009",
+      "topic": "Networks and cybersecurity",
+      "difficulty": "easy",
+      "questionText": "Which device forwards data packets between different networks?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Router",
+        "Keyboard",
+        "Projector",
+        "Printer"
+      ],
+      "correctAnswer": "Router",
+      "explanation": "A router examines addressing information and forwards packets between separate networks.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "ict11-networks-security",
+        "networks and cybersecurity"
+      ],
+      "curriculum": {
+        "strand": "Networks and cybersecurity",
+        "skill": "Apply networks and cybersecurity",
+        "subskill": "networks and cybersecurity",
+        "objective": "Explain network components, protocols and security controls and apply them to common connectivity and threat scenarios."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-networks-security"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-010",
+      "topic": "Networks and cybersecurity",
+      "difficulty": "medium",
+      "questionText": "What is the main purpose of HTTPS when accessing a website?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Guarantee every page is factually correct",
+        "Encrypt data exchanged with the site",
+        "Remove the need for authentication",
+        "Increase the monitor resolution"
+      ],
+      "correctAnswer": "Encrypt data exchanged with the site",
+      "explanation": "HTTPS uses TLS to encrypt data in transit and authenticate the server, reducing interception and tampering risks.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict11-networks-security",
+        "networks and cybersecurity"
+      ],
+      "curriculum": {
+        "strand": "Networks and cybersecurity",
+        "skill": "Apply networks and cybersecurity",
+        "subskill": "networks and cybersecurity",
+        "objective": "Explain network components, protocols and security controls and apply them to common connectivity and threat scenarios."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-networks-security"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-011",
+      "topic": "Networks and cybersecurity",
+      "difficulty": "medium",
+      "questionText": "Which control most directly reduces damage if a password is stolen?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A larger computer monitor",
+        "Defragmenting the disk",
+        "Multi-factor authentication",
+        "Disabling software updates"
+      ],
+      "correctAnswer": "Multi-factor authentication",
+      "explanation": "Multi-factor authentication requires another verified factor, so a stolen password alone is less likely to grant access.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict11-networks-security",
+        "networks and cybersecurity"
+      ],
+      "curriculum": {
+        "strand": "Networks and cybersecurity",
+        "skill": "Apply networks and cybersecurity",
+        "subskill": "networks and cybersecurity",
+        "objective": "Explain network components, protocols and security controls and apply them to common connectivity and threat scenarios."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-networks-security"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-012",
+      "topic": "Networks and cybersecurity",
+      "difficulty": "hard",
+      "questionText": "An employee receives an urgent email linking to a fake sign-in page. What type of attack is this?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Distributed file compression",
+        "Database normalization",
+        "Packet switching optimization",
+        "Phishing with credential theft"
+      ],
+      "correctAnswer": "Phishing with credential theft",
+      "explanation": "The attacker impersonates a trusted sender and uses a deceptive page to capture the employee’s credentials.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "ict11-networks-security",
+        "networks and cybersecurity"
+      ],
+      "curriculum": {
+        "strand": "Networks and cybersecurity",
+        "skill": "Apply networks and cybersecurity",
+        "subskill": "networks and cybersecurity",
+        "objective": "Explain network components, protocols and security controls and apply them to common connectivity and threat scenarios."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-networks-security"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-013",
+      "topic": "Data management and databases",
+      "difficulty": "easy",
+      "questionText": "What is the purpose of a primary key in a database table?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Uniquely identify each record",
+        "Store every field as an image",
+        "Duplicate records automatically",
+        "Format all text in bold"
+      ],
+      "correctAnswer": "Uniquely identify each record",
+      "explanation": "A primary key has a unique value for each row, allowing every record to be identified reliably.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "ict11-data-management",
+        "data management and databases"
+      ],
+      "curriculum": {
+        "strand": "Data management and databases",
+        "skill": "Apply data management and databases",
+        "subskill": "data management and databases",
+        "objective": "Design and query simple data structures and databases while applying validation, integrity and backup principles."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-data-management"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-014",
+      "topic": "Data management and databases",
+      "difficulty": "medium",
+      "questionText": "Which validation rule best checks that an exam mark is from 0 to 100?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Presence check only",
+        "Range check",
+        "File-size check",
+        "Parity check"
+      ],
+      "correctAnswer": "Range check",
+      "explanation": "A range check verifies that a numeric value lies between specified minimum and maximum limits.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict11-data-management",
+        "data management and databases"
+      ],
+      "curriculum": {
+        "strand": "Data management and databases",
+        "skill": "Apply data management and databases",
+        "subskill": "data management and databases",
+        "objective": "Design and query simple data structures and databases while applying validation, integrity and backup principles."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-data-management"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-015",
+      "topic": "Data management and databases",
+      "difficulty": "medium",
+      "questionText": "Which SQL query returns all students whose score is at least 70?",
+      "questionType": "multiple_choice",
+      "options": [
+        "SELECT score FROM students DELETE 70;",
+        "UPDATE students SET score < 70;",
+        "SELECT * FROM students WHERE score >= 70;",
+        "SELECT * FROM students ORDER score = 70;"
+      ],
+      "correctAnswer": "SELECT * FROM students WHERE score >= 70;",
+      "explanation": "The WHERE clause filters rows, and >= includes scores equal to or greater than 70.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict11-data-management",
+        "data management and databases"
+      ],
+      "curriculum": {
+        "strand": "Data management and databases",
+        "skill": "Apply data management and databases",
+        "subskill": "data management and databases",
+        "objective": "Design and query simple data structures and databases while applying validation, integrity and backup principles."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-data-management"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-016",
+      "topic": "Data management and databases",
+      "difficulty": "hard",
+      "questionText": "A database stores the same customer address in many order rows. Which design improvement best reduces update anomalies?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Repeat the address in additional columns",
+        "Remove every primary and foreign key",
+        "Convert all fields into one long text value",
+        "Separate customers and orders into related tables"
+      ],
+      "correctAnswer": "Separate customers and orders into related tables",
+      "explanation": "Normalization separates customer data from order data and links the tables, reducing repeated values and inconsistent updates.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "ict11-data-management",
+        "data management and databases"
+      ],
+      "curriculum": {
+        "strand": "Data management and databases",
+        "skill": "Apply data management and databases",
+        "subskill": "data management and databases",
+        "objective": "Design and query simple data structures and databases while applying validation, integrity and backup principles."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-data-management"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-017",
+      "topic": "Digital solutions and responsible use",
+      "difficulty": "easy",
+      "questionText": "Which feature most improves accessibility for a user who cannot see images?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Meaningful alternative text",
+        "Decorative animation only",
+        "Smaller navigation labels",
+        "Color-only error messages"
+      ],
+      "correctAnswer": "Meaningful alternative text",
+      "explanation": "Alternative text communicates an image’s purpose to screen readers and users who cannot view it.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "ict11-digital-solutions-ethics",
+        "digital solutions and responsible use"
+      ],
+      "curriculum": {
+        "strand": "Digital solutions and responsible use",
+        "skill": "Apply digital solutions and responsible use",
+        "subskill": "digital solutions and responsible use",
+        "objective": "Plan, test and evaluate digital solutions while considering accessibility, privacy, intellectual property and social impact."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-digital-solutions-ethics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-018",
+      "topic": "Digital solutions and responsible use",
+      "difficulty": "medium",
+      "questionText": "Why should a developer use test data at boundary values?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To guarantee the program has no defects",
+        "To reveal errors at accepted limits",
+        "To avoid documenting expected results",
+        "To replace all normal test cases"
+      ],
+      "correctAnswer": "To reveal errors at accepted limits",
+      "explanation": "Boundary testing checks values at and around permitted limits, where comparison and validation errors often occur.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict11-digital-solutions-ethics",
+        "digital solutions and responsible use"
+      ],
+      "curriculum": {
+        "strand": "Digital solutions and responsible use",
+        "skill": "Apply digital solutions and responsible use",
+        "subskill": "digital solutions and responsible use",
+        "objective": "Plan, test and evaluate digital solutions while considering accessibility, privacy, intellectual property and social impact."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-digital-solutions-ethics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-019",
+      "topic": "Digital solutions and responsible use",
+      "difficulty": "medium",
+      "questionText": "A school collects student birth dates for account verification. Which practice follows data minimization?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Keep every possible personal detail forever",
+        "Publish the data for unrestricted reuse",
+        "Collect only data necessary for the stated purpose",
+        "Share all records with unrelated advertisers"
+      ],
+      "correctAnswer": "Collect only data necessary for the stated purpose",
+      "explanation": "Data minimization means limiting collection and retention to information genuinely needed for a defined purpose.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "ict11-digital-solutions-ethics",
+        "digital solutions and responsible use"
+      ],
+      "curriculum": {
+        "strand": "Digital solutions and responsible use",
+        "skill": "Apply digital solutions and responsible use",
+        "subskill": "digital solutions and responsible use",
+        "objective": "Plan, test and evaluate digital solutions while considering accessibility, privacy, intellectual property and social impact."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-digital-solutions-ethics"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g11-ict-2026.5-020",
+      "topic": "Digital solutions and responsible use",
+      "difficulty": "hard",
+      "questionText": "A team uses an online photograph in a commercial app. What should it verify first?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The file has the largest dimensions",
+        "The photographer uses the same device",
+        "The image appears in a search result",
+        "The license permits the intended reuse"
+      ],
+      "correctAnswer": "The license permits the intended reuse",
+      "explanation": "Copyright applies even when an image is easy to find online, so the team must confirm licensing permits its planned use.",
+      "points": 20,
+      "timeLimit": 90,
+      "tags": [
+        "ict11-digital-solutions-ethics",
+        "digital solutions and responsible use"
+      ],
+      "curriculum": {
+        "strand": "Digital solutions and responsible use",
+        "skill": "Apply digital solutions and responsible use",
+        "subskill": "digital solutions and responsible use",
+        "objective": "Plan, test and evaluate digital solutions while considering accessibility, privacy, intellectual property and social impact."
+      },
+      "mappings": [
+        {
+          "scopeCode": "ict-grade-11",
+          "objectiveCode": "ict11-digital-solutions-ethics"
+        }
+      ]
+    }
+  ]
+}
