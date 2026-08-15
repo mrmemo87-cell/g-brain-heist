@@ -7,7 +7,7 @@ create or replace function public.rpc_school_create_guardian_invitation(
 returns jsonb
 language plpgsql
 security definer
-set search_path to ''
+set search_path = ''
 as $function$
 declare
   v_caller uuid := (select auth.uid());
@@ -98,3 +98,6 @@ begin
   );
 end;
 $function$;
+
+revoke all on function public.rpc_school_create_guardian_invitation(uuid,text,text,integer) from public, anon, authenticated;
+grant execute on function public.rpc_school_create_guardian_invitation(uuid,text,text,integer) to authenticated, service_role;
