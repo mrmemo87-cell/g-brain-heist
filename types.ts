@@ -1,4 +1,8 @@
 export type Grade = 6 | 7 | 8 | 9 | 10 | 11 | 12;
+// School grade labels come from each school's configured classes. Unlike the
+// solo-learning curriculum band above, they are not restricted to Grades 6–12.
+export type SchoolGrade = string | number;
+export type SchoolBatch = string;
 export type Batch =
   | '6A'
   | '6B'
@@ -55,8 +59,8 @@ export interface Profile {
   full_name?: string | null;
   full_name_status?: 'pending' | 'verified' | 'rejected';
   full_name_verified_at?: string | null;
-  grade: Grade | null; // null for teachers or admins without grade assignment
-  batch: Batch | null; // null for teachers
+  grade: SchoolGrade | null; // null for teachers or admins without grade assignment
+  batch: SchoolBatch | null; // school-configured class code; null for teachers
   role?: UserRole; // User role - student by default
   school_id?: string | null; // Multi-tenant: primary school ID
   school_name?: string | null; // Multi-tenant: school name for display

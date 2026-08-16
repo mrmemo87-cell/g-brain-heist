@@ -5,6 +5,7 @@ import SchoolRequestModal from '../SchoolRequestModal';
 import { updateOnboardingState, fetchOnboardingProfile, getOnboardingState, readOnboardingResolution } from '../../src/features/onboarding/onboardingService';
 import { buildSetupCompletionOnboardingSeed, buildSetupProfileFallback } from '../../src/features/onboarding/setupCompletion';
 import { isOnboardingDebugEnabled, logOnboardingDebug } from '../../src/features/onboarding/featureFlags';
+import { classMatchesConfiguredGrade, getConfiguredSchoolGrades } from '../../src/features/onboarding/schoolGradeOptions';
 
 interface SetupWizardProps {
   onComplete: () => void;
@@ -25,12 +26,14 @@ const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   12: ['12A', '12B', '12C', 'N/A'],
 };
 
+const SOLO_GRADES: Grade[] = [6, 7, 8, 9, 10, 11, 12];
+
 const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initialUsername }) => {
   const [step, setStep] = useState<SetupStep>('path');
   const [path, setPath] = useState<SetupPath>(null);
   const [inviteCode, setInviteCode] = useState('');
   const [role, setRole] = useState<'student' | 'teacher'>('student');
-  const [grade, setGrade] = useState<Grade | null>(null);
+  const [grade, setGrade] = useState('');
   const [batch, setBatch] = useState<Batch>('N/A');
   const [username, setUsername] = useState(initialUsername || '');
   const [fullName, setFullName] = useState('');
@@ -57,12 +60,11 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   const inviteCodeNormalized = normalizeInviteCode(inviteCode);
   const inviteCodeReady = inviteCodeNormalized.length >= 6;
 
-  const batchOptions = grade ? GRADE_TO_BATCH[grade] : ['N/A'];
-  const schoolGradeOptions = Array.from(new Set(
-    approvedClasses
-      .map((item) => Number(item.grade_level))
-      .filter((value) => Number.isInteger(value) && value >= 6 && value <= 12),
-  )).sort((a, b) => a - b) as Grade[];
+  const soloGrade = path === 'individual' && grade
+    ? SOLO_GRADES.find((value) => String(value) === grade) ?? null
+    : null;
+  const batchOptions: Batch[] = soloGrade ? GRADE_TO_BATCH[soloGrade] : ['N/A'];
+  const schoolGradeOptions = getConfiguredSchoolGrades(approvedClasses);
   const schoolHasConfiguredGrades = schoolGradeOptions.length > 0;
   const studentGradeRequired = path === 'individual' || schoolHasConfiguredGrades;
 
@@ -154,6 +156,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
   const handleSubmit = async (submittedRole?: 'student' | 'teacher') => {
     const finalRole = submittedRole || role;
+    const selectedSchoolClass = approvedClasses.find((item) => item.id === selectedClassId);
     
     if (finalRole === 'student' && studentGradeRequired && !grade) {
       setError(path === 'school'
@@ -172,10 +175,6 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
     try {
       if (path === 'school') {
-        const schoolBatch = finalRole === 'student'
-          ? (approvedClasses.find((item) => item.id === selectedClassId)?.class_code as Batch | undefined) ?? 'N/A'
-          : undefined;
-
         // School membership must be created through the governed invite-code flow.
         // The server keeps membership + profile completion atomic and never trusts
         // a browser-provided school_id as authority.
@@ -184,8 +183,10 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
           {
             p_invite_code: inviteCodeNormalized,
             p_role: finalRole,
-            p_grade: finalRole === 'student' ? (grade ?? null) : null,
-            p_batch: finalRole === 'student' ? schoolBatch : null,
+            // School grade and class are derived from the approved class on the
+            // server. Never apply the solo-learning grade range to school data.
+            p_grade: null,
+            p_batch: null,
             p_username: username.trim() || null,
           },
         );
@@ -215,7 +216,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         // Individual setup
         const setupResult = await AuthService.completeIndividualSetup({
           role: finalRole,
-          grade: finalRole === 'student' ? grade || undefined : undefined,
+          grade: finalRole === 'student' ? soloGrade || undefined : undefined,
           batch: finalRole === 'student' && batch !== 'N/A' ? batch : undefined,
           username: username || undefined,
         });
@@ -245,6 +246,8 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         path,
         schoolId,
         schoolName,
+        schoolGrade: path === 'school' ? grade || null : null,
+        schoolClassCode: path === 'school' ? selectedSchoolClass?.class_code ?? null : null,
       });
       const seededOnboardingRow = seedPatch ? await updateOnboardingState(seedPatch) : null;
       const { data: { user } } = await AuthService.supabase.auth.getUser();
@@ -594,10 +597,9 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             {path === 'school' && !schoolHasConfiguredGrades ? 'Grade' : 'Grade *'}
           </span>
           <select
-            value={grade || ''}
+            value={grade}
             onChange={(e) => {
-              const newGrade = e.target.value ? (parseInt(e.target.value) as Grade) : null;
-              setGrade(newGrade);
+              setGrade(e.target.value);
               setSelectedClassId('');
               setBatch('N/A');
               setError(null);
@@ -608,7 +610,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             <option value="">
               {path === 'school' && !schoolHasConfiguredGrades ? 'School will assign your grade' : 'Select your grade'}
             </option>
-            {(path === 'school' ? schoolGradeOptions : [6, 7, 8, 9, 10, 11, 12]).map((g) => (
+            {(path === 'school' ? schoolGradeOptions : SOLO_GRADES.map(String)).map((g) => (
               <option key={g} value={g}>
                 Grade {g}
               </option>
@@ -635,7 +637,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             disabled={isLoading || classesLoading || !grade}
           >
             <option value="">{classesLoading ? 'Loading approved classes…' : 'My class is not listed'}</option>
-            {approvedClasses.filter((item) => item.grade_level === String(grade)).map((item) => (
+            {approvedClasses.filter((item) => classMatchesConfiguredGrade(item, grade)).map((item) => (
               <option key={item.id} value={item.id}>{item.class_code}{item.class_name !== item.class_code ? ` · ${item.class_name}` : ''}</option>
             ))}
           </select>

@@ -9,6 +9,8 @@ export interface SetupCompletionSeedInput {
   path: SetupCompletionPath;
   schoolId?: string | null;
   schoolName?: string | null;
+  schoolGrade?: string | null;
+  schoolClassCode?: string | null;
 }
 
 /**
@@ -21,6 +23,8 @@ export const buildSetupCompletionOnboardingSeed = ({
   path,
   schoolId = null,
   schoolName = null,
+  schoolGrade = null,
+  schoolClassCode = null,
 }: SetupCompletionSeedInput): OnboardingStatePatch | null => {
   if (role !== 'student') return null;
 
@@ -37,6 +41,8 @@ export const buildSetupCompletionOnboardingSeed = ({
       setup_path: path,
       selected_role: role,
       school_name: isSchoolPath ? schoolName ?? undefined : undefined,
+      ...(isSchoolPath && schoolGrade ? { grade_label: schoolGrade } : {}),
+      ...(isSchoolPath && schoolClassCode ? { class_code: schoolClassCode } : {}),
     },
   };
 };
