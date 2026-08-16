@@ -88,19 +88,23 @@ const resolveSegment = (input: OnboardingResolverInput): { segment: OnboardingSe
   return { segment: 'none', context: 'none', reason: 'unsupported_role' };
 };
 
-const goalSelected = (input: OnboardingResolverInput): boolean => Boolean(input.onboardingState?.metadata?.['goal']);
-
 const deriveNextStep = (input: OnboardingResolverInput, segment: OnboardingSegment): OnboardingStep => {
   const stateStep = input.onboardingState?.current_step;
-  if (stateStep && stateStep !== 'complete') return stateStep;
+  if (stateStep && stateStep !== 'complete') {
+    // Goal/mission/reward prompts belonged to the retired questionnaire-led
+    // FTUE. Resume learners in the short dashboard introduction instead.
+    if (isLearnerSegment(segment) && ['goal', 'mission_brief', 'mission_started', 'reward_reveal'].includes(stateStep)) {
+      return 'dashboard_reveal';
+    }
+    return stateStep;
+  }
 
   switch (segment) {
     case 'school_student':
       if (isMissingSchoolPlacement(input.profile)) return 'placement';
       return 'mission_brief';
     case 'solo_learner':
-      if (!goalSelected(input)) return 'goal';
-      return 'mission_brief';
+      return 'intent';
     case 'teacher':
       return input.profile?.school_id ? 'starter_mission' : 'teacher_context';
     case 'school_admin':
@@ -114,8 +118,6 @@ const getRequiredData = (step: OnboardingStep): string[] => {
   switch (step) {
     case 'placement':
       return ['grade', 'batch'];
-    case 'goal':
-      return ['goal'];
     case 'school_confirm':
       return ['school_id'];
     case 'teacher_context':
@@ -149,8 +151,6 @@ const getPrimaryCta = (step: OnboardingStep): string => {
   switch (step) {
     case 'placement':
       return 'Confirm class';
-    case 'goal':
-      return 'Choose goal';
     case 'mission_brief':
       return 'Start mission';
     case 'teacher_context':

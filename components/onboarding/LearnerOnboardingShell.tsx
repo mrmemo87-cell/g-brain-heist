@@ -10,32 +10,15 @@ interface LearnerOnboardingShellProps {
   onComplete: () => void;
 }
 
-type LearnerStep = Extract<OnboardingStep, 'intent' | 'goal' | 'dashboard_reveal'>;
-
-interface FocusOption {
-  id: string;
-  label: string;
-  detail: string;
-  signal: string;
-}
-
-const SOLO_GOALS: FocusOption[] = [
-  { id: 'daily_practice', label: 'Build a daily rhythm', detail: 'Short, focused practice that compounds.', signal: '01' },
-  { id: 'cambridge_prep', label: 'Prepare for Cambridge', detail: 'Exam-style missions and clear progress.', signal: '02' },
-  { id: 'science_mastery', label: 'Master difficult topics', detail: 'Find weak areas and turn them into strengths.', signal: '03' },
-];
+type LearnerStep = Extract<OnboardingStep, 'intent' | 'dashboard_reveal'>;
 
 const DASHBOARD_FEATURES = [
-  { signal: '01', label: 'Next mission', detail: 'Your clearest next learning action.' },
-  { signal: '02', label: 'Live progress', detail: 'XP, level, streak, and rewards in one view.' },
-  { signal: '03', label: 'School connection', detail: 'Class activity and assignments stay connected.' },
+  { icon: '🚀', label: 'Next mission', detail: 'Your clearest next learning action.', accent: 'from-cyan-300/20 to-sky-400/5' },
+  { icon: '⚡', label: 'Live progress', detail: 'XP, level, streak, and rewards in one view.', accent: 'from-amber-300/20 to-orange-400/5' },
+  { icon: '🧭', label: 'Easy navigation', detail: 'Your learning, games, tasks, clan, and profile stay one tap away.', accent: 'from-fuchsia-300/20 to-violet-400/5' },
 ];
 
-const getStepSequence = (segment: OnboardingSegment): LearnerStep[] => (
-  segment === 'solo_learner'
-    ? ['intent', 'goal', 'dashboard_reveal']
-    : ['intent', 'dashboard_reveal']
-);
+const getStepSequence = (_segment: OnboardingSegment): LearnerStep[] => ['intent', 'dashboard_reveal'];
 
 const getInitialStep = (resolution: OnboardingResolution): LearnerStep => {
   const sequence = getStepSequence(resolution.segment);
@@ -78,7 +61,6 @@ const JourneyProgress: React.FC<{ step: LearnerStep; segment: OnboardingSegment 
 
 const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolution, profile, onComplete }) => {
   const [step, setStep] = React.useState<LearnerStep>(() => getInitialStep(resolution));
-  const [goal, setGoal] = React.useState(() => String(resolution.state?.metadata?.['goal'] ?? ''));
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -99,7 +81,7 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
       context_type: resolution.context,
       step,
       metadata: {
-        experience: 'premium_dashboard_intro_v2',
+        experience: 'premium_dashboard_intro_v3',
         resume: Boolean(resolution.state?.completed_steps?.length),
       },
     });
@@ -119,7 +101,7 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
         nextStep,
         completeCoreFtue,
         metadata: {
-          experience: 'premium_dashboard_intro_v2',
+          experience: 'premium_dashboard_intro_v3',
           ...metadataPatch,
         },
       });
@@ -129,7 +111,7 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
         segment: resolution.segment,
         context_type: resolution.context,
         step,
-        metadata: { next_step: nextStep, experience: 'premium_dashboard_intro_v2' },
+        metadata: { next_step: nextStep, experience: 'premium_dashboard_intro_v3' },
       });
 
       if (nextStep === 'complete') onComplete();
@@ -142,11 +124,6 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
   };
 
   const handleContinue = async () => {
-    if (step === 'goal' && !goal) {
-      setError('Choose the focus that matters most to you right now.');
-      return;
-    }
-
     if (step === 'dashboard_reveal') {
       await emitOnboardingEvent({
         event: 'onboarding_completed',
@@ -154,13 +131,13 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
         segment: resolution.segment,
         context_type: resolution.context,
         step,
-        metadata: { experience: 'premium_dashboard_intro_v2', goal: goal || undefined },
+        metadata: { experience: 'premium_dashboard_intro_v3' },
       });
-      await completeStep('complete', { goal: goal || undefined }, true);
+      await completeStep('complete', undefined, true);
       return;
     }
 
-    await completeStep(getNextStep(resolution.segment, step), { goal: goal || undefined });
+    await completeStep(getNextStep(resolution.segment, step));
   };
 
   const handleSkip = async () => {
@@ -173,7 +150,7 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
         segment: resolution.segment,
         context_type: resolution.context,
         step,
-        metadata: { experience: 'premium_dashboard_intro_v2' },
+        metadata: { experience: 'premium_dashboard_intro_v3' },
       });
       await markOnboardingStepComplete(step, {
         nextStep: 'complete',
@@ -181,7 +158,7 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
         metadata: {
           skipped: true,
           skipped_at_step: step,
-          experience: 'premium_dashboard_intro_v2',
+          experience: 'premium_dashboard_intro_v3',
         },
       });
       onComplete();
@@ -197,7 +174,7 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(34,211,238,0.16),transparent_32%),radial-gradient(circle_at_85%_18%,rgba(217,70,239,0.14),transparent_30%),radial-gradient(circle_at_70%_90%,rgba(59,130,246,0.12),transparent_34%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.045] [background-image:linear-gradient(rgba(255,255,255,0.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.8)_1px,transparent_1px)] [background-size:44px_44px]" />
 
-      <section className="relative mx-auto grid min-h-[calc(100vh-2rem)] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/75 shadow-[0_40px_120px_rgba(0,0,0,0.55),0_0_80px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:min-h-[calc(100vh-3rem)] lg:grid-cols-[0.82fr_1.18fr]">
+      <section className="relative mx-auto grid min-h-[calc(100vh-2rem)] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-[#07101f] shadow-[0_40px_120px_rgba(0,0,0,0.72),0_0_80px_rgba(34,211,238,0.10)] lg:min-h-[calc(100vh-3rem)] lg:grid-cols-[0.82fr_1.18fr]">
         <aside className="relative hidden overflow-hidden border-r border-white/10 bg-white/[0.025] p-8 lg:flex lg:flex-col lg:justify-between">
           <div className="absolute -left-28 top-20 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
           <div className="relative">
@@ -216,9 +193,9 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
           </div>
 
           <div className="relative space-y-3">
-            {['Identity confirmed', 'Dashboard mapped', 'First action ready'].map((label, index) => (
+            {[['✅', 'Identity confirmed'], ['🧭', 'Dashboard ready']].map(([icon, label], index) => (
               <div key={label} className="flex items-center gap-3 text-sm">
-                <span className={`flex h-7 w-7 items-center justify-center rounded-full border text-[10px] font-black ${index <= activeIndex ? 'border-cyan-200/50 bg-cyan-300/15 text-cyan-100' : 'border-white/10 bg-white/[0.03] text-slate-500'}`}>{index + 1}</span>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-xl border text-sm ${index <= activeIndex ? 'border-cyan-200/50 bg-cyan-300/15 shadow-[0_0_18px_rgba(34,211,238,0.14)]' : 'border-white/10 bg-white/[0.03] opacity-50'}`} aria-hidden>{icon}</span>
                 <span className={index <= activeIndex ? 'font-semibold text-slate-200' : 'text-slate-500'}>{label}</span>
               </div>
             ))}
@@ -270,25 +247,6 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
               </div>
             )}
 
-            {step === 'goal' && (
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-200">Personalise your start</p>
-                <h1 className="mt-4 max-w-2xl text-4xl font-black leading-[1.08] tracking-[-0.035em] sm:text-5xl">What would make today feel successful?</h1>
-                <div className="mt-8 grid gap-3">
-                  {SOLO_GOALS.map((option) => {
-                    const selected = goal === option.id;
-                    return (
-                      <button key={option.id} type="button" onClick={() => { setGoal(option.id); setError(null); }} aria-pressed={selected} className={`group flex items-center gap-4 rounded-2xl border p-4 text-left transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 ${selected ? 'border-cyan-200/55 bg-gradient-to-r from-cyan-300/15 to-fuchsia-400/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]' : 'border-white/10 bg-white/[0.035] hover:border-white/20 hover:bg-white/[0.06]'}`}>
-                        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-xs font-black ${selected ? 'border-cyan-200/40 bg-cyan-300/15 text-cyan-100' : 'border-white/10 bg-slate-900 text-slate-500'}`}>{option.signal}</span>
-                        <span className="min-w-0 flex-1"><span className="block font-black text-white">{option.label}</span><span className="mt-1 block text-sm text-slate-400">{option.detail}</span></span>
-                        <span className={`h-5 w-5 rounded-full border ${selected ? 'border-cyan-200 bg-cyan-200 shadow-[inset_0_0_0_5px_#0f172a]' : 'border-white/20'}`} />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {step === 'dashboard_reveal' && (
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.25em] text-fuchsia-200">Your command centre</p>
@@ -296,8 +254,8 @@ const LearnerOnboardingShell: React.FC<LearnerOnboardingShellProps> = ({ resolut
                 <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">We’ll highlight the live dashboard next. It takes less than a minute, and you can start your first mission immediately.</p>
                 <div className="mt-8 grid gap-3 sm:grid-cols-3">
                   {DASHBOARD_FEATURES.map((feature) => (
-                    <article key={feature.signal} className="group rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.065] to-white/[0.025] p-4 transition hover:-translate-y-0.5 hover:border-cyan-200/25">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-200/20 bg-cyan-300/10 text-[10px] font-black text-cyan-100">{feature.signal}</div>
+                    <article key={feature.label} className={`group rounded-2xl border border-white/10 bg-gradient-to-br ${feature.accent} p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition hover:-translate-y-0.5 hover:border-cyan-200/25`}>
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-slate-950/70 text-xl shadow-lg" aria-hidden>{feature.icon}</div>
                       <h2 className="mt-4 text-sm font-black text-white">{feature.label}</h2>
                       <p className="mt-2 text-xs leading-5 text-slate-400">{feature.detail}</p>
                     </article>

@@ -23,6 +23,7 @@ interface DashboardTourOverlayProps {
 
 interface TourStepConfig {
   id: DashboardTourStep;
+  icon: string;
   eyebrow: string;
   title: string;
   copy: string;
@@ -34,6 +35,7 @@ interface TourStepConfig {
 const TOUR_STEPS: TourStepConfig[] = [
   {
     id: 'base_unlocked',
+    icon: '👋',
     eyebrow: 'Dashboard ready',
     title: 'Welcome to your dashboard',
     copy: 'This is your daily starting point. We’ll show you the essentials in under a minute.',
@@ -42,6 +44,7 @@ const TOUR_STEPS: TourStepConfig[] = [
   },
   {
     id: 'profile_progress',
+    icon: '🪪',
     eyebrow: 'Your learner identity',
     title: 'See your status at a glance',
     copy: 'Your profile keeps your level, school identity, and current progress together.',
@@ -50,14 +53,25 @@ const TOUR_STEPS: TourStepConfig[] = [
   },
   {
     id: 'xp_rewards',
+    icon: '⚡',
     eyebrow: 'Visible momentum',
     title: 'Watch your progress build',
     copy: 'XP moves your level forward while streaks and rewards make consistency visible.',
     selectors: ['[data-testid="profile-xp-progress"]', '[data-testid="dashboard-profile-card"]'],
-    primaryCta: 'Show my next action',
+    primaryCta: 'Show me around',
+  },
+  {
+    id: 'navigation',
+    icon: '🧭',
+    eyebrow: 'Move with confidence',
+    title: 'Your dashboard map is always nearby',
+    copy: 'On a phone, use the bottom bar. On a larger screen, use the side navigation to reach Learn, Game, Tasks, Clan, Leaderboard, and More.',
+    selectors: ['[data-testid="dashboard-navigation-mobile"]', '[data-testid="dashboard-navigation-desktop"]'],
+    primaryCta: 'Got it',
   },
   {
     id: 'first_mission',
+    icon: '🚀',
     eyebrow: 'Your next action',
     title: 'Start with one clear mission',
     copy: 'This card always gives you a direct way to move your learning forward.',
@@ -92,10 +106,15 @@ const getTourCardLayout = (targetRect: DOMRect | null, targetFound: boolean, isI
 
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
-  const mobileSheet = 'inset-x-3 bottom-3 pb-[env(safe-area-inset-bottom)]';
+  const mobileBottomSheet = 'inset-x-3 bottom-3 pb-[env(safe-area-inset-bottom)]';
+  const mobileTopSheet = 'inset-x-3 top-3 pt-[env(safe-area-inset-top)]';
 
   if (viewportWidth < DESKTOP_MIN_WIDTH && targetFound && !isIntro) {
-    return { className: mobileSheet, placement: 'bottom' };
+    const targetIsLow = Boolean(targetRect && targetRect.top > viewportHeight * 0.52);
+    return {
+      className: targetIsLow ? mobileTopSheet : mobileBottomSheet,
+      placement: targetIsLow ? 'above' : 'bottom',
+    };
   }
 
   if (isIntro || !targetRect || !targetFound) {
@@ -157,7 +176,11 @@ const findTarget = (selectors: string[]): { element: HTMLElement; selector: stri
   for (const selector of selectors) {
     const element = document.querySelector(selector);
     if (element instanceof HTMLElement) {
-      return { element, selector };
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      if (rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden') {
+        return { element, selector };
+      }
     }
   }
   return null;
@@ -188,6 +211,7 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
   const seenStepsRef = React.useRef<Set<DashboardTourStep>>(new Set());
   const startedRef = React.useRef(false);
   const completingMissionRef = React.useRef(false);
+  const dialogRef = React.useRef<HTMLElement>(null);
 
   const tourMetadata = React.useMemo(() => getDashboardTourMetadata(onboardingState), [onboardingState]);
   const shouldShow = active && !hidden && shouldShowDashboardTour({
@@ -199,6 +223,7 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
   const currentIndex = Math.max(0, DASHBOARD_TOUR_STEPS.indexOf(step));
   const isFallback = currentStep.selectors.length > 0 && !targetFound;
   const isMissionStep = currentStep.id === 'first_mission';
+  const isNavigationStep = currentStep.id === 'navigation';
 
   const persistTour = React.useCallback(async (patch: DashboardTourMetadata) => {
     const nextTour = mergeTourMetadata(getDashboardTourMetadata(onboardingState), patch);
@@ -401,6 +426,15 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
     return () => window.removeEventListener('brains-heist:first-mission-cta-clicked', handleMissionClick);
   }, [completeMissionStep, shouldShow]);
 
+  React.useEffect(() => {
+    if (!shouldShow) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [shouldShow]);
+
   const handlePrimary = async () => {
     if (currentStep.interactive) {
       await completeMissionStep({ launchMission: true });
@@ -419,6 +453,41 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
       skipped_at: now,
     });
     setHidden(true);
+  };
+
+  React.useEffect(() => {
+    if (!shouldShow) return;
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    window.requestAnimationFrame(() => dialogRef.current?.focus());
+    return () => previouslyFocused?.focus();
+  }, [shouldShow]);
+
+  React.useEffect(() => {
+    if (shouldShow) window.requestAnimationFrame(() => dialogRef.current?.focus());
+  }, [shouldShow, step]);
+
+  const handleDialogKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      void handleSkip();
+      return;
+    }
+    if (event.key !== 'Tab' || !dialogRef.current) return;
+    const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>('button:not(:disabled), [href], [tabindex]:not([tabindex="-1"])'));
+    if (focusable.length === 0) {
+      event.preventDefault();
+      dialogRef.current.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   };
 
   if (loading || !shouldShow) return null;
@@ -443,16 +512,16 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
   const hasAnchoredCue = cardLayout.placement !== 'center' && cardLayout.placement !== 'bottom' && cardLayout.cueStyle;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[10000]" aria-live="polite" data-testid="dashboard-tour-overlay">
+    <div className="pointer-events-auto fixed inset-0 z-[10000]" aria-live="polite" data-testid="dashboard-tour-overlay">
       {spotlightStyle && targetFound ? (
         <>
-          <div className="pointer-events-none fixed inset-x-0 top-0 bg-slate-950/48 backdrop-blur-[0.5px] transition-[height] duration-300" style={{ height: spotlightStyle.top }} aria-hidden />
-          <div className="pointer-events-none fixed inset-x-0 bottom-0 bg-slate-950/48 backdrop-blur-[0.5px] transition-[top] duration-300" style={{ top: spotlightStyle.top + spotlightStyle.height }} aria-hidden />
-          <div className="pointer-events-none fixed left-0 bg-slate-950/48 backdrop-blur-[0.5px] transition-[top,width,height] duration-300" style={{ top: spotlightStyle.top, width: spotlightStyle.left, height: spotlightStyle.height }} aria-hidden />
-          <div className="pointer-events-none fixed right-0 bg-slate-950/48 backdrop-blur-[0.5px] transition-[top,left,height] duration-300" style={{ top: spotlightStyle.top, left: spotlightStyle.left + spotlightStyle.width, height: spotlightStyle.height }} aria-hidden />
+          <div className="pointer-events-none fixed inset-x-0 top-0 bg-slate-950/90 backdrop-blur-[2px] transition-[height] duration-300" style={{ height: spotlightStyle.top }} aria-hidden />
+          <div className="pointer-events-none fixed inset-x-0 bottom-0 bg-slate-950/90 backdrop-blur-[2px] transition-[top] duration-300" style={{ top: spotlightStyle.top + spotlightStyle.height }} aria-hidden />
+          <div className="pointer-events-none fixed left-0 bg-slate-950/90 backdrop-blur-[2px] transition-[top,width,height] duration-300" style={{ top: spotlightStyle.top, width: spotlightStyle.left, height: spotlightStyle.height }} aria-hidden />
+          <div className="pointer-events-none fixed right-0 bg-slate-950/90 backdrop-blur-[2px] transition-[top,left,height] duration-300" style={{ top: spotlightStyle.top, left: spotlightStyle.left + spotlightStyle.width, height: spotlightStyle.height }} aria-hidden />
         </>
       ) : (
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(34,211,238,0.08),transparent_32%),linear-gradient(180deg,rgba(15,23,42,0.24),rgba(2,6,23,0.34))] backdrop-blur-[0.5px] transition-opacity duration-300" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(34,211,238,0.14),transparent_32%),linear-gradient(180deg,rgba(8,15,30,0.97),rgba(2,6,23,0.98))] backdrop-blur-[3px] transition-opacity duration-300" aria-hidden />
       )}
       {targetRect && targetFound && ringStyle && (
         <div
@@ -463,6 +532,9 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
       )}
 
       <section
+        ref={dialogRef}
+        tabIndex={-1}
+        onKeyDown={handleDialogKeyDown}
         className={`pointer-events-auto fixed ${cardLayout.className}`}
         style={cardLayout.style}
         data-placement={cardLayout.placement}
@@ -472,18 +544,18 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
       >
         {hasAnchoredCue && (
           <span
-            className="pointer-events-none absolute z-10 hidden h-3.5 w-3.5 rotate-45 rounded-[0.2rem] border border-cyan-200/20 bg-slate-950/92 shadow-[0_0_18px_rgba(34,211,238,0.22)] md:block"
+            className="pointer-events-none absolute z-10 hidden h-3.5 w-3.5 rotate-45 rounded-[0.2rem] border border-cyan-200/20 bg-[#07101f] shadow-[0_0_18px_rgba(34,211,238,0.22)] md:block"
             style={cardLayout.cueStyle}
             aria-hidden
           />
         )}
-        <div key={step} className="animate-[dashboardTourCard_240ms_ease-out] overflow-hidden rounded-[1.75rem] border border-cyan-200/20 bg-slate-950/88 text-white shadow-[0_22px_56px_rgba(0,0,0,0.34),0_0_28px_rgba(14,165,233,0.10)] ring-1 ring-white/5 backdrop-blur-xl">
+        <div key={step} className="max-h-[calc(100vh-1.5rem)] animate-[dashboardTourCard_240ms_ease-out] overflow-y-auto rounded-[1.75rem] border border-cyan-200/25 bg-[#07101f] text-white shadow-[0_28px_80px_rgba(0,0,0,0.72),0_0_34px_rgba(14,165,233,0.16)] ring-1 ring-white/10">
           <div className="h-px bg-gradient-to-r from-transparent via-cyan-200/70 to-transparent" />
           <div className="space-y-4 p-4 sm:p-5">
             <div className="flex items-start gap-3">
-              <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-lg shadow-[0_0_24px_rgba(34,211,238,0.20)] ${isMissionStep ? 'border-emerald-200/50 bg-emerald-300/15 text-emerald-100' : 'border-cyan-200/35 bg-cyan-300/12 text-cyan-100'}`} aria-hidden>
+              <div className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-xl ${isMissionStep ? 'border-emerald-200/50 bg-emerald-300/15 shadow-[0_0_26px_rgba(52,211,153,0.20)]' : isNavigationStep ? 'border-fuchsia-200/45 bg-fuchsia-300/15 shadow-[0_0_26px_rgba(217,70,239,0.18)]' : 'border-cyan-200/35 bg-cyan-300/12 shadow-[0_0_24px_rgba(34,211,238,0.20)]'}`} aria-hidden>
                 <span className="absolute inset-1 rounded-xl bg-white/5" />
-                <span className="relative">{isMissionStep ? '▶' : '◈'}</span>
+                <span className="relative">{currentStep.icon}</span>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -519,7 +591,7 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
               <button
                 type="button"
                 onClick={() => { void handlePrimary(); }}
-                className={`min-h-12 flex-1 rounded-2xl px-5 py-3 text-sm font-black text-slate-950 shadow-lg transition duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${isMissionStep ? 'bg-gradient-to-r from-emerald-300 via-cyan-200 to-sky-300 shadow-emerald-400/20 hover:shadow-emerald-300/35 focus-visible:ring-emerald-200' : 'bg-gradient-to-r from-cyan-200 via-sky-200 to-cyan-300 shadow-cyan-400/20 hover:shadow-cyan-300/35 focus-visible:ring-cyan-100'}`}
+                className={`min-h-12 flex-1 rounded-2xl px-5 py-3 text-sm font-black text-slate-950 shadow-lg transition duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${isMissionStep ? 'bg-gradient-to-r from-emerald-300 via-cyan-200 to-sky-300 shadow-emerald-400/20 hover:shadow-emerald-300/35 focus-visible:ring-emerald-200' : isNavigationStep ? 'bg-gradient-to-r from-fuchsia-200 via-violet-200 to-cyan-200 shadow-fuchsia-400/20 hover:shadow-fuchsia-300/35 focus-visible:ring-fuchsia-100' : 'bg-gradient-to-r from-cyan-200 via-sky-200 to-cyan-300 shadow-cyan-400/20 hover:shadow-cyan-300/35 focus-visible:ring-cyan-100'}`}
               >
                 {currentStep.primaryCta}{isMissionStep ? ' →' : ''}
               </button>

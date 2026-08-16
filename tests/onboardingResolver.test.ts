@@ -47,7 +47,7 @@ test('school student with missing placement routes to placement and gates advanc
   assert.ok(resolution.gates.includes('upgrade_prompts'));
 });
 
-test('solo learner without selected goal routes to goal step', () => {
+test('solo learner enters the short introduction without a goal questionnaire', () => {
   const resolution = resolve({
     profile: {
       id: 'u2',
@@ -60,8 +60,8 @@ test('solo learner without selected goal routes to goal step', () => {
 
   assert.equal(resolution.segment, 'solo_learner');
   assert.equal(resolution.context, 'solo');
-  assert.equal(resolution.nextStep, 'goal');
-  assert.deepEqual(resolution.requiredData, ['goal']);
+  assert.equal(resolution.nextStep, 'intent');
+  assert.deepEqual(resolution.requiredData, []);
 });
 
 test('teacher ftue respects teacher feature flag', () => {
@@ -112,7 +112,7 @@ test('eligible learners with incomplete legacy tutorial enter Phase 1A FTUE', ()
   assert.equal(resolution.eligible, true);
   assert.equal(resolution.isComplete, false);
   assert.equal(resolution.segment, 'solo_learner');
-  assert.equal(resolution.nextStep, 'goal');
+  assert.equal(resolution.nextStep, 'intent');
   assert.equal(resolution.featureRevealLevel, 'ftue_active');
 });
 
