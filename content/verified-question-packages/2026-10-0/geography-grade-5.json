@@ -1,0 +1,676 @@
+{
+  "subject": "Geography",
+  "subjectCode": "geography",
+  "grade": 5,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g5-geo-2026.10-001",
+      "topic": "Maps, direction and scale",
+      "difficulty": "easy",
+      "questionText": "In which direction is the campsite from the lake?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Northeast",
+        "Northwest",
+        "Southeast",
+        "Southwest"
+      ],
+      "correctAnswer": "Northeast",
+      "explanation": "The campsite is above and to the right of the lake, which is northeast.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo5-maps-directions",
+        "maps, direction and scale"
+      ],
+      "visualAssetId": "g5-geo-compass-map",
+      "curriculum": {
+        "strand": "Maps, direction and scale",
+        "skill": "Apply maps, direction and scale",
+        "subskill": "maps, direction and scale",
+        "objective": "Use compass directions, grid references, keys and simple scale to locate and describe places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-maps-directions"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-002",
+      "topic": "Maps, direction and scale",
+      "difficulty": "medium",
+      "questionText": "Which grid square contains the museum?",
+      "questionType": "multiple_choice",
+      "options": [
+        "B2",
+        "C2",
+        "C3",
+        "D2"
+      ],
+      "correctAnswer": "C2",
+      "explanation": "The museum is in column C and row 2, giving grid reference C2.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo5-maps-directions",
+        "maps, direction and scale"
+      ],
+      "visualAssetId": "g5-geo-grid-map",
+      "curriculum": {
+        "strand": "Maps, direction and scale",
+        "skill": "Apply maps, direction and scale",
+        "subskill": "maps, direction and scale",
+        "objective": "Use compass directions, grid references, keys and simple scale to locate and describe places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-maps-directions"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-003",
+      "topic": "Maps, direction and scale",
+      "difficulty": "medium",
+      "questionText": "A map scale says 1 cm represents 2 km. What real distance does 4 cm represent?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2 km",
+        "6 km",
+        "8 km",
+        "12 km"
+      ],
+      "correctAnswer": "8 km",
+      "explanation": "Multiplying 4 centimetres by 2 kilometres per centimetre gives 8 kilometres.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo5-maps-directions",
+        "maps, direction and scale"
+      ],
+      "curriculum": {
+        "strand": "Maps, direction and scale",
+        "skill": "Apply maps, direction and scale",
+        "subskill": "maps, direction and scale",
+        "objective": "Use compass directions, grid references, keys and simple scale to locate and describe places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-maps-directions"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-004",
+      "topic": "Maps, direction and scale",
+      "difficulty": "hard",
+      "questionText": "Why does a map need a key?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To make north change direction",
+        "To list every person in the area",
+        "To hide the map scale",
+        "To explain what its symbols represent"
+      ],
+      "correctAnswer": "To explain what its symbols represent",
+      "explanation": "A key allows readers to connect map symbols with real features.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo5-maps-directions",
+        "maps, direction and scale"
+      ],
+      "curriculum": {
+        "strand": "Maps, direction and scale",
+        "skill": "Apply maps, direction and scale",
+        "subskill": "maps, direction and scale",
+        "objective": "Use compass directions, grid references, keys and simple scale to locate and describe places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-maps-directions"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-005",
+      "topic": "Weather, climate and water",
+      "difficulty": "easy",
+      "questionText": "Which month recorded the greatest rainfall?",
+      "questionType": "multiple_choice",
+      "options": [
+        "April",
+        "January",
+        "February",
+        "May"
+      ],
+      "correctAnswer": "April",
+      "explanation": "April has the tallest rainfall bar on the chart.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo5-weather-water",
+        "weather, climate and water"
+      ],
+      "visualAssetId": "g5-geo-rainfall-chart",
+      "curriculum": {
+        "strand": "Weather, climate and water",
+        "skill": "Apply weather, climate and water",
+        "subskill": "weather, climate and water",
+        "objective": "Read weather evidence and describe key processes and stores in the water cycle."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-weather-water"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-006",
+      "topic": "Weather, climate and water",
+      "difficulty": "medium",
+      "questionText": "Which process is shown by arrow X?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Evaporation",
+        "Condensation",
+        "Runoff",
+        "Infiltration"
+      ],
+      "correctAnswer": "Condensation",
+      "explanation": "Arrow X shows water vapour cooling and forming clouds, which is condensation.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo5-weather-water",
+        "weather, climate and water"
+      ],
+      "visualAssetId": "g5-geo-water-cycle",
+      "curriculum": {
+        "strand": "Weather, climate and water",
+        "skill": "Apply weather, climate and water",
+        "subskill": "weather, climate and water",
+        "objective": "Read weather evidence and describe key processes and stores in the water cycle."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-weather-water"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-007",
+      "topic": "Weather, climate and water",
+      "difficulty": "medium",
+      "questionText": "Which instrument measures air temperature?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Rain gauge",
+        "Wind vane",
+        "Thermometer",
+        "Compass"
+      ],
+      "correctAnswer": "Thermometer",
+      "explanation": "A thermometer measures temperature, usually in degrees Celsius.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo5-weather-water",
+        "weather, climate and water"
+      ],
+      "curriculum": {
+        "strand": "Weather, climate and water",
+        "skill": "Apply weather, climate and water",
+        "subskill": "weather, climate and water",
+        "objective": "Read weather evidence and describe key processes and stores in the water cycle."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-weather-water"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-008",
+      "topic": "Weather, climate and water",
+      "difficulty": "hard",
+      "questionText": "Why can two places at the same latitude have different rainfall?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Latitude fixes identical weather everywhere",
+        "Mountains prevent all clouds from forming",
+        "Rain only falls beside oceans",
+        "Relief and prevailing winds can affect rising air"
+      ],
+      "correctAnswer": "Relief and prevailing winds can affect rising air",
+      "explanation": "Mountains and wind direction influence where air rises, cools and releases rain.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo5-weather-water",
+        "weather, climate and water"
+      ],
+      "curriculum": {
+        "strand": "Weather, climate and water",
+        "skill": "Apply weather, climate and water",
+        "subskill": "weather, climate and water",
+        "objective": "Read weather evidence and describe key processes and stores in the water cycle."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-weather-water"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-009",
+      "topic": "Landforms and environments",
+      "difficulty": "easy",
+      "questionText": "Where is sediment most likely to be deposited in the river diagram?",
+      "questionType": "multiple_choice",
+      "options": [
+        "At the inside of the bend",
+        "At the steep outer bank",
+        "At the source only",
+        "In the fastest current"
+      ],
+      "correctAnswer": "At the inside of the bend",
+      "explanation": "Water flows more slowly on the inside of a bend, so it deposits more sediment there.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo5-landforms-environments",
+        "landforms and environments"
+      ],
+      "visualAssetId": "g5-geo-river-bend",
+      "curriculum": {
+        "strand": "Landforms and environments",
+        "skill": "Apply landforms and environments",
+        "subskill": "landforms and environments",
+        "objective": "Recognise physical features and explain simple processes that shape rivers, coasts and environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-landforms-environments"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-010",
+      "topic": "Landforms and environments",
+      "difficulty": "medium",
+      "questionText": "Which environment has very low rainfall, hot days and sparse vegetation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Tropical rainforest",
+        "Desert",
+        "Polar ice cap",
+        "Temperate woodland"
+      ],
+      "correctAnswer": "Desert",
+      "explanation": "Very low rainfall, hot days and sparse vegetation are characteristic of a desert.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo5-landforms-environments",
+        "landforms and environments"
+      ],
+      "curriculum": {
+        "strand": "Landforms and environments",
+        "skill": "Apply landforms and environments",
+        "subskill": "landforms and environments",
+        "objective": "Recognise physical features and explain simple processes that shape rivers, coasts and environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-landforms-environments"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-011",
+      "topic": "Landforms and environments",
+      "difficulty": "medium",
+      "questionText": "What is erosion?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The planting of crops in rows",
+        "The daily change from light to dark",
+        "The wearing away and removal of rock or soil",
+        "The measurement of population"
+      ],
+      "correctAnswer": "The wearing away and removal of rock or soil",
+      "explanation": "Erosion wears away material and transports it from its original location.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo5-landforms-environments",
+        "landforms and environments"
+      ],
+      "curriculum": {
+        "strand": "Landforms and environments",
+        "skill": "Apply landforms and environments",
+        "subskill": "landforms and environments",
+        "objective": "Recognise physical features and explain simple processes that shape rivers, coasts and environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-landforms-environments"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-012",
+      "topic": "Landforms and environments",
+      "difficulty": "hard",
+      "questionText": "Why are mangrove forests valuable along some tropical coasts?",
+      "questionType": "multiple_choice",
+      "options": [
+        "They increase every wave’s height",
+        "They remove all salt from the ocean",
+        "They prevent any organism from living nearby",
+        "Their roots reduce wave energy and provide habitats"
+      ],
+      "correctAnswer": "Their roots reduce wave energy and provide habitats",
+      "explanation": "Dense roots slow water, trap sediment and create nursery habitats for many species.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo5-landforms-environments",
+        "landforms and environments"
+      ],
+      "curriculum": {
+        "strand": "Landforms and environments",
+        "skill": "Apply landforms and environments",
+        "subskill": "landforms and environments",
+        "objective": "Recognise physical features and explain simple processes that shape rivers, coasts and environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-landforms-environments"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-013",
+      "topic": "People, settlements and connections",
+      "difficulty": "easy",
+      "questionText": "Which site is most suitable for a new health clinic?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Site B",
+        "Site A",
+        "Site C",
+        "Site D"
+      ],
+      "correctAnswer": "Site B",
+      "explanation": "Site B is close to most homes and beside the main road without occupying the floodplain.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo5-people-settlements",
+        "people, settlements and connections"
+      ],
+      "visualAssetId": "g5-geo-settlement-site",
+      "curriculum": {
+        "strand": "People, settlements and connections",
+        "skill": "Apply people, settlements and connections",
+        "subskill": "people, settlements and connections",
+        "objective": "Describe settlement patterns, population movement and how transport and services connect places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-people-settlements"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-014",
+      "topic": "People, settlements and connections",
+      "difficulty": "medium",
+      "questionText": "On a transport flow map, what does a thicker arrow usually represent?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A steeper mountain slope",
+        "A larger number of people travelling",
+        "A colder transport route",
+        "A national border"
+      ],
+      "correctAnswer": "A larger number of people travelling",
+      "explanation": "Flow maps commonly use arrow thickness to show the relative number of travellers.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo5-people-settlements",
+        "people, settlements and connections"
+      ],
+      "curriculum": {
+        "strand": "People, settlements and connections",
+        "skill": "Apply people, settlements and connections",
+        "subskill": "people, settlements and connections",
+        "objective": "Describe settlement patterns, population movement and how transport and services connect places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-people-settlements"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-015",
+      "topic": "People, settlements and connections",
+      "difficulty": "medium",
+      "questionText": "Which is a pull factor encouraging people to move to a town?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A drought damaging crops",
+        "A flood destroying homes",
+        "Access to more jobs and services",
+        "Poor harvests in villages"
+      ],
+      "correctAnswer": "Access to more jobs and services",
+      "explanation": "Employment and services attract people, so they are pull factors.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo5-people-settlements",
+        "people, settlements and connections"
+      ],
+      "curriculum": {
+        "strand": "People, settlements and connections",
+        "skill": "Apply people, settlements and connections",
+        "subskill": "people, settlements and connections",
+        "objective": "Describe settlement patterns, population movement and how transport and services connect places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-people-settlements"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-016",
+      "topic": "People, settlements and connections",
+      "difficulty": "hard",
+      "questionText": "A village grows beside a road junction. What is the most likely reason?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Roads prevent all building",
+        "Junctions remove the need for services",
+        "Trade only occurs far from routes",
+        "The junction improves movement and trade"
+      ],
+      "correctAnswer": "The junction improves movement and trade",
+      "explanation": "Accessible routes help people, goods and services meet, supporting settlement growth.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo5-people-settlements",
+        "people, settlements and connections"
+      ],
+      "curriculum": {
+        "strand": "People, settlements and connections",
+        "skill": "Apply people, settlements and connections",
+        "subskill": "people, settlements and connections",
+        "objective": "Describe settlement patterns, population movement and how transport and services connect places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-people-settlements"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-017",
+      "topic": "Resources, sustainability and fieldwork",
+      "difficulty": "easy",
+      "questionText": "Which waste category should the school target first?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Food waste",
+        "Paper",
+        "Plastic",
+        "Metal"
+      ],
+      "correctAnswer": "Food waste",
+      "explanation": "Food waste forms the largest section of the audit chart.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo5-sustainability-fieldwork",
+        "resources, sustainability and fieldwork"
+      ],
+      "visualAssetId": "g5-geo-waste-chart",
+      "curriculum": {
+        "strand": "Resources, sustainability and fieldwork",
+        "skill": "Apply resources, sustainability and fieldwork",
+        "subskill": "resources, sustainability and fieldwork",
+        "objective": "Use field evidence to compare places and make sustainable decisions about resources and environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-sustainability-fieldwork"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-018",
+      "topic": "Resources, sustainability and fieldwork",
+      "difficulty": "medium",
+      "questionText": "Which route causes the least disturbance to the woodland?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Route A",
+        "Route C",
+        "Route B",
+        "All routes cross the same area"
+      ],
+      "correctAnswer": "Route C",
+      "explanation": "Route C follows the existing edge path and avoids the woodland core and nesting area.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo5-sustainability-fieldwork",
+        "resources, sustainability and fieldwork"
+      ],
+      "visualAssetId": "g5-geo-path-decision",
+      "curriculum": {
+        "strand": "Resources, sustainability and fieldwork",
+        "skill": "Apply resources, sustainability and fieldwork",
+        "subskill": "resources, sustainability and fieldwork",
+        "objective": "Use field evidence to compare places and make sustainable decisions about resources and environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-sustainability-fieldwork"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-019",
+      "topic": "Resources, sustainability and fieldwork",
+      "difficulty": "medium",
+      "questionText": "Why should pupils count traffic at the same time on different days?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To ensure every vehicle is identical",
+        "To stop weather from ever changing",
+        "To make the observations more comparable",
+        "To avoid recording the date"
+      ],
+      "correctAnswer": "To make the observations more comparable",
+      "explanation": "Using the same time controls one source of variation and makes daily results easier to compare.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo5-sustainability-fieldwork",
+        "resources, sustainability and fieldwork"
+      ],
+      "curriculum": {
+        "strand": "Resources, sustainability and fieldwork",
+        "skill": "Apply resources, sustainability and fieldwork",
+        "subskill": "resources, sustainability and fieldwork",
+        "objective": "Use field evidence to compare places and make sustainable decisions about resources and environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-sustainability-fieldwork"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-geo-2026.10-020",
+      "topic": "Resources, sustainability and fieldwork",
+      "difficulty": "hard",
+      "questionText": "Which action is the most sustainable use of water at school?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Leave taps running during breaks",
+        "Use drinking water to wash empty paths daily",
+        "Ignore the water meter",
+        "Repair leaks and collect rainwater for gardens"
+      ],
+      "correctAnswer": "Repair leaks and collect rainwater for gardens",
+      "explanation": "Preventing waste and using captured rainwater reduces demand on treated water supplies.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo5-sustainability-fieldwork",
+        "resources, sustainability and fieldwork"
+      ],
+      "curriculum": {
+        "strand": "Resources, sustainability and fieldwork",
+        "skill": "Apply resources, sustainability and fieldwork",
+        "subskill": "resources, sustainability and fieldwork",
+        "objective": "Use field evidence to compare places and make sustainable decisions about resources and environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-5",
+          "objectiveCode": "geo5-sustainability-fieldwork"
+        }
+      ]
+    }
+  ]
+}

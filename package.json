@@ -20,6 +20,7 @@
     "security:migrations": "node scripts/check-supabase-migration-security.mjs",
     "questions:validate-verified-package": "node scripts/validate-verified-question-package.mjs",
     "questions:build-grade-7": "node scripts/build-grade-7-visual-pilot.mjs",
+    "questions:build-grade-5": "node scripts/build-grade-5-visual-pilot.mjs",
     "security:tripwire": "pwsh scripts/run-tripwire.ps1",
     "test:e2e:ielts": "playwright test e2e/ielts-pilot-smoke.spec.js",
     "playwright:install": "playwright install --with-deps chromium",

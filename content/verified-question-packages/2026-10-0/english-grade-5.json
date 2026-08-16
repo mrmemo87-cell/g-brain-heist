@@ -1,0 +1,676 @@
+{
+  "subject": "English",
+  "subjectCode": "english",
+  "grade": 5,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g5-eng-2026.10-001",
+      "topic": "Reading evidence and inference",
+      "difficulty": "easy",
+      "questionText": "What most likely happened just before the final picture?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The wind blew the papers through the open window",
+        "A student carefully filed every paper",
+        "The classroom lights stopped working",
+        "The teacher painted the window"
+      ],
+      "correctAnswer": "The wind blew the papers through the open window",
+      "explanation": "The open window, moving curtain and scattered papers support the inference that wind blew them inside.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng5-reading-inference",
+        "reading evidence and inference"
+      ],
+      "visualAssetId": "g5-eng-story-clues",
+      "curriculum": {
+        "strand": "Reading evidence and inference",
+        "skill": "Apply reading evidence and inference",
+        "subskill": "reading evidence and inference",
+        "objective": "Retrieve information and combine textual or visual clues to make and justify age-appropriate inferences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-002",
+      "topic": "Reading evidence and inference",
+      "difficulty": "medium",
+      "questionText": "A library notice says, “Book returns: Tuesday at 12:30.” When can pupils return books?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Monday at 09:00",
+        "Tuesday at 12:30",
+        "Wednesday at 15:45",
+        "Friday at 08:15"
+      ],
+      "correctAnswer": "Tuesday at 12:30",
+      "explanation": "The notice places book returns in the Tuesday 12:30 slot.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng5-reading-inference",
+        "reading evidence and inference"
+      ],
+      "curriculum": {
+        "strand": "Reading evidence and inference",
+        "skill": "Apply reading evidence and inference",
+        "subskill": "reading evidence and inference",
+        "objective": "Retrieve information and combine textual or visual clues to make and justify age-appropriate inferences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-003",
+      "topic": "Reading evidence and inference",
+      "difficulty": "medium",
+      "questionText": "Lena checked the sky, closed the windows and carried an umbrella. What can the reader infer?",
+      "questionType": "multiple_choice",
+      "options": [
+        "She has lost her bag",
+        "She plans to swim",
+        "She expects rain",
+        "She is decorating the room"
+      ],
+      "correctAnswer": "She expects rain",
+      "explanation": "The dark-sky check, closed windows and umbrella are connected clues that suggest rain.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng5-reading-inference",
+        "reading evidence and inference"
+      ],
+      "curriculum": {
+        "strand": "Reading evidence and inference",
+        "skill": "Apply reading evidence and inference",
+        "subskill": "reading evidence and inference",
+        "objective": "Retrieve information and combine textual or visual clues to make and justify age-appropriate inferences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-004",
+      "topic": "Reading evidence and inference",
+      "difficulty": "hard",
+      "questionText": "A narrator calls a new neighbourhood “a maze of identical streets.” What does this suggest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Every street contains a maze game",
+        "The streets are brightly coloured",
+        "The narrator designed the neighbourhood",
+        "The narrator finds it confusing to navigate"
+      ],
+      "correctAnswer": "The narrator finds it confusing to navigate",
+      "explanation": "Comparing the streets to a maze suggests they are difficult to tell apart and navigate.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng5-reading-inference",
+        "reading evidence and inference"
+      ],
+      "curriculum": {
+        "strand": "Reading evidence and inference",
+        "skill": "Apply reading evidence and inference",
+        "subskill": "reading evidence and inference",
+        "objective": "Retrieve information and combine textual or visual clues to make and justify age-appropriate inferences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-005",
+      "topic": "Vocabulary and language effect",
+      "difficulty": "easy",
+      "questionText": "Which word best completes the intensity scale?",
+      "questionType": "multiple_choice",
+      "options": [
+        "furious",
+        "pleased",
+        "sleepy",
+        "tiny"
+      ],
+      "correctAnswer": "furious",
+      "explanation": "Furious is stronger than angry and completes the increasing scale of emotion.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng5-vocabulary-effect",
+        "vocabulary and language effect"
+      ],
+      "visualAssetId": "g5-eng-word-scale",
+      "curriculum": {
+        "strand": "Vocabulary and language effect",
+        "skill": "Apply vocabulary and language effect",
+        "subskill": "vocabulary and language effect",
+        "objective": "Use context, word relationships and figurative language to explain meaning and effect."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-vocabulary-effect"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-006",
+      "topic": "Vocabulary and language effect",
+      "difficulty": "medium",
+      "questionText": "What does the phrase “the moon was a silver coin” help the reader imagine?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A moon hidden by thick cloud",
+        "A round, bright moon",
+        "Money falling from the sky",
+        "A square moon beside a shop"
+      ],
+      "correctAnswer": "A round, bright moon",
+      "explanation": "The metaphor compares the moon’s round shape and silvery brightness to a coin.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng5-vocabulary-effect",
+        "vocabulary and language effect"
+      ],
+      "curriculum": {
+        "strand": "Vocabulary and language effect",
+        "skill": "Apply vocabulary and language effect",
+        "subskill": "vocabulary and language effect",
+        "objective": "Use context, word relationships and figurative language to explain meaning and effect."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-vocabulary-effect"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-007",
+      "topic": "Vocabulary and language effect",
+      "difficulty": "medium",
+      "questionText": "In “The path was narrow, so we walked in single file,” what does narrow mean?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Very noisy",
+        "Made of metal",
+        "Not wide",
+        "Without an end"
+      ],
+      "correctAnswer": "Not wide",
+      "explanation": "The need to walk in single file shows that the path did not have much width.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng5-vocabulary-effect",
+        "vocabulary and language effect"
+      ],
+      "curriculum": {
+        "strand": "Vocabulary and language effect",
+        "skill": "Apply vocabulary and language effect",
+        "subskill": "vocabulary and language effect",
+        "objective": "Use context, word relationships and figurative language to explain meaning and effect."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-vocabulary-effect"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-008",
+      "topic": "Vocabulary and language effect",
+      "difficulty": "hard",
+      "questionText": "Which sentence uses personification?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The gate was made of iron",
+        "The wind reached 30 kilometres per hour",
+        "The gate stood beside the path",
+        "The impatient wind rattled the gate"
+      ],
+      "correctAnswer": "The impatient wind rattled the gate",
+      "explanation": "Calling the wind impatient gives it a human quality.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng5-vocabulary-effect",
+        "vocabulary and language effect"
+      ],
+      "curriculum": {
+        "strand": "Vocabulary and language effect",
+        "skill": "Apply vocabulary and language effect",
+        "subskill": "vocabulary and language effect",
+        "objective": "Use context, word relationships and figurative language to explain meaning and effect."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-vocabulary-effect"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-009",
+      "topic": "Grammar, punctuation and sentence control",
+      "difficulty": "easy",
+      "questionText": "Which sentence punctuates the spoken words correctly?",
+      "questionType": "multiple_choice",
+      "options": [
+        "“Please wait here,” said Hana.",
+        "“Please wait here” said Hana.",
+        "Please wait here,” said Hana.",
+        "“Please wait here, said Hana.”"
+      ],
+      "correctAnswer": "“Please wait here,” said Hana.",
+      "explanation": "The spoken words use quotation marks, and the comma is placed before the closing quotation mark.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng5-grammar-punctuation",
+        "grammar, punctuation and sentence control"
+      ],
+      "visualAssetId": "g5-eng-direct-speech",
+      "curriculum": {
+        "strand": "Grammar, punctuation and sentence control",
+        "skill": "Apply grammar, punctuation and sentence control",
+        "subskill": "grammar, punctuation and sentence control",
+        "objective": "Construct and edit sentences using accurate tense, agreement, clauses and punctuation."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-grammar-punctuation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-010",
+      "topic": "Grammar, punctuation and sentence control",
+      "difficulty": "medium",
+      "questionText": "Which conjunction best joins the two ideas in the diagram?",
+      "questionType": "multiple_choice",
+      "options": [
+        "unless",
+        "because",
+        "although",
+        "before"
+      ],
+      "correctAnswer": "because",
+      "explanation": "Because introduces the reason that the match was moved indoors.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng5-grammar-punctuation",
+        "grammar, punctuation and sentence control"
+      ],
+      "visualAssetId": "g5-eng-conjunction-bridge",
+      "curriculum": {
+        "strand": "Grammar, punctuation and sentence control",
+        "skill": "Apply grammar, punctuation and sentence control",
+        "subskill": "grammar, punctuation and sentence control",
+        "objective": "Construct and edit sentences using accurate tense, agreement, clauses and punctuation."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-grammar-punctuation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-011",
+      "topic": "Grammar, punctuation and sentence control",
+      "difficulty": "medium",
+      "questionText": "Which sentence has correct subject–verb agreement?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The basket of apples are heavy.",
+        "The apples in the basket is heavy.",
+        "The basket of apples is heavy.",
+        "The basket were heavy every day."
+      ],
+      "correctAnswer": "The basket of apples is heavy.",
+      "explanation": "The subject is the singular noun basket, so the correct verb is is.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng5-grammar-punctuation",
+        "grammar, punctuation and sentence control"
+      ],
+      "curriculum": {
+        "strand": "Grammar, punctuation and sentence control",
+        "skill": "Apply grammar, punctuation and sentence control",
+        "subskill": "grammar, punctuation and sentence control",
+        "objective": "Construct and edit sentences using accurate tense, agreement, clauses and punctuation."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-grammar-punctuation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-012",
+      "topic": "Grammar, punctuation and sentence control",
+      "difficulty": "hard",
+      "questionText": "Which edit makes the sentence clearer? “After feeding the puppy, the bowl was washed by Amir.”",
+      "questionType": "multiple_choice",
+      "options": [
+        "After the puppy, feeding Amir washed the bowl.",
+        "The bowl after feeding washed Amir.",
+        "Amir, the bowl was feeding the puppy.",
+        "After feeding the puppy, Amir washed the bowl."
+      ],
+      "correctAnswer": "After feeding the puppy, Amir washed the bowl.",
+      "explanation": "The revised sentence clearly shows that Amir performed both actions.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng5-grammar-punctuation",
+        "grammar, punctuation and sentence control"
+      ],
+      "curriculum": {
+        "strand": "Grammar, punctuation and sentence control",
+        "skill": "Apply grammar, punctuation and sentence control",
+        "subskill": "grammar, punctuation and sentence control",
+        "objective": "Construct and edit sentences using accurate tense, agreement, clauses and punctuation."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-grammar-punctuation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-013",
+      "topic": "Writing structure and cohesion",
+      "difficulty": "easy",
+      "questionText": "Which card belongs in the missing part of the paragraph plan?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Supporting evidence",
+        "A different title",
+        "An unrelated joke",
+        "The writer’s address"
+      ],
+      "correctAnswer": "Supporting evidence",
+      "explanation": "Evidence should follow the topic sentence and support its main point before the explanation.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng5-writing-structure",
+        "writing structure and cohesion"
+      ],
+      "visualAssetId": "g5-eng-paragraph-plan",
+      "curriculum": {
+        "strand": "Writing structure and cohesion",
+        "skill": "Apply writing structure and cohesion",
+        "subskill": "writing structure and cohesion",
+        "objective": "Organise ideas into coherent paragraphs and select openings, supporting details and conclusions for a clear purpose."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-writing-structure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-014",
+      "topic": "Writing structure and cohesion",
+      "difficulty": "medium",
+      "questionText": "Which event should appear second in the instructions?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Enjoy the flowers",
+        "Add soil to the pot",
+        "Label the finished plant",
+        "Put away every tool before starting"
+      ],
+      "correctAnswer": "Add soil to the pot",
+      "explanation": "The sequence shows preparing the pot before adding the seed and watering it.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng5-writing-structure",
+        "writing structure and cohesion"
+      ],
+      "visualAssetId": "g5-eng-instruction-sequence",
+      "curriculum": {
+        "strand": "Writing structure and cohesion",
+        "skill": "Apply writing structure and cohesion",
+        "subskill": "writing structure and cohesion",
+        "objective": "Organise ideas into coherent paragraphs and select openings, supporting details and conclusions for a clear purpose."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-writing-structure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-015",
+      "topic": "Writing structure and cohesion",
+      "difficulty": "medium",
+      "questionText": "Which opening best begins a story about a surprising discovery?",
+      "questionType": "multiple_choice",
+      "options": [
+        "This report has three numbered sections.",
+        "Please purchase the following items.",
+        "When the floorboard lifted, a tiny brass key glittered underneath.",
+        "In conclusion, exercise is beneficial."
+      ],
+      "correctAnswer": "When the floorboard lifted, a tiny brass key glittered underneath.",
+      "explanation": "The opening introduces an unexpected object and creates curiosity suitable for a story.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng5-writing-structure",
+        "writing structure and cohesion"
+      ],
+      "curriculum": {
+        "strand": "Writing structure and cohesion",
+        "skill": "Apply writing structure and cohesion",
+        "subskill": "writing structure and cohesion",
+        "objective": "Organise ideas into coherent paragraphs and select openings, supporting details and conclusions for a clear purpose."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-writing-structure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-016",
+      "topic": "Writing structure and cohesion",
+      "difficulty": "hard",
+      "questionText": "Which detail best supports the claim that the park needs more shade?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The park gate is painted green",
+        "Two paths meet beside the fountain",
+        "A bus stops across the road",
+        "At midday, every bench is in direct sunlight"
+      ],
+      "correctAnswer": "At midday, every bench is in direct sunlight",
+      "explanation": "Direct sunlight on every bench is relevant evidence that shaded seating is lacking.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng5-writing-structure",
+        "writing structure and cohesion"
+      ],
+      "curriculum": {
+        "strand": "Writing structure and cohesion",
+        "skill": "Apply writing structure and cohesion",
+        "subskill": "writing structure and cohesion",
+        "objective": "Organise ideas into coherent paragraphs and select openings, supporting details and conclusions for a clear purpose."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-writing-structure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-017",
+      "topic": "Purpose, audience and information",
+      "difficulty": "easy",
+      "questionText": "Who is the notice mainly written for?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Pupils bringing reusable lunch containers",
+        "Pilots checking flight plans",
+        "Builders repairing the school roof",
+        "Scientists naming a new planet"
+      ],
+      "correctAnswer": "Pupils bringing reusable lunch containers",
+      "explanation": "The school lunch message and reusable-container symbol directly address pupils making lunch choices.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng5-purpose-audience",
+        "purpose, audience and information"
+      ],
+      "visualAssetId": "g5-eng-school-notice",
+      "curriculum": {
+        "strand": "Purpose, audience and information",
+        "skill": "Apply purpose, audience and information",
+        "subskill": "purpose, audience and information",
+        "objective": "Identify purpose and audience and evaluate how layout, tone and evidence help communicate information."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-purpose-audience"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-018",
+      "topic": "Purpose, audience and information",
+      "difficulty": "medium",
+      "questionText": "Which feature helps readers find information fastest in the fact file?",
+      "questionType": "multiple_choice",
+      "options": [
+        "One very long paragraph",
+        "Clear headings and labelled sections",
+        "Decorative marks covering the numbers",
+        "A title written backwards"
+      ],
+      "correctAnswer": "Clear headings and labelled sections",
+      "explanation": "Headings and sections allow readers to scan for a specific type of information.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng5-purpose-audience",
+        "purpose, audience and information"
+      ],
+      "visualAssetId": "g5-eng-animal-fact-file",
+      "curriculum": {
+        "strand": "Purpose, audience and information",
+        "skill": "Apply purpose, audience and information",
+        "subskill": "purpose, audience and information",
+        "objective": "Identify purpose and audience and evaluate how layout, tone and evidence help communicate information."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-purpose-audience"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-019",
+      "topic": "Purpose, audience and information",
+      "difficulty": "medium",
+      "questionText": "Which sentence is most suitable for a polite email to a teacher?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Tell me the deadline right now!",
+        "Hey, what is going on with that work?",
+        "Could you please explain the homework deadline?",
+        "The deadline is probably not important."
+      ],
+      "correctAnswer": "Could you please explain the homework deadline?",
+      "explanation": "The sentence makes a clear request using respectful, polite language.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng5-purpose-audience",
+        "purpose, audience and information"
+      ],
+      "curriculum": {
+        "strand": "Purpose, audience and information",
+        "skill": "Apply purpose, audience and information",
+        "subskill": "purpose, audience and information",
+        "objective": "Identify purpose and audience and evaluate how layout, tone and evidence help communicate information."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-purpose-audience"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-eng-2026.10-020",
+      "topic": "Purpose, audience and information",
+      "difficulty": "hard",
+      "questionText": "An advert claims a snack is “the healthiest ever” but gives no evidence. What should a careful reader do?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Believe it because the letters are large",
+        "Assume every advert is a scientific report",
+        "Ignore the ingredient list completely",
+        "Look for reliable nutrition information before believing the claim"
+      ],
+      "correctAnswer": "Look for reliable nutrition information before believing the claim",
+      "explanation": "An extreme claim needs supporting evidence from reliable nutrition information.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng5-purpose-audience",
+        "purpose, audience and information"
+      ],
+      "curriculum": {
+        "strand": "Purpose, audience and information",
+        "skill": "Apply purpose, audience and information",
+        "subskill": "purpose, audience and information",
+        "objective": "Identify purpose and audience and evaluate how layout, tone and evidence help communicate information."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-5",
+          "objectiveCode": "eng5-purpose-audience"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,676 @@
+{
+  "subject": "Mathematics",
+  "subjectCode": "mathematics",
+  "grade": 5,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g5-math-2026.10-001",
+      "topic": "Number, place value and operations",
+      "difficulty": "easy",
+      "questionText": "In the place-value chart, what is the value of the highlighted digit?",
+      "questionType": "multiple_choice",
+      "options": [
+        "60,000",
+        "6,000",
+        "600",
+        "600,000"
+      ],
+      "correctAnswer": "60,000",
+      "explanation": "The highlighted 6 is in the ten-thousands column, so its value is 60,000.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math5-number-operations",
+        "number, place value and operations"
+      ],
+      "visualAssetId": "g5-math-place-value",
+      "curriculum": {
+        "strand": "Number, place value and operations",
+        "skill": "Apply number, place value and operations",
+        "subskill": "number, place value and operations",
+        "objective": "Read, compare and calculate with whole numbers, using estimation and inverse operations to check solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-number-operations"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-002",
+      "topic": "Number, place value and operations",
+      "difficulty": "medium",
+      "questionText": "Which calculation is represented by an array with 6 equal rows of 4 counters?",
+      "questionType": "multiple_choice",
+      "options": [
+        "6 + 4 = 10",
+        "6 × 4 = 24",
+        "24 ÷ 6 = 6",
+        "24 − 4 = 20"
+      ],
+      "correctAnswer": "6 × 4 = 24",
+      "explanation": "The array contains 6 equal rows of 4 counters, giving 6 × 4 = 24.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math5-number-operations",
+        "number, place value and operations"
+      ],
+      "curriculum": {
+        "strand": "Number, place value and operations",
+        "skill": "Apply number, place value and operations",
+        "subskill": "number, place value and operations",
+        "objective": "Read, compare and calculate with whole numbers, using estimation and inverse operations to check solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-number-operations"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-003",
+      "topic": "Number, place value and operations",
+      "difficulty": "medium",
+      "questionText": "A library has 3,482 books and receives 769 more. How many books does it have now?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3,151",
+        "4,141",
+        "4,251",
+        "4,261"
+      ],
+      "correctAnswer": "4,251",
+      "explanation": "Adding 3,482 and 769 gives 4,251 books.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math5-number-operations",
+        "number, place value and operations"
+      ],
+      "curriculum": {
+        "strand": "Number, place value and operations",
+        "skill": "Apply number, place value and operations",
+        "subskill": "number, place value and operations",
+        "objective": "Read, compare and calculate with whole numbers, using estimation and inverse operations to check solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-number-operations"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-004",
+      "topic": "Number, place value and operations",
+      "difficulty": "hard",
+      "questionText": "A shop packs 1,248 pencils equally into 6 boxes. How many pencils go in each box?",
+      "questionType": "multiple_choice",
+      "options": [
+        "188",
+        "204",
+        "218",
+        "208"
+      ],
+      "correctAnswer": "208",
+      "explanation": "Dividing 1,248 by 6 gives 208 pencils in each box.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math5-number-operations",
+        "number, place value and operations"
+      ],
+      "curriculum": {
+        "strand": "Number, place value and operations",
+        "skill": "Apply number, place value and operations",
+        "subskill": "number, place value and operations",
+        "objective": "Read, compare and calculate with whole numbers, using estimation and inverse operations to check solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-number-operations"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-005",
+      "topic": "Fractions and decimals",
+      "difficulty": "easy",
+      "questionText": "What fraction of the strip is shaded?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3/4",
+        "1/4",
+        "3/8",
+        "4/3"
+      ],
+      "correctAnswer": "3/4",
+      "explanation": "Six of eight equal parts are shaded, and 6/8 simplifies to 3/4.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math5-fractions-decimals",
+        "fractions and decimals"
+      ],
+      "visualAssetId": "g5-math-fraction-strip",
+      "curriculum": {
+        "strand": "Fractions and decimals",
+        "skill": "Apply fractions and decimals",
+        "subskill": "fractions and decimals",
+        "objective": "Represent, compare and calculate with common fractions and decimals in practical contexts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-fractions-decimals"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-006",
+      "topic": "Fractions and decimals",
+      "difficulty": "medium",
+      "questionText": "Which decimal is marked by point P on the number line?",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.6",
+        "1.6",
+        "1.4",
+        "2.6"
+      ],
+      "correctAnswer": "1.6",
+      "explanation": "The interval from 1 to 2 is divided into tenths, and P is on the sixth tenth after 1.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math5-fractions-decimals",
+        "fractions and decimals"
+      ],
+      "visualAssetId": "g5-math-decimal-line",
+      "curriculum": {
+        "strand": "Fractions and decimals",
+        "skill": "Apply fractions and decimals",
+        "subskill": "fractions and decimals",
+        "objective": "Represent, compare and calculate with common fractions and decimals in practical contexts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-fractions-decimals"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-007",
+      "topic": "Fractions and decimals",
+      "difficulty": "medium",
+      "questionText": "Which number is greatest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.7",
+        "0.27",
+        "0.72",
+        "0.702"
+      ],
+      "correctAnswer": "0.72",
+      "explanation": "Writing the numbers to three decimal places gives 0.720, 0.700, 0.270 and 0.702.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math5-fractions-decimals",
+        "fractions and decimals"
+      ],
+      "curriculum": {
+        "strand": "Fractions and decimals",
+        "skill": "Apply fractions and decimals",
+        "subskill": "fractions and decimals",
+        "objective": "Represent, compare and calculate with common fractions and decimals in practical contexts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-fractions-decimals"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-008",
+      "topic": "Fractions and decimals",
+      "difficulty": "hard",
+      "questionText": "Mira drinks 3/10 litre in the morning and 4/10 litre later. How much does she drink altogether?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1/10 litre",
+        "7/20 litre",
+        "1 1/10 litres",
+        "7/10 litre"
+      ],
+      "correctAnswer": "7/10 litre",
+      "explanation": "The denominators are equal, so add the numerators: 3/10 + 4/10 = 7/10.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math5-fractions-decimals",
+        "fractions and decimals"
+      ],
+      "curriculum": {
+        "strand": "Fractions and decimals",
+        "skill": "Apply fractions and decimals",
+        "subskill": "fractions and decimals",
+        "objective": "Represent, compare and calculate with common fractions and decimals in practical contexts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-fractions-decimals"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-009",
+      "topic": "Patterns, rules and unknowns",
+      "difficulty": "easy",
+      "questionText": "How many tiles will Figure 4 contain?",
+      "questionType": "multiple_choice",
+      "options": [
+        "13",
+        "11",
+        "14",
+        "16"
+      ],
+      "correctAnswer": "13",
+      "explanation": "The pattern adds 3 tiles each time: 4, 7, 10, then 13.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math5-patterns-rules",
+        "patterns, rules and unknowns"
+      ],
+      "visualAssetId": "g5-math-tile-pattern",
+      "curriculum": {
+        "strand": "Patterns, rules and unknowns",
+        "skill": "Apply patterns, rules and unknowns",
+        "subskill": "patterns, rules and unknowns",
+        "objective": "Recognise numerical and visual patterns, describe rules and solve simple problems containing unknown values."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-patterns-rules"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-010",
+      "topic": "Patterns, rules and unknowns",
+      "difficulty": "medium",
+      "questionText": "The pairs are 1 → 4, 2 → 7 and 3 → 10. Which rule changes each input into its output?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Add 4",
+        "Multiply by 3, then add 1",
+        "Multiply by 4",
+        "Multiply by 2, then add 3"
+      ],
+      "correctAnswer": "Multiply by 3, then add 1",
+      "explanation": "For each pair, multiplying the input by 3 and adding 1 gives the output.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math5-patterns-rules",
+        "patterns, rules and unknowns"
+      ],
+      "curriculum": {
+        "strand": "Patterns, rules and unknowns",
+        "skill": "Apply patterns, rules and unknowns",
+        "subskill": "patterns, rules and unknowns",
+        "objective": "Recognise numerical and visual patterns, describe rules and solve simple problems containing unknown values."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-patterns-rules"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-011",
+      "topic": "Patterns, rules and unknowns",
+      "difficulty": "medium",
+      "questionText": "What is the next number in the sequence 7, 12, 17, 22, ...?",
+      "questionType": "multiple_choice",
+      "options": [
+        "24",
+        "26",
+        "27",
+        "29"
+      ],
+      "correctAnswer": "27",
+      "explanation": "Each term is 5 greater than the previous term, so 22 + 5 = 27.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math5-patterns-rules",
+        "patterns, rules and unknowns"
+      ],
+      "curriculum": {
+        "strand": "Patterns, rules and unknowns",
+        "skill": "Apply patterns, rules and unknowns",
+        "subskill": "patterns, rules and unknowns",
+        "objective": "Recognise numerical and visual patterns, describe rules and solve simple problems containing unknown values."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-patterns-rules"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-012",
+      "topic": "Patterns, rules and unknowns",
+      "difficulty": "hard",
+      "questionText": "A number is multiplied by 4 and then 3 is added. The result is 31. What is the number?",
+      "questionType": "multiple_choice",
+      "options": [
+        "6",
+        "8",
+        "28",
+        "7"
+      ],
+      "correctAnswer": "7",
+      "explanation": "Undo the operations: 31 − 3 = 28, then 28 ÷ 4 = 7.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math5-patterns-rules",
+        "patterns, rules and unknowns"
+      ],
+      "curriculum": {
+        "strand": "Patterns, rules and unknowns",
+        "skill": "Apply patterns, rules and unknowns",
+        "subskill": "patterns, rules and unknowns",
+        "objective": "Recognise numerical and visual patterns, describe rules and solve simple problems containing unknown values."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-patterns-rules"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-013",
+      "topic": "Geometry and measurement",
+      "difficulty": "easy",
+      "questionText": "Which angle is an obtuse angle?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Angle C",
+        "Angle A",
+        "Angle B",
+        "Angle D"
+      ],
+      "correctAnswer": "Angle C",
+      "explanation": "Angle C is greater than 90 degrees but less than 180 degrees.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math5-geometry-measure",
+        "geometry and measurement"
+      ],
+      "visualAssetId": "g5-math-angle-cards",
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Classify shapes and angles and solve perimeter, area, time and unit-conversion problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-014",
+      "topic": "Geometry and measurement",
+      "difficulty": "medium",
+      "questionText": "What is the area of the shaded rectangle?",
+      "questionType": "multiple_choice",
+      "options": [
+        "10 square units",
+        "24 square units",
+        "20 square units",
+        "28 square units"
+      ],
+      "correctAnswer": "24 square units",
+      "explanation": "The rectangle is 6 units long and 4 units wide, so its area is 6 × 4 = 24 square units.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math5-geometry-measure",
+        "geometry and measurement"
+      ],
+      "visualAssetId": "g5-math-area-grid",
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Classify shapes and angles and solve perimeter, area, time and unit-conversion problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-015",
+      "topic": "Geometry and measurement",
+      "difficulty": "medium",
+      "questionText": "A rectangular garden is 9 m long and 5 m wide. What is its perimeter?",
+      "questionType": "multiple_choice",
+      "options": [
+        "14 m",
+        "40 m",
+        "28 m",
+        "45 m"
+      ],
+      "correctAnswer": "28 m",
+      "explanation": "Perimeter is 9 + 5 + 9 + 5 = 28 metres.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math5-geometry-measure",
+        "geometry and measurement"
+      ],
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Classify shapes and angles and solve perimeter, area, time and unit-conversion problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-016",
+      "topic": "Geometry and measurement",
+      "difficulty": "hard",
+      "questionText": "A film starts at 14:35 and lasts 1 hour 48 minutes. When does it finish?",
+      "questionType": "multiple_choice",
+      "options": [
+        "15:83",
+        "16:13",
+        "16:33",
+        "16:23"
+      ],
+      "correctAnswer": "16:23",
+      "explanation": "Adding 1 hour gives 15:35, then adding 48 minutes gives 16:23.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math5-geometry-measure",
+        "geometry and measurement"
+      ],
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Classify shapes and angles and solve perimeter, area, time and unit-conversion problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-017",
+      "topic": "Data and chance",
+      "difficulty": "easy",
+      "questionText": "How many more books did Cedar read than Birch?",
+      "questionType": "multiple_choice",
+      "options": [
+        "6",
+        "4",
+        "8",
+        "14"
+      ],
+      "correctAnswer": "6",
+      "explanation": "Cedar read 14 books and Birch read 8, so the difference is 14 − 8 = 6.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math5-data-chance",
+        "data and chance"
+      ],
+      "visualAssetId": "g5-math-bar-chart",
+      "curriculum": {
+        "strand": "Data and chance",
+        "skill": "Apply data and chance",
+        "subskill": "data and chance",
+        "objective": "Read and compare data displays, calculate simple averages and describe likelihood using fractions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-data-chance"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-018",
+      "topic": "Data and chance",
+      "difficulty": "medium",
+      "questionText": "What is the probability of landing on a star?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1/3",
+        "3/8",
+        "5/8",
+        "3/5"
+      ],
+      "correctAnswer": "3/8",
+      "explanation": "Three of the eight equal sectors contain a star, so the probability is 3/8.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math5-data-chance",
+        "data and chance"
+      ],
+      "visualAssetId": "g5-math-spinner",
+      "curriculum": {
+        "strand": "Data and chance",
+        "skill": "Apply data and chance",
+        "subskill": "data and chance",
+        "objective": "Read and compare data displays, calculate simple averages and describe likelihood using fractions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-data-chance"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-019",
+      "topic": "Data and chance",
+      "difficulty": "medium",
+      "questionText": "The scores are 6, 8, 8, 9 and 9. What is the mode?",
+      "questionType": "multiple_choice",
+      "options": [
+        "6 only",
+        "8 only",
+        "8 and 9",
+        "9 only"
+      ],
+      "correctAnswer": "8 and 9",
+      "explanation": "Both 8 and 9 occur twice, more often than any other score.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math5-data-chance",
+        "data and chance"
+      ],
+      "curriculum": {
+        "strand": "Data and chance",
+        "skill": "Apply data and chance",
+        "subskill": "data and chance",
+        "objective": "Read and compare data displays, calculate simple averages and describe likelihood using fractions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-data-chance"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-math-2026.10-020",
+      "topic": "Data and chance",
+      "difficulty": "hard",
+      "questionText": "A class survey includes only students from the football club. Why might it not represent the whole class?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The survey contains too many subjects",
+        "Every student must give the same answer",
+        "Football clubs cannot collect data",
+        "Club members may have different preferences from other students"
+      ],
+      "correctAnswer": "Club members may have different preferences from other students",
+      "explanation": "A sample from one interest group may be biased and may not reflect other students.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math5-data-chance",
+        "data and chance"
+      ],
+      "curriculum": {
+        "strand": "Data and chance",
+        "skill": "Apply data and chance",
+        "subskill": "data and chance",
+        "objective": "Read and compare data displays, calculate simple averages and describe likelihood using fractions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-5",
+          "objectiveCode": "math5-data-chance"
+        }
+      ]
+    }
+  ]
+}

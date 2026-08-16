@@ -122,6 +122,19 @@ The package includes 24 original 640×360 SVG assets: six Mathematics diagrams, 
 
 The package targets `brain-heist-international@2026-8`. In the four Grade 7 scopes, inherited auto-classified objectives remain in history but become non-assessable; five curated objectives per subject become the governed targets. Difficulty and correct-answer positions retain the same reviewed balance as the Grade 6 pilot.
 
+## 2026.10 Grade 5 lower-school pilot
+
+`brain-heist-grade-5-core-2026-10@2026.10.0` contains 80 original multiple-choice questions:
+
+- Grade 5 Mathematics: 20
+- Grade 5 English: 20
+- Grade 5 Integrated Science: 20
+- Grade 5 Geography: 20
+
+The package increases visual support to 32 original 640×360 SVG assets, eight per subject. It preserves the governed balance of five objectives and four questions per objective, 5 easy / 10 medium / 5 hard questions per subject, and five correct answers in every A–D position. Prompts use shorter sentences and concrete contexts while retaining explanations, curriculum mappings, immutable checksums, accessible descriptions and the full production QA gates.
+
+Version `2026.9.0` remains reserved for the separate Grade 8 draft. The Grade 5 package therefore uses `2026.10.0` and targets the immutable `brain-heist-international@2026-10` curriculum snapshot.
+
 ## 2026.1.1 repair record
 
 The repair migration creates five new immutable records for answer-key or option defects, copies their approved curriculum mappings, and retires the originals. It also records and retires the 96 reviewed exact duplicate rows without changing assignment snapshots, attempts or student answers. The temporary Grade 8 QA framework is retired after its eight school mappings are archived.
