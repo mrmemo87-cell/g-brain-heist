@@ -77,26 +77,14 @@ test('School Head launch checklist and read-only delegated billing are present',
   assert.match(billing, /canManageBilling/);
 });
 
-test('first setup screen presents join, apply, and solo paths in that order', () => {
+test('student setup starts with the activation code and removes duplicate path and role questions', () => {
   const setupWizard = read('components/onboarding/SetupWizard.tsx');
-  const pathSelection = setupWizard.slice(
-    setupWizard.indexOf('const renderPathSelection'),
-    setupWizard.indexOf('const renderInviteCodeStep'),
-  );
-  const roleSelection = setupWizard.slice(
-    setupWizard.indexOf('const renderRoleSelection'),
-    setupWizard.indexOf('const renderStudentDetails'),
-  );
-  const joinSchoolIndex = pathSelection.indexOf('Join a School');
-  const applyIndex = pathSelection.indexOf('Apply to add your school');
-  const continueSoloIndex = pathSelection.indexOf('Continue Solo');
-
-  assert.ok(joinSchoolIndex >= 0);
-  assert.ok(applyIndex > joinSchoolIndex);
-  assert.ok(continueSoloIndex > applyIndex);
-  assert.match(pathSelection, /onClick={handleSchoolApplicationOpen}/);
-  assert.match(pathSelection, /Start school application/);
-  assert.doesNotMatch(roleSelection, /Apply to add your school/);
-  assert.match(setupWizard, /setRole\('teacher'\)/);
-  assert.match(setupWizard, /setShowRequestModal\(true\)/);
+  assert.match(setupWizard, /useState<SetupStep>\('invite_code'\)/);
+  assert.match(setupWizard, /Join your school/);
+  assert.match(setupWizard, /Learn independently instead/);
+  assert.match(setupWizard, /School owner or principal\? Apply to add your school/);
+  assert.match(setupWizard, /setStep\('student_details'\)/);
+  assert.doesNotMatch(setupWizard, /How do you want to start your mission\?/);
+  assert.doesNotMatch(setupWizard, /Are you a student or a teacher\?/);
+  assert.doesNotMatch(setupWizard, /renderRoleSelection|renderPathSelection/);
 });

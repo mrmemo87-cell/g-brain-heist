@@ -86,6 +86,7 @@ const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps
   return (
     <nav
       ref={navigationRef}
+      data-testid="dashboard-navigation-mobile"
       className="student-dashboard-bottom-nav"
       style={{ '--student-nav-active-index': activeIndex } as React.CSSProperties}
       onFocus={revealNavigation}
@@ -165,7 +166,7 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
 
   return (
     <>
-      <aside className={`student-dashboard-rail ${sidebarCollapsed ? 'is-collapsed' : ''}`} aria-label="Student dashboard navigation">
+      <aside data-testid="dashboard-navigation-desktop" className={`student-dashboard-rail ${sidebarCollapsed ? 'is-collapsed' : ''}`} aria-label="Student dashboard navigation">
         <button
           type="button"
           className="student-dashboard-sidebar-toggle"

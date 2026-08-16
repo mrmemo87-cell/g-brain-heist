@@ -13,7 +13,7 @@ interface SetupWizardProps {
   initialUsername?: string;
 }
 
-type SetupStep = 'path' | 'invite_code' | 'role' | 'student_details' | 'submitting';
+type SetupStep = 'invite_code' | 'student_details' | 'submitting';
 type SetupPath = 'school' | 'individual' | null;
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
@@ -29,10 +29,9 @@ const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
 const SOLO_GRADES: Grade[] = [6, 7, 8, 9, 10, 11, 12];
 
 const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initialUsername }) => {
-  const [step, setStep] = useState<SetupStep>('path');
-  const [path, setPath] = useState<SetupPath>(null);
+  const [step, setStep] = useState<SetupStep>('invite_code');
+  const [path, setPath] = useState<SetupPath>('school');
   const [inviteCode, setInviteCode] = useState('');
-  const [role, setRole] = useState<'student' | 'teacher'>('student');
   const [grade, setGrade] = useState('');
   const [batch, setBatch] = useState<Batch>('N/A');
   const [username, setUsername] = useState(initialUsername || '');
@@ -69,28 +68,22 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   const studentGradeRequired = path === 'individual' || schoolHasConfiguredGrades;
 
   const getStepNumber = (): number => {
-    if (step === 'path') return 1;
-    if (step === 'invite_code') return 2;
-    if (step === 'role') return path === 'school' ? 3 : 2;
-    if (step === 'student_details') return path === 'school' ? 4 : 3;
+    if (step === 'invite_code') return 1;
+    if (step === 'student_details') return 2;
     return 1;
   };
 
-  const getTotalSteps = (): number => {
-    if (path === 'school') return role === 'student' ? 4 : 3;
-    if (path === 'individual') return role === 'student' ? 3 : 2;
-    return 3; // Default
-  };
-
-  const handlePathSelect = (selectedPath: SetupPath) => {
-    setPath(selectedPath);
+  const startIndependentSetup = () => {
+    setPath('individual');
+    setInviteCode('');
+    setSchoolName(null);
+    setSchoolId(null);
+    setApprovedClasses([]);
+    setSelectedClassId('');
+    setGrade('');
+    setBatch('N/A');
     setError(null);
-    
-    if (selectedPath === 'school') {
-      setStep('invite_code');
-    } else if (selectedPath === 'individual') {
-      setStep('role');
-    }
+    setStep('student_details');
   };
 
   const handleInviteCodeValidate = async () => {
@@ -125,7 +118,10 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
       setClassesLoading(false);
       setApprovedClasses(classesResult.success ? classesResult.classes : []);
       setSelectedClassId('');
-      setStep('role');
+      // Accounts created through this signup are already student accounts.
+      // Continue straight to the only details the school actually needs.
+      setPath('school');
+      setStep('student_details');
     } catch (err) {
       setError('Failed to validate invite code. Please try again.');
     } finally {
@@ -133,29 +129,16 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
     }
   };
 
-  const handleRoleSelect = (selectedRole: 'student' | 'teacher') => {
-    setRole(selectedRole);
-    setError(null);
-
-    if (selectedRole === 'student') {
-      setStep('student_details');
-    } else {
-      // Teacher path - submit immediately
-      handleSubmit(selectedRole);
-    }
-  };
-
   const handleSchoolApplicationOpen = () => {
     // A new-school application is reserved for an authorised school
     // decision-maker. Treat the applicant as staff until approval provisions
     // the protected School Head membership.
-    setRole('teacher');
     setError(null);
     setShowRequestModal(true);
   };
 
-  const handleSubmit = async (submittedRole?: 'student' | 'teacher') => {
-    const finalRole = submittedRole || role;
+  const handleSubmit = async () => {
+    const finalRole = 'student' as const;
     const selectedSchoolClass = approvedClasses.find((item) => item.id === selectedClassId);
     
     if (finalRole === 'student' && studentGradeRequired && !grade) {
@@ -223,7 +206,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
         if (!setupResult.success) {
           setError(setupResult.error || 'Failed to complete setup');
-          setStep('role');
+          setStep('student_details');
           return;
         }
       }
@@ -311,7 +294,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
     } catch (err) {
       console.error('Setup error:', err);
       setError('An unexpected error occurred. Please try again.');
-      setStep(path === 'school' ? 'invite_code' : 'role');
+      setStep(path === 'school' ? 'invite_code' : 'student_details');
     } finally {
       setIsLoading(false);
     }
@@ -319,7 +302,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
   const renderStepIndicator = () => {
     const currentStep = getStepNumber();
-    const totalSteps = getTotalSteps();
+    const totalSteps = 2;
 
     return (
       <div className="flex items-center justify-center gap-2 mb-8">
@@ -327,7 +310,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
           <div
             key={index}
             className={`h-2 rounded-full transition-all duration-300 ${
-              index < currentStep
+              index < currentStep - 1
                 ? 'w-8 bg-cyan-400'
                 : index === currentStep - 1
                 ? 'w-12 bg-cyan-400'
@@ -342,112 +325,17 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
     );
   };
 
-  const renderPathSelection = () => (
-    <div className="space-y-6 animate-slide-up">
-      <div className="text-center mb-8">
-        <h2 className="font-heading text-3xl font-bold text-white mb-3">
-          Welcome, Agent
-        </h2>
-        <p className="text-gray-400">
-          How do you want to start your mission?
-        </p>
-      </div>
-
-      <div className="grid gap-4">
-        <button
-          onClick={() => handlePathSelect('school')}
-          className="group relative overflow-hidden rounded-xl border-2 border-cyan-500/30 bg-gradient-to-br from-slate-900/90 to-slate-800/90 p-6 text-left transition-all duration-300 hover:border-cyan-400 hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-lg bg-cyan-500/20 flex items-center justify-center text-2xl border border-cyan-500/40">
-                🏫
-              </div>
-              <h3 className="font-heading text-2xl font-bold text-white">Join a School</h3>
-            </div>
-            
-            <p className="text-gray-300 mb-4">
-              Use an invite code from your school. Compete with classmates and access school leaderboards.
-            </p>
-            
-            <div className="flex items-center gap-2 text-cyan-400 font-semibold">
-              <span>Enter invite code</span>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </div>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={handleSchoolApplicationOpen}
-          disabled={isLoading}
-          className="group relative overflow-hidden rounded-xl border-2 border-amber-400/30 bg-gradient-to-br from-slate-900/90 to-slate-800/90 p-6 text-left transition-all duration-300 hover:border-amber-300 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-400/0 to-amber-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-lg bg-amber-300/15 flex items-center justify-center text-2xl border border-amber-300/40">
-                🏛️
-              </div>
-              <h3 className="font-heading text-2xl font-bold text-white">Apply to add your school</h3>
-            </div>
-
-            <p className="text-gray-300 mb-4">
-              For school owners, principals, directors, and authorised decision-makers. No invite code needed.
-            </p>
-
-            <div className="flex items-center gap-2 text-amber-200 font-semibold">
-              <span>Start school application</span>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={() => handlePathSelect('individual')}
-          className="group relative overflow-hidden rounded-xl border-2 border-purple-500/30 bg-gradient-to-br from-slate-900/90 to-slate-800/90 p-6 text-left transition-all duration-300 hover:border-purple-400 hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center text-2xl border border-purple-500/40">
-                🎯
-              </div>
-              <h3 className="font-heading text-2xl font-bold text-white">Continue Solo</h3>
-            </div>
-            
-            <p className="text-gray-300 mb-4">
-              Play individually. You can join a school later from your dashboard.
-            </p>
-            
-            <div className="flex items-center gap-2 text-purple-400 font-semibold">
-              <span>Start playing</span>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </div>
-          </div>
-        </button>
-      </div>
-    </div>
-  );
-
   const renderInviteCodeStep = () => (
     <div className="space-y-6 animate-slide-up">
       <div className="text-center mb-6">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 text-3xl shadow-[0_0_28px_rgba(34,211,238,0.18)]" aria-hidden>
+          🏫
+        </div>
         <h2 className="font-heading text-2xl font-bold text-white mb-2">
-          Enter Invite Code
+          Join your school
         </h2>
         <p className="text-gray-400">
-          Get this code from your school administrator or teacher
+          Enter the activation code your school gave you. That’s all we need to find your school.
         </p>
       </div>
 
@@ -477,92 +365,22 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         </button>
 
         <button
-          onClick={() => {
-            setStep('path');
-            setInviteCode('');
-            setError(null);
-          }}
+          onClick={startIndependentSetup}
           className="w-full py-3 text-gray-400 hover:text-white transition-colors"
           disabled={isLoading}
         >
-          ← Back
+          Learn independently instead
         </button>
 
         <div className="pt-4 border-t border-gray-700">
           <button
-            onClick={() => setShowRequestModal(true)}
-            className="w-full text-center text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+            onClick={handleSchoolApplicationOpen}
+            className="w-full text-center text-sm text-amber-200 hover:text-amber-100 transition-colors"
           >
-            Don't have a code? Request school access →
+            School owner or principal? Apply to add your school →
           </button>
         </div>
       </div>
-    </div>
-  );
-
-  const renderRoleSelection = () => (
-    <div className="space-y-6 animate-slide-up">
-      <div className="text-center mb-6">
-        <h2 className="font-heading text-2xl font-bold text-white mb-2">
-          {path === 'school' && schoolName ? `Joining ${schoolName}` : 'Select Your Role'}
-        </h2>
-        <p className="text-gray-400">
-          Are you a student or a teacher?
-        </p>
-      </div>
-
-      <div className="grid gap-4">
-        <button
-          onClick={() => handleRoleSelect('student')}
-          disabled={isLoading}
-          className="group relative overflow-hidden rounded-xl border-2 border-cyan-500/30 bg-gradient-to-br from-slate-900/90 to-slate-800/90 p-6 text-left transition-all duration-300 hover:border-cyan-400 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          
-          <div className="relative z-10 flex items-center gap-4">
-            <div className="w-14 h-14 rounded-lg bg-cyan-500/20 flex items-center justify-center text-3xl border border-cyan-500/40">
-              🎓
-            </div>
-            <div className="flex-1">
-              <h3 className="font-heading text-xl font-bold text-white mb-1">Student</h3>
-              <p className="text-sm text-gray-400">Complete quests, earn rewards, compete with peers</p>
-            </div>
-            <svg className="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </button>
-
-        <button
-          onClick={() => handleRoleSelect('teacher')}
-          disabled={isLoading}
-          className="group relative overflow-hidden rounded-xl border-2 border-purple-500/30 bg-gradient-to-br from-slate-900/90 to-slate-800/90 p-6 text-left transition-all duration-300 hover:border-purple-400 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          
-          <div className="relative z-10 flex items-center gap-4">
-            <div className="w-14 h-14 rounded-lg bg-purple-500/20 flex items-center justify-center text-3xl border border-purple-500/40">
-              👨‍🏫
-            </div>
-            <div className="flex-1">
-              <h3 className="font-heading text-xl font-bold text-white mb-1">Teacher</h3>
-              <p className="text-sm text-gray-400">Create assignments, monitor progress, manage classes</p>
-            </div>
-            <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </button>
-      </div>
-
-
-      <button
-        onClick={() => setStep(path === 'school' ? 'invite_code' : 'path')}
-        className="w-full py-3 text-gray-400 hover:text-white transition-colors"
-        disabled={isLoading}
-      >
-        ← Back
-      </button>
     </div>
   );
 
@@ -570,10 +388,12 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
     <div className="space-y-6 animate-slide-up">
       <div className="text-center mb-6">
         <h2 className="font-heading text-2xl font-bold text-white mb-2">
-          Student Details
+          One last step
         </h2>
         <p className="text-gray-400">
-          Help us place you on the right leaderboards
+          {path === 'school' && schoolName
+            ? `Choose the grade and class ${schoolName} already configured for you.`
+            : 'Add the essentials for your learner profile.'}
         </p>
       </div>
 
@@ -664,7 +484,13 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         </button>
 
         <button
-          onClick={() => setStep('role')}
+          onClick={() => {
+            setPath('school');
+            setGrade('');
+            setBatch('N/A');
+            setError(null);
+            setStep('invite_code');
+          }}
           className="w-full py-3 text-gray-400 hover:text-white transition-colors"
           disabled={isLoading}
         >
@@ -719,9 +545,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             )}
 
             {/* Step content */}
-            {step === 'path' && renderPathSelection()}
             {step === 'invite_code' && renderInviteCodeStep()}
-            {step === 'role' && renderRoleSelection()}
             {step === 'student_details' && renderStudentDetails()}
             {step === 'submitting' && renderSubmitting()}
 
@@ -745,7 +569,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         <SchoolRequestModal
           isOpen={showRequestModal}
           onClose={() => setShowRequestModal(false)}
-          requesterRole={role}
+          requesterRole="teacher"
         />
       )}
 
