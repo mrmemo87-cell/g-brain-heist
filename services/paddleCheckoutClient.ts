@@ -42,7 +42,10 @@ function loadPaddleScript(): Promise<void> {
   return paddleScriptPromise;
 }
 
-export async function openPaddleCheckoutForTransaction(transactionId: string): Promise<void> {
+export async function openPaddleCheckoutForTransaction(
+  transactionId: string,
+  successUrl = `${window.location.origin}/ielts/apply-prime?checkout=success`,
+): Promise<void> {
   if (!transactionId) {
     throw new Error('Missing Paddle transaction ID.');
   }
@@ -75,7 +78,7 @@ export async function openPaddleCheckoutForTransaction(transactionId: string): P
           variant: 'one-page',
           theme: 'light',
           locale: 'en',
-          successUrl: `${window.location.origin}/ielts/apply-prime?checkout=success`,
+          successUrl,
         },
       },
     });
@@ -90,7 +93,7 @@ export async function openPaddleCheckoutForTransaction(transactionId: string): P
       variant: 'one-page',
       theme: 'light',
       locale: 'en',
-      successUrl: `${window.location.origin}/ielts/apply-prime?checkout=success`,
+      successUrl,
     },
   });
 }

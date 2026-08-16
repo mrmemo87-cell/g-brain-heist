@@ -25,6 +25,7 @@ import type { Profile } from './types';
 import { isAuthCallbackPath, isResumeEvent, resolvePostAuthPath, shouldUseGlobalAuthLoader } from './src/lib/authFlowGuards';
 import { readIeltsPracticeAssignmentContext } from './src/pages/ielts/assignmentPracticeUi';
 import { checkIeltsPracticeAccess, type IeltsPracticeSkill } from './services/ieltsService';
+import SchoolProgrammeRouteGuard from './components/SchoolProgrammeRouteGuard';
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
 const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');
@@ -64,6 +65,10 @@ const BookedDemoPage = lazyRetry(() => import('./src/pages/BookedDemoPage'), 'Bo
 const PresentationPage = lazyRetry(() => import('./src/pages/PresentationPage'), 'PresentationPage');
 
 const queryClient = new QueryClient();
+
+const withSchoolIeltsAccess = (element: React.ReactElement): React.ReactElement => (
+  <SchoolProgrammeRouteGuard programme="ielts">{element}</SchoolProgrammeRouteGuard>
+);
 
 const IeltsPracticeRouteGuard: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const assignmentContext = readIeltsPracticeAssignmentContext();
@@ -788,15 +793,15 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts',
-    element: <IeltsHome />,
+    element: withSchoolIeltsAccess(<IeltsHome />),
   },
   {
     path: '/ielts/practice/assigned',
-    element: <ProtectedRoute element={<IeltsAssignedPractice />} />,
+    element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsAssignedPractice />} />),
   },
   {
     path: '/ielts/journey',
-    element: <ProtectedRoute element={<SchoolAdminIeltsRoute ieltsTab="ielts-student-progress"><IeltsJourneyDashboard /></SchoolAdminIeltsRoute>} />,
+    element: withSchoolIeltsAccess(<ProtectedRoute element={<SchoolAdminIeltsRoute ieltsTab="ielts-student-progress"><IeltsJourneyDashboard /></SchoolAdminIeltsRoute>} />),
   },
   {
     path: '/ielts/admin',
@@ -823,15 +828,15 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/trial-test',
-    element: <ProtectedRoute element={<IeltsExtraPracticeGuard><TrialListeningTest /></IeltsExtraPracticeGuard>} />,
+    element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsExtraPracticeGuard><TrialListeningTest /></IeltsExtraPracticeGuard>} />),
   },
   {
     path: '/ielts/trial-test-2',
-    element: <Suspense fallback={<BrainsLoader message="Loading free diagnostic..." />}><TrialListeningTask2 /></Suspense>,
+    element: withSchoolIeltsAccess(<Suspense fallback={<BrainsLoader message="Loading free diagnostic..." />}><TrialListeningTask2 /></Suspense>),
   },
   {
     path: '/ielts/apply-prime',
-    element: <IeltsPrime />,
+    element: withSchoolIeltsAccess(<IeltsPrime />),
   },
   {
     path: '/ielts/exams/manage',
@@ -871,11 +876,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/review-result/:skill/:attemptId',
-    element: <ProtectedRoute element={<IeltsReviewResult />} />,
+    element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsReviewResult />} />),
   },
   {
     path: '/ielts/:skill/result/:attemptId',
-    element: <ProtectedRoute element={<IeltsObjectiveResult />} />,
+    element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsObjectiveResult />} />),
   },
   {
     path: '/ielts/exam/:examEventId/monitor',
@@ -891,27 +896,27 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/exam/:examEventId',
-    element: <ProtectedRoute element={<IeltsExamMode />} />,
+    element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsExamMode />} />),
   },
   {
     path: '/ielts/reading/:setId',
-    element: <ProtectedRoute element={<IeltsPracticeRouteGuard><ReadingPractice /></IeltsPracticeRouteGuard>} />,
+    element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsPracticeRouteGuard><ReadingPractice /></IeltsPracticeRouteGuard>} />),
   },
   {
     path: '/ielts/listening/:setId',
-    element: <ProtectedRoute element={<IeltsPracticeRouteGuard><ListeningPractice /></IeltsPracticeRouteGuard>} />,
+    element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsPracticeRouteGuard><ListeningPractice /></IeltsPracticeRouteGuard>} />),
   },
   {
     path: '/ielts/writing/:taskId',
-    element: <ProtectedRoute element={<IeltsPracticeRouteGuard><WritingPractice /></IeltsPracticeRouteGuard>} />,
+    element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsPracticeRouteGuard><WritingPractice /></IeltsPracticeRouteGuard>} />),
   },
   {
     path: '/ielts/speaking/:taskId',
-    element: <ProtectedRoute element={<IeltsPracticeRouteGuard><SpeakingPractice /></IeltsPracticeRouteGuard>} />,
+    element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsPracticeRouteGuard><SpeakingPractice /></IeltsPracticeRouteGuard>} />),
   },
   {
     path: '/ielts/session/:sessionId',
-    element: <ProtectedRoute element={<IeltsSession />} />,
+    element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsSession />} />),
   },
   {
     path: '*',

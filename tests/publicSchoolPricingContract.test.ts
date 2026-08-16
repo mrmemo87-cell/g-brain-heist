@@ -45,10 +45,12 @@ test('legacy fixed-tier purchase UI and client checkout are retired', () => {
 test('legacy Paddle school checkout returns gone while IELTS checkout remains available', () => {
   const retiredHandler = paddleFunction.slice(
     paddleFunction.indexOf('async function handleCreateCheckout'),
-    paddleFunction.indexOf('// ROUTE: POST /paddle/ielts-checkout'),
+    paddleFunction.indexOf('type SchoolQuoteCheckoutMode'),
   );
   assert.match(retiredHandler, /jsonResponse\(410/);
   assert.match(retiredHandler, /Plan & Billing/);
   assert.doesNotMatch(retiredHandler, /paddleRequest|PADDLE_PRICE_/);
+  assert.match(paddleFunction, /handleCreateSchoolQuoteCheckout/);
+  assert.match(paddleFunction, /product: "school_quote"/);
   assert.match(paddleFunction, /handleCreateIeltsPrimeCheckout/);
 });
