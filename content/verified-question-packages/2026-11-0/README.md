@@ -1,4 +1,4 @@
-# Grade 4 visual core — release blueprint
+# Grade 4 visual core — package notes
 
 This directory begins `brain-heist-grade-4-core-2026-11@2026.11.0` without making an incomplete package importable. A `manifest.json` must not be added until all 80 questions, 36 visual assets, the `2026-11` curriculum migration and every release gate below are complete.
 
@@ -44,22 +44,22 @@ This directory begins `brain-heist-grade-4-core-2026-11@2026.11.0` without makin
 
 ## Visual production slate
 
-Mathematics (9): four-digit place-value frame; regrouping model; equal-groups array; sharing-with-remainder scene; fraction-wall comparison; money-and-decimal board; symmetry grid; perimeter route; pictogram and likelihood cards.
+Mathematics (9): four-digit place-value chart; equal-groups array; sharing-with-remainder scene; fraction strip; money-and-decimal board; symmetry grid; angle cards; pictogram; likelihood bag.
 
-English (9): short story clue sequence; context-word spotlight; synonym strength ladder; speech-punctuation builder; tense timeline; sentence-joining cards; paragraph sequencing board; instruction strip; child-friendly notice and fact-file layout.
+English (9): story-clue sequence; child-friendly club notice; size-word scale; speech-punctuation builder; conjunction bridge; planting sequence; instruction strip; library notice; owl fact-file layout.
 
-Integrated Science (9): animal-group key; habitat food chain; material-property test; three-state particle model; magnet prediction board; friction comparison; shadow setup; complete-circuit choice; fair-test results display.
+Integrated Science (9): animal-group key; habitat food chain; frog life cycle; waterproof-material test; magnet prediction board; friction comparison; complete circuit; fair-test setup; results table.
 
-Geography (9): compass route map; local map key; weather-instrument match; seasonal rainfall pictogram; labelled water-cycle model; river source-to-mouth sequence; settlement service map; goods journey flow; school waste and fieldwork chart.
+Geography (9): compass map; local map key; grid reference; weather-instrument match; seasonal temperature chart; labelled water-cycle model; river source-to-mouth sequence; settlement service map; school waste chart.
 
-The final slate must contain exactly 36 assets; one combined asset may support two closely related prompts only when both questions still have independent reasoning. Every diagram must remain readable at a 320-pixel phone width, use labels or patterns in addition to colour, and keep the keyed answer out of its title and alt text.
+The final slate contains exactly 36 assets, each linked to one question. Every diagram remains readable at a 320-pixel phone width, uses labels or patterns in addition to colour, and keeps the keyed answer out of its title and alt text.
 
 ## Release gates
 
 1. Add the immutable `2026-11` curriculum snapshot and exactly 20 assessable Grade 4 objectives above.
 2. Author and subject-review 80 original questions; reject cross-grade prompt reuse and review high-similarity concept pairs manually.
 3. Produce and inspect all 36 SVGs at desktop and phone sizes, including greyscale and high-zoom checks.
-4. Generate schema v2 package files and `manifest.json` only after content and asset review is complete.
+4. Regenerate schema v2 package files and `manifest.json` only after content and asset review is complete.
 5. Pass package validation, migration security, TypeScript, production build and the full test suite.
 6. Merge and wait for a Ready production deployment; verify every asset response, MIME type and checksum.
 7. Apply the migration, run a production dry-run, import atomically, then independently verify release, question, mapping, objective, asset and link counts.

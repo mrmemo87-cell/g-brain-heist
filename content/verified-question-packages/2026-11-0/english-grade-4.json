@@ -1,0 +1,677 @@
+{
+  "subject": "English",
+  "subjectCode": "english",
+  "grade": 4,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g4-eng-2026.11-001",
+      "topic": "Reading retrieval and inference",
+      "difficulty": "easy",
+      "questionText": "What most likely happened before the child entered the room?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The child walked through wet mud",
+        "The child polished every shoe",
+        "The floor was painted brown",
+        "A window made the footprints"
+      ],
+      "correctAnswer": "The child walked through wet mud",
+      "explanation": "Wet boots and a trail of muddy prints support the inference that the child walked through mud.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng4-reading-retrieval-inference",
+        "reading retrieval and inference"
+      ],
+      "visualAssetId": "g4-eng-muddy-clues",
+      "curriculum": {
+        "strand": "Reading retrieval and inference",
+        "skill": "Apply reading retrieval and inference",
+        "subskill": "reading retrieval and inference",
+        "objective": "Retrieve explicit details and combine short textual or visual clues to make supported inferences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-reading-retrieval-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-002",
+      "topic": "Reading retrieval and inference",
+      "difficulty": "medium",
+      "questionText": "The notice says, “Garden Club meets Thursday at 3:15.” When does the club meet?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Tuesday at 3:15",
+        "Thursday at 3:15",
+        "Thursday at 1:35",
+        "Friday at 3:45"
+      ],
+      "correctAnswer": "Thursday at 3:15",
+      "explanation": "The meeting day and time are stated directly on the notice.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng4-reading-retrieval-inference",
+        "reading retrieval and inference"
+      ],
+      "visualAssetId": "g4-eng-club-notice",
+      "curriculum": {
+        "strand": "Reading retrieval and inference",
+        "skill": "Apply reading retrieval and inference",
+        "subskill": "reading retrieval and inference",
+        "objective": "Retrieve explicit details and combine short textual or visual clues to make supported inferences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-reading-retrieval-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-003",
+      "topic": "Reading retrieval and inference",
+      "difficulty": "medium",
+      "questionText": "Mira zipped her coat, pulled on a scarf and rubbed her hands. What can the reader infer?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The room is noisy",
+        "Mira is going swimming",
+        "The weather is cold",
+        "The day is very hot"
+      ],
+      "correctAnswer": "The weather is cold",
+      "explanation": "A zipped coat, scarf and cold hands are clues that the weather is cold.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng4-reading-retrieval-inference",
+        "reading retrieval and inference"
+      ],
+      "curriculum": {
+        "strand": "Reading retrieval and inference",
+        "skill": "Apply reading retrieval and inference",
+        "subskill": "reading retrieval and inference",
+        "objective": "Retrieve explicit details and combine short textual or visual clues to make supported inferences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-reading-retrieval-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-004",
+      "topic": "Reading retrieval and inference",
+      "difficulty": "hard",
+      "questionText": "Omar reread the map, turned it around and sighed. How is he probably feeling?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Hungry",
+        "Proud",
+        "Sleepy",
+        "Confused"
+      ],
+      "correctAnswer": "Confused",
+      "explanation": "Rereading and turning the map while sighing suggest that Omar is confused.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng4-reading-retrieval-inference",
+        "reading retrieval and inference"
+      ],
+      "curriculum": {
+        "strand": "Reading retrieval and inference",
+        "skill": "Apply reading retrieval and inference",
+        "subskill": "reading retrieval and inference",
+        "objective": "Retrieve explicit details and combine short textual or visual clues to make supported inferences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-reading-retrieval-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-005",
+      "topic": "Vocabulary and language",
+      "difficulty": "easy",
+      "questionText": "Which word best fits the smallest object on the scale?",
+      "questionType": "multiple_choice",
+      "options": [
+        "tiny",
+        "enormous",
+        "wide",
+        "heavy"
+      ],
+      "correctAnswer": "tiny",
+      "explanation": "Tiny means very small and matches the first object on the size scale.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng4-vocabulary-language",
+        "vocabulary and language"
+      ],
+      "visualAssetId": "g4-eng-size-scale",
+      "curriculum": {
+        "strand": "Vocabulary and language",
+        "skill": "Apply vocabulary and language",
+        "subskill": "vocabulary and language",
+        "objective": "Use context, synonyms, precise verbs and simple figurative language to explain word meaning and effect."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-vocabulary-language"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-006",
+      "topic": "Vocabulary and language",
+      "difficulty": "medium",
+      "questionText": "Which word is closest in meaning to rapid?",
+      "questionType": "multiple_choice",
+      "options": [
+        "quiet",
+        "fast",
+        "late",
+        "smooth"
+      ],
+      "correctAnswer": "fast",
+      "explanation": "Rapid and fast both describe something moving or happening quickly.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng4-vocabulary-language",
+        "vocabulary and language"
+      ],
+      "curriculum": {
+        "strand": "Vocabulary and language",
+        "skill": "Apply vocabulary and language",
+        "subskill": "vocabulary and language",
+        "objective": "Use context, synonyms, precise verbs and simple figurative language to explain word meaning and effect."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-vocabulary-language"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-007",
+      "topic": "Vocabulary and language",
+      "difficulty": "medium",
+      "questionText": "“The cloud looked like soft cotton.” What does this simile help you imagine?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A loud storm cloud",
+        "A square metal cloud",
+        "A fluffy white cloud",
+        "A cloud under the ground"
+      ],
+      "correctAnswer": "A fluffy white cloud",
+      "explanation": "The comparison with cotton suggests a cloud that looks soft, white and fluffy.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng4-vocabulary-language",
+        "vocabulary and language"
+      ],
+      "curriculum": {
+        "strand": "Vocabulary and language",
+        "skill": "Apply vocabulary and language",
+        "subskill": "vocabulary and language",
+        "objective": "Use context, synonyms, precise verbs and simple figurative language to explain word meaning and effect."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-vocabulary-language"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-008",
+      "topic": "Vocabulary and language",
+      "difficulty": "hard",
+      "questionText": "Which verb shows that Lina ran very quickly?",
+      "questionType": "multiple_choice",
+      "options": [
+        "moved",
+        "went",
+        "looked",
+        "sprinted"
+      ],
+      "correctAnswer": "sprinted",
+      "explanation": "Sprinted is a precise verb that means ran at high speed.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng4-vocabulary-language",
+        "vocabulary and language"
+      ],
+      "curriculum": {
+        "strand": "Vocabulary and language",
+        "skill": "Apply vocabulary and language",
+        "subskill": "vocabulary and language",
+        "objective": "Use context, synonyms, precise verbs and simple figurative language to explain word meaning and effect."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-vocabulary-language"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-009",
+      "topic": "Grammar and punctuation",
+      "difficulty": "easy",
+      "questionText": "Which sentence punctuates the speech correctly?",
+      "questionType": "multiple_choice",
+      "options": [
+        "“Come inside,” said Bo.",
+        "“Come inside” said Bo.",
+        "Come inside,” said Bo.",
+        "“Come inside, said Bo.”"
+      ],
+      "correctAnswer": "“Come inside,” said Bo.",
+      "explanation": "Quotation marks surround the spoken words, and the comma comes before the closing mark.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng4-grammar-punctuation",
+        "grammar and punctuation"
+      ],
+      "visualAssetId": "g4-eng-speech",
+      "curriculum": {
+        "strand": "Grammar and punctuation",
+        "skill": "Apply grammar and punctuation",
+        "subskill": "grammar and punctuation",
+        "objective": "Build and edit sentences using correct tense, agreement, conjunctions and punctuation for speech."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-grammar-punctuation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-010",
+      "topic": "Grammar and punctuation",
+      "difficulty": "medium",
+      "questionText": "Which sentence is written in the past tense?",
+      "questionType": "multiple_choice",
+      "options": [
+        "We go to the market.",
+        "We went to the market.",
+        "We will go to the market.",
+        "We are going to the market."
+      ],
+      "correctAnswer": "We went to the market.",
+      "explanation": "Went is the past-tense form of go.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng4-grammar-punctuation",
+        "grammar and punctuation"
+      ],
+      "curriculum": {
+        "strand": "Grammar and punctuation",
+        "skill": "Apply grammar and punctuation",
+        "subskill": "grammar and punctuation",
+        "objective": "Build and edit sentences using correct tense, agreement, conjunctions and punctuation for speech."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-grammar-punctuation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-011",
+      "topic": "Grammar and punctuation",
+      "difficulty": "medium",
+      "questionText": "Which sentence has correct subject–verb agreement?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The dogs is barking.",
+        "The dog are barking.",
+        "The dogs are barking.",
+        "The dogs am barking."
+      ],
+      "correctAnswer": "The dogs are barking.",
+      "explanation": "The plural subject dogs needs the plural verb are.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng4-grammar-punctuation",
+        "grammar and punctuation"
+      ],
+      "curriculum": {
+        "strand": "Grammar and punctuation",
+        "skill": "Apply grammar and punctuation",
+        "subskill": "grammar and punctuation",
+        "objective": "Build and edit sentences using correct tense, agreement, conjunctions and punctuation for speech."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-grammar-punctuation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-012",
+      "topic": "Grammar and punctuation",
+      "difficulty": "hard",
+      "questionText": "Which word best joins the ideas: “We stayed inside ___ it was raining”?",
+      "questionType": "multiple_choice",
+      "options": [
+        "but",
+        "before",
+        "or",
+        "because"
+      ],
+      "correctAnswer": "because",
+      "explanation": "Because introduces the reason that the group stayed inside.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng4-grammar-punctuation",
+        "grammar and punctuation"
+      ],
+      "visualAssetId": "g4-eng-conjunction",
+      "curriculum": {
+        "strand": "Grammar and punctuation",
+        "skill": "Apply grammar and punctuation",
+        "subskill": "grammar and punctuation",
+        "objective": "Build and edit sentences using correct tense, agreement, conjunctions and punctuation for speech."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-grammar-punctuation"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-013",
+      "topic": "Writing and sequence",
+      "difficulty": "easy",
+      "questionText": "Which event belongs in the second panel?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Add the seed to the soil",
+        "Pick the finished flower",
+        "Empty the pot after watering",
+        "Write a story about a tree"
+      ],
+      "correctAnswer": "Add the seed to the soil",
+      "explanation": "The seed is added after soil goes into the pot and before it is watered.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng4-writing-sequence",
+        "writing and sequence"
+      ],
+      "visualAssetId": "g4-eng-plant-sequence",
+      "curriculum": {
+        "strand": "Writing and sequence",
+        "skill": "Apply writing and sequence",
+        "subskill": "writing and sequence",
+        "objective": "Order ideas and select openings, supporting details and endings that make short texts clear and coherent."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-writing-sequence"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-014",
+      "topic": "Writing and sequence",
+      "difficulty": "medium",
+      "questionText": "Which is the best topic sentence for a paragraph about caring for a class pet?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Our classroom door is blue.",
+        "A class pet needs food, water and gentle care.",
+        "Yesterday was a Tuesday.",
+        "Some pencils need sharpening."
+      ],
+      "correctAnswer": "A class pet needs food, water and gentle care.",
+      "explanation": "The sentence clearly introduces the paragraph topic and the main care needs.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng4-writing-sequence",
+        "writing and sequence"
+      ],
+      "curriculum": {
+        "strand": "Writing and sequence",
+        "skill": "Apply writing and sequence",
+        "subskill": "writing and sequence",
+        "objective": "Order ideas and select openings, supporting details and endings that make short texts clear and coherent."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-writing-sequence"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-015",
+      "topic": "Writing and sequence",
+      "difficulty": "medium",
+      "questionText": "Which ending best completes a story about finding and returning a lost key?",
+      "questionType": "multiple_choice",
+      "options": [
+        "First, choose a clean mixing bowl.",
+        "Keys are usually made of metal.",
+        "At last, the grateful owner unlocked the door.",
+        "The weather forecast lists rain."
+      ],
+      "correctAnswer": "At last, the grateful owner unlocked the door.",
+      "explanation": "The ending resolves the lost-key problem by showing the key returned to its grateful owner.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng4-writing-sequence",
+        "writing and sequence"
+      ],
+      "curriculum": {
+        "strand": "Writing and sequence",
+        "skill": "Apply writing and sequence",
+        "subskill": "writing and sequence",
+        "objective": "Order ideas and select openings, supporting details and endings that make short texts clear and coherent."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-writing-sequence"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-016",
+      "topic": "Writing and sequence",
+      "difficulty": "hard",
+      "questionText": "Which instruction should come first when making a paper plane?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Throw the finished plane",
+        "Measure how far it flies",
+        "Decorate it after the final fold",
+        "Fold the paper in half"
+      ],
+      "correctAnswer": "Fold the paper in half",
+      "explanation": "The paper must be folded before the finished plane can be thrown, measured or decorated.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng4-writing-sequence",
+        "writing and sequence"
+      ],
+      "visualAssetId": "g4-eng-plane-order",
+      "curriculum": {
+        "strand": "Writing and sequence",
+        "skill": "Apply writing and sequence",
+        "subskill": "writing and sequence",
+        "objective": "Order ideas and select openings, supporting details and endings that make short texts clear and coherent."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-writing-sequence"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-017",
+      "topic": "Purpose and information",
+      "difficulty": "easy",
+      "questionText": "Who is the notice mainly written for?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Pupils who borrow library books",
+        "Drivers crossing a desert",
+        "Chefs ordering vegetables",
+        "Pilots planning a flight"
+      ],
+      "correctAnswer": "Pupils who borrow library books",
+      "explanation": "The notice talks directly to pupils about returning school library books.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng4-purpose-information",
+        "purpose and information"
+      ],
+      "visualAssetId": "g4-eng-library-notice",
+      "curriculum": {
+        "strand": "Purpose and information",
+        "skill": "Apply purpose and information",
+        "subskill": "purpose and information",
+        "objective": "Identify audience and purpose and use headings, layout, tone and evidence to navigate or judge simple texts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-purpose-information"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-018",
+      "topic": "Purpose and information",
+      "difficulty": "medium",
+      "questionText": "Which feature helps a reader find what an owl eats?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The page border",
+        "The heading “Diet”",
+        "The writer’s name",
+        "The final full stop"
+      ],
+      "correctAnswer": "The heading “Diet”",
+      "explanation": "A labelled Diet section lets the reader scan directly to information about food.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng4-purpose-information",
+        "purpose and information"
+      ],
+      "visualAssetId": "g4-eng-owl-fact-file",
+      "curriculum": {
+        "strand": "Purpose and information",
+        "skill": "Apply purpose and information",
+        "subskill": "purpose and information",
+        "objective": "Identify audience and purpose and use headings, layout, tone and evidence to navigate or judge simple texts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-purpose-information"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-019",
+      "topic": "Purpose and information",
+      "difficulty": "medium",
+      "questionText": "Which sentence is the most polite request?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Give me that ruler now!",
+        "I want your ruler.",
+        "Could I please borrow a ruler?",
+        "You have to hand it over."
+      ],
+      "correctAnswer": "Could I please borrow a ruler?",
+      "explanation": "Could and please make the request clear and respectful.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng4-purpose-information",
+        "purpose and information"
+      ],
+      "curriculum": {
+        "strand": "Purpose and information",
+        "skill": "Apply purpose and information",
+        "subskill": "purpose and information",
+        "objective": "Identify audience and purpose and use headings, layout, tone and evidence to navigate or judge simple texts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-purpose-information"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-eng-2026.11-020",
+      "topic": "Purpose and information",
+      "difficulty": "hard",
+      "questionText": "A poster says a drink is “the best ever” but gives no facts. What should a careful reader do?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Believe the largest words",
+        "Ignore the ingredients",
+        "Assume every poster is true",
+        "Look for reliable information"
+      ],
+      "correctAnswer": "Look for reliable information",
+      "explanation": "A strong claim should be checked against reliable facts instead of accepted from design alone.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng4-purpose-information",
+        "purpose and information"
+      ],
+      "curriculum": {
+        "strand": "Purpose and information",
+        "skill": "Apply purpose and information",
+        "subskill": "purpose and information",
+        "objective": "Identify audience and purpose and use headings, layout, tone and evidence to navigate or judge simple texts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-4",
+          "objectiveCode": "eng4-purpose-information"
+        }
+      ]
+    }
+  ]
+}

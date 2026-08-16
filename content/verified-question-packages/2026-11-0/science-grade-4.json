@@ -1,0 +1,677 @@
+{
+  "subject": "Science",
+  "subjectCode": "science",
+  "grade": 4,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g4-sci-2026.11-001",
+      "topic": "Living things and habitats",
+      "difficulty": "easy",
+      "questionText": "The animal has feathers and a beak. Which group does it belong to?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Birds",
+        "Mammals",
+        "Fish",
+        "Insects"
+      ],
+      "correctAnswer": "Birds",
+      "explanation": "Feathers and a beak are features used to classify the animal as a bird.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci4-living-things-habitats",
+        "living things and habitats"
+      ],
+      "visualAssetId": "g4-sci-classification-key",
+      "curriculum": {
+        "strand": "Living things and habitats",
+        "skill": "Apply living things and habitats",
+        "subskill": "living things and habitats",
+        "objective": "Classify familiar living things and explain simple food relationships, life cycles and habitat adaptations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-living-things-habitats"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-002",
+      "topic": "Living things and habitats",
+      "difficulty": "medium",
+      "questionText": "Which organism is the producer in the food chain?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Caterpillar",
+        "Plant",
+        "Bird",
+        "All three are consumers"
+      ],
+      "correctAnswer": "Plant",
+      "explanation": "The plant makes its own food using light, so it is the producer.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci4-living-things-habitats",
+        "living things and habitats"
+      ],
+      "visualAssetId": "g4-sci-food-chain",
+      "curriculum": {
+        "strand": "Living things and habitats",
+        "skill": "Apply living things and habitats",
+        "subskill": "living things and habitats",
+        "objective": "Classify familiar living things and explain simple food relationships, life cycles and habitat adaptations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-living-things-habitats"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-003",
+      "topic": "Living things and habitats",
+      "difficulty": "medium",
+      "questionText": "How do webbed feet help a duck?",
+      "questionType": "multiple_choice",
+      "options": [
+        "They help the duck chew seeds",
+        "They keep every feather dry",
+        "They push against water when swimming",
+        "They let the duck breathe underwater"
+      ],
+      "correctAnswer": "They push against water when swimming",
+      "explanation": "The broad webbed surface pushes more water and helps the duck swim.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci4-living-things-habitats",
+        "living things and habitats"
+      ],
+      "curriculum": {
+        "strand": "Living things and habitats",
+        "skill": "Apply living things and habitats",
+        "subskill": "living things and habitats",
+        "objective": "Classify familiar living things and explain simple food relationships, life cycles and habitat adaptations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-living-things-habitats"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-004",
+      "topic": "Living things and habitats",
+      "difficulty": "hard",
+      "questionText": "Which sequence shows a frog life cycle in the correct order?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Tadpole → egg → adult frog → froglet",
+        "Egg → adult frog → tadpole → froglet",
+        "Froglet → tadpole → egg → adult frog",
+        "Egg → tadpole → froglet → adult frog"
+      ],
+      "correctAnswer": "Egg → tadpole → froglet → adult frog",
+      "explanation": "A frog develops from egg to tadpole, then froglet, and finally adult.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci4-living-things-habitats",
+        "living things and habitats"
+      ],
+      "visualAssetId": "g4-sci-frog-cycle",
+      "curriculum": {
+        "strand": "Living things and habitats",
+        "skill": "Apply living things and habitats",
+        "subskill": "living things and habitats",
+        "objective": "Classify familiar living things and explain simple food relationships, life cycles and habitat adaptations."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-living-things-habitats"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-005",
+      "topic": "Materials and states",
+      "difficulty": "easy",
+      "questionText": "What change happens when the ice cube is warmed?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Melting",
+        "Freezing",
+        "Condensing",
+        "Rusting"
+      ],
+      "correctAnswer": "Melting",
+      "explanation": "Heating turns solid ice into liquid water, which is melting.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci4-materials-states",
+        "materials and states"
+      ],
+      "curriculum": {
+        "strand": "Materials and states",
+        "skill": "Apply materials and states",
+        "subskill": "materials and states",
+        "objective": "Group materials by observable properties and describe simple reversible changes between solids, liquids and gases."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-materials-states"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-006",
+      "topic": "Materials and states",
+      "difficulty": "medium",
+      "questionText": "Which material kept the paper underneath driest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Material A",
+        "Material C",
+        "Material B",
+        "All three were equally waterproof"
+      ],
+      "correctAnswer": "Material C",
+      "explanation": "The paper below Material C has the fewest wet marks, so C was most waterproof.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci4-materials-states",
+        "materials and states"
+      ],
+      "visualAssetId": "g4-sci-waterproof-test",
+      "curriculum": {
+        "strand": "Materials and states",
+        "skill": "Apply materials and states",
+        "subskill": "materials and states",
+        "objective": "Group materials by observable properties and describe simple reversible changes between solids, liquids and gases."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-materials-states"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-007",
+      "topic": "Materials and states",
+      "difficulty": "medium",
+      "questionText": "Which change is reversible?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Burning paper to ash",
+        "Cooking an egg",
+        "Freezing water into ice",
+        "Baking dough into bread"
+      ],
+      "correctAnswer": "Freezing water into ice",
+      "explanation": "Ice can melt back into liquid water, so the change is reversible.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci4-materials-states",
+        "materials and states"
+      ],
+      "curriculum": {
+        "strand": "Materials and states",
+        "skill": "Apply materials and states",
+        "subskill": "materials and states",
+        "objective": "Group materials by observable properties and describe simple reversible changes between solids, liquids and gases."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-materials-states"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-008",
+      "topic": "Materials and states",
+      "difficulty": "hard",
+      "questionText": "Which property describes most solids?",
+      "questionType": "multiple_choice",
+      "options": [
+        "They fill every container",
+        "They cannot be touched",
+        "They always flow downhill",
+        "They keep their own shape"
+      ],
+      "correctAnswer": "They keep their own shape",
+      "explanation": "A solid usually keeps a fixed shape instead of flowing to fill its container.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci4-materials-states",
+        "materials and states"
+      ],
+      "curriculum": {
+        "strand": "Materials and states",
+        "skill": "Apply materials and states",
+        "subskill": "materials and states",
+        "objective": "Group materials by observable properties and describe simple reversible changes between solids, liquids and gases."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-materials-states"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-009",
+      "topic": "Forces and magnets",
+      "difficulty": "easy",
+      "questionText": "Which object will the magnet attract?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The iron nail",
+        "The wooden stick",
+        "The plastic button",
+        "The rubber band"
+      ],
+      "correctAnswer": "The iron nail",
+      "explanation": "Iron is magnetic, while wood, plastic and rubber are not attracted by the magnet.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci4-forces-magnets",
+        "forces and magnets"
+      ],
+      "visualAssetId": "g4-sci-magnet-test",
+      "curriculum": {
+        "strand": "Forces and magnets",
+        "skill": "Apply forces and magnets",
+        "subskill": "forces and magnets",
+        "objective": "Describe how pushes, pulls, gravity, friction and magnets affect the movement of objects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-forces-magnets"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-010",
+      "topic": "Forces and magnets",
+      "difficulty": "medium",
+      "questionText": "On which surface did the toy car travel the shortest distance?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Smooth tile",
+        "Rough carpet",
+        "Wooden board",
+        "All surfaces gave the same distance"
+      ],
+      "correctAnswer": "Rough carpet",
+      "explanation": "The chart shows the shortest bar for rough carpet, where greater friction slows the car sooner.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci4-forces-magnets",
+        "forces and magnets"
+      ],
+      "visualAssetId": "g4-sci-friction-chart",
+      "curriculum": {
+        "strand": "Forces and magnets",
+        "skill": "Apply forces and magnets",
+        "subskill": "forces and magnets",
+        "objective": "Describe how pushes, pulls, gravity, friction and magnets affect the movement of objects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-forces-magnets"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-011",
+      "topic": "Forces and magnets",
+      "difficulty": "medium",
+      "questionText": "Which force pulls a dropped ball toward the ground?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Magnetism",
+        "Light",
+        "Gravity",
+        "Sound"
+      ],
+      "correctAnswer": "Gravity",
+      "explanation": "Gravity attracts the ball toward Earth.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci4-forces-magnets",
+        "forces and magnets"
+      ],
+      "curriculum": {
+        "strand": "Forces and magnets",
+        "skill": "Apply forces and magnets",
+        "subskill": "forces and magnets",
+        "objective": "Describe how pushes, pulls, gravity, friction and magnets affect the movement of objects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-forces-magnets"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-012",
+      "topic": "Forces and magnets",
+      "difficulty": "hard",
+      "questionText": "What can a push do to a moving trolley?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Remove its mass",
+        "Turn it into a liquid",
+        "Stop gravity forever",
+        "Change its speed or direction"
+      ],
+      "correctAnswer": "Change its speed or direction",
+      "explanation": "A force can speed up, slow down or change the direction of a moving object.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci4-forces-magnets",
+        "forces and magnets"
+      ],
+      "curriculum": {
+        "strand": "Forces and magnets",
+        "skill": "Apply forces and magnets",
+        "subskill": "forces and magnets",
+        "objective": "Describe how pushes, pulls, gravity, friction and magnets affect the movement of objects."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-forces-magnets"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-013",
+      "topic": "Light, sound and electricity",
+      "difficulty": "easy",
+      "questionText": "Why does the lamp light in the diagram?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The circuit is a complete loop",
+        "The switch leaves a gap",
+        "Only one wire is used",
+        "The battery is outside the circuit"
+      ],
+      "correctAnswer": "The circuit is a complete loop",
+      "explanation": "The connected wires form an unbroken path through the battery and lamp.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci4-light-sound-electricity",
+        "light, sound and electricity"
+      ],
+      "visualAssetId": "g4-sci-closed-circuit",
+      "curriculum": {
+        "strand": "Light, sound and electricity",
+        "skill": "Apply light, sound and electricity",
+        "subskill": "light, sound and electricity",
+        "objective": "Use simple models to explain complete circuits, shadows, reflection and how vibrations produce sound."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-light-sound-electricity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-014",
+      "topic": "Light, sound and electricity",
+      "difficulty": "medium",
+      "questionText": "What happens to the shadow when the object moves closer to the lamp?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The shadow disappears",
+        "The shadow becomes larger",
+        "The shadow becomes a sound",
+        "The shadow changes into light"
+      ],
+      "correctAnswer": "The shadow becomes larger",
+      "explanation": "Moving the object nearer the light makes it block a wider spread of rays, producing a larger shadow.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci4-light-sound-electricity",
+        "light, sound and electricity"
+      ],
+      "curriculum": {
+        "strand": "Light, sound and electricity",
+        "skill": "Apply light, sound and electricity",
+        "subskill": "light, sound and electricity",
+        "objective": "Use simple models to explain complete circuits, shadows, reflection and how vibrations produce sound."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-light-sound-electricity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-015",
+      "topic": "Light, sound and electricity",
+      "difficulty": "medium",
+      "questionText": "What produces the sound from a plucked ruler?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The ruler becomes magnetic",
+        "The table stops gravity",
+        "The ruler vibrates",
+        "The air turns solid"
+      ],
+      "correctAnswer": "The ruler vibrates",
+      "explanation": "The moving ruler vibrates the surrounding air and produces sound.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci4-light-sound-electricity",
+        "light, sound and electricity"
+      ],
+      "curriculum": {
+        "strand": "Light, sound and electricity",
+        "skill": "Apply light, sound and electricity",
+        "subskill": "light, sound and electricity",
+        "objective": "Use simple models to explain complete circuits, shadows, reflection and how vibrations produce sound."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-light-sound-electricity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-016",
+      "topic": "Light, sound and electricity",
+      "difficulty": "hard",
+      "questionText": "Which material gives the clearest reflection?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Rough cardboard",
+        "A wool cloth",
+        "Crushed paper",
+        "A smooth mirror"
+      ],
+      "correctAnswer": "A smooth mirror",
+      "explanation": "A smooth mirror reflects light in an orderly way and forms a clear image.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci4-light-sound-electricity",
+        "light, sound and electricity"
+      ],
+      "curriculum": {
+        "strand": "Light, sound and electricity",
+        "skill": "Apply light, sound and electricity",
+        "subskill": "light, sound and electricity",
+        "objective": "Use simple models to explain complete circuits, shadows, reflection and how vibrations produce sound."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-light-sound-electricity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-017",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "easy",
+      "questionText": "Which factor should the pupils change in this plant test?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Amount of water",
+        "Type of plant",
+        "Pot size",
+        "Amount of soil"
+      ],
+      "correctAnswer": "Amount of water",
+      "explanation": "The plan keeps plant type, pot and soil the same while changing only the water amount.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci4-enquiry-evidence",
+        "scientific enquiry and evidence"
+      ],
+      "visualAssetId": "g4-sci-fair-test",
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Plan simple fair comparisons, read results, distinguish observations from conclusions and improve reliability."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-enquiry-evidence"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-018",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "medium",
+      "questionText": "Which statement matches the results?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The plant given 0 mL grew tallest",
+        "The plant given 20 mL grew tallest",
+        "Every plant reached the same height",
+        "More water always made plants shorter"
+      ],
+      "correctAnswer": "The plant given 20 mL grew tallest",
+      "explanation": "The table shows the greatest height beside the 20 mL water amount.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci4-enquiry-evidence",
+        "scientific enquiry and evidence"
+      ],
+      "visualAssetId": "g4-sci-results-table",
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Plan simple fair comparisons, read results, distinguish observations from conclusions and improve reliability."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-enquiry-evidence"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-019",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "medium",
+      "questionText": "Why should pupils repeat each measurement?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To change the question each time",
+        "To avoid writing down units",
+        "To make the result more reliable",
+        "To guarantee their prediction"
+      ],
+      "correctAnswer": "To make the result more reliable",
+      "explanation": "Repeated measurements help reveal unusual results and make a conclusion more reliable.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci4-enquiry-evidence",
+        "scientific enquiry and evidence"
+      ],
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Plan simple fair comparisons, read results, distinguish observations from conclusions and improve reliability."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-enquiry-evidence"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-sci-2026.11-020",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "hard",
+      "questionText": "Which sentence is an observation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The plant is healthy because it is happy",
+        "The leaf will grow fastest tomorrow",
+        "This is the best plant in the world",
+        "The leaf has five pointed edges"
+      ],
+      "correctAnswer": "The leaf has five pointed edges",
+      "explanation": "The number and shape of the edges can be directly seen and counted.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci4-enquiry-evidence",
+        "scientific enquiry and evidence"
+      ],
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Plan simple fair comparisons, read results, distinguish observations from conclusions and improve reliability."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-4",
+          "objectiveCode": "sci4-enquiry-evidence"
+        }
+      ]
+    }
+  ]
+}

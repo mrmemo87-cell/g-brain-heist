@@ -1,0 +1,677 @@
+{
+  "subject": "Geography",
+  "subjectCode": "geography",
+  "grade": 4,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g4-geo-2026.11-001",
+      "topic": "Maps and place",
+      "difficulty": "easy",
+      "questionText": "In which direction is the playground from the school?",
+      "questionType": "multiple_choice",
+      "options": [
+        "East",
+        "West",
+        "North",
+        "South"
+      ],
+      "correctAnswer": "East",
+      "explanation": "The playground is to the right of the school, and the compass shows that right is east.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo4-maps-place",
+        "maps and place"
+      ],
+      "visualAssetId": "g4-geo-direction-map",
+      "curriculum": {
+        "strand": "Maps and place",
+        "skill": "Apply maps and place",
+        "subskill": "maps and place",
+        "objective": "Use compass directions, keys, grid references and simple scale to locate and describe familiar places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-maps-place"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-002",
+      "topic": "Maps and place",
+      "difficulty": "medium",
+      "questionText": "Which map symbol represents the hospital?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The blue wavy line",
+        "The cross in a square",
+        "The green tree",
+        "The black triangle"
+      ],
+      "correctAnswer": "The cross in a square",
+      "explanation": "The key pairs the cross-in-a-square symbol with the hospital label.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo4-maps-place",
+        "maps and place"
+      ],
+      "visualAssetId": "g4-geo-map-key",
+      "curriculum": {
+        "strand": "Maps and place",
+        "skill": "Apply maps and place",
+        "subskill": "maps and place",
+        "objective": "Use compass directions, keys, grid references and simple scale to locate and describe familiar places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-maps-place"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-003",
+      "topic": "Maps and place",
+      "difficulty": "medium",
+      "questionText": "Which grid square contains the pond?",
+      "questionType": "multiple_choice",
+      "options": [
+        "B2",
+        "C3",
+        "B3",
+        "A3"
+      ],
+      "correctAnswer": "B3",
+      "explanation": "The pond lies in column B and row 3, giving grid reference B3.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo4-maps-place",
+        "maps and place"
+      ],
+      "visualAssetId": "g4-geo-grid",
+      "curriculum": {
+        "strand": "Maps and place",
+        "skill": "Apply maps and place",
+        "subskill": "maps and place",
+        "objective": "Use compass directions, keys, grid references and simple scale to locate and describe familiar places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-maps-place"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-004",
+      "topic": "Maps and place",
+      "difficulty": "hard",
+      "questionText": "A map scale says 1 cm represents 1 km. What distance does 4 cm represent?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1 km",
+        "3 km",
+        "5 km",
+        "4 km"
+      ],
+      "correctAnswer": "4 km",
+      "explanation": "Each centimetre represents one kilometre, so four centimetres represent four kilometres.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo4-maps-place",
+        "maps and place"
+      ],
+      "curriculum": {
+        "strand": "Maps and place",
+        "skill": "Apply maps and place",
+        "subskill": "maps and place",
+        "objective": "Use compass directions, keys, grid references and simple scale to locate and describe familiar places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-maps-place"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-005",
+      "topic": "Weather and water",
+      "difficulty": "easy",
+      "questionText": "Which instrument measures rainfall?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Rain gauge",
+        "Thermometer",
+        "Wind vane",
+        "Compass"
+      ],
+      "correctAnswer": "Rain gauge",
+      "explanation": "Rain is collected and measured in a rain gauge.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo4-weather-water",
+        "weather and water"
+      ],
+      "visualAssetId": "g4-geo-weather-tools",
+      "curriculum": {
+        "strand": "Weather and water",
+        "skill": "Apply weather and water",
+        "subskill": "weather and water",
+        "objective": "Identify weather instruments, read simple seasonal data and describe evaporation and water-cycle stores."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-weather-water"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-006",
+      "topic": "Weather and water",
+      "difficulty": "medium",
+      "questionText": "Which month has the highest temperature on the chart?",
+      "questionType": "multiple_choice",
+      "options": [
+        "January",
+        "July",
+        "April",
+        "October"
+      ],
+      "correctAnswer": "July",
+      "explanation": "July has the tallest temperature bar in the seasonal chart.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo4-weather-water",
+        "weather and water"
+      ],
+      "visualAssetId": "g4-geo-season-chart",
+      "curriculum": {
+        "strand": "Weather and water",
+        "skill": "Apply weather and water",
+        "subskill": "weather and water",
+        "objective": "Identify weather instruments, read simple seasonal data and describe evaporation and water-cycle stores."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-weather-water"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-007",
+      "topic": "Weather and water",
+      "difficulty": "medium",
+      "questionText": "Which arrow shows evaporation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Arrow A",
+        "Arrow C",
+        "Arrow B",
+        "Arrow D"
+      ],
+      "correctAnswer": "Arrow B",
+      "explanation": "Arrow B rises from the water surface toward the air, showing liquid water becoming vapour.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo4-weather-water",
+        "weather and water"
+      ],
+      "visualAssetId": "g4-geo-water-cycle",
+      "curriculum": {
+        "strand": "Weather and water",
+        "skill": "Apply weather and water",
+        "subskill": "weather and water",
+        "objective": "Identify weather instruments, read simple seasonal data and describe evaporation and water-cycle stores."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-weather-water"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-008",
+      "topic": "Weather and water",
+      "difficulty": "hard",
+      "questionText": "Where is most fresh water stored in the diagram?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A small pond",
+        "One cloud",
+        "A drinking cup",
+        "Ice and glaciers"
+      ],
+      "correctAnswer": "Ice and glaciers",
+      "explanation": "The diagram uses the largest labelled store for ice and glaciers.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo4-weather-water",
+        "weather and water"
+      ],
+      "curriculum": {
+        "strand": "Weather and water",
+        "skill": "Apply weather and water",
+        "subskill": "weather and water",
+        "objective": "Identify weather instruments, read simple seasonal data and describe evaporation and water-cycle stores."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-weather-water"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-009",
+      "topic": "Landforms and environments",
+      "difficulty": "easy",
+      "questionText": "Where does the river begin?",
+      "questionType": "multiple_choice",
+      "options": [
+        "At the source in the hills",
+        "At the mouth by the sea",
+        "At the bridge",
+        "At the field beside the town"
+      ],
+      "correctAnswer": "At the source in the hills",
+      "explanation": "A river begins at its source, shown high in the hills.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo4-landforms-environments",
+        "landforms and environments"
+      ],
+      "visualAssetId": "g4-geo-river-journey",
+      "curriculum": {
+        "strand": "Landforms and environments",
+        "skill": "Apply landforms and environments",
+        "subskill": "landforms and environments",
+        "objective": "Recognise common landforms and describe simple differences between rivers, coasts, mountains and dry environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-landforms-environments"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-010",
+      "topic": "Landforms and environments",
+      "difficulty": "medium",
+      "questionText": "Which landform is low land between hills or mountains?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Peak",
+        "Valley",
+        "Cliff",
+        "Island"
+      ],
+      "correctAnswer": "Valley",
+      "explanation": "A valley is an area of lower land between higher slopes.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo4-landforms-environments",
+        "landforms and environments"
+      ],
+      "curriculum": {
+        "strand": "Landforms and environments",
+        "skill": "Apply landforms and environments",
+        "subskill": "landforms and environments",
+        "objective": "Recognise common landforms and describe simple differences between rivers, coasts, mountains and dry environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-landforms-environments"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-011",
+      "topic": "Landforms and environments",
+      "difficulty": "medium",
+      "questionText": "Which process can wear away a sea cliff?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Street lights turning on",
+        "Cars stopping at a signal",
+        "Waves hitting the rock",
+        "Clouds moving inland"
+      ],
+      "correctAnswer": "Waves hitting the rock",
+      "explanation": "Repeated wave action can erode rock along a coast.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo4-landforms-environments",
+        "landforms and environments"
+      ],
+      "curriculum": {
+        "strand": "Landforms and environments",
+        "skill": "Apply landforms and environments",
+        "subskill": "landforms and environments",
+        "objective": "Recognise common landforms and describe simple differences between rivers, coasts, mountains and dry environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-landforms-environments"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-012",
+      "topic": "Landforms and environments",
+      "difficulty": "hard",
+      "questionText": "Which description best matches a desert?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Wet all year with dense forest",
+        "Covered by deep ocean water",
+        "Full of rivers and rice fields",
+        "Very dry with little vegetation"
+      ],
+      "correctAnswer": "Very dry with little vegetation",
+      "explanation": "Deserts receive very little rainfall, so vegetation is usually sparse.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo4-landforms-environments",
+        "landforms and environments"
+      ],
+      "curriculum": {
+        "strand": "Landforms and environments",
+        "skill": "Apply landforms and environments",
+        "subskill": "landforms and environments",
+        "objective": "Recognise common landforms and describe simple differences between rivers, coasts, mountains and dry environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-landforms-environments"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-013",
+      "topic": "Settlements and connections",
+      "difficulty": "easy",
+      "questionText": "Which place on the map is a public service?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The health clinic",
+        "The private garden",
+        "The empty field",
+        "The footpath"
+      ],
+      "correctAnswer": "The health clinic",
+      "explanation": "A health clinic provides a service used by people in the settlement.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo4-settlements-connections",
+        "settlements and connections"
+      ],
+      "visualAssetId": "g4-geo-service-map",
+      "curriculum": {
+        "strand": "Settlements and connections",
+        "skill": "Apply settlements and connections",
+        "subskill": "settlements and connections",
+        "objective": "Compare settlements and explain how services, roads and transport connect people and goods."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-settlements-connections"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-014",
+      "topic": "Settlements and connections",
+      "difficulty": "medium",
+      "questionText": "Why are lorries important to shops?",
+      "questionType": "multiple_choice",
+      "options": [
+        "They measure rainfall",
+        "They carry goods from place to place",
+        "They create mountain valleys",
+        "They stop every road journey"
+      ],
+      "correctAnswer": "They carry goods from place to place",
+      "explanation": "Lorries connect producers, warehouses and shops by transporting goods.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo4-settlements-connections",
+        "settlements and connections"
+      ],
+      "curriculum": {
+        "strand": "Settlements and connections",
+        "skill": "Apply settlements and connections",
+        "subskill": "settlements and connections",
+        "objective": "Compare settlements and explain how services, roads and transport connect people and goods."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-settlements-connections"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-015",
+      "topic": "Settlements and connections",
+      "difficulty": "medium",
+      "questionText": "Which feature is more common in a city than a small village?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Only one narrow footpath",
+        "No services at all",
+        "Many large buildings and busy roads",
+        "Fields covering every street"
+      ],
+      "correctAnswer": "Many large buildings and busy roads",
+      "explanation": "Cities usually have denser buildings, more roads and more services than small villages.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo4-settlements-connections",
+        "settlements and connections"
+      ],
+      "curriculum": {
+        "strand": "Settlements and connections",
+        "skill": "Apply settlements and connections",
+        "subskill": "settlements and connections",
+        "objective": "Compare settlements and explain how services, roads and transport connect people and goods."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-settlements-connections"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-016",
+      "topic": "Settlements and connections",
+      "difficulty": "hard",
+      "questionText": "Why might a settlement grow near a road junction?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The junction removes all traffic",
+        "Roads prevent shops from opening",
+        "No one can reach a junction",
+        "People and goods can travel there easily"
+      ],
+      "correctAnswer": "People and goods can travel there easily",
+      "explanation": "A road junction improves access, movement and opportunities for trade.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo4-settlements-connections",
+        "settlements and connections"
+      ],
+      "curriculum": {
+        "strand": "Settlements and connections",
+        "skill": "Apply settlements and connections",
+        "subskill": "settlements and connections",
+        "objective": "Compare settlements and explain how services, roads and transport connect people and goods."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-settlements-connections"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-017",
+      "topic": "Resources and fieldwork",
+      "difficulty": "easy",
+      "questionText": "Which type of waste should the class reduce first?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Food",
+        "Metal",
+        "Glass",
+        "Paper"
+      ],
+      "correctAnswer": "Food",
+      "explanation": "Food has the tallest bar in the waste audit, so reducing it would address the largest amount.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo4-resources-fieldwork",
+        "resources and fieldwork"
+      ],
+      "visualAssetId": "g4-geo-waste-chart",
+      "curriculum": {
+        "strand": "Resources and fieldwork",
+        "skill": "Apply resources and fieldwork",
+        "subskill": "resources and fieldwork",
+        "objective": "Read simple fieldwork evidence and choose responsible ways to use resources and care for local environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-resources-fieldwork"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-018",
+      "topic": "Resources and fieldwork",
+      "difficulty": "medium",
+      "questionText": "Which energy source is renewable?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Coal",
+        "Sunlight",
+        "Oil",
+        "Natural gas"
+      ],
+      "correctAnswer": "Sunlight",
+      "explanation": "Sunlight is naturally replaced and does not run out through use.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo4-resources-fieldwork",
+        "resources and fieldwork"
+      ],
+      "curriculum": {
+        "strand": "Resources and fieldwork",
+        "skill": "Apply resources and fieldwork",
+        "subskill": "resources and fieldwork",
+        "objective": "Read simple fieldwork evidence and choose responsible ways to use resources and care for local environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-resources-fieldwork"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-019",
+      "topic": "Resources and fieldwork",
+      "difficulty": "medium",
+      "questionText": "Why should traffic be counted at the same time on two days?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To make every vehicle identical",
+        "To stop the weather changing",
+        "To make the counts easier to compare",
+        "To avoid recording results"
+      ],
+      "correctAnswer": "To make the counts easier to compare",
+      "explanation": "Using the same time controls one source of difference between the two observations.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo4-resources-fieldwork",
+        "resources and fieldwork"
+      ],
+      "curriculum": {
+        "strand": "Resources and fieldwork",
+        "skill": "Apply resources and fieldwork",
+        "subskill": "resources and fieldwork",
+        "objective": "Read simple fieldwork evidence and choose responsible ways to use resources and care for local environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-resources-fieldwork"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-geo-2026.11-020",
+      "topic": "Resources and fieldwork",
+      "difficulty": "hard",
+      "questionText": "Which action best protects a busy park?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Drop litter beside trees",
+        "Pick every wild flower",
+        "Ride through planted areas",
+        "Keep to marked paths and use bins"
+      ],
+      "correctAnswer": "Keep to marked paths and use bins",
+      "explanation": "Marked paths protect plants from trampling, and bins prevent litter.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo4-resources-fieldwork",
+        "resources and fieldwork"
+      ],
+      "curriculum": {
+        "strand": "Resources and fieldwork",
+        "skill": "Apply resources and fieldwork",
+        "subskill": "resources and fieldwork",
+        "objective": "Read simple fieldwork evidence and choose responsible ways to use resources and care for local environments."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-4",
+          "objectiveCode": "geo4-resources-fieldwork"
+        }
+      ]
+    }
+  ]
+}

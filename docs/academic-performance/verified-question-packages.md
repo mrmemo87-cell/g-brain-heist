@@ -135,6 +135,19 @@ The package increases visual support to 32 original 640×360 SVG assets, eight p
 
 Version `2026.9.0` remains reserved for the separate Grade 8 draft. The Grade 5 package therefore uses `2026.10.0` and targets the immutable `brain-heist-international@2026-10` curriculum snapshot.
 
+## 2026.11 Grade 4 lower-school package
+
+`brain-heist-grade-4-core-2026-11@2026.11.0` contains 80 original multiple-choice questions:
+
+- Grade 4 Mathematics: 20
+- Grade 4 English: 20
+- Grade 4 Integrated Science: 20
+- Grade 4 Geography: 20
+
+The package provides 36 original 640×360 SVG learning assets, nine per subject. Every asset is content-addressed, checksum-verified, answer-safe in its alt text, readable at phone width, and designed so colour is never the only carrier of meaning. Visuals focus on place value, fractions, diagrams, maps, charts, sequencing, classification and evidence reading rather than decoration.
+
+The package keeps the governed five-objective structure, four questions per objective, 5 easy / 10 medium / 5 hard questions per subject and five correct answers in every A–D position. It targets the immutable `brain-heist-international@2026-11` curriculum snapshot.
+
 ## 2026.1.1 repair record
 
 The repair migration creates five new immutable records for answer-key or option defects, copies their approved curriculum mappings, and retires the originals. It also records and retires the 96 reviewed exact duplicate rows without changing assignment snapshots, attempts or student answers. The temporary Grade 8 QA framework is retired after its eight school mappings are archived.
