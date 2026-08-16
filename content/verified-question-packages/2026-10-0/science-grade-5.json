@@ -1,0 +1,676 @@
+{
+  "subject": "Science",
+  "subjectCode": "science",
+  "grade": 5,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g5-sci-2026.10-001",
+      "topic": "Living things and life cycles",
+      "difficulty": "easy",
+      "questionText": "Which stage comes immediately after the egg in the butterfly life cycle?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Larva",
+        "Adult",
+        "Pupa",
+        "Seedling"
+      ],
+      "correctAnswer": "Larva",
+      "explanation": "A butterfly develops from egg to larva, then pupa, and finally adult.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci5-living-things",
+        "living things and life cycles"
+      ],
+      "visualAssetId": "g5-sci-butterfly-cycle",
+      "curriculum": {
+        "strand": "Living things and life cycles",
+        "skill": "Apply living things and life cycles",
+        "subskill": "living things and life cycles",
+        "objective": "Describe life cycles, food relationships and how structures or behaviours support survival."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-living-things"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-002",
+      "topic": "Living things and life cycles",
+      "difficulty": "medium",
+      "questionText": "Which organism is the producer in the food chain?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Rabbit",
+        "Grass",
+        "Fox",
+        "Fungus"
+      ],
+      "correctAnswer": "Grass",
+      "explanation": "Grass makes its own food using light energy, so it is the producer.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci5-living-things",
+        "living things and life cycles"
+      ],
+      "visualAssetId": "g5-sci-food-chain",
+      "curriculum": {
+        "strand": "Living things and life cycles",
+        "skill": "Apply living things and life cycles",
+        "subskill": "living things and life cycles",
+        "objective": "Describe life cycles, food relationships and how structures or behaviours support survival."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-living-things"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-003",
+      "topic": "Living things and life cycles",
+      "difficulty": "medium",
+      "questionText": "Why do many desert plants have thick stems?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To catch fish",
+        "To make the air colder",
+        "To store water",
+        "To avoid all sunlight"
+      ],
+      "correctAnswer": "To store water",
+      "explanation": "Thick, fleshy stems store water that the plant can use during dry periods.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci5-living-things",
+        "living things and life cycles"
+      ],
+      "curriculum": {
+        "strand": "Living things and life cycles",
+        "skill": "Apply living things and life cycles",
+        "subskill": "living things and life cycles",
+        "objective": "Describe life cycles, food relationships and how structures or behaviours support survival."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-living-things"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-004",
+      "topic": "Living things and life cycles",
+      "difficulty": "hard",
+      "questionText": "A disease greatly reduces the number of insects in a habitat. Which population is most directly at risk first?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Plants pollinated only by wind",
+        "Fish eating water plants",
+        "Animals eating only seeds",
+        "Birds that mainly eat insects"
+      ],
+      "correctAnswer": "Birds that mainly eat insects",
+      "explanation": "Specialist insect-eating birds lose their main food source when insect numbers fall.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci5-living-things",
+        "living things and life cycles"
+      ],
+      "curriculum": {
+        "strand": "Living things and life cycles",
+        "skill": "Apply living things and life cycles",
+        "subskill": "living things and life cycles",
+        "objective": "Describe life cycles, food relationships and how structures or behaviours support survival."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-living-things"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-005",
+      "topic": "Materials and changes",
+      "difficulty": "easy",
+      "questionText": "In a test, drinks in A, B and C cool by 18°C, 11°C and 4°C. Which container is the best insulator?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Material C",
+        "Material A",
+        "Material B",
+        "All materials conduct heat equally"
+      ],
+      "correctAnswer": "Material C",
+      "explanation": "Material C shows the smallest temperature drop, so it is the best thermal insulator.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci5-materials-changes",
+        "materials and changes"
+      ],
+      "curriculum": {
+        "strand": "Materials and changes",
+        "skill": "Apply materials and changes",
+        "subskill": "materials and changes",
+        "objective": "Compare material properties and distinguish reversible changes, irreversible changes and changes of state."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-materials-changes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-006",
+      "topic": "Materials and changes",
+      "difficulty": "medium",
+      "questionText": "Which arrow shows evaporation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Arrow A",
+        "Arrow B",
+        "Arrow C",
+        "Arrow D"
+      ],
+      "correctAnswer": "Arrow B",
+      "explanation": "Arrow B moves from liquid water to water vapour, which is evaporation.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci5-materials-changes",
+        "materials and changes"
+      ],
+      "visualAssetId": "g5-sci-state-change",
+      "curriculum": {
+        "strand": "Materials and changes",
+        "skill": "Apply materials and changes",
+        "subskill": "materials and changes",
+        "objective": "Compare material properties and distinguish reversible changes, irreversible changes and changes of state."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-materials-changes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-007",
+      "topic": "Materials and changes",
+      "difficulty": "medium",
+      "questionText": "Which change is reversible?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Burning paper",
+        "Cooking an egg",
+        "Melting and refreezing chocolate",
+        "Rusting a nail"
+      ],
+      "correctAnswer": "Melting and refreezing chocolate",
+      "explanation": "Melted chocolate can cool and become solid again without forming a new substance.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci5-materials-changes",
+        "materials and changes"
+      ],
+      "curriculum": {
+        "strand": "Materials and changes",
+        "skill": "Apply materials and changes",
+        "subskill": "materials and changes",
+        "objective": "Compare material properties and distinguish reversible changes, irreversible changes and changes of state."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-materials-changes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-008",
+      "topic": "Materials and changes",
+      "difficulty": "hard",
+      "questionText": "A mixture contains iron filings, sand and salt. What should be done first to separate it?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Evaporate the iron",
+        "Filter out the dissolved salt immediately",
+        "Freeze the entire dry mixture",
+        "Use a magnet to remove the iron"
+      ],
+      "correctAnswer": "Use a magnet to remove the iron",
+      "explanation": "A magnet selectively removes the iron before water is used to separate salt from sand.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci5-materials-changes",
+        "materials and changes"
+      ],
+      "curriculum": {
+        "strand": "Materials and changes",
+        "skill": "Apply materials and changes",
+        "subskill": "materials and changes",
+        "objective": "Compare material properties and distinguish reversible changes, irreversible changes and changes of state."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-materials-changes"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-009",
+      "topic": "Forces, Earth and space",
+      "difficulty": "easy",
+      "questionText": "What is the resultant force on the cart?",
+      "questionType": "multiple_choice",
+      "options": [
+        "4 N to the right",
+        "4 N to the left",
+        "12 N to the right",
+        "The forces are balanced"
+      ],
+      "correctAnswer": "4 N to the right",
+      "explanation": "The forces oppose each other, so 8 N right minus 4 N left gives 4 N to the right.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci5-forces-space",
+        "forces, earth and space"
+      ],
+      "visualAssetId": "g5-sci-force-arrows",
+      "curriculum": {
+        "strand": "Forces, Earth and space",
+        "skill": "Apply forces, earth and space",
+        "subskill": "forces, earth and space",
+        "objective": "Explain simple effects of forces and use models to describe Earth, Moon and Sun patterns."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-forces-space"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-010",
+      "topic": "Forces, Earth and space",
+      "difficulty": "medium",
+      "questionText": "Which movement causes day and night?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Earth orbiting the Sun once",
+        "Earth rotating on its axis",
+        "The Moon orbiting Earth",
+        "The Sun orbiting the Moon"
+      ],
+      "correctAnswer": "Earth rotating on its axis",
+      "explanation": "As Earth rotates, different parts face toward and then away from the Sun.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci5-forces-space",
+        "forces, earth and space"
+      ],
+      "curriculum": {
+        "strand": "Forces, Earth and space",
+        "skill": "Apply forces, earth and space",
+        "subskill": "forces, earth and space",
+        "objective": "Explain simple effects of forces and use models to describe Earth, Moon and Sun patterns."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-forces-space"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-011",
+      "topic": "Forces, Earth and space",
+      "difficulty": "medium",
+      "questionText": "Which force pulls an unsupported object toward Earth?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Friction",
+        "Magnetism",
+        "Gravity",
+        "Air pressure only"
+      ],
+      "correctAnswer": "Gravity",
+      "explanation": "Gravity attracts objects with mass toward Earth.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci5-forces-space",
+        "forces, earth and space"
+      ],
+      "curriculum": {
+        "strand": "Forces, Earth and space",
+        "skill": "Apply forces, earth and space",
+        "subskill": "forces, earth and space",
+        "objective": "Explain simple effects of forces and use models to describe Earth, Moon and Sun patterns."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-forces-space"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-012",
+      "topic": "Forces, Earth and space",
+      "difficulty": "hard",
+      "questionText": "Why does a parachute fall more slowly when it opens?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It removes Earth’s gravity",
+        "Its mass becomes zero",
+        "The air stops moving completely",
+        "Its larger area increases air resistance"
+      ],
+      "correctAnswer": "Its larger area increases air resistance",
+      "explanation": "The open parachute pushes against more air, increasing the upward drag force.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci5-forces-space",
+        "forces, earth and space"
+      ],
+      "curriculum": {
+        "strand": "Forces, Earth and space",
+        "skill": "Apply forces, earth and space",
+        "subskill": "forces, earth and space",
+        "objective": "Explain simple effects of forces and use models to describe Earth, Moon and Sun patterns."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-forces-space"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-013",
+      "topic": "Electricity, light and sound",
+      "difficulty": "easy",
+      "questionText": "Why is the lamp off in the diagram?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The switch leaves a gap in the circuit",
+        "The battery has two terminals",
+        "The wires form a complete loop",
+        "The lamp is connected to a wire"
+      ],
+      "correctAnswer": "The switch leaves a gap in the circuit",
+      "explanation": "Current cannot flow around the circuit because the open switch creates a gap.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci5-energy-waves",
+        "electricity, light and sound"
+      ],
+      "visualAssetId": "g5-sci-open-circuit",
+      "curriculum": {
+        "strand": "Electricity, light and sound",
+        "skill": "Apply electricity, light and sound",
+        "subskill": "electricity, light and sound",
+        "objective": "Build and interpret simple circuits and explain basic behaviour of light and sound."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-energy-waves"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-014",
+      "topic": "Electricity, light and sound",
+      "difficulty": "medium",
+      "questionText": "Which object will produce the darkest shadow?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The clear sheet",
+        "The opaque card",
+        "The translucent paper",
+        "The empty frame"
+      ],
+      "correctAnswer": "The opaque card",
+      "explanation": "An opaque object blocks the greatest amount of light and forms the darkest shadow.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci5-energy-waves",
+        "electricity, light and sound"
+      ],
+      "visualAssetId": "g5-sci-shadow-test",
+      "curriculum": {
+        "strand": "Electricity, light and sound",
+        "skill": "Apply electricity, light and sound",
+        "subskill": "electricity, light and sound",
+        "objective": "Build and interpret simple circuits and explain basic behaviour of light and sound."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-energy-waves"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-015",
+      "topic": "Electricity, light and sound",
+      "difficulty": "medium",
+      "questionText": "How can a drum produce a louder sound?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Cover it with a thick cushion",
+        "Stop the skin vibrating",
+        "Strike the drum skin harder",
+        "Move it into a vacuum"
+      ],
+      "correctAnswer": "Strike the drum skin harder",
+      "explanation": "A harder strike produces larger vibrations, which create a louder sound.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci5-energy-waves",
+        "electricity, light and sound"
+      ],
+      "curriculum": {
+        "strand": "Electricity, light and sound",
+        "skill": "Apply electricity, light and sound",
+        "subskill": "electricity, light and sound",
+        "objective": "Build and interpret simple circuits and explain basic behaviour of light and sound."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-energy-waves"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-016",
+      "topic": "Electricity, light and sound",
+      "difficulty": "hard",
+      "questionText": "Two identical lamps are added in series to one battery. Why are they dimmer than one lamp alone?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The battery creates extra darkness",
+        "Series circuits have no complete path",
+        "Each lamp becomes an insulator",
+        "The available energy is shared across more components"
+      ],
+      "correctAnswer": "The available energy is shared across more components",
+      "explanation": "In a series circuit, adding lamps increases resistance and the energy transfer per lamp is reduced.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci5-energy-waves",
+        "electricity, light and sound"
+      ],
+      "curriculum": {
+        "strand": "Electricity, light and sound",
+        "skill": "Apply electricity, light and sound",
+        "subskill": "electricity, light and sound",
+        "objective": "Build and interpret simple circuits and explain basic behaviour of light and sound."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-energy-waves"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-017",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "easy",
+      "questionText": "Which factor did the pupils deliberately change between the three seed dishes?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Distance from the lamp",
+        "Type of seed",
+        "Number of seeds in each dish",
+        "Number of seeds that germinate"
+      ],
+      "correctAnswer": "Distance from the lamp",
+      "explanation": "The distance from the lamp is deliberately changed between the otherwise matching dishes.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci5-enquiry-evidence",
+        "scientific enquiry and evidence"
+      ],
+      "visualAssetId": "g5-sci-fair-test",
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Plan fair tests, read tables and graphs, identify patterns and evaluate the reliability of conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-enquiry-evidence"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-018",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "medium",
+      "questionText": "Which conclusion is best supported by the results table?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Sugar never dissolves in cold water",
+        "Sugar dissolves faster in warmer water",
+        "Water temperature has no effect",
+        "Every result takes exactly 40 seconds"
+      ],
+      "correctAnswer": "Sugar dissolves faster in warmer water",
+      "explanation": "The dissolving time becomes shorter as water temperature increases.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci5-enquiry-evidence",
+        "scientific enquiry and evidence"
+      ],
+      "visualAssetId": "g5-sci-results-table",
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Plan fair tests, read tables and graphs, identify patterns and evaluate the reliability of conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-enquiry-evidence"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-019",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "medium",
+      "questionText": "Why should a measurement be repeated?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To change the question after every trial",
+        "To guarantee the prediction is correct",
+        "To check variation and calculate a more reliable average",
+        "To remove the need for units"
+      ],
+      "correctAnswer": "To check variation and calculate a more reliable average",
+      "explanation": "Repeated measurements reveal variation and allow an average less affected by random error.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci5-enquiry-evidence",
+        "scientific enquiry and evidence"
+      ],
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Plan fair tests, read tables and graphs, identify patterns and evaluate the reliability of conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-enquiry-evidence"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g5-sci-2026.10-020",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "hard",
+      "questionText": "A plant-growth test uses different plant species in every pot. Why is the test not fair?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Plants cannot be measured",
+        "Pots must never contain soil",
+        "Growth has no relationship to conditions",
+        "Plant species is an uncontrolled variable"
+      ],
+      "correctAnswer": "Plant species is an uncontrolled variable",
+      "explanation": "Different species may grow at different rates, so species must be controlled when another factor is tested.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci5-enquiry-evidence",
+        "scientific enquiry and evidence"
+      ],
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Plan fair tests, read tables and graphs, identify patterns and evaluate the reliability of conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-5",
+          "objectiveCode": "sci5-enquiry-evidence"
+        }
+      ]
+    }
+  ]
+}

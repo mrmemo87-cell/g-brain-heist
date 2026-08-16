@@ -74,6 +74,17 @@ const PACKAGE_EXPECTATIONS = new Map([
       ['geography', { subject: 'Geography', grade: 7, scope: 'geography-grade-7' }],
     ]),
   }],
+  ['brain-heist-grade-5-core-2026-10', {
+    curriculumVersion: '2026-10',
+    assetDirectory: '2026-10-0',
+    visualAssetRange: [30, 36],
+    scopes: new Map([
+      ['mathematics', { subject: 'Mathematics', grade: 5, scope: 'mathematics-grade-5' }],
+      ['english', { subject: 'English', grade: 5, scope: 'english-grade-5' }],
+      ['science', { subject: 'Science', grade: 5, scope: 'science-grade-5' }],
+      ['geography', { subject: 'Geography', grade: 5, scope: 'geography-grade-5' }],
+    ]),
+  }],
 ]);
 
 const readJson = (filePath) => JSON.parse(readFileSync(filePath, 'utf8'));
