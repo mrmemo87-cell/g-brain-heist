@@ -1,0 +1,669 @@
+{
+  "schemaVersion": 2,
+  "packageId": "brain-heist-grade-4-core-2026-11",
+  "packageVersion": "2026.11.0",
+  "contentVersion": "brain-heist-2026-11",
+  "authority": "Brains Heist Academic Governance",
+  "releaseNotes": "Grade 4 lower-school production package: 80 original questions across Mathematics, English, Integrated Science and Geography, supported by 36 checksum-verified, phone-readable Brains Heist SVG learning assets.",
+  "curriculum": {
+    "frameworkCode": "brain-heist-international",
+    "versionCode": "2026-11"
+  },
+  "assetBaseUrl": "https://www.brainsheist.com",
+  "assets": [
+    {
+      "assetId": "g4-math-place-value",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-math-place-value.c3f5922f3935.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-math-place-value.c3f5922f3935.svg",
+      "sha256": "c3f5922f39354a6994f5fd483eb13486b1a5401e784811017df8efc13860b52c",
+      "width": 640,
+      "height": 360,
+      "altText": "A place-value chart shows 4,582. The digit 5 is marked by a gold border and cyan hatching in the hundreds column.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-math-array",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-math-array.37cb656cef2f.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-math-array.37cb656cef2f.svg",
+      "sha256": "37cb656cef2fd2a5f72a7bb2f6ab74b30c9acd8917b5f6c1dec17492b6efb969",
+      "width": 640,
+      "height": 360,
+      "altText": "Seven outlined rows each contain four counters, for a total of twenty-eight counters.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-math-remainder",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-math-remainder.0c50b11350f3.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-math-remainder.0c50b11350f3.svg",
+      "sha256": "0c50b11350f3c4b768693687801cae511791aab8c4d23d42aaa44444c8f51ede",
+      "width": 640,
+      "height": 360,
+      "altText": "Sixty-five counters are organised into six boxed groups of ten, with five separate counters remaining.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-math-fraction-strip",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-math-fraction-strip.65a7cbcf32a3.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-math-fraction-strip.65a7cbcf32a3.svg",
+      "sha256": "65a7cbcf32a3174a552a14aee7e521c68ebfcdc56dbba7d30a45f7c74f3461ba",
+      "width": 640,
+      "height": 360,
+      "altText": "A strip has eight equal parts. Three parts use diagonal hatching and five parts are unmarked.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-math-decimal-money",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-math-decimal-money.a76cf702dca9.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-math-decimal-money.a76cf702dca9.svg",
+      "sha256": "a76cf702dca971a631b24f4179c7de29edd79f7d16f77f0dfa4aeb1e4e2ba82a",
+      "width": 640,
+      "height": 360,
+      "altText": "Three whole-unit coins, four tenth-unit coins and five hundredth-unit coins are grouped beside an empty decimal card.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-math-symmetry",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-math-symmetry.11e7e1e6331f.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-math-symmetry.11e7e1e6331f.svg",
+      "sha256": "11e7e1e6331f04fe505200385ba44d65ecfce82933062ef4dff37c93a8003428",
+      "width": 640,
+      "height": 360,
+      "altText": "A blue kite shape has four candidate dashed lines labelled A, B, C and D. Line B runs vertically through its centre.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-math-angles",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-math-angles.c95d0aa3823d.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-math-angles.c95d0aa3823d.svg",
+      "sha256": "c95d0aa3823dec0aafb0dff1205a74a4474aff95a1146e6a258c561fe47398b1",
+      "width": 640,
+      "height": 360,
+      "altText": "Four labelled angle cards show different openings. Card C includes a small square at the vertex.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-math-pictogram",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-math-pictogram.d4a3b7b702ce.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-math-pictogram.d4a3b7b702ce.svg",
+      "sha256": "d4a3b7b702ce80c972cb149151f4956cf4648f1377f001956f5548d6e8c44d56",
+      "width": 640,
+      "height": 360,
+      "altText": "A pictogram shows Tuesday with five apple symbols. A key states that one apple symbol represents two apples.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-math-chance-bag",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-math-chance-bag.117b55aba5f3.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-math-chance-bag.117b55aba5f3.svg",
+      "sha256": "117b55aba5f3a5196a7e90b9e3554b6fd95892fb04a45dd6dc80744c67f204b9",
+      "width": 640,
+      "height": 360,
+      "altText": "A drawstring bag contains three striped red cubes and five dotted blue cubes, all the same size.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-eng-muddy-clues",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-eng-muddy-clues.033ff0185c91.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-eng-muddy-clues.033ff0185c91.svg",
+      "sha256": "033ff0185c91e4ac439b4d06b245633306186fe613664e779635dbb14ddd642f",
+      "width": 640,
+      "height": 360,
+      "altText": "Three clue panels show wet boots, a trail of muddy footprints and a child entering a clean room.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-eng-club-notice",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-eng-club-notice.7e832e48183e.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-eng-club-notice.7e832e48183e.svg",
+      "sha256": "7e832e48183e33690665400eaa71b90a38f87075d97986a4c004dbc80e1f86fb",
+      "width": 640,
+      "height": 360,
+      "altText": "A school notice reads Garden Club, Thursday, 3:15, Meet by the greenhouse, with calendar and clock icons.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-eng-size-scale",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-eng-size-scale.d92b992f487c.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-eng-size-scale.d92b992f487c.svg",
+      "sha256": "d92b992f487cd6dbb0c268a39f4aef2898883c60f311b3f77580a4beaf3b6853",
+      "width": 640,
+      "height": 360,
+      "altText": "Four object cards increase in size from left to right. The smallest card is labelled with a question mark; later cards read small, large and enormous.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-eng-speech",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-eng-speech.504691763655.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-eng-speech.504691763655.svg",
+      "sha256": "504691763655e8f6b23c15024cd687d3510410f8893aaca5f202e9d7e07b447f",
+      "width": 640,
+      "height": 360,
+      "altText": "Bo stands beside a speech bubble containing Come inside without punctuation marks.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-eng-conjunction",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-eng-conjunction.2e2970c054a6.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-eng-conjunction.2e2970c054a6.svg",
+      "sha256": "2e2970c054a62f6653d197797bf2023b0b1f2160911971b3a67b413d27afce73",
+      "width": 640,
+      "height": 360,
+      "altText": "Two sentence cards read We stayed inside and it was raining, joined by a bridge with a question mark.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-eng-plant-sequence",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-eng-plant-sequence.2596819e2519.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-eng-plant-sequence.2596819e2519.svg",
+      "sha256": "2596819e2519081c75786475dbf5a35ec3739ed18f67a910c2af225c97bcc007",
+      "width": 640,
+      "height": 360,
+      "altText": "Four numbered panels show soil placed in a pot, a missing second step, water being added and a small shoot appearing.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-eng-plane-order",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-eng-plane-order.f26e7bad81ba.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-eng-plane-order.f26e7bad81ba.svg",
+      "sha256": "f26e7bad81ba7aeb0e66462edcbb2f52a01f4a150423832f02edfb5e1222995f",
+      "width": 640,
+      "height": 360,
+      "altText": "Four labelled cards show a sheet of paper, a folded half-sheet, a nearly finished plane and a flying paper plane.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-eng-library-notice",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-eng-library-notice.9c62b1ac8623.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-eng-library-notice.9c62b1ac8623.svg",
+      "sha256": "9c62b1ac86231b67473fb2c6e2cf5a6a3f2d9ad7ac9e7b88432d0597d1e04ebe",
+      "width": 640,
+      "height": 360,
+      "altText": "A library notice reads Return borrowed books by Friday and shows a book with a curved return arrow.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-eng-owl-fact-file",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-eng-owl-fact-file.611bfaf2f655.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-eng-owl-fact-file.611bfaf2f655.svg",
+      "sha256": "611bfaf2f65533d352f546413aa3c6344603f809d82d8c397df27c664f14f74e",
+      "width": 640,
+      "height": 360,
+      "altText": "An owl fact file has four clearly labelled sections: Habitat, Diet, Features and Night activity.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-sci-classification-key",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-sci-classification-key.a162a5503dda.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-sci-classification-key.a162a5503dda.svg",
+      "sha256": "a162a5503dda33e6dce04f83200bed3059bd687cf9a1635acce174012abc926a",
+      "width": 640,
+      "height": 360,
+      "altText": "A simple classification key shows an animal silhouette with a beak and feather symbols, then branches to four group labels.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-sci-food-chain",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-sci-food-chain.e1d24d0690c4.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-sci-food-chain.e1d24d0690c4.svg",
+      "sha256": "e1d24d0690c458b807de086aab460b1645f2402fdeb42601939acc8e574ef529",
+      "width": 640,
+      "height": 360,
+      "altText": "A food chain runs from a green plant to a caterpillar and then a bird, with arrows showing the direction of energy transfer.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-sci-frog-cycle",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-sci-frog-cycle.fb49194e6780.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-sci-frog-cycle.fb49194e6780.svg",
+      "sha256": "fb49194e678052c098d034d27b2609c417069a0f711bf7280a6ddd038a9e02bf",
+      "width": 640,
+      "height": 360,
+      "altText": "A clockwise life-cycle diagram has four labelled stages: egg, tadpole, froglet and adult frog.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-sci-waterproof-test",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-sci-waterproof-test.abc09905b7df.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-sci-waterproof-test.abc09905b7df.svg",
+      "sha256": "abc09905b7df86f8b1aa6d092d4b3ced24c78f7257c86f23110dbb9b5b37eea0",
+      "width": 640,
+      "height": 360,
+      "altText": "Three material samples A, B and C sit above paper squares. The papers show many, some and very few blue wet marks.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-sci-magnet-test",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-sci-magnet-test.829401031f95.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-sci-magnet-test.829401031f95.svg",
+      "sha256": "829401031f95f8f3e1c28a167e5a7aa44a0d129880724a81ccbccf8eb701391f",
+      "width": 640,
+      "height": 360,
+      "altText": "A horseshoe magnet is placed beside four labelled objects: iron nail, wooden stick, plastic button and rubber band.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-sci-friction-chart",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-sci-friction-chart.ede8dc674177.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-sci-friction-chart.ede8dc674177.svg",
+      "sha256": "ede8dc674177551005047f4762222cf40e3957568e453092fbcfbdeba94804d8",
+      "width": 640,
+      "height": 360,
+      "altText": "A horizontal bar chart compares toy-car distance on rough carpet, wooden board and smooth tile. Values are printed at bar ends.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-sci-closed-circuit",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-sci-closed-circuit.2f42798f33de.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-sci-closed-circuit.2f42798f33de.svg",
+      "sha256": "2f42798f33de178b69a02931a11ef0cd31f8d6e469bb6bffa3bbd12605b95029",
+      "width": 640,
+      "height": 360,
+      "altText": "A battery, lamp and closed switch are connected by wires in one unbroken rectangular loop. The lamp has drawn light rays.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-sci-fair-test",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-sci-fair-test.acfbbd29ab4a.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-sci-fair-test.acfbbd29ab4a.svg",
+      "sha256": "acfbbd29ab4aa3f7fde0bf83ac217f2274359921ad629bfbb2a1b62b78763146",
+      "width": 640,
+      "height": 360,
+      "altText": "Three identical plants in equal pots receive 0, 10 and 20 millilitres of water. Labels say same plant, pot, soil and light.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-sci-results-table",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-sci-results-table.a8f46eee5fd3.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-sci-results-table.a8f46eee5fd3.svg",
+      "sha256": "a8f46eee5fd3db6ddc9b8080720b1a4fbb180b1c74b0bb15753213567edcb5ff",
+      "width": 640,
+      "height": 360,
+      "altText": "A results table pairs water amounts 0, 10 and 20 millilitres with plant heights 4, 9 and 15 centimetres.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-geo-direction-map",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-geo-direction-map.e34e1154e2b9.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-geo-direction-map.e34e1154e2b9.svg",
+      "sha256": "e34e1154e2b9a0ac08f2859561ccc25c4494d84be376324f1659fd567dccea22",
+      "width": 640,
+      "height": 360,
+      "altText": "A simple map places the school west of the playground. A compass rose labels north, east, south and west.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-geo-map-key",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-geo-map-key.a4ac36db8be8.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-geo-map-key.a4ac36db8be8.svg",
+      "sha256": "a4ac36db8be89990840c7114b444222138fe53ac87ddc9d956ae5976f71a239b",
+      "width": 640,
+      "height": 360,
+      "altText": "A map key pairs four symbols with labels: a cross in a square, blue waves, a green tree and a black triangle.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-geo-grid",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-geo-grid.891ba8168053.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-geo-grid.891ba8168053.svg",
+      "sha256": "891ba81680532ec6327baa556456329b4566814c7775694353473382bbf63611",
+      "width": 640,
+      "height": 360,
+      "altText": "A four-by-four grid has columns A to D and rows 1 to 4. A blue pond symbol lies in column B, row 3.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-geo-weather-tools",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-geo-weather-tools.56c505fe2319.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-geo-weather-tools.56c505fe2319.svg",
+      "sha256": "56c505fe2319c6a5f50f46ce66185a84ab71c39102b3ef7da2fa51fca532379b",
+      "width": 640,
+      "height": 360,
+      "altText": "Four instrument cards show a rain gauge, thermometer, wind vane and compass, each labelled A to D.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-geo-season-chart",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-geo-season-chart.ff01dfa2ac41.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-geo-season-chart.ff01dfa2ac41.svg",
+      "sha256": "ff01dfa2ac41640383b8c9a6840a06bd851f7bd521a6a14d62102cf0875391ba",
+      "width": 640,
+      "height": 360,
+      "altText": "A four-bar seasonal temperature chart shows January 4, April 13, July 26 and October 15 degrees Celsius, with values printed above bars.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-geo-water-cycle",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-geo-water-cycle.de70472b5080.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-geo-water-cycle.de70472b5080.svg",
+      "sha256": "de70472b508010131536180100f245d1f88974310507403bcf922eebffea39a5",
+      "width": 640,
+      "height": 360,
+      "altText": "A water-cycle diagram shows a lake, sun and cloud. Arrows A to D include an upward arrow B from the lake surface.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-geo-river-journey",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-geo-river-journey.8fc12c87596b.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-geo-river-journey.8fc12c87596b.svg",
+      "sha256": "8fc12c87596b5e74f5ef3c59b51ec1335bcc1cd60cfbd7d2af4824f4ff0c11d8",
+      "width": 640,
+      "height": 360,
+      "altText": "A labelled river runs from a source in high hills through a bridge and town to a mouth at the sea.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-geo-service-map",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-geo-service-map.c9cc084be3b0.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-geo-service-map.c9cc084be3b0.svg",
+      "sha256": "c9cc084be3b058e85360d46eca5e8709cef6702648c41cd33724cfc8bf22165a",
+      "width": 640,
+      "height": 360,
+      "altText": "A neighbourhood map labels homes, a health clinic, an empty field and a public footpath beside two crossing roads.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    },
+    {
+      "assetId": "g4-geo-waste-chart",
+      "mimeType": "image/svg+xml",
+      "sourceFile": "public/question-assets/2026-11-0/g4-geo-waste-chart.15c14c4249f7.svg",
+      "publicPath": "/question-assets/2026-11-0/g4-geo-waste-chart.15c14c4249f7.svg",
+      "sha256": "15c14c4249f719b7a97b4dadc1effb025755ea2976cf2ff2a469ca36448100f3",
+      "width": 640,
+      "height": 360,
+      "altText": "A school waste audit bar chart shows food 18 bags, paper 11, glass 4 and metal 3, with values printed above patterned bars.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System",
+      "mobileSafeCrop": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 360
+      }
+    }
+  ],
+  "files": [
+    "mathematics-grade-4.json",
+    "english-grade-4.json",
+    "science-grade-4.json",
+    "geography-grade-4.json"
+  ]
+}

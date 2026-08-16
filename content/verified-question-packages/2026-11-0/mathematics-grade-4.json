@@ -1,0 +1,677 @@
+{
+  "subject": "Mathematics",
+  "subjectCode": "mathematics",
+  "grade": 4,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g4-math-2026.11-001",
+      "topic": "Number and place value",
+      "difficulty": "easy",
+      "questionText": "What is the value of the highlighted digit in 4,582?",
+      "questionType": "multiple_choice",
+      "options": [
+        "500",
+        "50",
+        "5",
+        "5,000"
+      ],
+      "correctAnswer": "500",
+      "explanation": "The highlighted 5 is in the hundreds column, so its value is 500.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math4-number-place-value",
+        "number and place value"
+      ],
+      "visualAssetId": "g4-math-place-value",
+      "curriculum": {
+        "strand": "Number and place value",
+        "skill": "Apply number and place value",
+        "subskill": "number and place value",
+        "objective": "Read, compare and calculate with whole numbers to 10,000 using place value and efficient written or mental strategies."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-number-place-value"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-002",
+      "topic": "Number and place value",
+      "difficulty": "medium",
+      "questionText": "Which number is greatest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "6,052",
+        "6,205",
+        "5,620",
+        "6,025"
+      ],
+      "correctAnswer": "6,205",
+      "explanation": "Comparing the thousands and then hundreds digits shows that 6,205 is greatest.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math4-number-place-value",
+        "number and place value"
+      ],
+      "curriculum": {
+        "strand": "Number and place value",
+        "skill": "Apply number and place value",
+        "subskill": "number and place value",
+        "objective": "Read, compare and calculate with whole numbers to 10,000 using place value and efficient written or mental strategies."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-number-place-value"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-003",
+      "topic": "Number and place value",
+      "difficulty": "medium",
+      "questionText": "What is 2,468 + 735?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3,103",
+        "3,193",
+        "3,203",
+        "3,213"
+      ],
+      "correctAnswer": "3,203",
+      "explanation": "Adding by place value gives 2,468 + 700 + 35 = 3,203.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math4-number-place-value",
+        "number and place value"
+      ],
+      "curriculum": {
+        "strand": "Number and place value",
+        "skill": "Apply number and place value",
+        "subskill": "number and place value",
+        "objective": "Read, compare and calculate with whole numbers to 10,000 using place value and efficient written or mental strategies."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-number-place-value"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-004",
+      "topic": "Number and place value",
+      "difficulty": "hard",
+      "questionText": "What is 5,000 − 1,786?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3,124",
+        "3,224",
+        "4,214",
+        "3,214"
+      ],
+      "correctAnswer": "3,214",
+      "explanation": "Subtracting 1,786 from 5,000 gives 3,214; addition checks that 3,214 + 1,786 = 5,000.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math4-number-place-value",
+        "number and place value"
+      ],
+      "curriculum": {
+        "strand": "Number and place value",
+        "skill": "Apply number and place value",
+        "subskill": "number and place value",
+        "objective": "Read, compare and calculate with whole numbers to 10,000 using place value and efficient written or mental strategies."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-number-place-value"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-005",
+      "topic": "Multiplication and division",
+      "difficulty": "easy",
+      "questionText": "Which calculation matches the array?",
+      "questionType": "multiple_choice",
+      "options": [
+        "7 × 4 = 28",
+        "7 + 4 = 11",
+        "28 ÷ 7 = 7",
+        "28 − 4 = 24"
+      ],
+      "correctAnswer": "7 × 4 = 28",
+      "explanation": "The diagram has 7 equal rows with 4 counters in each row, giving 7 × 4 = 28.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math4-multiplication-division",
+        "multiplication and division"
+      ],
+      "visualAssetId": "g4-math-array",
+      "curriculum": {
+        "strand": "Multiplication and division",
+        "skill": "Apply multiplication and division",
+        "subskill": "multiplication and division",
+        "objective": "Use multiplication facts, arrays, grouping and remainders to solve one-step and two-step problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-multiplication-division"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-006",
+      "topic": "Multiplication and division",
+      "difficulty": "medium",
+      "questionText": "What is 56 ÷ 8?",
+      "questionType": "multiple_choice",
+      "options": [
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "correctAnswer": "7",
+      "explanation": "Because 8 × 7 = 56, the quotient is 7.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math4-multiplication-division",
+        "multiplication and division"
+      ],
+      "curriculum": {
+        "strand": "Multiplication and division",
+        "skill": "Apply multiplication and division",
+        "subskill": "multiplication and division",
+        "objective": "Use multiplication facts, arrays, grouping and remainders to solve one-step and two-step problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-multiplication-division"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-007",
+      "topic": "Multiplication and division",
+      "difficulty": "medium",
+      "questionText": "Six baskets each hold 9 oranges. How many oranges are there?",
+      "questionType": "multiple_choice",
+      "options": [
+        "15",
+        "45",
+        "54",
+        "63"
+      ],
+      "correctAnswer": "54",
+      "explanation": "Six equal groups of 9 make 6 × 9 = 54 oranges.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math4-multiplication-division",
+        "multiplication and division"
+      ],
+      "curriculum": {
+        "strand": "Multiplication and division",
+        "skill": "Apply multiplication and division",
+        "subskill": "multiplication and division",
+        "objective": "Use multiplication facts, arrays, grouping and remainders to solve one-step and two-step problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-multiplication-division"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-008",
+      "topic": "Multiplication and division",
+      "difficulty": "hard",
+      "questionText": "Sixty-five counters are shared equally among 6 teams. What does each team receive?",
+      "questionType": "multiple_choice",
+      "options": [
+        "11 counters, with none left over",
+        "9 counters, with 1 left over",
+        "10 counters, with 6 left over",
+        "10 counters, with 5 left over"
+      ],
+      "correctAnswer": "10 counters, with 5 left over",
+      "explanation": "Six groups of 10 use 60 counters, leaving a remainder of 5.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math4-multiplication-division",
+        "multiplication and division"
+      ],
+      "visualAssetId": "g4-math-remainder",
+      "curriculum": {
+        "strand": "Multiplication and division",
+        "skill": "Apply multiplication and division",
+        "subskill": "multiplication and division",
+        "objective": "Use multiplication facts, arrays, grouping and remainders to solve one-step and two-step problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-multiplication-division"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-009",
+      "topic": "Fractions and decimals",
+      "difficulty": "easy",
+      "questionText": "What fraction of the strip is shaded?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3/8",
+        "3/5",
+        "5/8",
+        "8/3"
+      ],
+      "correctAnswer": "3/8",
+      "explanation": "Three of the eight equal parts are shaded, so the fraction is 3/8.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math4-fractions-decimals",
+        "fractions and decimals"
+      ],
+      "visualAssetId": "g4-math-fraction-strip",
+      "curriculum": {
+        "strand": "Fractions and decimals",
+        "skill": "Apply fractions and decimals",
+        "subskill": "fractions and decimals",
+        "objective": "Recognise, compare and combine simple fractions and connect tenths and hundredths to decimal notation and money."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-fractions-decimals"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-010",
+      "topic": "Fractions and decimals",
+      "difficulty": "medium",
+      "questionText": "Which fraction is equivalent to 1/2?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2/8",
+        "4/8",
+        "3/8",
+        "5/8"
+      ],
+      "correctAnswer": "4/8",
+      "explanation": "Four of eight equal parts is the same amount as one of two equal parts.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math4-fractions-decimals",
+        "fractions and decimals"
+      ],
+      "curriculum": {
+        "strand": "Fractions and decimals",
+        "skill": "Apply fractions and decimals",
+        "subskill": "fractions and decimals",
+        "objective": "Recognise, compare and combine simple fractions and connect tenths and hundredths to decimal notation and money."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-fractions-decimals"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-011",
+      "topic": "Fractions and decimals",
+      "difficulty": "medium",
+      "questionText": "Which amount is shown by the coins and decimal card?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3.05 units",
+        "3.40 units",
+        "3.45 units",
+        "4.35 units"
+      ],
+      "correctAnswer": "3.45 units",
+      "explanation": "Three whole units and forty-five hundredths are written as 3.45.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math4-fractions-decimals",
+        "fractions and decimals"
+      ],
+      "visualAssetId": "g4-math-decimal-money",
+      "curriculum": {
+        "strand": "Fractions and decimals",
+        "skill": "Apply fractions and decimals",
+        "subskill": "fractions and decimals",
+        "objective": "Recognise, compare and combine simple fractions and connect tenths and hundredths to decimal notation and money."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-fractions-decimals"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-012",
+      "topic": "Fractions and decimals",
+      "difficulty": "hard",
+      "questionText": "What is 2/5 + 1/5?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3/10",
+        "2/10",
+        "1/5",
+        "3/5"
+      ],
+      "correctAnswer": "3/5",
+      "explanation": "The parts have the same denominator, so adding the numerators gives 3/5.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math4-fractions-decimals",
+        "fractions and decimals"
+      ],
+      "curriculum": {
+        "strand": "Fractions and decimals",
+        "skill": "Apply fractions and decimals",
+        "subskill": "fractions and decimals",
+        "objective": "Recognise, compare and combine simple fractions and connect tenths and hundredths to decimal notation and money."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-fractions-decimals"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-013",
+      "topic": "Geometry and measurement",
+      "difficulty": "easy",
+      "questionText": "Which line is a line of symmetry for the shape?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Line B",
+        "Line A",
+        "Line C",
+        "Line D"
+      ],
+      "correctAnswer": "Line B",
+      "explanation": "Folding on Line B would make the two halves match exactly.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math4-geometry-measure",
+        "geometry and measurement"
+      ],
+      "visualAssetId": "g4-math-symmetry",
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Identify symmetry and angle types and solve practical problems involving perimeter, length and time."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-014",
+      "topic": "Geometry and measurement",
+      "difficulty": "medium",
+      "questionText": "Which labelled angle is a right angle?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Angle A",
+        "Angle C",
+        "Angle B",
+        "Angle D"
+      ],
+      "correctAnswer": "Angle C",
+      "explanation": "Angle C has a square corner and measures 90 degrees.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math4-geometry-measure",
+        "geometry and measurement"
+      ],
+      "visualAssetId": "g4-math-angles",
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Identify symmetry and angle types and solve practical problems involving perimeter, length and time."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-015",
+      "topic": "Geometry and measurement",
+      "difficulty": "medium",
+      "questionText": "A rectangle is 7 cm long and 4 cm wide. What is its perimeter?",
+      "questionType": "multiple_choice",
+      "options": [
+        "11 cm",
+        "28 cm",
+        "22 cm",
+        "18 cm"
+      ],
+      "correctAnswer": "22 cm",
+      "explanation": "Perimeter is the distance around the rectangle: 7 + 4 + 7 + 4 = 22 centimetres.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math4-geometry-measure",
+        "geometry and measurement"
+      ],
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Identify symmetry and angle types and solve practical problems involving perimeter, length and time."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-016",
+      "topic": "Geometry and measurement",
+      "difficulty": "hard",
+      "questionText": "A lesson starts at 09:35 and lasts 50 minutes. When does it finish?",
+      "questionType": "multiple_choice",
+      "options": [
+        "09:85",
+        "10:15",
+        "10:35",
+        "10:25"
+      ],
+      "correctAnswer": "10:25",
+      "explanation": "Twenty-five minutes reaches 10:00 and the remaining 25 minutes reaches 10:25.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math4-geometry-measure",
+        "geometry and measurement"
+      ],
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Identify symmetry and angle types and solve practical problems involving perimeter, length and time."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-017",
+      "topic": "Data, patterns and chance",
+      "difficulty": "easy",
+      "questionText": "How many apples were sold on Tuesday?",
+      "questionType": "multiple_choice",
+      "options": [
+        "10",
+        "5",
+        "8",
+        "12"
+      ],
+      "correctAnswer": "10",
+      "explanation": "Tuesday has five apple symbols and each symbol represents 2 apples, so 5 × 2 = 10.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math4-data-patterns",
+        "data, patterns and chance"
+      ],
+      "visualAssetId": "g4-math-pictogram",
+      "curriculum": {
+        "strand": "Data, patterns and chance",
+        "skill": "Apply data, patterns and chance",
+        "subskill": "data, patterns and chance",
+        "objective": "Read tables and pictograms, continue number patterns and describe simple likelihood from equally likely outcomes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-data-patterns"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-018",
+      "topic": "Data, patterns and chance",
+      "difficulty": "medium",
+      "questionText": "What is the next number: 5, 9, 13, 17, ...?",
+      "questionType": "multiple_choice",
+      "options": [
+        "18",
+        "21",
+        "20",
+        "22"
+      ],
+      "correctAnswer": "21",
+      "explanation": "The sequence increases by 4 each time, so 17 + 4 = 21.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math4-data-patterns",
+        "data, patterns and chance"
+      ],
+      "curriculum": {
+        "strand": "Data, patterns and chance",
+        "skill": "Apply data, patterns and chance",
+        "subskill": "data, patterns and chance",
+        "objective": "Read tables and pictograms, continue number patterns and describe simple likelihood from equally likely outcomes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-data-patterns"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-019",
+      "topic": "Data, patterns and chance",
+      "difficulty": "medium",
+      "questionText": "A bag holds 3 red cubes and 5 blue cubes. Which colour is more likely to be picked?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Red",
+        "Both are equally likely",
+        "Blue",
+        "Neither colour can be picked"
+      ],
+      "correctAnswer": "Blue",
+      "explanation": "Blue is more likely because there are five blue cubes but only three red cubes.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math4-data-patterns",
+        "data, patterns and chance"
+      ],
+      "visualAssetId": "g4-math-chance-bag",
+      "curriculum": {
+        "strand": "Data, patterns and chance",
+        "skill": "Apply data, patterns and chance",
+        "subskill": "data, patterns and chance",
+        "objective": "Read tables and pictograms, continue number patterns and describe simple likelihood from equally likely outcomes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-data-patterns"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g4-math-2026.11-020",
+      "topic": "Data, patterns and chance",
+      "difficulty": "hard",
+      "questionText": "A table shows 18 walkers on Monday and 27 on Friday. How many more walked on Friday?",
+      "questionType": "multiple_choice",
+      "options": [
+        "8",
+        "10",
+        "45",
+        "9"
+      ],
+      "correctAnswer": "9",
+      "explanation": "The difference is 27 − 18 = 9 walkers.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math4-data-patterns",
+        "data, patterns and chance"
+      ],
+      "curriculum": {
+        "strand": "Data, patterns and chance",
+        "skill": "Apply data, patterns and chance",
+        "subskill": "data, patterns and chance",
+        "objective": "Read tables and pictograms, continue number patterns and describe simple likelihood from equally likely outcomes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-4",
+          "objectiveCode": "math4-data-patterns"
+        }
+      ]
+    }
+  ]
+}

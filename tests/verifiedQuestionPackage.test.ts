@@ -17,6 +17,7 @@ const visualImporterMigration = readFileSync('supabase/migrations/20260815132000
 const grade6CurriculumMigration = readFileSync('supabase/migrations/20260815133000_brains_heist_curriculum_2026_7.sql', 'utf8');
 const grade7CurriculumMigration = readFileSync('supabase/migrations/20260816093000_brains_heist_curriculum_2026_8.sql', 'utf8');
 const grade5CurriculumMigration = readFileSync('supabase/migrations/20260816143000_brains_heist_curriculum_2026_10.sql', 'utf8');
+const grade4CurriculumMigration = readFileSync('supabase/migrations/20260816150000_brains_heist_curriculum_2026_11.sql', 'utf8');
 const visualAccessibilityMigration = readFileSync('supabase/migrations/20260815134000_question_visual_accessibility.sql', 'utf8');
 const versionedVisualPathMigration = readFileSync('supabase/migrations/20260816121000_version_verified_question_visual_asset_paths.sql', 'utf8');
 
@@ -39,13 +40,14 @@ test('all verified question packages pass their quality and balance profiles', (
   assert.match(result.stdout, /brain-heist-grade-6-core-2026-7@2026\.7\.0 passed/);
   assert.match(result.stdout, /brain-heist-grade-7-core-2026-8@2026\.8\.0 passed/);
   assert.match(result.stdout, /brain-heist-grade-5-core-2026-10@2026\.10\.0 passed/);
+  assert.match(result.stdout, /brain-heist-grade-4-core-2026-11@2026\.11\.0 passed/);
   for (const subject of ['Mathematics 20', 'English 20', 'Science 20', 'Geography 20']) {
     assert.match(result.stdout, new RegExp(subject));
   }
 });
 
 test('schema v2 verifies all visual bytes, metadata and question links', () => {
-  for (const [packageDirectory, expectedAssets] of [['2026-7-0', 24], ['2026-8-0', 24], ['2026-10-0', 32]] as const) {
+  for (const [packageDirectory, expectedAssets] of [['2026-7-0', 24], ['2026-8-0', 24], ['2026-10-0', 32], ['2026-11-0', 36]] as const) {
     const manifest = JSON.parse(readFileSync(`content/verified-question-packages/${packageDirectory}/manifest.json`, 'utf8'));
     assert.equal(manifest.schemaVersion, 2);
     assert.equal(manifest.assets.length, expectedAssets);
@@ -234,6 +236,22 @@ test('2026.10 curriculum establishes curated Grade 5 core objectives', () => {
   assert.match(grade5CurriculumMigration, /status = 'approved'/);
   assert.match(grade5CurriculumMigration, /status = 'published'/);
   assert.match(grade5CurriculumMigration, /extensions\.digest/);
+});
+
+test('2026.11 curriculum establishes curated Grade 4 core objectives', () => {
+  assert.match(grade4CurriculumMigration, /version_code = '2026-10'/);
+  assert.match(grade4CurriculumMigration, /'2026-11'/);
+  for (const scope of ['mathematics-grade-4', 'english-grade-4', 'science-grade-4', 'geography-grade-4']) {
+    assert.match(grade4CurriculumMigration, new RegExp(scope));
+  }
+  for (const objective of ['math4-number-place-value', 'eng4-reading-retrieval-inference', 'sci4-living-things-habitats', 'geo4-maps-place']) {
+    assert.match(grade4CurriculumMigration, new RegExp(objective));
+  }
+  assert.match(grade4CurriculumMigration, /legacy-classification/);
+  assert.match(grade4CurriculumMigration, /status = 'in_review'/);
+  assert.match(grade4CurriculumMigration, /status = 'approved'/);
+  assert.match(grade4CurriculumMigration, /status = 'published'/);
+  assert.match(grade4CurriculumMigration, /extensions\.digest/);
 });
 
 test('verified importer CLI refuses missing service-role credentials and production confirmation', () => {
