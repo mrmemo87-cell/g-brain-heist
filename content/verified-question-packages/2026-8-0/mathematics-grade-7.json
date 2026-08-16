@@ -1,0 +1,674 @@
+{
+  "subject": "Mathematics",
+  "subjectCode": "mathematics",
+  "grade": 7,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g7-math-2026.8-001",
+      "topic": "Ratio, proportion and percentages",
+      "difficulty": "easy",
+      "questionText": "The diagram shows that 3 notebooks cost 12 som. At the same rate, what do 5 notebooks cost?",
+      "questionType": "multiple_choice",
+      "options": [
+        "20 som",
+        "15 som",
+        "18 som",
+        "24 som"
+      ],
+      "correctAnswer": "20 som",
+      "explanation": "Each notebook costs 12 ÷ 3 = 4 som, so five notebooks cost 5 × 4 = 20 som.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math7-ratio-proportion",
+        "ratio, proportion and percentages"
+      ],
+      "visualAssetId": "g7-math-ratio-line",
+      "curriculum": {
+        "strand": "Ratio, proportion and percentages",
+        "skill": "Apply ratio, proportion and percentages",
+        "subskill": "ratio, proportion and percentages",
+        "objective": "Apply proportional reasoning, percentages and rational numbers in mathematical and everyday contexts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-ratio-proportion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-002",
+      "topic": "Ratio, proportion and percentages",
+      "difficulty": "medium",
+      "questionText": "What percentage of the hundred-square is marked?",
+      "questionType": "multiple_choice",
+      "options": [
+        "4%",
+        "40%",
+        "60%",
+        "400%"
+      ],
+      "correctAnswer": "40%",
+      "explanation": "Four of ten full columns are marked, which is 40 of 100 cells or 40%.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math7-ratio-proportion",
+        "ratio, proportion and percentages"
+      ],
+      "visualAssetId": "g7-math-percent-grid",
+      "curriculum": {
+        "strand": "Ratio, proportion and percentages",
+        "skill": "Apply ratio, proportion and percentages",
+        "subskill": "ratio, proportion and percentages",
+        "objective": "Apply proportional reasoning, percentages and rational numbers in mathematical and everyday contexts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-ratio-proportion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-003",
+      "topic": "Ratio, proportion and percentages",
+      "difficulty": "medium",
+      "questionText": "A jacket costs 2,400 som and is reduced by 15%. What is the sale price?",
+      "questionType": "multiple_choice",
+      "options": [
+        "360 som",
+        "2,160 som",
+        "2,040 som",
+        "2,760 som"
+      ],
+      "correctAnswer": "2,040 som",
+      "explanation": "Fifteen percent of 2,400 is 360; subtracting the discount gives 2,040 som.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math7-ratio-proportion",
+        "ratio, proportion and percentages"
+      ],
+      "curriculum": {
+        "strand": "Ratio, proportion and percentages",
+        "skill": "Apply ratio, proportion and percentages",
+        "subskill": "ratio, proportion and percentages",
+        "objective": "Apply proportional reasoning, percentages and rational numbers in mathematical and everyday contexts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-ratio-proportion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-004",
+      "topic": "Ratio, proportion and percentages",
+      "difficulty": "hard",
+      "questionText": "A map is enlarged in the ratio 3:2. A road measuring 8 cm on the original measures how long on the enlargement?",
+      "questionType": "multiple_choice",
+      "options": [
+        "5.3 cm",
+        "10 cm",
+        "16 cm",
+        "12 cm"
+      ],
+      "correctAnswer": "12 cm",
+      "explanation": "The enlargement scale factor is 3/2, so 8 × 3/2 = 12 cm.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math7-ratio-proportion",
+        "ratio, proportion and percentages"
+      ],
+      "curriculum": {
+        "strand": "Ratio, proportion and percentages",
+        "skill": "Apply ratio, proportion and percentages",
+        "subskill": "ratio, proportion and percentages",
+        "objective": "Apply proportional reasoning, percentages and rational numbers in mathematical and everyday contexts."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-ratio-proportion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-005",
+      "topic": "Algebra, equations and sequences",
+      "difficulty": "easy",
+      "questionText": "Which expression gives the output in the value table?",
+      "questionType": "multiple_choice",
+      "options": [
+        "3n + 2",
+        "2n + 3",
+        "3n − 2",
+        "5n"
+      ],
+      "correctAnswer": "3n + 2",
+      "explanation": "Each output is three times n plus two, so the rule is 3n + 2.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math7-algebra-sequences",
+        "algebra, equations and sequences"
+      ],
+      "visualAssetId": "g7-math-sequence-table",
+      "curriculum": {
+        "strand": "Algebra, equations and sequences",
+        "skill": "Apply algebra, equations and sequences",
+        "subskill": "algebra, equations and sequences",
+        "objective": "Form and simplify expressions, solve linear equations and generalise arithmetic sequences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-algebra-sequences"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-006",
+      "topic": "Algebra, equations and sequences",
+      "difficulty": "medium",
+      "questionText": "Simplify 4a + 7 + 3a − 2.",
+      "questionType": "multiple_choice",
+      "options": [
+        "7a + 9",
+        "7a + 5",
+        "12a",
+        "7a − 5"
+      ],
+      "correctAnswer": "7a + 5",
+      "explanation": "Combining like terms gives 4a + 3a = 7a and 7 − 2 = 5.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math7-algebra-sequences",
+        "algebra, equations and sequences"
+      ],
+      "curriculum": {
+        "strand": "Algebra, equations and sequences",
+        "skill": "Apply algebra, equations and sequences",
+        "subskill": "algebra, equations and sequences",
+        "objective": "Form and simplify expressions, solve linear equations and generalise arithmetic sequences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-algebra-sequences"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-007",
+      "topic": "Algebra, equations and sequences",
+      "difficulty": "medium",
+      "questionText": "Solve 3(x − 2) = 21.",
+      "questionType": "multiple_choice",
+      "options": [
+        "x = 5",
+        "x = 7",
+        "x = 9",
+        "x = 23"
+      ],
+      "correctAnswer": "x = 9",
+      "explanation": "Dividing by 3 gives x − 2 = 7, so adding 2 gives x = 9.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math7-algebra-sequences",
+        "algebra, equations and sequences"
+      ],
+      "curriculum": {
+        "strand": "Algebra, equations and sequences",
+        "skill": "Apply algebra, equations and sequences",
+        "subskill": "algebra, equations and sequences",
+        "objective": "Form and simplify expressions, solve linear equations and generalise arithmetic sequences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-algebra-sequences"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-008",
+      "topic": "Algebra, equations and sequences",
+      "difficulty": "hard",
+      "questionText": "The nth term is 5n − 3. Which term of the sequence equals 72?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The 14th term",
+        "The 16th term",
+        "The 25th term",
+        "The 15th term"
+      ],
+      "correctAnswer": "The 15th term",
+      "explanation": "Solving 5n − 3 = 72 gives 5n = 75 and n = 15.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math7-algebra-sequences",
+        "algebra, equations and sequences"
+      ],
+      "curriculum": {
+        "strand": "Algebra, equations and sequences",
+        "skill": "Apply algebra, equations and sequences",
+        "subskill": "algebra, equations and sequences",
+        "objective": "Form and simplify expressions, solve linear equations and generalise arithmetic sequences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-algebra-sequences"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-009",
+      "topic": "Geometry and measurement",
+      "difficulty": "easy",
+      "questionText": "What is the value of x in the parallel-line diagram?",
+      "questionType": "multiple_choice",
+      "options": [
+        "68°",
+        "22°",
+        "112°",
+        "292°"
+      ],
+      "correctAnswer": "68°",
+      "explanation": "Corresponding angles between parallel lines are equal, so x is 68°.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math7-geometry-measure",
+        "geometry and measurement"
+      ],
+      "visualAssetId": "g7-math-transversal",
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Use angle relationships, transformations and circle measures to solve geometric problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-010",
+      "topic": "Geometry and measurement",
+      "difficulty": "medium",
+      "questionText": "Using π = 22/7, what is the circumference of the circle?",
+      "questionType": "multiple_choice",
+      "options": [
+        "22 cm",
+        "44 cm",
+        "49 cm",
+        "154 cm"
+      ],
+      "correctAnswer": "44 cm",
+      "explanation": "Circumference is 2πr = 2 × 22/7 × 7 = 44 cm.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math7-geometry-measure",
+        "geometry and measurement"
+      ],
+      "visualAssetId": "g7-math-circle-radius",
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Use angle relationships, transformations and circle measures to solve geometric problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-011",
+      "topic": "Geometry and measurement",
+      "difficulty": "medium",
+      "questionText": "A triangle has angles 48° and 67°. What is its third angle?",
+      "questionType": "multiple_choice",
+      "options": [
+        "55°",
+        "75°",
+        "65°",
+        "115°"
+      ],
+      "correctAnswer": "65°",
+      "explanation": "Angles in a triangle total 180°, so the third angle is 180 − 48 − 67 = 65°.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math7-geometry-measure",
+        "geometry and measurement"
+      ],
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Use angle relationships, transformations and circle measures to solve geometric problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-012",
+      "topic": "Geometry and measurement",
+      "difficulty": "hard",
+      "questionText": "A shape is reflected in the y-axis. What happens to the point (−4, 3)?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It maps to (−4, −3)",
+        "It maps to (3, −4)",
+        "It maps to (4, −3)",
+        "It maps to (4, 3)"
+      ],
+      "correctAnswer": "It maps to (4, 3)",
+      "explanation": "Reflection in the y-axis changes the sign of the x-coordinate but keeps y unchanged.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math7-geometry-measure",
+        "geometry and measurement"
+      ],
+      "curriculum": {
+        "strand": "Geometry and measurement",
+        "skill": "Apply geometry and measurement",
+        "subskill": "geometry and measurement",
+        "objective": "Use angle relationships, transformations and circle measures to solve geometric problems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-geometry-measure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-013",
+      "topic": "Data and probability",
+      "difficulty": "easy",
+      "questionText": "What is the probability that the spinner lands on a circle?",
+      "questionType": "multiple_choice",
+      "options": [
+        "5/8",
+        "3/8",
+        "5/3",
+        "1/2"
+      ],
+      "correctAnswer": "5/8",
+      "explanation": "Five of the eight equal sectors contain circles, so the probability is 5/8.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math7-data-probability",
+        "data and probability"
+      ],
+      "visualAssetId": "g7-math-spinner",
+      "curriculum": {
+        "strand": "Data and probability",
+        "skill": "Apply data and probability",
+        "subskill": "data and probability",
+        "objective": "Interpret distributions and calculate measures and probabilities to support conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-data-probability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-014",
+      "topic": "Data and probability",
+      "difficulty": "medium",
+      "questionText": "Find the median of 4, 7, 8, 10, 13, 15 and 20.",
+      "questionType": "multiple_choice",
+      "options": [
+        "8",
+        "10",
+        "11",
+        "13"
+      ],
+      "correctAnswer": "10",
+      "explanation": "There are seven ordered values, so the fourth and middle value is 10.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math7-data-probability",
+        "data and probability"
+      ],
+      "curriculum": {
+        "strand": "Data and probability",
+        "skill": "Apply data and probability",
+        "subskill": "data and probability",
+        "objective": "Interpret distributions and calculate measures and probabilities to support conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-data-probability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-015",
+      "topic": "Data and probability",
+      "difficulty": "medium",
+      "questionText": "A bag contains 5 red, 3 blue and 2 green counters. What is the probability of choosing a counter that is not red?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1/5",
+        "3/10",
+        "1/2",
+        "2/3"
+      ],
+      "correctAnswer": "1/2",
+      "explanation": "Five of the ten counters are blue or green, giving 5/10 = 1/2.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math7-data-probability",
+        "data and probability"
+      ],
+      "curriculum": {
+        "strand": "Data and probability",
+        "skill": "Apply data and probability",
+        "subskill": "data and probability",
+        "objective": "Interpret distributions and calculate measures and probabilities to support conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-data-probability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-016",
+      "topic": "Data and probability",
+      "difficulty": "hard",
+      "questionText": "Set A and Set B both have mean 12. Set A has range 4 and Set B has range 15. Which conclusion is justified?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Set A has the larger maximum for certain",
+        "Both sets contain identical values",
+        "Set B must contain more values",
+        "Set B is more spread out"
+      ],
+      "correctAnswer": "Set B is more spread out",
+      "explanation": "The larger range shows greater spread, but it does not determine sample size or exact values.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math7-data-probability",
+        "data and probability"
+      ],
+      "curriculum": {
+        "strand": "Data and probability",
+        "skill": "Apply data and probability",
+        "subskill": "data and probability",
+        "objective": "Interpret distributions and calculate measures and probabilities to support conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-data-probability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-017",
+      "topic": "Rates, scale and multi-step problems",
+      "difficulty": "easy",
+      "questionText": "A cyclist travels 36 km in 2 hours. What is the average speed?",
+      "questionType": "multiple_choice",
+      "options": [
+        "18 km/h",
+        "9 km/h",
+        "34 km/h",
+        "72 km/h"
+      ],
+      "correctAnswer": "18 km/h",
+      "explanation": "Average speed equals distance divided by time: 36 ÷ 2 = 18 km/h.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "math7-rates-scale",
+        "rates, scale and multi-step problems"
+      ],
+      "curriculum": {
+        "strand": "Rates, scale and multi-step problems",
+        "skill": "Apply rates, scale and multi-step problems",
+        "subskill": "rates, scale and multi-step problems",
+        "objective": "Model multi-step rate, scale and unit-conversion problems and check the reasonableness of solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-rates-scale"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-018",
+      "topic": "Rates, scale and multi-step problems",
+      "difficulty": "medium",
+      "questionText": "A tap fills 15 litres in 3 minutes. At the same rate, how much does it fill in 8 minutes?",
+      "questionType": "multiple_choice",
+      "options": [
+        "24 litres",
+        "40 litres",
+        "30 litres",
+        "45 litres"
+      ],
+      "correctAnswer": "40 litres",
+      "explanation": "The rate is 5 litres per minute, so in 8 minutes it fills 40 litres.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math7-rates-scale",
+        "rates, scale and multi-step problems"
+      ],
+      "curriculum": {
+        "strand": "Rates, scale and multi-step problems",
+        "skill": "Apply rates, scale and multi-step problems",
+        "subskill": "rates, scale and multi-step problems",
+        "objective": "Model multi-step rate, scale and unit-conversion problems and check the reasonableness of solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-rates-scale"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-019",
+      "topic": "Rates, scale and multi-step problems",
+      "difficulty": "medium",
+      "questionText": "A floor plan uses scale 1:50. A wall is 7.2 cm on the plan. What is its real length?",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.144 m",
+        "36 m",
+        "3.6 m",
+        "360 m"
+      ],
+      "correctAnswer": "3.6 m",
+      "explanation": "The real length is 7.2 × 50 = 360 cm, which is 3.6 m.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "math7-rates-scale",
+        "rates, scale and multi-step problems"
+      ],
+      "curriculum": {
+        "strand": "Rates, scale and multi-step problems",
+        "skill": "Apply rates, scale and multi-step problems",
+        "subskill": "rates, scale and multi-step problems",
+        "objective": "Model multi-step rate, scale and unit-conversion problems and check the reasonableness of solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-rates-scale"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-math-2026.8-020",
+      "topic": "Rates, scale and multi-step problems",
+      "difficulty": "hard",
+      "questionText": "A car uses 6.5 litres per 100 km. Estimate the fuel needed for 340 km, then choose the reasonable exact result.",
+      "questionType": "multiple_choice",
+      "options": [
+        "5.2 litres",
+        "52.3 litres",
+        "221 litres",
+        "22.1 litres"
+      ],
+      "correctAnswer": "22.1 litres",
+      "explanation": "Multiplying 6.5 by 3.4 gives 22.1 litres, close to the estimate 7 × 3.5 ≈ 24.5.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "math7-rates-scale",
+        "rates, scale and multi-step problems"
+      ],
+      "curriculum": {
+        "strand": "Rates, scale and multi-step problems",
+        "skill": "Apply rates, scale and multi-step problems",
+        "subskill": "rates, scale and multi-step problems",
+        "objective": "Model multi-step rate, scale and unit-conversion problems and check the reasonableness of solutions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "mathematics-grade-7",
+          "objectiveCode": "math7-rates-scale"
+        }
+      ]
+    }
+  ]
+}
