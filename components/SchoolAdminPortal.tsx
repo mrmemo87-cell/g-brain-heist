@@ -69,31 +69,33 @@ type IeltsToolNavItem = { id: IeltsSubTab; icon: string; label: string; hint: st
 
 const IeltsJourneyDashboard = React.lazy(() => import('../src/pages/ielts/IeltsJourneyDashboard'));
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
+const TeacherInterventionIntelligencePage = React.lazy(() => import('./student-progress/TeacherInterventionIntelligencePage'));
+const GuardianManagementPage = React.lazy(() => import('./guardian/GuardianManagementPage'));
 const IeltsReviewQueue = React.lazy(() => import('../src/pages/ielts/IeltsReviewQueue'));
 const IeltsSubmissionReview = React.lazy(() => import('../src/pages/ielts/IeltsSubmissionReview'));
 const IeltsExamMonitor = React.lazy(() => import('../src/pages/ielts/IeltsExamMonitor'));
 
 const SCHOOL_ADMIN_NAV_ITEMS: Array<{ id: MainAdminTab; icon: string; label: string; mobileLabel: string; description: string }> = [
   { id: 'dashboard', icon: 'OV', label: 'Overview', mobileLabel: 'Overview', description: 'School status and priorities' },
-  { id: 'members', icon: 'PE', label: 'Staff & Students', mobileLabel: 'People', description: 'Members, roles and access' },
-  { id: 'teachers', icon: 'TA', label: 'Teacher Allocation', mobileLabel: 'Teachers', description: 'Teaching coverage' },
-  { id: 'classes', icon: 'CL', label: 'Classes & Registration', mobileLabel: 'Classes', description: 'Classes and registration' },
   { id: 'subjects', icon: 'CU', label: 'Curriculum & Subjects', mobileLabel: 'Subjects', description: 'Subjects and curriculum' },
+  { id: 'classes', icon: 'CL', label: 'Classes & Registration', mobileLabel: 'Classes', description: 'Classes and registration' },
+  { id: 'teachers', icon: 'TA', label: 'Teacher Allocation', mobileLabel: 'Teachers', description: 'Teacher invitations' },
+  { id: 'members', icon: 'PE', label: 'Staff & Students', mobileLabel: 'People', description: 'Members, roles and access' },
   { id: 'documents', icon: 'DO', label: 'Document Center', mobileLabel: 'Documents', description: 'Reports, printing and access' },
+  { id: 'billing', icon: 'BI', label: 'Plan & Billing', mobileLabel: 'Billing', description: 'Plan and billing' },
+  { id: 'settings', icon: 'SE', label: 'School Settings', mobileLabel: 'Settings', description: 'School configuration' },
   { id: 'admissions', icon: 'AD', label: 'Admissions', mobileLabel: 'Admissions', description: 'Admission tests and candidates' },
   { id: 'cambridge', icon: 'CA', label: 'Cambridge Assessments', mobileLabel: 'Cambridge', description: 'Cambridge assessments' },
   { id: 'ielts', icon: 'IE', label: 'IELTS Programme', mobileLabel: 'IELTS', description: 'IELTS programme' },
-  { id: 'billing', icon: 'BI', label: 'Plan & Billing', mobileLabel: 'Billing', description: 'Plan and billing' },
-  { id: 'settings', icon: 'SE', label: 'School Settings', mobileLabel: 'Settings', description: 'School configuration' },
 ];
 
-const SCHOOL_ADMIN_PRIMARY_TAB_IDS = new Set<MainAdminTab>(['dashboard', 'members', 'classes', 'admissions']);
+const SCHOOL_ADMIN_PRIMARY_TAB_IDS = new Set<MainAdminTab>(['dashboard', 'subjects', 'classes', 'teachers']);
 const SCHOOL_ADMIN_SIDEBAR_STORAGE_KEY = 'brains-heist:school-admin-sidebar-collapsed';
 const SCHOOL_ADMIN_SIDEBAR_COMPACT_QUERY = '(max-width: 1279px)';
 const SCHOOL_ADMIN_PROGRESS_TOOLS = [
-  { id: 'academic-profiles', icon: 'AP', label: 'Academic Profiles', description: 'Student progress, strengths and focus areas', href: '/teacher-academic-profiles.html' },
-  { id: 'interventions', icon: 'IN', label: 'Interventions', description: 'Targeted academic support and follow-up', href: '/teacher-interventions.html' },
-  { id: 'guardians', icon: 'PG', label: 'Parents & Guardians', description: 'Invite, verify and manage parent access', href: '/guardian-management.html' },
+  { id: 'academic-profiles', icon: 'AP', label: 'Academic Profiles', description: 'Student progress, strengths and focus areas' },
+  { id: 'interventions', icon: 'IN', label: 'Interventions', description: 'Targeted academic support and follow-up' },
+  { id: 'guardians', icon: 'PG', label: 'Parents & Guardians', description: 'Invite, verify and manage parent access' },
 ] as const;
 
 const getInitialSchoolAdminSidebarCollapsed = () => {
@@ -1857,7 +1859,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
         <div className="school-admin-progress-navigation mt-4 border-t border-slate-700/70 pt-4">
           <p className="school-admin-nav-label">Student progress</p>
           {SCHOOL_ADMIN_PROGRESS_TOOLS.map((tool) => (
-            <button key={tool.id} type="button" onClick={() => { setDesktopAdminNavTooltip(null); if (tool.id === 'academic-profiles') selectAdminTab('academic-profiles'); else window.location.assign(tool.href); }} data-testid={`school-admin-tool-${tool.id}`} className={activeTab === tool.id ? 'is-active' : ''} aria-current={activeTab === tool.id ? 'page' : undefined} aria-label={tool.label} title={desktopAdminSidebarCollapsed ? tool.label : undefined} onMouseEnter={(event) => desktopAdminSidebarCollapsed && setDesktopAdminNavTooltip({ label: tool.label, anchor: event.currentTarget })} onMouseLeave={() => setDesktopAdminNavTooltip(null)} onFocus={(event) => desktopAdminSidebarCollapsed && setDesktopAdminNavTooltip({ label: tool.label, anchor: event.currentTarget })} onBlur={() => setDesktopAdminNavTooltip(null)}>
+            <button key={tool.id} type="button" onClick={() => { setDesktopAdminNavTooltip(null); selectAdminTab(tool.id); }} data-testid={`school-admin-tool-${tool.id}`} className={activeTab === tool.id ? 'is-active' : ''} aria-current={activeTab === tool.id ? 'page' : undefined} aria-label={tool.label} title={desktopAdminSidebarCollapsed ? tool.label : undefined} onMouseEnter={(event) => desktopAdminSidebarCollapsed && setDesktopAdminNavTooltip({ label: tool.label, anchor: event.currentTarget })} onMouseLeave={() => setDesktopAdminNavTooltip(null)} onFocus={(event) => desktopAdminSidebarCollapsed && setDesktopAdminNavTooltip({ label: tool.label, anchor: event.currentTarget })} onBlur={() => setDesktopAdminNavTooltip(null)}>
               <span className="school-admin-nav-icon" aria-hidden="true">{tool.icon}</span>
               <span className="school-admin-nav-text">{tool.label}</span>
             </button>
@@ -1875,6 +1877,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       {activeTab === 'subjects' && <SubjectsTab />}
       {activeTab === 'documents' && <DocumentsTab />}
       {activeTab === 'academic-profiles' && <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading student academic profiles…</div>}><TeacherAcademicProfilesPage onBack={() => selectAdminTab('dashboard')} /></React.Suspense>}
+      {activeTab === 'interventions' && <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading student interventions…</div>}><TeacherInterventionIntelligencePage /></React.Suspense>}
+      {activeTab === 'guardians' && <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading parent and guardian access…</div>}><GuardianManagementPage /></React.Suspense>}
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
       {activeTab === 'cambridge' && effectiveEntitlements?.modules.cambridge && <CambridgeTab />}
@@ -2060,7 +2064,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
                 </button>
               ))}
               {SCHOOL_ADMIN_PROGRESS_TOOLS.map((tool) => (
-                <button key={tool.id} type="button" onClick={() => { setMobileAdminMenuOpen(false); if (tool.id === 'academic-profiles') selectAdminTab('academic-profiles'); else window.location.assign(tool.href); }} className={activeTab === tool.id ? 'is-active' : ''} aria-current={activeTab === tool.id ? 'page' : undefined}>
+                <button key={tool.id} type="button" onClick={() => selectAdminTab(tool.id)} className={activeTab === tool.id ? 'is-active' : ''} aria-current={activeTab === tool.id ? 'page' : undefined}>
                   <span className="school-admin-mobile-menu-icon" aria-hidden="true">{tool.icon}</span>
                   <span><strong>{tool.label}</strong><small>{tool.description}</small></span>
                 </button>

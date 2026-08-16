@@ -68,11 +68,10 @@ test('email confirmation has code verification, resend, and a seven-day lifecycl
   assert.match(login, /Resend confirmation/);
 });
 
-test('School Head launch checklist and read-only delegated billing are present', () => {
+test('School Head first-login setup is removed while delegated billing stays read-only', () => {
   const head = read('components/SchoolHeadPortal.tsx');
   const billing = read('components/school-admin/BillingTabUI.tsx');
-  assert.match(head, /School launch checklist/);
-  assert.match(head, /Save programme requirements/);
+  assert.doesNotMatch(head, /First login setup|School launch checklist|Save programme requirements/);
   assert.match(billing, /Only the School Head can start trials, purchase plans, or manage payment details/);
   assert.match(billing, /canManageBilling/);
 });

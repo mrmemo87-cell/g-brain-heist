@@ -22,6 +22,7 @@ import DashboardTab from './admin/tabs/DashboardTab';
 import UsersTab from './admin/tabs/UsersTab';
 import SchoolsTab from './admin/tabs/SchoolsTab';
 import ApplicationsTab from './admin/tabs/ApplicationsTab';
+import IdentityRequestsTab from './admin/tabs/IdentityRequestsTab';
 import BookedAppointmentsTab from './admin/tabs/BookedAppointmentsTab';
 import BillingAccessTab from './admin/tabs/BillingAccessTab';
 import GameTab from './admin/tabs/GameTab';
@@ -43,10 +44,10 @@ interface AdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'users' | 'question-bank' | 'schools' | 'applications' | 'booked-appointments' | 'billing' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
+type AdminTab = 'dashboard' | 'users' | 'question-bank' | 'schools' | 'applications' | 'identity-requests' | 'booked-appointments' | 'billing' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
 
 const ADMIN_TABS: AdminTab[] = ['dashboard', 'users', 'schools', 'applications', 'booked-appointments', 'billing', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'];
-const SUPERADMIN_TABS: AdminTab[] = ['dashboard', 'users', 'question-bank', 'schools', 'applications', 'booked-appointments', 'billing', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'];
+const SUPERADMIN_TABS: AdminTab[] = ['dashboard', 'users', 'question-bank', 'schools', 'applications', 'identity-requests', 'booked-appointments', 'billing', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'];
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast }) => {
   const PAGE_SIZE = 50;
@@ -1890,6 +1891,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           )}
           {activeTab === 'schools' && <SchoolsTab />}
           {activeTab === 'applications' && <ApplicationsTab />}
+          {activeTab === 'identity-requests' && isSuperadmin && <IdentityRequestsTab addToast={addToast} />}
           {activeTab === 'booked-appointments' && <BookedAppointmentsTab />}
           {activeTab === 'billing' && <BillingAccessTab />}
           {activeTab === 'game' && <GameTab />}

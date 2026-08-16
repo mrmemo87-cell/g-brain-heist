@@ -5,16 +5,24 @@ import * as SchoolAdminService from '../../../services/schoolAdminService';
 
 const SettingsTab: React.FC = () => {
   const {
+    addToast,
     handleConfirmSchoolIdentity, handleSaveSettings, savingSettings, school, setSettingsAllowStudent, setSettingsAllowTeacher,
     setSettingsLogoFile, setSettingsLogoPreview, setSettingsLogoStatus, setSettingsName,
     settingsAllowStudent, settingsAllowTeacher, settingsLogoPreview, settingsLogoStatus, settingsName,
   } = useSchoolAdmin();
   const [identity, setIdentity] = React.useState<SchoolAdminService.SchoolIdentityStatus | null>(null);
+  const [identityRequest, setIdentityRequest] = React.useState<SchoolAdminService.SchoolIdentityChangeRequest | null>(null);
+  const [identityRequestOpen, setIdentityRequestOpen] = React.useState(false);
+  const [identityRequestReason, setIdentityRequestReason] = React.useState('');
+  const [identityRequestBusy, setIdentityRequestBusy] = React.useState(false);
 
   React.useEffect(() => {
     let active = true;
-    void SchoolAdminService.getSchoolIdentityStatus(school.id)
-      .then((value) => { if (active) setIdentity(value); })
+    void Promise.all([
+      SchoolAdminService.getSchoolIdentityStatus(school.id),
+      SchoolAdminService.getSchoolIdentityChangeRequestStatus(school.id).catch(() => null),
+    ])
+      .then(([value, request]) => { if (active) { setIdentity(value); setIdentityRequest(request); } })
       .catch(() => { if (active) setIdentity({ confirmed: true, confirmedAt: null, confirmedBy: null }); });
     return () => { active = false; };
   }, [school.id, school.name, school.logo_url]);
@@ -22,7 +30,24 @@ const SettingsTab: React.FC = () => {
   React.useEffect(() => () => {
     if (settingsLogoPreview?.startsWith('blob:')) URL.revokeObjectURL(settingsLogoPreview);
   }, [settingsLogoPreview]);
-  const identityRequestHref = `mailto:support@brainsheist.com?subject=${encodeURIComponent(`School identity change request — ${school.name}`)}&body=${encodeURIComponent(`School: ${school.name}\nSchool ID: ${school.id}\n\nRequested change and reason:\n`)}`;
+
+  const submitIdentityRequest = async () => {
+    if (identityRequestReason.trim().length < 10) {
+      addToast('Explain the identity change needed in at least 10 characters.', 'error');
+      return;
+    }
+    setIdentityRequestBusy(true);
+    const result = await SchoolAdminService.requestSchoolIdentityChange(school.id, identityRequestReason);
+    setIdentityRequestBusy(false);
+    if (!result.success) {
+      addToast(result.error || 'The identity change request could not be sent.', 'error');
+      return;
+    }
+    setIdentityRequest(result.request || await SchoolAdminService.getSchoolIdentityChangeRequestStatus(school.id));
+    setIdentityRequestReason('');
+    setIdentityRequestOpen(false);
+    addToast(result.message || 'Request sent to the superadmin for review.', 'success');
+  };
 
   return (
     <div className="space-y-6">
@@ -35,9 +60,15 @@ const SettingsTab: React.FC = () => {
           <div className="school-identity-lock">
             <img src={school.logo_url || '/logo.png'} alt={`${school.name} logo`} />
             <div><span>Confirmed school name</span><strong>{school.name}</strong><small>{school.slug}</small></div>
-            <a className="admin-button-ghost" href={identityRequestHref}>Request identity change</a>
+            <button type="button" className="admin-button-ghost" disabled={identityRequest?.status === 'pending'} onClick={() => setIdentityRequestOpen((open) => !open)}>{identityRequest?.status === 'pending' ? 'Request awaiting review' : 'Request identity change'}</button>
           </div>
-          <div className="admin-access-note"><strong>Identity protection</strong><span>Later name or logo changes require a reviewed request and an audit record.</span></div>
+          <div className="admin-access-note"><strong>Identity protection</strong><span>A superadmin must approve and unlock the school identity before the school can change and reconfirm it.</span></div>
+          {identityRequest?.status === 'pending' ? <div className="admin-inline-warning" role="status"><strong>Waiting for superadmin review</strong><span>Requested {new Date(identityRequest.createdAt).toLocaleDateString()}. The school name and logo remain locked until approval.</span></div> : null}
+          {identityRequest?.status === 'rejected' ? <div className="admin-inline-warning" role="status"><strong>Previous request was not approved</strong><span>{identityRequest.reviewNote || 'Review the request details before submitting a new request.'}</span></div> : null}
+          {identityRequestOpen ? <div className="admin-form-grid">
+            <label className="admin-field admin-field-wide"><span>Change needed and reason <i>Required</i></span><textarea rows={4} maxLength={1000} value={identityRequestReason} onChange={(event) => setIdentityRequestReason(event.target.value)} placeholder="Explain what must change and why…" /><small>This request goes directly to the superadmin. Approval unlocks the name and logo fields for your school.</small></label>
+            <div className="admin-form-actions"><button type="button" className="admin-button-ghost" onClick={() => setIdentityRequestOpen(false)} disabled={identityRequestBusy}>Cancel</button><button type="button" className="admin-button-primary" onClick={() => void submitIdentityRequest()} disabled={identityRequestBusy || identityRequestReason.trim().length < 10}>{identityRequestBusy ? 'Sending…' : 'Send request to superadmin'}</button></div>
+          </div> : null}
         </> : <>
           <div className="admin-form-grid">
             <label className="admin-field admin-field-wide"><span>School name <i>Required</i></span><input value={settingsName} onChange={(event) => setSettingsName(event.target.value)} /></label>
@@ -55,10 +86,10 @@ const SettingsTab: React.FC = () => {
       </section>
 
       <section className="admin-form-card">
-        <div className="admin-card-heading"><div><h3>Registration rules</h3><p>Control who can use the school code to create an account. Existing members are not affected.</p></div></div>
+        <div className="admin-card-heading"><div><h3>Registration rules</h3><p>Only checked roles may join with the school code or invitation link. Existing members are not affected.</p></div></div>
         <div className="registration-rule-list">
-          <label><input type="checkbox" checked={settingsAllowStudent} onChange={(event) => setSettingsAllowStudent(event.target.checked)} /><span><strong>Allow student self-registration</strong><small>Students can create their own account with the school code.</small></span></label>
-          <label><input type="checkbox" checked={settingsAllowTeacher} onChange={(event) => setSettingsAllowTeacher(event.target.checked)} /><span><strong>Allow teacher self-registration</strong><small>Teachers can create their own account with the school code.</small></span></label>
+          <label><input type="checkbox" checked={settingsAllowStudent} onChange={(event) => setSettingsAllowStudent(event.target.checked)} /><span><strong>Allow student registration</strong><small>When unchecked, students cannot join this school by code or invitation link.</small></span></label>
+          <label><input type="checkbox" checked={settingsAllowTeacher} onChange={(event) => setSettingsAllowTeacher(event.target.checked)} /><span><strong>Allow teacher registration</strong><small>When unchecked, teachers cannot join this school by code or invitation link.</small></span></label>
         </div>
         <div className="admin-form-actions"><button type="button" onClick={handleSaveSettings} disabled={savingSettings} className="admin-button-primary">{savingSettings ? 'Saving…' : 'Save registration rules'}</button></div>
       </section>

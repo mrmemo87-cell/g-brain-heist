@@ -51,7 +51,7 @@ test('new-school empty states describe joining and activation accurately', () =>
   assert.match(dashboard, /Ready for enrolment/);
   assert.match(dashboard, /No teaching staff have joined yet/);
   assert.match(roster, /after they register and join this school/);
-  assert.match(schoolHead, /Requested · awaiting activation/);
+  assert.doesNotMatch(schoolHead, /First login setup|School launch checklist/);
   assert.match(schoolHead, /No active plan/);
   assert.match(schoolHead, /Renewal status[\s\S]*Not applicable/);
   assert.match(schoolHead, /No registered students have joined yet/);

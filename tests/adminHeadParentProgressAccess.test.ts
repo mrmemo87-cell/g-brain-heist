@@ -12,9 +12,10 @@ test('School Admin exposes academic profiles, interventions and parent access in
   assert.match(admin, /label: 'Academic Profiles'/);
   assert.match(admin, /label: 'Interventions'/);
   assert.match(admin, /label: 'Parents & Guardians'/);
-  assert.match(admin, /\/teacher-academic-profiles\.html/);
-  assert.match(admin, /\/teacher-interventions\.html/);
-  assert.match(admin, /\/guardian-management\.html/);
+  assert.match(admin, /<TeacherAcademicProfilesPage/);
+  assert.match(admin, /<TeacherInterventionIntelligencePage/);
+  assert.match(admin, /<GuardianManagementPage/);
+  assert.doesNotMatch(admin, /window\.location\.assign/);
 });
 
 test('School Head Academic Performance embeds student academic profiles', () => {

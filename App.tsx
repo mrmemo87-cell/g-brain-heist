@@ -34,6 +34,7 @@ import DashboardTourOverlay from './components/onboarding/DashboardTourOverlay';
 import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoolPlanDetails, type AccountTier } from './services/tierService';
 import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey, type StudentProgrammeKey } from './services/entitlementService';
 import { listMyPendingProgrammeAccessRequests, requestProgrammeAccess } from './services/programmeAccessRequestService';
+import { getGuardianChildren } from './services/guardianService';
 
 // Lazy-loaded: only fetched when the user actually opens these views/modals
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
@@ -73,6 +74,7 @@ const ClanTerritoryManager = lazyRetry(() => import('./src/features/clanTerritor
 const CambridgeTestsHub = lazyRetry(() => import('./components/CambridgeTestsHub'), 'CambridgeTestsHub');
 const SchoolAdminPortal = lazyRetry(() => import('./components/SchoolAdminPortal'), 'SchoolAdminPortal');
 const SchoolHeadPortal = lazyRetry(() => import('./components/SchoolHeadPortal'), 'SchoolHeadPortal');
+const ParentPortal = lazyRetry(() => import('./components/guardian/ParentPortal'), 'ParentPortal');
 const StudentAcademicProfile = lazyRetry(() => import('./components/student-progress/StudentAcademicProfile'), 'StudentAcademicProfile');
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
@@ -165,6 +167,29 @@ const DEFAULT_SESSION_STATUS: SessionStatus = {
 
 type NonCriticalLoadState = 'idle' | 'loading' | 'ready' | 'error' | 'cached';
 type NonCriticalKey = 'tasks' | 'caps' | 'news' | 'assignment' | 'sessionStatus';
+type AppView = 'workspace_chooser' | 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'cambridge' | 'school_admin' | 'school_head' | 'parent';
+type AccountWorkspace = Extract<AppView, 'school_head' | 'school_admin' | 'teacher' | 'parent'>;
+
+const resolveAccountWorkspace = (
+  profileRole: Profile['role'],
+  capabilities: SchoolCapabilities | null,
+  hasParentWorkspace: boolean,
+): AppView => {
+  const available: AccountWorkspace[] = [];
+  if (capabilities?.is_owner) available.push('school_head');
+  if (capabilities?.can_administer) available.push('school_admin');
+  if ((profileRole === 'teacher' && !capabilities?.can_administer)
+    || Boolean(capabilities?.can_teach && capabilities.has_active_teacher_allocation)) available.push('teacher');
+  if (hasParentWorkspace) available.push('parent');
+
+  const requested = new URLSearchParams(window.location.search).get('view') as AccountWorkspace | null;
+  if (requested && available.includes(requested)) return requested;
+  const schoolId = capabilities?.school_id;
+  const preferred = schoolId ? localStorage.getItem(`school_workspace:${schoolId}`) as AccountWorkspace | null : null;
+  if (preferred && available.includes(preferred)) return preferred;
+  if (available.length > 1) return 'workspace_chooser';
+  return available[0] ?? (profileRole === 'school_admin' ? 'school_admin' : 'teacher');
+};
 
 const readCache = <T,>(key: string): T | null => {
   const raw = localStorage.getItem(key);
@@ -212,7 +237,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [pendingAssignments, setPendingAssignments] = useState<StudentAssignmentTask[]>([]);
   const [criticalLoading, setCriticalLoading] = useState(true);
-  const [view, setView] = useState<'workspace_chooser' | 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'cambridge' | 'school_admin' | 'school_head'>('dashboard');
+  const [view, setView] = useState<AppView>('dashboard');
   const [studentDashboardTab, setStudentDashboardTab] = useState<StudentDashboardDestination>('home');
   const [studentLearningView, setStudentLearningView] = useState<'catalog' | 'academic-profile'>('catalog');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -249,6 +274,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [unreadClanChatMessages, setUnreadClanChatMessages] = useState(0);
   const [isUserSchoolAdmin, setIsUserSchoolAdmin] = useState(false);
   const [schoolCapabilities, setSchoolCapabilities] = useState<SchoolCapabilities | null>(null);
+  const [hasParentWorkspace, setHasParentWorkspace] = useState(false);
   const [sessionMissing, setSessionMissing] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
   const [accountTier, setAccountTier] = useState<AccountTier>('free');
@@ -308,7 +334,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const isTeacherRole = canOpenTeacherWorkspace;
   const isSchoolAdminRole = isUserSchoolAdmin;
   const isSchoolHeadRole = Boolean(schoolCapabilities?.is_owner && schoolCapabilities.account_type === 'school_head');
-  const isFullScreenView = view === 'workspace_chooser' || view === 'school_admin' || view === 'school_head' || view === 'teacher' || view === 'admin' || (view === 'dashboard' && isTeacherRole) || (view === 'dashboard' && isSchoolAdminRole);
+  const isFullScreenView = view === 'workspace_chooser' || view === 'school_admin' || view === 'school_head' || view === 'teacher' || view === 'parent' || view === 'admin' || (view === 'dashboard' && isTeacherRole) || (view === 'dashboard' && isSchoolAdminRole);
   const actionableAssignments = useMemo(
     () => pendingAssignments.filter((assignment) => !assignment.is_closed),
     [pendingAssignments],
@@ -460,13 +486,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     );
   }, [addToast, caps, isPlayerMode]);
 
-  const handleViewChange = (nextView: typeof view) => {
+  const handleViewChange = (nextView: AppView) => {
     const gatedModule = nextView === 'cambridge' ? 'cambridge' : nextView === 'writing' ? 'writing' : nextView === 'ielts' ? 'ielts' : null;
     if (gatedModule && hasSchool && !canUseSchoolModule(gatedModule)) {
       addToast(schoolProgrammeLockMessage(gatedModule), 'info');
       return;
     }
-    if (schoolCapabilities?.can_administer && canOpenTeacherWorkspace && (nextView === 'school_admin' || nextView === 'school_head' || nextView === 'teacher')) {
+    if (schoolCapabilities?.school_id && ['school_admin', 'school_head', 'teacher', 'parent'].includes(nextView)) {
       localStorage.setItem(`school_workspace:${schoolCapabilities.school_id}`, nextView);
     }
     if (nextView !== 'pvp' && pvpFocusTargetUserId) {
@@ -478,6 +504,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       if (isSchoolHeadRole) allowedSchoolAdminViews.push('school_head');
       // Teachers who are also school admins can still access their teacher portal
       if (isTeacherRole) allowedSchoolAdminViews.push('teacher', 'workspace_chooser');
+      if (hasParentWorkspace) allowedSchoolAdminViews.push('parent', 'workspace_chooser');
       // Superadmins can access the admin portal from school admin
       if (isAdminMode) allowedSchoolAdminViews.push('admin');
       if (!allowedSchoolAdminViews.includes(nextView)) {
@@ -488,7 +515,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
     // Block navigation when profile changes are required (student enforcement)
     const rc = profile?.required_changes;
-    if (rc && typeof rc === 'object' && (rc.username || rc.avatar) && nextView !== 'dashboard') {
+    if (rc && typeof rc === 'object' && (rc.username || rc.avatar) && !['dashboard', 'parent', 'workspace_chooser'].includes(nextView)) {
       addToast('Please update your profile before accessing other features.', 'info');
       setView('dashboard');
       return;
@@ -503,7 +530,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       return;
     }
     // Every route uses the same feature keys as the database authority.
-    const viewFeatures: Partial<Record<typeof view, { key: FeatureKey; allowIndividual?: boolean }>> = {
+    const viewFeatures: Partial<Record<AppView, { key: FeatureKey; allowIndividual?: boolean }>> = {
       pvp: { key: FEATURE_KEYS.PVP_BATTLES, allowIndividual: true },
       shop: { key: FEATURE_KEYS.SHOP, allowIndividual: true },
       clan: { key: FEATURE_KEYS.CLANS, allowIndividual: true },
@@ -532,7 +559,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setView('dashboard');
       return;
     }
-    if (isAdminMode && nextView !== 'admin' && nextView !== 'school_admin' && nextView !== 'school_head') {
+    if (isAdminMode && !['admin', 'school_admin', 'school_head', 'parent', 'workspace_chooser'].includes(nextView)) {
       addToast('Admin mode is active. Gameplay screens are not available.', 'info');
       setView('admin');
       return;
@@ -860,6 +887,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setIsInteractive(false);
     setAppMode('pending');
     setIsAdminMode(false);
+    setHasParentWorkspace(false);
     setPeekedRole(null);
     setPeekedUser(null);
     setRecognitionHold(true);
@@ -876,6 +904,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         setSessionMissing(true);
         return;
       }
+
+      const guardianChildrenPromise = getGuardianChildren().catch(() => []);
 
       // One minimal profile request decides the role and unlocks the dashboard.
       // Expensive student game hydration and portal datasets load after paint.
@@ -918,6 +948,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       }
 
       setProfile(profileData);
+      const guardianChildren = await guardianChildrenPromise;
+      const hasParentAccess = guardianChildren.length > 0;
+      setHasParentWorkspace(hasParentAccess);
 
       const whoamiMs = performance.now() - bootStartRef.current;
       bootTimingsRef.current.whoami = whoamiMs;
@@ -932,16 +965,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         const capabilities = await getMySchoolCapabilities(profileData.school_id);
         setSchoolCapabilities(capabilities);
         setIsUserSchoolAdmin(Boolean(capabilities?.can_administer));
-        if (capabilities?.is_owner) {
-          const requested = new URLSearchParams(window.location.search).get('view');
-          setView(requested === 'school_admin' || requested === 'school_head'
-            ? requested
-            : requested === 'teacher' && capabilities.can_teach && capabilities.has_active_teacher_allocation ? 'teacher' : 'school_head');
-        } else if (capabilities?.can_administer && capabilities.can_teach && capabilities.has_active_teacher_allocation) {
-          const requested = new URLSearchParams(window.location.search).get('view');
-          const preferred = localStorage.getItem(`school_workspace:${capabilities.school_id}`);
-          setView(requested === 'school_admin' || requested === 'teacher' ? requested : preferred === 'school_admin' || preferred === 'teacher' ? preferred : 'workspace_chooser');
-        }
+        setView(resolveAccountWorkspace(profileData.role, capabilities, hasParentAccess));
 
         setIsAdminMode(false);
         setAppMode('player');
@@ -962,18 +986,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         setIsUserSchoolAdmin(Boolean(capabilities?.can_administer));
         setIsAdminMode(false);
         setAppMode('player');
-        if (capabilities?.is_owner) {
-          const requested = new URLSearchParams(window.location.search).get('view');
-          setView(requested === 'school_admin' || requested === 'school_head'
-            ? requested
-            : requested === 'teacher' && capabilities.can_teach && capabilities.has_active_teacher_allocation ? 'teacher' : 'school_head');
-        } else if (capabilities?.can_administer && capabilities.can_teach && capabilities.has_active_teacher_allocation) {
-          const requested = new URLSearchParams(window.location.search).get('view');
-          const preferred = localStorage.getItem(`school_workspace:${capabilities.school_id}`);
-          setView(requested === 'school_admin' || requested === 'teacher' ? requested : preferred === 'school_admin' || preferred === 'teacher' ? preferred : 'workspace_chooser');
-        } else {
-          setView('school_admin');
-        }
+        setView(resolveAccountWorkspace(profileData.role, capabilities, hasParentAccess));
         if (import.meta.env.DEV) {
           console.info('[auth-flow] loading state transition', { target: 'criticalLoading', next: false, reason: 'school-admin-boot:resolved' });
         }
@@ -1038,10 +1051,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         console.info('[admin] Superadmin detected, entering admin mode');
         setIsAdminMode(true);
         setAppMode('admin');
-        setView('admin');
+        setView(hasParentAccess ? 'workspace_chooser' : 'admin');
       } else {
         setIsAdminMode(false);
         setAppMode('player');
+        if (hasParentAccess) setView(profileData.role === 'student' && profileData.school_id ? 'workspace_chooser' : 'parent');
         loadCachedData();
       }
 
@@ -1309,6 +1323,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       view === 'teacher' ||
       view === 'admin' ||
       view === 'school_admin' ||
+      view === 'parent' ||
       (view === 'dashboard' && (isTeacherRole || isSchoolAdminRole));
 
     // Keep portal-style views free from parent transforms.
@@ -1535,7 +1550,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [profile, previousLevel]);
   
   const handleViewComplete = () => {
-    if (isAdminMode) {
+    if (isAdminMode && view !== 'workspace_chooser' && view !== 'parent') {
       setView('admin');
       return;
     }
@@ -2082,8 +2097,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           return profile ? (
             <SchoolWorkspaceChooser
               schoolName={profile.school_name}
-              onOpenAdministration={() => handleViewChange('school_admin')}
-              onOpenTeaching={() => handleViewChange('teacher')}
+              onOpenSchoolHead={isSchoolHeadRole ? () => handleViewChange('school_head') : undefined}
+              onOpenAdministration={schoolCapabilities?.can_administer ? () => handleViewChange('school_admin') : undefined}
+              onOpenTeaching={canOpenTeacherWorkspace ? () => handleViewChange('teacher') : undefined}
+              onOpenParent={hasParentWorkspace ? () => handleViewChange('parent') : undefined}
+              onOpenStudent={profile.role === 'student' && Boolean(profile.school_id) ? () => handleViewChange('dashboard') : undefined}
+              onOpenPlatformAdmin={isAdminMode ? () => handleViewChange('admin') : undefined}
+              onLogout={onLogout}
+            />
+          ) : null;
+        case 'parent':
+          return hasParentWorkspace ? renderLazy(
+            <ParentPortal
+              onChooseWorkspace={() => handleViewChange('workspace_chooser')}
               onLogout={onLogout}
             />
           ) : null;

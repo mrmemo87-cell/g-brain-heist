@@ -17,7 +17,8 @@ test('teacher, school admin, and school head portals embed the shared academic p
   const admin = read('components/SchoolAdminPortal.tsx');
   const head = read('components/SchoolHeadPortal.tsx');
   assert.match(app, /components\/TeacherPortalShell/);
-  assert.match(admin, /selectAdminTab\('academic-profiles'\)/);
+  assert.match(admin, /id: 'academic-profiles'/);
+  assert.match(admin, /selectAdminTab\(tool\.id\)/);
   assert.match(admin, /<TeacherAcademicProfilesPage/);
   assert.match(head, /setAcademicProfilesOpen\(true\)/);
   assert.match(head, /<TeacherAcademicProfilesPage/);

@@ -25,7 +25,7 @@ test('school onboarding gets grade choices from approved school classes', () => 
   assert.doesNotMatch(setupWizard, /value >= 6|value <= 12/);
   assert.match(setupWizard, /p_grade: null/);
   assert.match(setupWizard, /p_batch: null/);
-  assert.match(setupWizard, /const studentGradeRequired = path === 'individual' \|\| schoolHasConfiguredGrades/);
+  assert.match(setupWizard, /const studentGradeRequired = selectedRole === 'student' && \(path === 'individual' \|\| schoolHasConfiguredGrades\)/);
   assert.match(setupWizard, /School will assign your grade/);
   assert.match(setupWizard, /has not configured grades or classes yet/);
 });
