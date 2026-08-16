@@ -1,0 +1,674 @@
+{
+  "subject": "Geography",
+  "subjectCode": "geography",
+  "grade": 7,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g7-geo-2026.8-001",
+      "topic": "Map skills and fieldwork",
+      "difficulty": "easy",
+      "questionText": "Which estimate is most reasonable for the height of point P?",
+      "questionType": "multiple_choice",
+      "options": [
+        "About 225 m",
+        "About 75 m",
+        "Exactly 200 m",
+        "More than 300 m"
+      ],
+      "correctAnswer": "About 225 m",
+      "explanation": "P lies between the 200 m and 250 m contours, so about 225 m is reasonable.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo7-map-fieldwork",
+        "map skills and fieldwork"
+      ],
+      "visualAssetId": "g7-geo-contours",
+      "curriculum": {
+        "strand": "Map skills and fieldwork",
+        "skill": "Apply map skills and fieldwork",
+        "subskill": "map skills and fieldwork",
+        "objective": "Use scale, contours and sampling methods to interpret places and collect representative evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-map-fieldwork"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-002",
+      "topic": "Map skills and fieldwork",
+      "difficulty": "medium",
+      "questionText": "What real distance does the mapped 6 cm route represent?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2.4 km",
+        "15 km",
+        "8.5 km",
+        "150 km"
+      ],
+      "correctAnswer": "15 km",
+      "explanation": "At 2.5 km per centimetre, 6 cm represents 6 × 2.5 = 15 km.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo7-map-fieldwork",
+        "map skills and fieldwork"
+      ],
+      "visualAssetId": "g7-geo-scale-route",
+      "curriculum": {
+        "strand": "Map skills and fieldwork",
+        "skill": "Apply map skills and fieldwork",
+        "subskill": "map skills and fieldwork",
+        "objective": "Use scale, contours and sampling methods to interpret places and collect representative evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-map-fieldwork"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-003",
+      "topic": "Map skills and fieldwork",
+      "difficulty": "medium",
+      "questionText": "Why might a fieldwork team use systematic sampling along a transect?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To select only the most dramatic locations",
+        "To guarantee every site is identical",
+        "To collect observations at regular, repeatable intervals",
+        "To avoid recording the sampling method"
+      ],
+      "correctAnswer": "To collect observations at regular, repeatable intervals",
+      "explanation": "Regular intervals reduce arbitrary site choice and make the method repeatable.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo7-map-fieldwork",
+        "map skills and fieldwork"
+      ],
+      "curriculum": {
+        "strand": "Map skills and fieldwork",
+        "skill": "Apply map skills and fieldwork",
+        "subskill": "map skills and fieldwork",
+        "objective": "Use scale, contours and sampling methods to interpret places and collect representative evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-map-fieldwork"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-004",
+      "topic": "Map skills and fieldwork",
+      "difficulty": "hard",
+      "questionText": "Students survey noise only beside the busiest road at lunchtime. What is the main limitation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Noise cannot be measured outdoors",
+        "Roads never affect survey results",
+        "Lunch provides too many map coordinates",
+        "The sample does not represent other places or times"
+      ],
+      "correctAnswer": "The sample does not represent other places or times",
+      "explanation": "One busy location and one time create spatial and temporal sampling bias.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo7-map-fieldwork",
+        "map skills and fieldwork"
+      ],
+      "curriculum": {
+        "strand": "Map skills and fieldwork",
+        "skill": "Apply map skills and fieldwork",
+        "subskill": "map skills and fieldwork",
+        "objective": "Use scale, contours and sampling methods to interpret places and collect representative evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-map-fieldwork"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-005",
+      "topic": "Weather, climate and water",
+      "difficulty": "easy",
+      "questionText": "Which months form the main wet season in the climate graph?",
+      "questionType": "multiple_choice",
+      "options": [
+        "June to August",
+        "December to February",
+        "March to May",
+        "September to November"
+      ],
+      "correctAnswer": "June to August",
+      "explanation": "The rainfall bars are consistently tallest during June, July and August.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo7-weather-climate",
+        "weather, climate and water"
+      ],
+      "visualAssetId": "g7-geo-climate-graph",
+      "curriculum": {
+        "strand": "Weather, climate and water",
+        "skill": "Apply weather, climate and water",
+        "subskill": "weather, climate and water",
+        "objective": "Interpret climate evidence and explain atmospheric and water-cycle processes across places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-006",
+      "topic": "Weather, climate and water",
+      "difficulty": "medium",
+      "questionText": "What process changes surface water into water vapour?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Condensation",
+        "Evaporation",
+        "Precipitation",
+        "Infiltration"
+      ],
+      "correctAnswer": "Evaporation",
+      "explanation": "Solar energy enables liquid water at the surface to become water vapour.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo7-weather-climate",
+        "weather, climate and water"
+      ],
+      "curriculum": {
+        "strand": "Weather, climate and water",
+        "skill": "Apply weather, climate and water",
+        "subskill": "weather, climate and water",
+        "objective": "Interpret climate evidence and explain atmospheric and water-cycle processes across places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-007",
+      "topic": "Weather, climate and water",
+      "difficulty": "medium",
+      "questionText": "Why is a city centre often warmer than nearby countryside at night?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Cities receive more hours of sunlight",
+        "Rural areas have no atmosphere",
+        "Buildings store heat and release it slowly",
+        "Wind can never enter a city"
+      ],
+      "correctAnswer": "Buildings store heat and release it slowly",
+      "explanation": "Urban materials absorb daytime energy and release it slowly, contributing to a heat island.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo7-weather-climate",
+        "weather, climate and water"
+      ],
+      "curriculum": {
+        "strand": "Weather, climate and water",
+        "skill": "Apply weather, climate and water",
+        "subskill": "weather, climate and water",
+        "objective": "Interpret climate evidence and explain atmospheric and water-cycle processes across places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-008",
+      "topic": "Weather, climate and water",
+      "difficulty": "hard",
+      "questionText": "A climate graph uses averages from only two years. Why is its climate claim weak?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Monthly values cannot be averaged",
+        "Rainfall has no measurable units",
+        "Temperature never changes between years",
+        "Climate patterns require a much longer record"
+      ],
+      "correctAnswer": "Climate patterns require a much longer record",
+      "explanation": "Two years may reflect short-term variability rather than a robust long-term climate pattern.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo7-weather-climate",
+        "weather, climate and water"
+      ],
+      "curriculum": {
+        "strand": "Weather, climate and water",
+        "skill": "Apply weather, climate and water",
+        "subskill": "weather, climate and water",
+        "objective": "Interpret climate evidence and explain atmospheric and water-cycle processes across places."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-weather-climate"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-009",
+      "topic": "River and coastal processes",
+      "difficulty": "easy",
+      "questionText": "Where is the steepest gradient on the river profile?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Near the source",
+        "Near the mouth",
+        "At sea level only",
+        "The gradient is identical throughout"
+      ],
+      "correctAnswer": "Near the source",
+      "explanation": "The profile falls most rapidly over distance in the upper course near the source.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo7-rivers-coasts",
+        "river and coastal processes"
+      ],
+      "visualAssetId": "g7-geo-river-profile",
+      "curriculum": {
+        "strand": "River and coastal processes",
+        "skill": "Apply river and coastal processes",
+        "subskill": "river and coastal processes",
+        "objective": "Explain how erosion, transport and deposition shape river and coastal landscapes and hazards."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-rivers-coasts"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-010",
+      "topic": "River and coastal processes",
+      "difficulty": "medium",
+      "questionText": "When is a river most likely to deposit sediment?",
+      "questionType": "multiple_choice",
+      "options": [
+        "When its velocity increases sharply",
+        "When it loses velocity and energy",
+        "When discharge becomes impossible",
+        "When all particles dissolve"
+      ],
+      "correctAnswer": "When it loses velocity and energy",
+      "explanation": "A slower river has less capacity and competence, so it deposits part of its load.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo7-rivers-coasts",
+        "river and coastal processes"
+      ],
+      "curriculum": {
+        "strand": "River and coastal processes",
+        "skill": "Apply river and coastal processes",
+        "subskill": "river and coastal processes",
+        "objective": "Explain how erosion, transport and deposition shape river and coastal landscapes and hazards."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-rivers-coasts"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-011",
+      "topic": "River and coastal processes",
+      "difficulty": "medium",
+      "questionText": "How does hydraulic action erode a cliff?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Saltwater instantly melts all rock",
+        "Wind carries the entire cliff away",
+        "Waves compress air in cracks and weaken rock",
+        "Plants turn the rock into seawater"
+      ],
+      "correctAnswer": "Waves compress air in cracks and weaken rock",
+      "explanation": "Repeated compression and release of trapped air widens cracks in the cliff.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo7-rivers-coasts",
+        "river and coastal processes"
+      ],
+      "curriculum": {
+        "strand": "River and coastal processes",
+        "skill": "Apply river and coastal processes",
+        "subskill": "river and coastal processes",
+        "objective": "Explain how erosion, transport and deposition shape river and coastal landscapes and hazards."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-rivers-coasts"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-012",
+      "topic": "River and coastal processes",
+      "difficulty": "hard",
+      "questionText": "A sea wall protects one town but increases erosion farther along the coast. Which process best explains this?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The wall increases global sea level",
+        "Tides stop moving near concrete",
+        "All waves reverse direction permanently",
+        "Reduced sediment supply interrupts longshore drift"
+      ],
+      "correctAnswer": "Reduced sediment supply interrupts longshore drift",
+      "explanation": "Trapping sediment can starve downdrift beaches, reducing their protective width.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo7-rivers-coasts",
+        "river and coastal processes"
+      ],
+      "curriculum": {
+        "strand": "River and coastal processes",
+        "skill": "Apply river and coastal processes",
+        "subskill": "river and coastal processes",
+        "objective": "Explain how erosion, transport and deposition shape river and coastal landscapes and hazards."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-rivers-coasts"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-013",
+      "topic": "Population, migration and urbanisation",
+      "difficulty": "easy",
+      "questionText": "What dominant migration pattern is shown on the map?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Movement from rural settlements toward the city",
+        "Equal movement between every place",
+        "Movement only from the city to villages",
+        "No movement across the region"
+      ],
+      "correctAnswer": "Movement from rural settlements toward the city",
+      "explanation": "The largest and most numerous arrows point from rural settlements into the city.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo7-population-urban",
+        "population, migration and urbanisation"
+      ],
+      "visualAssetId": "g7-geo-migration-flows",
+      "curriculum": {
+        "strand": "Population, migration and urbanisation",
+        "skill": "Apply population, migration and urbanisation",
+        "subskill": "population, migration and urbanisation",
+        "objective": "Analyse migration, population distribution and urban change using spatial and demographic evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-population-urban"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-014",
+      "topic": "Population, migration and urbanisation",
+      "difficulty": "medium",
+      "questionText": "Which is a likely pull factor for migration to a city?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Crop failure in a rural area",
+        "Greater access to jobs and services",
+        "Loss of farmland after drought",
+        "Conflict near a village"
+      ],
+      "correctAnswer": "Greater access to jobs and services",
+      "explanation": "Employment and service opportunities can attract people toward urban areas.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo7-population-urban",
+        "population, migration and urbanisation"
+      ],
+      "curriculum": {
+        "strand": "Population, migration and urbanisation",
+        "skill": "Apply population, migration and urbanisation",
+        "subskill": "population, migration and urbanisation",
+        "objective": "Analyse migration, population distribution and urban change using spatial and demographic evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-population-urban"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-015",
+      "topic": "Population, migration and urbanisation",
+      "difficulty": "medium",
+      "questionText": "A district has 84,000 people in 420 km². What is its population density?",
+      "questionType": "multiple_choice",
+      "options": [
+        "20 people per km²",
+        "350 people per km²",
+        "200 people per km²",
+        "35,280 people per km²"
+      ],
+      "correctAnswer": "200 people per km²",
+      "explanation": "Population density is 84,000 ÷ 420 = 200 people per square kilometre.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo7-population-urban",
+        "population, migration and urbanisation"
+      ],
+      "curriculum": {
+        "strand": "Population, migration and urbanisation",
+        "skill": "Apply population, migration and urbanisation",
+        "subskill": "population, migration and urbanisation",
+        "objective": "Analyse migration, population distribution and urban change using spatial and demographic evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-population-urban"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-016",
+      "topic": "Population, migration and urbanisation",
+      "difficulty": "hard",
+      "questionText": "Why can rapid urbanisation create informal settlements?",
+      "questionType": "multiple_choice",
+      "options": [
+        "All new residents prefer unsafe housing",
+        "Cities immediately run out of land everywhere",
+        "Urban jobs always disappear during growth",
+        "Housing and infrastructure may not grow as fast as population"
+      ],
+      "correctAnswer": "Housing and infrastructure may not grow as fast as population",
+      "explanation": "When planned supply lags population growth, households may rely on unplanned housing.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo7-population-urban",
+        "population, migration and urbanisation"
+      ],
+      "curriculum": {
+        "strand": "Population, migration and urbanisation",
+        "skill": "Apply population, migration and urbanisation",
+        "subskill": "population, migration and urbanisation",
+        "objective": "Analyse migration, population distribution and urban change using spatial and demographic evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-population-urban"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-017",
+      "topic": "Resources and sustainability",
+      "difficulty": "easy",
+      "questionText": "Which wind-farm site best balances strong wind with distance from homes and the nesting zone?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Site B",
+        "Site A",
+        "Site C",
+        "Site D"
+      ],
+      "correctAnswer": "Site B",
+      "explanation": "B is exposed to the prevailing wind while lying away from both mapped constraints.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "geo7-resources-sustainability",
+        "resources and sustainability"
+      ],
+      "visualAssetId": "g7-geo-wind-site",
+      "curriculum": {
+        "strand": "Resources and sustainability",
+        "skill": "Apply resources and sustainability",
+        "subskill": "resources and sustainability",
+        "objective": "Evaluate resource and development decisions using environmental, social and economic evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-resources-sustainability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-018",
+      "topic": "Resources and sustainability",
+      "difficulty": "medium",
+      "questionText": "Which energy source is renewable?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Coal",
+        "Solar radiation",
+        "Natural gas",
+        "Uranium ore"
+      ],
+      "correctAnswer": "Solar radiation",
+      "explanation": "Sunlight is continually replenished on human timescales, unlike the finite fuels listed.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo7-resources-sustainability",
+        "resources and sustainability"
+      ],
+      "curriculum": {
+        "strand": "Resources and sustainability",
+        "skill": "Apply resources and sustainability",
+        "subskill": "resources and sustainability",
+        "objective": "Evaluate resource and development decisions using environmental, social and economic evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-resources-sustainability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-019",
+      "topic": "Resources and sustainability",
+      "difficulty": "medium",
+      "questionText": "Why is water described as renewable but still scarce in some places?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Earth creates unlimited clean water everywhere",
+        "Renewable means no management is needed",
+        "Supply varies by season, location, quality and demand",
+        "Water cannot move between stores"
+      ],
+      "correctAnswer": "Supply varies by season, location, quality and demand",
+      "explanation": "The global cycle renews water, but accessible clean supply is uneven and demand can exceed it.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "geo7-resources-sustainability",
+        "resources and sustainability"
+      ],
+      "curriculum": {
+        "strand": "Resources and sustainability",
+        "skill": "Apply resources and sustainability",
+        "subskill": "resources and sustainability",
+        "objective": "Evaluate resource and development decisions using environmental, social and economic evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-resources-sustainability"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-geo-2026.8-020",
+      "topic": "Resources and sustainability",
+      "difficulty": "hard",
+      "questionText": "Which proposal best demonstrates sustainable resource planning?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Maximise extraction this year regardless of damage",
+        "Ban all resource use without assessing needs",
+        "Judge success only by short-term profit",
+        "Meet present needs while protecting ecosystems and future supply"
+      ],
+      "correctAnswer": "Meet present needs while protecting ecosystems and future supply",
+      "explanation": "Sustainability balances current social and economic needs with long-term environmental limits.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "geo7-resources-sustainability",
+        "resources and sustainability"
+      ],
+      "curriculum": {
+        "strand": "Resources and sustainability",
+        "skill": "Apply resources and sustainability",
+        "subskill": "resources and sustainability",
+        "objective": "Evaluate resource and development decisions using environmental, social and economic evidence."
+      },
+      "mappings": [
+        {
+          "scopeCode": "geography-grade-7",
+          "objectiveCode": "geo7-resources-sustainability"
+        }
+      ]
+    }
+  ]
+}
