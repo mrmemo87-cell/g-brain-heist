@@ -469,7 +469,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             <input value={requestedClass} onChange={(event) => setRequestedClass(event.target.value)} placeholder="Optional: type your class name" className="mt-2 w-full rounded-lg border border-amber-300/30 bg-slate-900 p-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-300" />
           </div>}
         </label> : <label className="block">
-          <span className="text-sm font-medium text-gray-300 mb-2 block">Class / Batch *</span>
+          <span className="text-sm font-medium text-gray-300 mb-2 block">Class *</span>
           <select value={batch} onChange={(event) => setBatch(event.target.value as Batch)} className="w-full bg-gray-800 border border-gray-600 rounded-lg p-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400" disabled={isLoading || !grade}>
             {batchOptions.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>

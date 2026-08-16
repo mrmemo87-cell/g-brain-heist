@@ -107,7 +107,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
         </ClickableUsername>
         <BrainsMasterBadge showBadge={target.brains_master_show_badge} until={target.brains_master_until} />
       </h3>
-      <p className="text-sm text-gray-400">Lvl {target.level} | Batch {target.batch}</p>
+      <p className="text-sm text-gray-400">Lvl {target.level} | Class {target.batch}</p>
       {target.clan_name && target.clan_id && (
         <button
           type="button"

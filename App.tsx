@@ -33,6 +33,7 @@ import UpgradeModal from './components/UpgradeModal';
 import DashboardTourOverlay from './components/onboarding/DashboardTourOverlay';
 import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoolPlanDetails, type AccountTier } from './services/tierService';
 import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey, type StudentProgrammeKey } from './services/entitlementService';
+import { listMyPendingProgrammeAccessRequests, requestProgrammeAccess } from './services/programmeAccessRequestService';
 
 // Lazy-loaded: only fetched when the user actually opens these views/modals
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
@@ -84,8 +85,6 @@ const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   12: ['12A', '12B', '12C', 'N/A'],
 };
 const DEFAULT_BATCH: Batch = 'N/A';
-const formatModuleName = (module: string) => ({ cambridge: 'Cambridge', ielts: 'IELTS', writing: 'Writing Hub', admissions: 'Admission Hub' }[module] || module);
-
 interface StudentProgrammeCardProps {
   programme: StudentProgrammeKey;
   icon: string;
@@ -97,6 +96,8 @@ interface StudentProgrammeCardProps {
   openLabel: string;
   onOpen: () => void;
   onPreload?: () => void;
+  requestState?: 'idle' | 'sending' | 'sent';
+  onRequest?: () => void;
 }
 
 const StudentProgrammeCard: React.FC<StudentProgrammeCardProps> = ({
@@ -110,6 +111,8 @@ const StudentProgrammeCard: React.FC<StudentProgrammeCardProps> = ({
   openLabel,
   onOpen,
   onPreload,
+  requestState = 'idle',
+  onRequest,
 }) => {
   const lockMessageId = `${programme}-programme-lock-message`;
   return (
@@ -123,14 +126,20 @@ const StudentProgrammeCard: React.FC<StudentProgrammeCardProps> = ({
       </div>
       <button
         type="button"
-        disabled={locked}
+        disabled={locked && (requestState === 'sending' || requestState === 'sent')}
         aria-describedby={locked ? lockMessageId : undefined}
         onMouseEnter={locked ? undefined : onPreload}
         onFocus={locked ? undefined : onPreload}
-        onClick={onOpen}
+        onClick={locked ? onRequest : onOpen}
         className="student-primary-button disabled:cursor-not-allowed disabled:bg-slate-500 disabled:text-slate-200"
       >
-        {locked ? 'Programme locked' : <>{openLabel} <span aria-hidden>→</span></>}
+        {locked
+          ? requestState === 'sending'
+            ? 'Sending request…'
+            : requestState === 'sent'
+              ? 'Request sent to the school admin'
+              : 'Send a request to the school admin'
+          : <>{openLabel} <span aria-hidden>→</span></>}
       </button>
     </article>
   );
@@ -201,6 +210,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [caps, setCaps] = useState<Caps | null>(() => readCache<Caps>(CACHE_KEYS.caps));
   const [news, setNews] = useState<NewsEvent[]>(() => readCache<NewsEvent[]>(CACHE_KEYS.news) ?? []);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
+  const [pendingAssignments, setPendingAssignments] = useState<StudentAssignmentTask[]>([]);
   const [criticalLoading, setCriticalLoading] = useState(true);
   const [view, setView] = useState<'workspace_chooser' | 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'cambridge' | 'school_admin' | 'school_head'>('dashboard');
   const [studentDashboardTab, setStudentDashboardTab] = useState<StudentDashboardDestination>('home');
@@ -243,6 +253,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [isInteractive, setIsInteractive] = useState(false);
   const [accountTier, setAccountTier] = useState<AccountTier>('free');
   const [effectiveEntitlements, setEffectiveEntitlements] = useState<EntitlementSet | null>(null);
+  const [programmeRequestStates, setProgrammeRequestStates] = useState<Record<StudentProgrammeKey, 'idle' | 'sending' | 'sent'>>({
+    cambridge: 'idle', ielts: 'idle', writing: 'idle',
+  });
   const [isPilotPlan, setIsPilotPlan] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeFeatureLabel, setUpgradeFeatureLabel] = useState<string | undefined>(undefined);
@@ -288,14 +301,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const canUseSchoolModule = useCallback((module: 'cambridge' | 'ielts' | 'writing' | 'admissions') => (
     Boolean(hasSchool && effectiveEntitlements?.modules[module])
   ), [effectiveEntitlements, hasSchool]);
-  const schoolProgrammeLockMessage = useCallback((module: 'cambridge' | 'ielts' | 'writing') => {
-    const label = formatModuleName(module);
-    const access = effectiveEntitlements?.programmeAccess[module];
-    if (access?.purchased && !access.seatAllocated) {
-      return `${label} is included in your school's agreement, but a School Head must allocate a ${label} seat to you first.`;
-    }
-    return `${label} has not been purchased by your school.`;
-  }, [effectiveEntitlements]);
+  const schoolProgrammeLockMessage = "You're not selected for this program. Ask your school admin if you need it.";
   const hasActiveTeacherAllocation = Boolean(schoolCapabilities?.has_active_teacher_allocation);
   const canOpenTeacherWorkspace = (profile?.role === 'teacher' && !schoolCapabilities?.can_administer)
     || Boolean(schoolCapabilities?.can_teach && hasActiveTeacherAllocation);
@@ -303,6 +309,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const isSchoolAdminRole = isUserSchoolAdmin;
   const isSchoolHeadRole = Boolean(schoolCapabilities?.is_owner && schoolCapabilities.account_type === 'school_head');
   const isFullScreenView = view === 'workspace_chooser' || view === 'school_admin' || view === 'school_head' || view === 'teacher' || view === 'admin' || (view === 'dashboard' && isTeacherRole) || (view === 'dashboard' && isSchoolAdminRole);
+  const actionableAssignments = useMemo(
+    () => pendingAssignments.filter((assignment) => !assignment.is_closed),
+    [pendingAssignments],
+  );
 
   const SkeletonBlock: React.FC<{ className?: string }> = ({ className }) => (
     <div className={`skeleton-bone rounded-xl bg-white/10 ${className ?? ''}`} />
@@ -392,8 +402,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   useEffect(() => {
     if (!profile?.id) { setEffectiveEntitlements(null); return; }
     let cancelled = false;
-    void getEntitlements(true).then((entitlements) => {
-      if (!cancelled) setEffectiveEntitlements(entitlements);
+    const requestsPromise = profile.role === 'student' && profile.school_id
+      ? listMyPendingProgrammeAccessRequests().catch(() => [] as StudentProgrammeKey[])
+      : Promise.resolve([] as StudentProgrammeKey[]);
+    void Promise.all([getEntitlements(true), requestsPromise]).then(([entitlements, requestedProgrammes]) => {
+      if (cancelled) return;
+      setEffectiveEntitlements(entitlements);
+      const requested = new Set(requestedProgrammes);
+      setProgrammeRequestStates({
+        cambridge: requested.has('cambridge') ? 'sent' : 'idle',
+        ielts: requested.has('ielts') ? 'sent' : 'idle',
+        writing: requested.has('writing') ? 'sent' : 'idle',
+      });
     }).catch(() => {
       if (!cancelled) setEffectiveEntitlements(null);
     });
@@ -582,12 +602,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
     if (!targetProfile || role === 'teacher' || role === 'admin') {
       setActiveAssignment(null);
+      setPendingAssignments([]);
       return;
     }
 
     try {
-      const assignment = await GameService.get_student_active_assignment();
-      setActiveAssignment(assignment);
+      const assignments = await GameService.get_student_pending_assignments();
+      setPendingAssignments(assignments);
+      setActiveAssignment(assignments.find((assignment) => !assignment.is_closed) ?? null);
     } catch (error) {
       console.error('Failed to load assignment state:', error);
     }
@@ -1075,6 +1097,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     if (!resolvedTargets.length) {
       setNonCriticalStatus((prev) => ({ ...prev, assignment: 'ready' }));
       setActiveAssignment(null);
+      setPendingAssignments([]);
       return;
     }
 
@@ -1118,7 +1141,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           setNonCriticalStatus((prev) => ({ ...prev, news: 'ready' }));
         },
         onAssignment: (assignmentData) => {
-          setActiveAssignment(assignmentData);
+          setPendingAssignments(assignmentData);
+          setActiveAssignment(assignmentData.find((assignment) => !assignment.is_closed) ?? null);
           setNonCriticalStatus((prev) => ({ ...prev, assignment: 'ready' }));
         },
         onSessionStatus: (status) => {
@@ -1585,6 +1609,24 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     handleViewChange('quest');
   };
 
+  const handleProgrammeAccessRequest = async (moduleKey: StudentProgrammeKey) => {
+    if (programmeRequestStates[moduleKey] !== 'idle') return;
+    setProgrammeRequestStates((current) => ({ ...current, [moduleKey]: 'sending' }));
+    try {
+      await requestProgrammeAccess(moduleKey);
+      setProgrammeRequestStates((current) => ({ ...current, [moduleKey]: 'sent' }));
+      addToast('Your request was sent to the school admin.', 'success');
+    } catch (error) {
+      setProgrammeRequestStates((current) => ({ ...current, [moduleKey]: 'idle' }));
+      addToast(error instanceof Error ? error.message : 'Your request could not be sent. Please try again.', 'error');
+    }
+  };
+
+  const handleOpenStudentAssignment = (assignment: StudentAssignmentTask) => {
+    setActiveAssignment(assignment);
+    handleViewChange('quest');
+  };
+
   const handleShareInvite = async () => {
     const shareData = {
       title: 'Brains Heist',
@@ -1854,14 +1896,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       );
     }
 
-    if (!activeAssignment && (nonCriticalStatus.assignment === 'loading' || criticalLoading)) {
-      return <SectionPlaceholder title="Assignment" lines={3} />;
+    if (!pendingAssignments.length && (nonCriticalStatus.assignment === 'loading' || criticalLoading)) {
+      return <SectionPlaceholder title="Teacher assignments" lines={3} />;
     }
 
-    if (!activeAssignment) {
+    if (!pendingAssignments.length) {
       return (
         <div className="card-glass p-5">
-          <h3 className="font-heading text-lg text-cyan-200 mb-2">Assignment</h3>
+          <h3 className="font-heading text-lg text-cyan-200 mb-2">Teacher assignments</h3>
           <p className="text-sm text-gray-300">No active assignments right now.</p>
         </div>
       );
@@ -1869,12 +1911,40 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
     return (
       <div className="card-glass p-5">
-        <h3 className="font-heading text-lg text-cyan-200 mb-2">Assignment</h3>
-        <p className="text-sm text-gray-100 font-semibold">{activeAssignment.title || 'New assignment'}</p>
-        <div className="mt-2 text-xs text-gray-300 space-y-1">
-          <p>Teacher: {activeAssignment.teacher_username || 'Your teacher'}</p>
-          <p>Subject: {activeAssignment.subject_name || 'General'}</p>
-          <p>Due: {activeAssignment.due_at ? new Date(activeAssignment.due_at).toLocaleString() : 'No deadline'}</p>
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h3 className="font-heading text-lg text-cyan-200">Teacher assignments</h3>
+            <p className="mt-1 text-xs text-gray-400">{actionableAssignments.length} ready to complete · open any card for full details</p>
+          </div>
+        </div>
+        <div className="grid gap-3">
+          {pendingAssignments.map((assignment) => {
+            const dueLabel = assignment.due_at ? new Date(assignment.due_at).toLocaleString() : 'No deadline';
+            const statusLabel = assignment.is_closed ? 'Closed' : assignment.is_late ? 'Late · still open' : 'Ready';
+            return (
+              <details key={assignment.assignment_id} className="student-assignment-card rounded-xl border border-slate-700 bg-slate-950/45">
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 p-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
+                  <span className="min-w-0">
+                    <span className="block text-sm font-black text-white">{assignment.title || assignment.topic_name || 'New assignment'}</span>
+                    <span className="mt-1 block text-xs text-slate-400">{assignment.subject_name || 'General'} · {assignment.teacher_username || 'Your teacher'} · Due {dueLabel}</span>
+                  </span>
+                  <span className={`flex-none rounded-full px-2.5 py-1 text-[11px] font-bold ${assignment.is_closed ? 'bg-slate-700 text-slate-200' : assignment.is_late ? 'bg-amber-500/20 text-amber-200' : 'bg-emerald-500/20 text-emerald-200'}`}>{statusLabel}</span>
+                </summary>
+                <div className="border-t border-slate-700/70 p-4">
+                  <dl className="grid gap-3 text-xs text-slate-300 sm:grid-cols-2">
+                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">Topic</dt><dd className="mt-1">{assignment.topic_name || 'General'}</dd></div>
+                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">Questions</dt><dd className="mt-1">{assignment.questions.length}</dd></div>
+                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">Given</dt><dd className="mt-1">{new Date(assignment.assigned_at).toLocaleString()}</dd></div>
+                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">Class</dt><dd className="mt-1">{assignment.batch || 'Selected students'}</dd></div>
+                  </dl>
+                  {assignment.instructions ? <div className="mt-4 rounded-lg bg-white/5 p-3 text-sm leading-6 text-slate-300"><strong className="text-white">Teacher instructions:</strong> {assignment.instructions}</div> : null}
+                  <button type="button" disabled={assignment.is_closed} onClick={() => handleOpenStudentAssignment(assignment)} className="student-primary-button mt-4 w-full sm:w-auto">
+                    {assignment.is_closed ? 'Assignment closed' : 'Go to this assignment'} <span aria-hidden>{assignment.is_closed ? '🔒' : '→'}</span>
+                  </button>
+                </div>
+              </details>
+            );
+          })}
         </div>
       </div>
     );
@@ -2385,7 +2455,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     username={profile?.username || 'Agent'}
                     level={profile?.xp_status?.level || profile?.level || 1}
                     avatarUrl={profile?.avatar_url}
-                    assignmentCount={activeAssignment ? 1 : 0}
+                    assignmentCount={actionableAssignments.length}
                     clanBadgeCount={pendingClanRequests + unreadClanChatMessages}
                     activeDestination={studentDashboardTab}
                     onNavigate={dashboardNavigate}
@@ -2400,7 +2470,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                           <div className="relative">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-cyan-100">Up next</span>
-                              <span className="text-xs font-semibold text-slate-300">{activeAssignment ? 'Teacher assigned' : 'Matched to your progress'}</span>
+                              <span className="text-xs font-semibold text-slate-300">{activeAssignment ? 'Teacher assignment' : 'Matched to your progress'}</span>
                             </div>
                             <h2 className="mt-4 font-heading text-2xl text-white sm:text-3xl">{nextActionTitle}</h2>
                             <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">
@@ -2445,9 +2515,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         />
                       ) : <div className="student-learning-grid">
                         {isStudent && hasSchool && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>📈</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Your learning record</span><h2>Academic Progress</h2><p>See your subject performance, strengths, improvement, focus areas, evidence confidence, and curriculum coverage.</p></div><button type="button" onClick={() => setStudentLearningView('academic-profile')} className="student-primary-button">Open Academic Progress <span aria-hidden>→</span></button></article>}
-                        {isStudent && <StudentProgrammeCard programme="writing" icon="✍️" eyebrow="Writing coach" title="Writing Hub" description="Draft, repair, and improve with guided AI coaching." locked={hasSchool && !canUseSchoolModule('writing')} lockMessage={schoolProgrammeLockMessage('writing')} openLabel="Open Writing Hub" onPreload={preloadWritingHub} onOpen={() => handleViewChange('writing')} />}
-                        {isStudent && hasSchool && <StudentProgrammeCard programme="ielts" icon="🎯" eyebrow="Exam preparation" title="IELTS Prep" description="Focused preparation across reading, writing, listening, and speaking." locked={!canUseSchoolModule('ielts')} lockMessage={schoolProgrammeLockMessage('ielts')} openLabel="Open IELTS Prep" onOpen={() => { window.location.href = '/ielts'; }} />}
-                        {isStudent && hasSchool && <StudentProgrammeCard programme="cambridge" icon="🧪" eyebrow="Subject practice" title="Cambridge Tests" description="Practice Cambridge reading, grammar, and science tests." locked={!canUseSchoolModule('cambridge')} lockMessage={schoolProgrammeLockMessage('cambridge')} openLabel="Open Cambridge Tests" onOpen={() => handleViewChange('cambridge')} />}
+                        {isStudent && <StudentProgrammeCard programme="writing" icon="✍️" eyebrow="Writing coach" title="Writing Hub" description="Draft, repair, and improve with guided AI coaching." locked={hasSchool && !canUseSchoolModule('writing')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.writing} onRequest={() => void handleProgrammeAccessRequest('writing')} openLabel="Open Writing Hub" onPreload={preloadWritingHub} onOpen={() => handleViewChange('writing')} />}
+                        {isStudent && hasSchool && <StudentProgrammeCard programme="ielts" icon="🎯" eyebrow="Exam preparation" title="IELTS Prep" description="Focused preparation across reading, writing, listening, and speaking." locked={!canUseSchoolModule('ielts')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.ielts} onRequest={() => void handleProgrammeAccessRequest('ielts')} openLabel="Open IELTS Prep" onOpen={() => { window.location.href = '/ielts'; }} />}
+                        {isStudent && hasSchool && <StudentProgrammeCard programme="cambridge" icon="🧪" eyebrow="Subject practice" title="Cambridge Tests" description="Practice Cambridge reading, grammar, and science tests." locked={!canUseSchoolModule('cambridge')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.cambridge} onRequest={() => void handleProgrammeAccessRequest('cambridge')} openLabel="Open Cambridge Tests" onOpen={() => handleViewChange('cambridge')} />}
                       </div>
                     )}
 
@@ -2460,7 +2530,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         onViewAchievements={() => handleViewChange('achievements')} onOpenTournament={() => handleViewChange('tournament')}
                         onOpenIeltsPrep={canUseSchoolModule('ielts') ? () => { window.location.href = '/ielts'; } : undefined}
                         onOpenCambridgeTests={canUseSchoolModule('cambridge') ? () => handleViewChange('cambridge') : undefined} onOpenLockdown={() => handleViewChange('lockdown')}
-                        profile={profile!} isIndividual={!hasSchool} hasPendingAssignment={Boolean(activeAssignment)}
+                        profile={profile!} isIndividual={!hasSchool} hasPendingAssignment={actionableAssignments.length > 0}
                         clanBadgeCount={pendingClanRequests + unreadClanChatMessages} schoolName={profile?.school_name} schoolLogoUrl={profile?.school_logo_url}
                         isPro={isProUser} isPilot={isPilotPlan} onUpgrade={(featureLabel) => { setUpgradeFeatureLabel(featureLabel); setShowUpgradeModal(true); }}
                       />
@@ -2657,7 +2727,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         </div>
         {profile && isPlayerMode && !isTeacherRole && !isSchoolAdminRole && view !== 'dashboard' && ['leaderboard', 'shop', 'inventory', 'pvp', 'lockdown', 'tournament', 'achievements', 'cambridge', 'clan'].includes(view) && (
           <StudentDashboardBottomNavigation
-            assignmentCount={activeAssignment ? 1 : 0}
+            assignmentCount={actionableAssignments.length}
             clanBadgeCount={pendingClanRequests + unreadClanChatMessages}
             activeDestination={view === 'clan' ? 'clan' : view === 'tournament' ? 'tournaments' : view === 'leaderboard' ? 'leaderboard' : 'game'}
             onNavigate={(destination) => {

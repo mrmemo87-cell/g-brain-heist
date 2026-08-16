@@ -3503,7 +3503,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(assignmentSubject)) return brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
     if (assignmentTopicMode === 'custom' && !assignmentTopicName.trim()) return brainsAlert('Please enter a topic for this assignment.', 'info');
     if (!assignmentQuestionIds.length) return brainsAlert('Select at least one question to assign.', 'info');
-    if (assignmentMode === 'batch' && assignmentBatches.length === 0) return brainsAlert('Please select at least one class/batch for this assignment.', 'info');
+    if (assignmentMode === 'batch' && assignmentBatches.length === 0) return brainsAlert('Please select at least one class for this assignment.', 'info');
     if (assignmentMode === 'custom' && selectedStudentIds.length === 0) return brainsAlert('Please select at least one student for this assignment.', 'info');
     if (assignmentDueAt) {
       const dueDate = new Date(assignmentDueAt);
@@ -3852,7 +3852,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     availableStudents.forEach((student) => {
       if (!student.batch) {
-        markRisk(student.id, student.display_name || student.username, 'Unassigned', 'Not mapped to a class/batch yet', 4);
+        markRisk(student.id, student.display_name || student.username, 'Unassigned', 'Not mapped to a class yet', 4);
       }
     });
 
@@ -3891,7 +3891,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const topIssues: string[] = [];
     if (!teacherHasClassAllocations) topIssues.push('No class allocations are configured for this teacher account.');
     if (lowCompletionClasses.length > 0) topIssues.push(`${lowCompletionClasses.length} class(es) are below 60% assignment completion.`);
-    if (studentsWithoutClass > 0) topIssues.push(`${studentsWithoutClass} student(s) have no class/batch mapping.`);
+    if (studentsWithoutClass > 0) topIssues.push(`${studentsWithoutClass} student(s) have no class mapping.`);
     if (hasAssignmentSuccess && successRate < 65) topIssues.push(`Assignment success rate is ${successRate}% (below target).`);
     if (pendingWriting > 0) topIssues.push(`${pendingWriting} Cambridge writing submission(s) still need marking.`);
 

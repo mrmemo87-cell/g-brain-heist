@@ -147,7 +147,7 @@ type BootNonCriticalHandlers = {
   onTasks?: (tasks: Task[]) => void;
   onCaps?: (caps: Caps) => void;
   onNews?: (news: NewsEvent[]) => void;
-  onAssignment?: (assignment: StudentAssignmentTask | null) => void;
+  onAssignment?: (assignments: StudentAssignmentTask[]) => void;
   onSessionStatus?: (status: SessionStatus) => void;
   onError?: (key: BootNonCriticalKey, error: unknown) => void;
 };
@@ -1983,7 +1983,7 @@ export const kickOffNonCriticalBootLoads = ({
     promises.push(
       runNonCritical(
         'assignment',
-        () => get_student_active_assignment(),
+        () => get_student_pending_assignments(),
         timeouts.assignment,
         signal,
         onAssignment,
@@ -5654,7 +5654,7 @@ export const create_assignment = async (
     // Validate mode-specific requirements
     const mode = payload.assignment_mode || 'batch';
     if (mode === 'batch' && !payload.batch) {
-        throw new Error('Batch is required for batch mode assignments');
+        throw new Error('A class is required for class-based assignments');
     }
     if (mode === 'custom' && (!payload.student_ids || payload.student_ids.length === 0)) {
         throw new Error('At least one student is required for custom assignments');
@@ -5719,7 +5719,7 @@ export const update_teacher_assignment = async (
     if (!payload.question_ids?.length) throw new Error('Select at least one question for the assignment');
     if (!payload.title?.trim()) throw new Error('Assignment title is required');
     const mode = payload.assignment_mode || 'batch';
-    if (mode === 'batch' && !payload.batch) throw new Error('Batch is required for batch mode assignments');
+    if (mode === 'batch' && !payload.batch) throw new Error('A class is required for class-based assignments');
     if (mode === 'custom' && (!payload.student_ids || payload.student_ids.length === 0)) throw new Error('At least one student is required for custom assignments');
 
     const { data, error } = await rpcUpdateTeacherAssignment(assignmentId, {

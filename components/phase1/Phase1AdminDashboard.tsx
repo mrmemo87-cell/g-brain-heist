@@ -54,7 +54,7 @@ const classList: Batch[] = ['8A', '8B', '8C', '9A', '9B', '9C'];
 const grades: Grade[] = [8, 9];
 
 const formatCsv = (rows: LeaderboardEntry[]): string => {
-  const header = 'Rank,Username,XP,Coins,Streak,Batch,Grade';
+  const header = 'Rank,Username,XP,Coins,Streak,Class,Grade';
   const body = rows
     .map((row, index) => [
       index + 1,

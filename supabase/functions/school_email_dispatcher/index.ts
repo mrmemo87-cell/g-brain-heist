@@ -215,6 +215,24 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
         details: [{ label: "Class", value: cleanText(payload.class_name, 120) }, { label: "Subject", value: subjectName }],
         action: { label: "Open teacher workspace", url: appRoute("/") },
       };
+    case "programme_access_requested": {
+      const moduleName = cleanText(payload.module_key, 40).replaceAll("_", " ") || "programme";
+      const studentName = cleanText(payload.student_name, 120) || "A student";
+      return {
+        subject: `Student programme request | ${schoolName} × Brains Heist`,
+        preview: `${studentName} requested access to ${moduleName}.`,
+        kicker: "School administration",
+        headline: "A student requested programme access",
+        intro: "Review the student’s request in the protected school administration workspace. A request does not reserve or allocate a seat automatically.",
+        details: [
+          { label: "Student", value: studentName },
+          { label: "Programme", value: moduleName.charAt(0).toUpperCase() + moduleName.slice(1) },
+          { label: "Current access", value: cleanText(payload.access_reason, 60).replaceAll("_", " ") || "Not available" },
+        ],
+        action: { label: "Review programme seats", url: appRoute("/?view=school_admin&adminTab=programme-seats") },
+        note: "Allocate a seat only when it matches the school’s academic plan and available programme capacity.",
+      };
+    }
     case "admission_status":
       return {
         subject: `Admission application ${status || "updated"} | ${schoolName} × Brains Heist`,

@@ -24,8 +24,8 @@ test('student catalogue distinguishes purchase from named-seat allocation', () =
   assert.match(migration, /not_purchased/);
   assert.match(migration, /seat_not_allocated/);
   assert.match(entitlements, /programmeAccess/);
-  assert.match(app, /Programme locked/);
-  assert.match(app, /must allocate a .* seat to you first/);
+  assert.match(app, /You're not selected for this program\. Ask your school admin if you need it\./);
+  assert.match(app, /Send a request to the school admin/);
 });
 
 test('direct IELTS routes fail closed for school accounts without programme access', () => {

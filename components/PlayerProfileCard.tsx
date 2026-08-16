@@ -202,7 +202,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
                 {profile.username}
               </h2>
               <p className="text-xs sm:text-sm" style={{ color: 'var(--mist-400)' }}>
-                {profile.batch ? `Batch ${profile.batch} | ` : ''}
+                {profile.batch ? `Class ${profile.batch} | ` : ''}
                 {profile.role === 'teacher' ? '👨‍🏫 Teacher | ' : ''}
                 Level {xpProgress.effectiveLevel}
               </p>

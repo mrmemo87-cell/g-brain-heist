@@ -432,7 +432,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
             <BrainsMasterBadge showBadge={entry.brains_master_show_badge} until={entry.brains_master_until} />
             {entry.is_self && ' (You)'}
           </p>
-          <p className="text-xs text-gray-400">Batch {entry.batch}</p>
+          <p className="text-xs text-gray-400">Class {entry.batch}</p>
         </div>
         <div className="text-right">
           <p className="font-bold text-white text-lg">{entry.value.toLocaleString()}</p>
