@@ -17,9 +17,10 @@ const privateDocuments = readFileSync(
 
 test('dual-role workspace preference is isolated by school and restricted to authorised portals', () => {
   assert.match(app, /localStorage\.setItem\(`school_workspace:\$\{schoolCapabilities\.school_id\}`,[\s\S]*?nextView\)/);
-  assert.match(app, /localStorage\.getItem\(`school_workspace:\$\{capabilities\.school_id\}`\)/);
-  assert.match(app, /capabilities\?\.can_administer && capabilities\.can_teach/);
-  assert.match(app, /requested === 'school_admin' \|\| requested === 'teacher'/);
+  assert.match(app, /localStorage\.getItem\(`school_workspace:\$\{schoolId\}`\)/);
+  assert.match(app, /available\.push\('school_admin'\)/);
+  assert.match(app, /available\.push\('teacher'\)/);
+  assert.match(app, /available\.includes\(requested\)/);
   assert.match(app, /const allowedSchoolAdminViews = \['school_admin', 'cambridge', 'ielts'\]/);
 });
 

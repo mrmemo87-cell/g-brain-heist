@@ -39,19 +39,11 @@ test('classes and registration owns editable grade-class teaching coverage', () 
   assert.match(classes, /aria-label={`Edit \${row\.class_code}`}/);
 });
 
-test('teacher allocation flow is class-subject-teacher with subject filtering and sortable columns', () => {
-  const classPosition = teachers.indexOf('>Class <');
-  const subjectPosition = teachers.indexOf('>Subject <');
-  const teacherPosition = teachers.indexOf('>Teacher <');
-  assert.ok(classPosition >= 0 && classPosition < subjectPosition && subjectPosition < teacherPosition);
-  assert.match(teachers, /Filter allocations by subject/);
-  for (const key of ['class', 'subject', 'teacher', 'allocated_at']) assert.match(teachers, new RegExp(`changeSort\\('${key}'\\)`));
-  assert.doesNotMatch(teachers, /Active assignment/);
+test('teacher allocation exposes the invitation code and link instead of operational allocation tables', () => {
+  assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
+  assert.doesNotMatch(teachers, />Class <|>Subject <|changeSort|admin-table-scroll/);
   assert.match(service, /allocated_at: row\.allocated_at \?\? row\.created_at/);
   assert.match(migration, /'assigned_at'/);
-  assert.match(teachers, /getAllocatableTeachers\(teachers \|\| \[\]\)/);
-  assert.doesNotMatch(teachers, /protectedAdminIds/);
-  assert.doesNotMatch(teachers, /school administrators are excluded/);
 });
 
 test('school administrator is protected and destructive actions use branded confirmations', () => {
@@ -82,7 +74,8 @@ test('dual-role staff can choose and switch workspaces without signing out', () 
   assert.match(app, /onOpenTeacherPortal/);
   assert.match(workspaceChooser, /School Administration/);
   assert.match(workspaceChooser, /Teacher Portal/);
-  assert.match(workspaceChooser, /switch again at any time without signing out/);
+  assert.match(workspaceChooser, /Your account has more than one role/);
+  assert.match(workspaceChooser, /Parent Portal/);
 });
 
 test('member management opens at the top and preloads existing academic placement', () => {

@@ -290,8 +290,8 @@ export async function getCurrentSchool(): Promise<SchoolAdminOverview | null> {
       }
 
       const settings = (schoolRow.settings || {}) as Record<string, any>;
-      const allowStudent = getSettingBool(settings, 'allow_student_signup', true);
-      const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', true);
+      const allowStudent = getSettingBool(settings, 'allow_student_signup', false);
+      const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', false);
 
       return {
         school: {
@@ -311,8 +311,8 @@ export async function getCurrentSchool(): Promise<SchoolAdminOverview | null> {
 
     const school = details.school as any;
     const settings = (school.settings || {}) as Record<string, any>;
-    const allowStudent = getSettingBool(settings, 'allow_student_signup', true);
-    const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', true);
+    const allowStudent = getSettingBool(settings, 'allow_student_signup', false);
+    const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', false);
 
     const stats = details.stats as any;
     return {
@@ -353,8 +353,8 @@ export async function getSchoolDetails(schoolId: string): Promise<{ school: Scho
 
     const school = details.school as any;
     const settings = (school.settings || {}) as Record<string, any>;
-    const allowStudent = getSettingBool(settings, 'allow_student_signup', true);
-    const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', true);
+    const allowStudent = getSettingBool(settings, 'allow_student_signup', false);
+    const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', false);
 
     const stats = details.stats as any;
     return {
@@ -679,6 +679,29 @@ export interface SchoolIdentityStatus {
   confirmedBy: string | null;
 }
 
+export type SchoolIdentityChangeRequestStatus = 'pending' | 'approved' | 'rejected' | 'completed';
+
+export interface SchoolIdentityChangeRequest {
+  id: string;
+  status: SchoolIdentityChangeRequestStatus;
+  reason: string;
+  reviewNote: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  completedAt: string | null;
+}
+
+export interface SuperadminSchoolIdentityChangeRequest extends SchoolIdentityChangeRequest {
+  schoolId: string;
+  schoolName: string;
+  schoolLogoUrl: string | null;
+  requestedBy: string;
+  requesterName: string;
+  requesterEmail: string | null;
+  schoolNameAtRequest: string;
+  schoolLogoAtRequest: string | null;
+}
+
 export async function getSchoolIdentityStatus(schoolId: string): Promise<SchoolIdentityStatus> {
   const { data, error } = await supabase.rpc('rpc_school_admin_identity_status', { p_school_id: schoolId });
   if (error || !data?.success) throw new Error(error?.message || data?.error || 'School identity status is unavailable.');
@@ -687,6 +710,88 @@ export async function getSchoolIdentityStatus(schoolId: string): Promise<SchoolI
     confirmedAt: typeof data.confirmedAt === 'string' ? data.confirmedAt : null,
     confirmedBy: typeof data.confirmedBy === 'string' ? data.confirmedBy : null,
   };
+}
+
+const normalizeIdentityChangeRequest = (value: any): SchoolIdentityChangeRequest | null => {
+  if (!value || typeof value.id !== 'string' || !['pending', 'approved', 'rejected', 'completed'].includes(value.status)) return null;
+  return {
+    id: value.id,
+    status: value.status,
+    reason: typeof value.reason === 'string' ? value.reason : '',
+    reviewNote: typeof value.reviewNote === 'string' ? value.reviewNote : null,
+    createdAt: typeof value.createdAt === 'string' ? value.createdAt : new Date(0).toISOString(),
+    reviewedAt: typeof value.reviewedAt === 'string' ? value.reviewedAt : null,
+    completedAt: typeof value.completedAt === 'string' ? value.completedAt : null,
+  };
+};
+
+export async function getSchoolIdentityChangeRequestStatus(schoolId: string): Promise<SchoolIdentityChangeRequest | null> {
+  const { data, error } = await supabase.rpc('rpc_school_identity_change_request_status', { p_school_id: schoolId });
+  if (error || !data?.success) throw new Error(error?.message || data?.error || 'Identity change request status is unavailable.');
+  return normalizeIdentityChangeRequest(data.request);
+}
+
+export async function requestSchoolIdentityChange(
+  schoolId: string,
+  reason: string,
+): Promise<{ success: boolean; request?: SchoolIdentityChangeRequest; message?: string; error?: string }> {
+  const { data, error } = await supabase.rpc('rpc_school_request_identity_change', {
+    p_school_id: schoolId,
+    p_reason: reason.trim(),
+  });
+  if (error || !data?.success) return { success: false, error: error?.message || data?.error || 'The identity change request could not be sent.' };
+  return {
+    success: true,
+    message: typeof data.message === 'string' ? data.message : 'Request sent to the superadmin for review.',
+    request: typeof data.requestId === 'string' ? {
+      id: data.requestId,
+      status: data.status === 'approved' || data.status === 'rejected' || data.status === 'completed' ? data.status : 'pending',
+      reason: reason.trim(),
+      reviewNote: null,
+      createdAt: new Date().toISOString(),
+      reviewedAt: null,
+      completedAt: null,
+    } : undefined,
+  };
+}
+
+export async function listSuperadminSchoolIdentityChangeRequests(
+  status: SchoolIdentityChangeRequestStatus | 'all' = 'pending',
+): Promise<SuperadminSchoolIdentityChangeRequest[]> {
+  const { data, error } = await supabase.rpc('rpc_superadmin_list_school_identity_change_requests', {
+    p_status: status,
+    p_limit: 200,
+  });
+  if (error) throw new Error(error.message || 'Identity change requests could not be loaded.');
+  return (Array.isArray(data) ? data : []).flatMap((value: any) => {
+    const request = normalizeIdentityChangeRequest(value);
+    if (!request || typeof value.schoolId !== 'string') return [];
+    return [{
+      ...request,
+      schoolId: value.schoolId,
+      schoolName: typeof value.schoolName === 'string' ? value.schoolName : 'Unknown school',
+      schoolLogoUrl: typeof value.schoolLogoUrl === 'string' ? value.schoolLogoUrl : null,
+      requestedBy: typeof value.requestedBy === 'string' ? value.requestedBy : '',
+      requesterName: typeof value.requesterName === 'string' ? value.requesterName : 'School administrator',
+      requesterEmail: typeof value.requesterEmail === 'string' ? value.requesterEmail : null,
+      schoolNameAtRequest: typeof value.schoolNameAtRequest === 'string' ? value.schoolNameAtRequest : 'Unknown school',
+      schoolLogoAtRequest: typeof value.schoolLogoAtRequest === 'string' ? value.schoolLogoAtRequest : null,
+    }];
+  });
+}
+
+export async function decideSchoolIdentityChangeRequest(
+  requestId: string,
+  decision: 'approve' | 'reject',
+  note: string,
+): Promise<{ success: boolean; message?: string; error?: string }> {
+  const { data, error } = await supabase.rpc('rpc_superadmin_decide_school_identity_change_request', {
+    p_request_id: requestId,
+    p_decision: decision,
+    p_note: note.trim() || null,
+  });
+  if (error || !data?.success) return { success: false, error: error?.message || data?.error || 'The identity change request could not be reviewed.' };
+  return { success: true, message: typeof data.message === 'string' ? data.message : 'Identity change request updated.' };
 }
 
 export async function confirmSchoolIdentity(

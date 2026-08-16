@@ -2588,6 +2588,7 @@ button {
 .school-workspace-option:hover { transform:translateY(-2px); border-color:#8eabc9; background:#f4f8fc; box-shadow:0 12px 30px rgba(22,63,115,.1); }
 .school-workspace-option:focus-visible, .school-workspace-signout:focus-visible { outline:3px solid rgba(14,116,144,.32); outline-offset:3px; }
 .school-workspace-option-icon { display:grid; width:2.7rem; height:2.7rem; place-items:center; border:1px solid #d8e3ef; border-radius:.75rem; background:#fff; font-size:1.35rem; line-height:1; }
+.school-workspace-option-icon svg { width:1.35rem; height:1.35rem; }
 .school-workspace-option-copy { min-width:0; }
 .school-workspace-option-copy strong, .school-workspace-option-copy small { display:block; }
 .school-workspace-option-copy strong { color:#17243b; font-size:1rem; line-height:1.25; overflow-wrap:anywhere; }

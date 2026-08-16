@@ -48,18 +48,10 @@ test('bulk actions omit role changes and report already-active unban selections'
   assert.match(portal, /const bannedMembers = selectedMembers\.filter/);
 });
 
-test('teacher allocations lead with current coverage and use school-created grade offerings', () => {
-  const currentPosition = teachers.indexOf('id="current-allocations-title"');
-  const formPosition = teachers.indexOf('id="allocate-teacher-panel"');
-  assert.ok(currentPosition >= 0 && currentPosition < formPosition);
-  assert.match(teachers, /availableTeachers\.length \? 'Allocate teacher'/);
-  assert.match(teachers, /Print teacher allocation register/);
-  assert.match(teachers, /Filter allocations by grade level/);
-  assert.match(teachers, /Select grade level first/);
-  assert.match(teachers, /allocatableSubjects\.map/);
-  assert.match(teachers, /allocationClasses\.map/);
-  assert.match(teachers, /selectedFilterGrade/);
-  assert.match(teachers, /No teaching staff registered yet/);
+test('teacher allocation is reduced to the school invitation access flow', () => {
+  assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
+  assert.match(teachers, /Send the school invitation to a teacher/);
+  assert.doesNotMatch(teachers, /current-allocations-title|allocate-teacher-panel|selectedFilterGrade/);
 });
 
 test('classes group teaching coverage by grade level and expose guarded class management', () => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import * as AuthService from '../../services/authService';
 import type { Batch, Grade } from '../../types';
 import SchoolRequestModal from '../SchoolRequestModal';
@@ -32,6 +32,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   const [step, setStep] = useState<SetupStep>('invite_code');
   const [path, setPath] = useState<SetupPath>('school');
   const [inviteCode, setInviteCode] = useState('');
+  const [selectedRole, setSelectedRole] = useState<'student' | 'teacher'>('student');
   const [grade, setGrade] = useState('');
   const [batch, setBatch] = useState<Batch>('N/A');
   const [username, setUsername] = useState(initialUsername || '');
@@ -46,6 +47,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   const [requestedClass, setRequestedClass] = useState('');
   const [classesLoading, setClassesLoading] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const invitationLinkAttempted = useRef(false);
 
   useEffect(() => {
     // Add wizard animation class
@@ -65,7 +67,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   const batchOptions: Batch[] = soloGrade ? GRADE_TO_BATCH[soloGrade] : ['N/A'];
   const schoolGradeOptions = getConfiguredSchoolGrades(approvedClasses);
   const schoolHasConfiguredGrades = schoolGradeOptions.length > 0;
-  const studentGradeRequired = path === 'individual' || schoolHasConfiguredGrades;
+  const studentGradeRequired = selectedRole === 'student' && (path === 'individual' || schoolHasConfiguredGrades);
 
   const getStepNumber = (): number => {
     if (step === 'invite_code') return 1;
@@ -75,6 +77,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
 
   const startIndependentSetup = () => {
     setPath('individual');
+    setSelectedRole('student');
     setInviteCode('');
     setSchoolName(null);
     setSchoolId(null);
@@ -86,8 +89,9 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
     setStep('student_details');
   };
 
-  const handleInviteCodeValidate = async () => {
-    if (!inviteCodeReady) {
+  const handleInviteCodeValidate = async (codeOverride?: string) => {
+    const codeToValidate = normalizeInviteCode(codeOverride ?? inviteCode);
+    if (codeToValidate.length < 6) {
       setError('Please enter a valid invite code');
       return;
     }
@@ -104,7 +108,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         return;
       }
 
-      const result = await AuthService.validateInviteCode(inviteCodeNormalized);
+      const result = await AuthService.validateInviteCode(codeToValidate);
       
       if (!result.valid) {
         setError('Invalid or expired invite code. Please check and try again.');
@@ -114,7 +118,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
       setSchoolName(result.school_name || 'School');
       setSchoolId(result.school_id || null);
       setClassesLoading(true);
-      const classesResult = await AuthService.listApprovedSignupClasses(inviteCodeNormalized);
+      const classesResult = await AuthService.listApprovedSignupClasses(codeToValidate);
       setClassesLoading(false);
       setApprovedClasses(classesResult.success ? classesResult.classes : []);
       setSelectedClassId('');
@@ -129,6 +133,15 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
     }
   };
 
+  useEffect(() => {
+    if (invitationLinkAttempted.current) return;
+    const linkedCode = normalizeInviteCode(new URLSearchParams(window.location.search).get('schoolInvite') || '');
+    if (linkedCode.length < 6) return;
+    invitationLinkAttempted.current = true;
+    setInviteCode(linkedCode);
+    void handleInviteCodeValidate(linkedCode);
+  }, []);
+
   const handleSchoolApplicationOpen = () => {
     // A new-school application is reserved for an authorised school
     // decision-maker. Treat the applicant as staff until approval provisions
@@ -138,7 +151,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
   };
 
   const handleSubmit = async () => {
-    const finalRole = 'student' as const;
+    const finalRole = selectedRole;
     const selectedSchoolClass = approvedClasses.find((item) => item.id === selectedClassId);
     
     if (finalRole === 'student' && studentGradeRequired && !grade) {
@@ -357,7 +370,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         </label>
 
         <button
-          onClick={handleInviteCodeValidate}
+          onClick={() => void handleInviteCodeValidate()}
           disabled={!inviteCodeReady || isLoading}
           className="w-full py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:scale-100"
         >
@@ -392,12 +405,20 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         </h2>
         <p className="text-gray-400">
           {path === 'school' && schoolName
-            ? `Choose the grade and class ${schoolName} already configured for you.`
+            ? `Confirm how you are joining ${schoolName}.`
             : 'Add the essentials for your learner profile.'}
         </p>
       </div>
 
       <div className="space-y-4">
+        {path === 'school' ? <fieldset className="rounded-xl border border-slate-700 p-4">
+          <legend className="px-1 text-sm font-semibold text-gray-300">I am joining as</legend>
+          <div className="mt-2 grid grid-cols-2 gap-3">
+            {(['student', 'teacher'] as const).map((role) => <button key={role} type="button" onClick={() => { setSelectedRole(role); setGrade(''); setSelectedClassId(''); setError(null); }} className={`rounded-xl border p-3 text-left transition ${selectedRole === role ? 'border-cyan-300 bg-cyan-300/10 text-white' : 'border-slate-700 bg-slate-800/50 text-gray-400'}`}><strong className="block capitalize">{role}</strong><small>{role === 'student' ? 'Join a class and learning workspace' : 'Join the school staff workspace'}</small></button>)}
+          </div>
+        </fieldset> : null}
+
+        {selectedRole === 'student' ? <>
         <label className="block">
           <span className="text-sm font-medium text-gray-300 mb-2 block">Real full name *</span>
           <input
@@ -474,10 +495,11 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             {batchOptions.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </label>}
+        </> : <div className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 p-4"><strong className="text-cyan-100">Teacher access</strong><p className="mt-1 text-sm leading-6 text-cyan-50/80">Your school administrator will allocate your classes and subjects after you join.</p></div>}
 
         <button
           onClick={() => handleSubmit()}
-          disabled={(studentGradeRequired && !grade) || fullName.trim().length < 5 || !fullName.trim().includes(' ') || isLoading}
+          disabled={(selectedRole === 'student' && ((studentGradeRequired && !grade) || fullName.trim().length < 5 || !fullName.trim().includes(' '))) || isLoading}
           className="w-full py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:scale-100"
         >
           {isLoading ? 'Setting up...' : 'Complete Setup'}
@@ -486,6 +508,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         <button
           onClick={() => {
             setPath('school');
+            setSelectedRole('student');
             setGrade('');
             setBatch('N/A');
             setError(null);

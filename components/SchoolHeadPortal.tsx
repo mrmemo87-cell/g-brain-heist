@@ -1,21 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { ToastMessage } from '../types';
 import { listSchoolMembers, type SchoolMember } from '../services/schoolAdminService';
 import {
   getSchoolHeadSnapshot,
-  getSchoolHeadSetupChecklist,
   listSchoolGovernanceAudit,
   transferSchoolHeadOwnership,
-  updateSchoolHeadSetup,
   type SchoolGovernanceAuditEntry,
   type SchoolHeadDecision,
   type SchoolHeadSnapshot,
-  type SchoolHeadSetupChecklist,
   type SchoolHeadTab,
 } from '../services/schoolHeadService';
 import { getEntitlements, type EntitlementSet } from '../services/entitlementService';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
+import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
+import CollapsedNavTooltip from './CollapsedNavTooltip';
 import '../src/styles/school-head.css';
 
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
@@ -28,17 +28,41 @@ interface SchoolHeadPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-const HEAD_TABS: Array<{ id: SchoolHeadTab; label: string; shortLabel: string; code: string }> = [
-  { id: 'overview', label: 'Executive Overview', shortLabel: 'Overview', code: 'EO' },
-  { id: 'decisions', label: 'Decision Center', shortLabel: 'Decisions', code: 'DC' },
-  { id: 'academic', label: 'Academic Performance', shortLabel: 'Academic', code: 'AP' },
-  { id: 'people', label: 'People & Structure', shortLabel: 'People', code: 'PS' },
-  { id: 'programs', label: 'Programs', shortLabel: 'Programs', code: 'PR' },
-  { id: 'subscription', label: 'Subscription & Value', shortLabel: 'Plan', code: 'SV' },
-  { id: 'governance', label: 'Governance & Audit', shortLabel: 'Audit', code: 'GA' },
+const HEAD_TABS: Array<{ id: SchoolHeadTab; label: string; shortLabel: string; description: string }> = [
+  { id: 'overview', label: 'Executive Overview', shortLabel: 'Overview', description: 'School status and priorities' },
+  { id: 'decisions', label: 'Decision Center', shortLabel: 'Decisions', description: 'Matters needing the School Head' },
+  { id: 'academic', label: 'Academic Performance', shortLabel: 'Academic', description: 'Outcomes and student progress' },
+  { id: 'people', label: 'People & Structure', shortLabel: 'People', description: 'Leadership, staffing and coverage' },
+  { id: 'programs', label: 'Programs', shortLabel: 'Programs', description: 'Active school programmes' },
+  { id: 'subscription', label: 'Subscription & Value', shortLabel: 'Plan', description: 'Plan, capacity and adoption' },
+  { id: 'governance', label: 'Governance & Audit', shortLabel: 'Audit', description: 'School decisions and accountability' },
 ];
 
 const VALID_HEAD_TABS = new Set<SchoolHeadTab>(HEAD_TABS.map(({ id }) => id));
+const PRIMARY_HEAD_TAB_IDS = new Set<SchoolHeadTab>(HEAD_TABS.slice(0, 4).map(({ id }) => id));
+const HEAD_SIDEBAR_STORAGE_KEY = 'brains-heist:school-head-sidebar-collapsed';
+const HEAD_SIDEBAR_COMPACT_QUERY = '(max-width: 1279px)';
+
+const getInitialHeadSidebarCollapsed = () => {
+  if (typeof window === 'undefined') return false;
+  const savedPreference = window.localStorage.getItem(HEAD_SIDEBAR_STORAGE_KEY);
+  if (savedPreference !== null) return savedPreference === 'true';
+  return window.matchMedia(HEAD_SIDEBAR_COMPACT_QUERY).matches;
+};
+
+const HeadNavIcon: React.FC<{ tab: SchoolHeadTab | 'menu' }> = ({ tab }) => {
+  const paths: Record<SchoolHeadTab | 'menu', React.ReactNode> = {
+    overview: <><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></>,
+    decisions: <><path d="M6 3h12v18H6z" /><path d="M9 8h6M9 12h6M9 16h4" /></>,
+    academic: <><path d="m4 17 5-5 4 3 7-8" /><path d="M15 7h5v5" /></>,
+    people: <><circle cx="9" cy="8" r="3" /><circle cx="17" cy="9" r="2" /><path d="M3.5 20c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M14 15c3.5-.3 5.5 1.3 6 4" /></>,
+    programs: <><path d="M4 5h16v14H4z" /><path d="M8 9h8M8 13h5" /></>,
+    subscription: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M7 15h4" /></>,
+    governance: <><path d="M12 3 4 6v5c0 5 3.2 8.5 8 10 4.8-1.5 8-5 8-10V6z" /><path d="m9 12 2 2 4-5" /></>,
+    menu: <><path d="M5 7h14M5 12h14M5 17h14" /></>,
+  };
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[tab]}</svg>;
+};
 
 const formatPercent = (value: number | null): string => value === null ? 'No data' : `${Math.round(value * 10) / 10}%`;
 const ratioPercent = (value: number, total: number): number => total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
@@ -120,15 +144,15 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
   const [snapshot, setSnapshot] = useState<SchoolHeadSnapshot | null>(null);
   const [audit, setAudit] = useState<SchoolGovernanceAuditEntry[]>([]);
   const [schoolAdmins, setSchoolAdmins] = useState<SchoolMember[]>([]);
-  const [setupChecklist, setSetupChecklist] = useState<SchoolHeadSetupChecklist | null>(null);
-  const [moduleDraft, setModuleDraft] = useState<string[]>(['core']);
   const [effectiveEntitlements, setEffectiveEntitlements] = useState<EntitlementSet | null>(null);
-  const [checklistBusy, setChecklistBusy] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [auditFilter, setAuditFilter] = useState('all');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialHeadSidebarCollapsed);
+  const [navTooltip, setNavTooltip] = useState<{ label: string; anchor: HTMLElement } | null>(null);
+  const { navigationRef: mobileNavigationRef, revealNavigation } = useSmartCollapsedNavigation(activeTab, '(max-width: 930px)');
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferTarget, setTransferTarget] = useState('');
   const [transferConfirmation, setTransferConfirmation] = useState('');
@@ -139,11 +163,10 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
     if (options.silent) setRefreshing(true); else setLoading(true);
     setError(null);
     try {
-      const [snapshotResult, auditResult, adminResult, checklistResult, entitlementResult] = await Promise.allSettled([
+      const [snapshotResult, auditResult, adminResult, entitlementResult] = await Promise.allSettled([
         getSchoolHeadSnapshot(schoolId, periodDays),
         listSchoolGovernanceAudit(schoolId, { limit: 75 }),
         listSchoolMembers(schoolId, { role: 'school_admin', limit: 100 }),
-        getSchoolHeadSetupChecklist(schoolId),
         getEntitlements(true),
       ]);
       if (snapshotResult.status === 'rejected') throw snapshotResult.reason;
@@ -152,10 +175,6 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
       setSchoolAdmins(adminResult.status === 'fulfilled'
         ? adminResult.value.members.filter((member) => !member.is_owner)
         : []);
-      if (checklistResult.status === 'fulfilled') {
-        setSetupChecklist(checklistResult.value);
-        setModuleDraft(checklistResult.value.requested_modules.length ? checklistResult.value.requested_modules : ['core']);
-      }
       setEffectiveEntitlements(entitlementResult.status === 'fulfilled' ? entitlementResult.value : null);
     } catch (loadError) {
       const message = loadError instanceof Error ? loadError.message : 'Executive data could not be loaded.';
@@ -171,6 +190,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
   const selectTab = useCallback((tab: SchoolHeadTab) => {
     if (tab !== 'academic') setAcademicProfilesOpen(false);
     setActiveTab(tab);
+    revealNavigation();
     setMobileMenuOpen(false);
     const url = new URL(window.location.href);
     url.searchParams.set('view', 'school_head');
@@ -178,6 +198,14 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
     url.searchParams.delete('adminTab');
     window.history.pushState(null, '', `${url.pathname}${url.search}${url.hash}`);
     window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [revealNavigation]);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((collapsed) => {
+      const next = !collapsed;
+      window.localStorage.setItem(HEAD_SIDEBAR_STORAGE_KEY, String(next));
+      return next;
+    });
   }, []);
 
   useEffect(() => {
@@ -219,16 +247,6 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
     openAdministration('dashboard');
   };
 
-  const updateChecklist = async (step: 'identity' | 'modules' | 'launch') => {
-    setChecklistBusy(step);
-    const result = await updateSchoolHeadSetup({ schoolId, step, requestedModules: step === 'modules' ? moduleDraft : undefined });
-    setChecklistBusy(null);
-    if (!result.success) { addToast(result.error || 'Checklist update failed.', 'error'); return; }
-    addToast(step === 'modules' ? 'Programme requirements saved for commercial review.' : 'School launch checklist updated.', 'success');
-    const next = await getSchoolHeadSetupChecklist(schoolId);
-    setSetupChecklist(next);
-  };
-
   if (loading) {
     return (
       <main className="school-head-portal school-head-loading" aria-busy="true">
@@ -253,11 +271,6 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
     ? ratioPercent(snapshot.subscription.seats_used, snapshot.subscription.seat_limit)
     : null;
   const hasActivePlan = snapshot.subscription.plan !== 'none' && snapshot.subscription.status !== 'none';
-  const pendingRequestedPrograms = (setupChecklist?.requested_modules || [])
-    .filter((moduleKey) => moduleKey !== 'core')
-    .filter((moduleKey) => !effectiveEntitlements?.modules[moduleKey as 'cambridge' | 'writing' | 'ielts' | 'admissions'])
-    .map(formatPlan);
-
   const renderOverview = () => (
     <div className="school-head-page">
       <section className="school-head-briefing">
@@ -270,12 +283,6 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
           <span>Priority items</span><strong>{snapshot.decisions.length}</strong><small>{snapshot.decisions.some((item) => item.severity === 'critical') ? 'Action required' : 'No critical issues'}</small>
         </div>
       </section>
-
-      {setupChecklist && setupChecklist.steps.some((step) => !step.completed) && <section className="school-head-panel" aria-label="School launch checklist">
-        <div className="school-head-panel-heading"><div><p>First login setup</p><h3>Launch your school professionally</h3></div><span>{setupChecklist.steps.filter((step) => step.completed).length}/{setupChecklist.steps.length} complete</span></div>
-        <div className="school-head-priority-list">{setupChecklist.steps.map((step) => <button type="button" key={step.id} className={step.completed ? 'is-info' : 'is-warning'} disabled={checklistBusy !== null} onClick={() => step.id === 'identity' || step.id === 'launch' ? void updateChecklist(step.id) : step.id === 'modules' ? undefined : openAdministration(step.action_tab)}><span>{step.completed ? '✓' : '○'}</span><div><strong>{step.label}</strong><small>{step.completed ? 'Completed' : step.id === 'modules' ? 'Select below, then save' : 'Open the relevant administration section'}</small></div><b aria-hidden="true">{step.completed ? 'Done' : '→'}</b></button>)}</div>
-        <fieldset className="mt-4 rounded-xl border border-slate-200 p-4"><legend className="px-1 text-sm font-semibold">Required programmes</legend><div className="mt-2 flex flex-wrap gap-3">{['core','cambridge','ielts','writing','admissions'].map((moduleKey) => <label key={moduleKey} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={moduleDraft.includes(moduleKey)} disabled={moduleKey === 'core' || checklistBusy !== null} onChange={(event) => setModuleDraft((current) => event.target.checked ? [...current,moduleKey] : current.filter((item) => item !== moduleKey))} />{formatPlan(moduleKey)}</label>)}</div><button type="button" className="school-head-secondary-action" disabled={checklistBusy !== null} onClick={() => void updateChecklist('modules')}>{checklistBusy === 'modules' ? 'Saving…' : 'Save programme requirements'}</button><p className="mt-2 text-xs">This records what your school needs; it does not activate an optional programme until the agreement is verified.</p></fieldset>
-      </section>}
 
       <section className="school-head-metric-grid" aria-label="Executive school indicators">
         <MetricCard label="Students" value={snapshot.totals.students} note={`${snapshot.engagement.active_students_7d} active in 7 days`} tone={studentActivityRate >= 75 ? 'healthy' : studentActivityRate >= 50 ? 'monitor' : 'action'} />
@@ -317,7 +324,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
 
   const renderDecisions = () => (
     <div className="school-head-page">
-      <section className="school-head-page-heading"><div><p className="school-head-kicker">Decision Center</p><h2>Senior attention, clearly prioritised</h2><p>Only material issues are shown here. Operational alerts remain in the administration workspace.</p></div><span className="school-head-heading-count">{snapshot.decisions.length} open</span></section>
+      <section className="school-head-page-heading"><div><p className="school-head-kicker">Decision Center</p><h2>Important school matters, in priority order</h2><p>Only issues needing the School Head are shown here. Day-to-day school alerts stay in School Administration.</p></div><span className="school-head-heading-count">{snapshot.decisions.length} open</span></section>
       {snapshot.decisions.length ? <section className="school-head-decision-list">{snapshot.decisions.map((decision) => <DecisionCard key={decision.id} decision={decision} onOpen={selectTab} />)}</section> : <EmptyState title="Everything important is under control">There are no executive-level decision items in the current snapshot.</EmptyState>}
       <section className="school-head-notification-policy" aria-label="Decision notification policy"><div><strong>Critical</strong><span>Immediate in-app and branded email, then daily while unresolved.</span></div><div><strong>Warning</strong><span>In-app notification and daily branded email digest.</span></div><div><strong>Notice</strong><span>Decision Center and weekly branded email digest.</span></div><p>Resolved records close automatically when the underlying school data is corrected. Repeated alerts are deduplicated.</p></section>
       <section className="school-head-assurance"><div><span>Healthy</span><strong>Every decision is generated from school-scoped records.</strong><p>No cross-school or unverified profile data is used.</p></div><div><span>Traceable</span><strong>Sensitive changes are written to governance history.</strong><p>Actor, target, reason and timestamp stay visible to the School Head.</p></div><div><span>Delegated</span><strong>Daily operations remain with school administrators.</strong><p>The Head retains final authority without becoming a daily operator.</p></div></section>
@@ -385,7 +392,6 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
           <button type="button" onClick={() => openAdministration('billing')}>Review programmes and billing</button>
         </section>
       )}
-      {pendingRequestedPrograms.length > 0 && <section className="school-head-panel school-head-program-empty" aria-label="Requested programmes awaiting activation"><div><span>Requested · awaiting activation</span><h3>{pendingRequestedPrograms.join(', ')}</h3><p>These programme requirements are recorded but are not available to the school until they are approved and enabled.</p></div><button type="button" onClick={() => openAdministration('billing')}>Review authorization</button></section>}
       {effectiveEntitlements?.modules.admissions && <section className="school-head-panel school-head-admission-summary"><div className="school-head-panel-heading"><div><p>Admissions intelligence</p><h3>Candidate pipeline</h3></div></div><div><MetricCard label="Candidates" value={snapshot.admissions.total_candidates} note="All candidate records" /><MetricCard label="Awaiting progress" value={snapshot.admissions.pending_candidates} note="Active review stages" tone={snapshot.admissions.pending_candidates ? 'monitor' : 'healthy'} /><MetricCard label="Tests completed" value={snapshot.admissions.completed_attempts} note="Submitted diagnostic attempts" /><MetricCard label="Diagnostic average" value={formatPercent(snapshot.admissions.average)} note="Completed admission tests" /></div></section>}
     </div>
   );
@@ -437,15 +443,15 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
         <div className="school-head-header-actions">
           <label><span>Reporting window</span><select value={periodDays} onChange={(event) => setPeriodDays(Number(event.target.value))}><option value={30}>Last 30 days</option><option value={60}>Last 60 days</option><option value={90}>Last 90 days</option></select></label>
           <button type="button" onClick={() => void load({ silent: true })} disabled={refreshing}>{refreshing ? 'Refreshing…' : 'Refresh data'}</button>
-          <button type="button" className="school-head-menu-button" onClick={() => setMobileMenuOpen((open) => !open)} aria-expanded={mobileMenuOpen} aria-label="Open executive navigation">Menu</button>
           <button type="button" className="school-head-signout" onClick={onLogout}>Sign out</button>
         </div>
       </header>
 
-      <div className="school-head-layout">
-        <aside className={mobileMenuOpen ? 'is-open' : ''} aria-label="School Head navigation">
+      <div className={`school-head-layout ${sidebarCollapsed ? 'is-sidebar-collapsed' : ''}`}>
+        <aside className={sidebarCollapsed ? 'is-collapsed' : ''} aria-label="School Head navigation">
+          <button type="button" className="school-head-sidebar-toggle" onClick={toggleSidebar} aria-label={sidebarCollapsed ? 'Expand side navigation' : 'Collapse side navigation'} aria-expanded={!sidebarCollapsed} aria-controls="school-head-primary-navigation" title={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}><span aria-hidden="true">{sidebarCollapsed ? '›' : '‹'}</span><strong>{sidebarCollapsed ? 'Expand' : 'Collapse'}</strong></button>
           <div className="school-head-profile"><div>{snapshot.head?.name.slice(0, 1).toUpperCase() || 'H'}</div><span><strong>{snapshot.head?.name || 'School Head'}</strong><small>Primary decision maker</small></span><b>HEAD</b></div>
-          <nav>{HEAD_TABS.map((tab) => <button type="button" key={tab.id} className={activeTab === tab.id ? 'is-active' : ''} aria-current={activeTab === tab.id ? 'page' : undefined} onClick={() => selectTab(tab.id)}><span>{tab.code}</span>{tab.label}{tab.id === 'decisions' && snapshot.decisions.length > 0 && <b>{snapshot.decisions.length}</b>}</button>)}</nav>
+          <nav id="school-head-primary-navigation">{HEAD_TABS.map((tab) => <button type="button" key={tab.id} className={activeTab === tab.id ? 'is-active' : ''} aria-current={activeTab === tab.id ? 'page' : undefined} aria-label={tab.label} title={sidebarCollapsed ? tab.label : undefined} onMouseEnter={(event) => sidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })} onMouseLeave={() => setNavTooltip(null)} onFocus={(event) => sidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })} onBlur={() => setNavTooltip(null)} onClick={() => { setNavTooltip(null); selectTab(tab.id); }}><span className="school-head-nav-icon"><HeadNavIcon tab={tab.id} /></span><span className="school-head-nav-text">{tab.label}</span>{tab.id === 'decisions' && snapshot.decisions.length > 0 && <b>{snapshot.decisions.length}</b>}</button>)}</nav>
           <div className="school-head-sidebar-actions"><p>Workspaces</p><button type="button" onClick={() => openAdministration('dashboard')}>Operational Administration <span>→</span></button>{onOpenTeacherPortal && <button type="button" onClick={onOpenTeacherPortal}>Teacher Workspace <span>→</span></button>}</div>
           <div className="school-head-security"><span aria-hidden="true">◆</span><div><strong>School-isolated data</strong><small>Executive access verified by active ownership.</small></div></div>
         </aside>
@@ -456,7 +462,26 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
         </main>
       </div>
 
-      <nav className="school-head-mobile-nav" aria-label="School Head mobile navigation">{HEAD_TABS.slice(0, 4).map((tab) => <button type="button" key={tab.id} className={activeTab === tab.id ? 'is-active' : ''} onClick={() => selectTab(tab.id)}><span>{tab.code}</span><small>{tab.shortLabel}</small></button>)}<button type="button" className={!HEAD_TABS.slice(0, 4).some((tab) => tab.id === activeTab) ? 'is-active' : ''} onClick={() => setMobileMenuOpen(true)}><span>•••</span><small>More</small></button></nav>
+      <nav ref={mobileNavigationRef} className="school-head-mobile-nav" onFocus={revealNavigation} aria-label="School Head mobile navigation">
+        <button type="button" className="smart-mobile-nav-reveal" onClick={revealNavigation} aria-label="Show School Head navigation"><span aria-hidden="true" /></button>
+        {HEAD_TABS.slice(0, 4).map((tab) => <button type="button" key={tab.id} className={activeTab === tab.id ? 'is-active' : ''} aria-current={activeTab === tab.id ? 'page' : undefined} aria-label={tab.label} onClick={() => selectTab(tab.id)}><span><HeadNavIcon tab={tab.id} /></span><small>{tab.shortLabel}</small></button>)}
+        <button type="button" className={!PRIMARY_HEAD_TAB_IDS.has(activeTab) ? 'is-active' : ''} aria-expanded={mobileMenuOpen} aria-label="More School Head sections" onClick={() => { revealNavigation(); setMobileMenuOpen(true); }}><span><HeadNavIcon tab="menu" /></span><small>More</small></button>
+      </nav>
+
+      {mobileMenuOpen && typeof document !== 'undefined' && createPortal(
+        <div className="school-admin-mobile-menu-layer school-head-mobile-menu-layer" role="dialog" aria-modal="true" aria-labelledby="school-head-mobile-menu-title">
+          <button type="button" className="school-admin-mobile-menu-backdrop" onClick={() => setMobileMenuOpen(false)} aria-label="Close School Head menu" />
+          <section className="school-admin-mobile-menu-sheet">
+            <div className="school-admin-mobile-menu-heading"><div><p>School Head</p><h2 id="school-head-mobile-menu-title">All sections</h2></div><button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Close School Head menu">×</button></div>
+            <div className="school-admin-mobile-menu-grid">
+              {HEAD_TABS.map((tab) => <button key={tab.id} type="button" onClick={() => selectTab(tab.id)} className={activeTab === tab.id ? 'is-active' : ''} aria-current={activeTab === tab.id ? 'page' : undefined}><span className="school-admin-mobile-menu-icon school-head-mobile-menu-icon"><HeadNavIcon tab={tab.id} /></span><span><strong>{tab.label}</strong><small>{tab.description}</small></span></button>)}
+            </div>
+          </section>
+        </div>,
+        document.body,
+      )}
+
+      {navTooltip && <CollapsedNavTooltip label={navTooltip.label} anchor={navTooltip.anchor} />}
 
       {showTransfer && <div className="school-head-modal-layer" role="dialog" aria-modal="true" aria-labelledby="school-head-transfer-title">
         <button type="button" className="school-head-modal-backdrop" aria-label="Close ownership transfer" onClick={() => !transferBusy && setShowTransfer(false)} />
