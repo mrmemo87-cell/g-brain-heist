@@ -8,6 +8,10 @@ const migration = readFileSync(
   'supabase/migrations/20260812164653_fix_teacher_signup_teaching_status.sql',
   'utf8',
 );
+const configuredGradeMigration = readFileSync(
+  'supabase/migrations/20260816155720_allow_configured_school_grade_labels.sql',
+  'utf8',
+);
 
 test('active teacher-role memberships are always recognized as teaching staff', () => {
   assert.match(migration, /role_in_school = 'teacher'[\s\S]*new\.can_teach := true/);
@@ -16,11 +20,20 @@ test('active teacher-role memberships are always recognized as teaching staff', 
 });
 
 test('school onboarding gets grade choices from approved school classes', () => {
-  assert.match(setupWizard, /const schoolGradeOptions = Array\.from/);
-  assert.match(setupWizard, /path === 'school' \? schoolGradeOptions : \[6, 7, 8, 9, 10, 11, 12\]/);
+  assert.match(setupWizard, /getConfiguredSchoolGrades\(approvedClasses\)/);
+  assert.match(setupWizard, /path === 'school' \? schoolGradeOptions : SOLO_GRADES\.map\(String\)/);
+  assert.doesNotMatch(setupWizard, /value >= 6|value <= 12/);
+  assert.match(setupWizard, /p_grade: null/);
+  assert.match(setupWizard, /p_batch: null/);
   assert.match(setupWizard, /const studentGradeRequired = path === 'individual' \|\| schoolHasConfiguredGrades/);
   assert.match(setupWizard, /School will assign your grade/);
   assert.match(setupWizard, /has not configured grades or classes yet/);
+});
+
+test('school-configured grade labels are accepted by the profile constraint', () => {
+  assert.match(configuredGradeMigration, /drop constraint if exists users_grade_check/);
+  assert.match(configuredGradeMigration, /length\(btrim\(grade\)\) between 1 and 64/);
+  assert.doesNotMatch(configuredGradeMigration, />=\s*6|<=\s*12/);
 });
 
 test('ordinary school members never receive school checkout or pilot controls', () => {

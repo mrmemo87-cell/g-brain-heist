@@ -34,35 +34,35 @@ interface TourStepConfig {
 const TOUR_STEPS: TourStepConfig[] = [
   {
     id: 'base_unlocked',
-    eyebrow: 'Base online',
-    title: 'Command deck online',
-    copy: 'Four signals. Then you launch.',
+    eyebrow: 'Dashboard ready',
+    title: 'Welcome to your dashboard',
+    copy: 'This is your daily starting point. We’ll show you the essentials in under a minute.',
     selectors: [],
-    primaryCta: 'Show me',
+    primaryCta: 'Start the tour',
   },
   {
     id: 'profile_progress',
-    eyebrow: 'Agent badge',
-    title: 'Command profile',
-    copy: 'Level, XP, and status live here.',
+    eyebrow: 'Your learner identity',
+    title: 'See your status at a glance',
+    copy: 'Your profile keeps your level, school identity, and current progress together.',
     selectors: ['[data-testid="dashboard-profile-card"]'],
-    primaryCta: 'Got it',
+    primaryCta: 'Next',
   },
   {
     id: 'xp_rewards',
-    eyebrow: 'Reward loop',
-    title: 'Progress loop',
-    copy: 'XP raises your level. Missions earn rewards.',
+    eyebrow: 'Visible momentum',
+    title: 'Watch your progress build',
+    copy: 'XP moves your level forward while streaks and rewards make consistency visible.',
     selectors: ['[data-testid="profile-xp-progress"]', '[data-testid="dashboard-profile-card"]'],
-    primaryCta: 'Find missions',
+    primaryCta: 'Show my next action',
   },
   {
     id: 'first_mission',
-    eyebrow: 'Mission ready',
-    title: 'Launch point',
-    copy: 'Start here. Your first route is ready.',
+    eyebrow: 'Your next action',
+    title: 'Start with one clear mission',
+    copy: 'This card always gives you a direct way to move your learning forward.',
     selectors: ['[data-testid="dashboard-start-quest"]'],
-    primaryCta: 'Start mission',
+    primaryCta: 'Start my first mission',
     interactive: true,
   },
 ];
@@ -466,6 +466,9 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
         className={`pointer-events-auto fixed ${cardLayout.className}`}
         style={cardLayout.style}
         data-placement={cardLayout.placement}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dashboard-tour-title"
       >
         {hasAnchoredCue && (
           <span
@@ -489,12 +492,12 @@ const DashboardTourOverlay: React.FC<DashboardTourOverlayProps> = ({
                     {currentIndex + 1}/{TOUR_STEPS.length}
                   </span>
                 </div>
-                <h2 className="mt-2 text-xl font-black leading-tight tracking-tight text-white sm:text-2xl">{currentStep.title}</h2>
+                <h2 id="dashboard-tour-title" className="mt-2 text-xl font-black leading-tight tracking-tight text-white sm:text-2xl">{currentStep.title}</h2>
                 <p className="mt-2 text-sm font-medium leading-6 text-slate-300 sm:text-[15px]">{currentStep.copy}</p>
                 {isMissionStep && (
                   <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-100">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_10px_rgba(110,231,183,0.9)]" aria-hidden />
-                    First route ready
+                    Ready when you are
                   </div>
                 )}
                 {isFallback && (

@@ -1635,15 +1635,13 @@ export const whoami = async (): Promise<Profile> => {
     }
   
     if (profile.grade !== null) {
-      const parsedGrade = typeof profile.grade === 'string'
-        ? parseInt(profile.grade as unknown as string, 10)
-        : profile.grade;
+      const gradeLabel = String(profile.grade).trim();
+      const parsedGrade = Number(gradeLabel);
   
-      // Accept all valid grade levels (6-12). Older logic incorrectly nulled anything
-      // outside grades 8-9, which hid valid grades after OAuth signups.
-      profile.grade = (parsedGrade >= 6 && parsedGrade <= 12)
-        ? (parsedGrade as Grade)
-        : null;
+      // Preserve every school-configured numeric grade. Curriculum-specific
+      // features may still gate their own supported bands, but the core profile
+      // must not erase a valid school placement such as Grade 4 or Year 13.
+      profile.grade = Number.isInteger(parsedGrade) ? parsedGrade : (gradeLabel || null);
     }
   
       profile.is_admin = typeof profile.is_admin === 'boolean'
