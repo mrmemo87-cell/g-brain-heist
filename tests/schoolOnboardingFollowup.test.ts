@@ -40,7 +40,7 @@ test('ordinary school members never receive school checkout or pilot controls', 
   assert.match(upgradeModal, /getMySchoolCapabilities/);
   assert.match(upgradeModal, /const isSchoolHead = !loading && viewerIsSchoolMember && canManageSchoolBilling/);
   assert.match(upgradeModal, /const isSchoolMember = !loading && viewerIsSchoolMember && !canManageSchoolBilling/);
-  assert.match(upgradeModal, /Your School Head manages programme access/);
+  assert.match(upgradeModal, /Your school admin manages programme access/);
   assert.match(upgradeModal, /You do not need to purchase anything from a student or teacher account/);
   assert.doesNotMatch(upgradeModal, /exclusively for Prime users/);
 });
