@@ -109,6 +109,19 @@ This is the first schema v2 release. It includes 24 original 640×360 SVG learni
 
 The package targets `brain-heist-international@2026-7`. In the four pilot scopes, broad legacy auto-classified objectives remain in history but become non-assessable; five curated objectives per subject become the governed mapping targets. Each subject retains the production balance of four questions per objective, 5 easy / 10 medium / 5 hard questions and five correct answers in each A–D position.
 
+## 2026.8 Grade 7 visual pilot
+
+`brain-heist-grade-7-core-2026-8@2026.8.0` contains 80 original multiple-choice questions:
+
+- Grade 7 Mathematics: 20
+- Grade 7 English: 20
+- Grade 7 Integrated Science: 20
+- Grade 7 Geography: 20
+
+The package includes 24 original 640×360 SVG assets: six Mathematics diagrams, four English visual stimuli, eight Science diagrams and six Geography maps/charts. The visuals use the locked Brains Heist educational art system, content-addressed immutable filenames, SHA-256 receipts, reviewed source/licence metadata and answer-safe alt text. Each subject covers five governed curriculum objectives with four questions per objective.
+
+The package targets `brain-heist-international@2026-8`. In the four Grade 7 scopes, inherited auto-classified objectives remain in history but become non-assessable; five curated objectives per subject become the governed targets. Difficulty and correct-answer positions retain the same reviewed balance as the Grade 6 pilot.
+
 ## 2026.1.1 repair record
 
 The repair migration creates five new immutable records for answer-key or option defects, copies their approved curriculum mappings, and retires the originals. It also records and retires the 96 reviewed exact duplicate rows without changing assignment snapshots, attempts or student answers. The temporary Grade 8 QA framework is retired after its eight school mappings are archived.
