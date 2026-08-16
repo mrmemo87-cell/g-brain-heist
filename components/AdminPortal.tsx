@@ -35,6 +35,7 @@ import AnswerReflectionModal from './admin/modals/AnswerReflectionModal';
 import AnnouncementModal from './admin/modals/AnnouncementModal';
 
 const SCHOOL_PLANS = ['none', 'pilot', 'core', 'standard', 'pro', 'enterprise'] as const;
+const QuestionBankInspectorTab = React.lazy(() => import('./admin/tabs/QuestionBankInspectorTab'));
 
 interface AdminPortalProps {
   profile: Profile;
@@ -42,7 +43,10 @@ interface AdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'users' | 'schools' | 'applications' | 'booked-appointments' | 'billing' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
+type AdminTab = 'dashboard' | 'users' | 'question-bank' | 'schools' | 'applications' | 'booked-appointments' | 'billing' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
+
+const ADMIN_TABS: AdminTab[] = ['dashboard', 'users', 'schools', 'applications', 'booked-appointments', 'billing', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'];
+const SUPERADMIN_TABS: AdminTab[] = ['dashboard', 'users', 'question-bank', 'schools', 'applications', 'booked-appointments', 'billing', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'];
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast }) => {
   const PAGE_SIZE = 50;
@@ -77,7 +81,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [schoolMembersLoading, setSchoolMembersLoading] = useState(false);
   const [schoolMembersError, setSchoolMembersError] = useState<string | null>(null);
   const [schoolAdminActionLoading, setSchoolAdminActionLoading] = useState<string | null>(null);
-  const [isSuperadmin, setIsSuperadmin] = useState(Boolean(profile.is_admin));
+  const [isSuperadmin, setIsSuperadmin] = useState(false);
   // Pilot quota admin state
   const [schoolQuotas, setSchoolQuotas] = useState<Record<string, { used: number; limit: number; remaining: number; exhausted: boolean }> | null>(null);
   const [schoolQuotasLoading, setSchoolQuotasLoading] = useState(false);
@@ -1849,7 +1853,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         {/* Tab Navigation - Epic Style */}
         <div className="admin-portal-tabs max-w-6xl mx-auto mb-6">
           <div className="admin-portal-tablist flex flex-wrap gap-2 justify-center" role="tablist" aria-label="Admin portal navigation">
-            {(['dashboard', 'users', 'schools', 'applications', 'booked-appointments', 'billing', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'] as AdminTab[]).map((tab) => (
+            {(isSuperadmin ? SUPERADMIN_TABS : ADMIN_TABS).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -1879,6 +1883,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         <div className="max-w-7xl mx-auto">
           {activeTab === 'dashboard' && <DashboardTab />}
           {activeTab === 'users' && <UsersTab />}
+          {activeTab === 'question-bank' && isSuperadmin && (
+            <React.Suspense fallback={<div className="card-glass p-8 text-center text-gray-300">Opening the protected question vault…</div>}>
+              <QuestionBankInspectorTab />
+            </React.Suspense>
+          )}
           {activeTab === 'schools' && <SchoolsTab />}
           {activeTab === 'applications' && <ApplicationsTab />}
           {activeTab === 'booked-appointments' && <BookedAppointmentsTab />}
