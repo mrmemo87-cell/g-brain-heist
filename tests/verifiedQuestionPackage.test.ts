@@ -17,6 +17,7 @@ const visualImporterMigration = readFileSync('supabase/migrations/20260815132000
 const grade6CurriculumMigration = readFileSync('supabase/migrations/20260815133000_brains_heist_curriculum_2026_7.sql', 'utf8');
 const grade7CurriculumMigration = readFileSync('supabase/migrations/20260816093000_brains_heist_curriculum_2026_8.sql', 'utf8');
 const visualAccessibilityMigration = readFileSync('supabase/migrations/20260815134000_question_visual_accessibility.sql', 'utf8');
+const versionedVisualPathMigration = readFileSync('supabase/migrations/20260816121000_version_verified_question_visual_asset_paths.sql', 'utf8');
 
 test('all verified question packages pass their quality and balance profiles', () => {
   const result = spawnSync(process.execPath, ['scripts/validate-verified-question-package.mjs'], {
@@ -94,6 +95,13 @@ test('visual importer is immutable, service-role only and hash-aware', () => {
   assert.match(visualImporterMigration, /revoke all on function public\.rpc_import_verified_question_package_v2\(jsonb, boolean\)[\s\S]*from public, anon, authenticated/i);
   assert.match(visualImporterMigration, /grant execute on function public\.rpc_import_verified_question_package_v2\(jsonb, boolean\)[\s\S]*to service_role/i);
   assert.match(visualAccessibilityMigration, /'image_alt_text', q\.image_alt_text/);
+});
+
+test('visual importer binds immutable asset paths to every package version', () => {
+  assert.match(versionedVisualPathMigration, /v_asset_directory := replace\(v_package_version, '\.', '-'\)/);
+  assert.match(versionedVisualPathMigration, /public\/question-assets\/' \|\| v_asset_directory/);
+  assert.match(versionedVisualPathMigration, /verified_question_visual_importer_v2_definition_drift/);
+  assert.match(versionedVisualPathMigration, /position\('2026-7-0' in v_updated\) > 0/);
 });
 
 test('repair migration preserves history while retiring reviewed defects and duplicates', () => {
