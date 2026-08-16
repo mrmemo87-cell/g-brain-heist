@@ -21,7 +21,7 @@ const UsersTab: React.FC = () => {
       <div className="mb-6">
         <input
           type="text"
-          placeholder="🔍 Search by username, email, or batch..."
+          placeholder="🔍 Search by username, email, or class..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full px-4 py-3 bg-black/40 border-2 border-purple-400/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:shadow-[0_0_20px_rgba(168,85,247,0.4)]"
@@ -118,7 +118,7 @@ const UsersTab: React.FC = () => {
                     <p className="text-sm text-gray-400">{resolveUserEmail(user)}</p>
                     <div className="flex gap-3 mt-1">
                       <span className="text-xs bg-cyan-600/30 text-cyan-300 px-2 py-1 rounded">Lvl {Number(user.level ?? 0)}</span>
-                      <span className="text-xs bg-purple-600/30 text-purple-300 px-2 py-1 rounded">{user.batch || 'No Batch'}</span>
+                      <span className="text-xs bg-purple-600/30 text-purple-300 px-2 py-1 rounded">{user.batch || 'No class'}</span>
                       <span className="text-xs bg-yellow-600/30 text-yellow-300 px-2 py-1 rounded">{user.role || 'student'}</span>
                       {isBanned && (
                         <span className="text-xs bg-red-700/60 text-red-200 px-2 py-1 rounded">BANNED</span>

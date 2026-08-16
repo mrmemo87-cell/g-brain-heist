@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getEntitlements, type ProgrammeAccessReason, type StudentProgrammeKey } from '../services/entitlementService';
 import { supabase } from '../services/supabaseClient';
+import { requestProgrammeAccess } from '../services/programmeAccessRequestService';
 
 interface SchoolProgrammeRouteGuardProps {
   programme: StudentProgrammeKey;
@@ -21,6 +22,7 @@ const programmeLabels: Record<StudentProgrammeKey, string> = {
 
 const SchoolProgrammeRouteGuard: React.FC<SchoolProgrammeRouteGuardProps> = ({ programme, children }) => {
   const [state, setState] = useState<GuardState>({ status: 'loading' });
+  const [requestState, setRequestState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
   useEffect(() => {
     let active = true;
@@ -61,17 +63,28 @@ const SchoolProgrammeRouteGuard: React.FC<SchoolProgrammeRouteGuardProps> = ({ p
 
   const label = programmeLabels[programme];
   const message = state.status === 'locked'
-    ? state.reason === 'seat_not_allocated'
-      ? `${label} is included in your school's agreement, but a School Head must allocate a ${label} seat to you first.`
-      : `${label} has not been purchased by your school.`
+    ? "You're not selected for this program. Ask your school admin if you need it."
     : `Brains Heist could not verify your ${label} access. Please try again; access remains locked for your protection.`;
+
+  const sendRequest = async () => {
+    if (requestState === 'sending' || requestState === 'sent') return;
+    setRequestState('sending');
+    try {
+      await requestProgrammeAccess(programme);
+      setRequestState('sent');
+    } catch {
+      setRequestState('error');
+    }
+  };
 
   return (
     <main className="mx-auto mt-12 max-w-xl rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-950" aria-labelledby={`${programme}-locked-title`}>
       <div className="text-3xl" aria-hidden>🔒</div>
       <h1 id={`${programme}-locked-title`} className="mt-3 text-xl font-bold">{label} is locked</h1>
-      <p className="mt-2 text-sm leading-6">{message}</p>
-      <a href="/" className="mt-5 inline-flex rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white">Return to dashboard</a>
+      <p className="mt-2 text-sm leading-6">🔒 {message}</p>
+      {state.status === 'locked' ? <button type="button" disabled={requestState === 'sending' || requestState === 'sent'} onClick={() => void sendRequest()} className="mt-5 inline-flex rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-65">{requestState === 'sending' ? 'Sending request…' : requestState === 'sent' ? 'Request sent to the school admin' : 'Send a request to the school admin'}</button> : null}
+      {requestState === 'error' ? <p className="mt-2 text-xs font-semibold text-red-700">The request could not be sent. Please try again.</p> : null}
+      <a href="/" className="mt-3 block text-sm font-bold text-slate-700 underline underline-offset-2">Return to dashboard</a>
     </main>
   );
 };

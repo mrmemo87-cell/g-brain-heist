@@ -32,10 +32,21 @@ test('profile glass keeps its summary and stat panels solid', () => {
   assert.match(styles, /\.student-profile-stat[^}]*backdrop-filter:\s*none/s);
 });
 
-test('Ultra Performance Mode replaces refraction with static battery-saving surfaces', () => {
-  assert.match(settings, /Replaces liquid glass with static battery-saving surfaces/);
-  assert.match(settings, /Liquid blur and refraction, spring motion/);
+test('Basic style explains the performance tradeoff in simple language', () => {
+  assert.match(settings, />Glassy</);
+  assert.match(settings, />Basic</);
+  assert.match(settings, /fewer effects for smoother use and longer battery life/);
+  assert.doesNotMatch(settings, /Ultra Performance/);
   assert.match(performanceStyles, /body\.light-mode \.student-dashboard-bottom-nav,[\s\S]*?backdrop-filter:\s*none !important/s);
   assert.match(performanceStyles, /body\.light-mode \.student-next-mission,[\s\S]*?background:\s*#0f172a !important/s);
   assert.match(performanceStyles, /body\.light-mode \.student-dashboard-bottom-nav::before,[\s\S]*?display:\s*none !important/s);
+});
+
+test('student theme colors visibly drive dashboard accents', () => {
+  for (const color of ['blue', 'pink', 'green', 'purple', 'red', 'dark']) {
+    assert.match(settings, new RegExp(`${color}: \\{ label:`));
+    assert.match(styles, new RegExp(`data-student-theme-color='${color}'`));
+  }
+  assert.match(styles, /\.student-primary-button[^}]*var\(--student-accent\)/s);
+  assert.match(styles, /\.student-dashboard-nav-link\.is-active[^}]*var\(--student-accent-rgb\)/s);
 });

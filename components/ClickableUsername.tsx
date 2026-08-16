@@ -96,7 +96,7 @@ const ProfileModal: React.FC<{ profile: Profile; onClose: () => void }> = ({ pro
             </h3>
             <p className="text-xs uppercase tracking-wide text-cyan-300">Level {profile.level}</p>
             {profile.batch && profile.batch !== 'N/A' && (
-              <p className="text-xs text-slate-400">Batch {profile.batch}</p>
+              <p className="text-xs text-slate-400">Class {profile.batch}</p>
             )}
           </div>
         </div>

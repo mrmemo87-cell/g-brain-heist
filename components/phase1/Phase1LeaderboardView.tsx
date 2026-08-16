@@ -16,7 +16,7 @@ interface Phase1LeaderboardViewProps {
 }
 
 const formatCsv = (rows: LeaderboardEntry[]): string => {
-  const header = 'Rank,Username,XP,Coins,Streak,Batch,Grade';
+  const header = 'Rank,Username,XP,Coins,Streak,Class,Grade';
   const body = rows
     .map((row, index) => [
       index + 1,

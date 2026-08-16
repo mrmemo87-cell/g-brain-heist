@@ -102,8 +102,8 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, featureLab
 
             {isSchoolMember && (
               <>
-                <p className="font-semibold text-white">Your School Head manages programme access.</p>
-                <p className="mt-1 text-sm leading-6 text-slate-300">You do not need to purchase anything from a student or teacher account. Ask your School Head to start the pilot or request a package in Plan &amp; Billing.</p>
+                <p className="font-semibold text-white">Your school admin manages programme access.</p>
+                <p className="mt-1 text-sm leading-6 text-slate-300">You do not need to purchase anything from a student or teacher account. Ask your school admin if programme access is needed.</p>
                 <button type="button" onClick={onClose} className="mt-4 w-full rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200">Got it</button>
               </>
             )}

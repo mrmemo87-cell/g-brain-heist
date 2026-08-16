@@ -92,7 +92,7 @@ const AnalyticsTab: React.FC = () => {
             {/* Batch/Class Stats */}
             {analyticsData.batchStats.length > 0 && (
               <div className="card-glass border border-cyan-400/30 p-4 rounded-xl">
-                <h4 className="text-lg font-heading font-bold text-cyan-200 mb-3">🏫 Class/Batch Stats</h4>
+                <h4 className="text-lg font-heading font-bold text-cyan-200 mb-3">🏫 Class statistics</h4>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead>

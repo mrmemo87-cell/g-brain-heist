@@ -54,11 +54,22 @@ export interface ProgrammeSeatExceptionRequest {
   reviewed_at: string | null;
 }
 
+export interface StudentProgrammeAccessRequest {
+  id: string;
+  student_user_id: string;
+  module_key: SeatProgrammeKey;
+  access_reason: 'not_purchased' | 'seat_not_allocated';
+  status: 'pending' | 'fulfilled' | 'cancelled';
+  requested_at: string;
+  student: { full_name: string | null; username: string; batch: string | null } | null;
+}
+
 export interface ProgrammeSeatOverview {
   programmes: ProgrammeSeatPool[];
   students: ProgrammeSeatStudent[];
   events: ProgrammeSeatEvent[];
   exception_requests: ProgrammeSeatExceptionRequest[];
+  student_requests: StudentProgrammeAccessRequest[];
   policy: { correction_hours: number; cooldown_days: number; base_transfer_percent: number };
   generated_at: string;
 }
@@ -74,10 +85,17 @@ async function assertRpc(call: PromiseLike<{ data: unknown; error: { message?: s
 }
 
 export async function getProgrammeSeatOverview(schoolId: string): Promise<ProgrammeSeatOverview> {
-  const payload = await assertRpc(supabase.rpc('school_head_get_programme_seats', { p_school_id: schoolId }), 'Programme licences could not be loaded.');
+  const [payload, requestsResult] = await Promise.all([
+    assertRpc(supabase.rpc('school_head_get_programme_seats', { p_school_id: schoolId }), 'Programme licences could not be loaded.'),
+    supabase.from('school_programme_access_requests')
+      .select('id,student_user_id,module_key,access_reason,status,requested_at,student:users!student_user_id(full_name,username,batch)')
+      .eq('school_id', schoolId).eq('status', 'pending').order('requested_at', { ascending: false }),
+  ]);
+  if (requestsResult.error) throw new Error(requestsResult.error.message || 'Student programme requests could not be loaded.');
   return {
     programmes: (payload['programmes'] as ProgrammeSeatPool[]) ?? [], students: (payload['students'] as ProgrammeSeatStudent[]) ?? [],
     events: (payload['events'] as ProgrammeSeatEvent[]) ?? [], exception_requests: (payload['exception_requests'] as ProgrammeSeatExceptionRequest[]) ?? [],
+    student_requests: (requestsResult.data as unknown as StudentProgrammeAccessRequest[]) ?? [],
     policy: (payload['policy'] as ProgrammeSeatOverview['policy']) ?? { correction_hours: 24, cooldown_days: 7, base_transfer_percent: 10 },
     generated_at: String(payload['generated_at'] ?? ''),
   };

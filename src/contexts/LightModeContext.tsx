@@ -1,10 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 const STORAGE_KEY = 'gbrain-lite-mode';
+const THEME_COLOR_STORAGE_KEY = 'brains-heist-student-theme-color-v1';
+
+export const STUDENT_THEME_COLORS = ['blue', 'pink', 'green', 'purple', 'red', 'dark'] as const;
+export type StudentThemeColor = typeof STUDENT_THEME_COLORS[number];
 
 interface LightModeContextType {
   isLightMode: boolean;
   toggleLightMode: () => void;
+  setInterfaceStyle: (style: 'glassy' | 'basic') => void;
+  studentThemeColor: StudentThemeColor;
+  setStudentThemeColor: (color: StudentThemeColor) => void;
   /**
    * When set, light mode was auto-enabled to protect performance or battery.
    */
@@ -34,6 +41,17 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
   });
   const [autoEnabledReason, setAutoEnabledReason] = useState<string | null>(null);
   const [autoProtectionSuppressed, setAutoProtectionSuppressed] = useState(false);
+  const [studentThemeColor, setStudentThemeColorState] = useState<StudentThemeColor>(() => {
+    if (typeof window === 'undefined') return 'blue';
+    try {
+      const saved = window.localStorage.getItem(THEME_COLOR_STORAGE_KEY);
+      return STUDENT_THEME_COLORS.includes(saved as StudentThemeColor)
+        ? saved as StudentThemeColor
+        : 'blue';
+    } catch {
+      return 'blue';
+    }
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -62,6 +80,25 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
     setIsLightMode((prev) => !prev);
   };
 
+  const setInterfaceStyle = (style: 'glassy' | 'basic') => {
+    setAutoEnabledReason(null);
+    setAutoProtectionSuppressed(true);
+    setIsLightMode(style === 'basic');
+  };
+
+  const setStudentThemeColor = (color: StudentThemeColor) => {
+    setStudentThemeColorState(color);
+  };
+
+  useEffect(() => {
+    document.body.dataset.studentThemeColor = studentThemeColor;
+    try {
+      window.localStorage.setItem(THEME_COLOR_STORAGE_KEY, studentThemeColor);
+    } catch {
+      /* ignore storage errors */
+    }
+  }, [studentThemeColor]);
+
   // Automatically enable lite mode when system signals low resources or user preference
   useEffect(() => {
     if (typeof window === 'undefined' || isLightMode || autoProtectionSuppressed) {
@@ -77,7 +114,7 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
 
       if (saveData || slowNetwork || prefersReducedMotion || lowMemory) {
         setIsLightMode(true);
-        setAutoEnabledReason('Enabled Ultra Performance Mode automatically to respect system battery/efficiency settings.');
+        setAutoEnabledReason('Basic style was enabled automatically to respect your device’s battery or reduced-motion settings.');
         return;
       }
     } catch {
@@ -100,7 +137,7 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
       const lowBattery = battery.level <= 0.25 && !battery.charging;
       if (lowBattery) {
         setIsLightMode(true);
-        setAutoEnabledReason('Battery is low while running full mode. Switched to Ultra Performance Mode to conserve power.');
+        setAutoEnabledReason('Your battery is low, so Brains Heist switched to the Basic style to use fewer visual effects.');
       }
     };
 
@@ -156,7 +193,7 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
           const averageFps = fpsSamples.reduce((sum, value) => sum + value, 0) / fpsSamples.length;
           if (averageFps < 45 && fpsSamples.length > 30) {
             setIsLightMode(true);
-            setAutoEnabledReason('Detected sustained frame drops in full mode. Auto-enabled Ultra Performance Mode to stop lag.');
+            setAutoEnabledReason('Brains Heist detected slower animation and switched to the Basic style for smoother use.');
             return;
           }
         }
@@ -181,7 +218,15 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   return (
-    <LightModeContext.Provider value={{ isLightMode, toggleLightMode, autoEnabledReason, clearAutoEnabledReason }}>
+    <LightModeContext.Provider value={{
+      isLightMode,
+      toggleLightMode,
+      setInterfaceStyle,
+      studentThemeColor,
+      setStudentThemeColor,
+      autoEnabledReason,
+      clearAutoEnabledReason,
+    }}>
       {children}
     </LightModeContext.Provider>
   );

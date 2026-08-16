@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLightMode } from '../src/contexts/LightModeContext';
+import { STUDENT_THEME_COLORS, useLightMode, type StudentThemeColor } from '../src/contexts/LightModeContext';
 import { Profile } from '../types';
 import { deactivate_neon_frame, deactivate_flicker_theme, brains_master_toggle_badge } from '../services/gameService';
 import { isBrainsMasterActive } from '../src/utils/premiumHelpers';
@@ -26,6 +26,15 @@ interface SettingsModalProps {
   headerOffsetPx?: number;
 }
 
+const THEME_COLOR_OPTIONS: Record<StudentThemeColor, { label: string; swatch: string }> = {
+  blue: { label: 'Blue', swatch: '#22d3ee' },
+  pink: { label: 'Pink', swatch: '#ec4899' },
+  green: { label: 'Green', swatch: '#22c55e' },
+  purple: { label: 'Purple', swatch: '#a855f7' },
+  red: { label: 'Red', swatch: '#ef4444' },
+  dark: { label: 'Dark', swatch: '#475569' },
+};
+
 const SettingsModal: React.FC<SettingsModalProps> = ({ 
   onClose, 
   profile,
@@ -44,7 +53,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   placement = 'center',
   headerOffsetPx = 80,
 }) => {
-  const { isLightMode, toggleLightMode, autoEnabledReason, clearAutoEnabledReason } = useLightMode();
+  const {
+    isLightMode,
+    setInterfaceStyle,
+    studentThemeColor,
+    setStudentThemeColor,
+    autoEnabledReason,
+    clearAutoEnabledReason,
+  } = useLightMode();
   const [hasNeonFrame, setHasNeonFrame] = useState(profile.active_cosmetic_frame === 'neon');
   const [hasFlickerTheme, setHasFlickerTheme] = useState(isFlickerThemeActive(profile.active_cosmetic_theme));
   const [neonBusy, setNeonBusy] = useState(false);
@@ -415,7 +431,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
                   {profile.batch && (
                     <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-                      <span className="text-gray-300">Batch</span>
+                      <span className="text-gray-300">Class</span>
                       <span className="font-bold text-white">{profile.batch}</span>
                     </div>
                   )}
@@ -537,47 +553,44 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
           )}
 
-          {/* Light Mode Toggle */}
+          {/* Interface appearance */}
           <div>
             <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Display</h3>
-            <div className="border border-gray-700 rounded-lg p-4 space-y-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-white mb-1">
-                    ⚡ Ultra Performance Mode
-                  </h4>
-                  <p className="text-sm text-gray-400">
-                    Replaces liquid glass with static battery-saving surfaces. Ideal for low-end devices and longer battery life.
-                  </p>
-                  <div className="mt-2 text-xs text-gray-500">
-                    <strong>Disables:</strong> Liquid blur and refraction, spring motion, Lottie animations, particles,
-                    cinematic effects, toast animations, and GPU-heavy rendering.
+            <div className="border border-gray-700 rounded-lg p-4 space-y-5">
+              <fieldset>
+                <legend className="font-semibold text-white">Interface style</legend>
+                <p className="mt-1 text-sm text-gray-400">Choose how dashboard surfaces look. This does not change your content or progress.</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <button type="button" role="radio" aria-checked={!isLightMode} onClick={() => setInterfaceStyle('glassy')} className={`rounded-xl border p-4 text-left transition ${!isLightMode ? 'border-cyan-300 bg-cyan-400/15 ring-2 ring-cyan-300/20' : 'border-gray-700 bg-black/20 hover:border-gray-500'}`}>
+                    <span className="block font-bold text-white">Glassy</span>
+                    <span className="mt-1 block text-xs leading-5 text-gray-400">Layered glass, soft blur, glow, and richer motion.</span>
+                  </button>
+                  <button type="button" role="radio" aria-checked={isLightMode} onClick={() => setInterfaceStyle('basic')} className={`rounded-xl border p-4 text-left transition ${isLightMode ? 'border-cyan-300 bg-cyan-400/15 ring-2 ring-cyan-300/20' : 'border-gray-700 bg-black/20 hover:border-gray-500'}`}>
+                    <span className="block font-bold text-white">Basic</span>
+                    <span className="mt-1 block text-xs leading-5 text-gray-400">Clean solid surfaces with fewer effects for smoother use and longer battery life.</span>
+                  </button>
+                </div>
+              </fieldset>
+
+              {profile.role === 'student' ? (
+                <fieldset className="border-t border-gray-700 pt-4">
+                  <legend className="font-semibold text-white">Interface color</legend>
+                  <p className="mt-1 text-sm text-gray-400">Choose the accent used on navigation, buttons, highlights, and dashboard glow.</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Student dashboard interface color">
+                    {STUDENT_THEME_COLORS.map((color) => {
+                      const option = THEME_COLOR_OPTIONS[color];
+                      const selected = studentThemeColor === color;
+                      return (
+                        <button key={color} type="button" role="radio" aria-checked={selected} onClick={() => setStudentThemeColor(color)} className={`flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${selected ? 'border-white bg-white/15 ring-2 ring-white/25' : 'border-gray-700 bg-black/20 hover:border-gray-500'}`}>
+                          <span className="h-6 w-6 flex-none rounded-full border border-white/40 shadow-lg" style={{ backgroundColor: option.swatch, boxShadow: selected ? `0 0 18px ${option.swatch}` : undefined }} aria-hidden />
+                          <span className="font-semibold text-white">{option.label}</span>
+                          {selected ? <span className="ml-auto text-xs text-white" aria-hidden>✓</span> : null}
+                        </button>
+                      );
+                    })}
                   </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                role="switch"
-                aria-checked={isLightMode}
-                aria-label="Ultra Performance Mode"
-                onClick={toggleLightMode}
-                className="flex w-full items-center justify-between gap-4 rounded-lg border border-gray-600 bg-black/20 px-4 py-3 text-left transition hover:border-cyan-400"
-              >
-                <span>
-                  <span className="block font-semibold text-white">Ultra Performance</span>
-                  <span className="block text-xs text-gray-400">{isLightMode ? 'On — reduced visual effects' : 'Off — full visual experience'}</span>
-                </span>
-                <span className={`relative inline-flex h-7 w-12 flex-shrink-0 rounded-full transition-colors ${isLightMode ? 'bg-green-500' : 'bg-gray-600'}`}>
-                  <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${isLightMode ? 'translate-x-6' : 'translate-x-1'}`} />
-                </span>
-              </button>
-
-              {isLightMode && (
-                <div className="bg-green-900/20 border border-green-700/50 rounded p-3 text-sm text-green-300">
-                  <strong>⚡ Performance mode active!</strong> Static dashboard surfaces are in use.
-                </div>
-              )}
+                </fieldset>
+              ) : null}
 
               {autoEnabledReason && (
                 <div className="bg-amber-900/30 border border-amber-600/50 rounded p-3 text-sm text-amber-100 space-y-2">
@@ -597,7 +610,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Note about future features */}
           <div className="text-xs text-gray-500 text-center pt-4 border-t border-gray-700">
-            <p>Custom bio and theme settings coming soon!</p>
+            <p>Your display choices are saved on this device.</p>
           </div>
         </div>
       </div>

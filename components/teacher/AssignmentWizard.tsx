@@ -318,7 +318,7 @@ export default function AssignmentWizard({
   const continueFrom = (currentStep: WizardStep) => {
     if (currentStep === 1 && !assignmentSubject) return brainsAlert('Please choose a subject.', 'info');
     if (currentStep === 2) {
-      if (assignmentMode === 'batch' && !assignmentBatches.length) return brainsAlert('Please select at least one class/batch for this assignment.', 'info');
+      if (assignmentMode === 'batch' && !assignmentBatches.length) return brainsAlert('Please select at least one class for this assignment.', 'info');
       if (assignmentMode === 'custom' && !selectedStudentIds.length) return brainsAlert('Please select at least one student for this assignment.', 'info');
     }
     if (currentStep === 3) {
