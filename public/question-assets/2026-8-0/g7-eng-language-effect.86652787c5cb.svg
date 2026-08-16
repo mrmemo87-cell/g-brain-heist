@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>Language and effect</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32" y="42" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">LANGUAGE AND EFFECT</text>
+  <path d="M32 58H608" stroke="#334155" stroke-width="2"/>
+  <path d="M30 275q55-35 110 0t110 0t110 0t110 0t110 0" fill="none" stroke="#22d3ee" stroke-width="12"/><path d="M120 260L150 128H210L240 260Z" fill="#e2e8f0" stroke="#64748b" stroke-width="4"/><rect x="143" y="102" width="74" height="37" rx="8" fill="#fbbf24"/><path d="M217 120L590 72L590 185Z" fill="#fde68a" opacity=".25"/><path d="M217 120L590 72M217 120L590 185" stroke="#fbbf24" stroke-width="3" stroke-dasharray="12 8"/><text x="350" y="325" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" text-anchor="middle">“The lighthouse stitched a path through the storm.”</text>
+</svg>

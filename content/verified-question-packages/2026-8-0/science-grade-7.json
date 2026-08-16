@@ -1,0 +1,676 @@
+{
+  "subject": "Science",
+  "subjectCode": "science",
+  "grade": 7,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g7-sci-2026.8-001",
+      "topic": "Cells and living systems",
+      "difficulty": "easy",
+      "questionText": "Which feature best helps the pictured nerve cell carry signals over long distances?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Its very long fibre",
+        "Its lack of a cell membrane",
+        "Its square outer wall",
+        "Its large air space"
+      ],
+      "correctAnswer": "Its very long fibre",
+      "explanation": "The extended fibre allows electrical impulses to travel between distant parts of the body.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci7-cells-systems",
+        "cells and living systems"
+      ],
+      "visualAssetId": "g7-sci-specialised-cell",
+      "curriculum": {
+        "strand": "Cells and living systems",
+        "skill": "Apply cells and living systems",
+        "subskill": "cells and living systems",
+        "objective": "Relate specialised cell structures to functions and explain organisation in living systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-cells-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-002",
+      "topic": "Cells and living systems",
+      "difficulty": "medium",
+      "questionText": "Which sequence shows increasing biological organisation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Organ → cell → tissue → organism",
+        "Cell → tissue → organ → organ system",
+        "Tissue → cell → organ system → organ",
+        "Cell → organ system → tissue → organ"
+      ],
+      "correctAnswer": "Cell → tissue → organ → organ system",
+      "explanation": "Similar cells form tissues, tissues form organs, and organs cooperate in systems.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci7-cells-systems",
+        "cells and living systems"
+      ],
+      "curriculum": {
+        "strand": "Cells and living systems",
+        "skill": "Apply cells and living systems",
+        "subskill": "cells and living systems",
+        "objective": "Relate specialised cell structures to functions and explain organisation in living systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-cells-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-003",
+      "topic": "Cells and living systems",
+      "difficulty": "medium",
+      "questionText": "Why are root hair cells effective at absorbing water and minerals?",
+      "questionType": "multiple_choice",
+      "options": [
+        "They contain no cytoplasm",
+        "They are completely waterproof",
+        "Their projections provide a large surface area",
+        "Their nuclei make soil warmer"
+      ],
+      "correctAnswer": "Their projections provide a large surface area",
+      "explanation": "The hair-like projection increases contact with soil water and dissolved mineral ions.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci7-cells-systems",
+        "cells and living systems"
+      ],
+      "curriculum": {
+        "strand": "Cells and living systems",
+        "skill": "Apply cells and living systems",
+        "subskill": "cells and living systems",
+        "objective": "Relate specialised cell structures to functions and explain organisation in living systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-cells-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-004",
+      "topic": "Cells and living systems",
+      "difficulty": "hard",
+      "questionText": "During vigorous exercise, why do breathing rate and heart rate both increase?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To stop all cellular respiration",
+        "To cool the bones inside joints",
+        "To reduce blood flow to muscles",
+        "To supply more oxygen and remove more carbon dioxide"
+      ],
+      "correctAnswer": "To supply more oxygen and remove more carbon dioxide",
+      "explanation": "Working muscles respire faster, requiring increased oxygen delivery and carbon dioxide removal.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci7-cells-systems",
+        "cells and living systems"
+      ],
+      "curriculum": {
+        "strand": "Cells and living systems",
+        "skill": "Apply cells and living systems",
+        "subskill": "cells and living systems",
+        "objective": "Relate specialised cell structures to functions and explain organisation in living systems."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-cells-systems"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-005",
+      "topic": "Particles, mixtures and reactions",
+      "difficulty": "easy",
+      "questionText": "What process causes the particles to become evenly distributed?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Diffusion",
+        "Freezing",
+        "Filtration",
+        "Condensation"
+      ],
+      "correctAnswer": "Diffusion",
+      "explanation": "Random particle motion causes net movement from high to low concentration until distribution is even.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci7-particles-reactions",
+        "particles, mixtures and reactions"
+      ],
+      "visualAssetId": "g7-sci-diffusion",
+      "curriculum": {
+        "strand": "Particles, mixtures and reactions",
+        "skill": "Apply particles, mixtures and reactions",
+        "subskill": "particles, mixtures and reactions",
+        "objective": "Use particle models and conservation to explain diffusion, reactions and separation processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-particles-reactions"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-006",
+      "topic": "Particles, mixtures and reactions",
+      "difficulty": "medium",
+      "questionText": "Which word equation matches the particle model?",
+      "questionType": "multiple_choice",
+      "options": [
+        "AB + B₂ → AB₃",
+        "2AB + B₂ → 2AB₂",
+        "2A + 2B → A₂B₂",
+        "2AB₂ → 2AB + B₂"
+      ],
+      "correctAnswer": "2AB + B₂ → 2AB₂",
+      "explanation": "The diagram shows two AB units plus one B₂ unit forming two AB₂ units.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci7-particles-reactions",
+        "particles, mixtures and reactions"
+      ],
+      "visualAssetId": "g7-sci-reaction-model",
+      "curriculum": {
+        "strand": "Particles, mixtures and reactions",
+        "skill": "Apply particles, mixtures and reactions",
+        "subskill": "particles, mixtures and reactions",
+        "objective": "Use particle models and conservation to explain diffusion, reactions and separation processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-particles-reactions"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-007",
+      "topic": "Particles, mixtures and reactions",
+      "difficulty": "medium",
+      "questionText": "Which method best separates pure water from a salt solution?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Filtration only",
+        "A magnet",
+        "Simple distillation",
+        "Chromatography paper only"
+      ],
+      "correctAnswer": "Simple distillation",
+      "explanation": "Distillation boils and condenses the water while the dissolved salt remains behind.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci7-particles-reactions",
+        "particles, mixtures and reactions"
+      ],
+      "curriculum": {
+        "strand": "Particles, mixtures and reactions",
+        "skill": "Apply particles, mixtures and reactions",
+        "subskill": "particles, mixtures and reactions",
+        "objective": "Use particle models and conservation to explain diffusion, reactions and separation processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-particles-reactions"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-008",
+      "topic": "Particles, mixtures and reactions",
+      "difficulty": "hard",
+      "questionText": "A sealed flask has a mass of 145.6 g before a reaction. What mass should it have after the reaction?",
+      "questionType": "multiple_choice",
+      "options": [
+        "0 g",
+        "72.8 g",
+        "More than 145.6 g in every case",
+        "145.6 g"
+      ],
+      "correctAnswer": "145.6 g",
+      "explanation": "In a closed system atoms are rearranged but not lost, so total mass is conserved.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci7-particles-reactions",
+        "particles, mixtures and reactions"
+      ],
+      "curriculum": {
+        "strand": "Particles, mixtures and reactions",
+        "skill": "Apply particles, mixtures and reactions",
+        "subskill": "particles, mixtures and reactions",
+        "objective": "Use particle models and conservation to explain diffusion, reactions and separation processes."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-particles-reactions"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-009",
+      "topic": "Forces, motion and pressure",
+      "difficulty": "easy",
+      "questionText": "During which interval is the object stationary?",
+      "questionType": "multiple_choice",
+      "options": [
+        "From 4 to 6 minutes",
+        "From 0 to 2 minutes",
+        "From 2 to 4 minutes",
+        "From 6 to 8 minutes"
+      ],
+      "correctAnswer": "From 4 to 6 minutes",
+      "explanation": "A horizontal distance–time segment means distance is unchanged, so the object is stationary.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci7-forces-motion",
+        "forces, motion and pressure"
+      ],
+      "visualAssetId": "g7-sci-distance-time",
+      "curriculum": {
+        "strand": "Forces, motion and pressure",
+        "skill": "Apply forces, motion and pressure",
+        "subskill": "forces, motion and pressure",
+        "objective": "Interpret motion graphs and apply resultant force and pressure relationships."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-forces-motion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-010",
+      "topic": "Forces, motion and pressure",
+      "difficulty": "medium",
+      "questionText": "Which position produces the greater pressure on the surface?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Position A",
+        "Position B",
+        "Both always produce zero pressure",
+        "Both have different weights"
+      ],
+      "correctAnswer": "Position B",
+      "explanation": "The same weight acts through a smaller contact area in B, producing greater pressure.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci7-forces-motion",
+        "forces, motion and pressure"
+      ],
+      "visualAssetId": "g7-sci-pressure-blocks",
+      "curriculum": {
+        "strand": "Forces, motion and pressure",
+        "skill": "Apply forces, motion and pressure",
+        "subskill": "forces, motion and pressure",
+        "objective": "Interpret motion graphs and apply resultant force and pressure relationships."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-forces-motion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-011",
+      "topic": "Forces, motion and pressure",
+      "difficulty": "medium",
+      "questionText": "A runner travels 150 m in 30 s. What is the average speed?",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.2 m/s",
+        "120 m/s",
+        "5 m/s",
+        "4,500 m/s"
+      ],
+      "correctAnswer": "5 m/s",
+      "explanation": "Average speed is distance divided by time: 150 ÷ 30 = 5 m/s.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci7-forces-motion",
+        "forces, motion and pressure"
+      ],
+      "curriculum": {
+        "strand": "Forces, motion and pressure",
+        "skill": "Apply forces, motion and pressure",
+        "subskill": "forces, motion and pressure",
+        "objective": "Interpret motion graphs and apply resultant force and pressure relationships."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-forces-motion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-012",
+      "topic": "Forces, motion and pressure",
+      "difficulty": "hard",
+      "questionText": "A 12 N force acts right and a 7 N force acts left on a 2 kg cart. What motion change should result?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The cart must remain stationary",
+        "The cart accelerates to the left",
+        "The forces are balanced",
+        "The cart accelerates to the right"
+      ],
+      "correctAnswer": "The cart accelerates to the right",
+      "explanation": "The resultant is 5 N to the right, so the cart accelerates in that direction.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci7-forces-motion",
+        "forces, motion and pressure"
+      ],
+      "curriculum": {
+        "strand": "Forces, motion and pressure",
+        "skill": "Apply forces, motion and pressure",
+        "subskill": "forces, motion and pressure",
+        "objective": "Interpret motion graphs and apply resultant force and pressure relationships."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-forces-motion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-013",
+      "topic": "Energy and electricity",
+      "difficulty": "easy",
+      "questionText": "What happens to the other lamp if one lamp is removed from this parallel circuit?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It can remain lit on its own branch",
+        "It must become a battery",
+        "It always goes out because there is one path",
+        "It receives no electrical energy in any circuit"
+      ],
+      "correctAnswer": "It can remain lit on its own branch",
+      "explanation": "Each parallel branch provides a separate complete path, so the other branch can keep working.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci7-energy-electricity",
+        "energy and electricity"
+      ],
+      "visualAssetId": "g7-sci-parallel-circuit",
+      "curriculum": {
+        "strand": "Energy and electricity",
+        "skill": "Apply energy and electricity",
+        "subskill": "energy and electricity",
+        "objective": "Analyse circuit behaviour and quantify useful and dissipated energy transfers."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-energy-electricity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-014",
+      "topic": "Energy and electricity",
+      "difficulty": "medium",
+      "questionText": "How much energy is transferred as thermal energy in the diagram?",
+      "questionType": "multiple_choice",
+      "options": [
+        "20 J",
+        "80 J",
+        "100 J",
+        "120 J"
+      ],
+      "correctAnswer": "80 J",
+      "explanation": "Energy is conserved, so thermal transfer is 100 J input minus 20 J light = 80 J.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci7-energy-electricity",
+        "energy and electricity"
+      ],
+      "visualAssetId": "g7-sci-sankey",
+      "curriculum": {
+        "strand": "Energy and electricity",
+        "skill": "Apply energy and electricity",
+        "subskill": "energy and electricity",
+        "objective": "Analyse circuit behaviour and quantify useful and dissipated energy transfers."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-energy-electricity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-015",
+      "topic": "Energy and electricity",
+      "difficulty": "medium",
+      "questionText": "Which device transfers electrical energy mainly into kinetic energy?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A stationary heater",
+        "A lamp",
+        "An electric fan",
+        "A battery being stored"
+      ],
+      "correctAnswer": "An electric fan",
+      "explanation": "A fan motor uses electrical energy to produce movement of its blades.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci7-energy-electricity",
+        "energy and electricity"
+      ],
+      "curriculum": {
+        "strand": "Energy and electricity",
+        "skill": "Apply energy and electricity",
+        "subskill": "energy and electricity",
+        "objective": "Analyse circuit behaviour and quantify useful and dissipated energy transfers."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-energy-electricity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-016",
+      "topic": "Energy and electricity",
+      "difficulty": "hard",
+      "questionText": "A machine receives 500 J and transfers 350 J usefully. What is its efficiency?",
+      "questionType": "multiple_choice",
+      "options": [
+        "30%",
+        "150%",
+        "850%",
+        "70%"
+      ],
+      "correctAnswer": "70%",
+      "explanation": "Efficiency is useful output divided by input: 350/500 × 100% = 70%.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci7-energy-electricity",
+        "energy and electricity"
+      ],
+      "curriculum": {
+        "strand": "Energy and electricity",
+        "skill": "Apply energy and electricity",
+        "subskill": "energy and electricity",
+        "objective": "Analyse circuit behaviour and quantify useful and dissipated energy transfers."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-energy-electricity"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-017",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "easy",
+      "questionText": "What is the independent variable in the pictured investigation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Water temperature",
+        "Volume of water",
+        "Size of sugar cube",
+        "Time taken to dissolve"
+      ],
+      "correctAnswer": "Water temperature",
+      "explanation": "The deliberately changed factor is temperature; the other shown conditions are controlled.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "sci7-scientific-enquiry",
+        "scientific enquiry and evidence"
+      ],
+      "visualAssetId": "g7-sci-fair-test",
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Design fair investigations, analyse patterns and evaluate reliability, validity and conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-scientific-enquiry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-018",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "medium",
+      "questionText": "Why should each dissolving test be repeated?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To change several variables together",
+        "To identify variation and calculate a representative mean",
+        "To guarantee the prediction is correct",
+        "To avoid recording any units"
+      ],
+      "correctAnswer": "To identify variation and calculate a representative mean",
+      "explanation": "Repeats reveal random variation and allow a mean that better represents the result.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci7-scientific-enquiry",
+        "scientific enquiry and evidence"
+      ],
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Design fair investigations, analyse patterns and evaluate reliability, validity and conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-scientific-enquiry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-019",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "medium",
+      "questionText": "A result lies far from all repeats and a procedural mistake was recorded. What is the best action?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Delete every result without explanation",
+        "Change the hypothesis to match it",
+        "Repeat that trial and justify excluding the anomalous result",
+        "Average it twice so it has more influence"
+      ],
+      "correctAnswer": "Repeat that trial and justify excluding the anomalous result",
+      "explanation": "A documented procedural error supports a transparent repeat and justified treatment of the anomaly.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "sci7-scientific-enquiry",
+        "scientific enquiry and evidence"
+      ],
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Design fair investigations, analyse patterns and evaluate reliability, validity and conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-scientific-enquiry"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-sci-2026.8-020",
+      "topic": "Scientific enquiry and evidence",
+      "difficulty": "hard",
+      "questionText": "Two variables rise together in an observational study. Which conclusion is safest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "One variable certainly causes the other",
+        "The relationship must be accidental",
+        "Both variables have identical units",
+        "They are associated, but the study alone does not prove causation"
+      ],
+      "correctAnswer": "They are associated, but the study alone does not prove causation",
+      "explanation": "Correlation supports an association, while uncontrolled factors may explain the pattern.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "sci7-scientific-enquiry",
+        "scientific enquiry and evidence"
+      ],
+      "curriculum": {
+        "strand": "Scientific enquiry and evidence",
+        "skill": "Apply scientific enquiry and evidence",
+        "subskill": "scientific enquiry and evidence",
+        "objective": "Design fair investigations, analyse patterns and evaluate reliability, validity and conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "science-grade-7",
+          "objectiveCode": "sci7-scientific-enquiry"
+        }
+      ]
+    }
+  ]
+}

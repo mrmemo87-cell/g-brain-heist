@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPOSITORY_ROOT = path.resolve(__dirname, '..');
 const PACKAGES_ROOT = path.resolve(__dirname, '..', 'content', 'verified-question-packages');
-export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-7-0');
+export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-8-0');
 const VALID_DIFFICULTIES = new Set(['easy', 'medium', 'hard']);
 const VALID_TYPES = new Set(['multiple_choice', 'true_false', 'short_answer']);
 const PACKAGE_EXPECTATIONS = new Map([
@@ -54,12 +54,24 @@ const PACKAGE_EXPECTATIONS = new Map([
   }],
   ['brain-heist-grade-6-core-2026-7', {
     curriculumVersion: '2026-7',
+    assetDirectory: '2026-7-0',
     visualAssetRange: [20, 25],
     scopes: new Map([
       ['mathematics', { subject: 'Mathematics', grade: 6, scope: 'mathematics-grade-6' }],
       ['english', { subject: 'English', grade: 6, scope: 'english-grade-6' }],
       ['science', { subject: 'Science', grade: 6, scope: 'science-grade-6' }],
       ['geography', { subject: 'Geography', grade: 6, scope: 'geography-grade-6' }],
+    ]),
+  }],
+  ['brain-heist-grade-7-core-2026-8', {
+    curriculumVersion: '2026-8',
+    assetDirectory: '2026-8-0',
+    visualAssetRange: [20, 25],
+    scopes: new Map([
+      ['mathematics', { subject: 'Mathematics', grade: 7, scope: 'mathematics-grade-7' }],
+      ['english', { subject: 'English', grade: 7, scope: 'english-grade-7' }],
+      ['science', { subject: 'Science', grade: 7, scope: 'science-grade-7' }],
+      ['geography', { subject: 'Geography', grade: 7, scope: 'geography-grade-7' }],
     ]),
   }],
 ]);
@@ -127,6 +139,8 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
     if (pkg.assets.length < minimumAssets || pkg.assets.length > maximumAssets) {
       errors.push(`package must contain ${minimumAssets}–${maximumAssets} visual assets; found ${pkg.assets.length}`);
     }
+    const assetDirectory = packageExpectation?.assetDirectory;
+    const expectedSourcePrefix = assetDirectory ? `public/question-assets/${assetDirectory}/` : '';
     for (const asset of pkg.assets) {
       const label = `asset:${asset?.assetId ?? 'missing-id'}`;
       if (!/^[a-z0-9][a-z0-9-]{5,100}$/.test(asset?.assetId ?? '')) errors.push(`${label} has an invalid assetId`);
@@ -140,7 +154,9 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
       if (asset?.license !== 'Brains Heist original educational artwork' || asset?.source !== 'Brains Heist Visual System') {
         errors.push(`${label} must carry the reviewed Brains Heist source and license`);
       }
-      if (!/^public\/question-assets\/2026-7-0\/[a-z0-9-]+\.[0-9a-f]{12}\.svg$/.test(asset?.sourceFile ?? '')) {
+      const immutableFilename = String(asset?.sourceFile ?? '').slice(expectedSourcePrefix.length);
+      if (!assetDirectory || !String(asset?.sourceFile ?? '').startsWith(expectedSourcePrefix)
+          || !/^[a-z0-9-]+\.[0-9a-f]{12}\.svg$/.test(immutableFilename)) {
         errors.push(`${label} has an invalid immutable sourceFile`);
         continue;
       }
@@ -149,7 +165,7 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
       if (!asset.sourceFile.includes(`.${String(asset.sha256).slice(0, 12)}.svg`)) errors.push(`${label} filename must include its checksum prefix`);
       try {
         const filePath = path.resolve(REPOSITORY_ROOT, asset.sourceFile);
-        const allowedRoot = path.join(REPOSITORY_ROOT, 'public', 'question-assets', '2026-7-0') + path.sep;
+        const allowedRoot = path.join(REPOSITORY_ROOT, 'public', 'question-assets', assetDirectory) + path.sep;
         if (!filePath.startsWith(allowedRoot)) throw new Error('asset escapes the reviewed public asset directory');
         const fileBytes = readFileSync(filePath);
         if (statSync(filePath).size > 100_000) errors.push(`${label} exceeds the 100 KB SVG limit`);

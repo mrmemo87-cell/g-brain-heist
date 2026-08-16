@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>Pressure and contact area</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32" y="42" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">PRESSURE AND CONTACT AREA</text>
+  <path d="M32 58H608" stroke="#334155" stroke-width="2"/>
+  <path d="M40 286H600" stroke="#64748b" stroke-width="6"/><text x="180" y="105" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="900" text-anchor="middle">A</text><rect x="80" y="175" width="200" height="108" rx="8" fill="#164e63" stroke="#22d3ee" stroke-width="5"/><text x="460" y="105" fill="#fbbf24" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="900" text-anchor="middle">B</text><rect x="405" y="85" width="110" height="198" rx="8" fill="#3f2a0a" stroke="#fbbf24" stroke-width="5"/><text x="180" y="236" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" text-anchor="middle">same block</text><text x="460" y="190" fill="#fde68a" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" text-anchor="middle">same block</text>
+</svg>
