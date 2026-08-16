@@ -18,10 +18,22 @@ export interface Entitlement {
   limit_value: number | null;
 }
 
+export type StudentProgrammeKey = 'cambridge' | 'ielts' | 'writing';
+export type ProgrammeAccessReason = 'available' | 'not_purchased' | 'seat_not_allocated';
+
+export interface ProgrammeAccess {
+  purchased: boolean;
+  seatAllocated: boolean;
+  available: boolean;
+  reason: ProgrammeAccessReason;
+}
+
 export interface EntitlementSet {
+  authoritative: boolean;
   plan: string;
   schoolId: string | null;
   modules: Record<SchoolModuleKey, boolean>;
+  programmeAccess: Record<StudentProgrammeKey, ProgrammeAccess>;
   entitlements: Record<string, Entitlement>;
   /** Check if a feature is enabled for the current plan */
   canUse: (featureKey: string) => boolean;
@@ -56,6 +68,9 @@ export async function getEntitlements(force = false): Promise<EntitlementSet> {
   const rawModules = !error && payload['modules'] && typeof payload['modules'] === 'object'
     ? payload['modules'] as Record<string, unknown>
     : {};
+  const rawProgrammeCatalogue = !error && payload['programme_catalogue'] && typeof payload['programme_catalogue'] === 'object'
+    ? payload['programme_catalogue'] as Record<string, unknown>
+    : {};
   const entitlements: Record<string, Entitlement> = {};
   for (const [featureKey, value] of Object.entries(rawEntitlements)) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) continue;
@@ -75,10 +90,38 @@ export async function getEntitlements(force = false): Promise<EntitlementSet> {
     admissions: rawModules['admissions'] === true,
   };
 
+  const parseProgrammeAccess = (key: StudentProgrammeKey): ProgrammeAccess => {
+    const raw = rawProgrammeCatalogue[key];
+    const row = raw && typeof raw === 'object' && !Array.isArray(raw)
+      ? raw as Record<string, unknown>
+      : {};
+    const available = row['available'] === true && modules[key];
+    const rawReason = row['reason'];
+    const reason: ProgrammeAccessReason = available
+      ? 'available'
+      : rawReason === 'seat_not_allocated'
+        ? 'seat_not_allocated'
+        : 'not_purchased';
+    return {
+      purchased: row['purchased'] === true,
+      seatAllocated: row['seat_allocated'] === true,
+      available,
+      reason,
+    };
+  };
+
+  const programmeAccess: Record<StudentProgrammeKey, ProgrammeAccess> = {
+    cambridge: parseProgrammeAccess('cambridge'),
+    ielts: parseProgrammeAccess('ielts'),
+    writing: parseProgrammeAccess('writing'),
+  };
+
   const result: EntitlementSet = {
+    authoritative: !error && payload['success'] === true,
     plan: effectivePlan,
     schoolId: typeof payload['school_id'] === 'string' ? payload['school_id'] : null,
     modules,
+    programmeAccess,
     entitlements,
     canUse: (featureKey: string) => {
       const ent = entitlements[featureKey];

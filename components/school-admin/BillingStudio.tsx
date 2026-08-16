@@ -3,6 +3,8 @@ import {
   acceptSchoolBillingQuote,
   billingPercent,
   calculateSchoolQuote,
+  chooseSchoolQuotePayment,
+  createSchoolPaddleCheckout,
   formatBillingMoney,
   listSchoolBillingQuotes,
   saveSchoolBillingQuote,
@@ -10,8 +12,11 @@ import {
   type BillingContractTerm,
   type BillingProgrammeKey,
   type BillingQuoteInputs,
+  type PaddleInvoiceBillingDetails,
   type SchoolBillingQuote,
+  type SchoolPaymentMethod,
 } from '../../services/billingStudioService';
+import { openPaddleCheckoutForTransaction } from '../../services/paddleCheckoutClient';
 
 interface BillingStudioProps {
   schoolId: string;
@@ -35,6 +40,12 @@ const PROGRAMMES: Array<{ key: BillingProgrammeKey; label: string; description: 
 const statusLabel: Record<string, string> = {
   draft: 'Draft', submitted: 'Awaiting review', revision_requested: 'Changes requested',
   approved: 'Approved quote', accepted: 'Accepted', rejected: 'Not approved', expired: 'Expired', cancelled: 'Cancelled',
+  payment_pending: 'Payment pending', payment_failed: 'Payment failed', scheduled: 'Scheduled renewal',
+  active: 'Active agreement', superseded: 'Superseded',
+};
+
+const initialInvoiceDetails: PaddleInvoiceBillingDetails = {
+  legal_name: '', first_line: '', city: '', region: '', postal_code: '', country_code: '',
 };
 
 const programmeInputKey: Record<BillingProgrammeKey, keyof BillingQuoteInputs> = {
@@ -62,6 +73,9 @@ const BillingStudio: React.FC<BillingStudioProps> = ({ schoolId, addToast }) => 
   const [saving, setSaving] = useState<'save' | 'submit' | null>(null);
   const [accepting, setAccepting] = useState<string | null>(null);
   const [acceptConfirmed, setAcceptConfirmed] = useState<string | null>(null);
+  const [paymentBusy, setPaymentBusy] = useState<string | null>(null);
+  const [invoiceQuoteId, setInvoiceQuoteId] = useState<string | null>(null);
+  const [invoiceDetails, setInvoiceDetails] = useState<PaddleInvoiceBillingDetails>(initialInvoiceDetails);
   const [error, setError] = useState<string | null>(null);
 
   const loadQuotes = useCallback(async () => {
@@ -158,11 +172,98 @@ const BillingStudio: React.FC<BillingStudioProps> = ({ schoolId, addToast }) => 
     setAccepting(quote.id);
     try {
       await acceptSchoolBillingQuote(quote.id);
-      addToast('Package accepted. Access remains unchanged until Brains Heist verifies payment and activates the exact seats.', 'success');
+      addToast('Package accepted. Choose a payment route to activate the exact seats after verified settlement.', 'success');
       setAcceptConfirmed(null);
       await loadQuotes();
     } catch (acceptError) { addToast(acceptError instanceof Error ? acceptError.message : 'The quote could not be accepted.', 'error'); }
     finally { setAccepting(null); }
+  };
+
+  const ensurePaymentRoute = async (quote: SchoolBillingQuote, method: SchoolPaymentMethod) => {
+    if (quote.status === 'payment_pending' && quote.selected_payment_method === method) return quote;
+    return chooseSchoolQuotePayment(quote.id, method);
+  };
+
+  const startPaddlePayment = async (quote: SchoolBillingQuote, mode: 'checkout' | 'invoice') => {
+    const method: SchoolPaymentMethod = mode === 'invoice' ? 'paddle_invoice' : 'paddle_checkout';
+    setPaymentBusy(`${quote.id}:${mode}`);
+    try {
+      await ensurePaymentRoute(quote, method);
+      const checkout = await createSchoolPaddleCheckout(
+        quote.id,
+        mode,
+        mode === 'invoice' ? invoiceDetails : undefined,
+      );
+      if (mode === 'invoice') {
+        setInvoiceQuoteId(null);
+        addToast('Paddle invoice issued. Seats activate only after Paddle confirms payment.', 'success');
+        if (checkout.invoice_url) window.open(checkout.invoice_url, '_blank', 'noopener,noreferrer');
+      } else if (checkout.subscription_updated) {
+        addToast(checkout.message || 'Paddle accepted the exact prorated upgrade. Seats activate after payment confirmation.', 'success');
+      } else if (checkout.transaction_id) {
+        await openPaddleCheckoutForTransaction(
+          checkout.transaction_id,
+          `${window.location.origin}/?view=school_head&headTab=subscription&checkout=success`,
+        );
+      } else {
+        throw new Error('Paddle did not return a checkout transaction.');
+      }
+      await loadQuotes();
+    } catch (paymentError) {
+      addToast(paymentError instanceof Error ? paymentError.message : 'Paddle could not start this payment.', 'error');
+      await loadQuotes();
+    } finally {
+      setPaymentBusy(null);
+    }
+  };
+
+  const chooseOfflinePayment = async (quote: SchoolBillingQuote, method: 'bank_transfer' | 'cash') => {
+    setPaymentBusy(`${quote.id}:${method}`);
+    try {
+      await ensurePaymentRoute(quote, method);
+      addToast(
+        method === 'bank_transfer'
+          ? 'Bank transfer selected. Brains Heist will provide verified transfer instructions; access stays unchanged until funds clear.'
+          : 'Cash settlement selected. Brains Heist must record and verify the receipt before seats activate.',
+        'info',
+      );
+      await loadQuotes();
+    } catch (paymentError) {
+      addToast(paymentError instanceof Error ? paymentError.message : 'The payment route could not be selected.', 'error');
+    } finally {
+      setPaymentBusy(null);
+    }
+  };
+
+  const renderPaymentControls = (quote: SchoolBillingQuote) => {
+    const canChoose = ['accepted', 'payment_failed'].includes(quote.status)
+      || (quote.status === 'scheduled' && quote.effective_at
+        && new Date(quote.effective_at).getTime() <= Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const amount = quote.settlement_amount_minor ?? quote.calculation.totals.contract_total_minor;
+    const paymentCurrency = quote.settlement_currency ?? quote.calculation.pricing_version.currency;
+    const isInvoiceOpen = invoiceQuoteId === quote.id;
+    if (!canChoose && quote.status !== 'payment_pending') return null;
+    return <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-950">
+      <strong className="block text-sm">Settle {formatBillingMoney(amount, paymentCurrency)} securely</strong>
+      <p className="mt-1 leading-5">Paddle card checkout is immediate. A Paddle invoice gives the school 14 days to pay. Bank transfer and cash require manual Brains Heist verification. No route activates seats before verified payment.</p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <button type="button" disabled={paymentBusy !== null} onClick={() => void startPaddlePayment(quote, 'checkout')} className="rounded-lg bg-emerald-700 px-3 py-2.5 font-bold text-white hover:bg-emerald-800 disabled:opacity-50">{paymentBusy === `${quote.id}:checkout` ? 'Opening Paddle…' : quote.selected_payment_method === 'paddle_checkout' ? 'Resume secure checkout' : 'Pay securely with Paddle'}</button>
+        <button type="button" disabled={paymentBusy !== null || quote.agreement_kind === 'upgrade'} onClick={() => setInvoiceQuoteId(isInvoiceOpen ? null : quote.id)} className="rounded-lg border border-emerald-600 bg-white px-3 py-2.5 font-bold text-emerald-900 disabled:cursor-not-allowed disabled:opacity-50">{quote.agreement_kind === 'upgrade' ? 'Invoice at renewal' : isInvoiceOpen ? 'Close invoice form' : 'Request Paddle invoice'}</button>
+        <button type="button" disabled={paymentBusy !== null} onClick={() => void chooseOfflinePayment(quote, 'bank_transfer')} className="rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold text-slate-800 disabled:opacity-50">Bank transfer</button>
+        <button type="button" disabled={paymentBusy !== null} onClick={() => void chooseOfflinePayment(quote, 'cash')} className="rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold text-slate-800 disabled:opacity-50">Cash settlement</button>
+      </div>
+      {quote.agreement_kind === 'upgrade' && <p className="mt-2 text-[11px] leading-4">For an immediate upgrade, Paddle previews the exact tax-exclusive proration and charges the saved payment method. If its preview differs from the accepted amount, nothing is changed and an offline reviewed settlement is required.</p>}
+      {isInvoiceOpen && <div className="mt-3 grid gap-2 rounded-lg border border-emerald-200 bg-white p-3 sm:grid-cols-2">
+        <label>Legal school name<input required value={invoiceDetails.legal_name} onChange={(event) => setInvoiceDetails((current) => ({ ...current, legal_name: event.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2" /></label>
+        <label>Address line<input required value={invoiceDetails.first_line} onChange={(event) => setInvoiceDetails((current) => ({ ...current, first_line: event.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2" /></label>
+        <label>City<input required value={invoiceDetails.city} onChange={(event) => setInvoiceDetails((current) => ({ ...current, city: event.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2" /></label>
+        <label>Region / state<input required value={invoiceDetails.region} onChange={(event) => setInvoiceDetails((current) => ({ ...current, region: event.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2" /></label>
+        <label>Postal code<input required value={invoiceDetails.postal_code} onChange={(event) => setInvoiceDetails((current) => ({ ...current, postal_code: event.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2" /></label>
+        <label>Country code<input required maxLength={2} placeholder="KG" value={invoiceDetails.country_code} onChange={(event) => setInvoiceDetails((current) => ({ ...current, country_code: event.target.value.toUpperCase() }))} className="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-2 uppercase" /></label>
+        <button type="button" disabled={paymentBusy !== null || Object.values(invoiceDetails).some((value) => !value.trim()) || !/^[A-Z]{2}$/.test(invoiceDetails.country_code)} onClick={() => void startPaddlePayment(quote, 'invoice')} className="rounded-lg bg-emerald-700 px-3 py-2.5 font-bold text-white disabled:opacity-40 sm:col-span-2">{paymentBusy === `${quote.id}:invoice` ? 'Issuing invoice…' : 'Issue 14-day Paddle invoice'}</button>
+      </div>}
+      {quote.status === 'payment_pending' && <p className="mt-3 rounded-lg bg-white/80 p-2 font-semibold">Selected: {(quote.selected_payment_method ?? 'payment').replaceAll('_', ' ')}. Capacity remains unchanged until the signed Paddle webhook or Brains Heist verification records settlement.</p>}
+    </div>;
   };
 
   return (
@@ -275,9 +376,9 @@ const BillingStudio: React.FC<BillingStudioProps> = ({ schoolId, addToast }) => 
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-700">Saved scenarios &amp; requests</p><h4 className="mt-1 text-lg font-bold text-slate-950">Compare without changing the live agreement</h4></div><button type="button" onClick={() => void loadQuotes()} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700">Refresh</button></div>
-        {quotes.length === 0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No saved scenarios yet. Build one above and keep up to three editable versions.</p> : <div className="mt-4 grid gap-3 lg:grid-cols-3">{quotes.slice(0, 9).map((quote) => <article key={quote.id} className={`rounded-xl border p-4 ${quote.activated_at ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200'}`}><div className="flex items-start justify-between gap-3"><div><h5 className="font-bold text-slate-950">{quote.title}</h5><p className="mt-1 text-xs text-slate-500">{quote.platform_seats} platform · Cambridge {quote.cambridge_seats} · IELTS {quote.ielts_seats} · Writing {quote.writing_seats}</p></div><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${quote.activated_at ? 'bg-emerald-700 text-white' : quote.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : quote.status === 'accepted' ? 'bg-violet-100 text-violet-800' : quote.status === 'revision_requested' ? 'bg-amber-100 text-amber-800' : quote.status === 'submitted' ? 'bg-cyan-100 text-cyan-800' : 'bg-slate-100 text-slate-700'}`}>{quote.activated_at ? 'Active agreement' : statusLabel[quote.status] ?? quote.status}</span></div><p className="mt-3 text-lg font-bold text-slate-950">{formatBillingMoney(quote.calculation.totals.contract_total_minor, quote.calculation.pricing_version.currency)}</p>{quote.review_note && <p className="mt-2 rounded-lg bg-amber-50 p-2 text-xs text-amber-900">Brains Heist: {quote.review_note}</p>}
+        {quotes.length === 0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No saved scenarios yet. Build one above and keep up to three editable versions.</p> : <div className="mt-4 grid gap-3 lg:grid-cols-3">{quotes.slice(0, 9).map((quote) => <article key={quote.id} className={`rounded-xl border p-4 ${quote.activated_at ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200'}`}><div className="flex items-start justify-between gap-3"><div><h5 className="font-bold text-slate-950">{quote.title}</h5><p className="mt-1 text-xs text-slate-500">{quote.platform_seats} platform · Cambridge {quote.cambridge_seats} · IELTS {quote.ielts_seats} · Writing {quote.writing_seats}</p></div><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${quote.activated_at ? 'bg-emerald-700 text-white' : quote.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : quote.status === 'accepted' || quote.status === 'payment_pending' ? 'bg-violet-100 text-violet-800' : quote.status === 'revision_requested' || quote.status === 'payment_failed' ? 'bg-amber-100 text-amber-800' : quote.status === 'submitted' ? 'bg-cyan-100 text-cyan-800' : 'bg-slate-100 text-slate-700'}`}>{quote.activated_at ? 'Active agreement' : statusLabel[quote.status] ?? quote.status}</span></div><p className="mt-3 text-lg font-bold text-slate-950">{formatBillingMoney(quote.settlement_amount_minor ?? quote.calculation.totals.contract_total_minor, quote.settlement_currency ?? quote.calculation.pricing_version.currency)}</p>{quote.agreement_kind === 'upgrade' && quote.settlement_amount_minor != null && <p className="mt-1 text-[11px] font-semibold text-violet-700">Exact prorated amount due now</p>}{quote.review_note && <p className="mt-2 rounded-lg bg-amber-50 p-2 text-xs text-amber-900">Brains Heist: {quote.review_note}</p>}
           {quote.status === 'approved' && <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3"><p className="text-xs leading-5 text-emerald-950"><strong>Step 2 of 3 · Your decision.</strong> Accepting locks this approved package for activation. It does not charge the school or enable access.</p><label className="mt-2 flex items-start gap-2 text-xs text-emerald-950"><input type="checkbox" checked={acceptConfirmed === quote.id} onChange={(event) => setAcceptConfirmed(event.target.checked ? quote.id : null)} className="mt-0.5" />I confirm these exact named-seat quantities and contract total.</label><button type="button" disabled={acceptConfirmed !== quote.id || accepting !== null} onClick={() => void acceptQuote(quote)} className="mt-3 rounded-lg bg-emerald-800 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{accepting === quote.id ? 'Accepting…' : 'Accept approved package'}</button>{quote.expires_at && <p className="mt-2 text-[11px] text-emerald-800">Approval expires {new Date(quote.expires_at).toLocaleDateString()}.</p>}</div>}
-          {quote.status === 'accepted' && !quote.activated_at && <div className="mt-3 rounded-lg bg-violet-50 p-3 text-xs leading-5 text-violet-950"><strong>Step 3 of 3 · Awaiting verified activation.</strong><p>Your current access has not changed. Brains Heist will activate exactly Cambridge {quote.cambridge_seats}, IELTS {quote.ielts_seats}, and Writing {quote.writing_seats} after payment or complimentary authority is verified.</p></div>}
+          {!quote.activated_at && renderPaymentControls(quote)}
           {quote.activated_at && <p className="mt-3 rounded-lg bg-emerald-100 p-3 text-xs text-emerald-950"><strong>Active since {new Date(quote.activated_at).toLocaleDateString()}.</strong> The quoted programme quantities now control named-seat assignment.</p>}
           {['draft','revision_requested'].includes(quote.status) && <button type="button" onClick={() => useQuote(quote)} className="mt-3 text-xs font-bold text-cyan-800">Open and edit →</button>}</article>)}</div>}
       </section>

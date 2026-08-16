@@ -32,7 +32,7 @@ import EmailVerificationGate from './components/EmailVerificationGate';
 import UpgradeModal from './components/UpgradeModal';
 import DashboardTourOverlay from './components/onboarding/DashboardTourOverlay';
 import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoolPlanDetails, type AccountTier } from './services/tierService';
-import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey } from './services/entitlementService';
+import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey, type StudentProgrammeKey } from './services/entitlementService';
 
 // Lazy-loaded: only fetched when the user actually opens these views/modals
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
@@ -85,6 +85,57 @@ const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
 };
 const DEFAULT_BATCH: Batch = 'N/A';
 const formatModuleName = (module: string) => ({ cambridge: 'Cambridge', ielts: 'IELTS', writing: 'Writing Hub', admissions: 'Admission Hub' }[module] || module);
+
+interface StudentProgrammeCardProps {
+  programme: StudentProgrammeKey;
+  icon: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  locked: boolean;
+  lockMessage: string;
+  openLabel: string;
+  onOpen: () => void;
+  onPreload?: () => void;
+}
+
+const StudentProgrammeCard: React.FC<StudentProgrammeCardProps> = ({
+  programme,
+  icon,
+  eyebrow,
+  title,
+  description,
+  locked,
+  lockMessage,
+  openLabel,
+  onOpen,
+  onPreload,
+}) => {
+  const lockMessageId = `${programme}-programme-lock-message`;
+  return (
+    <article className={`student-feed-card student-learning-card ${locked ? 'border-slate-300 opacity-80' : ''}`}>
+      <div className="student-learning-card__icon" aria-hidden>{icon}</div>
+      <div className="student-learning-card__copy">
+        <span className="student-learning-card__eyebrow">{eyebrow}</span>
+        <h2>{title}</h2>
+        <p>{description}</p>
+        {locked ? <p id={lockMessageId} className="mt-2 text-xs font-semibold text-slate-300">🔒 {lockMessage}</p> : null}
+      </div>
+      <button
+        type="button"
+        disabled={locked}
+        aria-describedby={locked ? lockMessageId : undefined}
+        onMouseEnter={locked ? undefined : onPreload}
+        onFocus={locked ? undefined : onPreload}
+        onClick={onOpen}
+        className="student-primary-button disabled:cursor-not-allowed disabled:bg-slate-500 disabled:text-slate-200"
+      >
+        {locked ? 'Programme locked' : <>{openLabel} <span aria-hidden>→</span></>}
+      </button>
+    </article>
+  );
+};
+
 interface AppProps {
   onLogout: () => void;
 }
@@ -237,6 +288,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const canUseSchoolModule = useCallback((module: 'cambridge' | 'ielts' | 'writing' | 'admissions') => (
     Boolean(hasSchool && effectiveEntitlements?.modules[module])
   ), [effectiveEntitlements, hasSchool]);
+  const schoolProgrammeLockMessage = useCallback((module: 'cambridge' | 'ielts' | 'writing') => {
+    const label = formatModuleName(module);
+    const access = effectiveEntitlements?.programmeAccess[module];
+    if (access?.purchased && !access.seatAllocated) {
+      return `${label} is included in your school's agreement, but a School Head must allocate a ${label} seat to you first.`;
+    }
+    return `${label} has not been purchased by your school.`;
+  }, [effectiveEntitlements]);
   const hasActiveTeacherAllocation = Boolean(schoolCapabilities?.has_active_teacher_allocation);
   const canOpenTeacherWorkspace = (profile?.role === 'teacher' && !schoolCapabilities?.can_administer)
     || Boolean(schoolCapabilities?.can_teach && hasActiveTeacherAllocation);
@@ -384,7 +443,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const handleViewChange = (nextView: typeof view) => {
     const gatedModule = nextView === 'cambridge' ? 'cambridge' : nextView === 'writing' ? 'writing' : nextView === 'ielts' ? 'ielts' : null;
     if (gatedModule && hasSchool && !canUseSchoolModule(gatedModule)) {
-      addToast(`${formatModuleName(gatedModule)} is not included in your school's current agreement.`, 'info');
+      addToast(schoolProgrammeLockMessage(gatedModule), 'info');
       return;
     }
     if (schoolCapabilities?.can_administer && canOpenTeacherWorkspace && (nextView === 'school_admin' || nextView === 'school_head' || nextView === 'teacher')) {
@@ -2386,9 +2445,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         />
                       ) : <div className="student-learning-grid">
                         {isStudent && hasSchool && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>📈</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Your learning record</span><h2>Academic Progress</h2><p>See your subject performance, strengths, improvement, focus areas, evidence confidence, and curriculum coverage.</p></div><button type="button" onClick={() => setStudentLearningView('academic-profile')} className="student-primary-button">Open Academic Progress <span aria-hidden>→</span></button></article>}
-                        {isStudent && (!hasSchool || canUseSchoolModule('writing')) && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>✍️</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Writing coach</span><h2>Writing Hub</h2><p>Draft, repair, and improve with guided AI coaching.</p></div><button type="button" onMouseEnter={preloadWritingHub} onFocus={preloadWritingHub} onClick={() => handleViewChange('writing')} className="student-primary-button">Open Writing Hub <span aria-hidden>→</span></button></article>}
-                        {canUseSchoolModule('ielts') && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>🎯</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Exam preparation</span><h2>IELTS Prep</h2><p>Focused preparation across reading, writing, listening, and speaking.</p></div><button type="button" onClick={() => { window.location.href = '/ielts'; }} className="student-primary-button">Open IELTS Prep <span aria-hidden>→</span></button></article>}
-                        {canUseSchoolModule('cambridge') && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>🧪</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Subject practice</span><h2>Cambridge Tests</h2><p>Practice Cambridge reading, grammar, and science tests.</p></div><button type="button" onClick={() => handleViewChange('cambridge')} className="student-primary-button">Open Cambridge Tests <span aria-hidden>→</span></button></article>}
+                        {isStudent && <StudentProgrammeCard programme="writing" icon="✍️" eyebrow="Writing coach" title="Writing Hub" description="Draft, repair, and improve with guided AI coaching." locked={hasSchool && !canUseSchoolModule('writing')} lockMessage={schoolProgrammeLockMessage('writing')} openLabel="Open Writing Hub" onPreload={preloadWritingHub} onOpen={() => handleViewChange('writing')} />}
+                        {isStudent && hasSchool && <StudentProgrammeCard programme="ielts" icon="🎯" eyebrow="Exam preparation" title="IELTS Prep" description="Focused preparation across reading, writing, listening, and speaking." locked={!canUseSchoolModule('ielts')} lockMessage={schoolProgrammeLockMessage('ielts')} openLabel="Open IELTS Prep" onOpen={() => { window.location.href = '/ielts'; }} />}
+                        {isStudent && hasSchool && <StudentProgrammeCard programme="cambridge" icon="🧪" eyebrow="Subject practice" title="Cambridge Tests" description="Practice Cambridge reading, grammar, and science tests." locked={!canUseSchoolModule('cambridge')} lockMessage={schoolProgrammeLockMessage('cambridge')} openLabel="Open Cambridge Tests" onOpen={() => handleViewChange('cambridge')} />}
                       </div>
                     )}
 

@@ -53,8 +53,9 @@ supabase functions deploy paddle
 
 ### 4. Configure Paddle Webhook
 In Paddle Dashboard → Developers → Notifications:
-- **URL:** `https://<your-supabase-project>.supabase.co/functions/v1/paddle/webhook`
+- **URL:** `https://sozodkxwhubespiedgxm.supabase.co/functions/v1/paddle/webhook`
 - **Events to subscribe:**
+  - `transaction.paid`
   - `subscription.created`
   - `subscription.activated`
   - `subscription.updated`
@@ -63,9 +64,26 @@ In Paddle Dashboard → Developers → Notifications:
   - `subscription.resumed`
   - `transaction.completed`
   - `transaction.payment_failed`
+  - `transaction.canceled`
+
+Copy the notification destination's endpoint secret into the Supabase
+`PADDLE_WEBHOOK_SECRET`. Do not use a Paddle API key or client token as the
+webhook secret. Keep signature verification enabled and retain the raw request
+body for verification.
 
 ### 5. Deploy Frontend
-Standard deploy (Vercel/hosting). No new env vars needed client-side.
+Set these in Vercel for Production and Preview, then redeploy:
+
+```bash
+VITE_PADDLE_CLIENT_TOKEN=live_xxx
+VITE_PADDLE_ENVIRONMENT=production
+```
+
+`VITE_PADDLE_CLIENT_TOKEN` is Paddle's publishable client token. Never put
+`PADDLE_API_KEY` or `PADDLE_WEBHOOK_SECRET` in Vercel `VITE_*` variables.
+
+In Paddle Checkout settings, approve `https://www.brainsheist.com` as the
+default payment-link domain before using live checkout.
 
 ### 6. Run Verification
 ```sql
@@ -82,6 +100,8 @@ Standard deploy (Vercel/hosting). No new env vars needed client-side.
 | `PADDLE_WEBHOOK_SECRET` | Supabase secrets | `pdl_ntfset_xxx` |
 | `PADDLE_ENVIRONMENT` | Supabase secrets | `sandbox` or `production` |
 | `APP_URL` | Supabase secrets | `https://www.brainsheist.com` |
+| `VITE_PADDLE_CLIENT_TOKEN` | Vercel Production + Preview | `live_xxx` / `test_xxx` |
+| `VITE_PADDLE_ENVIRONMENT` | Vercel Production + Preview | `production` / `sandbox` |
 | `PADDLE_PRICE_CORE_MONTHLY` | Supabase secrets | `pri_xxx` |
 | `PADDLE_PRICE_CORE_YEARLY` | Supabase secrets | `pri_xxx` |
 | `PADDLE_PRICE_STANDARD_MONTHLY` | Supabase secrets | `pri_xxx` |
@@ -94,6 +114,12 @@ Standard deploy (Vercel/hosting). No new env vars needed client-side.
 ## QA Acceptance Checklist
 
 ### Happy Path
+- [ ] Accept an approved school package; verify no seats activate yet
+- [ ] Click "Pay securely with Paddle"; verify Paddle opens for the immutable accepted total
+- [ ] Complete payment and verify the signed `transaction.paid` or `transaction.completed` webhook activates the exact platform and programme quantities
+- [ ] Verify a new student sees Cambridge, IELTS, and Writing locked until a School Head allocates a named seat
+- [ ] Issue a 14-day Paddle invoice; verify access remains unchanged until Paddle reports payment
+- [ ] Repeat the same webhook event; verify activation is idempotent
 - [ ] Click "Subscribe" on Core plan → redirected to Paddle checkout
 - [ ] Complete Paddle checkout (use sandbox test card `4242 4242 4242 4242`)
 - [ ] Redirected back to app with `?upgrade=success`
@@ -176,32 +202,34 @@ Then redeploy the original `get_effective_tier` from before the migration.
 ## Architecture Summary
 
 ```
-User clicks "Subscribe"
+School Head accepts an approved package
         ↓
-  tierService.createCheckoutSession()
+  Chooses Paddle checkout or a 14-day Paddle invoice
         ↓
-  supabase.functions.invoke('paddle')
+  school_head_choose_quote_payment()
+    → Creates an immutable, auditable payment attempt
         ↓
-  Edge Function: POST /paddle/create-checkout
-    → Validates user + school
-    → Checks no duplicate active sub
-    → Calls Paddle API to create transaction
-    → Returns checkout_url
+  Edge Function: POST /paddle/school-quote-checkout
+    → Verifies the active School Head and accepted quote hash
+    → Uses the exact protected settlement amount
+    → Creates Paddle automatic checkout or manual invoice
         ↓
-  User completes payment on Paddle
+  School completes payment on Paddle
         ↓
   Paddle sends webhook → POST /paddle/webhook
     → Verifies HMAC-SHA256 signature
-    → Idempotency check (billing_events)
-    → Upserts billing_subscriptions
-    → Updates schools.school_plan
-    → Marks event processed
+    → Idempotency check
+    → Verifies transaction ↔ quote ↔ payment-attempt binding
+    → Activates the exact accepted capacity only after paid/completed
         ↓
-  User returns to app (?upgrade=success)
-    → invalidateTierCache()
-    → fetchEffectiveTier() → 'pro'
-    → All features unlocked
+  School Head allocates named programme seats
+    → Students see every programme
+    → Only allocated students can open purchased programmes
 ```
+
+Mid-term increases use Paddle's subscription update preview with
+`prorated_immediately`. The application compares Paddle's tax-exclusive preview
+to the immutable accepted proration and refuses the change if they differ.
 
 ## Pricing Reference
 

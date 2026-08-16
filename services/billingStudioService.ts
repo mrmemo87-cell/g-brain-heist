@@ -2,7 +2,8 @@ import { supabase } from './supabaseClient';
 
 export type BillingContractTerm = 'monthly' | 'annual' | 'two_year' | 'three_year';
 export type BillingProgrammeKey = 'cambridge' | 'ielts' | 'writing' | 'admissions';
-export type BillingQuoteStatus = 'draft' | 'submitted' | 'revision_requested' | 'approved' | 'accepted' | 'rejected' | 'expired' | 'cancelled';
+export type BillingQuoteStatus = 'draft' | 'submitted' | 'revision_requested' | 'approved' | 'accepted' | 'payment_pending' | 'payment_failed' | 'scheduled' | 'active' | 'superseded' | 'rejected' | 'expired' | 'cancelled';
+export type SchoolPaymentMethod = 'paddle_checkout' | 'paddle_invoice' | 'bank_transfer' | 'cash';
 
 export interface BillingQuoteInputs {
   contractTerm: BillingContractTerm;
@@ -96,6 +97,14 @@ export interface SchoolBillingQuote {
   accepted_at: string | null;
   activated_at: string | null;
   activated_subscription_id: string | null;
+  payment_status?: string;
+  selected_payment_method?: SchoolPaymentMethod | null;
+  agreement_kind?: 'new_agreement' | 'upgrade' | 'renewal_change' | null;
+  effective_at?: string | null;
+  scheduled_at?: string | null;
+  settlement_amount_minor?: number | null;
+  settlement_currency?: string | null;
+  settlement_calculation?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   school_head?: { name: string; email: string } | null;
@@ -188,4 +197,69 @@ export async function acceptSchoolBillingQuote(quoteId: string): Promise<SchoolB
   const payload = data as { success?: boolean; quote?: SchoolBillingQuote; error?: string } | null;
   if (!payload?.success || !payload.quote) throw new Error(payload?.error || 'The approved quote could not be accepted.');
   return payload.quote;
+}
+
+export async function chooseSchoolQuotePayment(
+  quoteId: string,
+  method: SchoolPaymentMethod,
+): Promise<SchoolBillingQuote> {
+  const { data, error } = await supabase.rpc('school_head_choose_quote_payment', {
+    p_quote_id: quoteId,
+    p_method: method,
+  });
+  if (error) throw new Error(error.message || 'The payment route could not be selected.');
+  const payload = data as { success?: boolean; quote?: SchoolBillingQuote; error?: string } | null;
+  if (!payload?.success || !payload.quote) throw new Error(payload?.error || 'The payment route could not be selected.');
+  return payload.quote;
+}
+
+export interface PaddleInvoiceBillingDetails {
+  legal_name: string;
+  first_line: string;
+  city: string;
+  region: string;
+  postal_code: string;
+  country_code: string;
+}
+
+export interface SchoolPaddleCheckoutResult {
+  success: true;
+  transaction_id?: string;
+  checkout_url?: string | null;
+  invoice_url?: string | null;
+  subscription_updated?: boolean;
+  awaiting_webhook?: boolean;
+  message?: string;
+}
+
+export async function createSchoolPaddleCheckout(
+  quoteId: string,
+  mode: 'checkout' | 'invoice',
+  billingDetails?: PaddleInvoiceBillingDetails,
+): Promise<SchoolPaddleCheckoutResult> {
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !session?.access_token) throw new Error('Your session expired. Sign in again before paying.');
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) throw new Error('Secure payment configuration is missing.');
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/paddle/school-quote-checkout`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: supabaseAnonKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      action: 'school_quote_checkout',
+      quote_id: quoteId,
+      mode,
+      billing_details: billingDetails,
+    }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload?.success !== true || (!payload?.transaction_id && !payload?.subscription_updated)) {
+    throw new Error(payload?.error || `Paddle could not start payment (${response.status}).`);
+  }
+  return payload as SchoolPaddleCheckoutResult;
 }

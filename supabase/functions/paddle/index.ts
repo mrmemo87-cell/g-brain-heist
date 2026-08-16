@@ -3,10 +3,11 @@ import { buildMetaUserData, sendMetaCapiEvent } from '../_shared/metaCapiClient.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 
 // ============================================================================
-// Paddle Edge Function — IELTS Prime checkout + legacy billing webhooks
+// Paddle Edge Function — professional school quotes + IELTS Prime
 // ============================================================================
 // Routes:
 //   POST /paddle/create-checkout   — retired school-tier checkout (HTTP 410)
+//   POST /paddle/school-quote-checkout — accepted School Head quote
 //   POST /paddle/webhook           — Paddle → updates subscription in DB
 //   POST /paddle/get-portal-url    — returns Paddle subscription management URL
 //
@@ -80,15 +81,15 @@ async function verifyPaddleWebhook(
   secret: string,
 ): Promise<boolean> {
   // Paddle signature format: ts=1234567890;h1=abc123def456...
-  const parts: Record<string, string> = {};
+  const parts: Record<string, string[]> = {};
   for (const segment of signatureHeader.split(";")) {
     const [key, val] = segment.split("=");
-    if (key && val) parts[key.trim()] = val.trim();
+    if (key && val) (parts[key.trim()] ||= []).push(val.trim());
   }
 
-  const ts = parts["ts"];
-  const h1 = parts["h1"];
-  if (!ts || !h1) return false;
+  const ts = parts["ts"]?.[0];
+  const signatures = parts["h1"] || [];
+  if (!ts || signatures.length === 0) return false;
 
   // Check timestamp freshness (5 min tolerance)
   const now = Math.floor(Date.now() / 1000);
@@ -112,7 +113,13 @@ async function verifyPaddleWebhook(
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  return h1 === expected;
+  const constantTimeEqual = (left: string, right: string) => {
+    if (left.length !== right.length) return false;
+    let difference = 0;
+    for (let index = 0; index < left.length; index += 1) difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+    return difference === 0;
+  };
+  return signatures.some((candidate) => constantTimeEqual(candidate.toLowerCase(), expected));
 }
 
 // ── Resolve plan name from Paddle price_id ──
@@ -150,6 +157,8 @@ const isIeltsPrimeEvent = (data: any): boolean => {
   const customData = data?.custom_data || {};
   return customData.product === "ielts_prime";
 };
+
+const isSchoolQuoteEvent = (data: any): boolean => data?.custom_data?.product === "school_quote";
 
 // ── Supabase clients ──
 
@@ -243,6 +252,257 @@ async function handleCreateCheckout(req: Request): Promise<Response> {
   return jsonResponse(410, {
     error: "Fixed school tiers have been retired. Build and request a package in School Admin > Plan & Billing.",
     billing_path: "/?view=school_admin&adminTab=billing",
+  });
+}
+
+type SchoolQuoteCheckoutMode = "checkout" | "invoice";
+
+async function handleCreateSchoolQuoteCheckout(req: Request, bodyOverride?: any): Promise<Response> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) return jsonResponse(401, { error: "Not authenticated" });
+  const supabase = getSupabaseFromAuth(authHeader);
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return jsonResponse(401, { error: "Invalid session" });
+
+  const admin = getSupabaseAdmin();
+  const head = await requireSchoolHead(admin, user.id);
+  if (!head) return jsonResponse(403, { error: "Only the active School Head can settle a school agreement." });
+  const body = bodyOverride || await req.json().catch(() => ({}));
+  const quoteId = String(body.quote_id || "");
+  const mode: SchoolQuoteCheckoutMode = body.mode === "invoice" ? "invoice" : "checkout";
+  if (!quoteId) return jsonResponse(400, { error: "Missing quote_id" });
+
+  const { data: quote, error: quoteError } = await admin.from("school_billing_quotes")
+    .select("*").eq("id", quoteId).eq("school_id", head.schoolId).maybeSingle();
+  if (quoteError || !quote) return jsonResponse(404, { error: "Accepted quote not found" });
+  const expectedMethod = mode === "invoice" ? "paddle_invoice" : "paddle_checkout";
+  if (quote.status !== "payment_pending" || quote.selected_payment_method !== expectedMethod || !quote.quote_hash) {
+    return jsonResponse(409, { error: "Select this Paddle payment method from the accepted quote before checkout." });
+  }
+  const { data: attempt } = await admin.from("school_billing_payment_attempts").select("*")
+    .eq("quote_id", quote.id).eq("provider", "paddle").in("status", ["pending", "checkout_created", "invoice_issued"])
+    .order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (!attempt) return jsonResponse(409, { error: "Paddle payment attempt not found" });
+  if (attempt.provider_transaction_id) {
+    return jsonResponse(200, { success: true, transaction_id: attempt.provider_transaction_id, checkout_url: attempt.invoice_url, invoice_url: attempt.invoice_url });
+  }
+  if (quote.agreement_kind === "upgrade" && attempt.provider_subscription_id
+    && attempt.metadata?.proration_billing_mode === "prorated_immediately") {
+    return jsonResponse(200, {
+      success: true,
+      subscription_updated: true,
+      awaiting_webhook: true,
+      message: "Paddle is processing the exact prorated upgrade. Seats activate after the signed payment webhook.",
+    });
+  }
+
+  const { data: priceRows, error: pricesError } = await admin.from("billing_price_items")
+    .select("item_key,paddle_price_ids").eq("pricing_version_code", quote.pricing_version_code);
+  if (pricesError) throw pricesError;
+  const { data: pricingVersion, error: pricingVersionError } = await admin.from("billing_pricing_versions")
+    .select("paddle_discount_ids").eq("code", quote.pricing_version_code).maybeSingle();
+  if (pricingVersionError) throw pricingVersionError;
+  const quantities: Record<string, number> = {
+    platform: quote.platform_seats, cambridge: quote.cambridge_seats, ielts: quote.ielts_seats,
+    writing: quote.writing_seats, admissions: quote.admissions_candidates,
+  };
+  const catalogItems = (priceRows || []).flatMap((row: any) => {
+    const quantity = quantities[row.item_key] || 0;
+    const priceId = row.paddle_price_ids?.[quote.contract_term];
+    return quantity > 0 && priceId ? [{ price_id: priceId, quantity }] : [];
+  });
+  const expectedItemCount = Object.values(quantities).filter((value) => value > 0).length;
+  const currency = String(quote.calculation?.pricing_version?.currency || "USD").toUpperCase();
+  const acceptedTotal = Number(quote.settlement_amount_minor ?? quote.calculation?.totals?.contract_total_minor ?? 0);
+  if (!Number.isSafeInteger(acceptedTotal) || acceptedTotal <= 0) return jsonResponse(409, { error: "Accepted quote total is invalid." });
+  const launchBps = Number(quote.calculation?.discounts?.launch_bps || 0);
+  const billingCycle = launchBps > 0 ? null : quote.contract_term === "monthly"
+    ? { interval: "month", frequency: 1 }
+    : quote.contract_term === "annual"
+      ? { interval: "year", frequency: 1 }
+      : quote.contract_term === "two_year"
+        ? { interval: "year", frequency: 2 }
+        : { interval: "year", frequency: 3 };
+  const quoteCustomData = {
+    product: "school_quote", quote_id: quote.id, school_id: quote.school_id,
+    payment_attempt_id: attempt.id, quote_hash: quote.quote_hash, purchased_by: user.id,
+    agreement_kind: quote.agreement_kind, contract_term: quote.contract_term,
+  };
+
+  if (quote.agreement_kind === "upgrade") {
+    if (mode !== "checkout") {
+      return jsonResponse(409, {
+        error: "A mid-term Paddle upgrade charges the saved payment method after an exact proration preview. Paddle invoice remains available for new agreements and renewals.",
+      });
+    }
+    const { data: activeBilling, error: activeBillingError } = await admin
+      .from("billing_subscriptions")
+      .select("provider_subscription_id")
+      .eq("school_id", quote.school_id)
+      .eq("provider", "paddle")
+      .in("status", ["active", "trialing", "past_due"])
+      .not("provider_subscription_id", "is", null)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (activeBillingError) throw activeBillingError;
+    const subscriptionId = activeBilling?.provider_subscription_id;
+    if (!subscriptionId) {
+      return jsonResponse(409, {
+        error: "This school has no active Paddle subscription to amend. Choose bank transfer or ask Brains Heist to reconcile the active agreement.",
+      });
+    }
+
+    const currentSubscription = (await paddleRequest(`/subscriptions/${subscriptionId}`, {}, "GET")) as {
+      data: {
+        billing_cycle?: { interval: string; frequency: number };
+        items?: Array<{ price?: { product_id?: string }; product?: { id?: string } }>;
+      };
+    };
+    const currentCycle = currentSubscription.data.billing_cycle;
+    const productId = currentSubscription.data.items?.[0]?.price?.product_id
+      || currentSubscription.data.items?.[0]?.product?.id;
+    const renewalAmount = Number(quote.calculation?.totals?.renewal_total_minor ?? 0);
+    if (!currentCycle || !productId || !Number.isSafeInteger(renewalAmount) || renewalAmount <= 0) {
+      return jsonResponse(409, {
+        error: "Paddle could not derive the current recurring agreement item. No charge or capacity change was made.",
+      });
+    }
+    const amendmentBody = {
+      items: [{
+        quantity: 1,
+        price: {
+          product_id: productId,
+          description: `Brains Heist school agreement upgrade ${quote.id}`,
+          name: `${quote.contract_term.replaceAll("_", " ")} school agreement`,
+          billing_cycle: currentCycle,
+          unit_price: { amount: String(renewalAmount), currency_code: currency },
+        },
+      }],
+      proration_billing_mode: "prorated_immediately",
+      custom_data: quoteCustomData,
+    };
+    const preview = (await paddleRequest(`/subscriptions/${subscriptionId}/preview`, amendmentBody, "PATCH")) as {
+      data?: { immediate_transaction?: { details?: { totals?: { subtotal?: string; currency_code?: string } } } };
+    };
+    const previewSubtotal = Number(preview.data?.immediate_transaction?.details?.totals?.subtotal ?? 0);
+    const previewCurrency = String(preview.data?.immediate_transaction?.details?.totals?.currency_code || currency).toUpperCase();
+    if (!Number.isSafeInteger(previewSubtotal) || previewSubtotal !== acceptedTotal || previewCurrency !== currency) {
+      return jsonResponse(409, {
+        error: "Paddle's exact tax-exclusive proration does not match the accepted Brains Heist settlement. No subscription change or charge was made; choose bank transfer or request a reviewed amendment.",
+        expected_amount_minor: acceptedTotal,
+        paddle_preview_amount_minor: previewSubtotal,
+        currency,
+      });
+    }
+
+    await paddleRequest(`/subscriptions/${subscriptionId}`, amendmentBody, "PATCH");
+    await admin.from("school_billing_payment_attempts").update({
+      status: "pending",
+      provider_subscription_id: subscriptionId,
+      metadata: { proration_billing_mode: "prorated_immediately", preview_subtotal_minor: previewSubtotal },
+      updated_at: new Date().toISOString(),
+    }).eq("id", attempt.id);
+    await admin.from("school_billing_quotes").update({
+      payment_status: "pending",
+      updated_at: new Date().toISOString(),
+    }).eq("id", quote.id);
+    return jsonResponse(200, {
+      success: true,
+      subscription_updated: true,
+      awaiting_webhook: true,
+      message: "Paddle accepted the exact prorated subscription amendment. Seats activate after the signed payment webhook.",
+    });
+  }
+  // Merchant catalogue bindings are preferred. Until they are configured,
+  // Paddle-supported non-catalog pricing preserves the exact immutable quote
+  // total instead of blocking settlement or inventing a legacy fixed tier.
+  const usesCatalog = catalogItems.length === expectedItemCount;
+  const items = usesCatalog ? catalogItems : [{
+    quantity: 1,
+    price: {
+      description: `Brains Heist accepted school quote ${quote.id}`,
+      name: `${quote.contract_term.replaceAll("_", " ")} school agreement`,
+      billing_cycle: billingCycle,
+      unit_price: { amount: String(acceptedTotal), currency_code: currency },
+      product: {
+        name: "Brains Heist school agreement",
+        tax_category: "standard",
+        description: `Platform ${quote.platform_seats}; Cambridge ${quote.cambridge_seats}; IELTS ${quote.ielts_seats}; Writing Hub ${quote.writing_seats}; Admission Hub ${quote.admissions_candidates}.`,
+      },
+    },
+  }];
+
+  const appUrl = Deno.env.get("APP_URL") || "https://www.brainsheist.com";
+  let customerId: string | undefined;
+  let addressId: string | undefined;
+  if (mode === "invoice") {
+    const details = body.billing_details || {};
+    const legalName = String(details.legal_name || "").trim();
+    const firstLine = String(details.first_line || "").trim();
+    const city = String(details.city || "").trim();
+    const region = String(details.region || "").trim();
+    const postalCode = String(details.postal_code || "").trim();
+    const countryCode = String(details.country_code || "").trim().toUpperCase();
+    if (!legalName || !firstLine || !city || !region || !postalCode || !/^[A-Z]{2}$/.test(countryCode)) {
+      return jsonResponse(400, { error: "Legal name, billing address, city, region, postal code, and two-letter country code are required for a Paddle invoice." });
+    }
+    const customers = (await paddleRequest(`/customers?email=${encodeURIComponent(user.email || "")}`, {}, "GET")) as { data?: Array<{ id: string }> };
+    customerId = customers.data?.[0]?.id;
+    if (!customerId) {
+      const customer = (await paddleRequest("/customers", {
+        email: user.email, name: legalName, custom_data: { school_id: quote.school_id },
+      })) as { data: { id: string } };
+      customerId = customer.data.id;
+    }
+    const address = (await paddleRequest(`/customers/${customerId}/addresses`, {
+      description: `Brains Heist billing · ${legalName}`,
+      first_line: firstLine, city, region, postal_code: postalCode, country_code: countryCode,
+    })) as { data: { id: string } };
+    addressId = address.data.id;
+  }
+  const transactionBody: Record<string, unknown> = {
+    items,
+    currency_code: currency,
+    customer_email: mode === "invoice" ? undefined : (user.email || undefined),
+    collection_mode: mode === "invoice" ? "manual" : "automatic",
+    custom_data: quoteCustomData,
+    checkout: { url: `${appUrl}/?view=school_head&headTab=subscription&checkout=success` },
+  };
+  const combinationBps = Number(quote.calculation?.discounts?.combination_bps || 0);
+  if (usesCatalog && (combinationBps > 0 || launchBps > 0)) {
+    const discountKey = `combination_${combinationBps}_launch_${launchBps}`;
+    const discountId = pricingVersion?.paddle_discount_ids?.[discountKey];
+    if (!discountId) {
+      return jsonResponse(503, { error: "The accepted catalogue discount is not mapped to Paddle yet. No transaction was created; Brains Heist can remove the incomplete mapping or complete it before retrying." });
+    }
+    transactionBody.discount_id = discountId;
+  }
+  if (mode === "invoice") {
+    transactionBody.customer_id = customerId;
+    transactionBody.address_id = addressId;
+    transactionBody.status = "billed";
+    transactionBody.billing_details = {
+      enable_checkout: true,
+      purchase_order_number: `BH-${quote.id.slice(0, 8).toUpperCase()}`,
+      payment_terms: { interval: "day", frequency: 14 },
+    };
+  }
+  const transaction = (await paddleRequest("/transactions", transactionBody)) as {
+    data: { id: string; checkout?: { url?: string }; details?: { totals?: { total?: string } } };
+  };
+  const paymentUrl = transaction.data.checkout?.url || null;
+  const nextStatus = mode === "invoice" ? "invoice_issued" : "checkout_created";
+  await admin.from("school_billing_payment_attempts").update({
+    status: nextStatus, provider_transaction_id: transaction.data.id, provider_customer_id: customerId || null,
+    invoice_url: paymentUrl,
+    metadata: { billing_country: body.billing_details?.country_code || null, legal_name: body.billing_details?.legal_name || null },
+    updated_at: new Date().toISOString(),
+  }).eq("id", attempt.id);
+  await admin.from("school_billing_quotes").update({ payment_status: nextStatus, updated_at: new Date().toISOString() }).eq("id", quote.id);
+  return jsonResponse(200, {
+    success: true, transaction_id: transaction.data.id, checkout_url: paymentUrl,
+    invoice_url: mode === "invoice" ? paymentUrl : undefined,
   });
 }
 
@@ -642,6 +902,54 @@ async function handleIeltsPrimeWebhookEvent(admin: ReturnType<typeof getSupabase
   return null;
 }
 
+async function handleSchoolQuoteWebhookEvent(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  eventType: string,
+  event: any,
+): Promise<string | null> {
+  const data = event.data || {};
+  const meta = data.custom_data || {};
+  if (!meta.quote_id || !meta.payment_attempt_id || !meta.quote_hash || !meta.school_id) {
+    return "Incomplete school quote custom_data";
+  }
+  if (["transaction.completed", "transaction.paid"].includes(eventType)) {
+    // The accepted quote is tax-exclusive. Paddle remains Merchant of Record
+    // for any applicable tax, so quote integrity compares the transaction
+    // subtotal while the provider receipt remains authoritative for tax/total.
+    const amountMinor = Number(data.details?.totals?.subtotal ?? data.details?.totals?.total ?? 0);
+    const currency = String(data.currency_code || data.details?.totals?.currency_code || "").toUpperCase();
+    const periodStart = data.billing_period?.starts_at || data.created_at || new Date().toISOString();
+    const periodEnd = data.billing_period?.ends_at || null;
+    const { data: result, error } = await admin.rpc("activate_school_quote_from_paddle", {
+      p_quote_id: meta.quote_id,
+      p_payment_attempt_id: meta.payment_attempt_id,
+      p_quote_hash: meta.quote_hash,
+      p_amount_minor: amountMinor,
+      p_currency: currency,
+      p_transaction_id: data.id,
+      p_subscription_id: data.subscription_id || "",
+      p_customer_id: data.customer_id || "",
+      p_period_start: periodStart,
+      p_period_end: periodEnd,
+    });
+    if (error) return `School quote activation failed: ${error.message}`;
+    if (!result?.success) return `School quote activation rejected: ${result?.error || "unknown reason"}`;
+    return null;
+  }
+  if (["transaction.payment_failed", "transaction.canceled"].includes(eventType)) {
+    const failure = data.payments?.at?.(-1)?.error_code || data.status || "payment_failed";
+    await admin.from("school_billing_payment_attempts").update({
+      status: "failed", failure_code: String(failure),
+      failure_message: "Paddle could not complete this payment. No access or capacity was changed.",
+      updated_at: new Date().toISOString(),
+    }).eq("id", meta.payment_attempt_id).eq("quote_id", meta.quote_id);
+    await admin.from("school_billing_quotes").update({
+      status: "payment_failed", payment_status: "failed", updated_at: new Date().toISOString(),
+    }).eq("id", meta.quote_id).eq("school_id", meta.school_id);
+  }
+  return null;
+}
+
 // ─────────────────────────────────────────────────
 // ROUTE: POST /paddle/webhook
 // Paddle sends webhooks for subscription lifecycle events
@@ -667,6 +975,7 @@ async function handleWebhook(req: Request): Promise<Response> {
   const event = JSON.parse(rawBody);
   const eventId: string = event.event_id || event.notification_id || "";
   const eventType: string = event.event_type || "";
+  if (!eventId || !eventType) return jsonResponse(400, { error: "Paddle event ID and type are required" });
 
   const admin = getSupabaseAdmin();
 
@@ -714,7 +1023,9 @@ async function handleWebhook(req: Request): Promise<Response> {
   const eventOccurredAt: string = event.occurred_at || new Date().toISOString();
 
   try {
-    if (isIeltsPrimeEvent(event.data)) {
+    if (isSchoolQuoteEvent(event.data)) {
+      processingError = await handleSchoolQuoteWebhookEvent(admin, eventType, event);
+    } else if (isIeltsPrimeEvent(event.data)) {
       processingError = await handleIeltsPrimeWebhookEvent(admin, eventType, event, eventOccurredAt);
     } else {
     switch (eventType) {
@@ -1005,8 +1316,9 @@ async function handleWebhook(req: Request): Promise<Response> {
     .eq("provider", "paddle")
     .eq("event_id", eventId);
 
-  // Always return 200 so Paddle doesn't retry (we have our own retry via unprocessed events)
-  return jsonResponse(200, {
+  // A non-2xx response lets Paddle retry transient processing failures. The
+  // billing_events idempotency record makes those retries safe.
+  return jsonResponse(processingError ? 500 : 200, {
     received: true,
     processed: !processingError,
   });
@@ -1037,6 +1349,11 @@ function isSchoolCheckoutBody(body: any): boolean {
   return ["core", "standard", "pro"].includes(plan);
 }
 
+function isSchoolQuoteCheckoutBody(body: any): boolean {
+  const normalized = unwrapBody(body);
+  return normalized?.action === "school_quote_checkout" || Boolean(normalized?.quote_id);
+}
+
 // ─────────────────────────────────────────────────
 // MAIN ROUTER
 // ─────────────────────────────────────────────────
@@ -1059,15 +1376,23 @@ serve(async (req: Request) => {
       return await handleCreateCheckout(req);
     }
 
+    if (req.method === "POST" && path === "/school-quote-checkout") {
+      const body = unwrapBody(await req.clone().json().catch(() => ({})));
+      return await handleCreateSchoolQuoteCheckout(req, body);
+    }
+
     if (req.method === "POST" && path === "/") {
       const body = unwrapBody(await req.clone().json().catch(() => ({})));
       if (isIeltsCheckoutBody(body)) {
         return await handleCreateIeltsPrimeCheckout(req, body);
       }
+      if (isSchoolQuoteCheckoutBody(body)) {
+        return await handleCreateSchoolQuoteCheckout(req, body);
+      }
       if (isSchoolCheckoutBody(body)) {
         return await handleCreateCheckout(req);
       }
-      return jsonResponse(400, { error: "Unknown Paddle checkout request. Expected an IELTS Prime checkout." });
+      return jsonResponse(400, { error: "Unknown Paddle checkout request." });
     }
 
     if (req.method === "POST" && path === "/webhook") {
