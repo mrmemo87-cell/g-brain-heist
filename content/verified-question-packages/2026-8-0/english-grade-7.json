@@ -1,0 +1,672 @@
+{
+  "subject": "English",
+  "subjectCode": "english",
+  "grade": 7,
+  "language": "en",
+  "questions": [
+    {
+      "externalId": "bh-g7-eng-2026.8-001",
+      "topic": "Reading evidence and inference",
+      "difficulty": "easy",
+      "questionText": "Which inference is best supported by the visual clues?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A gust through the window scattered the papers",
+        "A student deliberately sorted the papers",
+        "The classroom was locked all day",
+        "Rain soaked every sheet of paper"
+      ],
+      "correctAnswer": "A gust through the window scattered the papers",
+      "explanation": "The open window, moving curtain and scattered papers together support the gust inference.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng7-reading-inference",
+        "reading evidence and inference"
+      ],
+      "visualAssetId": "g7-eng-story-clues",
+      "curriculum": {
+        "strand": "Reading evidence and inference",
+        "skill": "Apply reading evidence and inference",
+        "subskill": "reading evidence and inference",
+        "objective": "Select and connect explicit and implicit evidence to explain inference, viewpoint and theme."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-002",
+      "topic": "Reading evidence and inference",
+      "difficulty": "medium",
+      "questionText": "“Amir reread the message, typed a reply, deleted it, and placed the phone face down.” What can be inferred?",
+      "questionType": "multiple_choice",
+      "options": [
+        "He cannot read the message",
+        "He is uncertain how to respond",
+        "His phone battery is empty",
+        "He has already sent several replies"
+      ],
+      "correctAnswer": "He is uncertain how to respond",
+      "explanation": "Drafting and deleting a reply before hiding the screen suggests hesitation or uncertainty.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng7-reading-inference",
+        "reading evidence and inference"
+      ],
+      "curriculum": {
+        "strand": "Reading evidence and inference",
+        "skill": "Apply reading evidence and inference",
+        "subskill": "reading evidence and inference",
+        "objective": "Select and connect explicit and implicit evidence to explain inference, viewpoint and theme."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-003",
+      "topic": "Reading evidence and inference",
+      "difficulty": "medium",
+      "questionText": "Which detail most strongly shows that the narrator distrusts the guide?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The guide carries a red bag",
+        "The group walks before lunch",
+        "The narrator checks every direction against an old map",
+        "The path contains small stones"
+      ],
+      "correctAnswer": "The narrator checks every direction against an old map",
+      "explanation": "Checking each direction independently is purposeful evidence that the narrator doubts the guide.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng7-reading-inference",
+        "reading evidence and inference"
+      ],
+      "curriculum": {
+        "strand": "Reading evidence and inference",
+        "skill": "Apply reading evidence and inference",
+        "subskill": "reading evidence and inference",
+        "objective": "Select and connect explicit and implicit evidence to explain inference, viewpoint and theme."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-004",
+      "topic": "Reading evidence and inference",
+      "difficulty": "hard",
+      "questionText": "A story repeatedly contrasts a locked gate with birds flying overhead. Which theme is most strongly suggested?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The value of expensive objects",
+        "The difficulty of learning bird names",
+        "The importance of matching colours",
+        "The desire for freedom"
+      ],
+      "correctAnswer": "The desire for freedom",
+      "explanation": "The contrast between confinement and free flight develops a theme about longing for freedom.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng7-reading-inference",
+        "reading evidence and inference"
+      ],
+      "curriculum": {
+        "strand": "Reading evidence and inference",
+        "skill": "Apply reading evidence and inference",
+        "subskill": "reading evidence and inference",
+        "objective": "Select and connect explicit and implicit evidence to explain inference, viewpoint and theme."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-reading-inference"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-005",
+      "topic": "Language and literary effect",
+      "difficulty": "easy",
+      "questionText": "What effect does “stitched a path through the storm” create?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It presents the light as joining darkness into a safe route",
+        "It states that the lighthouse repairs clothing",
+        "It proves the storm has completely ended",
+        "It gives the exact distance to the shore"
+      ],
+      "correctAnswer": "It presents the light as joining darkness into a safe route",
+      "explanation": "The metaphor makes the beam seem to join a visible route through dangerous darkness.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng7-language-effect",
+        "language and literary effect"
+      ],
+      "visualAssetId": "g7-eng-language-effect",
+      "curriculum": {
+        "strand": "Language and literary effect",
+        "skill": "Apply language and literary effect",
+        "subskill": "language and literary effect",
+        "objective": "Analyse how figurative language, imagery and precise vocabulary shape meaning and reader response."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-language-effect"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-006",
+      "topic": "Language and literary effect",
+      "difficulty": "medium",
+      "questionText": "In “The deadline crept closer,” what is personified?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The writer",
+        "The deadline",
+        "The clock face",
+        "The completed task"
+      ],
+      "correctAnswer": "The deadline",
+      "explanation": "The abstract deadline is given the living action of creeping closer.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng7-language-effect",
+        "language and literary effect"
+      ],
+      "curriculum": {
+        "strand": "Language and literary effect",
+        "skill": "Apply language and literary effect",
+        "subskill": "language and literary effect",
+        "objective": "Analyse how figurative language, imagery and precise vocabulary shape meaning and reader response."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-language-effect"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-007",
+      "topic": "Language and literary effect",
+      "difficulty": "medium",
+      "questionText": "Which verb most strongly suggests a door closed with sudden force?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Moved",
+        "Rested",
+        "Slammed",
+        "Opened with slow and deliberate care"
+      ],
+      "correctAnswer": "Slammed",
+      "explanation": "Slammed precisely conveys both rapid movement and forceful impact.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng7-language-effect",
+        "language and literary effect"
+      ],
+      "curriculum": {
+        "strand": "Language and literary effect",
+        "skill": "Apply language and literary effect",
+        "subskill": "language and literary effect",
+        "objective": "Analyse how figurative language, imagery and precise vocabulary shape meaning and reader response."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-language-effect"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-008",
+      "topic": "Language and literary effect",
+      "difficulty": "hard",
+      "questionText": "Why might a writer describe silence as “heavy” after an argument?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To measure the mass of the room",
+        "To show that everyone became louder",
+        "To explain the furniture arrangement",
+        "To suggest tension that feels difficult to bear"
+      ],
+      "correctAnswer": "To suggest tension that feels difficult to bear",
+      "explanation": "The sensory metaphor turns emotional tension into something that seems physically burdensome.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng7-language-effect",
+        "language and literary effect"
+      ],
+      "curriculum": {
+        "strand": "Language and literary effect",
+        "skill": "Apply language and literary effect",
+        "subskill": "language and literary effect",
+        "objective": "Analyse how figurative language, imagery and precise vocabulary shape meaning and reader response."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-language-effect"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-009",
+      "topic": "Grammar, punctuation and cohesion",
+      "difficulty": "easy",
+      "questionText": "Which option correctly uses a semicolon to connect two complete clauses?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The storm had passed; the roads were still flooded.",
+        "The storm; had passed the roads were still flooded.",
+        "The storm had; passed, the roads were still flooded.",
+        "The storm had passed the; roads were still flooded."
+      ],
+      "correctAnswer": "The storm had passed; the roads were still flooded.",
+      "explanation": "A semicolon correctly joins two closely related independent clauses.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng7-grammar-cohesion",
+        "grammar, punctuation and cohesion"
+      ],
+      "curriculum": {
+        "strand": "Grammar, punctuation and cohesion",
+        "skill": "Apply grammar, punctuation and cohesion",
+        "subskill": "grammar, punctuation and cohesion",
+        "objective": "Control clauses, punctuation, reference and tense to create accurate, cohesive sentences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-grammar-cohesion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-010",
+      "topic": "Grammar, punctuation and cohesion",
+      "difficulty": "medium",
+      "questionText": "Choose the sentence with consistent tense.",
+      "questionType": "multiple_choice",
+      "options": [
+        "Mina opens the gate and walked into the garden.",
+        "Mina opened the gate and walked into the garden.",
+        "Mina had opened the gate and walks inside.",
+        "Mina opening the gate and walked inside."
+      ],
+      "correctAnswer": "Mina opened the gate and walked into the garden.",
+      "explanation": "Both verbs are in the simple past, so the sequence is grammatically consistent.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng7-grammar-cohesion",
+        "grammar, punctuation and cohesion"
+      ],
+      "curriculum": {
+        "strand": "Grammar, punctuation and cohesion",
+        "skill": "Apply grammar, punctuation and cohesion",
+        "subskill": "grammar, punctuation and cohesion",
+        "objective": "Control clauses, punctuation, reference and tense to create accurate, cohesive sentences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-grammar-cohesion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-011",
+      "topic": "Grammar, punctuation and cohesion",
+      "difficulty": "medium",
+      "questionText": "Which revision makes the pronoun reference clear?",
+      "questionType": "multiple_choice",
+      "options": [
+        "When Daria met Leila, she carried it.",
+        "She met her while carrying it.",
+        "When Daria met Leila, Daria carried the portfolio.",
+        "When they met, she carried the portfolio."
+      ],
+      "correctAnswer": "When Daria met Leila, Daria carried the portfolio.",
+      "explanation": "Repeating Daria removes ambiguity about which person carried the portfolio.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng7-grammar-cohesion",
+        "grammar, punctuation and cohesion"
+      ],
+      "curriculum": {
+        "strand": "Grammar, punctuation and cohesion",
+        "skill": "Apply grammar, punctuation and cohesion",
+        "subskill": "grammar, punctuation and cohesion",
+        "objective": "Control clauses, punctuation, reference and tense to create accurate, cohesive sentences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-grammar-cohesion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-012",
+      "topic": "Grammar, punctuation and cohesion",
+      "difficulty": "hard",
+      "questionText": "Which sentence correctly punctuates a non-essential clause?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The library which opened, in 1920 is being restored.",
+        "The library which, opened in 1920 is being restored.",
+        "The library which opened in 1920, is being restored.",
+        "The library, which opened in 1920, is being restored."
+      ],
+      "correctAnswer": "The library, which opened in 1920, is being restored.",
+      "explanation": "The removable relative clause is enclosed by a matching pair of commas.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng7-grammar-cohesion",
+        "grammar, punctuation and cohesion"
+      ],
+      "curriculum": {
+        "strand": "Grammar, punctuation and cohesion",
+        "skill": "Apply grammar, punctuation and cohesion",
+        "subskill": "grammar, punctuation and cohesion",
+        "objective": "Control clauses, punctuation, reference and tense to create accurate, cohesive sentences."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-grammar-cohesion"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-013",
+      "topic": "Writing structure and evidence",
+      "difficulty": "easy",
+      "questionText": "What is the main purpose of the explanation box in the article plan?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To show how the evidence supports the central idea",
+        "To introduce an unrelated topic",
+        "To repeat the headline word for word",
+        "To list sources without discussing them"
+      ],
+      "correctAnswer": "To show how the evidence supports the central idea",
+      "explanation": "Explanation connects selected evidence to the central idea so the reasoning is clear.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng7-writing-structure",
+        "writing structure and evidence"
+      ],
+      "visualAssetId": "g7-eng-article-layout",
+      "curriculum": {
+        "strand": "Writing structure and evidence",
+        "skill": "Apply writing structure and evidence",
+        "subskill": "writing structure and evidence",
+        "objective": "Organise claims, evidence and explanations into coherent texts with purposeful transitions and conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-writing-structure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-014",
+      "topic": "Writing structure and evidence",
+      "difficulty": "medium",
+      "questionText": "Which transition best introduces a consequence?",
+      "questionType": "multiple_choice",
+      "options": [
+        "In contrast",
+        "As a result",
+        "For instance",
+        "Meanwhile"
+      ],
+      "correctAnswer": "As a result",
+      "explanation": "As a result explicitly signals that the next idea is a consequence of the previous one.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng7-writing-structure",
+        "writing structure and evidence"
+      ],
+      "curriculum": {
+        "strand": "Writing structure and evidence",
+        "skill": "Apply writing structure and evidence",
+        "subskill": "writing structure and evidence",
+        "objective": "Organise claims, evidence and explanations into coherent texts with purposeful transitions and conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-writing-structure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-015",
+      "topic": "Writing structure and evidence",
+      "difficulty": "medium",
+      "questionText": "Which evidence best supports the claim that a reading club increased participation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The club poster uses bright colours",
+        "One member likes adventure stories",
+        "Attendance records rose from 18 to 31 students over six weeks",
+        "The library has four windows"
+      ],
+      "correctAnswer": "Attendance records rose from 18 to 31 students over six weeks",
+      "explanation": "Comparable attendance data directly measures the claimed change in participation.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng7-writing-structure",
+        "writing structure and evidence"
+      ],
+      "curriculum": {
+        "strand": "Writing structure and evidence",
+        "skill": "Apply writing structure and evidence",
+        "subskill": "writing structure and evidence",
+        "objective": "Organise claims, evidence and explanations into coherent texts with purposeful transitions and conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-writing-structure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-016",
+      "topic": "Writing structure and evidence",
+      "difficulty": "hard",
+      "questionText": "Which conclusion most effectively closes an argument for safer crossings near school?",
+      "questionType": "multiple_choice",
+      "options": [
+        "That is everything I know about roads.",
+        "Crossings can be painted in several colours.",
+        "My first paragraph already explained the problem.",
+        "Installing marked crossings would address the documented risk and protect all road users."
+      ],
+      "correctAnswer": "Installing marked crossings would address the documented risk and protect all road users.",
+      "explanation": "The sentence returns to the evidence-based claim and states its wider significance.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng7-writing-structure",
+        "writing structure and evidence"
+      ],
+      "curriculum": {
+        "strand": "Writing structure and evidence",
+        "skill": "Apply writing structure and evidence",
+        "subskill": "writing structure and evidence",
+        "objective": "Organise claims, evidence and explanations into coherent texts with purposeful transitions and conclusions."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-writing-structure"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-017",
+      "topic": "Purpose, audience and media",
+      "difficulty": "easy",
+      "questionText": "Who is the campaign poster most directly trying to persuade?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Students who can choose reusable bottles",
+        "Engineers designing water pipes",
+        "Historians studying old containers in museums",
+        "Pilots planning a flight route"
+      ],
+      "correctAnswer": "Students who can choose reusable bottles",
+      "explanation": "The school-style slogan, bottle symbol and scan-to-join action target student choices.",
+      "points": 10,
+      "timeLimit": 45,
+      "tags": [
+        "eng7-purpose-audience",
+        "purpose, audience and media"
+      ],
+      "visualAssetId": "g7-eng-campaign-poster",
+      "curriculum": {
+        "strand": "Purpose, audience and media",
+        "skill": "Apply purpose, audience and media",
+        "subskill": "purpose, audience and media",
+        "objective": "Evaluate how tone, design and persuasive choices suit audience, purpose and communication medium."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-purpose-audience"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-018",
+      "topic": "Purpose, audience and media",
+      "difficulty": "medium",
+      "questionText": "Which opening best suits a formal report to the school board?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Hey everyone, here is what we reckon!",
+        "This report evaluates three options using cost, safety and access data.",
+        "Once upon a time there were three options.",
+        "You will never believe option two!"
+      ],
+      "correctAnswer": "This report evaluates three options using cost, safety and access data.",
+      "explanation": "The opening states purpose and criteria in a neutral, appropriately formal tone.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng7-purpose-audience",
+        "purpose, audience and media"
+      ],
+      "curriculum": {
+        "strand": "Purpose, audience and media",
+        "skill": "Apply purpose, audience and media",
+        "subskill": "purpose, audience and media",
+        "objective": "Evaluate how tone, design and persuasive choices suit audience, purpose and communication medium."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-purpose-audience"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-019",
+      "topic": "Purpose, audience and media",
+      "difficulty": "medium",
+      "questionText": "A headline says “Miracle Study Trick Guarantees Success!” What should a careful reader check first?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Whether the headline uses a capital letter",
+        "Whether the page background is blue",
+        "Whether credible evidence supports the absolute claim",
+        "Whether the article contains a photograph"
+      ],
+      "correctAnswer": "Whether credible evidence supports the absolute claim",
+      "explanation": "The guarantee is an extreme claim, so source quality and supporting evidence require scrutiny.",
+      "points": 15,
+      "timeLimit": 60,
+      "tags": [
+        "eng7-purpose-audience",
+        "purpose, audience and media"
+      ],
+      "curriculum": {
+        "strand": "Purpose, audience and media",
+        "skill": "Apply purpose, audience and media",
+        "subskill": "purpose, audience and media",
+        "objective": "Evaluate how tone, design and persuasive choices suit audience, purpose and communication medium."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-purpose-audience"
+        }
+      ]
+    },
+    {
+      "externalId": "bh-g7-eng-2026.8-020",
+      "topic": "Purpose, audience and media",
+      "difficulty": "hard",
+      "questionText": "Which change most improves an emergency notice for a multilingual audience?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Add dense paragraphs of unfamiliar technical slang and abbreviations",
+        "Use colour as the only warning signal",
+        "Replace instructions with a humorous story",
+        "Use short steps, clear symbols and tested translations"
+      ],
+      "correctAnswer": "Use short steps, clear symbols and tested translations",
+      "explanation": "Concise steps, redundant symbols and verified translations improve speed, clarity and access.",
+      "points": 20,
+      "timeLimit": 75,
+      "tags": [
+        "eng7-purpose-audience",
+        "purpose, audience and media"
+      ],
+      "curriculum": {
+        "strand": "Purpose, audience and media",
+        "skill": "Apply purpose, audience and media",
+        "subskill": "purpose, audience and media",
+        "objective": "Evaluate how tone, design and persuasive choices suit audience, purpose and communication medium."
+      },
+      "mappings": [
+        {
+          "scopeCode": "english-grade-7",
+          "objectiveCode": "eng7-purpose-audience"
+        }
+      ]
+    }
+  ]
+}
