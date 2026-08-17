@@ -14,6 +14,7 @@ const teachers = read('components/school-admin/tabs/TeachersTab.tsx');
 const setup = read('components/onboarding/SetupWizard.tsx');
 const app = read('App.tsx');
 const chooser = read('components/SchoolWorkspaceChooser.tsx');
+const schoolAdminNavIcon = read('components/school-admin/SchoolAdminNavIcon.tsx');
 
 test('identity changes use a superadmin-governed unlock queue', () => {
   assert.match(migration, /create table if not exists public\.school_identity_change_requests/);
@@ -64,6 +65,16 @@ test('school administration uses broad-to-specific core ordering and embeds prog
   assert.doesNotMatch(schoolAdmin, /window\.location\.assign/);
 });
 
+test('School Admin navigation uses SVG icons instead of initials on desktop and mobile', () => {
+  assert.match(schoolAdmin, /<SchoolAdminNavIcon name=\{tab\.icon\}/);
+  assert.match(schoolAdmin, /<SchoolAdminNavIcon name=\{tool\.icon\}/);
+  assert.match(schoolAdmin, /<SchoolAdminNavIcon name=\{icon\}/);
+  assert.match(schoolAdmin, /<SchoolAdminNavIcon name="more"/);
+  assert.doesNotMatch(schoolAdmin, /icon: '(OV|CU|CL|TA|PE|DO|BI|SE|AD|CA|IE|AP|IN|PG|EX|AS|RE|RS|SP)'/);
+  assert.match(schoolAdminNavIcon, /<svg/);
+  assert.match(schoolAdminNavIcon, /stroke="currentColor"/);
+});
+
 test('School Head setup is removed and responsive navigation uses icons', () => {
   assert.doesNotMatch(head, /First login setup|School launch checklist|setupChecklist/);
   assert.match(head, /Important school matters, in priority order/);
@@ -74,6 +85,13 @@ test('School Head setup is removed and responsive navigation uses icons', () => 
   assert.match(head, /createPortal/);
   assert.match(headStyles, /school-head-layout\.is-sidebar-collapsed/);
   assert.match(headStyles, /school-head-mobile-menu-layer/);
+});
+
+test('School Head and School Admin switch dashboards from matching header actions', () => {
+  assert.match(schoolAdmin, /className="school-admin-workspace-switch">Principal Dashboard<\/button>/);
+  assert.match(head, /className="school-head-workspace-switch"[\s\S]*?>School Admin Dashboard<\/button>/);
+  assert.doesNotMatch(head, />Operational Administration/);
+  assert.match(headStyles, /button:not\(\.school-head-signout\):not\(\.school-head-workspace-switch\)/);
 });
 
 test('all detected account roles are offered in the post-sign-in workspace chooser', () => {
