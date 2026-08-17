@@ -38,7 +38,7 @@ test('Basic style explains the performance tradeoff in simple language', () => {
   assert.match(settings, /fewer effects for smoother use and longer battery life/);
   assert.doesNotMatch(settings, /Ultra Performance/);
   assert.match(performanceStyles, /body\.light-mode \.student-dashboard-bottom-nav,[\s\S]*?backdrop-filter:\s*none !important/s);
-  assert.match(performanceStyles, /body\.light-mode \.student-next-mission,[\s\S]*?background:\s*#0f172a !important/s);
+  assert.match(performanceStyles, /body\.light-mode \.student-next-mission,[\s\S]*?var\(--student-surface-rgb\)[\s\S]*?#0f172a/s);
   assert.match(performanceStyles, /body\.light-mode \.student-dashboard-bottom-nav::before,[\s\S]*?display:\s*none !important/s);
 });
 
@@ -49,4 +49,23 @@ test('student theme colors visibly drive dashboard accents', () => {
   }
   assert.match(styles, /\.student-primary-button[^}]*var\(--student-accent\)/s);
   assert.match(styles, /\.student-dashboard-nav-link\.is-active[^}]*var\(--student-accent-rgb\)/s);
+  assert.match(styles, /--student-secondary-rgb/);
+  assert.match(styles, /--student-tertiary-rgb/);
+  assert.match(styles, /--student-surface-rgb/);
+  assert.match(styles, /\.student-dashboard-shell::before[^}]*var\(--student-secondary-rgb\)/s);
+  assert.match(styles, /\.student-profile-xp-fill[^}]*var\(--student-secondary\)/s);
+  assert.match(styles, /\.student-assignment-card[^}]*var\(--student-accent-rgb\)/s);
+  assert.match(performanceStyles, /body\.light-mode \.student-primary-button[^}]*var\(--student-accent\)/s);
+});
+
+test('settings provide an accessible live preview and personality for every palette', () => {
+  assert.match(settings, /student-theme-live-preview/);
+  assert.match(settings, /student-display-style-option/);
+  assert.match(settings, /data-theme-color=\{color\}/);
+  assert.match(settings, /aria-label=\{`\$\{option\.label\}: \$\{option\.personality\}`\}/);
+  assert.match(settings, /Clear, electric, focused/);
+  assert.match(settings, /Bright, playful, confident/);
+  assert.match(settings, /Creative, bold, dreamy/);
+  assert.match(styles, /\.student-theme-option\.is-selected/);
+  assert.match(styles, /\.student-theme-live-preview__progress/);
 });

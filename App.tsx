@@ -118,7 +118,7 @@ const StudentProgrammeCard: React.FC<StudentProgrammeCardProps> = ({
 }) => {
   const lockMessageId = `${programme}-programme-lock-message`;
   return (
-    <article className={`student-feed-card student-learning-card ${locked ? 'border-slate-300 opacity-80' : ''}`}>
+    <article className={`student-feed-card student-learning-card ${locked ? 'is-locked' : ''}`}>
       <div className="student-learning-card__icon" aria-hidden>{icon}</div>
       <div className="student-learning-card__copy">
         <span className="student-learning-card__eyebrow">{eyebrow}</span>
@@ -351,7 +351,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }) => (
     <div className="card-glass p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-heading text-lg text-cyan-200">{title}</h3>
+        <h3 className="student-section-heading font-heading text-lg">{title}</h3>
         {action}
       </div>
       <div className="space-y-3">
@@ -1917,18 +1917,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
     if (!pendingAssignments.length) {
       return (
-        <div className="card-glass p-5">
-          <h3 className="font-heading text-lg text-cyan-200 mb-2">Teacher assignments</h3>
+        <div className="student-assignment-section card-glass rounded-2xl p-5">
+          <h3 className="student-assignment-heading font-heading mb-2 text-lg">Teacher assignments</h3>
           <p className="text-sm text-gray-300">No active assignments right now.</p>
         </div>
       );
     }
 
     return (
-      <div className="card-glass p-5">
+      <div className="student-assignment-section card-glass rounded-2xl p-5">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>
-            <h3 className="font-heading text-lg text-cyan-200">Teacher assignments</h3>
+            <h3 className="student-assignment-heading font-heading text-lg">Teacher assignments</h3>
             <p className="mt-1 text-xs text-gray-400">{actionableAssignments.length} ready to complete · open any card for full details</p>
           </div>
         </div>
@@ -1938,7 +1938,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             const statusLabel = assignment.is_closed ? 'Closed' : assignment.is_late ? 'Late · still open' : 'Ready';
             return (
               <details key={assignment.assignment_id} className="student-assignment-card rounded-xl border border-slate-700 bg-slate-950/45">
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 p-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 p-4 focus-visible:outline focus-visible:outline-2">
                   <span className="min-w-0">
                     <span className="block text-sm font-black text-white">{assignment.title || assignment.topic_name || 'New assignment'}</span>
                     <span className="mt-1 block text-xs text-slate-400">{assignment.subject_name || 'General'} · {assignment.teacher_username || 'Your teacher'} · Due {dueLabel}</span>
@@ -1983,7 +1983,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     if (!caps) {
       return (
         <div className="card-glass p-5">
-          <h3 className="font-heading text-lg text-cyan-200 mb-2">Caps</h3>
+          <h3 className="student-section-heading font-heading mb-2 text-lg">Caps</h3>
           <p className="text-sm text-gray-300">Caps data is unavailable.</p>
         </div>
       );
@@ -2010,7 +2010,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     if (!tasks.length) {
       return (
         <div className="card-glass p-5">
-          <h3 className="font-heading text-lg text-cyan-200 mb-2">Tasks</h3>
+          <h3 className="student-section-heading font-heading mb-2 text-lg">Tasks</h3>
           <p className="text-sm text-gray-300">No tasks available right now.</p>
         </div>
       );
@@ -2037,7 +2037,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     if (!news.length) {
       return (
         <div className="card-glass p-5">
-          <h3 className="font-heading text-lg text-cyan-200 mb-2">News</h3>
+          <h3 className="student-section-heading font-heading mb-2 text-lg">News</h3>
           <p className="text-sm text-gray-300">No news yet. Check back soon.</p>
         </div>
       );
@@ -2492,10 +2492,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       <>
                         {renderProfileSlot()}
                         <article className="student-feed-card student-next-mission relative p-5 sm:p-6" data-testid="dashboard-start-quest">
-                          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(34,211,238,0.18),transparent_38%),linear-gradient(135deg,rgba(8,47,73,0.36),transparent_65%)]" aria-hidden />
+                          <div className="student-next-mission__atmosphere pointer-events-none absolute inset-0" aria-hidden />
                           <div className="relative">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-cyan-100">Up next</span>
+                              <span className="student-theme-pill rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wider">Up next</span>
                               <span className="text-xs font-semibold text-slate-300">{activeAssignment ? 'Teacher assignment' : 'Matched to your progress'}</span>
                             </div>
                             <h2 className="mt-4 font-heading text-2xl text-white sm:text-3xl">{nextActionTitle}</h2>
@@ -2563,7 +2563,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     )}
 
                     {studentDashboardTab === 'tournaments' && (
-                      <article className="student-feed-card p-6 text-center"><img src="/mission-console-images/tournament.webp" alt="" className="mx-auto h-40 w-40 object-contain" /><h2 className="font-heading text-2xl text-white">Tournaments</h2><p className="mt-2 text-sm text-slate-400">Compete in live events and climb the tournament standings.</p><button type="button" onClick={() => handleViewChange('tournament')} className="mt-5 min-h-11 rounded-xl bg-amber-300 px-5 py-2.5 font-black text-slate-950">Open Tournaments</button></article>
+                      <article className="student-feed-card p-6 text-center"><img src="/mission-console-images/tournament.webp" alt="" className="mx-auto h-40 w-40 object-contain" /><h2 className="font-heading text-2xl text-white">Tournaments</h2><p className="mt-2 text-sm text-slate-400">Compete in live events and climb the tournament standings.</p><button type="button" onClick={() => handleViewChange('tournament')} className="student-primary-button mt-5">Open Tournaments</button></article>
                     )}
 
                     {studentDashboardTab === 'clan' && (
