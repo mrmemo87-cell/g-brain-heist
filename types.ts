@@ -250,7 +250,9 @@ export interface QuestProgress {
 export type RecommendedDifficulty = 'easy' | 'medium' | 'hard' | 'done';
 
 export type Subject = 'Maths' | 'Science' | 'Biology' | 'Chemistry' | 'Physics' | 'English' | 'Russian Language' | 'Kyrgyz Language' | 'German Language' | 'Geography' | 'Global Perspective' | 'Travel & Tourism' | 'ICT';
-export type AssignmentBatch = Batch | 'All';
+// Academic assignments target school-defined class codes (for example G3-B),
+// not the legacy 6A-12C game batch list.
+export type AssignmentBatch = SchoolBatch | 'All';
 
 export interface Question {
   id: string;

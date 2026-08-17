@@ -176,10 +176,10 @@ export default function AssignmentWizard({
   const uniqueClasses = useMemo(() => {
     const classes = new Map<string, TeacherAllocatedClass>();
     allocatedClasses.forEach((item) => {
-      if (item.is_active && !classes.has(item.class_code)) classes.set(item.class_code, item);
+      if (item.is_active && normalizeSubject(item.subject) === normalizeSubject(assignmentSubject) && !classes.has(item.class_code)) classes.set(item.class_code, item);
     });
     return [...classes.values()];
-  }, [allocatedClasses]);
+  }, [allocatedClasses, assignmentSubject]);
 
   const uniqueQuestions = useMemo(() => {
     const ids = new Set<string>();
@@ -444,7 +444,7 @@ export default function AssignmentWizard({
                     return (
                       <button key={item.class_code} type="button" aria-pressed={selected} onClick={() => toggleBatch(item.class_code)} className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}>
                         <span className="aw-class-icon" aria-hidden="true">🏫</span>
-                        <span className="aw-class-card__details"><strong>{item.class_code}</strong><small>{item.subject} · {count} student{count === 1 ? '' : 's'}</small></span>
+                        <span className="aw-class-card__details"><strong>{item.class_code}</strong><small>{item.subject} · {count > 0 ? `${count} student${count === 1 ? '' : 's'}` : 'No registered students yet'}</small></span>
                         <span className="aw-check">{selected ? '✓' : ''}</span>
                       </button>
                     );
@@ -486,7 +486,7 @@ export default function AssignmentWizard({
                 {[...teacherAssignedSubjects].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })).map((subject) => {
                   const disabled = Boolean(lockedSubject && normalizeSubject(subject) !== normalizeSubject(lockedSubject));
                   return (
-                  <button key={subject} type="button" role="radio" aria-checked={assignmentSubject === subject} disabled={disabled} aria-disabled={disabled} className={`${assignmentSubject === subject ? 'aw-subject is-selected' : 'aw-subject'}${disabled ? ' is-disabled' : ''}`} onClick={() => !disabled && setAssignmentSubject(subject as Subject)}>
+                  <button key={subject} type="button" role="radio" aria-checked={assignmentSubject === subject} disabled={disabled} aria-disabled={disabled} className={`${assignmentSubject === subject ? 'aw-subject is-selected' : 'aw-subject'}${disabled ? ' is-disabled' : ''}`} onClick={() => { if (!disabled) { setAssignmentSubject(subject as Subject); setAssignmentBatches([]); } }}>
                     <span aria-hidden="true">{subject === 'Maths' ? '∑' : subject === 'Science' ? '⚗' : subject === 'English' ? 'Aa' : '◆'}</span>
                     <strong>{subject}</strong>
                     {disabled ? <small>Unavailable — {lockedSubject} questions selected</small> : null}
