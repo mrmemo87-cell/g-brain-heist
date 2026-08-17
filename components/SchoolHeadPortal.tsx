@@ -441,6 +441,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
           <div><p>Brains Heist · Executive Intelligence</p><h1>{snapshot.school.name}</h1><span>School Head workspace</span></div>
         </div>
         <div className="school-head-header-actions">
+          <button type="button" className="school-head-workspace-switch" onClick={() => openAdministration('dashboard')}>School Admin Dashboard</button>
           <label><span>Reporting window</span><select value={periodDays} onChange={(event) => setPeriodDays(Number(event.target.value))}><option value={30}>Last 30 days</option><option value={60}>Last 60 days</option><option value={90}>Last 90 days</option></select></label>
           <button type="button" onClick={() => void load({ silent: true })} disabled={refreshing}>{refreshing ? 'Refreshing…' : 'Refresh data'}</button>
           <button type="button" className="school-head-signout" onClick={onLogout}>Sign out</button>
@@ -452,7 +453,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
           <button type="button" className="school-head-sidebar-toggle" onClick={toggleSidebar} aria-label={sidebarCollapsed ? 'Expand side navigation' : 'Collapse side navigation'} aria-expanded={!sidebarCollapsed} aria-controls="school-head-primary-navigation" title={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}><span aria-hidden="true">{sidebarCollapsed ? '›' : '‹'}</span><strong>{sidebarCollapsed ? 'Expand' : 'Collapse'}</strong></button>
           <div className="school-head-profile"><div>{snapshot.head?.name.slice(0, 1).toUpperCase() || 'H'}</div><span><strong>{snapshot.head?.name || 'School Head'}</strong><small>Primary decision maker</small></span><b>HEAD</b></div>
           <nav id="school-head-primary-navigation">{HEAD_TABS.map((tab) => <button type="button" key={tab.id} className={activeTab === tab.id ? 'is-active' : ''} aria-current={activeTab === tab.id ? 'page' : undefined} aria-label={tab.label} title={sidebarCollapsed ? tab.label : undefined} onMouseEnter={(event) => sidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })} onMouseLeave={() => setNavTooltip(null)} onFocus={(event) => sidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })} onBlur={() => setNavTooltip(null)} onClick={() => { setNavTooltip(null); selectTab(tab.id); }}><span className="school-head-nav-icon"><HeadNavIcon tab={tab.id} /></span><span className="school-head-nav-text">{tab.label}</span>{tab.id === 'decisions' && snapshot.decisions.length > 0 && <b>{snapshot.decisions.length}</b>}</button>)}</nav>
-          <div className="school-head-sidebar-actions"><p>Workspaces</p><button type="button" onClick={() => openAdministration('dashboard')}>Operational Administration <span>→</span></button>{onOpenTeacherPortal && <button type="button" onClick={onOpenTeacherPortal}>Teacher Workspace <span>→</span></button>}</div>
+          {onOpenTeacherPortal && <div className="school-head-sidebar-actions"><p>Workspaces</p><button type="button" onClick={onOpenTeacherPortal}>Teacher Workspace <span>→</span></button></div>}
           <div className="school-head-security"><span aria-hidden="true">◆</span><div><strong>School-isolated data</strong><small>Executive access verified by active ownership.</small></div></div>
         </aside>
 
