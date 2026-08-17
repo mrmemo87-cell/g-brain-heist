@@ -41,9 +41,10 @@ test('registration rules fail closed before student or teacher membership is cre
   assert.match(settings, /When unchecked, teachers cannot join this school by code or invitation link/);
 });
 
-test('teacher allocation is invitation-only and links skip code entry after validation', () => {
+test('teacher allocation keeps its full workflow and links skip code entry after validation', () => {
   assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
-  assert.doesNotMatch(teachers, /allocationClasses|selectedFilterGrade|admin-table-scroll/);
+  assert.match(teachers, /allocationClasses|selectedFilterGrade|admin-table-scroll/);
+  assert.match(teachers, /handleAllocateTeacher/);
   assert.match(invites, /searchParams\.set\('schoolInvite', school\.invite_code\)/);
   assert.match(invites, /Send invitation link/);
   assert.match(setup, /get\('schoolInvite'\)/);
