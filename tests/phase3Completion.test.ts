@@ -54,7 +54,9 @@ test('reviewed placement RPCs remain available without exposing repair tooling i
   assert.match(service, /rpc_school_admin_bulk_transfer_student_placements/);
   assert.match(service, /rpc_school_admin_list_placement_exceptions/);
   assert.match(portal, /transferStudentPlacement/);
-  assert.match(portal, /Effective date \(YYYY-MM-DD\)/);
+  assert.match(portal, /effectiveDateLabel: 'Effective date'/);
+  assert.match(portal, /effectiveDateInitialValue: today/);
+  assert.doesNotMatch(portal, /window\.(?:prompt|confirm|alert)\s*\(/);
   assert.doesNotMatch(roster, /PlacementExceptionQueue|Advanced placement checks/);
   assert.match(queue, /Confirm current class/);
   assert.match(queue, /Confirm unassignment/);

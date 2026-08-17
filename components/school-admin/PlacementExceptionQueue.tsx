@@ -84,7 +84,6 @@ const PlacementExceptionQueue: React.FC<Props> = ({ schoolId, classes, addToast,
 
   const resolve = async (action: 'place' | 'unassign') => {
     if (!selected || !review?.studentUserId || reason.trim().length < 3 || !effectiveDate) return;
-    if (!window.confirm(`Confirm this reviewed placement decision effective ${effectiveDate}?`)) return;
     setSaving(true);
     const result = action === 'unassign'
       ? review.currentClassId

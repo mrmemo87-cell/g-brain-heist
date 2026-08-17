@@ -10,6 +10,9 @@ const portal = read('components/SchoolAdminPortal.tsx');
 const memberModal = read('components/school-admin/modals/MemberActionModal.tsx');
 const memberDirectory = read('components/school-admin/tabs/MembersTab.tsx');
 const studentsTab = read('components/school-admin/tabs/StudentsTab.tsx');
+const classRoster = read('components/ClassRoster.tsx');
+const placementQueue = read('components/school-admin/PlacementExceptionQueue.tsx');
+const confirmModal = read('components/school-admin/modals/ConfirmDialogModal.tsx');
 
 const functionDefinition = (name: string) => migration.match(
   new RegExp(`create or replace function public\\.${name}[\\s\\S]*?\\$\\$;`, 'i'),
@@ -86,4 +89,16 @@ test('student management limits class selection to the chosen grade level', () =
   assert.match(studentsTab, /Select grade level first/);
   assert.match(memberDirectory, /grade: assignedClass\?\.grade_level \?\? teacherClass\?\.grade_level \?\? member\.grade/);
   assert.match(memberDirectory, /batch: assignedClass\?\.class_code \?\? teacherClass\?\.class_code \?\? member\.batch/);
+});
+
+test('school-admin placement decisions use the branded confirmation flow', () => {
+  const nativeDialog = /(?:window\.)?(?:confirm|prompt|alert)\s*\(/;
+  assert.doesNotMatch(portal, nativeDialog);
+  assert.doesNotMatch(classRoster, nativeDialog);
+  assert.doesNotMatch(placementQueue, nativeDialog);
+  assert.match(portal, /title: previousClassId \? 'Confirm class transfer' : 'Confirm student placement'/);
+  assert.match(portal, /reasonInitialValue: previousClassId/);
+  assert.match(portal, /effectiveDateInitialValue: today/);
+  assert.match(confirmModal, /type="date"/);
+  assert.match(confirmModal, /confirmDialog\.reasonMinimumLength/);
 });

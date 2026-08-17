@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import type { ClassRosterStudent, ClassWithRosterInfo, ClassStatistics } from '../services/schoolAdminService';
 import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from '../src/lib/schoolDocument';
+import type { SchoolAdminConfirmDialog } from './school-admin/schoolAdminConfirm';
 
 interface ClassRosterProps {
   schoolId: string;
@@ -10,6 +11,7 @@ interface ClassRosterProps {
   onRefresh?: () => void;
   schoolName?: string;
   schoolLogoUrl?: string | null;
+  setConfirmDialog: React.Dispatch<React.SetStateAction<SchoolAdminConfirmDialog | null>>;
 }
 
 interface ExpandedClass {
@@ -27,7 +29,7 @@ const getClassDescriptor = (classInfo: ClassWithRosterInfo): string => {
   return gradeLabel ? `${gradeLabel} · ${className}` : className;
 };
 
-const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh, schoolName = 'Brains Heist', schoolLogoUrl }) => {
+const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh, schoolName = 'Brains Heist', schoolLogoUrl, setConfirmDialog }) => {
   const now = new Date();
   const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const [classes, setClasses] = useState<ClassWithRosterInfo[]>([]);
@@ -142,37 +144,43 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
   };
 
   // Remove student from class
-  const handleRemoveStudent = async (classId: string, studentId: string, studentName: string) => {
-    const reason = window.prompt(`Reason for removing ${studentName} from this class:`, 'Administrator-approved unassignment')?.trim();
-    if (!reason || reason.length < 3) return;
-    const effectiveDate = window.prompt('Effective date (YYYY-MM-DD):', localToday)?.trim();
-    if (!effectiveDate || !/^\d{4}-\d{2}-\d{2}$/.test(effectiveDate)) return;
-    if (!confirm(`Confirm this reviewed unassignment effective ${effectiveDate}?`)) return;
-    
-    setActionLoading(true);
-    try {
-      const result = await SchoolAdminService.unassignStudentPlacement({ schoolId, studentId, expectedFromClassId: classId, reason, effectiveDate });
-      if (result.success) {
-        addToast(`Removed ${studentName} from class`, 'success');
-        // Reload both the class roster and unassigned students
-        const [roster, unassigned] = await Promise.all([
-          SchoolAdminService.getClassRoster(classId),
-          SchoolAdminService.getUnassignedStudents(schoolId),
-        ]);
-        setExpandedClasses((prev) => ({
-          ...prev,
-          [classId]: { ...prev[classId], students: roster },
-        }));
-        setUnassignedStudents(unassigned);
-        loadClasses(); // Update counts
-      } else {
-        addToast(result.error || 'Failed to remove student', 'error');
-      }
-    } catch (err) {
-      addToast('An error occurred', 'error');
-    } finally {
-      setActionLoading(false);
-    }
+  const handleRemoveStudent = (classId: string, studentId: string, studentName: string) => {
+    setConfirmDialog({
+      title: `Remove ${studentName} from this class?`,
+      description: 'The student will become unassigned. Their placement history will remain in the school record.',
+      confirmLabel: 'Confirm unassignment',
+      cancelLabel: 'Keep in class',
+      requiresReason: true,
+      reasonRequired: true,
+      reasonLabel: 'Unassignment reason',
+      reasonInitialValue: 'Administrator-approved unassignment',
+      reasonMinimumLength: 3,
+      requiresEffectiveDate: true,
+      effectiveDateInitialValue: localToday,
+      onConfirm: async (reason, values) => {
+        if (!reason || !values?.effectiveDate) return;
+        setActionLoading(true);
+        try {
+          const result = await SchoolAdminService.unassignStudentPlacement({ schoolId, studentId, expectedFromClassId: classId, reason, effectiveDate: values.effectiveDate });
+          if (result.success) {
+            addToast(`Removed ${studentName} from class`, 'success');
+            const [roster, unassigned] = await Promise.all([
+              SchoolAdminService.getClassRoster(classId),
+              SchoolAdminService.getUnassignedStudents(schoolId),
+            ]);
+            setExpandedClasses((prev) => ({ ...prev, [classId]: { ...prev[classId], students: roster } }));
+            setUnassignedStudents(unassigned);
+            void loadClasses();
+          } else {
+            addToast(result.error || 'Failed to remove student', 'error');
+          }
+        } catch (err) {
+          addToast('An error occurred', 'error');
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   // Open move modal
@@ -255,59 +263,80 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
   };
 
   // Auto-enroll by grade
-  const handleAutoEnroll = async (classId: string, classCode: string) => {
+  const handleAutoEnroll = (classId: string, classCode: string) => {
     const targetClass = classes.find((item) => item.class_id === classId);
     const matching = unassignedStudents.filter((student) => String(student.grade) === String(targetClass?.grade_level)).map((student) => student.student_id);
     if (matching.length === 0) { addToast('No unassigned students match this class year.', 'info'); return; }
-    const reason = window.prompt(`Reason for placing ${matching.length} students into ${classCode}:`, 'Administrator-approved year-group placement')?.trim();
-    if (!reason || reason.length < 3) return;
-    if (!confirm(`Confirm ${matching.length} reviewed placements effective ${localToday}?`)) return;
-    
-    setActionLoading(true);
-    try {
-      const result = await SchoolAdminService.bulkTransferStudentPlacements({ schoolId, studentIds: matching, toClassId: classId, reason, effectiveDate: localToday });
-      if (result.success) {
-        addToast(result.message || `Reviewed placement saved for ${matching.length} students`, 'success');
-        loadClasses();
-        // Refresh expanded class if open
-        if (expandedClasses[classId]) {
-          const roster = await SchoolAdminService.getClassRoster(classId);
-          setExpandedClasses((prev) => ({
-            ...prev,
-            [classId]: { ...prev[classId], students: roster },
-          }));
+    setConfirmDialog({
+      title: `Place ${matching.length} students in ${classCode}?`,
+      description: 'This applies a reviewed class and grade placement to every matching unassigned student.',
+      confirmLabel: 'Save placements',
+      requiresReason: true,
+      reasonRequired: true,
+      reasonLabel: 'Placement reason',
+      reasonInitialValue: 'Administrator-approved year-group placement',
+      reasonMinimumLength: 3,
+      requiresEffectiveDate: true,
+      effectiveDateInitialValue: localToday,
+      onConfirm: async (reason, values) => {
+        if (!reason || !values?.effectiveDate) return;
+        setActionLoading(true);
+        try {
+          const result = await SchoolAdminService.bulkTransferStudentPlacements({ schoolId, studentIds: matching, toClassId: classId, reason, effectiveDate: values.effectiveDate });
+          if (result.success) {
+            addToast(result.message || `Reviewed placement saved for ${matching.length} students`, 'success');
+            void loadClasses();
+            if (expandedClasses[classId]) {
+              const roster = await SchoolAdminService.getClassRoster(classId);
+              setExpandedClasses((prev) => ({ ...prev, [classId]: { ...prev[classId], students: roster } }));
+            }
+          } else {
+            addToast(result.error || 'Failed to auto-enroll', 'error');
+          }
+        } catch (err) {
+          addToast('An error occurred', 'error');
+        } finally {
+          setActionLoading(false);
         }
-      } else {
-        addToast(result.error || 'Failed to auto-enroll', 'error');
-      }
-    } catch (err) {
-      addToast('An error occurred', 'error');
-    } finally {
-      setActionLoading(false);
-    }
+      },
+    });
   };
 
   // Add unassigned student to class
-  const handleAddUnassignedToClass = async (studentId: string, classId: string) => {
-    const reason = window.prompt('Placement reason:', 'Administrator-approved initial placement')?.trim();
-    if (!reason || reason.length < 3) return;
-    setActionLoading(true);
-    try {
-      const result = await SchoolAdminService.transferStudentPlacement({ schoolId, studentId, expectedFromClassId: null, toClassId: classId, reason, effectiveDate: localToday });
-      if (result.success) {
-        addToast(result.message || 'Student added to class', 'success');
-        loadClasses();
-        // Refresh unassigned
-        const unassigned = await SchoolAdminService.getUnassignedStudents(schoolId);
-        setUnassignedStudents(unassigned);
-      } else {
-        addToast(result.error || 'Failed to add student', 'error');
-      }
-    } catch (err) {
-      addToast('An error occurred', 'error');
-    } finally {
-      setActionLoading(false);
-    }
+  const handleAddUnassignedToClass = (studentId: string, classId: string) => {
+    const student = unassignedStudents.find((candidate) => candidate.student_id === studentId);
+    const destination = classes.find((candidate) => candidate.class_id === classId);
+    setConfirmDialog({
+      title: 'Confirm student placement',
+      description: `Place ${student?.username || 'this student'} in ${destination?.class_code || 'the selected class'} and update the official grade and class record.`,
+      confirmLabel: 'Save placement',
+      requiresReason: true,
+      reasonRequired: true,
+      reasonLabel: 'Placement reason',
+      reasonInitialValue: 'Administrator-approved initial placement',
+      reasonMinimumLength: 3,
+      requiresEffectiveDate: true,
+      effectiveDateInitialValue: localToday,
+      onConfirm: async (reason, values) => {
+        if (!reason || !values?.effectiveDate) return;
+        setActionLoading(true);
+        try {
+          const result = await SchoolAdminService.transferStudentPlacement({ schoolId, studentId, expectedFromClassId: null, toClassId: classId, reason, effectiveDate: values.effectiveDate });
+          if (result.success) {
+            addToast(result.message || 'Student added to class', 'success');
+            void loadClasses();
+            const unassigned = await SchoolAdminService.getUnassignedStudents(schoolId);
+            setUnassignedStudents(unassigned);
+          } else {
+            addToast(result.error || 'Failed to add student', 'error');
+          }
+        } catch (err) {
+          addToast('An error occurred', 'error');
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   // Filter classes by search

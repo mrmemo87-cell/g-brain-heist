@@ -6,11 +6,19 @@ const ConfirmDialogModal: React.FC = () => {
   const {
     confirmBusy, confirmDialog, confirmReason, setConfirmBusy, setConfirmDialog, setConfirmReason,
   } = useSchoolAdmin();
+  const [effectiveDate, setEffectiveDate] = React.useState('');
+
+  React.useEffect(() => {
+    if (!confirmDialog) return;
+    setConfirmReason(confirmDialog.reasonInitialValue || '');
+    setEffectiveDate(confirmDialog.effectiveDateInitialValue || '');
+  }, [confirmDialog, setConfirmReason]);
 
   const close = React.useCallback(() => {
     if (confirmBusy) return;
     setConfirmDialog(null);
     setConfirmReason('');
+    setEffectiveDate('');
   }, [confirmBusy, setConfirmDialog, setConfirmReason]);
 
   React.useEffect(() => {
@@ -36,7 +44,7 @@ const ConfirmDialogModal: React.FC = () => {
           {confirmDialog.requiresReason && (
             <div className="mb-4">
               <label htmlFor="confirm-reason" className="block text-sm font-medium text-slate-700 mb-1">
-                Reason {confirmDialog.reasonRequired ? '(required)' : '(optional)'}
+                {confirmDialog.reasonLabel || 'Reason'} {confirmDialog.reasonRequired ? '(required)' : '(optional)'}
               </label>
               <input
                 id="confirm-reason"
@@ -44,7 +52,23 @@ const ConfirmDialogModal: React.FC = () => {
                 value={confirmReason}
                 onChange={(e) => setConfirmReason(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg"
-                placeholder="Add a reason for this action"
+                placeholder={confirmDialog.reasonPlaceholder || 'Add a reason for this action'}
+                minLength={confirmDialog.reasonMinimumLength}
+              />
+            </div>
+          )}
+          {confirmDialog.requiresEffectiveDate && (
+            <div className="mb-4">
+              <label htmlFor="confirm-effective-date" className="block text-sm font-medium text-slate-700 mb-1">
+                {confirmDialog.effectiveDateLabel || 'Effective date'} (required)
+              </label>
+              <input
+                id="confirm-effective-date"
+                type="date"
+                value={effectiveDate}
+                onChange={(event) => setEffectiveDate(event.target.value)}
+                className="w-full px-3 py-2 rounded-lg"
+                required
               />
             </div>
           )}
@@ -57,15 +81,18 @@ const ConfirmDialogModal: React.FC = () => {
               {confirmDialog.cancelLabel || 'Cancel'}
             </button>
             <button
-              disabled={confirmBusy || (confirmDialog.reasonRequired && !confirmReason.trim())}
+              disabled={confirmBusy
+                || (confirmDialog.reasonRequired && confirmReason.trim().length < (confirmDialog.reasonMinimumLength || 1))
+                || (confirmDialog.requiresEffectiveDate && !effectiveDate)}
               onClick={async () => {
                 setConfirmBusy(true);
                 try {
-                  await confirmDialog.onConfirm(confirmReason.trim() || undefined);
+                  await confirmDialog.onConfirm(confirmReason.trim() || undefined, { effectiveDate: effectiveDate || undefined });
                 } finally {
                   setConfirmBusy(false);
                   setConfirmDialog(null);
                   setConfirmReason('');
+                  setEffectiveDate('');
                 }
               }}
               className={confirmDialog.isDestructive ? 'admin-button-danger school-admin-confirm-submit' : 'admin-button-primary'}
