@@ -54,6 +54,10 @@ import {
   type SchoolAdminIeltsTab,
   type SchoolAdminTab,
 } from '../src/lib/schoolAdminIeltsNavigation';
+import {
+  getPendingProgrammeAccessRequestCount,
+  subscribeToProgrammeAccessRequestChanges,
+} from '../services/programmeSeatService';
 
 interface SchoolAdminPortalProps {
   onComplete: () => void;
@@ -62,6 +66,7 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
   onOpenTeacherPortal?: () => void;
   onOpenSchoolHeadPortal?: () => void;
+  onOpenParentPortal?: () => void;
 }
 
 type IeltsSubTab = SchoolAdminIeltsTab;
@@ -122,7 +127,7 @@ const getCambridgeReportKey = (score: any) =>
 const getCambridgeReportLabel = (score: any) =>
   `${score.quiz_name || 'Unknown test'} · ${score.quiz_version || 'legacy-v1'}`;
 
-const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast, onOpenTeacherPortal, onOpenSchoolHeadPortal }) => {
+const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLogout, onNavigate, addToast, onOpenTeacherPortal, onOpenSchoolHeadPortal, onOpenParentPortal }) => {
   const initialNavigation = useMemo(() => parseSchoolAdminNavigation(window.location.search), []);
   const [activeTab, setActiveTab] = useState<AdminTab>(initialNavigation.adminTab);
   const [activeIeltsSubTab, setActiveIeltsSubTab] = useState<IeltsSubTab>(initialNavigation.ieltsTab);
@@ -138,6 +143,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   } = useSmartCollapsedNavigation(activeTab, '(max-width: 768px)');
   const [loading, setLoading] = useState(true);
   const [school, setSchool] = useState<SchoolInfo | null>(null);
+  const [pendingProgrammeRequestCount, setPendingProgrammeRequestCount] = useState(0);
   const [stats, setStats] = useState<SchoolStats | null>(null);
   const [members, setMembers] = useState<SchoolMember[]>([]);
   const [schoolAdmins, setSchoolAdmins] = useState<SchoolMember[]>([]);
@@ -385,6 +391,29 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   useEffect(() => {
     loadSchoolData();
   }, []);
+
+  useEffect(() => {
+    const schoolId = school?.id;
+    if (!schoolId) return;
+    let active = true;
+    const refreshCount = async () => {
+      try {
+        const count = await getPendingProgrammeAccessRequestCount(schoolId);
+        if (active) setPendingProgrammeRequestCount(count);
+      } catch (error) {
+        console.error('Failed to load pending programme request count:', error);
+      }
+    };
+    void refreshCount();
+    const channel = subscribeToProgrammeAccessRequestChanges(schoolId, () => { void refreshCount(); });
+    const refreshWhenVisible = () => { if (document.visibilityState === 'visible') void refreshCount(); };
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      active = false;
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+      void channel.unsubscribe();
+    };
+  }, [school?.id]);
 
   const loadSchoolData = async () => {
     setLoading(true);
@@ -1806,6 +1835,9 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             {currentCapabilities?.can_teach && teacherAllocations.some((allocation) => allocation.active !== false && allocation.teacher_user_id === currentCapabilities.user_id) && onOpenTeacherPortal && (
               <button type="button" onClick={onOpenTeacherPortal} className="school-admin-workspace-switch">Teacher workspace</button>
             )}
+            {onOpenParentPortal && (
+              <button type="button" onClick={onOpenParentPortal} className="school-admin-workspace-switch">Parent Dashboard</button>
+            )}
             <button
               onClick={onLogout}
               className="school-admin-signout"
@@ -1848,6 +1880,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
           >
             <span className="school-admin-nav-icon" aria-hidden="true"><SchoolAdminNavIcon name={tab.icon} /></span>
             <span className="school-admin-nav-text">{tab.label}</span>
+            {tab.id === 'billing' && pendingProgrammeRequestCount > 0 ? <span className="school-admin-nav-badge" aria-label={`${pendingProgrammeRequestCount} pending programme request${pendingProgrammeRequestCount === 1 ? '' : 's'}`}>{Math.min(pendingProgrammeRequestCount, 99)}</span> : null}
           </button>
         ) : null)}
         <div className="school-admin-progress-navigation mt-4 border-t border-slate-700/70 pt-4">
@@ -2055,6 +2088,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
                     <strong>{tab.label}</strong>
                     <small>{tab.description}</small>
                   </span>
+                  {tab.id === 'billing' && pendingProgrammeRequestCount > 0 ? <span className="school-admin-nav-badge" aria-label={`${pendingProgrammeRequestCount} pending programme request${pendingProgrammeRequestCount === 1 ? '' : 's'}`}>{Math.min(pendingProgrammeRequestCount, 99)}</span> : null}
                 </button>
               ))}
               {SCHOOL_ADMIN_PROGRESS_TOOLS.map((tool) => (
