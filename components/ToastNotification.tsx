@@ -3,11 +3,12 @@ import { notificationService, Notification, NotificationService } from '../servi
 
 interface ToastContainerProps {
   maxToasts?: number;
+  onAction?: (notification: Notification) => void;
 }
 
 const LOGO_SRC = '/logo.png';
 
-export const ToastContainer: React.FC<ToastContainerProps> = ({ maxToasts = 3 }) => {
+export const ToastContainer: React.FC<ToastContainerProps> = ({ maxToasts = 3, onAction }) => {
   const [toasts, setToasts] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -20,11 +21,13 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ maxToasts = 3 })
         return newToasts.slice(0, maxToasts);
       });
 
-      // Auto-dismiss based on priority
-      const dismissDelay = notification.priority === 'urgent' ? 10000 : 5000;
-      setTimeout(() => {
-        dismissToast(notification.id);
-      }, dismissDelay);
+      // Executive decisions remain visible until the School Head opens or dismisses them.
+      if (notification.type !== 'school_head_decision') {
+        const dismissDelay = notification.priority === 'urgent' ? 10000 : 5000;
+        window.setTimeout(() => {
+          dismissToast(notification.id);
+        }, dismissDelay);
+      }
     });
 
     return () => {
@@ -43,6 +46,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ maxToasts = 3 })
           key={toast.id} 
           notification={toast} 
           onDismiss={() => dismissToast(toast.id)}
+          onAction={onAction}
           index={index}
         />
       ))}
@@ -53,24 +57,36 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ maxToasts = 3 })
 interface ToastProps {
   notification: Notification;
   onDismiss: () => void;
+  onAction?: (notification: Notification) => void;
   index: number;
 }
 
-const Toast: React.FC<ToastProps> = ({ notification, onDismiss, index }) => {
+const Toast: React.FC<ToastProps> = ({ notification, onDismiss, onAction, index }) => {
   const [isExiting, setIsExiting] = useState(false);
   const style = NotificationService.getNotificationStyle(notification.type);
 
   const handleDismiss = () => {
+    if (notification.type === 'school_head_decision') {
+      void notificationService.markAsRead(notification.id);
+    }
     setIsExiting(true);
-    setTimeout(() => {
+    window.setTimeout(() => {
       onDismiss();
     }, 300);
   };
 
+  const handlePrimaryAction = () => {
+    if (notification.type === 'school_head_decision') {
+      onAction?.(notification);
+    }
+    handleDismiss();
+  };
+
   useEffect(() => {
-    // Mark as read when toast appears
-    notificationService.markAsRead(notification.id);
-  }, [notification.id]);
+    if (notification.type !== 'school_head_decision') {
+      void notificationService.markAsRead(notification.id);
+    }
+  }, [notification.id, notification.type]);
 
   const getPriorityStyle = () => {
     switch (notification.priority) {
@@ -86,6 +102,9 @@ const Toast: React.FC<ToastProps> = ({ notification, onDismiss, index }) => {
   };
 
   const getActionLabel = () => {
+    if (notification.type === 'school_head_decision') {
+      return 'Open Decision Center';
+    }
     if (notification.action?.label) {
       return notification.action.label;
     }
@@ -147,7 +166,7 @@ const Toast: React.FC<ToastProps> = ({ notification, onDismiss, index }) => {
 
             <div className="mt-3 flex items-center justify-between gap-2">
               <button
-                onClick={handleDismiss}
+                onClick={handlePrimaryAction}
                 className="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20"
               >
                 {getActionLabel()}
@@ -163,14 +182,14 @@ const Toast: React.FC<ToastProps> = ({ notification, onDismiss, index }) => {
         </div>
 
         {/* Progress bar for auto-dismiss */}
-        <div className="mt-3 h-1 bg-gray-800/80 rounded-full overflow-hidden">
+        {notification.type !== 'school_head_decision' && <div className="mt-3 h-1 bg-gray-800/80 rounded-full overflow-hidden">
           <div
             className={`h-full ${style.bgColor} animate-shrink`}
             style={{
               animationDuration: notification.priority === 'urgent' ? '10s' : '5s'
             }}
           />
-        </div>
+        </div>}
       </div>
     </div>
   );

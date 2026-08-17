@@ -4,7 +4,7 @@ import ClassRoster from '../../ClassRoster';
 
 const RosterTab: React.FC = () => {
   const {
-    addToast, loadAdminTools, school,
+    addToast, loadAdminTools, school, setConfirmDialog,
   } = useSchoolAdmin();
 
   return (
@@ -13,6 +13,7 @@ const RosterTab: React.FC = () => {
       schoolName={school.name}
       schoolLogoUrl={school.logo_url}
       addToast={addToast}
+      setConfirmDialog={setConfirmDialog}
       onRefresh={() => loadAdminTools(school.id)}
     />
   );

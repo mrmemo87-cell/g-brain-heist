@@ -15,6 +15,8 @@ const listTeacherAllocationsService = adminService.slice(
 );
 const teachersTab = read('components/school-admin/tabs/TeachersTab.tsx');
 const dispatcher = read('supabase/functions/school_email_dispatcher/index.ts');
+const app = read('App.tsx');
+const notificationToasts = read('components/ToastNotification.tsx');
 
 test('Decision Center evaluates the complete executive signal set', () => {
   for (const decisionKey of [
@@ -54,6 +56,16 @@ test('Decision Center exposes accountable evidence and notification policy', () 
   assert.match(portal, /Why this matters:/);
   assert.match(portal, /Affected records/);
   assert.match(portal, /Resolved records close automatically/);
+});
+
+test('School Head decision notices stay visible until acknowledged and open the Decision Center', () => {
+  assert.match(notificationToasts, /notification\.type !== 'school_head_decision'/);
+  assert.match(notificationToasts, /return 'Open Decision Center'/);
+  assert.match(notificationToasts, /onAction\?\.\(notification\)/);
+  assert.match(notificationToasts, /notificationService\.markAsRead\(notification\.id\)/);
+  assert.match(app, /notification\.type === 'school_head_decision'/);
+  assert.match(app, /url\.searchParams\.set\('headTab', 'decisions'\)/);
+  assert.match(app, /<ToastContainer onAction=\{handleNotificationAction\}/);
 });
 
 test('teacher allocations carry and render teacher identity independently of eligibility list', () => {

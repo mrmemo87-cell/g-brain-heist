@@ -576,6 +576,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   };
 
   const handleNotificationAction = useCallback((notification: Notification) => {
+    if (notification.type === 'school_head_decision') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('view', 'school_head');
+      url.searchParams.set('headTab', 'decisions');
+      url.searchParams.delete('adminTab');
+      window.history.pushState(null, '', `${url.pathname}${url.search}${url.hash}`);
+      setView('school_head');
+      window.requestAnimationFrame(() => window.dispatchEvent(new PopStateEvent('popstate')));
+      return;
+    }
     if (notification.type !== 'revenge_available') return;
 
     const targetIdFromData = typeof notification.data?.target_id === 'string'
@@ -2862,7 +2872,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         />
 
         {/* Toast Notifications */}
-        <ToastContainer />
+        <ToastContainer onAction={handleNotificationAction} />
       </div>
     </div>
   );

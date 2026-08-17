@@ -39,6 +39,7 @@ import IeltsReviewAdminGuard from './ielts/IeltsReviewAdminGuard';
 import IeltsExamModeAdminGuard from './ielts/IeltsExamModeAdminGuard';
 import MemberActionModal from './school-admin/modals/MemberActionModal';
 import ConfirmDialogModal from './school-admin/modals/ConfirmDialogModal';
+import type { SchoolAdminConfirmDialog } from './school-admin/schoolAdminConfirm';
 import AdmissionHub from './AdmissionHub';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
@@ -340,16 +341,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [showMemberActionModal, setShowMemberActionModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<SchoolMember | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const [confirmDialog, setConfirmDialog] = useState<{
-    title: string;
-    description: string;
-    confirmLabel?: string;
-    cancelLabel?: string;
-    isDestructive?: boolean;
-    requiresReason?: boolean;
-    reasonRequired?: boolean;
-    onConfirm: (reason?: string) => Promise<void> | void;
-  } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<SchoolAdminConfirmDialog | null>(null);
   const [confirmReason, setConfirmReason] = useState('');
   const [confirmBusy, setConfirmBusy] = useState(false);
 
@@ -1190,94 +1182,95 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     await loadAdminTools(school.id);
   };
 
-  const handleEnrollStudent = async (studentId = selectedStudentId, classId = selectedClassId) => {
+  const handleEnrollStudent = (studentId = selectedStudentId, classId = selectedClassId) => {
     if (!school) return;
     if (!studentId || !classId) {
       addToast('Select a student and class', 'error');
       return;
     }
 
-    const enrolledStudentId = studentId;
-    const enrolledClassId = classId;
-
     const previousClassId = studentAssignments[studentId] || null;
-    const reason = window.prompt('Placement reason (required for the school record):', previousClassId ? 'Administrator-approved class transfer' : 'Administrator-approved initial placement')?.trim();
-    if (!reason || reason.length < 3) {
-      addToast('Enter a clear placement reason before saving.', 'error');
-      return;
-    }
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const effectiveDate = window.prompt('Effective date (YYYY-MM-DD):', today)?.trim();
-    if (!effectiveDate || !/^\d{4}-\d{2}-\d{2}$/.test(effectiveDate)) {
-      addToast('Enter the effective date as YYYY-MM-DD.', 'error');
-      return;
-    }
-    if (!window.confirm(`Confirm this reviewed placement effective ${effectiveDate}?`)) return;
-    setStudentSaving(true);
-    const result = await SchoolAdminService.transferStudentPlacement({
-      schoolId: school.id,
-      studentId,
-      expectedFromClassId: previousClassId,
-      toClassId: classId,
-      reason,
-      effectiveDate,
+    const student = students.find((candidate) => candidate.user_id === studentId);
+    const destinationClass = classes.find((candidate) => candidate.id === classId);
+    const studentLabel = student?.full_name || student?.username || 'this student';
+    const classLabel = destinationClass ? `${destinationClass.class_code} — ${destinationClass.class_name}` : 'the selected class';
+
+    setConfirmDialog({
+      title: previousClassId ? 'Confirm class transfer' : 'Confirm student placement',
+      description: `Place ${studentLabel} in ${classLabel}. The selected class will set the student's official grade and class record.`,
+      confirmLabel: previousClassId ? 'Save class transfer' : 'Save placement',
+      cancelLabel: 'Keep current placement',
+      requiresReason: true,
+      reasonRequired: true,
+      reasonLabel: 'Placement reason',
+      reasonPlaceholder: 'Explain why this placement is being changed',
+      reasonInitialValue: previousClassId ? 'Administrator-approved class transfer' : 'Administrator-approved initial placement',
+      reasonMinimumLength: 3,
+      requiresEffectiveDate: true,
+      effectiveDateLabel: 'Effective date',
+      effectiveDateInitialValue: today,
+      onConfirm: async (reason, values) => {
+        const effectiveDate = values?.effectiveDate;
+        if (!reason || reason.trim().length < 3 || !effectiveDate) {
+          addToast('Add a clear placement reason and effective date before saving.', 'error');
+          return;
+        }
+
+        setStudentSaving(true);
+        const result = await SchoolAdminService.transferStudentPlacement({
+          schoolId: school.id,
+          studentId,
+          expectedFromClassId: previousClassId,
+          toClassId: classId,
+          reason: reason.trim(),
+          effectiveDate,
+        });
+        setStudentSaving(false);
+
+        if (!result.success) {
+          addToast(friendlySchoolAdminError(result.error, 'The student could not be placed in this class. Please try again.'), 'error');
+          return;
+        }
+
+        const authoritativeGrade = result.grade ?? destinationClass?.grade_level ?? null;
+        const authoritativeBatch = result.batch ?? result.classCode ?? destinationClass?.class_code ?? null;
+        addToast(result.message || 'Academic placement saved', 'success');
+
+        setStudentAssignments((prev) => ({ ...prev, [studentId]: classId }));
+        setStudents((prev) => prev.map((candidate) => candidate.user_id === studentId
+          ? { ...candidate, grade: authoritativeGrade as number | null, batch: authoritativeBatch }
+          : candidate));
+        setMembers((prev) => prev.map((member) => member.user_id === studentId
+          ? { ...member, grade: authoritativeGrade as number | null, batch: authoritativeBatch }
+          : member));
+        setSelectedMember((prev) => prev?.user_id === studentId
+          ? { ...prev, grade: authoritativeGrade as number | null, batch: authoritativeBatch }
+          : prev);
+
+        setSelectedStudentId('');
+        setSelectedGrade('');
+        setSelectedClassId('');
+
+        setClassesLoading(true);
+        try {
+          const classIds = classes.map((cls) => cls.id);
+          const studentRows = await SchoolAdminService.listClassStudents(classIds, school.id);
+          const assignmentMap: Record<string, string | null> = {};
+          studentRows.forEach((row) => { assignmentMap[row.student_id] = row.class_id; });
+          if (assignmentMap[studentId]) {
+            setStudentAssignments(assignmentMap);
+          } else {
+            setStudentAssignments({ ...assignmentMap, [studentId]: classId });
+          }
+        } catch (err) {
+          console.error('Error refreshing student assignments:', err);
+        } finally {
+          setClassesLoading(false);
+        }
+      },
     });
-    setStudentSaving(false);
-
-    if (!result.success) {
-      addToast(friendlySchoolAdminError(result.error, 'The student could not be placed in this class. Please try again.'), 'error');
-      return;
-    }
-
-    const destinationClass = classes.find((schoolClass) => schoolClass.id === enrolledClassId);
-    const authoritativeGrade = result.grade ?? destinationClass?.grade_level ?? null;
-    const authoritativeBatch = result.batch ?? result.classCode ?? destinationClass?.class_code ?? null;
-
-    addToast(result.message || 'Academic placement saved', 'success');
-
-    setStudentAssignments((prev) => ({
-      ...prev,
-      [enrolledStudentId]: enrolledClassId,
-    }));
-    setStudents((prev) => prev.map((student) => student.user_id === enrolledStudentId
-      ? { ...student, grade: authoritativeGrade as number | null, batch: authoritativeBatch }
-      : student));
-    setMembers((prev) => prev.map((member) => member.user_id === enrolledStudentId
-      ? { ...member, grade: authoritativeGrade as number | null, batch: authoritativeBatch }
-      : member));
-    setSelectedMember((prev) => prev?.user_id === enrolledStudentId
-      ? { ...prev, grade: authoritativeGrade as number | null, batch: authoritativeBatch }
-      : prev);
-
-    setSelectedStudentId('');
-    setSelectedGrade('');
-    setSelectedClassId('');
-
-    // The RPC commits placement and profile mirrors atomically. Reload immediately
-    // so the directory and roster share the same authoritative current class.
-    setClassesLoading(true);
-    try {
-      const classIds = classes.map((cls) => cls.id);
-      const studentRows = await SchoolAdminService.listClassStudents(classIds, school?.id);
-      const assignmentMap: Record<string, string | null> = {};
-      studentRows.forEach((row) => {
-        assignmentMap[row.student_id] = row.class_id;
-      });
-      
-      if (assignmentMap[enrolledStudentId]) {
-        setStudentAssignments(assignmentMap);
-      } else {
-        setStudentAssignments((prev) => ({
-          ...assignmentMap,
-          [enrolledStudentId]: enrolledClassId,
-        }));
-      }
-    } catch (err) {
-      console.error('Error refreshing student assignments:', err);
-    } finally {
-      setClassesLoading(false);
-    }
   };
 
   // ============================================
