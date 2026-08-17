@@ -17,7 +17,7 @@ test('intervention recommendations are driven by current longitudinal focus stat
 test('stale focus areas are reassessed instead of assumed to remain weak',()=>{
  assert.match(migration,/days_since_evidence>=60 then 'reassessment'/i);
  assert.match(migration,/Reassess before assuming the difficulty is still current/i);
- assert.match(page,/Stale persistent areas are reassessed before support is prescribed/i);
+ assert.match(page,/Collect more assessed evidence/i);
 });
 
 test('recommendations use real available question content and writing-specific practice',()=>{
@@ -44,9 +44,9 @@ test('teachers can create plans only inside active subject scope',()=>{
 
 test('teacher intervention UI supports recommendation to tracked outcome',()=>{
  assert.match(page,/Evidence-led intervention queue/i);
- assert.match(page,/Create intervention/i);
+ assert.match(page,/Build support plan/i);
  assert.match(page,/Start plan/i);
  assert.match(page,/Evaluate follow-up & record outcome/i);
- assert.match(page,/exact evidence position will be frozen and hashed/i);
+ assert.match(page,/evidence baseline will be frozen and hashed/i);
  assert.match(vite,/teacherInterventions:\s*path\.resolve\(__dirname, 'teacher-interventions\.html'\)/i);
 });
