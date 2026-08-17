@@ -1587,6 +1587,11 @@ export interface SmartWritingPromptSelection {
   prompt_id: string | null;
   difficulty_level: PromptDifficultyLevel;
   target_word_count: number;
+  minimum_word_count?: number;
+  maximum_word_count?: number;
+  time_limit_seconds?: number;
+  syllabus_code?: '0057' | '0876' | '0510';
+  syllabus_year?: string | null;
   // Can later drive adaptive genre-guide emphasis.
   focus_tags: WritingPromptFocusTag[];
   // Can later drive contextual task-guide examples.
