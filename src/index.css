@@ -2744,7 +2744,9 @@ button {
 .school-admin-sidebar-toggle > span { font-size:1.2rem; line-height:1; }
 .school-admin-nav-label { padding:.25rem .65rem .65rem; color:#8793a4; font-size:.65rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
 .school-admin-tabs { display:flex; flex-direction:column; gap:.2rem; }
-.school-admin-tabs button { display:flex; width:100%; min-width:0; align-items:center; gap:.62rem; padding:.52rem .58rem; border:0; border-radius:.55rem; color:#526176; background:transparent; text-align:left; font-size:.82rem; font-weight:650; transition:background .15s,color .15s,transform .15s; }
+.school-admin-tabs button { position:relative; display:flex; width:100%; min-width:0; align-items:center; gap:.62rem; padding:.52rem .58rem; border:0; border-radius:.55rem; color:#526176; background:transparent; text-align:left; font-size:.82rem; font-weight:650; transition:background .15s,color .15s,transform .15s; }
+.school-admin-nav-badge { display:inline-grid; min-width:1.25rem; height:1.25rem; margin-left:auto; place-items:center; border:2px solid #fff; border-radius:999px; padding:0 .26rem; background:#dc2626; box-shadow:0 3px 10px rgba(220,38,38,.28); color:#fff; font-size:.65rem; font-weight:850; line-height:1; }
+.school-admin-sidebar.is-collapsed .school-admin-nav-badge { position:absolute; top:.18rem; right:.18rem; margin:0; }
 .school-admin-nav-icon { display:grid; flex:0 0 1.85rem; width:1.85rem; height:1.85rem; place-items:center; border:1px solid #dbe4ef; border-radius:.5rem; color:#617187; background:#f8fafc; font-size:.58rem; font-weight:850; letter-spacing:.04em; transition:background .15s,border-color .15s,color .15s,transform .15s; }
 .school-admin-nav-icon svg { width:1rem; height:1rem; }
 .school-admin-ielts-nav-icon { display:grid; width:1.2rem; height:1.2rem; place-items:center; }
@@ -3068,7 +3070,8 @@ button {
   .school-admin-mobile-menu-heading h2 { margin-top:.12rem; color:#17243b; font-size:1.25rem; font-weight:800; }
   .school-admin-mobile-menu-heading > button { display:grid; width:2.5rem; height:2.5rem; place-items:center; border:1px solid #d8e0e9; border-radius:999px; background:#f8fafc; color:#334155; font-size:1.3rem; }
   .school-admin-mobile-menu-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
-  .school-admin-mobile-menu-grid > button { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:.7rem; min-width:0; padding:.8rem; border:1px solid #dce3ea; border-radius:14px; background:#fff; color:#334155; text-align:left; box-shadow:0 6px 18px rgba(15,23,42,.055); transition:border-color 180ms ease-out,background-color 180ms ease-out,box-shadow 180ms ease-out,transform 180ms ease-out; }
+  .school-admin-mobile-menu-grid > button { position:relative; display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:.7rem; min-width:0; padding:.8rem; border:1px solid #dce3ea; border-radius:14px; background:#fff; color:#334155; text-align:left; box-shadow:0 6px 18px rgba(15,23,42,.055); transition:border-color 180ms ease-out,background-color 180ms ease-out,box-shadow 180ms ease-out,transform 180ms ease-out; }
+  .school-admin-mobile-menu-grid .school-admin-nav-badge { position:absolute; top:.42rem; right:.42rem; margin:0; }
   .school-admin-mobile-menu-grid > button:active { transform:scale(.985); }
   .school-admin-mobile-menu-grid > button.is-active { border-color:#2563eb; background:#eff6ff; box-shadow:inset 3px 0 #facc15,0 8px 22px rgba(37,99,235,.12); }
   .school-admin-mobile-menu-icon { display:grid; width:2.35rem; height:2.35rem; place-items:center; border-radius:11px; background:#eef2f7; font-size:1.05rem; }
