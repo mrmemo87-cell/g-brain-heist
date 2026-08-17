@@ -788,6 +788,14 @@ const loadTrustedTaskSnapshot = async (payload: Payload): Promise<TrustedTaskSna
   return valid ? snapshot : null;
 };
 
+const loadAuthoritativeStudentGrade = async (studentId: string): Promise<number | null> => {
+  const { data, error } = await supabase.rpc("bh_writing_authoritative_student_grade", {
+    p_student_id: studentId,
+  });
+  const grade = Number(data);
+  return error || !Number.isInteger(grade) || grade < 1 || grade > 12 ? null : grade;
+};
+
 const normalizeCriterionEvidence = (value: unknown, response: string) => {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
@@ -1415,6 +1423,10 @@ serve(async (req) => {
   if (payload!.mode === "assessment_v2") {
     const trustedTaskSnapshot = await loadTrustedTaskSnapshot(payload!);
     if (!trustedTaskSnapshot) return json(409, { error: "The exact Cambridge task and rubric snapshot could not be verified. Request a fresh prompt before submitting." });
+    const authoritativeGrade = await loadAuthoritativeStudentGrade(authData.user.id);
+    if (authoritativeGrade === null || authoritativeGrade !== trustedTaskSnapshot.grade) {
+      return json(409, { error: "The task grade does not match the student's authoritative grade. Request a fresh prompt before submitting." });
+    }
     payload!.trustedTaskSnapshot = trustedTaskSnapshot;
     const expectedFingerprint = buildDeterministicTextFingerprint(payload!.studentResponse ?? "");
     const expectedPromptHash = buildPromptDefinitionHash(payload!);
