@@ -1,4 +1,4 @@
-export type WritingIntegrityMode = 'practice' | 'independent' | 'supervised';
+export type WritingIntegrityMode = 'formal' | 'practice' | 'independent' | 'supervised';
 
 export type WritingIntegrityReviewStatus =
   | 'practice_mode'
@@ -18,6 +18,10 @@ export interface WritingCompositionTelemetry {
   deleted_characters: number;
   focus_loss_count: number;
   visibility_hidden_count: number;
+  tab_change_count: number;
+  tab_change_warning_count: number;
+  prompt_restart_count: number;
+  time_limit_seconds: number | null;
   full_replacement_count: number;
   revision_origin_attempt_id: string | null;
   revision_changed_word_percent: number | null;
@@ -51,10 +55,11 @@ const calculateChangedWordPercent = (original: string, revised: string): number 
 
 export const createWritingCompositionTelemetry = (
   mode: WritingIntegrityMode,
-  revisionOriginAttemptId: string | null = null
+  revisionOriginAttemptId: string | null = null,
+  timeLimitSeconds: number | null = null
 ): WritingCompositionTelemetry => ({
   mode,
-  started_at: null,
+  started_at: mode === 'formal' ? new Date().toISOString() : null,
   submitted_at: null,
   elapsed_seconds: 0,
   typed_characters: 0,
@@ -65,6 +70,10 @@ export const createWritingCompositionTelemetry = (
   deleted_characters: 0,
   focus_loss_count: 0,
   visibility_hidden_count: 0,
+  tab_change_count: 0,
+  tab_change_warning_count: 0,
+  prompt_restart_count: 0,
+  time_limit_seconds: timeLimitSeconds,
   full_replacement_count: 0,
   revision_origin_attempt_id: revisionOriginAttemptId,
   revision_changed_word_percent: null,
@@ -132,6 +141,8 @@ export const recordWritingVisibilityHidden = (
 ): WritingCompositionTelemetry => ({
   ...telemetry,
   visibility_hidden_count: telemetry.visibility_hidden_count + 1,
+  tab_change_count: telemetry.tab_change_count + 1,
+  tab_change_warning_count: telemetry.tab_change_warning_count + (telemetry.tab_change_count === 0 ? 1 : 0),
 });
 
 export const finalizeWritingCompositionTelemetry = (
@@ -150,6 +161,7 @@ export const finalizeWritingCompositionTelemetry = (
   if (telemetry.blocked_paste_events > 0) reasons.push('blocked_paste_attempt');
   if (elapsedSeconds < 45 && countWords(submission) >= 100) reasons.push('very_fast_completion');
   if (telemetry.full_replacement_count > 0) reasons.push('large_text_replacement');
+  if (telemetry.tab_change_count > 0) reasons.push('left_writing_page');
   if (telemetry.mode === 'supervised' && telemetry.visibility_hidden_count > 0) reasons.push('left_supervised_page');
 
   const reviewStatus: WritingIntegrityReviewStatus =
@@ -173,6 +185,7 @@ export const finalizeWritingCompositionTelemetry = (
 };
 
 export const toWritingIntegrityModeLabel = (mode: WritingIntegrityMode): string => {
+  if (mode === 'formal') return 'Formal Cambridge-aligned assessment';
   if (mode === 'supervised') return 'Supervised assessment';
   if (mode === 'independent') return 'Independent writing';
   return 'Practice mode';

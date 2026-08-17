@@ -67,7 +67,7 @@ test('empty-state student experience render', () => {
   __resetWritingIntegrationStoreForTests();
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'empty-student', grade: 8, genre: 'article', month: '2026-03' }));
   assert.ok(html.includes('Your Writing Space'));
-  assert.ok(html.includes('Submit for Feedback'));
+  assert.ok(html.includes('Submit formal assessment'));
 });
 
 test('no-active-task state render', () => {
@@ -91,7 +91,7 @@ test('no-active-task state render', () => {
 
   const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'prod-2', grade: 7, genre: 'email', month: '2026-03' }));
   assert.ok(html.includes('Your Writing Space'));
-  assert.ok(html.includes('Submit for Feedback'));
+  assert.ok(html.includes('Submit formal assessment'));
 });
 
 test('teacher dashboard summary render', () => {
