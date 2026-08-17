@@ -26,13 +26,13 @@ interface SettingsModalProps {
   headerOffsetPx?: number;
 }
 
-const THEME_COLOR_OPTIONS: Record<StudentThemeColor, { label: string; swatch: string }> = {
-  blue: { label: 'Blue', swatch: '#22d3ee' },
-  pink: { label: 'Pink', swatch: '#ec4899' },
-  green: { label: 'Green', swatch: '#22c55e' },
-  purple: { label: 'Purple', swatch: '#a855f7' },
-  red: { label: 'Red', swatch: '#ef4444' },
-  dark: { label: 'Dark', swatch: '#475569' },
+const THEME_COLOR_OPTIONS: Record<StudentThemeColor, { label: string; personality: string; swatches: [string, string, string] }> = {
+  blue: { label: 'Blue', personality: 'Clear, electric, focused', swatches: ['#22d3ee', '#3b82f6', '#a5f3fc'] },
+  pink: { label: 'Pink', personality: 'Bright, playful, confident', swatches: ['#f472b6', '#ec4899', '#c084fc'] },
+  green: { label: 'Green', personality: 'Fresh, energetic, balanced', swatches: ['#34d399', '#22c55e', '#2dd4bf'] },
+  purple: { label: 'Purple', personality: 'Creative, bold, dreamy', swatches: ['#c084fc', '#8b5cf6', '#a78bfa'] },
+  red: { label: 'Red', personality: 'Powerful, warm, fearless', swatches: ['#fb7185', '#ef4444', '#f59e0b'] },
+  dark: { label: 'Dark', personality: 'Stealthy, calm, premium', swatches: ['#94a3b8', '#38bdf8', '#334155'] },
 };
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ 
@@ -556,16 +556,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Interface appearance */}
           <div>
             <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Display</h3>
-            <div className="border border-gray-700 rounded-lg p-4 space-y-5">
+            <div className="student-display-settings border border-gray-700 rounded-2xl p-4 space-y-5">
               <fieldset>
                 <legend className="font-semibold text-white">Interface style</legend>
                 <p className="mt-1 text-sm text-gray-400">Choose how dashboard surfaces look. This does not change your content or progress.</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <button type="button" role="radio" aria-checked={!isLightMode} onClick={() => setInterfaceStyle('glassy')} className={`rounded-xl border p-4 text-left transition ${!isLightMode ? 'border-cyan-300 bg-cyan-400/15 ring-2 ring-cyan-300/20' : 'border-gray-700 bg-black/20 hover:border-gray-500'}`}>
+                  <button type="button" role="radio" aria-checked={!isLightMode} onClick={() => setInterfaceStyle('glassy')} className={`student-display-style-option ${!isLightMode ? 'is-selected' : ''}`}>
+                    <span className="student-display-style-option__visual is-glassy" aria-hidden><i /><i /><i /></span>
                     <span className="block font-bold text-white">Glassy</span>
-                    <span className="mt-1 block text-xs leading-5 text-gray-400">Layered glass, soft blur, glow, and richer motion.</span>
+                    <span className="mt-1 block text-xs leading-5 text-gray-400">Layered glass, soft glow, smooth depth, and richer motion.</span>
                   </button>
-                  <button type="button" role="radio" aria-checked={isLightMode} onClick={() => setInterfaceStyle('basic')} className={`rounded-xl border p-4 text-left transition ${isLightMode ? 'border-cyan-300 bg-cyan-400/15 ring-2 ring-cyan-300/20' : 'border-gray-700 bg-black/20 hover:border-gray-500'}`}>
+                  <button type="button" role="radio" aria-checked={isLightMode} onClick={() => setInterfaceStyle('basic')} className={`student-display-style-option ${isLightMode ? 'is-selected' : ''}`}>
+                    <span className="student-display-style-option__visual is-basic" aria-hidden><i /><i /><i /></span>
                     <span className="block font-bold text-white">Basic</span>
                     <span className="mt-1 block text-xs leading-5 text-gray-400">Clean solid surfaces with fewer effects for smoother use and longer battery life.</span>
                   </button>
@@ -575,16 +577,36 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               {profile.role === 'student' ? (
                 <fieldset className="border-t border-gray-700 pt-4">
                   <legend className="font-semibold text-white">Interface color</legend>
-                  <p className="mt-1 text-sm text-gray-400">Choose the accent used on navigation, buttons, highlights, and dashboard glow.</p>
-                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Student dashboard interface color">
+                  <p className="mt-1 text-sm text-gray-400">Choose a complete dashboard personality. Your selection changes surfaces, navigation, buttons, progress, cards, and glow.</p>
+
+                  <div className="student-theme-live-preview mt-4" role="status" aria-live="polite" aria-label={`${THEME_COLOR_OPTIONS[studentThemeColor].label} interface preview`}>
+                    <div className="student-theme-live-preview__topline">
+                      <span>Live preview</span>
+                      <strong>{THEME_COLOR_OPTIONS[studentThemeColor].label} · {isLightMode ? 'Basic' : 'Glassy'}</strong>
+                    </div>
+                    <div className="student-theme-live-preview__dashboard" aria-hidden>
+                      <span className="student-theme-live-preview__avatar">BH</span>
+                      <span className="student-theme-live-preview__copy"><i /><i /></span>
+                      <span className="student-theme-live-preview__action">Continue</span>
+                    </div>
+                    <div className="student-theme-live-preview__progress" aria-hidden><span /></div>
+                    <div className="student-theme-live-preview__chips" aria-hidden><span>Learn</span><span>Tasks</span><span>Profile</span></div>
+                  </div>
+
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label="Student dashboard interface color">
                     {STUDENT_THEME_COLORS.map((color) => {
                       const option = THEME_COLOR_OPTIONS[color];
                       const selected = studentThemeColor === color;
                       return (
-                        <button key={color} type="button" role="radio" aria-checked={selected} onClick={() => setStudentThemeColor(color)} className={`flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${selected ? 'border-white bg-white/15 ring-2 ring-white/25' : 'border-gray-700 bg-black/20 hover:border-gray-500'}`}>
-                          <span className="h-6 w-6 flex-none rounded-full border border-white/40 shadow-lg" style={{ backgroundColor: option.swatch, boxShadow: selected ? `0 0 18px ${option.swatch}` : undefined }} aria-hidden />
-                          <span className="font-semibold text-white">{option.label}</span>
-                          {selected ? <span className="ml-auto text-xs text-white" aria-hidden>✓</span> : null}
+                        <button key={color} type="button" role="radio" aria-checked={selected} aria-label={`${option.label}: ${option.personality}`} data-theme-color={color} onClick={() => setStudentThemeColor(color)} className={`student-theme-option ${selected ? 'is-selected' : ''}`}>
+                          <span className="student-theme-option__swatches" aria-hidden>
+                            {option.swatches.map((swatch) => <i key={swatch} style={{ backgroundColor: swatch }} />)}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block font-bold text-white">{option.label}</span>
+                            <span className="mt-0.5 block text-[11px] leading-4 text-slate-400">{option.personality}</span>
+                          </span>
+                          {selected ? <span className="student-theme-option__check" aria-hidden>✓</span> : null}
                         </button>
                       );
                     })}

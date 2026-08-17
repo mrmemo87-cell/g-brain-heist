@@ -139,13 +139,13 @@ body.light-mode .student-dashboard-bottom-nav,
 body.light-mode .student-dashboard-rail,
 body.light-mode .student-next-mission,
 body.light-mode .student-activity-feed {
-  border-color: rgba(71, 85, 105, 0.78) !important;
-  background: #0f172a !important;
+  border-color: rgba(var(--student-accent-rgb), 0.32) !important;
+  background: linear-gradient(145deg, rgba(var(--student-surface-rgb), 0.3), #0f172a 68%) !important;
 }
 
 body.light-mode .student-profile-panel {
-  border-color: rgba(244, 114, 182, 0.28) !important;
-  background: #020617 !important;
+  border-color: rgba(var(--student-accent-rgb), 0.34) !important;
+  background: linear-gradient(145deg, rgba(var(--student-surface-rgb), 0.28), #020617 66%) !important;
 }
 
 body.light-mode .student-profile-summary,
@@ -168,12 +168,15 @@ body.light-mode .student-dashboard-bottom-link.is-active .student-dashboard-bott
 }
 
 body.light-mode .student-primary-button {
-  background: #22d3ee !important;
+  background: var(--student-accent) !important;
+  color: var(--student-on-accent) !important;
 }
 
 body.light-mode .student-secondary-button,
 body.light-mode .student-reaction-button.is-active {
-  background: #312e81 !important;
+  border-color: rgba(var(--student-secondary-rgb), 0.48) !important;
+  background: rgba(var(--student-secondary-rgb), 0.26) !important;
+  color: var(--student-accent-soft) !important;
 }
 
 body.light-mode .student-dashboard-bottom-nav::before,

@@ -183,9 +183,9 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
     },
   ];
   return (
-    <div data-testid="dashboard-profile-card" className="student-profile-panel animate-fade-in-up rounded-2xl border border-pink-500/30 bg-slate-950/90 p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
+    <div data-testid="dashboard-profile-card" className="student-profile-panel animate-fade-in-up rounded-2xl border p-3 sm:p-4">
       <div className="flex flex-col gap-3">
-        <div className="student-profile-summary flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-pink-500/25 bg-black/40 p-3 shadow-[0_10px_30px_rgba(255,45,145,0.15)]">
+        <div className="student-profile-summary flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border bg-black/40 p-3">
           <div className="flex items-center gap-3">
             <AvatarWithFrame
               src={profile.avatar_url}
@@ -195,10 +195,10 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
               hasFlickerTheme={isFlickerThemeActive(profile.active_cosmetic_theme)}
               hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
               imgClassName="sm:w-16 sm:h-16 animate-float"
-              fallbackFrameClassName="border-4 border-pink-500/80"
+              fallbackFrameClassName="student-profile-avatar-fallback border-4"
             />
             <div className="space-y-0.5">
-              <h2 className="text-lg sm:text-xl font-bold font-heading" style={{ color: 'var(--plasma-pink)' }}>
+              <h2 className="student-profile-name text-lg sm:text-xl font-bold font-heading">
                 {profile.username}
               </h2>
               <p className="text-xs sm:text-sm" style={{ color: 'var(--mist-400)' }}>
@@ -210,15 +210,15 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
           </div>
           <div data-testid="profile-xp-progress" className="w-full sm:w-1/2">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--ion-blue)' }}>XP</span>
+              <span className="student-profile-xp-label text-[10px] font-semibold uppercase tracking-wide">XP</span>
               <span className="text-[10px] font-mono" style={{ color: 'var(--mist-400)' }}>
                 {xpProgress.xpIntoLevel.toLocaleString()} / {xpProgress.xpForNextLevel}
               </span>
             </div>
-            <div className="w-full h-2.5 rounded-full border border-sky-400/20 bg-slate-900/70 overflow-hidden">
+            <div className="student-profile-xp-track w-full h-2.5 rounded-full border bg-slate-900/70 overflow-hidden">
               <div
-                className={`h-full rounded-full progress-bar-glow-ion shimmer-effect ${showLevelUp ? 'animate-pulse' : ''}`}
-                style={{ width: `${xpProgress.progress * 100}%`, backgroundColor: 'var(--ion-blue)' }}
+                className={`student-profile-xp-fill h-full rounded-full shimmer-effect ${showLevelUp ? 'animate-pulse' : ''}`}
+                style={{ width: `${xpProgress.progress * 100}%` }}
               ></div>
             </div>
           </div>
