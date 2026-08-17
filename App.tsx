@@ -72,6 +72,7 @@ const AnnouncementBanner = lazyRetry(() => import('./components/phase1/Announcem
 const RaidView = lazyRetry(() => import('./src/features/raids/RaidView'), 'RaidView');
 const RaidAdminView = lazyRetry(() => import('./src/features/raids/RaidAdminView'), 'RaidAdminView');
 const ClanTerritoryManager = lazyRetry(() => import('./src/features/clanTerritory/ClanTerritoryManager'), 'ClanTerritoryManager');
+const LockdownManager = lazyRetry(() => import('./src/features/lockdown/LockdownManager'), 'LockdownManager');
 const CambridgeTestsHub = lazyRetry(() => import('./components/CambridgeTestsHub'), 'CambridgeTestsHub');
 const SchoolAdminPortal = lazyRetry(() => import('./components/SchoolAdminPortal'), 'SchoolAdminPortal');
 const SchoolHeadPortal = lazyRetry(() => import('./components/SchoolHeadPortal'), 'SchoolHeadPortal');
@@ -498,7 +499,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       const allowedSchoolAdminViews = ['school_admin', 'cambridge', 'ielts'];
       if (isSchoolHeadRole) allowedSchoolAdminViews.push('school_head');
       // Teachers who are also school admins can still access their teacher portal
-      if (isTeacherRole) allowedSchoolAdminViews.push('teacher', 'workspace_chooser');
+      if (isTeacherRole) allowedSchoolAdminViews.push('teacher', 'lockdown', 'workspace_chooser');
       if (hasParentWorkspace) allowedSchoolAdminViews.push('parent', 'workspace_chooser');
       // Superadmins can access the admin portal from school admin
       if (isAdminMode) allowedSchoolAdminViews.push('admin');
@@ -571,6 +572,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   };
 
   const handleNotificationAction = useCallback((notification: Notification) => {
+    if (notification.data?.destination === 'programme_seats') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('view', 'school_admin');
+      url.searchParams.set('adminTab', 'billing');
+      url.searchParams.delete('headTab');
+      window.history.pushState(null, '', `${url.pathname}${url.search}${url.hash}`);
+      setView('school_admin');
+      window.requestAnimationFrame(() => window.dispatchEvent(new PopStateEvent('popstate')));
+      return;
+    }
     if (notification.type === 'school_head_decision') {
       const url = new URL(window.location.href);
       url.searchParams.set('view', 'school_head');
@@ -2314,23 +2325,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             );
         case 'lockdown':
           return renderLazy(
-            <div className="relative">
-              <BackButton
-                onClick={() => handleViewChange('dashboard')}
-                containerClassName="sticky top-4 z-40 mb-6"
-              />
-              <ClanTerritoryManager
-                onExit={() => handleViewChange('dashboard')}
-                isTeacher={profile?.role === 'teacher'}
-                canHost={profile?.role === 'teacher' || ['leader', 'officer', 'moderator'].includes(profile?.clan_role || '')}
-                playerName={profile?.username || 'Agent'}
-                clanId={profile?.clan_id}
-                clanName={profile?.clan_name}
-                // Keep Clan Territory mounted during debrief reward sync (avoid full critical boot remount).
-                onRefreshProfile={refreshProfile}
-                onGoToClan={() => handleViewChange('clan')}
-              />
-            </div>
+            <LockdownManager
+              onExit={() => handleViewChange(canOpenTeacherWorkspace ? 'teacher' : 'dashboard')}
+              isTeacher={canOpenTeacherWorkspace}
+              playerName={profile?.username || 'Agent'}
+              clanId={profile?.clan_id}
+              clanName={profile?.clan_name}
+            />
           );
         case 'cambridge':
           return renderLazy(
@@ -2348,6 +2349,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               addToast={addToast}
               onOpenTeacherPortal={canOpenTeacherWorkspace ? () => handleViewChange('teacher') : undefined}
               onOpenSchoolHeadPortal={isSchoolHeadRole ? () => handleViewChange('school_head') : undefined}
+              onOpenParentPortal={hasParentWorkspace ? () => handleViewChange('parent') : undefined}
             />
           );
         case 'school_head':
@@ -2374,6 +2376,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               onNavigate={handleViewChange}
               addToast={addToast}
               onOpenTeacherPortal={canOpenTeacherWorkspace ? () => handleViewChange('teacher') : undefined}
+              onOpenParentPortal={hasParentWorkspace ? () => handleViewChange('parent') : undefined}
             />
           );
         case 'dashboard':
@@ -2406,6 +2409,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         onNavigate={handleViewChange}
                         addToast={addToast}
                         onOpenTeacherPortal={canOpenTeacherWorkspace ? () => handleViewChange('teacher') : undefined}
+                        onOpenParentPortal={hasParentWorkspace ? () => handleViewChange('parent') : undefined}
                     />
                 );
             }

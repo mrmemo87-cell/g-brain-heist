@@ -37,7 +37,7 @@ test('seat command centre explains policy, consequences, history and escape path
   assert.match(manager,/24-hour correction window/);
   assert.match(manager,/7-day cooldown/);
   assert.match(manager,/switch atomically/);
-  assert.match(manager,/Assign class/);
+  assert.match(manager,/Allocate class/);
   assert.match(manager,/Request exception/);
   assert.match(manager,/What prevents manipulation/);
   assert.match(manager,/audit history/);

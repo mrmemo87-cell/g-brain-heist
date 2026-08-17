@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export type SeatProgrammeKey = 'cambridge' | 'ielts' | 'writing';
 export type SeatReleaseReason = 'wrong_student' | 'left_school' | 'programme_change' | 'academic_decision' | 'other';
@@ -72,6 +73,35 @@ export interface ProgrammeSeatOverview {
   student_requests: StudentProgrammeAccessRequest[];
   policy: { correction_hours: number; cooldown_days: number; base_transfer_percent: number };
   generated_at: string;
+}
+
+export async function getPendingProgrammeAccessRequestCount(schoolId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('school_programme_access_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('school_id', schoolId)
+    .eq('status', 'pending');
+  if (error) throw new Error(error.message || 'Programme request count could not be loaded.');
+  return count ?? 0;
+}
+
+export function subscribeToProgrammeAccessRequestChanges(
+  schoolId: string,
+  onChange: () => void,
+): RealtimeChannel {
+  return supabase
+    .channel(`school-programme-access-requests-${schoolId}-${crypto.randomUUID()}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'school_programme_access_requests',
+        filter: `school_id=eq.${schoolId}`,
+      },
+      onChange,
+    )
+    .subscribe();
 }
 
 type RpcResult = { success?: boolean; error?: string; [key: string]: unknown };

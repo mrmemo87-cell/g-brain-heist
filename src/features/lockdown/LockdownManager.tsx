@@ -335,3 +335,5 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
     </div>
   );
 };
+
+export default LockdownManager;
