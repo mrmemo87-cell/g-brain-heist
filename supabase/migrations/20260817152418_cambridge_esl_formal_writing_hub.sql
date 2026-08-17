@@ -158,6 +158,11 @@ revoke all on function public.rpc_bh_writing_student_integrity_mode() from publi
 grant execute on function public.rpc_bh_writing_student_integrity_mode() to authenticated;
 revoke all on function public.rpc_bh_writing_teacher_attempts(text,text,int) from public,anon;
 grant execute on function public.rpc_bh_writing_teacher_attempts(text,text,int) to authenticated;
-revoke execute on function public.rpc_bh_writing_teacher_set_integrity_mode(uuid,text) from authenticated;
+do $$
+begin
+ if to_regprocedure('public.rpc_bh_writing_teacher_set_integrity_mode(uuid,text)') is not null then
+  execute 'revoke execute on function public.rpc_bh_writing_teacher_set_integrity_mode(uuid,text) from authenticated';
+ end if;
+end $$;
 comment on function public.rpc_bh_writing_student_prompt(integer,text,text) is 'Returns one exact-grade Cambridge ESL formal task from a 10-prompt genre pool.';
 comment on table public.bh_writing_voided_attempts is 'Fail-closed evidence archive for timed-out and second-tab-change formal writing attempts.';
