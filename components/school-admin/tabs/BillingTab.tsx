@@ -49,7 +49,7 @@ const BillingTab: React.FC = () => {
           setBillingAction(null);
         }
       }}
-      billingStudio={school?.id ? <><BillingStudio schoolId={school.id} addToast={addToast} /><ProgrammeSeatManager schoolId={school.id} addToast={addToast} /></> : undefined}
+      billingStudio={school?.id ? <><ProgrammeSeatManager schoolId={school.id} addToast={addToast} /><BillingStudio schoolId={school.id} addToast={addToast} /></> : undefined}
     /></div>
   );
 };
