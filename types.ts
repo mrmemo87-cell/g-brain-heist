@@ -1068,6 +1068,12 @@ export interface StudentAssignmentTask {
   close_submissions_after_due?: boolean;
   is_late?: boolean;
   is_closed?: boolean;
+  student_status?: 'pending' | 'in_progress';
+  answered_question_ids?: string[];
+  resume_answered_count?: number;
+  resume_correct_count?: number;
+  resume_score?: number;
+  resume_time_taken_ms?: number;
   questions: TeacherQuestion[];
 }
 

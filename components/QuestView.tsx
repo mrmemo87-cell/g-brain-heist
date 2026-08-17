@@ -1200,15 +1200,31 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const handleAssignmentBegin = () => {
     if (!activeAssignment) return;
     setHasDeferredAssignments(false);
-    if (!teacherQuestions.length && activeAssignment.questions?.length) {
-      setTeacherQuestions(activeAssignment.questions);
+    const assignmentQuestions = teacherQuestions.length
+      ? teacherQuestions
+      : activeAssignment.questions || [];
+    if (!teacherQuestions.length && assignmentQuestions.length) {
+      setTeacherQuestions(assignmentQuestions);
     }
-    setStage('in_progress');
+    const answeredQuestionIds = new Set(activeAssignment.answered_question_ids || []);
+    const firstUnansweredIndex = assignmentQuestions.findIndex(
+      (question) => !answeredQuestionIds.has(question.id),
+    );
+    const resumeTimeMs = Math.max(0, Number(activeAssignment.resume_time_taken_ms) || 0);
+    const resumedCorrect = Math.max(0, Number(activeAssignment.resume_correct_count) || 0);
+    const resumedScore = Math.max(0, Number(activeAssignment.resume_score) || 0);
+
+    setStage(firstUnansweredIndex === -1 && assignmentQuestions.length > 0 ? 'completed' : 'in_progress');
     setMode('assignment');
-    setCurrentQuestionIndex(0);
+    setCurrentQuestionIndex(firstUnansweredIndex === -1 ? 0 : firstUnansweredIndex);
     setSelectedOption(null);
     setAnswerResponse(null);
-    setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+    setScore({
+      correct: resumedCorrect,
+      xp: resumedScore,
+      coins: Math.floor(resumedScore / 2),
+      gemstones: 0,
+    });
     setQuestionScores([]);
     setQuestionPerformances([]);
     setSoloStreak(0);
@@ -1216,7 +1232,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setTopicSummary(null);
     const now = Date.now();
     setCompletionStartLevel(currentProfile?.level ?? null);
-    setAssignmentStartTime(now);
+    setAssignmentStartTime(now - resumeTimeMs);
     setQuestionStartTime(now);
   };
 
@@ -2163,14 +2179,24 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="card-glass p-4 text-center">
             <p className="text-xs uppercase tracking-widest text-gray-400">Mission Score</p>
-            <p className="font-heading text-2xl text-white mt-1">{Math.round(calculateMissionScore(questionScores))}</p>
+            <p className="font-heading text-2xl text-white mt-1">
+              {mode === 'assignment' ? Math.round(score.xp) : Math.round(calculateMissionScore(questionScores))}
+            </p>
           </div>
           <div className="card-glass p-4 text-center">
             <p className="text-xs uppercase tracking-widest text-gray-400">Accuracy</p>
             <p className="font-heading text-2xl text-white mt-1">
-              {questionPerformances.length
-                ? `${Math.round((questionPerformances.filter((item) => item.wasCorrect).length / questionPerformances.length) * 100)}%`
-                : '—'}
+              {mode === 'assignment'
+                ? (() => {
+                    const attempted = (
+                      (Number(activeAssignment?.resume_answered_count) || 0)
+                      + questionPerformances.length
+                    );
+                    return attempted > 0 ? `${Math.round((score.correct / attempted) * 100)}%` : '—';
+                  })()
+                : questionPerformances.length
+                  ? `${Math.round((questionPerformances.filter((item) => item.wasCorrect).length / questionPerformances.length) * 100)}%`
+                  : '—'}
             </p>
           </div>
           <div className="card-glass p-4 text-center">
@@ -2294,6 +2320,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   
   const renderAssignmentBlocker = () => {
     if (!activeAssignment) return null;
+    const answeredCount = Math.max(0, Number(activeAssignment.resume_answered_count) || 0);
+    const isResuming = activeAssignment.student_status === 'in_progress' || answeredCount > 0;
+    const hasAnsweredEveryQuestion = (
+      (activeAssignment.questions?.length || 0) > 0
+      && answeredCount >= (activeAssignment.questions?.length || 0)
+    );
     
     // Check if assignment is late
     const isLate = (activeAssignment as any).isLate || (() => {
@@ -2383,7 +2415,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             </div>
             <div className="card-glass p-3 border border-purple-500/30">
               <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">Questions</p>
-              <p className="text-white font-semibold">{activeAssignment.questions?.length || 0}</p>
+              <p className="text-white font-semibold">
+                {isResuming
+                  ? `${answeredCount} of ${activeAssignment.questions?.length || 0} answered`
+                  : activeAssignment.questions?.length || 0}
+              </p>
             </div>
             <div className={`card-glass p-3 border ${isLate ? 'border-amber-500/50 bg-amber-500/10' : 'border-purple-500/30'}`}>
               <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">Due</p>
@@ -2417,7 +2453,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                   : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400'
               }`}
             >
-              {isLate ? '⏰ Complete Late Assignment' : '▶️ Start Assignment'}
+              {hasAnsweredEveryQuestion
+                ? '✅ Finish Submission'
+                : isResuming
+                  ? '▶️ Continue Assignment'
+                  : isLate
+                    ? '⏰ Complete Late Assignment'
+                    : '▶️ Start Assignment'}
             </button>
             <button
               onClick={handleDeferAssignment}
@@ -2472,12 +2514,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const missionRunSummary = missionOutcome?.run_summary;
     const isTrainingRun = mode === 'ftue_training';
     const totalQuestions = isTrainingRun ? TRAINING_QUESTIONS.length : mode === 'practice' ? questions.length : teacherQuestions.length;
-    const missionTotal = isTrainingRun
+    const missionTotal = mode === 'assignment'
+      ? Math.round(score.xp)
+      : isTrainingRun
       ? null
       : missionOutcome
       ? missionRunSummary?.score
       : Math.round(missionSummary?.missionScore ?? calculateMissionScore(questionScores));
-    const accuracyPercent = isTrainingRun
+    const accuracyPercent = mode === 'assignment'
+      ? Math.round((score.correct / Math.max(1, totalQuestions)) * 100)
+      : isTrainingRun
       ? Math.min(100, Math.round((Math.min(score.correct, TRAINING_QUESTIONS.length) / Math.max(1, TRAINING_QUESTIONS.length)) * 100))
       : missionOutcome
       ? (typeof missionRunSummary?.accuracy === 'number' ? Math.round(missionRunSummary.accuracy * 100) : null)
