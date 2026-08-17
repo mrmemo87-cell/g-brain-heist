@@ -6,6 +6,8 @@ const migration = readFileSync('supabase/migrations/20260817140000_evidence_led_
 const service = readFileSync('services/studentInterventionService.ts', 'utf8');
 const page = readFileSync('components/student-progress/TeacherInterventionIntelligencePage.tsx', 'utf8');
 
+// This contract also runs in the Vercel preview build before the workspace is promoted.
+
 test('professional evidence reviews are append-only and fail closed', () => {
   assert.match(migration, /create table if not exists public\.student_learning_professional_reviews/i);
   assert.match(migration, /enable row level security/i);
