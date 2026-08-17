@@ -47,6 +47,7 @@ import {
 } from './writingIntegrity.js';
 import { isAcademicProfileWritingAssessment } from './writingAssessmentAuthority.js';
 import type { WritingStrengthEvidence, WritingStrengthTag } from './writingAssessmentAuthority.js';
+import { getCambridgeWritingProfile } from './cambridgeWritingProfiles.js';
 
 export interface StudentWritingProfile {
   student_id: string;
@@ -536,7 +537,7 @@ export const subscribeToWritingPersistenceStatus = (
 const isValidGenre = (genre: string): genre is SupportedGenre => GENRE_KEYS.includes(genre as SupportedGenre);
 const normalizeGrade = (grade: unknown): number | null => {
   const parsed = typeof grade === 'string' ? Number.parseInt(grade, 10) : Number(grade);
-  if (!Number.isInteger(parsed) || parsed < 6 || parsed > 12) return null;
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 12) return null;
   return parsed;
 };
 const buildId = (prefix: string): string => `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
@@ -821,7 +822,7 @@ export const submitInitialWritingAssessment = (
 }> => {
   if (!input.student_id?.trim()) return badRequest('student_id is required.');
   const normalizedGrade = normalizeGrade(input.grade);
-  if (normalizedGrade === null) return badRequest('grade must be an integer between 6 and 12.');
+  if (normalizedGrade === null) return badRequest('grade must be an integer between 1 and 12.');
   if (!isValidGenre(input.genre)) return badRequest('genre is invalid.');
   const normalizedGenre: SupportedGenre = input.genre;
   if (!input.prompt_text?.trim()) return badRequest('prompt_text is required.');
@@ -1521,6 +1522,11 @@ export interface WritingPromptRecord {
   genre: SupportedGenre;
   grade_band: string;
   target_word_count: number;
+  minimum_word_count?: number;
+  maximum_word_count?: number;
+  time_limit_seconds?: number;
+  syllabus_code?: '0057' | '0876' | '0510';
+  syllabus_year?: string | null;
   difficulty_label: PromptDifficultyLabel;
   curriculum_tags: string[];
   safety_status: PromptSafetyStatus;
@@ -2580,7 +2586,8 @@ export const getSmartWritingPromptForStudent = async (input: {
   ensureStructuredPromptBankSeeded();
 
   const normalizedGrade = normalizeGrade(input.grade);
-  if (normalizedGrade === null) return badRequest('grade must be an integer between 6 and 12.');
+  if (normalizedGrade === null) return badRequest('grade must be an integer between 1 and 12.');
+  const cambridgeProfile = getCambridgeWritingProfile(normalizedGrade, input.genre);
   const state = getStateForGenre(input.student_id, input.genre);
   const targetDifficulty = normalizeDifficultyForState(normalizedGrade, state?.current_difficulty_state);
   const historicalTagCounts = state?.repeated_error_memory.byStudent[input.student_id]?.tagCounts ?? {};
@@ -2620,9 +2627,12 @@ export const getSmartWritingPromptForStudent = async (input: {
           genre: input.genre,
           prompt_id: typeof remote?.['prompt_id'] === 'string' ? remote['prompt_id'] : null,
           difficulty_level: difficulty === 'foundational' || difficulty === 'stretch' ? difficulty : 'core',
-          target_word_count: Math.max(20, Math.round(
-            Number(remote?.['target_word_count']) || (normalizedGrade <= 7 ? 80 : normalizedGrade <= 9 ? 120 : 160)
-          )),
+          target_word_count: Math.max(15, Math.round(Number(remote?.['target_word_count']) || cambridgeProfile.target_word_count)),
+          minimum_word_count: Math.max(1, Math.round(Number(remote?.['minimum_word_count']) || cambridgeProfile.minimum_word_count)),
+          maximum_word_count: Math.max(20, Math.round(Number(remote?.['maximum_word_count']) || cambridgeProfile.maximum_word_count)),
+          time_limit_seconds: Math.max(60, Math.round(Number(remote?.['time_limit_seconds']) || cambridgeProfile.time_limit_seconds)),
+          syllabus_code: remote?.['syllabus_code'] === '0057' || remote?.['syllabus_code'] === '0876' || remote?.['syllabus_code'] === '0510' ? remote['syllabus_code'] : undefined,
+          syllabus_year: typeof remote?.['syllabus_year'] === 'string' ? remote['syllabus_year'] : undefined,
           focus_tags: focusTags,
           context_tags: contextTags,
           mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
@@ -2677,7 +2687,12 @@ export const getSmartWritingPromptForStudent = async (input: {
       genre: input.genre,
       prompt_id: starterPromptRecord?.id ?? null,
       difficulty_level: starterPromptRecord?.difficulty_label ?? targetDifficulty,
-      target_word_count: starterPromptRecord?.target_word_count ?? (normalizedGrade <= 7 ? 80 : normalizedGrade <= 9 ? 120 : 160),
+      target_word_count: starterPromptRecord?.target_word_count ?? cambridgeProfile.target_word_count,
+      minimum_word_count: cambridgeProfile.minimum_word_count,
+      maximum_word_count: cambridgeProfile.maximum_word_count,
+      time_limit_seconds: cambridgeProfile.time_limit_seconds,
+      syllabus_code: cambridgeProfile.syllabus_code,
+      syllabus_year: cambridgeProfile.syllabus_year,
       focus_tags: starterPromptRecord?.focus_tags ?? uniqueFocusTargets,
       context_tags: starterPromptRecord?.context_tags ?? ['community'],
       mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
@@ -2696,7 +2711,12 @@ export const getSmartWritingPromptForStudent = async (input: {
       genre: input.genre,
       prompt_id: null,
       difficulty_level: targetDifficulty,
-      target_word_count: normalizedGrade <= 7 ? 80 : normalizedGrade <= 9 ? 120 : 160,
+      target_word_count: cambridgeProfile.target_word_count,
+      minimum_word_count: cambridgeProfile.minimum_word_count,
+      maximum_word_count: cambridgeProfile.maximum_word_count,
+      time_limit_seconds: cambridgeProfile.time_limit_seconds,
+      syllabus_code: cambridgeProfile.syllabus_code,
+      syllabus_year: cambridgeProfile.syllabus_year,
       focus_tags: uniqueFocusTargets,
       context_tags: [],
       mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
@@ -2766,6 +2786,11 @@ export const getSmartWritingPromptForStudent = async (input: {
     prompt_id: selected.prompt.id,
     difficulty_level: selected.prompt.difficulty_label,
     target_word_count: selected.prompt.target_word_count,
+    minimum_word_count: cambridgeProfile.minimum_word_count,
+    maximum_word_count: cambridgeProfile.maximum_word_count,
+    time_limit_seconds: cambridgeProfile.time_limit_seconds,
+    syllabus_code: cambridgeProfile.syllabus_code,
+    syllabus_year: cambridgeProfile.syllabus_year,
     focus_tags: selected.focus_tags,
     context_tags: selected.context_tags,
     mission_hint_categories: [...new Set(weaknessTags.map((tag) => WEAKNESS_TAG_TO_MISSION_CATEGORY[tag as keyof typeof WEAKNESS_TAG_TO_MISSION_CATEGORY]).filter(Boolean))],
@@ -3191,46 +3216,44 @@ export interface StudentWritingIntegrityContext {
   class_name: string;
 }
 
-export const getStudentWritingIntegrityMode = async (): Promise<ServiceResponse<StudentWritingIntegrityContext>> => {
-  if (typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test') {
-    return ok({ mode: 'practice', class_id: null, class_name: 'Practice workspace' });
-  }
-
+export const recordWritingIntegrityVoid = async (input: {
+  attempt_key: string;
+  prompt_id: string | null;
+  prompt_text: string;
+  grade: number;
+  genre: SupportedGenre;
+  draft_snapshot: string;
+  integrity_signals: WritingCompositionTelemetry;
+  reason: 'second_tab_change' | 'time_expired';
+}): Promise<ServiceResponse<{ recorded: true }>> => {
   try {
     const { supabase } = await import('../../../services/supabaseClient.js');
-    const { data, error } = await supabase.rpc('rpc_bh_writing_student_integrity_mode');
-    if (error || !data || typeof data !== 'object') {
-      return ok({ mode: 'practice', class_id: null, class_name: 'Practice workspace' });
-    }
-
-    const remote = data as Record<string, unknown>;
-    const mode = remote['mode'];
-    return ok({
-      mode: mode === 'independent' || mode === 'supervised' ? mode : 'practice',
-      class_id: typeof remote['class_id'] === 'string' ? remote['class_id'] : null,
-      class_name: typeof remote['class_name'] === 'string' ? remote['class_name'] : 'Practice workspace',
+    const { data, error } = await supabase.rpc('rpc_bh_writing_void_formal_attempt', {
+      p_attempt_key: input.attempt_key,
+      p_prompt_id: input.prompt_id,
+      p_prompt_text: input.prompt_text,
+      p_grade: input.grade,
+      p_genre: input.genre,
+      p_draft_snapshot: input.draft_snapshot,
+      p_integrity_signals: input.integrity_signals,
+      p_reason: input.reason,
     });
-  } catch {
-    return ok({ mode: 'practice', class_id: null, class_name: 'Practice workspace' });
+    if (error || !data) return badRequest(error?.message ?? 'Unable to preserve the interrupted attempt.');
+    return ok({ recorded: true });
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to preserve the interrupted attempt.');
   }
 };
+
+export const getStudentWritingIntegrityMode = async (): Promise<ServiceResponse<StudentWritingIntegrityContext>> =>
+  ok({ mode: 'formal', class_id: null, class_name: 'Formal Cambridge-aligned assessment' });
 
 export const setTeacherWritingIntegrityMode = async (input: {
   class_id: string;
   mode: WritingIntegrityMode;
 }): Promise<ServiceResponse<StudentWritingIntegrityContext>> => {
   if (!input.class_id) return badRequest('Select a class before changing its writing mode.');
-  try {
-    const { supabase } = await import('../../../services/supabaseClient.js');
-    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_set_integrity_mode', {
-      p_class_id: input.class_id,
-      p_mode: input.mode,
-    });
-    if (error || !data) return badRequest('Unable to update the class writing mode. Please try again.');
-    return ok(data as StudentWritingIntegrityContext);
-  } catch {
-    return badRequest('Unable to update the class writing mode. Please try again.');
-  }
+  return ok({ mode: 'formal', class_id: input.class_id, class_name: 'Formal Cambridge-aligned assessment' });
 };
 
 export interface TeacherWritingReport {
@@ -3306,6 +3329,8 @@ export interface TeacherWritingAttemptRecord {
   student_submission: string;
   assessment: Record<string, unknown>;
   rich_feedback: Record<string, unknown>;
+  integrity_signals: Partial<WritingCompositionTelemetry>;
+  attempt_status: 'submitted' | 'second_tab_change' | 'time_expired' | string;
   created_at: string;
 }
 

@@ -168,15 +168,17 @@ const normalizeCriterion = (value: unknown, studentResponse: string): WritingCri
   const confidence = record['confidence'];
   const descriptorId = asNonEmptyString(record['descriptor_id']);
   const justification = asNonEmptyString(record['justification']);
+  const improvementAction = asNonEmptyString(record['improvement_action']);
   const evidence = normalizeEvidence(record['evidence'], studentResponse);
   if (!Number.isInteger(score) || Number(score) < 0 || Number(score) > 5) return null;
   if (typeof confidence !== 'number' || !Number.isFinite(confidence) || confidence < 0 || confidence > 1) return null;
-  if (!descriptorId || !justification || justification.length < 12 || !evidence) return null;
+  if (!descriptorId || !justification || justification.length < 12 || !improvementAction || !evidence) return null;
   return {
     score: Number(score),
     confidence,
     descriptor_id: descriptorId,
     justification,
+    improvement_action: improvementAction,
     evidence,
   };
 };
@@ -201,7 +203,7 @@ const normalizePromptDefinition = (
   const contextGrade = Number(context.grade);
   const validRegister = register === 'informal' || register === 'neutral' || register === 'formal' || register === 'mixed';
   const validDifficulty = difficulty === 'foundational' || difficulty === 'core' || difficulty === 'stretch';
-  if (!Number.isInteger(contextGrade) || contextGrade < 6 || contextGrade > 12) return null;
+  if (!Number.isInteger(contextGrade) || contextGrade < 1 || contextGrade > 12) return null;
   if (grade !== contextGrade || genre !== context.genre || targetWordCount !== context.targetWordCount) return null;
   if (promptId !== context.promptId || !validRegister || !validDifficulty) return null;
   const promptDefinitionHash = asNonEmptyString(record['prompt_definition_hash']);
@@ -305,7 +307,11 @@ export const normalizeAuthoritativeWritingAssessment = (
   const assessmentId = asNonEmptyString(assessmentRecord['assessment_id']);
   const evaluatorModel = asNonEmptyString(assessmentRecord['evaluator_model']);
   const promptDefinition = normalizePromptDefinition(assessmentRecord['prompt_definition'], context);
-  if (!assessmentId || !evaluatorModel || !promptDefinition) {
+  const frameworkProfile = asRecord(assessmentRecord['framework_profile']);
+  const taskRules = asRecord(assessmentRecord['task_rules']);
+  const taskCompliance = asRecord(assessmentRecord['task_compliance']);
+  const rubricSnapshot = asRecord(assessmentRecord['rubric_snapshot']);
+  if (!assessmentId || !evaluatorModel || !promptDefinition || !frameworkProfile || !taskRules || !taskCompliance || !rubricSnapshot) {
     return { ok: false, error: 'Assessment provenance is incomplete.' };
   }
   const criteriaRecord = asRecord(assessmentRecord['criteria']);
@@ -364,11 +370,16 @@ export const normalizeAuthoritativeWritingAssessment = (
     academic_profile_ready: assessmentStatus === 'verified',
     assessment_id: assessmentId,
     assessment_status: assessmentStatus,
+    needs_teacher_review: assessmentStatus === 'needs_review',
     rubric_version: WRITING_RUBRIC_VERSION,
     evaluator_version: String(evaluatorVersion),
     evaluator_model: evaluatorModel,
     text_fingerprint: fingerprint,
     prompt_definition: promptDefinition,
+    framework_profile: frameworkProfile,
+    task_rules: taskRules,
+    task_compliance: taskCompliance,
+    rubric_snapshot: rubricSnapshot,
     criteria,
     shadow_heuristic_total: Number.isInteger(assessmentRecord['shadow_heuristic_total'])
       ? Number(assessmentRecord['shadow_heuristic_total'])

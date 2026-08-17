@@ -9,8 +9,8 @@ export type SupportedGenre =
 
 export type ScoreMode = 'A2_3_scale' | 'B1B2_4_scale';
 
-export const WRITING_RUBRIC_VERSION = 'bh-writing-rubric-v2' as const;
-export const WRITING_EVALUATOR_VERSION = 'bh-writing-assessment-v3.9' as const;
+export const WRITING_RUBRIC_VERSION = 'cambridge-esl-writing-rubric-v1' as const;
+export const WRITING_EVALUATOR_VERSION = 'bh-writing-assessment-v4.0' as const;
 export const WRITING_PREVIOUS_EVALUATOR_VERSION = 'bh-writing-assessment-v3.8' as const;
 export const WRITING_EARLIER_EVALUATOR_VERSION = 'bh-writing-assessment-v3.7' as const;
 export const WRITING_OLDER_EVALUATOR_VERSION = 'bh-writing-assessment-v3.5' as const;
@@ -44,6 +44,7 @@ export interface WritingCriterionAssessment {
   confidence: number;
   descriptor_id: string;
   justification: string;
+  improvement_action: string;
   evidence: WritingEvidenceSpan[];
 }
 
@@ -111,6 +112,11 @@ export interface GradeDifficultyConfig {
 }
 
 export const GRADE_TO_DIFFICULTY_CONFIG: Record<number, GradeDifficultyConfig> = {
+  1: { expectedCeiling: 'A2', strictness: 0.28, minParagraphs: 1, registerSensitivity: 0.08, developmentWeight: 0.08 },
+  2: { expectedCeiling: 'A2', strictness: 0.34, minParagraphs: 1, registerSensitivity: 0.1, developmentWeight: 0.1 },
+  3: { expectedCeiling: 'A2', strictness: 0.42, minParagraphs: 1, registerSensitivity: 0.14, developmentWeight: 0.14 },
+  4: { expectedCeiling: 'A2', strictness: 0.5, minParagraphs: 1, registerSensitivity: 0.18, developmentWeight: 0.18 },
+  5: { expectedCeiling: 'A2', strictness: 0.58, minParagraphs: 1, registerSensitivity: 0.22, developmentWeight: 0.22 },
   6: { expectedCeiling: 'A2', strictness: 0.65, minParagraphs: 1, registerSensitivity: 0.25, developmentWeight: 0.25 },
   7: { expectedCeiling: 'A2', strictness: 0.72, minParagraphs: 2, registerSensitivity: 0.35, developmentWeight: 0.35 },
   8: { expectedCeiling: 'B1', strictness: 0.8, minParagraphs: 2, registerSensitivity: 0.5, developmentWeight: 0.5 },
@@ -225,11 +231,16 @@ export interface WritingAssessmentResult {
   academic_profile_ready?: boolean;
   assessment_id?: string;
   assessment_status?: WritingAssessmentStatus;
+  needs_teacher_review?: boolean;
   rubric_version?: typeof WRITING_RUBRIC_VERSION | string;
   evaluator_version?: typeof WRITING_EVALUATOR_VERSION | string;
   evaluator_model?: string;
   text_fingerprint?: string;
   prompt_definition?: WritingPromptAssessmentDefinition;
+  framework_profile?: Record<string, unknown>;
+  task_rules?: Record<string, unknown>;
+  task_compliance?: Record<string, unknown>;
+  rubric_snapshot?: Record<string, unknown>;
   criteria?: Record<WritingCriterionKey, WritingCriterionAssessment>;
   shadow_heuristic_total?: number;
   adjudication_reason?: string | null;
@@ -579,7 +590,7 @@ const buildPriorities = (tags: WeaknessTag[]): string[] => {
 export const assessWritingExam = (input: WritingAssessmentInput): WritingAssessmentResult => {
   const difficulty = GRADE_TO_DIFFICULTY_CONFIG[input.grade];
   if (!difficulty) {
-    throw new Error(`Unsupported grade: ${input.grade}. Expected 6-12.`);
+    throw new Error(`Unsupported grade: ${input.grade}. Expected 1-12.`);
   }
 
   const scoreMode: ScoreMode = 'B1B2_4_scale';

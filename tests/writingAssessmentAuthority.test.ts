@@ -26,6 +26,7 @@ const buildPayload = () => {
     confidence: 0.9,
     descriptor_id: `band_${score}`,
     justification: 'This exact evidence supports the awarded rubric band.',
+    improvement_action: 'Add one precise supporting detail tied to the task.',
     evidence: [{ quote: evidenceQuote, start_char: evidenceStart, end_char: evidenceStart + evidenceQuote.length }],
   });
   const fingerprint = buildWritingTextFingerprint(response);
@@ -48,6 +49,10 @@ const buildPayload = () => {
         register: 'formal',
         difficulty_level: 'core',
       },
+      framework_profile: { syllabus_code: '0876', syllabus_year: null, framework_version: 'teaching-from-2021', grade: 9 },
+      task_rules: { minimum_word_count: 120, maximum_word_count: 200, formal_attempt: true },
+      task_compliance: { actual_word_count: 18, within_word_range: false, prompt_identity_verified: true },
+      rubric_snapshot: { rubric_version: WRITING_RUBRIC_VERSION, grade: 9, verification_passes: 2 },
       criteria: {
         content: criterion(4),
         communicative_achievement: criterion(4),
@@ -196,7 +201,7 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /strict: true/);
   assert.match(edge, /Assessment evidence failed strict validation/);
   assert.match(edge, /assessment_status = verified \? "verified" : "needs_review"/);
-  assert.match(edge, /single Brains Heist writing assessment authority/);
+  assert.match(edge, /primary Brains Heist writing assessor/);
   assert.match(edge, /Inspect the complete draft twice/);
   assert.match(edge, /diagnostic_coverage_complete/);
   assert.match(edge, /false_positive_free/);
@@ -216,8 +221,11 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /accurate grammatical terminology/);
   assert.match(edge, /diagnostic_corrections_count/);
   assert.match(edge, /BH_WRITING_PIPELINE_VERSION/);
-  assert.match(edge, /canonical-v3\.9/);
-  assert.match(edge, /bh-writing-assessment-v3\.9/);
+  assert.match(edge, /cambridge-v4/);
+  assert.match(edge, /bh-writing-assessment-v4\.0/);
+  assert.match(edge, /loadTrustedTaskSnapshot/);
+  assert.match(edge, /rubric_snapshot/);
+  assert.match(edge, /needs_teacher_review = !verified/);
   assert.match(edge, /strength_evidence/);
   assert.match(edge, /Every strength_evidence value must also be an exact unique span/);
   assert.match(edge, /"primary-assessment"/);
@@ -240,7 +248,7 @@ test('production source uses one strict assessment result for score and cinemati
   assert.match(edge, /accepted_inventory is already grounded and must be preserved/);
   assert.match(edge, /correctionsToFeedbackLists\(studentFacingCorrections\)/);
   assert.doesNotMatch(edge, /grammar_fixes: \[\]/);
-  assert.match(edge, /legacy-v2/);
+  assert.match(edge, /cambridge-esl-writing-rubric-v1/);
   assert.match(edge, /canonicalAdjudicatorSchema/);
   assert.match(edge, /The two audits are candidate proposals, never facts/);
   assert.match(edge, /applyCanonicalCorrections/);

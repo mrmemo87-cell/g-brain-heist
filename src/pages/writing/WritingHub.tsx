@@ -25,7 +25,7 @@ import {
   submitDailyWritingPractice,
   submitInitialWritingAssessment,
   getStudentPromptAttemptCount,
-  getStudentWritingIntegrityMode,
+  recordWritingIntegrityVoid,
   StudentWritingHistoryEntry,
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import { FALLBACK_PROMPT_BY_GENRE, WEAKNESS_TAG_TO_MISSION_CATEGORY } from '../../lib/brains_heist/writingPromptProgression.js';
@@ -43,6 +43,7 @@ import {
   WritingCompositionTelemetry,
   WritingIntegrityMode,
 } from '../../lib/brains_heist/writingIntegrity.js';
+import { getCambridgeWritingProfile, getCambridgeWritingTaskLabel } from '../../lib/brains_heist/cambridgeWritingProfiles.js';
 import { quest_get_missions, QuestMissionRow } from '../../../services/gameService.js';
 
 interface WritingHubProps {
@@ -4993,18 +4994,19 @@ const createWritingAttemptKey = (): string => {
     ? `attempt_${runtimeCrypto.randomUUID()}`
     : `attempt_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
 };
-const defaultWritingTarget = (grade: number): number => grade <= 7 ? 80 : grade <= 9 ? 120 : 160;
+const defaultWritingTarget = (grade: number): number => getCambridgeWritingProfile(grade).target_word_count;
 const buildWritingDraftStorageKey = (studentId: string, genre: SupportedGenre, promptText: string): string =>
   `writing_hub_draft:${studentId}:${genre}:${normalizePromptForComparison(promptText).slice(0, 120)}`;
 
 const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentName, grade, genre }) => {
+  const initialProfile = getCambridgeWritingProfile(grade, genre);
   const [activeGenre, setActiveGenre] = useState<SupportedGenre>(genre);
   const [promptText, setPromptText] = useState(defaultPromptByGenre[genre]);
   const [promptId, setPromptId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('Write your response, submit for feedback, then choose retry or a new prompt.');
+  const [notice, setNotice] = useState('Your formal Cambridge-aligned writing assessment is ready. The timer starts with the task.');
   const [assessment, setAssessment] = useState<WritingAssessmentResult | null>(null);
   const [aiFeedback, setAiFeedback] = useState<WritingAiFeedbackAssist | null>(null);
   const [submittedText, setSubmittedText] = useState('');
@@ -5019,15 +5021,19 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [attemptNumber, setAttemptNumber] = useState<number>(1);
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
   const [lastRetryKind, setLastRetryKind] = useState<'same_prompt' | 'new_prompt'>('new_prompt');
-  const [integrityMode, setIntegrityMode] = useState<WritingIntegrityMode>('practice');
+  const integrityMode: WritingIntegrityMode = 'formal';
   const [compositionTelemetry, setCompositionTelemetry] = useState<WritingCompositionTelemetry>(
-    () => createWritingCompositionTelemetry('practice')
+    () => createWritingCompositionTelemetry('formal', null, initialProfile.time_limit_seconds)
   );
   const [latestIntegritySignals, setLatestIntegritySignals] = useState<WritingCompositionTelemetry | null>(null);
   const [revisionOriginText, setRevisionOriginText] = useState('');
   const [promptHistoryCount, setPromptHistoryCount] = useState<number>(0);
   const [availablePromptCount, setAvailablePromptCount] = useState<number>(1);
   const [targetWordCount, setTargetWordCount] = useState<number>(() => defaultWritingTarget(grade));
+  const [minimumWordCount, setMinimumWordCount] = useState(initialProfile.minimum_word_count);
+  const [maximumWordCount, setMaximumWordCount] = useState(initialProfile.maximum_word_count);
+  const [timeLimitSeconds, setTimeLimitSeconds] = useState(initialProfile.time_limit_seconds);
+  const [remainingSeconds, setRemainingSeconds] = useState(initialProfile.time_limit_seconds);
   const [promptDifficulty, setPromptDifficulty] = useState<'foundational' | 'core' | 'stretch'>(
     () => grade <= 7 ? 'foundational' : grade <= 9 ? 'core' : 'stretch'
   );
@@ -5040,6 +5046,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const cinematicTracePathRef = useRef<SVGPathElement | null>(null);
   const managedPromptLoadKeyRef = useRef('');
   const pastedCharactersToIgnoreRef = useRef(0);
+  const voidingAttemptRef = useRef(false);
   const wordCount = countWords(draft);
   const wordTone = useMemo(() => getWordCounterTone(wordCount, targetWordCount), [wordCount, targetWordCount]);
   const isVeryShortDraft = wordCount > 0 && wordCount < Math.max(10, Math.floor(targetWordCount * 0.2));
@@ -5062,10 +5069,15 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
 
   useEffect(() => {
+    const profile = getCambridgeWritingProfile(grade, genre);
     setActiveGenre(genre);
     setPromptText(defaultPromptByGenre[genre]);
     setPromptId(null);
     setTargetWordCount(defaultWritingTarget(grade));
+    setMinimumWordCount(profile.minimum_word_count);
+    setMaximumWordCount(profile.maximum_word_count);
+    setTimeLimitSeconds(profile.time_limit_seconds);
+    setRemainingSeconds(profile.time_limit_seconds);
     setPromptDifficulty(grade <= 7 ? 'foundational' : grade <= 9 ? 'core' : 'stretch');
     setDraft('');
     setAssessment(null);
@@ -5084,20 +5096,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setLastRetryKind('new_prompt');
     setLatestIntegritySignals(null);
     setRevisionOriginText('');
-    setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode));
-  }, [genre]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void getStudentWritingIntegrityMode().then((result) => {
-      if (cancelled || !result.ok || !result.data) return;
-      setIntegrityMode(result.data.mode);
-      setCompositionTelemetry(createWritingCompositionTelemetry(result.data.mode));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [studentId]);
+    setCompositionTelemetry(createWritingCompositionTelemetry('formal', null, profile.time_limit_seconds));
+  }, [genre, grade]);
 
   useEffect(() => {
     const unsubscribeHydration = subscribeToWritingHydrationStatus(setHydrationStatus);
@@ -5179,16 +5179,6 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [draft]);
 
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const handleVisibility = () => {
-      if (document.visibilityState !== 'hidden' || !draft.trim()) return;
-      setCompositionTelemetry((current) => recordWritingVisibilityHidden(current));
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [draft]);
-
   const beginRetrySamePrompt = () => {
     setRevisionOriginText(submittedText || draft);
     setLastRetryKind('same_prompt');
@@ -5202,27 +5192,24 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setCinematicIndex(null);
     setShowFullEssayContext(false);
     setLatestIntegritySignals(null);
-    setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode, lastAttemptId));
+    setRemainingSeconds(timeLimitSeconds);
+    setCompositionTelemetry(createWritingCompositionTelemetry('formal', lastAttemptId, timeLimitSeconds));
     setNotice('Retry this prompt: write an improved version, then submit.');
     setTimeout(() => responseFieldRef.current?.focus(), 0);
   };
 
-  const clearAllText = () => {
-    setDraft('');
-    setError('');
-    setNotice('Your response has been cleared.');
-    setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode, lastAttemptId));
-    if (typeof window !== 'undefined') window.localStorage.removeItem(draftStorageKey);
-    setTimeout(() => responseFieldRef.current?.focus(), 0);
-  };
-
-  const loadFreshPrompt = async (genreOverride?: SupportedGenre) => {
-    if (busy) return;
+  const loadFreshPrompt = async (genreOverride?: SupportedGenre, force = false) => {
+    if (busy && !force) return;
+    if (draft.trim() && !force) {
+      setError('Submit this formal attempt before changing the task. A fresh task is only issued after submission or an integrity reset.');
+      return;
+    }
     setBusy(true);
     setError('');
     setNotice(hasPromptRotation ? 'Loading a new prompt…' : 'Checking for a different prompt…');
     try {
       const nextGenre = genreOverride ?? activeGenre;
+      const fallbackProfile = getCambridgeWritingProfile(grade, nextGenre);
       if (nextGenre !== activeGenre) setActiveGenre(nextGenre);
       const stateRes = getStudentWritingState(studentId, nextGenre);
       const weaknessTags = stateRes.ok && stateRes.data?.latest_assessment ? stateRes.data.latest_assessment.weakness_tags.slice(0, 4) : [];
@@ -5244,11 +5231,19 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         resolvedPromptId = nextPrompt.data.prompt_id;
         setPromptId(resolvedPromptId);
         setTargetWordCount(nextPrompt.data.target_word_count);
+        setMinimumWordCount(nextPrompt.data.minimum_word_count ?? fallbackProfile.minimum_word_count);
+        setMaximumWordCount(nextPrompt.data.maximum_word_count ?? fallbackProfile.maximum_word_count);
+        setTimeLimitSeconds(nextPrompt.data.time_limit_seconds ?? fallbackProfile.time_limit_seconds);
+        setRemainingSeconds(nextPrompt.data.time_limit_seconds ?? fallbackProfile.time_limit_seconds);
         setPromptDifficulty(nextPrompt.data.difficulty_level);
         setAvailablePromptCount(Math.max(1, nextPrompt.data.pool_size ?? availablePromptCount));
       } else {
         setPromptId(null);
         setTargetWordCount(defaultWritingTarget(grade));
+        setMinimumWordCount(fallbackProfile.minimum_word_count);
+        setMaximumWordCount(fallbackProfile.maximum_word_count);
+        setTimeLimitSeconds(fallbackProfile.time_limit_seconds);
+        setRemainingSeconds(fallbackProfile.time_limit_seconds);
         setPromptDifficulty(grade <= 7 ? 'foundational' : grade <= 9 ? 'core' : 'stretch');
       }
       const samePromptIdentity = Boolean(
@@ -5281,7 +5276,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       setLastRetryKind('new_prompt');
       setRevisionOriginText('');
       setLatestIntegritySignals(null);
-      setCompositionTelemetry(createWritingCompositionTelemetry(integrityMode));
+      setCompositionTelemetry(createWritingCompositionTelemetry('formal', null, nextPrompt.data?.time_limit_seconds ?? fallbackProfile.time_limit_seconds));
       setShowPromptChooser(false);
       setTimeout(() => responseFieldRef.current?.focus(), 0);
     } catch (e) {
@@ -5291,6 +5286,65 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       setBusy(false);
     }
   };
+
+  const preserveVoidedAttemptAndRotate = async (
+    reason: 'second_tab_change' | 'time_expired', signals: WritingCompositionTelemetry
+  ): Promise<void> => {
+    if (voidingAttemptRef.current || assessment) return;
+    voidingAttemptRef.current = true;
+    setBusy(true);
+    const finalSignals = finalizeWritingCompositionTelemetry(
+      { ...signals, prompt_restart_count: signals.prompt_restart_count + 1 }, draft
+    );
+    const recorded = await recordWritingIntegrityVoid({
+      attempt_key: createWritingAttemptKey(), prompt_id: promptId, prompt_text: promptText,
+      grade, genre: activeGenre, draft_snapshot: draft, integrity_signals: finalSignals, reason,
+    });
+    if (!recorded.ok) {
+      setError(`${recorded.error ?? 'The interrupted attempt could not be archived.'} Your text has been kept; ask a teacher for help.`);
+      setBusy(false);
+      voidingAttemptRef.current = false;
+      return;
+    }
+    if (typeof window !== 'undefined') window.localStorage.removeItem(draftStorageKey);
+    setDraft('');
+    setLatestIntegritySignals(finalSignals);
+    setNotice(reason === 'second_tab_change'
+      ? 'The second tab change ended and archived that attempt. A completely fresh prompt is being issued.'
+      : 'Time expired. The attempt was archived and a fresh prompt is being issued.');
+    setBusy(false);
+    await loadFreshPrompt(activeGenre, true);
+    voidingAttemptRef.current = false;
+  };
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const handleVisibility = () => {
+      if (document.visibilityState !== 'hidden' || !wizardOpen || !promptId || assessment || voidingAttemptRef.current) return;
+      setCompositionTelemetry((current) => {
+        const next = recordWritingVisibilityHidden(current);
+        if (next.tab_change_count === 1) {
+          setNotice('Warning: you left the assessment tab. A second tab change will archive this attempt, clear the editor, and issue a fresh prompt.');
+        } else if (next.tab_change_count >= 2) {
+          void preserveVoidedAttemptAndRotate('second_tab_change', next);
+        }
+        return next;
+      });
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [assessment, draft, promptId, promptText, activeGenre, wizardOpen]);
+
+  useEffect(() => {
+    if (!wizardOpen || !promptId || assessment || voidingAttemptRef.current) return;
+    const timer = window.setInterval(() => setRemainingSeconds((current) => Math.max(0, current - 1)), 1000);
+    return () => window.clearInterval(timer);
+  }, [assessment, promptId, wizardOpen]);
+
+  useEffect(() => {
+    if (remainingSeconds !== 0 || !wizardOpen || !promptId || assessment || voidingAttemptRef.current) return;
+    void preserveVoidedAttemptAndRotate('time_expired', compositionTelemetry);
+  }, [remainingSeconds, assessment, wizardOpen, promptId]);
 
   useEffect(() => {
     if (!studentHistoryReady) return;
@@ -5885,7 +5939,11 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         </div>
         <div className="writing-studio__dashboard-actions">
           <p>{scoreChange != null && scoreChange > 0 ? `You improved by ${scoreChange} points on your latest scored task.` : 'Your saved work, scores, focus areas, and feedback history stay available below.'}</p>
-          <button type="button" className="writing-studio__primary-button" onClick={() => setWizardOpen(true)}>
+          <button type="button" className="writing-studio__primary-button" onClick={() => {
+            setRemainingSeconds(timeLimitSeconds);
+            setCompositionTelemetry(createWritingCompositionTelemetry('formal', null, timeLimitSeconds));
+            setWizardOpen(true);
+          }}>
             Start a new writing task
           </button>
         </div>
@@ -5899,12 +5957,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             <span>Step 1 · Today</span>
             <h3>Understand your task</h3>
           </div>
-          <button type="button" className="writing-studio__secondary-button" onClick={() => setShowPromptChooser((value) => !value)} disabled={busy}>
+          <button type="button" className="writing-studio__secondary-button" onClick={() => setShowPromptChooser((value) => !value)} disabled={busy || Boolean(draft.trim())}>
             {showPromptChooser ? 'Hide genres' : 'Change genre'}
           </button>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <strong>{toGenreLabel(activeGenre)}</strong>
+          <span style={{ color: '#334155' }}>{getCambridgeWritingTaskLabel(grade, activeGenre)}</span>
           <span style={{ color: '#334155' }}>
             🕘 {!studentHistoryReady
               ? 'Checking saved submissions…'
@@ -5917,7 +5976,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               key={item}
               type="button"
               onClick={() => void loadFreshPrompt(item)}
-              disabled={busy}
+              disabled={busy || Boolean(draft.trim())}
               style={{
                 borderRadius: 8,
                 border: item === activeGenre ? '1px solid #2563eb' : '1px solid #cbd5e1',
@@ -5940,24 +5999,26 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             <span>Step 2</span>
             <h3>Your Response</h3>
           </div>
-          <span style={{ color: wordTone.accent }}>{wordCount} / {toWordCountLabel(targetWordCount)}</span>
+          <span style={{ color: wordTone.accent }}>{wordCount} / {minimumWordCount}–{maximumWordCount} words</span>
         </div>
-        {integrityMode !== 'practice' && <div className={`writing-studio__integrity-mode writing-studio__integrity-mode--${integrityMode}`}>
+        <div className={`writing-studio__integrity-mode writing-studio__integrity-mode--${integrityMode}`}>
           <div>
             <strong>{toWritingIntegrityModeLabel(integrityMode)}</strong>
             <span>
-              {integrityMode === 'independent'
-                  ? 'Write in this editor using your own words. Pasting is disabled.'
-                  : 'Your teacher is supervising this assessment. Pasting and leaving the page are recorded.'}
+              Write directly in this editor. Pasting is blocked; tab changes and elapsed time are recorded.
             </span>
           </div>
           <span className="writing-studio__integrity-badge">
-            Original writing
+            {Math.floor(remainingSeconds / 60)}:{String(remainingSeconds % 60).padStart(2, '0')} remaining
           </span>
-        </div>}
+        </div>
+        <p className="writing-studio__editor-help">
+          Required range: {minimumWordCount}–{maximumWordCount} words · target {targetWordCount} words
+        </p>
         <textarea
           ref={responseFieldRef}
           value={draft}
+          disabled={busy || !promptId}
           onChange={(event: WritingTextareaChangeEvent) => {
             const nextValue = event.target.value;
             const ignoredPasteCharacters = pastedCharactersToIgnoreRef.current;
@@ -5969,13 +6030,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           }}
           onPaste={(event: WritingPasteEvent) => {
             const pastedText = event.clipboardData.getData('text');
-            const shouldBlock = integrityMode !== 'practice';
+            const shouldBlock = true;
             setCompositionTelemetry((current) =>
               recordWritingPaste(current, pastedText.length, shouldBlock)
             );
             if (shouldBlock) {
               event.preventDefault();
-              setError(`${toWritingIntegrityModeLabel(integrityMode)} requires writing directly in the editor. Pasting is disabled.`);
+              setError(`Pasting is disabled for formal assessments. The attempted paste size (${pastedText.length} characters) was recorded.`);
               return;
             }
             pastedCharactersToIgnoreRef.current = pastedText.length;
@@ -5997,26 +6058,18 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           <button
             type="button"
             onClick={() => void submitAttempt(lastRetryKind)}
-            disabled={busy || !draft.trim()}
+            disabled={busy || !promptId || !draft.trim()}
             className="writing-studio__primary-button"
           >
-            {busy ? 'Analyzing…' : 'Submit for Feedback'}
-          </button>
-          <button
-            type="button"
-            onClick={clearAllText}
-            disabled={busy}
-            className="writing-studio__secondary-button"
-          >
-            Clear all text
+            {busy ? 'Analyzing…' : 'Submit formal assessment'}
           </button>
           <button
             type="button"
             onClick={() => void loadFreshPrompt(activeGenre)}
-            disabled={busy}
+            disabled={busy || Boolean(draft.trim())}
             className="writing-studio__secondary-button"
           >
-            Change rpompt
+            Change prompt
           </button>
         </div>
       </section>
@@ -6026,10 +6079,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           <div className="writing-studio__section-heading">
             <div>
               <span>Step 3</span>
-              <h3>Your formative feedback</h3>
+              <h3>Your assessment feedback</h3>
             </div>
             <div>
-              <span className="writing-studio__score-label">Automated estimate</span>
+              <span className="writing-studio__score-label">AI assessment · teacher review when flagged</span>
               <div className="writing-studio__score">{assessment.total_score}<small>/20</small></div>
             </div>
           </div>
@@ -6440,7 +6493,7 @@ export const seedWritingHubForDemo = (studentId: string, grade: number, genre: W
     grade,
     genre,
     prompt_text: defaultPromptByGenre[genre],
-    target_word_count: grade <= 7 ? 80 : grade <= 9 ? 120 : 160,
+    target_word_count: getCambridgeWritingProfile(grade, genre).target_word_count,
     student_response:
       'This response describes the event, explains why it mattered, and gives one practical suggestion for next time.',
   });

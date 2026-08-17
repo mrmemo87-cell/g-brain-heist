@@ -17,8 +17,8 @@ test('student Writing Hub exposes the dashboard-first three-step journey and cin
   assert.match(activeSimpleLoop, /wizardOpen && <>/);
   assert.match(activeSimpleLoop, /All focus areas/);
   assert.match(activeSimpleLoop, /Progress since last score/);
-  assert.match(activeSimpleLoop, /Change rpompt/);
-  assert.match(activeSimpleLoop, /Clear all text/);
+  assert.match(activeSimpleLoop, /Change prompt/);
+  assert.doesNotMatch(activeSimpleLoop, /Clear all text/);
   assert.match(activeSimpleLoop, /Play Cinematic Feedback/);
   assert.match(activeSimpleLoop, /Replay Cinematic Feedback/);
   assert.match(activeSimpleLoop, /playSavedCinematicFeedback/);
@@ -26,8 +26,8 @@ test('student Writing Hub exposes the dashboard-first three-step journey and cin
   assert.match(activeSimpleLoop, /Green shows what is working\. Red shows your clearest next improvement\./);
   assert.match(activeSimpleLoop, /renderAnnotatedText\(activeCinematicText, cinematicRanges/);
   assert.match(activeSimpleLoop, /Improve my draft/);
-  assert.doesNotMatch(activeSimpleLoop, /Pasting is disabled in Writing Hub/);
-  assert.doesNotMatch(activeSimpleLoop, /Copying is disabled on this page/);
+  assert.match(activeSimpleLoop, /Pasting is disabled for formal assessments/);
+  assert.match(activeSimpleLoop, /attempted paste size/);
 });
 
 test('writing prompt rotation migration deduplicates identities and remembers recent tasks', () => {
@@ -197,8 +197,8 @@ test('premium Writing Hub keeps authorship context, score meaning, and teacher r
   const report = readProjectFile('src/lib/brains_heist/writingReportDocument.ts');
   const sql = readProjectFile('supabase/migrations/20260726160000_writing_hub_premium_release.sql');
 
-  assert.match(hub, /Automated estimate/);
-  assert.match(hub, /getStudentWritingIntegrityMode/);
+  assert.match(hub, /AI assessment · teacher review when flagged/);
+  assert.match(hub, /recordWritingIntegrityVoid/);
   assert.match(hub, /recordWritingPaste/);
   assert.match(monitoring, /Writing Command Center/);
   assert.doesNotMatch(monitoring, /Class writing mode/);

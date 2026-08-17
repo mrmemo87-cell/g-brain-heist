@@ -219,6 +219,23 @@ const getRubricRows = (attempt: TeacherWritingAttemptRecord): Array<{ label: str
   }));
 };
 
+const getIntegritySummary = (attempt: TeacherWritingAttemptRecord) => {
+  const signals = attempt.integrity_signals ?? {};
+  const elapsedSeconds = typeof signals.elapsed_seconds === 'number' ? Math.max(0, Math.round(signals.elapsed_seconds)) : 0;
+  const status = attempt.attempt_status === 'second_tab_change'
+    ? 'Archived after second tab change'
+    : attempt.attempt_status === 'time_expired'
+      ? 'Archived when time expired'
+      : signals.review_status === 'review_recommended' ? 'Needs teacher review' : 'No integrity concern observed';
+  return {
+    status,
+    elapsed: `${Math.floor(elapsedSeconds / 60)}m ${elapsedSeconds % 60}s`,
+    tabChanges: typeof signals.tab_change_count === 'number' ? signals.tab_change_count : 0,
+    pasteEvents: typeof signals.paste_events === 'number' ? signals.paste_events : 0,
+    largestPaste: typeof signals.largest_paste_characters === 'number' ? signals.largest_paste_characters : 0,
+  };
+};
+
 const CollapsibleHeading: React.FC<{
   eyebrow: string;
   title: string;
@@ -613,6 +630,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const readerWeaknesses = activeAttempt ? extractAttemptWeaknesses(activeAttempt) : [];
   const readerCorrections = activeAttempt ? extractCorrections(activeAttempt) : [];
   const readerRubric = activeAttempt ? getRubricRows(activeAttempt) : [];
+  const readerIntegrity = activeAttempt ? getIntegritySummary(activeAttempt) : null;
   const monitoringPeriod = formatMonitoringPeriod(month);
 
   return (
@@ -938,6 +956,16 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                       <div className="writing-monitor__submission-text">
                         {activeAttempt.student_submission || 'No submission text was saved.'}
                       </div>
+                      {readerIntegrity ? <>
+                        <h3>Assessment integrity</h3>
+                        <div className="writing-monitor__tags">
+                          <span>{readerIntegrity.status}</span>
+                          <span>Time spent: {readerIntegrity.elapsed}</span>
+                          <span>Tab changes: {readerIntegrity.tabChanges}</span>
+                          <span>Paste events: {readerIntegrity.pasteEvents}</span>
+                          <span>Largest attempted paste: {readerIntegrity.largestPaste} characters</span>
+                        </div>
+                      </> : null}
                       <footer>Brains Heist Writing Hub · Evidence page</footer>
                     </section>
 
