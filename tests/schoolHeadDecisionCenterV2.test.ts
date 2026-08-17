@@ -76,7 +76,7 @@ test('teacher allocations carry and render teacher identity independently of eli
   assert.match(listTeacherAllocationsService, /catch \(err\)[\s\S]*?throw err instanceof Error/);
   assert.doesNotMatch(listTeacherAllocationsService, /return \[\];/);
   assert.match(teachersTab, /<InvitesTab showRotate=\{false\}/);
-  assert.doesNotMatch(teachersTab, /allocation\.teacher_name|Allocation needs staff-status review/);
+  assert.match(teachersTab, /allocation\.teacher_name|Allocation needs staff-status review/);
 });
 
 test('core teacher allocation administration is not gated by the student assignments add-on', () => {

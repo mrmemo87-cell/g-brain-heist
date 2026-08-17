@@ -721,6 +721,17 @@ export const listApprovedSignupClasses = async (
     return { success: true, classes: Array.isArray(data.classes) ? data.classes : [] };
 };
 
+export const listMySchoolClasses = async (): Promise<{
+    success: boolean;
+    classes: ApprovedSignupClass[];
+    error?: string;
+}> => {
+    const { data, error } = await supabase.rpc('rpc_list_my_school_classes');
+    if (error) return { success: false, classes: [], error: error.message };
+    if (!data?.success) return { success: false, classes: [], error: data?.error || 'School classes could not be loaded.' };
+    return { success: true, classes: Array.isArray(data.classes) ? data.classes : [] };
+};
+
 export const enrollInApprovedSchoolClass = async (
     classId: string
 ): Promise<SetupSchoolClassEnrollmentResult> => {

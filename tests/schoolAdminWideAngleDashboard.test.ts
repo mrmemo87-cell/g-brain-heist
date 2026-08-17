@@ -39,9 +39,11 @@ test('classes and registration owns editable grade-class teaching coverage', () 
   assert.match(classes, /aria-label={`Edit \${row\.class_code}`}/);
 });
 
-test('teacher allocation exposes the invitation code and link instead of operational allocation tables', () => {
+test('teacher allocation keeps invitation access alongside operational allocation tools', () => {
   assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
-  assert.doesNotMatch(teachers, />Class <|>Subject <|changeSort|admin-table-scroll/);
+  assert.match(teachers, /current-allocations-title/);
+  assert.match(teachers, /allocate-teacher-panel/);
+  assert.match(teachers, />Class <|>Subject <|changeSort|admin-table-scroll/);
   assert.match(service, /allocated_at: row\.allocated_at \?\? row\.created_at/);
   assert.match(migration, /'assigned_at'/);
 });

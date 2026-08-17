@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, Grade, Batch, StudentAssignmentTask, XpStatus, DailyStreakRewardReceipt } from './types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, SchoolGrade, StudentAssignmentTask, XpStatus, DailyStreakRewardReceipt } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
@@ -35,6 +35,7 @@ import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoo
 import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey, type StudentProgrammeKey } from './services/entitlementService';
 import { listMyPendingProgrammeAccessRequests, requestProgrammeAccess } from './services/programmeAccessRequestService';
 import { getGuardianChildren } from './services/guardianService';
+import { enrollInApprovedSchoolClass, listMySchoolClasses, type ApprovedSignupClass } from './services/authService';
 
 // Lazy-loaded: only fetched when the user actually opens these views/modals
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
@@ -77,16 +78,6 @@ const SchoolHeadPortal = lazyRetry(() => import('./components/SchoolHeadPortal')
 const ParentPortal = lazyRetry(() => import('./components/guardian/ParentPortal'), 'ParentPortal');
 const StudentAcademicProfile = lazyRetry(() => import('./components/student-progress/StudentAcademicProfile'), 'StudentAcademicProfile');
 
-const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
-  6: ['6A', '6B', '6C', 'N/A'],
-  7: ['7A', '7B', '7C', 'N/A'],
-  8: ['8A', '8B', '8C', 'N/A'],
-  9: ['9A', '9B', '9C', 'N/A'],
-  10: ['10A', '10B', '10C', 'N/A'],
-  11: ['11A', '11B', '11C', 'N/A'],
-  12: ['12A', '12B', '12C', 'N/A'],
-};
-const DEFAULT_BATCH: Batch = 'N/A';
 interface StudentProgrammeCardProps {
   programme: StudentProgrammeKey;
   icon: string;
@@ -258,8 +249,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [showJoinSchoolModal, setShowJoinSchoolModal] = useState(false);
   const previousSessionActiveRef = useRef<boolean | null>(null);
   const [showAcademicSetup, setShowAcademicSetup] = useState(false);
-  const [pendingGrade, setPendingGrade] = useState<Grade | null>(null);
-  const [pendingBatch, setPendingBatch] = useState<Batch>(DEFAULT_BATCH);
+  const [pendingGrade, setPendingGrade] = useState<SchoolGrade | null>(null);
+  const [selectedAcademicClassId, setSelectedAcademicClassId] = useState('');
+  const [schoolAcademicClasses, setSchoolAcademicClasses] = useState<ApprovedSignupClass[]>([]);
+  const [loadingAcademicClasses, setLoadingAcademicClasses] = useState(false);
   const [savingAcademic, setSavingAcademic] = useState(false);
   const [academicError, setAcademicError] = useState<string | null>(null);
   const [attackAlert, setAttackAlert] = useState(false);
@@ -405,12 +398,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       {node}
     </Suspense>
   );
-  const academicClassOptions = useMemo(() => {
-    if (pendingGrade === null) {
-      return [DEFAULT_BATCH];
-    }
-    return GRADE_TO_BATCH[pendingGrade as Grade];
-  }, [pendingGrade]);
+  const academicGradeOptions = useMemo(() => Array.from(new Set(
+    schoolAcademicClasses
+      .map((schoolClass) => schoolClass.grade_level?.trim())
+      .filter((grade): grade is string => Boolean(grade)),
+  )).sort((left, right) => left.localeCompare(right, undefined, { numeric: true })), [schoolAcademicClasses]);
+  const academicClassOptions = useMemo(() => schoolAcademicClasses.filter((schoolClass) => (
+    pendingGrade !== null && String(schoolClass.grade_level) === String(pendingGrade)
+  )), [pendingGrade, schoolAcademicClasses]);
 
   const addToast = useCallback((message: string, type: ToastMessage['type'] = 'info', retryAction?: () => void) => {
     const id = Date.now();
@@ -613,23 +608,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const handleAcademicGradeChange = (value: string) => {
     if (!value) {
       setPendingGrade(null);
-      setPendingBatch(DEFAULT_BATCH);
+      setSelectedAcademicClassId('');
       setAcademicError(null);
       return;
     }
 
-    const parsed = parseInt(value, 10) as Grade;
-    setPendingGrade(parsed);
+    setPendingGrade(value);
+    setSelectedAcademicClassId('');
     setAcademicError(null);
-
-    const validOptions = GRADE_TO_BATCH[parsed];
-    if (!validOptions.includes(pendingBatch)) {
-      setPendingBatch(DEFAULT_BATCH);
-    }
   };
 
   const handleAcademicBatchChange = (value: string) => {
-    setPendingBatch((value as Batch) || DEFAULT_BATCH);
+    setSelectedAcademicClassId(value);
     setAcademicError(null);
   };
 
@@ -676,28 +666,31 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       return;
     }
 
+    if (!selectedAcademicClassId) {
+      setAcademicError('Select your class to continue.');
+      return;
+    }
+
     setSavingAcademic(true);
     setAcademicError(null);
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          grade: pendingGrade,
-          batch: pendingBatch,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', profile.id);
-
-      if (error) {
-        console.error('Failed to update grade/class', error);
-        setAcademicError('Failed to save your class info. Please try again.');
+      const selectedClass = schoolAcademicClasses.find((schoolClass) => schoolClass.id === selectedAcademicClassId);
+      if (!selectedClass) {
+        setAcademicError('That class is no longer available. Refresh and choose another class.');
         return;
       }
 
-        setProfile((prevProfile: Profile | null) =>
-          prevProfile
-            ? { ...prevProfile, grade: pendingGrade, batch: pendingBatch }
-            : prevProfile
+      const result = await enrollInApprovedSchoolClass(selectedAcademicClassId);
+      if (!result.success) {
+        console.error('Failed to update grade/class', result.error);
+        setAcademicError(result.error || 'Failed to save your class info. Please try again.');
+        return;
+      }
+
+      setProfile((prevProfile: Profile | null) =>
+        prevProfile
+          ? { ...prevProfile, grade: selectedClass.grade_level ?? pendingGrade, batch: selectedClass.class_code }
+          : prevProfile
       );
       setShowAcademicSetup(false);
       addToast('Class info saved. Welcome agent!', 'success');
@@ -792,16 +785,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [profile, isIeltsOnlyUser, view, isPlayerMode]);
 
   useEffect(() => {
-    if (!isPlayerMode) return;
+    let cancelled = false;
+    if (!isPlayerMode) return undefined;
     if (!profile || profile.role === 'teacher' || profile.role === 'admin' || profile.role === 'school_admin') {
       setShowAcademicSetup(false);
-      return;
+      setSchoolAcademicClasses([]);
+      return undefined;
     }
 
     // Individuals (no school) skip the academic setup — grade/batch are school concepts
     if (!profile.school_id) {
       setShowAcademicSetup(false);
-      return;
+      setSchoolAcademicClasses([]);
+      return undefined;
     }
 
     const needsGrade = profile.grade === null;
@@ -809,11 +805,40 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
     if (needsGrade || needsBatch) {
       setPendingGrade(profile.grade);
-      setPendingBatch((profile.batch ?? DEFAULT_BATCH) as Batch);
+      setSelectedAcademicClassId('');
       setShowAcademicSetup(true);
+      setLoadingAcademicClasses(true);
+      setAcademicError(null);
+      void listMySchoolClasses().then((result) => {
+        if (cancelled) return;
+        setLoadingAcademicClasses(false);
+        if (!result.success) {
+          setSchoolAcademicClasses([]);
+          setAcademicError(result.error || 'Your school classes could not be loaded. Please try again.');
+          return;
+        }
+        setSchoolAcademicClasses(result.classes);
+        if (!result.classes.length) {
+          setAcademicError('Your school has no active classes yet. Ask your school administrator to set one up.');
+          return;
+        }
+        const currentClass = profile.batch
+          ? result.classes.find((schoolClass) => schoolClass.class_code === profile.batch)
+          : undefined;
+        if (currentClass) {
+          setPendingGrade(currentClass.grade_level);
+          setSelectedAcademicClassId(currentClass.id);
+        }
+      }).catch(() => {
+        if (cancelled) return;
+        setLoadingAcademicClasses(false);
+        setSchoolAcademicClasses([]);
+        setAcademicError('Your school classes could not be loaded. Please try again.');
+      });
     } else {
       setShowAcademicSetup(false);
     }
+    return () => { cancelled = true; };
   }, [profile, isPlayerMode]);
 
   const loadCachedData = useCallback(() => {
@@ -2639,7 +2664,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           <div className="w-full max-w-xl rounded-2xl bg-slate-900 p-8 shadow-2xl ring-2 ring-amber-400/40">
             <h2 className="font-heading text-2xl text-white mb-2">Almost ready!</h2>
             <p className="text-sm text-gray-300 mb-6">
-              We need your grade and class to place you on the right leaderboards. You can pick <span className="font-semibold text-amber-300">N/A</span> if you are not sure yet.
+              Choose your grade and class from the options set up by your school so we can place you correctly.
             </p>
             <form
               className="space-y-6"
@@ -2659,12 +2684,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   <option value="" disabled>
                     Select your grade
                   </option>
-                  {Object.keys(GRADE_TO_BATCH)
-                    .map((grade) => parseInt(grade, 10) as Grade)
-                    .sort((a, b) => a - b)
-                    .map((gradeOption) => (
+                  {academicGradeOptions.map((gradeOption) => (
                       <option key={gradeOption} value={gradeOption}>
-                        Grade {gradeOption}
+                        {/^[0-9]+$/.test(gradeOption) ? `Grade ${gradeOption}` : gradeOption}
                       </option>
                     ))}
                 </select>
@@ -2675,15 +2697,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 <select
                   required
                   className="w-full rounded-lg border border-gray-700 bg-black/40 px-4 py-3 text-white focus:border-amber-300 focus:outline-none"
-                  value={pendingBatch}
+                  value={selectedAcademicClassId}
                   onChange={(event) => handleAcademicBatchChange(event.target.value)}
+                  disabled={!pendingGrade || loadingAcademicClasses}
                 >
                   <option value="" disabled>
                     Select your class
                   </option>
-                  {academicClassOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
+                  {academicClassOptions.map((schoolClass) => (
+                    <option key={schoolClass.id} value={schoolClass.id}>
+                      {schoolClass.class_code} — {schoolClass.class_name}
                     </option>
                   ))}
                 </select>
@@ -2697,10 +2720,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 )}
                 <button
                   type="submit"
-                  disabled={savingAcademic}
+                  disabled={savingAcademic || loadingAcademicClasses || !schoolAcademicClasses.length}
                   className="flex h-12 w-full items-center justify-center rounded-lg bg-amber-500 text-black font-semibold hover:bg-amber-400 disabled:cursor-not-allowed disabled:bg-amber-600/40"
                 >
-                  {savingAcademic ? 'Saving…' : 'Save and Continue'}
+                  {loadingAcademicClasses ? 'Loading school classes…' : savingAcademic ? 'Saving…' : 'Save and Continue'}
                 </button>
               </div>
             </form>

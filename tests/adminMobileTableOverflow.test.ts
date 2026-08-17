@@ -35,7 +35,7 @@ test('wide school admin tables use the shared mobile scroll region', () => {
   assert.match(ieltsResultsTab, /className="admin-table-scroll mt-5"[^>]*aria-label="IELTS results table"[^>]*tabIndex=\{0\}[\s\S]*?<table className="min-w-\[920px\]/);
   assert.doesNotMatch(dashboardTab, /className="admin-table-scroll"/);
   assert.doesNotMatch(subjectsTab, /local subject labels|className="admin-table-scroll"/);
-  assert.doesNotMatch(teachersTab, /className="admin-table-scroll"/);
+  assert.match(teachersTab, /className="admin-table-scroll"/);
   assert.match(teachersTab, /<InvitesTab showRotate=\{false\}/);
   assert.match(membersTab, /className="community-table-wrap community-table-desktop"/);
   assert.match(membersTab, /className="community-mobile-list"/);

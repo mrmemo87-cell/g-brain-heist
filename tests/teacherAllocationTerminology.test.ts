@@ -46,7 +46,7 @@ test('school administration and executive UX reserve assignment for academic wor
   assert.doesNotMatch(allocationUx, /Teacher Assignments|teaching assignments?|teacher assignments?|Assign teacher|Assigning…|Teacher assigned/i);
   assert.match(teacherAllocationTab, /Teacher Allocation/);
   assert.match(teacherAllocationTab, /InvitesTab/);
-  assert.doesNotMatch(teacherAllocationTab, /Allocate teacher|Allocating…|Date allocated/);
+  assert.match(teacherAllocationTab, /Allocate teacher|Allocating…|Date allocated/);
   assert.match(schoolHeadPortal, /With active allocations/);
 });
 

@@ -34,9 +34,10 @@ test('Teacher Workspace for an administrator requires both registration and an a
   assert.match(app, /capabilities\?\.can_teach && capabilities\.has_active_teacher_allocation/);
 });
 
-test('teacher allocation uses the school invitation access flow', () => {
+test('teacher allocation keeps invitation access and the operational allocation flow', () => {
   assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
-  assert.doesNotMatch(teachers, /selectedFilterGrade|setFilterSubject|No allocations match these filters/);
+  assert.match(teachers, /selectedFilterGrade|setFilterSubject|No allocations match these filters/);
+  assert.match(teachers, /handleAllocateTeacher/);
 });
 
 test('student placement and executive programmes have professional setup states', () => {
