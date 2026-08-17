@@ -4156,14 +4156,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <button
               onClick={onLockdown}
               className="teacher-action-card teacher-action-card-lockdown teacher-action-card--mini"
-              data-color="emerald"
+              data-color="rose"
             >
               {effectiveEntitlements?.plan === 'free' && <span className="teacher-free-badge">FREE</span>}
               <div className="teacher-action-icon">🔒</div>
               <h4 className="teacher-action-title">Lockdown Mode</h4>
-              <p className="teacher-action-desc">Run a limited live classroom session</p>
+              <p className="teacher-action-desc">Host or join a live room-code heist</p>
             </button>
           )}
+
         </div>
       </div>
       </div>
@@ -4355,6 +4356,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           </button>
             </>;
           })()}
+
         </div>
       </div>
     </div>
@@ -8213,7 +8215,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       interventions: 'Performance Reports',
       documents: 'Performance Reports',
       'writing-hub': 'Performance Reports',
-      'clan-wars': 'Lockdown Mode',
       cambridge: 'Cambridge Marking',
     };
     const featureLabel = tabQuotaMap[tab.id];
