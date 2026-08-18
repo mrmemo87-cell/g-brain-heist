@@ -28,17 +28,36 @@ export class SupabaseLockdownTransport implements LockdownTransport {
       },
     });
 
-    this.channel
-      .on("broadcast", { event: "action" }, ({ payload }) => {
-        // Host receives actions from players
-        console.log("Host received action:", payload);
-        this.handleAction(payload as GameAction);
-      })
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-           this.broadcastState();
-        }
-      });
+    await new Promise<void>((resolve, reject) => {
+      let settled = false;
+      const timeout = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        reject(new Error("Unable to activate realtime room"));
+      }, 10000);
+
+      this.channel!
+        .on("broadcast", { event: "action" }, ({ payload }) => {
+          // Host receives actions from players
+          console.log("Host received action:", payload);
+          this.handleAction(payload as GameAction);
+        })
+        .subscribe((status) => {
+          if (status === "SUBSCRIBED") {
+            // Re-broadcast current state on initial subscription and reconnects.
+            this.broadcastState();
+            if (!settled) {
+              settled = true;
+              clearTimeout(timeout);
+              resolve();
+            }
+          } else if (!settled && (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED")) {
+            settled = true;
+            clearTimeout(timeout);
+            reject(new Error(`Unable to activate realtime room (${status})`));
+          }
+        });
+    });
 
     // Start game loop with Page Visibility API to handle tab switching
     let lastTickTime = Date.now();
@@ -83,39 +102,67 @@ export class SupabaseLockdownTransport implements LockdownTransport {
 
     return new Promise((resolve, reject) => {
       let connected = false;
+      let joinRetryInterval: ReturnType<typeof setInterval> | null = null;
+
+      const clearJoinRetry = () => {
+        if (joinRetryInterval) {
+          clearInterval(joinRetryInterval);
+          joinRetryInterval = null;
+        }
+      };
+
       const timeout = setTimeout(() => {
         if (!connected) {
+          clearJoinRetry();
           if (this.channel) supabase.removeChannel(this.channel);
           reject(new Error("Room not found or host inactive"));
         }
-      }, 5000);
+      }, 10000);
 
-      this.channel = supabase.channel(`lockdown:${roomId}`);
+      const sendJoin = async () => {
+        if (connected) return;
+        try {
+          await this.sendAction(roomId, {
+            type: "JOIN",
+            playerId,
+            name: playerName,
+            clanId: options?.clanId,
+            clanName: options?.clanName,
+            clanAvatarUrl: options?.clanAvatarUrl,
+          } as any);
+        } catch (error) {
+          // Realtime can briefly reconnect; the retry loop will send again.
+          console.warn("Failed to send Lockdown JOIN; retrying", error);
+        }
+      };
+
+      this.channel = supabase.channel(`lockdown:${roomId}`, {
+        config: {
+          broadcast: { ack: true },
+        },
+      });
 
       this.channel
         .on("broadcast", { event: "state" }, ({ payload }) => {
           if (!connected) {
             connected = true;
             clearTimeout(timeout);
+            clearJoinRetry();
             resolve(playerId);
           }
           this.state = payload as GameState;
           this.notifySubscribers();
         })
         .subscribe(async (status) => {
-          if (status === "SUBSCRIBED") {
-            // Send JOIN action repeatedly until we get state, or timeout
-            // But for now, just send once. The host should respond with state if they are there.
-            // Actually, we need to trigger the host to send state.
-            // The host sends state on any action.
-            await this.sendAction(roomId, {
-              type: "JOIN",
-              playerId,
-              name: playerName,
-              clanId: options?.clanId,
-              clanName: options?.clanName,
-              clanAvatarUrl: options?.clanAvatarUrl,
-            } as any);
+          if (status === "SUBSCRIBED" && !connected) {
+            // JOIN is idempotent in the engine. Retrying closes the race where a
+            // student's first JOIN arrives while the teacher channel is reconnecting.
+            await sendJoin();
+            if (!joinRetryInterval) {
+              joinRetryInterval = setInterval(() => {
+                void sendJoin();
+              }, 750);
+            }
           }
         });
     });
