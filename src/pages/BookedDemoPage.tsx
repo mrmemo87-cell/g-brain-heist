@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  DEMO_BOOKING_DAYS,
   DEMO_BOOKING_TIMES,
   checkDemoBookingAvailability,
   detectDemoBookingTimeZone,
@@ -8,6 +7,7 @@ import {
   formatDemoBookingLocalDateTime,
   formatDemoBookingLocalTime,
   getDemoBookingLocalDate,
+  getDemoBookingDays,
   getDemoBookingSlotInstant,
   isDemoBookingSlotPast,
   listDemoBookingSlots,
@@ -15,6 +15,7 @@ import {
   submitDemoBooking,
   validateDemoBooking,
   type DemoBookingInput,
+  type DemoBookingDay,
   type DemoBookingSlot,
 } from '../../services/demoBookingService';
 import { DEMO_CITY_SUGGESTIONS, getDemoCountryOptions } from '../data/demoBookingLocations';
@@ -55,9 +56,9 @@ const focusSelectorForBookingError = (message: string): string | undefined => {
   return undefined;
 };
 
-const buildLocalBookingDays = (timeZone: string): LocalBookingDay[] => {
+const buildLocalBookingDays = (bookingDays: DemoBookingDay[], timeZone: string): LocalBookingDay[] => {
   const grouped = new Map<string, LocalBookingDay>();
-  for (const day of DEMO_BOOKING_DAYS) {
+  for (const day of bookingDays) {
     for (const time of DEMO_BOOKING_TIMES) {
       const instant = getDemoBookingSlotInstant(day.date, time);
       const localDate = getDemoBookingLocalDate(day.date, time, timeZone);
@@ -89,14 +90,14 @@ const buildLocalBookingDays = (timeZone: string): LocalBookingDay[] => {
   return [...grouped.values()].sort((left, right) => left.date.localeCompare(right.date));
 };
 
-const initialBooking = (timeZone: string): DemoBookingInput => ({
+const initialBooking = (timeZone: string, bookingDays: DemoBookingDay[]): DemoBookingInput => ({
   school_name: '',
   contact_name: '',
   phone: '',
   country: '',
   city: '',
   street_address: '',
-  preferred_date: DEMO_BOOKING_DAYS[0].date,
+  preferred_date: bookingDays[0].date,
   preferred_time: '',
   timezone: timeZone,
   website: '',
@@ -105,8 +106,11 @@ const initialBooking = (timeZone: string): DemoBookingInput => ({
 const BookedDemoPage: React.FC = () => {
   const viewerTimeZone = useMemo(detectDemoBookingTimeZone, []);
   const countryOptions = useMemo(() => getDemoCountryOptions(), []);
-  const localDays = useMemo(() => buildLocalBookingDays(viewerTimeZone), [viewerTimeZone]);
-  const [booking, setBooking] = useState<DemoBookingInput>(() => initialBooking(viewerTimeZone));
+  const [clockNow, setClockNow] = useState(() => Date.now());
+  const bookingDays = useMemo(() => getDemoBookingDays(clockNow), [clockNow]);
+  const bookingWeekStart = bookingDays[0].date;
+  const localDays = useMemo(() => buildLocalBookingDays(bookingDays, viewerTimeZone), [bookingDays, viewerTimeZone]);
+  const [booking, setBooking] = useState<DemoBookingInput>(() => initialBooking(viewerTimeZone, getDemoBookingDays()));
   const [bookingDialog, setBookingDialog] = useState<BookingDialogState>({ status: 'closed' });
   const [bookingId, setBookingId] = useState('');
   const [slots, setSlots] = useState<DemoBookingSlot[]>([]);
@@ -115,10 +119,10 @@ const BookedDemoPage: React.FC = () => {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [flipSequence, setFlipSequence] = useState(0);
   const [flipDirection, setFlipDirection] = useState<'next' | 'previous'>('next');
-  const [clockNow, setClockNow] = useState(() => Date.now());
   const [autoSelectedDay, setAutoSelectedDay] = useState(false);
   const bookingSectionRef = useRef<HTMLElement>(null);
   const availabilityRequestedRef = useRef(false);
+  const previousBookingWeekStartRef = useRef(bookingWeekStart);
   const dialogCardRef = useRef<HTMLDivElement>(null);
   const dialogOkRef = useRef<HTMLButtonElement>(null);
 
@@ -181,6 +185,19 @@ const BookedDemoPage: React.FC = () => {
     const timer = window.setInterval(() => setClockNow(Date.now()), 30_000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (previousBookingWeekStartRef.current === bookingWeekStart) return;
+    previousBookingWeekStartRef.current = bookingWeekStart;
+    setSelectedDayIndex(0);
+    setAutoSelectedDay(false);
+    setBooking((current) => ({
+      ...current,
+      preferred_date: bookingWeekStart,
+      preferred_time: '',
+    }));
+    if (availabilityRequestedRef.current) void loadAvailability();
+  }, [bookingWeekStart, loadAvailability]);
 
   useEffect(() => {
     if (!dialogOpen) return undefined;
@@ -265,7 +282,7 @@ const BookedDemoPage: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const normalizedBooking = normalizeDemoBooking(booking);
-    const validationError = validateDemoBooking(normalizedBooking);
+    const validationError = validateDemoBooking(normalizedBooking, clockNow);
     if (validationError) {
       showBookingError(validationError);
       return;
