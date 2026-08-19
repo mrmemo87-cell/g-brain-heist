@@ -1,0 +1,56 @@
+name: Hotfix Academic Profile Writing focus
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/hotfix-academic-profile-writing-focus.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Expose provisional support signals in Academic Profile
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          service = Path('services/studentAcademicProfileService.ts')
+          s = service.read_text()
+          s = s.replace("export type LearningStatus =\n  | 'new_focus'", "export type LearningStatus =\n  | 'insufficient_evidence'\n  | 'new_focus'", 1)
+          old = "  if (!data || typeof data !== 'object') return emptyProfile();\n  return data as StudentAcademicProfile;"
+          new = "  if (!data || typeof data !== 'object') return emptyProfile();\n  const profile = data as StudentAcademicProfile;\n  const provisionalFocusCount = profile.focus_areas.filter((item) => item.status === 'insufficient_evidence' && item.focus_occurrences > 0).length;\n  return {\n    ...profile,\n    summary: {\n      ...profile.summary,\n      recurring_focus_count: Number(profile.summary.recurring_focus_count || 0) + provisionalFocusCount,\n    },\n  };"
+          if old not in s:
+              raise SystemExit('profile return block not found')
+          s = s.replace(old, new, 1)
+          s = s.replace("  switch (status) {\n    case 'new_focus':", "  switch (status) {\n    case 'insufficient_evidence': return 'Current support signal';\n    case 'new_focus':", 1)
+          service.write_text(s)
+
+          component = Path('components/student-progress/StudentAcademicProfile.tsx')
+          c = component.read_text()
+          c = c.replace("const statusBand = (status: string) => status === 'persistent' ? 'critical' : status === 'recurring' || status === 'new_focus' ? 'focus'", "const statusBand = (status: string) => status === 'persistent' ? 'critical' : status === 'insufficient_evidence' || status === 'recurring' || status === 'new_focus' ? 'focus'", 1)
+          old_focus = "const currentFocus = useMemo(() => profile?.focus_areas.filter((item) => ['new_focus', 'recurring', 'persistent'].includes(item.status)) ?? [], [profile]);"
+          new_focus = "const currentFocus = useMemo(() => profile?.focus_areas.filter((item) => ['new_focus', 'recurring', 'persistent'].includes(item.status) || (item.status === 'insufficient_evidence' && item.focus_occurrences > 0)) ?? [], [profile]);"
+          if old_focus not in c:
+              raise SystemExit('currentFocus filter not found')
+          c = c.replace(old_focus, new_focus, 1)
+          c = c.replace('<span>Persistent and recurring focus</span>', '<span>Current and recurring focus</span>', 1)
+          component.write_text(c)
+          PY
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Commit validated profile fix
+        run: |
+          rm -f .github/workflows/hotfix-academic-profile-writing-focus.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Show verified Writing focus in Academic Profile"
+          git push
