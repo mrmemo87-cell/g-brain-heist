@@ -12,7 +12,7 @@ test('Cambridge reports resolve the current roster class without rewriting the a
     assert.doesNotMatch(migration, /update public\.quiz_scores/);
 });
 test('Cambridge class picker includes every distinct currently assigned class', () => {
-    assert.match(teacherPortal, /const assignedCambridgeClassCodes = useMemo/);
-    assert.match(teacherPortal, /\.\.\.assignedCambridgeClassCodes/);
-    assert.match(teacherPortal, /your \{assignedCambridgeClassCodes\.length\} assigned class/);
+    assert.match(teacherPortal, /const allocatedCambridgeClassCodes = useMemo/);
+    assert.match(teacherPortal, /\.\.\.allocatedCambridgeClassCodes/);
+    assert.match(teacherPortal, /your \{allocatedCambridgeClassCodes\.length\} allocated class/);
 });

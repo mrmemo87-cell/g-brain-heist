@@ -16,6 +16,8 @@ test('student selection seeds incomplete learner onboarding', () => {
         path: 'school',
         schoolId: 'school-1',
         schoolName: 'Cipher School',
+        schoolGrade: '4',
+        schoolClassCode: 'G4-B',
     });
     assert.deepEqual(seed, {
         segment: 'school_student',
@@ -28,6 +30,8 @@ test('student selection seeds incomplete learner onboarding', () => {
             setup_path: 'school',
             selected_role: 'student',
             school_name: 'Cipher School',
+            grade_label: '4',
+            class_code: 'G4-B',
         },
     });
     assert.equal(seed?.completed_steps?.includes('complete'), false);

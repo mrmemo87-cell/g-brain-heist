@@ -3,7 +3,7 @@
  * SetupWizard completes. Non-learner roles intentionally return null so teacher
  * and admin routes cannot be accidentally forced into the learner FTUE.
  */
-export const buildSetupCompletionOnboardingSeed = ({ role, path, schoolId = null, schoolName = null, }) => {
+export const buildSetupCompletionOnboardingSeed = ({ role, path, schoolId = null, schoolName = null, schoolGrade = null, schoolClassCode = null, }) => {
     if (role !== 'student')
         return null;
     const isSchoolPath = path === 'school';
@@ -18,6 +18,8 @@ export const buildSetupCompletionOnboardingSeed = ({ role, path, schoolId = null
             setup_path: path,
             selected_role: role,
             school_name: isSchoolPath ? schoolName ?? undefined : undefined,
+            ...(isSchoolPath && schoolGrade ? { grade_label: schoolGrade } : {}),
+            ...(isSchoolPath && schoolClassCode ? { class_code: schoolClassCode } : {}),
         },
     };
 };

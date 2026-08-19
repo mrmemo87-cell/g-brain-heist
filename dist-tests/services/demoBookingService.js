@@ -7,13 +7,6 @@ export const DEMO_INTEREST_OPTIONS = [
     { value: 'ielts', label: 'IELTS preparation & exam readiness' },
     { value: 'class_activities', label: 'Engaging in-class group activities' },
 ];
-export const DEMO_BOOKING_DAYS = [
-    { date: '2026-08-09', weekday: 'Sunday', shortDay: 'SUN', dayNumber: '09' },
-    { date: '2026-08-10', weekday: 'Monday', shortDay: 'MON', dayNumber: '10' },
-    { date: '2026-08-11', weekday: 'Tuesday', shortDay: 'TUE', dayNumber: '11' },
-    { date: '2026-08-12', weekday: 'Wednesday', shortDay: 'WED', dayNumber: '12' },
-    { date: '2026-08-13', weekday: 'Thursday', shortDay: 'THU', dayNumber: '13' },
-];
 export const DEMO_BOOKING_TIMES = [
     '10:00', '10:30', '11:00', '11:30',
     '12:00', '12:30', '13:00', '13:30',
@@ -22,6 +15,15 @@ export const DEMO_BOOKING_TIMES = [
 ];
 export const DEMO_BOOKING_TIME_ZONE = 'Asia/Bishkek';
 const DEMO_BOOKING_UTC_OFFSET_HOURS = 6;
+const DEMO_BOOKING_FIRST_SUNDAY_UTC = Date.UTC(2026, 7, 16);
+const DEMO_BOOKING_DAY_MS = 24 * 60 * 60 * 1000;
+const DEMO_BOOKING_WEEKDAYS = [
+    { weekday: 'Sunday', shortDay: 'SUN' },
+    { weekday: 'Monday', shortDay: 'MON' },
+    { weekday: 'Tuesday', shortDay: 'TUE' },
+    { weekday: 'Wednesday', shortDay: 'WED' },
+    { weekday: 'Thursday', shortDay: 'THU' },
+];
 const resolveDemoBookingClient = async (client) => {
     if (client)
         return client;
@@ -35,6 +37,36 @@ export const formatDemoBookingTime = (time) => {
     const suffix = hours >= 12 ? 'PM' : 'AM';
     const displayHour = hours % 12 || 12;
     return `${displayHour}:${String(minutes).padStart(2, '0')} ${suffix}`;
+};
+const bookingDateFromUtc = (instant) => {
+    const date = new Date(instant);
+    return [
+        date.getUTCFullYear(),
+        String(date.getUTCMonth() + 1).padStart(2, '0'),
+        String(date.getUTCDate()).padStart(2, '0'),
+    ].join('-');
+};
+export const getDemoBookingDays = (now = Date.now()) => {
+    const nowMs = now instanceof Date ? now.getTime() : now;
+    const bishkekNow = new Date(nowMs + (DEMO_BOOKING_UTC_OFFSET_HOURS * 60 * 60 * 1000));
+    const localDateUtc = Date.UTC(bishkekNow.getUTCFullYear(), bishkekNow.getUTCMonth(), bishkekNow.getUTCDate());
+    let sundayUtc = localDateUtc - (bishkekNow.getUTCDay() * DEMO_BOOKING_DAY_MS);
+    const thursdayLastSlotUtc = sundayUtc
+        + (4 * DEMO_BOOKING_DAY_MS)
+        + ((17 * 60 + 30) * 60 * 1000);
+    const bishkekClockUtc = nowMs + (DEMO_BOOKING_UTC_OFFSET_HOURS * 60 * 60 * 1000);
+    if (bishkekClockUtc >= thursdayLastSlotUtc)
+        sundayUtc += 7 * DEMO_BOOKING_DAY_MS;
+    sundayUtc = Math.max(sundayUtc, DEMO_BOOKING_FIRST_SUNDAY_UTC);
+    return DEMO_BOOKING_WEEKDAYS.map((day, index) => {
+        const date = bookingDateFromUtc(sundayUtc + (index * DEMO_BOOKING_DAY_MS));
+        return {
+            date,
+            weekday: day.weekday,
+            shortDay: day.shortDay,
+            dayNumber: date.slice(-2),
+        };
+    });
 };
 export const getDemoBookingSlotInstant = (bookingDate, bookingTime) => {
     const [year, month, day] = bookingDate.split('-').map(Number);
@@ -105,7 +137,7 @@ export const normalizeDemoBooking = (input) => ({
     timezone: supportedTimeZone(input.timezone.trim() || 'UTC'),
     website: input.website.trim(),
 });
-export const validateDemoBooking = (input) => {
+export const validateDemoBooking = (input, now = Date.now()) => {
     if (input.school_name.trim().length < 2)
         return 'Please enter the school name.';
     if (input.contact_name.trim().length < 2)
@@ -118,7 +150,7 @@ export const validateDemoBooking = (input) => {
         return 'Please enter the school city.';
     if (input.street_address.trim().length < 2)
         return 'Please enter the school street or address.';
-    if (!DEMO_BOOKING_DAYS.some((day) => day.date === input.preferred_date))
+    if (!getDemoBookingDays(now).some((day) => day.date === input.preferred_date))
         return 'Please choose a booking day.';
     if (!DEMO_BOOKING_TIMES.some((time) => time === input.preferred_time))
         return 'Please choose an available time slot.';
@@ -153,18 +185,10 @@ export const friendlyDemoBookingError = (error, fallback = 'We could not complet
 };
 export const listDemoBookingSlots = async (client) => {
     const bookingClient = await resolveDemoBookingClient(client);
-    const { data, error } = await bookingClient
-        .from('demo_booking_slots')
-        .select('booking_date, booking_time, is_blocked, booking_id')
-        .order('booking_date', { ascending: true })
-        .order('booking_time', { ascending: true });
+    const { data, error } = await bookingClient.rpc('rpc_list_demo_booking_slots');
     if (error)
         throw new Error(friendlyDemoBookingError(error, 'The calendar is temporarily unavailable. Please try again.'));
-    return (data ?? []).map((slot) => ({
-        booking_date: slot.booking_date,
-        booking_time: slot.booking_time,
-        is_taken: Boolean(slot.is_blocked || slot.booking_id),
-    }));
+    return (data ?? []);
 };
 export const submitDemoBooking = async (input, client) => {
     const normalized = normalizeDemoBooking(input);

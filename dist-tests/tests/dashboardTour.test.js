@@ -65,7 +65,14 @@ test('dashboard tour metadata resumes the saved step and records mission complet
         },
     }));
     assert.equal(metadata.status, 'active');
-    assert.equal(getInitialDashboardTourStep(metadata), 'first_mission');
+    assert.equal(getInitialDashboardTourStep(metadata), 'navigation');
     assert.equal(metadata.first_mission_cta_clicked, true);
     assert.deepEqual(appendDashboardTourCompletedStep(metadata.completed_steps, 'first_mission'), ['base_unlocked', 'profile_progress', 'xp_rewards', 'first_mission']);
+});
+test('dashboard tour includes responsive navigation before the first mission', () => {
+    assert.equal(getInitialDashboardTourStep({
+        status: 'active',
+        current_step: 'first_mission',
+        completed_steps: ['base_unlocked', 'profile_progress', 'xp_rewards', 'navigation'],
+    }), 'first_mission');
 });

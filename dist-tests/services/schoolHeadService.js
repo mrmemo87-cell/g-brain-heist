@@ -31,6 +31,14 @@ export function normalizeSchoolHeadSnapshot(value) {
                 return [];
             if (!['overview', 'decisions', 'academic', 'people', 'programs', 'subscription', 'governance'].includes(String(destination)))
                 return [];
+            const affected = Array.isArray(decision['affected'])
+                ? decision['affected'].flatMap((value) => {
+                    const affectedItem = record(value);
+                    if (!stringValue(affectedItem['label']))
+                        return [];
+                    return [{ ...affectedItem, label: stringValue(affectedItem['label']), detail: stringValue(affectedItem['detail']) }];
+                })
+                : [];
             return [{
                     id: stringValue(decision['id']),
                     severity: severity,
@@ -39,6 +47,15 @@ export function normalizeSchoolHeadSnapshot(value) {
                     description: stringValue(decision['description']),
                     action: stringValue(decision['action']),
                     destination: destination,
+                    category: stringValue(decision['category'], 'Executive attention'),
+                    owner: stringValue(decision['owner'], 'School leadership'),
+                    why: stringValue(decision['why']),
+                    oldest_at: stringValue(decision['oldest_at']) || null,
+                    first_seen_at: stringValue(decision['first_seen_at']) || null,
+                    last_seen_at: stringValue(decision['last_seen_at']) || null,
+                    age_days: numberValue(decision['age_days']),
+                    affected,
+                    notification_level: stringValue(decision['notification_level'], 'Decision Center only'),
                 }];
         })
         : [];
@@ -84,7 +101,7 @@ export function normalizeSchoolHeadSnapshot(value) {
         structure: {
             placed_students: numberValue(structure['placed_students']),
             covered_classes: numberValue(structure['covered_classes']),
-            assigned_teachers: numberValue(structure['assigned_teachers']),
+            allocated_teachers: numberValue(structure['allocated_teachers'] ?? structure['assigned_teachers']),
         },
         academics: {
             average: nullableNumber(academics['average']),
@@ -122,6 +139,12 @@ export function normalizeSchoolHeadSnapshot(value) {
     };
 }
 export async function getSchoolHeadSnapshot(schoolId, days = 30) {
+    const { error: refreshError } = await supabase.rpc('rpc_school_head_refresh_decision_alerts', {
+        p_school_id: schoolId,
+        p_days: days,
+    });
+    if (refreshError)
+        console.warn('Decision alerts could not be refreshed before loading the snapshot:', refreshError.message);
     const { data, error } = await supabase.rpc('school_head_get_executive_snapshot', {
         p_school_id: schoolId,
         p_days: days,

@@ -18,9 +18,9 @@ const calculateChangedWordPercent = (original, revised) => {
     const denominator = Math.max(before.length, after.length);
     return Math.round((1 - shared / denominator) * 100);
 };
-export const createWritingCompositionTelemetry = (mode, revisionOriginAttemptId = null) => ({
+export const createWritingCompositionTelemetry = (mode, revisionOriginAttemptId = null, timeLimitSeconds = null) => ({
     mode,
-    started_at: null,
+    started_at: mode === 'formal' ? new Date().toISOString() : null,
     submitted_at: null,
     elapsed_seconds: 0,
     typed_characters: 0,
@@ -31,6 +31,10 @@ export const createWritingCompositionTelemetry = (mode, revisionOriginAttemptId 
     deleted_characters: 0,
     focus_loss_count: 0,
     visibility_hidden_count: 0,
+    tab_change_count: 0,
+    tab_change_warning_count: 0,
+    prompt_restart_count: 0,
+    time_limit_seconds: timeLimitSeconds,
     full_replacement_count: 0,
     revision_origin_attempt_id: revisionOriginAttemptId,
     revision_changed_word_percent: null,
@@ -73,6 +77,8 @@ export const recordWritingFocusLoss = (telemetry) => ({
 export const recordWritingVisibilityHidden = (telemetry) => ({
     ...telemetry,
     visibility_hidden_count: telemetry.visibility_hidden_count + 1,
+    tab_change_count: telemetry.tab_change_count + 1,
+    tab_change_warning_count: telemetry.tab_change_warning_count + (telemetry.tab_change_count === 0 ? 1 : 0),
 });
 export const finalizeWritingCompositionTelemetry = (telemetry, submission, revisionOriginText = '', submittedAt = new Date()) => {
     const startedAt = telemetry.started_at ? new Date(telemetry.started_at).getTime() : submittedAt.getTime();
@@ -88,6 +94,8 @@ export const finalizeWritingCompositionTelemetry = (telemetry, submission, revis
         reasons.push('very_fast_completion');
     if (telemetry.full_replacement_count > 0)
         reasons.push('large_text_replacement');
+    if (telemetry.tab_change_count > 0)
+        reasons.push('left_writing_page');
     if (telemetry.mode === 'supervised' && telemetry.visibility_hidden_count > 0)
         reasons.push('left_supervised_page');
     const reviewStatus = reasons.length > 0
@@ -108,6 +116,8 @@ export const finalizeWritingCompositionTelemetry = (telemetry, submission, revis
     };
 };
 export const toWritingIntegrityModeLabel = (mode) => {
+    if (mode === 'formal')
+        return 'Formal Cambridge-aligned assessment';
     if (mode === 'supervised')
         return 'Supervised assessment';
     if (mode === 'independent')

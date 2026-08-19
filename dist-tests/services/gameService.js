@@ -104,12 +104,16 @@ const nowIso = () => new Date().toISOString();
 const SUBJECT_ID_LOOKUP = {
     Maths: 'maths',
     Science: 'science',
+    Biology: 'biology',
+    Chemistry: 'chemistry',
+    Physics: 'physics',
     English: 'english',
     'Russian Language': 'russian_language',
     'Kyrgyz Language': 'kyrgyz_language',
     'German Language': 'german_language',
     Geography: 'geography',
     'Global Perspective': 'global_perspective',
+    'Travel & Tourism': 'travel_tourism',
     ICT: 'ict',
 };
 const resolveSubjectIdentifier = (subject, provided) => {
@@ -1254,14 +1258,12 @@ export const whoami = async () => {
             profile.gemstones = 0;
         }
         if (profile.grade !== null) {
-            const parsedGrade = typeof profile.grade === 'string'
-                ? parseInt(profile.grade, 10)
-                : profile.grade;
-            // Accept all valid grade levels (6-12). Older logic incorrectly nulled anything
-            // outside grades 8-9, which hid valid grades after OAuth signups.
-            profile.grade = (parsedGrade >= 6 && parsedGrade <= 12)
-                ? parsedGrade
-                : null;
+            const gradeLabel = String(profile.grade).trim();
+            const parsedGrade = Number(gradeLabel);
+            // Preserve every school-configured numeric grade. Curriculum-specific
+            // features may still gate their own supported bands, but the core profile
+            // must not erase a valid school placement such as Grade 4 or Year 13.
+            profile.grade = Number.isInteger(parsedGrade) ? parsedGrade : (gradeLabel || null);
         }
         profile.is_admin = typeof profile.is_admin === 'boolean'
             ? profile.is_admin
@@ -1547,7 +1549,7 @@ export const kickOffNonCriticalBootLoads = ({ signal, targets, timeoutsMs, onTas
         promises.push(runNonCritical('news', () => news_feed(), timeouts.news, signal, onNews, onError));
     }
     if (shouldRun('assignment')) {
-        promises.push(runNonCritical('assignment', () => get_student_active_assignment(), timeouts.assignment, signal, onAssignment, onError));
+        promises.push(runNonCritical('assignment', () => get_student_pending_assignments(), timeouts.assignment, signal, onAssignment, onError));
     }
     if (shouldRun('sessionStatus')) {
         promises.push(runNonCritical('sessionStatus', () => session_status(), timeouts.sessionStatus, signal, onSessionStatus, onError));
@@ -2197,6 +2199,7 @@ export const mcq_questions_get = async (subject_id, limit = 5) => {
         reward_coins: Math.floor((q.points || 20) * 1.5),
         explanation: q.explanation,
         image_url: q.image_url || null, // Include question image
+        image_alt_text: q.image_alt_text || null,
         points: q.points,
         times_answered: q.times_answered,
         times_correct: q.times_correct,
@@ -4590,7 +4593,7 @@ export const create_assignment = async (payload) => {
     // Validate mode-specific requirements
     const mode = payload.assignment_mode || 'batch';
     if (mode === 'batch' && !payload.batch) {
-        throw new Error('Batch is required for batch mode assignments');
+        throw new Error('A class is required for class-based assignments');
     }
     if (mode === 'custom' && (!payload.student_ids || payload.student_ids.length === 0)) {
         throw new Error('At least one student is required for custom assignments');
@@ -4653,7 +4656,7 @@ export const update_teacher_assignment = async (assignmentId, payload) => {
         throw new Error('Assignment title is required');
     const mode = payload.assignment_mode || 'batch';
     if (mode === 'batch' && !payload.batch)
-        throw new Error('Batch is required for batch mode assignments');
+        throw new Error('A class is required for class-based assignments');
     if (mode === 'custom' && (!payload.student_ids || payload.student_ids.length === 0))
         throw new Error('At least one student is required for custom assignments');
     const { data, error } = await rpcUpdateTeacherAssignment(assignmentId, {

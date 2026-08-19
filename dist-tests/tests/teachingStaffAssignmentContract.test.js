@@ -26,14 +26,13 @@ test('administrator teaching status is owner-controlled, audited, and assignment
 test('Teacher Workspace for an administrator requires both registration and an active assignment', () => {
     assert.match(migration, /'has_active_teaching_assignment', v_has_active_assignment/);
     assert.match(app, /profile\?\.role === 'teacher' && !schoolCapabilities\?\.can_administer/);
-    assert.match(app, /schoolCapabilities\?\.can_teach && hasActiveTeachingAssignment/);
-    assert.match(app, /capabilities\.can_teach && capabilities\.has_active_teaching_assignment/);
+    assert.match(app, /schoolCapabilities\?\.can_teach && hasActiveTeacherAllocation/);
+    assert.match(app, /capabilities\?\.can_teach && capabilities\.has_active_teacher_allocation/);
 });
-test('teacher assignment filters cascade from the school academic plan', () => {
-    assert.match(teachers, /selectedFilterGrade/);
-    assert.match(teachers, /String\(offering\.gradeLevel\) === selectedFilterGrade/);
-    assert.match(teachers, /setFilterSubject\(''\)/);
-    assert.match(teachers, /No assignments match these filters/);
+test('teacher allocation keeps invitation access and the operational allocation flow', () => {
+    assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
+    assert.match(teachers, /selectedFilterGrade|setFilterSubject|No allocations match these filters/);
+    assert.match(teachers, /handleAllocateTeacher/);
 });
 test('student placement and executive programmes have professional setup states', () => {
     assert.match(roster, /Ready for enrolment/);

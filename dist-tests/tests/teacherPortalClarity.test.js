@@ -7,8 +7,10 @@ const settingsModal = fs.readFileSync(path.resolve(process.cwd(), 'components/Se
 const collectiveReport = fs.readFileSync(path.resolve(process.cwd(), 'components/CollectiveAssignmentReport.tsx'), 'utf8');
 test('teacher account settings hide student-only progression fields', () => {
     assert.match(settingsModal, /profile\.role !== 'teacher'/);
-    assert.match(settingsModal, /role="switch"/);
-    assert.match(settingsModal, /Ultra Performance/);
+    assert.match(settingsModal, /Interface style/);
+    assert.match(settingsModal, /role="radio"/);
+    assert.match(settingsModal, />Glassy</);
+    assert.match(settingsModal, />Basic</);
 });
 test('teacher dashboard shortcuts navigate to their destinations', () => {
     assert.match(teacherPortal, /onClick=\{\(\) => setView\('students'\)\}/);

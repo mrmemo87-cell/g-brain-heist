@@ -115,7 +115,7 @@ test('teacher scope uses canonical subject aliases and active assignments', () =
 test('pilot read contract removes cross-subject intervention widening', () => {
     assert.match(migration, /rpc_teacher_student_intervention_pilot/i);
     assert.match(migration, /student_learning_can_manage_intervention\(i\.student_id, i\.subject\)/i);
-    assert.match(service, /rpc_teacher_student_intervention_pilot/i);
+    assert.match(service, /rpc_teacher_student_intervention_workspace_v2/i);
     assert.match(migration, /automaticPrescriptionEnabled', false/i);
 });
 test('browser RPCs are explicit and privileged tables remain inaccessible', () => {
@@ -132,12 +132,12 @@ test('browser RPCs are explicit and privileged tables remain inaccessible', () =
     assert.doesNotMatch(migration, /auth\.role\(\)/i);
 });
 test('teacher UI captures targets and presents measured follow-up', () => {
-    assert.match(page, /Measurable support goal/i);
-    assert.match(page, /Minimum qualifying follow-ups/i);
-    assert.match(page, /Minimum successful follow-ups/i);
-    assert.match(page, /exact evidence position will be frozen and hashed/i);
+    assert.match(page, /Measurable student goal/i);
+    assert.match(page, /Qualifying follow-ups/i);
+    assert.match(page, /Successful follow-ups/i);
+    assert.match(page, /evidence baseline will be frozen and hashed/i);
     assert.match(page, /Evaluate follow-up & record outcome/i);
-    assert.match(service, /rpc_teacher_create_learning_intervention_v2/i);
+    assert.match(service, /rpc_teacher_create_learning_intervention_v3/i);
     assert.match(service, /rpc_teacher_evaluate_learning_intervention/i);
 });
 test('phase 7 rollout keeps activity separate from academic outcome', () => {

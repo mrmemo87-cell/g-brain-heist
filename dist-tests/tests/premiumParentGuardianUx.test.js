@@ -12,6 +12,13 @@ test('guardian invitation preview is token-scoped and minimises pre-auth data', 
     assert.doesNotMatch(migration, /'invited_email', v_inv\.invited_email/);
     assert.match(migration, /grant execute on function public\.rpc_guardian_invitation_preview\(text\) to anon, authenticated, service_role/);
 });
+test('guardian invitation preview reports only whether the signed-in account matches', () => {
+    const migration = read('supabase/migrations/20260815044500_guardian_invitation_account_match_preview.sql');
+    assert.match(migration, /email_matches_current_account/);
+    assert.match(migration, /v_current_email = v_inv\.invited_email/);
+    assert.match(migration, /case when v_caller is null then null else v_email_matches end/);
+    assert.doesNotMatch(migration, /'invited_email',\s*v_inv\.invited_email/);
+});
 test('parent invitation experience is school and Brains Heist co-branded', () => {
     const parent = read('components/guardian/ParentPortal.tsx');
     const admin = read('components/guardian/GuardianManagementPage.tsx');
@@ -20,9 +27,48 @@ test('parent invitation experience is school and Brains Heist co-branded', () =>
     assert.match(parent, /PRODUCT_NAME/);
     assert.match(parent, /You’ve been invited to follow/);
     assert.match(parent, /Secure parent access/);
-    assert.match(admin, /Send the official parent invitation/);
-    assert.match(admin, /Copy invitation message/);
+    assert.match(admin, /Manual sharing backup/);
+    assert.match(admin, /Copy backup message/);
     assert.match(admin, /school-approved marks/);
+});
+test('parent portal blocks wrong-account claims and offers a safe account switch', () => {
+    const parent = read('components/guardian/ParentPortal.tsx');
+    const service = read('services/guardianService.ts');
+    assert.match(parent, /email_matches_current_account === false/);
+    assert.match(parent, /This invitation belongs to another account/);
+    assert.match(parent, /Switch account/);
+    assert.match(parent, /await parentSignOut\(\)/);
+    assert.match(parent, /Your invitation remains active while you switch accounts/);
+    assert.match(service, /This invitation belongs to a different email account/);
+});
+test('school transactional email header includes both school and Brains Heist logos', () => {
+    const branding = read('supabase/functions/_shared/email.ts');
+    const dispatcher = read('supabase/functions/school_email_dispatcher/index.ts');
+    assert.match(branding, /PRODUCT_LOGO_URL = "https:\/\/www\.brainsheist\.com\/logo\.png"/);
+    assert.match(branding, /alt=\"Brains Heist logo\"/);
+    assert.match(branding, /school\.logo_url/);
+    assert.match(branding, /School communication/);
+    assert.match(branding, />×</);
+    assert.match(branding, /Academic progress platform/);
+    assert.match(dispatcher, /renderBrandedEmail/);
+});
+test('guardian send confirmation uses the standalone guardian modal instead of Tailwind Toast utilities', () => {
+    const admin = read('components/guardian/GuardianManagementPage.tsx');
+    const css = read('components/guardian/GuardianManagementPage.css');
+    assert.match(admin, /guardian-modal-backdrop/);
+    assert.match(admin, /guardian-modal-details/);
+    assert.match(admin, /Send this parent invitation\?/);
+    assert.match(admin, /Parent \/ guardian/);
+    assert.match(admin, /Relationship/);
+    assert.match(admin, /PRODUCT_NAME/);
+    assert.doesNotMatch(admin, /import Toast from/);
+    assert.doesNotMatch(admin, /className="fixed inset-0/);
+    assert.match(css, /\.guardian-modal-backdrop/);
+    assert.match(css, /position:fixed/);
+    assert.match(css, /inset:0/);
+    assert.match(css, /\.guardian-modal-brand img/);
+    assert.match(css, /width:46px!important/);
+    assert.match(css, /height:46px!important/);
 });
 test('new academic and parent surfaces consistently spell Brains Heist', () => {
     const files = [

@@ -3,6 +3,7 @@ export const DASHBOARD_TOUR_STEPS = [
     'base_unlocked',
     'profile_progress',
     'xp_rewards',
+    'navigation',
     'first_mission',
 ];
 export const isDashboardTourStep = (value) => (typeof value === 'string' && DASHBOARD_TOUR_STEPS.includes(value));
@@ -24,9 +25,18 @@ export const getDashboardTourMetadata = (state) => {
     };
 };
 export const getInitialDashboardTourStep = (metadata) => {
-    if (isDashboardTourStep(metadata['current_step']))
-        return metadata['current_step'];
     const completed = new Set(metadata['completed_steps'] ?? []);
+    const currentStep = metadata['current_step'];
+    // Active tours created before the navigation step was introduced should
+    // receive that guidance before their final mission rather than silently
+    // skipping the new dashboard map.
+    if (isDashboardTourStep(currentStep)) {
+        const navigationIndex = DASHBOARD_TOUR_STEPS.indexOf('navigation');
+        if (!completed.has('navigation') && DASHBOARD_TOUR_STEPS.indexOf(currentStep) > navigationIndex) {
+            return 'navigation';
+        }
+        return currentStep;
+    }
     return DASHBOARD_TOUR_STEPS.find((step) => !completed.has(step)) ?? 'first_mission';
 };
 export const getNextDashboardTourStep = (step) => {

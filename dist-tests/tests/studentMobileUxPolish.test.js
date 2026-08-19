@@ -56,7 +56,8 @@ test('student learning tools share one visible primary action system', () => {
     assert.match(app, /student-learning-card/g);
     assert.match(app, /student-primary-button/g);
     assert.match(styles, /\.student-primary-button[^}]*background:\s*linear-gradient/s);
-    assert.match(styles, /\.student-primary-button[^}]*color:\s*#020617 !important/s);
+    assert.match(styles, /\.student-primary-button[^}]*color:\s*var\(--student-on-accent\) !important/s);
+    assert.equal((styles.match(/--student-on-accent:/g) || []).length, 7);
 });
 test('secondary dashboard information is compact and understandable', () => {
     assert.match(capTracker, /<details className="student-cap-card">/);

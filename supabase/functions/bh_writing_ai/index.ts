@@ -432,7 +432,7 @@ const WRITING_PRIMARY_REASONING_EFFORT = ["none", "low", "medium"].includes(conf
   ? configuredPrimaryReasoningEffort
   : "low";
 const CRITERION_KEYS = ["content", "communicative_achievement", "organisation", "language"] as const;
-const SINGLE_AUTHORITY_PIPELINE = false;
+const SINGLE_AUTHORITY_PIPELINE = isGpt5Family(WRITING_ASSESSMENT_MODEL);
 
 const evidenceSchema = {
   type: "array",

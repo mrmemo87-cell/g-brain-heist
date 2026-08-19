@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { DEMO_BOOKING_DAYS, DEMO_BOOKING_TIMES, checkDemoBookingAvailability, friendlyDemoBookingError, formatDemoBookingTime, formatDemoBookingLocalTime, getDemoBookingLocalDate, isDemoBookingSlotPast, normalizeDemoBooking, validateDemoBooking, } from '../services/demoBookingService.js';
+import { DEMO_BOOKING_TIMES, checkDemoBookingAvailability, friendlyDemoBookingError, formatDemoBookingTime, formatDemoBookingLocalTime, getDemoBookingDays, getDemoBookingLocalDate, isDemoBookingSlotPast, listDemoBookingSlots, normalizeDemoBooking, validateDemoBooking, } from '../services/demoBookingService.js';
 const bookedDemoPage = readFileSync('src/pages/BookedDemoPage.tsx', 'utf8');
 const bookedDemoStyles = readFileSync('src/pages/BookedDemoPage.css', 'utf8');
 const demoBookingServiceSource = readFileSync('services/demoBookingService.ts', 'utf8');
@@ -9,6 +9,7 @@ const bookedEntry = readFileSync('booked.tsx', 'utf8');
 const bookedHtml = readFileSync('booked.html', 'utf8');
 const vercelConfig = JSON.parse(readFileSync('vercel.json', 'utf8'));
 const viteConfig = readFileSync('vite.config.ts', 'utf8');
+const TEST_NOW = Date.parse('2026-08-19T04:00:00Z');
 const validBooking = () => ({
     school_name: 'Northbridge International School',
     contact_name: 'Dr. Maya Chen',
@@ -16,7 +17,7 @@ const validBooking = () => ({
     country: 'United States',
     city: 'New York',
     street_address: '15 Learning Avenue',
-    preferred_date: '2026-08-10',
+    preferred_date: '2026-08-17',
     preferred_time: '10:00',
     timezone: 'America/New_York',
     website: '',
@@ -39,28 +40,32 @@ test('normalizes a demo booking before submission', () => {
     assert.equal(normalized.street_address, '15 Learning Avenue');
 });
 test('requires the school and its location', () => {
-    assert.equal(validateDemoBooking({ ...validBooking(), school_name: '' }), 'Please enter the school name.');
-    assert.equal(validateDemoBooking({ ...validBooking(), country: '' }), 'Please choose the school country.');
-    assert.equal(validateDemoBooking({ ...validBooking(), city: '' }), 'Please enter the school city.');
-    assert.equal(validateDemoBooking({ ...validBooking(), street_address: '' }), 'Please enter the school street or address.');
+    assert.equal(validateDemoBooking({ ...validBooking(), school_name: '' }, TEST_NOW), 'Please enter the school name.');
+    assert.equal(validateDemoBooking({ ...validBooking(), country: '' }, TEST_NOW), 'Please choose the school country.');
+    assert.equal(validateDemoBooking({ ...validBooking(), city: '' }, TEST_NOW), 'Please enter the school city.');
+    assert.equal(validateDemoBooking({ ...validBooking(), street_address: '' }, TEST_NOW), 'Please enter the school street or address.');
 });
 test('requires a valid campaign day', () => {
-    assert.equal(validateDemoBooking({ ...validBooking(), preferred_date: '2026-08-14' }), 'Please choose a booking day.');
+    assert.equal(validateDemoBooking({ ...validBooking(), preferred_date: '2026-08-21' }, TEST_NOW), 'Please choose a booking day.');
 });
 test('requires a phone or WhatsApp number', () => {
-    assert.equal(validateDemoBooking({ ...validBooking(), phone: '123' }), 'Please enter a valid phone or WhatsApp number.');
+    assert.equal(validateDemoBooking({ ...validBooking(), phone: '123' }, TEST_NOW), 'Please enter a valid phone or WhatsApp number.');
 });
-test('offers five campaign days and sixteen half-hour appointments each day', () => {
-    assert.deepEqual(DEMO_BOOKING_DAYS.map((day) => day.date), [
-        '2026-08-09', '2026-08-10', '2026-08-11', '2026-08-12', '2026-08-13',
+test('offers the rolling Sunday-to-Thursday week and sixteen half-hour appointments each day', () => {
+    assert.deepEqual(getDemoBookingDays(TEST_NOW).map((day) => day.date), [
+        '2026-08-16', '2026-08-17', '2026-08-18', '2026-08-19', '2026-08-20',
     ]);
     assert.equal(DEMO_BOOKING_TIMES.length, 16);
     assert.equal(DEMO_BOOKING_TIMES[0], '10:00');
     assert.equal(DEMO_BOOKING_TIMES.at(-1), '17:30');
     assert.equal(formatDemoBookingTime('17:30'), '5:30 PM');
 });
+test('moves to the next Sunday after the final Thursday slot starts', () => {
+    assert.equal(getDemoBookingDays(Date.parse('2026-08-20T11:29:59Z'))[0].date, '2026-08-16');
+    assert.equal(getDemoBookingDays(Date.parse('2026-08-20T11:30:00Z'))[0].date, '2026-08-23');
+});
 test('rejects times outside the fixed half-hour calendar', () => {
-    assert.equal(validateDemoBooking({ ...validBooking(), preferred_time: '18:00' }), 'Please choose an available time slot.');
+    assert.equal(validateDemoBooking({ ...validBooking(), preferred_time: '18:00' }, TEST_NOW), 'Please choose an available time slot.');
 });
 test('converts canonical Bishkek slots into the visitor local timezone', () => {
     assert.equal(getDemoBookingLocalDate('2026-08-10', '10:00', 'Pacific/Honolulu'), '2026-08-09');
@@ -84,6 +89,23 @@ test('checks live database availability before booking', async () => {
             name: 'rpc_check_demo_booking_slot',
             args: { p_booking_date: '2026-08-10', p_booking_time: '10:00' },
         }]);
+});
+test('loads only the server-computed rolling availability window', async () => {
+    const calls = [];
+    const client = {
+        rpc: async (name) => {
+            calls.push(name);
+            return {
+                data: [{ booking_date: '2026-08-16', booking_time: '10:00', is_taken: true }],
+                error: null,
+            };
+        },
+        from: () => { throw new Error('not used'); },
+    };
+    assert.deepEqual(await listDemoBookingSlots(client), [
+        { booking_date: '2026-08-16', booking_time: '10:00', is_taken: true },
+    ]);
+    assert.deepEqual(calls, ['rpc_list_demo_booking_slots']);
 });
 test('replaces technical booking errors with instructions the visitor can act on', () => {
     assert.equal(friendlyDemoBookingError(new Error('typecheck error: invalid input syntax for type date')), 'Some booking details could not be read. Please check the school name, country, city, street address, phone number, and selected time, then try again.');

@@ -9,9 +9,10 @@ const membershipCapabilities = readFileSync('supabase/migrations/20260801173000_
 const privateDocuments = readFileSync('supabase/migrations/20260802133000_private_school_document_center.sql', 'utf8');
 test('dual-role workspace preference is isolated by school and restricted to authorised portals', () => {
     assert.match(app, /localStorage\.setItem\(`school_workspace:\$\{schoolCapabilities\.school_id\}`,[\s\S]*?nextView\)/);
-    assert.match(app, /localStorage\.getItem\(`school_workspace:\$\{capabilities\.school_id\}`\)/);
-    assert.match(app, /capabilities\?\.can_administer && capabilities\.can_teach/);
-    assert.match(app, /requested === 'school_admin' \|\| requested === 'teacher'/);
+    assert.match(app, /localStorage\.getItem\(`school_workspace:\$\{schoolId\}`\)/);
+    assert.match(app, /available\.push\('school_admin'\)/);
+    assert.match(app, /available\.push\('teacher'\)/);
+    assert.match(app, /available\.includes\(requested\)/);
     assert.match(app, /const allowedSchoolAdminViews = \['school_admin', 'cambridge', 'ielts'\]/);
 });
 test('teacher desktop navigation remains persistent, accessible, and user-collapsible', () => {
@@ -27,7 +28,7 @@ test('school administration features stay within one complete portal shell', () 
     const expectedTabs = [
         ['dashboard', 'Overview'],
         ['members', 'Staff & Students'],
-        ['teachers', 'Teacher Assignments'],
+        ['teachers', 'Teacher Allocation'],
         ['classes', 'Classes & Registration'],
         ['subjects', 'Curriculum & Subjects'],
         ['documents', 'Document Center'],

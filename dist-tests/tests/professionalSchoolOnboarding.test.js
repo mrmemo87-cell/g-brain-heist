@@ -25,12 +25,14 @@ test('module entitlements preserve legacy schools but explicitly gate new school
     assert.match(migration, /can_create_ielts_exam[\s\S]*school_has_module_access\(p_school_id,'ielts'\)/);
     assert.match(migration, /can_manage_cambridge_score[\s\S]*school_has_module_access\(s\.school_id,'cambridge'\)/);
 });
-test('Paddle checkout and portal access require active ownership', () => {
+test('legacy school checkout is retired while portal access and Core activation stay protected', () => {
     const paddle = read('supabase/functions/paddle/index.ts');
     assert.match(paddle, /requireSchoolHead/);
     assert.match(paddle, /\.eq\("role_in_school", "school_admin"\)/);
     assert.match(paddle, /\.eq\("is_owner", true\)/);
-    assert.match(paddle, /module_keys: \["core"\]/);
+    assert.match(paddle, /return jsonResponse\(410/);
+    assert.match(paddle, /module_key: "core"/);
+    assert.match(paddle, /school_module_entitlements/);
 });
 test('verified student onboarding selects an approved class and never creates one', () => {
     const approvedRpc = migration.slice(migration.indexOf('create or replace function public.rpc_setup_approved_class_enrollment'), migration.indexOf('create or replace function public.rpc_request_school_class_placement'));
@@ -57,27 +59,21 @@ test('email confirmation has code verification, resend, and a seven-day lifecycl
     assert.match(login, /Confirm and continue/);
     assert.match(login, /Resend confirmation/);
 });
-test('School Head launch checklist and read-only delegated billing are present', () => {
+test('School Head first-login setup is removed while delegated billing stays read-only', () => {
     const head = read('components/SchoolHeadPortal.tsx');
     const billing = read('components/school-admin/BillingTabUI.tsx');
-    assert.match(head, /School launch checklist/);
-    assert.match(head, /Save programme requirements/);
+    assert.doesNotMatch(head, /First login setup|School launch checklist|Save programme requirements/);
     assert.match(billing, /Only the School Head can start trials, purchase plans, or manage payment details/);
     assert.match(billing, /canManageBilling/);
 });
-test('first setup screen presents join, apply, and solo paths in that order', () => {
+test('student setup starts with the activation code and removes duplicate path and role questions', () => {
     const setupWizard = read('components/onboarding/SetupWizard.tsx');
-    const pathSelection = setupWizard.slice(setupWizard.indexOf('const renderPathSelection'), setupWizard.indexOf('const renderInviteCodeStep'));
-    const roleSelection = setupWizard.slice(setupWizard.indexOf('const renderRoleSelection'), setupWizard.indexOf('const renderStudentDetails'));
-    const joinSchoolIndex = pathSelection.indexOf('Join a School');
-    const applyIndex = pathSelection.indexOf('Apply to add your school');
-    const continueSoloIndex = pathSelection.indexOf('Continue Solo');
-    assert.ok(joinSchoolIndex >= 0);
-    assert.ok(applyIndex > joinSchoolIndex);
-    assert.ok(continueSoloIndex > applyIndex);
-    assert.match(pathSelection, /onClick={handleSchoolApplicationOpen}/);
-    assert.match(pathSelection, /Start school application/);
-    assert.doesNotMatch(roleSelection, /Apply to add your school/);
-    assert.match(setupWizard, /setRole\('teacher'\)/);
-    assert.match(setupWizard, /setShowRequestModal\(true\)/);
+    assert.match(setupWizard, /useState<SetupStep>\('invite_code'\)/);
+    assert.match(setupWizard, /Join your school/);
+    assert.match(setupWizard, /Learn independently instead/);
+    assert.match(setupWizard, /School owner or principal\? Apply to add your school/);
+    assert.match(setupWizard, /setStep\('student_details'\)/);
+    assert.doesNotMatch(setupWizard, /How do you want to start your mission\?/);
+    assert.doesNotMatch(setupWizard, /Are you a student or a teacher\?/);
+    assert.doesNotMatch(setupWizard, /renderRoleSelection|renderPathSelection/);
 });

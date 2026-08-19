@@ -58,6 +58,7 @@ class NotificationService {
             student_improvement: 'tada',
             new_submission: 'notification',
             class_milestone: 'tada',
+            school_head_decision: 'notification',
         };
         const sound = soundMap[type];
         if (sound) {
@@ -179,6 +180,7 @@ class NotificationService {
             student_improvement: { emoji: '📈', color: 'text-emerald-400', bgColor: 'bg-emerald-500/20' },
             new_submission: { emoji: '📬', color: 'text-purple-400', bgColor: 'bg-purple-500/20' },
             class_milestone: { emoji: '🎯', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20' },
+            school_head_decision: { emoji: '🏫', color: 'text-cyan-500', bgColor: 'bg-cyan-500/20' },
         };
         return styles[type];
     }

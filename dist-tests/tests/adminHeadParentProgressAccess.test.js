@@ -10,9 +10,10 @@ test('School Admin exposes academic profiles, interventions and parent access in
     assert.match(admin, /label: 'Academic Profiles'/);
     assert.match(admin, /label: 'Interventions'/);
     assert.match(admin, /label: 'Parents & Guardians'/);
-    assert.match(admin, /\/teacher-academic-profiles\.html/);
-    assert.match(admin, /\/teacher-interventions\.html/);
-    assert.match(admin, /\/guardian-management\.html/);
+    assert.match(admin, /<TeacherAcademicProfilesPage/);
+    assert.match(admin, /<TeacherInterventionIntelligencePage/);
+    assert.match(admin, /<GuardianManagementPage/);
+    assert.doesNotMatch(admin, /window\.location\.assign/);
 });
 test('School Head Academic Performance embeds student academic profiles', () => {
     assert.match(head, /TeacherAcademicProfilesPage/);
@@ -21,7 +22,8 @@ test('School Head Academic Performance embeds student academic profiles', () => 
 });
 test('guardian invitation flow remains email-bound and parent-facing', () => {
     assert.match(guardian, /Parent \/ guardian email/);
-    assert.match(guardian, /Create secure invitation/);
+    assert.match(guardian, /Review & send secure invitation/);
+    assert.match(guardian, /Send this parent invitation\?/);
     assert.match(guardian, /parent-portal\.html/);
     assert.match(parent, /Create secure account/);
     assert.match(parent, /My Children/);

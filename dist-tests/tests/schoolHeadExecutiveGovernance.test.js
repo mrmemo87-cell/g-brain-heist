@@ -36,8 +36,8 @@ test('App routes protected owners to the executive portal and keeps gameplay una
     assert.match(app, /schoolCapabilities\?\.is_owner && schoolCapabilities\.account_type === 'school_head'/);
     assert.match(app, /case 'school_head'/);
     assert.match(app, /allowedSchoolAdminViews\.push\('school_head'\)/);
-    assert.match(app, /isSchoolHeadRole \? 'school_head' : 'school_admin'/);
-    assert.match(app, /requested === 'teacher' && capabilities\.can_teach && capabilities\.has_active_teaching_assignment \? 'teacher' : 'school_head'/);
+    assert.match(app, /capabilities\?\.is_owner.*available\.push\('school_head'\)/);
+    assert.match(app, /resolveAccountWorkspace/);
 });
 test('executive portal includes every governance area and protected transfer UI', () => {
     for (const label of [
@@ -64,7 +64,7 @@ test('snapshot normalizer accepts a valid school-scoped executive response', () 
         period: { days: 30, start: '2026-07-09T00:00:00Z', end: '2026-08-08T00:00:00Z' },
         totals: { students: 100, teachers: 10, admins: 2, classes: 5, subjects: 6 },
         engagement: { active_students_7d: 75, active_students_30d: 90, inactive_students_14d: 10, active_teachers_7d: 9 },
-        structure: { placed_students: 98, covered_classes: 5, assigned_teachers: 9 },
+        structure: { placed_students: 98, covered_classes: 5, allocated_teachers: 9 },
         academics: { average: 76.5, previous_average: 73, assignment_total: 120, assignment_completed: 96, completion_rate: 80, grade_performance: [] },
         admissions: { total_candidates: 12, pending_candidates: 3, completed_attempts: 9, average: 74 },
         programs: { cambridge_attempts: 45, writing_students: 60, ielts_students: 8, admission_candidates: 12 },

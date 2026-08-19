@@ -69,20 +69,23 @@ const resolveSegment = (input) => {
     }
     return { segment: 'none', context: 'none', reason: 'unsupported_role' };
 };
-const goalSelected = (input) => Boolean(input.onboardingState?.metadata?.['goal']);
 const deriveNextStep = (input, segment) => {
     const stateStep = input.onboardingState?.current_step;
-    if (stateStep && stateStep !== 'complete')
+    if (stateStep && stateStep !== 'complete') {
+        // Goal/mission/reward prompts belonged to the retired questionnaire-led
+        // FTUE. Resume learners in the short dashboard introduction instead.
+        if (isLearnerSegment(segment) && ['goal', 'mission_brief', 'mission_started', 'reward_reveal'].includes(stateStep)) {
+            return 'dashboard_reveal';
+        }
         return stateStep;
+    }
     switch (segment) {
         case 'school_student':
             if (isMissingSchoolPlacement(input.profile))
                 return 'placement';
             return 'mission_brief';
         case 'solo_learner':
-            if (!goalSelected(input))
-                return 'goal';
-            return 'mission_brief';
+            return 'intent';
         case 'teacher':
             return input.profile?.school_id ? 'starter_mission' : 'teacher_context';
         case 'school_admin':
@@ -95,8 +98,6 @@ const getRequiredData = (step) => {
     switch (step) {
         case 'placement':
             return ['grade', 'batch'];
-        case 'goal':
-            return ['goal'];
         case 'school_confirm':
             return ['school_id'];
         case 'teacher_context':
@@ -129,8 +130,6 @@ const getPrimaryCta = (step) => {
     switch (step) {
         case 'placement':
             return 'Confirm class';
-        case 'goal':
-            return 'Choose goal';
         case 'mission_brief':
             return 'Start mission';
         case 'teacher_context':

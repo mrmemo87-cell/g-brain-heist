@@ -1,4 +1,29 @@
+export const WRITING_RUBRIC_VERSION = 'cambridge-esl-writing-rubric-v1';
+export const WRITING_EVALUATOR_VERSION = 'bh-writing-assessment-v4.0';
+export const WRITING_PREVIOUS_EVALUATOR_VERSION = 'bh-writing-assessment-v3.8';
+export const WRITING_EARLIER_EVALUATOR_VERSION = 'bh-writing-assessment-v3.7';
+export const WRITING_OLDER_EVALUATOR_VERSION = 'bh-writing-assessment-v3.5';
+export const WRITING_ARCHIVED_EVALUATOR_VERSIONS = [
+    'bh-writing-assessment-v3.6',
+    'bh-writing-assessment-v3.4',
+    'bh-writing-assessment-v3.3',
+    'bh-writing-assessment-v3.2',
+];
+export const WRITING_LEGACY_EVALUATOR_VERSION = 'bh-writing-assessment-v2';
+export const TRUSTED_WRITING_EVALUATOR_VERSIONS = [
+    WRITING_EVALUATOR_VERSION,
+    WRITING_PREVIOUS_EVALUATOR_VERSION,
+    WRITING_EARLIER_EVALUATOR_VERSION,
+    WRITING_OLDER_EVALUATOR_VERSION,
+    ...WRITING_ARCHIVED_EVALUATOR_VERSIONS,
+    WRITING_LEGACY_EVALUATOR_VERSION,
+];
 export const GRADE_TO_DIFFICULTY_CONFIG = {
+    1: { expectedCeiling: 'A2', strictness: 0.28, minParagraphs: 1, registerSensitivity: 0.08, developmentWeight: 0.08 },
+    2: { expectedCeiling: 'A2', strictness: 0.34, minParagraphs: 1, registerSensitivity: 0.1, developmentWeight: 0.1 },
+    3: { expectedCeiling: 'A2', strictness: 0.42, minParagraphs: 1, registerSensitivity: 0.14, developmentWeight: 0.14 },
+    4: { expectedCeiling: 'A2', strictness: 0.5, minParagraphs: 1, registerSensitivity: 0.18, developmentWeight: 0.18 },
+    5: { expectedCeiling: 'A2', strictness: 0.58, minParagraphs: 1, registerSensitivity: 0.22, developmentWeight: 0.22 },
     6: { expectedCeiling: 'A2', strictness: 0.65, minParagraphs: 1, registerSensitivity: 0.25, developmentWeight: 0.25 },
     7: { expectedCeiling: 'A2', strictness: 0.72, minParagraphs: 2, registerSensitivity: 0.35, developmentWeight: 0.35 },
     8: { expectedCeiling: 'B1', strictness: 0.8, minParagraphs: 2, registerSensitivity: 0.5, developmentWeight: 0.5 },
@@ -356,7 +381,7 @@ const buildPriorities = (tags) => {
 export const assessWritingExam = (input) => {
     const difficulty = GRADE_TO_DIFFICULTY_CONFIG[input.grade];
     if (!difficulty) {
-        throw new Error(`Unsupported grade: ${input.grade}. Expected 6-12.`);
+        throw new Error(`Unsupported grade: ${input.grade}. Expected 1-12.`);
     }
     const scoreMode = 'B1B2_4_scale';
     const actualWordCount = countWords(input.studentResponse);

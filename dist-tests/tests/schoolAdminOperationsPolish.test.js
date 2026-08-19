@@ -42,26 +42,22 @@ test('bulk actions omit role changes and report already-active unban selections'
     assert.match(portal, /already active and will be skipped/);
     assert.match(portal, /const bannedMembers = selectedMembers\.filter/);
 });
-test('teacher assignments lead with current coverage and use school-created grade offerings', () => {
-    const currentPosition = teachers.indexOf('id="current-assignments-title"');
-    const formPosition = teachers.indexOf('id="assign-teacher-panel"');
-    assert.ok(currentPosition >= 0 && currentPosition < formPosition);
-    assert.match(teachers, /availableTeachers\.length \? 'Assign teacher'/);
-    assert.match(teachers, /Print teacher allocation register/);
-    assert.match(teachers, /Filter assignments by grade level/);
-    assert.match(teachers, /Select grade level first/);
-    assert.match(teachers, /assignableSubjects\.map/);
-    assert.match(teachers, /assignmentClasses\.map/);
-    assert.match(teachers, /selectedFilterGrade/);
-    assert.match(teachers, /No teaching staff registered yet/);
+test('teacher allocation combines school invitations with allocation management', () => {
+    assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
+    assert.match(teachers, /Invite teachers, review current teaching coverage/);
+    assert.match(teachers, /current-allocations-title|allocate-teacher-panel|selectedFilterGrade/);
 });
-test('classes group teaching coverage by grade level and expose no archive action', () => {
+test('classes group teaching coverage by grade level and expose guarded class management', () => {
     assert.match(classes, /Grades, classes and teaching coverage/);
     assert.match(classes, /grades\.map/);
     assert.match(classes, /<select[\s\S]*?Select grade level/);
     assert.match(classes, /handleEditClass\(row\)/);
+    assert.match(classes, /startAddForGrade\(String\(grade\)\)/);
+    assert.match(classes, /requestClassRemoval\(row, rows\.length\)/);
+    assert.match(classes, /Historical reports and school records will remain intact/);
+    assert.match(classes, /SchoolAdminService\.archiveSchoolClass/);
     assert.doesNotMatch(classes, /Filter classes by academic year \(grade\)/);
-    assert.doesNotMatch(classes, /Archive Class|>\s*Archive\s*<\/|archiveSchoolClass/);
+    assert.doesNotMatch(classes, /Archive Class|>\s*Archive\s*</);
     assert.doesNotMatch(classes, />Active<\/label>/);
 });
 test('admission candidates use sortable sticky identity rows and pagination', () => {

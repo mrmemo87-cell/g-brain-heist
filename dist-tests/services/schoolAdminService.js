@@ -31,7 +31,7 @@ export async function isSchoolAdmin() {
 }
 export async function resolveMySchoolCapabilities(schoolId, client = supabase) {
     try {
-        const { data, error } = await client.rpc('school_admin_get_my_capabilities', { p_school_id: schoolId || null });
+        const { data, error } = await client.rpc('school_admin_get_my_allocation_capabilities', { p_school_id: schoolId || null });
         if (error) {
             return { status: 'error', capabilities: null, message: error.message || 'School access could not be verified.' };
         }
@@ -60,7 +60,7 @@ export async function resolveMySchoolCapabilities(schoolId, client = supabase) {
                 is_owner: Boolean(payload['is_owner']),
                 can_administer: Boolean(payload['can_administer']),
                 can_teach: Boolean(payload['can_teach']),
-                has_active_teaching_assignment: Boolean(payload['has_active_teaching_assignment']),
+                has_active_teacher_allocation: Boolean(payload['has_active_teacher_allocation'] ?? payload['has_active_teaching_assignment']),
                 can_manage_billing: Boolean(payload['can_manage_billing'] ?? payload['is_owner']),
                 can_manage_admins: Boolean(payload['can_manage_admins'] ?? payload['is_owner']),
                 can_transfer_ownership: Boolean(payload['can_transfer_ownership'] ?? payload['is_owner']),
@@ -104,8 +104,8 @@ export async function getCurrentSchool() {
                 return null;
             }
             const settings = (schoolRow.settings || {});
-            const allowStudent = getSettingBool(settings, 'allow_student_signup', true);
-            const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', true);
+            const allowStudent = getSettingBool(settings, 'allow_student_signup', false);
+            const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', false);
             return {
                 school: {
                     id: schoolRow.id,
@@ -123,8 +123,8 @@ export async function getCurrentSchool() {
         }
         const school = details.school;
         const settings = (school.settings || {});
-        const allowStudent = getSettingBool(settings, 'allow_student_signup', true);
-        const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', true);
+        const allowStudent = getSettingBool(settings, 'allow_student_signup', false);
+        const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', false);
         const stats = details.stats;
         return {
             school: {
@@ -162,8 +162,8 @@ export async function getSchoolDetails(schoolId) {
         }
         const school = details.school;
         const settings = (school.settings || {});
-        const allowStudent = getSettingBool(settings, 'allow_student_signup', true);
-        const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', true);
+        const allowStudent = getSettingBool(settings, 'allow_student_signup', false);
+        const allowTeacher = getSettingBool(settings, 'allow_teacher_signup', false);
         const stats = details.stats;
         return {
             school: {
@@ -272,7 +272,11 @@ export async function updateMemberRole(schoolId, targetUserId, newRole, options)
             return { success: false, error: error.message };
         }
         if (!data?.success) {
-            return { success: false, error: data?.error || 'Failed to update role', assignmentCount: data?.assignment_count };
+            return {
+                success: false,
+                error: data?.error || 'Failed to update role',
+                allocationCount: Number(data?.allocation_count ?? data?.assignment_count ?? 0),
+            };
         }
         return { success: true };
     }
@@ -426,6 +430,80 @@ export async function getSchoolIdentityStatus(schoolId) {
         confirmedBy: typeof data.confirmedBy === 'string' ? data.confirmedBy : null,
     };
 }
+const normalizeIdentityChangeRequest = (value) => {
+    if (!value || typeof value.id !== 'string' || !['pending', 'approved', 'rejected', 'completed'].includes(value.status))
+        return null;
+    return {
+        id: value.id,
+        status: value.status,
+        reason: typeof value.reason === 'string' ? value.reason : '',
+        reviewNote: typeof value.reviewNote === 'string' ? value.reviewNote : null,
+        createdAt: typeof value.createdAt === 'string' ? value.createdAt : new Date(0).toISOString(),
+        reviewedAt: typeof value.reviewedAt === 'string' ? value.reviewedAt : null,
+        completedAt: typeof value.completedAt === 'string' ? value.completedAt : null,
+    };
+};
+export async function getSchoolIdentityChangeRequestStatus(schoolId) {
+    const { data, error } = await supabase.rpc('rpc_school_identity_change_request_status', { p_school_id: schoolId });
+    if (error || !data?.success)
+        throw new Error(error?.message || data?.error || 'Identity change request status is unavailable.');
+    return normalizeIdentityChangeRequest(data.request);
+}
+export async function requestSchoolIdentityChange(schoolId, reason) {
+    const { data, error } = await supabase.rpc('rpc_school_request_identity_change', {
+        p_school_id: schoolId,
+        p_reason: reason.trim(),
+    });
+    if (error || !data?.success)
+        return { success: false, error: error?.message || data?.error || 'The identity change request could not be sent.' };
+    return {
+        success: true,
+        message: typeof data.message === 'string' ? data.message : 'Request sent to the superadmin for review.',
+        request: typeof data.requestId === 'string' ? {
+            id: data.requestId,
+            status: data.status === 'approved' || data.status === 'rejected' || data.status === 'completed' ? data.status : 'pending',
+            reason: reason.trim(),
+            reviewNote: null,
+            createdAt: new Date().toISOString(),
+            reviewedAt: null,
+            completedAt: null,
+        } : undefined,
+    };
+}
+export async function listSuperadminSchoolIdentityChangeRequests(status = 'pending') {
+    const { data, error } = await supabase.rpc('rpc_superadmin_list_school_identity_change_requests', {
+        p_status: status,
+        p_limit: 200,
+    });
+    if (error)
+        throw new Error(error.message || 'Identity change requests could not be loaded.');
+    return (Array.isArray(data) ? data : []).flatMap((value) => {
+        const request = normalizeIdentityChangeRequest(value);
+        if (!request || typeof value.schoolId !== 'string')
+            return [];
+        return [{
+                ...request,
+                schoolId: value.schoolId,
+                schoolName: typeof value.schoolName === 'string' ? value.schoolName : 'Unknown school',
+                schoolLogoUrl: typeof value.schoolLogoUrl === 'string' ? value.schoolLogoUrl : null,
+                requestedBy: typeof value.requestedBy === 'string' ? value.requestedBy : '',
+                requesterName: typeof value.requesterName === 'string' ? value.requesterName : 'School administrator',
+                requesterEmail: typeof value.requesterEmail === 'string' ? value.requesterEmail : null,
+                schoolNameAtRequest: typeof value.schoolNameAtRequest === 'string' ? value.schoolNameAtRequest : 'Unknown school',
+                schoolLogoAtRequest: typeof value.schoolLogoAtRequest === 'string' ? value.schoolLogoAtRequest : null,
+            }];
+    });
+}
+export async function decideSchoolIdentityChangeRequest(requestId, decision, note) {
+    const { data, error } = await supabase.rpc('rpc_superadmin_decide_school_identity_change_request', {
+        p_request_id: requestId,
+        p_decision: decision,
+        p_note: note.trim() || null,
+    });
+    if (error || !data?.success)
+        return { success: false, error: error?.message || data?.error || 'The identity change request could not be reviewed.' };
+    return { success: true, message: typeof data.message === 'string' ? data.message : 'Identity change request updated.' };
+}
 export async function confirmSchoolIdentity(schoolId, name, logoUrl) {
     const { data, error } = await supabase.rpc('rpc_school_admin_confirm_identity', {
         p_school_id: schoolId,
@@ -514,9 +592,15 @@ export async function archiveSchoolClass(schoolId, classId) {
         }
         const result = typeof data === 'string' ? JSON.parse(data) : data;
         if (result && result.success === false) {
-            return { success: false, error: result.error };
+            return {
+                success: false,
+                code: result.code,
+                studentCount: Number(result.student_count || 0),
+                allocationCount: Number(result.allocation_count ?? result.assignment_count ?? 0),
+                error: result.error,
+            };
         }
-        return { success: true };
+        return { success: true, action: result?.action || 'archived' };
     }
     catch (err) {
         console.error('Exception archiving class:', err);
@@ -525,7 +609,7 @@ export async function archiveSchoolClass(schoolId, classId) {
 }
 export async function listSchoolTeachers(schoolId) {
     try {
-        const { data, error } = await supabase.rpc('school_admin_list_teachers', {
+        const { data, error } = await supabase.rpc('school_admin_list_allocation_teachers', {
             p_school_id: schoolId,
         });
         if (error) {
@@ -542,7 +626,7 @@ export async function listSchoolTeachers(schoolId) {
             role_in_school: row.role_in_school,
             is_owner: Boolean(row.is_owner),
             can_teach: Boolean(row.can_teach),
-            has_active_assignment: Boolean(row.has_active_assignment),
+            has_active_allocation: Boolean(row.has_active_allocation ?? row.has_active_assignment),
         }));
     }
     catch (err) {
@@ -565,7 +649,7 @@ export async function setAdministratorTeachingStaffStatus(schoolId, memberUserId
         return {
             success: true,
             can_teach: Boolean(result.can_teach),
-            assignment_count: Number(result.assignment_count || 0),
+            allocation_count: Number(result.allocation_count ?? result.assignment_count ?? 0),
         };
     }
     catch (error) {
@@ -573,14 +657,14 @@ export async function setAdministratorTeachingStaffStatus(schoolId, memberUserId
         return { success: false, error: 'Teaching staff status could not be updated.' };
     }
 }
-export async function listTeacherAssignments(schoolId) {
+export async function listTeacherAllocations(schoolId) {
     try {
-        const { data, error } = await supabase.rpc('school_admin_list_teacher_assignments', {
+        const { data, error } = await supabase.rpc('school_admin_list_teacher_allocations', {
             p_school_id: schoolId,
         });
         if (error) {
-            console.error('Error fetching teacher assignments:', error);
-            return [];
+            console.error('Error fetching teacher allocations:', error);
+            throw new Error(error.message || 'Teacher allocations could not be loaded.');
         }
         const rows = (typeof data === 'string' ? JSON.parse(data) : data) || [];
         return rows.map((row) => ({
@@ -590,17 +674,27 @@ export async function listTeacherAssignments(schoolId) {
             teacher_user_id: row.teacher_user_id,
             subject: row.subject,
             active: !!row.active,
-            assigned_at: row.assigned_at ?? row.created_at ?? null,
+            allocated_at: row.allocated_at ?? row.created_at ?? null,
+            teacher_name: row.teacher_name || row.teacher_username || row.teacher_email || 'Unknown teacher',
+            teacher_username: row.teacher_username || null,
+            teacher_email: row.teacher_email || null,
+            teacher_membership_status: row.teacher_membership_status || null,
+            teacher_can_teach: Boolean(row.teacher_can_teach),
+            class_code: row.class_code || null,
+            class_name: row.class_name || null,
+            grade_level: row.grade_level == null ? null : String(row.grade_level),
         }));
     }
     catch (err) {
-        console.error('Exception fetching teacher assignments:', err);
-        return [];
+        console.error('Exception fetching teacher allocations:', err);
+        throw err instanceof Error
+            ? err
+            : new Error('Teacher allocations could not be loaded.');
     }
 }
-export async function assignTeacherToClassSubject(schoolId, classId, teacherUserId, subject, active) {
+export async function allocateTeacherToClassSubject(schoolId, classId, teacherUserId, subject, active) {
     try {
-        const { data, error } = await supabase.rpc('admin_assign_teacher_to_class_subject', {
+        const { data, error } = await supabase.rpc('admin_allocate_teacher_to_class_subject', {
             p_school_id: schoolId,
             p_class_id: classId,
             p_teacher_user_id: teacherUserId,
@@ -608,20 +702,20 @@ export async function assignTeacherToClassSubject(schoolId, classId, teacherUser
             p_active: active,
         });
         if (error) {
-            console.error('Error assigning teacher:', error);
+            console.error('Error allocating teacher:', error);
             return { success: false, error: error.message };
         }
         if (data && data.success === false) {
-            return { success: false, error: data.error || 'Failed to assign teacher' };
+            return { success: false, error: data.error || 'Failed to allocate teacher' };
         }
         return { success: true };
     }
     catch (err) {
-        console.error('Exception assigning teacher:', err);
+        console.error('Exception allocating teacher:', err);
         return { success: false, error: 'An unexpected error occurred' };
     }
 }
-export async function deleteTeacherAssignment(assignmentId, schoolId) {
+export async function deleteTeacherAllocation(allocationId, schoolId) {
     try {
         // Get school ID if not provided
         let effectiveSchoolId = schoolId;
@@ -632,12 +726,12 @@ export async function deleteTeacherAssignment(assignmentId, schoolId) {
         if (!effectiveSchoolId) {
             return { success: false, error: 'Could not determine school' };
         }
-        const { data, error } = await supabase.rpc('school_admin_delete_teacher_assignment', {
+        const { data, error } = await supabase.rpc('school_admin_delete_teacher_allocation', {
             p_school_id: effectiveSchoolId,
-            p_assignment_id: assignmentId,
+            p_allocation_id: allocationId,
         });
         if (error) {
-            console.error('Error deleting teacher assignment:', error);
+            console.error('Error deleting teacher allocation:', error);
             return { success: false, error: error.message };
         }
         const result = typeof data === 'string' ? JSON.parse(data) : data;
@@ -647,7 +741,7 @@ export async function deleteTeacherAssignment(assignmentId, schoolId) {
         return { success: true };
     }
     catch (err) {
-        console.error('Exception deleting teacher assignment:', err);
+        console.error('Exception deleting teacher allocation:', err);
         return { success: false, error: 'An unexpected error occurred' };
     }
 }
@@ -734,15 +828,15 @@ export async function linkCambridgeAttemptStudent(scoreId, studentId, reason) {
 // Teacher Class Access Functions
 // ============================================
 /**
- * Get teacher's assigned classes
+ * Get the classes and subjects allocated to a teacher.
  */
-export async function getTeacherAssignedClasses(teacherUserId) {
+export async function getTeacherAllocatedClasses(teacherUserId) {
     try {
-        const { data, error } = await supabase.rpc('get_teacher_assigned_classes', {
+        const { data, error } = await supabase.rpc('get_teacher_allocated_classes', {
             p_teacher_user_id: teacherUserId || null,
         });
         if (error) {
-            console.error('Error fetching teacher assigned classes:', error);
+            console.error('Error fetching teacher allocated classes:', error);
             return [];
         }
         return (data || []).map((row) => ({
@@ -757,29 +851,32 @@ export async function getTeacherAssignedClasses(teacherUserId) {
         }));
     }
     catch (err) {
-        console.error('Exception fetching teacher assigned classes:', err);
+        console.error('Exception fetching teacher allocated classes:', err);
         return [];
     }
 }
 /**
- * Get teacher profile with assigned classes
+ * Get a teacher profile together with their allocated classes.
  */
-export async function getTeacherProfileWithClasses(teacherUserId) {
+export async function getTeacherProfileWithAllocations(teacherUserId) {
     try {
         const { data, error } = await supabase.rpc('get_teacher_profile_with_classes', {
             p_teacher_user_id: teacherUserId || null,
         });
         if (error) {
-            console.error('Error fetching teacher profile with classes:', error);
+            console.error('Error fetching teacher profile with allocations:', error);
             return null;
         }
         if (!data || !data.success) {
             return null;
         }
-        return data;
+        return {
+            ...data,
+            allocated_classes: data.allocated_classes ?? data.assigned_classes ?? [],
+        };
     }
     catch (err) {
-        console.error('Exception fetching teacher profile with classes:', err);
+        console.error('Exception fetching teacher profile with allocations:', err);
         return null;
     }
 }

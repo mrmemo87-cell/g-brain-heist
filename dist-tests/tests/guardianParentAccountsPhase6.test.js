@@ -29,7 +29,8 @@ test('parent progress contract excludes private teacher notes and raw evidence j
 });
 test('school admins can create and revoke guardian access from a dedicated workflow', () => {
     assert.match(admin, /Parent & Guardian Access/i);
-    assert.match(admin, /Create secure invitation/i);
+    assert.match(admin, /Review & send secure invitation/i);
+    assert.match(admin, /Send this parent invitation\?/i);
     assert.match(admin, /Revoke/i);
     assert.match(migration, /role_in_school='school_admin'/i);
 });

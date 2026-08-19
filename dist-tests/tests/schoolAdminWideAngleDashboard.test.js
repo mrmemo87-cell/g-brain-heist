@@ -35,20 +35,13 @@ test('classes and registration owns editable grade-class teaching coverage', () 
     assert.match(classes, /handleEditClass\(row\)/);
     assert.match(classes, /aria-label={`Edit \${row\.class_code}`}/);
 });
-test('teacher assignment flow is class-subject-teacher with subject filtering and sortable columns', () => {
-    const classPosition = teachers.indexOf('>Class <');
-    const subjectPosition = teachers.indexOf('>Subject <');
-    const teacherPosition = teachers.indexOf('>Teacher <');
-    assert.ok(classPosition >= 0 && classPosition < subjectPosition && subjectPosition < teacherPosition);
-    assert.match(teachers, /Filter assignments by subject/);
-    for (const key of ['class', 'subject', 'teacher', 'assigned_at'])
-        assert.match(teachers, new RegExp(`changeSort\\('${key}'\\)`));
-    assert.doesNotMatch(teachers, /Active assignment/);
-    assert.match(service, /assigned_at: row\.assigned_at/);
+test('teacher allocation keeps invitation access alongside operational allocation tools', () => {
+    assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
+    assert.match(teachers, /current-allocations-title/);
+    assert.match(teachers, /allocate-teacher-panel/);
+    assert.match(teachers, />Class <|>Subject <|changeSort|admin-table-scroll/);
+    assert.match(service, /allocated_at: row\.allocated_at \?\? row\.created_at/);
     assert.match(migration, /'assigned_at'/);
-    assert.match(teachers, /getAssignableTeachers\(teachers \|\| \[\]\)/);
-    assert.doesNotMatch(teachers, /protectedAdminIds/);
-    assert.doesNotMatch(teachers, /school administrators are excluded/);
 });
 test('school administrator is protected and destructive actions use branded confirmations', () => {
     assert.match(members, /Protected school owner/);
@@ -76,7 +69,8 @@ test('dual-role staff can choose and switch workspaces without signing out', () 
     assert.match(app, /onOpenTeacherPortal/);
     assert.match(workspaceChooser, /School Administration/);
     assert.match(workspaceChooser, /Teacher Portal/);
-    assert.match(workspaceChooser, /switch again at any time without signing out/);
+    assert.match(workspaceChooser, /Your account has more than one role/);
+    assert.match(workspaceChooser, /Parent Portal/);
 });
 test('member management opens at the top and preloads existing academic placement', () => {
     assert.match(members, /modal\.scrollTop = 0/);

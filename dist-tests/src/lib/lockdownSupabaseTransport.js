@@ -22,16 +22,36 @@ export class SupabaseLockdownTransport {
                 broadcast: { self: true },
             },
         });
-        this.channel
-            .on("broadcast", { event: "action" }, ({ payload }) => {
-            // Host receives actions from players
-            console.log("Host received action:", payload);
-            this.handleAction(payload);
-        })
-            .subscribe((status) => {
-            if (status === "SUBSCRIBED") {
-                this.broadcastState();
-            }
+        await new Promise((resolve, reject) => {
+            let settled = false;
+            const timeout = setTimeout(() => {
+                if (settled)
+                    return;
+                settled = true;
+                reject(new Error("Unable to activate realtime room"));
+            }, 10000);
+            this.channel
+                .on("broadcast", { event: "action" }, ({ payload }) => {
+                // Host receives actions from players
+                console.log("Host received action:", payload);
+                this.handleAction(payload);
+            })
+                .subscribe((status) => {
+                if (status === "SUBSCRIBED") {
+                    // Re-broadcast current state on initial subscription and reconnects.
+                    this.broadcastState();
+                    if (!settled) {
+                        settled = true;
+                        clearTimeout(timeout);
+                        resolve();
+                    }
+                }
+                else if (!settled && (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED")) {
+                    settled = true;
+                    clearTimeout(timeout);
+                    reject(new Error(`Unable to activate realtime room (${status})`));
+                }
+            });
         });
         // Start game loop with Page Visibility API to handle tab switching
         let lastTickTime = Date.now();
@@ -64,30 +84,25 @@ export class SupabaseLockdownTransport {
         const playerId = `player-${Math.floor(Math.random() * 1000000)}`;
         return new Promise((resolve, reject) => {
             let connected = false;
+            let joinRetryInterval = null;
+            const clearJoinRetry = () => {
+                if (joinRetryInterval) {
+                    clearInterval(joinRetryInterval);
+                    joinRetryInterval = null;
+                }
+            };
             const timeout = setTimeout(() => {
                 if (!connected) {
+                    clearJoinRetry();
                     if (this.channel)
                         supabase.removeChannel(this.channel);
                     reject(new Error("Room not found or host inactive"));
                 }
-            }, 5000);
-            this.channel = supabase.channel(`lockdown:${roomId}`);
-            this.channel
-                .on("broadcast", { event: "state" }, ({ payload }) => {
-                if (!connected) {
-                    connected = true;
-                    clearTimeout(timeout);
-                    resolve(playerId);
-                }
-                this.state = payload;
-                this.notifySubscribers();
-            })
-                .subscribe(async (status) => {
-                if (status === "SUBSCRIBED") {
-                    // Send JOIN action repeatedly until we get state, or timeout
-                    // But for now, just send once. The host should respond with state if they are there.
-                    // Actually, we need to trigger the host to send state.
-                    // The host sends state on any action.
+            }, 10000);
+            const sendJoin = async () => {
+                if (connected)
+                    return;
+                try {
                     await this.sendAction(roomId, {
                         type: "JOIN",
                         playerId,
@@ -96,6 +111,38 @@ export class SupabaseLockdownTransport {
                         clanName: options?.clanName,
                         clanAvatarUrl: options?.clanAvatarUrl,
                     });
+                }
+                catch (error) {
+                    // Realtime can briefly reconnect; the retry loop will send again.
+                    console.warn("Failed to send Lockdown JOIN; retrying", error);
+                }
+            };
+            this.channel = supabase.channel(`lockdown:${roomId}`, {
+                config: {
+                    broadcast: { ack: true },
+                },
+            });
+            this.channel
+                .on("broadcast", { event: "state" }, ({ payload }) => {
+                if (!connected) {
+                    connected = true;
+                    clearTimeout(timeout);
+                    clearJoinRetry();
+                    resolve(playerId);
+                }
+                this.state = payload;
+                this.notifySubscribers();
+            })
+                .subscribe(async (status) => {
+                if (status === "SUBSCRIBED" && !connected) {
+                    // JOIN is idempotent in the engine. Retrying closes the race where a
+                    // student's first JOIN arrives while the teacher channel is reconnecting.
+                    await sendJoin();
+                    if (!joinRetryInterval) {
+                        joinRetryInterval = setInterval(() => {
+                            void sendJoin();
+                        }, 750);
+                    }
                 }
             });
         });

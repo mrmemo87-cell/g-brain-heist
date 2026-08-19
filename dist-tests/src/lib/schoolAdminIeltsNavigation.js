@@ -11,6 +11,8 @@ export const SCHOOL_ADMIN_TABS = [
     'ielts',
     'admissions',
     'academic-profiles',
+    'interventions',
+    'guardians',
 ];
 export const SCHOOL_ADMIN_IELTS_TABS = [
     'ielts-exams',

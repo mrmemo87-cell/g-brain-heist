@@ -14,8 +14,8 @@ test('student Writing Hub exposes the dashboard-first three-step journey and cin
     assert.match(activeSimpleLoop, /wizardOpen && <>/);
     assert.match(activeSimpleLoop, /All focus areas/);
     assert.match(activeSimpleLoop, /Progress since last score/);
-    assert.match(activeSimpleLoop, /Change rpompt/);
-    assert.match(activeSimpleLoop, /Clear all text/);
+    assert.match(activeSimpleLoop, /Change prompt/);
+    assert.doesNotMatch(activeSimpleLoop, /Clear all text/);
     assert.match(activeSimpleLoop, /Play Cinematic Feedback/);
     assert.match(activeSimpleLoop, /Replay Cinematic Feedback/);
     assert.match(activeSimpleLoop, /playSavedCinematicFeedback/);
@@ -23,8 +23,8 @@ test('student Writing Hub exposes the dashboard-first three-step journey and cin
     assert.match(activeSimpleLoop, /Green shows what is working\. Red shows your clearest next improvement\./);
     assert.match(activeSimpleLoop, /renderAnnotatedText\(activeCinematicText, cinematicRanges/);
     assert.match(activeSimpleLoop, /Improve my draft/);
-    assert.doesNotMatch(activeSimpleLoop, /Pasting is disabled in Writing Hub/);
-    assert.doesNotMatch(activeSimpleLoop, /Copying is disabled on this page/);
+    assert.match(activeSimpleLoop, /Pasting is disabled for formal assessments/);
+    assert.match(activeSimpleLoop, /attempted paste size/);
 });
 test('writing prompt rotation migration deduplicates identities and remembers recent tasks', () => {
     const sql = readProjectFile('supabase/migrations/20260727120000_writing_prompt_rotation_integrity.sql');
@@ -177,8 +177,8 @@ test('premium Writing Hub keeps authorship context, score meaning, and teacher r
     const exports = readProjectFile('src/pages/writing/WritingExportCenter.tsx');
     const report = readProjectFile('src/lib/brains_heist/writingReportDocument.ts');
     const sql = readProjectFile('supabase/migrations/20260726160000_writing_hub_premium_release.sql');
-    assert.match(hub, /Automated estimate/);
-    assert.match(hub, /getStudentWritingIntegrityMode/);
+    assert.match(hub, /AI assessment · teacher review when flagged/);
+    assert.match(hub, /recordWritingIntegrityVoid/);
     assert.match(hub, /recordWritingPaste/);
     assert.match(monitoring, /Writing Command Center/);
     assert.doesNotMatch(monitoring, /Class writing mode/);
@@ -215,4 +215,28 @@ test('student Writing Hub rehydrates by authenticated student before showing pro
     assert.match(hub, /Checking saved submissions…/);
     assert.match(hub, /Loading your saved writing and feedback…/);
     assert.match(hub, /if \(!studentHistoryReady\) return;/);
+});
+test('mobile cinematic feedback keeps the green correction visible without scrolling the detail card', () => {
+    const css = readProjectFile('src/pages/writing/WritingHub.css');
+    const mobileStart = css.indexOf('@media (max-width: 760px)');
+    const mobile = css.slice(mobileStart, css.indexOf('@media (max-width: 420px)', mobileStart));
+    assert.match(mobile, /\.cinematic-feedback__detail--weak\s*\{[\s\S]*display: grid/);
+    assert.match(mobile, /\.cinematic-feedback__detail--weak \.cinematic-feedback__coaching-block/);
+    assert.match(mobile, /\.cinematic-feedback__detail--weak \.cinematic-feedback__upgrade/);
+    assert.match(mobile, /font-size: 0\.86rem/);
+    assert.match(mobile, /line-height: 1\.32/);
+});
+test('cinematic replay deduplicates corrections only after narrowing to visible spans', () => {
+    const hub = readProjectFile('src/pages/writing/WritingHub.tsx');
+    assert.match(hub, /export const dedupeCinematicRanges/);
+    assert.ok(hub.includes('const key = `${range.polarity}:${range.start}:${range.end}`'));
+    assert.match(hub, /dedupeCinematicRanges\(\s*narrowCorrectionRanges/);
+    assert.match(hub, /candidateOriginalLength < currentOriginalLength/);
+});
+test('cinematic replay uses every canonical correction and shows revision actions before scores', () => {
+    const hub = readProjectFile('src/pages/writing/WritingHub.tsx');
+    assert.match(hub, /maxItems = Number\.POSITIVE_INFINITY/);
+    assert.match(hub, /buildBalancedReviewSequence\(\s*completeRanges,\s*completeRanges\.length\s*\)/);
+    const finale = hub.slice(hub.indexOf('<section className="cinematic-feedback__finale"'), hub.indexOf('<footer className="cinematic-nav-bar'));
+    assert.ok(finale.indexOf('<strong>Keep</strong>') < finale.indexOf('aria-label="Rubric scores"'));
 });

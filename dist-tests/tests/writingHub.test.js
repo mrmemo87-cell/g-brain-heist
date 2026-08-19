@@ -35,7 +35,7 @@ test('today task render', () => {
     });
     const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'ui-2', grade: 7, genre: 'email', month: '2026-03' }));
     assert.ok(html.includes('Your Response'));
-    assert.ok(html.includes('Submit for Feedback'));
+    assert.ok(html.includes('Submit formal assessment'));
 });
 test('successful daily practice submission feedback flow', () => {
     __resetWritingIntegrationStoreForTests();
@@ -74,7 +74,7 @@ test('weekly review render', () => {
     assert.strictEqual(weekly.ok, true);
     const html = renderToStaticMarkup(React.createElement(WritingHub, { studentId: 'ui-4', grade: 8, genre: 'paragraph', month: '2026-03' }));
     assert.ok(html.includes('Your Writing Space'));
-    assert.ok(html.includes('Submit for Feedback'));
+    assert.ok(html.includes('Submit formal assessment'));
 });
 test('monthly report render', () => {
     __resetWritingIntegrationStoreForTests();
