@@ -18,6 +18,41 @@ test('Student Academic Profile uses school language and source-specific evidence
   assert.match(source, /Technical reporting terminology/);
 });
 
+test('Needs support and learning timeline are collapsible', () => {
+  const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
+  const collapsiblePanels = source.match(/sap-panel sap-collapsible-panel/g) || [];
+  assert.equal(collapsiblePanels.length, 2);
+  assert.match(source, /className="when-open">Collapse/);
+  assert.match(source, /className="when-closed">Expand/);
+});
+
+test('subject trend points expose clear interactive tooltips', () => {
+  const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
+  assert.match(source, /sap-trend-tooltip/);
+  assert.match(source, /onMouseEnter/);
+  assert.match(source, /onFocus/);
+  assert.match(source, /trendPositionLabel/);
+  assert.match(source, /focusCount/);
+  assert.doesNotMatch(source, /<title>/);
+});
+
+test('printed individual report contains subject trend graphs and point details', () => {
+  const source = read('components/student-progress/IndividualStudentAcademicReportV2.tsx');
+  assert.match(source, /PrintSubjectTrendChart/);
+  assert.match(source, /sap-print-trend-grid/);
+  assert.match(source, /sap-print-trend-point-list/);
+  assert.match(source, /numbered point details/);
+  assert.match(source, /Learning timeline \+ trend graphs/);
+});
+
+test('academic subject options are deduplicated case-insensitively', () => {
+  const picker = read('components/student-progress/AcademicProgressSuite.tsx');
+  const profile = read('components/student-progress/StudentAcademicProfileV2.tsx');
+  assert.match(picker, /normalizeAcademicSubjectOptions/);
+  assert.match(picker, /toLocaleLowerCase\(\)/);
+  assert.match(profile, /normalizeAcademicSubjectOptions\(values\)/);
+});
+
 test('Individual report has explicit React and portal imports', () => {
   const source = read('components/student-progress/IndividualStudentAcademicReportV2.tsx');
   assert.match(source, /useMemo, useRef, useState/);
