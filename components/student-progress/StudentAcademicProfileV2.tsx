@@ -13,10 +13,11 @@ import {
   type AcademicProgressViewerRole,
 } from '../../services/academicProgressExperienceService';
 import IndividualStudentAcademicReport from './IndividualStudentAcademicReportV2';
-import { AcademicProgressHeader } from './AcademicProgressSuite';
+import { AcademicProgressHeader, normalizeAcademicSubjectOptions } from './AcademicProgressSuite';
 import './StudentAcademicProfile.css';
 import './StudentAcademicConfidence.css';
 import './StudentAcademicProfileV2.css';
+import './StudentAcademicProfileV2Enhancements.css';
 
 interface StudentAcademicProfileProps {
   studentId?: string | null;
@@ -32,7 +33,17 @@ interface StudentAcademicProfileProps {
 type TimelineItem = StudentAcademicProfileData['timeline'][number];
 type FocusItem = StudentAcademicProfileData['focus_areas'][number];
 type Correction = { original?: string; better_version?: string; issue?: string; tag?: string };
-type TrendEvent = { key: string; observedAt: string; score: number; label: string; source: string };
+type TrendEvent = {
+  key: string;
+  observedAt: string;
+  score: number;
+  label: string;
+  source: string;
+  detail: string;
+  focusCount: number;
+  developingCount: number;
+  strengthCount: number;
+};
 
 const scoreBand = (score: number | null) => score === null ? 'neutral' : score >= 80 ? 'strong' : score >= 60 ? 'developing' : 'focus';
 const statusBand = (status: string) => status === 'persistent' ? 'critical' : ['insufficient_evidence', 'recurring', 'new_focus'].includes(status) ? 'focus' : status === 'improving' ? 'improving' : status === 'resolved' ? 'resolved' : 'strong';
@@ -45,7 +56,6 @@ const normalizeSubject = (value: string) => value.toLowerCase().replace(/[^a-z0-
 const titleCase = (value: string) => value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 const objectValue = (value: unknown): Record<string, unknown> => value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 const textValue = (value: unknown) => typeof value === 'string' && value.trim() ? value.trim() : null;
-const numberValue = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? value : typeof value === 'string' && value.trim() && Number.isFinite(Number(value)) ? Number(value) : null;
 
 const getCorrections = (item?: TimelineItem | null): Correction[] => {
   if (!item || !Array.isArray(item.evidence?.corrections)) return [];
@@ -94,13 +104,36 @@ const observationSignal = (item: TimelineItem) => {
   return bounded == null ? 62 : 48 + bounded * 0.24;
 };
 
+const trendPositionLabel = (score: number) => score >= 78 ? 'Strong evidence' : score >= 46 ? 'Developing evidence' : 'Needs support';
+
 const buildTrendEvents = (items: TimelineItem[], subject: string): TrendEvent[] => {
-  const groups = new Map<string, { values: number[]; observedAt: string; label: string; source: string }>();
+  const groups = new Map<string, {
+    values: number[];
+    observedAt: string;
+    label: string;
+    source: string;
+    detail: string;
+    focusCount: number;
+    developingCount: number;
+    strengthCount: number;
+  }>();
   items.filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject)).forEach((item) => {
     const meta = sourceMeta(item);
     const key = `${item.source_type}:${item.source_id || item.observed_at}`;
-    const group = groups.get(key) || { values: [], observedAt: item.observed_at, label: item.subskill || item.skill, source: meta.label };
+    const group = groups.get(key) || {
+      values: [],
+      observedAt: item.observed_at,
+      label: item.subskill || item.skill,
+      source: meta.label,
+      detail: meta.detail,
+      focusCount: 0,
+      developingCount: 0,
+      strengthCount: 0,
+    };
     group.values.push(observationSignal(item));
+    if (item.observation_type === 'focus') group.focusCount += 1;
+    else if (item.observation_type === 'strength') group.strengthCount += 1;
+    else group.developingCount += 1;
     if (item.observed_at > group.observedAt) group.observedAt = item.observed_at;
     groups.set(key, group);
   });
@@ -110,10 +143,15 @@ const buildTrendEvents = (items: TimelineItem[], subject: string): TrendEvent[] 
     score: Math.round(group.values.reduce((sum, value) => sum + value, 0) / Math.max(group.values.length, 1)),
     label: group.label,
     source: group.source,
+    detail: group.detail,
+    focusCount: group.focusCount,
+    developingCount: group.developingCount,
+    strengthCount: group.strengthCount,
   })).sort((a, b) => a.observedAt.localeCompare(b.observedAt));
 };
 
 const SubjectTrendChart: React.FC<{ subject: string; events: TrendEvent[] }> = ({ subject, events }) => {
+  const [activeKey, setActiveKey] = useState<string | null>(null);
   const width = 560;
   const height = 190;
   const left = 86;
@@ -127,17 +165,44 @@ const SubjectTrendChart: React.FC<{ subject: string; events: TrendEvent[] }> = (
   const points = events.map((event, index) => `${xAt(index)},${yAt(event.score)}`).join(' ');
   const delta = events.length > 1 ? events[events.length - 1].score - events[0].score : 0;
   const trendText = events.length < 2 ? 'One evidence point so far' : delta >= 10 ? 'Overall evidence is moving up' : delta <= -10 ? 'Recent evidence needs attention' : 'Overall evidence is broadly steady';
+  const activeIndex = activeKey ? events.findIndex((event) => event.key === activeKey) : -1;
+  const activeEvent = activeIndex >= 0 ? events[activeIndex] : null;
 
   return <article className="sap-trend-card">
     <header><div><span>Subject trend</span><h3>{subject}</h3></div><strong>{trendText}</strong></header>
     {events.length ? <>
-      <svg className="sap-trend-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${subject} learning evidence trend over the selected period`}>
-        {[25, 60, 90].map((value) => <g key={value}><line x1={left} y1={yAt(value)} x2={width - right} y2={yAt(value)} className="sap-trend-guide"/><text x={left - 10} y={yAt(value) + 4} textAnchor="end" className="sap-trend-axis">{value === 25 ? 'Needs support' : value === 60 ? 'Developing' : 'Strong'}</text></g>)}
-        {events.length > 1 ? <polyline points={points} className="sap-trend-line"/> : null}
-        {events.map((event, index) => <circle key={event.key} cx={xAt(index)} cy={yAt(event.score)} r="6" className="sap-trend-point"><title>{`${formatDate(event.observedAt)} · ${event.source} · ${event.label}`}</title></circle>)}
-        {events.length ? <><text x={left} y={height - 8} className="sap-trend-date">{formatDate(events[0].observedAt)}</text><text x={width - right} y={height - 8} textAnchor="end" className="sap-trend-date">{formatDate(events[events.length - 1].observedAt)}</text></> : null}
-      </svg>
-      <small>Each point is one assessed activity. Multiple findings from the same assignment or writing task are combined into one point.</small>
+      <div className="sap-trend-chart-wrap">
+        <svg className="sap-trend-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${subject} learning evidence trend over the selected period`}>
+          {[25, 60, 90].map((value) => <g key={value}><line x1={left} y1={yAt(value)} x2={width - right} y2={yAt(value)} className="sap-trend-guide"/><text x={left - 10} y={yAt(value) + 4} textAnchor="end" className="sap-trend-axis">{value === 25 ? 'Needs support' : value === 60 ? 'Developing' : 'Strong'}</text></g>)}
+          {events.length > 1 ? <polyline points={points} className="sap-trend-line"/> : null}
+          {events.map((event, index) => <circle
+            key={event.key}
+            cx={xAt(index)}
+            cy={yAt(event.score)}
+            r="6"
+            className="sap-trend-point"
+            tabIndex={0}
+            aria-label={`${formatDate(event.observedAt)}, ${event.source}, ${event.detail}, ${event.label}, ${trendPositionLabel(event.score)}`}
+            onMouseEnter={() => setActiveKey(event.key)}
+            onMouseLeave={() => setActiveKey(null)}
+            onFocus={() => setActiveKey(event.key)}
+            onBlur={() => setActiveKey(null)}
+          />)}
+          <text x={left} y={height - 8} className="sap-trend-date">{formatDate(events[0].observedAt)}</text>
+          <text x={width - right} y={height - 8} textAnchor="end" className="sap-trend-date">{formatDate(events[events.length - 1].observedAt)}</text>
+        </svg>
+        {activeEvent ? <div
+          className="sap-trend-tooltip"
+          role="status"
+          style={{ left: `${(xAt(activeIndex) / width) * 100}%`, top: `${(yAt(activeEvent.score) / height) * 100}%` }}
+        >
+          <strong>{formatDate(activeEvent.observedAt)}</strong>
+          <span>{activeEvent.source} · {activeEvent.detail}</span>
+          <b>{activeEvent.label}</b>
+          <small>{trendPositionLabel(activeEvent.score)} · {activeEvent.focusCount} support · {activeEvent.developingCount} developing · {activeEvent.strengthCount} strength</small>
+        </div> : null}
+      </div>
+      <small>Hover or focus a point for the activity details. Multiple findings from the same assignment or writing task are combined into one point.</small>
     </> : <div className="sap-empty">No assessed evidence in this period.</div>}
   </article>;
 };
@@ -202,13 +267,19 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
   }, [studentId]);
 
   const allSubjects = useMemo(() => {
-    const values = new Set<string>();
-    profile?.subjects.forEach((entry) => values.add(entry.subject));
-    profile?.timeline.forEach((entry) => values.add(entry.subject));
-    profile?.scope.allowed_subjects.forEach((entry) => values.add(entry));
-    availableSubjects.forEach((entry) => values.add(entry));
-    return [...values].sort((a, b) => a.localeCompare(b));
+    const values: string[] = [];
+    profile?.subjects.forEach((entry) => values.push(entry.subject));
+    profile?.timeline.forEach((entry) => values.push(entry.subject));
+    profile?.scope.allowed_subjects.forEach((entry) => values.push(entry));
+    availableSubjects.forEach((entry) => values.push(entry));
+    return normalizeAcademicSubjectOptions(values);
   }, [availableSubjects, profile]);
+
+  useEffect(() => {
+    if (subject === 'all') return;
+    const canonical = allSubjects.find((name) => normalizeSubject(name) === normalizeSubject(subject));
+    if (canonical && canonical !== subject) setSubject(canonical);
+  }, [allSubjects, subject]);
 
   const currentFocus = useMemo(() => profile?.focus_areas.filter((item) => ['insufficient_evidence', 'new_focus', 'recurring', 'persistent'].includes(String(item.status))) ?? [], [profile]);
   const strengths = useMemo(() => profile?.focus_areas.filter((item) => ['emerging_strength', 'consistent_strength'].includes(String(item.status))) ?? [], [profile]);
@@ -267,7 +338,7 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
     />
 
     <div className="sap-filterbar" aria-label="Progress record filters">
-      <label>Subject<select value={subject} onChange={(event) => setSubject(event.target.value)}><option value="all">All subjects</option>{allSubjects.map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
+      <label>Subject<select value={subject} onChange={(event) => setSubject(event.target.value)}><option value="all">All subjects</option>{allSubjects.map((name) => <option key={name.toLocaleLowerCase()} value={name}>{name}</option>)}</select></label>
       <label>From<input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label>
       <label>To<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
       <span className="sap-scope-note">{profile.scope.viewer === 'teacher' ? 'Showing the subjects you teach this student.' : 'Showing authorised school learning evidence.'}</span>
@@ -290,15 +361,15 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
     </section>
 
     <div className="sap-two-column">
-      <section className="sap-panel">
-        <div className="sap-panel-heading sap-heading-simple"><div><span>Needs support</span><h2>What should we work on?</h2></div><p>Specific learning needs, not just broad labels.</p></div>
-        <div className="sap-focus-list sap-focus-list--clear">{currentFocus.map((item) => {
+      <details className="sap-panel sap-collapsible-panel" open>
+        <summary className="sap-collapsible-summary"><div><span>Needs support</span><h2>What should we work on?</h2><p>Specific learning needs, not just broad labels.</p></div><b className="sap-collapse-action"><span className="when-open">Collapse</span><span className="when-closed">Expand</span></b></summary>
+        <div className="sap-collapsible-content"><div className="sap-focus-list sap-focus-list--clear">{currentFocus.map((item) => {
           const key = `${normalizeSubject(item.subject)}|${item.skill.toLowerCase()}|${String(item.subskill || '').toLowerCase()}`;
           const evidence = latestTimelineForFocus.get(key);
           const correction = getCorrections(evidence)[0];
           return <article key={item.skill_key}><div className="sap-focus-main"><span className={`sap-status sap-status--${statusBand(String(item.status))}`}>{formatStatus(item)}</span><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><p>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</p>{evidence ? <small className="sap-focus-explain">{evidenceExplanation(evidence)}</small> : null}{correction && (correction.original || correction.better_version) ? <div className="sap-example"><span>Example</span><del>{correction.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{correction.better_version || 'Correction'}</ins></div> : null}</div><dl><div><dt>First seen</dt><dd>{formatDate(item.first_observed_at)}</dd></div><div><dt>Latest</dt><dd>{formatDate(item.last_observed_at)}</dd></div><div><dt>Evidence</dt><dd>{item.evidence_items}</dd></div><div><dt>Latest result</dt><dd>{item.latest_evidence_percentage == null ? '—' : `${item.latest_evidence_percentage}%`}</dd></div></dl></article>;
-        })}{!currentFocus.length ? <div className="sap-empty">No current support needs are identified in this period.</div> : null}</div>
-      </section>
+        })}{!currentFocus.length ? <div className="sap-empty">No current support needs are identified in this period.</div> : null}</div></div>
+      </details>
 
       <section className="sap-panel">
         <div className="sap-panel-heading sap-heading-simple"><div><span>Going well</span><h2>Progress and strengths</h2></div><p>What is improving, secure or consistently strong.</p></div>
@@ -306,26 +377,28 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
       </section>
     </div>
 
-    <section className="sap-panel">
-      <div className="sap-panel-heading sap-heading-simple"><div><span>Learning timeline</span><h2>How is the student moving over time?</h2></div><p>Each graph uses the evidence shown in the selected period.</p></div>
-      <div className="sap-trend-grid">{trendSubjects.map((entry) => <SubjectTrendChart key={entry.subject} subject={entry.subject} events={entry.events}/>)}</div>
-      <div className="sap-evidence-list">{profile.timeline.slice(0, 60).map((item) => {
-        const meta = sourceMeta(item);
-        const corrections = getCorrections(item);
-        const firstCorrection = corrections[0];
-        const evidence = objectValue(item.evidence);
-        const improvementAction = textValue(evidence.improvement_action);
-        return <article key={item.id} className={`sap-evidence-card sap-evidence-card--${item.observation_type}`}>
-          <div className="sap-evidence-top"><span className={`sap-source-badge sap-source-badge--${meta.tone}`}>{meta.label}</span><time>{formatDate(item.observed_at)}</time></div>
-          <div className="sap-evidence-heading"><div><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><span>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</span></div><span className={`sap-status sap-status--${item.observation_type === 'focus' ? 'focus' : item.observation_type === 'strength' ? 'strong' : 'improving'}`}>{item.observation_type === 'focus' ? 'Needs support' : item.observation_type === 'strength' ? 'Strength' : 'Developing'}</span></div>
-          <p className="sap-evidence-explanation">{evidenceExplanation(item)}</p>
-          {firstCorrection && (firstCorrection.original || firstCorrection.better_version) ? <div className="sap-example sap-example--wide"><span>From the student's work</span><del>{firstCorrection.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{firstCorrection.better_version || 'Correction'}</ins></div> : null}
-          {improvementAction ? <p className="sap-next-step"><strong>Helpful next step:</strong> {improvementAction}</p> : null}
-          <div className="sap-evidence-meta"><span>{meta.detail}</span>{item.evidence_count ? <span>{item.evidence_count} evidence item{item.evidence_count === 1 ? '' : 's'}</span> : null}{item.evidence_percentage == null ? null : <span>{item.evidence_percentage}%</span>}</div>
-          {(corrections.length > 1 || textValue(evidence.objective)) ? <details><summary>More evidence</summary>{corrections.slice(1).map((correction, index) => <div className="sap-example sap-example--wide" key={`${correction.original}-${index}`}><del>{correction.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{correction.better_version || 'Correction'}</ins>{correction.issue ? <small>{correction.issue}</small> : null}</div>)}{textValue(evidence.objective) ? <p><strong>Curriculum focus:</strong> {textValue(evidence.objective)}</p> : null}</details> : null}
-        </article>;
-      })}{!profile.timeline.length ? <div className="sap-empty">No learning evidence is available in this period.</div> : null}</div>
-    </section>
+    <details className="sap-panel sap-collapsible-panel" open>
+      <summary className="sap-collapsible-summary"><div><span>Learning timeline</span><h2>How is the student moving over time?</h2><p>Each graph uses the evidence shown in the selected period.</p></div><b className="sap-collapse-action"><span className="when-open">Collapse</span><span className="when-closed">Expand</span></b></summary>
+      <div className="sap-collapsible-content">
+        <div className="sap-trend-grid">{trendSubjects.map((entry) => <SubjectTrendChart key={entry.subject} subject={entry.subject} events={entry.events}/>)}</div>
+        <div className="sap-evidence-list">{profile.timeline.slice(0, 60).map((item) => {
+          const meta = sourceMeta(item);
+          const corrections = getCorrections(item);
+          const firstCorrection = corrections[0];
+          const evidence = objectValue(item.evidence);
+          const improvementAction = textValue(evidence.improvement_action);
+          return <article key={item.id} className={`sap-evidence-card sap-evidence-card--${item.observation_type}`}>
+            <div className="sap-evidence-top"><span className={`sap-source-badge sap-source-badge--${meta.tone}`}>{meta.label}</span><time>{formatDate(item.observed_at)}</time></div>
+            <div className="sap-evidence-heading"><div><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><span>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</span></div><span className={`sap-status sap-status--${item.observation_type === 'focus' ? 'focus' : item.observation_type === 'strength' ? 'strong' : 'improving'}`}>{item.observation_type === 'focus' ? 'Needs support' : item.observation_type === 'strength' ? 'Strength' : 'Developing'}</span></div>
+            <p className="sap-evidence-explanation">{evidenceExplanation(item)}</p>
+            {firstCorrection && (firstCorrection.original || firstCorrection.better_version) ? <div className="sap-example sap-example--wide"><span>From the student's work</span><del>{firstCorrection.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{firstCorrection.better_version || 'Correction'}</ins></div> : null}
+            {improvementAction ? <p className="sap-next-step"><strong>Helpful next step:</strong> {improvementAction}</p> : null}
+            <div className="sap-evidence-meta"><span>{meta.detail}</span>{item.evidence_count ? <span>{item.evidence_count} evidence item{item.evidence_count === 1 ? '' : 's'}</span> : null}{item.evidence_percentage == null ? null : <span>{item.evidence_percentage}%</span>}</div>
+            {(corrections.length > 1 || textValue(evidence.objective)) ? <details><summary>More evidence</summary>{corrections.slice(1).map((correction, index) => <div className="sap-example sap-example--wide" key={`${correction.original}-${index}`}><del>{correction.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{correction.better_version || 'Correction'}</ins>{correction.issue ? <small>{correction.issue}</small> : null}</div>)}{textValue(evidence.objective) ? <p><strong>Curriculum focus:</strong> {textValue(evidence.objective)}</p> : null}</details> : null}
+          </article>;
+        })}{!profile.timeline.length ? <div className="sap-empty">No learning evidence is available in this period.</div> : null}</div>
+      </div>
+    </details>
 
     <details className="sap-panel sap-reference">
       <summary><span><strong>How this profile works</strong><small>Definitions, evidence confidence and reporting details</small></span><b>Reference</b></summary>
