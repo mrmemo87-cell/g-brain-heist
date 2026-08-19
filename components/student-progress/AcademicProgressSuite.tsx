@@ -85,6 +85,19 @@ interface AcademicStudentPickerProps {
 
 const displayGrade = (value: string) => /^\d+$/.test(value) ? `Grade ${value}` : value;
 const gradeKey = (value: string | number | null | undefined) => String(value ?? '').trim() || 'Unspecified grade';
+const hasUppercase = (value: string) => /[A-Z]/.test(value);
+
+export const normalizeAcademicSubjectOptions = (values: Iterable<string>): string[] => {
+  const byKey = new Map<string, string>();
+  for (const rawValue of values) {
+    const value = String(rawValue || '').trim();
+    if (!value) continue;
+    const key = value.toLocaleLowerCase();
+    const current = byKey.get(key);
+    if (!current || (!hasUppercase(current) && hasUppercase(value))) byKey.set(key, value);
+  }
+  return [...byKey.values()].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+};
 
 export const AcademicStudentPicker: React.FC<AcademicStudentPickerProps> = ({
   students,
@@ -120,7 +133,10 @@ export const AcademicStudentPicker: React.FC<AcademicStudentPickerProps> = ({
   )).sort((a, b) => a.student_name.localeCompare(b.student_name)), [students, grade, className]);
 
   const selectedStudent = students.find((student) => student.student_id === studentId);
-  const subjects = [...new Set(selectedStudent?.subjects || [])].sort();
+  const subjects = normalizeAcademicSubjectOptions(selectedStudent?.subjects || []);
+  const canonicalSubject = subject === 'all'
+    ? 'all'
+    : subjects.find((value) => value.toLocaleLowerCase() === subject.toLocaleLowerCase()) || subject;
 
   return (
     <section className="aps-picker" aria-label="Student selection">
@@ -132,7 +148,7 @@ export const AcademicStudentPicker: React.FC<AcademicStudentPickerProps> = ({
         <label><span><b>1</b> Grade</span><select value={grade} onChange={(event) => onGradeChange(event.target.value)}><option value="">Choose grade</option>{grades.map((value) => <option key={value} value={value}>{displayGrade(value)}</option>)}</select></label>
         <label><span><b>2</b> Class</span><select value={className} disabled={!grade} onChange={(event) => onClassChange(event.target.value)}><option value="">{grade ? 'Choose class' : 'Choose grade first'}</option>{classes.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
         <label><span><b>3</b> Student</span><select value={studentId} disabled={!className} onChange={(event) => onStudentChange(event.target.value)}><option value="">{className ? 'Choose student' : 'Choose class first'}</option>{classStudents.map((student) => <option key={student.student_id} value={student.student_id}>{student.student_name}</option>)}</select></label>
-        {showSubject ? <label><span><b>4</b> {subjectLabel}</span><select value={subject} disabled={!studentId} onChange={(event) => onSubjectChange?.(event.target.value)}><option value="all">{studentId ? subjectAllLabel : 'Choose student first'}</option>{subjects.map((value) => <option key={value} value={value}>{value}</option>)}</select></label> : null}
+        {showSubject ? <label><span><b>4</b> {subjectLabel}</span><select value={canonicalSubject} disabled={!studentId} onChange={(event) => onSubjectChange?.(event.target.value)}><option value="all">{studentId ? subjectAllLabel : 'Choose student first'}</option>{subjects.map((value) => <option key={value.toLocaleLowerCase()} value={value}>{value}</option>)}</select></label> : null}
       </div>
     </section>
   );
