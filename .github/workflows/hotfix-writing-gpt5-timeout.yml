@@ -1,0 +1,43 @@
+name: Hotfix Writing GPT-5 timeout
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/hotfix-writing-gpt5-timeout.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Restore GPT-5 single-authority assessment path
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('supabase/functions/bh_writing_ai/index.ts')
+          s = p.read_text()
+          old = 'const SINGLE_AUTHORITY_PIPELINE = false;'
+          new = 'const SINGLE_AUTHORITY_PIPELINE = isGpt5Family(WRITING_ASSESSMENT_MODEL);'
+          if old not in s:
+              raise SystemExit('Expected SINGLE_AUTHORITY_PIPELINE line not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Commit validated timeout fix
+        run: |
+          rm -f .github/workflows/hotfix-writing-gpt5-timeout.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Restore GPT-5 Writing single-authority pipeline"
+          git push
