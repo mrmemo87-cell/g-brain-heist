@@ -1242,6 +1242,7 @@ const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiRe
 const buildUserPrompt = (payload: Payload): string => {
   const grade = normalizeGrade(payload.grade) ?? "unknown";
   const genre = payload.genre?.trim() || "unknown";
+  const trusted = payload.trustedTaskSnapshot;
 
   if (payload.mode === "assessment_v2") {
     return [
@@ -1457,9 +1458,8 @@ serve(async (req) => {
     }
   }
 
-  const userPrompt = buildUserPrompt(payload!);
-
   try {
+    const userPrompt = buildUserPrompt(payload!);
     const pipelineStartedAt = Date.now();
     const pipelineTimings: Record<string, number | null> = {
       primary_ms: null,
