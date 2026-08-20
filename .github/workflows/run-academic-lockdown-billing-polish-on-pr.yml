@@ -56,7 +56,7 @@ jobs:
 
       - name: Remove temporary harness
         run: |
-          rm .github/scripts/apply_academic-lockdown-billing-polish.py
+          rm .github/scripts/apply_academic_lockdown_billing_polish.py
           rm .github/workflows/apply-academic-lockdown-billing-polish.yml
           rm .github/workflows/run-academic-lockdown-billing-polish-on-pr.yml
 
