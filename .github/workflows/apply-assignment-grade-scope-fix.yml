@@ -1,0 +1,94 @@
+name: Apply assignment grade-scope fix
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    if: github.head_ref == 'fix/assignment-grade-scoped-verified-questions'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Apply guarded assignment picker patch
+        run: python .github/scripts/apply_assignment_grade_scope_fix.py
+
+      - name: Verify grade-scoping contract
+        shell: python
+        run: |
+          from pathlib import Path
+          source = Path('components/teacher/AssignmentWizard.tsx').read_text()
+          required = [
+            "const audienceGrades = useMemo",
+            "const matchesAudienceGrades = !isBrainsHeistPoolQuestion(question, teacherId)",
+            "audienceGrades.every((grade) => eligibleGrades.includes(grade))",
+            "setAssignmentQuestionIds((current) =>",
+          ]
+          for marker in required:
+            if marker not in source:
+              raise SystemExit(f'Missing assignment grade-scope marker: {marker}')
+          if "if (!question || !isBrainsHeistPoolQuestion(question, teacherId)) return true;" not in source:
+            raise SystemExit('My Pool bypass contract missing')
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
+
+      - name: Diff check
+        run: git diff --check
+
+      - name: Remove temporary patch harness
+        run: |
+          rm .github/scripts/apply_assignment_grade_scope_fix.py
+          rm .github/workflows/apply-assignment-grade-scope-fix.yml
+
+      - name: Verify final changed files
+        run: |
+          python - <<'PY'
+          import subprocess
+          allowed = {
+            'components/teacher/AssignmentWizard.tsx',
+            'supabase/migrations/20260820083539_backfill_verified_questions_when_grade_scope_activated.sql',
+            '.github/scripts/apply_assignment_grade_scope_fix.py',
+            '.github/workflows/apply-assignment-grade-scope-fix.yml',
+          }
+          rows = subprocess.check_output(['git', 'status', '--porcelain'], text=True).splitlines()
+          paths = {row[3:] for row in rows if len(row) > 3}
+          unexpected = sorted(paths - allowed)
+          if unexpected:
+            raise SystemExit('Unexpected files changed: ' + ', '.join(unexpected))
+          if 'components/teacher/AssignmentWizard.tsx' not in paths:
+            raise SystemExit('AssignmentWizard.tsx was not changed')
+          if '.github/scripts/apply_assignment_grade_scope_fix.py' not in paths or '.github/workflows/apply-assignment-grade-scope-fix.yml' not in paths:
+            raise SystemExit('Temporary harness was not removed from final tree')
+          PY
+
+      - name: Commit verified source changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            components/teacher/AssignmentWizard.tsx \
+            supabase/migrations/20260820083539_backfill_verified_questions_when_grade_scope_activated.sql \
+            .github/scripts/apply_assignment_grade_scope_fix.py \
+            .github/workflows/apply-assignment-grade-scope-fix.yml
+          git commit -m "Scope verified assignment questions to selected grades"
+          git push origin HEAD:${{ github.head_ref }}
