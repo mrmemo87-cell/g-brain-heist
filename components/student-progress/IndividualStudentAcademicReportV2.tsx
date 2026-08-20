@@ -45,9 +45,10 @@ const observationSignal = (item: TimelineItem) => {
   return bounded == null ? 62 : 48 + bounded * 0.24;
 };
 const trendPositionLabel = (score: number) => score >= 78 ? 'Strong evidence' : score >= 46 ? 'Developing evidence' : 'Needs support';
-const buildPrintTrendEvents = (items: TimelineItem[], subject: string): PrintTrendEvent[] => {
+const buildPrintTrendEvents = (items: TimelineItem[], subject: string, sourceType?: TimelineItem['source_type']): PrintTrendEvent[] => {
   const groups = new Map<string, { values: number[]; observedAt: string; source: string; detail: string; label: string }>();
-  items.filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject)).forEach((item) => {
+  items.filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject)
+    && (!sourceType || item.source_type === sourceType)).forEach((item) => {
     const key = `${item.source_type}:${item.source_id || item.observed_at}`;
     const group = groups.get(key) || {
       values: [],
@@ -83,7 +84,7 @@ const PrintSubjectTrendChart: React.FC<{ subject: string; events: PrintTrendEven
   const yAt = (value: number) => top + ((100 - value) / 100) * usableHeight;
   const points = events.map((event, index) => `${xAt(index)},${yAt(event.score)}`).join(' ');
   const delta = events.length > 1 ? events[events.length - 1].score - events[0].score : 0;
-  const trendText = events.length < 2 ? 'One evidence point so far' : delta >= 10 ? 'Overall evidence is moving up' : delta <= -10 ? 'Recent evidence needs attention' : 'Overall evidence is broadly steady';
+  const trendText = events.length === 0 ? 'No evidence in this period' : events.length < 2 ? 'One evidence point so far' : delta >= 10 ? 'Overall evidence is moving up' : delta <= -10 ? 'Recent evidence needs attention' : 'Overall evidence is broadly steady';
 
   return <article className="sap-print-trend-card">
     <header><div><h3>{subject}</h3><span>Subject trend for this reporting period</span></div><strong>{trendText}</strong></header>
@@ -115,8 +116,16 @@ const IndividualStudentAcademicReportV2: React.FC<IndividualStudentAcademicRepor
   const improving = profile.focus_areas.filter((item) => item.status === 'improving');
   const resolved = profile.focus_areas.filter((item) => item.status === 'resolved');
   const printTrendSubjects = useMemo(() => normalizeAcademicSubjectOptions(profile.timeline.map((item) => item.subject))
-    .map((subject) => ({ subject, events: buildPrintTrendEvents(profile.timeline, subject) }))
-    .filter((entry) => entry.events.length > 0), [profile.timeline]);
+    .flatMap((subject) => {
+      if (normalizeSubject(subject) === 'english') {
+        return [
+          { subject: `${subject} — Writing Hub`, events: buildPrintTrendEvents(profile.timeline, subject, 'writing_attempt') },
+          { subject: `${subject} — Assignments`, events: buildPrintTrendEvents(profile.timeline, subject, 'assignment_result') },
+        ];
+      }
+      const events = buildPrintTrendEvents(profile.timeline, subject);
+      return events.length > 0 ? [{ subject, events }] : [];
+    }), [profile.timeline]);
   const sectionNumbers = useMemo(() => {
     let next = 1;
     const take = () => next++;
