@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { test } from 'node:test';
+const grade6 = JSON.parse(readFileSync('supabase/seed/admission-official-bank/english/grade_6.json', 'utf8'));
+const passages = JSON.parse(readFileSync('supabase/seed/admission-official-bank/shared/reading_passages.json', 'utf8'));
+const rubrics = JSON.parse(readFileSync('supabase/seed/admission-official-bank/shared/writing_rubrics.json', 'utf8'));
+const grade6Passages = passages.passages.filter((passage) => passage.grade_level === 6 && passage.content_version === 'adm-bank-v1-g6-english');
+const grade6Rubrics = rubrics.rubrics.filter((rubric) => rubric.grade_level === 6 && rubric.content_version === 'adm-bank-v1-g6-english');
+test('Grade 6 English official bank v1 has required content counts', () => {
+    assert.equal(grade6Passages.length, 5);
+    assert.equal(grade6Rubrics.length, 1);
+    assert.equal(grade6.questions.length, 96);
+    const byType = new Map();
+    const bySkill = new Map();
+    for (const question of grade6.questions) {
+        byType.set(question.question_type, (byType.get(question.question_type) ?? 0) + 1);
+        bySkill.set(question.diagnostic_skill, (bySkill.get(question.diagnostic_skill) ?? 0) + 1);
+    }
+    assert.equal(byType.get('reading_comprehension'), 30);
+    assert.equal(bySkill.get('Grammar'), 30);
+    assert.equal(bySkill.get('Vocabulary and language use'), 30);
+    assert.equal(byType.get('writing_prompt'), 6);
+});
+test('Grade 6 English reading questions and writing prompts are linked', () => {
+    const passageIds = new Set(grade6Passages.map((passage) => passage.external_id));
+    const rubricIds = new Set(grade6Rubrics.map((rubric) => rubric.external_id));
+    const reading = grade6.questions.filter((question) => question.question_type === 'reading_comprehension');
+    assert.equal(new Set(reading.map((question) => question.passage_external_id)).size, 5);
+    for (const question of reading)
+        assert.ok(passageIds.has(question.passage_external_id), `${question.external_id} must link to a Grade 6 passage`);
+    const writing = grade6.questions.filter((question) => question.question_type === 'writing_prompt');
+    for (const question of writing)
+        assert.ok(rubricIds.has(question.rubric_external_id), `${question.external_id} must link to the Grade 6 rubric`);
+});
+test('Grade 6 English official bank v1 has intended placement band distribution', () => {
+    const byBand = new Map();
+    for (const question of grade6.questions)
+        byBand.set(question.placement_band, (byBand.get(question.placement_band) ?? 0) + 1);
+    assert.equal(byBand.get('foundation'), 36);
+    assert.equal(byBand.get('target'), 46);
+    assert.equal(byBand.get('stretch'), 14);
+});
+test('Grade 6 English official bank v1 uses production metadata and no sample labels', () => {
+    assert.equal(grade6.content_version, 'adm-bank-v1-g6-english');
+    assert.equal(grade6.source_label, 'Brains Heist Official Admission Bank');
+    for (const record of [...grade6.pools, ...grade6.questions, ...grade6Passages, ...grade6Rubrics]) {
+        assert.equal(record.content_version, 'adm-bank-v1-g6-english');
+        assert.equal(record.source_label, 'Brains Heist Official Admission Bank');
+        assert.equal(record.is_official, true);
+        assert.equal(record.is_locked, true);
+        assert.equal(record.content_owner, 'brain_heist');
+        assert.doesNotMatch(JSON.stringify(record).toLowerCase(), /\b(sample|dev)\b/);
+    }
+});

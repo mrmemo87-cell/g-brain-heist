@@ -1,0 +1,201 @@
+const STUDENT_GATES = ['pvp', 'raids', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
+const SOLO_GATES = ['pvp', 'raids', 'clans', 'leaderboard', 'upgrade_prompts'];
+const TEACHER_GATES = ['pvp', 'raids', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
+const ADMIN_GATES = ['pvp', 'raids', 'clans', 'shop', 'inventory', 'leaderboard'];
+const isMissingSchoolPlacement = (profile) => {
+    if (!profile || profile.role !== 'student' || !profile.school_id)
+        return false;
+    return profile.grade === null || profile.grade === undefined || !profile.batch;
+};
+const hasCompletedState = (input) => Boolean(input.onboardingState?.core_completed_at);
+const hasLegacyCompletion = (input) => {
+    const { profile, onboardingState } = input;
+    if (!profile || onboardingState)
+        return false;
+    // Safety-first migration path: teachers/admins and learners who already
+    // completed the legacy tutorial can stay on the old dashboard if their new
+    // FTUE state has not been created yet. Learners with tutorial_completed=false
+    // remain eligible so Phase 1A can take over instead of letting the legacy
+    // tutorial modal become their primary onboarding experience.
+    if (profile.needs_setup !== false)
+        return false;
+    if (profile.role === 'teacher' || profile.role === 'admin' || profile.role === 'school_admin')
+        return true;
+    return Boolean(profile.role && profile.tutorial_completed === true);
+};
+const isLearnerSegment = (segment) => segment === 'school_student' || segment === 'solo_learner';
+const readSelectedSetupRole = (input) => {
+    const selectedRole = input.onboardingState?.metadata?.['selected_role']
+        ?? input.onboardingState?.metadata?.['setup_selected_role'];
+    return typeof selectedRole === 'string' ? selectedRole : undefined;
+};
+const resolveProfilelessSetupSegment = (input) => {
+    const stateSegment = input.onboardingState?.segment;
+    const selectedRole = readSelectedSetupRole(input);
+    // SetupWizard can successfully save the learner onboarding row before the
+    // immediate public.users refresh becomes readable. Only trust this fallback
+    // for explicit student setup rows so teacher/admin bypasses cannot be pulled
+    // into the learner FTUE by a missing profile read.
+    if (selectedRole !== 'student' || !isLearnerSegment(stateSegment))
+        return null;
+    return {
+        segment: stateSegment,
+        context: input.onboardingState?.context_type === 'school' ? 'school' : 'solo',
+        reason: 'student_setup_profile_pending',
+    };
+};
+const resolveSegment = (input) => {
+    const { profile, flags, inviteToken } = input;
+    const role = profile?.role;
+    if (!profile) {
+        return resolveProfilelessSetupSegment(input) ?? { segment: 'none', context: 'none', reason: 'missing_profile' };
+    }
+    if (inviteToken)
+        return { segment: 'school_student', context: 'school', reason: 'invite_token_present' };
+    if (role === 'school_admin') {
+        if (!flags.admin_ftue_enabled)
+            return { segment: 'none', context: 'none', reason: 'admin_ftue_disabled' };
+        return { segment: 'school_admin', context: 'admin_school', reason: 'school_admin_role' };
+    }
+    if (role === 'teacher') {
+        if (!flags.teacher_ftue_enabled)
+            return { segment: 'none', context: 'none', reason: 'teacher_ftue_disabled' };
+        return { segment: 'teacher', context: profile.school_id ? 'school' : 'teacher_trial', reason: 'teacher_role' };
+    }
+    if (role === 'student' || !role) {
+        if (profile.school_id)
+            return { segment: 'school_student', context: 'school', reason: 'student_with_school' };
+        return { segment: 'solo_learner', context: 'solo', reason: role ? 'student_without_school' : 'unknown_role_defaults_to_learner' };
+    }
+    return { segment: 'none', context: 'none', reason: 'unsupported_role' };
+};
+const deriveNextStep = (input, segment) => {
+    const stateStep = input.onboardingState?.current_step;
+    if (stateStep && stateStep !== 'complete') {
+        // Goal/mission/reward prompts belonged to the retired questionnaire-led
+        // FTUE. Resume learners in the short dashboard introduction instead.
+        if (isLearnerSegment(segment) && ['goal', 'mission_brief', 'mission_started', 'reward_reveal'].includes(stateStep)) {
+            return 'dashboard_reveal';
+        }
+        return stateStep;
+    }
+    switch (segment) {
+        case 'school_student':
+            if (isMissingSchoolPlacement(input.profile))
+                return 'placement';
+            return 'mission_brief';
+        case 'solo_learner':
+            return 'intent';
+        case 'teacher':
+            return input.profile?.school_id ? 'starter_mission' : 'teacher_context';
+        case 'school_admin':
+            return 'admin_checklist';
+        default:
+            return 'intent';
+    }
+};
+const getRequiredData = (step) => {
+    switch (step) {
+        case 'placement':
+            return ['grade', 'batch'];
+        case 'school_confirm':
+            return ['school_id'];
+        case 'teacher_context':
+            return ['teacher_context'];
+        case 'class_setup':
+            return ['class_name'];
+        case 'admin_checklist':
+            return ['school_id'];
+        default:
+            return [];
+    }
+};
+const getGates = (segment, revealLevel) => {
+    if (revealLevel === 'normal_dashboard' || revealLevel === 'disabled')
+        return [];
+    switch (segment) {
+        case 'school_student':
+            return STUDENT_GATES;
+        case 'solo_learner':
+            return SOLO_GATES;
+        case 'teacher':
+            return TEACHER_GATES;
+        case 'school_admin':
+            return ADMIN_GATES;
+        default:
+            return [];
+    }
+};
+const getPrimaryCta = (step) => {
+    switch (step) {
+        case 'placement':
+            return 'Confirm class';
+        case 'mission_brief':
+            return 'Start mission';
+        case 'teacher_context':
+            return 'Set up teaching context';
+        case 'starter_mission':
+            return 'Prepare starter mission';
+        case 'admin_checklist':
+            return 'Review setup checklist';
+        case 'dashboard_reveal':
+            return 'Continue to dashboard';
+        default:
+            return 'Continue';
+    }
+};
+const getFallbackRoute = (segment) => {
+    switch (segment) {
+        case 'teacher':
+            return '/?view=teacher';
+        case 'school_admin':
+            return '/?view=school_admin';
+        default:
+            return '/';
+    }
+};
+/**
+ * Minimal Phase 1 resolver. It deliberately avoids a generic workflow engine:
+ * the output is a small routing/gating decision that future FTUE screens can use
+ * while existing dashboards continue to run unchanged behind feature flags.
+ */
+export const resolveOnboarding = (input) => {
+    if (!input.flags.ftue_enabled) {
+        return {
+            eligible: false,
+            isComplete: true,
+            segment: 'none',
+            context: 'none',
+            state: input.onboardingState,
+            nextStep: 'complete',
+            featureRevealLevel: 'disabled',
+            requiredData: [],
+            gates: [],
+            primaryCta: 'Continue',
+            fallbackRoute: '/',
+            reason: 'ftue_disabled',
+        };
+    }
+    const segmentResult = resolveSegment(input);
+    const complete = hasCompletedState(input) || hasLegacyCompletion(input);
+    const nextStep = complete ? 'complete' : deriveNextStep(input, segmentResult.segment);
+    const revealLevel = complete
+        ? 'normal_dashboard'
+        : nextStep === 'dashboard_reveal'
+            ? 'first_run_dashboard'
+            : 'ftue_active';
+    return {
+        eligible: segmentResult.segment !== 'none',
+        isComplete: complete,
+        segment: segmentResult.segment,
+        context: segmentResult.context,
+        state: input.onboardingState,
+        nextStep,
+        featureRevealLevel: revealLevel,
+        requiredData: getRequiredData(nextStep),
+        gates: input.flags.progressive_reveal_enabled ? getGates(segmentResult.segment, revealLevel) : [],
+        primaryCta: getPrimaryCta(nextStep),
+        fallbackRoute: getFallbackRoute(segmentResult.segment),
+        reason: complete ? 'complete' : segmentResult.reason,
+    };
+};
