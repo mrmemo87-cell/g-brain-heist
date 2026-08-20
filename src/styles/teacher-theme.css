@@ -343,10 +343,10 @@
 
 .teacher-sidebar {
   position: sticky;
-  top: 88px;
+  top: 72px;
   z-index: 5;
-  max-height: calc(100vh - 104px);
-  max-height: calc(100dvh - 104px);
+  max-height: calc(100vh - 84px);
+  max-height: calc(100dvh - 84px);
   min-width: 0;
   overflow-x: clip;
   overflow-y: auto;
@@ -4207,4 +4207,83 @@
   .teacher-tools-grid--single {
     grid-template-columns: minmax(0, 38rem);
   }
+}
+
+
+/* ============================================================
+   TEACHER DASHBOARD INTERFACE COLOR PARITY
+   Uses the same saved interface colour selected in Settings.
+   ============================================================ */
+body[data-student-theme-color="blue"] .teacher-portal {
+  --teacher-primary: #0ea5e9;
+  --teacher-primary-dark: #0369a1;
+  --teacher-primary-light: #38bdf8;
+  --teacher-accent: #6366f1;
+  --teacher-primary-soft: #e0f2fe;
+  --teacher-primary-ink: #075985;
+  --teacher-gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+}
+body[data-student-theme-color="pink"] .teacher-portal {
+  --teacher-primary: #ec4899;
+  --teacher-primary-dark: #be185d;
+  --teacher-primary-light: #f472b6;
+  --teacher-accent: #a855f7;
+  --teacher-primary-soft: #fce7f3;
+  --teacher-primary-ink: #9d174d;
+  --teacher-gradient-primary: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+}
+body[data-student-theme-color="green"] .teacher-portal {
+  --teacher-primary: #10b981;
+  --teacher-primary-dark: #047857;
+  --teacher-primary-light: #34d399;
+  --teacher-accent: #14b8a6;
+  --teacher-primary-soft: #d1fae5;
+  --teacher-primary-ink: #065f46;
+  --teacher-gradient-primary: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+}
+body[data-student-theme-color="purple"] .teacher-portal {
+  --teacher-primary: #8b5cf6;
+  --teacher-primary-dark: #6d28d9;
+  --teacher-primary-light: #a78bfa;
+  --teacher-accent: #ec4899;
+  --teacher-primary-soft: #ede9fe;
+  --teacher-primary-ink: #5b21b6;
+  --teacher-gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+}
+body[data-student-theme-color="red"] .teacher-portal {
+  --teacher-primary: #ef4444;
+  --teacher-primary-dark: #b91c1c;
+  --teacher-primary-light: #fb7185;
+  --teacher-accent: #f59e0b;
+  --teacher-primary-soft: #fee2e2;
+  --teacher-primary-ink: #991b1b;
+  --teacher-gradient-primary: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);
+}
+body[data-student-theme-color="dark"] .teacher-portal {
+  --teacher-primary: #475569;
+  --teacher-primary-dark: #1e293b;
+  --teacher-primary-light: #94a3b8;
+  --teacher-accent: #0ea5e9;
+  --teacher-primary-soft: #e2e8f0;
+  --teacher-primary-ink: #1e293b;
+  --teacher-gradient-primary: linear-gradient(135deg, #475569 0%, #0ea5e9 100%);
+}
+.teacher-portal .teacher-nav-btn.active,
+.teacher-portal .teacher-cambridge-tab.active,
+.teacher-portal .teacher-btn-primary {
+  background: var(--teacher-gradient-primary);
+}
+.teacher-portal .teacher-header-badge {
+  background: var(--teacher-primary-soft, #e0f2fe);
+  border-color: var(--teacher-primary-light);
+  color: var(--teacher-primary-ink, #075985);
+}
+.teacher-portal .teacher-sidebar-toggle:hover {
+  border-color: var(--teacher-primary-light);
+  background: var(--teacher-primary-soft, #f0f9ff);
+  color: var(--teacher-primary-dark);
+}
+.teacher-portal .teacher-sidebar-toggle:focus-visible,
+.teacher-portal .teacher-nav-btn:focus-visible {
+  outline-color: var(--teacher-primary-light);
 }

@@ -53,6 +53,8 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
   // Text editing state
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [editingTextValue, setEditingTextValue] = useState('');
+  const [labelDraft, setLabelDraft] = useState('');
+  const [labelFontSize, setLabelFontSize] = useState(24);
   
   // Saved questions
   const [savedQuestions, setSavedQuestions] = useState<GeometryQuestion[]>([]);
@@ -152,6 +154,8 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
       // Add blank metadata to diagram
       const diagramWithBlanks = JSON.parse(diagramJson);
       diagramWithBlanks.blanks = blanks;
+      diagramWithBlanks.brainHeistDiagramVersion = 2;
+      diagramWithBlanks.brainHeistShapes = shapes;
       const finalDiagramJson = JSON.stringify(diagramWithBlanks);
 
       if (editingQuestionId) {
@@ -214,8 +218,10 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
         setBlanks(diagramData.blanks);
       }
       
-      // Restore shapes (would need to parse from Konva JSON)
-      // For now, just load the blanks with their answers
+      // Newer diagrams keep an explicit editable shape model alongside the
+      // existing Konva JSON. Older saved diagrams remain backward-compatible.
+      setShapes(Array.isArray(diagramData.brainHeistShapes) ? diagramData.brainHeistShapes : []);
+      setSelectedShapeIds([]);
       setTitle(question.title);
       setSubject(question.subject);
       setTopic(question.topic);
@@ -288,8 +294,8 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
       ) : savedQuestions.length === 0 ? (
         <div className="card-glass p-12 text-center">
           <div className="text-6xl mb-4">📐</div>
-          <p className="text-xl text-gray-400 mb-4">No geometry diagrams yet</p>
-          <p className="text-gray-500 mb-6">Create interactive diagram questions with blank fields for students to fill in.</p>
+          <p className="text-xl text-gray-300 mb-4">No geometry diagrams yet</p>
+          <p className="text-gray-400 mb-6">Build clean classroom diagrams, export a high-resolution PNG for a normal question, or add answer blanks for an interactive diagram question.</p>
           <button
             onClick={handleNewDiagram}
             className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-semibold hover:scale-105 transition-all"
@@ -360,6 +366,27 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
     setShapes([...shapes, ...newShapes]);
   };
 
+  const handleAddLabel = () => {
+    const text = labelDraft.trim();
+    if (!text) return;
+    const id = generateShapeId('text');
+    const offset = shapes.filter((shape) => shape.type === 'text').length % 6;
+    const newLabel: DiagramShape = {
+      id,
+      type: 'text',
+      x: 90 + offset * 24,
+      y: 80 + offset * 22,
+      text,
+      fontSize: labelFontSize,
+      fill: '#f8fafc',
+      fontFamily: 'Arial',
+    };
+    setShapes((current) => [...current, newLabel]);
+    setSelectedShapeIds([id]);
+    setActiveTool('select');
+    setLabelDraft('');
+  };
+
   // Add math symbol as text shape
   const handleAddSymbol = (symbol: string) => {
     const newTextShape: DiagramShape = {
@@ -383,10 +410,10 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
 
   const saveTextEdit = () => {
     if (editingTextId) {
-      setShapes(shapes.map(s =>
-        s.id === editingTextId
-          ? { ...s, text: editingTextValue }
-          : s
+      const nextText = editingTextValue.trim();
+      if (!nextText) return;
+      setShapes((current) => current.map((shape) =>
+        shape.id === editingTextId ? { ...shape, text: nextText } : shape
       ));
       setEditingTextId(null);
       setEditingTextValue('');
@@ -481,9 +508,9 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
 
   // Render editor view
   const renderEditor = () => (
-    <div className="flex gap-4">
+    <div className="flex flex-col gap-4 xl:flex-row">
       {/* Left Toolbar */}
-      <div className="w-40 flex-shrink-0">
+      <div className="w-full flex-shrink-0 xl:w-44">
         <DiagramToolbar
           activeTool={activeTool}
           onToolChange={setActiveTool}
@@ -529,6 +556,20 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
           </div>
         </div>
 
+        <section className="mb-4 rounded-xl border border-slate-700 bg-slate-900/80 p-4">
+          <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
+            <label className="grid gap-1 text-xs font-semibold text-slate-300">Labels & annotations
+              <input value={labelDraft} onChange={(event: { target: { value: string } }) => setLabelDraft(event.target.value)} onKeyDown={(event: { key: string; preventDefault: () => void }) => { if (event.key === 'Enter') { event.preventDefault(); handleAddLabel(); } }} placeholder="e.g. A, 45°, radius, 6 cm" className="min-h-11 rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white placeholder:text-slate-500" />
+            </label>
+            <label className="grid gap-1 text-xs font-semibold text-slate-300">Size
+              <select value={labelFontSize} onChange={(event: { target: { value: string } }) => setLabelFontSize(Number(event.target.value))} className="min-h-11 rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white"><option value={18}>Small</option><option value={24}>Medium</option><option value={32}>Large</option></select>
+            </label>
+            <button type="button" onClick={handleAddLabel} disabled={!labelDraft.trim()} className="self-end min-h-11 rounded-lg bg-cyan-600 px-4 text-sm font-bold text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-40">Add label</button>
+          </div>
+          <div className="mt-3 grid gap-2 text-xs text-slate-400 sm:grid-cols-3"><span><strong className="text-slate-200">1.</strong> Build the figure</span><span><strong className="text-slate-200">2.</strong> Add clear labels</span><span><strong className="text-slate-200">3.</strong> Export PNG or add blanks</span></div>
+          <p className="mt-2 text-[11px] leading-5 text-slate-500">Select and drag labels to position them. Double-click or double-tap an existing label to edit its wording.</p>
+        </section>
+
         {/* Shapes Library - Horizontal above canvas */}
         <div className="mb-4">
           <ShapesLibrary onAddShape={handleAddShapesFromLibrary} onAddSymbol={handleAddSymbol} />
@@ -537,7 +578,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
         {/* Canvas with instruction */}
         <div className="relative">
           <div className="absolute top-2 right-2 z-10 text-xs text-gray-400 bg-slate-900/90 px-2 py-1 rounded border border-slate-700">
-            💡 Drag to multi-select • Shift+click to add • Double-click text to edit
+            Drag to move/select • Resize with handles • Double-click labels to edit
           </div>
           <KonvaCanvasEditor
             height={450}
