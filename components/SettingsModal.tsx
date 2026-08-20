@@ -574,7 +574,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </fieldset>
 
-              {profile.role === 'student' ? (
+              {(profile.role === 'student' || profile.role === 'teacher') ? (
                 <fieldset className="border-t border-gray-700 pt-4">
                   <legend className="font-semibold text-white">Interface color</legend>
                   <p className="mt-1 text-sm text-gray-400">Choose a complete dashboard personality. Your selection changes surfaces, navigation, buttons, progress, cards, and glow.</p>
@@ -593,7 +593,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div className="student-theme-live-preview__chips" aria-hidden><span>Learn</span><span>Tasks</span><span>Profile</span></div>
                   </div>
 
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label="Student dashboard interface color">
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label="Dashboard interface color">
                     {STUDENT_THEME_COLORS.map((color) => {
                       const option = THEME_COLOR_OPTIONS[color];
                       const selected = studentThemeColor === color;

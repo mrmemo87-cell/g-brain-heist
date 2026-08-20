@@ -9,7 +9,7 @@ import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import SettingsModal from './SettingsModal';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
-const HelpModal = React.lazy(() => import('./HelpModal'));
+const TeacherGuideHelpModal = React.lazy(() => import('./TeacherGuideHelpModal'));
 import { NotificationCenter } from './NotificationCenter';
 const DiagramBuilder = React.lazy(() => import('./geometry/DiagramBuilder'));
 const QuestionBank = React.lazy(() => import('./teacher/QuestionBank'));
@@ -38,7 +38,8 @@ import { notificationService } from '../services/notificationService';
 const WritingMonitoringView = React.lazy(() => import('../src/pages/writing/WritingMonitoringView'));
 const WritingAnalyticsDashboard = React.lazy(() => import('../src/pages/writing/WritingAnalyticsDashboard'));
 const WritingExportCenter = React.lazy(() => import('../src/pages/writing/WritingExportCenter'));
-const SchoolDocumentCenter = React.lazy(() => import('../src/components/SchoolDocumentCenter'));
+const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
+const TeacherInterventionIntelligencePage = React.lazy(() => import('./student-progress/TeacherInterventionIntelligencePage'));
 const ClanTerritoryManager = React.lazy(() => import('../src/features/clanTerritory/ClanTerritoryManager'));
 import { normalizePart2CommunicativeAchievement, sanitizeCommunicativeAchievementText } from '../src/lib/writingCommunicativeAchievement';
 import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
@@ -72,8 +73,8 @@ interface TeacherPortalProps {
 // Plan details state (fetched once)
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 
-export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
-type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'interventions' | 'documents' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
+export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'academic-profiles' | 'interventions' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
+type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
 const TEACHER_VIEW_FEATURES: Partial<Record<PortalView, FeatureKey>> = {
@@ -86,7 +87,8 @@ const TEACHER_VIEW_FEATURES: Partial<Record<PortalView, FeatureKey>> = {
   'report-detail': FEATURE_KEYS.REPORTS,
   'report-analysis': FEATURE_KEYS.REPORTS,
   'collective-report': FEATURE_KEYS.REPORTS,
-  documents: FEATURE_KEYS.REPORTS,
+  'academic-profiles': FEATURE_KEYS.REPORTS,
+  interventions: FEATURE_KEYS.REPORTS,
   'writing-hub': FEATURE_KEYS.WRITING_HUB,
   'writing-monitoring': FEATURE_KEYS.WRITING_HUB,
   'writing-analytics': FEATURE_KEYS.WRITING_HUB,
@@ -102,7 +104,6 @@ const TEACHER_SECTION_FEATURES: Partial<Record<TeacherNavSection, FeatureKey>> =
   reports: FEATURE_KEYS.REPORTS,
   'academic-profiles': FEATURE_KEYS.REPORTS,
   interventions: FEATURE_KEYS.REPORTS,
-  documents: FEATURE_KEYS.REPORTS,
   'writing-hub': FEATURE_KEYS.WRITING_HUB,
   cambridge: FEATURE_KEYS.CAMBRIDGE_TESTS,
   'clan-wars': FEATURE_KEYS.CLANS,
@@ -172,7 +173,7 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
   return { grammar, punctuation };
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard' }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard' }) => {
   const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
   const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
   const initialWritingSection: WritingHubSection =
@@ -180,9 +181,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       initialView === 'writing-export-center' ? 'reports' :
         'monitor';
   const normalizedInitialView: PortalView =
-    ['writing-monitoring', 'writing-analytics', 'writing-export-center'].includes(initialView)
-      ? 'writing-hub'
-      : initialView;
+    initialView === 'documents'
+      ? 'dashboard'
+      : ['writing-monitoring', 'writing-analytics', 'writing-export-center'].includes(initialView)
+        ? 'writing-hub'
+        : initialView;
   const [view, setView] = useState<PortalView>(normalizedInitialView);
   const [writingHubSection, setWritingHubSection] = useState<WritingHubSection>(initialWritingSection);
   const [writingHubFilterQuery, setWritingHubFilterQuery] = useState('');
@@ -746,7 +749,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const primarySection = useMemo<TeacherNavSection>(() => {
     if (view === 'dashboard') return 'dashboard';
     if (view === 'students') return 'students';
-    if (view === 'documents') return 'documents';
+    if (view === 'academic-profiles') return 'academic-profiles';
+    if (view === 'interventions') return 'interventions';
+    if (view === 'documents') return 'dashboard';
     if (view === 'join-school') return 'join-school';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
@@ -770,15 +775,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
 
-    if (section === 'academic-profiles') {
-      window.location.assign('/teacher-academic-profiles.html');
-      return;
-    }
-
-    if (section === 'interventions') {
-      window.location.assign('/teacher-interventions.html');
-      return;
-    }
     if (view === 'create-assignment') {
       const hasProgress = Boolean(
         assignmentQuestionIds.length ||
@@ -820,8 +816,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setAssignmentReport([]);
         setView('reports');
         break;
-      case 'documents':
-        setView('documents');
+      case 'academic-profiles':
+        setView('academic-profiles');
+        break;
+      case 'interventions':
+        setView('interventions');
         break;
       case 'writing-hub':
         setView('writing-hub');
@@ -839,7 +838,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       default:
         setView('dashboard');
     }
-    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
   };
 
   useEffect(() => {
@@ -4134,36 +4132,23 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             </>;
           })()}
 
-          {/* Clan Wars follows the Clans entitlement; Lockdown remains Free. */}
+          {/* Lockdown Mode opens the official class-battle workspace. */}
           {(() => {
-            const clanLocked = !canUseTeacherFeature(FEATURE_KEYS.CLANS);
+            const lockdownLocked = !canUseTeacherFeature(FEATURE_KEYS.CLANS);
             return (
               <button
-                onClick={() => !clanLocked ? setView('clan-wars') : showFeatureUnavailable('Clan Wars')}
-                className={`teacher-action-card teacher-action-card-lockdown teacher-action-card--mini ${clanLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={() => !lockdownLocked ? setView('clan-wars') : showFeatureUnavailable('Lockdown Mode')}
+                className={`teacher-action-card teacher-action-card-lockdown teacher-action-card--mini ${lockdownLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                 data-color="emerald"
-                disabled={clanLocked}
+                disabled={lockdownLocked}
               >
-                {clanLocked && <span className="teacher-pro-badge">PRO</span>}
-                <div className="teacher-action-icon">⚔️</div>
-                <h4 className="teacher-action-title">Clan Wars</h4>
-                <p className="teacher-action-desc">Host an official class battle</p>
+                {lockdownLocked && <span className="teacher-pro-badge">PRO</span>}
+                <div className="teacher-action-icon">🔒</div>
+                <h4 className="teacher-action-title">Lockdown Mode</h4>
+                <p className="teacher-action-desc">Run an official live class battle</p>
               </button>
             );
           })()}
-
-          {onLockdown && (
-            <button
-              onClick={onLockdown}
-              className="teacher-action-card teacher-action-card-lockdown teacher-action-card--mini"
-              data-color="rose"
-            >
-              {effectiveEntitlements?.plan === 'free' && <span className="teacher-free-badge">FREE</span>}
-              <div className="teacher-action-icon">🔒</div>
-              <h4 className="teacher-action-title">Lockdown Mode</h4>
-              <p className="teacher-action-desc">Host or join a live room-code heist</p>
-            </button>
-          )}
 
         </div>
       </div>
@@ -8172,7 +8157,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
     { id: 'academic-profiles', label: 'Academic Profiles', icon: '🎓', description: 'Progress, Strengths & Focus Areas', proOnly: true },
     { id: 'interventions', label: 'Interventions', icon: '🎯', description: 'Targeted Support & Follow-up', proOnly: true },
-    ...(profile.school_id ? [{ id: 'documents' as const, label: 'Document Center', icon: '🗃️', description: 'Print History & Reprints', proOnly: true }] : []),
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     ...(canAccessWritingInsights && canUseWritingModule
       ? [
@@ -8212,7 +8196,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       reports: 'Performance Reports',
       'academic-profiles': 'Performance Reports',
       interventions: 'Performance Reports',
-      documents: 'Performance Reports',
       'writing-hub': 'Performance Reports',
       cambridge: 'Cambridge Marking',
     };
@@ -8424,7 +8407,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         />
       )}
       {showHelp && (
-        <HelpModal
+        <TeacherGuideHelpModal
           onClose={() => setShowHelp(false)}
           placement="header-bottom"
           headerOffsetPx={topNavHeight}
@@ -8570,7 +8553,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           {view === 'assignments' && renderAssignments()}
           {view === 'create-assignment' && renderCreateAssignment()}
           {view === 'reports' && renderReports()}
-          {view === 'documents' && profile.school_id && <SchoolDocumentCenter schoolId={profile.school_id} mode="teacher" />}
+          {view === 'academic-profiles' && (
+            <React.Suspense fallback={<div className="teacher-section-loading">Preparing Academic Profiles…</div>}>
+              <TeacherAcademicProfilesPage onBack={() => setView('dashboard')} />
+            </React.Suspense>
+          )}
+          {view === 'interventions' && (
+            <React.Suspense fallback={<div className="teacher-section-loading">Preparing Student Support Plans…</div>}>
+              <TeacherInterventionIntelligencePage onBack={() => setView('dashboard')} />
+            </React.Suspense>
+          )}
           {view === 'writing-hub' && canAccessWritingInsights && (
             <section className="teacher-writing-hub" aria-labelledby="writing-hub-title">
               <div className="teacher-writing-hub__header">

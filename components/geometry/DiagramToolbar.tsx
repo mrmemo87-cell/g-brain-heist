@@ -22,7 +22,6 @@ const tools: { id: DiagramTool; icon: string; label: string }[] = [
   { id: 'angle', icon: '📐', label: 'Angle' },
   { id: 'circle', icon: '⭕', label: 'Circle' },
   { id: 'point', icon: '•', label: 'Point' },
-  { id: 'text', icon: 'T', label: 'Text' },
   { id: 'blank', icon: '▢', label: 'Blank' },
   { id: 'delete', icon: '🗑️', label: 'Delete Mode' },
 ];
@@ -129,7 +128,7 @@ const DiagramToolbar: React.FC<ToolbarProps> = ({
             <li>• Click & drag to draw</li>
             <li>• Drag box to multi-select</li>
             <li>• Shift+click to add more</li>
-            <li>• Double-click text to edit</li>
+            <li>• Add labels above the canvas</li>
           </ul>
         </div>
       </div>
@@ -154,5 +153,4 @@ const DiagramToolbar: React.FC<ToolbarProps> = ({
   );
 };
 
-// Recovery trigger: the guarded workflow replaces the real UX blocks before this branch is merged.
 export default DiagramToolbar;
