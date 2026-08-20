@@ -1,0 +1,17 @@
+/* Keep highlighted billing controls readable even when portal theme rules are more specific than Tailwind utilities. */
+.billing-tab-ui .billing-on-dark,
+.billing-tab-ui button.bg-cyan-700,
+.billing-tab-ui button.bg-cyan-800,
+.billing-tab-ui button.bg-emerald-600,
+.billing-tab-ui button.bg-emerald-700,
+.billing-tab-ui button.bg-emerald-800,
+.billing-tab-ui span.bg-emerald-800 {
+  color: #ffffff !important;
+}
+
+/* The live receipt is intentionally dark; never leave dark-cyan copy on it. */
+.billing-tab-ui aside.bg-slate-950 .text-cyan-700 {
+  color: #ffffff !important;
+}
+
+/* Pale green commitment chips (including 0% committed) deliberately keep dark text. */

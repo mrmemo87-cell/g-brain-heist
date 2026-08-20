@@ -3,6 +3,7 @@ import {
   PILOT_PLAN,
   type SchoolPlanDetails,
 } from '../../services/tierService';
+import './BillingContrast.css';
 
 interface BillingTabProps {
   planDetails: SchoolPlanDetails | null;
@@ -72,17 +73,20 @@ const BillingTab: React.FC<BillingTabProps> = ({
             </h3>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
               {isNone && 'Your school is using the free Lockdown mode. The School Head can start a pilot or build a school package below.'}
-              {isPilot && isActive && `${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} remaining. Contracted programmes remain separate from Core access.`}
+              {isPilot && isActive && `${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} remaining. All programmes are available during the pilot; contracted seat quantities apply only after a paid agreement.`}
               {trialExpired && 'Your pilot trial has expired. Build and request a school package to restore access.'}
               {isPaid && 'Core access is active. Optional programmes depend on your school agreement.'}
             </p>
           </div>
-          {planDetails.seats && (isPaid || (isPilot && isActive)) && (
+          {planDetails.seats && isPaid && (
             <div className="flex flex-wrap gap-2 text-xs text-slate-700">
               <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5">{planDetails.seats.cambridge ?? '∞'} Cambridge</span>
               <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5">{planDetails.seats.ielts ?? '∞'} IELTS</span>
               <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5">{planDetails.seats.game ?? '∞'} Game</span>
             </div>
+          )}
+          {isPilot && isActive && (
+            <span className="rounded-lg border border-cyan-200 bg-white px-3 py-1.5 text-xs font-semibold text-cyan-950">Full pilot access · paid seat caps are not applied during the trial</span>
           )}
         </div>
         {planDetails.current_members > 0 && <p className="mt-3 text-xs text-slate-500">Current members: {planDetails.current_members}</p>}

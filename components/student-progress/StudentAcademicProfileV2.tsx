@@ -106,7 +106,7 @@ const observationSignal = (item: TimelineItem) => {
 
 const trendPositionLabel = (score: number) => score >= 78 ? 'Strong evidence' : score >= 46 ? 'Developing evidence' : 'Needs support';
 
-const buildTrendEvents = (items: TimelineItem[], subject: string): TrendEvent[] => {
+const buildTrendEvents = (items: TimelineItem[], subject: string, sourceType?: TimelineItem['source_type']): TrendEvent[] => {
   const groups = new Map<string, {
     values: number[];
     observedAt: string;
@@ -117,7 +117,8 @@ const buildTrendEvents = (items: TimelineItem[], subject: string): TrendEvent[] 
     developingCount: number;
     strengthCount: number;
   }>();
-  items.filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject)).forEach((item) => {
+  items.filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject)
+    && (!sourceType || item.source_type === sourceType)).forEach((item) => {
     const meta = sourceMeta(item);
     const key = `${item.source_type}:${item.source_id || item.observed_at}`;
     const group = groups.get(key) || {
@@ -164,7 +165,7 @@ const SubjectTrendChart: React.FC<{ subject: string; events: TrendEvent[] }> = (
   const yAt = (value: number) => top + ((100 - value) / 100) * usableHeight;
   const points = events.map((event, index) => `${xAt(index)},${yAt(event.score)}`).join(' ');
   const delta = events.length > 1 ? events[events.length - 1].score - events[0].score : 0;
-  const trendText = events.length < 2 ? 'One evidence point so far' : delta >= 10 ? 'Overall evidence is moving up' : delta <= -10 ? 'Recent evidence needs attention' : 'Overall evidence is broadly steady';
+  const trendText = events.length === 0 ? 'No evidence in this period' : events.length < 2 ? 'One evidence point so far' : delta >= 10 ? 'Overall evidence is moving up' : delta <= -10 ? 'Recent evidence needs attention' : 'Overall evidence is broadly steady';
   const activeIndex = activeKey ? events.findIndex((event) => event.key === activeKey) : -1;
   const activeEvent = activeIndex >= 0 ? events[activeIndex] : null;
 
@@ -299,7 +300,17 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
   const trendSubjects = useMemo(() => {
     if (!profile) return [];
     const subjects = subject === 'all' ? allSubjects : [subject];
-    return subjects.map((name) => ({ subject: name, events: buildTrendEvents(profile.timeline, name) })).filter((entry) => entry.events.length > 0 || profile.subjects.some((row) => normalizeSubject(row.subject) === normalizeSubject(entry.subject)));
+    return subjects.flatMap((name) => {
+      const subjectExists = profile.subjects.some((row) => normalizeSubject(row.subject) === normalizeSubject(name));
+      if (normalizeSubject(name) === 'english') {
+        return [
+          { subject: `${name} — Writing Hub`, events: buildTrendEvents(profile.timeline, name, 'writing_attempt') },
+          { subject: `${name} — Assignments`, events: buildTrendEvents(profile.timeline, name, 'assignment_result') },
+        ].filter((entry) => entry.events.length > 0 || subjectExists);
+      }
+      const events = buildTrendEvents(profile.timeline, name);
+      return events.length > 0 || subjectExists ? [{ subject: name, events }] : [];
+    });
   }, [allSubjects, profile, subject]);
 
   const latestConfidenceStates = useMemo(() => {
