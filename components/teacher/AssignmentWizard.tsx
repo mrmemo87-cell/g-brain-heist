@@ -203,6 +203,18 @@ export default function AssignmentWizard({
     [assignmentSubject, uniqueQuestions],
   );
 
+  const audienceGrades = useMemo(() => {
+    const grades = assignmentMode === 'batch'
+      ? uniqueClasses
+        .filter((item) => assignmentBatches.includes('All') || assignmentBatches.includes(item.class_code))
+        .map((item) => Number(item.grade_level))
+      : availableStudents
+        .filter((student) => selectedStudentIds.includes(student.id))
+        .map((student) => Number(student.grade));
+
+    return [...new Set(grades.filter((grade) => Number.isInteger(grade) && grade > 0))];
+  }, [assignmentBatches, assignmentMode, availableStudents, selectedStudentIds, uniqueClasses]);
+
   const topics = useMemo(
     () => [...new Set(subjectQuestions.map((question) => question.topic_name || question.topic || 'General'))]
       .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })),
@@ -225,7 +237,12 @@ export default function AssignmentWizard({
         question.difficulty,
       ].join(' ').toLocaleLowerCase();
       const xp = question.points || 0;
+      const eligibleGrades = question.eligible_grade_levels || [];
+      const matchesAudienceGrades = !isBrainsHeistPoolQuestion(question, teacherId)
+        || audienceGrades.length === 0
+        || audienceGrades.every((grade) => eligibleGrades.includes(grade));
       return (
+        matchesAudienceGrades &&
         (!debouncedQuestionSearch || haystack.includes(debouncedQuestionSearch)) &&
         (questionPool === 'all' ||
           (questionPool === 'mine' && isMyPoolQuestion(question, teacherId)) ||
@@ -247,7 +264,20 @@ export default function AssignmentWizard({
       if (sort === 'difficulty') return difficultyScore[a.difficulty] - difficultyScore[b.difficulty];
       return Number(assignmentQuestionIds.includes(b.id)) - Number(assignmentQuestionIds.includes(a.id));
     });
-  }, [assignmentQuestionIds, debouncedQuestionSearch, difficultyFilter, questionPool, sort, subjectQuestions, teacherId, topicFilter, typeFilter, xpFilter]);
+  }, [assignmentQuestionIds, audienceGrades, debouncedQuestionSearch, difficultyFilter, questionPool, sort, subjectQuestions, teacherId, topicFilter, typeFilter, xpFilter]);
+
+  useEffect(() => {
+    if (!audienceGrades.length) return;
+    setAssignmentQuestionIds((current) => {
+      const next = current.filter((id) => {
+        const question = subjectQuestions.find((item) => item.id === id);
+        if (!question || !isBrainsHeistPoolQuestion(question, teacherId)) return true;
+        const eligibleGrades = question.eligible_grade_levels || [];
+        return audienceGrades.every((grade) => eligibleGrades.includes(grade));
+      });
+      return next.length === current.length ? current : next;
+    });
+  }, [audienceGrades, setAssignmentQuestionIds, subjectQuestions, teacherId]);
 
   const selectedQuestions = useMemo(
     () => subjectQuestions.filter((question) => assignmentQuestionIds.includes(question.id)),
