@@ -23,6 +23,19 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Correct guarded billing preflight typo
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('.github/scripts/apply_academic_lockdown_billing_polish.py')
+          source = path.read_text()
+          old = r'\n          ))}'
+          new = r'\n          )}'
+          count = source.count(old)
+          if count != 1:
+              raise SystemExit(f'Expected one billing guard typo, found {count}')
+          path.write_text(source.replace(old, new, 1))
+
       - name: Apply guarded patch
         run: python .github/scripts/apply_academic_lockdown_billing_polish.py
 
