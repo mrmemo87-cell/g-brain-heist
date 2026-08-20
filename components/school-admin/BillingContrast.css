@@ -15,3 +15,22 @@
 }
 
 /* Pale green commitment chips (including 0% committed) deliberately keep dark text. */
+
+
+/* Selected programme seat card contrast */
+.billing-tab-ui #programme-access-requests button[aria-pressed="true"] {
+  background: #1e4b82 !important;
+  border-color: #1e4b82 !important;
+  color: #ffffff !important;
+}
+.billing-tab-ui #programme-access-requests button[aria-pressed="true"] > span:first-child > strong,
+.billing-tab-ui #programme-access-requests button[aria-pressed="true"] > span:nth-child(2) {
+  color: #ffffff !important;
+}
+.billing-tab-ui #programme-access-requests button[aria-pressed="true"] > span:nth-child(2) > small,
+.billing-tab-ui #programme-access-requests button[aria-pressed="true"] > span:last-child {
+  color: #dbeafe !important;
+}
+.billing-tab-ui #programme-access-requests button[aria-pressed="true"] span.bg-emerald-100 {
+  color: #065f46 !important;
+}

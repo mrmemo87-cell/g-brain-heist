@@ -5005,7 +5005,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         group.subjects.some((subjectName) => subjectName.toLocaleLowerCase().includes(search)))
       .sort((left, right) => left.classCode.localeCompare(right.classCode));
 
-    const printClassDocuments = (groups: typeof classGroups, mode: 'roster' | 'register') => {
+    const printClassDocuments = (groups: typeof classGroups) => {
       if (!groups.length) return;
       const today = new Date().toISOString().slice(0, 10);
       const bodyHtml = groups.map((group, groupIndex) => `
@@ -5013,16 +5013,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           <h2>Class ${escapeSchoolDocumentHtml(group.classCode)}</h2>
           <p><strong>Subjects:</strong> ${escapeSchoolDocumentHtml(group.subjects.join(', ') || 'Not linked')}</p>
           <table>
-            <thead><tr><th style="width:8%">No.</th><th>Official student name</th><th style="width:14%">Grade</th>${mode === 'register' ? '<th>Present</th><th>Absent</th><th>Late</th><th style="width:24%">Notes</th>' : '<th style="width:35%">Teacher notes</th>'}</tr></thead>
-            <tbody>${group.students.length ? group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student.display_name)}</td><td>${escapeSchoolDocumentHtml(student.grade || '—')}</td>${mode === 'register' ? '<td>□</td><td>□</td><td>□</td><td></td>' : '<td></td>'}</tr>`).join('') : `<tr><td colspan="${mode === 'register' ? 7 : 4}">No students are currently enrolled in this class.</td></tr>`}</tbody>
+            <thead><tr><th style="width:8%">No.</th><th>Official student name</th><th style="width:14%">Grade</th><th style="width:35%">Teacher notes</th></tr></thead>
+            <tbody>${group.students.length ? group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student.display_name)}</td><td>${escapeSchoolDocumentHtml(student.grade || '—')}</td><td></td></tr>`).join('') : '<tr><td colspan="4">No students are currently enrolled in this class.</td></tr>'}</tbody>
           </table>
         </section>`).join('');
       try {
         openSchoolDocumentPreview({
           meta: {
-            documentId: createSchoolDocumentId(mode === 'register' ? 'attendance' : 'roster'),
-            templateVersion: mode === 'register' ? 'class-register-v1' : 'class-roster-v1',
-            title: mode === 'register' ? 'Class Attendance Register' : 'Class Roster',
+            documentId: createSchoolDocumentId('roster'),
+            templateVersion: 'class-roster-v1',
+            title: 'Class Roster',
             subtitle: groups.length === 1 ? `Class ${groups[0]?.classCode || ''}` : `${groups.length} allocated classes`,
             schoolName: resolvedBranding.schoolName,
             schoolLogoUrl: resolvedBranding.schoolLogoUrl,
@@ -5033,13 +5033,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             generatedBy: profile.full_name || profile.username || 'Teacher',
             className: groups.length === 1 ? groups[0]?.classCode : undefined,
             schoolId: profile.school_id,
-            sourceType: mode === 'register' ? 'class_register' : 'class_roster',
+            sourceType: 'class_roster',
             sourceId: groups.length === 1 ? groups[0]?.classCode : 'all-assigned-classes',
           },
           bodyHtml,
           orientation: 'portrait',
           inkSaver: true,
-          fileName: schoolDocumentFileName(resolvedBranding.schoolName, mode === 'register' ? 'Attendance_Register' : 'Class_Roster', groups.length === 1 ? groups[0]?.classCode : 'All_Classes', today),
+          fileName: schoolDocumentFileName(resolvedBranding.schoolName, 'Class_Roster', groups.length === 1 ? groups[0]?.classCode : 'All_Classes', today),
         });
       } catch (error) {
         brainsAlert(error instanceof Error ? error.message : 'Unable to open the class document.', 'info');
@@ -5054,8 +5054,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <p className="text-sm text-slate-500 mt-1">Every assigned class, subject, and student in one organised view.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="teacher-btn teacher-btn-secondary" onClick={() => printClassDocuments(classGroups, 'roster')} disabled={!classGroups.length}>Print all rosters</button>
-            <button type="button" className="teacher-btn teacher-btn-primary" onClick={() => printClassDocuments(classGroups, 'register')} disabled={!classGroups.length}>Attendance register</button>
+            <button type="button" className="teacher-btn teacher-btn-secondary" onClick={() => printClassDocuments(classGroups)} disabled={!classGroups.length}>Print all rosters</button>
           </div>
         </div>
 
@@ -5080,7 +5079,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
                     <div className="flex items-center justify-between gap-3">
                       <h3 className="font-bold text-slate-800">Class {group.classCode}</h3>
-                      <div className="flex items-center gap-2"><span className="text-sm text-slate-500">{group.students.length} student{group.students.length === 1 ? '' : 's'}</span><button type="button" className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100" onClick={() => printClassDocuments([group], 'roster')}>Print</button></div>
+                      <div className="flex items-center gap-2"><span className="text-sm text-slate-500">{group.students.length} student{group.students.length === 1 ? '' : 's'}</span><button type="button" className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100" onClick={() => printClassDocuments([group])}>Print</button></div>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {group.subjects.length
