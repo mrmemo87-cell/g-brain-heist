@@ -1,0 +1,52 @@
+name: Restore rendered hotfix dist-tests
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: github.head_ref == 'fix/rendered-academic-billing-attendance'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Restore tracked generated test tree from main
+        run: |
+          git fetch origin main
+          git restore --source=origin/main -- dist-tests
+          rm -f .github/workflows/restore-rendered-hotfix-dist-tests.yml
+      - name: Verify intended diff only
+        run: |
+          python - <<'PY'
+          import subprocess
+          allowed = {
+              'components/TeacherPortal.tsx',
+              'components/school-admin/BillingContrast.css',
+              'components/student-progress/StudentAcademicProfile.css',
+              'tests/renderedAcademicBillingAttendanceHotfix.test.ts',
+          }
+          changed = set(subprocess.check_output(['git','diff','--name-only','origin/main...HEAD']).decode().splitlines())
+          # Include working tree restore changes when determining eventual diff.
+          status = subprocess.check_output(['git','status','--short']).decode().splitlines()
+          for line in status:
+              if len(line) > 3:
+                  changed.add(line[3:])
+          changed.discard('.github/workflows/restore-rendered-hotfix-dist-tests.yml')
+          unexpected = sorted(path for path in changed if path not in allowed and not path.startswith('dist-tests/'))
+          if unexpected:
+              raise SystemExit('Unexpected non-dist changes: ' + ', '.join(unexpected))
+          PY
+      - name: Commit restoration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Restore tracked dist test outputs"
+          git push origin HEAD:${{ github.head_ref }}
