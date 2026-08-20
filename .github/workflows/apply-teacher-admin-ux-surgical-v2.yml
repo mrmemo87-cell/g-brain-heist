@@ -30,9 +30,9 @@ jobs:
           path = Path('.github/scripts/apply_teacher_admin_ux_surgical_v2.py')
           source = path.read_text()
           replacements = {
-            "onChange={(event) => setLabelDraft(event.target.value)}": "onChange={(event: React.ChangeEvent<HTMLInputElement>) => setLabelDraft(event.target.value)}",
-            "onKeyDown={(event) => { if (event.key === 'Enter')": "onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => { if (event.key === 'Enter')",
-            "onChange={(event) => setLabelFontSize(Number(event.target.value))}": "onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setLabelFontSize(Number(event.target.value))}",
+            "onChange={(event) => setLabelDraft(event.target.value)}": "onChange={(event: { target: { value: string } }) => setLabelDraft(event.target.value)}",
+            "onKeyDown={(event) => { if (event.key === 'Enter')": "onKeyDown={(event: { key: string; preventDefault: () => void }) => { if (event.key === 'Enter')",
+            "onChange={(event) => setLabelFontSize(Number(event.target.value))}": "onChange={(event: { target: { value: string } }) => setLabelFontSize(Number(event.target.value))}",
           }
           for old, new in replacements.items():
             count = source.count(old)
