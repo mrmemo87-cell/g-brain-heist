@@ -7,8 +7,9 @@ marker = 'const [editingAssignment, setEditingAssignment]'
 
 if marker in portal.read_text(encoding='utf-8'):
     print('Assignment editing source already materialized; skipping patch.')
-    sys.exit(0)
+else:
+    subprocess.run([sys.executable, 'scripts/patch_assignment_edit_feature.py'], check=True)
+    subprocess.run([sys.executable, 'scripts/fix_assignment_patch_output.py'], check=True)
+    print('Assignment editing source materialized successfully.')
 
-subprocess.run([sys.executable, 'scripts/patch_assignment_edit_feature.py'], check=True)
-subprocess.run([sys.executable, 'scripts/fix_assignment_patch_output.py'], check=True)
-print('Assignment editing source materialized successfully.')
+subprocess.run([sys.executable, 'scripts/patch_assignment_topic_filter.py'], check=True)
