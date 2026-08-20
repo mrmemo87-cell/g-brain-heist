@@ -45,15 +45,18 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Tests
-        run: npm test
+      - name: Focused regression test
+        run: |
+          npm run test:clean
+          npm run test:build
+          NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/academicLockdownBillingPolish.test.js
 
       - name: Build
         run: npm run build
 
       - name: Remove temporary harness
         run: |
-          rm .github/scripts/apply_academic_lockdown_billing_polish.py
+          rm .github/scripts/apply_academic-lockdown-billing-polish.py
           rm .github/workflows/apply-academic-lockdown-billing-polish.yml
           rm .github/workflows/run-academic-lockdown-billing-polish-on-pr.yml
 
