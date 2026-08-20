@@ -23,6 +23,24 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Type Geometry label control events in patch
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('.github/scripts/apply_teacher_admin_ux_surgical_v2.py')
+          source = path.read_text()
+          replacements = {
+            "onChange={(event) => setLabelDraft(event.target.value)}": "onChange={(event: React.ChangeEvent<HTMLInputElement>) => setLabelDraft(event.target.value)}",
+            "onKeyDown={(event) => { if (event.key === 'Enter')": "onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => { if (event.key === 'Enter')",
+            "onChange={(event) => setLabelFontSize(Number(event.target.value))}": "onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setLabelFontSize(Number(event.target.value))}",
+          }
+          for old, new in replacements.items():
+            count = source.count(old)
+            if count != 1:
+              raise SystemExit(f'Expected one Geometry event match for {old!r}, found {count}')
+            source = source.replace(old, new, 1)
+          path.write_text(source)
+
       - name: Apply guarded UX patch
         run: python .github/scripts/apply_teacher_admin_ux_surgical_v2.py
 
