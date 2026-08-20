@@ -154,4 +154,5 @@ const DiagramToolbar: React.FC<ToolbarProps> = ({
   );
 };
 
+// Recovery trigger: the guarded workflow replaces the real UX blocks before this branch is merged.
 export default DiagramToolbar;
