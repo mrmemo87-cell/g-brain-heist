@@ -1,0 +1,129 @@
+name: Recover teacher school-language fixes
+
+on:
+  push:
+    branches:
+      - fix/recover-school-language-teacher-admin
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch TeacherPortal without replacing newer work
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('components/TeacherPortal.tsx')
+          source = path.read_text()
+
+          def replace_once(old: str, new: str, label: str):
+              global source
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly 1 match, found {count}')
+              source = source.replace(old, new, 1)
+
+          replace_once(
+              "const HelpModal = React.lazy(() => import('./HelpModal'));",
+              "const TeacherGuideHelpModal = React.lazy(() => import('./TeacherGuideHelpModal'));",
+              'teacher help import',
+          )
+          replace_once(
+              '        <HelpModal\n',
+              '        <TeacherGuideHelpModal\n',
+              'teacher help render',
+          )
+
+          start_marker = "    const printClassDocuments = (groups: typeof classGroups, mode: 'roster' | 'register') => {"
+          end_marker = "\n\n    return ("
+          start = source.find(start_marker)
+          if start < 0:
+              raise SystemExit('class document helper: start marker not found')
+          end = source.find(end_marker, start)
+          if end < 0:
+              raise SystemExit('class document helper: end marker not found')
+
+          replacement = '''    const printClassDocuments = (groups: typeof classGroups) => {
+      if (!groups.length) return;
+      const today = new Date().toISOString().slice(0, 10);
+      const bodyHtml = groups.map((group, groupIndex) => `
+        <section class="${groupIndex > 0 ? 'document-page-break' : ''}">
+          <h2>Class ${escapeSchoolDocumentHtml(group.classCode)}</h2>
+          <p><strong>Subjects:</strong> ${escapeSchoolDocumentHtml(group.subjects.join(', ') || 'Not linked')}</p>
+          <table>
+            <thead><tr><th style="width:8%">No.</th><th>Official student name</th><th style="width:14%">Grade</th><th style="width:35%">Teacher notes</th></tr></thead>
+            <tbody>${group.students.length ? group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student.display_name)}</td><td>${escapeSchoolDocumentHtml(student.grade || '—')}</td><td></td></tr>`).join('') : '<tr><td colspan="4">No students are currently enrolled in this class.</td></tr>'}</tbody>
+          </table>
+        </section>`).join('');
+      try {
+        openSchoolDocumentPreview({
+          meta: {
+            documentId: createSchoolDocumentId('roster'),
+            templateVersion: 'class-roster-v1',
+            title: 'Class Roster',
+            subtitle: groups.length === 1 ? `Class ${groups[0]?.classCode || ''}` : `${groups.length} allocated classes`,
+            schoolName: resolvedBranding.schoolName,
+            schoolLogoUrl: resolvedBranding.schoolLogoUrl,
+            audience: 'teacher',
+            status: 'final',
+            confidentiality: 'confidential',
+            generatedAt: new Date().toISOString(),
+            generatedBy: profile.full_name || profile.username || 'Teacher',
+            className: groups.length === 1 ? groups[0]?.classCode : undefined,
+            schoolId: profile.school_id,
+            sourceType: 'class_roster',
+            sourceId: groups.length === 1 ? groups[0]?.classCode : 'all-assigned-classes',
+          },
+          bodyHtml,
+          orientation: 'portrait',
+          inkSaver: true,
+          fileName: schoolDocumentFileName(resolvedBranding.schoolName, 'Class_Roster', groups.length === 1 ? groups[0]?.classCode : 'All_Classes', today),
+        });
+      } catch (error) {
+        brainsAlert(error instanceof Error ? error.message : 'Unable to open the class document.', 'info');
+      }
+    };'''
+          source = source[:start] + replacement + source[end:]
+
+          replace_once(
+              "onClick={() => printClassDocuments(classGroups, 'roster')}",
+              "onClick={() => printClassDocuments(classGroups)}",
+              'all-rosters button',
+          )
+          replace_once(
+              "onClick={() => printClassDocuments([group], 'roster')}",
+              "onClick={() => printClassDocuments([group])}",
+              'single-roster button',
+          )
+
+          attendance_button = "            <button type=\"button\" className=\"teacher-btn teacher-btn-primary\" onClick={() => printClassDocuments(classGroups, 'register')} disabled={!classGroups.length}>Attendance register</button>\n"
+          if source.count(attendance_button) != 1:
+              raise SystemExit(f'attendance button: expected exactly 1 match, found {source.count(attendance_button)}')
+          source = source.replace(attendance_button, '', 1)
+
+          if 'Attendance register' in source or 'Class Attendance Register' in source or "'register'" in source[source.find('const printClassDocuments'):source.find('const printClassDocuments') + 5000]:
+              raise SystemExit('attendance-register code still present in class document helper')
+          if '<HelpModal' in source or "import('./HelpModal')" in source:
+              raise SystemExit('generic student help is still wired into TeacherPortal')
+
+          path.write_text(source)
+
+      - name: Remove temporary recovery workflow from final tree
+        run: rm .github/workflows/recover-school-language-teacher-admin.yml
+
+      - name: Commit guarded patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- components/TeacherPortal.tsx .github/workflows/recover-school-language-teacher-admin.yml
+          git commit -m "Recover teacher help and remove attendance register"
+          git push origin HEAD
