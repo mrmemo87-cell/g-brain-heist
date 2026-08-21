@@ -15,3 +15,6 @@ else:
 subprocess.run([sys.executable, 'scripts/patch_assignment_topic_filter.py'], check=True)
 subprocess.run([sys.executable, 'scripts/patch_assignment_class_folders.py'], check=True)
 subprocess.run([sys.executable, 'scripts/patch_academic_roster_confirmation_ui.py'], check=True)
+subprocess.run([sys.executable, 'scripts/patch_assignment_category_core.py'], check=True)
+subprocess.run([sys.executable, 'scripts/patch_collective_report_term_categories.py'], check=True)
+subprocess.run([sys.executable, 'scripts/patch_assignment_category_emails.py'], check=True)
