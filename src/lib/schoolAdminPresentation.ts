@@ -1,3 +1,14 @@
+declare global {
+  // Compatibility guard for the legacy moderation-status loader in SchoolAdminPortal.
+  // The loading flag is not rendered anywhere, so keep the old setter harmless until
+  // the legacy call sites are removed from the large portal component.
+  var setModTargetLoading: ((loading: boolean) => void) | undefined;
+}
+
+if (typeof globalThis.setModTargetLoading !== 'function') {
+  globalThis.setModTargetLoading = () => {};
+}
+
 const TECHNICAL_ERROR_MARKERS = [
   'duplicate key value',
   'unique constraint',
