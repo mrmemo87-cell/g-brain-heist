@@ -91,7 +91,7 @@ const MembersTab: React.FC = () => {
   React.useEffect(() => { setMemberPage(1); }, [academicYearFilter, classFilter, statusFilter, activePeopleTab, memberPageSize, memberSearch, setMemberPage]);
   React.useEffect(() => { setMemberPage((page: number) => Math.min(page, totalPages)); }, [setMemberPage, totalPages]);
 
-  const openMember = (member: any) => {
+  const openMember = async (member: any) => {
     setSelectedMember(member);
     if (member.role === 'student') {
       const assignedClassId = studentAssignments[member.user_id] || '';
@@ -100,7 +100,11 @@ const MembersTab: React.FC = () => {
       setSelectedClassId(assignedClassId);
       setSelectedGrade(assignedClass?.grade_level ?? member.grade ?? '');
       setModTargetId(member.user_id);
-      loadStudentModStatus(member.user_id);
+      // Never render moderation actions with the previous student's status.
+      // Waiting for this lookup also removes the race where Require Change could
+      // be clicked while modTargetStatus was still null and silently do nothing.
+      setModTargetStatus(null);
+      await loadStudentModStatus(member.user_id);
     } else {
       setSelectedStudentId('');
       setSelectedClassId('');
