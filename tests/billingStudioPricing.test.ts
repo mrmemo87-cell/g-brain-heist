@@ -30,6 +30,15 @@ test('public school pricing starts at annual billing and does not offer monthly 
   assert.doesNotMatch(publicPricing, /\['monthly', 'Monthly'/);
 });
 
+test('public launch offer copy and receipt percentage follow the live catalogue', () => {
+  assert.match(publicPricing, /id="launch-note"/);
+  assert.match(publicPricing, /Include the \$\{percent\(payload\.discounts\.launch_bps\)\} Launch offer/);
+  assert.match(publicPricing, /combined discounts capped at \$\{percent\(payload\.discounts\.maximum_discount_bps\)\}/);
+  assert.match(publicPricing, /Launch offer · \$\{percent\(state\.payload\.discounts\.launch_bps\)\} · first year/);
+  assert.doesNotMatch(publicPricing, /15% Launch/);
+  assert.doesNotMatch(publicPricing, /35%/);
+});
+
 test('quote writes stay behind governed RPCs and never activate access', () => {
   assert.match(migration, /alter table public\.school_billing_quotes enable row level security/);
   assert.match(migration, /revoke all on public\.school_billing_quotes from public, anon, authenticated/);
