@@ -13,3 +13,4 @@ else:
     print('Assignment editing source materialized successfully.')
 
 subprocess.run([sys.executable, 'scripts/patch_assignment_topic_filter.py'], check=True)
+subprocess.run([sys.executable, 'scripts/patch_assignment_class_folders.py'], check=True)
