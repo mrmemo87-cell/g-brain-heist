@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const migration = readFileSync('supabase/migrations/20260812180000_school_billing_studio_v1.sql', 'utf8');
+const launchOfferMigration = readFileSync('supabase/migrations/20260822023000_school_pricing_launch_65.sql', 'utf8');
 
 test('Billing Studio locks the approved per-student catalogue and minimums', () => {
   assert.match(migration, /'platform','Brains Heist Platform',175,50/);
@@ -14,11 +15,12 @@ test('Billing Studio locks the approved per-student catalogue and minimums', () 
   assert.match(migration, /"reviews":500,"amount_minor":5000/);
 });
 
-test('Billing Studio locks discount ordering and the 35 percent ceiling', () => {
-  assert.match(migration, /500, 1000, 1500, 1000, 1500, 2000, 1500, 3500/);
+test('Billing Studio keeps discount ordering and applies the current 65 percent launch ceiling', () => {
   assert.match(migration, /v_combo_discount_monthly := round\(v_addons_monthly::numeric \* v_combo_bps \/ 10000\)/);
   assert.match(migration, /v_term_discount := round\(\(v_monthly_after_combo \* v_months\)::numeric \* v_term_bps \/ 10000\)/);
   assert.match(migration, /v_launch_discount := greatest\(0,least\(v_launch_discount,v_max_discount-v_existing_discount\)\)/);
+  assert.match(launchOfferMigration, /launch_bps = 6500/);
+  assert.match(launchOfferMigration, /maximum_discount_bps = 6500/);
 });
 
 test('quote writes stay behind governed RPCs and never activate access', () => {
