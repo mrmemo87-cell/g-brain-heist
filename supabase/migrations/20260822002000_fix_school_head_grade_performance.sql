@@ -1,10 +1,9 @@
 -- Fix School Head grade performance so normal completed school assignments are
 -- included alongside recorded quiz/Cambridge scores.
 --
--- This is intentionally a separate read-only RPC instead of replacing the large
--- executive snapshot function. The frontend can fall back to the legacy snapshot
--- during staggered deployments, so migration/frontend ordering cannot break the
--- School Head dashboard.
+-- This is intentionally additive. The legacy executive snapshot remains untouched;
+-- a v2 wrapper patches only academics.grade_performance and the frontend can fall
+-- back to the legacy snapshot during staggered deployments.
 
 create or replace function public.school_head_get_grade_performance(
   p_school_id uuid,
@@ -122,3 +121,45 @@ grant execute on function public.school_head_get_grade_performance(uuid, integer
 
 comment on function public.school_head_get_grade_performance(uuid, integer) is
   'School Head grade-level scored-work summary. Uses current active class placement and combines completed assignment results with recorded quiz/Cambridge scores for the selected period.';
+
+create or replace function public.school_head_get_executive_snapshot_v2(
+  p_school_id uuid,
+  p_days integer default 30
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_snapshot jsonb;
+  v_grade_performance jsonb;
+begin
+  if (select auth.uid()) is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_school_id is null or not public.is_school_owner(p_school_id) then
+    raise exception 'Forbidden: active School Head authority is required';
+  end if;
+
+  v_snapshot := public.school_head_get_executive_snapshot(p_school_id, p_days);
+  v_grade_performance := public.school_head_get_grade_performance(p_school_id, p_days);
+
+  return jsonb_set(
+    v_snapshot,
+    '{academics,grade_performance}',
+    coalesce(v_grade_performance, '[]'::jsonb),
+    true
+  );
+end;
+$$;
+
+revoke all on function public.school_head_get_executive_snapshot_v2(uuid, integer)
+  from public, anon, authenticated;
+grant execute on function public.school_head_get_executive_snapshot_v2(uuid, integer)
+  to authenticated;
+
+comment on function public.school_head_get_executive_snapshot_v2(uuid, integer) is
+  'Compatibility-safe School Head executive snapshot wrapper that replaces only grade_performance with scored assignment plus quiz/Cambridge data.';
