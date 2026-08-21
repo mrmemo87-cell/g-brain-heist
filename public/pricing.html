@@ -77,7 +77,7 @@
     .programme-toggle strong { color: var(--ink); font-size: .84rem; }
     .programme-toggle small { margin-top: .15rem; color: var(--muted); font-size: .7rem; font-weight: 500; }
     .programme input:disabled { opacity: .45; }
-    .terms { display: grid; grid-template-columns: repeat(4, 1fr); gap: .55rem; margin-top: 1rem; }
+    .terms { display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem; margin-top: 1rem; }
     .term { padding: .75rem; border: 1px solid var(--line); border-radius: .75rem; color: var(--ink); background: #0b1728; text-align: left; cursor: pointer; }
     .term strong, .term span { display: block; }
     .term span { margin-top: .1rem; color: var(--muted); font-size: .66rem; }
@@ -205,9 +205,9 @@
 
   <script>
     (() => {
-      const state = { payload: null, term: 'monthly', platformSeats: 50, launch: true, programmes: {} };
+      const state = { payload: null, term: 'annual', platformSeats: 50, launch: true, programmes: {} };
       const termDefinitions = [
-        ['monthly', 'Monthly', 'No term discount'], ['annual', 'Annual', 'Annual discount'],
+        ['annual', 'Annual', 'Annual discount'],
         ['two_year', '2 years', 'Prepaid discount'], ['three_year', '3 years', 'Best term discount'],
       ];
       const programmeDescriptions = {
@@ -220,8 +220,8 @@
       const percent = (bps) => `${Number(bps || 0) / 100}%`;
       const escapeHtml = (value) => String(value).replace(/[&<>\"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' })[character]);
       const safeInt = (value, fallback) => { const parsed = Number.parseInt(value, 10); return Number.isFinite(parsed) ? Math.max(0, parsed) : fallback; };
-      const discountForTerm = (discounts, term) => ({ monthly: 0, annual: discounts.annual_bps, two_year: discounts.two_year_bps, three_year: discounts.three_year_bps }[term] || 0);
-      const monthsForTerm = (term) => ({ monthly: 1, annual: 12, two_year: 24, three_year: 36 }[term] || 1);
+      const discountForTerm = (discounts, term) => ({ annual: discounts.annual_bps, two_year: discounts.two_year_bps, three_year: discounts.three_year_bps }[term] || 0);
+      const monthsForTerm = (term) => ({ annual: 12, two_year: 24, three_year: 36 }[term] || 12);
 
       function calculate() {
         const items = itemMap();
@@ -248,12 +248,12 @@
         const maxDiscount = Math.round(contractList * discounts.maximum_discount_bps / 10000);
         let launchMinor = 0;
         if (state.launch) {
-          const launchBase = state.term === 'monthly' ? monthlyAfterCombo : monthlyAfterCombo * 12 - Math.round(monthlyAfterCombo * 12 * termBps / 10000);
+          const launchBase = monthlyAfterCombo * 12 - Math.round(monthlyAfterCombo * 12 * termBps / 10000);
           launchMinor = Math.max(0, Math.min(Math.round(launchBase * discounts.launch_bps / 10000), maxDiscount - existingDiscount));
         }
         const contractTotal = monthlyAfterCombo * months - termMinor - launchMinor;
-        const firstYear = state.term === 'monthly' ? contractTotal * 12 : monthlyAfterCombo * 12 - Math.round(monthlyAfterCombo * 12 * termBps / 10000) - launchMinor;
-        const renewal = state.term === 'monthly' ? monthlyAfterCombo : monthlyAfterCombo * months - termMinor;
+        const firstYear = monthlyAfterCombo * 12 - Math.round(monthlyAfterCombo * 12 * termBps / 10000) - launchMinor;
+        const renewal = monthlyAfterCombo * months - termMinor;
         return { lineItems, comboBps, comboMinor, months, termBps, termMinor, launchMinor, contractTotal, firstYear, renewal, effectiveMonthly: Math.round(contractTotal / months), effectiveStudent: Math.round(contractTotal / months / state.platformSeats) };
       }
 
@@ -284,7 +284,7 @@
 
       function renderReceipt() {
         const result = calculate();
-        const title = state.term === 'monthly' ? 'Estimated monthly invoice' : `${result.months}-month prepaid total`;
+        const title = `${result.months}-month prepaid total`;
         const rows = result.lineItems.filter((item) => item.quantity > 0).map((item) => `<div class="receipt-row"><dt>${escapeHtml(item.name)}<br><small>${item.quantity} × ${money(item.unit_amount_minor)}</small></dt><dd>${money(item.quantity * item.unit_amount_minor)}</dd></div>`).join('');
         const discounts = `${result.comboMinor > 0 ? `<div class="receipt-row discount"><dt>Programme combination · ${percent(result.comboBps)}</dt><dd>−${money(result.comboMinor)}/mo</dd></div>` : ''}${result.termMinor > 0 ? `<div class="receipt-row discount"><dt>Term discount · ${percent(result.termBps)}</dt><dd>−${money(result.termMinor)}</dd></div>` : ''}${result.launchMinor > 0 ? `<div class="receipt-row discount"><dt>Launch discount · first year</dt><dd>−${money(result.launchMinor)}</dd></div>` : ''}`;
         byId('receipt-body').innerHTML = `<dl class="receipt-list">${rows}</dl><div class="divider"></div><dl class="receipt-list">${discounts || '<div class="receipt-row"><dt>Discounts</dt><dd>None selected</dd></div>'}</dl><div class="divider"></div><span class="total-label">${title}</span><div class="total"><strong>${money(result.contractTotal)}</strong><span>${money(result.effectiveMonthly)}/mo effective</span></div><div class="renewal"><div><small>First year</small><strong>${money(result.firstYear)}</strong></div><div><small>Renewal, no Launch discount</small><strong>${money(result.renewal)}</strong></div></div><p class="effective">Effective package cost: <strong>${money(result.effectiveStudent)}</strong> per platform student/month. Estimate only; approval and verified activation are required.</p><a class="button" href="/?view=school_admin&amp;adminTab=billing">Save this in Plan &amp; Billing</a>`;
