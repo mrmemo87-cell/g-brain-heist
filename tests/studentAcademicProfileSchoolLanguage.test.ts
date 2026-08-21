@@ -18,21 +18,37 @@ test('Student Academic Profile uses school language and source-specific evidence
   assert.match(source, /Technical reporting terminology/);
 });
 
-test('Needs support and learning timeline are collapsible', () => {
+test('secondary academic profile sections use one closed-by-default disclosure system', () => {
   const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
-  const collapsiblePanels = source.match(/sap-panel sap-collapsible-panel/g) || [];
-  assert.equal(collapsiblePanels.length, 2);
-  assert.match(source, /className="when-open">Collapse/);
-  assert.match(source, /className="when-closed">Expand/);
+  const disclosures = source.match(/<ProfileDisclosure/g) || [];
+  assert.equal(disclosures.length, 6);
+  assert.match(source, /sap-profile-disclosure/);
+  assert.match(source, /className="when-closed">Open/);
+  assert.match(source, /className="when-open">Close/);
+  assert.doesNotMatch(source, /<details[^>]*\sopen(?:\s|>)/);
 });
 
-test('subject trend points expose clear interactive tooltips', () => {
+test('English combines assignment and Writing Hub evidence in one colour-coded trend chart', () => {
   const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
-  assert.match(source, /sap-trend-tooltip/);
+  assert.match(source, /label: 'Assignments', tone: 'assignment'/);
+  assert.match(source, /label: 'Writing Hub', tone: 'writing'/);
+  assert.match(source, /subject: name, series/);
+  assert.match(source, /sap-trend-line--\$\{trendSeries\.tone\}/);
+  assert.match(source, /sap-trend-point--\$\{point\.series\.tone\}/);
+});
+
+test('subject trend points expose edge-aware interactive tooltips and semantic evidence colours', () => {
+  const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
+  const styles = read('components/student-progress/StudentAcademicProfileV2Enhancements.css');
+  assert.match(source, /sap-trend-tooltip--\$\{horizontalEdge\}/);
+  assert.match(source, /sap-trend-tooltip--\$\{verticalEdge\}/);
   assert.match(source, /onMouseEnter/);
   assert.match(source, /onFocus/);
-  assert.match(source, /trendPositionLabel/);
-  assert.match(source, /focusCount/);
+  assert.match(source, /onClick/);
+  assert.match(source, /sap-trend-evidence-mix/);
+  assert.match(styles, /\.is-support/);
+  assert.match(styles, /\.is-developing/);
+  assert.match(styles, /\.is-strength/);
   assert.doesNotMatch(source, /<title>/);
 });
 

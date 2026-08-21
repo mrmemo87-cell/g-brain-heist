@@ -44,6 +44,15 @@ type TrendEvent = {
   developingCount: number;
   strengthCount: number;
 };
+type TrendSeriesTone = 'general' | 'assignment' | 'writing';
+type TrendSeries = {
+  key: string;
+  label: string;
+  tone: TrendSeriesTone;
+  events: TrendEvent[];
+};
+type TrendChart = { subject: string; series: TrendSeries[] };
+type DisclosureTone = 'trend' | 'support' | 'progress' | 'evidence' | 'results' | 'method';
 
 const scoreBand = (score: number | null) => score === null ? 'neutral' : score >= 80 ? 'strong' : score >= 60 ? 'developing' : 'focus';
 const statusBand = (status: string) => status === 'persistent' ? 'critical' : ['insufficient_evidence', 'recurring', 'new_focus'].includes(status) ? 'focus' : status === 'improving' ? 'improving' : status === 'resolved' ? 'resolved' : 'strong';
@@ -105,6 +114,7 @@ const observationSignal = (item: TimelineItem) => {
 };
 
 const trendPositionLabel = (score: number) => score >= 78 ? 'Strong evidence' : score >= 46 ? 'Developing evidence' : 'Needs support';
+const evidenceBandClass = (score: number) => score >= 78 ? 'strong' : score >= 46 ? 'developing' : 'support';
 
 const buildTrendEvents = (items: TimelineItem[], subject: string, sourceType?: TimelineItem['source_type']): TrendEvent[] => {
   const groups = new Map<string, {
@@ -151,59 +161,131 @@ const buildTrendEvents = (items: TimelineItem[], subject: string, sourceType?: T
   })).sort((a, b) => a.observedAt.localeCompare(b.observedAt));
 };
 
-const SubjectTrendChart: React.FC<{ subject: string; events: TrendEvent[] }> = ({ subject, events }) => {
+const ProfileDisclosure: React.FC<{
+  tone: DisclosureTone;
+  eyebrow: string;
+  title: string;
+  description: string;
+  meta?: string;
+  children: React.ReactNode;
+}> = ({ tone, eyebrow, title, description, meta, children }) => (
+  <details className={`sap-panel sap-collapsible-panel sap-profile-disclosure sap-profile-disclosure--${tone}`}>
+    <summary className="sap-collapsible-summary">
+      <div className="sap-disclosure-title">
+        <span>{eyebrow}</span>
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
+      <div className="sap-disclosure-controls">
+        {meta ? <small>{meta}</small> : null}
+        <b className="sap-collapse-action"><span className="when-closed">Open</span><span className="when-open">Close</span></b>
+      </div>
+    </summary>
+    <div className="sap-collapsible-content">{children}</div>
+  </details>
+);
+
+const SubjectTrendChart: React.FC<{ subject: string; series: TrendSeries[] }> = ({ subject, series }) => {
   const [activeKey, setActiveKey] = useState<string | null>(null);
-  const width = 560;
-  const height = 190;
-  const left = 86;
-  const right = 18;
-  const top = 18;
-  const bottom = 34;
+  const width = 620;
+  const height = 210;
+  const left = 88;
+  const right = 24;
+  const top = 20;
+  const bottom = 36;
   const usableWidth = width - left - right;
   const usableHeight = height - top - bottom;
-  const xAt = (index: number) => events.length <= 1 ? left + usableWidth / 2 : left + (index / (events.length - 1)) * usableWidth;
   const yAt = (value: number) => top + ((100 - value) / 100) * usableHeight;
-  const points = events.map((event, index) => `${xAt(index)},${yAt(event.score)}`).join(' ');
-  const delta = events.length > 1 ? events[events.length - 1].score - events[0].score : 0;
-  const trendText = events.length === 0 ? 'No evidence in this period' : events.length < 2 ? 'One evidence point so far' : delta >= 10 ? 'Overall evidence is moving up' : delta <= -10 ? 'Recent evidence needs attention' : 'Overall evidence is broadly steady';
-  const activeIndex = activeKey ? events.findIndex((event) => event.key === activeKey) : -1;
-  const activeEvent = activeIndex >= 0 ? events[activeIndex] : null;
+  const activeSeries = series.filter((item) => item.events.length > 0);
+  const allEvents = activeSeries.flatMap((item) => item.events.map((event) => ({ series: item, event })))
+    .sort((a, b) => a.event.observedAt.localeCompare(b.event.observedAt));
+  const validTimes = allEvents.map(({ event }) => Date.parse(event.observedAt)).filter(Number.isFinite);
+  const minTime = validTimes.length ? Math.min(...validTimes) : 0;
+  const maxTime = validTimes.length ? Math.max(...validTimes) : 0;
+  const xAt = (event: TrendEvent, fallbackIndex = 0, fallbackCount = 1) => {
+    const time = Date.parse(event.observedAt);
+    if (Number.isFinite(time) && maxTime > minTime) return left + ((time - minTime) / (maxTime - minTime)) * usableWidth;
+    return fallbackCount <= 1 ? left + usableWidth / 2 : left + (fallbackIndex / (fallbackCount - 1)) * usableWidth;
+  };
+  const plottedPoints = activeSeries.flatMap((trendSeries) => trendSeries.events.map((event, index) => ({
+    key: `${trendSeries.key}:${event.key}`,
+    series: trendSeries,
+    event,
+    x: xAt(event, index, trendSeries.events.length),
+    y: yAt(event.score),
+  })));
+  const overallDelta = allEvents.length > 1 ? allEvents[allEvents.length - 1].event.score - allEvents[0].event.score : 0;
+  const trendText = allEvents.length === 0
+    ? 'No evidence in this period'
+    : allEvents.length < 2
+      ? 'One evidence point so far'
+      : overallDelta >= 10
+        ? 'Overall evidence is moving up'
+        : overallDelta <= -10
+          ? 'Recent evidence needs attention'
+          : 'Overall evidence is broadly steady';
+  const activePoint = activeKey ? plottedPoints.find((point) => point.key === activeKey) || null : null;
+  const activeSeriesIndex = activePoint ? activePoint.series.events.findIndex((event) => event.key === activePoint.event.key) : -1;
+  const previousEvent = activePoint && activeSeriesIndex > 0 ? activePoint.series.events[activeSeriesIndex - 1] : null;
+  const pointDelta = activePoint && previousEvent ? activePoint.event.score - previousEvent.score : null;
+  const xPercent = activePoint ? (activePoint.x / width) * 100 : 50;
+  const yPercent = activePoint ? (activePoint.y / height) * 100 : 50;
+  const horizontalEdge = xPercent < 28 ? 'left' : xPercent > 72 ? 'right' : 'center';
+  const verticalEdge = yPercent < 38 ? 'below' : 'above';
+  const firstEvent = allEvents[0]?.event || null;
+  const lastEvent = allEvents[allEvents.length - 1]?.event || null;
 
   return <article className="sap-trend-card">
-    <header><div><span>Subject trend</span><h3>{subject}</h3></div><strong>{trendText}</strong></header>
-    {events.length ? <>
+    <header>
+      <div><span className="sap-trend-eyebrow">Subject trend</span><h3>{subject}</h3></div>
+      <strong>{trendText}</strong>
+    </header>
+    {activeSeries.length > 1 ? <div className="sap-trend-legend" aria-label={`${subject} evidence sources`}>
+      {activeSeries.map((trendSeries) => <span key={trendSeries.key} className={`sap-trend-legend-item sap-trend-legend-item--${trendSeries.tone}`}><i aria-hidden="true"/>{trendSeries.label}</span>)}
+    </div> : null}
+    {allEvents.length ? <>
       <div className="sap-trend-chart-wrap">
         <svg className="sap-trend-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${subject} learning evidence trend over the selected period`}>
           {[25, 60, 90].map((value) => <g key={value}><line x1={left} y1={yAt(value)} x2={width - right} y2={yAt(value)} className="sap-trend-guide"/><text x={left - 10} y={yAt(value) + 4} textAnchor="end" className="sap-trend-axis">{value === 25 ? 'Needs support' : value === 60 ? 'Developing' : 'Strong'}</text></g>)}
-          {events.length > 1 ? <polyline points={points} className="sap-trend-line"/> : null}
-          {events.map((event, index) => <circle
-            key={event.key}
-            cx={xAt(index)}
-            cy={yAt(event.score)}
+          {activeSeries.map((trendSeries) => trendSeries.events.length > 1 ? <polyline
+            key={`${trendSeries.key}:line`}
+            points={trendSeries.events.map((event, index) => `${xAt(event, index, trendSeries.events.length)},${yAt(event.score)}`).join(' ')}
+            className={`sap-trend-line sap-trend-line--${trendSeries.tone}`}
+          /> : null)}
+          {plottedPoints.map((point) => <circle
+            key={point.key}
+            cx={point.x}
+            cy={point.y}
             r="6"
-            className="sap-trend-point"
+            className={`sap-trend-point sap-trend-point--${point.series.tone}`}
             tabIndex={0}
-            aria-label={`${formatDate(event.observedAt)}, ${event.source}, ${event.detail}, ${event.label}, ${trendPositionLabel(event.score)}`}
-            onMouseEnter={() => setActiveKey(event.key)}
+            aria-label={`${formatDate(point.event.observedAt)}, ${point.series.label}, ${point.event.detail}, ${point.event.label}, ${trendPositionLabel(point.event.score)}`}
+            onMouseEnter={() => setActiveKey(point.key)}
             onMouseLeave={() => setActiveKey(null)}
-            onFocus={() => setActiveKey(event.key)}
+            onFocus={() => setActiveKey(point.key)}
             onBlur={() => setActiveKey(null)}
+            onClick={() => setActiveKey((current) => current === point.key ? null : point.key)}
           />)}
-          <text x={left} y={height - 8} className="sap-trend-date">{formatDate(events[0].observedAt)}</text>
-          <text x={width - right} y={height - 8} textAnchor="end" className="sap-trend-date">{formatDate(events[events.length - 1].observedAt)}</text>
+          {firstEvent ? <text x={left} y={height - 8} className="sap-trend-date">{formatDate(firstEvent.observedAt)}</text> : null}
+          {lastEvent ? <text x={width - right} y={height - 8} textAnchor="end" className="sap-trend-date">{formatDate(lastEvent.observedAt)}</text> : null}
         </svg>
-        {activeEvent ? <div
-          className="sap-trend-tooltip"
+        {activePoint ? <div
+          className={`sap-trend-tooltip sap-trend-tooltip--${horizontalEdge} sap-trend-tooltip--${verticalEdge} sap-trend-tooltip--series-${activePoint.series.tone}`}
           role="status"
-          style={{ left: `${(xAt(activeIndex) / width) * 100}%`, top: `${(yAt(activeEvent.score) / height) * 100}%` }}
+          style={{ left: `${xPercent}%`, top: `${yPercent}%` }}
         >
-          <strong>{formatDate(activeEvent.observedAt)}</strong>
-          <span>{activeEvent.source} · {activeEvent.detail}</span>
-          <b>{activeEvent.label}</b>
-          <small>{trendPositionLabel(activeEvent.score)} · {activeEvent.focusCount} support · {activeEvent.developingCount} developing · {activeEvent.strengthCount} strength</small>
+          <div className="sap-trend-tooltip-head"><strong>{formatDate(activePoint.event.observedAt)}</strong><span className={`sap-trend-source-pill sap-trend-source-pill--${activePoint.series.tone}`}>{activePoint.series.label}</span></div>
+          <b>{activePoint.event.detail}</b>
+          <p className="sap-trend-tooltip-skill">{activePoint.event.label}</p>
+          <div className="sap-trend-tooltip-position"><span>Evidence position</span><strong className={`sap-evidence-position sap-evidence-position--${evidenceBandClass(activePoint.event.score)}`}>{trendPositionLabel(activePoint.event.score)}</strong>{pointDelta == null ? null : <em className={pointDelta >= 0 ? 'is-up' : 'is-down'}>{pointDelta >= 0 ? '↑' : '↓'} {Math.abs(pointDelta)} from previous {activePoint.series.label.toLowerCase()} activity</em>}</div>
+          <div className="sap-trend-evidence-mix" aria-label="Evidence mix">
+            <span className="is-support"><i aria-hidden="true"/><span>Needs support</span><b>{activePoint.event.focusCount}</b></span>
+            <span className="is-developing"><i aria-hidden="true"/><span>Developing</span><b>{activePoint.event.developingCount}</b></span>
+            <span className="is-strength"><i aria-hidden="true"/><span>Strength</span><b>{activePoint.event.strengthCount}</b></span>
+          </div>
         </div> : null}
       </div>
-      <small>Hover or focus a point for the activity details. Multiple findings from the same assignment or writing task are combined into one point.</small>
+      <small>Hover, focus or tap a point for detail. English uses separate source colours so assignment evidence and Writing Hub evidence stay distinct while sharing one timeline.</small>
     </> : <div className="sap-empty">No assessed evidence in this period.</div>}
   </article>;
 };
@@ -297,19 +379,24 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
     return map;
   }, [profile]);
 
-  const trendSubjects = useMemo(() => {
+  const trendSubjects = useMemo<TrendChart[]>(() => {
     if (!profile) return [];
     const subjects = subject === 'all' ? allSubjects : [subject];
     return subjects.flatMap((name) => {
       const subjectExists = profile.subjects.some((row) => normalizeSubject(row.subject) === normalizeSubject(name));
       if (normalizeSubject(name) === 'english') {
-        return [
-          { subject: `${name} — Writing Hub`, events: buildTrendEvents(profile.timeline, name, 'writing_attempt') },
-          { subject: `${name} — Assignments`, events: buildTrendEvents(profile.timeline, name, 'assignment_result') },
-        ].filter((entry) => entry.events.length > 0 || subjectExists);
+        const assignmentEvents = buildTrendEvents(profile.timeline, name, 'assignment_result');
+        const writingEvents = buildTrendEvents(profile.timeline, name, 'writing_attempt');
+        const seriesCandidates: TrendSeries[] = [
+          { key: 'assignments', label: 'Assignments', tone: 'assignment', events: assignmentEvents },
+          { key: 'writing-hub', label: 'Writing Hub', tone: 'writing', events: writingEvents },
+        ];
+        const series = seriesCandidates.filter((item) => item.events.length > 0);
+        if (!series.length && subjectExists) series.push({ key: 'english', label: 'English evidence', tone: 'general', events: [] });
+        return series.length || subjectExists ? [{ subject: name, series }] : [];
       }
       const events = buildTrendEvents(profile.timeline, name);
-      return events.length > 0 || subjectExists ? [{ subject: name, events }] : [];
+      return events.length > 0 || subjectExists ? [{ subject: name, series: [{ key: 'evidence', label: 'Learning evidence', tone: 'general', events }] }] : [];
     });
   }, [allSubjects, profile, subject]);
 
@@ -363,64 +450,59 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
       <article><span>Strengths</span><strong className="sap-positive">{profile.summary.strength_count}</strong><small>Positive evidence</small></article>
     </div>
 
-    <section className="sap-panel">
-      <div className="sap-panel-heading sap-heading-simple"><div><span>At a glance</span><h2>Subject picture</h2></div><p>Results and current learning needs for the selected period.</p></div>
+    <section className="sap-panel sap-overview-panel">
+      <div className="sap-panel-heading sap-heading-simple"><div><span>Main overview</span><h2>Subject picture</h2></div><p>Results and current learning needs for the selected period.</p></div>
       <div className="sap-subject-grid">{profile.subjects.map((entry) => {
         const subjectFocus = currentFocus.filter((item) => normalizeSubject(item.subject) === normalizeSubject(entry.subject)).length;
         return <article key={entry.subject} className="sap-subject-card"><div><h3>{entry.subject}</h3><span>{entry.completed_assignments} completed</span></div><strong className={`sap-score sap-score--${scoreBand(entry.assignment_average)}`}>{entry.assignment_average === null ? 'Not assessed' : `${entry.assignment_average}%`}</strong><dl><div><dt>Needs support</dt><dd>{subjectFocus}</dd></div><div><dt>Improving</dt><dd>{entry.improving_count}</dd></div><div><dt>Secure</dt><dd>{entry.resolved_count}</dd></div><div><dt>Strengths</dt><dd>{entry.strength_count}</dd></div></dl><small>Latest evidence {formatDate(entry.latest_evidence_at)}</small></article>;
       })}{!profile.subjects.length ? <div className="sap-empty">No subject evidence is available in the selected period.</div> : null}</div>
     </section>
 
-    <div className="sap-two-column">
-      <details className="sap-panel sap-collapsible-panel" open>
-        <summary className="sap-collapsible-summary"><div><span>Needs support</span><h2>What should we work on?</h2><p>Specific learning needs, not just broad labels.</p></div><b className="sap-collapse-action"><span className="when-open">Collapse</span><span className="when-closed">Expand</span></b></summary>
-        <div className="sap-collapsible-content"><div className="sap-focus-list sap-focus-list--clear">{currentFocus.map((item) => {
-          const key = `${normalizeSubject(item.subject)}|${item.skill.toLowerCase()}|${String(item.subskill || '').toLowerCase()}`;
-          const evidence = latestTimelineForFocus.get(key);
-          const correction = getCorrections(evidence)[0];
-          return <article key={item.skill_key}><div className="sap-focus-main"><span className={`sap-status sap-status--${statusBand(String(item.status))}`}>{formatStatus(item)}</span><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><p>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</p>{evidence ? <small className="sap-focus-explain">{evidenceExplanation(evidence)}</small> : null}{correction && (correction.original || correction.better_version) ? <div className="sap-example"><span>Example</span><del>{correction.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{correction.better_version || 'Correction'}</ins></div> : null}</div><dl><div><dt>First seen</dt><dd>{formatDate(item.first_observed_at)}</dd></div><div><dt>Latest</dt><dd>{formatDate(item.last_observed_at)}</dd></div><div><dt>Evidence</dt><dd>{item.evidence_items}</dd></div><div><dt>Latest result</dt><dd>{item.latest_evidence_percentage == null ? '—' : `${item.latest_evidence_percentage}%`}</dd></div></dl></article>;
-        })}{!currentFocus.length ? <div className="sap-empty">No current support needs are identified in this period.</div> : null}</div></div>
-      </details>
+    <ProfileDisclosure tone="trend" eyebrow="Learning trends" title="How is the student moving over time?" description="One timeline per subject. English combines assignments and Writing Hub as separate colour-coded evidence streams." meta={`${trendSubjects.length} subject trend${trendSubjects.length === 1 ? '' : 's'}`}>
+      <div className="sap-trend-grid">{trendSubjects.map((entry) => <SubjectTrendChart key={entry.subject} subject={entry.subject} series={entry.series}/>)}</div>
+    </ProfileDisclosure>
 
-      <section className="sap-panel">
-        <div className="sap-panel-heading sap-heading-simple"><div><span>Going well</span><h2>Progress and strengths</h2></div><p>What is improving, secure or consistently strong.</p></div>
-        <div className="sap-progress-columns"><div><h3>Making progress</h3>{improving.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</strong><span>{item.subject}</span></p>)}{!improving.length ? <small>No improving areas yet.</small> : null}</div><div><h3>Now secure</h3>{resolved.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}{!resolved.length ? <small>No resolved areas yet.</small> : null}</div><div><h3>Strengths</h3>{strengths.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}{!strengths.length ? <small>No established strengths yet.</small> : null}</div></div>
-      </section>
-    </div>
+    <ProfileDisclosure tone="support" eyebrow="Priority support" title="What should we work on?" description="Current learning needs with the latest supporting evidence, kept separate from the detailed activity log." meta={`${currentFocus.length} active area${currentFocus.length === 1 ? '' : 's'}`}>
+      <div className="sap-focus-list sap-focus-list--clear">{currentFocus.map((item) => {
+        const key = `${normalizeSubject(item.subject)}|${item.skill.toLowerCase()}|${String(item.subskill || '').toLowerCase()}`;
+        const evidence = latestTimelineForFocus.get(key);
+        const correction = getCorrections(evidence)[0];
+        return <article key={item.skill_key}><div className="sap-focus-main"><span className={`sap-status sap-status--${statusBand(String(item.status))}`}>{formatStatus(item)}</span><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><p>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</p>{evidence ? <small className="sap-focus-explain">{evidenceExplanation(evidence)}</small> : null}{correction && (correction.original || correction.better_version) ? <div className="sap-example"><span>Example</span><del>{correction.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{correction.better_version || 'Correction'}</ins></div> : null}</div><dl><div><dt>First seen</dt><dd>{formatDate(item.first_observed_at)}</dd></div><div><dt>Latest</dt><dd>{formatDate(item.last_observed_at)}</dd></div><div><dt>Evidence</dt><dd>{item.evidence_items}</dd></div><div><dt>Latest result</dt><dd>{item.latest_evidence_percentage == null ? '—' : `${item.latest_evidence_percentage}%`}</dd></div></dl></article>;
+      })}{!currentFocus.length ? <div className="sap-empty">No current support needs are identified in this period.</div> : null}</div>
+    </ProfileDisclosure>
 
-    <details className="sap-panel sap-collapsible-panel" open>
-      <summary className="sap-collapsible-summary"><div><span>Learning timeline</span><h2>How is the student moving over time?</h2><p>Each graph uses the evidence shown in the selected period.</p></div><b className="sap-collapse-action"><span className="when-open">Collapse</span><span className="when-closed">Expand</span></b></summary>
-      <div className="sap-collapsible-content">
-        <div className="sap-trend-grid">{trendSubjects.map((entry) => <SubjectTrendChart key={entry.subject} subject={entry.subject} events={entry.events}/>)}</div>
-        <div className="sap-evidence-list">{profile.timeline.slice(0, 60).map((item) => {
-          const meta = sourceMeta(item);
-          const corrections = getCorrections(item);
-          const firstCorrection = corrections[0];
-          const evidence = objectValue(item.evidence);
-          const improvementAction = textValue(evidence.improvement_action);
-          return <article key={item.id} className={`sap-evidence-card sap-evidence-card--${item.observation_type}`}>
-            <div className="sap-evidence-top"><span className={`sap-source-badge sap-source-badge--${meta.tone}`}>{meta.label}</span><time>{formatDate(item.observed_at)}</time></div>
-            <div className="sap-evidence-heading"><div><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><span>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</span></div><span className={`sap-status sap-status--${item.observation_type === 'focus' ? 'focus' : item.observation_type === 'strength' ? 'strong' : 'improving'}`}>{item.observation_type === 'focus' ? 'Needs support' : item.observation_type === 'strength' ? 'Strength' : 'Developing'}</span></div>
-            <p className="sap-evidence-explanation">{evidenceExplanation(item)}</p>
-            {firstCorrection && (firstCorrection.original || firstCorrection.better_version) ? <div className="sap-example sap-example--wide"><span>From the student's work</span><del>{firstCorrection.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{firstCorrection.better_version || 'Correction'}</ins></div> : null}
-            {improvementAction ? <p className="sap-next-step"><strong>Helpful next step:</strong> {improvementAction}</p> : null}
-            <div className="sap-evidence-meta"><span>{meta.detail}</span>{item.evidence_count ? <span>{item.evidence_count} evidence item{item.evidence_count === 1 ? '' : 's'}</span> : null}{item.evidence_percentage == null ? null : <span>{item.evidence_percentage}%</span>}</div>
-            {(corrections.length > 1 || textValue(evidence.objective)) ? <details><summary>More evidence</summary>{corrections.slice(1).map((correction, index) => <div className="sap-example sap-example--wide" key={`${correction.original}-${index}`}><del>{correction.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{correction.better_version || 'Correction'}</ins>{correction.issue ? <small>{correction.issue}</small> : null}</div>)}{textValue(evidence.objective) ? <p><strong>Curriculum focus:</strong> {textValue(evidence.objective)}</p> : null}</details> : null}
-          </article>;
-        })}{!profile.timeline.length ? <div className="sap-empty">No learning evidence is available in this period.</div> : null}</div>
-      </div>
-    </details>
+    <ProfileDisclosure tone="progress" eyebrow="Positive movement" title="Progress and strengths" description="A concise view of areas that are improving, secure or consistently strong." meta={`${improving.length + resolved.length + strengths.length} positive signal${improving.length + resolved.length + strengths.length === 1 ? '' : 's'}`}>
+      <div className="sap-progress-columns"><div><h3>Making progress</h3>{improving.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</strong><span>{item.subject}</span></p>)}{!improving.length ? <small>No improving areas yet.</small> : null}</div><div><h3>Now secure</h3>{resolved.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}{!resolved.length ? <small>No resolved areas yet.</small> : null}</div><div><h3>Strengths</h3>{strengths.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}{!strengths.length ? <small>No established strengths yet.</small> : null}</div></div>
+    </ProfileDisclosure>
 
-    <details className="sap-panel sap-reference">
-      <summary><span><strong>How this profile works</strong><small>Definitions, evidence confidence and reporting details</small></span><b>Reference</b></summary>
-      <div className="sap-reference-body">
-        <div className="sap-glossary"><div><strong>New focus</strong><span>A recent assessed need. It is visible early, but is not called persistent yet.</span></div><div><strong>Recurring</strong><span>The same need has appeared more than once.</span></div><div><strong>Persistent</strong><span>A repeated need supported by enough evidence over time.</span></div><div><strong>Improving</strong><span>Later assessed work is moving in the right direction.</span></div><div><strong>Resolved</strong><span>Later evidence shows the previous need is now secure.</span></div><div><strong>Confidence</strong><span>How complete, recent and consistent the evidence is. It is not a mark.</span></div></div>
-        {latestConfidenceStates.length ? <div className="sap-confidence-summary" aria-label="Evidence confidence summary"><span><strong>{latestConfidenceStates.filter((item) => item.assessmentState === 'assessed').length}</strong> well-evidenced skills</span><span><strong>{latestConfidenceStates.filter((item) => ['not_assessed', 'low_data'].includes(item.assessmentState)).length}</strong> need more evidence</span><span><strong>{latestConfidenceStates.filter((item) => item.assessmentState === 'stale').length}</strong> need newer evidence</span><span><strong>{latestConfidenceStates.filter((item) => item.teacherReviewRequired).length}</strong> need teacher review</span></div> : <p>No confidence details are available yet.</p>}
-        <details className="sap-technical-details"><summary>Technical reporting terminology</summary><p><strong>Qualified evidence:</strong> assessed evidence that meets the system's quality rules. <strong>Coverage:</strong> how much of the mapped curriculum has been assessed. <strong>Reporting readiness:</strong> whether there is enough governed evidence for higher-confidence reporting. <strong>Contradictory evidence:</strong> recent evidence that points in different directions and may need teacher review.</p></details>
-      </div>
-    </details>
+    <ProfileDisclosure tone="evidence" eyebrow="Detailed evidence" title="Evidence activity" description="Chronological source evidence for deeper review. This stays closed until detail is needed." meta={`${profile.timeline.length} record${profile.timeline.length === 1 ? '' : 's'}`}>
+      <div className="sap-evidence-list">{profile.timeline.slice(0, 60).map((item) => {
+        const meta = sourceMeta(item);
+        const corrections = getCorrections(item);
+        const firstCorrection = corrections[0];
+        const evidence = objectValue(item.evidence);
+        const improvementAction = textValue(evidence.improvement_action);
+        return <article key={item.id} className={`sap-evidence-card sap-evidence-card--${item.observation_type}`}>
+          <div className="sap-evidence-top"><span className={`sap-source-badge sap-source-badge--${meta.tone}`}>{meta.label}</span><time>{formatDate(item.observed_at)}</time></div>
+          <div className="sap-evidence-heading"><div><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><span>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</span></div><span className={`sap-status sap-status--${item.observation_type === 'focus' ? 'focus' : item.observation_type === 'strength' ? 'strong' : 'improving'}`}>{item.observation_type === 'focus' ? 'Needs support' : item.observation_type === 'strength' ? 'Strength' : 'Developing'}</span></div>
+          <p className="sap-evidence-explanation">{evidenceExplanation(item)}</p>
+          {firstCorrection && (firstCorrection.original || firstCorrection.better_version) ? <div className="sap-example sap-example--wide"><span>From the student's work</span><del>{firstCorrection.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{firstCorrection.better_version || 'Correction'}</ins></div> : null}
+          {improvementAction ? <p className="sap-next-step"><strong>Helpful next step:</strong> {improvementAction}</p> : null}
+          <div className="sap-evidence-meta"><span>{meta.detail}</span>{item.evidence_count ? <span>{item.evidence_count} evidence item{item.evidence_count === 1 ? '' : 's'}</span> : null}{item.evidence_percentage == null ? null : <span>{item.evidence_percentage}%</span>}</div>
+          {(corrections.length > 1 || textValue(evidence.objective)) ? <details className="sap-mini-disclosure"><summary>More evidence <span aria-hidden="true">+</span></summary><div>{corrections.slice(1).map((correction, index) => <div className="sap-example sap-example--wide" key={`${correction.original}-${index}`}><del>{correction.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{correction.better_version || 'Correction'}</ins>{correction.issue ? <small>{correction.issue}</small> : null}</div>)}{textValue(evidence.objective) ? <p><strong>Curriculum focus:</strong> {textValue(evidence.objective)}</p> : null}</div></details> : null}
+        </article>;
+      })}{!profile.timeline.length ? <div className="sap-empty">No learning evidence is available in this period.</div> : null}</div>
+    </ProfileDisclosure>
 
-    <details className="sap-panel sap-results-details"><summary><span><strong>Assignment results</strong><small>{profile.assignments.length} completed assignment{profile.assignments.length === 1 ? '' : 's'} in this period</small></span><b>Open</b></summary><div className="sap-table-wrap"><table className="sap-table"><thead><tr><th>Date</th><th>Subject</th><th>Assignment</th><th>Topic</th><th>Correct</th><th>Result</th></tr></thead><tbody>{profile.assignments.map((item) => <tr key={`${item.assignment_id}:${item.completed_at}`}><td>{formatDate(item.completed_at)}</td><td>{item.subject}</td><td><strong>{item.title}</strong></td><td>{item.topic || '—'}</td><td>{item.correct}/{item.correct + item.incorrect}</td><td><span className={`sap-score-chip sap-score-chip--${scoreBand(item.accuracy)}`}>{item.accuracy}%</span></td></tr>)}</tbody></table>{!profile.assignments.length ? <div className="sap-empty">No completed assignments in this period.</div> : null}</div></details>
+    <ProfileDisclosure tone="results" eyebrow="Assessment record" title="Assignment results" description="Completed assignment outcomes for the selected period." meta={`${profile.assignments.length} completed`}>
+      <div className="sap-table-wrap"><table className="sap-table"><thead><tr><th>Date</th><th>Subject</th><th>Assignment</th><th>Topic</th><th>Correct</th><th>Result</th></tr></thead><tbody>{profile.assignments.map((item) => <tr key={`${item.assignment_id}:${item.completed_at}`}><td>{formatDate(item.completed_at)}</td><td>{item.subject}</td><td><strong>{item.title}</strong></td><td>{item.topic || '—'}</td><td>{item.correct}/{item.correct + item.incorrect}</td><td><span className={`sap-score-chip sap-score-chip--${scoreBand(item.accuracy)}`}>{item.accuracy}%</span></td></tr>)}</tbody></table>{!profile.assignments.length ? <div className="sap-empty">No completed assignments in this period.</div> : null}</div>
+    </ProfileDisclosure>
+
+    <ProfileDisclosure tone="method" eyebrow="Reporting method" title="How this profile works" description="Definitions, confidence and governed reporting terminology." meta="Reference">
+      <div className="sap-glossary"><div><strong>New focus</strong><span>A recent assessed need. It is visible early, but is not called persistent yet.</span></div><div><strong>Recurring</strong><span>The same need has appeared more than once.</span></div><div><strong>Persistent</strong><span>A repeated need supported by enough evidence over time.</span></div><div><strong>Improving</strong><span>Later assessed work is moving in the right direction.</span></div><div><strong>Resolved</strong><span>Later evidence shows the previous need is now secure.</span></div><div><strong>Confidence</strong><span>How complete, recent and consistent the evidence is. It is not a mark.</span></div></div>
+      {latestConfidenceStates.length ? <div className="sap-confidence-summary" aria-label="Evidence confidence summary"><span><strong>{latestConfidenceStates.filter((item) => item.assessmentState === 'assessed').length}</strong> well-evidenced skills</span><span><strong>{latestConfidenceStates.filter((item) => ['not_assessed', 'low_data'].includes(item.assessmentState)).length}</strong> need more evidence</span><span><strong>{latestConfidenceStates.filter((item) => item.assessmentState === 'stale').length}</strong> need newer evidence</span><span><strong>{latestConfidenceStates.filter((item) => item.teacherReviewRequired).length}</strong> need teacher review</span></div> : <p>No confidence details are available yet.</p>}
+      <div className="sap-technical-summary"><strong>Technical reporting terminology</strong><p><b>Qualified evidence:</b> assessed evidence that meets the system's quality rules. <b>Coverage:</b> how much of the mapped curriculum has been assessed. <b>Reporting readiness:</b> whether there is enough governed evidence for higher-confidence reporting. <b>Contradictory evidence:</b> recent evidence that points in different directions and may need teacher review.</p></div>
+    </ProfileDisclosure>
 
     {showReport ? <IndividualStudentAcademicReport profile={profile} schoolName={resolvedSchoolName} schoolLogoUrl={resolvedSchoolLogo} teacherName={preparedBy} onClose={() => setShowReport(false)} /> : null}
   </section>;
