@@ -71,7 +71,6 @@ begin
     raise exception using errcode = '22023', message = 'Scheduled publication must be in the future local time';
   end if;
 
-  -- Validate the IANA timezone before using it. PostgreSQL raises on unknown zones.
   begin
     perform v_now at time zone v_timezone;
   exception when invalid_parameter_value then
@@ -174,7 +173,7 @@ begin
 
   update public.assignments
   set assignment_category = v_category,
-      updated_at = coalesce(updated_at, now())
+      updated_at = now()
   where id = v_assignment.id
   returning * into v_assignment;
 
@@ -240,7 +239,7 @@ begin
 
   update public.assignments
   set assignment_category = v_category,
-      updated_at = coalesce(updated_at, now())
+      updated_at = now()
   where id = p_assignment_id
   returning * into v_assignment;
 
@@ -309,92 +308,88 @@ $$;
 revoke all on function public.rpc_my_assignment_category_context(uuid[]) from public, anon;
 grant execute on function public.rpc_my_assignment_category_context(uuid[]) to authenticated;
 
--- Keep every assignment-related transactional email payload category-aware.
-create or replace function private.trg_email_assignment_result()
-returns trigger language plpgsql security definer set search_path='' as $$
-declare v_assignment record; v_teacher_user_id uuid;
+-- Enrich every existing assignment transactional-email producer without replacing
+-- its reminder/result/submission jobs. This keeps guardian and billing reminders
+-- completely untouched while ensuring assignment emails carry category metadata.
+create or replace function private.email_enrich_assignment_payload()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_assignment_id uuid;
+  v_category text;
 begin
-  select a.id,a.school_id,a.title,a.subject_name,a.assignment_category,t.user_id into v_assignment
-  from public.assignments a join public.teachers t on t.id=a.teacher_id
-  where a.id=new.assignment_id;
-  v_teacher_user_id := v_assignment.user_id;
-  if v_assignment.id is null then return new; end if;
-  perform private.enqueue_transactional_email(
-    'assignment_result_ready','academic','student','assignment_result_ready',
-    'assignment-result-'||new.assignment_id::text||'-'||new.student_id::text,
-    jsonb_build_object('assignment_id',new.assignment_id,'title',v_assignment.title,'subject',v_assignment.subject_name,'assignment_category',v_assignment.assignment_category),
-    new.student_id,null,v_assignment.school_id,null,now()
-  );
-  if v_teacher_user_id is not null then
-    perform private.enqueue_transactional_email(
-      'assignment_submission_received','school_operations','teacher','assignment_submission_received',
-      'assignment-submission-'||new.assignment_id::text||'-'||new.student_id::text,
-      jsonb_build_object('assignment_id',new.assignment_id,'student_id',new.student_id,'title',v_assignment.title,'subject',v_assignment.subject_name,'assignment_category',v_assignment.assignment_category),
-      v_teacher_user_id,null,v_assignment.school_id,null,now()
-    );
+  if new.template_key not like 'assignment_%' or not (coalesce(new.payload, '{}'::jsonb) ? 'assignment_id') then
+    return new;
+  end if;
+
+  begin
+    v_assignment_id := nullif(new.payload->>'assignment_id', '')::uuid;
+  exception when invalid_text_representation then
+    return new;
+  end;
+
+  select a.assignment_category into v_category
+  from public.assignments a
+  where a.id = v_assignment_id;
+
+  if found then
+    new.payload := coalesce(new.payload, '{}'::jsonb)
+      || jsonb_build_object('assignment_category', v_category);
   end if;
   return new;
-end; $$;
-revoke all on function private.trg_email_assignment_result() from public, anon, authenticated;
+end;
+$$;
+revoke all on function private.email_enrich_assignment_payload() from public, anon, authenticated, service_role;
 
-create or replace function private.trg_email_assignment_changed()
-returns trigger language plpgsql security definer set search_path='' as $$
-declare v_student record; v_template text; v_event text;
+drop trigger if exists trg_email_enrich_assignment_payload on public.transactional_email_outbox;
+create trigger trg_email_enrich_assignment_payload
+before insert or update of payload, template_key on public.transactional_email_outbox
+for each row execute function private.email_enrich_assignment_payload();
+
+-- A category-only change is metadata, so it must not reset student work. It can,
+-- however, notify students that the assignment label changed when notifications
+-- are already part of the school's email workflow.
+create or replace function private.trg_email_assignment_category_changed()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_student record;
 begin
-  if old.publish_status is distinct from new.publish_status and new.publish_status='draft' then
-    v_template:='assignment_cancelled'; v_event:='assignment_cancelled';
-  elsif new.publish_status<>'draft' and (
-    old.title is distinct from new.title or old.due_at is distinct from new.due_at
-    or old.assigned_at is distinct from new.assigned_at
-    or old.assignment_category is distinct from new.assignment_category
-  ) then
-    v_template:='assignment_updated'; v_event:='assignment_updated';
-  else return new;
+  if old.assignment_category is not distinct from new.assignment_category
+     or new.publish_status = 'draft' then
+    return new;
   end if;
+
   for v_student in
-    select sa.student_id from public.student_assignments sa where sa.assignment_id=new.id
+    select sa.student_id
+    from public.student_assignments sa
+    where sa.assignment_id = new.id
   loop
     perform private.enqueue_transactional_email(
-      v_event,'school_operations','student',v_template,
-      v_event||'-'||new.id::text||'-'||v_student.student_id::text||'-'||new.updated_at::text,
-      jsonb_build_object('assignment_id',new.id,'title',new.title,'subject',new.subject_name,'due_at',new.due_at,'assignment_category',new.assignment_category),
+      'assignment_updated','school_operations','student','assignment_updated',
+      'assignment-category-'||new.id::text||'-'||v_student.student_id::text||'-'||new.updated_at::text,
+      jsonb_build_object(
+        'assignment_id',new.id,
+        'title',new.title,
+        'subject',new.subject_name,
+        'due_at',new.due_at,
+        'assignment_category',new.assignment_category
+      ),
       v_student.student_id,null,new.school_id,null,now()
     );
   end loop;
   return new;
-end; $$;
-revoke all on function private.trg_email_assignment_changed() from public, anon, authenticated;
+end;
+$$;
+revoke all on function private.trg_email_assignment_category_changed() from public, anon, authenticated, service_role;
 
-create or replace function public.rpc_enqueue_due_email_reminders()
-returns jsonb language plpgsql security definer set search_path='' as $$
-declare v_assignment_count integer:=0; v_guardian_count integer:=0; v_subscription_count integer:=0; r record;
-begin
-  for r in
-    select sa.assignment_id,sa.student_id,a.school_id,a.title,a.subject_name,a.assignment_category,a.due_at
-    from public.student_assignments sa join public.assignments a on a.id=sa.assignment_id
-    where sa.status not in ('completed','submitted') and a.due_at between now()+interval '23 hours' and now()+interval '25 hours'
-  loop
-    perform private.enqueue_transactional_email('assignment_due_reminder','reminders','student','assignment_due_reminder',
-      'assignment-due-24h-'||r.assignment_id::text||'-'||r.student_id::text||'-'||r.due_at::text,
-      jsonb_build_object('assignment_id',r.assignment_id,'title',r.title,'subject',r.subject_name,'due_at',r.due_at,'assignment_category',r.assignment_category),
-      r.student_id,null,r.school_id,null,now());
-    v_assignment_count:=v_assignment_count+1;
-  end loop;
-
-  -- Preserve the existing guardian/subscription reminder logic by delegating to
-  -- the same source tables rather than changing assignment behavior.
-  for r in
-    select gin.id,gin.school_id,gin.student_id,gin.invited_email,gin.available_at
-    from public.guardian_invitation_email_notifications gin
-    where gin.status='pending'
-      and gin.available_at between now()+interval '23 hours' and now()+interval '25 hours'
-  loop
-    v_guardian_count:=v_guardian_count+1;
-  end loop;
-
-  -- Subscription reminders are owned by their existing billing triggers/jobs;
-  -- this counter remains part of the public response contract.
-  return jsonb_build_object('success',true,'assignment_reminders',v_assignment_count,'guardian_reminders',v_guardian_count,'subscription_reminders',v_subscription_count);
-end; $$;
-revoke all on function public.rpc_enqueue_due_email_reminders() from public, anon, authenticated;
-grant execute on function public.rpc_enqueue_due_email_reminders() to service_role;
+drop trigger if exists professional_email_assignment_category_changed on public.assignments;
+create trigger professional_email_assignment_category_changed
+after update of assignment_category on public.assignments
+for each row execute function private.trg_email_assignment_category_changed();
