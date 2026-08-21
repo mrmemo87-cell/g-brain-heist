@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const migration = readFileSync('supabase/migrations/20260812180000_school_billing_studio_v1.sql', 'utf8');
 const launchOfferMigration = readFileSync('supabase/migrations/20260822023000_school_pricing_launch_65.sql', 'utf8');
+const publicPricing = readFileSync('public/pricing.html', 'utf8');
 
 test('Billing Studio locks the approved per-student catalogue and minimums', () => {
   assert.match(migration, /'platform','Brains Heist Platform',175,50/);
@@ -21,6 +22,12 @@ test('Billing Studio keeps discount ordering and applies the current 65 percent 
   assert.match(migration, /v_launch_discount := greatest\(0,least\(v_launch_discount,v_max_discount-v_existing_discount\)\)/);
   assert.match(launchOfferMigration, /launch_bps = 6500/);
   assert.match(launchOfferMigration, /maximum_discount_bps = 6500/);
+});
+
+test('public school pricing starts at annual billing and does not offer monthly billing', () => {
+  assert.match(publicPricing, /term: 'annual'/);
+  assert.match(publicPricing, /\['annual', 'Annual', 'Annual discount'\]/);
+  assert.doesNotMatch(publicPricing, /\['monthly', 'Monthly'/);
 });
 
 test('quote writes stay behind governed RPCs and never activate access', () => {
