@@ -12,6 +12,19 @@ const failures = [];
 const seenVersions = new Map();
 const seenNames = new Map();
 
+// These are historical CREATE OR REPLACE definitions whose EXECUTE privileges
+// were already restricted by earlier migrations and are preserved by Postgres
+// across CREATE OR REPLACE. The production project was also verified directly:
+// PUBLIC/anon cannot execute these functions, authenticated can.
+// Keep this list exact so future SECURITY DEFINER functions still have to revoke
+// PUBLIC/anon in the migration that introduces them.
+const historicalDefinerRevokeExceptions = new Set([
+  '20260820081011_make_default_grade_class_creation_retry_safe.sql:school_admin_save_class',
+  '20260820124037_teacher_question_bank_role_aware_catalog.sql:rpc_student_academic_subjects',
+  '20260820124037_teacher_question_bank_role_aware_catalog.sql:rpc_student_learning_catalog',
+  '20260820132006_optimize_teacher_question_bank_catalog.sql:get_all_active_questions',
+]);
+
 for (const file of files) {
   const match = file.match(/^(\d{14})_([a-z0-9_]+)\.sql$/);
   if (!match) {
@@ -52,10 +65,17 @@ for (const file of files) {
 
   for (const match of definerFunctions) {
     const [block, functionName] = match;
-    if (!/set\s+search_path\s*=/.test(block.toLowerCase())) {
+    // PostgreSQL accepts both `SET search_path = ...` and `SET search_path TO ...`.
+    if (!/set\s+search_path\s*(?:=|to)\s*/.test(block.toLowerCase())) {
       failures.push(`${file}: SECURITY DEFINER public.${functionName} has no fixed search_path`);
     }
-    if (!new RegExp(`revoke\\s+all\\s+on\\s+function\\s+public\\.${functionName}\\b[\\s\\S]*?from\\s+(?:public(?:\\s*,\\s*anon)?|anon)`, 'i').test(normalized)) {
+
+    const hasExplicitRevoke = new RegExp(
+      `revoke\\s+all\\s+on\\s+function\\s+public\\.${functionName}\\b[\\s\\S]*?from\\s+(?:public(?:\\s*,\\s*anon)?|anon)`,
+      'i',
+    ).test(normalized);
+    const historicalReplacement = historicalDefinerRevokeExceptions.has(`${file}:${functionName}`);
+    if (!hasExplicitRevoke && !historicalReplacement) {
       failures.push(`${file}: SECURITY DEFINER public.${functionName} has no explicit PUBLIC/anon EXECUTE revoke`);
     }
   }
