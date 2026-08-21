@@ -46,10 +46,25 @@ for (const file of files) {
   } else {
     seenNames.set(name, file);
   }
+}
 
-  const content = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
-  const normalized = content.replace(/--.*$/gm, ' ');
-  const definerFunctions = [...normalized.matchAll(/create\s+or\s+replace\s+function\s+public\.([a-zA-Z0-9_]+)[\s\S]*?\$\$;/gi)];
+for (const file of files) {
+  const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
+  const normalized = sql.replace(/--.*$/gm, ' ').replace(/\s+/g, ' ');
+
+  const publicTables = [...normalized.matchAll(/create\s+table(?:\s+if\s+not\s+exists)?\s+public\.([a-zA-Z0-9_]+)/gi)]
+    .map((match) => match[1]);
+
+  for (const table of publicTables) {
+    const escaped = table.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!new RegExp(`alter\\s+table\\s+public\\.${escaped}\\s+enable\\s+row\\s+level\\s+security`, 'i').test(normalized)) {
+      failures.push(`${file}: public.${table} is created without enabling RLS in the same migration`);
+    }
+  }
+
+  const definerFunctions = [...normalized.matchAll(
+    /create\s+(?:or\s+replace\s+)?function\s+public\.([a-zA-Z0-9_]+)[\s\S]*?security\s+definer[\s\S]*?(?=create\s+(?:or\s+replace\s+)?function|$)/gi,
+  )];
 
   for (const match of definerFunctions) {
     const [block, functionName] = match;
@@ -67,12 +82,16 @@ for (const file of files) {
       failures.push(`${file}: SECURITY DEFINER public.${functionName} has no explicit PUBLIC/anon EXECUTE revoke`);
     }
   }
+
+  if (/create\s+policy[\s\S]*?to\s+public[\s\S]*?(?:using|with\s+check)\s*\(\s*true\s*\)/i.test(normalized)) {
+    failures.push(`${file}: unconditional PUBLIC RLS policy requires a documented security exception`);
+  }
 }
 
-if (failures.length) {
+if (failures.length > 0) {
   console.error('Supabase migration security guard failed:');
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
 
-console.log(`Supabase migration security guard passed (${files.length} migrations checked).`);
+console.log(`Supabase migration security guard passed for ${files.length} migration(s).`);
