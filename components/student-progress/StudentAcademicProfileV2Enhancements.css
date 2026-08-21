@@ -1,1 +1,100 @@
-.sap-collapsible-panel{padding:0;overflow:visible}.sap-collapsible-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;cursor:pointer;list-style:none}.sap-collapsible-summary::-webkit-details-marker{display:none}.sap-collapsible-summary>div>span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:800;color:#0891b2}.sap-collapsible-summary h2{margin:4px 0 0;font-size:20px;color:#0f172a}.sap-collapsible-summary p{margin:4px 0 0;color:#64748b;font-size:13px}.sap-collapse-action{display:inline-flex;align-items:center;justify-content:center;min-width:78px;padding:7px 10px;border:1px solid #cbd5e1;border-radius:999px;background:#f8fafc;color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.05em}.sap-collapse-action .when-closed{display:none}.sap-collapsible-panel:not([open]) .sap-collapse-action .when-open{display:none}.sap-collapsible-panel:not([open]) .sap-collapse-action .when-closed{display:inline}.sap-collapsible-content{padding:0 18px 18px;border-top:1px solid #e2e8f0}.sap-trend-chart-wrap{position:relative}.sap-trend-point{cursor:help;transition:r .12s ease,stroke-width .12s ease}.sap-trend-point:hover,.sap-trend-point:focus{r:8;stroke-width:5;outline:none}.sap-trend-tooltip{position:absolute;z-index:6;width:min(260px,70vw);transform:translate(-50%,calc(-100% - 14px));padding:10px 12px;border:1px solid #cbd5e1;border-radius:11px;background:#0f172a;color:#fff;box-shadow:0 14px 38px rgba(15,23,42,.24);pointer-events:none}.sap-trend-tooltip:after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;transform:translateX(-50%) rotate(45deg);background:#0f172a}.sap-trend-tooltip strong,.sap-trend-tooltip b,.sap-trend-tooltip span,.sap-trend-tooltip small{display:block;position:relative;z-index:1}.sap-trend-tooltip strong{font-size:12px}.sap-trend-tooltip span{margin-top:3px;color:#cbd5e1;font-size:11px}.sap-trend-tooltip b{margin-top:6px;font-size:13px}.sap-trend-tooltip small{margin-top:4px;color:#e2e8f0;font-size:10px;line-height:1.4}.sap-print-trend-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:12px}.sap-print-trend-card{padding:12px;border:1px solid #dbe5ef;border-radius:12px;background:#fff}.sap-print-trend-card>header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.sap-print-trend-card>header h3{margin:0;font-size:15px}.sap-print-trend-card>header span{font-size:10px;color:#64748b}.sap-print-trend-chart{display:block;width:100%;height:auto;margin-top:8px}.sap-print-trend-guide{stroke:#dbe5ef;stroke-width:1;stroke-dasharray:4 5}.sap-print-trend-line{fill:none;stroke:#0f766e;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.sap-print-trend-point{fill:#fff;stroke:#0f766e;stroke-width:4}.sap-print-trend-point-number{font-size:8px;font-weight:900;fill:#0f172a;text-anchor:middle}.sap-print-trend-axis,.sap-print-trend-date{fill:#64748b;font-size:9px}.sap-print-trend-point-list{display:grid;gap:5px;margin:10px 0 0;padding:0;list-style:none}.sap-print-trend-point-list li{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start;padding:6px 8px;border-radius:8px;background:#f8fafc}.sap-print-trend-point-list li>b{display:grid;place-items:center;width:22px;height:22px;border-radius:999px;background:#e2e8f0;font-size:10px}.sap-print-trend-point-list li>span{display:grid;gap:2px}.sap-print-trend-point-list strong{font-size:10px}.sap-print-trend-point-list small{font-size:9px;color:#64748b;line-height:1.35}@media(max-width:760px){.sap-collapsible-summary{align-items:flex-start}.sap-collapsible-summary>div{min-width:0}.sap-collapse-action{min-width:70px}.sap-trend-tooltip{width:min(230px,78vw)}}@media print{.sap-collapsible-panel{display:block!important}.sap-collapsible-panel>.sap-collapsible-summary{display:none!important}.sap-collapsible-panel>.sap-collapsible-content{display:block!important;padding:0!important;border:0!important}.sap-print-trend-card{break-inside:avoid!important;page-break-inside:avoid!important}.sap-print-trend-point-list li{break-inside:avoid!important;page-break-inside:avoid!important}.sap-trend-tooltip{display:none!important}}
+.sap-collapsible-panel{padding:0;overflow:visible}
+.sap-collapsible-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;cursor:pointer;list-style:none}
+.sap-collapsible-summary::-webkit-details-marker{display:none}
+.sap-collapsible-summary>div>span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:800;color:#0891b2}
+.sap-collapsible-summary h2{margin:4px 0 0;font-size:20px;color:#0f172a}
+.sap-collapsible-summary p{margin:4px 0 0;color:#64748b;font-size:13px}
+.sap-collapse-action{display:inline-flex;align-items:center;justify-content:center;min-width:78px;padding:7px 10px;border:1px solid #cbd5e1;border-radius:999px;background:#f8fafc;color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.sap-collapse-action .when-closed{display:none}
+.sap-collapsible-panel:not([open]) .sap-collapse-action .when-open{display:none}
+.sap-collapsible-panel:not([open]) .sap-collapse-action .when-closed{display:inline}
+.sap-collapsible-content{padding:0 18px 18px;border-top:1px solid #e2e8f0}
+
+/* Premium academic progress timeline — inspired by compact analytics dashboards,
+   but kept school-first: evidence remains descriptive rather than a formal grade. */
+.sap-trend-grid{gap:20px!important}
+.sap-trend-card{position:relative;isolation:isolate;overflow:visible!important;padding:18px 20px 16px!important;border:1px solid rgba(148,163,184,.28)!important;border-radius:22px!important;background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,250,252,.98))!important;box-shadow:0 18px 48px rgba(15,23,42,.07),0 2px 8px rgba(15,23,42,.04);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.sap-trend-card::before{content:"";position:absolute;z-index:-1;inset:0 0 auto;height:4px;border-radius:22px 22px 0 0;background:linear-gradient(90deg,#06b6d4 0%,#14b8a6 45%,#8b5cf6 100%);opacity:.9}
+.sap-trend-card::after{content:"";position:absolute;z-index:-2;right:-28px;top:-34px;width:160px;height:160px;border-radius:999px;background:radial-gradient(circle,rgba(14,165,233,.11),rgba(139,92,246,.04) 48%,transparent 72%);pointer-events:none}
+@media(hover:hover){.sap-trend-card:hover{transform:translateY(-2px);border-color:rgba(14,165,233,.28)!important;box-shadow:0 24px 64px rgba(15,23,42,.1),0 4px 14px rgba(14,165,233,.07)}}
+.sap-trend-card header{position:relative;z-index:2;display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px!important;margin-bottom:2px}
+.sap-trend-card header>div{min-width:0}
+.sap-trend-card header span{display:inline-flex!important;align-items:center;gap:7px;color:#0891b2!important;font-size:10px!important;font-weight:900!important;letter-spacing:.13em!important;text-transform:uppercase!important}
+.sap-trend-card header span::before{content:"";width:7px;height:7px;border-radius:999px;background:#06b6d4;box-shadow:0 0 0 4px rgba(6,182,212,.1)}
+.sap-trend-card h3{margin:6px 0 0!important;color:#0f172a;font-size:19px!important;line-height:1.2;letter-spacing:-.02em}
+.sap-trend-card header>strong{display:inline-flex;align-items:center;justify-content:center;max-width:230px!important;min-height:30px;padding:6px 10px;border:1px solid rgba(148,163,184,.22);border-radius:999px;background:rgba(248,250,252,.9);color:#475569!important;font-size:11px!important;font-weight:800;line-height:1.25;text-align:center!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+.sap-trend-chart-wrap{position:relative;margin-top:12px;padding:8px 6px 2px;border:1px solid rgba(203,213,225,.72);border-radius:17px;background:linear-gradient(180deg,rgba(16,185,129,.045) 0 28%,rgba(255,255,255,.78) 28% 63%,rgba(245,158,11,.035) 63% 77%,rgba(244,63,94,.04) 77% 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.96);overflow:visible}
+.sap-trend-chart-wrap::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(255,255,255,.52),transparent 18%,transparent 82%,rgba(255,255,255,.52));pointer-events:none}
+.sap-trend-chart{position:relative;z-index:1;display:block;width:100%;height:auto;margin-top:0!important;overflow:visible}
+.sap-trend-guide{stroke:#cbd5e1!important;stroke-width:1!important;stroke-dasharray:3 6!important;opacity:.72}
+.sap-trend-axis{fill:#64748b!important;font-size:9px!important;font-weight:700;letter-spacing:.01em}
+.sap-trend-date{fill:#64748b!important;font-size:9.5px!important;font-weight:650}
+.sap-trend-line{fill:none;stroke:#0f766e!important;stroke-width:3.25!important;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 3px 5px rgba(15,118,110,.16));vector-effect:non-scaling-stroke}
+.sap-trend-point{fill:#fff!important;stroke:#0f766e!important;stroke-width:3.5!important;cursor:pointer;transition:r .16s ease,stroke-width .16s ease,filter .16s ease,fill .16s ease;filter:drop-shadow(0 2px 3px rgba(15,23,42,.14));vector-effect:non-scaling-stroke}
+.sap-trend-point:hover,.sap-trend-point:focus,.sap-trend-point:focus-visible{r:8;fill:#ecfeff!important;stroke-width:4.5!important;filter:drop-shadow(0 0 0 rgba(0,0,0,0)) drop-shadow(0 4px 8px rgba(8,145,178,.28));outline:none}
+.sap-trend-card>small{display:flex!important;align-items:flex-start;gap:7px;margin-top:10px!important;color:#64748b!important;font-size:10.5px!important;line-height:1.45!important}
+.sap-trend-card>small::before{content:"i";display:grid;place-items:center;flex:0 0 15px;width:15px;height:15px;margin-top:1px;border-radius:999px;background:#e0f2fe;color:#0369a1;font-size:9px;font-style:normal;font-weight:900}
+
+/* Floating detail card. Desktop follows the selected data point; mobile pins the card
+   inside the chart so it cannot clip off-screen. */
+.sap-trend-tooltip{position:absolute;z-index:10;width:min(300px,72vw);transform:translate(-50%,calc(-100% - 16px));padding:13px 14px 12px;border:1px solid rgba(148,163,184,.34);border-radius:14px;background:rgba(255,255,255,.985);color:#0f172a;box-shadow:0 20px 52px rgba(15,23,42,.18),0 4px 14px rgba(15,23,42,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:none;animation:sapTrendTooltipIn .14s ease-out}
+.sap-trend-tooltip::before{content:"";position:absolute;inset:0 0 auto;height:3px;border-radius:14px 14px 0 0;background:linear-gradient(90deg,#06b6d4,#14b8a6 52%,#8b5cf6)}
+.sap-trend-tooltip::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;transform:translateX(-50%) rotate(45deg);border-right:1px solid rgba(148,163,184,.24);border-bottom:1px solid rgba(148,163,184,.24);background:#fff}
+.sap-trend-tooltip strong,.sap-trend-tooltip b,.sap-trend-tooltip span,.sap-trend-tooltip small{display:block;position:relative;z-index:1}
+.sap-trend-tooltip strong{padding-top:1px;color:#64748b;font-size:11px;font-weight:800;letter-spacing:.015em}
+.sap-trend-tooltip span{margin-top:6px;color:#0891b2;font-size:10px;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
+.sap-trend-tooltip b{margin-top:5px;color:#0f172a;font-size:14px;font-weight:850;line-height:1.35;letter-spacing:-.01em}
+.sap-trend-tooltip small{margin-top:9px;padding-top:9px;border-top:1px solid #e2e8f0;color:#475569;font-size:10.5px;font-weight:650;line-height:1.5}
+.sap-trend-tooltip small::before{content:"Evidence mix";display:block;margin-bottom:3px;color:#94a3b8;font-size:8.5px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}
+@keyframes sapTrendTooltipIn{from{opacity:0;transform:translate(-50%,calc(-100% - 10px)) scale(.98)}to{opacity:1;transform:translate(-50%,calc(-100% - 16px)) scale(1)}}
+
+.sap-print-trend-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:12px}
+.sap-print-trend-card{padding:12px;border:1px solid #dbe5ef;border-radius:12px;background:#fff}
+.sap-print-trend-card>header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.sap-print-trend-card>header h3{margin:0;font-size:15px}
+.sap-print-trend-card>header span{font-size:10px;color:#64748b}
+.sap-print-trend-chart{display:block;width:100%;height:auto;margin-top:8px}
+.sap-print-trend-guide{stroke:#dbe5ef;stroke-width:1;stroke-dasharray:4 5}
+.sap-print-trend-line{fill:none;stroke:#0f766e;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.sap-print-trend-point{fill:#fff;stroke:#0f766e;stroke-width:4}
+.sap-print-trend-point-number{font-size:8px;font-weight:900;fill:#0f172a;text-anchor:middle}
+.sap-print-trend-axis,.sap-print-trend-date{fill:#64748b;font-size:9px}
+.sap-print-trend-point-list{display:grid;gap:5px;margin:10px 0 0;padding:0;list-style:none}
+.sap-print-trend-point-list li{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start;padding:6px 8px;border-radius:8px;background:#f8fafc}
+.sap-print-trend-point-list li>b{display:grid;place-items:center;width:22px;height:22px;border-radius:999px;background:#e2e8f0;font-size:10px}
+.sap-print-trend-point-list li>span{display:grid;gap:2px}
+.sap-print-trend-point-list strong{font-size:10px}
+.sap-print-trend-point-list small{font-size:9px;color:#64748b;line-height:1.35}
+
+@media(max-width:760px){
+  .sap-collapsible-summary{align-items:flex-start}
+  .sap-collapsible-summary>div{min-width:0}
+  .sap-collapse-action{min-width:70px}
+  .sap-trend-card{padding:16px 14px 14px!important;border-radius:18px!important}
+  .sap-trend-card::before{border-radius:18px 18px 0 0}
+  .sap-trend-card header{flex-direction:column!important;gap:9px!important}
+  .sap-trend-card header>strong{max-width:none!important;justify-content:flex-start;text-align:left!important}
+  .sap-trend-chart-wrap{padding:6px 2px 74px;border-radius:15px;overflow:hidden}
+  .sap-trend-tooltip{left:50%!important;right:auto!important;top:auto!important;bottom:10px;width:calc(100% - 20px);max-width:none;transform:translateX(-50%);padding:10px 12px 9px;border-radius:12px;animation:sapTrendTooltipMobileIn .14s ease-out}
+  .sap-trend-tooltip::after{display:none}
+  .sap-trend-tooltip span{margin-top:4px}
+  .sap-trend-tooltip b{margin-top:3px;font-size:12.5px}
+  .sap-trend-tooltip small{margin-top:6px;padding-top:6px;font-size:9.5px}
+  .sap-trend-tooltip small::before{display:none}
+}
+@keyframes sapTrendTooltipMobileIn{from{opacity:0;transform:translate(-50%,4px)}to{opacity:1;transform:translate(-50%,0)}}
+
+@media(prefers-reduced-motion:reduce){
+  .sap-trend-card,.sap-trend-point{transition:none!important}
+  .sap-trend-tooltip{animation:none!important}
+}
+
+@media print{
+  .sap-collapsible-panel{display:block!important}
+  .sap-collapsible-panel>.sap-collapsible-summary{display:none!important}
+  .sap-collapsible-panel>.sap-collapsible-content{display:block!important;padding:0!important;border:0!important}
+  .sap-print-trend-card{break-inside:avoid!important;page-break-inside:avoid!important}
+  .sap-print-trend-point-list li{break-inside:avoid!important;page-break-inside:avoid!important}
+  .sap-trend-tooltip{display:none!important}
+  .sap-trend-card{box-shadow:none!important;transform:none!important}
+}
