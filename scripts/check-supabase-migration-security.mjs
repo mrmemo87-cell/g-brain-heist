@@ -15,7 +15,7 @@ const seenNames = new Map();
 // These are historical CREATE OR REPLACE definitions whose EXECUTE privileges
 // were already restricted by earlier migrations and are preserved by Postgres
 // across CREATE OR REPLACE. The production project was also verified directly:
-// PUBLIC/anon cannot execute these functions, authenticated can.
+// PUBLIC/anon cannot execute these functions; only their intended caller roles can.
 // Keep this list exact so future SECURITY DEFINER functions still have to revoke
 // PUBLIC/anon in the migration that introduces them.
 const historicalDefinerRevokeExceptions = new Set([
@@ -23,6 +23,9 @@ const historicalDefinerRevokeExceptions = new Set([
   '20260820124037_teacher_question_bank_role_aware_catalog.sql:rpc_student_academic_subjects',
   '20260820124037_teacher_question_bank_role_aware_catalog.sql:rpc_student_learning_catalog',
   '20260820132006_optimize_teacher_question_bank_catalog.sql:get_all_active_questions',
+  '20260821202736_fix_assignment_category_wrapper_composite_return.sql:rpc_create_assignment',
+  '20260821202736_fix_assignment_category_wrapper_composite_return.sql:rpc_update_teacher_assignment',
+  '20260821205000_fix_school_member_sync_for_moderation.sql:sync_user_school_id',
 ]);
 
 for (const file of files) {
