@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const migration = readFileSync('supabase/migrations/20260821025000_academic_roster_confirmation.sql', 'utf8');
+const migration = readFileSync('supabase/migrations/20260821024304_academic_roster_confirmation.sql', 'utf8');
 const service = readFileSync('services/schoolAcademicSetupService.ts', 'utf8');
 
 test('academic roster confirmation is school-admin scoped and security hardened', () => {
