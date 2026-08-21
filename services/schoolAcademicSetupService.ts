@@ -62,6 +62,33 @@ export interface SchoolAcademicSetup {
   electiveEnrolments: Array<{ id: string; studentId: string; academicYearId: string; academicSubjectId: string; subjectName: string; status: 'active' }>;
 }
 
+export interface AcademicRosterReadiness {
+  success: boolean;
+  ready: boolean;
+  code?: string;
+  academicYearId: string;
+  academicYearName: string;
+  academicYearStatus: 'planned' | 'current' | 'closed';
+  activeStudentMembers: number;
+  placedStudents: number;
+  estimatedEnrolments: number;
+  confirmedEnrolments: number;
+  unplacedStudentIds: string[];
+  roleMismatchStudentIds: string[];
+  multipleEnrolmentStudentIds: string[];
+  confirmedPlacementMismatchStudentIds: string[];
+}
+
+export interface AcademicRosterConfirmationResult {
+  success: boolean;
+  ready?: boolean;
+  code?: string;
+  academicYearId?: string;
+  updatedEstimated?: number;
+  insertedMissing?: number;
+  confirmedEnrolments?: number;
+}
+
 export type SchoolAcademicSystem = 'cambridge' | 'american';
 
 const assertSuccess = <T extends { success?: boolean; code?: string }>(value: T | null, fallback: string): T => {
@@ -201,6 +228,24 @@ export async function seedCurrentStudentEnrolments(schoolId: string, academicYea
   if (error) throw userFacingError(error, 'We could not enrol current students into the academic year.');
   const result = assertSuccess(data as { success?: boolean; inserted?: number; code?: string } | null, 'student_enrolments_not_seeded');
   return result.inserted ?? 0;
+}
+
+export async function fetchAcademicRosterReadiness(schoolId: string, academicYearId: string): Promise<AcademicRosterReadiness> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_academic_roster_readiness', {
+    p_school_id: schoolId,
+    p_academic_year_id: academicYearId,
+  });
+  if (error) throw userFacingError(error, 'We could not check the academic roster just now.');
+  return assertSuccess(data as AcademicRosterReadiness | null, 'academic_roster_readiness_unavailable');
+}
+
+export async function confirmAcademicRoster(schoolId: string, academicYearId: string): Promise<AcademicRosterConfirmationResult> {
+  const { data, error } = await supabase.rpc('rpc_school_admin_confirm_academic_roster', {
+    p_school_id: schoolId,
+    p_academic_year_id: academicYearId,
+  });
+  if (error) throw userFacingError(error, 'We could not confirm the academic roster.');
+  return assertSuccess(data as AcademicRosterConfirmationResult | null, 'academic_roster_not_confirmed');
 }
 
 export async function setStudentElective(input: {
