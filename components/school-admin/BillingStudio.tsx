@@ -24,8 +24,7 @@ interface BillingStudioProps {
 }
 
 const TERMS: Array<{ key: BillingContractTerm; label: string; note: string }> = [
-  { key: 'monthly', label: 'Monthly', note: 'Flexible · no term discount' },
-  { key: 'annual', label: 'Annual', note: '10% prepaid discount' },
+  { key: 'annual', label: 'Annual', note: 'Standard annual agreement' },
   { key: 'two_year', label: '2 years', note: '15% prepaid discount' },
   { key: 'three_year', label: '3 years', note: '20% prepaid discount' },
 ];
@@ -53,7 +52,7 @@ const programmeInputKey: Record<BillingProgrammeKey, keyof BillingQuoteInputs> =
 };
 
 const initialInput: BillingQuoteInputs = {
-  contractTerm: 'monthly', platformSeats: 50, cambridgeSeats: 0, ieltsSeats: 0,
+  contractTerm: 'annual', platformSeats: 50, cambridgeSeats: 0, ieltsSeats: 0,
   writingSeats: 0, admissionsCandidates: 0, launchDiscountRequested: true,
 };
 
@@ -111,6 +110,8 @@ const BillingStudio: React.FC<BillingStudioProps> = ({ schoolId, addToast }) => 
   const applicationEstimate = calculation?.usage.application_estimate ?? null;
   const listTotalMinor = (calculation?.totals.monthly_list_minor ?? 0) * (calculation?.totals.months ?? 1);
   const combinationDiscountTotalMinor = (calculation?.discounts.combination_monthly_minor ?? 0) * (calculation?.totals.months ?? 1);
+  const launchPercent = calculation ? billingPercent(calculation.discounts.launch_bps) : null;
+  const maximumDiscountPercent = calculation ? billingPercent(calculation.discounts.maximum_bps) : null;
   const hasDiscounts = Boolean(calculation && (
     combinationDiscountTotalMinor > 0
     || calculation.discounts.term_minor > 0
@@ -136,7 +137,7 @@ const BillingStudio: React.FC<BillingStudioProps> = ({ schoolId, addToast }) => 
     setTitle(quote.title);
     setNote(quote.school_note ?? '');
     setInput({
-      contractTerm: quote.contract_term,
+      contractTerm: quote.contract_term === 'monthly' ? 'annual' : quote.contract_term,
       platformSeats: quote.platform_seats,
       cambridgeSeats: quote.cambridge_seats,
       ieltsSeats: quote.ielts_seats,
@@ -330,8 +331,8 @@ const BillingStudio: React.FC<BillingStudioProps> = ({ schoolId, addToast }) => 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-700">3 · Agreement</p>
             <h4 className="mt-1 text-lg font-bold text-slate-950">Choose a billing term</h4>
-            <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{TERMS.map((term) => <button key={term.key} type="button" aria-pressed={input.contractTerm === term.key} onClick={() => setInput((current) => ({ ...current, contractTerm: term.key }))} className={`billing-choice rounded-xl border p-3 text-left transition ${input.contractTerm === term.key ? 'billing-on-dark border-cyan-700 bg-cyan-700 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'}`}><strong className="block text-sm">{term.label}</strong><span className={`mt-1 block text-xs ${input.contractTerm === term.key ? 'text-cyan-50' : 'text-slate-500'}`}>{term.note}</span></button>)}</div>
-            <label className="mt-4 flex items-start gap-3 rounded-xl border border-violet-200 bg-violet-50 p-4 text-sm text-violet-950"><input type="checkbox" checked={input.launchDiscountRequested} onChange={(event) => setInput((current) => ({ ...current, launchDiscountRequested: event.target.checked }))} className="mt-0.5 h-4 w-4 accent-violet-700" /><span><strong>Request the 15% Launch discount</strong><small className="mt-1 block text-violet-800">Applies to the first contract year only, requires approval, and the total discount never exceeds 35%.</small></span></label>
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">{TERMS.map((term) => <button key={term.key} type="button" aria-pressed={input.contractTerm === term.key} onClick={() => setInput((current) => ({ ...current, contractTerm: term.key }))} className={`billing-choice rounded-xl border p-3 text-left transition ${input.contractTerm === term.key ? 'billing-on-dark border-cyan-700 bg-cyan-700 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'}`}><strong className="block text-sm">{term.label}</strong><span className={`mt-1 block text-xs ${input.contractTerm === term.key ? 'text-cyan-50' : 'text-slate-500'}`}>{term.note}</span></button>)}</div>
+            <label className="mt-4 flex items-start gap-3 rounded-xl border border-violet-200 bg-violet-50 p-4 text-sm text-violet-950"><input type="checkbox" checked={input.launchDiscountRequested} onChange={(event) => setInput((current) => ({ ...current, launchDiscountRequested: event.target.checked }))} className="mt-0.5 h-4 w-4 accent-violet-700" /><span><strong>{launchPercent ? `Include the ${launchPercent} Launch offer` : 'Include the Launch offer'}</strong><small className="mt-1 block text-violet-800">First contract year only · subject to approval{maximumDiscountPercent ? ` · combined discounts capped at ${maximumDiscountPercent}.` : '.'}</small></span></label>
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -354,7 +355,7 @@ const BillingStudio: React.FC<BillingStudioProps> = ({ schoolId, addToast }) => 
               <div className="my-4 border-t border-white/10" />
               <dl className="space-y-2 text-sm">
                 <div className="flex items-end justify-between gap-4">
-                  <dt><strong className="block text-base text-white">Total</strong><span className="text-xs text-slate-400">{calculation.totals.months === 1 ? 'Monthly list price before discounts' : `${calculation.totals.months} months at list price`}</span></dt>
+                  <dt><strong className="block text-base text-white">Total before discounts</strong><span className="text-xs text-slate-400">{calculation.totals.months} months at list price</span></dt>
                   <dd className="text-lg font-bold text-white">{formatBillingMoney(listTotalMinor, currency)}</dd>
                 </div>
               </dl>
@@ -362,12 +363,12 @@ const BillingStudio: React.FC<BillingStudioProps> = ({ schoolId, addToast }) => 
               <dl className="space-y-2 text-sm text-slate-300">
                 {calculation.discounts.combination_bps > 0 && <div className="flex justify-between gap-3 text-emerald-300"><dt>Combination discount · {billingPercent(calculation.discounts.combination_bps)}</dt><dd>−{formatBillingMoney(combinationDiscountTotalMinor, currency)}</dd></div>}
                 {calculation.discounts.term_bps > 0 && <div className="flex justify-between gap-3 text-emerald-300"><dt>Term discount · {billingPercent(calculation.discounts.term_bps)}</dt><dd>−{formatBillingMoney(calculation.discounts.term_minor, currency)}</dd></div>}
-                {calculation.discounts.launch_minor > 0 && <div className="flex justify-between gap-3 text-violet-300"><dt>Launch discount · first year</dt><dd>−{formatBillingMoney(calculation.discounts.launch_minor, currency)}</dd></div>}
+                {calculation.discounts.launch_minor > 0 && <div className="flex justify-between gap-3 text-violet-300"><dt>Launch offer · {billingPercent(calculation.discounts.launch_bps)} · first year</dt><dd>−{formatBillingMoney(calculation.discounts.launch_minor, currency)}</dd></div>}
                 {!hasDiscounts && <div className="flex justify-between gap-3 text-slate-400"><dt>Discounts</dt><dd>None applied</dd></div>}
               </dl>
               <div className="my-4 border-t border-white/10" />
-              <div className="flex items-end justify-between gap-4"><div><p className="text-sm font-bold uppercase tracking-[0.12em] text-cyan-700">To Pay</p><p className="mt-1 text-3xl font-bold tracking-tight">{formatBillingMoney(calculation.totals.contract_total_minor, currency)}</p><p className="mt-1 text-xs text-slate-400">{input.contractTerm === 'monthly' ? 'Estimated monthly payment' : `${calculation.totals.months}-month prepaid payment`}</p></div><span className="pb-1 text-xs text-slate-400">{formatBillingMoney(calculation.totals.effective_monthly_minor, currency)}/mo effective</span></div>
-              <div className="mt-4 grid grid-cols-2 gap-2"><div className="rounded-xl bg-white/5 p-3"><p className="text-[11px] text-slate-400">First year</p><strong className="mt-1 block text-sm">{formatBillingMoney(calculation.totals.first_year_total_minor, currency)}</strong></div><div className="rounded-xl bg-white/5 p-3"><p className="text-[11px] text-slate-400">Renewal, no Launch discount</p><strong className="mt-1 block text-sm">{formatBillingMoney(calculation.totals.renewal_total_minor, currency)}</strong></div></div>
+              <div className="flex items-end justify-between gap-4"><div><p className="text-sm font-bold uppercase tracking-[0.12em] text-cyan-700">To Pay</p><p className="mt-1 text-3xl font-bold tracking-tight">{formatBillingMoney(calculation.totals.contract_total_minor, currency)}</p><p className="mt-1 text-xs text-slate-400">{calculation.totals.months}-month prepaid payment</p></div><span className="pb-1 text-xs text-slate-400">{formatBillingMoney(calculation.totals.effective_monthly_minor, currency)}/mo effective</span></div>
+              <div className="mt-4 grid grid-cols-2 gap-2"><div className="rounded-xl bg-white/5 p-3"><p className="text-[11px] text-slate-400">First year</p><strong className="mt-1 block text-sm">{formatBillingMoney(calculation.totals.first_year_total_minor, currency)}</strong></div><div className="rounded-xl bg-white/5 p-3"><p className="text-[11px] text-slate-400">Renewal, without Launch offer</p><strong className="mt-1 block text-sm">{formatBillingMoney(calculation.totals.renewal_total_minor, currency)}</strong></div></div>
               <p className="mt-4 rounded-lg bg-cyan-400/10 p-3 text-xs leading-5 text-cyan-100">Effective package cost: <strong>{formatBillingMoney(calculation.totals.effective_platform_student_month_minor, currency)}</strong> per platform student/month. No automatic overage charges.</p>
             </>}
           </div>
