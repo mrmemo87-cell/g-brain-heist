@@ -44,9 +44,9 @@ test('School Admin uses annual as the baseline and does not offer monthly billin
 
 test('public and School Admin receipts show the list total before discounts', () => {
   assert.match(publicPricing, /Total before discounts/);
-  assert.match(publicPricing, /money\(result\.contractList\)/);
+  assert.ok(publicPricing.includes('${money(result.contractList)}'));
   assert.match(billingStudio, /Total before discounts/);
-  assert.match(billingStudio, /formatBillingMoney\(listTotalMinor, currency\)/);
+  assert.ok(billingStudio.includes('formatBillingMoney(listTotalMinor, currency)'));
 });
 
 test('launch offer copy and receipt percentage follow the live catalogue', () => {
