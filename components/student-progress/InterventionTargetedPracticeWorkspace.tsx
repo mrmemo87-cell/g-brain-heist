@@ -41,7 +41,7 @@ const questionScore = (question: TeacherQuestion, terms: string[], grade: number
     ...(question.tags || []),
     question.question_text,
   ].filter(Boolean).join(' '));
-  const termScore = terms.reduce((score, term) => score + (searchable.includes(term) ? 3 : 0), 0;
+  const termScore = terms.reduce((score, term) => score + (searchable.includes(term) ? 3 : 0), 0);
   const topicBonus = normalize(question.topic_name || question.topic).includes(normalize(terms.join(' '))) ? 4 : 0;
   const gradeBonus = !question.eligible_grade_levels?.length || !grade || question.eligible_grade_levels.includes(grade) ? 2 : -20;
   const verifiedBonus = question.content_origin === 'brain_heist' ? 2 : 0;
