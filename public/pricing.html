@@ -28,16 +28,11 @@
     .button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .72rem 1rem; border: 1px solid transparent; border-radius: .75rem; color: #06121f; background: linear-gradient(135deg, var(--cyan), var(--blue)); text-decoration: none; font-weight: 850; cursor: pointer; }
     .button.secondary { color: var(--ink); background: transparent; border-color: var(--line); }
     .button:focus-visible, button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid rgba(56,189,248,.45); outline-offset: 3px; }
-    .hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(18rem, .8fr); gap: 2rem; align-items: center; padding: 4.5rem 0 3rem; }
+    .hero { padding: 4.5rem 0 3rem; }
     .eyebrow { margin: 0 0 .75rem; color: var(--cyan); font-size: .72rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
     h1 { max-width: 12ch; margin: 0; font-size: clamp(2.65rem, 7vw, 5.3rem); line-height: .98; letter-spacing: -.055em; }
     .hero-copy { max-width: 43rem; margin: 1.35rem 0 0; color: var(--muted); font-size: clamp(1rem, 2vw, 1.18rem); }
     .hero-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.7rem; }
-    .starting-card { padding: 1.6rem; border: 1px solid var(--line); border-radius: 1.5rem; background: linear-gradient(145deg, rgba(20,36,58,.96), rgba(12,25,43,.96)); box-shadow: 0 28px 70px rgba(0,0,0,.25); }
-    .starting-card small { color: var(--muted); }
-    .starting-price { display: block; margin: .3rem 0; font-size: clamp(2.2rem, 6vw, 3.5rem); line-height: 1; letter-spacing: -.04em; }
-    .starting-price span { color: var(--muted); font-size: .95rem; font-weight: 500; letter-spacing: 0; }
-    .starting-note { margin: .8rem 0 0; color: var(--cyan); font-size: .85rem; }
     .pilot { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center; margin: 1rem 0 4rem; padding: 1.25rem 1.4rem; border: 1px solid rgba(45,212,191,.35); border-radius: 1rem; background: rgba(45,212,191,.08); }
     .pilot-icon { display: grid; width: 3rem; height: 3rem; place-items: center; border-radius: .8rem; color: #071120; background: var(--cyan); font-weight: 900; }
     .pilot h2, .pilot p { margin: 0; }
@@ -126,7 +121,7 @@
     .footer-links a { text-decoration: none; }
     .error { color: var(--danger); }
     @media (max-width: 940px) {
-      .hero, .calculator { grid-template-columns: 1fr; }
+      .calculator { grid-template-columns: 1fr; }
       .catalogue { grid-template-columns: repeat(2, 1fr); }
       .receipt { position: static; }
       .rules { grid-template-columns: repeat(2, 1fr); }
@@ -162,12 +157,6 @@
           <p class="hero-copy">Start with platform seats, then add Cambridge, IELTS, Writing Hub, or Admission Hub only for the learners who use them. Teachers and administrators are free.</p>
           <div class="hero-actions"><a class="button" href="#calculator">Build a live estimate</a><a class="button secondary" href="/?view=school_admin&amp;adminTab=billing">Open Plan &amp; Billing</a></div>
         </div>
-        <aside class="starting-card" aria-live="polite">
-          <small>Platform pricing starts at</small>
-          <strong id="starting-price" class="starting-price">Loading…</strong>
-          <small id="starting-minimum">Fetching the active Brains Heist catalogue</small>
-          <p id="starting-annual" class="starting-note"></p>
-        </aside>
       </header>
 
       <section class="pilot" aria-labelledby="pilot-title">
@@ -207,7 +196,7 @@
     (() => {
       const state = { payload: null, term: 'annual', platformSeats: 50, launch: true, programmes: {} };
       const termDefinitions = [
-        ['annual', 'Annual', 'Annual discount'],
+        ['annual', 'Annual', 'Standard annual agreement'],
         ['two_year', '2 years', 'Prepaid discount'], ['three_year', '3 years', 'Best term discount'],
       ];
       const programmeDescriptions = {
@@ -254,7 +243,7 @@
         const contractTotal = monthlyAfterCombo * months - termMinor - launchMinor;
         const firstYear = monthlyAfterCombo * 12 - Math.round(monthlyAfterCombo * 12 * termBps / 10000) - launchMinor;
         const renewal = monthlyAfterCombo * months - termMinor;
-        return { lineItems, comboBps, comboMinor, months, termBps, termMinor, launchMinor, contractTotal, firstYear, renewal, effectiveMonthly: Math.round(contractTotal / months), effectiveStudent: Math.round(contractTotal / months / state.platformSeats) };
+        return { lineItems, comboBps, comboMinor, months, termBps, termMinor, launchMinor, contractList, contractTotal, firstYear, renewal, effectiveMonthly: Math.round(contractTotal / months), effectiveStudent: Math.round(contractTotal / months / state.platformSeats) };
       }
 
       function renderCatalogue() {
@@ -287,7 +276,7 @@
         const title = `${result.months}-month prepaid total`;
         const rows = result.lineItems.filter((item) => item.quantity > 0).map((item) => `<div class="receipt-row"><dt>${escapeHtml(item.name)}<br><small>${item.quantity} × ${money(item.unit_amount_minor)}</small></dt><dd>${money(item.quantity * item.unit_amount_minor)}</dd></div>`).join('');
         const discounts = `${result.comboMinor > 0 ? `<div class="receipt-row discount"><dt>Programme combination · ${percent(result.comboBps)}</dt><dd>−${money(result.comboMinor)}/mo</dd></div>` : ''}${result.termMinor > 0 ? `<div class="receipt-row discount"><dt>Term discount · ${percent(result.termBps)}</dt><dd>−${money(result.termMinor)}</dd></div>` : ''}${result.launchMinor > 0 ? `<div class="receipt-row discount"><dt>Launch offer · ${percent(state.payload.discounts.launch_bps)} · first year</dt><dd>−${money(result.launchMinor)}</dd></div>` : ''}`;
-        byId('receipt-body').innerHTML = `<dl class="receipt-list">${rows}</dl><div class="divider"></div><dl class="receipt-list">${discounts || '<div class="receipt-row"><dt>Discounts</dt><dd>None selected</dd></div>'}</dl><div class="divider"></div><span class="total-label">${title}</span><div class="total"><strong>${money(result.contractTotal)}</strong><span>${money(result.effectiveMonthly)}/mo effective</span></div><div class="renewal"><div><small>First year</small><strong>${money(result.firstYear)}</strong></div><div><small>Renewal, without Launch offer</small><strong>${money(result.renewal)}</strong></div></div><p class="effective">Effective package cost: <strong>${money(result.effectiveStudent)}</strong> per platform student/month. Estimate only; approval and verified activation are required.</p><a class="button" href="/?view=school_admin&amp;adminTab=billing">Save this in Plan &amp; Billing</a>`;
+        byId('receipt-body').innerHTML = `<dl class="receipt-list">${rows}</dl><div class="divider"></div><dl class="receipt-list"><div class="receipt-row"><dt><strong>Total before discounts</strong><br><small>${result.months} months at list price</small></dt><dd>${money(result.contractList)}</dd></div></dl><div class="divider"></div><dl class="receipt-list">${discounts || '<div class="receipt-row"><dt>Discounts</dt><dd>None selected</dd></div>'}</dl><div class="divider"></div><span class="total-label">${title}</span><div class="total"><strong>${money(result.contractTotal)}</strong><span>${money(result.effectiveMonthly)}/mo effective</span></div><div class="renewal"><div><small>First year</small><strong>${money(result.firstYear)}</strong></div><div><small>Renewal, without Launch offer</small><strong>${money(result.renewal)}</strong></div></div><p class="effective">Effective package cost: <strong>${money(result.effectiveStudent)}</strong> per platform student/month. Estimate only; approval and verified activation are required.</p><a class="button" href="/?view=school_admin&amp;adminTab=billing">Save this in Plan &amp; Billing</a>`;
       }
 
       function renderAll() {
@@ -310,17 +299,12 @@
           const platform = itemMap().get('platform'); state.platformSeats = platform.minimum_quantity;
           for (const key of ['cambridge', 'ielts', 'writing', 'admissions']) state.programmes[key] = 0;
           byId('receipt-version').textContent = payload.pricing_version.name;
-          byId('starting-price').innerHTML = `${money(platform.unit_amount_minor * platform.minimum_quantity)}<span>/month</span>`;
-          byId('starting-minimum').textContent = `${platform.minimum_quantity}-student minimum · platform only`;
-          const annualMinor = Math.round(platform.unit_amount_minor * platform.minimum_quantity * 12 * (1 - payload.discounts.annual_bps / 10000));
-          byId('starting-annual').textContent = `${money(annualMinor)}/year after the ${percent(payload.discounts.annual_bps)} annual discount`;
           byId('launch-label').textContent = `Include the ${percent(payload.discounts.launch_bps)} Launch offer`;
           byId('launch-note').textContent = `First contract year only · subject to approval · combined discounts capped at ${percent(payload.discounts.maximum_discount_bps)}.`;
           const pilot = payload.pilot; byId('pilot-copy').textContent = `All programmes · up to ${pilot.platform_students} students · ${pilot.teachers} teachers · ${pilot.admission_candidates} admission candidates · no card required.`;
           renderCatalogue(); renderAll();
         } catch (error) {
           console.error('[pricing] catalogue unavailable', error);
-          byId('starting-price').textContent = 'Contact us'; byId('starting-minimum').textContent = 'Live pricing is temporarily unavailable';
           byId('catalogue').innerHTML = '<div class="pricing-status error">Live pricing is temporarily unavailable. Please contact sales@brainsheist.com.</div>';
           byId('receipt-body').innerHTML = '<p class="pricing-status error">We could not load the active catalogue. No estimate has been produced.</p><a class="button" href="mailto:sales@brainsheist.com?subject=School%20Pricing%20Inquiry">Contact sales</a>';
         }
