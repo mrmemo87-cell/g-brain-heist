@@ -6,7 +6,7 @@ const intervention = readFileSync('components/student-progress/TeacherInterventi
 const workspace = readFileSync('components/student-progress/InterventionTargetedPracticeWorkspace.tsx', 'utf8');
 const shell = readFileSync('components/TeacherPortalShell.tsx', 'utf8');
 const service = readFileSync('services/studentInterventionService.ts', 'utf8');
-const migration = readFileSync('supabase/migrations/20260823003000_intervention_targeted_practice_provenance.sql', 'utf8');
+const migration = readFileSync('supabase/migrations/20260822222316_intervention_targeted_practice_provenance.sql', 'utf8');
 
 const occurrences = (source: string, value: string) => source.split(value).length - 1;
 
