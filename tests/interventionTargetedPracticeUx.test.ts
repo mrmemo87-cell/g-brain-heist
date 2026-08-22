@@ -1,5 +1,6 @@
+import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import test from 'node:test';
 
 const intervention = readFileSync('components/student-progress/TeacherInterventionIntelligencePageV2.tsx', 'utf8');
 const workspace = readFileSync('components/student-progress/InterventionTargetedPracticeWorkspace.tsx', 'utf8');
@@ -9,61 +10,57 @@ const migration = readFileSync('supabase/migrations/20260823003000_intervention_
 
 const occurrences = (source: string, value: string) => source.split(value).length - 1;
 
-describe('Brains Heist intervention targeted-practice workflow', () => {
-  it('separates actionable needs from evidence still being gathered', () => {
-    expect(intervention).toContain('What can I act on now?');
-    expect(intervention).toContain('What is Brains Heist watching?');
-    expect(intervention).not.toContain('Lower priority');
-    expect(intervention).toContain('aggregateRecommendations');
-  });
+test('interventions separate actionable needs from evidence still being gathered', () => {
+  assert.match(intervention, /What can I act on now\?/);
+  assert.match(intervention, /What is Brains Heist watching\?/);
+  assert.doesNotMatch(intervention, /Lower priority/);
+  assert.match(intervention, /aggregateRecommendations/);
+});
 
-  it('uses a clear evidence-review flow before targeted practice', () => {
-    expect(intervention).toContain('Review evidence');
-    expect(intervention).toContain('What specifically needs support?');
-    expect(intervention).toContain('Keep monitoring');
-    expect(intervention).toContain('Confirm need');
-    expect(intervention).toContain('Create targeted practice');
-  });
+test('evidence review is clear before targeted practice', () => {
+  for (const label of ['Review evidence', 'What specifically needs support?', 'Keep monitoring', 'Confirm need', 'Create targeted practice']) {
+    assert.ok(intervention.includes(label), `Expected intervention UX to contain: ${label}`);
+  }
+});
 
-  it('locks intervention practice to the selected student and subject', () => {
-    expect(workspace).toContain("assignment_mode: 'custom'");
-    expect(workspace).toContain('student_ids: [context.student.id]');
-    expect(workspace).toContain('lockedSubject={subject}');
-    expect(workspace).toContain('selectedStudentIds.length !== 1');
-    expect(workspace).toContain('Intervention practice is locked to the selected student.');
-  });
+test('intervention practice is locked to the selected student and subject', () => {
+  assert.match(workspace, /assignment_mode: 'custom'/);
+  assert.match(workspace, /student_ids: \[context\.student\.id\]/);
+  assert.match(workspace, /lockedSubject=\{subject\}/);
+  assert.match(workspace, /selectedStudentIds\.length !== 1/);
+  assert.match(workspace, /Intervention practice is locked to the selected student\./);
+});
 
-  it('reuses canonical assignment creation and preserves intervention follow-up semantics', () => {
-    expect(workspace).toContain('GameService.create_assignment');
-    expect(workspace).toContain("tryConsumePilotQuota('assignments_created')");
-    expect(workspace).toContain('createLearningIntervention');
-    expect(workspace).toContain('registerInterventionPractice');
-    expect(workspace).toContain('Targeted-practice accuracy alone does not mark the weakness as resolved.');
-    expect(occurrences(workspace, 'GameService.create_assignment')).toBe(1);
-  });
+test('targeted practice reuses canonical assignment creation and follow-up semantics', () => {
+  assert.match(workspace, /GameService\.create_assignment/);
+  assert.match(workspace, /tryConsumePilotQuota\('assignments_created'\)/);
+  assert.match(workspace, /createLearningIntervention/);
+  assert.match(workspace, /registerInterventionPractice/);
+  assert.match(workspace, /Targeted-practice accuracy alone does not mark the weakness as resolved\./);
+  assert.equal(occurrences(workspace, 'GameService.create_assignment'), 1);
+});
 
-  it('registers practice provenance before creating the intervention plan', () => {
-    const assignmentIndex = workspace.indexOf('GameService.create_assignment');
-    const registrationIndex = workspace.indexOf('await registerInterventionPractice');
-    const planIndex = workspace.indexOf('await createLearningIntervention');
-    expect(assignmentIndex).toBeGreaterThanOrEqual(0);
-    expect(registrationIndex).toBeGreaterThan(assignmentIndex);
-    expect(planIndex).toBeGreaterThan(registrationIndex);
-    expect(service).toContain("rpc_teacher_register_intervention_practice");
-  });
+test('practice provenance is registered before the intervention plan is created', () => {
+  const assignmentIndex = workspace.indexOf('GameService.create_assignment');
+  const registrationIndex = workspace.indexOf('await registerInterventionPractice');
+  const planIndex = workspace.indexOf('await createLearningIntervention');
+  assert.ok(assignmentIndex >= 0);
+  assert.ok(registrationIndex > assignmentIndex);
+  assert.ok(planIndex > registrationIndex);
+  assert.match(service, /rpc_teacher_register_intervention_practice/);
+});
 
-  it('keeps coached practice out of independent mastery evidence', () => {
-    expect(migration).toContain('student_learning_intervention_practice_assignments');
-    expect(migration).toContain("new.contributes_to_focus_state := false");
-    expect(migration).toContain("'evidence_purpose', 'intervention_practice'");
-    expect(migration).toContain("'independent_mastery_evidence', false");
-    expect(migration).toContain('Intervention practice must target one student only');
-    expect(migration).toContain('student_learning_can_manage_intervention');
-  });
+test('coached practice cannot count as independent mastery evidence', () => {
+  assert.match(migration, /student_learning_intervention_practice_assignments/);
+  assert.match(migration, /new\.contributes_to_focus_state := false/);
+  assert.match(migration, /'evidence_purpose', 'intervention_practice'/);
+  assert.match(migration, /'independent_mastery_evidence', false/);
+  assert.match(migration, /Intervention practice must target one student only/);
+  assert.match(migration, /student_learning_can_manage_intervention/);
+});
 
-  it('keeps the workflow inside the branded teacher portal shell', () => {
-    expect(shell).toContain('InterventionTargetedPracticeWorkspace');
-    expect(shell).toContain('onCreateTargetedPractice={openTargetedPractice}');
-    expect(shell).toContain("activeLabel = targetedPractice ? 'Assignments'");
-  });
+test('targeted practice stays inside the branded teacher portal shell', () => {
+  assert.match(shell, /InterventionTargetedPracticeWorkspace/);
+  assert.match(shell, /onCreateTargetedPractice=\{openTargetedPractice\}/);
+  assert.match(shell, /activeLabel = targetedPractice \? 'Assignments'/);
 });
