@@ -86,6 +86,23 @@ export async function createLearningIntervention(input: {
   return String((data as { interventionId?: string } | null)?.interventionId || data);
 }
 
+export async function registerInterventionPractice(input: {
+  assignmentId: string;
+  studentId: string;
+  skillKey: string;
+  diagnosticTargets: string[];
+  interventionId?: string | null;
+}): Promise<void> {
+  const { error } = await supabase.rpc('rpc_teacher_register_intervention_practice', {
+    p_assignment_id: input.assignmentId,
+    p_student_id: input.studentId,
+    p_skill_key: input.skillKey,
+    p_diagnostic_targets: input.diagnosticTargets,
+    p_intervention_id: input.interventionId || null,
+  });
+  if (error) throw userFacingError(error, 'We could not link this targeted practice to the student support record. Please try again.');
+}
+
 export async function reviewLearningFocusEvidence(input: {
   studentId: string; skillKey: string;
   decision: InterventionProfessionalReview['decision']; diagnosticTargets: string[]; rationale: string;
