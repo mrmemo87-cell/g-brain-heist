@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { QuestionDifficulty, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
 import * as GameService from '../../services/gameService';
-import { createLearningIntervention } from '../../services/studentInterventionService';
+import { createLearningIntervention, registerInterventionPractice } from '../../services/studentInterventionService';
 import { FEATURE_KEYS, getEntitlements } from '../../services/entitlementService';
 import { tryConsumePilotQuota } from '../../services/tierService';
 import { brainsAlert } from '../../src/utils/brainsAlert';
@@ -148,10 +148,21 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
         notify_students_by_email: assignmentNotifyByEmail,
       });
 
+      // Register provenance immediately after assignment creation. This is intentionally
+      // before the support-plan RPC so even a partial downstream failure cannot let a
+      // coached practice result count as independent mastery evidence.
+      await registerInterventionPractice({
+        assignmentId: assignment.id,
+        studentId: context.student.id,
+        skillKey: context.recommendation.skill_key,
+        diagnosticTargets: context.recommendation.diagnostic_targets,
+      });
+
+      let interventionId: string | null = null;
       if (!context.recommendation.has_open_intervention) {
         try {
           const target = context.recommendation.diagnostic_targets[0] || context.recommendation.skill;
-          await createLearningIntervention({
+          interventionId = await createLearningIntervention({
             studentId: context.student.id,
             skillKey: context.recommendation.skill_key,
             interventionType: context.recommendation.recommended_type,
@@ -163,9 +174,16 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
             minimumFollowUpObservations: 2,
             minimumSuccessfulObservations: 2,
           });
+          await registerInterventionPractice({
+            assignmentId: assignment.id,
+            studentId: context.student.id,
+            skillKey: context.recommendation.skill_key,
+            diagnosticTargets: context.recommendation.diagnostic_targets,
+            interventionId,
+          });
         } catch (planError) {
           console.error('Targeted practice was created but the support-plan record failed:', planError);
-          brainsAlert('Practice was created, but Brains Heist could not record the support-plan follow-up. The assignment is safe; reopen Interventions to create the plan.', 'error');
+          brainsAlert('Practice was created safely, but Brains Heist could not finish the support-plan link. The practice will not count as independent mastery evidence; reopen Interventions to finish the plan.', 'error');
           onComplete();
           return;
         }
