@@ -7,6 +7,7 @@ import { tryConsumePilotQuota } from '../../services/tierService';
 import { brainsAlert } from '../../src/utils/brainsAlert';
 import AssignmentWizard from '../teacher/AssignmentWizard';
 import type { TargetedPracticeContext } from './TeacherInterventionIntelligencePageV2';
+import './TeacherInterventionIntelligencePageV2.css';
 
 interface InterventionTargetedPracticeWorkspaceProps {
   context: TargetedPracticeContext;
@@ -40,7 +41,7 @@ const questionScore = (question: TeacherQuestion, terms: string[], grade: number
     ...(question.tags || []),
     question.question_text,
   ].filter(Boolean).join(' '));
-  const termScore = terms.reduce((score, term) => score + (searchable.includes(term) ? 3 : 0), 0);
+  const termScore = terms.reduce((score, term) => score + (searchable.includes(term) ? 3 : 0), 0;
   const topicBonus = normalize(question.topic_name || question.topic).includes(normalize(terms.join(' '))) ? 4 : 0;
   const gradeBonus = !question.eligible_grade_levels?.length || !grade || question.eligible_grade_levels.includes(grade) ? 2 : -20;
   const verifiedBonus = question.content_origin === 'brain_heist' ? 2 : 0;
@@ -148,9 +149,6 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
         notify_students_by_email: assignmentNotifyByEmail,
       });
 
-      // Register provenance immediately after assignment creation. This is intentionally
-      // before the support-plan RPC so even a partial downstream failure cannot let a
-      // coached practice result count as independent mastery evidence.
       await registerInterventionPractice({
         assignmentId: assignment.id,
         studentId: context.student.id,
