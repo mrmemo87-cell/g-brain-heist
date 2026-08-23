@@ -15,10 +15,9 @@ import {
 } from '../../services/guardianService';
 import { SchoolBrand } from '../../src/components/SchoolBrand';
 import { createSchoolBrand, PRODUCT_LOGO_URL, PRODUCT_NAME } from '../../src/lib/schoolBranding';
+import ParentDashboardPremium from './ParentDashboardPremium';
 import './ParentPortal.css';
 
-const fmtDate = (value?: string | null) => value ? new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-const focusCopy = (status: string) => status === 'persistent' ? 'Needs continued attention' : status === 'recurring' ? 'Recurring area for development' : 'New area for development';
 const safeMessage = (err: unknown, fallback: string) => err instanceof Error && err.message ? err.message : fallback;
 
 const BrainsHeistMark = ({ compact = false }: { compact?: boolean }) => <span className={`parent-product-brand ${compact ? 'is-compact' : ''}`}><img src={PRODUCT_LOGO_URL} alt={`${PRODUCT_NAME} logo`} /><span><strong>{PRODUCT_NAME}</strong><small>Academic progress platform</small></span></span>;
@@ -200,29 +199,20 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ onChooseWorkspace, onLogout
     </section>
   </main>;
 
-  const currentChild = children.find((child) => child.student_id === selectedId);
-  const summary = progress?.summary;
-  const brand = createSchoolBrand({ schoolId: currentChild?.school_id, schoolName: currentChild?.school_name, schoolLogoUrl: currentChild?.school_logo_url });
-
-  return <main className="parent-portal">
-    <header className="parent-header"><div className="parent-school-identity"><div className="parent-dashboard-brand"><SchoolBrand brand={brand} className="parent-school-brand" imageClassName="parent-school-logo" /><span className="parent-brand-divider" /><BrainsHeistMark compact /></div><small>Parent Portal · My Children</small></div><div><select aria-label="Reporting period" value={days} onChange={(e) => setDays(Number(e.target.value))}><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option><option value={180}>Last 6 months</option><option value={365}>Last 12 months</option></select>{onChooseWorkspace ? <button type="button" onClick={onChooseWorkspace}>Switch dashboard</button> : null}<button type="button" onClick={() => void signOut()}>Sign out</button></div></header>
-    {error ? <div className="parent-alert is-error"><strong>Something needs your attention</strong><span>{error}</span><button type="button" onClick={() => void loadChildren()}>Try again</button></div> : null}{message ? <div className="parent-alert"><strong>All set</strong><span>{message}</span></div> : null}
-    <div className="parent-layout">
-      <aside><h2>My Children</h2><p className="parent-aside-note">Choose a child to view their school-approved progress.</p>{children.map((child) => <button className={child.student_id === selectedId ? 'active' : ''} key={child.relationship_id} onClick={() => setSelectedId(child.student_id)}><strong>{child.student_name}</strong><small>{child.relationship_label} · {child.grade ? `Grade ${child.grade} · ` : ''}Class {child.class_name || '—'}</small></button>)}{!children.length && !loading ? <div className="parent-empty-card"><strong>No children are linked yet</strong><p>Open the secure invitation sent by the school, or ask the school to check your parent access.</p></div> : null}</aside>
-      <section className="parent-content">
-        {loading && !progress ? <div className="parent-loading-card"><div className="parent-loader-ring" /><strong>Preparing academic progress</strong><small>Bringing together the latest school evidence.</small></div> : null}
-        {progress ? <>
-          <section className="parent-hero"><div><span>Your child’s progress</span><h1>{progress.child.name}</h1><p>Grade {progress.child.grade || '—'} · Class {progress.child.class_name || '—'} · Last {progress.period.days} days</p></div><div><small>Assignment average</small><strong>{summary?.assignment_average == null ? '—' : `${summary.assignment_average}%`}</strong><span>{summary?.completed_assignments || 0} completed assignments</span></div></section>
-          <section className="parent-kpis"><article><span>Needs attention</span><strong>{(summary?.persistent_focus_count || 0) + (summary?.recurring_focus_count || 0)}</strong><small>Repeated areas for development</small></article><article><span>Improving</span><strong>{summary?.improving_count || 0}</strong><small>Areas moving positively</small></article><article><span>Resolved</span><strong>{summary?.resolved_count || 0}</strong><small>Previous needs now secure</small></article><article><span>Strengths</span><strong>{summary?.strength_count || 0}</strong><small>Current academic strengths</small></article><article><span>Overdue work</span><strong>{summary?.overdue_assignments || 0}</strong><small>Work past its due date</small></article></section>
-          <section className="parent-panel"><div className="parent-panel-title"><div><span>Where support is needed</span><h2>Current focus areas</h2></div><p>Repeated evidence is prioritised. One isolated low result is never labelled as a persistent problem.</p></div>{progress.focus_areas.length ? <div className="parent-focus-grid">{progress.focus_areas.map((item) => <article key={`${item.subject}:${item.skill}`} className={`priority-${item.priority}`}><span>{item.subject}</span><h3>{item.skill}</h3><strong>{focusCopy(item.status)}</strong><p>Seen across {item.evidence_items} assessed activit{item.evidence_items === 1 ? 'y' : 'ies'} · first identified {fmtDate(item.first_observed_at)} · latest evidence {fmtDate(item.last_observed_at)}</p>{item.latest_evidence_percentage != null ? <small>Latest assessed result: {item.latest_evidence_percentage}%</small> : null}</article>)}</div> : <div className="parent-empty">No recurring or persistent areas for development are currently identified.</div>}</section>
-          <section className="parent-panel"><div className="parent-panel-title"><div><span>Progress story</span><h2>Improving, resolved and strong</h2></div></div><div className="parent-three"><div><h3>Improving</h3>{progress.improving.map((x) => <p key={`${x.subject}:${x.skill}`}><strong>{x.skill}</strong><span>{x.subject} · updated {fmtDate(x.last_observed_at)}</span></p>)}</div><div><h3>Resolved</h3>{progress.resolved.map((x) => <p key={`${x.subject}:${x.skill}`}><strong>{x.skill}</strong><span>{x.subject} · latest evidence {fmtDate(x.last_observed_at)}</span></p>)}</div><div><h3>Strengths</h3>{progress.strengths.map((x) => <p key={`${x.subject}:${x.skill}`}><strong>{x.skill}</strong><span>{x.subject}</span></p>)}</div></div></section>
-          <section className="parent-panel"><div className="parent-panel-title"><div><span>By subject</span><h2>Academic picture</h2></div></div><div className="parent-subject-grid">{progress.subjects.map((s) => <article key={s.subject}><h3>{s.subject}</h3><strong>{s.assignment_average == null ? 'No recent mark' : `${s.assignment_average}%`}</strong><p>{s.completed_assignments} completed · {s.persistent_focus_count} persistent · {s.improving_count} improving · {s.strength_count} strengths</p></article>)}</div></section>
-          <section className="parent-panel"><div className="parent-panel-title"><div><span>Recent schoolwork</span><h2>Assignment results</h2></div></div><div className="parent-table-wrap"><table><thead><tr><th>Date</th><th>Subject</th><th>Assignment</th><th>Topic</th><th>Result</th></tr></thead><tbody>{progress.recent_assignments.map((a) => <tr key={`${a.assignment_id}:${a.completed_at}`}><td>{fmtDate(a.completed_at)}</td><td>{a.subject}</td><td>{a.title}</td><td>{a.topic}</td><td><strong>{a.accuracy}%</strong> <small>({a.correct}/{a.correct + a.incorrect})</small></td></tr>)}</tbody></table></div></section>
-          <section className="parent-panel"><div className="parent-panel-title"><div><span>Progress over time</span><h2>Learning timeline</h2></div><p>This parent view shows assessed school evidence only. Private staff records remain internal.</p></div><div className="parent-timeline">{progress.timeline.slice(0, 40).map((t) => <article key={t.id}><time>{fmtDate(t.observed_at)}</time><div><strong>{t.skill}</strong><span>{t.subject} · {t.observation_type === 'focus' ? 'area for development' : t.observation_type === 'strength' ? 'strength' : 'developing'}{t.evidence_percentage == null ? '' : ` · ${t.evidence_percentage}%`}</span></div></article>)}</div></section>
-        </> : null}
-      </section>
-    </div>
-  </main>;
+  return <ParentDashboardPremium
+    children={children}
+    selectedId={selectedId}
+    progress={progress}
+    days={days}
+    loading={loading}
+    error={error}
+    message={message}
+    onSelectChild={setSelectedId}
+    onChangeDays={setDays}
+    onRetry={() => void loadChildren()}
+    onSignOut={() => void signOut()}
+    onChooseWorkspace={onChooseWorkspace}
+  />;
 };
 
 export default ParentPortal;
