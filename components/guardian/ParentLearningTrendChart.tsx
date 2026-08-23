@@ -30,18 +30,17 @@ type PlottedPoint = {
   y: number;
 };
 
+type TrendState = {
+  label: string;
+  hasReliableTrend: boolean;
+};
+
 const normalizeSubject = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^maths$/, 'mathematics');
 
 const formatDate = (value?: string | null) => {
   if (!value) return '—';
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-};
-
-const formatTime = (value?: string | null) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 };
 
 const dayKey = (value: string) => {
@@ -133,9 +132,9 @@ const buildWritingSeries = (items: TimelineItem[], subject: string): TrendEvent[
   })).sort((a, b) => a.observedAt.localeCompare(b.observedAt));
 };
 
-const trendSummary = (events: Array<{ event: TrendEvent }>) => {
-  if (!events.length) return 'No evidence in this period';
-  if (events.length === 1) return 'One evidence point so far';
+const buildTrendState = (events: Array<{ event: TrendEvent }>): TrendState => {
+  if (!events.length) return { label: 'No evidence in this period', hasReliableTrend: false };
+  if (events.length === 1) return { label: 'Building a baseline', hasReliableTrend: false };
 
   const daily = new Map<string, number[]>();
   events.forEach(({ event }) => {
@@ -144,18 +143,21 @@ const trendSummary = (events: Array<{ event: TrendEvent }>) => {
     values.push(event.score);
     daily.set(key, values);
   });
+
   const days = [...daily.keys()].sort();
   const firstTime = Date.parse(events[0].event.observedAt);
   const lastTime = Date.parse(events[events.length - 1].event.observedAt);
   const spanDays = Number.isFinite(firstTime) && Number.isFinite(lastTime) ? (lastTime - firstTime) / 86400000 : 0;
 
-  if (events.length < 3 || days.length < 2 || spanDays < 7) return 'Not enough history to establish a trend yet';
+  if (events.length < 3 || days.length < 2 || spanDays < 7) {
+    return { label: 'Building a baseline', hasReliableTrend: false };
+  }
 
   const average = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1);
   const delta = average(daily.get(days[days.length - 1]) || []) - average(daily.get(days[0]) || []);
-  if (delta >= 10) return 'Overall evidence is moving up';
-  if (delta <= -10) return 'Recent evidence needs attention';
-  return 'Overall evidence is broadly steady';
+  if (delta >= 10) return { label: 'Overall evidence is moving up', hasReliableTrend: true };
+  if (delta <= -10) return { label: 'Recent evidence needs attention', hasReliableTrend: true };
+  return { label: 'Overall evidence is broadly steady', hasReliableTrend: true };
 };
 
 const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = ({ progress }) => {
@@ -195,12 +197,12 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
     ].filter((item) => item.events.length) as TrendSeries[];
   }, [progress, subject]);
 
-  const width = 480;
-  const height = 220;
-  const left = 86;
-  const right = 16;
-  const top = 22;
-  const bottom = 38;
+  const width = 520;
+  const height = 270;
+  const left = 94;
+  const right = 20;
+  const top = 28;
+  const bottom = 46;
   const usableWidth = width - left - right;
   const usableHeight = height - top - bottom;
   const yAt = (value: number) => top + ((100 - value) / 100) * usableHeight;
@@ -227,10 +229,16 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
   const pointDelta = activePoint && previousEvent ? activePoint.event.score - previousEvent.score : null;
   const firstEvent = allEvents[0]?.event || null;
   const lastEvent = allEvents[allEvents.length - 1]?.event || null;
-  const sameEvidenceDay = Boolean(firstEvent && lastEvent && dayKey(firstEvent.observedAt) === dayKey(lastEvent.observedAt));
-  const trendText = trendSummary(allEvents);
+  const evidenceDays = [...new Set(allEvents.map(({ event }) => dayKey(event.observedAt)))];
+  const sameEvidenceDay = evidenceDays.length === 1;
+  const trendState = buildTrendState(allEvents);
   const horizontalEdge = activePoint ? activePoint.x / width < .3 ? 'left' : activePoint.x / width > .7 ? 'right' : 'center' : 'center';
   const verticalEdge = activePoint && activePoint.y / height < .38 ? 'below' : 'above';
+  const baselineCopy = firstEvent && !trendState.hasReliableTrend
+    ? sameEvidenceDay
+      ? `Based on assessed work from ${formatDate(firstEvent.observedAt)}. A few more days of assessed work are needed before Brains Heist can identify a reliable learning trend.`
+      : `Based on assessed work from ${formatDate(firstEvent.observedAt)} to ${formatDate(lastEvent?.observedAt)}. More history is needed before Brains Heist can identify a reliable learning trend.`
+    : null;
 
   if (!subjects.length) return <div className="parent-smart-trend-empty">More assessed evidence is needed before a learning trend can be shown.</div>;
 
@@ -248,11 +256,11 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
 
     <article className="parent-smart-trend-card">
       <header>
-        <div><span>Learning trend</span><h3>{subject}</h3></div>
-        <strong>{trendText}</strong>
+        <div><span>Learning trend</span></div>
+        <strong>{trendState.label}</strong>
       </header>
 
-      {series.length > 1 ? <div className="parent-smart-trend-legend" aria-label={`${subject} evidence sources`}>
+      {series.length ? <div className="parent-smart-trend-legend" aria-label={`${subject} evidence sources`}>
         {series.map((item) => <span key={item.key} className={`tone-${item.tone}`}><i aria-hidden="true" />{item.label}</span>)}
       </div> : null}
 
@@ -263,16 +271,16 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
               <line x1={left} y1={yAt(value)} x2={width - right} y2={yAt(value)} className="parent-smart-trend-guide" />
               <text x={left - 10} y={yAt(value) + 4} textAnchor="end" className="parent-smart-trend-axis">{value === 25 ? 'Needs support' : value === 60 ? 'Developing' : 'Strong'}</text>
             </g>)}
-            {series.map((trendSeries) => trendSeries.events.length > 1 ? <polyline
+            {trendState.hasReliableTrend ? series.map((trendSeries) => trendSeries.events.length > 1 ? <polyline
               key={`${trendSeries.key}:line`}
               points={trendSeries.events.map((event, index) => `${xAt(event, index, trendSeries.events.length)},${yAt(event.score)}`).join(' ')}
               className={`parent-smart-trend-line tone-${trendSeries.tone}`}
-            /> : null)}
+            /> : null) : null}
             {plottedPoints.map((point, index) => <circle
               key={point.key}
               cx={point.x}
               cy={point.y}
-              r="6.5"
+              r="7.5"
               className={`parent-smart-trend-point tone-${point.series.tone}`}
               style={{ animationDelay: `${index * 70}ms` }}
               tabIndex={0}
@@ -283,8 +291,9 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
               onBlur={() => setActiveKey(null)}
               onClick={() => setActiveKey((current) => current === point.key ? null : point.key)}
             />)}
-            {firstEvent ? <text x={left} y={height - 8} className="parent-smart-trend-date">{sameEvidenceDay ? formatTime(firstEvent.observedAt) : formatDate(firstEvent.observedAt)}</text> : null}
-            {lastEvent ? <text x={width - right} y={height - 8} textAnchor="end" className="parent-smart-trend-date">{sameEvidenceDay ? formatTime(lastEvent.observedAt) : formatDate(lastEvent.observedAt)}</text> : null}
+            {sameEvidenceDay && firstEvent ? <text x={left + usableWidth / 2} y={height - 10} textAnchor="middle" className="parent-smart-trend-date">{formatDate(firstEvent.observedAt)}</text> : null}
+            {!sameEvidenceDay && firstEvent ? <text x={left} y={height - 10} className="parent-smart-trend-date">{formatDate(firstEvent.observedAt)}</text> : null}
+            {!sameEvidenceDay && lastEvent ? <text x={width - right} y={height - 10} textAnchor="end" className="parent-smart-trend-date">{formatDate(lastEvent.observedAt)}</text> : null}
           </svg>
 
           {activePoint ? <div className={`parent-smart-trend-tooltip edge-${horizontalEdge} edge-${verticalEdge} tone-${activePoint.series.tone}`} role="status">
@@ -299,8 +308,7 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
             <small>{pointDelta == null ? 'First point in this evidence series' : `${pointDelta > 0 ? '↗' : pointDelta < 0 ? '↘' : '→'} ${Math.abs(pointDelta)} points vs previous ${activePoint.series.label.toLowerCase()} evidence`}</small>
           </div> : null}
         </div>
-        {sameEvidenceDay && firstEvent ? <p className="parent-smart-trend-range">Evidence shown from {formatDate(firstEvent.observedAt)}. More days of assessed work are needed before Brains Heist labels a long-term direction.</p> : null}
-        <p className="parent-smart-trend-note">Completed assignment results are always plotted. Governed learning observations enrich each point, while Writing Hub evidence is grouped by writing attempt.</p>
+        {baselineCopy ? <p className="parent-smart-trend-baseline">{baselineCopy}</p> : null}
       </> : <div className="parent-smart-trend-empty">No parent-safe evidence is available for {subject} in this reporting period yet.</div>}
     </article>
   </div>;

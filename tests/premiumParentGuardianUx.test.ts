@@ -71,7 +71,9 @@ test('parent progress always plots canonical completed assignment results and en
   assert.match(chart, /item\.source_id/);
   assert.match(chart, /buildWritingSeries/);
   assert.match(chart, /writing_attempt/);
-  assert.match(chart, /Not enough history to establish a trend yet/);
+  assert.match(chart, /Building a baseline/);
+  assert.match(chart, /hasReliableTrend/);
+  assert.match(chart, /trendState\.hasReliableTrend \? series\.map/);
   assert.match(chart, /Needs support/);
   assert.match(chart, /Developing/);
   assert.match(chart, /Strong/);
@@ -79,7 +81,23 @@ test('parent progress always plots canonical completed assignment results and en
   assert.match(chart, /onMouseEnter/);
   assert.match(chart, /onFocus/);
   assert.match(chart, /edge-/);
+  assert.doesNotMatch(chart, /formatTime/);
+  assert.doesNotMatch(chart, /Completed assignment results are always plotted/);
+  assert.doesNotMatch(chart, /<h3>\{subject\}<\/h3>/);
   assert.doesNotMatch(chart, /assignmentEvidence\.length \? assignmentEvidence/);
+});
+
+test('parent chart shows dates and individual points while a long-term trend is still building', () => {
+  const chart = read('components/guardian/ParentLearningTrendChart.tsx');
+  const mobileFixes = read('components/guardian/ParentDashboardPremiumMobileFixes.css');
+
+  assert.match(chart, /r="7\.5"/);
+  assert.match(chart, /sameEvidenceDay && firstEvent/);
+  assert.match(chart, /formatDate\(firstEvent\.observedAt\)/);
+  assert.match(chart, /A few more days of assessed work are needed before Brains Heist can identify a reliable learning trend/);
+  assert.match(mobileFixes, /\.parent-smart-trend-point\{[\s\S]*opacity:1/);
+  assert.match(mobileFixes, /\.parent-smart-trend-line\{[\s\S]*stroke-dashoffset:0/);
+  assert.match(mobileFixes, /parent-smart-trend-baseline/);
 });
 
 test('parent chart remains visible on reduced-motion devices and is not horizontally cropped on mobile', () => {
