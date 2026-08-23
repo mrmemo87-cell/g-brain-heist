@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GuardianChildProgress } from '../../services/guardianService';
 
 type TimelineItem = GuardianChildProgress['timeline'][number];
@@ -33,6 +33,13 @@ type PlottedPoint = {
 type TrendState = {
   label: string;
   hasReliableTrend: boolean;
+};
+
+type ScrubGesture = {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  scrubbing: boolean;
 };
 
 const normalizeSubject = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^maths$/, 'mathematics');
@@ -179,12 +186,17 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
 
   const [subject, setSubject] = useState(subjectByEvidence[0]?.subject || subjects[0] || '');
   const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [isPinned, setIsPinned] = useState(false);
+  const chartWrapRef = useRef<HTMLDivElement | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const gestureRef = useRef<ScrubGesture | null>(null);
 
   useEffect(() => {
     if (!subject || !subjects.some((item) => normalizeSubject(item) === normalizeSubject(subject))) {
       setSubject(subjectByEvidence[0]?.subject || subjects[0] || '');
     }
     setActiveKey(null);
+    setIsPinned(false);
   }, [progress, subject, subjectByEvidence, subjects]);
 
   const series = useMemo<TrendSeries[]>(() => {
@@ -240,6 +252,94 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
       : `Based on assessed work from ${formatDate(firstEvent.observedAt)} to ${formatDate(lastEvent?.observedAt)}. More history is needed before Brains Heist can identify a reliable learning trend.`
     : null;
 
+  const pointFromClient = useCallback((clientX: number, clientY: number, horizontalOnly: boolean) => {
+    const svg = svgRef.current;
+    if (!svg || !plottedPoints.length) return null;
+    const rect = svg.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    const x = ((clientX - rect.left) / rect.width) * width;
+    const y = ((clientY - rect.top) / rect.height) * height;
+    if (x < left - 16 || x > width - right + 16 || y < top - 18 || y > height - bottom + 24) return null;
+
+    return plottedPoints.reduce<PlottedPoint | null>((nearest, point) => {
+      if (!nearest) return point;
+      const pointDistance = horizontalOnly
+        ? Math.abs(point.x - x)
+        : Math.hypot(point.x - x, (point.y - y) * 0.72);
+      const nearestDistance = horizontalOnly
+        ? Math.abs(nearest.x - x)
+        : Math.hypot(nearest.x - x, (nearest.y - y) * 0.72);
+      return pointDistance < nearestDistance ? point : nearest;
+    }, null);
+  }, [plottedPoints]);
+
+  useEffect(() => {
+    if (!isPinned) return;
+    const dismissPinnedTooltip = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (target && chartWrapRef.current?.contains(target)) return;
+      setIsPinned(false);
+      setActiveKey(null);
+    };
+    document.addEventListener('pointerdown', dismissPinnedTooltip, true);
+    return () => document.removeEventListener('pointerdown', dismissPinnedTooltip, true);
+  }, [isPinned]);
+
+  const handlePointerDown = (event: React.PointerEvent<SVGSVGElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    const point = pointFromClient(event.clientX, event.clientY, false);
+    if (!point) return;
+    gestureRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, scrubbing: false };
+    setActiveKey(point.key);
+    if (event.pointerType === 'mouse') setIsPinned(false);
+    try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* capture is optional */ }
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<SVGSVGElement>) => {
+    const gesture = gestureRef.current;
+    if (!gesture) {
+      if (event.pointerType === 'mouse' && !isPinned) {
+        const point = pointFromClient(event.clientX, event.clientY, true);
+        setActiveKey(point?.key || null);
+      }
+      return;
+    }
+    if (gesture.pointerId !== event.pointerId) return;
+
+    const deltaX = Math.abs(event.clientX - gesture.startX);
+    const deltaY = Math.abs(event.clientY - gesture.startY);
+    if (!gesture.scrubbing && deltaX > 6 && deltaX >= deltaY) gesture.scrubbing = true;
+    if (!gesture.scrubbing) return;
+
+    if (event.cancelable) event.preventDefault();
+    const point = pointFromClient(event.clientX, event.clientY, true);
+    if (point) {
+      setActiveKey(point.key);
+      setIsPinned(true);
+    }
+  };
+
+  const handlePointerUp = (event: React.PointerEvent<SVGSVGElement>) => {
+    const gesture = gestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    const point = pointFromClient(event.clientX, event.clientY, gesture.scrubbing);
+    if (point) {
+      setActiveKey(point.key);
+      setIsPinned(true);
+    }
+    gestureRef.current = null;
+    try { event.currentTarget.releasePointerCapture(event.pointerId); } catch { /* capture is optional */ }
+  };
+
+  const handlePointerCancel = (event: React.PointerEvent<SVGSVGElement>) => {
+    if (gestureRef.current?.pointerId === event.pointerId) gestureRef.current = null;
+    if (!isPinned) setActiveKey(null);
+  };
+
+  const handlePointerLeave = (event: React.PointerEvent<SVGSVGElement>) => {
+    if (event.pointerType === 'mouse' && !isPinned && !gestureRef.current) setActiveKey(null);
+  };
+
   if (!subjects.length) return <div className="parent-smart-trend-empty">More assessed evidence is needed before a learning trend can be shown.</div>;
 
   return <div className="parent-smart-trend">
@@ -250,7 +350,7 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
         role="tab"
         aria-selected={normalizeSubject(item.subject) === normalizeSubject(subject)}
         className={normalizeSubject(item.subject) === normalizeSubject(subject) ? 'active' : ''}
-        onClick={() => { setSubject(item.subject); setActiveKey(null); }}
+        onClick={() => { setSubject(item.subject); setActiveKey(null); setIsPinned(false); }}
       >{item.subject}</button>)}
     </div>
 
@@ -265,8 +365,19 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
       </div> : null}
 
       {allEvents.length ? <>
-        <div className="parent-smart-trend-chart-wrap">
-          <svg className="parent-smart-trend-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${subject} learning evidence trend over the selected period`}>
+        <div className="parent-smart-trend-chart-wrap" ref={chartWrapRef}>
+          <svg
+            ref={svgRef}
+            className="parent-smart-trend-chart"
+            viewBox={`0 0 ${width} ${height}`}
+            role="img"
+            aria-label={`${subject} learning evidence trend over the selected period. Tap or drag across the chart to inspect evidence.`}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
+            onPointerLeave={handlePointerLeave}
+          >
             {[25, 60, 90].map((value) => <g key={value}>
               <line x1={left} y1={yAt(value)} x2={width - right} y2={yAt(value)} className="parent-smart-trend-guide" />
               <text x={left - 10} y={yAt(value) + 4} textAnchor="end" className="parent-smart-trend-axis">{value === 25 ? 'Needs support' : value === 60 ? 'Developing' : 'Strong'}</text>
@@ -276,36 +387,45 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
               points={trendSeries.events.map((event, index) => `${xAt(event, index, trendSeries.events.length)},${yAt(event.score)}`).join(' ')}
               className={`parent-smart-trend-line tone-${trendSeries.tone}`}
             /> : null) : null}
+            {activePoint ? <>
+              <line x1={activePoint.x} y1={top} x2={activePoint.x} y2={height - bottom} className="parent-smart-trend-active-guide" />
+              <circle cx={activePoint.x} cy={activePoint.y} r="13" className={`parent-smart-trend-active-halo tone-${activePoint.series.tone}`} />
+            </> : null}
             {plottedPoints.map((point, index) => <circle
               key={point.key}
               cx={point.x}
               cy={point.y}
               r="7.5"
-              className={`parent-smart-trend-point tone-${point.series.tone}`}
+              className={`parent-smart-trend-point tone-${point.series.tone}${activeKey === point.key ? ' is-active' : ''}`}
               style={{ animationDelay: `${index * 70}ms` }}
               tabIndex={0}
+              role="button"
               aria-label={`${formatDate(point.event.observedAt)}, ${point.series.label}, ${point.event.label}, ${trendPositionLabel(point.event.score)}`}
-              onMouseEnter={() => setActiveKey(point.key)}
-              onMouseLeave={() => setActiveKey(null)}
-              onFocus={() => setActiveKey(point.key)}
-              onBlur={() => setActiveKey(null)}
-              onClick={() => setActiveKey((current) => current === point.key ? null : point.key)}
+              onFocus={() => { if (!isPinned) setActiveKey(point.key); }}
+              onBlur={() => { if (!isPinned) setActiveKey(null); }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  setActiveKey(point.key);
+                  setIsPinned(true);
+                }
+              }}
             />)}
             {sameEvidenceDay && firstEvent ? <text x={left + usableWidth / 2} y={height - 10} textAnchor="middle" className="parent-smart-trend-date">{formatDate(firstEvent.observedAt)}</text> : null}
             {!sameEvidenceDay && firstEvent ? <text x={left} y={height - 10} className="parent-smart-trend-date">{formatDate(firstEvent.observedAt)}</text> : null}
             {!sameEvidenceDay && lastEvent ? <text x={width - right} y={height - 10} textAnchor="end" className="parent-smart-trend-date">{formatDate(lastEvent.observedAt)}</text> : null}
           </svg>
 
-          {activePoint ? <div className={`parent-smart-trend-tooltip edge-${horizontalEdge} edge-${verticalEdge} tone-${activePoint.series.tone}`} role="status">
-            <div className="parent-smart-trend-tooltip-head"><span>{activePoint.series.label}</span><strong>{trendPositionLabel(activePoint.event.score)}</strong></div>
+          {activePoint ? <div className={`parent-smart-trend-tooltip edge-${horizontalEdge} edge-${verticalEdge} tone-${activePoint.series.tone}${isPinned ? ' is-pinned' : ''}`} role="status" aria-live="polite">
+            <div className="parent-smart-trend-tooltip-head"><span>{formatDate(activePoint.event.observedAt)} · {activePoint.series.label}</span><strong>{trendPositionLabel(activePoint.event.score)}</strong></div>
             <h4>{activePoint.event.label}</h4>
-            <p>{activePoint.event.detail} · {formatDate(activePoint.event.observedAt)}</p>
+            <p>{activePoint.series.key === 'assignment' ? `${Math.round(activePoint.event.score)}% · ${activePoint.event.detail}` : activePoint.event.detail}</p>
             <div className="parent-smart-trend-tooltip-signals">
               {activePoint.event.strengthCount ? <span className="strong">{activePoint.event.strengthCount} strong</span> : null}
               {activePoint.event.developingCount ? <span className="developing">{activePoint.event.developingCount} developing</span> : null}
               {activePoint.event.focusCount ? <span className="support">{activePoint.event.focusCount} support</span> : null}
             </div>
-            <small>{pointDelta == null ? 'First point in this evidence series' : `${pointDelta > 0 ? '↗' : pointDelta < 0 ? '↘' : '→'} ${Math.abs(pointDelta)} points vs previous ${activePoint.series.label.toLowerCase()} evidence`}</small>
+            <small>{pointDelta == null ? 'First point in this evidence series' : `${pointDelta > 0 ? '↗' : pointDelta < 0 ? '↘' : '→'} ${Math.abs(pointDelta)} points vs previous ${activePoint.series.label.toLowerCase()} evidence`}{isPinned ? ' · Pinned' : ''}</small>
           </div> : null}
         </div>
         {baselineCopy ? <p className="parent-smart-trend-baseline">{baselineCopy}</p> : null}
