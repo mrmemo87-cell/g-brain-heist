@@ -29,6 +29,8 @@ export interface ParentFocusArea {
   subject: string;
   topic?: string | null;
   skill: string;
+  subskill?: string | null;
+  skill_key?: string | null;
   status: 'new_focus' | 'recurring' | 'persistent';
   trend: string;
   priority: 'high' | 'medium' | 'low';
@@ -54,11 +56,11 @@ export interface GuardianChildProgress {
   };
   subjects: Array<{ subject: string; assignment_average: number | null; completed_assignments: number; persistent_focus_count: number; improving_count: number; resolved_count: number; strength_count: number }>;
   focus_areas: ParentFocusArea[];
-  improving: Array<{ subject: string; skill: string; last_observed_at: string; evidence_items: number }>;
-  resolved: Array<{ subject: string; skill: string; last_observed_at: string; evidence_items: number }>;
-  strengths: Array<{ subject: string; skill: string; status: string; last_observed_at: string; evidence_items: number }>;
+  improving: Array<{ subject: string; skill: string; subskill?: string | null; last_observed_at: string; evidence_items: number }>;
+  resolved: Array<{ subject: string; skill: string; subskill?: string | null; last_observed_at: string; evidence_items: number }>;
+  strengths: Array<{ subject: string; skill: string; subskill?: string | null; status: string; last_observed_at: string; evidence_items: number }>;
   recent_assignments: Array<{ assignment_id: string; title: string; subject: string; topic: string; accuracy: number; correct: number; incorrect: number; completed_at: string }>;
-  timeline: Array<{ id: string; subject: string; topic?: string | null; skill: string; observation_type: string; source_type: string; observed_at: string; evidence_percentage?: number | null; evidence_quality?: string | null }>;
+  timeline: Array<{ id: string; subject: string; topic?: string | null; skill: string; subskill?: string | null; observation_type: string; source_type: string; source_id?: string | null; observed_at: string; evidence_percentage?: number | null; evidence_quality?: string | null }>;
 }
 
 export interface GuardianManagementSnapshot {
