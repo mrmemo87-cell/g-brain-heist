@@ -10,6 +10,7 @@ export interface GuardianChild {
   school_id: string;
   school_name: string;
   school_logo_url?: string | null;
+  avatar_url?: string | null;
   verified_at: string;
 }
 
