@@ -40,20 +40,5 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Compile tests for parent regression diagnostics
-        run: npm run test:clean && npm run test:build
-
-      - name: Diagnostic — premium parent guardian UX
-        run: node --test dist-tests/tests/premiumParentGuardianUx.test.js
-
-      - name: Diagnostic — guardian parent accounts
-        run: node --test dist-tests/tests/guardianParentAccountsPhase6.test.js
-
-      - name: Diagnostic — admin/head parent progress access
-        run: node --test dist-tests/tests/adminHeadParentProgressAccess.test.js
-
-      - name: Diagnostic — academic progress suite UX
-        run: node --test dist-tests/tests/academicProgressSuiteUx.test.js
-
       - name: Test
         run: npm test
