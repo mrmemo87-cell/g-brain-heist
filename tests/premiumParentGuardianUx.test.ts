@@ -36,6 +36,26 @@ test('parent invitation experience is school and Brains Heist co-branded', () =>
   assert.match(admin, /school-approved marks/);
 });
 
+test('signed-in parent dashboard uses the premium light academic experience without attendance placeholders', () => {
+  const parent = read('components/guardian/ParentPortal.tsx');
+  const dashboard = read('components/guardian/ParentDashboardPremium.tsx');
+  const css = read('components/guardian/ParentDashboardPremium.css');
+
+  assert.match(parent, /ParentDashboardPremium/);
+  assert.match(dashboard, /Academic snapshot/);
+  assert.match(dashboard, /Subject performance/);
+  assert.match(dashboard, /Areas needing support/);
+  assert.match(dashboard, /Recent assessments/);
+  assert.match(dashboard, /Recommended focus/);
+  assert.match(dashboard, /PerformanceSparkline/);
+  assert.match(dashboard, /AnimatedChecklist/);
+  assert.doesNotMatch(dashboard, /Attendance/i);
+  assert.match(css, /parent-premium-chart-line/);
+  assert.match(css, /pp-pen-write/);
+  assert.match(css, /pp-check-draw/);
+  assert.match(css, /prefers-reduced-motion/);
+});
+
 test('parent portal blocks wrong-account claims and offers a safe account switch', () => {
   const parent = read('components/guardian/ParentPortal.tsx');
   const service = read('services/guardianService.ts');
@@ -89,6 +109,7 @@ test('new academic and parent surfaces consistently spell Brains Heist', () => {
     'teacher-interventions.html',
     'school-head-learning-intelligence.html',
     'components/guardian/ParentPortal.tsx',
+    'components/guardian/ParentDashboardPremium.tsx',
     'components/guardian/GuardianManagementPage.tsx',
     'components/student-progress/IndividualStudentAcademicReport.tsx',
   ];
