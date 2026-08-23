@@ -19,38 +19,61 @@
 .parent-premium-bottom-nav[data-reveal-visible="true"] > .parent-premium-nav-reveal{display:block!important}
 .parent-premium-bottom-nav > button:not(.parent-premium-nav-reveal){position:relative}
 
-.parent-smart-trend-chart-wrap{overflow:visible}
+.parent-smart-trend-card{padding:1.05rem}
+.parent-smart-trend-chart-wrap{overflow:visible;min-height:300px}
 .parent-smart-trend-chart{
   width:100%;
-  max-width:680px;
+  max-width:720px;
   min-width:0;
-  min-height:0;
+  min-height:270px;
   height:auto;
   margin:0 auto;
   transform:none;
   overflow:visible;
 }
+.parent-smart-trend-card>header{align-items:center;margin-bottom:.72rem}
+.parent-smart-trend-card>header>strong{font-size:.72rem;line-height:1.35}
+.parent-smart-trend-legend{margin-bottom:.55rem}
 .parent-smart-trend-axis{font-size:12px;font-weight:750}
-.parent-smart-trend-date{font-size:11px;font-weight:800}
-.parent-smart-trend-range{
-  margin:.25rem 0 .45rem;
-  padding:.52rem .65rem;
-  border:1px solid #e2edf3;
-  border-radius:11px;
-  background:#fbfdff;
-  color:#728297;
-  font-size:.62rem;
-  font-weight:700;
-  line-height:1.45;
+.parent-smart-trend-date{font-size:11.5px;font-weight:850}
+
+/* Keep the visual evidence visible even when animation is unsupported or disabled.
+   The animation starts from a temporary hidden state rather than making hidden the base state. */
+.parent-smart-trend-line{
+  stroke-dashoffset:0;
+  animation:pp-smart-line-polish 1.05s cubic-bezier(.2,.8,.2,1) both;
+}
+.parent-smart-trend-point{
+  opacity:1;
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:pp-smart-point-polish .38s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes pp-smart-line-polish{from{stroke-dashoffset:850}to{stroke-dashoffset:0}}
+@keyframes pp-smart-point-polish{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:scale(1)}}
+
+.parent-smart-trend-baseline{
+  margin:.2rem 0 0;
+  padding:.68rem .76rem;
+  border:1px solid #dfeaf1;
+  border-radius:13px;
+  background:linear-gradient(135deg,#f8fcfe,#fbfaff);
+  color:#66788f;
+  font-size:.68rem;
+  font-weight:720;
+  line-height:1.5;
 }
 
 @media (max-width:768px){
-  .parent-smart-trend-card{overflow:visible}
-  .parent-smart-trend-chart-wrap{min-height:0!important;overflow:visible!important}
+  .parent-smart-trend-card{overflow:visible;padding:.82rem .68rem}
+  .parent-smart-trend-card>header{padding:0 .2rem;margin-bottom:.65rem}
+  .parent-smart-trend-card>header>strong{max-width:155px;font-size:.66rem}
+  .parent-smart-trend-chart-wrap{min-height:260px!important;overflow:visible!important}
   .parent-smart-trend-chart{
     width:100%!important;
     max-width:100%!important;
     min-width:0!important;
+    min-height:250px!important;
     height:auto!important;
     transform:none!important;
   }
@@ -63,6 +86,7 @@
     width:calc(100% - .4rem)!important;
     margin:.55rem .2rem 0!important;
   }
+  .parent-smart-trend-baseline{font-size:.64rem;padding:.62rem .68rem}
   .parent-premium-bottom-nav > button:not(.parent-premium-nav-reveal){
     display:flex!important;
     flex-direction:column!important;
@@ -81,7 +105,9 @@
 
 @media (max-width:480px){
   .parent-smart-trend-axis{font-size:12.5px}
-  .parent-smart-trend-date{font-size:11.5px}
+  .parent-smart-trend-date{font-size:12px}
+  .parent-smart-trend-chart-wrap{min-height:250px!important}
+  .parent-smart-trend-chart{min-height:240px!important}
   .parent-premium-bottom-nav > button:not(.parent-premium-nav-reveal){font-size:.58rem!important;min-height:56px!important}
 }
 
