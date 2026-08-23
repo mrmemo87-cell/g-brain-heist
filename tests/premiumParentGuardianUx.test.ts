@@ -41,6 +41,7 @@ test('signed-in parent dashboard is a light tabbed academic experience without a
   const dashboard = read('components/guardian/ParentDashboardPremium.tsx');
   const baseCss = read('components/guardian/ParentDashboardPremium.css');
   const tabsCss = read('components/guardian/ParentDashboardPremiumTabs.css');
+  const mobileFixes = read('components/guardian/ParentDashboardPremiumMobileFixes.css');
 
   assert.match(parent, /ParentDashboardPremium/);
   assert.match(dashboard, /Academic snapshot/);
@@ -56,18 +57,21 @@ test('signed-in parent dashboard is a light tabbed academic experience without a
   assert.match(baseCss, /pp-pen-write/);
   assert.match(baseCss, /pp-check-draw/);
   assert.match(tabsCss, /parent-premium-tab-panel/);
-  assert.match(tabsCss, /prefers-reduced-motion/);
+  assert.match(mobileFixes, /prefers-reduced-motion/);
 });
 
-test('parent progress uses the governed smart evidence chart rather than a six-point sparkline', () => {
+test('parent progress always plots canonical completed assignment results and enriches them with governed evidence', () => {
   const dashboard = read('components/guardian/ParentDashboardPremium.tsx');
   const chart = read('components/guardian/ParentLearningTrendChart.tsx');
 
   assert.match(dashboard, /Smart progress intelligence/);
-  assert.match(chart, /progress\.timeline/);
-  assert.match(chart, /observationSignal/);
-  assert.match(chart, /assignment_result/);
+  assert.match(chart, /buildAssignmentSeries/);
+  assert.match(chart, /progress\.recent_assignments/);
+  assert.match(chart, /observationsByAssignment/);
+  assert.match(chart, /item\.source_id/);
+  assert.match(chart, /buildWritingSeries/);
   assert.match(chart, /writing_attempt/);
+  assert.match(chart, /Not enough history to establish a trend yet/);
   assert.match(chart, /Needs support/);
   assert.match(chart, /Developing/);
   assert.match(chart, /Strong/);
@@ -75,11 +79,23 @@ test('parent progress uses the governed smart evidence chart rather than a six-p
   assert.match(chart, /onMouseEnter/);
   assert.match(chart, /onFocus/);
   assert.match(chart, /edge-/);
+  assert.doesNotMatch(chart, /assignmentEvidence\.length \? assignmentEvidence/);
 });
 
-test('parent mobile navigation reuses the School Admin smart collapse behavior', () => {
+test('parent chart remains visible on reduced-motion devices and is not horizontally cropped on mobile', () => {
+  const mobileFixes = read('components/guardian/ParentDashboardPremiumMobileFixes.css');
+  assert.match(mobileFixes, /stroke-dashoffset:0!important/);
+  assert.match(mobileFixes, /opacity:1!important/);
+  assert.match(mobileFixes, /min-width:0!important/);
+  assert.match(mobileFixes, /transform:none!important/);
+  assert.match(mobileFixes, /overflow:visible!important/);
+  assert.doesNotMatch(mobileFixes, /translateX\(-48px\)/);
+});
+
+test('parent mobile navigation reuses School Admin smart collapse without turning the reveal handle into a sixth tab', () => {
   const dashboard = read('components/guardian/ParentDashboardPremium.tsx');
   const tabsCss = read('components/guardian/ParentDashboardPremiumTabs.css');
+  const mobileFixes = read('components/guardian/ParentDashboardPremiumMobileFixes.css');
   const hook = read('src/hooks/useSmartCollapsedNavigation.ts');
 
   assert.match(dashboard, /useSmartCollapsedNavigation\(activeTab, '\(max-width: 768px\)'\)/);
@@ -88,24 +104,40 @@ test('parent mobile navigation reuses the School Admin smart collapse behavior',
   assert.match(dashboard, /popstate/);
   assert.match(dashboard, /aria-current/);
   assert.match(tabsCss, /--smart-nav-translate-y/);
-  assert.match(tabsCss, /data-reveal-visible/);
+  assert.match(mobileFixes, /> \.parent-premium-nav-reveal/);
+  assert.match(mobileFixes, /position:absolute!important/);
+  assert.match(mobileFixes, /button:not\(\.parent-premium-nav-reveal\)/);
   assert.match(hook, /DIRECT_SCROLL_PORTION = 2 \/ 3/);
   assert.match(hook, /NAVIGATION_PEEK_HEIGHT = 15/);
 });
 
-test('verified guardians receive the real student avatar and can switch linked children', () => {
+test('guardian progress contract returns real avatars plus source-aware parent-safe evidence for every verified school relationship', () => {
   const dashboard = read('components/guardian/ParentDashboardPremium.tsx');
   const service = read('services/guardianService.ts');
-  const migration = read('supabase/migrations/20260823112000_guardian_child_avatar.sql');
+  const migration = read('supabase/migrations/20260823124033_parent_dashboard_guardian_evidence_contract.sql');
 
   assert.match(service, /avatar_url\?: string \| null/);
+  assert.match(service, /subskill\?: string \| null/);
+  assert.match(service, /source_id\?: string \| null/);
   assert.match(migration, /'avatar_url',u\.avatar_url/);
-  assert.match(migration, /r\.guardian_user_id=v_caller and r\.status='active'/);
+  assert.match(migration, /'subskill',t\.subskill/);
+  assert.match(migration, /'source_id',t\.source_id/);
+  assert.match(migration, /'skill_key',f\.skill_key/);
+  assert.match(migration, /r\.guardian_user_id=v_caller/);
+  assert.match(migration, /r\.status='active'/);
+  assert.match(migration, /u\.school_id=r\.school_id/);
   assert.match(migration, /revoke all on function public\.rpc_guardian_my_children\(\) from public, anon, authenticated/);
+  assert.match(migration, /revoke all on function public\.rpc_guardian_child_progress\(uuid,integer\) from public, anon, authenticated/);
   assert.match(dashboard, /child\.avatar_url/);
   assert.match(dashboard, /Show other linked children/);
   assert.match(dashboard, /parent-premium-child-menu/);
   assert.doesNotMatch(dashboard, /<select value=\{selectedId/);
+});
+
+test('parent progress story reports completed work instead of calling all work assigned', () => {
+  const dashboard = read('components/guardian/ParentDashboardPremium.tsx');
+  assert.match(dashboard, /summary\?\.completed_assignments \|\| 0\} completed/);
+  assert.match(dashboard, /assigned in this period/);
 });
 
 test('portrait parent dashboard keeps school branding visible and separates workspace switching from child switching', () => {
