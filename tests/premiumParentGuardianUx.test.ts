@@ -78,7 +78,7 @@ test('parent progress always plots canonical completed assignment results and en
   assert.match(chart, /Developing/);
   assert.match(chart, /Strong/);
   assert.match(chart, /tabIndex=\{0\}/);
-  assert.match(chart, /onMouseEnter/);
+  assert.match(chart, /onPointerMove=\{handlePointerMove\}/);
   assert.match(chart, /onFocus/);
   assert.match(chart, /edge-/);
   assert.doesNotMatch(chart, /formatTime/);
@@ -98,6 +98,28 @@ test('parent chart shows dates and individual points while a long-term trend is 
   assert.match(mobileFixes, /\.parent-smart-trend-point\{[\s\S]*opacity:1/);
   assert.match(mobileFixes, /\.parent-smart-trend-line\{[\s\S]*stroke-dashoffset:0/);
   assert.match(mobileFixes, /parent-smart-trend-baseline/);
+});
+
+test('parent chart supports OpenAI-style tap pinning, horizontal scrubbing and outside dismissal', () => {
+  const chart = read('components/guardian/ParentLearningTrendChart.tsx');
+  const mobileFixes = read('components/guardian/ParentDashboardPremiumMobileFixes.css');
+
+  assert.match(chart, /const \[isPinned, setIsPinned\] = useState\(false\)/);
+  assert.match(chart, /pointFromClient/);
+  assert.match(chart, /onPointerDown=\{handlePointerDown\}/);
+  assert.match(chart, /onPointerMove=\{handlePointerMove\}/);
+  assert.match(chart, /onPointerUp=\{handlePointerUp\}/);
+  assert.match(chart, /gesture\.scrubbing/);
+  assert.match(chart, /setPointerCapture/);
+  assert.match(chart, /document\.addEventListener\('pointerdown', dismissPinnedTooltip, true\)/);
+  assert.match(chart, /parent-smart-trend-active-guide/);
+  assert.match(chart, /parent-smart-trend-active-halo/);
+  assert.match(chart, /is-pinned/);
+  assert.match(chart, /Tap or drag across the chart to inspect evidence/);
+  assert.match(mobileFixes, /touch-action:pan-y/);
+  assert.match(mobileFixes, /parent-smart-trend-active-guide/);
+  assert.match(mobileFixes, /parent-smart-trend-active-halo/);
+  assert.match(mobileFixes, /\.parent-smart-trend-tooltip\.edge-below/);
 });
 
 test('parent chart remains visible on reduced-motion devices and is not horizontally cropped on mobile', () => {

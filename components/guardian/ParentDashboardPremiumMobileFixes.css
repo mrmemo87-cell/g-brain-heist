@@ -20,7 +20,7 @@
 .parent-premium-bottom-nav > button:not(.parent-premium-nav-reveal){position:relative}
 
 .parent-smart-trend-card{padding:1.05rem}
-.parent-smart-trend-chart-wrap{overflow:visible;min-height:300px}
+.parent-smart-trend-chart-wrap{position:relative;overflow:visible;min-height:300px}
 .parent-smart-trend-chart{
   width:100%;
   max-width:720px;
@@ -30,6 +30,10 @@
   margin:0 auto;
   transform:none;
   overflow:visible;
+  touch-action:pan-y;
+  user-select:none;
+  -webkit-user-select:none;
+  cursor:crosshair;
 }
 .parent-smart-trend-card>header{align-items:center;margin-bottom:.72rem}
 .parent-smart-trend-card>header>strong{font-size:.72rem;line-height:1.35}
@@ -48,9 +52,53 @@
   transform-box:fill-box;
   transform-origin:center;
   animation:pp-smart-point-polish .38s cubic-bezier(.2,.8,.2,1) both;
+  transition:r .16s ease,filter .16s ease,stroke-width .16s ease;
 }
+.parent-smart-trend-point.is-active{
+  r:9.5px;
+  stroke-width:3px;
+  filter:drop-shadow(0 4px 8px rgba(26,66,96,.2));
+}
+.parent-smart-trend-active-guide{
+  stroke:#9fb1c3;
+  stroke-width:1.2;
+  stroke-dasharray:3 4;
+  opacity:.82;
+  pointer-events:none;
+}
+.parent-smart-trend-active-halo{
+  fill:none;
+  stroke-width:5;
+  opacity:.18;
+  pointer-events:none;
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:pp-smart-halo .22s ease-out both;
+}
+.parent-smart-trend-active-halo.tone-assignment{stroke:#00abc7}
+.parent-smart-trend-active-halo.tone-writing{stroke:#8056dc}
 @keyframes pp-smart-line-polish{from{stroke-dashoffset:850}to{stroke-dashoffset:0}}
 @keyframes pp-smart-point-polish{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:scale(1)}}
+@keyframes pp-smart-halo{from{opacity:0;transform:scale(.65)}to{opacity:.18;transform:scale(1)}}
+
+.parent-smart-trend-tooltip{
+  transition:opacity .14s ease,transform .14s ease;
+}
+.parent-smart-trend-tooltip.is-pinned{
+  box-shadow:0 18px 42px rgba(30,63,91,.19),0 0 0 1px rgba(255,255,255,.9) inset;
+}
+.parent-smart-trend-tooltip.is-pinned:after{
+  content:"";
+  position:absolute;
+  top:8px;
+  right:9px;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#00abc7;
+  box-shadow:0 0 0 4px rgba(0,171,199,.1);
+}
+.parent-smart-trend-tooltip.tone-writing.is-pinned:after{background:#8056dc;box-shadow:0 0 0 4px rgba(128,86,220,.1)}
 
 .parent-smart-trend-baseline{
   margin:.2rem 0 0;
@@ -76,15 +124,22 @@
     min-height:250px!important;
     height:auto!important;
     transform:none!important;
+    touch-action:pan-y!important;
   }
   .parent-smart-trend-tooltip{
-    position:relative!important;
-    top:auto!important;
-    left:auto!important;
+    position:absolute!important;
+    top:10px!important;
+    left:50%!important;
     right:auto!important;
-    transform:none!important;
-    width:calc(100% - .4rem)!important;
-    margin:.55rem .2rem 0!important;
+    bottom:auto!important;
+    transform:translateX(-50%)!important;
+    width:min(320px,calc(100% - 1rem))!important;
+    margin:0!important;
+    pointer-events:none!important;
+  }
+  .parent-smart-trend-tooltip.edge-below{
+    top:auto!important;
+    bottom:12px!important;
   }
   .parent-smart-trend-baseline{font-size:.64rem;padding:.62rem .68rem}
   .parent-premium-bottom-nav > button:not(.parent-premium-nav-reveal){
@@ -108,6 +163,7 @@
   .parent-smart-trend-date{font-size:12px}
   .parent-smart-trend-chart-wrap{min-height:250px!important}
   .parent-smart-trend-chart{min-height:240px!important}
+  .parent-smart-trend-tooltip{width:calc(100% - .7rem)!important}
   .parent-premium-bottom-nav > button:not(.parent-premium-nav-reveal){font-size:.58rem!important;min-height:56px!important}
 }
 
@@ -120,5 +176,7 @@
     animation:none!important;
     opacity:1!important;
     transform:none!important;
+    transition:none!important;
   }
+  .parent-smart-trend-active-halo,.parent-smart-trend-tooltip{animation:none!important;transition:none!important}
 }
