@@ -4,6 +4,8 @@ import TeacherPortal from './TeacherPortal';
 
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
 const TeacherInterventionIntelligencePage = React.lazy(() => import('./student-progress/TeacherInterventionIntelligencePage'));
+const InterventionTargetedPracticeWorkspace = React.lazy(() => import('./student-progress/InterventionTargetedPracticeWorkspace'));
+import type { TargetedPracticeContext } from './student-progress/TeacherInterventionIntelligencePageV2';
 
 type TeacherPortalShellProps = React.ComponentProps<typeof TeacherPortal>;
 type AcademicTool = 'academic-profiles' | 'interventions';
@@ -24,10 +26,12 @@ const resolveAcademicTool = (button: HTMLButtonElement | null): AcademicTool | n
 const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
   const shellRef = useRef<HTMLDivElement>(null);
   const [activeTool, setActiveTool] = useState<AcademicTool | null>(null);
+  const [targetedPractice, setTargetedPractice] = useState<TargetedPracticeContext | null>(null);
   const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
+  const overlayActive = Boolean(activeTool || targetedPractice);
 
   useEffect(() => {
-    if (!activeTool) {
+    if (!overlayActive) {
       setPortalHost(null);
       return;
     }
@@ -38,7 +42,7 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
 
     const host = document.createElement('div');
     host.className = 'teacher-academic-tool-host';
-    host.setAttribute('data-academic-tool', activeTool);
+    host.setAttribute('data-academic-tool', targetedPractice ? 'targeted-practice' : activeTool || '');
     panel.classList.add('teacher-main-panel--academic-tool');
     panel.appendChild(host);
     setPortalHost(host);
@@ -49,11 +53,11 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
       className: button.className,
       ariaCurrent: button.getAttribute('aria-current'),
     }));
-    const activeLabel = TOOL_LABELS[activeTool];
+    const activeLabel = targetedPractice ? 'Assignments' : activeTool ? TOOL_LABELS[activeTool] : null;
 
     navButtons.forEach((button) => {
       const label = button.getAttribute('aria-label') || '';
-      if (label === activeLabel) {
+      if (activeLabel && label === activeLabel) {
         button.classList.add('active', 'is-active');
         button.setAttribute('aria-current', 'page');
       } else if (button.classList.contains('teacher-nav-btn') || button.classList.contains('is-active')) {
@@ -74,7 +78,7 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
       panel.classList.remove('teacher-main-panel--academic-tool');
       host.remove();
     };
-  }, [activeTool]);
+  }, [activeTool, overlayActive, targetedPractice]);
 
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
@@ -84,22 +88,37 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
     if (tool) {
       event.preventDefault();
       event.stopPropagation();
+      setTargetedPractice(null);
       setActiveTool(tool);
       return;
     }
 
-    if (activeTool && button && (button.classList.contains('teacher-nav-btn') || button.closest('.teacher-nav-container'))) {
+    if (overlayActive && button && (button.classList.contains('teacher-nav-btn') || button.closest('.teacher-nav-container'))) {
       setActiveTool(null);
+      setTargetedPractice(null);
     }
   };
 
-  const closeAcademicTool = () => setActiveTool(null);
+  const closeAcademicTool = () => {
+    setActiveTool(null);
+    setTargetedPractice(null);
+  };
+
+  const returnToInterventions = () => {
+    setTargetedPractice(null);
+    setActiveTool('interventions');
+  };
+
+  const openTargetedPractice = (context: TargetedPracticeContext) => {
+    setActiveTool(null);
+    setTargetedPractice(context);
+  };
 
   return (
     <div
       ref={shellRef}
       className="teacher-academic-tool-shell"
-      data-active-academic-tool={activeTool || undefined}
+      data-active-academic-tool={targetedPractice ? 'targeted-practice' : activeTool || undefined}
       onClickCapture={handleClickCapture}
     >
       <style>{`
@@ -113,19 +132,22 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
           min-height: 100%;
         }
         .teacher-academic-tool-host > .sap-shell,
-        .teacher-academic-tool-host > .intervention-page {
+        .teacher-academic-tool-host > .intervention-page,
+        .teacher-academic-tool-host > .intervention-targeted-workspace {
           max-width: none;
           margin: 0;
           padding: 0;
         }
       `}</style>
       <TeacherPortal {...props} />
-      {activeTool && portalHost
+      {overlayActive && portalHost
         ? createPortal(
-          <Suspense fallback={<div className="p-6 text-sm text-slate-500">Loading academic workspace…</div>}>
-            {activeTool === 'academic-profiles'
-              ? <TeacherAcademicProfilesPage onBack={closeAcademicTool} />
-              : <TeacherInterventionIntelligencePage onBack={closeAcademicTool} />}
+          <Suspense fallback={<div className="p-6 text-sm text-slate-500">Preparing Brains Heist workspace…</div>}>
+            {targetedPractice
+              ? <InterventionTargetedPracticeWorkspace context={targetedPractice} onBack={returnToInterventions} onComplete={returnToInterventions} />
+              : activeTool === 'academic-profiles'
+                ? <TeacherAcademicProfilesPage onBack={closeAcademicTool} />
+                : <TeacherInterventionIntelligencePage onBack={closeAcademicTool} onCreateTargetedPractice={openTargetedPractice} />}
           </Suspense>,
           portalHost,
         )

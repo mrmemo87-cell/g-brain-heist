@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchTeacherAcademicProfileStudents, type TeacherAcademicProfileStudent } from '../../services/teacherAcademicProfileDirectoryService';
 import {
-  createLearningIntervention,
   evaluateLearningIntervention,
   getInterventionIntelligence,
   reviewLearningFocusEvidence,
@@ -16,22 +15,71 @@ import { AcademicProgressHeader, AcademicStudentPicker, selectionFromStudent } f
 import './TeacherInterventionIntelligencePage.css';
 import './TeacherInterventionIntelligencePageV2.css';
 
-const labels: Record<string, string> = {
-  targeted_question_practice: 'Practice questions',
-  writing_practice: 'Writing practice',
-  reassessment: 'Check understanding again',
-  teacher_support: 'Teacher support',
-  custom: 'Custom support',
-};
 const fmt = (value?: string | null) => value ? new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 const schoolStatus = (value: string) => ({
   insufficient_evidence: 'New support signal', new_focus: 'New support need', recurring: 'Repeated need', persistent: 'Long-running need', improving: 'Improving', resolved: 'Secure now', emerging_strength: 'Emerging strength', consistent_strength: 'Consistent strength',
 }[value] || value.replaceAll('_', ' '));
-const readinessLabel = (value: InterventionRecommendation['readiness']) => value === 'ready' ? 'Ready to make a plan' : value === 'review_evidence' ? 'Check the evidence first' : value === 'open_plan' ? 'Support plan already open' : 'More assessed work is needed first';
 
-interface TeacherInterventionIntelligencePageProps { onBack?: () => void; }
+export interface TargetedPracticeContext {
+  student: InterventionIntelligence['student'];
+  recommendation: InterventionRecommendation;
+}
 
-const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelligencePageProps> = ({ onBack }) => {
+interface TeacherInterventionIntelligencePageProps {
+  onBack?: () => void;
+  onCreateTargetedPractice?: (context: TargetedPracticeContext) => void;
+}
+
+const readinessRank: Record<InterventionRecommendation['readiness'], number> = {
+  collect_evidence: 0,
+  review_evidence: 1,
+  ready: 2,
+  open_plan: 3,
+};
+
+const uniqueExamples = (items: InterventionRecommendation['evidence_examples']) => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = `${item.original || ''}|${item.better_version || ''}|${item.issue || ''}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const aggregateRecommendations = (recommendations: InterventionRecommendation[]) => {
+  const grouped = new Map<string, InterventionRecommendation>();
+  recommendations.forEach((item) => {
+    const key = [item.subject, item.topic || '', item.skill].map((value) => value.trim().toLocaleLowerCase()).join('|');
+    const existing = grouped.get(key);
+    if (!existing) {
+      grouped.set(key, { ...item, diagnostic_targets: [...item.diagnostic_targets], evidence_examples: uniqueExamples(item.evidence_examples) });
+      return;
+    }
+    const bestReadiness = readinessRank[item.readiness] > readinessRank[existing.readiness] ? item : existing;
+    grouped.set(key, {
+      ...existing,
+      priority: existing.priority === 'high' || item.priority === 'high' ? 'high' : existing.priority,
+      status: bestReadiness.status,
+      trend: bestReadiness.trend,
+      readiness: bestReadiness.readiness,
+      readiness_blocker: bestReadiness.readiness_blocker,
+      can_create_plan: bestReadiness.can_create_plan,
+      professional_review: bestReadiness.professional_review,
+      diagnostic_targets: [...new Set([...existing.diagnostic_targets, ...item.diagnostic_targets])],
+      evidence_examples: uniqueExamples([...existing.evidence_examples, ...item.evidence_examples]),
+      evidence_items: Math.max(existing.evidence_items, item.evidence_items),
+      focus_occurrences: Math.max(existing.focus_occurrences, item.focus_occurrences),
+      available_questions: Math.max(existing.available_questions, item.available_questions),
+      last_observed_at: new Date(existing.last_observed_at).getTime() >= new Date(item.last_observed_at).getTime() ? existing.last_observed_at : item.last_observed_at,
+      confidence: (item.confidence?.score || 0) > (existing.confidence?.score || 0) ? item.confidence : existing.confidence,
+      rationale: existing.rationale || item.rationale,
+    });
+  });
+  return [...grouped.values()];
+};
+
+const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelligencePageProps> = ({ onBack, onCreateTargetedPractice }) => {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const [students, setStudents] = useState<TeacherAcademicProfileStudent[]>([]);
   const [context, setContext] = useState<AcademicProgressExperienceContext | null>(null);
@@ -42,15 +90,7 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
   const [data, setData] = useState<InterventionIntelligence | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editing, setEditing] = useState<InterventionRecommendation | null>(null);
   const [reviewing, setReviewing] = useState<InterventionRecommendation | null>(null);
-  const [goal, setGoal] = useState('');
-  const [teachingAction, setTeachingAction] = useState('');
-  const [evidenceTask, setEvidenceTask] = useState('');
-  const [targetDate, setTargetDate] = useState('');
-  const [targetStatus, setTargetStatus] = useState<LearningIntervention['target_status']>('improving');
-  const [minimumFollowUp, setMinimumFollowUp] = useState(2);
-  const [minimumSuccessful, setMinimumSuccessful] = useState(2);
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [reviewRationale, setReviewRationale] = useState('');
   const [modalError, setModalError] = useState<string | null>(null);
@@ -84,15 +124,6 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
   }, [studentId, subject]);
 
   const refresh = async () => { if (studentId) setData(await getInterventionIntelligence(studentId, subject === 'all' ? null : subject)); };
-  const createPlan = async () => {
-    if (!editing) return;
-    setLoading(true); setModalError(null);
-    try {
-      await createLearningIntervention({ studentId, skillKey: editing.skill_key, interventionType: editing.recommended_type, goal: goal || editing.suggested_goal, teachingAction, evidenceTask, targetDate, targetStatus, minimumFollowUpObservations: minimumFollowUp, minimumSuccessfulObservations: minimumSuccessful });
-      setEditing(null); setGoal(''); setTeachingAction(''); setEvidenceTask(''); setTargetDate(''); setTargetStatus('improving'); setMinimumFollowUp(2); setMinimumSuccessful(2); await refresh();
-    } catch (e) { setModalError(e instanceof Error ? e.message : 'The support plan could not be created.'); }
-    finally { setLoading(false); }
-  };
   const saveEvidenceReview = async (decision: 'confirmed' | 'needs_more_evidence') => {
     if (!reviewing) return;
     setLoading(true); setModalError(null);
@@ -103,14 +134,15 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
     finally { setLoading(false); }
   };
   const openEvidenceReview = (recommendation: InterventionRecommendation) => {
-    setModalError(null); setReviewing(recommendation); setSelectedTargets(recommendation.diagnostic_targets); setReviewRationale('');
+    const targets = recommendation.diagnostic_targets.length ? recommendation.diagnostic_targets : [recommendation.skill];
+    setModalError(null);
+    setReviewing(recommendation);
+    setSelectedTargets(targets);
+    setReviewRationale(`The current assessed evidence supports reviewing ${recommendation.skill} as a focused learning need.`);
   };
-  const openPlanBuilder = (recommendation: InterventionRecommendation) => {
-    const target = recommendation.diagnostic_targets[0] || recommendation.skill;
-    setModalError(null); setEditing(recommendation); setGoal(recommendation.suggested_goal);
-    setTeachingAction(`Model and practise ${target.toLowerCase()} using examples from the student's assessed work.`);
-    setEvidenceTask(`Review the next assessed task for accurate, independent use of ${target.toLowerCase()}.`);
-    setTargetDate(new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10));
+  const startTargetedPractice = (recommendation: InterventionRecommendation) => {
+    if (!data || !onCreateTargetedPractice) return;
+    onCreateTargetedPractice({ student: data.student, recommendation });
   };
   const act = async (id: string, action: 'approve' | 'start' | 'complete' | 'cancel') => {
     let outcome: any = undefined; let note = '';
@@ -139,11 +171,35 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
     finally { setLoading(false); }
   };
 
-  const highPriority = data?.recommendations.filter((item) => item.priority === 'high').length || 0;
+  const recommendations = useMemo(() => aggregateRecommendations(data?.recommendations || []), [data?.recommendations]);
+  const actionable = recommendations.filter((item) => item.readiness !== 'collect_evidence');
+  const watching = recommendations.filter((item) => item.readiness === 'collect_evidence');
+  const readyCount = actionable.filter((item) => item.readiness === 'ready').length;
   const openPlans = data?.interventions.filter((item) => ['planned', 'active'].includes(item.status)).length || 0;
 
+  const renderRecommendation = (r: InterventionRecommendation, mode: 'action' | 'watch') => {
+    const example = r.evidence_examples[0];
+    const evidenceLabel = `${r.evidence_items} assessed evidence item${r.evidence_items === 1 ? '' : 's'}`;
+    return <article key={`${r.subject}-${r.topic || ''}-${r.skill}`} className={`priority-${r.priority} intervention-candidate ${mode === 'watch' ? 'is-watching' : 'is-actionable'}`}>
+      <div className="intervention-card-top"><span>{r.subject}{r.topic ? ` · ${r.topic}` : ''}</span><b>{r.readiness === 'ready' ? 'Ready for practice' : r.readiness === 'review_evidence' ? 'Ready for review' : r.readiness === 'open_plan' ? 'Support active' : 'Gathering evidence'}</b></div>
+      <h3>{r.skill}</h3>
+      <p className="intervention-card-summary">{r.readiness === 'collect_evidence' ? 'Brains Heist has noticed this area, but it is still building a fair evidence baseline.' : r.rationale}</p>
+      <div className="intervention-signal-row"><span>{evidenceLabel}</span><span>Last seen {fmt(r.last_observed_at)}</span>{r.focus_occurrences > 1 ? <span>{r.focus_occurrences} observations</span> : null}</div>
+      <div className="intervention-targets">{r.diagnostic_targets.length ? r.diagnostic_targets.map((target) => <span key={target}>{target}</span>) : <span>Exact target still being identified</span>}</div>
+      {example ? <div className="intervention-example-primary"><strong>Evidence example</strong><span><del>{example.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{example.better_version || 'Correction'}</ins></span>{example.issue ? <small>{example.issue}</small> : null}</div> : null}
+      {r.readiness === 'collect_evidence' ? <div className="intervention-watch-note"><strong>Why no intervention yet?</strong><span>{r.readiness_blocker || 'More qualifying assessed work is needed before support can be measured fairly.'}</span></div> : null}
+      <div className="intervention-action intervention-action--clear">
+        {r.readiness === 'review_evidence' ? <><span>Review the evidence, then decide.</span><button onClick={() => openEvidenceReview(r)}>Review evidence</button></> : null}
+        {r.readiness === 'ready' ? <><span>Individual practice for {data?.student.name || 'this student'}.</span>{onCreateTargetedPractice ? <button onClick={() => startTargetedPractice(r)}>Create targeted practice</button> : <strong>Ready to make a plan</strong>}</> : null}
+        {r.readiness === 'open_plan' ? <><span>Support is already being tracked below.</span><strong>Plan in progress</strong></> : null}
+        {r.readiness === 'collect_evidence' ? <><span>Brains Heist will keep watching future assessed work.</span><strong>Keep monitoring</strong></> : null}
+      </div>
+      <details className="intervention-reference"><summary>View evidence details</summary><dl><div><dt>Current status</dt><dd>{schoolStatus(r.status)}</dd></div><div><dt>Evidence confidence</dt><dd>{r.confidence?.band ? `${r.confidence.band} · ${Math.round(r.confidence.score || 0)}%` : 'Building'}</dd></div></dl>{r.evidence_examples.slice(1).map((item, index) => <div className="intervention-example-primary" key={`${item.original}-${index}`}><span><del>{item.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{item.better_version || 'Correction'}</ins></span>{item.issue ? <small>{item.issue}</small> : null}</div>)}</details>
+    </article>;
+  };
+
   return <main className="intervention-page intervention-page--simple">
-    <AcademicProgressHeader context={context} eyebrow="Student Support" title="Student Support Plans" subtitle="Choose a student, see what needs attention, and plan the next teaching step." onBack={onBack} backLabel={onBack ? 'Back to Teacher Workspace' : (context?.viewer.role === 'school_admin' ? 'Back to School Administration' : 'Back to Teacher Workspace')} />
+    <AcademicProgressHeader context={context} eyebrow="Student Support" title="Interventions" subtitle="Turn assessed evidence into focused practice, then watch whether the student improves in later work." onBack={onBack} backLabel={onBack ? 'Back to Teacher Workspace' : (context?.viewer.role === 'school_admin' ? 'Back to School Administration' : 'Back to Teacher Workspace')} />
     <AcademicStudentPicker students={students} grade={grade} className={className} studentId={studentId} subject={subject} onGradeChange={(value) => { setGrade(value); setClassName(''); setStudentId(''); setSubject('all'); }} onClassChange={(value) => { setClassName(value); setStudentId(''); setSubject('all'); }} onStudentChange={(value) => { setStudentId(value); setSubject('all'); }} onSubjectChange={setSubject} />
 
     {error ? <div className="intervention-alert">{error}</div> : null}
@@ -151,33 +207,24 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
     {loading && studentId && !data ? <div className="intervention-loading">Loading student support information…</div> : null}
 
     {data ? <>
-      <section className="intervention-student"><div><span>Student</span><h2>{data.student.name}</h2><p>Grade {data.student.grade || '—'} · Class {data.student.class_name || '—'}{subject !== 'all' ? ` · ${subject}` : ''}</p></div><div className="intervention-card-top"><span><b>{highPriority}</b> high priority</span><span><b>{openPlans}</b> open plan{openPlans === 1 ? '' : 's'}</span></div></section>
+      <section className="intervention-student intervention-student--command"><div><span>Student support cycle</span><h2>{data.student.name}</h2><p>Grade {data.student.grade || '—'} · Class {data.student.class_name || '—'}{subject !== 'all' ? ` · ${subject}` : ''}</p></div><div className="intervention-card-top"><span><b>{readyCount}</b> ready for practice</span><span><b>{watching.length}</b> still gathering evidence</span><span><b>{openPlans}</b> support plan{openPlans === 1 ? '' : 's'}</span></div></section>
 
-      <section className="intervention-panel"><div className="intervention-heading intervention-heading--simple"><div><span>Needs support now</span><h2>What should we work on next?</h2></div><p>Specific needs, examples from assessed work, and the next action.</p></div>
-        <div className="intervention-recommendations intervention-recommendations--simple">{data.recommendations.map((r) => {
-          const example = r.evidence_examples[0];
-          return <article key={r.skill_key} className={`priority-${r.priority}`}>
-            <div className="intervention-card-top"><span>{r.subject}{r.topic ? ` · ${r.topic}` : ''}</span><b>{r.priority === 'high' ? 'High priority' : r.priority === 'low' ? 'Lower priority' : 'Priority'}</b></div>
-            <h3>{r.skill}</h3>
-            <div className="intervention-targets">{r.diagnostic_targets.length ? r.diagnostic_targets.map((target) => <span key={target}>{target}</span>) : <span>Specific target still being identified</span>}</div>
-            {example ? <div className="intervention-example-primary"><strong>Example from assessed work</strong><span><del>{example.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{example.better_version || 'Correction'}</ins></span>{example.issue ? <small>{example.issue}</small> : null}</div> : null}
-            <div className={`intervention-readiness readiness-${r.readiness}`}><strong>{readinessLabel(r.readiness)}</strong>{r.readiness_blocker && r.readiness !== 'ready' ? <small>{r.readiness_blocker}</small> : null}</div>
-            <div className="intervention-action"><span>{labels[r.recommended_type]}</span>{r.readiness === 'open_plan' ? <strong>Plan already open</strong> : r.readiness === 'review_evidence' ? <button onClick={() => openEvidenceReview(r)}>Check evidence</button> : r.can_create_plan ? <button onClick={() => openPlanBuilder(r)}>Create support plan</button> : <strong>More evidence needed</strong>}</div>
-            <details className="intervention-reference"><summary>Why is this being suggested?</summary><p>{r.rationale}</p><dl><div><dt>Current status</dt><dd>{schoolStatus(r.status)}</dd></div><div><dt>Assessed evidence</dt><dd>{r.evidence_items}</dd></div><div><dt>Latest evidence</dt><dd>{fmt(r.last_observed_at)}</dd></div><div><dt>Evidence confidence</dt><dd>{r.confidence?.band ? `${r.confidence.band} · ${Math.round(r.confidence.score || 0)}%` : 'Not ready'}</dd></div></dl><small>{r.evidence_authority === 'teacher_validated' ? 'Evidence checked by a teacher.' : 'Suggested from the student’s assessed history.'}</small>{r.evidence_examples.slice(1).map((item, index) => <div className="intervention-example-primary" key={`${item.original}-${index}`}><span><del>{item.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{item.better_version || 'Correction'}</ins></span>{item.issue ? <small>{item.issue}</small> : null}</div>)}</details>
-          </article>;
-        })}{!data.recommendations.length ? <div className="intervention-empty">No current learning needs require a support plan in this subject.</div> : null}</div>
+      <section className="intervention-cycle" aria-label="Brains Heist support cycle"><span className="is-current">1 · Notice</span><span>2 · Verify</span><span>3 · Practise</span><span>4 · Watch</span><span>5 · Adapt</span></section>
+
+      <section className="intervention-panel"><div className="intervention-heading intervention-heading--simple"><div><span>Needs attention</span><h2>What can I act on now?</h2></div><p>Only needs that are ready for teacher review, focused practice, or an active support plan appear here.</p></div>
+        <div className="intervention-recommendations intervention-recommendations--simple">{actionable.map((r) => renderRecommendation(r, 'action'))}{!actionable.length ? <div className="intervention-empty"><strong>No intervention is ready yet.</strong><span>Brains Heist will move a need here when the evidence is strong enough to act on.</span></div> : null}</div>
       </section>
 
-      <section className="intervention-panel"><div className="intervention-heading intervention-heading--simple"><div><span>Support already in place</span><h2>Plans and follow-up</h2></div><p>What the teacher is doing and how progress will be checked.</p></div>
-        <div className="intervention-plans intervention-plans--simple">{data.interventions.map((i) => <article key={i.id}><div><span>{i.subject}</span><b>{i.status === 'active' ? 'In progress' : i.status === 'planned' ? 'Planned' : i.status === 'completed' ? 'Completed' : 'Cancelled'}</b></div><h3>{i.skill}</h3><p>{i.goal}</p>{i.teaching_action ? <div className="plan-step"><strong>Teacher action</strong><span>{i.teaching_action}</span></div> : null}{i.evidence_task ? <div className="plan-step"><strong>Check progress with</strong><span>{i.evidence_task}</span></div> : null}<div className="follow-up-progress"><span>{i.follow_up_qualifying_observations || 0}/{i.target_min_followup_observations} follow-ups</span><span>{i.follow_up_successful_observations || 0}/{i.target_min_successful_observations} successful</span></div>{i.system_outcome_status ? <strong>Measured progress: {schoolStatus(i.system_outcome_status)}</strong> : null}{i.outcome_status ? <strong>Teacher outcome: {schoolStatus(i.outcome_status)}</strong> : null}<div>{i.status === 'planned' && i.approval_status === 'pending' ? <button onClick={() => void act(i.id, 'approve')}>Approve plan</button> : null}{i.status === 'planned' && ['approved', 'legacy_approved'].includes(i.approval_status) ? <button onClick={() => void act(i.id, 'start')}>Start plan</button> : null}{i.status === 'active' ? <button onClick={() => void act(i.id, 'complete')}>Check progress</button> : null}{['planned', 'active'].includes(i.status) ? <button className="secondary" onClick={() => void act(i.id, 'cancel')}>Cancel</button> : null}</div><details className="intervention-reference"><summary>Technical record</summary><small>Baseline: {schoolStatus(i.baseline_status)} · {i.baseline_qualifying_observations} qualifying evidence item{i.baseline_qualifying_observations === 1 ? '' : 's'} · review {fmt(i.target_date)}</small><small>Success rule: {i.target_min_successful_observations} successful from {i.target_min_followup_observations} qualifying follow-ups.</small><small>Baseline reference: {i.baseline_snapshot_hash.slice(0, 12)}…</small></details></article>)}{!data.interventions.length ? <div className="intervention-empty"><strong>No support plans yet.</strong><span>When enough assessed evidence is available, a teacher can create a focused plan above.</span></div> : null}</div>
+      <section className="intervention-panel intervention-panel--watch"><div className="intervention-heading intervention-heading--simple"><div><span>Still gathering evidence</span><h2>What is Brains Heist watching?</h2></div><p>These are signals, not lower-priority students or less important needs. More assessed evidence is required before intervention.</p></div>
+        <div className="intervention-recommendations intervention-recommendations--simple">{watching.map((r) => renderRecommendation(r, 'watch'))}{!watching.length ? <div className="intervention-empty"><strong>No unresolved signals.</strong><span>Everything currently detected is already ready for review or support.</span></div> : null}</div>
       </section>
 
-      <details className="intervention-panel intervention-glossary"><summary><span><strong>How support plans work</strong><small>Reference for school terminology and evidence rules</small></span><b>Reference</b></summary><div><p><strong>New support signal</strong> means a recent assessed need. <strong>Repeated need</strong> means the same area has appeared again. <strong>Long-running need</strong> means enough repeated evidence has built up over time. <strong>Evidence confidence</strong> describes how complete, recent and consistent the evidence is; it is not a student mark.</p><p>The technical baseline and confidence details remain available inside each plan so staff can audit decisions without crowding the everyday teaching view.</p></div></details>
+      <section className="intervention-panel"><div className="intervention-heading intervention-heading--simple"><div><span>Support in progress</span><h2>Plans and follow-up</h2></div><p>Targeted practice helps the student rehearse the skill. Later qualifying assessed work is what shows whether the improvement transfers independently.</p></div>
+        <div className="intervention-plans intervention-plans--simple">{data.interventions.map((i) => <article key={i.id}><div><span>{i.subject}</span><b>{i.status === 'active' ? 'In progress' : i.status === 'planned' ? 'Planned' : i.status === 'completed' ? 'Completed' : 'Cancelled'}</b></div><h3>{i.skill}</h3><p>{i.goal}</p>{i.teaching_action ? <div className="plan-step"><strong>Practice action</strong><span>{i.teaching_action}</span></div> : null}{i.evidence_task ? <div className="plan-step"><strong>Independent check</strong><span>{i.evidence_task}</span></div> : null}<div className="follow-up-progress"><span>{i.follow_up_qualifying_observations || 0}/{i.target_min_followup_observations} follow-ups</span><span>{i.follow_up_successful_observations || 0}/{i.target_min_successful_observations} successful</span></div>{i.system_outcome_status ? <strong>Measured progress: {schoolStatus(i.system_outcome_status)}</strong> : null}{i.outcome_status ? <strong>Teacher outcome: {schoolStatus(i.outcome_status)}</strong> : null}<div>{i.status === 'planned' && i.approval_status === 'pending' ? <button onClick={() => void act(i.id, 'approve')}>Approve plan</button> : null}{i.status === 'planned' && ['approved', 'legacy_approved'].includes(i.approval_status) ? <button onClick={() => void act(i.id, 'start')}>Start plan</button> : null}{i.status === 'active' ? <button onClick={() => void act(i.id, 'complete')}>Check progress</button> : null}{['planned', 'active'].includes(i.status) ? <button className="secondary" onClick={() => void act(i.id, 'cancel')}>Cancel</button> : null}</div><details className="intervention-reference"><summary>Technical record</summary><small>Baseline: {schoolStatus(i.baseline_status)} · {i.baseline_qualifying_observations} qualifying evidence item{i.baseline_qualifying_observations === 1 ? '' : 's'} · review {fmt(i.target_date)}</small><small>Success rule: {i.target_min_successful_observations} successful from {i.target_min_followup_observations} qualifying follow-ups.</small></details></article>)}{!data.interventions.length ? <div className="intervention-empty"><strong>No support plans yet.</strong><span>Confirm a need and create targeted practice to start the support cycle.</span></div> : null}</div>
+      </section>
     </> : null}
 
-    {reviewing ? <div className="intervention-modal-layer"><button className="backdrop" onClick={() => setReviewing(null)} aria-label="Close"/><section className="intervention-modal intervention-review-modal"><span>Check the evidence</span><h2>What does “{reviewing.skill}” mean for this student?</h2><p>Confirm the specific needs before creating a support plan. The student's original work is not changed.</p>{reviewing.evidence_examples.length ? <div className="intervention-examples">{reviewing.evidence_examples.map((example, index) => <div key={`${example.original}-${index}`}><span><del>{example.original}</del><b aria-hidden="true">→</b><ins>{example.better_version}</ins></span><small>{example.issue}</small></div>)}</div> : null}<fieldset><legend>Which needs are confirmed?</legend>{reviewing.diagnostic_targets.map((target) => <label key={target} className="target-check"><input type="checkbox" checked={selectedTargets.includes(target)} onChange={(e) => setSelectedTargets((current) => e.target.checked ? [...current, target] : current.filter((item) => item !== target))}/><span>{target}</span></label>)}</fieldset><label>Teacher note<textarea value={reviewRationale} onChange={(e) => setReviewRationale(e.target.value)} placeholder="Why does the assessed work support—or not yet support—these needs?" /></label>{modalError ? <div className="modal-error" role="alert">{modalError}</div> : null}<div><button className="secondary" disabled={reviewRationale.trim().length < 10 || loading} onClick={() => void saveEvidenceReview('needs_more_evidence')}>Need more evidence</button><button disabled={!selectedTargets.length || reviewRationale.trim().length < 10 || loading} onClick={() => void saveEvidenceReview('confirmed')}>Confirm needs</button></div></section></div> : null}
-
-    {editing ? <div className="intervention-modal-layer"><button className="backdrop" onClick={() => setEditing(null)} aria-label="Close"/><section className="intervention-modal"><span>{labels[editing.recommended_type]} · draft</span><h2>Create support for {editing.skill}</h2><div className="reviewed-evidence"><strong>Specific needs</strong><span>{editing.diagnostic_targets.join(' · ')}</span></div><label>1. What should the student improve?<textarea value={goal} onChange={(e) => setGoal(e.target.value)} /></label><label>2. What will the teacher do?<textarea value={teachingAction} onChange={(e) => setTeachingAction(e.target.value)} /></label><label>3. How will we check progress?<textarea value={evidenceTask} onChange={(e) => setEvidenceTask(e.target.value)} /></label><div className="intervention-measures"><label>Goal<select value={targetStatus} onChange={(e) => setTargetStatus(e.target.value as LearningIntervention['target_status'])}><option value="improving">Improving</option><option value="resolved">Secure / resolved</option><option value="emerging_strength">Emerging strength</option><option value="consistent_strength">Consistent strength</option></select></label><label>Follow-up pieces<input type="number" min="1" max="20" value={minimumFollowUp} onChange={(e) => { const value = Number(e.target.value); setMinimumFollowUp(value); setMinimumSuccessful((current) => Math.min(current, value)); }} /></label><label>Successful follow-ups<input type="number" min="1" max={minimumFollowUp} value={minimumSuccessful} onChange={(e) => setMinimumSuccessful(Number(e.target.value))} /></label><label>Review date<input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} /></label></div><small>This creates a draft support plan. A teacher still approves it before it starts.</small>{modalError ? <div className="modal-error" role="alert">{modalError}</div> : null}<div><button className="secondary" onClick={() => setEditing(null)}>Cancel</button><button disabled={!targetDate || goal.trim().length < 10 || teachingAction.trim().length < 10 || evidenceTask.trim().length < 10 || loading} onClick={() => void createPlan()}>Create plan draft</button></div></section></div> : null}
+    {reviewing ? <div className="intervention-modal-layer"><button className="backdrop" onClick={() => setReviewing(null)} aria-label="Close evidence review"/><section className="intervention-modal intervention-review-modal"><div className="intervention-modal-kicker"><span>Verify the need</span><b>{reviewing.evidence_items} evidence item{reviewing.evidence_items === 1 ? '' : 's'}</b></div><h2>Review: {reviewing.skill}</h2><p>Brains Heist has noticed a possible learning need. Review the evidence below, confirm the specific target, then choose whether this is ready for focused practice. The student's original work is never changed.</p><div className="intervention-review-summary"><strong>Why it was surfaced</strong><span>{reviewing.rationale}</span><small>Confidence: {reviewing.confidence?.band ? `${reviewing.confidence.band} · ${Math.round(reviewing.confidence.score || 0)}%` : 'still building'}</small></div>{reviewing.evidence_examples.length ? <div className="intervention-examples">{reviewing.evidence_examples.map((example, index) => <div key={`${example.original}-${index}`}><strong>Evidence {index + 1}</strong><span><del>{example.original || 'Original response'}</del><b aria-hidden="true">→</b><ins>{example.better_version || 'Improved version'}</ins></span><small>{example.issue}</small></div>)}</div> : <div className="intervention-no-example"><strong>No sentence-level example is attached to this signal.</strong><span>Use the diagnostic target and assessed-history summary below; choose “Keep monitoring” if the evidence is not specific enough yet.</span></div>}<fieldset><legend>What specifically needs support?</legend>{(reviewing.diagnostic_targets.length ? reviewing.diagnostic_targets : [reviewing.skill]).map((target) => <label key={target} className="target-check"><input type="checkbox" checked={selectedTargets.includes(target)} onChange={(e) => setSelectedTargets((current) => e.target.checked ? [...new Set([...current, target])] : current.filter((item) => item !== target))}/><span>{target}</span></label>)}</fieldset><label>Teacher evidence note<textarea value={reviewRationale} onChange={(e) => setReviewRationale(e.target.value)} placeholder="Briefly record why the assessed work supports—or does not yet support—this target." /></label>{modalError ? <div className="modal-error" role="alert">{modalError}</div> : null}<div className="intervention-modal-actions"><button className="secondary" disabled={reviewRationale.trim().length < 10 || loading} onClick={() => void saveEvidenceReview('needs_more_evidence')}>Keep monitoring</button><button disabled={!selectedTargets.length || reviewRationale.trim().length < 10 || loading} onClick={() => void saveEvidenceReview('confirmed')}>Confirm need</button></div><small className="intervention-modal-footnote">After confirmation, the primary action becomes “Create targeted practice” for this student only.</small></section></div> : null}
   </main>;
 };
 
