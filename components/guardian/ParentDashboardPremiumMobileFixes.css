@@ -1,0 +1,98 @@
+/* Platform-wide mobile corrections for the premium parent dashboard.
+   Loaded after the original premium styles so the fixes stay surgical. */
+
+.parent-premium-bottom-nav > .parent-premium-nav-reveal{
+  position:absolute!important;
+  top:-11px!important;
+  left:50%!important;
+  right:auto!important;
+  transform:translateX(-50%)!important;
+  width:56px!important;
+  height:15px!important;
+  min-width:0!important;
+  min-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  display:none!important;
+  z-index:3!important;
+}
+.parent-premium-bottom-nav[data-reveal-visible="true"] > .parent-premium-nav-reveal{display:block!important}
+.parent-premium-bottom-nav > button:not(.parent-premium-nav-reveal){position:relative}
+
+.parent-smart-trend-chart-wrap{overflow:visible}
+.parent-smart-trend-chart{
+  width:100%;
+  max-width:680px;
+  min-width:0;
+  min-height:0;
+  height:auto;
+  margin:0 auto;
+  transform:none;
+  overflow:visible;
+}
+.parent-smart-trend-axis{font-size:12px;font-weight:750}
+.parent-smart-trend-date{font-size:11px;font-weight:800}
+.parent-smart-trend-range{
+  margin:.25rem 0 .45rem;
+  padding:.52rem .65rem;
+  border:1px solid #e2edf3;
+  border-radius:11px;
+  background:#fbfdff;
+  color:#728297;
+  font-size:.62rem;
+  font-weight:700;
+  line-height:1.45;
+}
+
+@media (max-width:768px){
+  .parent-smart-trend-card{overflow:visible}
+  .parent-smart-trend-chart-wrap{min-height:0!important;overflow:visible!important}
+  .parent-smart-trend-chart{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    height:auto!important;
+    transform:none!important;
+  }
+  .parent-smart-trend-tooltip{
+    position:relative!important;
+    top:auto!important;
+    left:auto!important;
+    right:auto!important;
+    transform:none!important;
+    width:calc(100% - .4rem)!important;
+    margin:.55rem .2rem 0!important;
+  }
+  .parent-premium-bottom-nav > button:not(.parent-premium-nav-reveal){
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:4px!important;
+    min-width:0!important;
+    min-height:58px!important;
+    padding:5px 2px!important;
+    border-radius:16px!important;
+    color:#7d8ca1!important;
+    font-size:.61rem!important;
+    font-weight:850!important;
+  }
+}
+
+@media (max-width:480px){
+  .parent-smart-trend-axis{font-size:12.5px}
+  .parent-smart-trend-date{font-size:11.5px}
+  .parent-premium-bottom-nav > button:not(.parent-premium-nav-reveal){font-size:.58rem!important;min-height:56px!important}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .parent-smart-trend-line{
+    animation:none!important;
+    stroke-dashoffset:0!important;
+  }
+  .parent-smart-trend-point{
+    animation:none!important;
+    opacity:1!important;
+    transform:none!important;
+  }
+}
