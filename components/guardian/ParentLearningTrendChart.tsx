@@ -42,6 +42,11 @@ type ScrubGesture = {
   scrubbing: boolean;
 };
 
+type ChartCoordinate = {
+  x: number;
+  y: number;
+};
+
 const normalizeSubject = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^maths$/, 'mathematics');
 
 const formatDate = (value?: string | null) => {
@@ -167,6 +172,20 @@ const buildTrendState = (events: Array<{ event: TrendEvent }>): TrendState => {
   return { label: 'Overall evidence is broadly steady', hasReliableTrend: true };
 };
 
+const buildSmoothPath = (points: ChartCoordinate[]) => {
+  if (!points.length) return '';
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+  return points.slice(1).reduce((path, point, index) => {
+    const previous = points[index];
+    const deltaX = point.x - previous.x;
+    const controlOffset = deltaX * 0.38;
+    const control1X = previous.x + controlOffset;
+    const control2X = point.x - controlOffset;
+    return `${path} C ${control1X} ${previous.y}, ${control2X} ${point.y}, ${point.x} ${point.y}`;
+  }, `M ${points[0].x} ${points[0].y}`);
+};
+
 const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = ({ progress }) => {
   const subjects = useMemo(() => {
     const values = new Map<string, string>();
@@ -228,6 +247,22 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
     if (Number.isFinite(time) && maxTime > minTime) return left + ((time - minTime) / (maxTime - minTime)) * usableWidth;
     return fallbackCount <= 1 ? left + usableWidth / 2 : left + (fallbackIndex / (fallbackCount - 1)) * usableWidth;
   };
+
+  const renderSeriesPath = (trendSeries: TrendSeries, baseline: boolean) => {
+    if (trendSeries.events.length < 2) return null;
+    const coordinates = trendSeries.events.map((event, index) => ({
+      x: xAt(event, index, trendSeries.events.length),
+      y: yAt(event.score),
+    }));
+    return <path
+      key={`${trendSeries.key}:line`}
+      d={buildSmoothPath(coordinates)}
+      className={`parent-smart-trend-line tone-${trendSeries.tone}${baseline ? ' is-baseline' : ''}`}
+      style={baseline ? { opacity: 0.78 } : undefined}
+      vectorEffect="non-scaling-stroke"
+    />;
+  };
+
   const plottedPoints: PlottedPoint[] = series.flatMap((trendSeries) => trendSeries.events.map((event, index) => ({
     key: `${trendSeries.key}:${event.key}`,
     series: trendSeries,
@@ -382,11 +417,7 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
               <line x1={left} y1={yAt(value)} x2={width - right} y2={yAt(value)} className="parent-smart-trend-guide" />
               <text x={left - 10} y={yAt(value) + 4} textAnchor="end" className="parent-smart-trend-axis">{value === 25 ? 'Needs support' : value === 60 ? 'Developing' : 'Strong'}</text>
             </g>)}
-            {trendState.hasReliableTrend ? series.map((trendSeries) => trendSeries.events.length > 1 ? <polyline
-              key={`${trendSeries.key}:line`}
-              points={trendSeries.events.map((event, index) => `${xAt(event, index, trendSeries.events.length)},${yAt(event.score)}`).join(' ')}
-              className={`parent-smart-trend-line tone-${trendSeries.tone}`}
-            /> : null) : null}
+            {trendState.hasReliableTrend ? series.map((trendSeries) => renderSeriesPath(trendSeries, false)) : series.map((trendSeries) => renderSeriesPath(trendSeries, true))}
             {activePoint ? <>
               <line x1={activePoint.x} y1={top} x2={activePoint.x} y2={height - bottom} className="parent-smart-trend-active-guide" />
               <circle cx={activePoint.x} cy={activePoint.y} r="13" className={`parent-smart-trend-active-halo tone-${activePoint.series.tone}`} />
