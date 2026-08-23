@@ -38,6 +38,17 @@ const formatDate = (value?: string | null) => {
   return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 };
 
+const formatTime = (value?: string | null) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+};
+
+const dayKey = (value: string) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value.slice(0, 10) : date.toISOString().slice(0, 10);
+};
+
 const observationSignal = (item: TimelineItem) => {
   const raw = item.evidence_percentage == null ? null : Number(item.evidence_percentage);
   const percentage = raw == null || Number.isNaN(raw) ? null : Math.max(0, Math.min(100, raw));
@@ -48,40 +59,66 @@ const observationSignal = (item: TimelineItem) => {
 
 const trendPositionLabel = (score: number) => score >= 78 ? 'Strong evidence' : score >= 46 ? 'Developing evidence' : 'Needs support';
 
-const sourceTone = (item: TimelineItem): TrendTone | null => {
-  if (item.source_type === 'assignment_result') return 'assignment';
-  if (item.source_type === 'writing_attempt') return 'writing';
-  return null;
+const signalCounts = (items: TimelineItem[], fallbackScore?: number) => {
+  if (!items.length && fallbackScore != null) {
+    return {
+      focusCount: fallbackScore < 46 ? 1 : 0,
+      developingCount: fallbackScore >= 46 && fallbackScore < 78 ? 1 : 0,
+      strengthCount: fallbackScore >= 78 ? 1 : 0,
+    };
+  }
+  return items.reduce((counts, item) => {
+    if (item.observation_type === 'focus') counts.focusCount += 1;
+    else if (item.observation_type === 'strength') counts.strengthCount += 1;
+    else counts.developingCount += 1;
+    return counts;
+  }, { focusCount: 0, developingCount: 0, strengthCount: 0 });
 };
 
-const buildEvidenceSeries = (items: TimelineItem[], subject: string, tone: TrendTone): TrendEvent[] => {
+const buildAssignmentSeries = (progress: GuardianChildProgress, subject: string): TrendEvent[] => {
+  const observations = progress.timeline.filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject) && item.source_type === 'assignment_result');
+  const observationsByAssignment = new Map<string, TimelineItem[]>();
+  observations.forEach((item) => {
+    if (!item.source_id) return;
+    const rows = observationsByAssignment.get(item.source_id) || [];
+    rows.push(item);
+    observationsByAssignment.set(item.source_id, rows);
+  });
+
+  return progress.recent_assignments
+    .filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject))
+    .map((item) => {
+      const score = Math.max(0, Math.min(100, Number(item.accuracy) || 0));
+      const governedRows = observationsByAssignment.get(item.assignment_id) || [];
+      return {
+        key: `assignment:${item.assignment_id}`,
+        observedAt: item.completed_at,
+        score,
+        label: item.title,
+        detail: item.topic || 'Completed assignment',
+        ...signalCounts(governedRows, score),
+      };
+    })
+    .sort((a, b) => a.observedAt.localeCompare(b.observedAt));
+};
+
+const buildWritingSeries = (items: TimelineItem[], subject: string): TrendEvent[] => {
   const groups = new Map<string, {
     values: number[];
     observedAt: string;
     labels: string[];
-    focusCount: number;
-    developingCount: number;
-    strengthCount: number;
+    rows: TimelineItem[];
   }>();
 
   items
-    .filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject) && sourceTone(item) === tone)
+    .filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject) && item.source_type === 'writing_attempt')
     .forEach((item) => {
-      const safeMoment = item.observed_at.slice(0, 19);
-      const key = `${tone}:${safeMoment}`;
-      const group = groups.get(key) || {
-        values: [],
-        observedAt: item.observed_at,
-        labels: [],
-        focusCount: 0,
-        developingCount: 0,
-        strengthCount: 0,
-      };
+      const key = item.source_id ? `writing:${item.source_id}` : `writing:${item.observed_at.slice(0, 19)}`;
+      const group = groups.get(key) || { values: [], observedAt: item.observed_at, labels: [], rows: [] };
       group.values.push(observationSignal(item));
-      if (!group.labels.includes(item.skill)) group.labels.push(item.skill);
-      if (item.observation_type === 'focus') group.focusCount += 1;
-      else if (item.observation_type === 'strength') group.strengthCount += 1;
-      else group.developingCount += 1;
+      group.rows.push(item);
+      const label = item.subskill || item.skill;
+      if (label && !group.labels.includes(label)) group.labels.push(label);
       if (item.observed_at > group.observedAt) group.observedAt = item.observed_at;
       groups.set(key, group);
     });
@@ -90,27 +127,36 @@ const buildEvidenceSeries = (items: TimelineItem[], subject: string, tone: Trend
     key,
     observedAt: group.observedAt,
     score: Math.round(group.values.reduce((sum, value) => sum + value, 0) / Math.max(group.values.length, 1)),
-    label: group.labels.slice(0, 2).join(' · ') || 'Academic evidence',
-    detail: tone === 'writing' ? 'Writing Hub evidence' : 'School assignment evidence',
-    focusCount: group.focusCount,
-    developingCount: group.developingCount,
-    strengthCount: group.strengthCount,
+    label: group.labels.slice(0, 2).join(' · ') || 'Writing evidence',
+    detail: 'Writing Hub evidence',
+    ...signalCounts(group.rows),
   })).sort((a, b) => a.observedAt.localeCompare(b.observedAt));
 };
 
-const buildAssignmentFallback = (progress: GuardianChildProgress, subject: string): TrendEvent[] => progress.recent_assignments
-  .filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject))
-  .map((item) => ({
-    key: `assignment:${item.assignment_id}:${item.completed_at}`,
-    observedAt: item.completed_at,
-    score: Math.max(0, Math.min(100, Number(item.accuracy) || 0)),
-    label: item.title,
-    detail: item.topic || 'School assignment',
-    focusCount: item.accuracy < 46 ? 1 : 0,
-    developingCount: item.accuracy >= 46 && item.accuracy < 78 ? 1 : 0,
-    strengthCount: item.accuracy >= 78 ? 1 : 0,
-  }))
-  .sort((a, b) => a.observedAt.localeCompare(b.observedAt));
+const trendSummary = (events: Array<{ event: TrendEvent }>) => {
+  if (!events.length) return 'No evidence in this period';
+  if (events.length === 1) return 'One evidence point so far';
+
+  const daily = new Map<string, number[]>();
+  events.forEach(({ event }) => {
+    const key = dayKey(event.observedAt);
+    const values = daily.get(key) || [];
+    values.push(event.score);
+    daily.set(key, values);
+  });
+  const days = [...daily.keys()].sort();
+  const firstTime = Date.parse(events[0].event.observedAt);
+  const lastTime = Date.parse(events[events.length - 1].event.observedAt);
+  const spanDays = Number.isFinite(firstTime) && Number.isFinite(lastTime) ? (lastTime - firstTime) / 86400000 : 0;
+
+  if (events.length < 3 || days.length < 2 || spanDays < 7) return 'Not enough history to establish a trend yet';
+
+  const average = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1);
+  const delta = average(daily.get(days[days.length - 1]) || []) - average(daily.get(days[0]) || []);
+  if (delta >= 10) return 'Overall evidence is moving up';
+  if (delta <= -10) return 'Recent evidence needs attention';
+  return 'Overall evidence is broadly steady';
+};
 
 const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = ({ progress }) => {
   const subjects = useMemo(() => {
@@ -141,21 +187,20 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
 
   const series = useMemo<TrendSeries[]>(() => {
     if (!subject) return [];
-    const assignmentEvidence = buildEvidenceSeries(progress.timeline, subject, 'assignment');
-    const writingEvidence = buildEvidenceSeries(progress.timeline, subject, 'writing');
-    const assignmentEvents = assignmentEvidence.length ? assignmentEvidence : buildAssignmentFallback(progress, subject);
+    const assignmentEvents = buildAssignmentSeries(progress, subject);
+    const writingEvents = buildWritingSeries(progress.timeline, subject);
     return [
       { key: 'assignment', label: 'Assignments', tone: 'assignment', events: assignmentEvents },
-      { key: 'writing', label: 'Writing', tone: 'writing', events: writingEvidence },
+      { key: 'writing', label: 'Writing', tone: 'writing', events: writingEvents },
     ].filter((item) => item.events.length) as TrendSeries[];
   }, [progress, subject]);
 
-  const width = 620;
-  const height = 224;
-  const left = 90;
-  const right = 26;
+  const width = 480;
+  const height = 220;
+  const left = 86;
+  const right = 16;
   const top = 22;
-  const bottom = 40;
+  const bottom = 38;
   const usableWidth = width - left - right;
   const usableHeight = height - top - bottom;
   const yAt = (value: number) => top + ((100 - value) / 100) * usableHeight;
@@ -182,16 +227,8 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
   const pointDelta = activePoint && previousEvent ? activePoint.event.score - previousEvent.score : null;
   const firstEvent = allEvents[0]?.event || null;
   const lastEvent = allEvents[allEvents.length - 1]?.event || null;
-  const overallDelta = allEvents.length > 1 ? allEvents[allEvents.length - 1].event.score - allEvents[0].event.score : 0;
-  const trendText = allEvents.length === 0
-    ? 'No evidence in this period'
-    : allEvents.length < 2
-      ? 'One evidence point so far'
-      : overallDelta >= 10
-        ? 'Overall evidence is moving up'
-        : overallDelta <= -10
-          ? 'Recent evidence needs attention'
-          : 'Overall evidence is broadly steady';
+  const sameEvidenceDay = Boolean(firstEvent && lastEvent && dayKey(firstEvent.observedAt) === dayKey(lastEvent.observedAt));
+  const trendText = trendSummary(allEvents);
   const horizontalEdge = activePoint ? activePoint.x / width < .3 ? 'left' : activePoint.x / width > .7 ? 'right' : 'center' : 'center';
   const verticalEdge = activePoint && activePoint.y / height < .38 ? 'below' : 'above';
 
@@ -224,7 +261,7 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
           <svg className="parent-smart-trend-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${subject} learning evidence trend over the selected period`}>
             {[25, 60, 90].map((value) => <g key={value}>
               <line x1={left} y1={yAt(value)} x2={width - right} y2={yAt(value)} className="parent-smart-trend-guide" />
-              <text x={left - 12} y={yAt(value) + 4} textAnchor="end" className="parent-smart-trend-axis">{value === 25 ? 'Needs support' : value === 60 ? 'Developing' : 'Strong'}</text>
+              <text x={left - 10} y={yAt(value) + 4} textAnchor="end" className="parent-smart-trend-axis">{value === 25 ? 'Needs support' : value === 60 ? 'Developing' : 'Strong'}</text>
             </g>)}
             {series.map((trendSeries) => trendSeries.events.length > 1 ? <polyline
               key={`${trendSeries.key}:line`}
@@ -246,8 +283,8 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
               onBlur={() => setActiveKey(null)}
               onClick={() => setActiveKey((current) => current === point.key ? null : point.key)}
             />)}
-            {firstEvent ? <text x={left} y={height - 9} className="parent-smart-trend-date">{formatDate(firstEvent.observedAt)}</text> : null}
-            {lastEvent ? <text x={width - right} y={height - 9} textAnchor="end" className="parent-smart-trend-date">{formatDate(lastEvent.observedAt)}</text> : null}
+            {firstEvent ? <text x={left} y={height - 8} className="parent-smart-trend-date">{sameEvidenceDay ? formatTime(firstEvent.observedAt) : formatDate(firstEvent.observedAt)}</text> : null}
+            {lastEvent ? <text x={width - right} y={height - 8} textAnchor="end" className="parent-smart-trend-date">{sameEvidenceDay ? formatTime(lastEvent.observedAt) : formatDate(lastEvent.observedAt)}</text> : null}
           </svg>
 
           {activePoint ? <div className={`parent-smart-trend-tooltip edge-${horizontalEdge} edge-${verticalEdge} tone-${activePoint.series.tone}`} role="status">
@@ -259,10 +296,11 @@ const ParentLearningTrendChart: React.FC<{ progress: GuardianChildProgress }> = 
               {activePoint.event.developingCount ? <span className="developing">{activePoint.event.developingCount} developing</span> : null}
               {activePoint.event.focusCount ? <span className="support">{activePoint.event.focusCount} support</span> : null}
             </div>
-            <small>{pointDelta == null ? 'First point in this evidence series' : `${pointDelta > 0 ? '↗' : pointDelta < 0 ? '↘' : '→'} ${Math.abs(pointDelta)} evidence points vs previous`}</small>
+            <small>{pointDelta == null ? 'First point in this evidence series' : `${pointDelta > 0 ? '↗' : pointDelta < 0 ? '↘' : '→'} ${Math.abs(pointDelta)} points vs previous ${activePoint.series.label.toLowerCase()} evidence`}</small>
           </div> : null}
         </div>
-        <p className="parent-smart-trend-note">This is a learning-evidence trend, not a simple average. It combines the same governed strength, developing and support signals used in the Academic Profile.</p>
+        {sameEvidenceDay && firstEvent ? <p className="parent-smart-trend-range">Evidence shown from {formatDate(firstEvent.observedAt)}. More days of assessed work are needed before Brains Heist labels a long-term direction.</p> : null}
+        <p className="parent-smart-trend-note">Completed assignment results are always plotted. Governed learning observations enrich each point, while Writing Hub evidence is grouped by writing attempt.</p>
       </> : <div className="parent-smart-trend-empty">No parent-safe evidence is available for {subject} in this reporting period yet.</div>}
     </article>
   </div>;

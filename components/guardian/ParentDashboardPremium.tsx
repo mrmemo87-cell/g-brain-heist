@@ -6,6 +6,7 @@ import { useSmartCollapsedNavigation } from '../../src/hooks/useSmartCollapsedNa
 import ParentLearningTrendChart from './ParentLearningTrendChart';
 import './ParentDashboardPremium.css';
 import './ParentDashboardPremiumTabs.css';
+import './ParentDashboardPremiumMobileFixes.css';
 
 const fmtDate = (value?: string | null) => value
   ? new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
@@ -24,11 +25,14 @@ const progressTone = (progress: GuardianChildProgress) => {
   return { label: 'Steady', tone: 'steady' as const };
 };
 
+const focusLabel = (item: { skill: string; subskill?: string | null }) => item.subskill || item.skill;
+
 const recommendationCopy = (item: GuardianChildProgress['focus_areas'][number]) => {
   const evidence = item.evidence_items === 1 ? '1 assessed activity' : `${item.evidence_items} assessed activities`;
-  if (item.priority === 'high') return `Prioritise ${item.skill.toLowerCase()} in ${item.subject}. This need has appeared across ${evidence}.`;
-  if (item.status === 'persistent') return `Keep revisiting ${item.skill.toLowerCase()} in ${item.subject} with short, regular practice.`;
-  return `Add focused practice for ${item.skill.toLowerCase()} in ${item.subject} this week.`;
+  const label = focusLabel(item).toLowerCase();
+  if (item.priority === 'high') return `Prioritise ${label} in ${item.subject}. This need has appeared across ${evidence}.`;
+  if (item.status === 'persistent') return `Keep revisiting ${label} in ${item.subject} with short, regular practice.`;
+  return `Add focused practice for ${label} in ${item.subject} this week.`;
 };
 
 type IconName = 'home' | 'academics' | 'progress' | 'focus' | 'profile' | 'chevron' | 'check' | 'alert' | 'down' | 'workspace';
@@ -214,12 +218,12 @@ const ParentDashboardPremium: React.FC<ParentDashboardPremiumProps> = ({
 
   const renderStrengths = () => <article className="parent-premium-card parent-premium-list-card is-strength">
     <div className="parent-premium-section-heading compact"><div><span>Strengths</span><h2>What is going well</h2></div><Icon name="check"/></div>
-    <div className="parent-premium-signal-list">{strengths.length ? strengths.map((item) => <div key={`${item.subject}:${item.skill}`}><span className="signal-icon"><Icon name="check"/></span><div><strong>{item.skill}</strong><small>{item.subject}</small></div></div>) : <p className="parent-premium-empty-copy">Strengths will appear as more assessed evidence is collected.</p>}</div>
+    <div className="parent-premium-signal-list">{strengths.length ? strengths.map((item) => <div key={`${item.subject}:${item.skill}:${item.subskill || ''}`}><span className="signal-icon"><Icon name="check"/></span><div><strong>{focusLabel(item)}</strong><small>{item.subject}{item.subskill ? ` · ${item.skill}` : ''}</small></div></div>) : <p className="parent-premium-empty-copy">Strengths will appear as more assessed evidence is collected.</p>}</div>
   </article>;
 
   const renderFocusAreas = () => <article className="parent-premium-card parent-premium-list-card is-support">
     <div className="parent-premium-section-heading compact"><div><span>Areas needing support</span><h2>Where to focus</h2></div><Icon name="alert"/></div>
-    <div className="parent-premium-signal-list">{focusAreas.length ? focusAreas.map((item) => <div key={`${item.subject}:${item.skill}`}><span className="signal-icon"><Icon name="alert"/></span><div><strong>{item.skill}</strong><small>{item.subject} · {item.evidence_items} evidence item{item.evidence_items === 1 ? '' : 's'}</small></div></div>) : <p className="parent-premium-empty-copy">No recurring or persistent support areas are currently identified.</p>}</div>
+    <div className="parent-premium-signal-list">{focusAreas.length ? focusAreas.map((item) => <div key={item.skill_key || `${item.subject}:${item.skill}:${item.subskill || ''}`}><span className="signal-icon"><Icon name="alert"/></span><div><strong>{focusLabel(item)}</strong><small>{item.subject}{item.subskill ? ` · ${item.skill}` : ''} · {item.evidence_items} evidence item{item.evidence_items === 1 ? '' : 's'}</small></div></div>) : <p className="parent-premium-empty-copy">No recurring or persistent support areas are currently identified.</p>}</div>
   </article>;
 
   return <main className="parent-premium-shell">
@@ -284,7 +288,7 @@ const ParentDashboardPremium: React.FC<ParentDashboardPremiumProps> = ({
             <aside className="parent-premium-card parent-premium-quick-card">
               <div className="parent-premium-section-heading compact"><div><span>Right now</span><h2>Quick academic signals</h2></div></div>
               <div className="parent-premium-quick-row"><div><strong>Latest assessed work</strong><span>{latestAssessment ? `${latestAssessment.subject} · ${fmtDate(latestAssessment.completed_at)}` : 'No recent result yet'}</span></div><strong>{latestAssessment ? `${latestAssessment.accuracy}%` : '—'}</strong></div>
-              <div className="parent-premium-quick-row"><div><strong>Top support priority</strong><span>{topFocus ? topFocus.subject : 'No repeated concern'}</span></div><strong>{topFocus ? topFocus.skill : 'Clear'}</strong></div>
+              <div className="parent-premium-quick-row"><div><strong>Top support priority</strong><span>{topFocus ? topFocus.subject : 'No repeated concern'}</span></div><strong>{topFocus ? focusLabel(topFocus) : 'Clear'}</strong></div>
               <button type="button" className="parent-premium-account-secondary" onClick={() => selectTab('progress')}>Open smart progress trend →</button>
             </aside>
           </div>
@@ -297,15 +301,15 @@ const ParentDashboardPremium: React.FC<ParentDashboardPremiumProps> = ({
 
         {activeTab === 'progress' ? <section className="parent-premium-tab-panel" aria-label="Progress">
           <section className="parent-premium-card">
-            <div className="parent-premium-section-heading"><div><span>Smart progress intelligence</span><h2>How learning evidence is changing</h2></div><p>Uses the same governed evidence logic as the Academic Profile, with interactive subject-level evidence points.</p></div>
+            <div className="parent-premium-section-heading"><div><span>Smart progress intelligence</span><h2>How learning evidence is changing</h2></div><p>Completed school results are always plotted and governed learning evidence enriches each point.</p></div>
             <ParentLearningTrendChart progress={progress} />
           </section>
           <article className="parent-premium-card parent-premium-story parent-premium-progress-story-wide">
             <div className="parent-premium-section-heading compact"><div><span>Progress story</span><h2>What has changed</h2></div><Icon name="progress"/></div>
             <div className="parent-premium-story-grid">
-              <div><span className="story-dot up"/><div><strong>{summary?.improving_count || 0} improving</strong><small>{progress.improving[0] ? `${progress.improving[0].skill} · ${progress.improving[0].subject}` : 'No improving skill recorded yet'}</small></div></div>
-              <div><span className="story-dot resolved"/><div><strong>{summary?.resolved_count || 0} resolved</strong><small>{progress.resolved[0] ? `${progress.resolved[0].skill} · ${progress.resolved[0].subject}` : 'Resolved needs will appear here'}</small></div></div>
-              <div><span className="story-dot evidence"/><div><strong>{summary?.assigned_assignments || 0} assigned</strong><small>{summary?.overdue_assignments ? `${summary.overdue_assignments} currently overdue` : 'No overdue work in this period'}</small></div></div>
+              <div><span className="story-dot up"/><div><strong>{summary?.improving_count || 0} improving</strong><small>{progress.improving[0] ? `${focusLabel(progress.improving[0])} · ${progress.improving[0].subject}` : 'No improving skill recorded yet'}</small></div></div>
+              <div><span className="story-dot resolved"/><div><strong>{summary?.resolved_count || 0} resolved</strong><small>{progress.resolved[0] ? `${focusLabel(progress.resolved[0])} · ${progress.resolved[0].subject}` : 'Resolved needs will appear here'}</small></div></div>
+              <div><span className="story-dot evidence"/><div><strong>{summary?.completed_assignments || 0} completed</strong><small>{summary?.overdue_assignments ? `${summary.overdue_assignments} currently overdue` : `${summary?.assigned_assignments || 0} assigned in this period`}</small></div></div>
             </div>
           </article>
         </section> : null}
@@ -314,7 +318,7 @@ const ParentDashboardPremium: React.FC<ParentDashboardPremiumProps> = ({
           {renderFocusAreas()}
           <section className="parent-premium-card parent-premium-recommendations">
             <div className="parent-premium-recommendation-copy"><div className="parent-premium-section-heading compact"><div><span>Recommended focus</span><h2>What to work on next</h2></div><Icon name="focus"/></div>
-              <div className="parent-premium-recommendation-list">{focusAreas.length ? focusAreas.map((item) => <div key={`${item.subject}:${item.skill}:recommendation`}><span><Icon name="chevron"/></span><p>{recommendationCopy(item)}</p></div>) : <div><span><Icon name="check"/></span><p>Keep the current learning routine going. No repeated academic concern is flagged right now.</p></div>}</div>
+              <div className="parent-premium-recommendation-list">{focusAreas.length ? focusAreas.map((item) => <div key={`${item.skill_key || `${item.subject}:${item.skill}:${item.subskill || ''}`}:recommendation`}><span><Icon name="chevron"/></span><p>{recommendationCopy(item)}</p></div>) : <div><span><Icon name="check"/></span><p>Keep the current learning routine going. No repeated academic concern is flagged right now.</p></div>}</div>
             </div>
             <AnimatedChecklist />
           </section>
