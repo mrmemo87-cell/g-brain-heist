@@ -109,6 +109,24 @@
   margin-top: 0.25rem;
 }
 
+.qb-inspector__hero-seal button {
+  background: rgba(103, 232, 249, 0.1);
+  border: 1px solid rgba(103, 232, 249, 0.3);
+  border-radius: 0.7rem;
+  color: var(--qb-cyan);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 850;
+  margin-top: 0.85rem;
+  padding: 0.58rem 0.72rem;
+}
+
+.qb-inspector__hero-seal button:hover {
+  background: rgba(103, 232, 249, 0.16);
+  border-color: var(--qb-cyan);
+  color: white;
+}
+
 .qb-inspector__metrics {
   display: grid;
   gap: 0.75rem;

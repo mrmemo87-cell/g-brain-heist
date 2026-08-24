@@ -7,6 +7,7 @@ import {
   type AdminQuestionStatusFilter,
 } from '../../../services/adminQuestionBankService';
 import { useAdmin } from '../AdminContext';
+import QuestionTaxonomyReviewQueue from './QuestionTaxonomyReviewQueue';
 import './QuestionBankInspectorTab.css';
 
 const PAGE_SIZE = 24;
@@ -52,6 +53,7 @@ const escapeCsv = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""'
 
 const QuestionBankInspectorTab: React.FC = () => {
   const { addToast } = useAdmin();
+  const [workspace, setWorkspace] = useState<'vault' | 'taxonomy'>('vault');
   const [pool, setPool] = useState<AdminQuestionPool>('verified');
   const [catalog, setCatalog] = useState<AdminQuestionBankCatalog | null>(null);
   const [loading, setLoading] = useState(true);
@@ -171,6 +173,10 @@ const QuestionBankInspectorTab: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  if (workspace === 'taxonomy') {
+    return <QuestionTaxonomyReviewQueue onOpenVault={() => setWorkspace('vault')} />;
+  }
+
   return (
     <div className="qb-inspector">
       <header className="qb-inspector__hero">
@@ -179,10 +185,11 @@ const QuestionBankInspectorTab: React.FC = () => {
           <h2>Question Bank Content Vault</h2>
           <p>Inspect every governed question, trace who created it, and verify exactly which school owns the classroom provenance.</p>
         </div>
-        <div className="qb-inspector__hero-seal" aria-label="Read-only superadmin workspace">
+        <div className="qb-inspector__hero-seal" aria-label="Locked source-question content vault">
           <span>SUPERADMIN</span>
-          <strong>Read-only vault</strong>
-          <small>Answers visible · edits blocked</small>
+          <strong>Source content locked</strong>
+          <small>Questions stay read-only · taxonomy decisions are append-only</small>
+          <button type="button" onClick={() => setWorkspace('taxonomy')}>Open taxonomy review →</button>
         </div>
       </header>
 

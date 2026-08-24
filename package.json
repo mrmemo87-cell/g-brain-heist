@@ -19,13 +19,15 @@
     "load:pvp": "k6 run load-tests/pvp.js",
     "security:migrations": "node scripts/check-supabase-migration-security.mjs",
     "questions:validate-verified-package": "node scripts/validate-verified-question-package.mjs",
+    "questions:validate-taxonomy-review": "node scripts/validate-taxonomy-review-batch.mjs",
+    "questions:import-taxonomy-review": "node scripts/import-taxonomy-review-batch.mjs",
     "questions:build-grade-7": "node scripts/build-grade-7-visual-pilot.mjs",
     "questions:build-grade-5": "node scripts/build-grade-5-visual-pilot.mjs",
     "questions:build-grade-4": "node scripts/build-grade-4-visual-pilot.mjs",
     "security:tripwire": "pwsh scripts/run-tripwire.ps1",
     "test:e2e:ielts": "playwright test e2e/ielts-pilot-smoke.spec.js",
     "playwright:install": "playwright install --with-deps chromium",
-    "verify": "npm run guard:school-admin-portal && npm run questions:validate-verified-package && npm run typecheck && npm run security:migrations && npm run build && npm test && git diff --check"
+    "verify": "npm run guard:school-admin-portal && npm run questions:validate-verified-package && npm run questions:validate-taxonomy-review && npm run typecheck && npm run security:migrations && npm run build && npm test && git diff --check"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

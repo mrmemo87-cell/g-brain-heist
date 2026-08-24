@@ -3146,34 +3146,211 @@ export const getCanonicalWritingAssessment = async (
   }
 };
 
+export interface WritingAssessmentCriterionScores {
+  content: number;
+  communicative_achievement: number;
+  organisation: number;
+  language: number;
+}
+
+export interface WritingAssessmentReviewSnapshot {
+  review_id: string;
+  review_status: 'draft' | 'final';
+  criterion_scores: WritingAssessmentCriterionScores;
+  total_score: number;
+  rationale: string | null;
+  created_at: string | null;
+}
+
+export interface WritingAssessmentReviewSubmission {
+  review_id: string;
+  assessment_id: string;
+  review_status: 'draft' | 'final';
+  criterion_scores: WritingAssessmentCriterionScores;
+  total_score: number;
+}
+
+export interface WritingAssessmentReviewContext {
+  assessment_id: string;
+  attempt_key: string;
+  student_id: string;
+  assessment_status: 'verified' | 'provisional' | 'needs_review' | 'failed';
+  automated_scores: WritingAssessmentCriterionScores;
+  automated_total_score: number;
+  rubric_version: string | null;
+  evaluator_version: string | null;
+  latest_draft: WritingAssessmentReviewSnapshot | null;
+  final_review: WritingAssessmentReviewSnapshot | null;
+}
+
+const toWritingAssessmentCriterionScores = (value: unknown): WritingAssessmentCriterionScores | null => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const scores = {
+    content: record['content'],
+    communicative_achievement: record['communicative_achievement'],
+    organisation: record['organisation'],
+    language: record['language'],
+  };
+  if (Object.values(scores).some((score) => !Number.isInteger(score) || Number(score) < 0 || Number(score) > 5)) {
+    return null;
+  }
+  return {
+    content: Number(scores.content),
+    communicative_achievement: Number(scores.communicative_achievement),
+    organisation: Number(scores.organisation),
+    language: Number(scores.language),
+  };
+};
+
+const toWritingAssessmentReviewSnapshot = (
+  value: unknown,
+  expectedStatus: 'draft' | 'final'
+): WritingAssessmentReviewSnapshot | null => {
+  if (value == null) return null;
+  if (typeof value !== 'object' || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const reviewId = typeof record['review_id'] === 'string' ? record['review_id'].trim() : '';
+  const scores = toWritingAssessmentCriterionScores(record['criterion_scores']);
+  const totalScore = record['total_score'];
+  const reviewStatus = record['review_status'];
+  if (!reviewId || !scores || reviewStatus !== expectedStatus || !Number.isInteger(totalScore)) return null;
+  const expectedTotal = Object.values(scores).reduce((sum, score) => sum + score, 0);
+  if (Number(totalScore) !== expectedTotal) return null;
+  return {
+    review_id: reviewId,
+    review_status: expectedStatus,
+    criterion_scores: scores,
+    total_score: expectedTotal,
+    rationale: typeof record['rationale'] === 'string' && record['rationale'].trim()
+      ? record['rationale'].trim()
+      : null,
+    created_at: typeof record['created_at'] === 'string' && record['created_at'].trim()
+      ? record['created_at']
+      : null,
+  };
+};
+
+/**
+ * Loads the teacher-scoped review context for one writing attempt. Automated
+ * scores and saved drafts are reference material only; `final_review` is the
+ * sole teacher-authoritative state exposed by this contract.
+ */
+export const getWritingAssessmentReviewContext = async (
+  attemptKey: string
+): Promise<ServiceResponse<WritingAssessmentReviewContext | null>> => {
+  const normalizedAttemptKey = attemptKey.trim();
+  if (!normalizedAttemptKey) return badRequest('attemptKey is required.');
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_teacher_review_context', {
+      p_attempt_key: normalizedAttemptKey,
+    });
+    if (error) return badRequest(error.message);
+    if (data == null) return ok(null);
+    if (typeof data !== 'object' || Array.isArray(data)) {
+      return badRequest('Writing assessment review context was malformed.');
+    }
+
+    const record = data as Record<string, unknown>;
+    const assessmentId = typeof record['assessment_id'] === 'string' ? record['assessment_id'].trim() : '';
+    const returnedAttemptKey = typeof record['attempt_key'] === 'string' ? record['attempt_key'].trim() : '';
+    const studentId = typeof record['student_id'] === 'string' ? record['student_id'].trim() : '';
+    const assessmentStatus = record['assessment_status'];
+    const automatedScores = toWritingAssessmentCriterionScores(record['automated_scores']);
+    const automatedTotal = record['automated_total_score'];
+    const validAssessmentStatus = assessmentStatus === 'verified'
+      || assessmentStatus === 'provisional'
+      || assessmentStatus === 'needs_review'
+      || assessmentStatus === 'failed';
+
+    if (
+      !assessmentId
+      || returnedAttemptKey !== normalizedAttemptKey
+      || !studentId
+      || !validAssessmentStatus
+      || !automatedScores
+      || !Number.isInteger(automatedTotal)
+      || Number(automatedTotal) !== Object.values(automatedScores).reduce((sum, score) => sum + score, 0)
+    ) {
+      return badRequest('Writing assessment review context failed validation.');
+    }
+
+    const rawLatestDraft = record['latest_draft'];
+    const rawFinalReview = record['final_review'];
+    const latestDraft = toWritingAssessmentReviewSnapshot(rawLatestDraft, 'draft');
+    const finalReview = toWritingAssessmentReviewSnapshot(rawFinalReview, 'final');
+    if ((rawLatestDraft != null && !latestDraft) || (rawFinalReview != null && !finalReview)) {
+      return badRequest('Writing assessment review history failed validation.');
+    }
+
+    return ok({
+      assessment_id: assessmentId,
+      attempt_key: returnedAttemptKey,
+      student_id: studentId,
+      assessment_status: assessmentStatus,
+      automated_scores: automatedScores,
+      automated_total_score: Number(automatedTotal),
+      rubric_version: typeof record['rubric_version'] === 'string' ? record['rubric_version'] : null,
+      evaluator_version: typeof record['evaluator_version'] === 'string' ? record['evaluator_version'] : null,
+      latest_draft: latestDraft,
+      final_review: finalReview,
+    });
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load writing assessment review context.');
+  }
+};
+
 export const submitWritingAssessmentReview = async (input: {
   assessment_id: string;
-  criterion_scores: {
-    content: number;
-    communicative_achievement: number;
-    organisation: number;
-    language: number;
-  };
+  criterion_scores: WritingAssessmentCriterionScores;
   rationale?: string;
   is_final?: boolean;
-}): Promise<ServiceResponse<Record<string, unknown>>> => {
+}): Promise<ServiceResponse<WritingAssessmentReviewSubmission>> => {
   if (!input.assessment_id.trim()) return badRequest('assessment_id is required.');
   const scores = Object.values(input.criterion_scores);
   if (scores.some((score) => !Number.isInteger(score) || score < 0 || score > 5)) {
     return badRequest('All criterion scores must be integers between 0 and 5.');
+  }
+  const normalizedRationale = input.rationale?.trim() ?? '';
+  if (input.is_final !== false && (normalizedRationale.length < 12 || normalizedRationale.length > 2000)) {
+    return badRequest('A final review rationale must be between 12 and 2000 characters.');
   }
   try {
     const { supabase } = await import('../../../services/supabaseClient.js');
     const { data, error } = await supabase.rpc('rpc_bh_writing_submit_assessment_review', {
       p_assessment_id: input.assessment_id,
       p_criterion_scores: input.criterion_scores,
-      p_rationale: input.rationale?.trim() || null,
+      p_rationale: normalizedRationale || null,
       p_is_final: input.is_final ?? true,
     });
-    if (error || !data || typeof data !== 'object') {
+    if (error || !data || typeof data !== 'object' || Array.isArray(data)) {
       return badRequest(error?.message ?? 'Unable to save writing assessment review.');
     }
-    return ok(data as Record<string, unknown>);
+    const record = data as Record<string, unknown>;
+    const reviewId = typeof record['review_id'] === 'string' ? record['review_id'].trim() : '';
+    const assessmentId = typeof record['assessment_id'] === 'string' ? record['assessment_id'].trim() : '';
+    const reviewStatus = record['review_status'];
+    const criterionScores = toWritingAssessmentCriterionScores(record['criterion_scores']);
+    const totalScore = record['total_score'];
+    const expectedStatus = input.is_final === false ? 'draft' : 'final';
+    if (
+      !reviewId
+      || assessmentId !== input.assessment_id.trim()
+      || reviewStatus !== expectedStatus
+      || !criterionScores
+      || !Number.isInteger(totalScore)
+      || Number(totalScore) !== Object.values(criterionScores).reduce((sum, score) => sum + score, 0)
+    ) {
+      return badRequest('Saved writing assessment review response was malformed.');
+    }
+    return ok({
+      review_id: reviewId,
+      assessment_id: assessmentId,
+      review_status: expectedStatus,
+      criterion_scores: criterionScores,
+      total_score: Number(totalScore),
+    });
   } catch (error) {
     return badRequest(error instanceof Error ? error.message : 'Unable to save writing assessment review.');
   }
