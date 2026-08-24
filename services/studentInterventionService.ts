@@ -15,6 +15,8 @@ export interface InterventionProfessionalReview {
 export interface InterventionRecommendation {
   subject: string; topic?: string | null; skill: string; skill_key: string; status: string; trend: string; priority: string;
   evidence_items: number; focus_occurrences: number; last_observed_at: string; days_since_evidence: number; available_questions: number;
+  available_exact_questions: number; available_related_questions: number;
+  recommended_question_ids: string[]; exact_question_ids: string[]; related_question_ids: string[];
   recommended_type: InterventionType; rationale: string; suggested_goal: string; has_open_intervention: boolean;
   diagnostic_targets: string[]; evidence_examples: InterventionEvidenceExample[];
   evidence_authority: 'teacher_validated' | 'automated_history';
@@ -101,6 +103,78 @@ export async function registerInterventionPractice(input: {
     p_intervention_id: input.interventionId || null,
   });
   if (error) throw userFacingError(error, 'We could not link this targeted practice to the student support record. Please try again.');
+}
+
+const INTERVENTION_SUBJECT_IDS: Record<string, string> = {
+  Mathematics: 'mathematics',
+  Biology: 'biology',
+  Chemistry: 'chemistry',
+  Physics: 'physics',
+  English: 'english',
+  'Russian Language': 'russian_language',
+  'Kyrgyz Language': 'kyrgyz_language',
+  'German Language': 'german_language',
+  Geography: 'geography',
+  'Global Perspective': 'global_perspective',
+  'Travel & Tourism': 'travel_tourism',
+  ICT: 'ict',
+};
+
+export interface CreatedInterventionPracticeAssignment {
+  id: string;
+  title?: string | null;
+  question_count?: number | null;
+}
+
+export async function createInterventionPracticeAssignment(input: {
+  teacherId: string;
+  subject: string;
+  topicName: string;
+  questionIds: string[];
+  assignedAt: string;
+  dueAt?: string | null;
+  title: string;
+  description?: string | null;
+  instructions?: string | null;
+  difficulty?: string | null;
+  publishStatus: 'draft' | 'scheduled' | 'published';
+  closeSubmissionsAfterDue: boolean;
+  notifyStudentsByEmail: boolean;
+  studentId: string;
+  skillKey: string;
+  diagnosticTargets: string[];
+}): Promise<CreatedInterventionPracticeAssignment> {
+  const subjectId = INTERVENTION_SUBJECT_IDS[input.subject]
+    || input.subject.toLowerCase().replace(/\s+/g, '_');
+  const { data, error } = await supabase.rpc('rpc_create_intervention_practice_assignment', {
+    p_teacher_id: input.teacherId,
+    p_subject_id: subjectId,
+    p_subject_name: input.subject,
+    p_topic_name: input.topicName,
+    p_question_ids: input.questionIds,
+    p_assigned_at: input.assignedAt,
+    p_due_at: input.dueAt || null,
+    p_title: input.title,
+    p_instructions: input.instructions || null,
+    p_difficulty: input.difficulty || null,
+    p_student_id: input.studentId,
+    p_skill_key: input.skillKey,
+    p_diagnostic_targets: input.diagnosticTargets,
+    p_client_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+    p_description: input.description || null,
+    p_publish_status: input.publishStatus,
+    p_close_submissions_after_due: input.closeSubmissionsAfterDue,
+    p_notify_students_by_email: input.notifyStudentsByEmail,
+  });
+  if (error) {
+    throw userFacingError(
+      error,
+      'We could not create this targeted practice safely. Nothing was published; please try again.',
+    );
+  }
+  const assignment = (Array.isArray(data) ? data[0] : data) as CreatedInterventionPracticeAssignment | null;
+  if (!assignment?.id) throw new Error('Targeted practice could not be created.');
+  return assignment;
 }
 
 export async function reviewLearningFocusEvidence(input: {
