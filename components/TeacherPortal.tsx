@@ -13,6 +13,7 @@ const TeacherGuideHelpModal = React.lazy(() => import('./TeacherGuideHelpModal')
 import { NotificationCenter } from './NotificationCenter';
 const DiagramBuilder = React.lazy(() => import('./geometry/DiagramBuilder'));
 const QuestionBank = React.lazy(() => import('./teacher/QuestionBank'));
+const QuestionBatchWorkspace = React.lazy(() => import('./teacher/QuestionBatchWorkspace'));
 const AssignmentWizard = React.lazy(() => import('./teacher/AssignmentWizard'));
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
@@ -73,13 +74,14 @@ interface TeacherPortalProps {
 // Plan details state (fetched once)
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 
-export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'academic-profiles' | 'interventions' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
+export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'question-batch' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'academic-profiles' | 'interventions' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
 type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
 const TEACHER_VIEW_FEATURES: Partial<Record<PortalView, FeatureKey>> = {
   'create-question': FEATURE_KEYS.CUSTOM_QUESTIONS,
   'question-bank': FEATURE_KEYS.QUESTION_BANK,
+  'question-batch': FEATURE_KEYS.CUSTOM_QUESTIONS,
   'csv-upload': FEATURE_KEYS.CUSTOM_QUESTIONS,
   assignments: FEATURE_KEYS.ASSIGNMENTS,
   'create-assignment': FEATURE_KEYS.ASSIGNMENTS,
@@ -288,6 +290,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [topicMode, setTopicMode] = useState<'general' | 'custom'>('general');
   const [customTopicName, setCustomTopicName] = useState('');
   const [eligibleGradeLevels, setEligibleGradeLevels] = useState<number[]>([]);
+  const [questionBatchDefaults, setQuestionBatchDefaults] = useState<{ subject?: Subject; topic?: string }>({});
 
   useEffect(() => {
     setAvatarUrl(profile.avatar_url || '/BRAINS.svg');
@@ -753,7 +756,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (view === 'interventions') return 'interventions';
     if (view === 'documents') return 'dashboard';
     if (view === 'join-school') return 'join-school';
-    if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
+    if (view === 'question-bank' || view === 'create-question' || view === 'question-batch' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
     if (view === 'writing-hub' || view === 'writing-monitoring' || view === 'writing-analytics' || view === 'writing-export-center') return 'writing-hub';
     if (view === 'clan-wars') return 'clan-wars';
@@ -3285,16 +3288,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const openMyPoolQuestionForm = (preferredSubject?: Subject, preferredTopic?: string) => {
     setEditingQuestion(null);
-    if (preferredSubject) setSubject(preferredSubject);
-    if (preferredTopic && preferredTopic !== 'General') {
-      setTopicMode('custom');
-      setCustomTopicName(preferredTopic);
-    } else {
-      setTopicMode('general');
-      setCustomTopicName('');
-    }
-    setEligibleGradeLevels([]);
-    setView('create-question');
+    setQuestionBatchDefaults({
+      subject: preferredSubject,
+      topic: preferredTopic && preferredTopic !== 'General' ? preferredTopic : undefined,
+    });
+    setView('question-batch');
   };
 
   const handleRenameTopic = async (topicQuestions: TeacherQuestion[], nextTopic: string) => {
@@ -4079,16 +4077,20 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             };
             return <>
           <button
-            onClick={() => !isDisabled('Create Question') ? setView('create-question') : undefined}
+            onClick={() => {
+              if (isDisabled('Create Question')) return;
+              setQuestionBatchDefaults({});
+              setView('question-batch');
+            }}
             className={`teacher-action-card teacher-action-card--mini ${isDisabled('Create Question') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="pink"
             disabled={isDisabled('Create Question')}
           >
             {isDisabled('Create Question') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
             {quotaBadge('Create Question')}
-            <div className="teacher-action-icon">➕</div>
-            <h4 className="teacher-action-title">Create Question</h4>
-            <p className="teacher-action-desc">Add a new question to your library</p>
+            <div className="teacher-action-icon">PDF</div>
+            <h4 className="teacher-action-title">Add Question Batch</h4>
+            <p className="teacher-action-desc">Upload a PDF, check the questions, then submit</p>
           </button>
 
           <button
@@ -4102,19 +4104,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <div className="teacher-action-icon">📚</div>
             <h4 className="teacher-action-title">Question Bank</h4>
             <p className="teacher-action-desc">View and manage all questions</p>
-          </button>
-
-          <button
-            onClick={() => !isDisabled('Bulk Upload') ? setView('csv-upload') : undefined}
-            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Bulk Upload') ? 'opacity-50 cursor-not-allowed' : ''}`}
-            data-color="green"
-            disabled={isDisabled('Bulk Upload')}
-          >
-            {isDisabled('Bulk Upload') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
-            {quotaBadge('Bulk Upload')}
-            <div className="teacher-action-icon">📤</div>
-            <h4 className="teacher-action-title">Bulk Upload</h4>
-            <p className="teacher-action-desc">Import questions via CSV</p>
           </button>
 
           <button
@@ -8539,7 +8528,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               onEditQuestion={handleEditQuestion}
               onDeleteQuestion={handleDeleteQuestion}
               onCreateQuestion={openMyPoolQuestionForm}
-              onBulkImport={() => setView('csv-upload')}
               onRenameTopic={(topicQuestions, nextTopic) => { void handleRenameTopic(topicQuestions, nextTopic); }}
               onDeleteTopic={(topicQuestions) => { void handleDeleteTopic(topicQuestions); }}
               restrictedSubjects={profile.school_id && teacherAssignedSubjects.length ? teacherAssignedSubjects : undefined}
@@ -8549,7 +8537,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               schoolId={profile.school_id}
             />
           )}
-          {view === 'csv-upload' && renderCSVUpload()}
+          {(view === 'question-batch' || view === 'csv-upload') && (
+            <React.Suspense fallback={<div className="teacher-section-loading">Preparing your question batch…</div>}>
+              <QuestionBatchWorkspace
+                defaultSubject={questionBatchDefaults.subject}
+                defaultTopic={questionBatchDefaults.topic}
+                restrictedSubjects={profile.school_id && teacherAssignedSubjects.length ? teacherAssignedSubjects : undefined}
+                onBack={() => setView('question-bank')}
+                onSubmitted={() => loadQuestionsOnDemand()}
+                onOpenMyPool={() => setView('question-bank')}
+              />
+            </React.Suspense>
+          )}
           {view === 'assignments' && renderAssignments()}
           {view === 'create-assignment' && renderCreateAssignment()}
           {view === 'reports' && renderReports()}

@@ -18,7 +18,6 @@ interface QuestionBankProps {
   onEditQuestion?: (question: TeacherQuestion) => void;
   onDeleteQuestion?: (questionId: string) => void;
   onCreateQuestion?: (subject?: Subject, topic?: string) => void;
-  onBulkImport?: () => void;
   onRenameTopic?: (questions: TeacherQuestion[], nextTopic: string) => void;
   onDeleteTopic?: (questions: TeacherQuestion[]) => void;
   useActionLabel?: string;
@@ -52,7 +51,7 @@ const makeTopicGroups = (questions: TeacherQuestion[]) => {
 };
 
 export default function QuestionBank({
-  questions, teacher, onUseSet, onEditQuestion, onDeleteQuestion, onCreateQuestion, onBulkImport,
+  questions, teacher, onUseSet, onEditQuestion, onDeleteQuestion, onCreateQuestion,
   onRenameTopic, onDeleteTopic, useActionLabel = 'Add to a new assignment', restrictedSubjects,
   schoolName = 'Brains Heist', schoolLogoUrl, teacherName = 'Teacher',
   schoolId,
@@ -138,11 +137,14 @@ export default function QuestionBank({
     }
   };
 
+  const reviewCountForGroup = (group: TopicGroup) => group.questions.filter((question) => question.verification_status === 'in_review').length;
+  const selectedTopicHasSubmittedQuestions = selectedTopic?.questions.some((question) => question.verification_status === 'in_review') || false;
+
   return (
     <section className="qb-shell" aria-labelledby="question-bank-title">
       <header className="qb-header">
-        <div><span className="qb-eyebrow">Question workspace</span><h1 id="question-bank-title">Question Bank</h1><p>Use verified academic evidence or build private classroom material in My Pool.</p></div>
-        <div className="flex flex-wrap gap-2">{onBulkImport ? <button type="button" onClick={() => { choosePool('mine'); onBulkImport(); }}>Bulk import</button> : null}{onCreateQuestion ? <button type="button" className="qb-primary-action" onClick={() => { choosePool('mine'); onCreateQuestion(); }}>Add to My Pool</button> : null}</div>
+        <div><span className="qb-eyebrow">Question workspace</span><h1 id="question-bank-title">Question Bank</h1><p>Use verified academic evidence or upload a private question paper for governed review.</p></div>
+        <div className="flex flex-wrap gap-2">{onCreateQuestion ? <button type="button" className="qb-primary-action" onClick={() => { choosePool('mine'); onCreateQuestion(); }}>Add Question Batch</button> : null}</div>
       </header>
 
       <div className="qb-pool-switcher" aria-label="Question pools">
@@ -150,7 +152,7 @@ export default function QuestionBank({
           <span className="qb-pool-icon">BH</span><span><strong>Brains Heist Verified</strong><small>Official Academic Profile evidence · read-only</small></span><b>{pools['brains-heist'].length}</b>
         </button>
         <button type="button" className={activePool === 'mine' ? 'qb-pool-card is-active' : 'qb-pool-card'} onClick={() => choosePool('mine')} aria-pressed={activePool === 'mine'}>
-          <span className="qb-pool-icon qb-pool-icon--mine">MY</span><span><strong>My Pool</strong><small>Private classroom questions · editable</small></span><b>{pools.mine.length}</b>
+          <span className="qb-pool-icon qb-pool-icon--mine">MY</span><span><strong>My Pool</strong><small>Private classroom questions · governed</small></span><b>{pools.mine.length}</b>
         </button>
       </div>
 
@@ -166,7 +168,7 @@ export default function QuestionBank({
 
       <div className="qb-results-heading">
         <div><h2>{selectedPoolTitle}</h2><p>{topicGroups.length} topic{topicGroups.length === 1 ? '' : 's'} · {visibleQuestions.length} question{visibleQuestions.length === 1 ? '' : 's'}</p></div>
-        {activePool === 'mine' && onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion()}>Create topic or question</button> : null}
+        {activePool === 'mine' && onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion()}>Upload question PDF</button> : null}
       </div>
 
       {topicGroups.length ? (
@@ -177,13 +179,13 @@ export default function QuestionBank({
               <span className="qb-topic-card__icon">{activePool === 'brains-heist' ? '▣' : '□'}</span>
               <strong>{group.topic}</strong>
               <small>{group.questions.length} question{group.questions.length === 1 ? '' : 's'}</small>
-              <span className="qb-topic-card__status">{activePool === 'brains-heist' ? 'Read-only' : 'Managed by you'}</span>
+              <span className="qb-topic-card__status">{activePool === 'brains-heist' ? 'Read-only' : reviewCountForGroup(group) ? `${reviewCountForGroup(group)} in review` : 'Managed by you'}</span>
               <span className="qb-topic-card__open">Open topic →</span>
             </button>
           ))}
         </div>
       ) : (
-        <div className="qb-empty"><h3>{activePool === 'mine' ? 'Create your first topic' : 'No questions match these filters'}</h3><p>{activePool === 'mine' ? 'A topic is created automatically when you save its first question.' : 'Try another subject or a broader search.'}</p>{activePool === 'mine' && onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion()}>Add first question</button> : null}</div>
+        <div className="qb-empty"><h3>{activePool === 'mine' ? 'Upload your first question paper' : 'No questions match these filters'}</h3><p>{activePool === 'mine' ? 'We will find the questions and create topics after you check the extraction.' : 'Try another subject or a broader search.'}</p>{activePool === 'mine' && onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion()}>Add Question Batch</button> : null}</div>
       )}
 
       {selectedTopic ? (
@@ -205,20 +207,20 @@ export default function QuestionBank({
               {selectedTopic.questions.map((question, index) => (
                 <article key={question.id}>
                   <span>{index + 1}</span>
-                  <div><h3>{question.question_text}</h3><p>{formatQuestionType(question.question_type)} · {question.difficulty} · {question.points || 0} points</p>{activePool === 'brains-heist' ? <>{question.curriculum_skill ? <p><strong>Verified: {question.curriculum_skill}</strong>{question.curriculum_subskill ? ` · ${question.curriculum_subskill}` : ''}{question.eligible_grade_levels?.length ? ` · Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p> : null}{question.curriculum_objective ? <small>Official objective: {question.curriculum_objective}</small> : null}</> : <><p><strong>Classroom only</strong>{question.eligible_grade_levels?.length ? ` · Suggested Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p><small>Excluded from official Academic Profile analytics</small></>}</div>
-                  <div><button type="button" onClick={() => setPreviewQuestion(question)}>Preview</button>{activePool === 'mine' && onEditQuestion ? <button type="button" onClick={() => onEditQuestion(question)}>Edit</button> : null}{activePool === 'mine' && onDeleteQuestion ? <button type="button" className="is-danger" onClick={() => onDeleteQuestion(question.id)}>Delete</button> : null}</div>
+                  <div><h3>{question.question_text}</h3><p>{formatQuestionType(question.question_type)} · {question.difficulty} · {question.points || 0} points</p>{activePool === 'brains-heist' ? <>{question.curriculum_skill ? <p><strong>Verified: {question.curriculum_skill}</strong>{question.curriculum_subskill ? ` · ${question.curriculum_subskill}` : ''}{question.eligible_grade_levels?.length ? ` · Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p> : null}{question.curriculum_objective ? <small>Official objective: {question.curriculum_objective}</small> : null}</> : <><p><strong>{question.verification_status === 'in_review' ? 'Awaiting platform review' : 'Classroom only'}</strong>{question.eligible_grade_levels?.length ? ` · Suggested Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p><small>{question.verification_status === 'in_review' ? 'The submitted snapshot is locked while governance checks the content and proposed mapping.' : 'Excluded from official Academic Profile analytics'}</small></>}</div>
+                  <div><button type="button" onClick={() => setPreviewQuestion(question)}>Preview</button>{activePool === 'mine' && question.verification_status !== 'in_review' && onEditQuestion ? <button type="button" onClick={() => onEditQuestion(question)}>Edit</button> : null}{activePool === 'mine' && question.verification_status !== 'in_review' && onDeleteQuestion ? <button type="button" className="is-danger" onClick={() => onDeleteQuestion(question.id)}>Delete</button> : null}</div>
                 </article>
               ))}
             </div>
             <footer>
-              {activePool === 'mine' && onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion(selectedTopic.subject, selectedTopic.topic)}>Add question to topic</button> : null}
-              {activePool === 'mine' && onRenameTopic ? <button type="button" className="is-secondary" onClick={() => setRenaming(true)}>Rename topic</button> : null}
-              {activePool === 'mine' && onDeleteTopic ? <button type="button" className="is-danger" onClick={() => onDeleteTopic(selectedTopic.questions)}>Delete topic</button> : null}
+              {activePool === 'mine' && onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion(selectedTopic.subject, selectedTopic.topic)}>Upload PDF to this topic</button> : null}
+              {activePool === 'mine' && !selectedTopicHasSubmittedQuestions && onRenameTopic ? <button type="button" className="is-secondary" onClick={() => setRenaming(true)}>Rename topic</button> : null}
+              {activePool === 'mine' && !selectedTopicHasSubmittedQuestions && onDeleteTopic ? <button type="button" className="is-danger" onClick={() => onDeleteTopic(selectedTopic.questions)}>Delete topic</button> : null}
             </footer>
           </article>
         </div>
       ) : null}
-      {previewQuestion ? <QuestionPreviewModal question={previewQuestion} onClose={() => setPreviewQuestion(null)} onEdit={activePool === 'mine' && onEditQuestion ? () => onEditQuestion(previewQuestion) : undefined} /> : null}
+      {previewQuestion ? <QuestionPreviewModal question={previewQuestion} onClose={() => setPreviewQuestion(null)} onEdit={activePool === 'mine' && previewQuestion.verification_status !== 'in_review' && onEditQuestion ? () => onEditQuestion(previewQuestion) : undefined} /> : null}
     </section>
   );
 }

@@ -32,6 +32,7 @@ const POOL_DETAILS: Record<AdminQuestionPool, { code: string; title: string; des
 
 const STATUS_OPTIONS: Array<{ value: AdminQuestionStatusFilter; label: string }> = [
   { value: 'all', label: 'All records' },
+  { value: 'in_review', label: 'In review' },
   { value: 'active', label: 'Active only' },
   { value: 'inactive', label: 'Inactive' },
   { value: 'visual', label: 'With visuals' },
@@ -48,6 +49,12 @@ const formatQuestionType = (value: string) => value
   .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 const optionText = (option: string | { text?: string }) => typeof option === 'string' ? option : option.text || 'Image option';
+
+const questionStatusLabel = (question: AdminQuestionBankQuestion) => {
+  if (question.verificationStatus === 'in_review') return 'In review';
+  if (question.needsAttention) return 'Needs attention';
+  return question.integrityState;
+};
 
 const escapeCsv = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
 
@@ -160,7 +167,7 @@ const QuestionBankInspectorTab: React.FC = () => {
       question.questionText,
       question.teacher?.name || 'Brains Heist',
       question.teacher?.schoolName || 'Platform content',
-      question.needsAttention ? 'Needs attention' : question.integrityState,
+      questionStatusLabel(question),
       question.timesAnswered,
       question.accuracyPercent ?? '',
     ]);
@@ -198,7 +205,7 @@ const QuestionBankInspectorTab: React.FC = () => {
         <article className="is-verified"><span>Verified</span><strong>{summary?.verifiedQuestions ?? '—'}</strong><small>Protected evidence</small></article>
         <article className="is-teacher"><span>Teacher-made</span><strong>{summary?.teacherQuestions ?? '—'}</strong><small>{summary ? `${summary.teacherAuthors} author${summary.teacherAuthors === 1 ? '' : 's'} · ${summary.teacherSchools} school${summary.teacherSchools === 1 ? '' : 's'}` : 'Loading provenance'}</small></article>
         <article className="is-visual"><span>Visual questions</span><strong>{summary?.visualQuestions ?? '—'}</strong><small>Accessible diagrams</small></article>
-        <article className="is-alert"><span>Governance queue</span><strong>{summary?.needsAttention ?? '—'}</strong><small>Review signals</small></article>
+        <article className="is-alert"><span>Teacher review queue</span><strong>{summary?.inReviewQuestions ?? '—'}</strong><small>Submitted question evidence</small></article>
       </section>
 
       <section className="qb-inspector__pool-grid" aria-label="Question collections">
@@ -239,11 +246,11 @@ const QuestionBankInspectorTab: React.FC = () => {
             <table>
               <thead><tr><th>Question evidence</th><th>Provenance</th><th>Curriculum</th><th>Integrity</th><th>Usage</th><th><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>{catalog.questions.map((question) => (
-                <tr key={question.id} className={question.needsAttention ? 'needs-attention' : ''}>
-                  <td><div className="qb-inspector__question-cell"><span className={`qb-inspector__mini-code is-${question.pool}`}>{POOL_DETAILS[question.pool].code}</span><div><strong>{question.questionText}</strong><small>{question.subject} · {question.topic} · {formatQuestionType(question.questionType)}</small>{question.externalId ? <code>{question.externalId}</code> : null}</div></div></td>
+                <tr key={question.id} className={[question.needsAttention ? 'needs-attention' : '', question.verificationStatus === 'in_review' ? 'in-review' : ''].filter(Boolean).join(' ')}>
+                  <td><div className="qb-inspector__question-cell"><span className={`qb-inspector__mini-code is-${question.pool}`}>{POOL_DETAILS[question.pool].code}</span><div>{question.verificationStatus === 'in_review' ? <span className="qb-inspector__review-badge">In review</span> : null}<strong>{question.questionText}</strong><small>{question.subject} · {question.topic} · {formatQuestionType(question.questionType)}</small>{question.externalId ? <code>{question.externalId}</code> : null}</div></div></td>
                   <td>{question.teacher ? <div className="qb-inspector__provenance"><span className="qb-inspector__avatar">{question.teacher.name.slice(0, 1).toUpperCase()}</span><div><strong>{question.teacher.name}</strong><small>{question.teacher.schoolName}</small>{!question.teacher.profileLinked ? <em>Identity link missing</em> : null}</div></div> : <div className="qb-inspector__official"><strong>Brains Heist</strong><small>{question.contentVersion || 'Verified content'}</small></div>}</td>
                   <td><div className="qb-inspector__curriculum"><strong>{question.gradeLevel || (question.eligibleGradeLevels?.length ? `Grades ${question.eligibleGradeLevels.join(', ')}` : 'Grade not tagged')}</strong><small>{question.curriculum?.skill || question.curriculum?.strand || 'General curriculum'}</small></div></td>
-                  <td><div className={`qb-inspector__integrity is-${question.integrityState}`}><strong>{question.needsAttention ? 'Needs attention' : question.integrityState}</strong><small>{question.isActive ? 'Active' : 'Inactive'} · {question.isPublic ? 'Public' : 'Private'}</small></div></td>
+                  <td><div className={`qb-inspector__integrity is-${question.integrityState}`}><strong>{questionStatusLabel(question)}</strong><small>{question.isActive ? 'Active' : 'Inactive'} · {question.isPublic ? 'Public' : 'Private'}</small></div></td>
                   <td><div className="qb-inspector__usage"><strong>{question.timesAnswered.toLocaleString()}</strong><small>{question.accuracyPercent == null ? 'No accuracy yet' : `${question.accuracyPercent}% correct`}</small></div></td>
                   <td><button type="button" className="qb-inspector__inspect" onClick={() => setSelectedQuestion(question)}>Inspect</button></td>
                 </tr>
@@ -265,11 +272,28 @@ const QuestionBankInspectorTab: React.FC = () => {
                 <section><span>Prompt</span><h4>{selectedQuestion.questionText}</h4></section>
                 {selectedQuestion.options?.length ? <section><span>Options</span><ol type="A">{selectedQuestion.options.map((option, index) => <li key={`${selectedQuestion.id}-option-${index}`}>{optionText(option)}</li>)}</ol></section> : null}
                 <section className="qb-inspector__answer"><span>Protected answer</span><h4>{selectedQuestion.correctAnswer}</h4>{selectedQuestion.explanation ? <p>{selectedQuestion.explanation}</p> : <em>No explanation recorded.</em>}</section>
+                {selectedQuestion.submission ? (
+                  <section className="qb-inspector__submission">
+                    <span>Teacher taxonomy proposal · review only</span>
+                    <div className="qb-inspector__submission-head">
+                      <div><small>Primary skill</small><h4>{selectedQuestion.submission.taxonomyProposal.primary_skill_name}</h4></div>
+                      <strong>{Math.round(selectedQuestion.submission.taxonomyProposal.confidence_score * 100)}% confidence</strong>
+                    </div>
+                    <dl>
+                      <div><dt>Atomic subskill</dt><dd>{selectedQuestion.submission.taxonomyProposal.atomic_subskill_name}</dd></div>
+                      <div><dt>Assessment objective</dt><dd>{selectedQuestion.submission.taxonomyProposal.assessment_process_code} · {selectedQuestion.submission.taxonomyProposal.assessment_process_name}</dd></div>
+                      <div><dt>Cognitive process</dt><dd>{selectedQuestion.submission.taxonomyProposal.cognitive_process}</dd></div>
+                    </dl>
+                    <p><strong>Evidence:</strong> {selectedQuestion.submission.taxonomyProposal.evidence_statement}</p>
+                    <p><strong>Review note:</strong> {selectedQuestion.submission.taxonomyProposal.review_reason}</p>
+                    <small>Private source: {selectedQuestion.submission.sourceFileName}{selectedQuestion.submission.sourcePage ? ` · page ${selectedQuestion.submission.sourcePage}` : ''} · extracted with {selectedQuestion.submission.extractionModel}{selectedQuestion.submission.sourceDrift ? ' · source snapshot drift detected' : ''}</small>
+                  </section>
+                ) : null}
               </main>
               <aside>
                 <section><span>Provenance</span>{selectedQuestion.teacher ? <><h4>{selectedQuestion.teacher.name}</h4><p>{selectedQuestion.teacher.schoolName}</p><small>{selectedQuestion.teacher.profileLinked ? 'Linked teacher profile' : 'Identity link requires review'} · {selectedQuestion.teacher.verified ? 'Verified teacher' : 'Teacher verification pending'}</small></> : <><h4>Brains Heist Verified</h4><p>{selectedQuestion.verifiedByAuthority || 'Brains Heist Content Quality'}</p><small>{selectedQuestion.contentVersion || 'Version unavailable'} · revision {selectedQuestion.contentRevision || 1}</small></>}</section>
                 <section><span>Curriculum evidence</span><h4>{selectedQuestion.gradeLevel || 'Grade not tagged'}</h4><p>{selectedQuestion.curriculum?.skill || selectedQuestion.curriculum?.strand || 'General curriculum'}</p><small>{selectedQuestion.curriculum?.objective || 'No objective text recorded.'}</small></section>
-                <section><span>Quality &amp; usage</span><h4 className={selectedQuestion.needsAttention ? 'is-warning' : ''}>{selectedQuestion.needsAttention ? 'Review signal open' : 'No blocking signal'}</h4><p>{selectedQuestion.timesAnswered.toLocaleString()} answers · {selectedQuestion.accuracyPercent == null ? 'no accuracy yet' : `${selectedQuestion.accuracyPercent}% correct`}</p><small>{selectedQuestion.integrityState} · {selectedQuestion.isActive ? 'active' : 'inactive'} · {selectedQuestion.isPublic ? 'public' : 'private'}</small></section>
+                <section><span>Quality &amp; usage</span><h4 className={selectedQuestion.needsAttention ? 'is-warning' : ''}>{selectedQuestion.verificationStatus === 'in_review' ? 'Awaiting governance review' : selectedQuestion.needsAttention ? 'Review signal open' : 'No blocking signal'}</h4><p>{selectedQuestion.timesAnswered.toLocaleString()} answers · {selectedQuestion.accuracyPercent == null ? 'no accuracy yet' : `${selectedQuestion.accuracyPercent}% correct`}</p><small>{selectedQuestion.integrityState} · {selectedQuestion.isActive ? 'active' : 'inactive'} · {selectedQuestion.isPublic ? 'public' : 'private'}</small></section>
                 <section><span>Record identity</span><code>{selectedQuestion.id}</code>{selectedQuestion.externalId ? <code>{selectedQuestion.externalId}</code> : null}<p>Created {formatDate(selectedQuestion.createdAt)}</p><button type="button" onClick={() => void copyQuestionId(selectedQuestion.id)}>Copy question ID</button></section>
               </aside>
             </div>
