@@ -931,7 +931,7 @@ grant execute on function public.student_learning_ingest_assignment_result(
 comment on function public.student_learning_ingest_assignment_result(
   uuid, uuid, timestamptz, integer, integer
 ) is
-  'Compatibility adapter routed to strict, grade-eligible, hash-bound Brain Heist Verified diagnostic evidence; caller-supplied aggregate scores are not evidence.';
+  'Compatibility adapter routed to strict, grade-eligible, hash-bound Brains Heist Verified diagnostic evidence; caller-supplied aggregate scores are not evidence.';
 
 drop trigger if exists trg_zzz_capture_verified_assignment_diagnostic_evidence
   on public.student_assignment_results;
@@ -940,7 +940,7 @@ after insert or update on public.student_assignment_results
 for each row execute function private.capture_verified_assignment_diagnostic_evidence();
 
 comment on table public.student_learning_item_evidence is
-  'Append-only answer ledger produced only from immutable Brain Heist Verified assignment snapshots, current verified hashes, grade eligibility, active school scope, and approved objective mappings.';
+  'Append-only answer ledger produced only from immutable Brains Heist Verified assignment snapshots, current verified hashes, grade eligibility, active school scope, and approved objective mappings.';
 
 -- ---------------------------------------------------------------------------
 -- 3. Final-review-only Writing Hub authority

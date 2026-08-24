@@ -22,7 +22,7 @@ create table public.verified_question_governance_events (
 );
 
 comment on table public.verified_question_governance_events is
-  'Append-only, hash-bound governance history for retiring or re-verifying immutable Brain Heist questions.';
+  'Append-only, hash-bound governance history for retiring or re-verifying immutable Brains Heist questions.';
 
 create index verified_question_governance_events_question_time_idx
   on public.verified_question_governance_events(question_id, occurred_at desc);

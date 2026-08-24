@@ -1,6 +1,6 @@
 -- The official Academic Profile is an attainment surface, not a copy of raw
 -- classroom result totals. Recompute each result from answer rows that still
--- resolve to the immutable Brain Heist Verified snapshot and current verified
+-- resolve to the immutable Brains Heist Verified snapshot and current verified
 -- hash. Targeted intervention practice remains visible in its own workspace
 -- but cannot inflate or depress official attainment.
 
@@ -83,7 +83,7 @@ revoke all on private.student_verified_assignment_summaries
   from public, anon, authenticated, service_role;
 
 comment on view private.student_verified_assignment_summaries is
-  'Fail-closed official assignment totals recomputed only from current, hash-bound Brain Heist Verified answer snapshots; targeted practice is excluded.';
+  'Fail-closed official assignment totals recomputed only from current, hash-bound Brains Heist Verified answer snapshots; targeted practice is excluded.';
 
 -- Create the assignment and its non-independent-practice provenance in one
 -- database transaction. If any authorization, audience, question, or
@@ -545,7 +545,7 @@ grant execute on function public.rpc_student_academic_profile(
 comment on function public.rpc_student_academic_profile(
   uuid, text, timestamptz, timestamptz
 ) is
-  'Official student profile: assignment totals are recomputed from Brain Heist Verified items; timeline evidence is authority-qualified; automated Writing Hub analysis and targeted practice are excluded.';
+  'Official student profile: assignment totals are recomputed from Brains Heist Verified items; timeline evidence is authority-qualified; automated Writing Hub analysis and targeted practice are excluded.';
 
 -- Recommendation counts must use the same content authority as the practice
 -- workspace. Teacher-authored questions remain available for deliberate
