@@ -1,12 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  getWritingAssessmentReviewContext,
   getTeacherAttemptListScoped,
   getTeacherMonitoringOverviewScoped,
   getTeacherWritingReport,
   getWritingMonitoringOverview,
   saveTeacherReportScoped,
+  submitWritingAssessmentReview,
   type TeacherWritingAttemptRecord,
   type TeacherWritingReport,
+  type WritingAssessmentCriterionScores,
+  type WritingAssessmentReviewContext,
   type WritingMonitoringOverview,
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
@@ -27,6 +31,11 @@ type CollapseKey = 'overview' | 'classes' | 'students' | 'genres' | 'reader';
 type SupportedMonitorGenre = 'email' | 'article' | 'review' | 'story' | 'essay' | 'report' | 'paragraph';
 type FlipDirection = 'forward' | 'backward';
 type InputChangeEvent = { target: { value: string } };
+type CurrentValueChangeEvent = { currentTarget: { value: string } };
+type CurrentCheckedChangeEvent = { currentTarget: { checked: boolean } };
+type ReviewSaveState = 'idle' | 'dirty' | 'saving-draft' | 'saving-final' | 'draft-saved' | 'final-saved';
+
+type WritingCriterionKey = keyof WritingAssessmentCriterionScores;
 
 interface ClassGroup {
   key: string;
@@ -44,6 +53,29 @@ interface WritingCorrection {
   correct: string;
   explanation: string;
 }
+
+interface WritingRubricRow {
+  key: WritingCriterionKey;
+  label: string;
+  score: number | null;
+  note: string;
+  evidence: string[];
+}
+
+const REVIEW_CRITERIA: ReadonlyArray<{ key: WritingCriterionKey; label: string; description: string }> = [
+  { key: 'content', label: 'Content', description: 'Task coverage and idea development' },
+  { key: 'communicative_achievement', label: 'Communicative Achievement', description: 'Purpose, audience, register and genre control' },
+  { key: 'organisation', label: 'Organisation', description: 'Structure, cohesion and sequencing' },
+  { key: 'language', label: 'Language', description: 'Range, accuracy and clarity' },
+];
+
+const REVIEW_SCORE_OPTIONS = [0, 1, 2, 3, 4, 5] as const;
+const EMPTY_REVIEW_SCORES: WritingAssessmentCriterionScores = {
+  content: 0,
+  communicative_achievement: 0,
+  organisation: 0,
+  language: 0,
+};
 
 const SUPPORTED_GENRES: readonly SupportedMonitorGenre[] = [
   'email',
@@ -203,20 +235,34 @@ const extractCorrections = (attempt: TeacherWritingAttemptRecord): WritingCorrec
   ];
 };
 
-const getRubricRows = (attempt: TeacherWritingAttemptRecord): Array<{ label: string; score: number | null; note: string }> => {
+const getRubricRows = (attempt: TeacherWritingAttemptRecord): WritingRubricRow[] => {
   const subscores = (attempt.assessment?.['subscores'] ?? {}) as Record<string, unknown>;
   const notes = (attempt.assessment?.['band_justification'] ?? {}) as Record<string, unknown>;
-  const keys = [
-    ['Content', 'content'],
-    ['Communicative Achievement', 'communicative_achievement'],
-    ['Organization', 'organisation'],
-    ['Language', 'language'],
-  ] as const;
-  return keys.map(([label, key]) => ({
-    label,
-    score: typeof subscores[key] === 'number' ? (subscores[key] as number) : null,
-    note: typeof notes[key] === 'string' ? (notes[key] as string) : '',
-  }));
+  const criteria = (attempt.assessment?.['criteria'] ?? {}) as Record<string, unknown>;
+  return REVIEW_CRITERIA.map(({ label, key }) => {
+    const criterion = criteria[key] && typeof criteria[key] === 'object' && !Array.isArray(criteria[key])
+      ? criteria[key] as Record<string, unknown>
+      : {};
+    const criterionScore = criterion['score'];
+    const evidence = Array.isArray(criterion['evidence'])
+      ? criterion['evidence'].flatMap((item) => {
+        if (!item || typeof item !== 'object' || Array.isArray(item)) return [];
+        const quote = (item as Record<string, unknown>)['quote'];
+        return typeof quote === 'string' && quote.trim() ? [quote.trim()] : [];
+      }).slice(0, 2)
+      : [];
+    return {
+      key,
+      label,
+      score: typeof criterionScore === 'number'
+        ? criterionScore
+        : typeof subscores[key] === 'number' ? subscores[key] as number : null,
+      note: typeof criterion['justification'] === 'string'
+        ? criterion['justification'] as string
+        : typeof notes[key] === 'string' ? notes[key] as string : '',
+      evidence,
+    };
+  });
 };
 
 const getIntegritySummary = (attempt: TeacherWritingAttemptRecord) => {
@@ -263,6 +309,260 @@ const CollapsibleHeading: React.FC<{
   </header>
 );
 
+const WritingAssessmentValidationPanel: React.FC<{
+  context: WritingAssessmentReviewContext | null;
+  isLoading: boolean;
+  error: string;
+  rubricRows: WritingRubricRow[];
+  scores: WritingAssessmentCriterionScores;
+  rationale: string;
+  saveState: ReviewSaveState;
+  statusMessage: string;
+  teacherConfirmed: boolean;
+  finalizeConfirming: boolean;
+  onScoreChange: (key: WritingCriterionKey, score: number) => void;
+  onRationaleChange: (value: string) => void;
+  onTeacherConfirmedChange: (confirmed: boolean) => void;
+  onSaveDraft: () => void;
+  onRequestFinalize: () => void;
+  onCancelFinalize: () => void;
+  onConfirmFinalize: () => void;
+  onRetry: () => void;
+}> = ({
+  context,
+  isLoading,
+  error,
+  rubricRows,
+  scores,
+  rationale,
+  saveState,
+  statusMessage,
+  teacherConfirmed,
+  finalizeConfirming,
+  onScoreChange,
+  onRationaleChange,
+  onTeacherConfirmedChange,
+  onSaveDraft,
+  onRequestFinalize,
+  onCancelFinalize,
+  onConfirmFinalize,
+  onRetry,
+}) => {
+  const finalReview = context?.final_review ?? null;
+  const isFinal = Boolean(finalReview);
+  const isSaving = saveState === 'saving-draft' || saveState === 'saving-final';
+  const totalScore = Object.values(scores).reduce((sum, score) => sum + score, 0);
+  const rationaleReady = rationale.trim().length >= 12 && rationale.trim().length <= 500;
+  const canPrepareFinal = Boolean(context) && !isFinal && !isSaving && teacherConfirmed && rationaleReady;
+  const statusLabel = isFinal
+    ? `Teacher validated · ${finalReview?.total_score ?? totalScore}/20`
+    : saveState === 'dirty'
+      ? 'Unsaved teacher changes'
+    : context?.latest_draft
+      ? 'Teacher draft saved'
+      : context ? 'Awaiting teacher validation' : 'Validation unavailable';
+
+  return (
+    <section className="writing-monitor__validation" aria-labelledby="writing-validation-title">
+      <header className="writing-monitor__validation-header">
+        <div>
+          <span className="writing-monitor__validation-eyebrow">Human assessment authority</span>
+          <h3 id="writing-validation-title">Validate this writing assessment</h3>
+          <p>Use the AI evidence as a reference, then independently confirm every score against the student’s response.</p>
+        </div>
+        <span className={`writing-monitor__validation-status${isFinal ? ' is-final' : context?.latest_draft ? ' is-draft' : ''}`}>
+          {statusLabel}
+        </span>
+      </header>
+
+      {isLoading ? (
+        <div className="writing-monitor__validation-loading" role="status">
+          <span aria-hidden="true" /> Loading the secure teacher review…
+        </div>
+      ) : error ? (
+        <div className="writing-monitor__validation-unavailable" role="alert">
+          <div>
+            <strong>Validation workspace could not be loaded</strong>
+            <p>{error}</p>
+          </div>
+          <button type="button" className="writing-monitor__secondary-button" onClick={onRetry}>Try again</button>
+        </div>
+      ) : !context ? (
+        <div className="writing-monitor__validation-unavailable">
+          <div>
+            <strong>No reviewable assessment is linked to this submission</strong>
+            <p>No Academic Profile evidence will be created from this submission until a persisted assessment is available.</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="writing-monitor__validation-grid">
+            <aside className="writing-monitor__ai-evidence" aria-label="AI rubric evidence">
+              <div className="writing-monitor__validation-column-title">
+                <span aria-hidden="true">AI</span>
+                <div>
+                  <strong>AI rubric evidence</strong>
+                  <small>{context.assessment_status.replace(/_/g, ' ')} · reference only · {context.automated_total_score}/20</small>
+                </div>
+              </div>
+              <p className="writing-monitor__ai-disclaimer">
+                These estimates are not teacher-approved and do not become authoritative by being displayed here.
+              </p>
+              <div className="writing-monitor__ai-criterion-list">
+                {REVIEW_CRITERIA.map((criterion) => {
+                  const rubric = rubricRows.find((row) => row.key === criterion.key);
+                  return (
+                    <article key={criterion.key}>
+                      <header>
+                        <strong>{criterion.label}</strong>
+                        <span>{context.automated_scores[criterion.key]}/5 AI</span>
+                      </header>
+                      {rubric?.note ? <p>{rubric.note}</p> : <p>No AI justification was saved for this criterion.</p>}
+                      {rubric?.evidence.length ? (
+                        <blockquote>“{rubric.evidence[0]}”</blockquote>
+                      ) : null}
+                    </article>
+                  );
+                })}
+              </div>
+            </aside>
+
+            <div className="writing-monitor__teacher-validation" aria-label="Teacher validation form">
+              <div className="writing-monitor__validation-column-title">
+                <span aria-hidden="true">✓</span>
+                <div>
+                  <strong>Teacher-confirmed judgement</strong>
+                  <small>{isFinal ? 'Final record · locked' : 'Editable scores · integer bands from 0 to 5'}</small>
+                </div>
+              </div>
+
+              <fieldset disabled={isFinal || isSaving}>
+                <legend>Criterion scores</legend>
+                <div className="writing-monitor__score-editor">
+                  {REVIEW_CRITERIA.map((criterion) => (
+                    <label key={criterion.key} htmlFor={`writing-review-${criterion.key}`}>
+                      <span>
+                        <strong>{criterion.label}</strong>
+                        <small>{criterion.description}</small>
+                      </span>
+                      <select
+                        id={`writing-review-${criterion.key}`}
+                        value={scores[criterion.key]}
+                        onChange={(event: CurrentValueChangeEvent) => {
+                          onScoreChange(criterion.key, Number(event.currentTarget.value));
+                        }}
+                        aria-label={`${criterion.label} teacher score out of 5`}
+                      >
+                        {REVIEW_SCORE_OPTIONS.map((score) => <option key={score} value={score}>{score} / 5</option>)}
+                      </select>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <div className="writing-monitor__teacher-total" aria-live="polite">
+                <span>Teacher total</span>
+                <strong>{totalScore}<small>/20</small></strong>
+              </div>
+
+              <label className="writing-monitor__rationale" htmlFor="writing-review-rationale">
+                <span>
+                  <strong>Professional rationale</strong>
+                  <small>Required for final validation · minimum 12 characters</small>
+                </span>
+                <textarea
+                  id="writing-review-rationale"
+                  value={rationale}
+                  maxLength={500}
+                  disabled={isFinal || isSaving}
+                  onChange={(event: CurrentValueChangeEvent) => onRationaleChange(event.currentTarget.value)}
+                  placeholder="Explain the evidence that supports your confirmed scores, including any change from the AI estimate."
+                />
+                <small>{rationale.length}/500</small>
+              </label>
+
+              {isFinal ? (
+                <div className="writing-monitor__final-lock" role="status">
+                  <span aria-hidden="true">✓</span>
+                  <div>
+                    <strong>Teacher validation finalized</strong>
+                    <p>This immutable record now supplies the trusted writing evidence used by the student’s Academic Profile.</p>
+                    {finalReview?.created_at ? <small>Finalized {formatDate(finalReview.created_at)}</small> : null}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <label className="writing-monitor__human-confirmation">
+                    <input
+                      type="checkbox"
+                      checked={teacherConfirmed}
+                      disabled={isSaving}
+                      onChange={(event: CurrentCheckedChangeEvent) => onTeacherConfirmedChange(event.currentTarget.checked)}
+                    />
+                    <span>
+                      <strong>I personally checked the response and all four scores.</strong>
+                      <small>Checking this box confirms human review; it does not finalize the record by itself.</small>
+                    </span>
+                  </label>
+
+                  <div className="writing-monitor__authority-warning">
+                    <strong>Final means permanent.</strong>
+                    <span>Final validation creates the only authoritative writing evidence used by the Academic Profile. AI scores and saved drafts never do.</span>
+                  </div>
+
+                  <div className="writing-monitor__validation-actions">
+                    <button
+                      type="button"
+                      className="writing-monitor__secondary-button"
+                      disabled={isSaving}
+                      onClick={onSaveDraft}
+                    >
+                      {saveState === 'saving-draft' ? 'Saving draft…' : 'Save draft'}
+                    </button>
+                    <button
+                      type="button"
+                      className="writing-monitor__primary-button"
+                      disabled={!canPrepareFinal}
+                      onClick={onRequestFinalize}
+                    >
+                      Finalize validation
+                    </button>
+                  </div>
+
+                  {!rationaleReady && teacherConfirmed ? (
+                    <small className="writing-monitor__validation-hint">Add a short evidence-based rationale before finalizing.</small>
+                  ) : null}
+
+                  {finalizeConfirming ? (
+                    <div className="writing-monitor__final-confirmation" role="alert">
+                      <div>
+                        <strong>Final authority check</strong>
+                        <p>You are about to lock {totalScore}/20 as the teacher-confirmed result and send it to the Academic Profile.</p>
+                      </div>
+                      <div>
+                        <button type="button" className="writing-monitor__secondary-button" disabled={isSaving} onClick={onCancelFinalize}>Cancel</button>
+                        <button type="button" className="writing-monitor__primary-button" disabled={isSaving} onClick={onConfirmFinalize}>
+                          {saveState === 'saving-final' ? 'Finalizing…' : 'Confirm & finalize'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              )}
+
+              {statusMessage ? (
+                <div className={`writing-monitor__review-message${saveState === 'final-saved' ? ' is-final' : ''}`} role="status" aria-live="polite">
+                  {statusMessage}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </>
+      )}
+    </section>
+  );
+};
+
 export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   month = new Date().toISOString().slice(0, 7),
   isLoading = false,
@@ -291,7 +591,20 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [feedbackDraft, setFeedbackDraft] = useState('');
   const [feedbackStatus, setFeedbackStatus] = useState('');
+  const [reviewContext, setReviewContext] = useState<WritingAssessmentReviewContext | null>(null);
+  const [reviewContextLoading, setReviewContextLoading] = useState(false);
+  const [reviewContextError, setReviewContextError] = useState('');
+  const [reviewScores, setReviewScores] = useState<WritingAssessmentCriterionScores>(EMPTY_REVIEW_SCORES);
+  const [reviewRationale, setReviewRationale] = useState('');
+  const [reviewSaveState, setReviewSaveState] = useState<ReviewSaveState>('idle');
+  const [reviewStatusMessage, setReviewStatusMessage] = useState('');
+  const [reviewTeacherConfirmed, setReviewTeacherConfirmed] = useState(false);
+  const [reviewFinalizeConfirming, setReviewFinalizeConfirming] = useState(false);
   const studentRequestRef = useRef(0);
+  const reviewRequestRef = useRef(0);
+  const reviewSaveRequestRef = useRef(0);
+  const activeAttemptKeyRef = useRef('');
+  const reviewAssessmentIdRef = useRef('');
 
   const filters = parseAdminDrilldownFilters(filterQuery);
 
@@ -391,6 +704,9 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     [attemptRows, selectedGenre]
   );
   const activeAttempt = genreAttempts[attemptIndex] ?? null;
+  const activeAttemptKey = activeAttempt?.attempt_id?.trim() || activeAttempt?.row_id?.trim() || '';
+  activeAttemptKeyRef.current = activeAttemptKey;
+  reviewAssessmentIdRef.current = reviewContext?.assessment_id ?? '';
 
   const totalSubmissions = filteredRows.reduce((sum, row) => sum + getSubmissionCount(row), 0);
   const allTimeSubmissions = filteredRows.reduce((sum, row) => sum + getAllTimeSubmissionCount(row), 0);
@@ -414,6 +730,10 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
       return next;
     });
   };
+
+  const invalidatePendingReviewSave = useCallback((): void => {
+    reviewSaveRequestRef.current = (reviewSaveRequestRef.current ?? 0) + 1;
+  }, []);
 
   const refreshOverview = useCallback(async (): Promise<void> => {
     if (isTestRuntime) return;
@@ -457,15 +777,61 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     setAttemptIndex(Math.max(0, genreAttempts.length - 1));
   }, [attemptIndex, genreAttempts.length]);
 
+  const loadAssessmentReviewContext = useCallback(async (): Promise<void> => {
+    invalidatePendingReviewSave();
+    const requestId = (reviewRequestRef.current ?? 0) + 1;
+    reviewRequestRef.current = requestId;
+    setReviewContext(null);
+    setReviewContextError('');
+    setReviewStatusMessage('');
+    setReviewSaveState('idle');
+    setReviewTeacherConfirmed(false);
+    setReviewFinalizeConfirming(false);
+    setReviewRationale('');
+    setReviewScores(EMPTY_REVIEW_SCORES);
+
+    if (!activeAttemptKey || activeAttempt?.attempt_status !== 'submitted' || isTestRuntime) {
+      setReviewContextLoading(false);
+      return;
+    }
+
+    setReviewContextLoading(true);
+    const result = await getWritingAssessmentReviewContext(activeAttemptKey);
+    if (reviewRequestRef.current !== requestId) return;
+    setReviewContextLoading(false);
+
+    if (!result.ok) {
+      console.warn('[WritingMonitoringView] Teacher review context unavailable', result.error);
+      setReviewContextError('Your secure review details are temporarily unavailable. No scores were changed.');
+      return;
+    }
+    if (!result.data) return;
+
+    const savedReview = result.data.final_review ?? result.data.latest_draft;
+    setReviewContext(result.data);
+    setReviewScores(savedReview?.criterion_scores ?? result.data.automated_scores);
+    setReviewRationale(savedReview?.rationale ?? '');
+    setReviewTeacherConfirmed(Boolean(result.data.final_review));
+    setReviewSaveState(result.data.final_review ? 'final-saved' : result.data.latest_draft ? 'draft-saved' : 'idle');
+  }, [activeAttempt?.attempt_status, activeAttemptKey, invalidatePendingReviewSave, isTestRuntime]);
+
+  useEffect(() => {
+    void loadAssessmentReviewContext();
+  }, [loadAssessmentReviewContext]);
+
   useEffect(() => {
     if (!selectedGenre || genreAttempts.length < 2 || collapsed.has('reader')) return;
     const onKeyDown = (event: KeyboardEvent): void => {
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      if (target?.closest('input, textarea, select, button, [contenteditable="true"]')) return;
       if (event.key === 'ArrowRight' && attemptIndex < genreAttempts.length - 1) {
+        invalidatePendingReviewSave();
         setFlipDirection('forward');
         setAttemptIndex((index) => index + 1);
         setFlipSequence((sequence) => sequence + 1);
       }
       if (event.key === 'ArrowLeft' && attemptIndex > 0) {
+        invalidatePendingReviewSave();
         setFlipDirection('backward');
         setAttemptIndex((index) => index - 1);
         setFlipSequence((sequence) => sequence + 1);
@@ -473,9 +839,10 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [attemptIndex, collapsed, genreAttempts.length, selectedGenre]);
+  }, [attemptIndex, collapsed, genreAttempts.length, invalidatePendingReviewSave, selectedGenre]);
 
   const selectClass = (group: ClassGroup): void => {
+    invalidatePendingReviewSave();
     studentRequestRef.current = (studentRequestRef.current ?? 0) + 1;
     setSelectedClassKey(group.key);
     setSelectedStudentId('');
@@ -493,6 +860,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   };
 
   const selectStudent = async (row: MonitoringRow): Promise<void> => {
+    invalidatePendingReviewSave();
     const requestId = (studentRequestRef.current ?? 0) + 1;
     studentRequestRef.current = requestId;
     setSelectedStudentId(row.student_id);
@@ -540,6 +908,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   };
 
   const selectGenre = (genre: string): void => {
+    invalidatePendingReviewSave();
     setSelectedGenre(genre);
     setAttemptIndex(0);
     setFlipDirection('forward');
@@ -555,6 +924,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
   const turnPage = (direction: FlipDirection): void => {
     if (direction === 'forward' && attemptIndex >= genreAttempts.length - 1) return;
     if (direction === 'backward' && attemptIndex <= 0) return;
+    invalidatePendingReviewSave();
     setFlipDirection(direction);
     setAttemptIndex((index) => index + (direction === 'forward' ? 1 : -1));
     setFlipSequence((sequence) => sequence + 1);
@@ -591,7 +961,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     });
     setFeedbackStatus(
       result.ok
-        ? status === 'final' ? 'Feedback finalized and saved.' : 'Draft saved securely.'
+        ? status === 'final' ? 'Feedback published and saved.' : 'Draft saved securely.'
         : result.error ?? 'Unable to save feedback.'
     );
   };
@@ -604,6 +974,87 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     } catch {
       setFeedbackStatus('Copy failed. Select the text and copy manually.');
     }
+  };
+
+  const updateReviewScore = (key: WritingCriterionKey, score: number): void => {
+    if (!Number.isInteger(score) || score < 0 || score > 5 || reviewContext?.final_review) return;
+    setReviewScores((current) => ({ ...current, [key]: score }));
+    setReviewSaveState('dirty');
+    setReviewStatusMessage('');
+    setReviewFinalizeConfirming(false);
+  };
+
+  const updateReviewRationale = (value: string): void => {
+    if (reviewContext?.final_review) return;
+    setReviewRationale(value.slice(0, 500));
+    setReviewSaveState('dirty');
+    setReviewStatusMessage('');
+    setReviewFinalizeConfirming(false);
+  };
+
+  const saveAssessmentReview = async (isFinal: boolean): Promise<void> => {
+    if (!reviewContext || reviewContext.final_review) return;
+    const normalizedRationale = reviewRationale.trim().slice(0, 500);
+    if (isFinal && (
+      !reviewTeacherConfirmed
+      || normalizedRationale.length < 12
+      || normalizedRationale.length > 500
+    )) {
+      setReviewStatusMessage('Confirm your human review and add an evidence-based rationale before finalizing.');
+      return;
+    }
+
+    const saveRequestId = (reviewSaveRequestRef.current ?? 0) + 1;
+    reviewSaveRequestRef.current = saveRequestId;
+    const savedAssessmentId = reviewContext.assessment_id;
+    const savedAttemptKey = activeAttemptKey;
+    setReviewSaveState(isFinal ? 'saving-final' : 'saving-draft');
+    setReviewStatusMessage(isFinal ? 'Creating the final teacher authority record…' : 'Saving the teacher review draft…');
+    const result = await submitWritingAssessmentReview({
+      assessment_id: reviewContext.assessment_id,
+      criterion_scores: reviewScores,
+      rationale: normalizedRationale,
+      is_final: isFinal,
+    });
+
+    if (
+      reviewSaveRequestRef.current !== saveRequestId
+      || activeAttemptKeyRef.current !== savedAttemptKey
+      || reviewAssessmentIdRef.current !== savedAssessmentId
+    ) return;
+
+    if (!result.ok || !result.data) {
+      console.warn('[WritingMonitoringView] Teacher assessment review save failed', result.error);
+      setReviewSaveState(reviewContext.latest_draft ? 'draft-saved' : 'dirty');
+      setReviewStatusMessage('The review could not be saved. No Academic Profile evidence was changed. Please try again.');
+      return;
+    }
+
+    const savedAt = new Date().toISOString();
+    const savedReview = {
+      review_id: result.data.review_id,
+      review_status: result.data.review_status,
+      criterion_scores: result.data.criterion_scores,
+      total_score: result.data.total_score,
+      rationale: normalizedRationale || null,
+      created_at: savedAt,
+    } as const;
+
+    setReviewContext((current) => {
+      if (!current || current.assessment_id !== result.data?.assessment_id) return current;
+      return isFinal
+        ? { ...current, final_review: savedReview }
+        : { ...current, latest_draft: savedReview };
+    });
+    setReviewScores(result.data.criterion_scores);
+    setReviewSaveState(isFinal ? 'final-saved' : 'draft-saved');
+    setReviewFinalizeConfirming(false);
+    setReviewStatusMessage(
+      isFinal
+        ? 'Validation finalized. These teacher-confirmed scores now feed the student’s Academic Profile.'
+        : 'Draft saved. It remains editable and does not affect the Academic Profile.'
+    );
+    if (isFinal) void refreshOverview();
   };
 
   if (isLoading) {
@@ -923,6 +1374,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                         key={attempt.attempt_id || attempt.row_id}
                         className={index === attemptIndex ? 'is-active' : ''}
                         onClick={() => {
+                          invalidatePendingReviewSave();
                           setFlipDirection(index > attemptIndex ? 'forward' : 'backward');
                           setAttemptIndex(index);
                           setFlipSequence((sequence) => sequence + 1);
@@ -971,14 +1423,14 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
 
                     <section className="writing-monitor__book-page writing-monitor__book-page--feedback">
                       <header>
-                        <span>Teacher review</span>
+                        <span>AI assessment · review reference</span>
                         <strong>{formatScoreLabel(extractAttemptScore(activeAttempt))}</strong>
                       </header>
-                      <div className="writing-monitor__book-page-number">Feedback &amp; next steps</div>
-                      <h3>Feedback summary</h3>
+                      <div className="writing-monitor__book-page-number">Automated feedback &amp; next steps</div>
+                      <h3>AI feedback summary</h3>
                       <p className="writing-monitor__feedback-copy">{extractAttemptFeedbackText(activeAttempt)}</p>
 
-                      <h3>Rubric snapshot</h3>
+                      <h3>AI rubric snapshot</h3>
                       <div className="writing-monitor__rubric">
                         {readerRubric.map((row) => (
                           <div key={row.label}>
@@ -1017,6 +1469,31 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                   </div>
                 </article>
 
+                <WritingAssessmentValidationPanel
+                  context={reviewContext}
+                  isLoading={reviewContextLoading}
+                  error={reviewContextError}
+                  rubricRows={readerRubric}
+                  scores={reviewScores}
+                  rationale={reviewRationale}
+                  saveState={reviewSaveState}
+                  statusMessage={reviewStatusMessage}
+                  teacherConfirmed={reviewTeacherConfirmed}
+                  finalizeConfirming={reviewFinalizeConfirming}
+                  onScoreChange={updateReviewScore}
+                  onRationaleChange={updateReviewRationale}
+                  onTeacherConfirmedChange={(confirmed) => {
+                    setReviewTeacherConfirmed(confirmed);
+                    setReviewStatusMessage('');
+                    if (!confirmed) setReviewFinalizeConfirming(false);
+                  }}
+                  onSaveDraft={() => void saveAssessmentReview(false)}
+                  onRequestFinalize={() => setReviewFinalizeConfirming(true)}
+                  onCancelFinalize={() => setReviewFinalizeConfirming(false)}
+                  onConfirmFinalize={() => void saveAssessmentReview(true)}
+                  onRetry={() => void loadAssessmentReviewContext()}
+                />
+
                 <div className="writing-monitor__book-controls writing-monitor__book-controls--bottom">
                   <button type="button" onClick={() => turnPage('backward')} disabled={attemptIndex === 0}>
                     <span aria-hidden="true">←</span> Previous
@@ -1045,7 +1522,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
               <div>
                 <span className="writing-monitor__eyebrow">Teacher feedback</span>
                 <h2 id="writing-feedback-title">{toDisplayLabel(selectedRow.student_name, selectedRow.student_id)}</h2>
-                <p>Edit the suggested praise, growth target, and next step in your own voice.</p>
+                <p>Edit the suggested praise, growth target, and next step in your own voice. Publishing feedback does not validate rubric scores.</p>
               </div>
               <button type="button" onClick={() => setIsFeedbackOpen(false)} aria-label="Close feedback">×</button>
             </header>
@@ -1067,7 +1544,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                 Save draft
               </button>
               <button type="button" className="writing-monitor__primary-button" onClick={() => void saveFeedback('final')}>
-                Finalize feedback
+                Publish feedback
               </button>
             </footer>
           </section>

@@ -1,0 +1,314 @@
+.taxonomy-review {
+  --tr-bg: #070a14;
+  --tr-panel: rgba(15, 20, 38, 0.96);
+  --tr-border: rgba(148, 163, 184, 0.2);
+  --tr-text: #f8fafc;
+  --tr-muted: #94a3b8;
+  --tr-cyan: #67e8f9;
+  --tr-violet: #a78bfa;
+  --tr-green: #5ee7a2;
+  --tr-amber: #fbbf24;
+  --tr-rose: #fb7185;
+  color: var(--tr-text);
+  display: grid;
+  gap: 1.25rem;
+}
+
+.taxonomy-review button,
+.taxonomy-review input,
+.taxonomy-review select,
+.taxonomy-review textarea { font: inherit; }
+
+.taxonomy-review__hero {
+  align-items: center;
+  background:
+    radial-gradient(circle at 90% 8%, rgba(103, 232, 249, 0.14), transparent 30%),
+    radial-gradient(circle at 8% 90%, rgba(167, 139, 250, 0.18), transparent 34%),
+    linear-gradient(135deg, #111832, #080b18 72%);
+  border: 1px solid rgba(103, 232, 249, 0.28);
+  border-radius: 1.5rem;
+  box-shadow: 0 24px 70px rgba(2, 6, 23, 0.45);
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: clamp(1.4rem, 3vw, 2.25rem);
+  position: relative;
+}
+
+.taxonomy-review__hero::before {
+  background-image: linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.taxonomy-review__hero > * { position: relative; }
+.taxonomy-review__hero > div:first-child > span,
+.taxonomy-review__workspace-head > div > span,
+.taxonomy-review__modal header span {
+  color: var(--tr-cyan);
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.taxonomy-review__hero h2 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 950;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  margin: 0.55rem 0 0.85rem;
+}
+
+.taxonomy-review__hero p { color: #cbd5e1; line-height: 1.65; margin: 0; max-width: 49rem; }
+.taxonomy-review__hero-actions { align-items: stretch; display: grid; flex: 0 0 min(20rem, 36%); gap: 0.7rem; }
+.taxonomy-review__hero-actions > div {
+  background: rgba(2, 6, 23, 0.62);
+  border: 1px solid rgba(103, 232, 249, 0.25);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem;
+}
+.taxonomy-review__hero-actions strong { color: var(--tr-cyan); }
+.taxonomy-review__hero-actions small { color: var(--tr-muted); line-height: 1.4; }
+.taxonomy-review__hero-actions button,
+.taxonomy-review__workspace-head > button {
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid var(--tr-border);
+  border-radius: 0.8rem;
+  color: #e2e8f0;
+  cursor: pointer;
+  font-weight: 750;
+  padding: 0.8rem 1rem;
+}
+.taxonomy-review__hero-actions button:hover,
+.taxonomy-review__workspace-head > button:hover { border-color: var(--tr-cyan); color: white; }
+
+.taxonomy-review__metrics { display: grid; gap: 0.8rem; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.taxonomy-review__metrics article {
+  background: linear-gradient(145deg, rgba(19, 26, 48, 0.98), rgba(10, 14, 29, 0.98));
+  border: 1px solid var(--tr-border);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.35rem;
+  min-height: 7rem;
+  padding: 1rem;
+}
+.taxonomy-review__metrics span { color: var(--tr-muted); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.taxonomy-review__metrics strong { font-size: 2rem; line-height: 1; }
+.taxonomy-review__metrics .is-pending { border-color: rgba(251, 191, 36, 0.3); }
+.taxonomy-review__metrics .is-pending strong { color: var(--tr-amber); }
+.taxonomy-review__metrics .is-approved { border-color: rgba(94, 231, 162, 0.3); }
+.taxonomy-review__metrics .is-approved strong { color: var(--tr-green); }
+.taxonomy-review__metrics .is-returned strong { color: #c4b5fd; }
+.taxonomy-review__metrics .is-drift strong { color: #f0abfc; }
+.taxonomy-review__metrics .is-blocked strong { color: var(--tr-rose); }
+
+.taxonomy-review__workspace {
+  background: linear-gradient(160deg, rgba(15, 20, 38, 0.97), rgba(7, 10, 22, 0.97));
+  border: 1px solid var(--tr-border);
+  border-radius: 1.4rem;
+  overflow: hidden;
+}
+.taxonomy-review__workspace-head { align-items: center; border-bottom: 1px solid var(--tr-border); display: flex; justify-content: space-between; padding: 1.25rem; }
+.taxonomy-review__workspace-head h3 { font-size: 1.35rem; margin: 0.25rem 0; }
+.taxonomy-review__workspace-head p { color: var(--tr-muted); margin: 0; }
+
+.taxonomy-review__filters {
+  align-items: end;
+  background: rgba(2, 6, 23, 0.42);
+  border-bottom: 1px solid var(--tr-border);
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(16rem, 2fr) repeat(4, minmax(8rem, 1fr)) auto;
+  padding: 1rem 1.25rem;
+}
+.taxonomy-review__filters label { display: grid; gap: 0.35rem; }
+.taxonomy-review__filters label > span,
+.taxonomy-review__rationale > span,
+.taxonomy-review__replacement label > span { color: #cbd5e1; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.taxonomy-review__filters input,
+.taxonomy-review__filters select,
+.taxonomy-review__replacement input,
+.taxonomy-review__replacement select,
+.taxonomy-review__replacement textarea,
+.taxonomy-review__rationale textarea {
+  background: rgba(15, 23, 42, 0.94);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 0.7rem;
+  color: var(--tr-text);
+  min-width: 0;
+  outline: none;
+  padding: 0.72rem 0.8rem;
+}
+.taxonomy-review__filters input:focus,
+.taxonomy-review__filters select:focus,
+.taxonomy-review__replacement input:focus,
+.taxonomy-review__replacement select:focus,
+.taxonomy-review__replacement textarea:focus,
+.taxonomy-review__rationale textarea:focus { border-color: var(--tr-cyan); box-shadow: 0 0 0 3px rgba(103, 232, 249, 0.1); }
+.taxonomy-review__search > div { display: flex; }
+.taxonomy-review__search input { border-radius: 0.7rem 0 0 0.7rem; flex: 1; }
+.taxonomy-review__search button,
+.taxonomy-review__clear { background: rgba(103, 232, 249, 0.1); border: 1px solid rgba(103, 232, 249, 0.28); color: var(--tr-cyan); cursor: pointer; font-weight: 800; padding: 0.7rem 0.9rem; }
+.taxonomy-review__search button { border-radius: 0 0.7rem 0.7rem 0; }
+.taxonomy-review__clear { border-radius: 0.7rem; }
+
+.taxonomy-review__cards { display: grid; gap: 1rem; padding: 1.25rem; transition: opacity 0.2s ease; }
+.taxonomy-review__cards.is-refreshing { opacity: 0.48; pointer-events: none; }
+.taxonomy-review__card { background: rgba(9, 13, 27, 0.86); border: 1px solid var(--tr-border); border-radius: 1.1rem; contain-intrinsic-size: 0 720px; content-visibility: auto; overflow: hidden; }
+.taxonomy-review__card > header { align-items: center; background: rgba(15, 23, 42, 0.65); border-bottom: 1px solid var(--tr-border); display: flex; gap: 1rem; justify-content: space-between; padding: 0.9rem 1rem; }
+.taxonomy-review__identity { align-items: center; display: flex; flex-wrap: wrap; gap: 0.65rem; }
+.taxonomy-review__identity > strong { font-size: 0.85rem; }
+.taxonomy-review__identity code { color: var(--tr-muted); font-size: 0.7rem; }
+.taxonomy-review__status { border: 1px solid currentColor; border-radius: 999px; color: var(--tr-amber); font-size: 0.64rem; font-weight: 900; letter-spacing: 0.08em; padding: 0.3rem 0.55rem; text-transform: uppercase; }
+.taxonomy-review__status.is-approved { color: var(--tr-green); }
+.taxonomy-review__status.is-returned,
+.taxonomy-review__status.is-superseded { color: var(--tr-violet); }
+.taxonomy-review__status.is-retired { color: var(--tr-rose); }
+.taxonomy-review__signals { display: flex; flex-wrap: wrap; gap: 0.45rem; justify-content: flex-end; }
+.taxonomy-review__signals span { background: rgba(15, 23, 42, 0.9); border: 1px solid var(--tr-border); border-radius: 999px; color: #cbd5e1; font-size: 0.68rem; font-weight: 800; padding: 0.35rem 0.58rem; }
+.taxonomy-review__signals .is-low { border-color: rgba(251, 191, 36, 0.34); color: var(--tr-amber); }
+.taxonomy-review__signals .is-high { color: var(--tr-green); }
+.taxonomy-review__signals .is-blocked { color: var(--tr-rose); }
+.taxonomy-review__signals .is-drift { color: #f0abfc; }
+.taxonomy-review__signals .is-active { color: var(--tr-cyan); }
+
+.taxonomy-review__comparison { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.35fr); }
+.taxonomy-review__comparison > section { min-width: 0; padding: 1.2rem; }
+.taxonomy-review__source { border-right: 1px solid var(--tr-border); }
+.taxonomy-review__section-title { align-items: center; display: flex; gap: 0.7rem; margin-bottom: 1rem; }
+.taxonomy-review__section-title > span { align-items: center; background: rgba(103, 232, 249, 0.09); border: 1px solid rgba(103, 232, 249, 0.25); border-radius: 0.55rem; color: var(--tr-cyan); display: flex; font-size: 0.7rem; font-weight: 900; height: 2rem; justify-content: center; width: 2rem; }
+.taxonomy-review__section-title > div { display: grid; gap: 0.15rem; }
+.taxonomy-review__section-title strong { font-size: 0.9rem; }
+.taxonomy-review__section-title small { color: var(--tr-muted); }
+.taxonomy-review__source h4 { font-size: 1.05rem; line-height: 1.55; margin: 0 0 1rem; }
+.taxonomy-review__source ol { color: #cbd5e1; display: grid; gap: 0.45rem; line-height: 1.45; padding-left: 1.5rem; }
+.taxonomy-review__source figure { margin: 0 0 1rem; }
+.taxonomy-review__source img { border: 1px solid var(--tr-border); border-radius: 0.8rem; max-height: 18rem; max-width: 100%; object-fit: contain; }
+.taxonomy-review__source figcaption { color: var(--tr-muted); font-size: 0.72rem; margin-top: 0.35rem; }
+.taxonomy-review__answer { background: rgba(94, 231, 162, 0.06); border: 1px solid rgba(94, 231, 162, 0.2); border-radius: 0.8rem; display: grid; gap: 0.45rem; margin-top: 1rem; padding: 0.9rem; }
+.taxonomy-review__answer > span { color: var(--tr-green); font-size: 0.68rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+.taxonomy-review__answer p { color: #cbd5e1; line-height: 1.5; margin: 0.2rem 0 0; }
+.taxonomy-review__answer em { color: var(--tr-muted); }
+
+.taxonomy-review__proposal dl { display: grid; gap: 0.7rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
+.taxonomy-review__proposal dl > div { background: rgba(15, 23, 42, 0.62); border: 1px solid var(--tr-border); border-radius: 0.75rem; padding: 0.8rem; }
+.taxonomy-review__proposal dl > .is-wide { grid-column: 1 / -1; }
+.taxonomy-review__proposal dt { color: var(--tr-cyan); font-size: 0.64rem; font-weight: 850; letter-spacing: 0.08em; margin-bottom: 0.45rem; text-transform: uppercase; }
+.taxonomy-review__proposal dd { display: grid; gap: 0.35rem; margin: 0; min-width: 0; }
+.taxonomy-review__proposal dd strong { line-height: 1.35; }
+.taxonomy-review__proposal dd span { color: #cbd5e1; font-size: 0.82rem; line-height: 1.45; }
+.taxonomy-review__proposal dd code { color: var(--tr-muted); font-size: 0.67rem; overflow-wrap: anywhere; }
+.taxonomy-review__proposal .is-reason { border-color: rgba(251, 191, 36, 0.23); }
+.taxonomy-review__drift-note { background: rgba(240, 171, 252, 0.07); border: 1px solid rgba(240, 171, 252, 0.25); border-radius: 0.75rem; margin-bottom: 0.75rem; padding: 0.8rem; }
+.taxonomy-review__drift-note strong { color: #f0abfc; }
+.taxonomy-review__drift-note p { color: #cbd5e1; line-height: 1.45; margin: 0.3rem 0 0; }
+
+.taxonomy-review__history { border-top: 1px solid var(--tr-border); padding: 0.8rem 1rem; }
+.taxonomy-review__history summary { color: #c4b5fd; cursor: pointer; font-weight: 800; }
+.taxonomy-review__history > div { border-left: 2px solid rgba(167, 139, 250, 0.35); margin-top: 0.8rem; padding-left: 0.8rem; }
+.taxonomy-review__history p { color: #cbd5e1; margin: 0.25rem 0; }
+.taxonomy-review__history small { color: var(--tr-muted); }
+.taxonomy-review__actions,
+.taxonomy-review__final { align-items: center; background: rgba(2, 6, 23, 0.5); border-top: 1px solid var(--tr-border); display: flex; gap: 0.6rem; justify-content: flex-end; padding: 0.85rem 1rem; }
+.taxonomy-review__actions button { background: rgba(15, 23, 42, 0.9); border: 1px solid var(--tr-border); border-radius: 0.65rem; color: white; cursor: pointer; font-size: 0.76rem; font-weight: 850; padding: 0.65rem 0.8rem; }
+.taxonomy-review__actions button:disabled { cursor: not-allowed; opacity: 0.35; }
+.taxonomy-review__actions .is-approve { border-color: rgba(94, 231, 162, 0.45); color: var(--tr-green); }
+.taxonomy-review__actions .is-supersede { border-color: rgba(103, 232, 249, 0.45); color: var(--tr-cyan); }
+.taxonomy-review__actions .is-return { border-color: rgba(167, 139, 250, 0.45); color: #c4b5fd; }
+.taxonomy-review__actions .is-retire { border-color: rgba(251, 113, 133, 0.4); color: #fda4af; }
+.taxonomy-review__final { align-items: flex-start; flex-direction: column; }
+.taxonomy-review__final span { color: var(--tr-green); font-size: 0.68rem; font-weight: 900; text-transform: uppercase; }
+.taxonomy-review__final small { color: var(--tr-muted); }
+
+.taxonomy-review__pagination { align-items: center; border-top: 1px solid var(--tr-border); color: var(--tr-muted); display: flex; justify-content: space-between; padding: 1rem 1.25rem; }
+.taxonomy-review__pagination div { display: flex; gap: 0.5rem; }
+.taxonomy-review__pagination button,
+.taxonomy-review__error button,
+.taxonomy-review__empty button { background: rgba(15, 23, 42, 0.9); border: 1px solid var(--tr-border); border-radius: 0.65rem; color: #e2e8f0; cursor: pointer; font-weight: 750; padding: 0.6rem 0.8rem; }
+.taxonomy-review__pagination button:disabled { cursor: not-allowed; opacity: 0.35; }
+.taxonomy-review__error,
+.taxonomy-review__empty,
+.taxonomy-review__loading { align-items: center; display: flex; flex-direction: column; justify-content: center; min-height: 15rem; padding: 2rem; text-align: center; }
+.taxonomy-review__error { color: #fecdd3; }
+.taxonomy-review__error p,
+.taxonomy-review__empty p,
+.taxonomy-review__loading p { color: var(--tr-muted); }
+.taxonomy-review__empty > span { color: var(--tr-green); font-size: 2rem; }
+.taxonomy-review__loading { flex-direction: row; flex-wrap: wrap; gap: 0.45rem; }
+.taxonomy-review__loading span { animation: taxonomy-pulse 1s infinite alternate; background: var(--tr-cyan); border-radius: 50%; height: 0.45rem; width: 0.45rem; }
+.taxonomy-review__loading span:nth-child(2) { animation-delay: 0.2s; }
+.taxonomy-review__loading span:nth-child(3) { animation-delay: 0.4s; }
+.taxonomy-review__loading p { flex-basis: 100%; }
+
+.taxonomy-review__modal { align-items: center; background: rgba(2, 6, 23, 0.82); display: flex; inset: 0; justify-content: center; padding: 1rem; position: fixed; z-index: 1200; }
+.taxonomy-review__modal > form { background: #0b1020; border: 1px solid rgba(103, 232, 249, 0.28); border-radius: 1.1rem; box-shadow: 0 30px 100px rgba(0, 0, 0, 0.6); max-height: calc(100vh - 2rem); max-width: 58rem; overflow: auto; width: 100%; }
+.taxonomy-review__modal header { align-items: flex-start; background: linear-gradient(135deg, rgba(22, 31, 58, 0.98), rgba(9, 13, 27, 0.98)); border-bottom: 1px solid var(--tr-border); display: flex; justify-content: space-between; padding: 1.2rem; }
+.taxonomy-review__modal header h3 { font-size: 1.35rem; margin: 0.35rem 0; }
+.taxonomy-review__modal header p { color: #cbd5e1; line-height: 1.45; margin: 0; max-width: 43rem; }
+.taxonomy-review__modal header button { background: transparent; border: 0; color: var(--tr-muted); cursor: pointer; font-size: 1.75rem; line-height: 1; }
+.taxonomy-review__modal-body { display: grid; gap: 1rem; padding: 1.2rem; }
+.taxonomy-review__decision-context,
+.taxonomy-review__approval-note { background: rgba(15, 23, 42, 0.62); border: 1px solid var(--tr-border); border-radius: 0.8rem; display: grid; gap: 0.35rem; padding: 0.9rem; }
+.taxonomy-review__decision-context span { color: var(--tr-cyan); font-size: 0.68rem; font-weight: 850; text-transform: uppercase; }
+.taxonomy-review__decision-context small { color: var(--tr-muted); }
+.taxonomy-review__approval-note { border-color: rgba(94, 231, 162, 0.24); }
+.taxonomy-review__approval-note strong { color: var(--tr-green); }
+.taxonomy-review__approval-note p { color: #cbd5e1; line-height: 1.45; margin: 0; }
+.taxonomy-review__replacement { border: 1px solid rgba(103, 232, 249, 0.2); border-radius: 0.85rem; display: grid; gap: 0.75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; padding: 1rem; }
+.taxonomy-review__replacement legend { color: var(--tr-cyan); font-weight: 850; padding: 0 0.4rem; }
+.taxonomy-review__replacement label { display: grid; gap: 0.35rem; min-width: 0; }
+.taxonomy-review__replacement .is-wide { grid-column: 1 / -1; }
+.taxonomy-review__replacement textarea { min-height: 6rem; resize: vertical; }
+.taxonomy-review__replacement small,
+.taxonomy-review__rationale small { color: var(--tr-muted); }
+.taxonomy-review__rationale { display: grid; gap: 0.35rem; }
+.taxonomy-review__rationale textarea { min-height: 7rem; resize: vertical; }
+.taxonomy-review__modal > form > footer { border-top: 1px solid var(--tr-border); display: flex; gap: 0.65rem; justify-content: flex-end; padding: 1rem 1.2rem; }
+.taxonomy-review__modal > form > footer button { background: rgba(15, 23, 42, 0.9); border: 1px solid var(--tr-border); border-radius: 0.7rem; color: white; cursor: pointer; font-weight: 850; padding: 0.7rem 0.95rem; }
+.taxonomy-review__modal > form > footer .is-approve { border-color: rgba(94, 231, 162, 0.5); color: var(--tr-green); }
+.taxonomy-review__modal > form > footer .is-supersede { border-color: rgba(103, 232, 249, 0.5); color: var(--tr-cyan); }
+.taxonomy-review__modal > form > footer .is-return { border-color: rgba(167, 139, 250, 0.5); color: #c4b5fd; }
+.taxonomy-review__modal > form > footer .is-retire { border-color: rgba(251, 113, 133, 0.5); color: #fda4af; }
+
+@keyframes taxonomy-pulse { to { opacity: 0.2; transform: translateY(-0.2rem); } }
+
+@media (max-width: 1200px) {
+  .taxonomy-review__metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .taxonomy-review__filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .taxonomy-review__search { grid-column: span 2; }
+}
+
+@media (max-width: 850px) {
+  .taxonomy-review__hero { align-items: stretch; flex-direction: column; }
+  .taxonomy-review__hero-actions { flex-basis: auto; }
+  .taxonomy-review__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .taxonomy-review__filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .taxonomy-review__comparison { grid-template-columns: 1fr; }
+  .taxonomy-review__source { border-bottom: 1px solid var(--tr-border); border-right: 0; }
+  .taxonomy-review__actions { align-items: stretch; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+  .taxonomy-review__metrics,
+  .taxonomy-review__filters,
+  .taxonomy-review__proposal dl,
+  .taxonomy-review__replacement { grid-template-columns: 1fr; }
+  .taxonomy-review__search,
+  .taxonomy-review__replacement .is-wide { grid-column: auto; }
+  .taxonomy-review__workspace-head,
+  .taxonomy-review__card > header,
+  .taxonomy-review__pagination { align-items: stretch; flex-direction: column; gap: 0.8rem; }
+  .taxonomy-review__actions { grid-template-columns: 1fr; }
+  .taxonomy-review__signals { justify-content: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taxonomy-review__loading span { animation: none; }
+}
