@@ -53,7 +53,16 @@ const aggregateRecommendations = (recommendations: InterventionRecommendation[])
     const key = [item.subject, item.topic || '', item.skill].map((value) => value.trim().toLocaleLowerCase()).join('|');
     const existing = grouped.get(key);
     if (!existing) {
-      grouped.set(key, { ...item, diagnostic_targets: [...item.diagnostic_targets], evidence_examples: uniqueExamples(item.evidence_examples) });
+      grouped.set(key, {
+        ...item,
+        available_exact_questions: item.available_exact_questions || 0,
+        available_related_questions: item.available_related_questions || 0,
+        exact_question_ids: [...(item.exact_question_ids || [])],
+        related_question_ids: [...(item.related_question_ids || [])],
+        recommended_question_ids: [...(item.recommended_question_ids || [])],
+        diagnostic_targets: [...item.diagnostic_targets],
+        evidence_examples: uniqueExamples(item.evidence_examples),
+      });
       return;
     }
     const bestReadiness = readinessRank[item.readiness] > readinessRank[existing.readiness] ? item : existing;
@@ -71,6 +80,16 @@ const aggregateRecommendations = (recommendations: InterventionRecommendation[])
       evidence_items: Math.max(existing.evidence_items, item.evidence_items),
       focus_occurrences: Math.max(existing.focus_occurrences, item.focus_occurrences),
       available_questions: Math.max(existing.available_questions, item.available_questions),
+      available_exact_questions: Math.max(existing.available_exact_questions || 0, item.available_exact_questions || 0),
+      available_related_questions: Math.max(existing.available_related_questions || 0, item.available_related_questions || 0),
+      exact_question_ids: [...new Set([...(existing.exact_question_ids || []), ...(item.exact_question_ids || [])])],
+      related_question_ids: [...new Set([...(existing.related_question_ids || []), ...(item.related_question_ids || [])])],
+      recommended_question_ids: [...new Set([
+        ...(existing.exact_question_ids || []),
+        ...(item.exact_question_ids || []),
+        ...(existing.recommended_question_ids || []),
+        ...(item.recommended_question_ids || []),
+      ])].slice(0, 6),
       last_observed_at: new Date(existing.last_observed_at).getTime() >= new Date(item.last_observed_at).getTime() ? existing.last_observed_at : item.last_observed_at,
       confidence: (item.confidence?.score || 0) > (existing.confidence?.score || 0) ? item.confidence : existing.confidence,
       rationale: existing.rationale || item.rationale,

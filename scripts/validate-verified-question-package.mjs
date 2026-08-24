@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -8,8 +8,42 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPOSITORY_ROOT = path.resolve(__dirname, '..');
 const PACKAGES_ROOT = path.resolve(__dirname, '..', 'content', 'verified-question-packages');
 export const DEFAULT_PACKAGE_DIR = path.join(PACKAGES_ROOT, '2026-8-0');
+export const DEFAULT_CANONICAL_TAXONOMY_PATH = path.resolve(
+  REPOSITORY_ROOT,
+  'content',
+  'verified-question-taxonomy',
+  'bh-canonical-1.jsonl',
+);
 const VALID_DIFFICULTIES = new Set(['easy', 'medium', 'hard']);
 const VALID_TYPES = new Set(['multiple_choice', 'true_false', 'short_answer']);
+const CANONICAL_TAXONOMY_VERSION = 'bh-canonical-1';
+const CANONICAL_CODE_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)+$/;
+const ASSESSMENT_PROCESS_COGNITION = new Map([
+  ['AO1', new Set(['remember', 'understand'])],
+  ['AO2', new Set(['apply'])],
+  ['AO3', new Set(['analyze'])],
+  ['AO4', new Set(['evaluate'])],
+]);
+const TAXONOMY_REVIEW_STATUSES = new Set(['approved', 'in_review']);
+const REQUIRED_TAXONOMY_FIELDS = [
+  'taxonomyVersion',
+  'externalId',
+  'packageVersion',
+  'scopeCode',
+  'objectiveCode',
+  'primarySkillCode',
+  'primarySkillName',
+  'atomicSubskillCode',
+  'atomicSubskillName',
+  'assessmentProcessCode',
+  'cognitiveProcess',
+  'evidenceStatement',
+  'secondarySkillCodes',
+  'confidence',
+  'reviewStatus',
+  'humanReview',
+  'reviewReason',
+];
 const PACKAGE_EXPECTATIONS = new Map([
   ['brain-heist-g11-g12-core-2026-2', {
     curriculumVersion: '2026-2',
@@ -101,6 +135,174 @@ const PACKAGE_EXPECTATIONS = new Map([
 const readJson = (filePath) => JSON.parse(readFileSync(filePath, 'utf8'));
 const normalize = (value) => String(value ?? '').toLowerCase().replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/[^a-z0-9]+/g, ' ').trim();
 
+const packageDirectories = () => readdirSync(PACKAGES_ROOT, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => path.join(PACKAGES_ROOT, entry.name))
+  .filter((directory) => existsSync(path.join(directory, 'manifest.json')))
+  .sort();
+
+const isCanonicalCode = (value) => {
+  const code = String(value ?? '');
+  return CANONICAL_CODE_PATTERN.test(code)
+    && !/(?:^|[.-])(?:g(?:rade)?-?\d+|20\d{2})(?:[.-]|$)/.test(code);
+};
+
+export function loadCanonicalQuestionTaxonomy(
+  taxonomyPath = process.env.BH_VERIFIED_QUESTION_TAXONOMY_PATH || DEFAULT_CANONICAL_TAXONOMY_PATH,
+) {
+  if (!existsSync(taxonomyPath)) return { present: false, path: taxonomyPath, rows: [], errors: [] };
+
+  const rows = [];
+  const errors = [];
+  const externalIds = new Map();
+  const lines = readFileSync(taxonomyPath, 'utf8').split(/\r?\n/);
+  for (let index = 0; index < lines.length; index += 1) {
+    const source = lines[index].trim();
+    if (!source) continue;
+    let row;
+    try {
+      row = JSON.parse(source);
+    } catch (error) {
+      errors.push(`canonical taxonomy line ${index + 1} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`);
+      continue;
+    }
+    if (!row || typeof row !== 'object' || Array.isArray(row)) {
+      errors.push(`canonical taxonomy line ${index + 1} must contain one JSON object`);
+      continue;
+    }
+    const externalId = String(row.externalId ?? '');
+    if (externalIds.has(externalId)) {
+      errors.push(`canonical taxonomy line ${index + 1} repeats externalId ${externalId || 'missing'} from line ${externalIds.get(externalId)}`);
+    } else {
+      externalIds.set(externalId, index + 1);
+    }
+    rows.push({ ...row, __line: index + 1 });
+  }
+  return { present: true, path: taxonomyPath, rows, errors };
+}
+
+const validateCanonicalTaxonomyRow = (row, question, pkg) => {
+  const label = `canonical taxonomy line ${row.__line ?? '?'}:${row.externalId ?? 'missing-id'}`;
+  const errors = [];
+  for (const field of REQUIRED_TAXONOMY_FIELDS) {
+    if (!Object.hasOwn(row, field)) errors.push(`${label} is missing ${field}`);
+  }
+
+  const mapping = question.mappings?.[0];
+  const exactFields = [
+    ['externalId', question.externalId],
+    ['packageVersion', pkg.packageVersion],
+    ['scopeCode', mapping?.scopeCode],
+    ['objectiveCode', mapping?.objectiveCode],
+  ];
+  const optionalExactFields = [
+    ['packageId', pkg.packageId],
+    ['contentVersion', pkg.contentVersion],
+    ['frameworkCode', pkg.curriculum?.frameworkCode],
+    ['frameworkVersionCode', pkg.curriculum?.versionCode],
+    ['subjectCode', question.subjectCode],
+    ['grade', question.grade],
+  ];
+  for (const [field, expected] of exactFields) {
+    if (row[field] !== expected) errors.push(`${label} ${field} must exactly match ${String(expected)}`);
+  }
+  for (const [field, expected] of optionalExactFields) {
+    if (Object.hasOwn(row, field) && row[field] !== expected) errors.push(`${label} ${field} must exactly match ${String(expected)}`);
+  }
+
+  if (row.taxonomyVersion !== CANONICAL_TAXONOMY_VERSION) {
+    errors.push(`${label} taxonomyVersion must be ${CANONICAL_TAXONOMY_VERSION}`);
+  }
+  for (const field of ['primarySkillCode', 'atomicSubskillCode']) {
+    if (!isCanonicalCode(row[field])) errors.push(`${label} ${field} must be a lowercase, dot-separated, grade- and release-neutral code`);
+  }
+  const subjectNamespace = `${String(question.subjectCode ?? '').toLowerCase()}.`;
+  if (isCanonicalCode(row.primarySkillCode) && !row.primarySkillCode.startsWith(subjectNamespace)) {
+    errors.push(`${label} primarySkillCode must use the ${question.subjectCode} subject namespace`);
+  }
+  if (isCanonicalCode(row.atomicSubskillCode)
+      && isCanonicalCode(row.primarySkillCode)
+      && !row.atomicSubskillCode.startsWith(`${row.primarySkillCode}.`)) {
+    errors.push(`${label} atomicSubskillCode must be a child of primarySkillCode`);
+  }
+
+  const primarySkillName = normalize(row.primarySkillName);
+  const atomicSubskillName = normalize(row.atomicSubskillName);
+  const broadNames = new Set([
+    primarySkillName,
+    normalize(question.topic),
+    normalize(question.curriculum?.strand),
+    normalize(question.curriculum?.skill),
+    normalize(question.curriculum?.objective),
+  ].filter(Boolean));
+  if (typeof row.primarySkillName !== 'string' || primarySkillName.length < 3) {
+    errors.push(`${label} primarySkillName must name the governed skill`);
+  }
+  if (typeof row.atomicSubskillName !== 'string'
+      || atomicSubskillName.length < 3
+      || broadNames.has(atomicSubskillName)
+      || /^(?:general|mixed|other|various|topic|skill)$/.test(atomicSubskillName)) {
+    errors.push(`${label} atomicSubskillName must name a non-generic atomic performance, not a broad package label`);
+  }
+
+  if (typeof row.assessmentProcessCode !== 'string' || !ASSESSMENT_PROCESS_COGNITION.has(row.assessmentProcessCode)) {
+    errors.push(`${label} assessmentProcessCode must contain exactly one code from AO1 to AO4`);
+  } else if (!ASSESSMENT_PROCESS_COGNITION.get(row.assessmentProcessCode).has(row.cognitiveProcess)) {
+    errors.push(`${label} cognitiveProcess ${String(row.cognitiveProcess)} is inconsistent with ${row.assessmentProcessCode}`);
+  }
+  const evidenceStatement = String(row.evidenceStatement ?? '').trim();
+  if (typeof row.evidenceStatement !== 'string'
+      || evidenceStatement.length < 20
+      || evidenceStatement.length > 500
+      || broadNames.has(normalize(evidenceStatement))) {
+    errors.push(`${label} evidenceStatement must be a specific 20–500 character observable claim`);
+  }
+
+  if (!Array.isArray(row.secondarySkillCodes)) {
+    errors.push(`${label} secondarySkillCodes must be an array`);
+  } else {
+    const uniqueCodes = new Set();
+    for (const code of row.secondarySkillCodes) {
+      if (!isCanonicalCode(code)) errors.push(`${label} secondarySkillCodes contains an invalid canonical code`);
+      if (uniqueCodes.has(code)) errors.push(`${label} secondarySkillCodes must not contain duplicates`);
+      if (code === row.primarySkillCode || code === row.atomicSubskillCode) errors.push(`${label} secondarySkillCodes must not repeat the primary skill or atomic subskill`);
+      uniqueCodes.add(code);
+    }
+  }
+
+  if (typeof row.confidence !== 'number' || !Number.isFinite(row.confidence) || row.confidence < 0 || row.confidence > 1) {
+    errors.push(`${label} confidence must be a number from 0 to 1`);
+  }
+  if (!TAXONOMY_REVIEW_STATUSES.has(row.reviewStatus)) {
+    errors.push(`${label} reviewStatus must be approved or in_review`);
+  } else if (row.reviewStatus === 'approved') {
+    if (row.confidence < 0.9) errors.push(`${label} approved rows require confidence of at least 0.9`);
+    if (row.humanReview !== false) errors.push(`${label} approved rows must set humanReview to false`);
+    if (row.reviewReason !== null
+        && (typeof row.reviewReason !== 'string' || row.reviewReason.trim().length < 10)) {
+      errors.push(`${label} approved reviewReason must be null or a concise explanation`);
+    }
+  } else {
+    if (row.humanReview !== true) errors.push(`${label} in_review rows must set humanReview to true`);
+    if (typeof row.reviewReason !== 'string' || row.reviewReason.trim().length < 10) {
+      errors.push(`${label} in_review rows require a concise reviewReason`);
+    }
+  }
+  return errors;
+};
+
+export function validateCanonicalTaxonomyOrphans(taxonomyArtifact) {
+  if (!taxonomyArtifact?.present) return [];
+  const knownQuestions = new Set();
+  for (const packageDir of packageDirectories()) {
+    const pkg = loadVerifiedQuestionPackage(packageDir);
+    for (const question of pkg.questions) knownQuestions.add(question.externalId);
+  }
+  return taxonomyArtifact.rows
+    .filter((row) => !knownQuestions.has(row.externalId))
+    .map((row) => `canonical taxonomy line ${row.__line ?? '?'}:${row.externalId ?? 'missing-id'} is orphaned from the verified question packages`);
+}
+
 export function loadVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR) {
   const manifest = readJson(path.join(packageDir, 'manifest.json'));
   const questions = [];
@@ -132,13 +334,22 @@ export function loadVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR) {
   };
 }
 
-export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR) {
+export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR, options = {}) {
   const errors = [];
   let pkg;
   try {
     pkg = loadVerifiedQuestionPackage(packageDir);
   } catch (error) {
     return { valid: false, errors: [error instanceof Error ? error.message : String(error)], package: null };
+  }
+
+  const taxonomyArtifact = options.taxonomyArtifact ?? loadCanonicalQuestionTaxonomy(options.taxonomyPath);
+  if (options.includeTaxonomyDocumentErrors !== false) errors.push(...taxonomyArtifact.errors);
+  const taxonomyRowsByExternalId = new Map();
+  for (const row of taxonomyArtifact.rows) {
+    const rows = taxonomyRowsByExternalId.get(row.externalId) ?? [];
+    rows.push(row);
+    taxonomyRowsByExternalId.set(row.externalId, rows);
   }
 
   if (![1, 2].includes(pkg.schemaVersion)) errors.push('schemaVersion must be 1 or 2');
@@ -251,6 +462,14 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
       if (!String(q.curriculum?.[field] ?? '').trim()) errors.push(`${label} curriculum.${field} is required`);
     }
 
+    if (taxonomyArtifact.present) {
+      const taxonomyRows = taxonomyRowsByExternalId.get(q.externalId) ?? [];
+      if (taxonomyRows.length === 0) {
+        errors.push(`${label} requires an exact companion row in ${path.basename(taxonomyArtifact.path)}`);
+      }
+      for (const row of taxonomyRows) errors.push(...validateCanonicalTaxonomyRow(row, q, pkg));
+    }
+
     if (q.questionType === 'multiple_choice') {
       if (!Array.isArray(q.options) || q.options.length !== 4) errors.push(`${label} must have exactly four options`);
       // Punctuation, mathematical signs and chemical subscripts can change an
@@ -332,16 +551,23 @@ export function validateVerifiedQuestionPackage(packageDir = DEFAULT_PACKAGE_DIR
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const packageDirs = process.argv[2]
     ? [path.resolve(process.argv[2])]
-    : readdirSync(PACKAGES_ROOT, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => path.join(PACKAGES_ROOT, entry.name))
-      .filter((directory) => {
-        try { readFileSync(path.join(directory, 'manifest.json')); return true; } catch { return false; }
-      })
-      .sort();
+    : packageDirectories();
+  const taxonomyArtifact = loadCanonicalQuestionTaxonomy();
   let failed = false;
+  const taxonomyDocumentErrors = [
+    ...taxonomyArtifact.errors,
+    ...validateCanonicalTaxonomyOrphans(taxonomyArtifact),
+  ];
+  if (taxonomyDocumentErrors.length) {
+    failed = true;
+    console.error(`Canonical verified-question taxonomy validation failed for ${path.basename(taxonomyArtifact.path)}:`);
+    for (const error of taxonomyDocumentErrors) console.error(`- ${error}`);
+  }
   for (const packageDir of packageDirs) {
-    const result = validateVerifiedQuestionPackage(packageDir);
+    const result = validateVerifiedQuestionPackage(packageDir, {
+      taxonomyArtifact,
+      includeTaxonomyDocumentErrors: false,
+    });
     if (!result.valid) {
       failed = true;
       console.error(`Verified question package validation failed for ${path.basename(packageDir)}:`);

@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { QuestionDifficulty, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
 import * as GameService from '../../services/gameService';
-import { createLearningIntervention, registerInterventionPractice } from '../../services/studentInterventionService';
+import {
+  createInterventionPracticeAssignment,
+  createLearningIntervention,
+  registerInterventionPractice,
+} from '../../services/studentInterventionService';
 import { FEATURE_KEYS, getEntitlements } from '../../services/entitlementService';
 import { tryConsumePilotQuota } from '../../services/tierService';
 import { brainsAlert } from '../../src/utils/brainsAlert';
@@ -21,31 +25,19 @@ const normalize = (value?: string | null) => (value || '')
   .replace(/[^a-z0-9]+/g, ' ')
   .trim();
 
-const recommendationTerms = (context: TargetedPracticeContext) => {
-  const values = [
-    context.recommendation.skill,
-    context.recommendation.topic,
-    ...context.recommendation.diagnostic_targets,
-  ];
-  return [...new Set(values.flatMap((value) => normalize(value).split(' ')).filter((term) => term.length > 2))];
-};
-
-const questionScore = (question: TeacherQuestion, terms: string[], grade: number) => {
-  const searchable = normalize([
-    question.topic_name,
-    question.topic,
-    question.curriculum_strand,
-    question.curriculum_skill,
-    question.curriculum_subskill,
-    question.curriculum_objective,
-    ...(question.tags || []),
-    question.question_text,
-  ].filter(Boolean).join(' '));
-  const termScore = terms.reduce((score, term) => score + (searchable.includes(term) ? 3 : 0), 0);
-  const topicBonus = normalize(question.topic_name || question.topic).includes(normalize(terms.join(' '))) ? 4 : 0;
-  const gradeBonus = !question.eligible_grade_levels?.length || !grade || question.eligible_grade_levels.includes(grade) ? 2 : -20;
-  const verifiedBonus = question.content_origin === 'brain_heist' ? 2 : 0;
-  return termScore + topicBonus + gradeBonus + verifiedBonus;
+const isOfficialVerifiedQuestion = (question: TeacherQuestion, grade: number) => {
+  const gradeEligible = Number.isInteger(grade)
+    && grade > 0
+    && Boolean(question.eligible_grade_levels?.length)
+    && question.eligible_grade_levels!.includes(grade);
+  return question.content_origin === 'brain_heist'
+    && question.verification_status === 'verified'
+    && question.analytics_eligible === true
+    && question.is_public === true
+    && question.is_active === true
+    && Boolean(question.verified_content_hash)
+    && question.current_content_hash === question.verified_content_hash
+    && gradeEligible;
 };
 
 const localDateTime = (daysFromNow: number) => {
@@ -101,14 +93,16 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
         setTeacherId(teacher.id);
         const subjectQuestions = allQuestions.filter((question) => normalize(question.subject) === normalize(subject));
         setQuestions(subjectQuestions);
-        const terms = recommendationTerms(context);
-        const ranked = subjectQuestions
-          .map((question) => ({ question, score: questionScore(question, terms, studentGrade) }))
-          .filter((item) => item.score > 1)
-          .sort((a, b) => b.score - a.score || a.question.question_text.localeCompare(b.question.question_text))
-          .slice(0, 6)
-          .map((item) => item.question.id);
-        setAssignmentQuestionIds(ranked);
+        // The backend resolves exact canonical leaf matches first, followed by
+        // other verified items under the same governed primary skill. The UI
+        // never substitutes text-similar questions for those authoritative IDs.
+        const byId = new Map(subjectQuestions.map((question) => [question.id, question]));
+        const governed = (context.recommendation.recommended_question_ids || [])
+          .map((questionId) => byId.get(questionId))
+          .filter((question): question is TeacherQuestion => Boolean(question))
+          .filter((question) => isOfficialVerifiedQuestion(question, studentGrade))
+          .map((question) => question.id);
+        setAssignmentQuestionIds(governed);
       } catch (error) {
         if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Targeted practice could not be prepared.');
       } finally {
@@ -122,6 +116,7 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
   const save = async (publishStatus: 'draft' | 'scheduled' | 'published', event?: React.FormEvent) => {
     event?.preventDefault();
     if (!assignmentQuestionIds.length) return brainsAlert('Choose at least one question for this targeted practice.', 'info');
+    if (!teacherId) return brainsAlert('Teacher profile could not be loaded. Please reopen targeted practice.', 'error');
     if (selectedStudentIds.length !== 1 || selectedStudentIds[0] !== context.student.id) {
       setSelectedStudentIds([context.student.id]);
       return brainsAlert('Intervention practice is locked to the selected student.', 'error');
@@ -132,25 +127,20 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
       const quota = await tryConsumePilotQuota('assignments_created');
       if (!quota.proceed) throw new Error(quota.error || 'The assignment creation limit has been reached.');
       const toIso = (value: string) => value ? new Date(value).toISOString() : undefined;
-      const assignment = await GameService.create_assignment({
+      const assignment = await createInterventionPracticeAssignment({
+        teacherId,
         subject,
-        topic_name: assignmentTopicMode === 'custom' ? assignmentTopicName.trim() || context.recommendation.skill : 'General',
-        question_ids: assignmentQuestionIds,
-        assigned_at: publishStatus === 'published' ? new Date().toISOString() : toIso(assignmentAssignedAt) || new Date().toISOString(),
-        due_at: toIso(assignmentDueAt),
+        topicName: assignmentTopicMode === 'custom' ? assignmentTopicName.trim() || context.recommendation.skill : 'General',
+        questionIds: assignmentQuestionIds,
+        assignedAt: publishStatus === 'published' ? new Date().toISOString() : toIso(assignmentAssignedAt) || new Date().toISOString(),
+        dueAt: toIso(assignmentDueAt),
         title: assignmentTitle.trim(),
         description: assignmentDescription || undefined,
         instructions: assignmentInstructions || undefined,
         difficulty: assignmentDifficulty,
-        assignment_mode: 'custom',
-        student_ids: [context.student.id],
-        publish_status: publishStatus,
-        close_submissions_after_due: assignmentCloseAfterDue,
-        notify_students_by_email: assignmentNotifyByEmail,
-      });
-
-      await registerInterventionPractice({
-        assignmentId: assignment.id,
+        publishStatus,
+        closeSubmissionsAfterDue: assignmentCloseAfterDue,
+        notifyStudentsByEmail: assignmentNotifyByEmail,
         studentId: context.student.id,
         skillKey: context.recommendation.skill_key,
         diagnosticTargets: context.recommendation.diagnostic_targets,
@@ -165,7 +155,7 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
             skillKey: context.recommendation.skill_key,
             interventionType: context.recommendation.recommended_type,
             goal: context.recommendation.suggested_goal,
-            teachingAction: `Complete targeted practice “${assignment.title || assignmentTitle.trim()}” (${assignment.question_count} questions) for ${target}.`,
+            teachingAction: `Complete targeted practice “${assignment.title || assignmentTitle.trim()}” (${assignment.question_count ?? assignmentQuestionIds.length} questions) for ${target}.`,
             evidenceTask: `After practice, review the next qualifying assessed task for accurate, independent use of ${target.toLowerCase()}. Targeted-practice accuracy alone does not mark the weakness as resolved.`,
             targetDate: new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10),
             targetStatus: 'improving',
@@ -209,7 +199,7 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
 
   return <section className="intervention-targeted-workspace">
     <header className="intervention-targeted-banner">
-      <div><span>Brains Heist · Targeted Practice</span><h2>{context.recommendation.skill}</h2><p>For <strong>{context.student.name}</strong> only. We preselected the strongest matching questions from the authorised question bank; review them before publishing.</p></div>
+      <div><span>Brains Heist · Targeted Practice</span><h2>{context.recommendation.skill}</h2><p>For <strong>{context.student.name}</strong> only. Automatic suggestions use current, grade-eligible Brains Heist Verified questions. Teacher questions remain available for deliberate classroom-only practice.</p></div>
       <div><span>Confirmed focus</span><strong>{context.recommendation.diagnostic_targets.join(' · ') || context.recommendation.skill}</strong><small>Practice is rehearsal. Independent assessed work remains the progress check.</small></div>
     </header>
     <AssignmentWizard
