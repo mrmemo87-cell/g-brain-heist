@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 
 export type AdminQuestionPool = 'verified' | 'teacher' | 'archive';
-export type AdminQuestionStatusFilter = 'all' | 'active' | 'inactive' | 'visual' | 'needs_attention' | 'high_usage';
+export type AdminQuestionStatusFilter = 'all' | 'in_review' | 'active' | 'inactive' | 'visual' | 'needs_attention' | 'high_usage';
 
 export interface AdminQuestionBankSummary {
   totalQuestions: number;
@@ -12,6 +12,7 @@ export interface AdminQuestionBankSummary {
   teacherAuthors: number;
   teacherSchools: number;
   needsAttention: number;
+  inReviewQuestions: number;
 }
 
 export interface AdminQuestionBankFilterOption {
@@ -60,7 +61,7 @@ export interface AdminQuestionBankQuestion {
   };
   verificationStatus?: string | null;
   analyticsEligible: boolean;
-  integrityState: 'sealed' | 'drift' | 'classroom' | 'retired';
+  integrityState: 'sealed' | 'drift' | 'review' | 'classroom' | 'retired';
   needsAttention: boolean;
   isPublic: boolean;
   isActive: boolean;
@@ -75,6 +76,30 @@ export interface AdminQuestionBankQuestion {
   createdAt: string;
   updatedAt: string;
   teacher?: AdminQuestionTeacherProvenance | null;
+  submission?: {
+    itemId: string;
+    batchId: string;
+    status: 'in_review' | 'approved_for_governance' | 'returned' | 'rejected';
+    submittedAt: string;
+    sourcePage?: number | null;
+    sourceFileName: string;
+    extractionModel: string;
+    extractionConfidence: number;
+    needsHumanAttention: boolean;
+    sourceDrift: boolean;
+    taxonomyProposal: {
+      primary_skill_name: string;
+      atomic_subskill_name: string;
+      assessment_process_code: AdminAssessmentProcessCode;
+      assessment_process_name: string;
+      assessment_process_definition: string;
+      cognitive_process: 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate';
+      evidence_statement: string;
+      secondary_skill_names: string[];
+      confidence_score: number;
+      review_reason: string;
+    };
+  } | null;
 }
 
 export interface AdminQuestionBankCatalog {
@@ -270,6 +295,7 @@ const EMPTY_SUMMARY: AdminQuestionBankSummary = {
   teacherAuthors: 0,
   teacherSchools: 0,
   needsAttention: 0,
+  inReviewQuestions: 0,
 };
 
 export async function loadSuperadminQuestionBank(query: AdminQuestionBankQuery): Promise<AdminQuestionBankCatalog> {
