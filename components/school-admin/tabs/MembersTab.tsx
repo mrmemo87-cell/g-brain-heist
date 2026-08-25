@@ -28,19 +28,17 @@ const MembersTab: React.FC = () => {
     selectedMemberIds, setActiveTab, setBulkMemberAction, setMemberPage, setMemberPageSize,
     setMemberRoleFilter, setMemberSearch, setModTargetId, setModTargetStatus, setSelectedClassId,
     setSelectedGrade, setSelectedMember, setSelectedStudentId, setShowMemberActionModal,
-    studentAssignments, students, teacherAllocations, toggleMemberSelection, toggleSelectAllMembers,
+    studentAssignments, teacherAllocations, toggleMemberSelection, toggleSelectAllMembers,
   } = useSchoolAdmin();
   const [academicYearFilter, setAcademicYearFilter] = React.useState('');
   const [classFilter, setClassFilter] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState<'all' | 'active' | 'restricted'>('all');
   const activePeopleTab: 'teacher' | 'student' = memberRoleFilter === 'student' ? 'student' : 'teacher';
   const administrators = Array.isArray(schoolAdmins) ? schoolAdmins : [];
-  // Students come from the complete, independently loaded student directory rather than
-  // the server-filtered `members` result. This keeps fast typing / out-of-order RPC
-  // responses from dropping valid students while the local search is being refined.
-  const communityMembers = activePeopleTab === 'student'
-    ? (Array.isArray(students) ? students : [])
-    : (Array.isArray(members) ? members : []);
+  // The role-filtered members result is the authoritative post-action directory.
+  // Removal and moderation handlers refresh this collection, so the visible row
+  // cannot survive after the backend has removed or updated the school member.
+  const communityMembers = Array.isArray(members) ? members : [];
   const activeClasses = React.useMemo(() => (Array.isArray(classes) ? classes : []).filter((schoolClass: any) => schoolClass.is_active), [classes]);
   const academicYears = React.useMemo(() => Array.from(new Set(activeClasses.map((schoolClass: any) => Number(schoolClass.grade_level)).filter(Number.isFinite))).sort((a, b) => a - b), [activeClasses]);
   const classesForAcademicYear = React.useMemo(() => activeClasses.filter((schoolClass: any) => !academicYearFilter || String(schoolClass.grade_level) === academicYearFilter), [academicYearFilter, activeClasses]);
