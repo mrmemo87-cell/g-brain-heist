@@ -1,5 +1,6 @@
 import React from 'react';
 import AcademicSetupPanel from '../AcademicSetupPanel';
+import AcademicYearContinuityCard from '../AcademicYearContinuityCard';
 
 const SubjectsTab: React.FC = () => (
   <div className="space-y-6">
@@ -7,9 +8,10 @@ const SubjectsTab: React.FC = () => (
       <div>
         <p className="school-admin-eyebrow">Academic planning</p>
         <h2>Curriculum &amp; Subjects</h2>
-        <p>Set the academic year, reporting terms, school system, grade levels and the subjects taught in each grade.</p>
+        <p>Start each academic year with clean results while preserving previous assignments, writing and reports as protected school history.</p>
       </div>
     </section>
+    <AcademicYearContinuityCard />
     <AcademicSetupPanel />
   </div>
 );
