@@ -87,6 +87,26 @@ export interface AdminQuestionBankQuestion {
     extractionConfidence: number;
     needsHumanAttention: boolean;
     sourceDrift: boolean;
+    processingMode: 'extract' | 'generate' | 'both';
+    detectedDocumentType: 'question_paper' | 'learning_material' | 'mixed' | 'unsupported';
+    documentTypeConfidence?: number | null;
+    sourceRightsAttested: boolean;
+    processingRequest?: {
+      target_grade?: number | null;
+      requested_generated_question_count?: number;
+      allowed_question_types?: string[];
+      purpose?: string;
+      challenge?: string;
+      page_range?: { from?: number; to?: number };
+      learning_priorities?: string;
+      visual_policy?: string;
+    };
+    candidateOrigin: 'source_question' | 'ai_generated_from_source';
+    sourceGroundingNote?: string | null;
+    sourceEvidenceKind: 'text' | 'visual' | 'mixed';
+    sourceVisualDescription?: string | null;
+    groundingConfidence?: number | null;
+    learningObjective?: string | null;
     taxonomyProposal: {
       primary_skill_name: string;
       atomic_subskill_name: string;
@@ -113,6 +133,13 @@ export interface AdminQuestionBankCatalog {
   limit: number;
   offset: number;
   questions: AdminQuestionBankQuestion[];
+}
+
+export interface AdminQuestionSourceReviewLink {
+  signedUrl: string;
+  fileName: string;
+  sourcePage?: number | null;
+  expiresInSeconds: number;
 }
 
 export interface AdminQuestionBankQuery {
@@ -299,7 +326,7 @@ const EMPTY_SUMMARY: AdminQuestionBankSummary = {
 };
 
 export async function loadSuperadminQuestionBank(query: AdminQuestionBankQuery): Promise<AdminQuestionBankCatalog> {
-  const { data, error } = await supabase.rpc('rpc_superadmin_question_bank_inspector', {
+  const inspectorArgs = {
     p_pool: query.pool,
     p_search: query.search?.trim() || null,
     p_subject: query.subject || null,
@@ -307,7 +334,14 @@ export async function loadSuperadminQuestionBank(query: AdminQuestionBankQuery):
     p_status: query.status || 'all',
     p_limit: query.limit || 24,
     p_offset: query.offset || 0,
-  });
+  };
+  let { data, error } = await supabase.rpc('rpc_superadmin_question_bank_inspector_v2', inspectorArgs);
+
+  // Keep deployments readable during a rolling database migration. The legacy
+  // inspector remains superadmin-only and is used only when v2 is not installed.
+  if (error && (error.code === '42883' || error.code === 'PGRST202')) {
+    ({ data, error } = await supabase.rpc('rpc_superadmin_question_bank_inspector', inspectorArgs));
+  }
 
   if (error) {
     if (error.message.includes('platform_superadmin_access_required')) {
@@ -330,6 +364,31 @@ export async function loadSuperadminQuestionBank(query: AdminQuestionBankQuery):
     limit: Number(result.limit || query.limit || 24),
     offset: Number(result.offset || query.offset || 0),
     questions: result.questions || [],
+  };
+}
+
+export async function createSuperadminQuestionSourceReviewLink(
+  submissionItemId: string,
+): Promise<AdminQuestionSourceReviewLink> {
+  const { data, error } = await supabase.functions.invoke('teacher_question_pdf_extract', {
+    body: { action: 'create_source_review_url', submissionItemId },
+  });
+  if (error) {
+    const context = (error as { context?: Response }).context;
+    const payload = context && typeof context.json === 'function'
+      ? await context.json().catch(() => null) as { error?: string } | null
+      : null;
+    throw new Error(payload?.error || 'The private source PDF could not be opened securely.');
+  }
+  const result = data as Partial<AdminQuestionSourceReviewLink> & { success?: boolean } | null;
+  if (!result?.success || !result.signedUrl || !result.fileName) {
+    throw new Error('The private source PDF returned an invalid review link.');
+  }
+  return {
+    signedUrl: result.signedUrl,
+    fileName: result.fileName,
+    sourcePage: result.sourcePage || null,
+    expiresInSeconds: Number(result.expiresInSeconds || 300),
   };
 }
 
