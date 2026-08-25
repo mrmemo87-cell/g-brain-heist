@@ -2,10 +2,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const migration = readFileSync(
-  'supabase/migrations/20260825100000_year_bridge_rollover_command_center.sql',
-  'utf8',
-);
+const migrationFiles = [
+  'supabase/migrations/20260825101726_year_bridge_rollover_command_center.sql',
+  'supabase/migrations/20260825101727_year_bridge_rollover_preview.sql',
+  'supabase/migrations/20260825101728_year_bridge_rollover_prepare.sql',
+  'supabase/migrations/20260825101729_year_bridge_rollover_reviews.sql',
+  'supabase/migrations/20260825101730_year_bridge_rollover_commit.sql',
+];
+const migration = migrationFiles.map((path) => readFileSync(path, 'utf8')).join('\n');
 const service = readFileSync('services/yearRolloverService.ts', 'utf8');
 const wizard = readFileSync('components/school-admin/AcademicYearRolloverWizard.tsx', 'utf8');
 const styles = readFileSync('components/school-admin/AcademicYearRolloverWizard.css', 'utf8');
@@ -58,14 +62,17 @@ test('the rehearsal blocks unresolved decisions, roster drift and unsafe exits',
     'placement_changed_after_rehearsal',
     'multiple_target_enrolments',
     'exit_has_target_year_evidence',
-  ]) assert.match(migration, new RegExp(code, 'i'));
-
+  ]) {
+    assert.match(migration, new RegExp(code, 'i'));
+  }
   for (const warning of [
     'target_grade_has_no_subject_plan',
     'target_class_needs_staffing',
     'large_projected_class',
     'target_enrolment_will_be_reconciled',
-  ]) assert.match(migration, new RegExp(warning, 'i'));
+  ]) {
+    assert.match(migration, new RegExp(warning, 'i'));
+  }
 });
 
 test('launch is hash locked, atomic and reuses reviewed placement authority', () => {
@@ -92,7 +99,9 @@ test('the service exposes the full school-admin Year Bridge contract', () => {
     'rpc_school_admin_set_year_rollover_student_decision',
     'rpc_school_admin_cancel_year_rollover',
     'rpc_school_admin_commit_year_rollover',
-  ]) assert.match(service, new RegExp(rpc, 'i'));
+  ]) {
+    assert.match(service, new RegExp(rpc, 'i'));
+  }
   assert.match(service, /rollover_rehearsal_changed/i);
   assert.match(service, /rollover_confirmation_mismatch/i);
 });
