@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 34374)
-Total output lines: 3047
-
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   SubjectData,
@@ -1522,7 +1519,386 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             response,
             currentQuestionIndex >= teacherQuestions.length - 1,
             telemetry.updatedScores,
-       …4374 tokens truncated…"max-w-5xl mx-auto text-center py-6">
+            telemetry.updatedPerformances,
+            telemetry.branchId,
+            telemetry.topicId,
+            () => setCurrentQuestionIndex((prev) => prev + 1)
+          );
+        }
+      } catch (error) {
+        console.error('Error submitting teacher answer:', error);
+        brainsAlert('Unable to submit answer. Please try again.', 'error');
+        setSelectedOption(null);
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+
+  const handleTrainingAnswer = async (option: string, startRect?: DOMRect) => {
+    if (trainingAnswered) return;
+
+    const question = TRAINING_QUESTIONS[trainingQuestionIndex];
+    const correct = option === question.correct;
+    setTrainingSelectedOption(option);
+    setTrainingAnswered(true);
+    audioService.play(correct ? 'correct' : 'wrong');
+    if (correct) {
+      setTrainingCorrectCount((prev) => prev + 1);
+      if (startRect) {
+        spawnRewardParticles(startRect, {
+          xp: Math.ceil(FTUE_TRAINING_REWARD.xp / TRAINING_QUESTIONS.length),
+          coins: Math.ceil(FTUE_TRAINING_REWARD.coins / TRAINING_QUESTIONS.length),
+        });
+      }
+    }
+
+    await updateOnboardingState({
+      metadata: {
+        ftue_training_mission: {
+          id: FTUE_TRAINING_MISSION_ID,
+          status: 'started',
+          started_at: getTrainingMissionMetadata(await getOnboardingState(currentProfile?.id)).started_at ?? new Date().toISOString(),
+          last_question_index: trainingQuestionIndex,
+        },
+      },
+    }, currentProfile?.id);
+
+    await emitOnboardingEvent({
+      event: 'training_question_answered',
+      user_id: currentProfile?.id,
+      step: 'mission_started',
+      metadata: {
+        mission_id: FTUE_TRAINING_MISSION_ID,
+        question_id: question.id,
+        question_index: trainingQuestionIndex,
+        correct,
+      },
+    });
+  };
+
+  const completeFtueTraining = async () => {
+    const now = new Date().toISOString();
+    const finalCorrect = Math.min(trainingCorrectCount, TRAINING_QUESTIONS.length);
+
+    let rewardResult: GameService.FtueTrainingRewardResult | null = null;
+    try {
+      rewardResult = await GameService.claim_ftue_training_reward();
+      setCompletionFinalProfile(rewardResult.final_profile_values);
+      onGrantReward(rewardResult.deltas, rewardResult.final_profile_values);
+    } catch (error) {
+      console.error('[QuestView] Failed to claim FTUE training reward:', error);
+      brainsAlert('Starter reward could not be saved. Please try finishing the mission again.', 'error');
+      return;
+    }
+
+    setScore({
+      correct: finalCorrect,
+      xp: rewardResult.deltas.xp,
+      coins: rewardResult.deltas.coins,
+      gemstones: rewardResult.deltas.gemstones || 0,
+    });
+    setStage('completed');
+    setMissionSummary(null);
+    setMissionChestResult(null);
+    setShowMissionCompleteOverlay(true);
+    audioService.play('level_up');
+    window.setTimeout(() => audioService.play('tada'), 350);
+
+    await emitOnboardingEvent({
+      event: 'training_mission_completed',
+      user_id: currentProfile?.id,
+      step: 'reward_reveal',
+      metadata: {
+        mission_id: FTUE_TRAINING_MISSION_ID,
+        question_count: TRAINING_QUESTIONS.length,
+        reward: rewardResult.deltas,
+      },
+    });
+
+    await markOnboardingStepComplete('mission_started', {
+      nextStep: 'reward_reveal',
+      firstValueStarted: true,
+      metadata: {
+        ftue_training_mission: {
+          id: FTUE_TRAINING_MISSION_ID,
+          status: 'completed',
+          completed_at: now,
+          last_question_index: TRAINING_QUESTIONS.length - 1,
+        },
+      },
+    }, currentProfile?.id);
+
+    await markOnboardingStepComplete('reward_reveal', {
+      nextStep: 'complete',
+      firstValueCompleted: true,
+      completeCoreFtue: true,
+      metadata: {
+        ftue_training_mission: {
+          id: FTUE_TRAINING_MISSION_ID,
+          status: 'completed',
+          completed_at: now,
+          last_question_index: TRAINING_QUESTIONS.length - 1,
+        },
+      },
+    }, currentProfile?.id);
+  };
+
+  const handleTrainingContinue = () => {
+    if (!trainingAnswered) return;
+    const isLast = trainingQuestionIndex >= TRAINING_QUESTIONS.length - 1;
+    if (isLast) {
+      void completeFtueTraining();
+      return;
+    }
+    setTrainingQuestionIndex((prev) => prev + 1);
+    setTrainingSelectedOption(null);
+    setTrainingAnswered(false);
+  };
+
+  const handleSkipTraining = async () => {
+    const now = new Date().toISOString();
+    setFtueTrainingEligible(false);
+    await emitOnboardingEvent({
+      event: 'training_mission_skipped',
+      user_id: currentProfile?.id,
+      step: 'mission_started',
+      metadata: { mission_id: FTUE_TRAINING_MISSION_ID, question_index: trainingQuestionIndex },
+    });
+    await markOnboardingStepComplete('mission_started', {
+      nextStep: 'complete',
+      completeCoreFtue: true,
+      metadata: {
+        skipped: true,
+        skipped_at_step: 'ftue_training_mission',
+        ftue_training_mission: {
+          id: FTUE_TRAINING_MISSION_ID,
+          status: 'skipped',
+          skipped_at: now,
+          last_question_index: trainingQuestionIndex,
+        },
+      },
+    }, currentProfile?.id);
+    onComplete();
+  };
+
+  const renderFtueTraining = () => {
+    const question = TRAINING_QUESTIONS[trainingQuestionIndex];
+    const correct = trainingSelectedOption === question.correct;
+
+    return (
+      <div className="mx-auto max-w-3xl space-y-5">
+        {createPortal(
+          particles.map(p => <RewardParticle key={p.id} {...p} onComplete={handleParticleComplete} />),
+          document.body
+        )}
+        <div className="rounded-3xl border border-cyan-300/25 bg-slate-950/70 p-5 shadow-[0_0_36px_rgba(34,211,238,0.14)]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-200">Starter Assignment</p>
+              <h1 className="mt-2 font-heading text-3xl text-white">First Signal: Mixed Skills</h1>
+              <p className="mt-2 text-sm text-slate-300">Three real warm-up questions in mission style. Finish them to claim enough XP to pass Level 1.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { void handleSkipTraining(); }}
+              className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-bold text-slate-300 transition hover:border-cyan-300/40 hover:text-white"
+            >
+              Skip FTUE
+            </button>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-cyan-300/25 bg-cyan-300/10 p-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">Questions</p>
+              <p className="mt-1 text-lg font-black text-white">{TRAINING_QUESTIONS.length} quick checks</p>
+            </div>
+            <div className="rounded-2xl border border-amber-300/25 bg-amber-300/10 p-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200">Reward</p>
+              <p className="mt-1 text-lg font-black text-white">+{FTUE_TRAINING_REWARD.xp} XP · +{FTUE_TRAINING_REWARD.coins} coins</p>
+            </div>
+            <div className="rounded-2xl border border-fuchsia-300/25 bg-fuchsia-300/10 p-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-fuchsia-200">Unlock</p>
+              <p className="mt-1 text-lg font-black text-white">Level 2 ready</p>
+            </div>
+          </div>
+          <div className="mt-5 flex items-center gap-2" aria-label={`Training question ${trainingQuestionIndex + 1} of ${TRAINING_QUESTIONS.length}`}>
+            {TRAINING_QUESTIONS.map((item, index) => (
+              <div key={item.id} className={`h-2 rounded-full transition-all ${index <= trainingQuestionIndex ? 'w-10 bg-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.5)]' : 'w-4 bg-white/15'}`} />
+            ))}
+          </div>
+        </div>
+        <div className="card-glass p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-mono text-sm text-slate-400">Question {trainingQuestionIndex + 1} / {TRAINING_QUESTIONS.length}</p>
+            <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-cyan-100">{question.subject}</span>
+          </div>
+          <h2 className="mt-3 text-2xl font-bold text-white">{question.prompt}</h2>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {question.options.map((option) => {
+              const selected = trainingSelectedOption === option;
+              const isCorrectChoice = option === question.correct;
+              const stateClass = !trainingAnswered
+                ? 'border-cyan-500/40 bg-slate-800/70 hover:bg-slate-700/80'
+                : isCorrectChoice
+                  ? 'border-green-300 bg-green-500/25'
+                  : selected
+                    ? 'border-red-300 bg-red-500/25'
+                    : 'border-slate-600 bg-slate-800/55 text-slate-300';
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  disabled={trainingAnswered}
+                  onClick={(event) => { void handleTrainingAnswer(option, event.currentTarget.getBoundingClientRect()); }}
+                  className={`min-h-24 rounded-2xl border p-4 text-left font-semibold text-white transition disabled:cursor-default ${stateClass}`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+
+          {trainingAnswered && (
+            <div className={`mt-5 rounded-2xl border p-4 ${correct ? 'border-green-300/50 bg-green-500/10' : 'border-amber-300/50 bg-amber-500/10'}`}>
+              <p className={`font-bold ${correct ? 'text-green-200' : 'text-amber-200'}`}>{correct ? 'Nice signal.' : 'Good practice.'}</p>
+              {correct && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-cyan-400/10 px-3 py-1 text-sm font-bold text-cyan-100">
+                    <XPIcon className="h-4 w-4" />
+                    +{Math.ceil(FTUE_TRAINING_REWARD.xp / TRAINING_QUESTIONS.length)} XP
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-amber-300/40 bg-amber-400/10 px-3 py-1 text-sm font-bold text-amber-100">
+                    <CoinIcon className="h-4 w-4" />
+                    +{Math.ceil(FTUE_TRAINING_REWARD.coins / TRAINING_QUESTIONS.length)} coins
+                  </span>
+                </div>
+              )}
+              <p className="mt-3 text-sm text-slate-200">{question.explanation}</p>
+              <button
+                type="button"
+                onClick={handleTrainingContinue}
+                className="mt-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:scale-[1.02]"
+              >
+                {trainingQuestionIndex >= TRAINING_QUESTIONS.length - 1 ? 'Claim starter chest' : 'Continue'} →
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-cyan-50">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cyan-200/40 bg-cyan-300/15">◈</div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">Byte</p>
+              <p className="mt-1 text-sm font-semibold">{question.byteGuidance}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSubjectSelection = () => (
+    <div className="space-y-6">
+      {pendingAssignments.length > 0 && (
+        <div className="max-w-5xl mx-auto rounded-2xl border border-amber-400/50 bg-amber-500/10 p-4 shadow-[0_0_24px_rgba(251,191,36,0.18)]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-amber-200">Assignments pending</p>
+              <p className="text-xs text-amber-100/80">
+                {pendingAssignments.length} teacher assignment{pendingAssignments.length === 1 ? '' : 's'} waiting. You can keep questing now and return later.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setHasDeferredAssignments(false);
+                if (!activeAssignment) {
+                  hydrateAssignment({ showLoading: true });
+                  return;
+                }
+                setMode('assignment');
+                setStage('assignment_blocked');
+              }}
+              className="rounded-xl border border-amber-300/60 bg-amber-500/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-amber-100 transition hover:border-amber-200/80 hover:bg-amber-500/30"
+            >
+              Review assignments
+            </button>
+          </div>
+        </div>
+      )}
+      {canViewQuestionBank && (
+        <>
+          <div className="max-w-5xl mx-auto p-6 rounded-2xl bg-gradient-to-r from-slate-900/70 via-indigo-900/50 to-fuchsia-900/50 border border-cyan-400/30 shadow-[0_0_32px_rgba(34,211,238,0.18)]">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src={visualAssets.mission.quickQuest}
+                  alt="Quick Quest"
+                  className="w-14 h-14 rounded-xl object-contain drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/BRAINS.svg'; }}
+                />
+                <div>
+                  <h2 className="font-heading text-2xl text-white">Explore the Question Bank</h2>
+                  <p className="text-sm text-slate-200">Browse the subjects and grade-level questions assigned by your school.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3 text-sm text-slate-200">
+                <div className="card-glass p-3 border border-cyan-400/30 text-center">
+                  <p className="text-xs uppercase tracking-widest text-slate-400">Subjects</p>
+                  <p className="font-heading text-xl text-white">
+                    {new Set(publicQuestions.map((question) => normalizeQuestionBankSubject(question.subject))).size || '—'}
+                  </p>
+                </div>
+                <div className="card-glass p-3 border border-indigo-400/30 text-center">
+                  <p className="text-xs uppercase tracking-widest text-slate-400">Topics</p>
+                  <p className="font-heading text-xl text-white">
+                    {new Set(publicQuestions.map((question) => question.topic_name || question.topic || 'General')).size || '—'}
+                  </p>
+                </div>
+                <div className="card-glass p-3 border border-fuchsia-400/30 text-center">
+                  <p className="text-xs uppercase tracking-widest text-slate-400">Questions</p>
+                  <p className="font-heading text-xl text-white">{publicQuestions.length || '—'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-6xl mx-auto w-full">
+            {questionBankLoading ? (
+              <div className="flex justify-center mt-10">
+                <img src="/BRAINS.svg" alt="Loading..." className="w-28 h-28 animate-pulse" style={{ filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
+              </div>
+            ) : questionBankError ? (
+              <div className="card-glass p-6 text-center border border-red-500/40">
+                <p className="text-red-300 font-semibold mb-2">We hit a snag loading the question bank.</p>
+                <p className="text-gray-300 text-sm">{questionBankError}</p>
+              </div>
+            ) : publicQuestions.length === 0 ? (
+              <div className="card-glass p-6 text-center border border-cyan-500/30">
+                <p className="text-white font-heading text-xl mb-2">Your academic question set is not ready yet.</p>
+                <p className="text-gray-300 text-sm">Your school needs a current academic year, grade enrolment and subject plan. Elective subjects also require your individual enrolment.</p>
+              </div>
+            ) : (
+              <QuestionBank
+                questions={publicQuestions}
+                teacher={null}
+                onUseSet={handleUseQuestionSet}
+                useActionLabel="Start Quest"
+                schoolName={currentProfile?.school_name || 'Your School'}
+                schoolLogoUrl={currentProfile?.school_logo_url}
+                schoolId={currentProfile?.school_id}
+              />
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ── Mission Cards Section ── */}
+      {(() => {
+        if (missionsLoading) return (
+          <div className="max-w-5xl mx-auto text-center py-6">
             <span className="text-slate-400 text-sm animate-pulse">Loading quest missions...</span>
           </div>
         );
