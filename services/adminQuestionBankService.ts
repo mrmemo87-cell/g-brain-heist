@@ -326,7 +326,7 @@ const EMPTY_SUMMARY: AdminQuestionBankSummary = {
 };
 
 export async function loadSuperadminQuestionBank(query: AdminQuestionBankQuery): Promise<AdminQuestionBankCatalog> {
-  const { data, error } = await supabase.rpc('rpc_superadmin_question_bank_inspector_v2', {
+  const inspectorArgs = {
     p_pool: query.pool,
     p_search: query.search?.trim() || null,
     p_subject: query.subject || null,
@@ -334,7 +334,14 @@ export async function loadSuperadminQuestionBank(query: AdminQuestionBankQuery):
     p_status: query.status || 'all',
     p_limit: query.limit || 24,
     p_offset: query.offset || 0,
-  });
+  };
+  let { data, error } = await supabase.rpc('rpc_superadmin_question_bank_inspector_v2', inspectorArgs);
+
+  // Keep deployments readable during a rolling database migration. The legacy
+  // inspector remains superadmin-only and is used only when v2 is not installed.
+  if (error && (error.code === '42883' || error.code === 'PGRST202')) {
+    ({ data, error } = await supabase.rpc('rpc_superadmin_question_bank_inspector', inspectorArgs));
+  }
 
   if (error) {
     if (error.message.includes('platform_superadmin_access_required')) {
