@@ -10,6 +10,16 @@ const service = readFileSync('services/academicYearContinuityService.ts', 'utf8'
 const card = readFileSync('components/school-admin/AcademicYearContinuityCard.tsx', 'utf8');
 const subjectsTab = readFileSync('components/school-admin/tabs/SubjectsTab.tsx', 'utf8');
 
+const periodRefreshStart = migration.indexOf(
+  'create or replace function private.academic_refresh_school_context_for_period',
+);
+const periodRefreshEnd = migration.indexOf(
+  'create or replace function private.academic_refresh_school_context(p_school_id uuid)',
+);
+const periodRefresh = periodRefreshStart >= 0 && periodRefreshEnd > periodRefreshStart
+  ? migration.slice(periodRefreshStart, periodRefreshEnd)
+  : '';
+
 test('raw automated writing is retained as history but cannot become authoritative evidence', () => {
   assert.match(migration, /student_learning_enforce_writing_attempt_history/i);
   assert.match(migration, /new\.source_type = 'writing_attempt'[\s\S]*new\.contributes_to_focus_state := false/i);
@@ -18,10 +28,16 @@ test('raw automated writing is retained as history but cannot become authoritati
 });
 
 test('academic setup refreshes only the affected calendar period', () => {
-  assert.match(migration, /academic_refresh_school_context_for_period/i);
-  assert.match(migration, /between p_starts_on and p_ends_on/i);
-  assert.match(migration, /coalesce\(a\.publish_status, 'published'\) = 'draft'/i);
-  assert.doesNotMatch(migration, /update public\.assignments a[\s\S]*where a\.school_id = p_school_id;\s*update public\.student_learning_observations/i);
+  assert.ok(periodRefreshStart >= 0, 'period-scoped refresh function must exist');
+  assert.ok(periodRefreshEnd > periodRefreshStart, 'period-scoped refresh function must be complete');
+  assert.match(
+    periodRefresh,
+    /update public\.assignments a[\s\S]*coalesce\(a\.publish_status, 'published'\) = 'draft'[\s\S]*\(a\.assigned_at at time zone 'UTC'\)::date\s+between p_starts_on and p_ends_on;/i,
+  );
+  assert.match(
+    periodRefresh,
+    /update public\.student_learning_observations o[\s\S]*where o\.school_id = p_school_id\s+and \(o\.observed_at at time zone 'UTC'\)::date\s+between p_starts_on and p_ends_on;/i,
+  );
   assert.match(migration, /'refreshScope', 'affected_period_only'/i);
   assert.match(migration, /'historicalRecordsRewritten', false/i);
 });
