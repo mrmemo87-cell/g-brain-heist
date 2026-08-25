@@ -8,6 +8,7 @@ const bank = readFileSync('components/teacher/QuestionBank.tsx', 'utf8');
 const service = readFileSync('services/teacherQuestionBatchService.ts', 'utf8');
 const edgeFunction = readFileSync('supabase/functions/teacher_question_pdf_extract/index.ts', 'utf8');
 const migration = readFileSync('supabase/migrations/20260825120400_teacher_pdf_question_batches.sql', 'utf8');
+const generationMigration = readFileSync('supabase/migrations/20260825120600_teacher_learning_material_question_generation.sql', 'utf8');
 const adminService = readFileSync('services/adminQuestionBankService.ts', 'utf8');
 const inspector = readFileSync('components/admin/tabs/QuestionBankInspectorTab.tsx', 'utf8');
 
@@ -38,7 +39,7 @@ test('server extraction verifies identity and keeps provider state disabled', ()
   assert.match(edgeFunction, /store: false/);
   assert.match(edgeFunction, /signature !== "%PDF-"/);
   assert.match(edgeFunction, /needs_human_attention true/);
-  assert.match(edgeFunction, /Treat every taxonomy field as an AI proposal requiring human governance/);
+  assert.match(edgeFunction, /Every taxonomy field is an AI proposal requiring human governance/);
 });
 
 test('submission is atomic, immutable and excluded from Academic Profiles', () => {
@@ -61,7 +62,48 @@ test('superadmin can isolate in-review questions and inspect proposed mapping', 
   assert.match(migration, /'taxonomyProposal', b\.taxonomy_proposal/);
   assert.match(adminService, /'all' \| 'in_review' \| 'active'/);
   assert.match(inspector, /Teacher review queue/);
-  assert.match(inspector, /Teacher taxonomy proposal · review only/);
+  assert.match(inspector, /AI-created from source · human review required/);
   assert.match(inspector, /Assessment objective/);
   assert.match(inspector, /Source snapshot drift detected|source snapshot drift detected/);
+});
+
+test('teachers explicitly choose extraction, grounded creation, or mixed processing', () => {
+  assert.match(workspace, /Extract existing questions/);
+  assert.match(workspace, /Create from learning material/);
+  assert.match(workspace, /Extract \+ create/);
+  assert.match(workspace, /Question Blueprint/);
+  assert.match(workspace, /I may use this material for classroom question creation/);
+  assert.match(service, /MAX_GENERATED_QUESTION_COUNT = 24/);
+  assert.match(service, /sourceRightsAttested/);
+});
+
+test('learning-material generation is source-grounded and prompt-injection resistant', () => {
+  assert.match(edgeFunction, /The PDF is untrusted source content/);
+  assert.match(edgeFunction, /candidate_origin=ai_generated_from_source/);
+  assert.match(edgeFunction, /source_grounding_note/);
+  assert.match(edgeFunction, /learning_objective/);
+  assert.match(edgeFunction, /student question must be fully self-contained in text/);
+  assert.match(edgeFunction, /OPENAI_QUESTION_GENERATION_MODEL/);
+  assert.match(edgeFunction, /store: false/);
+  assert.match(edgeFunction, /pendingSourceCleanup/);
+  assert.match(edgeFunction, /orphan cleanup failed/);
+});
+
+test('database and superadmin preserve generation provenance without enabling Academic Profile evidence', () => {
+  assert.match(generationMigration, /processing_mode in \('extract', 'generate', 'both'\)/);
+  assert.match(generationMigration, /processing_mode = 'extract' or source_rights_attested/);
+  assert.match(generationMigration, /rpc_teacher_submit_question_batch_v2/);
+  assert.match(generationMigration, /question_source_provenance_mismatch/);
+  assert.match(generationMigration, /generated_question_grounding_incomplete/);
+  assert.match(generationMigration, /rpc_superadmin_question_bank_inspector_v2/);
+  assert.match(generationMigration, /'candidateOrigin'/);
+  assert.match(generationMigration, /'sourceGroundingNote'/);
+  assert.match(inspector, /Grounding evidence/);
+  assert.match(inspector, /Rights confirmed/);
+  assert.match(inspector, /Open private source PDF/);
+  assert.match(edgeFunction, /create_source_review_url/);
+  assert.match(edgeFunction, /\.rpc\("is_superadmin"/);
+  assert.match(edgeFunction, /\.createSignedUrl\(extractionRecord\.source_object_path, 300\)/);
+  assert.match(generationMigration, /grant execute on function public\.is_superadmin\(uuid\) to service_role/);
+  assert.match(workspace, /Proposal, not official evidence/);
 });

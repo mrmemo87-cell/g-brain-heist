@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  createSuperadminQuestionSourceReviewLink,
   loadSuperadminQuestionBank,
   type AdminQuestionBankCatalog,
   type AdminQuestionBankQuestion,
@@ -48,6 +49,10 @@ const formatQuestionType = (value: string) => value
   .replace(/_/g, ' ')
   .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
+const formatAuditLabel = (value?: string | null) => value
+  ? value.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+  : 'Not recorded';
+
 const optionText = (option: string | { text?: string }) => typeof option === 'string' ? option : option.text || 'Image option';
 
 const questionStatusLabel = (question: AdminQuestionBankQuestion) => {
@@ -72,6 +77,7 @@ const QuestionBankInspectorTab: React.FC = () => {
   const [status, setStatus] = useState<AdminQuestionStatusFilter>('all');
   const [offset, setOffset] = useState(0);
   const [selectedQuestion, setSelectedQuestion] = useState<AdminQuestionBankQuestion | null>(null);
+  const [openingSourceItemId, setOpeningSourceItemId] = useState<string | null>(null);
   const modalCloseRef = useRef<HTMLButtonElement>(null);
 
   const load = useCallback(async () => {
@@ -153,6 +159,28 @@ const QuestionBankInspectorTab: React.FC = () => {
       addToast('Question ID copied.', 'success');
     } catch {
       addToast('Question ID could not be copied.', 'error');
+    }
+  };
+
+  const openPrivateSource = async (itemId: string) => {
+    const reviewWindow = window.open('about:blank', '_blank');
+    if (!reviewWindow) {
+      addToast('Allow pop-ups to open the private source PDF.', 'error');
+      return;
+    }
+    reviewWindow.opener = null;
+    reviewWindow.document.title = 'Preparing private source…';
+    reviewWindow.document.body.textContent = 'Preparing a secure five-minute source review…';
+    setOpeningSourceItemId(itemId);
+    try {
+      const source = await createSuperadminQuestionSourceReviewLink(itemId);
+      reviewWindow.location.replace(`${source.signedUrl}${source.sourcePage ? `#page=${source.sourcePage}` : ''}`);
+      addToast(`Opened ${source.fileName}${source.sourcePage ? ` at source page ${source.sourcePage}` : ''}.`, 'success');
+    } catch (sourceError) {
+      reviewWindow.close();
+      addToast(sourceError instanceof Error ? sourceError.message : 'The private source PDF could not be opened.', 'error');
+    } finally {
+      setOpeningSourceItemId(null);
     }
   };
 
@@ -247,7 +275,7 @@ const QuestionBankInspectorTab: React.FC = () => {
               <thead><tr><th>Question evidence</th><th>Provenance</th><th>Curriculum</th><th>Integrity</th><th>Usage</th><th><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>{catalog.questions.map((question) => (
                 <tr key={question.id} className={[question.needsAttention ? 'needs-attention' : '', question.verificationStatus === 'in_review' ? 'in-review' : ''].filter(Boolean).join(' ')}>
-                  <td><div className="qb-inspector__question-cell"><span className={`qb-inspector__mini-code is-${question.pool}`}>{POOL_DETAILS[question.pool].code}</span><div>{question.verificationStatus === 'in_review' ? <span className="qb-inspector__review-badge">In review</span> : null}<strong>{question.questionText}</strong><small>{question.subject} · {question.topic} · {formatQuestionType(question.questionType)}</small>{question.externalId ? <code>{question.externalId}</code> : null}</div></div></td>
+                  <td><div className="qb-inspector__question-cell"><span className={`qb-inspector__mini-code is-${question.pool}`}>{POOL_DETAILS[question.pool].code}</span><div>{question.verificationStatus === 'in_review' ? <span className="qb-inspector__review-badge">In review</span> : null}{question.submission?.candidateOrigin === 'ai_generated_from_source' ? <span className="qb-inspector__review-badge is-generated">AI-created from PDF</span> : null}<strong>{question.questionText}</strong><small>{question.subject} · {question.topic} · {formatQuestionType(question.questionType)}</small>{question.externalId ? <code>{question.externalId}</code> : null}</div></div></td>
                   <td>{question.teacher ? <div className="qb-inspector__provenance"><span className="qb-inspector__avatar">{question.teacher.name.slice(0, 1).toUpperCase()}</span><div><strong>{question.teacher.name}</strong><small>{question.teacher.schoolName}</small>{!question.teacher.profileLinked ? <em>Identity link missing</em> : null}</div></div> : <div className="qb-inspector__official"><strong>Brains Heist</strong><small>{question.contentVersion || 'Verified content'}</small></div>}</td>
                   <td><div className="qb-inspector__curriculum"><strong>{question.gradeLevel || (question.eligibleGradeLevels?.length ? `Grades ${question.eligibleGradeLevels.join(', ')}` : 'Grade not tagged')}</strong><small>{question.curriculum?.skill || question.curriculum?.strand || 'General curriculum'}</small></div></td>
                   <td><div className={`qb-inspector__integrity is-${question.integrityState}`}><strong>{questionStatusLabel(question)}</strong><small>{question.isActive ? 'Active' : 'Inactive'} · {question.isPublic ? 'Public' : 'Private'}</small></div></td>
@@ -274,7 +302,22 @@ const QuestionBankInspectorTab: React.FC = () => {
                 <section className="qb-inspector__answer"><span>Protected answer</span><h4>{selectedQuestion.correctAnswer}</h4>{selectedQuestion.explanation ? <p>{selectedQuestion.explanation}</p> : <em>No explanation recorded.</em>}</section>
                 {selectedQuestion.submission ? (
                   <section className="qb-inspector__submission">
-                    <span>Teacher taxonomy proposal · review only</span>
+                    <span>{selectedQuestion.submission.candidateOrigin === 'ai_generated_from_source' ? 'AI-created from source · human review required' : 'Extracted source question · human review required'}</span>
+                    <div className="qb-inspector__source-audit">
+                      <div><small>Processing mode</small><strong>{formatAuditLabel(selectedQuestion.submission.processingMode)}</strong></div>
+                      <div><small>Document type</small><strong>{formatAuditLabel(selectedQuestion.submission.detectedDocumentType)}</strong></div>
+                      <div><small>Origin</small><strong>{selectedQuestion.submission.candidateOrigin === 'ai_generated_from_source' ? 'Created from source' : 'Present in source'}</strong></div>
+                      {selectedQuestion.submission.candidateOrigin === 'ai_generated_from_source' ? <div className={selectedQuestion.submission.sourceRightsAttested ? 'is-confirmed' : 'is-warning'}><small>Source use</small><strong>{selectedQuestion.submission.sourceRightsAttested ? 'Rights confirmed' : 'Confirmation missing'}</strong></div> : null}
+                    </div>
+                    {selectedQuestion.submission.candidateOrigin === 'ai_generated_from_source' ? (
+                      <div className="qb-inspector__grounding">
+                        <div><strong>Grounding evidence</strong><span>{selectedQuestion.submission.sourcePage ? `Page ${selectedQuestion.submission.sourcePage}` : 'Page not recorded'} · {formatAuditLabel(selectedQuestion.submission.sourceEvidenceKind)} · {Math.round((selectedQuestion.submission.groundingConfidence || 0) * 100)}% confidence</span></div>
+                        <p><strong>Learning objective:</strong> {selectedQuestion.submission.learningObjective || 'Not recorded'}</p>
+                        <p><strong>Source support:</strong> {selectedQuestion.submission.sourceGroundingNote || 'Not recorded'}</p>
+                        {selectedQuestion.submission.sourceVisualDescription ? <p><strong>Visual evidence:</strong> {selectedQuestion.submission.sourceVisualDescription}</p> : null}
+                        {selectedQuestion.submission.processingRequest?.learning_priorities ? <p><strong>Teacher priority:</strong> {selectedQuestion.submission.processingRequest.learning_priorities}</p> : null}
+                      </div>
+                    ) : null}
                     <div className="qb-inspector__submission-head">
                       <div><small>Primary skill</small><h4>{selectedQuestion.submission.taxonomyProposal.primary_skill_name}</h4></div>
                       <strong>{Math.round(selectedQuestion.submission.taxonomyProposal.confidence_score * 100)}% confidence</strong>
@@ -286,7 +329,8 @@ const QuestionBankInspectorTab: React.FC = () => {
                     </dl>
                     <p><strong>Evidence:</strong> {selectedQuestion.submission.taxonomyProposal.evidence_statement}</p>
                     <p><strong>Review note:</strong> {selectedQuestion.submission.taxonomyProposal.review_reason}</p>
-                    <small>Private source: {selectedQuestion.submission.sourceFileName}{selectedQuestion.submission.sourcePage ? ` · page ${selectedQuestion.submission.sourcePage}` : ''} · extracted with {selectedQuestion.submission.extractionModel}{selectedQuestion.submission.sourceDrift ? ' · source snapshot drift detected' : ''}</small>
+                    <small>Private source: {selectedQuestion.submission.sourceFileName}{selectedQuestion.submission.sourcePage ? ` · page ${selectedQuestion.submission.sourcePage}` : ''} · processed with {selectedQuestion.submission.extractionModel}{selectedQuestion.submission.sourceDrift ? ' · source snapshot drift detected' : ''}</small>
+                    <button type="button" className="qb-inspector__open-source" onClick={() => void openPrivateSource(selectedQuestion.submission!.itemId)} disabled={openingSourceItemId === selectedQuestion.submission.itemId}>{openingSourceItemId === selectedQuestion.submission.itemId ? 'Preparing secure source…' : 'Open private source PDF ↗'}</button>
                   </section>
                 ) : null}
               </main>
