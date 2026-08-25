@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { Subject, Teacher, TeacherQuestion } from '../../types';
 import QuestionPreviewModal from './QuestionPreviewModal';
-import { isBrainsHeistPoolQuestion, isMyPoolQuestion } from './questionPool.js';
+import { isBrainsHeistPoolQuestion, isMyPoolQuestion, isSchoolPoolQuestion } from './questionPool.js';
 import './QuestionBank.css';
 import { brainsAlert } from '../../src/utils/brainsAlert';
 import {
@@ -28,7 +28,7 @@ interface QuestionBankProps {
   schoolId?: string | null;
 }
 
-type PoolKey = 'brains-heist' | 'mine';
+type PoolKey = 'brains-heist' | 'school' | 'mine';
 interface TopicGroup { key: string; subject: Subject; topic: string; questions: TeacherQuestion[] }
 const getTopic = (question: TeacherQuestion) => question.topic_name || question.topic || 'General';
 const formatQuestionType = (value: TeacherQuestion['question_type']) => value.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -72,6 +72,7 @@ export default function QuestionBank({
 
   const pools = useMemo(() => ({
     'brains-heist': permittedQuestions.filter((question) => isBrainsHeistPoolQuestion(question, teacher?.id)),
+    school: permittedQuestions.filter((question) => isSchoolPoolQuestion(question, teacher?.id)),
     mine: permittedQuestions.filter((question) => isMyPoolQuestion(question, teacher?.id)),
   }), [permittedQuestions, teacher]);
 
@@ -90,7 +91,12 @@ export default function QuestionBank({
     });
   }, [effectiveSubject, poolQuestions, searchTerm]);
   const topicGroups = useMemo(() => makeTopicGroups(visibleQuestions), [visibleQuestions]);
-  const selectedPoolTitle = activePool === 'brains-heist' ? 'Brains Heist Verified' : 'My Pool';
+  const selectedPoolTitle = activePool === 'brains-heist'
+    ? 'Brains Heist Verified'
+    : activePool === 'school'
+      ? `${schoolName} Verified`
+      : 'My Pool';
+  const isOfficialPool = activePool !== 'mine';
 
   const choosePool = (pool: PoolKey) => {
     setActivePool(pool);
@@ -143,13 +149,16 @@ export default function QuestionBank({
   return (
     <section className="qb-shell" aria-labelledby="question-bank-title">
       <header className="qb-header">
-        <div><span className="qb-eyebrow">Question workspace</span><h1 id="question-bank-title">Question Bank</h1><p>Use verified academic evidence or upload a private question paper for governed review.</p></div>
+        <div><span className="qb-eyebrow">Question workspace</span><h1 id="question-bank-title">Question Bank</h1><p>Use Brains Heist evidence, your school&apos;s verified curriculum pool, or your private teacher workspace.</p></div>
         <div className="flex flex-wrap gap-2">{onCreateQuestion ? <button type="button" className="qb-primary-action" onClick={() => { choosePool('mine'); onCreateQuestion(); }}>Add Question Batch</button> : null}</div>
       </header>
 
       <div className="qb-pool-switcher" aria-label="Question pools">
         <button type="button" className={activePool === 'brains-heist' ? 'qb-pool-card is-active' : 'qb-pool-card'} onClick={() => choosePool('brains-heist')} aria-pressed={activePool === 'brains-heist'}>
-          <span className="qb-pool-icon">BH</span><span><strong>Brains Heist Verified</strong><small>Official Academic Profile evidence · read-only</small></span><b>{pools['brains-heist'].length}</b>
+          <span className="qb-pool-icon">BH</span><span><strong>Brains Heist Verified</strong><small>Global · official Academic Profile evidence</small></span><b>{pools['brains-heist'].length}</b>
+        </button>
+        <button type="button" className={activePool === 'school' ? 'qb-pool-card is-active is-school' : 'qb-pool-card is-school'} onClick={() => choosePool('school')} aria-pressed={activePool === 'school'}>
+          <span className="qb-pool-icon qb-pool-icon--school">SC</span><span><strong>{schoolName} Verified</strong><small>This school only · official Academic Profile evidence</small></span><b>{pools.school.length}</b>
         </button>
         <button type="button" className={activePool === 'mine' ? 'qb-pool-card is-active' : 'qb-pool-card'} onClick={() => choosePool('mine')} aria-pressed={activePool === 'mine'}>
           <span className="qb-pool-icon qb-pool-icon--mine">MY</span><span><strong>My Pool</strong><small>Private classroom questions · governed</small></span><b>{pools.mine.length}</b>
@@ -157,8 +166,8 @@ export default function QuestionBank({
       </div>
 
       <div className="qb-access-note" data-pool={activePool}>
-        <strong>{activePool === 'brains-heist' ? 'Brains Heist Verified evidence' : 'Teacher-owned classroom workspace'}</strong>
-        <span>{activePool === 'brains-heist' ? 'These questions are professionally mapped, protected, and accepted in the official Academic Profile.' : 'Use these in assignments and classroom reports. They never affect official Academic Profile analytics.'}</span>
+        <strong>{activePool === 'brains-heist' ? 'Global verified evidence' : activePool === 'school' ? `${schoolName} verified evidence` : 'Teacher-owned classroom workspace'}</strong>
+        <span>{activePool === 'brains-heist' ? 'Available only where the question exactly matches your school curriculum.' : activePool === 'school' ? 'Human-approved for this school, read-only, and accepted in the official Academic Profile.' : 'Private to you. These questions never affect official Academic Profile analytics unless governance approves them for your school.'}</span>
       </div>
 
       <div className="qb-toolbar">
@@ -176,10 +185,10 @@ export default function QuestionBank({
           {topicGroups.map((group) => (
             <button type="button" key={group.key} className="qb-topic-card" onClick={() => { setSelectedTopic(group); setTopicName(group.topic); }}>
               <span className="qb-topic-card__subject">{group.subject}</span>
-              <span className="qb-topic-card__icon">{activePool === 'brains-heist' ? '▣' : '□'}</span>
+              <span className="qb-topic-card__icon">{isOfficialPool ? '▣' : '□'}</span>
               <strong>{group.topic}</strong>
               <small>{group.questions.length} question{group.questions.length === 1 ? '' : 's'}</small>
-              <span className="qb-topic-card__status">{activePool === 'brains-heist' ? 'Read-only' : reviewCountForGroup(group) ? `${reviewCountForGroup(group)} in review` : 'Managed by you'}</span>
+              <span className="qb-topic-card__status">{isOfficialPool ? activePool === 'school' ? 'School verified · read-only' : 'Global verified · read-only' : reviewCountForGroup(group) ? `${reviewCountForGroup(group)} in review` : 'Managed by you'}</span>
               <span className="qb-topic-card__open">Open topic →</span>
             </button>
           ))}
@@ -192,7 +201,7 @@ export default function QuestionBank({
         <div className="qb-modal" role="dialog" aria-modal="true" aria-labelledby="qb-topic-title" onMouseDown={(event) => event.target === event.currentTarget && setSelectedTopic(null)}>
           <article className="qb-modal__card">
             <header>
-              <div><span>{selectedTopic.subject} · {activePool === 'brains-heist' ? 'Brains Heist Verified' : 'My Pool'}</span><h2 id="qb-topic-title">{selectedTopic.topic}</h2><p>{selectedTopic.questions.length} question{selectedTopic.questions.length === 1 ? '' : 's'}</p></div>
+              <div><span>{selectedTopic.subject} · {selectedPoolTitle}</span><h2 id="qb-topic-title">{selectedTopic.topic}</h2><p>{selectedTopic.questions.length} question{selectedTopic.questions.length === 1 ? '' : 's'}</p></div>
               <div className="qb-modal__header-actions">
                 <button type="button" onClick={() => printTopic(selectedTopic, false)}>Print paper</button>
                 <button type="button" onClick={() => printTopic(selectedTopic, true)}>Answer key</button>
@@ -207,7 +216,7 @@ export default function QuestionBank({
               {selectedTopic.questions.map((question, index) => (
                 <article key={question.id}>
                   <span>{index + 1}</span>
-                  <div><h3>{question.question_text}</h3><p>{formatQuestionType(question.question_type)} · {question.difficulty} · {question.points || 0} points</p>{activePool === 'brains-heist' ? <>{question.curriculum_skill ? <p><strong>Verified: {question.curriculum_skill}</strong>{question.curriculum_subskill ? ` · ${question.curriculum_subskill}` : ''}{question.eligible_grade_levels?.length ? ` · Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p> : null}{question.curriculum_objective ? <small>Official objective: {question.curriculum_objective}</small> : null}</> : <><p><strong>{question.verification_status === 'in_review' ? 'Awaiting platform review' : 'Classroom only'}</strong>{question.eligible_grade_levels?.length ? ` · Suggested Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p><small>{question.verification_status === 'in_review' ? 'The submitted snapshot is locked while governance checks the content and proposed mapping.' : 'Excluded from official Academic Profile analytics'}</small></>}</div>
+                  <div><h3>{question.question_text}</h3><p>{formatQuestionType(question.question_type)} · {question.difficulty} · {question.points || 0} points</p>{isOfficialPool ? <>{question.curriculum_skill ? <p><strong>{activePool === 'school' ? 'School Verified' : 'Verified'}: {question.curriculum_skill}</strong>{question.curriculum_subskill ? ` · ${question.curriculum_subskill}` : ''}{question.eligible_grade_levels?.length ? ` · Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p> : null}{question.curriculum_objective ? <small>Official objective: {question.curriculum_objective}</small> : null}</> : <><p><strong>{question.verification_status === 'in_review' ? 'Awaiting platform review' : 'Classroom only'}</strong>{question.eligible_grade_levels?.length ? ` · Suggested Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p><small>{question.verification_status === 'in_review' ? 'The submitted snapshot is locked while governance checks the content and proposed mapping.' : 'Excluded from official Academic Profile analytics'}</small></>}</div>
                   <div><button type="button" onClick={() => setPreviewQuestion(question)}>Preview</button>{activePool === 'mine' && question.verification_status !== 'in_review' && onEditQuestion ? <button type="button" onClick={() => onEditQuestion(question)}>Edit</button> : null}{activePool === 'mine' && question.verification_status !== 'in_review' && onDeleteQuestion ? <button type="button" className="is-danger" onClick={() => onDeleteQuestion(question.id)}>Delete</button> : null}</div>
                 </article>
               ))}

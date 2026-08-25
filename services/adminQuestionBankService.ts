@@ -1,16 +1,18 @@
 import { supabase } from './supabaseClient';
 
-export type AdminQuestionPool = 'verified' | 'teacher' | 'archive';
+export type AdminQuestionPool = 'verified' | 'school' | 'teacher' | 'archive';
 export type AdminQuestionStatusFilter = 'all' | 'in_review' | 'active' | 'inactive' | 'visual' | 'needs_attention' | 'high_usage';
 
 export interface AdminQuestionBankSummary {
   totalQuestions: number;
   verifiedQuestions: number;
+  schoolQuestions: number;
   teacherQuestions: number;
   archivedQuestions: number;
   visualQuestions: number;
   teacherAuthors: number;
   teacherSchools: number;
+  schoolPoolSchools: number;
   needsAttention: number;
   inReviewQuestions: number;
 }
@@ -40,6 +42,8 @@ export interface AdminQuestionTeacherProvenance {
 export interface AdminQuestionBankQuestion {
   id: string;
   pool: AdminQuestionPool;
+  poolScope?: 'global' | 'school' | 'teacher';
+  ownerSchoolId?: string | null;
   subject: string;
   topic: string;
   difficulty: string;
@@ -59,9 +63,10 @@ export interface AdminQuestionBankQuestion {
     objective?: string | null;
     reviewStatus?: string | null;
   };
+  curriculumAuthority?: AdminQuestionCurriculumAuthority | null;
   verificationStatus?: string | null;
   analyticsEligible: boolean;
-  integrityState: 'sealed' | 'drift' | 'review' | 'classroom' | 'retired';
+  integrityState: 'sealed' | 'school' | 'drift' | 'review' | 'classroom' | 'retired';
   needsAttention: boolean;
   isPublic: boolean;
   isActive: boolean;
@@ -120,6 +125,88 @@ export interface AdminQuestionBankQuestion {
       review_reason: string;
     };
   } | null;
+  governance?: {
+    decisionId: string;
+    action: 'approve_school' | 'return_teacher' | 'retire_school';
+    rationale: string;
+    authority: string;
+    decidedAt: string;
+    snapshot?: Record<string, unknown>;
+  } | null;
+}
+
+export interface AdminQuestionCurriculumAuthority {
+  curriculumMappingId: string;
+  schoolCurriculumMappingId?: string | null;
+  frameworkId: string;
+  frameworkCode: string;
+  frameworkName: string;
+  frameworkProvider?: string | null;
+  frameworkVersionId: string;
+  frameworkVersionCode: string;
+  frameworkVersionName: string;
+  academicYearId?: string | null;
+  academicYearName?: string | null;
+  gradeLevel?: string | null;
+  academicSubjectId: string;
+  academicSubjectName: string;
+  scopeId: string;
+  scopeCode: string;
+  scopeName: string;
+  objectiveId: string;
+  objectiveCode: string;
+  objectiveStatement: string;
+}
+
+export interface AdminSchoolCurriculumOption {
+  schoolCurriculumMappingId: string;
+  schoolId: string;
+  schoolName: string;
+  academicYearId: string;
+  academicYearName: string;
+  academicYearStatus: 'current' | 'planned';
+  gradeLevel: string;
+  academicSubjectId: string;
+  academicSubjectName: string;
+  frameworkId: string;
+  frameworkCode: string;
+  frameworkName: string;
+  frameworkProvider: string;
+  frameworkVersionId: string;
+  frameworkVersionCode: string;
+  frameworkVersionName: string;
+  scopeId: string;
+  scopeCode: string;
+  scopeName: string;
+  objectiveId: string;
+  objectiveCode: string;
+  objectiveStatement: string;
+  mappingQuality: 'confirmed';
+  label: string;
+}
+
+export interface AdminSchoolCurriculumOptionsResult {
+  success: true;
+  questionId: string;
+  school?: { id: string; name: string } | null;
+  approvalEligible: boolean;
+  blockedReason?: string | null;
+  sourceSnapshotCurrent?: boolean;
+  options: AdminSchoolCurriculumOption[];
+}
+
+export interface AdminSchoolQuestionGovernanceResult {
+  success: true;
+  decisionId: string;
+  questionId: string;
+  action: 'approve_school' | 'return_teacher' | 'retire_school';
+  poolScope: 'school' | 'teacher' | 'archive';
+  verificationStatus: 'verified' | 'unverified' | 'retired';
+  ownerSchoolId?: string;
+  ownerSchoolName?: string;
+  curriculumMappingId?: string;
+  diagnosticTaxonomyId?: string;
+  academicProfileEligible: boolean;
 }
 
 export interface AdminQuestionBankCatalog {
@@ -316,11 +403,13 @@ export interface AdminTaxonomyDecisionResult {
 const EMPTY_SUMMARY: AdminQuestionBankSummary = {
   totalQuestions: 0,
   verifiedQuestions: 0,
+  schoolQuestions: 0,
   teacherQuestions: 0,
   archivedQuestions: 0,
   visualQuestions: 0,
   teacherAuthors: 0,
   teacherSchools: 0,
+  schoolPoolSchools: 0,
   needsAttention: 0,
   inReviewQuestions: 0,
 };
@@ -335,10 +424,16 @@ export async function loadSuperadminQuestionBank(query: AdminQuestionBankQuery):
     p_limit: query.limit || 24,
     p_offset: query.offset || 0,
   };
-  let { data, error } = await supabase.rpc('rpc_superadmin_question_bank_inspector_v2', inspectorArgs);
+  let { data, error } = await supabase.rpc('rpc_superadmin_question_bank_inspector_v3', inspectorArgs);
 
-  // Keep deployments readable during a rolling database migration. The legacy
-  // inspector remains superadmin-only and is used only when v2 is not installed.
+  // Keep non-school collections readable during a rolling database migration.
+  // The School Verified collection intentionally has no permissive fallback.
+  if (error && (error.code === '42883' || error.code === 'PGRST202')) {
+    if (query.pool === 'school') {
+      throw new Error('The School Verified governance workspace is still being activated. Refresh after the database migration finishes.');
+    }
+    ({ data, error } = await supabase.rpc('rpc_superadmin_question_bank_inspector_v2', inspectorArgs));
+  }
   if (error && (error.code === '42883' || error.code === 'PGRST202')) {
     ({ data, error } = await supabase.rpc('rpc_superadmin_question_bank_inspector', inspectorArgs));
   }
@@ -390,6 +485,89 @@ export async function createSuperadminQuestionSourceReviewLink(
     sourcePage: result.sourcePage || null,
     expiresInSeconds: Number(result.expiresInSeconds || 300),
   };
+}
+
+const schoolQuestionGovernanceError = (message?: string) => {
+  const value = message || '';
+  if (value.includes('platform_superadmin_access_required')) {
+    return new Error('This school-question governance action is restricted to the platform superadmin.');
+  }
+  if (value.includes('school_question_governance_rationale_required')) {
+    return new Error('Record a clear governance rationale of at least 20 characters.');
+  }
+  if (value.includes('school_approval_source_snapshot_drift')) {
+    return new Error('The question no longer matches the frozen teacher submission. Return it to the teacher instead of approving it.');
+  }
+  if (value.includes('school_curriculum_authority_no_longer_current')) {
+    return new Error('That curriculum objective is no longer a confirmed mapping for this school. Refresh the objective list.');
+  }
+  if (value.includes('school_question_diagnostic_taxonomy_requires_human_correction')) {
+    return new Error('Correct the skill, atomic subskill, evidence statement, and confidence before approval. Approved confidence must be at least 90%.');
+  }
+  if (value.includes('school_question_assessment_objective_cognition_mismatch')) {
+    return new Error('The assessment objective and cognitive process do not match. Use AO1 remember/understand, AO2 apply, AO3 analyze, or AO4 evaluate.');
+  }
+  if (value.includes('school_approval_source_rights_attestation_required')) {
+    return new Error('This AI-created question cannot be approved until source-generation rights are confirmed.');
+  }
+  if (value.includes('only_in_review_teacher_questions_can_be_returned')
+      || value.includes('school_approval_requires_active_in_review_teacher_question')
+      || value.includes('only_active_school_verified_questions_can_be_retired')) {
+    return new Error('Another governance action has already changed this question. Refresh the vault to see its current state.');
+  }
+  return new Error(value || 'The school-question governance action could not be completed safely.');
+};
+
+export async function loadSuperadminSchoolCurriculumOptions(
+  questionId: string,
+  search?: string,
+): Promise<AdminSchoolCurriculumOptionsResult> {
+  const { data, error } = await supabase.rpc('rpc_superadmin_school_question_curriculum_options', {
+    p_question_id: questionId,
+    p_search: search?.trim() || null,
+    p_limit: 300,
+  });
+  if (error) throw schoolQuestionGovernanceError(error.message);
+  const result = data as AdminSchoolCurriculumOptionsResult | null;
+  if (!result?.success || !Array.isArray(result.options)) {
+    throw new Error('The school curriculum authority list returned an invalid response.');
+  }
+  return result;
+}
+
+export async function governSuperadminSchoolQuestion(input: {
+  questionId: string;
+  action: 'approve_school' | 'return_teacher' | 'retire_school';
+  rationale: string;
+  curriculum?: AdminSchoolCurriculumOption | null;
+  taxonomy?: {
+    primarySkillName: string;
+    atomicSubskillName: string;
+    assessmentProcessCode: AdminAssessmentProcessCode;
+    cognitiveProcess: 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate';
+    evidenceStatement: string;
+    confidenceScore: number;
+  } | null;
+}): Promise<AdminSchoolQuestionGovernanceResult> {
+  const payload = {
+    rationale: input.rationale.trim(),
+    ...(input.action === 'approve_school' && input.curriculum ? {
+      schoolCurriculumMappingId: input.curriculum.schoolCurriculumMappingId,
+      objectiveId: input.curriculum.objectiveId,
+      ...input.taxonomy,
+    } : {}),
+  };
+  const { data, error } = await supabase.rpc('rpc_superadmin_govern_school_question', {
+    p_question_id: input.questionId,
+    p_action: input.action,
+    p_payload: payload,
+  });
+  if (error) throw schoolQuestionGovernanceError(error.message);
+  const result = data as AdminSchoolQuestionGovernanceResult | null;
+  if (!result?.success) {
+    throw new Error('The school-question governance decision returned an invalid response.');
+  }
+  return result;
 }
 
 const taxonomyReviewError = (message?: string) => {

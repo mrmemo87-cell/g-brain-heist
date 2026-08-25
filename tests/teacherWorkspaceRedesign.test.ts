@@ -41,13 +41,15 @@ test('assignment wizard follows the subject-first light workflow', () => {
   assert.doesNotMatch(wizard, /window\.scrollTo/);
 });
 
-test('question bank uses verified official and teacher-owned pools', () => {
+test('question bank separates global, school-verified, and teacher-owned pools', () => {
   assert.match(questionBank, />Brains Heist Verified</);
+  assert.match(questionBank, /School Verified/);
   assert.match(questionBank, />My Pool</);
   assert.match(questionBank, /Question workspace/);
   assert.doesNotMatch(questionBank, /Mission|Loadout|Quest-ready|🎮/i);
   assert.match(questionBank, /isBrainsHeistPoolQuestion/);
-  assert.match(questionBank, /Official Academic Profile evidence · read-only/);
+  assert.match(questionBank, /isSchoolPoolQuestion/);
+  assert.match(questionBank, /official Academic Profile evidence/);
   assert.match(questionBank, /Rename topic/);
   assert.match(questionBank, /Delete topic/);
 });

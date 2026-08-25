@@ -890,6 +890,7 @@ export interface Teacher {
 export type QuestionType = 'multiple_choice' | 'true_false' | 'short_answer';
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
 export type QuestionContentOrigin = 'brain_heist' | 'teacher';
+export type QuestionPoolScope = 'global' | 'school' | 'teacher';
 export type QuestionVerificationStatus = 'unverified' | 'in_review' | 'verified' | 'retired' | 'rejected';
 
 // Option can be either a simple string or an object with text and optional image
@@ -935,6 +936,10 @@ export interface TeacherQuestion {
   eligible_grade_levels?: number[];
   curriculum_review_status?: 'draft' | 'in_review' | 'approved' | 'rejected';
   content_origin?: QuestionContentOrigin;
+  /** Publication authority resolved by the database, not by teacher input. */
+  pool_scope?: QuestionPoolScope;
+  /** Present only for a School Verified question. */
+  owner_school_id?: string | null;
   verification_status?: QuestionVerificationStatus;
   analytics_eligible?: boolean;
   verified_at?: string | null;
