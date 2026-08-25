@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   createSuperadminQuestionSourceReviewLink,
+  governSuperadminSchoolQuestion,
   loadSuperadminQuestionBank,
+  loadSuperadminSchoolCurriculumOptions,
+  type AdminAssessmentProcessCode,
   type AdminQuestionBankCatalog,
   type AdminQuestionBankQuestion,
   type AdminQuestionPool,
   type AdminQuestionStatusFilter,
+  type AdminSchoolCurriculumOption,
 } from '../../../services/adminQuestionBankService';
 import { useAdmin } from '../AdminContext';
 import QuestionTaxonomyReviewQueue from './QuestionTaxonomyReviewQueue';
@@ -19,6 +23,11 @@ const POOL_DETAILS: Record<AdminQuestionPool, { code: string; title: string; des
     title: 'Brains Heist Verified Pool',
     description: 'Official, protected academic evidence accepted by the learning system.',
   },
+  school: {
+    code: 'SC',
+    title: 'School Verified Pools',
+    description: 'Human-approved evidence restricted to the owning school and its named curriculum.',
+  },
   teacher: {
     code: 'TR',
     title: 'Teacher Submissions',
@@ -29,6 +38,13 @@ const POOL_DETAILS: Record<AdminQuestionPool, { code: string; title: string; des
     title: 'Retired Archive',
     description: 'Excluded or retired records retained for governance history and audit.',
   },
+};
+
+const COGNITION_BY_AO: Record<AdminAssessmentProcessCode, Array<'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate'>> = {
+  AO1: ['remember', 'understand'],
+  AO2: ['apply'],
+  AO3: ['analyze'],
+  AO4: ['evaluate'],
 };
 
 const STATUS_OPTIONS: Array<{ value: AdminQuestionStatusFilter; label: string }> = [
@@ -78,6 +94,18 @@ const QuestionBankInspectorTab: React.FC = () => {
   const [offset, setOffset] = useState(0);
   const [selectedQuestion, setSelectedQuestion] = useState<AdminQuestionBankQuestion | null>(null);
   const [openingSourceItemId, setOpeningSourceItemId] = useState<string | null>(null);
+  const [schoolOptions, setSchoolOptions] = useState<AdminSchoolCurriculumOption[]>([]);
+  const [schoolOptionsBlockedReason, setSchoolOptionsBlockedReason] = useState<string | null>(null);
+  const [loadingSchoolOptions, setLoadingSchoolOptions] = useState(false);
+  const [savingGovernance, setSavingGovernance] = useState(false);
+  const [selectedSchoolOptionId, setSelectedSchoolOptionId] = useState('');
+  const [governanceRationale, setGovernanceRationale] = useState('');
+  const [primarySkillName, setPrimarySkillName] = useState('');
+  const [atomicSubskillName, setAtomicSubskillName] = useState('');
+  const [assessmentProcessCode, setAssessmentProcessCode] = useState<AdminAssessmentProcessCode>('AO1');
+  const [cognitiveProcess, setCognitiveProcess] = useState<'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate'>('understand');
+  const [evidenceStatement, setEvidenceStatement] = useState('');
+  const [taxonomyConfidence, setTaxonomyConfidence] = useState(0.9);
   const modalCloseRef = useRef<HTMLButtonElement>(null);
 
   const load = useCallback(async () => {
@@ -88,7 +116,7 @@ const QuestionBankInspectorTab: React.FC = () => {
         pool,
         search,
         subject,
-        schoolId: pool === 'teacher' ? schoolId : undefined,
+        schoolId: pool === 'teacher' || pool === 'school' ? schoolId : undefined,
         status,
         limit: PAGE_SIZE,
         offset,
@@ -120,12 +148,59 @@ const QuestionBankInspectorTab: React.FC = () => {
     };
   }, [selectedQuestion]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setSchoolOptions([]);
+    setSchoolOptionsBlockedReason(null);
+    setSelectedSchoolOptionId('');
+    setGovernanceRationale('');
+    const proposal = selectedQuestion?.submission?.taxonomyProposal;
+    setPrimarySkillName(proposal?.primary_skill_name || '');
+    setAtomicSubskillName(proposal?.atomic_subskill_name || '');
+    setAssessmentProcessCode(proposal?.assessment_process_code || 'AO1');
+    setCognitiveProcess(proposal?.cognitive_process || 'understand');
+    setEvidenceStatement(proposal?.evidence_statement || '');
+    setTaxonomyConfidence(Math.max(0.9, Number(proposal?.confidence_score || 0.9)));
+
+    if (!selectedQuestion
+        || selectedQuestion.pool !== 'teacher'
+        || selectedQuestion.verificationStatus !== 'in_review') {
+      setLoadingSchoolOptions(false);
+      return () => { cancelled = true; };
+    }
+
+    setLoadingSchoolOptions(true);
+    void loadSuperadminSchoolCurriculumOptions(selectedQuestion.id)
+      .then((result) => {
+        if (cancelled) return;
+        setSchoolOptions(result.options);
+        setSchoolOptionsBlockedReason(result.blockedReason || null);
+        setSelectedSchoolOptionId(result.options[0]?.schoolCurriculumMappingId
+          ? `${result.options[0].schoolCurriculumMappingId}:${result.options[0].objectiveId}`
+          : '');
+      })
+      .catch((optionsError) => {
+        if (!cancelled) {
+          setSchoolOptionsBlockedReason(optionsError instanceof Error
+            ? optionsError.message
+            : 'School curriculum authority could not be loaded.');
+        }
+      })
+      .finally(() => { if (!cancelled) setLoadingSchoolOptions(false); });
+
+    return () => { cancelled = true; };
+  }, [selectedQuestion]);
+
   const summary = catalog?.summary;
   const poolCounts = useMemo(() => ({
     verified: summary?.verifiedQuestions || 0,
+    school: summary?.schoolQuestions || 0,
     teacher: summary?.teacherQuestions || 0,
     archive: summary?.archivedQuestions || 0,
   }), [summary]);
+  const selectedSchoolOption = useMemo(() => schoolOptions.find((option) =>
+    `${option.schoolCurriculumMappingId}:${option.objectiveId}` === selectedSchoolOptionId
+  ) || null, [schoolOptions, selectedSchoolOptionId]);
   const pageNumber = Math.floor(offset / PAGE_SIZE) + 1;
   const pageCount = Math.max(1, Math.ceil((catalog?.total || 0) / PAGE_SIZE));
 
@@ -184,6 +259,66 @@ const QuestionBankInspectorTab: React.FC = () => {
     }
   };
 
+  const changeAssessmentProcess = (next: AdminAssessmentProcessCode) => {
+    setAssessmentProcessCode(next);
+    setCognitiveProcess(COGNITION_BY_AO[next][0]);
+  };
+
+  const recordSchoolGovernance = async (
+    action: 'approve_school' | 'return_teacher' | 'retire_school',
+  ) => {
+    if (!selectedQuestion || savingGovernance) return;
+    if (governanceRationale.trim().length < 20) {
+      addToast('Record a clear rationale of at least 20 characters.', 'error');
+      return;
+    }
+    if (action === 'approve_school') {
+      if (!selectedSchoolOption) {
+        addToast('Select the exact school curriculum objective first.', 'error');
+        return;
+      }
+      if (primarySkillName.trim().length < 3 || atomicSubskillName.trim().length < 3) {
+        addToast('Confirm both the primary skill and one precise atomic subskill.', 'error');
+        return;
+      }
+      if (evidenceStatement.trim().length < 30 || taxonomyConfidence < 0.9) {
+        addToast('Evidence must be specific and confidence must be at least 90%.', 'error');
+        return;
+      }
+    }
+
+    setSavingGovernance(true);
+    try {
+      const result = await governSuperadminSchoolQuestion({
+        questionId: selectedQuestion.id,
+        action,
+        rationale: governanceRationale,
+        curriculum: action === 'approve_school' ? selectedSchoolOption : null,
+        taxonomy: action === 'approve_school' ? {
+          primarySkillName: primarySkillName.trim(),
+          atomicSubskillName: atomicSubskillName.trim(),
+          assessmentProcessCode,
+          cognitiveProcess,
+          evidenceStatement: evidenceStatement.trim(),
+          confidenceScore: taxonomyConfidence,
+        } : null,
+      });
+      addToast(action === 'approve_school'
+        ? `${result.ownerSchoolName || 'School'} Verified approval recorded. This question can now feed the Academic Profile only for that school.`
+        : action === 'return_teacher'
+          ? 'Returned to the teacher’s private pool with the decision recorded.'
+          : 'School question retired and removed from future Academic Profile evidence.', 'success');
+      setSelectedQuestion(null);
+      await load();
+    } catch (governanceError) {
+      addToast(governanceError instanceof Error
+        ? governanceError.message
+        : 'The governance decision could not be recorded.', 'error');
+    } finally {
+      setSavingGovernance(false);
+    }
+  };
+
   const exportPage = () => {
     if (!catalog?.questions.length) return;
     const header = ['Pool', 'Question ID', 'Subject', 'Topic', 'Question', 'Teacher', 'School', 'Status', 'Answered', 'Accuracy'];
@@ -218,7 +353,7 @@ const QuestionBankInspectorTab: React.FC = () => {
         <div>
           <span className="qb-inspector__eyebrow">Platform content governance</span>
           <h2>Question Bank Content Vault</h2>
-          <p>Inspect every governed question, trace who created it, and verify exactly which school owns the classroom provenance.</p>
+          <p>Manage the global verified bank, every school&apos;s verified curriculum pool, private teacher submissions, and the complete audit archive.</p>
         </div>
         <div className="qb-inspector__hero-seal" aria-label="Locked source-question content vault">
           <span>SUPERADMIN</span>
@@ -230,7 +365,8 @@ const QuestionBankInspectorTab: React.FC = () => {
 
       <section className="qb-inspector__metrics" aria-label="Question bank summary">
         <article><span>All records</span><strong>{summary?.totalQuestions ?? '—'}</strong><small>Governed inventory</small></article>
-        <article className="is-verified"><span>Verified</span><strong>{summary?.verifiedQuestions ?? '—'}</strong><small>Protected evidence</small></article>
+        <article className="is-verified"><span>Global verified</span><strong>{summary?.verifiedQuestions ?? '—'}</strong><small>Brains Heist evidence</small></article>
+        <article className="is-school"><span>School verified</span><strong>{summary?.schoolQuestions ?? '—'}</strong><small>{summary ? `${summary.schoolPoolSchools} school pool${summary.schoolPoolSchools === 1 ? '' : 's'}` : 'Named curriculum evidence'}</small></article>
         <article className="is-teacher"><span>Teacher-made</span><strong>{summary?.teacherQuestions ?? '—'}</strong><small>{summary ? `${summary.teacherAuthors} author${summary.teacherAuthors === 1 ? '' : 's'} · ${summary.teacherSchools} school${summary.teacherSchools === 1 ? '' : 's'}` : 'Loading provenance'}</small></article>
         <article className="is-visual"><span>Visual questions</span><strong>{summary?.visualQuestions ?? '—'}</strong><small>Accessible diagrams</small></article>
         <article className="is-alert"><span>Teacher review queue</span><strong>{summary?.inReviewQuestions ?? '—'}</strong><small>Submitted question evidence</small></article>
@@ -258,7 +394,7 @@ const QuestionBankInspectorTab: React.FC = () => {
         <form className="qb-inspector__filters" onSubmit={submitSearch}>
           <label className="qb-inspector__search"><span>Search content or provenance</span><div><input type="search" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Question, topic, teacher, school or external ID" /><button type="submit">Search</button></div></label>
           <label><span>Subject</span><select value={subject} onChange={(event) => { setSubject(event.target.value); setOffset(0); }}><option value="">All subjects</option>{catalog?.filters.subjects.map((item) => <option key={item.name} value={item.name}>{item.name} · {item.count}</option>)}</select></label>
-          {pool === 'teacher' ? <label><span>School</span><select value={schoolId} onChange={(event) => { setSchoolId(event.target.value); setOffset(0); }}><option value="">All schools</option>{catalog?.filters.schools.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.count}</option>)}</select></label> : null}
+          {pool === 'teacher' || pool === 'school' ? <label><span>School</span><select value={schoolId} onChange={(event) => { setSchoolId(event.target.value); setOffset(0); }}><option value="">All schools</option>{catalog?.filters.schools.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.count}</option>)}</select></label> : null}
           <label><span>Signal</span><select value={status} onChange={(event) => { setStatus(event.target.value as AdminQuestionStatusFilter); setOffset(0); }}>{STATUS_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
           <button type="button" className="qb-inspector__clear" onClick={clearFilters}>Clear filters</button>
         </form>
@@ -277,7 +413,7 @@ const QuestionBankInspectorTab: React.FC = () => {
                 <tr key={question.id} className={[question.needsAttention ? 'needs-attention' : '', question.verificationStatus === 'in_review' ? 'in-review' : ''].filter(Boolean).join(' ')}>
                   <td><div className="qb-inspector__question-cell"><span className={`qb-inspector__mini-code is-${question.pool}`}>{POOL_DETAILS[question.pool].code}</span><div>{question.verificationStatus === 'in_review' ? <span className="qb-inspector__review-badge">In review</span> : null}{question.submission?.candidateOrigin === 'ai_generated_from_source' ? <span className="qb-inspector__review-badge is-generated">AI-created from PDF</span> : null}<strong>{question.questionText}</strong><small>{question.subject} · {question.topic} · {formatQuestionType(question.questionType)}</small>{question.externalId ? <code>{question.externalId}</code> : null}</div></div></td>
                   <td>{question.teacher ? <div className="qb-inspector__provenance"><span className="qb-inspector__avatar">{question.teacher.name.slice(0, 1).toUpperCase()}</span><div><strong>{question.teacher.name}</strong><small>{question.teacher.schoolName}</small>{!question.teacher.profileLinked ? <em>Identity link missing</em> : null}</div></div> : <div className="qb-inspector__official"><strong>Brains Heist</strong><small>{question.contentVersion || 'Verified content'}</small></div>}</td>
-                  <td><div className="qb-inspector__curriculum"><strong>{question.gradeLevel || (question.eligibleGradeLevels?.length ? `Grades ${question.eligibleGradeLevels.join(', ')}` : 'Grade not tagged')}</strong><small>{question.curriculum?.skill || question.curriculum?.strand || 'General curriculum'}</small></div></td>
+                  <td><div className="qb-inspector__curriculum"><strong>{question.curriculumAuthority ? `${question.curriculumAuthority.frameworkName} · ${question.curriculumAuthority.frameworkVersionName}` : question.gradeLevel || (question.eligibleGradeLevels?.length ? `Grades ${question.eligibleGradeLevels.join(', ')}` : 'Grade not tagged')}</strong><small>{question.curriculumAuthority ? `${question.curriculumAuthority.academicYearName ? `${question.curriculumAuthority.academicYearName} · ` : ''}Grade ${question.curriculumAuthority.gradeLevel || question.gradeLevel || '—'} · ${question.curriculumAuthority.scopeName} · ${question.curriculumAuthority.objectiveCode}` : question.curriculum?.skill || question.curriculum?.strand || 'Awaiting exact curriculum authority'}</small></div></td>
                   <td><div className={`qb-inspector__integrity is-${question.integrityState}`}><strong>{questionStatusLabel(question)}</strong><small>{question.isActive ? 'Active' : 'Inactive'} · {question.isPublic ? 'Public' : 'Private'}</small></div></td>
                   <td><div className="qb-inspector__usage"><strong>{question.timesAnswered.toLocaleString()}</strong><small>{question.accuracyPercent == null ? 'No accuracy yet' : `${question.accuracyPercent}% correct`}</small></div></td>
                   <td><button type="button" className="qb-inspector__inspect" onClick={() => setSelectedQuestion(question)}>Inspect</button></td>
@@ -333,10 +469,54 @@ const QuestionBankInspectorTab: React.FC = () => {
                     <button type="button" className="qb-inspector__open-source" onClick={() => void openPrivateSource(selectedQuestion.submission!.itemId)} disabled={openingSourceItemId === selectedQuestion.submission.itemId}>{openingSourceItemId === selectedQuestion.submission.itemId ? 'Preparing secure source…' : 'Open private source PDF ↗'}</button>
                   </section>
                 ) : null}
+                {selectedQuestion.pool === 'teacher' && selectedQuestion.verificationStatus === 'in_review' ? (
+                  <section className="qb-inspector__school-gate">
+                    <div className="qb-inspector__school-gate-head">
+                      <div><span>School Verification Gate</span><h4>Approve only after curriculum and diagnostic evidence agree</h4><p>Approval makes this read-only and Academic Profile eligible for the named school only.</p></div>
+                      <strong>Human decision</strong>
+                    </div>
+                    {loadingSchoolOptions ? <div className="qb-inspector__gate-loading">Loading confirmed school curriculum objectives…</div> : null}
+                    {schoolOptionsBlockedReason ? <div className="qb-inspector__gate-blocked" role="alert"><strong>Approval blocked</strong><p>{schoolOptionsBlockedReason}</p></div> : null}
+                    {!loadingSchoolOptions && schoolOptions.length ? (
+                      <form onSubmit={(event) => { event.preventDefault(); void recordSchoolGovernance('approve_school'); }}>
+                        <fieldset>
+                          <legend><b>1</b> Exact school curriculum authority</legend>
+                          <label><span>Curriculum · version · year · grade · scope · objective</span><select value={selectedSchoolOptionId} onChange={(event) => setSelectedSchoolOptionId(event.target.value)}>{schoolOptions.map((option) => <option key={`${option.schoolCurriculumMappingId}:${option.objectiveId}`} value={`${option.schoolCurriculumMappingId}:${option.objectiveId}`}>{option.label}</option>)}</select></label>
+                          {selectedSchoolOption ? <div className="qb-inspector__authority-preview"><strong>{selectedSchoolOption.frameworkName} · {selectedSchoolOption.frameworkVersionName}</strong><span>{selectedSchoolOption.schoolName} · {selectedSchoolOption.academicYearName} · Grade {selectedSchoolOption.gradeLevel} · {selectedSchoolOption.academicSubjectName}</span><p><b>{selectedSchoolOption.objectiveCode}</b> {selectedSchoolOption.objectiveStatement}</p></div> : null}
+                        </fieldset>
+                        <fieldset>
+                          <legend><b>2</b> What this question actually measures</legend>
+                          <div className="qb-inspector__gate-grid">
+                            <label><span>Primary skill</span><input value={primarySkillName} onChange={(event) => setPrimarySkillName(event.target.value)} maxLength={160} /></label>
+                            <label><span>Atomic subskill</span><input value={atomicSubskillName} onChange={(event) => setAtomicSubskillName(event.target.value)} maxLength={200} /></label>
+                            <label><span>Assessment objective</span><select value={assessmentProcessCode} onChange={(event) => changeAssessmentProcess(event.target.value as AdminAssessmentProcessCode)}><option value="AO1">AO1 · knowledge &amp; understanding</option><option value="AO2">AO2 · application</option><option value="AO3">AO3 · analysis</option><option value="AO4">AO4 · evaluation</option></select></label>
+                            <label><span>Cognitive process</span><select value={cognitiveProcess} onChange={(event) => setCognitiveProcess(event.target.value as typeof cognitiveProcess)}>{COGNITION_BY_AO[assessmentProcessCode].map((value) => <option key={value} value={value}>{formatAuditLabel(value)}</option>)}</select></label>
+                            <label className="is-wide"><span>Observable evidence statement</span><textarea value={evidenceStatement} onChange={(event) => setEvidenceStatement(event.target.value)} minLength={30} maxLength={500} rows={3} /></label>
+                            <label><span>Human-approved confidence</span><div className="qb-inspector__confidence"><input type="range" min="0.9" max="1" step="0.01" value={taxonomyConfidence} onChange={(event) => setTaxonomyConfidence(Number(event.target.value))} /><strong>{Math.round(taxonomyConfidence * 100)}%</strong></div></label>
+                          </div>
+                        </fieldset>
+                        <fieldset>
+                          <legend><b>3</b> Decision record</legend>
+                          <label><span>Professional rationale · stored permanently</span><textarea value={governanceRationale} onChange={(event) => setGovernanceRationale(event.target.value)} minLength={20} maxLength={2000} rows={3} placeholder="Explain why the content, exact curriculum objective, skill, subskill and assessment objective are accurate." /></label>
+                        </fieldset>
+                        <div className="qb-inspector__gate-actions"><button type="button" className="is-return" onClick={() => void recordSchoolGovernance('return_teacher')} disabled={savingGovernance}>Return to teacher</button><button type="submit" className="is-approve" disabled={savingGovernance || !selectedSchoolOption}>{savingGovernance ? 'Recording decision…' : `Approve for ${selectedSchoolOption?.schoolName || 'school'} →`}</button></div>
+                      </form>
+                    ) : null}
+                    {!loadingSchoolOptions && !schoolOptions.length ? <div className="qb-inspector__gate-actions"><label className="qb-inspector__return-reason"><span>Return rationale</span><textarea value={governanceRationale} onChange={(event) => setGovernanceRationale(event.target.value)} minLength={20} maxLength={2000} rows={3} placeholder="Tell the teacher or curriculum team exactly what must be corrected." /></label><button type="button" className="is-return" onClick={() => void recordSchoolGovernance('return_teacher')} disabled={savingGovernance}>{savingGovernance ? 'Recording…' : 'Return to teacher'}</button></div> : null}
+                  </section>
+                ) : null}
+                {selectedQuestion.pool === 'school' && selectedQuestion.verificationStatus === 'verified' ? (
+                  <section className="qb-inspector__school-gate is-retirement">
+                    <div className="qb-inspector__school-gate-head"><div><span>School Verified Governance</span><h4>Retire from future use</h4><p>Historical decisions remain auditable; future assignments and Academic Profile evidence will stop using this item.</p></div><strong>Protected</strong></div>
+                    <label><span>Retirement rationale · stored permanently</span><textarea value={governanceRationale} onChange={(event) => setGovernanceRationale(event.target.value)} minLength={20} maxLength={2000} rows={3} /></label>
+                    <div className="qb-inspector__gate-actions"><button type="button" className="is-retire" onClick={() => void recordSchoolGovernance('retire_school')} disabled={savingGovernance}>{savingGovernance ? 'Recording…' : 'Retire school question'}</button></div>
+                  </section>
+                ) : null}
               </main>
               <aside>
                 <section><span>Provenance</span>{selectedQuestion.teacher ? <><h4>{selectedQuestion.teacher.name}</h4><p>{selectedQuestion.teacher.schoolName}</p><small>{selectedQuestion.teacher.profileLinked ? 'Linked teacher profile' : 'Identity link requires review'} · {selectedQuestion.teacher.verified ? 'Verified teacher' : 'Teacher verification pending'}</small></> : <><h4>Brains Heist Verified</h4><p>{selectedQuestion.verifiedByAuthority || 'Brains Heist Content Quality'}</p><small>{selectedQuestion.contentVersion || 'Version unavailable'} · revision {selectedQuestion.contentRevision || 1}</small></>}</section>
-                <section><span>Curriculum evidence</span><h4>{selectedQuestion.gradeLevel || 'Grade not tagged'}</h4><p>{selectedQuestion.curriculum?.skill || selectedQuestion.curriculum?.strand || 'General curriculum'}</p><small>{selectedQuestion.curriculum?.objective || 'No objective text recorded.'}</small></section>
+                <section><span>Curriculum evidence</span>{selectedQuestion.curriculumAuthority ? <><h4>{selectedQuestion.curriculumAuthority.frameworkName}</h4><p>{selectedQuestion.curriculumAuthority.frameworkVersionName}{selectedQuestion.curriculumAuthority.academicYearName ? ` · ${selectedQuestion.curriculumAuthority.academicYearName}` : ''} · Grade {selectedQuestion.curriculumAuthority.gradeLevel || selectedQuestion.gradeLevel || '—'}</p><small>{selectedQuestion.curriculumAuthority.scopeName} · {selectedQuestion.curriculumAuthority.objectiveCode}<br />{selectedQuestion.curriculumAuthority.objectiveStatement}</small></> : <><h4>{selectedQuestion.gradeLevel || 'Grade not tagged'}</h4><p>{selectedQuestion.curriculum?.skill || selectedQuestion.curriculum?.strand || 'Not yet governed'}</p><small>{selectedQuestion.curriculum?.objective || 'No approved curriculum objective.'}</small></>}</section>
+                {selectedQuestion.governance ? <section><span>Latest governance decision</span><h4>{formatAuditLabel(selectedQuestion.governance.action)}</h4><p>{selectedQuestion.governance.rationale}</p><small>{selectedQuestion.governance.authority} · {formatDate(selectedQuestion.governance.decidedAt)}</small></section> : null}
                 <section><span>Quality &amp; usage</span><h4 className={selectedQuestion.needsAttention ? 'is-warning' : ''}>{selectedQuestion.verificationStatus === 'in_review' ? 'Awaiting governance review' : selectedQuestion.needsAttention ? 'Review signal open' : 'No blocking signal'}</h4><p>{selectedQuestion.timesAnswered.toLocaleString()} answers · {selectedQuestion.accuracyPercent == null ? 'no accuracy yet' : `${selectedQuestion.accuracyPercent}% correct`}</p><small>{selectedQuestion.integrityState} · {selectedQuestion.isActive ? 'active' : 'inactive'} · {selectedQuestion.isPublic ? 'public' : 'private'}</small></section>
                 <section><span>Record identity</span><code>{selectedQuestion.id}</code>{selectedQuestion.externalId ? <code>{selectedQuestion.externalId}</code> : null}<p>Created {formatDate(selectedQuestion.createdAt)}</p><button type="button" onClick={() => void copyQuestionId(selectedQuestion.id)}>Copy question ID</button></section>
               </aside>

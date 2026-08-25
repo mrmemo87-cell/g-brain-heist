@@ -5262,6 +5262,7 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
             eligible_grade_levels: questionData.eligible_grade_levels || [],
             curriculum_review_status: 'draft',
             content_origin: 'teacher',
+            pool_scope: 'teacher',
             verification_status: 'unverified',
             analytics_eligible: false,
             is_public: false
@@ -5286,6 +5287,7 @@ export const get_my_questions = async (): Promise<TeacherQuestion[]> => {
         .select('*')
         .eq('teacher_id', teacher.id)
         .eq('content_origin', 'teacher')
+        .eq('pool_scope', 'teacher')
         .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -5315,9 +5317,9 @@ export const get_my_questions = async (): Promise<TeacherQuestion[]> => {
 };
 
 /**
- * Get ALL active questions from the global question bank
- * Teachers can see questions created by any teacher across all schools.
- * This is the global question bank - Content = shared.
+ * Get the caller's governed question catalogue. The database returns only
+ * exact-curriculum Global Verified, same-school Verified, and the caller's
+ * own private Teacher Pool questions.
  */
 export const get_all_questions = async (filters?: {
     subject?: string;

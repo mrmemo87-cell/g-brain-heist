@@ -1886,6 +1886,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 teacher={null}
                 onUseSet={handleUseQuestionSet}
                 useActionLabel="Start Quest"
+                schoolName={currentProfile?.school_name || 'Your School'}
+                schoolLogoUrl={currentProfile?.school_logo_url}
+                schoolId={currentProfile?.school_id}
               />
             )}
           </div>
