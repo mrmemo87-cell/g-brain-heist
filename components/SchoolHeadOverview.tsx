@@ -174,18 +174,18 @@ const EngagementTrendChart: React.FC<{ schoolId: string }> = ({ schoolId }) => {
   const latest = points.length ? points[points.length - 1] : null;
   const previous = points.length > 1 ? points[points.length - 2] : null;
   const delta = latest && previous ? Math.round((latest.activity_rate - previous.activity_rate) * 10) / 10 : null;
-  const hasRecordedSessions = points.some((point) => point.active_students > 0);
+  const hasRecordedActivity = points.some((point) => point.active_students > 0);
 
   return (
     <section className="school-head-v3-panel school-head-v3-trend-panel">
       <div className="school-head-v3-panel-heading">
-        <div><span>Student engagement</span><h3>Engagement Trend</h3><p>Distinct learners starting a Brains Heist session in each rolling 7-day window.</p></div>
+        <div><span>Student engagement</span><h3>Engagement Trend</h3><p>Distinct enrolled learners with recorded Brains Heist learning or gameplay activity in each 7-day window.</p></div>
         {delta !== null && <b className={delta >= 0 ? 'is-positive' : 'is-negative'}>{delta >= 0 ? '↗' : '↘'} {delta >= 0 ? '+' : ''}{delta} pp <small>vs prior week</small></b>}
       </div>
       {loading ? <div className="school-head-v3-chart-loading"><i /><i /><i /></div> : unavailable ? (
-        <div className="school-head-v3-chart-empty"><strong>Trend temporarily unavailable</strong><span>The executive snapshot is still live; this chart will return when weekly session analytics are available.</span></div>
-      ) : !hasRecordedSessions ? (
-        <div className="school-head-v3-chart-empty"><strong>No recorded sessions in this 8-week view</strong><span>The chart will start drawing as school learners create Brains Heist sessions.</span></div>
+        <div className="school-head-v3-chart-empty"><strong>Trend temporarily unavailable</strong><span>The executive snapshot is still live; this chart will return when weekly activity analytics are available.</span></div>
+      ) : !hasRecordedActivity ? (
+        <div className="school-head-v3-chart-empty"><strong>No recorded learner activity in this 8-week view</strong><span>The chart will start drawing when learners create recorded learning or gameplay activity.</span></div>
       ) : (
         <div className="school-head-v3-chart-wrap">
           <svg viewBox={`0 0 ${chart.width} ${chart.height}`} role="img" aria-label="Eight-week student engagement trend">
@@ -220,9 +220,9 @@ const SchoolHeadOverview: React.FC<SchoolHeadOverviewProps> = ({ snapshot, onOpe
   const unallocatedTeachers = Math.max(snapshot.totals.teachers - snapshot.structure.allocated_teachers, 0);
 
   const learnerSegments: DonutSegment[] = [
-    { label: 'Active this week', value: activeThisWeek, color: '#1f8fff', note: 'Seen in the last 7 days' },
-    { label: 'Recently active', value: activeEightToThirty, color: '#7454e8', note: 'Seen 8–30 days ago' },
-    { label: 'Re-engage', value: inactiveThirtyPlus, color: '#ffab19', note: 'No activity in 30+ days' },
+    { label: 'Active this week', value: activeThisWeek, color: '#1f8fff', note: 'Recorded activity in the last 7 days' },
+    { label: 'Recently active', value: activeEightToThirty, color: '#7454e8', note: 'Last recorded activity 8–30 days ago' },
+    { label: 'Re-engage', value: inactiveThirtyPlus, color: '#ffab19', note: 'No recorded activity in 30+ days' },
   ];
 
   const coverageSegments: DonutSegment[] = [
@@ -249,22 +249,22 @@ const SchoolHeadOverview: React.FC<SchoolHeadOverviewProps> = ({ snapshot, onOpe
       </section>
 
       <section className="school-head-v3-kpi-grid" aria-label="Executive school indicators">
-        <ExecutiveKpi kind="learners" label="Learners" value={snapshot.totals.students.toLocaleString()} note={`${snapshot.engagement.active_students_7d.toLocaleString()} active in 7 days`} tone="blue" meta={`${studentActivityRate}% weekly`} />
+        <ExecutiveKpi kind="learners" label="Learners" value={snapshot.totals.students.toLocaleString()} note={`${snapshot.engagement.active_students_7d.toLocaleString()} with recorded activity in 7 days`} tone="blue" meta={`${studentActivityRate}% weekly`} />
         <ExecutiveKpi kind="classes" label="Active Classes" value={snapshot.totals.classes.toLocaleString()} note={`${snapshot.structure.covered_classes} with teaching coverage`} tone="purple" meta={`${classCoverageRate}% covered`} />
         <ExecutiveKpi kind="progress" label="Academic Average" value={formatPercent(snapshot.academics.average)} note={snapshot.academics.assignment_total ? `${snapshot.academics.assignment_completed} of ${snapshot.academics.assignment_total} assignments completed` : 'Recorded assessment evidence'} tone="cyan" meta={academicTrend === null ? 'Current period' : `${academicTrend >= 0 ? '+' : ''}${academicTrend} pp`} />
-        <ExecutiveKpi kind="risk" label="At Risk" value={snapshot.engagement.inactive_students_14d.toLocaleString()} note="Learners inactive for 14+ days" tone="red" meta={snapshot.engagement.inactive_students_14d > 0 ? 'Needs support' : 'All active'} />
+        <ExecutiveKpi kind="risk" label="At Risk" value={snapshot.engagement.inactive_students_14d.toLocaleString()} note="No recorded activity for 14+ days" tone="red" meta={snapshot.engagement.inactive_students_14d > 0 ? 'Needs support' : 'All active'} />
       </section>
 
       <div className="school-head-v3-main-grid">
         <EngagementTrendChart schoolId={snapshot.school.id} />
 
         <section className="school-head-v3-panel school-head-v3-activity-panel">
-          <div className="school-head-v3-panel-heading"><div><span>Participation mix</span><h3>Learner Activity</h3><p>A mutually exclusive view of how recently enrolled students have been active.</p></div></div>
+          <div className="school-head-v3-panel-heading"><div><span>Participation mix</span><h3>Learner Activity</h3><p>A mutually exclusive view of each learner&apos;s most recent recorded learning or gameplay activity.</p></div></div>
           <DonutChart
             segments={learnerSegments}
             centerValue={`${studentActivityRate}%`}
             centerLabel="weekly active"
-            ariaLabel={`${studentActivityRate}% of enrolled learners were active in the last 7 days`}
+            ariaLabel={`${studentActivityRate}% of enrolled learners had recorded activity in the last 7 days`}
           />
         </section>
       </div>
@@ -284,7 +284,7 @@ const SchoolHeadOverview: React.FC<SchoolHeadOverviewProps> = ({ snapshot, onOpe
         <section className="school-head-v3-panel school-head-v3-interventions">
           <div className="school-head-v3-panel-heading"><div><span>Intervention Needs</span><h3>Where support is needed</h3><p>Direct counts from current school records — no inferred risk scoring.</p></div></div>
           <div className="school-head-v3-intervention-list">
-            <button type="button" onClick={() => onOpenTab('academic')}><i className="is-red">!</i><span><strong>Re-engage learners</strong><small>Inactive for 14+ days</small></span><b>{snapshot.engagement.inactive_students_14d}</b></button>
+            <button type="button" onClick={() => onOpenTab('academic')}><i className="is-red">!</i><span><strong>Re-engage learners</strong><small>No recorded activity for 14+ days</small></span><b>{snapshot.engagement.inactive_students_14d}</b></button>
             <button type="button" onClick={() => onOpenTab('people')}><i className="is-amber">↗</i><span><strong>Unplaced learners</strong><small>Not connected to an active class</small></span><b>{unplacedStudents}</b></button>
             <button type="button" onClick={() => onOpenTab('people')}><i className="is-purple">□</i><span><strong>Classes without coverage</strong><small>No active teaching allocation</small></span><b>{uncoveredClasses}</b></button>
             <button type="button" onClick={() => onOpenTab('people')}><i className="is-blue">◇</i><span><strong>Teachers unallocated</strong><small>No active class allocation</small></span><b>{unallocatedTeachers}</b></button>
@@ -303,7 +303,7 @@ const SchoolHeadOverview: React.FC<SchoolHeadOverviewProps> = ({ snapshot, onOpe
         </section>
       </div>
 
-      <footer className="school-head-v3-footer"><span><i /> Live school records</span><small>{generatedLabel}</small><b>Metrics use current school-scoped records and explicit reporting definitions.</b></footer>
+      <footer className="school-head-v3-footer"><span><i /> Live school records</span><small>{generatedLabel}</small><b>Engagement uses recorded learning/gameplay activity, not login presence.</b></footer>
     </div>
   );
 };
