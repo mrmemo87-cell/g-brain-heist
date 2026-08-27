@@ -42,13 +42,6 @@ const OUTCOME_LABEL: Record<YearRolloverOutcome, string> = {
   manual: 'Choose an action',
 };
 
-const ROUTE_LABEL: Record<YearRolloverRouteOutcome, string> = {
-  promote: 'Move class up one grade',
-  repeat: 'Keep class in same grade',
-  graduate: 'Final grade / graduation',
-  manual: 'Choose a route',
-};
-
 const AUTHORITY_LABEL = {
   academic_enrolment: 'Confirmed year roster',
   historical_assignment: 'Previous-year assignment history',
@@ -314,6 +307,8 @@ const AcademicYearRolloverWizard: React.FC = () => {
     );
   }
 
+  const hasAttention = reviewCount > 0 || attentionRoutes.length > 0;
+
   return (
     <section className="year-bridge-card is-open" data-testid="year-rollover-command-center">
       <header className="year-bridge-hero">
@@ -323,8 +318,8 @@ const AcademicYearRolloverWizard: React.FC = () => {
           <p>We automatically handle the obvious moves. You only review students or classes where something is unclear.</p>
         </div>
         <div className="year-bridge-hero-actions">
-          <StatusPill tone={reviewCount > 0 ? 'review' : preview ? 'ready' : 'history'}>
-            {preview ? reviewCount > 0 ? `${metric(reviewCount)} students need attention` : 'Ready to check' : 'Nothing changes until launch'}
+          <StatusPill tone={hasAttention ? 'review' : preview ? 'ready' : 'history'}>
+            {preview ? hasAttention ? `${metric(reviewCount)} students · ${metric(attentionRoutes.length)} classes need attention` : 'Everything looks ready' : 'Nothing changes until launch'}
           </StatusPill>
         </div>
       </header>
@@ -335,7 +330,7 @@ const AcademicYearRolloverWizard: React.FC = () => {
       </div>
 
       <div className="year-bridge-workspace">
-        <nav className="year-bridge-stepper" aria-label="Start new school year steps">
+        <nav className="year-bridge-stepper" style={{ gridTemplateColumns: 'repeat(3,minmax(0,1fr))' }} aria-label="Start new school year steps">
           {STEPS.map((item) => (
             <button key={item.step} type="button" className={step === item.step ? 'is-current' : step > item.step ? 'is-complete' : ''}
               disabled={item.step > 1 && !preview} onClick={() => setStep(item.step)}>
@@ -414,7 +409,7 @@ const AcademicYearRolloverWizard: React.FC = () => {
                     <label className="is-reason"><span>Optional note</span><input value={draft.reason} onChange={(event) => setStudentDrafts((current) => ({ ...current, [student.id]: { ...draft, reason: event.target.value } }))} placeholder="Add a note if useful" /></label>
                     <button type="button" className="admin-button-primary admin-button-small" disabled={busyKey === `student:${student.id}` || (needsTarget && !draft.targetClassId) || draft.outcome === 'manual'} onClick={() => void handleSaveStudent(student)}>{busyKey === `student:${student.id}` ? 'Saving…' : 'Save student decision'}</button>
                   </div>
-                  {needsReview ? <div className="year-bridge-alert is-warning"><strong>{blocker ? issueTitle(blocker) : 'Why this needs attention'}</strong><span>{blocker?.message || student.rationale}</span></div> : <p className="year-bridge-student-rationale">{student.rationale}</p>}
+                  {needsReview ? <div className="year-bridge-alert is-warning" style={{ gridColumn: '1 / -1' }}><strong>{blocker ? issueTitle(blocker) : 'Why this needs attention'}</strong><span>{blocker?.message || student.rationale}</span></div> : <p className="year-bridge-student-rationale">{student.rationale}</p>}
                 </article>
               );
             })}</div> : <div className="year-bridge-clear-state"><span aria-hidden="true" /><strong>{studentFilter === 'review' ? 'No students need attention' : 'No students match this search'}</strong><p>{studentFilter === 'review' ? 'All student moves are ready. You can continue to launch.' : 'Try a different name or class.'}</p></div>}
