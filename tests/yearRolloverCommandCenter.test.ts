@@ -106,19 +106,29 @@ test('the service exposes the full school-admin Year Bridge contract', () => {
   assert.match(service, /rollover_confirmation_mismatch/i);
 });
 
-test('the school-admin UI delivers the four-stage Promotion Command Center', () => {
-  assert.match(wizard, /Year Bridge · Promotion Command Center/i);
-  assert.match(wizard, /Move every learner forward without losing a single chapter\./i);
-  assert.match(wizard, /Choose the years/i);
-  assert.match(wizard, /Map every class/i);
-  assert.match(wizard, /Review special cases/i);
-  assert.match(wizard, /Preview and launch/i);
-  assert.match(wizard, /Approve route \+/i);
-  assert.match(wizard, /Type <strong>\{preview\.plan\?\.targetYear\.name\}<\/strong> to launch/i);
-  assert.match(wizard, /The live class roster updates immediately/i);
+test('the school-admin UI uses a simple three-step Start New School Year flow', () => {
+  assert.match(wizard, /Start New School Year/i);
+  assert.match(wizard, /Move students into the new school year in three simple steps\./i);
+  assert.match(wizard, /Choose the new year/i);
+  assert.match(wizard, /Fix only what needs attention/i);
+  assert.match(wizard, /Check and start/i);
+  assert.match(wizard, /Why this needs attention/i);
+  assert.match(wizard, /Fix before launch/i);
+  assert.match(wizard, /Anything blocking launch is explained/i);
+  assert.match(wizard, /confirmation: preview\.plan\.targetYear\.name/i);
+  assert.doesNotMatch(wizard, /Type <strong>\{preview\.plan\?\.targetYear\.name\}<\/strong> to launch/i);
+  assert.doesNotMatch(wizard, /confirmation\.trim\(\)/i);
   assert.match(wizard, /Previous assignments, writing, scores, reports and closed-year enrolment records remain untouched/i);
   assert.match(subjectsTab, /AcademicYearRolloverWizard/i);
   assert.match(subjectsTab, /<AcademicYearRolloverWizard\s*\/>/i);
+});
+
+test('the simplified UI hides automatic class routes and makes blockers actionable', () => {
+  assert.match(wizard, /attentionRoutes/i);
+  assert.match(wizard, /Automatically matched classes are hidden here/i);
+  assert.match(wizard, /issueForStudent/i);
+  assert.match(wizard, /Review students/i);
+  assert.match(wizard, /No typing or hidden confirmation is needed/i);
 });
 
 test('the Year Bridge experience is responsive and respects reduced motion', () => {
