@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const migration = readFileSync('supabase/migrations/20260828010000_retire_legacy_school_billing_capacity.sql', 'utf8');
+const migration = readFileSync('supabase/migrations/20260827191820_retire_legacy_school_billing_capacity.sql', 'utf8');
 const service = readFileSync('services/platformBillingService.ts', 'utf8');
 const admin = readFileSync('components/admin/tabs/BillingAccessTab.tsx', 'utf8');
 
