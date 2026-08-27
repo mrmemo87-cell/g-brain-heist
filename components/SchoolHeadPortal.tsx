@@ -16,7 +16,9 @@ import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
+import SchoolHeadOverview from './SchoolHeadOverview';
 import '../src/styles/school-head.css';
+import '../src/styles/school-head-overview.css';
 
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
 
@@ -271,56 +273,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
     ? ratioPercent(snapshot.subscription.seats_used, snapshot.subscription.seat_limit)
     : null;
   const hasActivePlan = snapshot.subscription.plan !== 'none' && snapshot.subscription.status !== 'none';
-  const renderOverview = () => (
-    <div className="school-head-page">
-      <section className="school-head-briefing">
-        <div>
-          <p className="school-head-kicker">Executive briefing · {snapshot.period.days}-day view</p>
-          <h2>{snapshot.school.name} at a glance</h2>
-          <p>Performance, participation, staffing and decisions that need senior attention.</p>
-        </div>
-        <div className="school-head-briefing-score">
-          <span>Priority items</span><strong>{snapshot.decisions.length}</strong><small>{snapshot.decisions.some((item) => item.severity === 'critical') ? 'Action required' : 'No critical issues'}</small>
-        </div>
-      </section>
-
-      <section className="school-head-metric-grid" aria-label="Executive school indicators">
-        <MetricCard label="Students" value={snapshot.totals.students} note={`${snapshot.engagement.active_students_7d} active in 7 days`} tone={studentActivityRate >= 75 ? 'healthy' : studentActivityRate >= 50 ? 'monitor' : 'action'} />
-        <MetricCard label="Teaching staff" value={snapshot.totals.teachers} note={`${snapshot.engagement.active_teachers_7d} active in 7 days`} tone={teacherActivityRate >= 75 ? 'healthy' : 'monitor'} />
-        <MetricCard label="Academic average" value={formatPercent(snapshot.academics.average)} note={academicTrend === null ? 'First comparable period' : `${academicTrend >= 0 ? '+' : ''}${academicTrend}% vs previous period`} tone={academicTrend === null || academicTrend >= 0 ? 'healthy' : academicTrend > -5 ? 'monitor' : 'action'} />
-        <MetricCard label="Assignment completion" value={formatPercent(snapshot.academics.completion_rate)} note={`${snapshot.academics.assignment_completed} of ${snapshot.academics.assignment_total} completed`} tone={(snapshot.academics.completion_rate ?? 100) >= 75 ? 'healthy' : 'monitor'} />
-        <MetricCard label="Classes covered" value={`${snapshot.structure.covered_classes}/${snapshot.totals.classes}`} note="Active teaching coverage" tone={snapshot.structure.covered_classes === snapshot.totals.classes ? 'healthy' : 'action'} />
-        <MetricCard label="Student placement" value={`${snapshot.structure.placed_students}/${snapshot.totals.students}`} note="Connected to an active class" tone={snapshot.structure.placed_students === snapshot.totals.students ? 'healthy' : 'action'} />
-      </section>
-
-      <div className="school-head-overview-grid">
-        <section className="school-head-panel school-head-priority-panel">
-          <div className="school-head-panel-heading"><div><p>Decision Center</p><h3>What needs your attention</h3></div><button type="button" onClick={() => selectTab('decisions')}>View all</button></div>
-          {snapshot.decisions.length ? <div className="school-head-priority-list">{snapshot.decisions.slice(0, 4).map((decision) => (
-            <button type="button" key={decision.id} onClick={() => selectTab(decision.destination)} className={`is-${decision.severity}`}>
-              <span>{decision.count}</span><div><strong>{decision.title}</strong><small>{decision.description}</small></div><b aria-hidden="true">→</b>
-            </button>
-          ))}</div> : <EmptyState title="No urgent decisions">The current indicators are healthy. Keep monitoring trends and recent governance events.</EmptyState>}
-        </section>
-
-        <section className="school-head-panel">
-          <div className="school-head-panel-heading"><div><p>Operational readiness</p><h3>School structure</h3></div></div>
-          <div className="school-head-progress-list">
-            <ProgressLine label="Students placed" value={snapshot.structure.placed_students} total={snapshot.totals.students} />
-            <ProgressLine label="Classes covered" value={snapshot.structure.covered_classes} total={snapshot.totals.classes} />
-            <ProgressLine label="Teachers allocated" value={snapshot.structure.allocated_teachers} total={snapshot.totals.teachers} />
-            <ProgressLine label="Students active this month" value={snapshot.engagement.active_students_30d} total={snapshot.totals.students} />
-          </div>
-          <button type="button" className="school-head-secondary-action" onClick={() => selectTab('people')}>Review people and structure</button>
-        </section>
-      </div>
-
-      <section className="school-head-panel school-head-program-strip">
-        <div className="school-head-panel-heading"><div><p>Enabled intelligence</p><h3>Program pulse</h3></div><button type="button" onClick={() => selectTab('programs')}>Open programs</button></div>
-        <div>{effectiveEntitlements?.modules.cambridge && <article><span>Cambridge</span><strong>{snapshot.programs.cambridge_attempts}</strong><small>assessment attempts in period</small></article>}{effectiveEntitlements?.modules.writing && <article><span>Writing Hub</span><strong>{snapshot.programs.writing_students}</strong><small>students with writing profiles</small></article>}{effectiveEntitlements?.modules.ielts && <article><span>IELTS</span><strong>{snapshot.programs.ielts_students}</strong><small>school-linked learners</small></article>}{effectiveEntitlements?.modules.admissions && <article><span>Admissions</span><strong>{snapshot.programs.admission_candidates}</strong><small>candidate records</small></article>}</div>
-      </section>
-    </div>
-  );
+  const renderOverview = () => <SchoolHeadOverview snapshot={snapshot} onOpenTab={selectTab} />;
 
   const renderDecisions = () => (
     <div className="school-head-page">
