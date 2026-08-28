@@ -1,0 +1,34 @@
+.parent-academic-year-shell .parent-premium-period{display:none!important}
+
+.parent-academic-year-controls{display:flex;order:-1;align-items:center;gap:.5rem;min-width:0}
+.parent-academic-year-chip,.parent-academic-subject-filter{display:flex;align-items:center;gap:.45rem;min-height:2.5rem;border:1px solid #dbe7ef;border-radius:12px;background:#fff;color:#293a52}
+.parent-academic-year-chip{padding:.4rem .65rem;white-space:nowrap}
+.parent-academic-year-chip>span,.parent-academic-subject-filter>span{color:#8090a4;font-size:.62rem;font-weight:850;letter-spacing:.07em;text-transform:uppercase}
+.parent-academic-year-chip>strong{color:#26384e;font-size:.78rem;font-weight:900}
+.parent-academic-subject-filter{padding:.35rem .45rem .35rem .6rem}
+.parent-academic-subject-filter select{max-width:180px;min-width:130px;border:0;background:transparent;color:#293a52;font:inherit;font-size:.78rem;font-weight:850;outline:none;cursor:pointer}
+.parent-academic-subject-filter select:disabled{cursor:wait;color:#94a3b8}
+.parent-academic-year-chip:focus-within,.parent-academic-subject-filter:focus-within{border-color:#69c6d8;box-shadow:0 0 0 3px rgba(0,184,212,.1)}
+
+.parent-academic-year-shell .parent-premium-child-copy p{font-size:0}
+.parent-academic-year-shell .parent-premium-child-copy p::after{content:var(--parent-child-context);color:#728198;font-size:.78rem}
+
+.parent-academic-year-shell.is-subject-filtered .parent-smart-trend-subjects{display:none}
+.parent-academic-year-shell.is-subject-filtered .parent-premium-section-heading>p::after{content:''}
+
+@media(max-width:900px){
+  .parent-academic-year-chip{display:none}
+  .parent-academic-subject-filter>span{display:none}
+  .parent-academic-subject-filter{padding:.3rem .45rem}
+  .parent-academic-subject-filter select{min-width:118px;max-width:145px}
+}
+
+@media(max-width:640px){
+  .parent-academic-year-controls{width:100%;order:2}
+  .parent-academic-subject-filter{width:100%}
+  .parent-academic-subject-filter select{width:100%;max-width:none;min-width:0}
+  .parent-academic-year-shell .parent-premium-topbar{align-items:flex-start;flex-wrap:wrap}
+  .parent-academic-year-shell .parent-premium-actions{width:100%;flex-wrap:wrap}
+  .parent-academic-year-shell .parent-premium-actions>.parent-premium-ghost{flex:1}
+  .parent-academic-year-shell .parent-premium-child-copy p::after{line-height:1.45}
+}
