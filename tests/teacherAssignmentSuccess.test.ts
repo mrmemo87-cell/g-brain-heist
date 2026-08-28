@@ -38,7 +38,7 @@ test('assignment success RPC is scoped to the authenticated teacher', () => {
   assert.match(migration, /security definer/i);
   assert.match(migration, /set search_path = ''/i);
   assert.match(migration, /where t\.user_id = \(select auth\.uid\(\)\)/i);
-  assert.match(migration, /join current_teacher t on t\.id = a\."teacherId"/i);
+  assert.match(migration, /join current_teacher t on t\.id = a\.teacher_id/i);
   assert.match(migration, /sum\(correct \+ incorrect\)/i);
   assert.match(migration, /correct_answer_count::numeric \* 100 \/ answered_question_count/i);
   assert.match(migration, /legacy_quarantined_assignment_students/i);
