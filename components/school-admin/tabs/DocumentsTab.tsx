@@ -2,6 +2,7 @@ import React from 'react';
 import SchoolDocumentCenter, { type SchoolDocumentStaffOption } from '../../../src/components/SchoolDocumentCenter';
 import SchoolPrintHub, { type SchoolPrintSource } from '../SchoolPrintHub';
 import { useSchoolAdmin } from '../SchoolAdminContext';
+import '../schoolAdminContrastSurfaces.css';
 
 const DocumentsTab: React.FC = () => {
   const { school, teachers = [], schoolAdmins = [], setActiveTab } = useSchoolAdmin();
@@ -22,7 +23,7 @@ const DocumentsTab: React.FC = () => {
 
   if (!school?.id) return null;
 
-  return <section className="space-y-5" aria-label="School Document Center">
+  return <section className="school-admin-themed-tab space-y-5" aria-label="School Document Center">
     <div className="inline-flex w-full gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1 sm:w-auto" role="tablist" aria-label="Document Center sections">
       <button type="button" role="tab" aria-selected={section === 'print'} onClick={() => setSection('print')} className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-bold transition sm:flex-none ${section === 'print' ? 'bg-[#1e4b82] text-white shadow-sm' : 'text-slate-600 hover:bg-white'}`}>What do we need to print?</button>
       <button type="button" role="tab" aria-selected={section === 'history'} onClick={() => setSection('history')} className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-bold transition sm:flex-none ${section === 'history' ? 'bg-[#1e4b82] text-white shadow-sm' : 'text-slate-600 hover:bg-white'}`}>Document history</button>
