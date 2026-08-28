@@ -1,0 +1,51 @@
+name: Apply Geometry Question Assets
+
+on:
+  push:
+    branches:
+      - geometry-use-in-question-svg
+    paths:
+      - .github/workflows/apply-geometry-question-assets.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: geometry-use-in-question-svg
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Apply guarded patch
+        run: python .github/scripts/apply_geometry_question_assets.py
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/TeacherPortal.tsx components/geometry/DiagramBuilder.tsx components/geometry/DiagramToolbar.tsx
+          git diff --cached --check
+          git commit -m "Add SVG geometry question handoff"
+          git push origin HEAD:geometry-use-in-question-svg
