@@ -1,0 +1,30 @@
+name: Agent teacher report cleanup
+on:
+  push:
+    branches:
+      - agent/teacher-report-performance-clean
+permissions:
+  contents: write
+jobs:
+  clean:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/teacher-report-performance-clean
+          fetch-depth: 0
+      - name: Restore canonical portal and apply only report patch
+        run: |
+          git fetch origin main
+          git restore --source=origin/main -- components/TeacherPortal.tsx
+          python3 scripts/patch_teacher_report_performance.py
+          git diff --check
+      - name: Commit surgical diff
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/TeacherPortal.tsx
+          git rm .github/workflows/agent-teacher-report-cleanup.yml scripts/patch_teacher_report_performance.py
+          git commit -m "Keep teacher report performance fix surgical"
+          git push
