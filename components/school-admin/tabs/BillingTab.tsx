@@ -3,6 +3,7 @@ import { useSchoolAdmin } from '../SchoolAdminContext';
 import BillingTabUI from '../BillingTabUI';
 import BillingStudio from '../BillingStudio';
 import ProgrammeSeatManager from '../ProgrammeSeatManager';
+import '../schoolAdminContrastSurfaces.css';
 import {
   fetchSchoolPlanDetails,
   startPilot,
