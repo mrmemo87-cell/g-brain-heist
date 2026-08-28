@@ -1,0 +1,107 @@
+/* Contrast-safe exceptions for intentional dark surfaces inside the school-admin light theme.
+   The legacy adapter converts old slate/gray surfaces to white; these selectors opt specific
+   command, billing and document surfaces back into deliberate dark presentation. */
+
+/* Programme access command header */
+.school-admin-themed-tab #programme-access-requests > div:first-of-type {
+  background: linear-gradient(90deg, #020617 0%, #083344 50%, #020617 100%) !important;
+  color: #ffffff !important;
+}
+
+.school-admin-themed-tab #programme-access-requests > div:first-of-type #programme-licences-title,
+.school-admin-themed-tab #programme-access-requests > div:first-of-type button,
+.school-admin-themed-tab #programme-access-requests > div:first-of-type strong {
+  color: #ffffff !important;
+}
+
+.school-admin-themed-tab #programme-access-requests > div:first-of-type .text-cyan-300 {
+  color: #67e8f9 !important;
+}
+
+.school-admin-themed-tab #programme-access-requests > div:first-of-type .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+.school-admin-themed-tab #programme-access-requests > div:first-of-type [class*="bg-white/10"] {
+  background: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* Live price receipt */
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 {
+  background: #020617 !important;
+  color: #ffffff !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-white {
+  color: #ffffff !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-cyan-300,
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-cyan-700 {
+  color: #67e8f9 !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 [class*="bg-white/5"] {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 [class*="bg-cyan-400/10"] {
+  background: rgba(34, 211, 238, 0.10) !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 [class*="border-white/10"] {
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* Activated plan status must remain readable on its dark green pill. */
+.school-admin-themed-tab .billing-tab-ui span.bg-emerald-700.text-white {
+  background: #047857 !important;
+  color: #ffffff !important;
+}
+
+/* Document Center segmented navigation */
+.school-admin-themed-tab section[aria-label="School Document Center"] [role="tab"][aria-selected="true"] {
+  background: #1e4b82 !important;
+  color: #ffffff !important;
+}
+
+/* Document Center report library: intentional dark report-family header. */
+.school-admin-themed-tab section[aria-labelledby="school-print-hub-title"] > details > summary {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+.school-admin-themed-tab section[aria-labelledby="school-print-hub-title"] > details > summary small {
+  color: #67e8f9 !important;
+}
+
+.school-admin-themed-tab section[aria-labelledby="school-print-hub-title"] > details > summary strong {
+  color: #ffffff !important;
+}
+
+.school-admin-themed-tab section[aria-labelledby="school-print-hub-title"] > details > summary > span:last-child {
+  color: #cbd5e1 !important;
+}
+
+/* Report actions use the same official school blue with a guaranteed light foreground. */
+.school-admin-themed-tab section[aria-labelledby="school-print-hub-title"] article > button {
+  background: #1e4b82 !important;
+  color: #ffffff !important;
+}
+
+.school-admin-themed-tab section[aria-labelledby="school-print-hub-title"] article > button span {
+  color: #ffffff !important;
+}
+
+.school-admin-themed-tab section[aria-labelledby="school-print-hub-title"] article > button:hover {
+  background: #173d6c !important;
+  color: #ffffff !important;
+}
