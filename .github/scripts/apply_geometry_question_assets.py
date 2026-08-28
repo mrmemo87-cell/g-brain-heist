@@ -219,7 +219,6 @@ source = replace_once(
     handoff + '  const handleCreateQuestion = async (e: React.FormEvent) => {\n',
     'TeacherPortal handoff handler',
 )
-
 source = regex_replace_once(
     source,
     r"      // Upload question image if selected\n      let imageUrl = questionImageUrl;\n      if \(questionImage\) \{\n        try \{\n          imageUrl = await GameService\.upload_question_image\(questionImage\);\n        \} catch \(uploadError\) \{\n          brainsAlert\('Unable to upload question image: ' \+ \(uploadError as Error\)\.message, 'error'\);\n          setUploadingImage\(false\);\n          return;\n        \}\n      \}\n",
@@ -252,7 +251,6 @@ source = regex_replace_once(
 ''',
     'TeacherPortal SVG upload fallback',
 )
-
 source = re.sub(
     r"(?m)^(\s*)setQuestionImage\(null\);(?!\n\1setQuestionImageFallback\(null\);)",
     lambda match: f"{match.group(1)}setQuestionImage(null);\n{match.group(1)}setQuestionImageFallback(null);",
@@ -265,12 +263,12 @@ source = re.sub(
 )
 source = replace_once(
     source,
-    '''    onComplete={() => setView('dashboard')}
-    schoolName={resolvedBranding.schoolName}
+    '''              onComplete={() => setView('dashboard')}
+              schoolName={resolvedBranding.schoolName}
 ''',
-    '''    onComplete={() => setView('dashboard')}
-    onUseInQuestion={handleUseGeometryInQuestion}
-    schoolName={resolvedBranding.schoolName}
+    '''              onComplete={() => setView('dashboard')}
+              onUseInQuestion={handleUseGeometryInQuestion}
+              schoolName={resolvedBranding.schoolName}
 ''',
     'TeacherPortal geometry callback wiring',
 )
