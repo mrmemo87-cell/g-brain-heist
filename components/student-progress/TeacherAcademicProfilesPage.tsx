@@ -24,6 +24,11 @@ interface TeacherAcademicProfilesPageProps {
   onBack?: () => void;
 }
 
+const utcToday = () => new Date().toISOString().slice(0, 10);
+const isDateEffectiveYear = (year: AcademicReportingYear, date = utcToday()) => (
+  year.startsOn <= date && date <= year.endsOn
+);
+
 const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = ({ onBack }) => {
   const [students, setStudents] = useState<TeacherAcademicProfileStudent[]>([]);
   const [context, setContext] = useState<AcademicProgressExperienceContext | null>(null);
@@ -48,7 +53,10 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
         if (cancelled) return;
         setContext(nextContext);
         setAcademicYears(reportingContext.years);
-        const currentYear = reportingContext.years.find((year) => year.status === 'current') || reportingContext.years[0] || null;
+        const currentYear = reportingContext.years.find((year) => isDateEffectiveYear(year))
+          || reportingContext.years.find((year) => year.status === 'current')
+          || reportingContext.years[0]
+          || null;
         if (!currentYear) throw new Error('No academic year is configured for this school.');
         setSelectedAcademicYearId(currentYear.id);
       } catch (err) {
@@ -97,7 +105,8 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
 
   const selected = useMemo(() => students.find((student) => student.student_id === selectedStudentId) || null, [students, selectedStudentId]);
   const selectedAcademicYear = academicYears.find((year) => year.id === selectedAcademicYearId) || null;
-  const archivedYear = Boolean(selectedAcademicYear && selectedAcademicYear.status !== 'current');
+  const selectedYearIsActivePeriod = Boolean(selectedAcademicYear && isDateEffectiveYear(selectedAcademicYear));
+  const archivedYear = Boolean(selectedAcademicYear && !selectedYearIsActivePeriod && selectedAcademicYear.status === 'closed');
   const viewerRole = context?.viewer.role || 'teacher';
   const profileMode = viewerRole === 'school_admin' || viewerRole === 'school_head' ? viewerRole : 'teacher';
   const scopeNote = viewerRole === 'teacher'
@@ -146,13 +155,13 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
           }}
         >
           {academicYears.map((year) => <option key={year.id} value={year.id}>
-            {year.name} {year.status === 'current' ? '(Current)' : '(Archived)'}
+            {year.name} {isDateEffectiveYear(year) ? '(Active period)' : year.status === 'current' ? '(Configured current)' : '(Archived)'}
           </option>)}
         </select>
       </label>
       <div>
         <strong>{selectedAcademicYear?.name || 'Academic year'}</strong>
-        <span>{archivedYear ? 'Archived · read only' : 'Current academic year · live evidence'}</span>
+        <span>{selectedYearIsActivePeriod ? 'Active academic period · live evidence' : archivedYear ? 'Archived · read only' : 'Upcoming academic year · roster pending'}</span>
       </div>
     </section>
 

@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 import { userFacingError } from './userFacingError';
-import { getAcademicReportingContext } from './academicReportingService';
+import { getAcademicReportingContext, type AcademicReportingYear } from './academicReportingService';
 
 export type LearningStatus =
   | 'new_focus'
@@ -32,7 +32,7 @@ export interface StudentAcademicSubjectOption {
   code: string;
   name: string;
   requirement: 'required' | 'elective';
-  scopeId: string;
+  scopeId: string | null;
   approvedQuestionCount: number;
 }
 
@@ -104,6 +104,14 @@ const emptyProfile = (): StudentAcademicProfile => ({
   subjects: [], assignments: [], focus_areas: [], timeline: [],
 });
 
+const operationalAcademicYearId = (years: AcademicReportingYear[]): string | null => {
+  const today = new Date().toISOString().slice(0, 10);
+  return years.find((year) => year.startsOn <= today && today <= year.endsOn)?.id
+    ?? years.find((year) => year.status === 'current')?.id
+    ?? years[0]?.id
+    ?? null;
+};
+
 export const fetchStudentAcademicProfile = async (query: StudentAcademicProfileQuery = {}): Promise<StudentAcademicProfile> => {
   const params = {
     p_student_id: query.studentId ?? null,
@@ -124,9 +132,23 @@ export const fetchStudentAcademicProfile = async (query: StudentAcademicProfileQ
 };
 
 export const fetchStudentAcademicSubjects = async (studentId?: string | null): Promise<StudentAcademicSubjectOption[]> => {
-  const { data, error } = await supabase.rpc('rpc_student_academic_subjects', {
-    p_student_id: studentId ?? null,
-  });
+  let academicYearId: string | null = null;
+  try {
+    const reportingContext = await getAcademicReportingContext(studentId);
+    academicYearId = operationalAcademicYearId(reportingContext.years);
+  } catch {
+    // Keep the legacy RPC as a resilient fallback when reporting context is unavailable.
+  }
+
+  const request = academicYearId
+    ? supabase.rpc('rpc_student_academic_subjects_for_year', {
+        p_student_id: studentId ?? null,
+        p_academic_year_id: academicYearId,
+      })
+    : supabase.rpc('rpc_student_academic_subjects', {
+        p_student_id: studentId ?? null,
+      });
+  const { data, error } = await request;
   if (error) throw userFacingError(error, 'We could not load this student’s current subjects.');
   if (!data || typeof data !== 'object' || Array.isArray(data)) return [];
   const result = data as { subjects?: StudentAcademicSubjectOption[] };
@@ -140,7 +162,7 @@ export const fetchStudentAcademicConfidence = async (
   let resolvedAcademicYearId = academicYearId ?? null;
   if (!resolvedAcademicYearId) {
     const reportingContext = await getAcademicReportingContext(studentId);
-    resolvedAcademicYearId = reportingContext.years.find((year) => year.status === 'current')?.id ?? null;
+    resolvedAcademicYearId = operationalAcademicYearId(reportingContext.years);
   }
   const { data, error } = await supabase.rpc('rpc_student_academic_confidence', {
     p_student_id: studentId ?? null,
