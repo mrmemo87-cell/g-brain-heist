@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import TeacherPortal from './TeacherPortal';
+import { supabase } from '../services/supabaseClient';
 
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
 const TeacherInterventionIntelligencePage = React.lazy(() => import('./student-progress/TeacherInterventionIntelligencePage'));
@@ -9,6 +10,14 @@ import type { TargetedPracticeContext } from './student-progress/TeacherInterven
 
 type TeacherPortalShellProps = React.ComponentProps<typeof TeacherPortal>;
 type AcademicTool = 'academic-profiles' | 'interventions';
+
+type TeacherDashboardAssignmentMetrics = {
+  assignment_count: number;
+  active_assignment_count: number;
+  submission_count: number;
+  answered_question_count: number;
+  correct_answer_count: number;
+};
 
 const TOOL_LABELS: Record<AcademicTool, string> = {
   'academic-profiles': 'Academic Profiles',
@@ -23,12 +32,113 @@ const resolveAcademicTool = (button: HTMLButtonElement | null): AcademicTool | n
   return null;
 };
 
+const toDashboardMetricNumber = (value: unknown): number => {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const normalizeDashboardAssignmentMetrics = (value: unknown): TeacherDashboardAssignmentMetrics | null => {
+  const row = (Array.isArray(value) ? value[0] : value) as Record<string, unknown> | null;
+  if (!row || typeof row !== 'object') return null;
+
+  return {
+    assignment_count: toDashboardMetricNumber(row.assignment_count),
+    active_assignment_count: toDashboardMetricNumber(row.active_assignment_count),
+    submission_count: toDashboardMetricNumber(row.submission_count),
+    answered_question_count: toDashboardMetricNumber(row.answered_question_count),
+    correct_answer_count: toDashboardMetricNumber(row.correct_answer_count),
+  };
+};
+
+const setDashboardText = (element: Element | null, value: string) => {
+  if (element && element.textContent !== value) element.textContent = value;
+};
+
+const applyCurrentYearDashboardMetrics = (
+  root: HTMLElement,
+  metrics: TeacherDashboardAssignmentMetrics,
+) => {
+  const cards = Array.from(root.querySelectorAll<HTMLButtonElement>('.teacher-dashboard-stat'));
+  const numberFormat = new Intl.NumberFormat();
+  const accuracy = metrics.answered_question_count > 0
+    ? (metrics.correct_answer_count * 100) / metrics.answered_question_count
+    : 0;
+
+  cards.forEach((card) => {
+    const title = card.querySelector('.teacher-dashboard-stat-info h4');
+    const value = card.querySelector('.teacher-dashboard-stat-value');
+    const subtitle = card.querySelector('.teacher-dashboard-stat-sub');
+    const currentTitle = title?.textContent?.trim() || '';
+
+    if (currentTitle === 'Assignments' || currentTitle === 'Active Assignments') {
+      setDashboardText(title, 'Active Assignments');
+      setDashboardText(value, numberFormat.format(metrics.active_assignment_count));
+      setDashboardText(subtitle, `${numberFormat.format(metrics.assignment_count)} total assignments`);
+      card.setAttribute('aria-label', 'Open Active Assignments');
+      return;
+    }
+
+    if (currentTitle === 'Reports' || currentTitle === 'Completed Submissions') {
+      setDashboardText(title, 'Completed Submissions');
+      setDashboardText(value, numberFormat.format(metrics.submission_count));
+      setDashboardText(subtitle, 'Student submissions received');
+      card.setAttribute('aria-label', 'Open Completed Submissions reports');
+      return;
+    }
+
+    if (currentTitle === 'Assignment Success' || currentTitle === 'Answer Accuracy') {
+      setDashboardText(title, 'Answer Accuracy');
+      setDashboardText(value, `${accuracy.toFixed(1)}%`);
+      setDashboardText(
+        subtitle,
+        `${numberFormat.format(metrics.correct_answer_count)} / ${numberFormat.format(metrics.answered_question_count)} answers correct`,
+      );
+      card.setAttribute('aria-label', 'Open Answer Accuracy reports');
+    }
+  });
+};
+
 const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
   const shellRef = useRef<HTMLDivElement>(null);
   const [activeTool, setActiveTool] = useState<AcademicTool | null>(null);
   const [targetedPractice, setTargetedPractice] = useState<TargetedPracticeContext | null>(null);
   const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
+  const [dashboardAssignmentMetrics, setDashboardAssignmentMetrics] = useState<TeacherDashboardAssignmentMetrics | null>(null);
   const overlayActive = Boolean(activeTool || targetedPractice);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDashboardAssignmentMetrics = async () => {
+      const { data, error } = await supabase.rpc('rpc_teacher_assignment_success_summary');
+      if (cancelled) return;
+
+      if (error) {
+        console.warn('[teacher-dashboard] Current-year assignment metrics unavailable:', error.message);
+        return;
+      }
+
+      setDashboardAssignmentMetrics(normalizeDashboardAssignmentMetrics(data));
+    };
+
+    void loadDashboardAssignmentMetrics();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const shell = shellRef.current;
+    if (!shell || !dashboardAssignmentMetrics) return;
+
+    const applyMetrics = () => applyCurrentYearDashboardMetrics(shell, dashboardAssignmentMetrics);
+    applyMetrics();
+
+    const observer = new MutationObserver(applyMetrics);
+    observer.observe(shell, { childList: true, subtree: true, characterData: true });
+
+    return () => observer.disconnect();
+  }, [dashboardAssignmentMetrics]);
 
   useEffect(() => {
     if (!overlayActive) {
