@@ -343,7 +343,7 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
       const [contextResult, confidenceResult, subjectsResult] = await Promise.allSettled([
         getAcademicProgressExperienceContext(studentId),
         fetchStudentAcademicConfidence(studentId, academicYearId),
-        fetchStudentAcademicSubjects(studentId),
+        fetchStudentAcademicSubjects(studentId, academicYearId),
       ]);
       if (cancelled) return;
       setContext(contextResult.status === 'fulfilled' ? contextResult.value : null);
@@ -353,11 +353,6 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
     void loadContext();
     return () => { cancelled = true; };
   }, [studentId, academicYearId]);
-
-  useEffect(() => {
-    if (!academicYearId || !profile) return;
-    setAvailableSubjects(profile.subjects.map((item) => item.subject));
-  }, [academicYearId, profile]);
 
   const allSubjects = useMemo(() => {
     const values: string[] = [];
