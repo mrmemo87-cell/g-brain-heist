@@ -40,7 +40,7 @@ if old not in text:
 text = text.replace(old, new, 1)
 
 old = "onChange={(event) => setSelectedAcademicYearId(event.target.value)}"
-new = "onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setSelectedAcademicYearId(event.target.value)}"
+new = "onChange={(event: { target: { value: string } }) => setSelectedAcademicYearId(event.target.value)}"
 if old not in text:
     raise RuntimeError('Expected Writing Hub academic-year selector handler was not found')
 text = text.replace(old, new, 1)
