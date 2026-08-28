@@ -691,3 +691,19 @@ begin
   );
 end;
 $function$;
+
+-- SECURITY DEFINER functions must declare their API surface explicitly.
+-- These grants mirror the live ACLs that existed before this migration.
+revoke all on function public.prepare_cambridge_quiz_score() from public;
+grant execute on function public.prepare_cambridge_quiz_score() to authenticated, service_role;
+
+revoke all on function public.get_my_cambridge_attempt_state(text, text) from public;
+grant execute on function public.get_my_cambridge_attempt_state(text, text) to authenticated;
+
+revoke all on function public.submit_cambridge_attempt_entitlement_internal(text, text, text, jsonb, integer, integer, integer, integer, text) from public;
+
+revoke all on function public.get_school_cambridge_scores(integer) from public;
+grant execute on function public.get_school_cambridge_scores(integer) to authenticated;
+
+revoke all on function public.rpc_school_cambridge_evidence_readiness(uuid, timestamp with time zone, timestamp with time zone) from public;
+grant execute on function public.rpc_school_cambridge_evidence_readiness(uuid, timestamp with time zone, timestamp with time zone) to authenticated;
