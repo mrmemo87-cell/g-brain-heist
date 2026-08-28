@@ -6,6 +6,7 @@ import * as GameService from '../services/gameService';
 import * as AuthService from '../services/authService';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import { supabase } from '../services/supabaseClient';
+import { getAcademicReportingContext, type AcademicReportingYear } from '../services/academicReportingService';
 import BackButton from './BackButton';
 import SettingsModal from './SettingsModal';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
@@ -424,6 +425,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Assignment state
   const [assignments, setAssignments] = useState<TeacherAssignmentSummary[]>([]);
+  const [reportAcademicYears, setReportAcademicYears] = useState<AcademicReportingYear[]>([]);
+  const [reportAcademicYearId, setReportAcademicYearId] = useState('');
+  const [reportAssignments, setReportAssignments] = useState<TeacherAssignmentSummary[]>([]);
+  const [reportAssignmentsLoading, setReportAssignmentsLoading] = useState(false);
   const [dashboardAssignmentReports, setDashboardAssignmentReports] = useState<Record<string, TeacherAssignmentReportRow[]>>({});
   const [dashboardReportsLoaded, setDashboardReportsLoaded] = useState(false);
   const [deletingAssignmentId, setDeletingAssignmentId] = useState<string | null>(null);
@@ -456,6 +461,56 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentQuestionSearchTerm, setAssignmentQuestionSearchTerm] = useState('');
   const [assignmentQuestionDifficultyFilter, setAssignmentQuestionDifficultyFilter] = useState<'all' | QuestionDifficulty>('all');
   const [assignmentQuestionTypeFilter, setAssignmentQuestionTypeFilter] = useState<'all' | QuestionType>('all');
+
+  useEffect(() => {
+    if (!teacher || !canUseTeacherFeature(FEATURE_KEYS.REPORTS)) return;
+    let cancelled = false;
+    void getAcademicReportingContext()
+      .then((reportingContext) => {
+        if (cancelled) return;
+        setReportAcademicYears(reportingContext.years);
+        const currentYear = reportingContext.years.find((year) => year.status === 'current') || reportingContext.years[0] || null;
+        setReportAcademicYearId((current) => current && reportingContext.years.some((year) => year.id === current)
+          ? current
+          : currentYear?.id || '');
+      })
+      .catch((error) => console.error('Error loading report academic years:', error));
+    return () => { cancelled = true; };
+  }, [teacher?.id, canUseTeacherFeature]);
+
+  useEffect(() => {
+    if (!teacher || !reportAcademicYearId) {
+      setReportAssignments([]);
+      return;
+    }
+    const selectedYear = reportAcademicYears.find((year) => year.id === reportAcademicYearId) || null;
+    if (!selectedYear || selectedYear.status === 'current') {
+      setReportAssignments(assignments);
+      setReportAssignmentsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setReportAssignments([]);
+    setReportAssignmentsLoading(true);
+    void supabase.rpc('rpc_get_assignments_for_teacher_for_year', {
+      p_teacher_id: teacher.id,
+      p_academic_year_id: reportAcademicYearId,
+    }).then(({ data, error }) => {
+      if (cancelled) return;
+      if (error) {
+        console.error('Error loading archived assignment reports:', error);
+        setReportAssignments([]);
+      } else {
+        setReportAssignments((data as TeacherAssignmentSummary[]) || []);
+      }
+      setReportAssignmentsLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [teacher?.id, assignments, reportAcademicYearId, reportAcademicYears]);
+
+  const selectedReportAcademicYear = reportAcademicYears.find((year) => year.id === reportAcademicYearId) || null;
+  const isArchivedReportYear = Boolean(selectedReportAcademicYear && selectedReportAcademicYear.status !== 'current');
 
   // Assignment Filtering State (Folder Organization)
   const [assignmentSearchTerm, setAssignmentSearchTerm] = useState('');
@@ -5402,11 +5457,29 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     );
   };
 
-  const renderReports = () => (
+  const renderReports = () => {
+    const assignments = reportAssignments;
+    return (
     <div>
+      {reportAssignmentsLoading && <div className="teacher-info-message">Loading archived assignment reports…</div>}
       <div className="teacher-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-        <h2>📊 Assignment Reports</h2>
-        {assignments.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <h2 style={{ margin: 0 }}>📊 Assignment Reports</h2>
+          {reportAcademicYears.length > 0 && <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700 }}>
+            Academic Year
+            <select
+              value={reportAcademicYearId}
+              onChange={(event) => setReportAcademicYearId(event.target.value)}
+              style={{ border: '1px solid #dbe3ef', borderRadius: 8, padding: '7px 10px', background: '#fff' }}
+            >
+              {reportAcademicYears.map((year) => <option key={year.id} value={year.id}>
+                {year.name} {year.status === 'current' ? '(Current)' : '(Archived)'}
+              </option>)}
+            </select>
+          </label>}
+          {isArchivedReportYear && <span style={{ fontSize: 12, fontWeight: 800, color: '#64748b' }}>Archived · read only</span>}
+        </div>
+        {assignments.length > 0 && !isArchivedReportYear && (
           <button
             onClick={() => setView('collective-report')}
             className="teacher-btn teacher-btn-primary text-sm flex items-center gap-2"
@@ -5508,6 +5581,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       )}
     </div>
   );
+  };
 
   const renderReportDetail = () => (
     <div>

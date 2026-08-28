@@ -10,6 +10,10 @@ import {
   type AcademicProgressExperienceContext,
 } from '../../services/academicProgressExperienceService';
 import {
+  getAcademicReportingContext,
+  type AcademicReportingYear,
+} from '../../services/academicReportingService';
+import {
   AcademicProgressHeader,
   AcademicStudentPicker,
   selectionFromStudent,
@@ -23,6 +27,8 @@ interface TeacherAcademicProfilesPageProps {
 const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = ({ onBack }) => {
   const [students, setStudents] = useState<TeacherAcademicProfileStudent[]>([]);
   const [context, setContext] = useState<AcademicProgressExperienceContext | null>(null);
+  const [academicYears, setAcademicYears] = useState<AcademicReportingYear[]>([]);
+  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState('');
   const [grade, setGrade] = useState('');
   const [classFilter, setClassFilter] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState('');
@@ -33,16 +39,40 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
 
   useEffect(() => {
     let cancelled = false;
-    const load = async () => {
-      setLoading(true);
+    const loadContext = async () => {
       try {
-        const [nextStudents, nextContext] = await Promise.all([
-          fetchTeacherAcademicProfileStudents(),
+        const [nextContext, reportingContext] = await Promise.all([
           getAcademicProgressExperienceContext(),
+          getAcademicReportingContext(),
         ]);
         if (cancelled) return;
-        setStudents(nextStudents);
         setContext(nextContext);
+        setAcademicYears(reportingContext.years);
+        const currentYear = reportingContext.years.find((year) => year.status === 'current') || reportingContext.years[0] || null;
+        if (!currentYear) throw new Error('No academic year is configured for this school.');
+        setSelectedAcademicYearId(currentYear.id);
+      } catch (err) {
+        console.error('Failed to load academic profile context', err);
+        if (!cancelled) {
+          setError('Student progress could not be loaded. Please check the school academic year setup and try again.');
+          setLoading(false);
+        }
+      }
+    };
+    void loadContext();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedAcademicYearId) return;
+    let cancelled = false;
+    const loadStudents = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const nextStudents = await fetchTeacherAcademicProfileStudents(selectedAcademicYearId);
+        if (cancelled) return;
+        setStudents(nextStudents);
         const params = new URLSearchParams(window.location.search);
         const requestedStudent = params.get('student') || '';
         if (requestedStudent) {
@@ -56,20 +86,22 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
         }
       } catch (err) {
         console.error('Failed to load academic profile directory', err);
-        if (!cancelled) setError('Student progress could not be loaded. Please check your school access and try again.');
+        if (!cancelled) setError('Student progress could not be loaded for this academic year. Please try again.');
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
-    void load();
+    void loadStudents();
     return () => { cancelled = true; };
-  }, []);
+  }, [selectedAcademicYearId]);
 
   const selected = useMemo(() => students.find((student) => student.student_id === selectedStudentId) || null, [students, selectedStudentId]);
+  const selectedAcademicYear = academicYears.find((year) => year.id === selectedAcademicYearId) || null;
+  const archivedYear = Boolean(selectedAcademicYear && selectedAcademicYear.status !== 'current');
   const viewerRole = context?.viewer.role || 'teacher';
   const profileMode = viewerRole === 'school_admin' || viewerRole === 'school_head' ? viewerRole : 'teacher';
   const scopeNote = viewerRole === 'teacher'
-    ? 'Only students and subjects covered by your active teacher allocations are shown here.'
+    ? 'Only students and subjects covered by your authorised teacher allocations for the selected academic year are shown here.'
     : 'Only students in your school are shown here. Access remains school-scoped and role-authorised.';
 
   if (profileOpen && selectedStudentId) {
@@ -77,6 +109,8 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
       <StudentAcademicProfile
         studentId={selectedStudentId}
         initialSubject={subjectFilter === 'all' ? null : subjectFilter}
+        academicYearId={selectedAcademicYearId}
+        academicYearName={selectedAcademicYear?.name}
         mode={profileMode}
         schoolName={context?.school.name}
         schoolLogoUrl={context?.school.logo_url}
@@ -92,14 +126,39 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
       context={context}
       eyebrow="Student Progress"
       title="Student Academic Profiles"
-      subtitle="Choose a grade, class and student to see attainment, strengths, areas for development and progress over time — then generate a school-ready report."
+      subtitle="Choose an academic year, grade, class and student to see the correct historical or current attainment record."
       onBack={onBack}
       backLabel={onBack ? academicProgressBackDestination(viewerRole).label : undefined}
     />
 
+    <section className="aps-selection-summary" style={{ alignItems: 'flex-end', gap: 16 }}>
+      <label style={{ display: 'grid', gap: 6, minWidth: 220 }}>
+        <strong>Academic Year</strong>
+        <select
+          value={selectedAcademicYearId}
+          onChange={(event) => {
+            setSelectedAcademicYearId(event.target.value);
+            setGrade('');
+            setClassFilter('');
+            setSelectedStudentId('');
+            setSubjectFilter('all');
+            setProfileOpen(false);
+          }}
+        >
+          {academicYears.map((year) => <option key={year.id} value={year.id}>
+            {year.name} {year.status === 'current' ? '(Current)' : '(Archived)'}
+          </option>)}
+        </select>
+      </label>
+      <div>
+        <strong>{selectedAcademicYear?.name || 'Academic year'}</strong>
+        <span>{archivedYear ? 'Archived · read only' : 'Current academic year · live evidence'}</span>
+      </div>
+    </section>
+
     <p className="aps-scope-note">{scopeNote}</p>
 
-    {loading ? <div className="aps-empty-state">Loading your authorised students…</div> : null}
+    {loading ? <div className="aps-empty-state">Loading the selected academic year…</div> : null}
     {error ? <div className="aps-empty-state">{error}</div> : null}
 
     {!loading && !error ? <>

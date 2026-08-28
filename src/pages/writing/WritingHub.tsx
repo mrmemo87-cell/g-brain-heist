@@ -45,6 +45,7 @@ import {
 } from '../../lib/brains_heist/writingIntegrity.js';
 import { getCambridgeWritingProfile, getCambridgeWritingTaskLabel } from '../../lib/brains_heist/cambridgeWritingProfiles.js';
 import { quest_get_missions, QuestMissionRow } from '../../../services/gameService.js';
+import { getAcademicReportingContext, type AcademicReportingYear } from '../../../services/academicReportingService.js';
 
 interface WritingHubProps {
   studentId: string;
@@ -5040,6 +5041,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const [hydratedForStudentId, setHydratedForStudentId] = useState<string | null>(null);
   const [hydrationStatus, setHydrationStatus] = useState(getWritingHydrationStatus());
   const [persistenceStatus, setPersistenceStatus] = useState(getWritingPersistenceStatus());
+  const [academicYears, setAcademicYears] = useState<AcademicReportingYear[]>([]);
+  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState('');
+  const [academicYearsReady, setAcademicYearsReady] = useState(false);
   const responseFieldRef = useRef<HTMLTextAreaElement | null>(null);
   const cinematicTextPanelRef = useRef<HTMLDivElement | null>(null);
   const cinematicRangeRefs = useRef<Record<number, HTMLSpanElement | null>>({});
@@ -5047,21 +5051,73 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const managedPromptLoadKeyRef = useRef('');
   const pastedCharactersToIgnoreRef = useRef(0);
   const voidingAttemptRef = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setAcademicYearsReady(false);
+    void getAcademicReportingContext(studentId)
+      .then((reportingContext) => {
+        if (cancelled) return;
+        setAcademicYears(reportingContext.years);
+        const currentYear = reportingContext.years.find((year) => year.status === 'current') || reportingContext.years[0] || null;
+        setSelectedAcademicYearId(currentYear?.id || '');
+        setAcademicYearsReady(true);
+      })
+      .catch((error) => {
+        console.warn('[writing-hub] Academic year context unavailable:', error);
+        if (!cancelled) setAcademicYearsReady(true);
+      });
+    return () => { cancelled = true; };
+  }, [studentId]);
+
+  const selectedAcademicYear = academicYears.find((year) => year.id === selectedAcademicYearId) || null;
+  const isArchivedAcademicYear = Boolean(selectedAcademicYear && selectedAcademicYear.status !== 'current');
   const wordCount = countWords(draft);
   const wordTone = useMemo(() => getWordCounterTone(wordCount, targetWordCount), [wordCount, targetWordCount]);
   const isVeryShortDraft = wordCount > 0 && wordCount < Math.max(10, Math.floor(targetWordCount * 0.2));
   const hasPromptRotation = availablePromptCount > 1;
   const studentHistoryReady = hydratedForStudentId === studentId
     && hydrationStatus !== 'idle'
-    && hydrationStatus !== 'loading';
+    && hydrationStatus !== 'loading'
+    && academicYearsReady;
   const draftStorageKey = useMemo(
     () => buildWritingDraftStorageKey(studentId, activeGenre, promptText),
     [studentId, activeGenre, promptText]
   );
-  const writingHistoryByGenre = useMemo(
+  const allWritingHistoryByGenre = useMemo(
     () => listStudentWritingHistoryByGenre(studentId),
     [studentId, hydrationStatus, assessment?.total_score, aiFeedback]
   );
+  const writingHistoryByGenre = useMemo(() => {
+    if (!selectedAcademicYear || !allWritingHistoryByGenre.ok || !allWritingHistoryByGenre.data) {
+      return allWritingHistoryByGenre;
+    }
+    const startsAt = Date.parse(`${selectedAcademicYear.startsOn}T00:00:00.000Z`);
+    const endsAt = Date.parse(`${selectedAcademicYear.endsOn}T23:59:59.999Z`);
+    return {
+      ...allWritingHistoryByGenre,
+      data: allWritingHistoryByGenre.data.map((item) => ({
+        ...item,
+        entries: item.entries.filter((entry) => {
+          // Prefer the persisted academic-year authority. Date ranges are only
+          // a fallback for legacy/offline attempts that predate year tagging.
+          if (entry.academic_year_id) return entry.academic_year_id === selectedAcademicYear.id;
+          const createdAt = Date.parse(entry.created_at);
+          if (!Number.isFinite(createdAt)) return false;
+          const dateMatchedYear = academicYears.find((year) => {
+            const yearStart = Date.parse(`${year.startsOn}T00:00:00.000Z`);
+            const yearEnd = Date.parse(`${year.endsOn}T23:59:59.999Z`);
+            return createdAt >= yearStart && createdAt <= yearEnd;
+          });
+          if (dateMatchedYear) return dateMatchedYear.id === selectedAcademicYear.id;
+          // If the school has already marked the next year current before its
+          // formal start date, untagged new in-memory work belongs to that
+          // operational current year rather than disappearing from the UI.
+          return selectedAcademicYear.status === 'current';
+        }),
+      })),
+    };
+  }, [academicYears, allWritingHistoryByGenre, selectedAcademicYear]);
   const archivedEntries = useMemo(
     () => (writingHistoryByGenre.data ?? []).flatMap((item) => item.entries),
     [writingHistoryByGenre]
@@ -5864,13 +5920,14 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   ] : [];
 
   const sortedArchivedEntries = [...archivedEntries].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+  const selectedYearAssessment = isArchivedAcademicYear ? null : assessment;
   const dashboardFocusAreas = Array.from(new Set([
-    ...(assessment?.weakness_tags ?? []),
+    ...(selectedYearAssessment?.weakness_tags ?? []),
     ...sortedArchivedEntries.flatMap((entry) => entry.weakness_tags),
   ])).filter(Boolean);
   const scoredHistory = sortedArchivedEntries.filter((entry) => entry.total_score != null);
-  const currentDashboardScore = assessment?.total_score ?? scoredHistory[0]?.total_score ?? null;
-  const priorDashboardScore = scoredHistory[assessment ? 0 : 1]?.total_score ?? null;
+  const currentDashboardScore = selectedYearAssessment?.total_score ?? scoredHistory[0]?.total_score ?? null;
+  const priorDashboardScore = scoredHistory[selectedYearAssessment ? 0 : 1]?.total_score ?? null;
   const scoreChange = currentDashboardScore != null && priorDashboardScore != null
     ? currentDashboardScore - priorDashboardScore
     : null;
@@ -5918,6 +5975,27 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         {error && <p className="writing-studio__error" role="alert">{error}</p>}
       </section>
 
+      {!wizardOpen && academicYears.length > 0 && <section className="writing-studio__card" aria-label="Writing academic year">
+        <div className="writing-studio__section-heading">
+          <div><span>Academic Year</span><h3 style={{ margin: 0 }}>{selectedAcademicYear?.name || 'School year'}</h3></div>
+          <select
+            value={selectedAcademicYearId}
+            onChange={(event: { target: { value: string } }) => setSelectedAcademicYearId(event.target.value)}
+            aria-label="Writing academic year"
+            style={{ border: '1px solid #cbd5e1', borderRadius: 10, padding: '8px 10px', background: '#fff', color: '#0f172a', fontWeight: 700 }}
+          >
+            {academicYears.map((year) => <option key={year.id} value={year.id}>
+              {year.name} {year.status === 'current' ? '(Current)' : '(Archived)'}
+            </option>)}
+          </select>
+        </div>
+        <p style={{ margin: 0, color: '#475569' }}>
+          {isArchivedAcademicYear
+            ? 'Archived · read only. Your writing, scores and feedback are preserved exactly as school-year history.'
+            : 'Current academic year. New writing and live progress are recorded here.'}
+        </p>
+      </section>}
+
       {!wizardOpen && <section className="writing-studio__card writing-studio__dashboard" aria-labelledby="writing-progress-title">
         <div className="writing-studio__section-heading">
           <div><span>Your dashboard</span><h3 id="writing-progress-title">Your writing analysis</h3></div>
@@ -5939,12 +6017,13 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         </div>
         <div className="writing-studio__dashboard-actions">
           <p>{scoreChange != null && scoreChange > 0 ? `You improved by ${scoreChange} points on your latest scored task.` : 'Your saved work, scores, focus areas, and feedback history stay available below.'}</p>
-          <button type="button" className="writing-studio__primary-button" onClick={() => {
+          <button type="button" className="writing-studio__primary-button" disabled={isArchivedAcademicYear} onClick={() => {
+            if (isArchivedAcademicYear) return;
             setRemainingSeconds(timeLimitSeconds);
             setCompositionTelemetry(createWritingCompositionTelemetry('formal', null, timeLimitSeconds));
             setWizardOpen(true);
           }}>
-            Start a new writing task
+            {isArchivedAcademicYear ? 'Archived year — switch to current year' : 'Start a new writing task'}
           </button>
         </div>
       </section>}
@@ -6211,8 +6290,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
       {!wizardOpen && studentHistoryReady && writingHistoryByGenre.ok && (
         <section className="writing-studio__card writing-studio__archive">
-          <h3 style={{ margin: 0 }}>Writing archive</h3>
-          <p style={{ margin: 0, color: '#475569' }}>All previous writing by genre with saved feedback.</p>
+          <h3 style={{ margin: 0 }}>{isArchivedAcademicYear ? 'Writing archive' : 'Writing this academic year'}</h3>
+          <p style={{ margin: 0, color: '#475569' }}>
+            {selectedAcademicYear?.name || 'Selected year'} · {isArchivedAcademicYear ? 'Archived · read only, with saved feedback.' : 'Current-year writing and saved feedback.'}
+          </p>
           {writingHistoryByGenre.data?.map((genreHistory) => (
             <details key={`simple-history-${genreHistory.genre}`} style={{ borderRadius: 8, border: '1px solid #e2e8f0', padding: 10 }}>
               <summary style={{ cursor: 'pointer', fontWeight: 700 }}>
