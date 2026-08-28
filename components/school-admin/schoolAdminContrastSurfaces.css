@@ -1,6 +1,6 @@
-/* Contrast-safe exceptions for intentional dark surfaces inside the school-admin light theme.
-   The legacy adapter converts old slate/gray surfaces to white; these selectors opt specific
-   command, billing and document surfaces back into deliberate dark presentation. */
+/* Contrast-safe exceptions for intentional surfaces inside the school-admin light theme.
+   The legacy adapter converts old slate/gray surfaces to white; these selectors preserve
+   deliberate command surfaces while keeping financial content bright and highly readable. */
 
 /* Programme access command header */
 .school-admin-themed-tab #programme-access-requests > div:first-of-type {
@@ -26,39 +26,70 @@
   background: rgba(255, 255, 255, 0.10) !important;
 }
 
-/* Live price receipt */
+/* Live price receipt: use a true receipt-style light surface for maximum legibility. */
 .school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 {
-  background: #020617 !important;
-  color: #ffffff !important;
+  border-color: #dbe4ee !important;
+  background: #ffffff !important;
+  color: #17243b !important;
+  box-shadow: 0 16px 38px rgba(22, 63, 115, 0.10) !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 > div:first-child {
+  border-color: #e2e8f0 !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
 }
 
 .school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-white {
-  color: #ffffff !important;
+  color: #17243b !important;
 }
 
 .school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-cyan-300,
 .school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-cyan-700 {
-  color: #67e8f9 !important;
+  color: #0e7490 !important;
 }
 
 .school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-slate-300 {
-  color: #cbd5e1 !important;
+  color: #475569 !important;
 }
 
 .school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-slate-400 {
-  color: #94a3b8 !important;
+  color: #64748b !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-emerald-300 {
+  color: #047857 !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-violet-300 {
+  color: #6d28d9 !important;
 }
 
 .school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 [class*="bg-white/5"] {
-  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
 }
 
 .school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 [class*="bg-cyan-400/10"] {
-  background: rgba(34, 211, 238, 0.10) !important;
+  border: 1px solid #bae6fd !important;
+  background: #ecfeff !important;
+  color: #164e63 !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 [class*="bg-cyan-400/10"] strong {
+  color: #0c4a6e !important;
+}
+
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-cyan-100 {
+  color: #164e63 !important;
 }
 
 .school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 [class*="border-white/10"] {
-  border-color: rgba(255, 255, 255, 0.10) !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Make the amount due the clearest line in the receipt. */
+.school-admin-themed-tab aside[aria-live="polite"].bg-slate-950 .text-3xl {
+  color: #0f172a !important;
 }
 
 /* Activated plan status must remain readable on its dark green pill. */
