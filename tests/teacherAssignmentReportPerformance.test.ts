@@ -29,6 +29,20 @@ test('teacher report detail progressively renders student results and question a
   assert.match(portal, /questionAnalysisLoading \? 'Loading analysis…'/);
 });
 
+test('leaving an assignment report invalidates in-flight report requests', () => {
+  const portal = read('components/TeacherPortal.tsx');
+  const reportNav = portal.indexOf("case 'reports':");
+  const reportNavEnd = portal.indexOf('break;', reportNav);
+  assert.ok(reportNav >= 0 && reportNavEnd > reportNav, 'reports navigation should be present');
+  assert.match(portal.slice(reportNav, reportNavEnd), /reportLoadRequestRef\.current \+= 1/);
+
+  const backLabel = portal.indexOf('Back to Reports');
+  const backStart = portal.lastIndexOf('<button', backLabel);
+  assert.ok(backStart >= 0 && backLabel > backStart, 'report back button should be present');
+  assert.match(portal.slice(backStart, backLabel), /reportLoadRequestRef\.current \+= 1/);
+  assert.match(portal.slice(backStart, backLabel), /setQuestionAnalysisLoading\(false\)/);
+});
+
 test('assignment question analysis has a composite assignment-question index', () => {
   const migration = read('supabase/migrations/20260828230500_teacher_assignment_report_performance.sql');
   assert.match(migration, /student_assignment_answers_assignment_question_idx/);
