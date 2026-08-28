@@ -2,6 +2,7 @@ from pathlib import Path
 
 path = Path('scripts/patch_academic_year_rollover_surfaces.py')
 text = path.read_text(encoding='utf-8')
+
 old = '''text = replace_once(
     text,
     "  }, [studentId]);\\n\\n  const resolvedContext",
@@ -18,5 +19,25 @@ new = '''text = replace_once(
 '''
 if old not in text:
     raise RuntimeError('Expected Academic Profile patcher block was not found')
-path.write_text(text.replace(old, new, 1), encoding='utf-8')
-print('Rollover patcher marker fixed.')
+text = text.replace(old, new, 1)
+
+old = '''    """>Start a new writing task
+          </button>""",
+    """>{isArchivedAcademicYear ? 'Archived year — switch to current year' : 'Start a new writing task'}
+          </button>""",
+    'writing archived button label',
+)'''
+new = '''    """>
+            Start a new writing task
+          </button>""",
+    """>
+            {isArchivedAcademicYear ? 'Archived year — switch to current year' : 'Start a new writing task'}
+          </button>""",
+    'writing archived button label',
+)'''
+if old not in text:
+    raise RuntimeError('Expected Writing Hub button-label patcher block was not found')
+text = text.replace(old, new, 1)
+
+path.write_text(text, encoding='utf-8')
+print('Rollover patcher markers fixed.')
