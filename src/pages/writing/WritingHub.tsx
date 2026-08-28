@@ -5099,12 +5099,25 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       data: allWritingHistoryByGenre.data.map((item) => ({
         ...item,
         entries: item.entries.filter((entry) => {
+          // Prefer the persisted academic-year authority. Date ranges are only
+          // a fallback for legacy/offline attempts that predate year tagging.
+          if (entry.academic_year_id) return entry.academic_year_id === selectedAcademicYear.id;
           const createdAt = Date.parse(entry.created_at);
-          return Number.isFinite(createdAt) && createdAt >= startsAt && createdAt <= endsAt;
+          if (!Number.isFinite(createdAt)) return false;
+          const dateMatchedYear = academicYears.find((year) => {
+            const yearStart = Date.parse(`${year.startsOn}T00:00:00.000Z`);
+            const yearEnd = Date.parse(`${year.endsOn}T23:59:59.999Z`);
+            return createdAt >= yearStart && createdAt <= yearEnd;
+          });
+          if (dateMatchedYear) return dateMatchedYear.id === selectedAcademicYear.id;
+          // If the school has already marked the next year current before its
+          // formal start date, untagged new in-memory work belongs to that
+          // operational current year rather than disappearing from the UI.
+          return selectedAcademicYear.status === 'current';
         }),
       })),
     };
-  }, [allWritingHistoryByGenre, selectedAcademicYear]);
+  }, [academicYears, allWritingHistoryByGenre, selectedAcademicYear]);
   const archivedEntries = useMemo(
     () => (writingHistoryByGenre.data ?? []).flatMap((item) => item.entries),
     [writingHistoryByGenre]

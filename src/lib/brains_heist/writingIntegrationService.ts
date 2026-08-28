@@ -69,6 +69,7 @@ export interface WritingAttempt {
   parent_attempt_id?: string | null;
   prompt_id?: string | null;
   created_at: string;
+  academic_year_id?: string | null;
   prompt_text?: string;
   student_submission?: string;
   assessment: WritingAssessmentResult;
@@ -979,6 +980,7 @@ export interface StudentWritingHistoryEntry {
   attempt_type: WritingAttempt['attempt_type'];
   prompt_id: string | null;
   created_at: string;
+  academic_year_id?: string | null;
   prompt_text: string;
   student_submission: string;
   total_score: number | null;
@@ -1080,6 +1082,7 @@ export const listStudentWritingHistoryByGenre = (studentId: string): ServiceResp
       attempt_type: attempt.attempt_type,
       prompt_id: attempt.prompt_id ?? null,
       created_at: attempt.created_at,
+      academic_year_id: attempt.academic_year_id ?? null,
       prompt_text: attempt.prompt_text?.trim() ?? '',
       student_submission: attempt.student_submission?.trim() ?? '',
       total_score: attempt.assessment?.total_score ?? null,

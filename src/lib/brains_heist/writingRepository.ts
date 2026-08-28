@@ -168,7 +168,15 @@ export const loadWritingStoreSnapshot = async (
       })();
       return [[`${row.student_id}::${inferredGenre}`, statePayload] as [string, unknown]];
     }),
-    attempts: attemptRows.map((row: any) => row.payload),
+    attempts: attemptRows.map((row: any) => ({
+      ...(row?.payload && typeof row.payload === 'object' && !Array.isArray(row.payload) ? row.payload : {}),
+      // The database column is the academic-year authority. Keep it in the
+      // hydrated in-memory attempt so the UI does not have to infer year from
+      // dates (important during pre-term rollover windows).
+      academic_year_id: typeof row?.academic_year_id === 'string'
+        ? row.academic_year_id
+        : (typeof row?.payload?.academic_year_id === 'string' ? row.payload.academic_year_id : null),
+    })),
     weeklyPlans: weeklyRows.map((row: any) => row.payload),
     dailyTasks: taskRows.map((row: any) => row.payload),
     dailySubmissions: submissionRows.map((row: any) => row.payload),
