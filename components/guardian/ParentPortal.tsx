@@ -18,6 +18,7 @@ import { createSchoolBrand, PRODUCT_LOGO_URL, PRODUCT_NAME } from '../../src/lib
 import ParentAcademicYearDashboard from './ParentAcademicYearDashboard';
 import './ParentPortal.css';
 
+// ParentAcademicYearDashboard preserves the ParentDashboardPremium experience while making academic year and subject scope authoritative.
 const safeMessage = (err: unknown, fallback: string) => err instanceof Error && err.message ? err.message : fallback;
 
 const BrainsHeistMark = ({ compact = false }: { compact?: boolean }) => <span className={`parent-product-brand ${compact ? 'is-compact' : ''}`}><img src={PRODUCT_LOGO_URL} alt={`${PRODUCT_NAME} logo`} /><span><strong>{PRODUCT_NAME}</strong><small>Academic progress platform</small></span></span>;
