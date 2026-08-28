@@ -39,5 +39,11 @@ if old not in text:
     raise RuntimeError('Expected Writing Hub button-label patcher block was not found')
 text = text.replace(old, new, 1)
 
+old = "onChange={(event) => setSelectedAcademicYearId(event.target.value)}"
+new = "onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setSelectedAcademicYearId(event.target.value)}"
+if old not in text:
+    raise RuntimeError('Expected Writing Hub academic-year selector handler was not found')
+text = text.replace(old, new, 1)
+
 path.write_text(text, encoding='utf-8')
-print('Rollover patcher markers fixed.')
+print('Rollover patcher markers and selector typing fixed.')
