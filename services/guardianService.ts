@@ -42,7 +42,10 @@ export interface ParentFocusArea {
 
 export interface GuardianChildProgress {
   child: GuardianChild & { id: string; name: string };
-  period: { days: number; start: string; end: string };
+  academic_year?: { id: string; name: string; status: string; starts_on: string; ends_on: string };
+  period: { days: number; start: string; end: string; mode?: string; label?: string };
+  selected_subject?: string | null;
+  available_subjects?: string[];
   summary: {
     assignment_average: number | null;
     completed_assignments: number;
@@ -54,7 +57,19 @@ export interface GuardianChildProgress {
     resolved_count: number;
     strength_count: number;
   };
-  subjects: Array<{ subject: string; assignment_average: number | null; completed_assignments: number; persistent_focus_count: number; improving_count: number; resolved_count: number; strength_count: number }>;
+  subjects: Array<{
+    subject: string;
+    assignment_average: number | null;
+    completed_assignments: number;
+    assigned_assignments?: number;
+    overdue_assignments?: number;
+    persistent_focus_count: number;
+    recurring_focus_count?: number;
+    improving_count: number;
+    resolved_count: number;
+    strength_count: number;
+    latest_evidence_at?: string | null;
+  }>;
   focus_areas: ParentFocusArea[];
   improving: Array<{ subject: string; skill: string; subskill?: string | null; last_observed_at: string; evidence_items: number }>;
   resolved: Array<{ subject: string; skill: string; subskill?: string | null; last_observed_at: string; evidence_items: number }>;
@@ -96,7 +111,7 @@ const friendlyError = (raw: unknown, fallback: string): Error => {
   if (lower.includes('expired')) return new Error('This invitation has expired. Please ask the school for a new invitation.');
   if (lower.includes('revoked')) return new Error('This invitation is no longer active. Please contact the school if you still need access.');
   if ((lower.includes('email') && lower.includes('match')) || lower.includes('email address this guardian invitation was sent to')) return new Error('This invitation belongs to a different email account. Switch accounts and sign in with the email address the school invited.');
-  if (lower.includes('not authorized') || lower.includes('not authorised') || lower.includes('permission')) return new Error('This account does not have access to that information. Please contact the school if you think this is unexpected.');
+  if (lower.includes('not authorized') || lower.includes('not authorised') || lower.includes('permission') || lower.includes('access_denied')) return new Error('This account does not have access to that information. Please contact the school if you think this is unexpected.');
   if (lower.includes('network') || lower.includes('fetch') || lower.includes('load failed') || lower.includes('failed to fetch')) return new Error('We could not connect just now. Please check your connection and try again.');
   return new Error(fallback);
 };
@@ -113,9 +128,12 @@ export async function getGuardianChildren(): Promise<GuardianChild[]> {
   return Array.isArray(data) ? data as GuardianChild[] : [];
 }
 
-export async function getGuardianChildProgress(studentId: string, days = 90): Promise<GuardianChildProgress> {
-  const { data, error } = await supabase.rpc('rpc_guardian_child_progress', { p_student_id: studentId, p_days: days });
-  if (error) throw friendlyError(error, 'We could not open this progress view just now. Please try again.');
+export async function getGuardianChildProgress(studentId: string, _days = 90, subject: string | null = null): Promise<GuardianChildProgress> {
+  const { data, error } = await supabase.rpc('rpc_guardian_child_academic_year_progress', {
+    p_student_id: studentId,
+    p_subject: subject || null,
+  });
+  if (error) throw friendlyError(error, 'We could not open this current school-year progress view just now. Please try again.');
   return data as GuardianChildProgress;
 }
 
