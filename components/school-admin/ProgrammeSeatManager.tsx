@@ -27,6 +27,7 @@ const ProgrammeSeatManager: React.FC<Props> = ({ schoolId, addToast }) => {
   const [overview, setOverview] = useState<ProgrammeSeatOverview | null>(null);
   const [programme, setProgramme] = useState<SeatProgrammeKey>('cambridge');
   const [view, setView] = useState<'roster' | 'activity' | 'policy'>('roster');
+  const [isExpanded, setIsExpanded] = useState(false);
   const [query, setQuery] = useState('');
   const [className, setClassName] = useState('all');
   const [busy, setBusy] = useState<string | null>(null);
@@ -60,6 +61,7 @@ const ProgrammeSeatManager: React.FC<Props> = ({ schoolId, addToast }) => {
 
   if (!overview) return null;
   const remainingTransfers = pool ? Math.max(0, pool.transfer_limit - pool.transfers_used) : 0;
+  const pendingRequestCount = overview.student_requests.length;
 
   const run = async (key: string, action: () => Promise<void>, message: string) => {
     setBusy(key);
@@ -90,12 +92,31 @@ const ProgrammeSeatManager: React.FC<Props> = ({ schoolId, addToast }) => {
   };
 
   return <section id="programme-access-requests" className="scroll-mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="programme-licences-title">
-    <div className="border-b border-slate-200 bg-gradient-to-r from-slate-950 via-cyan-950 to-slate-950 p-5 text-white sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">Named-seat command centre</p><h3 id="programme-licences-title" className="mt-1 text-2xl font-bold">Programme access and seat allocation</h3><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">Allocate by learner or class, see the consequence before every change, and switch programmes atomically. The live agreement—not a percentage estimate—is always authoritative.</p></div><button type="button" onClick={() => void load()} className="rounded-lg border border-white/20 px-3 py-2 text-xs font-semibold">Refresh</button></div>
-      <div className="mt-5 grid gap-2 sm:grid-cols-4"><div className="rounded-xl bg-white/10 p-3"><strong className="block text-sm">1 · Name learners</strong><span className="text-xs text-slate-300">Seats follow students, not logins.</span></div><div className="rounded-xl bg-white/10 p-3"><strong className="block text-sm">2 · Correct safely</strong><span className="text-xs text-slate-300">Unused mistakes: 24 hours.</span></div><div className="rounded-xl bg-white/10 p-3"><strong className="block text-sm">3 · Change fairly</strong><span className="text-xs text-slate-300">10% transfers, minimum two.</span></div><div className="rounded-xl bg-white/10 p-3"><strong className="block text-sm">4 · Reuse after 7 days</strong><span className="text-xs text-slate-300">Stops rapid seat rotation.</span></div></div>
+    <div className={`${isExpanded ? 'border-b border-slate-200' : ''} bg-gradient-to-r from-slate-950 via-cyan-950 to-slate-950 p-5 text-white sm:p-6`}>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <button
+          type="button"
+          onClick={() => setIsExpanded((current) => !current)}
+          aria-expanded={isExpanded}
+          aria-controls="programme-seat-manager-content"
+          className="min-w-0 flex-1 rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+        >
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">Named-seat command centre</p>
+          <span className="mt-1 flex flex-wrap items-center gap-2">
+            <span id="programme-licences-title" className="text-2xl font-bold">Programme access and seat allocation</span>
+            {pendingRequestCount > 0 ? <span className="inline-flex"><span className="school-admin-nav-badge" aria-label={`${pendingRequestCount} pending programme request${pendingRequestCount === 1 ? '' : 's'}`}>{Math.min(pendingRequestCount, 99)}</span></span> : null}
+            <span className={`ml-auto grid h-8 w-8 flex-none place-items-center rounded-full border border-white/20 bg-white/10 transition-transform ${isExpanded ? 'rotate-180' : ''}`} aria-hidden="true">
+              <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z" clipRule="evenodd" /></svg>
+            </span>
+          </span>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{isExpanded ? 'Allocate by learner or class, see the consequence before every change, and switch programmes atomically. The live agreement—not a percentage estimate—is always authoritative.' : pendingRequestCount > 0 ? `${pendingRequestCount} student programme request${pendingRequestCount === 1 ? '' : 's'} waiting for review. Expand to review and allocate seats.` : 'Expand to manage programme access, learner seats, transfers and allocation activity.'}</p>
+        </button>
+        {isExpanded ? <button type="button" onClick={() => void load()} className="rounded-lg border border-white/20 px-3 py-2 text-xs font-semibold">Refresh</button> : null}
+      </div>
+      {isExpanded ? <div className="mt-5 grid gap-2 sm:grid-cols-4"><div className="rounded-xl bg-white/10 p-3"><strong className="block text-sm">1 · Name learners</strong><span className="text-xs text-slate-300">Seats follow students, not logins.</span></div><div className="rounded-xl bg-white/10 p-3"><strong className="block text-sm">2 · Correct safely</strong><span className="text-xs text-slate-300">Unused mistakes: 24 hours.</span></div><div className="rounded-xl bg-white/10 p-3"><strong className="block text-sm">3 · Change fairly</strong><span className="text-xs text-slate-300">10% transfers, minimum two.</span></div><div className="rounded-xl bg-white/10 p-3"><strong className="block text-sm">4 · Reuse after 7 days</strong><span className="text-xs text-slate-300">Stops rapid seat rotation.</span></div></div> : null}
     </div>
 
-    <div className="p-5 sm:p-6">
+    {isExpanded ? <div id="programme-seat-manager-content" className="p-5 sm:p-6">
       <div className="grid gap-3 md:grid-cols-3">{overview.programmes.map((item) => {
         const selected = item.module_key === programme; const limit = item.seat_limit ?? 0;
         const occupancy = limit ? Math.round(((item.assigned + item.cooling_down) / limit) * 100) : 0;
@@ -140,7 +161,7 @@ const ProgrammeSeatManager: React.FC<Props> = ({ schoolId, addToast }) => {
         {exceptionOpen && <div className="mt-5 rounded-xl border border-violet-200 bg-violet-50 p-4"><h5 className="font-bold text-violet-950">Request a reviewed transfer exception</h5><p className="mt-1 text-xs leading-5 text-violet-800">For genuine timetable or cohort changes. Approval adds only the requested transfers for the current programme period; it does not add seats.</p><div className="mt-3 grid gap-3 sm:grid-cols-[140px_1fr_auto]"><label className="text-xs font-bold text-violet-950">Extra transfers<input type="number" min={1} max={1000} value={exceptionCount} onChange={(event) => setExceptionCount(Math.max(1, Number(event.target.value) || 1))} className="mt-1 w-full rounded-lg border border-violet-300 px-3 py-2" /></label><label className="text-xs font-bold text-violet-950">Why is this exceptional?<textarea rows={2} minLength={20} value={exceptionReason} onChange={(event) => setExceptionReason(event.target.value)} className="mt-1 w-full rounded-lg border border-violet-300 p-2" placeholder="Explain the cohort or timetable change (20+ characters)" /></label><div className="flex items-end gap-2"><button type="button" disabled={busy !== null || exceptionReason.trim().length < 20} onClick={() => void submitException()} className="rounded-lg bg-violet-800 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">Send for review</button><button type="button" onClick={() => setExceptionOpen(false)} className="px-2 py-2 text-xs font-bold text-violet-800">Cancel</button></div></div></div>}
         {overview.exception_requests.length > 0 && <div className="mt-5"><h5 className="text-sm font-bold text-slate-950">Exception decisions</h5><div className="mt-2 grid gap-2 md:grid-cols-2">{overview.exception_requests.slice(0,4).map((request) => <article key={request.id} className="rounded-lg border border-slate-200 p-3 text-xs"><span className="font-bold text-slate-950">{LABELS[request.module_key]} · {request.requested_transfers} transfers</span><span className="float-right capitalize text-slate-500">{request.status}</span><p className="mt-1 text-slate-600">Requested {shortDate(request.created_at)}{request.review_note ? ` · ${request.review_note}` : ''}</p></article>)}</div></div>}
       </>}
-    </div>
+    </div> : null}
   </section>;
 };
 
