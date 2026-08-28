@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { TeacherAssignmentSummary, TeacherAssignmentReportRow, Subject, StudentForAssignment, AssignmentCategory } from '../types';
-import { fetchSchoolAcademicSetup, type SchoolAcademicSetup } from '../services/schoolAcademicSetupService';
-import { assignmentCategoryBadgeStyle, getAssignmentCategoryMeta } from '../src/lib/assignmentCategory';
+import { TeacherAssignmentSummary, TeacherAssignmentReportRow, Subject, StudentForAssignment } from '../types';
 import * as GameService from '../services/gameService';
 import { brainsAlert } from '../src/utils/brainsAlert';
 import './CollectiveAssignmentReport.css';
@@ -32,7 +30,7 @@ export interface CollectiveReportData {
   school: { id: string; name: string; logoUrl?: string };
   report: { title: string; academicYear?: string; term?: string; dateFrom: string; dateTo: string; generatedAt: string; generatedBy: string };
   context: { className: string; subjects: string[]; assignmentCount: number; studentCount: number };
-  assignments: Array<{ id: string; title: string; subject: string; date?: string; category?: AssignmentCategory | null }>;
+  assignments: Array<{ id: string; title: string; subject: string; date?: string }>;
   students: Array<{ id: string; name: string; className: string; results: Array<{ assignmentId: string; percentage: number | null; status: 'submitted' | 'not_submitted' }>; completedCount: number; assignmentCount: number; average: number | null; status: string }>;
   summary: { classAverage: number | null; completionRate: number; supportCount: number; highestAverage: number | null; lowestAverage: number | null };
 }
@@ -81,12 +79,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
 
   // Filters
   const [subjectFilter, setSubjectFilter] = useState<'all' | Subject>('all');
-  const [batchFilter, setBatchFilter] = useState<string>('');
-  const [categoryFilter, setCategoryFilter] = useState<'all' | AssignmentCategory>('all');
-  const [academicSetup, setAcademicSetup] = useState<SchoolAcademicSetup | null>(null);
-  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState('');
-  const [selectedTermId, setSelectedTermId] = useState('');
-  const [periodMode, setPeriodMode] = useState<'term' | 'custom'>('term');
+  const [batchFilter, setBatchFilter] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -118,59 +111,6 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   const dragOverRowIndex = useRef<number | null>(null);
   const [dragActiveIdx, setDragActiveIdx] = useState<number | null>(null);
   const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null);
-
-  const localDateKey = useCallback((date = new Date()) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }, []);
-
-  useEffect(() => {
-    if (!school.id) return;
-    let cancelled = false;
-    void fetchSchoolAcademicSetup(school.id).then((setup) => {
-      if (cancelled) return;
-      setAcademicSetup(setup);
-      const today = localDateKey();
-      const currentYear = setup.years.find((item) => item.status === 'current' && today >= item.startsOn && today <= item.endsOn)
-        || setup.years.find((item) => item.status === 'current');
-      if (!currentYear) return;
-      setSelectedAcademicYearId(currentYear.id);
-      setAcademicYear(currentYear.name);
-      const yearTerms = setup.terms.filter((item) => item.academicYearId === currentYear.id).sort((a, b) => a.sequence - b.sequence);
-      const currentTerm = yearTerms.find((item) => today >= item.startsOn && today <= item.endsOn)
-        || [...yearTerms].reverse().find((item) => item.startsOn <= today)
-        || yearTerms[0];
-      if (currentTerm) {
-        setSelectedTermId(currentTerm.id);
-        setTerm(currentTerm.name);
-        setDateFrom(currentTerm.startsOn);
-        setDateTo(currentTerm.endsOn);
-      }
-    }).catch((error) => console.error('Failed to load academic calendar for collective report', error));
-    return () => { cancelled = true; };
-  }, [localDateKey, school.id]);
-
-  const selectedAcademicYear = useMemo(
-    () => academicSetup?.years.find((item) => item.id === selectedAcademicYearId) || null,
-    [academicSetup, selectedAcademicYearId],
-  );
-  const academicYearTerms = useMemo(
-    () => (academicSetup?.terms || []).filter((item) => item.academicYearId === selectedAcademicYearId).sort((a, b) => a.sequence - b.sequence),
-    [academicSetup, selectedAcademicYearId],
-  );
-  const selectedAcademicTerm = useMemo(
-    () => academicYearTerms.find((item) => item.id === selectedTermId) || null,
-    [academicYearTerms, selectedTermId],
-  );
-
-  useEffect(() => {
-    if (periodMode !== 'term' || !selectedAcademicTerm) return;
-    setTerm(selectedAcademicTerm.name);
-    setDateFrom(selectedAcademicTerm.startsOn);
-    setDateTo(selectedAcademicTerm.endsOn);
-  }, [periodMode, selectedAcademicTerm]);
 
   // ── Fetch all data on mount ──────────────────────────────────────────────
   useEffect(() => {
@@ -218,22 +158,17 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
 
     return assignments.filter((assignment) => {
       if (!selectedAssignmentIds.includes(assignment.id)) return false;
-      if (!batchFilter) return false;
       if (subjectFilter !== 'all' && assignment.subject_name !== subjectFilter) return false;
-      if (categoryFilter !== 'all' && assignment.assignment_category !== categoryFilter) return false;
-      const classMatches = assignment.assignment_mode === 'custom'
-        ? (assignment.student_ids || []).some((studentId) => students.some((student) => student.id === studentId && student.batch === batchFilter))
-          || (reportData[assignment.id] || []).some((row) => row.batch === batchFilter)
-        : assignment.batch === batchFilter;
-      if (!classMatches) return false;
-      if (selectedAcademicYearId && assignment.academic_year_id && assignment.academic_year_id !== selectedAcademicYearId) return false;
-      if (periodMode === 'term' && selectedTermId && assignment.academic_term_id && assignment.academic_term_id !== selectedTermId) return false;
+      if (batchFilter !== 'all') {
+        const assignmentClass = assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || 'Unspecified';
+        if (assignmentClass !== batchFilter) return false;
+      }
       const created = new Date(assignment.assigned_at).getTime();
       if (from !== null && created < from) return false;
       if (to !== null && created > to) return false;
       return true;
     });
-  }, [assignments, selectedAssignmentIds, subjectFilter, batchFilter, categoryFilter, dateFrom, dateTo, periodMode, reportData, selectedAcademicYearId, selectedTermId, students]);
+  }, [assignments, selectedAssignmentIds, subjectFilter, batchFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     setSelectedAssignmentIds((current) => {
@@ -315,18 +250,12 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
 
   // ── Unique batches for filter ────────────────────────────────────────────
   const uniqueBatches = useMemo(() => {
-    const batches = new Set(allocatedClassCodes.filter((value) => Boolean(value) && value !== 'All'));
+    const batches = new Set(allocatedClassCodes.filter(Boolean));
     assignments.forEach((assignment) => {
-      if (assignment.assignment_mode !== 'custom' && assignment.batch && assignment.batch !== 'All') batches.add(assignment.batch);
+      batches.add(assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || 'Unspecified');
     });
-    students.forEach((student) => { if (student.batch) batches.add(student.batch); });
     return Array.from(batches).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-  }, [assignments, allocatedClassCodes, students]);
-
-  useEffect(() => {
-    if (!uniqueBatches.length) { setBatchFilter(''); return; }
-    if (!batchFilter || !uniqueBatches.includes(batchFilter)) setBatchFilter(uniqueBatches[0]);
-  }, [batchFilter, uniqueBatches]);
+  }, [assignments, allocatedClassCodes]);
 
   // ── Load saved custom order from localStorage ─────────────────────────
   useEffect(() => {
@@ -376,7 +305,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
     }
 
     // Batch filter
-    if (batchFilter) {
+    if (batchFilter !== 'all' && batchFilter !== 'Selected students') {
       rows = rows.filter((r) => r.batch === batchFilter);
     }
 
@@ -678,7 +607,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       school: { id: school.id || '', name: schoolName, ...(schoolLogoUrl ? { logoUrl: schoolLogoUrl } : {}) },
       report: { title: reportTitle.trim() || 'Class Achievement Report', academicYear, term: term || undefined, dateFrom, dateTo, generatedAt, generatedBy: teacherName },
       context: { className: [...new Set(displayRows.map(row => row.batch))].join(', '), subjects: [...new Set(filteredAssignments.map(a => a.subject_name))], assignmentCount: filteredAssignments.length, studentCount: displayRows.length },
-      assignments: filteredAssignments.map(a => ({ id: a.id, title: a.title || a.topic_name, subject: a.subject_name, date: a.assigned_at, category: a.assignment_category })),
+      assignments: filteredAssignments.map(a => ({ id: a.id, title: a.title || a.topic_name, subject: a.subject_name, date: a.assigned_at })),
       students: displayRows.map(row => ({ id: row.studentId, name: row.studentName, className: row.batch, results: filteredAssignments.map(a => ({ assignmentId: a.id, percentage: row.scores[a.id]?.accuracy ?? null, status: row.scores[a.id] ? 'submitted' : 'not_submitted' })), completedCount: row.completedCount, assignmentCount: filteredAssignments.length, average: row.completedCount ? row.averageAccuracy : null, status: getStudentStatus(row).label })),
       summary: { classAverage: summaryStats?.totalCompleted ? summaryStats.avgAcc : null, completionRate: summaryStats?.completionRate ?? 0, supportCount: summaryStats?.needsAttention ?? 0, highestAverage: averages.length ? Math.max(...averages) : null, lowestAverage: averages.length ? Math.min(...averages) : null },
     };
@@ -853,7 +782,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
           </details>
         </div> : null}
         {builderStep === 2 ? <div className="collective-builder-body"><fieldset className="collective-builder-sections"><legend>Include in the report</legend><label><input type="checkbox" checked={includeSummary} onChange={(event) => setIncludeSummary(event.target.checked)} /> <span><strong>Executive summary</strong><small>Headline attainment and completion</small></span></label><label><input type="checkbox" checked={includeGradeMatrix} onChange={(event) => setIncludeGradeMatrix(event.target.checked)} /> <span><strong>Student results</strong><small>Individual grades and completion</small></span></label><label><input type="checkbox" checked={includeAssignmentBreakdown} onChange={(event) => setIncludeAssignmentBreakdown(event.target.checked)} /> <span><strong>Assignment summary</strong><small>Performance by selected task</small></span></label></fieldset><label className="collective-order-field"><span>Student order</span><select value={isCustomMode ? 'custom' : sortColumn === 'average' && sortDirection === 'asc' ? 'attention' : 'name'} onChange={(event) => { if (event.target.value === 'custom') { if (!isCustomMode) toggleCustomMode(); } else { setIsCustomMode(false); setSortColumn(event.target.value === 'attention' ? 'average' : 'name'); setSortDirection('asc'); } }}><option value="name">Name A–Z</option><option value="attention">Lowest attainment first</option><option value="custom">Custom order</option></select><small>Custom order enables drag controls in the results table.</small></label></div> : null}
-        {builderStep === 3 ? <div className="collective-builder-body"><div className="collective-builder-grid"><label className="collective-builder-field"><span>Report title</span><input value={reportTitle} onChange={(event) => setReportTitle(event.target.value)} maxLength={90} /></label><label className="collective-builder-field"><span>Academic year</span><input value={academicYear} readOnly /></label><label className="collective-builder-field"><span>Term / period</span><input value={term} readOnly /></label><label className="collective-builder-field"><span>Teacher comments <small>optional</small></span><input value={reportNote} onChange={(event) => setReportNote(event.target.value)} placeholder="Context for report recipients…" maxLength={180} /></label></div><div className="collective-review-card"><strong>{reportTitle || 'Class Achievement Report'}</strong><span>{displayRows.length} students, {filteredAssignments.length} assignments, {reportModel.context.subjects.join(', ')}, Class {reportModel.context.className}, {dateFrom || 'all dates'}–{dateTo || 'present'}.</span><span>{[includeSummary, includeGradeMatrix, includeAssignmentBreakdown].filter(Boolean).length} report sections selected</span></div></div> : null}
+        {builderStep === 3 ? <div className="collective-builder-body"><div className="collective-builder-grid"><label className="collective-builder-field"><span>Report title</span><input value={reportTitle} onChange={(event) => setReportTitle(event.target.value)} maxLength={90} /></label><label className="collective-builder-field"><span>Academic year</span><input value={academicYear} onChange={(event) => setAcademicYear(event.target.value)} maxLength={30} /></label><label className="collective-builder-field"><span>Term <small>optional</small></span><input value={term} onChange={(event) => setTerm(event.target.value)} maxLength={40} /></label><label className="collective-builder-field"><span>Teacher comments <small>optional</small></span><input value={reportNote} onChange={(event) => setReportNote(event.target.value)} placeholder="Context for report recipients…" maxLength={180} /></label></div><div className="collective-review-card"><strong>{reportTitle || 'Class Achievement Report'}</strong><span>{displayRows.length} students, {filteredAssignments.length} assignments, {reportModel.context.subjects.join(', ')}, Class {reportModel.context.className}, {dateFrom || 'all dates'}–{dateTo || 'present'}.</span><span>{[includeSummary, includeGradeMatrix, includeAssignmentBreakdown].filter(Boolean).length} report sections selected</span></div></div> : null}
         <div className="collective-builder-footer"><button type="button" className="secondary" onClick={() => builderStep === 1 ? setBuilderOpen(false) : setBuilderStep((builderStep - 1) as 1 | 2)}> {builderStep === 1 ? 'Close' : 'Back'}</button>{builderStep < 3 ? <button type="button" onClick={() => setBuilderStep((builderStep + 1) as 2 | 3)} disabled={builderStep === 1 && (!displayRows.length || !filteredAssignments.length)}>Continue</button> : <button type="button" onClick={printReport} disabled={!displayRows.length || !filteredAssignments.length || !includeGradeMatrix}>Print report</button>}</div>
       </section></div>, document.body) : null}
 
@@ -909,73 +838,50 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
           </select>
         )}
 
-        {/* One class is always required. There is intentionally no All Classes option. */}
+        {/* Class filter */}
         {uniqueBatches.length > 0 && (
           <label className="grid gap-1 text-xs font-bold text-slate-500">
             Class
-            <select aria-label="Filter by class" value={batchFilter} onChange={(event) => setBatchFilter(event.target.value)} className="rounded-lg border border-slate-300 text-sm px-3 py-2 focus:outline-none focus:border-cyan-500">
-              {uniqueBatches.map((value) => <option key={value} value={value}>Class {value}</option>)}
-            </select>
+          <select
+            aria-label="Filter by class"
+            value={batchFilter}
+            onChange={(e) => setBatchFilter(e.target.value)}
+            className="rounded-lg border border-slate-300 text-sm px-3 py-2 focus:outline-none focus:border-cyan-500"
+          >
+            <option value="all">All Classes</option>
+            {uniqueBatches.map((b) => (
+              <option key={b} value={b}>{b === 'Selected students' ? b : `Class ${b}`}</option>
+            ))}
+          </select>
           </label>
         )}
-        {academicSetup ? (
-          <label className="grid gap-1 text-xs font-bold text-slate-500">
-            Academic year
-            <select aria-label="Academic year" value={selectedAcademicYearId} onChange={(event) => {
-              const yearId = event.target.value;
-              setSelectedAcademicYearId(yearId);
-              const year = academicSetup.years.find((item) => item.id === yearId);
-              setAcademicYear(year?.name || '');
-              const terms = academicSetup.terms.filter((item) => item.academicYearId === yearId).sort((a, b) => a.sequence - b.sequence);
-              const nextTerm = terms[0];
-              setSelectedTermId(nextTerm?.id || '');
-              setTerm(nextTerm?.name || '');
-              setPeriodMode('term');
-              if (nextTerm) { setDateFrom(nextTerm.startsOn); setDateTo(nextTerm.endsOn); }
-            }} className="rounded-lg border border-slate-300 text-sm px-3 py-2">
-              {academicSetup.years.map((year) => <option key={year.id} value={year.id}>{year.name}{year.status === 'current' ? ' · Current' : ''}</option>)}
-            </select>
-          </label>
-        ) : null}
-        <label className="grid gap-1 text-xs font-bold text-slate-500">
-          Period
-          <select aria-label="Reporting period" value={periodMode === 'custom' ? 'custom' : selectedTermId} onChange={(event) => {
-            if (event.target.value === 'custom') { setPeriodMode('custom'); setTerm('Custom dates'); }
-            else { setPeriodMode('term'); setSelectedTermId(event.target.value); }
-          }} className="rounded-lg border border-slate-300 text-sm px-3 py-2">
-            {academicYearTerms.map((item) => <option key={item.id} value={item.id}>{item.name}{localDateKey() >= item.startsOn && localDateKey() <= item.endsOn ? ' · Current' : ''}</option>)}
-            <option value="custom">Custom dates</option>
-          </select>
-        </label>
-        <label className="grid gap-1 text-xs font-bold text-slate-500">
-          Assignment type
-          <select aria-label="Assignment type" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value as 'all' | AssignmentCategory)} className="rounded-lg border border-slate-300 text-sm px-3 py-2">
-            <option value="all">All types</option><option value="classwork">Classwork</option><option value="homework">Homework</option><option value="quiz">Quiz</option><option value="term_exam">Term Exam</option>
-          </select>
-        </label>
-        {periodMode === 'custom' ? <>
-          <label className="flex items-center gap-2 text-xs text-slate-500">From<input aria-label="Created from" type="date" min={selectedAcademicYear?.startsOn} max={selectedAcademicYear?.endsOn} value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} className="rounded-lg border border-slate-300 px-2 py-2 text-sm text-slate-700" /></label>
-          <label className="flex items-center gap-2 text-xs text-slate-500">To<input aria-label="Created to" type="date" min={selectedAcademicYear?.startsOn} max={selectedAcademicYear?.endsOn} value={dateTo} onChange={(event) => setDateTo(event.target.value)} className="rounded-lg border border-slate-300 px-2 py-2 text-sm text-slate-700" /></label>
-        </> : null}
 
-        {(subjectFilter !== 'all' || categoryFilter !== 'all' || searchTerm || periodMode === 'custom') && (
-          <button type="button" onClick={() => {
-            setSubjectFilter('all');
-            setCategoryFilter('all');
-            setSearchTerm('');
-            setPeriodMode('term');
-            if (selectedAcademicTerm) { setDateFrom(selectedAcademicTerm.startsOn); setDateTo(selectedAcademicTerm.endsOn); setTerm(selectedAcademicTerm.name); }
-          }} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">Reset report filters</button>
+        <label className="flex items-center gap-2 text-xs text-slate-500">
+          From
+          <input aria-label="Created from" type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} className="rounded-lg border border-slate-300 px-2 py-2 text-sm text-slate-700" />
+        </label>
+        <label className="flex items-center gap-2 text-xs text-slate-500">
+          To
+          <input aria-label="Created to" type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} className="rounded-lg border border-slate-300 px-2 py-2 text-sm text-slate-700" />
+        </label>
+
+        {(subjectFilter !== 'all' || batchFilter !== 'all' || dateFrom || dateTo || searchTerm) && (
+          <button
+            type="button"
+            onClick={() => {
+              setSubjectFilter('all');
+              setBatchFilter('all');
+              setDateFrom('');
+              setDateTo('');
+              setSearchTerm('');
+            }}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+          >
+            Clear filters
+          </button>
         )}
       </div>
-      <div className="collective-filter-chips collective-report-no-print" aria-label="Active report scope">
-        {batchFilter ? <span>Class {batchFilter}</span> : null}
-        {academicYear ? <span>{academicYear}</span> : null}
-        {term ? <span>{term}</span> : null}
-        {categoryFilter !== 'all' ? <button onClick={() => setCategoryFilter('all')}>{getAssignmentCategoryMeta(categoryFilter).label} ×</button> : null}
-        {searchTerm ? <button onClick={() => setSearchTerm('')}>Search: {searchTerm} ×</button> : null}
-        {subjectFilter !== 'all' ? <button onClick={() => setSubjectFilter('all')}>{subjectFilter} ×</button> : null}
-      </div>
+      {(subjectFilter !== 'all' || batchFilter !== 'all' || dateFrom || dateTo || searchTerm) ? <div className="collective-filter-chips collective-report-no-print" aria-label="Active filters">{searchTerm ? <button onClick={() => setSearchTerm('')}>Search: {searchTerm} ×</button> : null}{subjectFilter !== 'all' ? <button onClick={() => setSubjectFilter('all')}>{subjectFilter} ×</button> : null}{batchFilter !== 'all' ? <button onClick={() => setBatchFilter('all')}>Class {batchFilter} ×</button> : null}{(dateFrom || dateTo) ? <button onClick={() => { setDateFrom(''); setDateTo(''); }}>Assignment date ×</button> : null}</div> : null}
 
       {/* Custom order info banner */}
       {isCustomMode && (
@@ -1009,7 +915,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       ) : (
         <div className="teacher-card p-0 overflow-hidden">
           <div className="collective-results-table-wrap">
-            <table className={`collective-results-table text-left text-sm ${isCustomMode ? 'is-custom-order' : ''}`}>
+            <table className="collective-results-table text-left text-sm">
               <colgroup>
                 {isCustomMode && <col className="collective-results-col--drag" />}
                 <col className="collective-results-col--student" />
@@ -1035,7 +941,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                     Student {sortIndicator('name')}
                   </th>
                   <th
-                    className="collective-results-class-cell py-3 px-2 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none bg-slate-100 z-20"
+                    className="collective-results-class-cell py-3 px-2 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none"
                     onClick={() => handleSort('batch')}
                   >
                     Class {sortIndicator('batch')}
@@ -1049,26 +955,25 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       onClick={() => handleSort({ assignmentId: a.id })}
                       title={`${a.subject_name} — ${a.title || a.topic_name}\nClass: ${a.batch ?? 'All'}\nClick to sort`}
                     >
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wide" style={assignmentCategoryBadgeStyle(a.assignment_category)}>{getAssignmentCategoryMeta(a.assignment_category).label}</span>
-                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{a.subject_name}</span>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{a.subject_name}</span>
                         <span className="collective-results-assignment-title text-xs" title={a.title || a.topic_name}>{a.title || a.topic_name}</span>
                         {sortIndicator({ assignmentId: a.id })}
                       </div>
                     </th>
                   ))}
 
-                  <th className="collective-results-summary-cell collective-results-completion-cell py-3 px-2 text-slate-700 font-semibold text-center bg-slate-100">Completion</th>
+                  <th className="collective-results-summary-cell py-3 px-2 text-slate-700 font-semibold text-center">Completion</th>
                   {/* Average column */}
                   <th
-                    className="collective-results-summary-cell collective-results-average-cell py-3 px-2 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none text-center bg-slate-200/60"
+                    className="collective-results-summary-cell py-3 px-2 text-slate-700 font-semibold cursor-pointer hover:bg-slate-200 transition-colors select-none text-center bg-slate-200/60"
                     onClick={() => handleSort('average')}
                   >
                     Average {sortIndicator('average')}
                   </th>
 
                   {/* Completion count */}
-                  <th className="collective-results-summary-cell collective-results-status-cell py-3 px-2 text-slate-700 font-semibold text-center bg-slate-100">
+                  <th className="collective-results-summary-cell py-3 px-2 text-slate-700 font-semibold text-center">
                     Status
                   </th>
                 </tr>
@@ -1127,7 +1032,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       {row.studentName}
                     </td>
                     {/* Class */}
-                    <td className="collective-results-class-cell py-3 px-2 text-slate-600 bg-inherit z-10">{row.batch}</td>
+                    <td className="collective-results-class-cell py-3 px-2 text-slate-600">{row.batch}</td>
 
                     {/* Scores */}
                     {filteredAssignments.map((a) => {
@@ -1152,16 +1057,16 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       );
                     })}
 
-                    <td className="collective-results-summary-cell collective-results-completion-cell py-3 px-2 text-center text-slate-600 text-xs font-semibold">{row.completedCount}/{filteredAssignments.length}</td>
+                    <td className="collective-results-summary-cell py-3 px-2 text-center text-slate-600 text-xs font-semibold">{row.completedCount}/{filteredAssignments.length}</td>
                     {/* Average */}
-                    <td className="collective-results-summary-cell collective-results-average-cell py-3 px-2 text-center bg-slate-50/95">
+                    <td className="collective-results-summary-cell py-3 px-2 text-center bg-slate-50/50">
                       <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold ${row.completedCount ? accuracyColor(row.averageAccuracy) : 'text-slate-400 bg-slate-100'}`}>
                         {row.completedCount ? `${row.averageAccuracy}%` : '—'}
                       </span>
                     </td>
 
                     {/* Student status */}
-                    <td className="collective-results-summary-cell collective-results-status-cell py-3 px-2 text-center text-slate-600 text-xs bg-inherit">
+                    <td className="collective-results-summary-cell py-3 px-2 text-center text-slate-600 text-xs">
                       <span className={`collective-status ${getStudentStatus(row).className}`}>{getStudentStatus(row).label}</span>
                     </td>
                   </tr>

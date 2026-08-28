@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ensureGradeClass,
-  fetchAcademicRosterReadiness,
-  confirmAcademicRoster,
   fetchSchoolAcademicSetup,
   fetchSchoolAcademicSystem,
   saveAcademicTerm,
@@ -12,7 +10,6 @@ import {
   seedCurrentStudentEnrolments,
   setStudentElective,
   type AcademicFrameworkSetup,
-  type AcademicRosterReadiness,
   type SchoolAcademicSetup,
   type SchoolAcademicSystem,
 } from '../../services/schoolAcademicSetupService';
@@ -51,7 +48,7 @@ const addDays = (value: string, days: number) => {
 };
 
 type Requirement = 'required' | 'elective';
-type SectionId = 'year' | 'terms' | 'system' | 'grades' | 'electives' | 'roster' | 'next';
+type SectionId = 'year' | 'terms' | 'system' | 'grades' | 'electives' | 'next';
 
 type AcademicTermDraft = {
   id: string | null;
@@ -132,8 +129,6 @@ const AcademicSetupPanel: React.FC = () => {
   const [electiveSearch, setElectiveSearch] = useState('');
   const [electiveStudentId, setElectiveStudentId] = useState('');
   const [electiveSubjectId, setElectiveSubjectId] = useState('');
-  const [rosterReadiness, setRosterReadiness] = useState<AcademicRosterReadiness | null>(null);
-  const [rosterLoading, setRosterLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -189,23 +184,6 @@ const AcademicSetupPanel: React.FC = () => {
   };
 
   useEffect(() => { void load(); }, [school.id]);
-
-  useEffect(() => {
-    if (!yearId) {
-      setRosterReadiness(null);
-      return;
-    }
-    let cancelled = false;
-    setRosterLoading(true);
-    void fetchAcademicRosterReadiness(school.id, yearId)
-      .then((next) => { if (!cancelled) setRosterReadiness(next); })
-      .catch((readinessError) => {
-        console.error('Failed to load academic roster readiness', readinessError);
-        if (!cancelled) setRosterReadiness(null);
-      })
-      .finally(() => { if (!cancelled) setRosterLoading(false); });
-    return () => { cancelled = true; };
-  }, [classes, school.id, students, yearId]);
 
   const framework: AcademicFrameworkSetup | undefined = useMemo(() => {
     const available = setup?.frameworks || [];
@@ -438,27 +416,6 @@ const AcademicSetupPanel: React.FC = () => {
     }
   };
 
-  const rosterStudentLabel = (studentId: string) => {
-    const student = (students || []).find((item: { user_id?: string; id?: string }) => item.user_id === studentId || item.id === studentId) as { full_name?: string | null; username?: string; email?: string } | undefined;
-    return student?.full_name || student?.username || student?.email || `${studentId.slice(0, 8)}…`;
-  };
-
-  const handleConfirmRoster = async () => {
-    if (!yearId || !rosterReadiness?.ready) return;
-    setSaving(true);
-    try {
-      const result = await confirmAcademicRoster(school.id, yearId);
-      addToast(`${result.confirmedEnrolments ?? 0} current-year student enrolments confirmed.`, 'success');
-      const next = await fetchAcademicRosterReadiness(school.id, yearId);
-      setRosterReadiness(next);
-      await loadAdminTools(school.id);
-    } catch (confirmError) {
-      addToast(confirmError instanceof Error ? confirmError.message : 'The academic roster could not be confirmed.', 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   if (loading) return <section className="admin-form-card"><p>Loading academic setup…</p></section>;
   if (error || !setup) return <section className="admin-form-card"><h3>Academic setup unavailable</h3><p>{error}</p><button type="button" className="admin-button-primary" onClick={() => void load()}>Try again</button></section>;
 
@@ -467,16 +424,6 @@ const AcademicSetupPanel: React.FC = () => {
   const termSummary = !yearId ? 'Save academic year first' : savedTerms.length ? `${savedTerms.length} reporting period${savedTerms.length === 1 ? '' : 's'} · ${savedTerms.map((term) => term.name).join(' · ')}` : 'Not configured';
   const gradeSummary = configuredGrades.length ? `${configuredGrades.length} grade levels · ${configuredSubjectNames.size} subjects` : 'No grade levels configured';
   const electiveSummary = `${setup.electiveEnrolments.length} active student enrolment${setup.electiveEnrolments.length === 1 ? '' : 's'}`;
-  const rosterConfirmed = Boolean(rosterReadiness?.ready && rosterReadiness.estimatedEnrolments === 0 && rosterReadiness.confirmedEnrolments === rosterReadiness.activeStudentMembers);
-  const rosterSummary = rosterLoading
-    ? 'Checking roster…'
-    : rosterConfirmed
-      ? `${rosterReadiness?.confirmedEnrolments ?? 0} students confirmed`
-      : rosterReadiness?.ready
-        ? 'Ready to confirm'
-        : rosterReadiness
-          ? `${rosterReadiness.placedStudents}/${rosterReadiness.activeStudentMembers} students placed · review needed`
-          : 'Roster check unavailable';
 
   return <div className="space-y-4 academic-setup-flow">
     <SetupSection id="year" number={1} title="Academic year" description="The school calendar used across classes and reporting." summary={yearSummary} open={openSection === 'year'} onToggle={toggleSection}>
@@ -561,28 +508,8 @@ const AcademicSetupPanel: React.FC = () => {
       <div className="admin-form-actions"><button type="button" className="admin-button-primary" disabled={saving || !electiveStudentId || !electiveSubjectId} onClick={handleAddElective}>Add elective access</button></div>
     </SetupSection>
 
-    <SetupSection id="roster" number={6} title="Confirm current-year roster" description="Verify current class placement before academic reporting treats it as confirmed." summary={rosterSummary} open={openSection === 'roster'} onToggle={toggleSection}>
-      {rosterLoading ? <div className="admin-empty-state"><p>Checking current student placement…</p></div> : rosterReadiness ? <>
-        <div className="admin-form-grid">
-          <div className="admin-access-note"><strong>{rosterReadiness.placedStudents}/{rosterReadiness.activeStudentMembers} placed</strong><span>Active student memberships with a current class.</span></div>
-          <div className="admin-access-note"><strong>{rosterReadiness.confirmedEnrolments} confirmed · {rosterReadiness.estimatedEnrolments} estimated</strong><span>Only confirmed placement should drive the new academic year.</span></div>
-        </div>
-        {rosterReadiness.ready ? <div className="admin-access-note"><strong>{rosterConfirmed ? 'Roster confirmed' : 'Ready to confirm'}</strong><span>{rosterConfirmed ? 'Current-year academic enrolments match the active class roster.' : 'No placement blockers remain. Confirming will update only current-year academic enrolments; historical assignments and results stay unchanged.'}</span></div> : <div className="admin-empty-state">
-          <h3>Resolve roster blockers first</h3>
-          <p>Confirmation is locked until every active student membership has one valid class placement and role data is consistent.</p>
-          <div className="mt-3 space-y-2 text-left">
-            {rosterReadiness.unplacedStudentIds.map((id) => <p key={`unplaced:${id}`}><strong>{rosterStudentLabel(id)}</strong> · no active class placement</p>)}
-            {rosterReadiness.roleMismatchStudentIds.map((id) => <p key={`role:${id}`}><strong>{rosterStudentLabel(id)}</strong> · school student membership conflicts with account role</p>)}
-            {rosterReadiness.multipleEnrolmentStudentIds.map((id) => <p key={`multiple:${id}`}><strong>{rosterStudentLabel(id)}</strong> · multiple current-year academic enrolments</p>)}
-            {rosterReadiness.confirmedPlacementMismatchStudentIds.map((id) => <p key={`mismatch:${id}`}><strong>{rosterStudentLabel(id)}</strong> · confirmed academic enrolment does not match current class</p>)}
-          </div>
-        </div>}
-        <div className="admin-form-actions"><button type="button" className="admin-button-primary" disabled={saving || !rosterReadiness.ready || rosterConfirmed} onClick={handleConfirmRoster}>{saving ? 'Confirming…' : rosterConfirmed ? 'Roster confirmed' : 'Confirm current-year roster'}</button></div>
-      </> : <div className="admin-empty-state"><h3>Roster check unavailable</h3><p>Reload Academic Setup before confirming student placement.</p></div>}
-    </SetupSection>
-
-    <SetupSection id="next" number={7} title="Classes and teaching" description="Continue with student placement and teacher allocation." summary={`${classes.length} active class${classes.length === 1 ? '' : 'es'}`} open={openSection === 'next'} onToggle={toggleSection}>
-      <div className="admin-access-note"><strong>Next step</strong><span>Use Classes &amp; Registration for student placement, then allocate teachers to the subjects selected for each grade level. Return here to confirm the roster once placement is complete.</span></div>
+    <SetupSection id="next" number={6} title="Classes and teaching" description="Continue with student placement and teacher allocation." summary={`${classes.length} active class${classes.length === 1 ? '' : 'es'}`} open={openSection === 'next'} onToggle={toggleSection}>
+      <div className="admin-access-note"><strong>Next step</strong><span>Each saved grade plan creates its first class. Use Classes &amp; Registration for extra class sections and student placement, then allocate teachers to the subjects selected for each grade level.</span></div>
     </SetupSection>
   </div>;
 };

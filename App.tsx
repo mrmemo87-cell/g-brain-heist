@@ -36,7 +36,6 @@ import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey, ty
 import { listMyPendingProgrammeAccessRequests, requestProgrammeAccess } from './services/programmeAccessRequestService';
 import { getGuardianChildren } from './services/guardianService';
 import { enrollInApprovedSchoolClass, listMySchoolClasses, type ApprovedSignupClass } from './services/authService';
-import { assignmentCategoryBadgeStyle, getAssignmentCategoryMeta } from './src/lib/assignmentCategory';
 
 // Lazy-loaded: only fetched when the user actually opens these views/modals
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
@@ -1983,13 +1982,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           {pendingAssignments.map((assignment) => {
             const dueLabel = assignment.due_at ? new Date(assignment.due_at).toLocaleString() : 'No deadline';
             const statusLabel = assignment.is_closed ? 'Closed' : assignment.is_late ? 'Late · still open' : 'Ready';
-            const categoryMeta = getAssignmentCategoryMeta(assignment.assignment_category);
             return (
               <details key={assignment.assignment_id} className="student-assignment-card rounded-xl border border-slate-700 bg-slate-950/45">
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-3 p-4 focus-visible:outline focus-visible:outline-2">
                   <span className="min-w-0">
                     <span className="block text-sm font-black text-white">{assignment.title || assignment.topic_name || 'New assignment'}</span>
-                    <span className="mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide" style={assignmentCategoryBadgeStyle(assignment.assignment_category)}>{categoryMeta.label}</span>
                     <span className="mt-1 block text-xs text-slate-400">{assignment.subject_name || 'General'} · {assignment.teacher_username || 'Your teacher'} · Due {dueLabel}</span>
                   </span>
                   <span className={`flex-none rounded-full px-2.5 py-1 text-[11px] font-bold ${assignment.is_closed ? 'bg-slate-700 text-slate-200' : assignment.is_late ? 'bg-amber-500/20 text-amber-200' : 'bg-emerald-500/20 text-emerald-200'}`}>{statusLabel}</span>

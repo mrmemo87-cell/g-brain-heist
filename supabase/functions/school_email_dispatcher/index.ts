@@ -36,15 +36,6 @@ const fmt = (value: unknown) => {
     dateStyle: "medium", timeStyle: "short", timeZone: "UTC",
   }).format(date) + " UTC";
 };
-const assignmentCategoryLabel = (value: unknown) => {
-  switch (cleanText(value, 40).toLowerCase()) {
-    case "classwork": return "Classwork";
-    case "homework": return "Homework";
-    case "quiz": return "Quiz";
-    case "term_exam": return "Term Exam";
-    default: return "Uncategorized";
-  }
-};
 const sha256 = async (value: string) => {
   const bytes = await crypto.subtle.digest(
     "SHA-256",
@@ -60,7 +51,6 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
   const payload = row.payload || {};
   const title = cleanText(payload.title, 180);
   const subjectName = cleanText(payload.subject, 100);
-  const assignmentCategory = assignmentCategoryLabel(payload.assignment_category);
   const status = cleanText(payload.status, 80).replaceAll("_", " ");
   const attemptType = cleanText(payload.attempt_type, 30) || "IELTS";
   const role = cleanText(payload.role, 60).replaceAll("_", " ");
@@ -100,7 +90,7 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
         preview: "Your assignment result is ready in your secure workspace.",
         kicker: "Result ready", headline: "Your assignment result is ready",
         intro: "Open your secure student workspace to review the result and feedback. Scores are kept out of email for privacy.",
-        details: [{ label: "Type", value: assignmentCategory }, { label: "Assignment", value: title || "Assignment" }, { label: "Subject", value: subjectName }],
+        details: [{ label: "Assignment", value: title || "Assignment" }, { label: "Subject", value: subjectName }],
         action: { label: "View result securely", url: appRoute("/") },
       };
     case "assignment_submission_received":
@@ -109,7 +99,7 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
         preview: "A student submission is ready for teacher review.",
         kicker: "Teacher workflow", headline: "A student submission is ready",
         intro: "Open the teacher workspace to review the submission. Student evidence is not included in this email.",
-        details: [{ label: "Type", value: assignmentCategory }, { label: "Assignment", value: title || "Assignment" }, { label: "Subject", value: subjectName }],
+        details: [{ label: "Assignment", value: title || "Assignment" }, { label: "Subject", value: subjectName }],
         action: { label: "Open teacher workspace", url: appRoute("/") },
       };
     case "assignment_due_reminder":
@@ -118,7 +108,7 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
         preview: "Your assignment is due in about 24 hours.",
         kicker: "Due soon", headline: "Your assignment is due soon",
         intro: "This is a friendly reminder to finish and submit your work in the secure student workspace.",
-        details: [{ label: "Type", value: assignmentCategory }, { label: "Assignment", value: title || "Assignment" }, { label: "Subject", value: subjectName }, { label: "Due", value: fmt(payload.due_at) }],
+        details: [{ label: "Assignment", value: title || "Assignment" }, { label: "Subject", value: subjectName }, { label: "Due", value: fmt(payload.due_at) }],
         action: { label: "Open assignment", url: appRoute("/") },
       };
     case "assignment_updated":
@@ -127,7 +117,7 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
         preview: "A school assignment has been updated.",
         kicker: "Assignment update", headline: "Your assignment has been updated",
         intro: "Open the secure student workspace to review the latest instructions and schedule.",
-        details: [{ label: "Type", value: assignmentCategory }, { label: "Assignment", value: title || "Assignment" }, { label: "Subject", value: subjectName }, { label: "Due", value: fmt(payload.due_at) }],
+        details: [{ label: "Assignment", value: title || "Assignment" }, { label: "Subject", value: subjectName }, { label: "Due", value: fmt(payload.due_at) }],
         action: { label: "Review assignment", url: appRoute("/") },
       };
     case "assignment_cancelled":
@@ -136,7 +126,7 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
         preview: "A school assignment is no longer active.",
         kicker: "Assignment update", headline: "An assignment has been withdrawn",
         intro: "The school has withdrawn this assignment. Open your workspace for the current assignment list.",
-        details: [{ label: "Type", value: assignmentCategory }, { label: "Assignment", value: title || "Assignment" }, { label: "Subject", value: subjectName }],
+        details: [{ label: "Assignment", value: title || "Assignment" }, { label: "Subject", value: subjectName }],
         action: { label: "Open student workspace", url: appRoute("/") },
       };
     case "guardian_invitation_reminder":
@@ -371,7 +361,7 @@ Deno.serve(async (req) => {
       try {
         const [{ data: notification }, { data: assignment }, { data: student }] = await Promise.all([
           db.from("assignment_email_notifications").select("id,status,attempts").eq("id", claim.id).single(),
-          db.from("assignments").select("id,teacher_id,school_id,title,subject_name,subject_id,description,assignment_category,assigned_at,due_at,publish_status,notify_students_by_email").eq("id", claim.assignment_id).single(),
+          db.from("assignments").select("id,teacher_id,school_id,title,subject_name,subject_id,description,assigned_at,due_at,publish_status,notify_students_by_email").eq("id", claim.assignment_id).single(),
           db.from("users").select("id,full_name,username,school_id").eq("id", claim.student_id).single(),
         ]);
         if (!notification || !assignment || !student || assignment.notify_students_by_email !== true ||
@@ -409,13 +399,12 @@ Deno.serve(async (req) => {
         const teacherName = cleanText(teacherUser?.full_name || teacherUser?.username, 100) || "Your teacher";
         const title = cleanText(assignment.title, 180) || "New assignment";
         const subjectName = cleanText(assignment.subject_name || assignment.subject_id, 100) || "School assignment";
-        const categoryName = assignmentCategoryLabel(assignment.assignment_category);
         const rendered = renderBrandedEmail(school, {
           subject: `${schoolName} — ${title} | Brains Heist`,
           preview: `New assignment from ${schoolName}`,
           kicker: "New assignment", headline: title,
-          intro: `Hi ${studentName}, ${teacherName} has published ${categoryName === "Uncategorized" ? "an assignment" : `a ${categoryName.toLowerCase()}`} for ${subjectName}.`,
-          details: [{ label: "Subject", value: subjectName }, { label: "Type", value: categoryName }, { label: "Due", value: fmt(assignment.due_at) }],
+          intro: `Hi ${studentName}, ${teacherName} has published a ${subjectName} assignment for you.`,
+          details: [{ label: "Subject", value: subjectName }, { label: "Due", value: fmt(assignment.due_at) }],
           action: { label: "Open assignment in Brains Heist", url: appRoute("/") },
           note: cleanText(assignment.description, 1000) || null,
         });
