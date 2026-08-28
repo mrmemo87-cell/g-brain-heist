@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import DOMPurify from 'dompurify';
-import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, QuestionType, TeacherAssignmentSummary, TeacherAssignmentReportRow, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis, AssignmentBatch } from '../types';
+import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, QuestionType, TeacherAssignmentSummary, TeacherAssignmentReportRow, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis, AssignmentBatch, AssignmentCategory } from '../types';
 import * as GameService from '../services/gameService';
 import * as AuthService from '../services/authService';
 import * as SchoolAdminService from '../services/schoolAdminService';
@@ -197,6 +197,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [loading, setLoading] = useState(true);
   const initCalledRef = useRef(false);
   const questionsLoadRef = useRef<Promise<void> | null>(null);
+  const reportLoadRequestRef = useRef(0);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [bulkImportPreview, setBulkImportPreview] = useState<TeacherQuestionImportPreview | null>(null);
@@ -434,6 +435,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [deletingAssignmentId, setDeletingAssignmentId] = useState<string | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<TeacherAssignmentSummary | null>(null);
   const [assignmentPublishStatus, setAssignmentPublishStatus] = useState<'draft' | 'scheduled' | 'published'>('published');
+  const [assignmentCategory, setAssignmentCategory] = useState<AssignmentCategory | null>(null);
   const [assignmentCloseAfterDue, setAssignmentCloseAfterDue] = useState(false);
   const [assignmentNotifyByEmail, setAssignmentNotifyByEmail] = useState(false);
   const [assignmentSuccess, setAssignmentSuccess] = useState<GameService.TeacherAssignmentSuccessSummary | null>(null);
@@ -516,9 +518,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentSearchTerm, setAssignmentSearchTerm] = useState('');
   const [assignmentSubjectFilter, setAssignmentSubjectFilter] = useState<'all' | Subject>('all');
   const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<'all' | 'in-progress' | 'completed'>('all');
+  const [assignmentClassFilter, setAssignmentClassFilter] = useState<string>('all');
 
   // Assignment Analysis State
   const [questionAnalysis, setQuestionAnalysis] = useState<AssignmentQuestionAnalysis[]>([]);
+  const [questionAnalysisLoading, setQuestionAnalysisLoading] = useState(false);
   const [studentAnswers, setStudentAnswers] = useState<StudentAssignmentAnswer[]>([]);
   const [selectedAnalysisStudent, setSelectedAnalysisStudent] = useState<TeacherAssignmentReportRow | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
@@ -761,9 +765,53 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [assignments]);
 
-  // Filtered assignments based on search, subject, and status filters
+  const assignmentClassFolders = useMemo(() => {
+    const labels = new Map<string, string>();
+    const rememberClass = (value?: string | null) => {
+      const label = value?.trim();
+      if (!label || label.toLowerCase() === 'all') return;
+      const key = label.toLocaleLowerCase();
+      if (!labels.has(key)) labels.set(key, label);
+    };
+
+    allocatedClasses.forEach((item) => {
+      if (item.is_active) rememberClass(item.class_code);
+    });
+    assignments.forEach((assignment) => {
+      if (assignment.assignment_mode !== 'custom') rememberClass(assignment.batch);
+    });
+
+    return [...labels.values()].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+  }, [allocatedClasses, assignments]);
+
+  const assignmentFolderCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    assignments.forEach((assignment) => {
+      if (assignment.assignment_mode === 'custom') {
+        counts.set('individual', (counts.get('individual') || 0) + 1);
+        return;
+      }
+      const key = assignment.batch?.trim().toLocaleLowerCase();
+      if (key) counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    return counts;
+  }, [assignments]);
+
+  useEffect(() => {
+    if (assignmentClassFilter === 'all' || assignmentClassFilter === 'individual') return;
+    const stillAvailable = assignmentClassFolders.some((classCode) => classCode.toLocaleLowerCase() === assignmentClassFilter.toLocaleLowerCase());
+    if (!stillAvailable) setAssignmentClassFilter('all');
+  }, [assignmentClassFilter, assignmentClassFolders]);
+
+  // Filtered assignments based on class folder, search, subject, and status filters
   const filteredAssignments = useMemo(() => {
     return assignments.filter(a => {
+      if (assignmentClassFilter === 'individual') {
+        if (a.assignment_mode !== 'custom') return false;
+      } else if (assignmentClassFilter !== 'all') {
+        if (a.assignment_mode === 'custom') return false;
+        if ((a.batch || '').trim().toLocaleLowerCase() !== assignmentClassFilter.trim().toLocaleLowerCase()) return false;
+      }
       // Search filter
       if (assignmentSearchTerm.trim()) {
         const search = assignmentSearchTerm.toLowerCase();
@@ -785,7 +833,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
       return true;
     });
-  }, [assignments, assignmentSearchTerm, assignmentSubjectFilter, assignmentStatusFilter]);
+  }, [assignments, assignmentClassFilter, assignmentSearchTerm, assignmentSubjectFilter, assignmentStatusFilter]);
 
   const teacherOwnedTopics = useMemo(() => {
     if (!teacher) return [];
@@ -870,6 +918,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setView('assignments');
         break;
       case 'reports':
+        reportLoadRequestRef.current += 1;
+        setReportLoading(false);
+        setQuestionAnalysisLoading(false);
         setSelectedReportAssignment(null);
         setAssignmentReport([]);
         setView('reports');
@@ -3455,6 +3506,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentDueAt('');
     setAssignmentAssignedAt(new Date().toISOString().slice(0, 16));
     setAssignmentPublishStatus('published');
+    setAssignmentCategory(null);
     setAssignmentCloseAfterDue(false);
     setAssignmentNotifyByEmail(false);
     setEditingAssignment(null);
@@ -3501,6 +3553,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentBatches(assignment.assignment_mode === 'custom' ? [] : assignment.batch ? [assignment.batch] : []);
     setSelectedStudentIds(assignment.student_ids || []);
     setAssignmentPublishStatus(assignment.publish_status || (new Date(assignment.assigned_at).getTime() > Date.now() ? 'scheduled' : 'published'));
+    setAssignmentCategory(assignment.assignment_category ?? null);
     setAssignmentCloseAfterDue(Boolean(assignment.close_submissions_after_due));
     setAssignmentNotifyByEmail(Boolean(assignment.notify_students_by_email));
     if (assignment.topic_name && assignment.topic_name !== 'General') { setAssignmentTopicMode('custom'); setAssignmentTopicName(assignment.topic_name); }
@@ -3545,6 +3598,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const saveAssignment = async (publishStatus: 'draft' | 'scheduled' | 'published', e?: React.FormEvent) => {
+    if (publishStatus !== 'draft' && !assignmentCategory) { brainsAlert('Choose Classwork, Homework, Quiz, or Term Exam before publishing.', 'error'); return; }
     e?.preventDefault();
     if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {
       showFeatureUnavailable('Assignments');
@@ -3582,6 +3636,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         description: assignmentDescription || undefined,
         instructions: assignmentInstructions || undefined,
         difficulty: assignmentDifficulty,
+        assignment_category: assignmentCategory,
+        client_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
         publish_status: publishStatus,
         close_submissions_after_due: assignmentCloseAfterDue,
         notify_students_by_email: assignmentNotifyByEmail,
@@ -3642,45 +3698,84 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const handleSaveAssignmentDraft = async () => saveAssignment('draft');
 
   const handleOpenReport = async (assignment: TeacherAssignmentSummary) => {
-    try {
-      setReportLoading(true);
-      setSelectedReportAssignment(assignment);
-      const reportRows = await GameService.get_teacher_assignment_report(assignment.id);
-      // Assignment submissions retain the game username for gameplay history.
-      // Teacher-facing documents must instead use the official roster identity.
-      const officialNames = new Map(availableStudents.map((student) => [student.id, student.display_name]));
-      const rows = reportRows.map((row) => ({
-        ...row,
-        student_name: officialNames.get(row.student_id) || 'Student name unavailable',
-      }));
-      setAssignmentReport(rows);
-      setAssignments((current) => current.map((item) => (
-        item.id === assignment.id
-          ? { ...item, completed_count: rows.length }
-          : item
-      )));
-      setSelectedReportAssignment((current) => (
-        current?.id === assignment.id
-          ? { ...current, completed_count: rows.length }
-          : current
-      ));
-      
-      // Also load question analysis
-      try {
-        const analysis = await GameService.get_assignment_question_analysis(assignment.id);
-        setQuestionAnalysis(analysis);
-      } catch (err) {
-        console.warn('Question analysis not available:', err);
-        setQuestionAnalysis([]);
-      }
-      
-      setView('report-detail');
-    } catch (error) {
-      console.error('Error loading assignment report:', error);
-      brainsAlert('Unable to load report: ' + (error as Error).message, 'error');
-    } finally {
-      setReportLoading(false);
+    if (!teacher) {
+      brainsAlert('Teacher profile is still loading. Please try again.', 'info');
+      return;
     }
+
+    const requestId = ++reportLoadRequestRef.current;
+    const teacherId = teacher.id;
+    const officialNames = new Map(availableStudents.map((student) => [student.id, student.display_name]));
+
+    // Move into the report immediately. Student results and question analysis are
+    // independent payloads, so load them in parallel instead of serialising four
+    // network round trips through duplicate teacher-profile lookups.
+    setSelectedReportAssignment(assignment);
+    setAssignmentReport([]);
+    setQuestionAnalysis([]);
+    setReportLoading(true);
+    setQuestionAnalysisLoading(true);
+    setView('report-detail');
+
+    const reportRequest = supabase.rpc('rpc_teacher_assignment_report', {
+      p_assignment_id: assignment.id,
+      p_teacher_id: teacherId,
+    });
+    const analysisRequest = supabase.rpc('rpc_get_assignment_question_analysis', {
+      p_assignment_id: assignment.id,
+      p_teacher_id: teacherId,
+    });
+
+    const loadReportRows = async () => {
+      try {
+        const { data, error } = await reportRequest;
+        if (error) throw new Error(error.message || 'Failed to load report');
+        if (requestId !== reportLoadRequestRef.current) return;
+
+        // Assignment submissions retain the game username for gameplay history.
+        // Teacher-facing documents must instead use the official roster identity.
+        const reportRows = ((data as TeacherAssignmentReportRow[] | null) || []);
+        const rows = reportRows.map((row) => ({
+          ...row,
+          student_name: officialNames.get(row.student_id) || 'Student name unavailable',
+        }));
+        setAssignmentReport(rows);
+        setAssignments((current) => current.map((item) => (
+          item.id === assignment.id
+            ? { ...item, completed_count: rows.length }
+            : item
+        )));
+        setSelectedReportAssignment((current) => (
+          current?.id === assignment.id
+            ? { ...current, completed_count: rows.length }
+            : current
+        ));
+      } catch (error) {
+        if (requestId !== reportLoadRequestRef.current) return;
+        console.error('Error loading assignment report:', error);
+        setAssignmentReport([]);
+        brainsAlert('Unable to load report: ' + (error as Error).message, 'error');
+      } finally {
+        if (requestId === reportLoadRequestRef.current) setReportLoading(false);
+      }
+    };
+
+    const loadQuestionAnalysis = async () => {
+      try {
+        const { data, error } = await analysisRequest;
+        if (error) throw new Error(error.message || 'Failed to load question analysis');
+        if (requestId !== reportLoadRequestRef.current) return;
+        setQuestionAnalysis(((data as AssignmentQuestionAnalysis[] | null) || []));
+      } catch (error) {
+        if (requestId !== reportLoadRequestRef.current) return;
+        console.warn('Question analysis not available:', error);
+        setQuestionAnalysis([]);
+      } finally {
+        if (requestId === reportLoadRequestRef.current) setQuestionAnalysisLoading(false);
+      }
+    };
+
+    await Promise.allSettled([loadReportRows(), loadQuestionAnalysis()]);
   };
 
   const handleViewStudentAnalysis = async (student: TeacherAssignmentReportRow) => {
@@ -5186,7 +5281,54 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         </button>
       </div>
 
-      {/* Folder Organization: Filters & Search */}
+      {assignments.length > 0 && (
+        <div className="teacher-card p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Class folders</p>
+              <p className="mt-1 text-sm text-slate-500">Keep each class's assignments separate while preserving one shared assignment system.</p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Assignment folders by class">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={assignmentClassFilter === 'all'}
+              onClick={() => setAssignmentClassFilter('all')}
+              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition ${assignmentClassFilter === 'all' ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50'}`}
+            >
+              <span aria-hidden="true">🗂️</span> All <span className={`rounded-full px-2 py-0.5 text-xs ${assignmentClassFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>{assignments.length}</span>
+            </button>
+            {assignmentClassFolders.map((classCode) => {
+              const selected = assignmentClassFilter.toLocaleLowerCase() === classCode.toLocaleLowerCase();
+              const count = assignmentFolderCounts.get(classCode.toLocaleLowerCase()) || 0;
+              return (
+                <button
+                  key={classCode}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => setAssignmentClassFilter(classCode)}
+                  className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition ${selected ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50'}`}
+                >
+                  <span aria-hidden="true">📁</span> {classCode} <span className={`rounded-full px-2 py-0.5 text-xs ${selected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>{count}</span>
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={assignmentClassFilter === 'individual'}
+              onClick={() => setAssignmentClassFilter('individual')}
+              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition ${assignmentClassFilter === 'individual' ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50'}`}
+            >
+              <span aria-hidden="true">👤</span> Individual <span className={`rounded-full px-2 py-0.5 text-xs ${assignmentClassFilter === 'individual' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>{assignmentFolderCounts.get('individual') || 0}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Existing search / subject / status filters stay scoped to the selected class folder. */}
       {assignments.length > 0 && (
         <div className="teacher-card p-4">
           <div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_minmax(0,1.5fr)_minmax(0,1fr)]">
@@ -5315,7 +5457,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       ) : (
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
           <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4">
-            <div><span className="text-xs font-bold uppercase tracking-wider text-blue-600">All assignments</span><h3 className="mt-1 text-lg font-bold text-slate-800">Assignment workspace</h3></div>
+            <div><span className="text-xs font-bold uppercase tracking-wider text-blue-600">{assignmentClassFilter === 'all' ? 'All assignments' : assignmentClassFilter === 'individual' ? 'Individual assignments' : `${assignmentClassFilter} assignments`}</span><h3 className="mt-1 text-lg font-bold text-slate-800">Assignment workspace</h3></div>
             <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{filteredAssignments.length} shown</span>
           </header>
           <div className="grid gap-3 p-4 xl:grid-cols-2">
@@ -5344,6 +5486,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                                 <div>
                                   <span className="text-xs font-bold text-blue-600">{assignment.subject_name} · {assignment.topic_name}</span>
                                   <h5 className="mt-1 text-lg font-bold text-slate-800">{assignment.title || assignment.topic_name}</h5>
+                                  <span className="mt-2 inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">
+                                    {assignment.assignment_mode === 'custom' ? '👤 Individual' : `🏫 ${assignment.batch || 'Class'}`} · {assignment.student_count} student{assignment.student_count === 1 ? '' : 's'}
+                                  </span>
                                 </div>
                                 <span className={`rounded-full px-3 py-1 text-xs font-bold ${completed ? 'bg-emerald-100 text-emerald-800' : duePast ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>{statusLabel}</span>
                               </div>
@@ -5430,6 +5575,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           setAssignmentAssignedAt={setAssignmentAssignedAt}
           assignmentPublishStatus={assignmentPublishStatus}
           setAssignmentPublishStatus={setAssignmentPublishStatus}
+          assignmentCategory={assignmentCategory}
+          setAssignmentCategory={setAssignmentCategory}
+          schoolId={profile.school_id || undefined}
           assignmentCloseAfterDue={assignmentCloseAfterDue}
           setAssignmentCloseAfterDue={setAssignmentCloseAfterDue}
           assignmentNotifyByEmail={assignmentNotifyByEmail}
@@ -5586,15 +5734,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const renderReportDetail = () => (
     <div>
       <button
-        onClick={() => setView('reports')}
+        onClick={() => {
+          reportLoadRequestRef.current += 1;
+          setReportLoading(false);
+          setQuestionAnalysisLoading(false);
+          setView('reports');
+        }}
         className="teacher-back-link mb-4"
       >
         <span>←</span> Back to Reports
       </button>
 
-      {reportLoading ? (
-        <div className="teacher-card p-12 text-center text-cyan-600">Loading report...</div>
-      ) : !selectedReportAssignment ? (
+      {!selectedReportAssignment ? (
         <div className="teacher-card p-12 text-center text-slate-500">Select an assignment to view details.</div>
       ) : (
         <div className="space-y-6">
@@ -5612,7 +5763,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             </dl>
           </div>
 
-          {assignmentReport.length === 0 ? (
+          {reportLoading ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-10 text-center">
+              <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-cyan-600" aria-hidden="true" />
+              <div className="font-semibold text-slate-700">Loading student results…</div>
+              <div className="mt-1 text-sm text-slate-500">Question analysis is loading in parallel.</div>
+            </div>
+          ) : assignmentReport.length === 0 ? (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center text-slate-500">No students have completed this assignment yet.</div>
           ) : (
             <>
@@ -5679,12 +5836,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     <span className="mt-1 block text-sm text-slate-500">Review accuracy, response time, and common mistakes for every question.</span>
                   </span>
                   <span className="flex flex-none items-center gap-2 text-sm font-semibold text-cyan-700">
-                    {questionAnalysis.length > 0 ? `${questionAnalysis.length} questions` : 'No data yet'}
+                    {questionAnalysisLoading ? 'Loading analysis…' : questionAnalysis.length > 0 ? `${questionAnalysis.length} questions` : 'No data yet'}
                     <span aria-hidden="true" className="text-lg transition-transform group-open:rotate-180">⌄</span>
                   </span>
                 </summary>
                 <div className="border-t border-slate-200 p-4 sm:p-5">
-                  {questionAnalysis.length > 0 ? (
+                  {questionAnalysisLoading ? (
+                    <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-5 text-sm font-medium text-cyan-800">Preparing question analysis in parallel…</div>
+                  ) : questionAnalysis.length > 0 ? (
                     <>
                       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm font-semibold text-slate-600">Choose how questions are arranged</p>

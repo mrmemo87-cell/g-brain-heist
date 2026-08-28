@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 const migration = readFileSync('supabase/migrations/20260809176000_guardian_parent_accounts.sql', 'utf8');
 const portal = readFileSync('components/guardian/ParentPortal.tsx', 'utf8');
+const dashboard = readFileSync('components/guardian/ParentDashboardPremium.tsx', 'utf8');
 const admin = readFileSync('components/guardian/GuardianManagementPage.tsx', 'utf8');
 const vite = readFileSync('vite.config.ts', 'utf8');
 test('guardian relationships are separate from school membership and raw tables stay private', () => {
@@ -24,8 +25,10 @@ test('guardian invitations are one-time email-bound verified claims', () => {
 test('parent progress contract excludes private teacher notes and raw evidence json', () => {
     assert.match(migration, /source_type in\('assignment_result','writing_attempt'\)/i);
     assert.doesNotMatch(migration, /'evidence',o\.evidence/i);
-    assert.match(portal, /Private staff records remain internal/i);
-    assert.match(portal, /one isolated low result is never labelled as a persistent problem/i);
+    assert.match(dashboard, /Private staff records remain internal/i);
+    assert.match(dashboard, /school evidence only/i);
+    assert.doesNotMatch(dashboard, /teacher feedback/i);
+    assert.match(portal, /ParentDashboardPremium/);
 });
 test('school admins can create and revoke guardian access from a dedicated workflow', () => {
     assert.match(admin, /Parent & Guardian Access/i);
