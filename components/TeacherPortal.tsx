@@ -197,6 +197,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [loading, setLoading] = useState(true);
   const initCalledRef = useRef(false);
   const questionsLoadRef = useRef<Promise<void> | null>(null);
+  const reportLoadRequestRef = useRef(0);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [bulkImportPreview, setBulkImportPreview] = useState<TeacherQuestionImportPreview | null>(null);
@@ -519,6 +520,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Assignment Analysis State
   const [questionAnalysis, setQuestionAnalysis] = useState<AssignmentQuestionAnalysis[]>([]);
+  const [questionAnalysisLoading, setQuestionAnalysisLoading] = useState(false);
   const [studentAnswers, setStudentAnswers] = useState<StudentAssignmentAnswer[]>([]);
   const [selectedAnalysisStudent, setSelectedAnalysisStudent] = useState<TeacherAssignmentReportRow | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
@@ -870,6 +872,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setView('assignments');
         break;
       case 'reports':
+        reportLoadRequestRef.current += 1;
+        setReportLoading(false);
+        setQuestionAnalysisLoading(false);
         setSelectedReportAssignment(null);
         setAssignmentReport([]);
         setView('reports');
@@ -3642,45 +3647,71 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const handleSaveAssignmentDraft = async () => saveAssignment('draft');
 
   const handleOpenReport = async (assignment: TeacherAssignmentSummary) => {
-    try {
-      setReportLoading(true);
-      setSelectedReportAssignment(assignment);
-      const reportRows = await GameService.get_teacher_assignment_report(assignment.id);
-      // Assignment submissions retain the game username for gameplay history.
-      // Teacher-facing documents must instead use the official roster identity.
-      const officialNames = new Map(availableStudents.map((student) => [student.id, student.display_name]));
-      const rows = reportRows.map((row) => ({
-        ...row,
-        student_name: officialNames.get(row.student_id) || 'Student name unavailable',
-      }));
-      setAssignmentReport(rows);
-      setAssignments((current) => current.map((item) => (
-        item.id === assignment.id
-          ? { ...item, completed_count: rows.length }
-          : item
-      )));
-      setSelectedReportAssignment((current) => (
-        current?.id === assignment.id
-          ? { ...current, completed_count: rows.length }
-          : current
-      ));
-      
-      // Also load question analysis
-      try {
-        const analysis = await GameService.get_assignment_question_analysis(assignment.id);
-        setQuestionAnalysis(analysis);
-      } catch (err) {
-        console.warn('Question analysis not available:', err);
-        setQuestionAnalysis([]);
-      }
-      
-      setView('report-detail');
-    } catch (error) {
-      console.error('Error loading assignment report:', error);
-      brainsAlert('Unable to load report: ' + (error as Error).message, 'error');
-    } finally {
-      setReportLoading(false);
+    if (!teacher) {
+      brainsAlert('Teacher profile is still loading. Please try again.', 'info');
+      return;
     }
+
+    const requestId = ++reportLoadRequestRef.current;
+    const teacherId = teacher.id;
+    const officialNames = new Map(availableStudents.map((student) => [student.id, student.display_name]));
+
+    // Enter the report immediately. Student results and question analysis are
+    // independent payloads, so load them in parallel without duplicate teacher lookups.
+    setSelectedReportAssignment(assignment);
+    setAssignmentReport([]);
+    setQuestionAnalysis([]);
+    setReportLoading(true);
+    setQuestionAnalysisLoading(true);
+    setView('report-detail');
+
+    const reportRequest = supabase.rpc('rpc_teacher_assignment_report', {
+      p_assignment_id: assignment.id,
+      p_teacher_id: teacherId,
+    });
+    const analysisRequest = supabase.rpc('rpc_get_assignment_question_analysis', {
+      p_assignment_id: assignment.id,
+      p_teacher_id: teacherId,
+    });
+
+    const loadReportRows = async () => {
+      try {
+        const { data, error } = await reportRequest;
+        if (error) throw new Error(error.message || 'Failed to load report');
+        if (requestId !== reportLoadRequestRef.current) return;
+        const rows = (((data as TeacherAssignmentReportRow[] | null) || [])).map((row) => ({
+          ...row,
+          student_name: officialNames.get(row.student_id) || 'Student name unavailable',
+        }));
+        setAssignmentReport(rows);
+        setAssignments((current) => current.map((item) => item.id === assignment.id ? { ...item, completed_count: rows.length } : item));
+        setSelectedReportAssignment((current) => current?.id === assignment.id ? { ...current, completed_count: rows.length } : current);
+      } catch (error) {
+        if (requestId !== reportLoadRequestRef.current) return;
+        console.error('Error loading assignment report:', error);
+        setAssignmentReport([]);
+        brainsAlert('Unable to load report: ' + (error as Error).message, 'error');
+      } finally {
+        if (requestId === reportLoadRequestRef.current) setReportLoading(false);
+      }
+    };
+
+    const loadQuestionAnalysis = async () => {
+      try {
+        const { data, error } = await analysisRequest;
+        if (error) throw new Error(error.message || 'Failed to load question analysis');
+        if (requestId !== reportLoadRequestRef.current) return;
+        setQuestionAnalysis(((data as AssignmentQuestionAnalysis[] | null) || []));
+      } catch (error) {
+        if (requestId !== reportLoadRequestRef.current) return;
+        console.warn('Question analysis not available:', error);
+        setQuestionAnalysis([]);
+      } finally {
+        if (requestId === reportLoadRequestRef.current) setQuestionAnalysisLoading(false);
+      }
+    };
+
+    await Promise.allSettled([loadReportRows(), loadQuestionAnalysis()]);
   };
 
   const handleViewStudentAnalysis = async (student: TeacherAssignmentReportRow) => {
@@ -5586,15 +5617,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const renderReportDetail = () => (
     <div>
       <button
-        onClick={() => setView('reports')}
+        onClick={() => {
+          reportLoadRequestRef.current += 1;
+          setReportLoading(false);
+          setQuestionAnalysisLoading(false);
+          setView('reports');
+        }}
         className="teacher-back-link mb-4"
       >
         <span>←</span> Back to Reports
       </button>
 
-      {reportLoading ? (
-        <div className="teacher-card p-12 text-center text-cyan-600">Loading report...</div>
-      ) : !selectedReportAssignment ? (
+      {!selectedReportAssignment ? (
         <div className="teacher-card p-12 text-center text-slate-500">Select an assignment to view details.</div>
       ) : (
         <div className="space-y-6">
@@ -5612,7 +5646,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             </dl>
           </div>
 
-          {assignmentReport.length === 0 ? (
+          {reportLoading ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-10 text-center">
+              <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-cyan-600" aria-hidden="true" />
+              <div className="font-semibold text-slate-700">Loading student results…</div>
+              <div className="mt-1 text-sm text-slate-500">Question analysis is loading in parallel.</div>
+            </div>
+          ) : assignmentReport.length === 0 ? (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center text-slate-500">No students have completed this assignment yet.</div>
           ) : (
             <>
@@ -5679,12 +5719,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     <span className="mt-1 block text-sm text-slate-500">Review accuracy, response time, and common mistakes for every question.</span>
                   </span>
                   <span className="flex flex-none items-center gap-2 text-sm font-semibold text-cyan-700">
-                    {questionAnalysis.length > 0 ? `${questionAnalysis.length} questions` : 'No data yet'}
+                    {questionAnalysisLoading ? 'Loading analysis…' : questionAnalysis.length > 0 ? `${questionAnalysis.length} questions` : 'No data yet'}
                     <span aria-hidden="true" className="text-lg transition-transform group-open:rotate-180">⌄</span>
                   </span>
                 </summary>
                 <div className="border-t border-slate-200 p-4 sm:p-5">
-                  {questionAnalysis.length > 0 ? (
+                  {questionAnalysisLoading ? (
+                    <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-5 text-sm font-medium text-cyan-800">Preparing question analysis in parallel…</div>
+                  ) : questionAnalysis.length > 0 ? (
                     <>
                       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm font-semibold text-slate-600">Choose how questions are arranged</p>
