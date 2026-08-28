@@ -1,0 +1,47 @@
+name: One-shot writing year authority validation
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: write
+jobs:
+  validate-writing-year-authority:
+    if: github.head_ref == 'harden-academic-year-rollover'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: harden-academic-year-rollover
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Patch writing year authority
+        run: python3 scripts/patch_writing_year_authority.py
+      - name: Preserve intended files
+        run: |
+          cp src/lib/brains_heist/writingRepository.ts /tmp/writingRepository.ts
+          cp src/lib/brains_heist/writingIntegrationService.ts /tmp/writingIntegrationService.ts
+          cp src/pages/writing/WritingHub.tsx /tmp/WritingHub.tsx
+      - name: Install dependencies
+        run: npm ci
+      - name: Run repository typecheck
+        run: npm run typecheck
+      - name: Validate final intended writing files
+        run: |
+          cp /tmp/writingRepository.ts src/lib/brains_heist/writingRepository.ts
+          cp /tmp/writingIntegrationService.ts src/lib/brains_heist/writingIntegrationService.ts
+          cp /tmp/WritingHub.tsx src/pages/writing/WritingHub.tsx
+          npx tsc --noEmit -p tsconfig.ci.json
+      - name: Commit only writing year authority changes
+        run: |
+          cp /tmp/writingRepository.ts src/lib/brains_heist/writingRepository.ts
+          cp /tmp/writingIntegrationService.ts src/lib/brains_heist/writingIntegrationService.ts
+          cp /tmp/WritingHub.tsx src/pages/writing/WritingHub.tsx
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/lib/brains_heist/writingRepository.ts src/lib/brains_heist/writingIntegrationService.ts src/pages/writing/WritingHub.tsx
+          git rm -f .github/workflows/patch-writing-year-authority.yml scripts/patch_writing_year_authority.py
+          git commit -m "Use database academic year for writing history"
+          git push
