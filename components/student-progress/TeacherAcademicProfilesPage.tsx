@@ -53,8 +53,8 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
         if (cancelled) return;
         setContext(nextContext);
         setAcademicYears(reportingContext.years);
-        const currentYear = reportingContext.years.find((year) => isDateEffectiveYear(year))
-          || reportingContext.years.find((year) => year.status === 'current')
+        const currentYear = reportingContext.years.find((year) => year.status === 'current')
+          || reportingContext.years.find((year) => year.status !== 'closed' && isDateEffectiveYear(year))
           || reportingContext.years[0]
           || null;
         if (!currentYear) throw new Error('No academic year is configured for this school.');
@@ -105,8 +105,9 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
 
   const selected = useMemo(() => students.find((student) => student.student_id === selectedStudentId) || null, [students, selectedStudentId]);
   const selectedAcademicYear = academicYears.find((year) => year.id === selectedAcademicYearId) || null;
-  const selectedYearIsActivePeriod = Boolean(selectedAcademicYear && isDateEffectiveYear(selectedAcademicYear));
-  const archivedYear = Boolean(selectedAcademicYear && !selectedYearIsActivePeriod && selectedAcademicYear.status === 'closed');
+  const selectedYearIsConfiguredCurrent = selectedAcademicYear?.status === 'current';
+  const archivedYear = selectedAcademicYear?.status === 'closed';
+  const selectedYearIsActivePeriod = Boolean(selectedAcademicYear && !archivedYear && isDateEffectiveYear(selectedAcademicYear));
   const viewerRole = context?.viewer.role || 'teacher';
   const profileMode = viewerRole === 'school_admin' || viewerRole === 'school_head' ? viewerRole : 'teacher';
   const scopeNote = viewerRole === 'teacher'
@@ -155,13 +156,13 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
           }}
         >
           {academicYears.map((year) => <option key={year.id} value={year.id}>
-            {year.name} {isDateEffectiveYear(year) ? '(Active period)' : year.status === 'current' ? '(Configured current)' : '(Archived)'}
+            {year.name} {year.status === 'current' ? '(Current)' : year.status === 'closed' ? '(Archived)' : isDateEffectiveYear(year) ? '(Active period)' : '(Planned)'}
           </option>)}
         </select>
       </label>
       <div>
         <strong>{selectedAcademicYear?.name || 'Academic year'}</strong>
-        <span>{selectedYearIsActivePeriod ? 'Active academic period · live evidence' : archivedYear ? 'Archived · read only' : 'Upcoming academic year · roster pending'}</span>
+        <span>{selectedYearIsConfiguredCurrent ? 'Configured current · live roster and curriculum' : selectedYearIsActivePeriod ? 'Active academic period · live evidence' : archivedYear ? 'Archived · read only' : 'Upcoming academic year · roster pending'}</span>
       </div>
     </section>
 
