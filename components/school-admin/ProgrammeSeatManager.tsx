@@ -92,6 +92,7 @@ const ProgrammeSeatManager: React.FC<Props> = ({ schoolId, addToast }) => {
   };
 
   return <section id="programme-access-requests" className="scroll-mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="programme-licences-title">
+    <style>{`#programme-access-requests .text-white { color: #fff !important; }`}</style>
     <div className={`${isExpanded ? 'border-b border-slate-200' : ''} bg-gradient-to-r from-slate-950 via-cyan-950 to-slate-950 p-5 text-white sm:p-6`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <button
