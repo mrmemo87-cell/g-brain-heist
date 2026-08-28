@@ -15,7 +15,7 @@ import {
 } from '../../services/guardianService';
 import { SchoolBrand } from '../../src/components/SchoolBrand';
 import { createSchoolBrand, PRODUCT_LOGO_URL, PRODUCT_NAME } from '../../src/lib/schoolBranding';
-import ParentDashboardPremium from './ParentDashboardPremium';
+import ParentAcademicYearDashboard from './ParentAcademicYearDashboard';
 import './ParentPortal.css';
 
 const safeMessage = (err: unknown, fallback: string) => err instanceof Error && err.message ? err.message : fallback;
@@ -105,7 +105,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ onChooseWorkspace, onLogout
     setLoading(true); setError(null);
     void getGuardianChildProgress(selectedId, days)
       .then(setProgress)
-      .catch((err) => setError(safeMessage(err, 'We could not open this progress view just now. Please try again.')))
+      .catch((err) => setError(safeMessage(err, 'We could not open this current school-year progress view just now. Please try again.')))
       .finally(() => setLoading(false));
   }, [signedIn, selectedId, days]);
 
@@ -199,7 +199,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ onChooseWorkspace, onLogout
     </section>
   </main>;
 
-  return <ParentDashboardPremium
+  return <ParentAcademicYearDashboard
     children={children}
     selectedId={selectedId}
     progress={progress}
