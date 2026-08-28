@@ -25,15 +25,24 @@
 .collective-builder-footer{display:flex;align-items:center;justify-content:flex-end;gap:.65rem;margin-top:1.25rem;background:#0f172a;padding:1rem 1.5rem;color:#cbd5e1}.collective-builder-footer button{min-height:2.85rem;border:0;border-radius:.8rem;background:linear-gradient(135deg,#0ea5e9,#4f46e5);padding:.7rem 1.2rem;color:#fff;font-weight:850;cursor:pointer}.collective-builder-footer button.secondary{margin-right:auto;border:1px solid #475569;background:transparent;box-shadow:none}.collective-builder-footer button:disabled{opacity:.45;cursor:not-allowed}
 .collective-status{display:inline-flex;border-radius:999px;padding:.28rem .55rem;font-size:.68rem;font-weight:800}.collective-status.is-incomplete{background:#f1f5f9;color:#475569}.collective-status.is-support{background:#fee2e2;color:#b91c1c}.collective-status.is-review{background:#fef3c7;color:#92400e}.collective-status.is-on-track{background:#dcfce7;color:#166534}
 .collective-status-legend{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.8rem;margin-bottom:-1rem;color:#64748b;font-size:.68rem}.collective-status-legend span{display:flex;align-items:center;gap:.3rem}.collective-status-legend i{width:.55rem;height:.55rem;border-radius:50%}.collective-status-legend i.is-on-track{background:#22c55e}.collective-status-legend i.is-review{background:#f59e0b}.collective-status-legend i.is-support{background:#ef4444}.collective-status-legend i.is-incomplete{background:#94a3b8}
-.collective-results-table-wrap{width:100%;max-width:100%;overflow:hidden}
-.collective-results-table{width:100%;table-layout:fixed;border-collapse:collapse}
-.collective-results-table col.collective-results-col--drag{width:4%}
-.collective-results-table col.collective-results-col--student{width:18%}
-.collective-results-table col.collective-results-col--class{width:8%}
-.collective-results-table col.collective-results-col--completion{width:9%}
-.collective-results-table col.collective-results-col--average{width:9%}
-.collective-results-table col.collective-results-col--status{width:11%}
-.collective-results-table th,.collective-results-table td{min-width:0;overflow-wrap:anywhere}
+.collective-results-table-wrap{width:100%;max-width:100%;overflow-x:auto;overflow-y:visible;position:relative}
+.collective-results-table{width:max-content;min-width:100%;table-layout:auto;border-collapse:separate;border-spacing:0}
+.collective-results-table col.collective-results-col--drag{width:44px}
+.collective-results-table col.collective-results-col--student{width:220px}
+.collective-results-table col.collective-results-col--class{width:90px}
+.collective-results-table col.collective-results-col--completion{width:100px}
+.collective-results-table col.collective-results-col--average{width:90px}
+.collective-results-table col.collective-results-col--status{width:120px}
+.collective-results-table th,.collective-results-table td{overflow-wrap:anywhere}
+.collective-results-assignment-cell{min-width:140px;width:140px}
+.collective-results-student-cell{position:sticky;left:0;min-width:220px;width:220px}
+.collective-results-class-cell{position:sticky;left:220px;min-width:90px;width:90px}
+.collective-results-table.is-custom-order .collective-results-student-cell{left:44px}
+.collective-results-table.is-custom-order .collective-results-class-cell{left:264px}
+.collective-results-completion-cell{min-width:100px;width:100px}
+.collective-results-average-cell{position:sticky;right:120px;min-width:90px;width:90px;z-index:12}
+.collective-results-status-cell{position:sticky;right:0;min-width:120px;width:120px;z-index:12}
+.collective-results-table thead .collective-results-average-cell,.collective-results-table thead .collective-results-status-cell{z-index:30}
 .collective-results-student-cell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .collective-results-class-cell,.collective-results-summary-cell{word-break:normal}
 .collective-results-assignment-title{display:-webkit-box;overflow:hidden;line-height:1.2;overflow-wrap:anywhere;-webkit-box-orient:vertical;-webkit-line-clamp:3}
@@ -61,3 +70,5 @@
   @page portrait-report{size:A4 portrait;margin:14mm}
   @page landscape-report{size:A4 landscape;margin:12mm}
 }
+
+@media print{.collective-results-student-cell,.collective-results-class-cell,.collective-results-average-cell,.collective-results-status-cell{position:static!important}.collective-results-table-wrap{overflow:visible!important}}

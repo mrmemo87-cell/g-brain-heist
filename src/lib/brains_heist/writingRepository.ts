@@ -287,12 +287,19 @@ const replaceTableByKey = async (table: string, rows: unknown[], key: string): P
 
 const upsertWritingAttempts = async (rows: unknown[]): Promise<void> => {
   if (!rows.length) return;
-  const payloadRows = rows
-    .filter((payload) => Boolean(readKey(payload, 'id')))
-    .map((payload) => ({
-      attempt_key: readKey(payload, 'id'),
+  const payloadByAttemptKey = new Map<string, { attempt_key: string; payload: unknown }>();
+  rows.forEach((payload) => {
+    const attemptKey = readKey(payload, 'id');
+    if (!attemptKey) return;
+    // The in-memory writing history can temporarily contain duplicate copies of
+    // the same attempt while feedback is enriched. Postgres rejects duplicate
+    // conflict keys within one UPSERT, so keep the latest payload per attempt.
+    payloadByAttemptKey.set(attemptKey, {
+      attempt_key: attemptKey,
       payload: safe(payload),
-    }));
+    });
+  });
+  const payloadRows = [...payloadByAttemptKey.values()];
   if (!payloadRows.length) return;
   const upsertRes = await supabase
     .from('bh_writing_attempts')

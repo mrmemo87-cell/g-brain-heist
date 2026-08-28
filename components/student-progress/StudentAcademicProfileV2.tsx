@@ -22,6 +22,8 @@ import './StudentAcademicProfileV2Enhancements.css';
 interface StudentAcademicProfileProps {
   studentId?: string | null;
   initialSubject?: string | null;
+  academicYearId?: string | null;
+  academicYearName?: string | null;
   mode?: 'student' | 'teacher' | 'school_admin' | 'school_head';
   schoolName?: string | null;
   schoolLogoUrl?: string | null;
@@ -293,6 +295,8 @@ const SubjectTrendChart: React.FC<{ subject: string; series: TrendSeries[] }> = 
 const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
   studentId,
   initialSubject,
+  academicYearId,
+  academicYearName,
   mode = 'teacher',
   schoolName,
   schoolLogoUrl,
@@ -319,6 +323,7 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
         const nextProfile = await fetchStudentAcademicProfile({
           studentId,
           subject: subject === 'all' ? null : subject,
+          academicYearId: academicYearId ?? null,
           dateFrom: dateFrom ? `${dateFrom}T00:00:00.000Z` : null,
           dateTo: dateTo ? `${dateTo}T23:59:59.999Z` : null,
         });
@@ -330,14 +335,14 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
     };
     void load();
     return () => { cancelled = true; };
-  }, [studentId, subject, dateFrom, dateTo]);
+  }, [studentId, subject, academicYearId, dateFrom, dateTo]);
 
   useEffect(() => {
     let cancelled = false;
     const loadContext = async () => {
       const [contextResult, confidenceResult, subjectsResult] = await Promise.allSettled([
         getAcademicProgressExperienceContext(studentId),
-        fetchStudentAcademicConfidence(studentId),
+        fetchStudentAcademicConfidence(studentId, academicYearId),
         fetchStudentAcademicSubjects(studentId),
       ]);
       if (cancelled) return;
@@ -347,7 +352,12 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
     };
     void loadContext();
     return () => { cancelled = true; };
-  }, [studentId]);
+  }, [studentId, academicYearId]);
+
+  useEffect(() => {
+    if (!academicYearId || !profile) return;
+    setAvailableSubjects(profile.subjects.map((item) => item.subject));
+  }, [academicYearId, profile]);
 
   const allSubjects = useMemo(() => {
     const values: string[] = [];
@@ -421,6 +431,8 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
   const resolvedSchoolName = context?.school.name || schoolName || undefined;
   const resolvedSchoolLogo = context?.school.logo_url || schoolLogoUrl || undefined;
   const preparedBy = context?.viewer.name || teacherName || undefined;
+  const archivedYear = profile.scope.archived === true;
+  const profileYearLabel = profile.scope.academic_year_name || academicYearName || null;
   const supportCount = profile.summary.persistent_focus_count + profile.summary.recurring_focus_count;
   const formatStatus = (item: FocusItem) => String(item.status) === 'insufficient_evidence' ? 'New support signal' : formatLearningStatus(item.status);
 
@@ -432,8 +444,10 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
       subtitle={[profile.student.grade ? `Grade ${profile.student.grade}` : null, profile.student.class_name ? `Class ${profile.student.class_name}` : null, 'A clear record of results, support needs and progress'].filter(Boolean).join(' · ')}
       onBack={onClose}
       backLabel={backLabel}
-      actions={canGenerateReport ? <button type="button" className="aps-primary-button" onClick={() => setShowReport(true)}>Generate individual report</button> : null}
+      actions={canGenerateReport && !archivedYear ? <button type="button" className="aps-primary-button" onClick={() => setShowReport(true)}>Generate individual report</button> : null}
     />
+
+    {profileYearLabel ? <div className="aps-scope-note"><strong>{profileYearLabel}</strong> · {archivedYear ? 'Archived · read only. Historical evidence and placement are frozen to this school year.' : 'Current academic year · live evidence.'}</div> : null}
 
     <div className="sap-filterbar" aria-label="Progress record filters">
       <label>Subject<select value={subject} onChange={(event) => setSubject(event.target.value)}><option value="all">All subjects</option>{allSubjects.map((name) => <option key={name.toLocaleLowerCase()} value={name}>{name}</option>)}</select></label>
