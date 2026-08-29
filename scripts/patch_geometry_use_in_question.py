@@ -1,3 +1,4 @@
+# Re-run the geometry live integration validator after the original merge omitted the generated portal wiring.
 from pathlib import Path
 
 
