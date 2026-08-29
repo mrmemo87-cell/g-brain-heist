@@ -3106,7 +3106,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       .then(setQuestions)
       .catch((error) => {
         console.error('Error loading global question bank:', error);
-        setQuestions([]);
+        brainsAlert('The question bank could not be refreshed. Your currently loaded questions have been kept; please try again.', 'error');
       })
       .finally(() => {
         questionsLoadRef.current = null;

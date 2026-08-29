@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Subject, Teacher, TeacherQuestion } from '../../types';
 import QuestionPreviewModal from './QuestionPreviewModal';
 import { isBrainsHeistPoolQuestion, isMyPoolQuestion, isSchoolPoolQuestion } from './questionPool.js';
@@ -63,6 +63,7 @@ export default function QuestionBank({
   const [previewQuestion, setPreviewQuestion] = useState<TeacherQuestion | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [topicName, setTopicName] = useState('');
+  const initialPoolResolvedRef = useRef(false);
 
   const permittedQuestions = useMemo(() => {
     if (!restrictedSubjects?.length) return questions;
@@ -75,6 +76,26 @@ export default function QuestionBank({
     school: permittedQuestions.filter((question) => isSchoolPoolQuestion(question, teacher?.id)),
     mine: permittedQuestions.filter((question) => isMyPoolQuestion(question, teacher?.id)),
   }), [permittedQuestions, teacher]);
+
+  useEffect(() => {
+    if (initialPoolResolvedRef.current || questions.length === 0) return;
+    if (pools['brains-heist'].length > 0) {
+      initialPoolResolvedRef.current = true;
+      return;
+    }
+
+    const firstAvailablePool: PoolKey | undefined = pools.school.length > 0
+      ? 'school'
+      : pools.mine.length > 0
+        ? 'mine'
+        : undefined;
+    if (!firstAvailablePool) return;
+
+    initialPoolResolvedRef.current = true;
+    setActivePool(firstAvailablePool);
+    setSubjectFilter('');
+    setSelectedTopic(null);
+  }, [pools, questions.length]);
 
   const poolQuestions = pools[activePool];
   const subjects = useMemo(
