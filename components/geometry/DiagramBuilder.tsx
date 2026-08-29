@@ -3,6 +3,7 @@ import { DiagramTool, BlankField, GeometryQuestion } from './types';
 import DiagramToolbar from './DiagramToolbar';
 import KonvaCanvasEditor, { DiagramShape } from './KonvaCanvasEditor';
 import ShapesLibrary from './ShapesLibrary';
+import GeometryUseInQuestion, { type GeometryUseInQuestionPayload } from './GeometryUseInQuestion';
 import { 
   saveGeometryQuestion, 
   updateGeometryQuestion,
@@ -17,13 +18,14 @@ import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPre
 interface DiagramBuilderProps {
   teacherId: string;
   onComplete: () => void;
+  onUseInQuestion?: (payload: GeometryUseInQuestionPayload) => void;
   schoolName?: string;
   schoolLogoUrl?: string | null;
   teacherName?: string;
   schoolId?: string | null;
 }
 
-const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, schoolName = 'Brains Heist', schoolLogoUrl, teacherName = 'Teacher', schoolId }) => {
+const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, onUseInQuestion, schoolName = 'Brains Heist', schoolLogoUrl, teacherName = 'Teacher', schoolId }) => {
   const stageRef = useRef<unknown>(null);
   
   // Tool state
@@ -295,7 +297,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
         <div className="card-glass p-12 text-center">
           <div className="text-6xl mb-4">📐</div>
           <p className="text-xl text-gray-300 mb-4">No geometry diagrams yet</p>
-          <p className="text-gray-400 mb-6">Build clean classroom diagrams, export a high-resolution PNG for a normal question, or add answer blanks for an interactive diagram question.</p>
+          <p className="text-gray-400 mb-6">Build clean classroom diagrams, send a tightly cropped SVG + PNG fallback straight into a normal question, or add answer blanks for an interactive diagram question.</p>
           <button
             onClick={handleNewDiagram}
             className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-semibold hover:scale-105 transition-all"
@@ -566,7 +568,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
             </label>
             <button type="button" onClick={handleAddLabel} disabled={!labelDraft.trim()} className="self-end min-h-11 rounded-lg bg-cyan-600 px-4 text-sm font-bold text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-40">Add label</button>
           </div>
-          <div className="mt-3 grid gap-2 text-xs text-slate-400 sm:grid-cols-3"><span><strong className="text-slate-200">1.</strong> Build the figure</span><span><strong className="text-slate-200">2.</strong> Add clear labels</span><span><strong className="text-slate-200">3.</strong> Export PNG or add blanks</span></div>
+          <div className="mt-3 grid gap-2 text-xs text-slate-400 sm:grid-cols-3"><span><strong className="text-slate-200">1.</strong> Build the figure</span><span><strong className="text-slate-200">2.</strong> Add clear labels</span><span><strong className="text-slate-200">3.</strong> Use in Question or add blanks</span></div>
           <p className="mt-2 text-[11px] leading-5 text-slate-500">Select and drag labels to position them. Double-click or double-tap an existing label to edit its wording.</p>
         </section>
 
@@ -683,6 +685,17 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
           >
             ← Back
           </button>
+          {onUseInQuestion && (
+            <GeometryUseInQuestion
+              title={title}
+              subject={subject}
+              topic={topic}
+              difficulty={difficulty}
+              shapes={shapes}
+              blanks={blanks}
+              onUseInQuestion={onUseInQuestion}
+            />
+          )}
           <button
             onClick={handleSave}
             disabled={saving}
