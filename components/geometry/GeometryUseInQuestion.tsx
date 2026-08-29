@@ -126,7 +126,7 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
                 Background
                 <select
                   value={background}
-                  onChange={(event) => setBackground(event.target.value as GeometryQuestionBackground)}
+                  onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setBackground(event.target.value as GeometryQuestionBackground)}
                   className="min-h-11 rounded-lg border border-slate-600 bg-slate-950 px-3 text-white outline-none focus:border-cyan-400"
                 >
                   <option value="transparent">Transparent — recommended</option>
@@ -138,7 +138,7 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
                 Safe border
                 <select
                   value={paddingPreset}
-                  onChange={(event) => setPaddingPreset(event.target.value as GeometryQuestionPaddingPreset)}
+                  onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setPaddingPreset(event.target.value as GeometryQuestionPaddingPreset)}
                   className="min-h-11 rounded-lg border border-slate-600 bg-slate-950 px-3 text-white outline-none focus:border-cyan-400"
                 >
                   <option value="tight">Tight — 24 px</option>
