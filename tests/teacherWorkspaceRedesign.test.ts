@@ -52,6 +52,11 @@ test('question bank separates global, school-verified, and teacher-owned pools',
   assert.match(questionBank, /official Academic Profile evidence/);
   assert.match(questionBank, /Rename topic/);
   assert.match(questionBank, /Delete topic/);
+  assert.match(questionBank, /initialPoolResolvedRef/);
+  assert.match(questionBank, /pools\['brains-heist'\]\.length > 0/);
+  assert.match(questionBank, /pools\.school\.length > 0[\s\S]*'school'[\s\S]*pools\.mine\.length > 0[\s\S]*'mine'/);
+  assert.doesNotMatch(portal, /Error loading global question bank:[\s\S]{0,160}setQuestions\(\[\]\)/);
+  assert.match(portal, /currently loaded questions have been kept/);
 });
 
 test('desktop navigation can collapse to create more workspace', () => {
