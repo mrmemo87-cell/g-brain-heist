@@ -8755,6 +8755,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <DiagramBuilder
               teacherId={teacher!.id}
               onComplete={() => setView('dashboard')}
+              onUseInQuestion={(asset) => {
+                openMyPoolQuestionForm('Maths', asset.topic || 'Geometry');
+                setQuestionImage(null);
+                setQuestionImageUrl(asset.imageUrl);
+                setSubject('Maths');
+                setDifficulty(asset.difficulty);
+                setQuestionType('multiple_choice');
+                setQuestionText(asset.title === 'Geometry diagram' ? '' : asset.title);
+              }}
               schoolName={resolvedBranding.schoolName}
               schoolLogoUrl={resolvedBranding.schoolLogoUrl}
               teacherName={profile.full_name || profile.username || 'Teacher'}
