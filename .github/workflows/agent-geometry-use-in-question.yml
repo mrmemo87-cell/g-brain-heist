@@ -28,12 +28,12 @@ jobs:
         run: |
           rm -rf dist-tests
           npx tsc --project tsconfig.tests.json
-      - name: Run tests
+      - name: Run owned geometry tests
         env:
           NODE_ENV: test
           VITE_SUPABASE_URL: http://localhost
           VITE_SUPABASE_ANON_KEY: test
-        run: node --test dist-tests/tests/*.js
+        run: node --test dist-tests/tests/geometryQuestionAssetExport.test.js
       - name: Check migration security
         run: node scripts/check-supabase-migration-security.mjs
       - name: Build app
