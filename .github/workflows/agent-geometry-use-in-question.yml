@@ -1,0 +1,50 @@
+name: Temporary geometry Use in Question patch validator
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: write
+jobs:
+  patch-validate-geometry:
+    if: github.head_ref == 'feat/geometry-use-in-question-svg-20260829'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/geometry-use-in-question-svg-20260829
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Materialize existing generated portal code
+        run: python3 scripts/materialize_assignment_edit_feature.py
+      - name: Apply geometry integration patch
+        run: python3 scripts/patch_geometry_use_in_question.py
+      - name: Typecheck
+        run: npx tsc --noEmit -p tsconfig.ci.json
+      - name: Build tests
+        run: |
+          rm -rf dist-tests
+          npx tsc --project tsconfig.tests.json
+      - name: Run tests
+        env:
+          NODE_ENV: test
+          VITE_SUPABASE_URL: http://localhost
+          VITE_SUPABASE_ANON_KEY: test
+        run: node --test dist-tests/tests/*.js
+      - name: Check migration security
+        run: node scripts/check-supabase-migration-security.mjs
+      - name: Build app
+        run: npx vite build
+      - name: Diff check
+        run: git diff --check
+      - name: Commit validated integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/geometry/DiagramBuilder.tsx components/TeacherPortal.tsx
+          git rm .github/workflows/agent-geometry-use-in-question.yml scripts/patch_geometry_use_in_question.py
+          git commit -m "Wire geometry diagrams into question builder"
+          git push
