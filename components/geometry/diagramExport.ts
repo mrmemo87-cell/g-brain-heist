@@ -49,6 +49,20 @@ const EDITOR_LIGHT_COLORS = new Set([
   'cyan',
 ]);
 
+const asNumber = (value: unknown, fallback = 0) =>
+  typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+
+const asString = (value: unknown, fallback = '') =>
+  typeof value === 'string' ? value : fallback;
+
+const asNumberArray = (value: unknown): number[] =>
+  Array.isArray(value)
+    ? value.filter((item): item is number => typeof item === 'number' && Number.isFinite(item))
+    : [];
+
+const asShapeArray = (value: unknown): DiagramShape[] =>
+  Array.isArray(value) ? value.filter((item): item is DiagramShape => Boolean(item) && typeof item === 'object') : [];
+
 const escapeXml = (value: string) => value
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
@@ -57,7 +71,7 @@ const escapeXml = (value: string) => value
   .replace(/'/g, '&apos;');
 
 const exportInk = (value?: string, fallback = DEFAULT_INK) => {
-  if (!value) return fallback;
+  if (!value || value === 'transparent') return fallback;
   return EDITOR_LIGHT_COLORS.has(value.trim().toLowerCase()) ? fallback : value;
 };
 
@@ -79,113 +93,130 @@ const mergeBounds = (current: Bounds | null, next: Bounds | null): Bounds | null
   };
 };
 
-const pointsBounds = (points: number[], offsetX = 0, offsetY = 0): Bounds | null => {
-  if (points.length < 2) return null;
-  const xs: number[] = [];
-  const ys: number[] = [];
-  for (let index = 0; index + 1 < points.length; index += 2) {
-    xs.push(points[index] + offsetX);
-    ys.push(points[index + 1] + offsetY);
-  }
-  return {
-    minX: Math.min(...xs),
-    minY: Math.min(...ys),
-    maxX: Math.max(...xs),
-    maxY: Math.max(...ys),
-  };
-};
-
-const rotatePoint = (x: number, y: number, rotation: number) => {
-  const radians = rotation * Math.PI / 180;
-  return {
-    x: x * Math.cos(radians) - y * Math.sin(radians),
-    y: x * Math.sin(radians) + y * Math.cos(radians),
-  };
-};
-
-const rotatedRectBounds = (
+const transformPoint = (
+  pointX: number,
+  pointY: number,
   x: number,
   y: number,
-  width: number,
-  height: number,
-  rotation = 0,
-): Bounds => {
-  const corners = [
-    rotatePoint(0, 0, rotation),
-    rotatePoint(width, 0, rotation),
-    rotatePoint(width, height, rotation),
-    rotatePoint(0, height, rotation),
-  ];
-  const xs = corners.map((point) => point.x + x);
-  const ys = corners.map((point) => point.y + y);
+  scaleX: number,
+  scaleY: number,
+  rotation: number,
+) => {
+  const scaledX = pointX * scaleX;
+  const scaledY = pointY * scaleY;
+  const radians = rotation * Math.PI / 180;
   return {
-    minX: Math.min(...xs),
-    minY: Math.min(...ys),
-    maxX: Math.max(...xs),
-    maxY: Math.max(...ys),
+    x: x + scaledX * Math.cos(radians) - scaledY * Math.sin(radians),
+    y: y + scaledX * Math.sin(radians) + scaledY * Math.cos(radians),
   };
 };
 
-const shapeBounds = (shape: DiagramShape, offsetX = 0, offsetY = 0): Bounds | null => {
-  const strokePad = Math.max(3, (shape.strokeWidth || 2) / 2 + 2);
-  const x = (shape.x || 0) + offsetX;
-  const y = (shape.y || 0) + offsetY;
+const transformedPointsBounds = (
+  points: number[],
+  x: number,
+  y: number,
+  scaleX: number,
+  scaleY: number,
+  rotation: number,
+): Bounds | null => {
+  if (points.length < 2) return null;
+  const transformed: Array<{ x: number; y: number }> = [];
+  for (let index = 0; index + 1 < points.length; index += 2) {
+    transformed.push(transformPoint(points[index], points[index + 1], x, y, scaleX, scaleY, rotation));
+  }
+  return {
+    minX: Math.min(...transformed.map((point) => point.x)),
+    minY: Math.min(...transformed.map((point) => point.y)),
+    maxX: Math.max(...transformed.map((point) => point.x)),
+    maxY: Math.max(...transformed.map((point) => point.y)),
+  };
+};
 
-  if (shape.type === 'group' && Array.isArray(shape.children)) {
-    return shape.children.reduce<Bounds | null>(
-      (bounds, child) => mergeBounds(bounds, shapeBounds(child, x, y)),
-      null,
-    );
+const shapeBounds = (shape: DiagramShape, parentX = 0, parentY = 0): Bounds | null => {
+  const shapeType = asString(shape.type);
+  const x = parentX + asNumber(shape.x);
+  const y = parentY + asNumber(shape.y);
+  const scaleX = asNumber(shape.scaleX, 1) || 1;
+  const scaleY = asNumber(shape.scaleY, 1) || 1;
+  const rotation = asNumber(shape.rotation);
+  const strokeWidth = Math.max(1, asNumber(shape.strokeWidth, 2));
+  const strokePad = Math.max(3, strokeWidth / 2 + 2);
+
+  if (shapeType === 'group') {
+    let grouped: Bounds | null = null;
+    for (const child of asShapeArray(shape['children'])) {
+      grouped = mergeBounds(grouped, shapeBounds(child, x, y));
+    }
+    return grouped;
   }
 
-  if (shape.type === 'line' || shape.type === 'arrow' || shape.type === 'angle') {
-    const points = shape.points?.length
-      ? shape.points
-      : [0, 0, (shape.x2 || shape.x || 0) - (shape.x || 0), (shape.y2 || shape.y || 0) - (shape.y || 0)];
-    const bounds = pointsBounds(points, x, y);
-    return bounds ? expandBounds(bounds, shape.type === 'arrow' ? Math.max(strokePad, 12) : strokePad) : null;
+  if (shapeType === 'line' || shapeType === 'arrow' || shapeType === 'angle') {
+    let points = asNumberArray(shape.points);
+    if (points.length < 4) {
+      const endX = asNumber(shape.endX, asNumber(shape['x2'], asNumber(shape.x)));
+      const endY = asNumber(shape.endY, asNumber(shape['y2'], asNumber(shape.y)));
+      points = [0, 0, endX - asNumber(shape.x), endY - asNumber(shape.y)];
+    }
+    const bounds = transformedPointsBounds(points, x, y, scaleX, scaleY, rotation);
+    return bounds ? expandBounds(bounds, shapeType === 'arrow' ? Math.max(strokePad, 12) : strokePad) : null;
   }
 
-  if (shape.type === 'circle' || shape.type === 'point' || shape.type === 'arc') {
-    const radius = Math.max(1, shape.radius || (shape.type === 'point' ? 6 : 50));
+  if (shapeType === 'circle' || shapeType === 'point') {
+    const radius = Math.max(1, asNumber(shape.radius, shapeType === 'point' ? 6 : 50));
+    const halfWidth = radius * Math.abs(scaleX);
+    const halfHeight = radius * Math.abs(scaleY);
     return expandBounds({
-      minX: x - radius,
-      minY: y - radius,
-      maxX: x + radius,
-      maxY: y + radius,
+      minX: x - halfWidth,
+      minY: y - halfHeight,
+      maxX: x + halfWidth,
+      maxY: y + halfHeight,
     }, strokePad);
   }
 
-  if (shape.type === 'text') {
-    const fontSize = Math.max(8, shape.fontSize || 18);
-    const text = shape.text || 'Text';
+  if (shapeType === 'text') {
+    const fontSize = Math.max(8, asNumber(shape.fontSize, 18));
+    const text = asString(shape.text, 'Text');
     const width = Math.max(fontSize * 0.65, text.length * fontSize * 0.62);
     const height = fontSize * 1.35;
-    return expandBounds(rotatedRectBounds(x, y, width, height, shape.rotation || 0), 3);
+    const corners = [0, 0, width, 0, width, height, 0, height];
+    const bounds = transformedPointsBounds(corners, x, y, scaleX, scaleY, rotation);
+    return bounds ? expandBounds(bounds, 4) : null;
   }
 
   return expandBounds({ minX: x, minY: y, maxX: x + 1, maxY: y + 1 }, strokePad);
 };
 
-const blankBounds = (blank: BlankField): Bounds => expandBounds(
-  rotatedRectBounds(blank.x, blank.y, blank.width, blank.height, blank.rotation || 0),
-  3,
-);
+const blankBounds = (blank: BlankField): Bounds => {
+  const scaleX = blank.scaleX || 1;
+  const scaleY = blank.scaleY || 1;
+  const points = [0, 0, blank.width, 0, blank.width, blank.height, 0, blank.height];
+  const bounds = transformedPointsBounds(points, blank.x, blank.y, scaleX, scaleY, blank.rotation || 0);
+  return expandBounds(bounds || { minX: blank.x, minY: blank.y, maxX: blank.x + blank.width, maxY: blank.y + blank.height }, 3);
+};
 
-const coordinatePairs = (points: number[], offsetX = 0, offsetY = 0) => {
+const coordinatePairs = (points: number[]) => {
   const pairs: string[] = [];
   for (let index = 0; index + 1 < points.length; index += 2) {
-    pairs.push(`${points[index] + offsetX},${points[index + 1] + offsetY}`);
+    pairs.push(`${points[index]},${points[index + 1]}`);
   }
   return pairs.join(' ');
 };
 
-const renderArrowHead = (points: number[], stroke: string, strokeWidth: number, offsetX = 0, offsetY = 0) => {
+const shapeTransform = (shape: DiagramShape, parentX = 0, parentY = 0) => {
+  const x = parentX + asNumber(shape.x);
+  const y = parentY + asNumber(shape.y);
+  const rotation = asNumber(shape.rotation);
+  const scaleX = asNumber(shape.scaleX, 1) || 1;
+  const scaleY = asNumber(shape.scaleY, 1) || 1;
+  return `translate(${x} ${y}) rotate(${rotation}) scale(${scaleX} ${scaleY})`;
+};
+
+const renderArrowHead = (points: number[], stroke: string, strokeWidth: number) => {
   if (points.length < 4) return '';
-  const endX = points[points.length - 2] + offsetX;
-  const endY = points[points.length - 1] + offsetY;
-  const prevX = points[points.length - 4] + offsetX;
-  const prevY = points[points.length - 3] + offsetY;
+  const endX = points[points.length - 2];
+  const endY = points[points.length - 1];
+  const prevX = points[points.length - 4];
+  const prevY = points[points.length - 3];
   const angle = Math.atan2(endY - prevY, endX - prevX);
   const size = Math.max(10, strokeWidth * 4);
   const spread = Math.PI / 7;
@@ -196,13 +227,7 @@ const renderArrowHead = (points: number[], stroke: string, strokeWidth: number, 
   return `<path d="M ${leftX} ${leftY} L ${endX} ${endY} L ${rightX} ${rightY}" fill="none" stroke="${escapeXml(stroke)}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/>`;
 };
 
-const arcPath = (
-  x: number,
-  y: number,
-  radius: number,
-  startAngle: number,
-  endAngle: number,
-) => {
+const arcPath = (x: number, y: number, radius: number, startAngle: number, endAngle: number) => {
   const startRadians = startAngle * Math.PI / 180;
   const endRadians = endAngle * Math.PI / 180;
   const startX = x + radius * Math.cos(startRadians);
@@ -211,41 +236,38 @@ const arcPath = (
   const endY = y + radius * Math.sin(endRadians);
   let sweep = ((endAngle - startAngle) % 360 + 360) % 360;
   if (sweep === 0 && endAngle !== startAngle) sweep = 360;
-  const largeArc = sweep > 180 ? 1 : 0;
-  return `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArc} 1 ${endX} ${endY}`;
+  return `M ${startX} ${startY} A ${radius} ${radius} 0 ${sweep > 180 ? 1 : 0} 1 ${endX} ${endY}`;
 };
 
-const renderShape = (shape: DiagramShape, offsetX = 0, offsetY = 0): string => {
-  const x = (shape.x || 0) + offsetX;
-  const y = (shape.y || 0) + offsetY;
-  const stroke = exportInk(shape.stroke);
-  const fill = exportInk(shape.fill, stroke);
-  const strokeWidth = shape.strokeWidth || 2;
-  const dash = shape.dash?.length ? ` stroke-dasharray="${shape.dash.join(' ')}"` : '';
+const renderShape = (shape: DiagramShape, parentX = 0, parentY = 0): string => {
+  const shapeType = asString(shape.type);
+  const stroke = exportInk(asString(shape.stroke) || undefined);
+  const fill = exportInk(asString(shape.fill) || undefined, stroke);
+  const strokeWidth = Math.max(1, asNumber(shape.strokeWidth, 2));
+  const dashValues = asNumberArray(shape['dash']);
+  const dash = dashValues.length ? ` stroke-dasharray="${dashValues.join(' ')}"` : '';
 
-  if (shape.type === 'group' && Array.isArray(shape.children)) {
-    return shape.children.map((child) => renderShape(child, x, y)).join('');
+  if (shapeType === 'group') {
+    const children = asShapeArray(shape['children']);
+    return `<g transform="${shapeTransform(shape, parentX, parentY)}">${children.map((child) => renderShape(child)).join('')}</g>`;
   }
 
-  if (shape.type === 'line' || shape.type === 'arrow') {
-    const points = shape.points?.length
-      ? shape.points
-      : [0, 0, (shape.x2 || shape.x || 0) - (shape.x || 0), (shape.y2 || shape.y || 0) - (shape.y || 0)];
-    const polyline = `<polyline points="${coordinatePairs(points, x, y)}" fill="none" stroke="${escapeXml(stroke)}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"${dash}/>`;
-    return shape.type === 'arrow'
-      ? `${polyline}${renderArrowHead(points, stroke, strokeWidth, x, y)}`
-      : polyline;
+  let points = asNumberArray(shape.points);
+  if ((shapeType === 'line' || shapeType === 'arrow' || shapeType === 'angle') && points.length < 4) {
+    const endX = asNumber(shape.endX, asNumber(shape['x2'], asNumber(shape.x)));
+    const endY = asNumber(shape.endY, asNumber(shape['y2'], asNumber(shape.y)));
+    points = [0, 0, endX - asNumber(shape.x), endY - asNumber(shape.y)];
   }
 
-  if (shape.type === 'angle') {
-    const points = shape.points || [0, 0, 80, 0, 0, -80];
-    if (points.length < 6) {
-      return `<polyline points="${coordinatePairs(points, x, y)}" fill="none" stroke="${escapeXml(stroke)}" stroke-width="${strokeWidth}" stroke-linecap="round"/>`;
-    }
-
-    const p0 = { x: points[0] + x, y: points[1] + y };
-    const p1 = { x: points[2] + x, y: points[3] + y };
-    const p2 = { x: points[4] + x, y: points[5] + y };
+  let body = '';
+  if (shapeType === 'line' || shapeType === 'arrow') {
+    body = `<polyline points="${coordinatePairs(points)}" fill="none" stroke="${escapeXml(stroke)}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"${dash}/>`;
+    if (shapeType === 'arrow') body += renderArrowHead(points, stroke, strokeWidth);
+  } else if (shapeType === 'angle') {
+    const anglePoints = points.length >= 6 ? points : [0, 0, 80, 0, 0, -80];
+    const p0 = { x: anglePoints[0], y: anglePoints[1] };
+    const p1 = { x: anglePoints[2], y: anglePoints[3] };
+    const p2 = { x: anglePoints[4], y: anglePoints[5] };
     const angle1 = Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180 / Math.PI;
     const angle2 = Math.atan2(p2.y - p0.y, p2.x - p0.x) * 180 / Math.PI;
     let startAngle = Math.min(angle1, angle2);
@@ -258,42 +280,30 @@ const renderShape = (shape: DiagramShape, offsetX = 0, offsetY = 0): string => {
     const length1 = Math.hypot(p1.x - p0.x, p1.y - p0.y);
     const length2 = Math.hypot(p2.x - p0.x, p2.y - p0.y);
     const radius = Math.max(8, Math.min(length1, length2, 35) * 0.5);
-    return [
+    body = [
       `<path d="M ${p0.x} ${p0.y} L ${p1.x} ${p1.y} M ${p0.x} ${p0.y} L ${p2.x} ${p2.y}" fill="none" stroke="${escapeXml(stroke)}" stroke-width="${strokeWidth}" stroke-linecap="round"/>`,
       `<path d="${arcPath(p0.x, p0.y, radius, startAngle, endAngle)}" fill="none" stroke="${escapeXml(stroke)}" stroke-width="${Math.max(1.5, strokeWidth * 0.75)}"/>`,
     ].join('');
+  } else if (shapeType === 'circle') {
+    body = `<circle cx="0" cy="0" r="${Math.max(1, asNumber(shape.radius, 50))}" fill="none" stroke="${escapeXml(stroke)}" stroke-width="${strokeWidth}"${dash}/>`;
+  } else if (shapeType === 'point') {
+    const radius = Math.max(2, asNumber(shape.radius, 6));
+    body = `<circle cx="0" cy="0" r="${radius}" fill="${escapeXml(fill)}" stroke="${escapeXml(stroke)}" stroke-width="${strokeWidth}"/>`;
+  } else if (shapeType === 'text') {
+    const fontSize = Math.max(8, asNumber(shape.fontSize, 18));
+    const fontFamily = asString(shape['fontFamily'], 'Arial, sans-serif');
+    body = `<text x="0" y="0" dominant-baseline="hanging" font-family="${escapeXml(fontFamily)}" font-size="${fontSize}" font-weight="600" fill="${escapeXml(exportInk(asString(shape.fill) || undefined))}">${escapeXml(asString(shape.text, 'Text'))}</text>`;
   }
 
-  if (shape.type === 'circle') {
-    return `<circle cx="${x}" cy="${y}" r="${Math.max(1, shape.radius || 50)}" fill="none" stroke="${escapeXml(stroke)}" stroke-width="${strokeWidth}"${dash}/>`;
-  }
-
-  if (shape.type === 'point') {
-    const radius = Math.max(2, shape.radius || 6);
-    return `<circle cx="${x}" cy="${y}" r="${radius}" fill="${escapeXml(fill)}" stroke="${escapeXml(stroke)}" stroke-width="${Math.max(1, strokeWidth)}"/>`;
-  }
-
-  if (shape.type === 'arc') {
-    const radius = Math.max(1, shape.radius || 50);
-    const startAngle = (shape.startAngle || 0) + (shape.rotation || 0);
-    const endAngle = (shape.endAngle ?? 180) + (shape.rotation || 0);
-    return `<path d="${arcPath(x, y, radius, startAngle, endAngle)}" fill="none" stroke="${escapeXml(stroke)}" stroke-width="${strokeWidth}"${dash}/>`;
-  }
-
-  if (shape.type === 'text') {
-    const fontSize = Math.max(8, shape.fontSize || 18);
-    const fontFamily = shape.fontFamily || 'Arial, sans-serif';
-    const transform = shape.rotation ? ` transform="rotate(${shape.rotation} ${x} ${y})"` : '';
-    return `<text x="${x}" y="${y}" dominant-baseline="hanging" font-family="${escapeXml(fontFamily)}" font-size="${fontSize}" font-weight="600" fill="${escapeXml(exportInk(shape.fill))}"${transform}>${escapeXml(shape.text || 'Text')}</text>`;
-  }
-
-  return '';
+  return body ? `<g transform="${shapeTransform(shape, parentX, parentY)}">${body}</g>` : '';
 };
 
 const renderBlank = (blank: BlankField) => {
   const rotation = blank.rotation || 0;
-  const transform = `translate(${blank.x} ${blank.y})${rotation ? ` rotate(${rotation})` : ''}`;
+  const scaleX = blank.scaleX || 1;
+  const scaleY = blank.scaleY || 1;
   const fontSize = Math.min(16, blank.height * 0.6);
+  const transform = `translate(${blank.x} ${blank.y}) rotate(${rotation}) scale(${scaleX} ${scaleY})`;
   return `<g transform="${transform}"><rect width="${blank.width}" height="${blank.height}" rx="4" fill="none" stroke="${DEFAULT_INK}" stroke-width="2" stroke-dasharray="6 4"/><text x="${blank.width / 2}" y="${blank.height / 2}" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="700" fill="${DEFAULT_INK}">?</text></g>`;
 };
 
@@ -364,24 +374,27 @@ export const buildDiagramQuestionAsset = async ({
   paddingPreset = 'standard',
 }: DiagramAssetOptions): Promise<DiagramQuestionAsset> => {
   let contentBounds: Bounds | null = null;
-  shapes.forEach((shape) => {
+  for (const shape of shapes) {
     contentBounds = mergeBounds(contentBounds, shapeBounds(shape));
-  });
-  blanks.forEach((blank) => {
+  }
+  for (const blank of blanks) {
     contentBounds = mergeBounds(contentBounds, blankBounds(blank));
-  });
+  }
 
-  if (!contentBounds) {
+  if (contentBounds === null) {
     throw new Error('Add at least one visible diagram element before exporting.');
   }
 
+  const bounds = contentBounds as Bounds;
   const padding = PADDING_BY_PRESET[paddingPreset];
-  const rawWidth = contentBounds.maxX - contentBounds.minX;
-  const rawHeight = contentBounds.maxY - contentBounds.minY;
-  const width = Math.max(120, Math.ceil(rawWidth + padding * 2));
-  const height = Math.max(80, Math.ceil(rawHeight + padding * 2));
-  const translateX = padding - contentBounds.minX + Math.max(0, (120 - (rawWidth + padding * 2)) / 2);
-  const translateY = padding - contentBounds.minY + Math.max(0, (80 - (rawHeight + padding * 2)) / 2);
+  const rawWidth = Math.max(1, bounds.maxX - bounds.minX);
+  const rawHeight = Math.max(1, bounds.maxY - bounds.minY);
+  const naturalWidth = rawWidth + padding * 2;
+  const naturalHeight = rawHeight + padding * 2;
+  const width = Math.max(120, Math.ceil(naturalWidth));
+  const height = Math.max(80, Math.ceil(naturalHeight));
+  const translateX = padding - bounds.minX + Math.max(0, (120 - naturalWidth) / 2);
+  const translateY = padding - bounds.minY + Math.max(0, (80 - naturalHeight) / 2);
   const body = [
     ...shapes.map((shape) => renderShape(shape)),
     ...blanks.map((blank) => renderBlank(blank)),
