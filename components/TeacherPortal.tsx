@@ -1899,6 +1899,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setShowCambridgeAnswers(true);
   };
 
+  const printCambridgeAnswers = (student: any) => {
+    openCambridgeAnswers(student);
+    // Wait for the detailed-answers modal to render before triggering print
+    window.setTimeout(() => {
+      window.print();
+    }, 250);
+  };
+
   // Open writing marking modal
   const openWritingMarking = (student: any) => {
     setSelectedCambridgeStudent(student);
@@ -6696,6 +6704,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 className="w-full px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700"
               >
                 View detailed answers
+              </button>
+              <button
+                onClick={() => printCambridgeAnswers(drawerAttempt)}
+                className="w-full px-4 py-2 rounded-md bg-green-600 text-white text-sm font-semibold hover:bg-green-700"
+              >
+                🖨️ Print detailed answers
               </button>
               {drawerIsWriting ? (
                 <button
