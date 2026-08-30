@@ -27,32 +27,40 @@ test('question bank topic modal owns its action styling and responsive hierarchy
   assert.match(closeRule, /color:#475569!important/);
 });
 
-test('school document printing reserves a page-safe band for repeated header and footer', () => {
-  assert.match(schoolDocument, /margin:32mm 15mm 22mm/);
-  assert.match(schoolDocument, /@media print\{[\s\S]*?\.school-document\{[^}]*padding:0!important/s);
+test('school document printing uses flow-aware repeated table header and footer groups', () => {
+  assert.match(schoolDocument, /margin:14mm 15mm 14mm/);
+  assert.match(schoolDocument, /class="school-document__print-frame"/);
+  assert.match(schoolDocument, /class="school-document__print-head"/);
+  assert.match(schoolDocument, /class="school-document__print-foot"/);
 
   const printCss = schoolDocument.match(/@media print\{([\s\S]*?)\n  \}/)?.[1] ?? '';
   assert.ok(printCss, 'expected print-specific school document CSS');
 
+  const frameRule = printCss.match(/\.school-document__print-frame\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(frameRule, /display:table/);
+  assert.match(frameRule, /table-layout:fixed/);
+
+  const headRule = printCss.match(/\.school-document__print-frame>thead\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(headRule, /display:table-header-group/);
+
+  const footRule = printCss.match(/\.school-document__print-frame>tfoot\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(footRule, /display:table-footer-group/);
+
   const headerRule = printCss.match(/\.school-document__repeating-header\{([^}]*)\}/s)?.[1] ?? '';
-  assert.match(headerRule, /position:fixed/);
-  assert.match(headerRule, /top:-20mm/);
-  assert.match(headerRule, /right:0/);
-  assert.match(headerRule, /left:0/);
-  assert.match(headerRule, /height:15mm/);
-  assert.match(headerRule, /background:#fff/);
-  assert.match(headerRule, /z-index:2/);
+  assert.match(headerRule, /position:static/);
+  assert.match(headerRule, /min-height:15mm/);
+  assert.doesNotMatch(headerRule, /top:-/);
+  assert.doesNotMatch(headerRule, /position:fixed/);
 
   const footerRule = printCss.match(/\.school-document__page-footer\{([^}]*)\}/s)?.[1] ?? '';
-  assert.match(footerRule, /position:fixed/);
-  assert.match(footerRule, /bottom:-12mm/);
-  assert.match(footerRule, /min-height:7mm/);
-  assert.match(footerRule, /background:#fff/);
-  assert.match(footerRule, /z-index:2/);
+  assert.match(footerRule, /position:static/);
+  assert.doesNotMatch(footerRule, /bottom:-/);
+  assert.doesNotMatch(footerRule, /position:fixed/);
 
   const cardRule = schoolDocument.match(/\.school-document__body \.document-card\{([^}]*)\}/s)?.[1] ?? '';
   assert.match(cardRule, /break-inside:avoid-page/);
   assert.match(cardRule, /page-break-inside:avoid/);
 
-  assert.doesNotMatch(schoolDocument, /padding:23mm 0 18mm!important/);
+  assert.doesNotMatch(schoolDocument, /top:-20mm/);
+  assert.doesNotMatch(schoolDocument, /bottom:-12mm/);
 });
