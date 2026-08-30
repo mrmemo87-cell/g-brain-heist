@@ -43,7 +43,7 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [paddingPreset, setPaddingPreset] = useState<GeometryQuestionPaddingPreset>('standard');
-  const [background, setBackground] = useState<GeometryQuestionBackground>('transparent');
+  const [background, setBackground] = useState<GeometryQuestionBackground>('white');
   const [preparing, setPreparing] = useState(false);
 
   const prepareQuestion = async () => {
@@ -129,8 +129,8 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
                   onChange={(event: { target: { value: string } }) => setBackground(event.target.value as GeometryQuestionBackground)}
                   className="min-h-11 rounded-lg border border-slate-600 bg-slate-950 px-3 text-white outline-none focus:border-cyan-400"
                 >
-                  <option value="transparent">Transparent — recommended</option>
-                  <option value="white">White</option>
+                  <option value="white">White — recommended for students</option>
+                  <option value="transparent">Transparent — for light backgrounds</option>
                 </select>
               </label>
 
@@ -147,6 +147,10 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
                 </select>
               </label>
             </div>
+
+            <p className="mt-3 text-xs leading-5 text-slate-400">
+              White keeps dark strokes and labels readable in both light and dark student themes. Transparent remains available when you specifically need it.
+            </p>
 
             <div className="mt-4 rounded-xl border border-slate-700 bg-slate-950/70 p-4 text-sm text-slate-300">
               <div className="flex items-center justify-between gap-3">
