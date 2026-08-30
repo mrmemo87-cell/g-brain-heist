@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const membershipRepair = readFileSync(
+const retiredMembershipRepair = readFileSync(
   'supabase/migrations/20260830061952_repair_academic_profile_student_memberships.sql',
   'utf8',
 );
@@ -14,18 +14,20 @@ const rolloverGuard = readFileSync(
   'supabase/migrations/20260830062050_guard_rollover_target_enrolment_membership.sql',
   'utf8',
 );
+const liveRosterFix = readFileSync(
+  'supabase/migrations/20260830071032_fix_academic_profile_live_roster_authority.sql',
+  'utf8',
+);
 const teacherProfiles = readFileSync(
   'components/student-progress/TeacherAcademicProfilesPage.tsx',
   'utf8',
 );
 
-test('academic profile membership repair stays operational-year and conflict scoped', () => {
-  assert.match(membershipRepair, /academic_resolve_operational_year_id/i);
-  assert.match(membershipRepair, /having count\(distinct oe\.school_id\) = 1/i);
-  assert.match(membershipRepair, /sm\.status = 'active'/i);
-  assert.match(membershipRepair, /sm\.school_id <> e\.school_id/i);
-  assert.match(membershipRepair, /insert into public\.school_members/i);
-  assert.doesNotMatch(membershipRepair, /update public\.users/i);
+test('academic enrolments never recreate removed school memberships', () => {
+  assert.match(retiredMembershipRepair, /RETIRED/i);
+  assert.match(retiredMembershipRepair, /do not infer or recreate school membership/i);
+  assert.doesNotMatch(retiredMembershipRepair, /insert into public\.school_members/i);
+  assert.doesNotMatch(retiredMembershipRepair, /academic_resolve_operational_year_id/i);
 });
 
 test('teacher reporting context resolves active assigned teachers before student fallback', () => {
@@ -42,6 +44,23 @@ test('rollover cannot create target enrolments for non-members', () => {
   assert.match(rolloverGuard, /sm\.status = 'active'/i);
   assert.match(rolloverGuard, /sm\.role_in_school = 'student'/i);
   assert.match(rolloverGuard, /insert into public\.student_academic_enrolments/i);
+});
+
+test('current academic profiles use active live class placement instead of prepared rollover rows', () => {
+  assert.match(liveRosterFix, /p_academic_year_id = v_operational_year_id/i);
+  assert.match(liveRosterFix, /join public\.class_students cs/i);
+  assert.match(liveRosterFix, /sm\.status = 'active'/i);
+  assert.match(liveRosterFix, /sm\.role_in_school = 'student'/i);
+  assert.match(liveRosterFix, /p_academic_year_id is distinct from v_operational_year_id/i);
+  assert.match(liveRosterFix, /from public\.student_academic_enrolments e/i);
+  assert.match(liveRosterFix, /grant execute on function public\.rpc_teacher_academic_profile_students_for_year\(uuid\) to authenticated, service_role/i);
+});
+
+test('removing a student from school clears current placement but preserves historical enrolment records', () => {
+  assert.match(liveRosterFix, /delete from public\.class_students cs/i);
+  assert.match(liveRosterFix, /update public\.school_ops_group_students gs/i);
+  assert.match(liveRosterFix, /v_target\.role_in_school = 'student'/i);
+  assert.doesNotMatch(liveRosterFix, /delete from public\.student_academic_enrolments/i);
 });
 
 test('teacher academic profiles explain an empty authorised roster instead of showing a dead picker', () => {
