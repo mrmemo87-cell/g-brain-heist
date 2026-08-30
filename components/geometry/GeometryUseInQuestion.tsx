@@ -43,7 +43,6 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [paddingPreset, setPaddingPreset] = useState<GeometryQuestionPaddingPreset>('standard');
-  const [background, setBackground] = useState<GeometryQuestionBackground>('white');
   const [preparing, setPreparing] = useState(false);
 
   const prepareQuestion = async () => {
@@ -54,9 +53,13 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
 
     try {
       setPreparing(true);
+
+      // Student question cards use a dark theme. Geometry question exports are
+      // therefore always rendered onto a white canvas so print-safe dark strokes
+      // and teacher-authored labels cannot disappear against the app background.
       const draft = await createGeometryQuestionAssetDraft(title, shapes, blanks, {
         paddingPreset,
-        background,
+        background: 'white',
       });
       const uploaded = await uploadGeometryQuestionAssets(draft.svgFile, draft.pngFile);
 
@@ -96,7 +99,7 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="min-h-12 flex-1 rounded-lg border border-emerald-400/60 bg-emerald-500/15 px-6 py-3 font-semibold text-emerald-200 transition-all hover:bg-emerald-500/25"
+        className="min-h-12 flex-1 rounded-lg border border-cyan-200 bg-cyan-400 px-6 py-3 font-bold text-slate-950 shadow-lg shadow-cyan-950/30 transition-all hover:bg-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/90"
       >
         ✨ Use in Question
       </button>
@@ -122,17 +125,12 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
             </div>
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                Background
-                <select
-                  value={background}
-                  onChange={(event: { target: { value: string } }) => setBackground(event.target.value as GeometryQuestionBackground)}
-                  className="min-h-11 rounded-lg border border-slate-600 bg-slate-950 px-3 text-white outline-none focus:border-cyan-400"
-                >
-                  <option value="white">White — recommended for students</option>
-                  <option value="transparent">Transparent — for light backgrounds</option>
-                </select>
-              </label>
+              <div className="grid gap-2 text-sm font-semibold text-slate-200">
+                Student canvas
+                <div className="flex min-h-11 items-center rounded-lg border border-slate-600 bg-white px-3 font-bold text-slate-950">
+                  White — high contrast
+                </div>
+              </div>
 
               <label className="grid gap-2 text-sm font-semibold text-slate-200">
                 Safe border
@@ -149,7 +147,7 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
             </div>
 
             <p className="mt-3 text-xs leading-5 text-slate-400">
-              White keeps dark strokes and labels readable in both light and dark student themes. Transparent remains available when you specifically need it.
+              Question exports use a fixed white canvas so lines, labels, symbols, and blanks stay readable on the dark student interface. Your saved reusable design is not changed.
             </p>
 
             <div className="mt-4 rounded-xl border border-slate-700 bg-slate-950/70 p-4 text-sm text-slate-300">
