@@ -684,6 +684,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
               difficulty={difficulty}
               shapes={shapes}
               blanks={blanks}
+              stageRef={stageRef}
               onUseInQuestion={onUseInQuestion}
             />
           )}
