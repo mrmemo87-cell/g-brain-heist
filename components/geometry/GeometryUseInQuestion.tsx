@@ -14,7 +14,6 @@ export interface GeometryUseInQuestionPayload {
   svgUrl: string | null;
   pngUrl: string;
   title: string;
-  subject: string;
   topic: string;
   difficulty: 'easy' | 'medium' | 'hard';
   width: number;
@@ -26,7 +25,7 @@ export interface GeometryUseInQuestionPayload {
 
 interface GeometryUseInQuestionProps {
   title: string;
-  subject: string;
+  subject?: string;
   topic: string;
   difficulty: 'easy' | 'medium' | 'hard';
   shapes: DiagramShape[];
@@ -36,7 +35,6 @@ interface GeometryUseInQuestionProps {
 
 const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
   title,
-  subject,
   topic,
   difficulty,
   shapes,
@@ -62,12 +60,14 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
       });
       const uploaded = await uploadGeometryQuestionAssets(draft.svgFile, draft.pngFile);
 
+      // The exported visual is intentionally subject-neutral. The normal
+      // question builder owns academic classification and restricts its subject
+      // selector to the teacher's school-admin allocations.
       onUseInQuestion({
         imageUrl: uploaded.primaryUrl,
         svgUrl: uploaded.svgUrl,
         pngUrl: uploaded.pngUrl,
         title: draft.title,
-        subject,
         topic,
         difficulty,
         width: draft.width,
@@ -79,8 +79,8 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
       setOpen(false);
       brainsAlert(
         uploaded.svgUrl
-          ? 'Diagram attached to a new question as SVG, with PNG fallback ready.'
-          : 'SVG was unavailable, so the PNG fallback was attached to the new question.',
+          ? 'Diagram attached as a reusable visual. Choose the question subject in My Pool.'
+          : 'PNG fallback attached as a reusable visual. Choose the question subject in My Pool.',
         'success',
       );
     } catch (error) {
@@ -108,7 +108,7 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
               <div>
                 <h3 className="text-xl font-bold text-white">Use diagram in a question</h3>
                 <p className="mt-1 text-sm leading-6 text-slate-400">
-                  We will tightly crop the diagram, keep a safe border, upload SVG first, and store a transparent PNG fallback beside it.
+                  The diagram stays subject-neutral. After attaching it, choose the question subject from the subjects your school admin assigned to you.
                 </p>
               </div>
               <button
@@ -158,8 +158,8 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
                 <strong className="text-slate-100">2× PNG</strong>
               </div>
               <div className="mt-2 flex items-center justify-between gap-3">
-                <span>Crop</span>
-                <strong className="text-slate-100">Content bounds + safe border</strong>
+                <span>Subject</span>
+                <strong className="text-emerald-300">Choose in Question Builder</strong>
               </div>
             </div>
 
