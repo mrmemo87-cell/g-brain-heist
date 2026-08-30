@@ -19,7 +19,7 @@ const liveRosterFix = readFileSync(
   'utf8',
 );
 const operationalStudentContextFix = readFileSync(
-  'supabase/migrations/20260830105211_fix_academic_profile_operational_student_context.sql',
+  'supabase/migrations/20260830105601_fix_academic_profile_operational_student_context.sql',
   'utf8',
 );
 const teacherProfiles = readFileSync(
