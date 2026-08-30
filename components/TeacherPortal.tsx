@@ -3348,6 +3348,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const openMyPoolQuestionForm = (preferredSubject?: Subject, preferredTopic?: string) => {
     setEditingQuestion(null);
+    if (preferredSubject) setSubject(preferredSubject);
+    if (preferredTopic && preferredTopic !== 'General') {
+      setTopicMode('custom');
+      setCustomTopicName(preferredTopic);
+    } else {
+      setTopicMode('general');
+      setCustomTopicName('');
+    }
+    setEligibleGradeLevels([]);
+    setView('create-question');
+  };
+
+  const openQuestionBatchWorkspace = (preferredSubject?: Subject, preferredTopic?: string) => {
     setQuestionBatchDefaults({
       subject: preferredSubject,
       topic: preferredTopic && preferredTopic !== 'General' ? preferredTopic : undefined,
@@ -8644,6 +8657,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               onEditQuestion={handleEditQuestion}
               onDeleteQuestion={handleDeleteQuestion}
               onCreateQuestion={openMyPoolQuestionForm}
+              onCreateQuestionBatch={openQuestionBatchWorkspace}
               onRenameTopic={(topicQuestions, nextTopic) => { void handleRenameTopic(topicQuestions, nextTopic); }}
               onDeleteTopic={(topicQuestions) => { void handleDeleteTopic(topicQuestions); }}
               restrictedSubjects={profile.school_id && teacherAssignedSubjects.length ? teacherAssignedSubjects : undefined}

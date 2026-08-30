@@ -18,6 +18,7 @@ interface QuestionBankProps {
   onEditQuestion?: (question: TeacherQuestion) => void;
   onDeleteQuestion?: (questionId: string) => void;
   onCreateQuestion?: (subject?: Subject, topic?: string) => void;
+  onCreateQuestionBatch?: (subject?: Subject, topic?: string) => void;
   onRenameTopic?: (questions: TeacherQuestion[], nextTopic: string) => void;
   onDeleteTopic?: (questions: TeacherQuestion[]) => void;
   useActionLabel?: string;
@@ -51,7 +52,7 @@ const makeTopicGroups = (questions: TeacherQuestion[]) => {
 };
 
 export default function QuestionBank({
-  questions, teacher, onUseSet, onEditQuestion, onDeleteQuestion, onCreateQuestion,
+  questions, teacher, onUseSet, onEditQuestion, onDeleteQuestion, onCreateQuestion, onCreateQuestionBatch,
   onRenameTopic, onDeleteTopic, useActionLabel = 'Add to a new assignment', restrictedSubjects,
   schoolName = 'Brains Heist', schoolLogoUrl, teacherName = 'Teacher',
   schoolId,
@@ -171,7 +172,10 @@ export default function QuestionBank({
     <section className="qb-shell" aria-labelledby="question-bank-title">
       <header className="qb-header">
         <div><span className="qb-eyebrow">Question workspace</span><h1 id="question-bank-title">Question Bank</h1><p>Use Brains Heist evidence, your school&apos;s verified curriculum pool, or your private teacher workspace.</p></div>
-        <div className="flex flex-wrap gap-2">{onCreateQuestion ? <button type="button" className="qb-primary-action" onClick={() => { choosePool('mine'); onCreateQuestion(); }}>Add Question Batch</button> : null}</div>
+        <div className="flex flex-wrap gap-2">
+          {onCreateQuestion ? <button type="button" className="qb-primary-action" onClick={() => { choosePool('mine'); onCreateQuestion(); }}>Add Question</button> : null}
+          {onCreateQuestionBatch ? <button type="button" onClick={() => { choosePool('mine'); onCreateQuestionBatch(); }}>Add Question Batch</button> : null}
+        </div>
       </header>
 
       <div className="qb-pool-switcher" aria-label="Question pools">
@@ -198,7 +202,7 @@ export default function QuestionBank({
 
       <div className="qb-results-heading">
         <div><h2>{selectedPoolTitle}</h2><p>{topicGroups.length} topic{topicGroups.length === 1 ? '' : 's'} · {visibleQuestions.length} question{visibleQuestions.length === 1 ? '' : 's'}</p></div>
-        {activePool === 'mine' && onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion()}>Upload question PDF</button> : null}
+        {activePool === 'mine' ? <div className="flex flex-wrap gap-2">{onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion()}>Add Question</button> : null}{onCreateQuestionBatch ? <button type="button" onClick={() => onCreateQuestionBatch()}>Upload question PDF</button> : null}</div> : null}
       </div>
 
       {topicGroups.length ? (
@@ -215,7 +219,7 @@ export default function QuestionBank({
           ))}
         </div>
       ) : (
-        <div className="qb-empty"><h3>{activePool === 'mine' ? 'Upload your first question paper' : 'No questions match these filters'}</h3><p>{activePool === 'mine' ? 'We will find the questions and create topics after you check the extraction.' : 'Try another subject or a broader search.'}</p>{activePool === 'mine' && onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion()}>Add Question Batch</button> : null}</div>
+        <div className="qb-empty"><h3>{activePool === 'mine' ? 'Create your first question' : 'No questions match these filters'}</h3><p>{activePool === 'mine' ? 'Add one question manually or upload a PDF to build a reviewed batch.' : 'Try another subject or a broader search.'}</p>{activePool === 'mine' ? <div className="flex flex-wrap justify-center gap-2">{onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion()}>Add Question</button> : null}{onCreateQuestionBatch ? <button type="button" onClick={() => onCreateQuestionBatch()}>Add Question Batch</button> : null}</div> : null}</div>
       )}
 
       {selectedTopic ? (
@@ -243,7 +247,8 @@ export default function QuestionBank({
               ))}
             </div>
             <footer>
-              {activePool === 'mine' && onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion(selectedTopic.subject, selectedTopic.topic)}>Upload PDF to this topic</button> : null}
+              {activePool === 'mine' && onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion(selectedTopic.subject, selectedTopic.topic)}>Add question to this topic</button> : null}
+              {activePool === 'mine' && onCreateQuestionBatch ? <button type="button" onClick={() => onCreateQuestionBatch(selectedTopic.subject, selectedTopic.topic)}>Upload PDF to this topic</button> : null}
               {activePool === 'mine' && !selectedTopicHasSubmittedQuestions && onRenameTopic ? <button type="button" className="is-secondary" onClick={() => setRenaming(true)}>Rename topic</button> : null}
               {activePool === 'mine' && !selectedTopicHasSubmittedQuestions && onDeleteTopic ? <button type="button" className="is-danger" onClick={() => onDeleteTopic(selectedTopic.questions)}>Delete topic</button> : null}
             </footer>
