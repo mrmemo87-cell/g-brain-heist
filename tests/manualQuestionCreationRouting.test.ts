@@ -15,6 +15,9 @@ test('manual question creation remains distinct from PDF batch creation', () => 
   assert.match(questionBank, />Upload question PDF<\/button>/);
 });
 
-test('geometry Use in Question continues into the manual question builder', () => {
-  assert.match(portal, /onUseInQuestion=\{\(asset\) => \{[\s\S]*openMyPoolQuestionForm\('Maths', asset\.topic \|\| 'Geometry'\)/);
+test('geometry Use in Question stays subject-neutral and routes through an allocated subject', () => {
+  assert.doesNotMatch(portal, /openMyPoolQuestionForm\('Maths', asset\.topic \|\| 'Geometry'\)/);
+  assert.match(portal, /const allowedSubject = teacherAssignedSubjects\.includes\(subject\)/);
+  assert.match(portal, /openMyPoolQuestionForm\(allowedSubject, 'General'\)/);
+  assert.match(portal, /setSubject\(allowedSubject\)/);
 });
