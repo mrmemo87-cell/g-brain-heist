@@ -36,7 +36,7 @@ export const uploadGeometryQuestionAssets = async (
     throw new Error('You must be signed in to attach a geometry diagram.');
   }
 
-  const basePath = `${authData.user.id}/${Date.now()}-${randomSuffix()}-geometry`;
+  const basePath = `questions/${authData.user.id}/${Date.now()}-${randomSuffix()}-geometry`;
   const pngPath = `${basePath}.png`;
   const svgPath = `${basePath}.svg`;
   const storage = supabase.storage.from(QUESTION_IMAGE_BUCKET);
