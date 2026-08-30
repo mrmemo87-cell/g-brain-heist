@@ -18,6 +18,10 @@ const liveRosterFix = readFileSync(
   'supabase/migrations/20260830071032_fix_academic_profile_live_roster_authority.sql',
   'utf8',
 );
+const operationalStudentContextFix = readFileSync(
+  'supabase/migrations/20260830105211_fix_academic_profile_operational_student_context.sql',
+  'utf8',
+);
 const teacherProfiles = readFileSync(
   'components/student-progress/TeacherAcademicProfilesPage.tsx',
   'utf8',
@@ -46,7 +50,7 @@ test('rollover cannot create target enrolments for non-members', () => {
   assert.match(rolloverGuard, /insert into public\.student_academic_enrolments/i);
 });
 
-test('current academic profiles use active live class placement instead of prepared rollover rows', () => {
+test('current academic profile directory uses active live class placement instead of prepared rollover rows', () => {
   assert.match(liveRosterFix, /p_academic_year_id = v_operational_year_id/i);
   assert.match(liveRosterFix, /join public\.class_students cs/i);
   assert.match(liveRosterFix, /sm\.status = 'active'/i);
@@ -54,6 +58,25 @@ test('current academic profiles use active live class placement instead of prepa
   assert.match(liveRosterFix, /p_academic_year_id is distinct from v_operational_year_id/i);
   assert.match(liveRosterFix, /from public\.student_academic_enrolments e/i);
   assert.match(liveRosterFix, /grant execute on function public\.rpc_teacher_academic_profile_students_for_year\(uuid\) to authenticated, service_role/i);
+});
+
+test('current Academic Profile detail and subject access use the same live placement authority', () => {
+  assert.match(operationalStudentContextFix, /if v_year = v_operational_year then/i);
+  assert.match(operationalStudentContextFix, /Current\/operational year: live class placement is authoritative/i);
+  assert.match(operationalStudentContextFix, /if v_year\.id = v_operational_year_id then/i);
+  assert.match(operationalStudentContextFix, /mirror the active live placement shown by School Admin/i);
+  assert.match(operationalStudentContextFix, /'archived', v_year\.id <> v_operational_year_id/i);
+  assert.match(operationalStudentContextFix, /Historical years continue to use the stored academic-year enrolment/i);
+});
+
+test('live placement changes synchronize the operational academic enrolment without widening membership', () => {
+  assert.match(operationalStudentContextFix, /create or replace function private\.academic_sync_operational_student_placement/i);
+  assert.match(operationalStudentContextFix, /operational_student_membership_required/i);
+  assert.match(operationalStudentContextFix, /context_quality = 'confirmed'/i);
+  assert.match(operationalStudentContextFix, /rpc_school_admin_transfer_student_placement/i);
+  assert.match(operationalStudentContextFix, /rpc_setup_approved_class_enrollment/i);
+  assert.match(operationalStudentContextFix, /perform private\.academic_sync_operational_student_placement/i);
+  assert.doesNotMatch(operationalStudentContextFix, /insert into public\.school_members/i);
 });
 
 test('removing a student from school clears current placement but preserves historical enrolment records', () => {
