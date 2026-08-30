@@ -184,6 +184,7 @@ const documentCss = `
   body[data-paper="Letter"] .school-document{width:216mm;min-height:279mm}
   body[data-orientation="landscape"] .school-document{width:297mm;min-height:210mm}
   body[data-paper="Letter"][data-orientation="landscape"] .school-document{width:279mm;min-height:216mm}
+  .school-document__print-frame,.school-document__print-frame>thead,.school-document__print-frame>tbody,.school-document__print-frame>tfoot,.school-document__print-frame>thead>tr,.school-document__print-frame>tbody>tr,.school-document__print-frame>tfoot>tr,.school-document__print-frame>thead>tr>td,.school-document__print-frame>tbody>tr>td,.school-document__print-frame>tfoot>tr>td{display:block;width:100%;margin:0;padding:0;border:0}
   .school-document__repeating-header{position:absolute;inset:0 0 auto;height:21mm;padding:7mm 15mm 4mm;border-bottom:1px solid var(--doc-line);display:flex;align-items:center;justify-content:space-between;gap:12mm}
   .school-document__brand{display:flex;align-items:center;gap:3mm;min-width:0}.school-document__brand img{width:12mm;height:12mm;object-fit:contain}.school-document__brand-mark{width:12mm;height:12mm;border-radius:3mm;background:var(--doc-accent-dark);color:#fff;display:grid;place-items:center;font-weight:900;font-size:8px}.school-document__brand strong{display:block;font-size:12px}.school-document__brand span{display:block;color:var(--doc-muted);font-size:8px;letter-spacing:.08em;text-transform:uppercase}
   .school-document__header-id{text-align:right;font-size:8px;color:var(--doc-muted)}.school-document__header-id strong{display:block;color:var(--doc-ink);font:700 9px/1.3 "Courier New",monospace}
@@ -196,7 +197,7 @@ const documentCss = `
   body.ink-saver{--doc-accent:#1f2937;--doc-accent-dark:#111827;--doc-soft:#fff}.ink-saver .school-document__body tbody tr:nth-child(even){background:#fff}.ink-saver .school-document__body th{background:#fff;color:#111;border-width:1.5px}.ink-saver .school-document__badge,.ink-saver .school-document__meta-item,.ink-saver .document-callout{background:#fff}
   @media(max-width:900px){body{padding:68px 0 0}.school-document__toolbar{align-items:flex-start}.school-document__toolbar>div:first-child{display:none}.school-document__toolbar-actions{justify-content:flex-start}.school-document{width:100%!important;min-height:0!important;box-shadow:none;padding-left:16px;padding-right:16px}.school-document__meta{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media print{
-    html,body{background:#fff!important}.school-document__toolbar{display:none!important}body{padding:0!important}.school-document{width:auto!important;min-height:0!important;margin:0!important;box-shadow:none!important;padding:0!important}.school-document__repeating-header{position:fixed;top:-20mm;right:0;left:0;height:15mm;padding:2mm 0 3mm;border-bottom:1px solid var(--doc-line);background:#fff;z-index:2}.school-document__page-footer{position:fixed;right:0;bottom:-12mm;left:0;min-height:7mm;padding-top:2mm;background:#fff;z-index:2}.school-document__hero,.school-document__meta{break-inside:avoid-page;page-break-inside:avoid}.school-document__draft-watermark{position:fixed}.school-document__body a{color:inherit;text-decoration:none}.no-print{display:none!important}
+    html,body{background:#fff!important}.school-document__toolbar{display:none!important}body{padding:0!important}.school-document{width:auto!important;min-height:0!important;margin:0!important;box-shadow:none!important;padding:0!important}.school-document__print-frame{display:table!important;width:100%!important;border-collapse:collapse!important;table-layout:fixed!important}.school-document__print-frame>thead{display:table-header-group!important}.school-document__print-frame>tbody{display:table-row-group!important}.school-document__print-frame>tfoot{display:table-footer-group!important}.school-document__print-frame>thead>tr,.school-document__print-frame>tbody>tr,.school-document__print-frame>tfoot>tr{display:table-row!important}.school-document__print-frame>thead>tr>td,.school-document__print-frame>tbody>tr>td,.school-document__print-frame>tfoot>tr>td{display:table-cell!important;width:auto!important;border:0!important}.school-document__print-frame>thead>tr>td{padding:0 0 4mm!important}.school-document__print-frame>tbody>tr>td{padding:0!important}.school-document__print-frame>tfoot>tr>td{padding:4mm 0 0!important}.school-document__repeating-header{position:static;inset:auto;height:auto;min-height:15mm;padding:2mm 0 3mm;border-bottom:1px solid var(--doc-line);background:#fff;z-index:auto}.school-document__page-footer{position:static;inset:auto;min-height:7mm;padding-top:2mm;background:#fff;z-index:auto}.school-document__hero,.school-document__meta{break-inside:avoid-page;page-break-inside:avoid}.school-document__draft-watermark{position:fixed}.school-document__body a{color:inherit;text-decoration:none}.no-print{display:none!important}
   }
 `;
 
@@ -207,7 +208,7 @@ const previewScript = `
     const syncPage = () => {
       const paper = body.dataset.paper || 'A4';
       const orientation = body.dataset.orientation || 'portrait';
-      pageStyle.textContent = '@page{size:' + paper + ' ' + orientation + ';margin:32mm 15mm 22mm}';
+      pageStyle.textContent = '@page{size:' + paper + ' ' + orientation + ';margin:14mm 15mm 14mm}';
     };
     document.getElementById('document-print')?.addEventListener('click', async () => {
       await document.fonts?.ready;
@@ -243,16 +244,24 @@ export const renderSchoolDocumentHtml = ({ meta, bodyHtml, orientation = 'portra
     </nav>
     <main class="school-document" data-status="${meta.status}">
       <div class="school-document__draft-watermark" aria-hidden="true">DRAFT</div>
-      <header class="school-document__repeating-header">
-        <div class="school-document__brand">${logoUrl ? `<img src="${escapeSchoolDocumentHtml(logoUrl)}" alt="${escapeSchoolDocumentHtml(safeSchoolName)} logo">` : `<span class="school-document__brand-mark">${escapeSchoolDocumentHtml(brandInitials || 'SCH')}</span>`}<div><strong>${escapeSchoolDocumentHtml(safeSchoolName)}</strong><span>Official school document</span></div></div>
-        <div class="school-document__header-id"><span>Document ID</span><strong>${escapeSchoolDocumentHtml(meta.documentId)}</strong></div>
-      </header>
-      <section class="school-document__hero"><div><p class="school-document__eyebrow">${escapeSchoolDocumentHtml(AUDIENCE_LABELS[meta.audience])}</p><h1>${escapeSchoolDocumentHtml(meta.title)}</h1>${meta.subtitle ? `<p class="school-document__subtitle">${escapeSchoolDocumentHtml(meta.subtitle)}</p>` : ''}</div><div class="school-document__badges"><span class="school-document__badge${meta.status === 'draft' ? ' school-document__badge--draft' : ''}">${meta.status === 'draft' ? 'Draft' : 'Final'}</span><span class="school-document__badge${confidentialClass}">${escapeSchoolDocumentHtml(confidentialityLabel)}</span></div></section>
-      <section class="school-document__meta">
-        ${renderMetaItem('Student', meta.studentName)}${renderMetaItem('Class', meta.className)}${renderMetaItem('Subject', meta.subject)}${renderMetaItem('Academic year', meta.academicYear)}${renderMetaItem('Term / period', meta.term)}${renderMetaItem('Generated by', meta.generatedBy)}${renderMetaItem('Generated', generatedLabel)}${renderMetaItem('Document type', meta.documentTypeLabel || schoolDocumentTypeLabel(meta.templateVersion, meta.title))}
-      </section>
-      <article class="school-document__body">${bodyHtml}</article>
-      <footer class="school-document__page-footer"><span>${escapeSchoolDocumentHtml(safeSchoolName)} · ${escapeSchoolDocumentHtml(confidentialityLabel)}</span><span>Document reference: ${escapeSchoolDocumentHtml(meta.documentId)}</span></footer>
+      <table class="school-document__print-frame" role="presentation">
+        <thead class="school-document__print-head"><tr><td>
+          <header class="school-document__repeating-header">
+            <div class="school-document__brand">${logoUrl ? `<img src="${escapeSchoolDocumentHtml(logoUrl)}" alt="${escapeSchoolDocumentHtml(safeSchoolName)} logo">` : `<span class="school-document__brand-mark">${escapeSchoolDocumentHtml(brandInitials || 'SCH')}</span>`}<div><strong>${escapeSchoolDocumentHtml(safeSchoolName)}</strong><span>Official school document</span></div></div>
+            <div class="school-document__header-id"><span>Document ID</span><strong>${escapeSchoolDocumentHtml(meta.documentId)}</strong></div>
+          </header>
+        </td></tr></thead>
+        <tbody class="school-document__print-body"><tr><td>
+          <section class="school-document__hero"><div><p class="school-document__eyebrow">${escapeSchoolDocumentHtml(AUDIENCE_LABELS[meta.audience])}</p><h1>${escapeSchoolDocumentHtml(meta.title)}</h1>${meta.subtitle ? `<p class="school-document__subtitle">${escapeSchoolDocumentHtml(meta.subtitle)}</p>` : ''}</div><div class="school-document__badges"><span class="school-document__badge${meta.status === 'draft' ? ' school-document__badge--draft' : ''}">${meta.status === 'draft' ? 'Draft' : 'Final'}</span><span class="school-document__badge${confidentialClass}">${escapeSchoolDocumentHtml(confidentialityLabel)}</span></div></section>
+          <section class="school-document__meta">
+            ${renderMetaItem('Student', meta.studentName)}${renderMetaItem('Class', meta.className)}${renderMetaItem('Subject', meta.subject)}${renderMetaItem('Academic year', meta.academicYear)}${renderMetaItem('Term / period', meta.term)}${renderMetaItem('Generated by', meta.generatedBy)}${renderMetaItem('Generated', generatedLabel)}${renderMetaItem('Document type', meta.documentTypeLabel || schoolDocumentTypeLabel(meta.templateVersion, meta.title))}
+          </section>
+          <article class="school-document__body">${bodyHtml}</article>
+        </td></tr></tbody>
+        <tfoot class="school-document__print-foot"><tr><td>
+          <footer class="school-document__page-footer"><span>${escapeSchoolDocumentHtml(safeSchoolName)} · ${escapeSchoolDocumentHtml(confidentialityLabel)}</span><span>Document reference: ${escapeSchoolDocumentHtml(meta.documentId)}</span></footer>
+        </td></tr></tfoot>
+      </table>
     </main><script>${previewScript}<\/script></body></html>`;
 };
 
