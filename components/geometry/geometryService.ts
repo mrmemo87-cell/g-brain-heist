@@ -1,8 +1,19 @@
 import { supabase } from '../../services/supabaseClient';
 import { GeometryQuestion, BlankField, GeometryAnswerResult } from './types';
 
+const normalizeGeometryQuestion = (row: any): GeometryQuestion => ({
+  ...row,
+  // Diagrams are reusable teacher assets. Subject belongs to the final
+  // classroom question that consumes the asset, not to the drawing itself.
+  subject: row?.subject || '',
+});
+
 /**
- * Save a geometry question to Supabase
+ * Save a reusable geometry/diagram asset to Supabase.
+ *
+ * The legacy API still accepts subject/subjectId so existing callers remain
+ * compatible, but new diagram saves intentionally do not bind the asset to an
+ * academic subject. The consuming question chooses its own subject later.
  */
 export const saveGeometryQuestion = async (
   teacherId: string,
@@ -25,8 +36,8 @@ export const saveGeometryQuestion = async (
       title,
       diagram_json: diagramJson,
       answers,
-      subject: options.subject || 'Maths',
-      subject_id: options.subjectId,
+      subject: null,
+      subject_id: null,
       topic: options.topic || 'Geometry',
       difficulty: options.difficulty || 'medium',
       points: options.points || 15,
@@ -38,11 +49,11 @@ export const saveGeometryQuestion = async (
     .single();
 
   if (error) throw error;
-  return data as GeometryQuestion;
+  return normalizeGeometryQuestion(data);
 };
 
 /**
- * Update an existing geometry question
+ * Update an existing reusable diagram asset.
  */
 export const updateGeometryQuestion = async (
   questionId: string,
@@ -58,10 +69,13 @@ export const updateGeometryQuestion = async (
     is_active: boolean;
   }>
 ): Promise<GeometryQuestion> => {
+  const { subject: _legacySubject, ...assetUpdates } = updates;
   const { data, error } = await supabase
     .from('geometry_questions')
     .update({
-      ...updates,
+      ...assetUpdates,
+      subject: null,
+      subject_id: null,
       updated_at: new Date().toISOString()
     })
     .eq('id', questionId)
@@ -69,7 +83,7 @@ export const updateGeometryQuestion = async (
     .single();
 
   if (error) throw error;
-  return data as GeometryQuestion;
+  return normalizeGeometryQuestion(data);
 };
 
 /**
@@ -86,7 +100,7 @@ export const loadGeometryQuestion = async (questionId: string): Promise<Geometry
     if (error.code === 'PGRST116') return null; // Not found
     throw error;
   }
-  return data as GeometryQuestion;
+  return data ? normalizeGeometryQuestion(data) : null;
 };
 
 /**
@@ -100,7 +114,7 @@ export const getTeacherGeometryQuestions = async (teacherId: string): Promise<Ge
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data || []) as GeometryQuestion[];
+  return (data || []).map(normalizeGeometryQuestion);
 };
 
 /**
@@ -117,7 +131,7 @@ export const getRandomGeometryQuestion = async (
     });
 
   if (error) throw error;
-  return data as GeometryQuestion | null;
+  return data ? normalizeGeometryQuestion(data) : null;
 };
 
 /**
@@ -186,7 +200,6 @@ export const extractBlanks = (diagramJson: string): BlankField[] => {
  */
 export const normalizeAnswer = (answer: string): string => {
   const trimmed = answer.trim().toLowerCase();
-  // Try to parse as number for numeric comparison
   const num = parseFloat(trimmed);
   if (!isNaN(num)) {
     return String(num);
@@ -218,8 +231,8 @@ export const checkGeometryAnswers = (
     }
   }
 
-  const score = totalCount > 0 
-    ? Math.round((correctCount / totalCount) * totalPoints) 
+  const score = totalCount > 0
+    ? Math.round((correctCount / totalCount) * totalPoints)
     : 0;
 
   return {

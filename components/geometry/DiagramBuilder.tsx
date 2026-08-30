@@ -42,7 +42,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
   
   // Question metadata
   const [title, setTitle] = useState('');
-  const [subject, setSubject] = useState('Maths');
+  const [subject, setSubject] = useState('');
   const [topic, setTopic] = useState('Geometry');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [points, setPoints] = useState(15);
@@ -202,7 +202,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
     setHistory([]);
     setHistoryIndex(-1);
     setTitle('');
-    setSubject('Maths');
+    setSubject('');
     setTopic('Geometry');
     setDifficulty('medium');
     setPoints(15);
@@ -225,7 +225,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
       setShapes(Array.isArray(diagramData.brainHeistShapes) ? diagramData.brainHeistShapes : []);
       setSelectedShapeIds([]);
       setTitle(question.title);
-      setSubject(question.subject);
+      setSubject(question.subject || '');
       setTopic(question.topic);
       setDifficulty(question.difficulty);
       setPoints(question.points);
@@ -315,7 +315,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
               <div className="flex-1">
                 <h3 className="font-semibold text-white">{question.title}</h3>
                 <div className="flex gap-3 mt-1 text-sm text-gray-400">
-                  <span>{question.subject}</span>
+                  <span>Reusable visual</span>
                   <span>•</span>
                   <span className="capitalize">{question.difficulty}</span>
                   <span>•</span>
@@ -488,7 +488,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
           documentId: createSchoolDocumentId('geometry'),
           templateVersion: 'geometry-diagram-sheet-v1',
           title: title || 'Geometry Diagram',
-          subtitle: `${subject} · ${topic} · ${difficulty}`,
+          subtitle: `${topic} · ${difficulty}`,
           schoolName,
           schoolLogoUrl,
           audience: 'student',
@@ -496,7 +496,6 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
           confidentiality: 'school-use',
           generatedAt: new Date().toISOString(),
           generatedBy: teacherName,
-          subject,
         },
         bodyHtml: `<div class="document-grid"><div class="document-card"><strong>Student name</strong><p>________________________________</p></div><div class="document-card"><strong>Class / date</strong><p>________________________________</p></div></div><figure style="margin:8mm 0;text-align:center"><img src="${escapeSchoolDocumentHtml(dataUrl)}" alt="${escapeSchoolDocumentHtml(title || 'Geometry diagram')}" style="max-width:100%;max-height:150mm;object-fit:contain"><figcaption style="margin-top:4mm;color:#64748b">Show all working clearly.</figcaption></figure><div style="height:45mm;border:1px solid #cbd5e1;border-radius:3mm;padding:3mm"><strong>Working and answer</strong></div>`,
         orientation: 'portrait',
