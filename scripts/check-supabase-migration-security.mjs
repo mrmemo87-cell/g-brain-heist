@@ -28,6 +28,18 @@ const historicalDefinerRevokeExceptions = new Set([
   '20260821205000_fix_school_member_sync_for_moderation.sql:sync_user_school_id',
 ]);
 
+const getFunctionBlocks = (normalizedSql) => {
+  const starts = [...normalizedSql.matchAll(
+    /create\s+(?:or\s+replace\s+)?function\s+([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)/gi,
+  )];
+
+  return starts.map((match, index) => ({
+    schema: match[1],
+    functionName: match[2],
+    block: normalizedSql.slice(match.index, starts[index + 1]?.index ?? normalizedSql.length),
+  }));
+};
+
 for (const file of files) {
   const match = file.match(/^(\d{14})_([a-z0-9_]+)\.sql$/);
   if (!match) {
@@ -62,12 +74,10 @@ for (const file of files) {
     }
   }
 
-  const definerFunctions = [...normalized.matchAll(
-    /create\s+(?:or\s+replace\s+)?function\s+public\.([a-zA-Z0-9_]+)[\s\S]*?security\s+definer[\s\S]*?(?=create\s+(?:or\s+replace\s+)?function|$)/gi,
-  )];
+  const definerFunctions = getFunctionBlocks(normalized)
+    .filter(({ schema, block }) => schema.toLowerCase() === 'public' && /security\s+definer/i.test(block));
 
-  for (const match of definerFunctions) {
-    const [block, functionName] = match;
+  for (const { block, functionName } of definerFunctions) {
     // PostgreSQL accepts both `SET search_path = ...` and `SET search_path TO ...`.
     if (!/set\s+search_path\s*(?:=|to)\s*/.test(block.toLowerCase())) {
       failures.push(`${file}: SECURITY DEFINER public.${functionName} has no fixed search_path`);
