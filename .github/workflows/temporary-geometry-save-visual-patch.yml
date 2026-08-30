@@ -1,0 +1,50 @@
+name: Temporary geometry reusable visual save patch
+
+on:
+  push:
+    branches:
+      - fix/geometry-save-reusable-visuals-20260830
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/geometry-save-reusable-visuals-20260830
+          fetch-depth: 0
+
+      - name: Allow reusable diagrams without blanks
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('components/geometry/DiagramBuilder.tsx')
+          text = path.read_text()
+          old = """    if (blanks.length === 0) {\n      brainsAlert('Please add at least one blank field for students to fill in.', 'info');\n      return;\n    }\n\n    // Check all blanks have answers\n    const missingAnswers = blanks.filter(b => !b.expectedAnswer.trim());\n    if (missingAnswers.length > 0) {\n      brainsAlert('Please set expected answers for all blank fields.', 'info');\n      return;\n    }\n\n"""
+          new = """    // Saved diagrams are reusable visual assets. Blank fields and expected\n    // answers are optional and only matter when the teacher intentionally adds\n    // interactive answer areas to the diagram.\n\n"""
+          if old not in text:
+              raise SystemExit('Expected Geometry Builder blank validation block was not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+
+      - name: Verify targeted behavior
+        run: |
+          grep -q "Saved diagrams are reusable visual assets" components/geometry/DiagramBuilder.tsx
+          ! grep -q "Please add at least one blank field for students to fill in" components/geometry/DiagramBuilder.tsx
+          ! grep -q "Please set expected answers for all blank fields" components/geometry/DiagramBuilder.tsx
+
+      - name: Remove temporary workflow
+        run: rm .github/workflows/temporary-geometry-save-visual-patch.yml
+
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/geometry/DiagramBuilder.tsx .github/workflows/temporary-geometry-save-visual-patch.yml
+          git commit -m "Allow saving reusable geometry visuals without blanks"
+          git push origin HEAD:fix/geometry-save-reusable-visuals-20260830
