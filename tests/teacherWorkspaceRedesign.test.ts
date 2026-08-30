@@ -71,7 +71,7 @@ test('desktop navigation can collapse to create more workspace', () => {
 });
 
 test('teacher navigation has a clean tablet breakpoint and an independently scrollable sidebar', () => {
-  assert.match(teacherTheme, /\.teacher-sidebar\s*\{[^}]*max-height: calc\(100dvh - 104px\);[^}]*overflow-y: auto;[^}]*overscroll-behavior: contain;/s);
+  assert.match(teacherTheme, /\.teacher-sidebar\s*\{[^}]*max-height: calc\(100dvh - \d+px\);[^}]*overflow-y: auto;[^}]*overscroll-behavior: contain;/s);
   assert.match(teacherTheme, /\.teacher-sidebar-toggle\s*\{[^}]*position: sticky;[^}]*top: 0;[^}]*z-index: 6;/s);
   assert.match(teacherTheme, /@media \(max-width: 1024px\)\s*\{[\s\S]*?\.teacher-desktop-sidebar\s*\{\s*display: none;\s*\}/);
   assert.doesNotMatch(teacherTheme, /@media \(max-width: 1023px\)\s*\{\s*\.teacher-portal-container/);

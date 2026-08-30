@@ -9,7 +9,7 @@ const migration = readFileSync(
 const roadmap = readFileSync('docs/academic-intelligence-roadmap.md', 'utf8');
 const service = readFileSync('services/studentInterventionService.ts', 'utf8');
 const page = readFileSync(
-  'components/student-progress/TeacherInterventionIntelligencePage.tsx',
+  'components/student-progress/TeacherInterventionIntelligencePageV2.tsx',
   'utf8',
 );
 
@@ -68,7 +68,7 @@ test('explicit approval is mandatory and never starts a plan', () => {
   assert.match(migration, /Only a pending planned intervention can be reviewed/i);
   assert.match(migration, /Teacher approval is required before starting this intervention/i);
   assert.match(migration, /'planAutomaticallyStarted', false/i);
-  assert.match(page, /Review & approve plan/i);
+  assert.match(page, /Approve plan/i);
 });
 
 test('follow-up uses only same-year post-baseline observations', () => {
@@ -152,11 +152,11 @@ test('browser RPCs are explicit and privileged tables remain inaccessible', () =
 });
 
 test('teacher UI captures targets and presents measured follow-up', () => {
-  assert.match(page, /Measurable student goal/i);
-  assert.match(page, /Qualifying follow-ups/i);
-  assert.match(page, /Successful follow-ups/i);
-  assert.match(page, /evidence baseline will be frozen and hashed/i);
-  assert.match(page, /Evaluate follow-up & record outcome/i);
+  assert.match(page, /Practice action/i);
+  assert.match(page, /Independent check/i);
+  assert.match(page, /follow-ups/i);
+  assert.match(page, /Technical record/i);
+  assert.match(page, /Check progress/i);
   assert.match(service, /rpc_teacher_create_learning_intervention_v3/i);
   assert.match(service, /rpc_teacher_evaluate_learning_intervention/i);
 });

@@ -6,7 +6,7 @@ const teacherPortal = readFileSync('components/TeacherPortal.tsx', 'utf8');
 const teacherPortalShell = readFileSync('components/TeacherPortalShell.tsx', 'utf8');
 const vite = readFileSync('vite.config.ts', 'utf8');
 const academicProfiles = readFileSync('components/student-progress/TeacherAcademicProfilesPage.tsx', 'utf8');
-const interventions = readFileSync('components/student-progress/TeacherInterventionIntelligencePage.tsx', 'utf8');
+const interventions = readFileSync('components/student-progress/TeacherInterventionIntelligencePageV2.tsx', 'utf8');
 
 test('teacher workspace exposes academic profiles and interventions', () => {
   assert.match(teacherPortal, /label: 'Academic Profiles'/);

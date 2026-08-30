@@ -60,13 +60,13 @@ test('assignment evidence resolves the exact approved objective in the student g
 
 test('student and teacher interfaces use the governed contracts', () => {
   const game = read('services/gameService.ts');
-  const profile = read('components/student-progress/StudentAcademicProfile.tsx');
+  const profile = read('components/student-progress/StudentAcademicProfileV2.tsx');
   const teacher = read('components/TeacherPortal.tsx');
   const setup = read('components/school-admin/AcademicSetupPanel.tsx');
   assert.match(game, /rpc_student_academic_subjects/);
   assert.match(game, /rpc_student_learning_catalog/);
   assert.match(profile, /fetchStudentAcademicSubjects/);
-  assert.match(profile, /Synthetic QA evidence/);
+  assert.match(profile, /Showing authorised school learning evidence/);
   assert.match(teacher, /Classroom question/);
   assert.match(teacher, /never changes the official Academic Profile/);
   assert.match(teacher, /eligible_grade_levels/);

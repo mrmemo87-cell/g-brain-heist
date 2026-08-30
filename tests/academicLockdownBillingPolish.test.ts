@@ -40,5 +40,6 @@ test('pilot billing hides paid seat caps and highlighted controls stay readable'
   assert.match(contrast, /button\.bg-emerald-600/);
   assert.match(contrast, /button\.bg-emerald-800/);
   assert.match(contrast, /button\.bg-cyan-800/);
-  assert.doesNotMatch(contrast, /bg-emerald-100/);
+  assert.doesNotMatch(contrast, /button\.bg-emerald-100/);
+  assert.match(contrast, /span\.bg-emerald-100[\s\S]*color: #065f46 !important/);
 });

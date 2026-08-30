@@ -6,7 +6,8 @@ const migration = readFileSync('supabase/migrations/20260811133000_reproducible_
 const roadmap = readFileSync('docs/academic-intelligence-roadmap.md', 'utf8');
 const service = readFileSync('services/academicReportingService.ts', 'utf8');
 const builder = readFileSync('components/student-progress/AcademicReportBuilder.tsx', 'utf8');
-const studentEntry = readFileSync('components/student-progress/IndividualStudentAcademicReport.tsx', 'utf8');
+const studentProfile = readFileSync('components/student-progress/StudentAcademicProfileV2.tsx', 'utf8');
+const studentReport = readFileSync('components/student-progress/IndividualStudentAcademicReportV2.tsx', 'utf8');
 const schoolHead = readFileSync('components/school-head/SchoolHeadLearningIntelligence.tsx', 'utf8');
 
 const tables = ['academic_report_snapshots', 'academic_report_source_snapshots', 'academic_report_events'];
@@ -122,9 +123,12 @@ test('family output excludes confidential working data', () => {
   assert.match(builder, /Professional rationale and private notes are excluded/i);
 });
 
-test('one service contract powers both reporting entry points', () => {
+test('governed reports and live student printouts use their report-safe contracts', () => {
   for (const fn of ['rpc_academic_reporting_context', 'rpc_generate_academic_report_snapshot', 'rpc_get_academic_report_snapshot', 'rpc_finalize_academic_report_snapshot']) assert.match(service, new RegExp(fn, 'i'));
-  assert.match(studentEntry, /AcademicReportBuilder/i);
+  assert.match(studentProfile, /fetchStudentAcademicProfile/i);
+  assert.match(studentProfile, /IndividualStudentAcademicReportV2/i);
+  assert.match(studentReport, /StudentAcademicProfile/i);
+  assert.doesNotMatch(studentReport, /rawEvidenceJson/i);
   assert.match(schoolHead, /AcademicReportBuilder/i);
   assert.match(schoolHead, /Build term \/ annual report/i);
 });

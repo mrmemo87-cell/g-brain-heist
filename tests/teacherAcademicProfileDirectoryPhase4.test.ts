@@ -23,7 +23,7 @@ test('teacher academic profile directory supports search class subject and one-c
   assert.match(page, /Subject/i);
   assert.match(page, /Open academic profile/i);
   assert.match(page, /StudentAcademicProfile/i);
-  assert.match(page, /Only students and subjects covered by your active teacher allocations/i);
+  assert.match(page, /Only students and subjects covered by your authorised teacher allocations/i);
 });
 
 test('teacher academic profile directory is a production build entry', () => {
