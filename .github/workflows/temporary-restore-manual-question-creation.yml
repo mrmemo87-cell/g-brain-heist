@@ -42,3 +42,4 @@ jobs:
           git rm .github/workflows/temporary-restore-manual-question-creation.yml scripts/patch_restore_manual_question_creation.py
           git commit -m "Restore manual question creation alongside PDF batches"
           git push
+# retrigger after base runner update
