@@ -128,17 +128,9 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete, 
       return;
     }
 
-    if (blanks.length === 0) {
-      brainsAlert('Please add at least one blank field for students to fill in.', 'info');
-      return;
-    }
-
-    // Check all blanks have answers
-    const missingAnswers = blanks.filter(b => !b.expectedAnswer.trim());
-    if (missingAnswers.length > 0) {
-      brainsAlert('Please set expected answers for all blank fields.', 'info');
-      return;
-    }
+    // Saved diagrams are reusable visual assets. Blank fields and expected
+    // answers are optional and only matter when the teacher intentionally adds
+    // interactive answer areas to the diagram.
 
     try {
       setSaving(true);
