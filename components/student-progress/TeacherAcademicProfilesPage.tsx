@@ -113,6 +113,9 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
   const scopeNote = viewerRole === 'teacher'
     ? 'Only students and subjects covered by your authorised teacher allocations for the selected academic year are shown here.'
     : 'Only students in your school are shown here. Access remains school-scoped and role-authorised.';
+  const emptyRosterMessage = viewerRole === 'teacher'
+    ? 'No eligible students are currently rostered to your authorised class allocations for this academic year. Ask a school administrator to review student membership and academic-year placement.'
+    : 'No active students are currently rostered for this academic year. Review school membership and academic-year placement before opening a profile.';
 
   if (profileOpen && selectedStudentId) {
     return (
@@ -170,8 +173,9 @@ const TeacherAcademicProfilesPage: React.FC<TeacherAcademicProfilesPageProps> = 
 
     {loading ? <div className="aps-empty-state">Loading the selected academic year…</div> : null}
     {error ? <div className="aps-empty-state">{error}</div> : null}
+    {!loading && !error && students.length === 0 ? <div className="aps-empty-state">{emptyRosterMessage}</div> : null}
 
-    {!loading && !error ? <>
+    {!loading && !error && students.length > 0 ? <>
       <AcademicStudentPicker
         students={students}
         grade={grade}
