@@ -1,0 +1,44 @@
+name: Temporary restore manual question creation
+on:
+  push:
+    branches: [fix/restore-manual-question-creation-20260830]
+permissions:
+  contents: write
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/restore-manual-question-creation-20260830
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Apply restoration patch
+        run: python3 scripts/patch_restore_manual_question_creation.py
+      - name: Typecheck
+        run: npx tsc --noEmit -p tsconfig.ci.json
+      - name: Build tests
+        run: |
+          rm -rf dist-tests
+          npx tsc --project tsconfig.tests.json
+      - name: Run regression test
+        env:
+          NODE_ENV: test
+          VITE_SUPABASE_URL: http://localhost
+          VITE_SUPABASE_ANON_KEY: test
+        run: node --test dist-tests/tests/manualQuestionCreationRouting.test.js
+      - name: Build app
+        run: npx vite build
+      - name: Diff check
+        run: git diff --check
+      - name: Commit validated restoration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/TeacherPortal.tsx components/teacher/QuestionBank.tsx tests/manualQuestionCreationRouting.test.ts
+          git rm .github/workflows/temporary-restore-manual-question-creation.yml scripts/patch_restore_manual_question_creation.py
+          git commit -m "Restore manual question creation alongside PDF batches"
+          git push
