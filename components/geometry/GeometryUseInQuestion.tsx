@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import type Konva from 'konva';
 import type { BlankField } from './types';
 import type { DiagramShape } from './KonvaCanvasEditor';
 import {
-  createGeometryQuestionAssetDraft,
   type GeometryQuestionBackground,
   type GeometryQuestionPaddingPreset,
 } from './questionAssetExport';
+import { createKonvaQuestionAssetDraft } from './konvaQuestionExport';
 import { uploadGeometryQuestionAssets } from '../../services/geometryQuestionImageService';
 import { brainsAlert } from '../../src/utils/brainsAlert';
 
@@ -30,6 +31,7 @@ interface GeometryUseInQuestionProps {
   difficulty: 'easy' | 'medium' | 'hard';
   shapes: DiagramShape[];
   blanks: BlankField[];
+  stageRef: React.MutableRefObject<unknown>;
   onUseInQuestion: (payload: GeometryUseInQuestionPayload) => void;
 }
 
@@ -39,6 +41,7 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
   difficulty,
   shapes,
   blanks,
+  stageRef,
   onUseInQuestion,
 }) => {
   const [open, setOpen] = useState(false);
@@ -51,16 +54,19 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
       return;
     }
 
+    const stage = stageRef.current as Konva.Stage | null;
+    if (!stage) {
+      brainsAlert('Geometry canvas is not ready yet. Please try again.', 'info');
+      return;
+    }
+
     try {
       setPreparing(true);
 
-      // Student question cards use a dark theme. Geometry question exports are
-      // therefore always rendered onto a white canvas so print-safe dark strokes
-      // and teacher-authored labels cannot disappear against the app background.
-      const draft = await createGeometryQuestionAssetDraft(title, shapes, blanks, {
-        paddingPreset,
-        background: 'white',
-      });
+      // Export the actual Konva scene the teacher composed. This preserves the
+      // exact text metrics, shape transforms, spacing and relative coordinates;
+      // only the editor palette is normalized for the white student canvas.
+      const draft = await createKonvaQuestionAssetDraft(title, stage, paddingPreset);
       const uploaded = await uploadGeometryQuestionAssets(draft.svgFile, draft.pngFile);
 
       // The exported visual is intentionally subject-neutral. The normal
@@ -82,8 +88,8 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
       setOpen(false);
       brainsAlert(
         uploaded.svgUrl
-          ? 'Diagram attached as a reusable visual. Choose the question subject in My Pool.'
-          : 'PNG fallback attached as a reusable visual. Choose the question subject in My Pool.',
+          ? 'Diagram attached exactly as composed. Choose the question subject in My Pool.'
+          : 'PNG diagram attached exactly as composed. Choose the question subject in My Pool.',
         'success',
       );
     } catch (error) {
@@ -147,13 +153,13 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
             </div>
 
             <p className="mt-3 text-xs leading-5 text-slate-400">
-              Question exports use a fixed white canvas so lines, labels, symbols, and blanks stay readable on the dark student interface. Your saved reusable design is not changed.
+              Question exports now use the same Konva scene as the editor, so shapes, labels, spacing, size and rotation stay exactly where you placed them. Only the presentation colors are normalized for the white student canvas.
             </p>
 
             <div className="mt-4 rounded-xl border border-slate-700 bg-slate-950/70 p-4 text-sm text-slate-300">
               <div className="flex items-center justify-between gap-3">
-                <span>Primary format</span>
-                <strong className="text-cyan-300">SVG</strong>
+                <span>Layout</span>
+                <strong className="text-cyan-300">Exact teacher composition</strong>
               </div>
               <div className="mt-2 flex items-center justify-between gap-3">
                 <span>Fallback</span>
@@ -180,7 +186,7 @@ const GeometryUseInQuestion: React.FC<GeometryUseInQuestionProps> = ({
                 disabled={preparing}
                 className="min-h-11 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-5 font-bold text-white hover:brightness-110 disabled:cursor-wait disabled:opacity-60"
               >
-                {preparing ? 'Preparing SVG + PNG…' : 'Continue to Question Builder'}
+                {preparing ? 'Preparing exact render…' : 'Continue to Question Builder'}
               </button>
             </div>
           </div>
