@@ -47,11 +47,19 @@ jobs:
               text = text.replace(old_value, new_value)
           builder.write_text(text, encoding='utf-8')
 
+          test_file = Path('tests/manualQuestionCreationRouting.test.ts')
+          text = test_file.read_text(encoding='utf-8')
+          old_test = """test('geometry Use in Question continues into the manual question builder', () => {\n  assert.match(portal, /onUseInQuestion=\\{\\(asset\\) => \\{[\\s\\S]*openMyPoolQuestionForm\\('Maths', asset\\.topic \\|\\| 'Geometry'\\)/);\n});"""
+          new_test = """test('geometry Use in Question stays subject-neutral and routes through an allocated subject', () => {\n  assert.doesNotMatch(portal, /openMyPoolQuestionForm\\('Maths', asset\\.topic \\|\\| 'Geometry'\\)/);\n  assert.match(portal, /const allowedSubject = teacherAssignedSubjects\\.includes\\(subject\\)/);\n  assert.match(portal, /openMyPoolQuestionForm\\(allowedSubject, 'General'\\)/);\n  assert.match(portal, /setSubject\\(allowedSubject\\)/);\n});"""
+          if old_test in text:
+              text = text.replace(old_test, new_test, 1)
+              test_file.write_text(text, encoding='utf-8')
+
       - name: Verify
         run: |
           npm ci
           npm run typecheck
-          npm test -- --runInBand
+          npm test
 
       - name: Commit patch
         run: |
@@ -61,6 +69,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add components/TeacherPortal.tsx components/geometry/DiagramBuilder.tsx
+          git add components/TeacherPortal.tsx components/geometry/DiagramBuilder.tsx tests/manualQuestionCreationRouting.test.ts
           git commit -m "Route geometry visuals through allocated question subjects"
           git push origin HEAD:fix/subject-neutral-geometry-assets
