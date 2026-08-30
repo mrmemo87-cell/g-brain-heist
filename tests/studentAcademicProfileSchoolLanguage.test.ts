@@ -79,11 +79,11 @@ test('Individual report has explicit React and portal imports', () => {
 
 test('Student Support Plans keep technical detail collapsible', () => {
   const source = read('components/student-progress/TeacherInterventionIntelligencePageV2.tsx');
-  assert.match(source, /What should we work on next\?/);
-  assert.match(source, /Example from assessed work/);
-  assert.match(source, /Why is this being suggested\?/);
+  assert.match(source, /What can I act on now\?/);
+  assert.match(source, /Evidence example/);
+  assert.match(source, /Why it was surfaced/);
   assert.match(source, /Technical record/);
-  assert.match(source, /How support plans work/);
+  assert.match(source, /Plans and follow-up/);
   assert.doesNotMatch(source, /Evidence-led intervention queue/);
 });
 

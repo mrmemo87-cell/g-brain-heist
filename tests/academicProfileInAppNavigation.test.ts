@@ -27,11 +27,11 @@ test('teacher, school admin, and school head portals embed the shared academic p
 
 test('the shared profile shows smart evidence confidence and curriculum coverage', () => {
   const service = read('services/studentAcademicProfileService.ts');
-  const profile = read('components/student-progress/StudentAcademicProfile.tsx');
+  const profile = read('components/student-progress/StudentAcademicProfileV2.tsx');
   assert.match(service, /rpc_student_academic_confidence/);
   assert.match(service, /year\.status === 'current'/);
-  assert.match(profile, /How reliable and complete is the academic picture/);
-  assert.match(profile, /Confidence measures the quality, recency and consistency of evidence/);
-  assert.match(profile, /Qualified coverage/);
-  assert.match(profile, /require teacher review/);
+  assert.match(profile, /How this profile works/);
+  assert.match(profile, /How complete, recent and consistent the evidence is/);
+  assert.match(profile, /Qualified evidence/);
+  assert.match(profile, /need teacher review/);
 });

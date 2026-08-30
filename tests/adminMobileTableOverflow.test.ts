@@ -31,7 +31,7 @@ test('wide school admin tables use the shared mobile scroll region', () => {
   assert.ok(Number(studentsTable[1]) >= 640, 'Students table minimum width must remain at least 640px');
 
   assert.match(classesTab, /className="admin-table-scroll"[^>]*role="region"[^>]*aria-label=\{`\$\{grade[\s\S]*?classes table`\}[^>]*tabIndex=\{0\}[\s\S]*?<table className="min-w-\[760px\] w-full">/);
-  assert.match(cambridgeTab, /className="admin-table-scroll"[^>]*aria-label="Cambridge results table"[^>]*tabIndex=\{0\}[\s\S]*?<table className="min-w-\[900px\] w-full">/);
+  assert.match(cambridgeTab, /className="admin-table-scroll"[^>]*role="region"[^>]*aria-label=\{`Cambridge results for \$\{selectedYear\?\.name \|\| 'selected academic year'\}`\}[^>]*tabIndex=\{0\}[\s\S]*?<table className="min-w-\[900px\] w-full">/);
   assert.match(ieltsResultsTab, /className="admin-table-scroll mt-5"[^>]*aria-label="IELTS results table"[^>]*tabIndex=\{0\}[\s\S]*?<table className="min-w-\[920px\]/);
   assert.doesNotMatch(dashboardTab, /className="admin-table-scroll"/);
   assert.doesNotMatch(subjectsTab, /local subject labels|className="admin-table-scroll"/);

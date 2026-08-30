@@ -176,7 +176,7 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
   return { grammar, punctuation };
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard' }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard' }) => {
   const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
   const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
   const initialWritingSection: WritingHubSection =
@@ -232,6 +232,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
+
+  useEffect(() => {
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
+  }, [view]);
 
   const canUseTeacherFeature = useCallback((featureKey: FeatureKey) => (
     effectiveEntitlements?.canUse(featureKey) === true
@@ -4225,7 +4229,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             const lockdownLocked = !canUseTeacherFeature(FEATURE_KEYS.CLANS);
             return (
               <button
-                onClick={() => !lockdownLocked ? setView('clan-wars') : showFeatureUnavailable('Lockdown Mode')}
+                onClick={() => {
+                  if (lockdownLocked) {
+                    showFeatureUnavailable('Lockdown Mode');
+                    return;
+                  }
+                  if (onLockdown) {
+                    onLockdown();
+                    return;
+                  }
+                  showFeatureUnavailable('Lockdown Mode');
+                }}
                 className={`teacher-action-card teacher-action-card-lockdown teacher-action-card--mini ${lockdownLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                 data-color="emerald"
                 disabled={lockdownLocked}
