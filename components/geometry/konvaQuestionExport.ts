@@ -51,7 +51,7 @@ export const createKonvaQuestionAssetDraft = async (
 
   // Top-level editor helpers (Transformer and selection rectangle) have no
   // shapeId. Real teacher-authored shapes and blank groups always do.
-  layer.getChildren().slice().forEach((node) => {
+  layer.getChildren().slice().forEach((node: any) => {
     if (!node.getAttr('shapeId')) node.destroy();
   });
 
