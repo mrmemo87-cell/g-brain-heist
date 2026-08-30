@@ -143,3 +143,5 @@ if __name__ == '__main__':
     patch_question_bank()
     add_regression_test()
     print('Restored manual question creation while preserving PDF question batches.')
+
+# trigger branch workflow after workflow file exists
