@@ -111,3 +111,6 @@ begin
   );
 end;
 $function$;
+
+revoke all on function public.rpc_academic_reporting_context(uuid) from public, anon;
+grant execute on function public.rpc_academic_reporting_context(uuid) to authenticated, service_role;
