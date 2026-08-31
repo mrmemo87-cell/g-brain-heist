@@ -1,3 +1,5 @@
+import '../styles/program-artwork.css';
+
 export type ProgramArtworkKey = 'admissions' | 'cambridge' | 'ielts' | 'writing';
 
 type ProgramArtworkDefinition = {

@@ -1,0 +1,21 @@
+/* Shared programme artwork presentation. Keep selectors scoped to programme surfaces. */
+
+.school-head-program-grid article > img {
+  display: block;
+  width: calc(100% + 2.2rem) !important;
+  height: clamp(6.5rem, 8vw, 7.25rem) !important;
+  margin: -1.1rem -1.1rem .85rem !important;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--head-border);
+  background: linear-gradient(180deg, #fbfdff 0%, #f4f8fb 100%);
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.school-head-program-grid article > div:first-of-type {
+  justify-content: flex-end;
+}
+
+.school-head-program-grid article > div:first-of-type > span {
+  display: none;
+}
