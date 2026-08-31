@@ -19,3 +19,38 @@
 .school-head-program-grid article > div:first-of-type > span {
   display: none;
 }
+
+/* Student Learn catalogue: keep complete programme identities visible in a consistent media tile. */
+.student-learning-card__icon {
+  display: grid !important;
+  width: clamp(4.75rem, 14vw, 6rem) !important;
+  height: clamp(4.75rem, 14vw, 6rem) !important;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden !important;
+  padding: .72rem !important;
+  border: 1px solid rgba(34, 211, 238, .32) !important;
+  border-radius: 1rem !important;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(34, 211, 238, .16), transparent 48%),
+    linear-gradient(145deg, rgba(20, 44, 67, .9), rgba(19, 29, 55, .92)) !important;
+  font-size: 0;
+}
+
+.student-learning-card__icon > img {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.student-learning-card__icon:not(:has(> img))::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: url('/mission-console-images/academic-progress.svg') center / contain no-repeat;
+}

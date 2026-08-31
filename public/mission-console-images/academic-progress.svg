@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
+  <defs>
+    <linearGradient id="progressStroke" x1="22" y1="70" x2="74" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#A78BFA"/>
+    </linearGradient>
+    <linearGradient id="barFill" x1="24" y1="72" x2="70" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0891B2" stop-opacity=".82"/>
+      <stop offset="1" stop-color="#7C3AED" stop-opacity=".72"/>
+    </linearGradient>
+  </defs>
+  <rect x="13" y="13" width="70" height="70" rx="18" fill="#0F172A" fill-opacity=".64" stroke="#67E8F9" stroke-opacity=".28" stroke-width="2"/>
+  <path d="M25 70V57h8v13h-8Zm16 0V47h8v23h-8Zm16 0V38h8v32h-8Z" fill="url(#barFill)"/>
+  <path d="m24 52 15-13 13 8 20-22" stroke="url(#progressStroke)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M61 25h11v11" stroke="#C4B5FD" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="39" cy="39" r="3.5" fill="#67E8F9"/>
+  <circle cx="52" cy="47" r="3.5" fill="#A78BFA"/>
+</svg>
