@@ -14,6 +14,7 @@ import {
 import { getEntitlements, type EntitlementSet } from '../services/entitlementService';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
+import { PROGRAM_ARTWORK } from '../src/lib/programArtwork';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
 import SchoolHeadOverview from './SchoolHeadOverview';
@@ -330,16 +331,16 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
   );
 
   const programCards = [
-    { module: 'cambridge', name: 'Cambridge Assessments', metric: snapshot.programs.cambridge_attempts, label: `attempts in ${snapshot.period.days} days`, description: 'School-wide assessment performance, readiness and verified student results.', tab: 'cambridge' },
-    { module: 'writing', name: 'Writing Hub', metric: snapshot.programs.writing_students, label: 'students with profiles', description: 'Writing growth, feedback coverage and recurring support needs.', tab: 'documents' },
-    { module: 'ielts', name: 'IELTS Programme', metric: snapshot.programs.ielts_students, label: 'school-linked learners', description: 'Exam participation, assignment progress, reviews and result intelligence.', tab: 'ielts' },
-    { module: 'admissions', name: 'Admission Hub', metric: snapshot.programs.admission_candidates, label: `${snapshot.admissions.pending_candidates} awaiting progress`, description: 'Candidates, diagnostics, placement evidence and admission workflow.', tab: 'admissions' },
+    { module: 'cambridge', name: 'Cambridge Assessments', metric: snapshot.programs.cambridge_attempts, label: `attempts in ${snapshot.period.days} days`, description: 'School-wide assessment performance, readiness and verified student results.', tab: 'cambridge', artwork: PROGRAM_ARTWORK.cambridge },
+    { module: 'writing', name: 'Writing Hub', metric: snapshot.programs.writing_students, label: 'students with profiles', description: 'Writing growth, feedback coverage and recurring support needs.', tab: 'documents', artwork: PROGRAM_ARTWORK.writing },
+    { module: 'ielts', name: 'IELTS Programme', metric: snapshot.programs.ielts_students, label: 'school-linked learners', description: 'Exam participation, assignment progress, reviews and result intelligence.', tab: 'ielts', artwork: PROGRAM_ARTWORK.ielts },
+    { module: 'admissions', name: 'Admission Hub', metric: snapshot.programs.admission_candidates, label: `${snapshot.admissions.pending_candidates} awaiting progress`, description: 'Candidates, diagnostics, placement evidence and admission workflow.', tab: 'admissions', artwork: PROGRAM_ARTWORK.admissions },
   ].filter((program) => effectiveEntitlements?.modules[program.module as 'cambridge' | 'writing' | 'ielts' | 'admissions']);
 
   const renderPrograms = () => (
     <div className="school-head-page">
       <section className="school-head-page-heading"><div><p className="school-head-kicker">Programs</p><h2>One executive view across Brains Heist</h2><p>Only active programme signals appear in your briefing. Operational tools remain with the teams responsible for delivery.</p></div></section>
-      {programCards.length > 0 ? <section className="school-head-program-grid">{programCards.map((program) => <article key={program.name}><div><span>{program.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</span><b>School programme</b></div><strong>{program.metric}</strong><small>{program.label}</small><p>{program.description}</p><button type="button" onClick={() => openAdministration(program.tab)}>Open programme <span aria-hidden="true">→</span></button></article>)}</section> : (
+      {programCards.length > 0 ? <section className="school-head-program-grid">{programCards.map((program) => <article key={program.name}><img src={program.artwork.src} alt="" loading="lazy" decoding="async" style={{ width: 'calc(100% + 2.2rem)', height: 'clamp(6.75rem, 9vw, 8.25rem)', margin: '-1.1rem -1.1rem .85rem', objectFit: 'cover', objectPosition: program.artwork.objectPosition }} /><div><span>{program.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</span><b>School programme</b></div><h3 style={{ margin: '.65rem 0 0', color: 'var(--head-ink)', fontSize: '.88rem', fontWeight: 850 }}>{program.name}</h3><strong>{program.metric}</strong><small>{program.label}</small><p>{program.description}</p><button type="button" onClick={() => openAdministration(program.tab)}>Open programme <span aria-hidden="true">→</span></button></article>)}</section> : (
         <section className="school-head-panel school-head-program-empty" aria-labelledby="no-active-programs-title">
           <div><span>No active programmes</span><h3 id="no-active-programs-title">Your core school administration workspace is ready</h3><p>Cambridge Assessments, IELTS, Writing Hub and Admissions will appear here after they are included in the school agreement.</p></div>
           <button type="button" onClick={() => openAdministration('billing')}>Review programmes and billing</button>

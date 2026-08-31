@@ -253,6 +253,7 @@ export type Subject = 'Maths' | 'Science' | 'Biology' | 'Chemistry' | 'Physics' 
 // Academic assignments target school-defined class codes (for example G3-B),
 // not the legacy 6A-12C game batch list.
 export type AssignmentBatch = SchoolBatch | 'All';
+export type AssignmentCategory = 'classwork' | 'homework' | 'quiz' | 'term_exam';
 
 export interface Question {
   id: string;
@@ -1050,6 +1051,10 @@ export interface TeacherAssignmentSummary {
   completed_count: number;
   student_count: number;
   assignment_mode?: 'batch' | 'custom';
+  assignment_category?: AssignmentCategory | null;
+  academic_year_id?: string | null;
+  academic_term_id?: string | null;
+  class_id?: string | null;
   publish_status?: 'draft' | 'scheduled' | 'published';
   close_submissions_after_due?: boolean;
   notify_students_by_email?: boolean;
@@ -1070,6 +1075,10 @@ export interface StudentAssignmentTask {
   title?: string | null;
   instructions?: string | null;
   publish_status?: 'draft' | 'scheduled' | 'published';
+  assignment_category?: AssignmentCategory | null;
+  academic_year_id?: string | null;
+  academic_term_id?: string | null;
+  class_id?: string | null;
   close_submissions_after_due?: boolean;
   is_late?: boolean;
   is_closed?: boolean;
@@ -1116,6 +1125,8 @@ export interface CreateAssignmentRequest {
   publish_status?: 'draft' | 'scheduled' | 'published';
   close_submissions_after_due?: boolean;
   notify_students_by_email?: boolean;
+  assignment_category?: AssignmentCategory | null;
+  client_timezone?: string;
 }
 
 export interface StudentForAssignment {

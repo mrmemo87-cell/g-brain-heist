@@ -41,6 +41,7 @@ import MemberActionModal from './school-admin/modals/MemberActionModal';
 import ConfirmDialogModal from './school-admin/modals/ConfirmDialogModal';
 import type { SchoolAdminConfirmDialog } from './school-admin/schoolAdminConfirm';
 import AdmissionHub from './AdmissionHub';
+import ProgramIdentityBanner from '../src/components/ProgramIdentityBanner';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import { friendlySchoolAdminError } from '../src/lib/schoolAdminPresentation';
@@ -1908,8 +1909,30 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
       {activeTab === 'guardians' && <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading parent and guardian access…</div>}><GuardianManagementPage /></React.Suspense>}
       {activeTab === 'billing' && <BillingTab />}
       {activeTab === 'settings' && <SettingsTab />}
-      {activeTab === 'cambridge' && effectiveEntitlements?.modules.cambridge && <CambridgeTab />}
-      {effectiveEntitlements?.modules.admissions && (activeTab === 'admissions' && <AdmissionHub onComplete={() => selectAdminTab('dashboard')} addToast={addToast} />)}
+      {activeTab === 'cambridge' && effectiveEntitlements?.modules.cambridge && (
+        <div className="space-y-5">
+          <ProgramIdentityBanner
+            program="cambridge"
+            eyebrow="Cambridge programme"
+            title="Cambridge Assessments"
+            description="Manage school-wide Cambridge assessment activity while keeping operational controls clear and focused."
+            compact
+          />
+          <CambridgeTab />
+        </div>
+      )}
+      {effectiveEntitlements?.modules.admissions && activeTab === 'admissions' && (
+        <div className="space-y-5">
+          <ProgramIdentityBanner
+            program="admissions"
+            eyebrow="Admissions programme"
+            title="Admission Hub"
+            description="Candidate diagnostics, placement evidence and admission workflow in one school-scoped workspace."
+            compact
+          />
+          <AdmissionHub onComplete={() => selectAdminTab('dashboard')} addToast={addToast} />
+        </div>
+      )}
 
       {/* ─── IELTS Academy Hub ────────────────────────────────────── */}
       {activeTab === 'ielts' && effectiveEntitlements?.modules.ielts && (
