@@ -20,20 +20,26 @@
   display: none;
 }
 
-/* Student Learn catalogue: keep complete programme identities visible in a consistent media tile. */
+/* Student Learn catalogue: use the programme artwork as a full card header, mirroring School Head. */
+.student-learning-card {
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: stretch !important;
+  overflow: hidden;
+}
+
 .student-learning-card__icon {
   display: grid !important;
-  width: clamp(4.75rem, 14vw, 6rem) !important;
-  height: clamp(4.75rem, 14vw, 6rem) !important;
-  flex: 0 0 auto;
+  grid-column: 1 / -1 !important;
+  width: calc(100% + 2rem) !important;
+  height: clamp(6.5rem, 8vw, 7.25rem) !important;
+  margin: -1rem -1rem .2rem !important;
+  padding: 1rem 1.25rem !important;
   place-items: center;
   overflow: hidden !important;
-  padding: .72rem !important;
-  border: 1px solid rgba(34, 211, 238, .32) !important;
-  border-radius: 1rem !important;
-  background:
-    radial-gradient(circle at 28% 18%, rgba(34, 211, 238, .16), transparent 48%),
-    linear-gradient(145deg, rgba(20, 44, 67, .9), rgba(19, 29, 55, .92)) !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(148, 163, 184, .24) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(180deg, #fbfdff 0%, #f4f8fb 100%) !important;
   font-size: 0;
 }
 
@@ -50,7 +56,19 @@
 .student-learning-card__icon:not(:has(> img))::before {
   content: '';
   display: block;
-  width: 100%;
+  width: min(7.5rem, 44%);
   height: 100%;
   background: url('/mission-console-images/academic-progress.svg') center / contain no-repeat;
+}
+
+.student-learning-card__copy,
+.student-learning-card > .student-primary-button {
+  grid-column: 1 / -1 !important;
+}
+
+@media (max-width: 640px) {
+  .student-learning-card__icon {
+    height: 5.9rem !important;
+    padding: .8rem 1rem !important;
+  }
 }
