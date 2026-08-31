@@ -3,6 +3,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import GooeyOrb from '../../components/presentation/GooeyOrb';
+import { PROGRAM_ARTWORK } from '../lib/programArtwork';
 import './presentation.css';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -24,10 +25,10 @@ const assets = {
 } as const;
 
 const modules = [
-  ['Admissions', 'Diagnostic applicant profiles', '/mission-console-images/lockdown.webp'],
-  ['IELTS', 'Preparation and assessment', '/mission-console-images/ielts-prep.webp'],
-  ['Cambridge', 'Exam-ready practice', '/mission-console-images/cambridge-tests.webp'],
-  ['Writing Hub', 'Evidence-led feedback', '/mission-console-images/writing.webp'],
+  ['Admissions', 'Diagnostic applicant profiles', PROGRAM_ARTWORK.admissions.src],
+  ['IELTS', 'Preparation and assessment', PROGRAM_ARTWORK.ielts.src],
+  ['Cambridge', 'Exam-ready practice', PROGRAM_ARTWORK.cambridge.src],
+  ['Writing Hub', 'Evidence-led feedback', PROGRAM_ARTWORK.writing.src],
   ['Tournaments', 'Whole-school competition', '/mission-console-images/tournament.webp'],
 ] as const;
 
@@ -194,7 +195,12 @@ const PresentationPage = () => {
     </div></div></section>
     <section className="journey-scene parent-scene" data-journey><div className="scene-glow scene-glow--cyan"/><Heading number="08" label="PARENT CONFIDENCE" title={<>Not a score dump.<br/>A clear progress story.</>}>Parents see progress, achievements, strengths, current focus areas and teacher-validated feedback in language they can understand.</Heading><img className="scene-character parent-character" src={assets.parent} alt="Parent confidently viewing a clear learner progress story" loading="lazy"/><div className="parent-dashboard"><div className="parent-data"><small>TERM DATA EXPORT</small><strong>72 8/12 B−<br/>6.4 81%</strong><span>Q4 / L2 / R7 / Δ−0.2</span></div><div className="parent-story"><small>CURRENT STORY</small><h3>Writing confidence is growing.</h3><p>Next focus: use stronger supporting evidence.</p><Bars labels={['Progress visible','Focus understood','Feedback validated']}/><em>TEACHER VALIDATED</em></div></div><blockquote>Strengthen parent confidence through continuous visibility, evidence-based progress and teacher-validated feedback.</blockquote></section>
     <section className="journey-scene lead-scene" data-journey><div className="scene-glow scene-glow--violet"/><Heading number="09" label="SCHOOL LEADERSHIP" title={<>Zoom out.<br/>See the whole school move.</>}>Leaders monitor engagement, class coverage, academic activity and intervention needs—without losing the human story beneath the patterns.</Heading><img className="scene-character leader-character" src={assets.leader} alt="School leader monitoring learning across the school" loading="lazy"/><div className="lead-map"><div className="lead-gauges"><Gauge label="ACTIVE" value={86}/><Gauge label="COVERAGE" value={74}/></div><div className="class-grid">{['7A','7B','8A','8B','9A','9B'].map((name,i)=><div key={name} className={i===4?'is-focus':''}><span>{name}</span><small>{i===4?'REVIEW FOCUS':'LEARNING ACTIVE'}</small><i><b data-fill style={{'--fill':`${52+i*7}%`} as React.CSSProperties}/></i></div>)}</div></div><Phrase>FROM ONE LEARNER TO THE WHOLE SCHOOL</Phrase></section>
-    <section className="journey-scene vault-scene" data-journey><div className="vault-heading"><Heading number="10" label="THE VAULT OPENS" title={<>One platform.<br/>A much bigger future.</>}>The connected school journey becomes the foundation for admissions, IELTS, Cambridge assessments, writing, tournaments and the modules still to come.</Heading></div><div className="vault-system"><div className="vault-rings"><i/><i/><i/></div><div className="vault-core"><img src={assets.logo} alt="Brains Heist"/><span>ECOSYSTEM</span></div>{modules.map((m,i)=><div className={`vault-module vault-module--${i+1}`} key={m[0]}><img src={m[2]} alt=""/><div><strong>{m[0]}</strong><span>{m[1]}</span></div></div>)}</div><div className="vault-finale"><p>One connected journey. Every learner understood. Every next step made visible.</p><strong>Learn. Compete. Grow.</strong><a href="/">ENTER BRAINS HEIST <span>→</span></a></div></section>
+    <section className="journey-scene vault-scene" data-journey><div className="vault-heading"><Heading number="10" label="THE VAULT OPENS" title={<>One platform.<br/>A much bigger future.</>}>The connected school journey becomes the foundation for admissions, IELTS, Cambridge assessments, writing, tournaments and the modules still to come.</Heading></div><div className="vault-system"><div className="vault-rings"><i/><i/><i/></div><div className="vault-core"><img src={assets.logo} alt="Brains Heist"/><span>ECOSYSTEM</span></div>{modules.map((m,i)=><div className={`vault-module vault-module--${i+1}`} key={m[0]}><img
+        src={m[2]}
+        alt={i < 4 ? `${m[0]} programme artwork` : ''}
+        loading="lazy"
+        style={i < 4 ? { width: 'clamp(40px, 5vw, 72px)', height: 'clamp(40px, 5vw, 72px)', objectFit: 'cover', borderRadius: 12 } : undefined}
+      /><div><strong>{m[0]}</strong><span>{m[1]}</span></div></div>)}</div><div className="vault-finale"><p>One connected journey. Every learner understood. Every next step made visible.</p><strong>Learn. Compete. Grow.</strong><a href="/">ENTER BRAINS HEIST <span>→</span></a></div></section>
   </main>;
 };
 

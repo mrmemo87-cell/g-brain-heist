@@ -36,6 +36,9 @@ import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey, ty
 import { listMyPendingProgrammeAccessRequests, requestProgrammeAccess } from './services/programmeAccessRequestService';
 import { getGuardianChildren } from './services/guardianService';
 import { enrollInApprovedSchoolClass, listMySchoolClasses, type ApprovedSignupClass } from './services/authService';
+import { assignmentCategoryBadgeStyle, getAssignmentCategoryMeta } from './src/lib/assignmentCategory';
+import ProgramIdentityBanner from './src/components/ProgramIdentityBanner';
+import { PROGRAM_ARTWORK } from './src/lib/programArtwork';
 
 // Lazy-loaded: only fetched when the user actually opens these views/modals
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
@@ -81,7 +84,6 @@ const StudentAcademicProfile = lazyRetry(() => import('./components/student-prog
 
 interface StudentProgrammeCardProps {
   programme: StudentProgrammeKey;
-  icon: string;
   eyebrow: string;
   title: string;
   description: string;
@@ -96,7 +98,6 @@ interface StudentProgrammeCardProps {
 
 const StudentProgrammeCard: React.FC<StudentProgrammeCardProps> = ({
   programme,
-  icon,
   eyebrow,
   title,
   description,
@@ -111,7 +112,24 @@ const StudentProgrammeCard: React.FC<StudentProgrammeCardProps> = ({
   const lockMessageId = `${programme}-programme-lock-message`;
   return (
     <article className={`student-feed-card student-learning-card ${locked ? 'is-locked' : ''}`}>
-      <div className="student-learning-card__icon" aria-hidden>{icon}</div>
+      <div
+        className="student-learning-card__icon"
+        aria-hidden="true"
+        style={{
+          width: 'clamp(4.75rem, 14vw, 6rem)',
+          height: 'clamp(4.75rem, 14vw, 6rem)',
+          overflow: 'hidden',
+          padding: 0,
+        }}
+      >
+        <img
+          src={PROGRAM_ARTWORK[programme].src}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: PROGRAM_ARTWORK[programme].objectPosition }}
+        />
+      </div>
       <div className="student-learning-card__copy">
         <span className="student-learning-card__eyebrow">{eyebrow}</span>
         <h2>{title}</h2>
@@ -1982,11 +2000,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           {pendingAssignments.map((assignment) => {
             const dueLabel = assignment.due_at ? new Date(assignment.due_at).toLocaleString() : 'No deadline';
             const statusLabel = assignment.is_closed ? 'Closed' : assignment.is_late ? 'Late · still open' : 'Ready';
+            const categoryMeta = getAssignmentCategoryMeta(assignment.assignment_category);
             return (
               <details key={assignment.assignment_id} className="student-assignment-card rounded-xl border border-slate-700 bg-slate-950/45">
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-3 p-4 focus-visible:outline focus-visible:outline-2">
                   <span className="min-w-0">
                     <span className="block text-sm font-black text-white">{assignment.title || assignment.topic_name || 'New assignment'}</span>
+                    <span className="mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide" style={assignmentCategoryBadgeStyle(assignment.assignment_category)}>{categoryMeta.label}</span>
                     <span className="mt-1 block text-xs text-slate-400">{assignment.subject_name || 'General'} · {assignment.teacher_username || 'Your teacher'} · Due {dueLabel}</span>
                   </span>
                   <span className={`flex-none rounded-full px-2.5 py-1 text-[11px] font-bold ${assignment.is_closed ? 'bg-slate-700 text-slate-200' : assignment.is_late ? 'bg-amber-500/20 text-amber-200' : 'bg-emerald-500/20 text-emerald-200'}`}>{statusLabel}</span>
@@ -2303,6 +2323,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   >
                       ← Back to Dashboard
                   </button>
+                  <ProgramIdentityBanner
+                    program="writing"
+                    eyebrow="Writing coach"
+                    title="Writing Hub"
+                    description="Draft, repair, and improve with guided AI coaching while keeping the writing workspace focused on the learner's work."
+                    compact
+                    className="mb-4"
+                  />
                   {!profile?.id ? (
                     <div className="rounded-lg border border-blue-400/40 bg-slate-900/70 p-4 text-blue-100">
                       Loading your writing profile…
@@ -2335,10 +2363,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           );
         case 'cambridge':
           return renderLazy(
-            <CambridgeTestsHub
-              profile={profile}
-              onExit={() => handleViewChange('dashboard')}
-            />
+            <div className="grid gap-4">
+              <ProgramIdentityBanner
+                program="cambridge"
+                eyebrow="Subject practice"
+                title="Cambridge Tests"
+                description="Exam-ready practice across Cambridge English and science subjects, with results kept connected to the learner record."
+                compact
+              />
+              <CambridgeTestsHub
+                profile={profile}
+                onExit={() => handleViewChange('dashboard')}
+              />
+            </div>
           );
         case 'school_admin':
           return renderLazy(
@@ -2580,9 +2617,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         />
                       ) : <div className="student-learning-grid">
                         {isStudent && hasSchool && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>📈</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Your learning record</span><h2>Academic Progress</h2><p>See your subject performance, strengths, improvement, focus areas, evidence confidence, and curriculum coverage.</p></div><button type="button" onClick={() => setStudentLearningView('academic-profile')} className="student-primary-button">Open Academic Progress <span aria-hidden>→</span></button></article>}
-                        {isStudent && <StudentProgrammeCard programme="writing" icon="✍️" eyebrow="Writing coach" title="Writing Hub" description="Draft, repair, and improve with guided AI coaching." locked={hasSchool && !canUseSchoolModule('writing')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.writing} onRequest={() => void handleProgrammeAccessRequest('writing')} openLabel="Open Writing Hub" onPreload={preloadWritingHub} onOpen={() => handleViewChange('writing')} />}
-                        {isStudent && hasSchool && <StudentProgrammeCard programme="ielts" icon="🎯" eyebrow="Exam preparation" title="IELTS Prep" description="Focused preparation across reading, writing, listening, and speaking." locked={!canUseSchoolModule('ielts')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.ielts} onRequest={() => void handleProgrammeAccessRequest('ielts')} openLabel="Open IELTS Prep" onOpen={() => { window.location.href = '/ielts'; }} />}
-                        {isStudent && hasSchool && <StudentProgrammeCard programme="cambridge" icon="🧪" eyebrow="Subject practice" title="Cambridge Tests" description="Practice Cambridge reading, grammar, and science tests." locked={!canUseSchoolModule('cambridge')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.cambridge} onRequest={() => void handleProgrammeAccessRequest('cambridge')} openLabel="Open Cambridge Tests" onOpen={() => handleViewChange('cambridge')} />}
+                        {isStudent && <StudentProgrammeCard programme="writing" eyebrow="Writing coach" title="Writing Hub" description="Draft, repair, and improve with guided AI coaching." locked={hasSchool && !canUseSchoolModule('writing')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.writing} onRequest={() => void handleProgrammeAccessRequest('writing')} openLabel="Open Writing Hub" onPreload={preloadWritingHub} onOpen={() => handleViewChange('writing')} />}
+                        {isStudent && hasSchool && <StudentProgrammeCard programme="ielts" eyebrow="Exam preparation" title="IELTS Prep" description="Focused preparation across reading, writing, listening, and speaking." locked={!canUseSchoolModule('ielts')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.ielts} onRequest={() => void handleProgrammeAccessRequest('ielts')} openLabel="Open IELTS Prep" onOpen={() => { window.location.href = '/ielts'; }} />}
+                        {isStudent && hasSchool && <StudentProgrammeCard programme="cambridge" eyebrow="Subject practice" title="Cambridge Tests" description="Practice Cambridge reading, grammar, and science tests." locked={!canUseSchoolModule('cambridge')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.cambridge} onRequest={() => void handleProgrammeAccessRequest('cambridge')} openLabel="Open Cambridge Tests" onOpen={() => handleViewChange('cambridge')} />}
                       </div>
                     )}
 
