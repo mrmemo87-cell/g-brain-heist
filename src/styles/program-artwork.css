@@ -20,19 +20,23 @@
   display: none;
 }
 
-/* Student Learn catalogue: use the programme artwork as a full card header, mirroring School Head. */
+/* Student Learn catalogue: dedicated artwork strip above the dark card content, matching School Head. */
 .student-learning-card {
   grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-areas:
+    "art"
+    "copy"
+    "action" !important;
   align-items: stretch !important;
   overflow: hidden;
 }
 
 .student-learning-card__icon {
+  grid-area: art !important;
   display: grid !important;
-  grid-column: 1 / -1 !important;
-  width: calc(100% + 2rem) !important;
+  width: calc(100% + 2.2rem) !important;
   height: clamp(6.5rem, 8vw, 7.25rem) !important;
-  margin: -1rem -1rem .2rem !important;
+  margin: -1.1rem -1.1rem 0 !important;
   padding: 1rem 1.25rem !important;
   place-items: center;
   overflow: hidden !important;
@@ -61,9 +65,14 @@
   background: url('/mission-console-images/academic-progress.svg') center / contain no-repeat;
 }
 
-.student-learning-card__copy,
+.student-learning-card__copy {
+  grid-area: copy !important;
+  min-width: 0;
+}
+
 .student-learning-card > .student-primary-button {
-  grid-column: 1 / -1 !important;
+  grid-area: action !important;
+  width: 100%;
 }
 
 @media (max-width: 640px) {
