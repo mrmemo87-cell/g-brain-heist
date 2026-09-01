@@ -7,7 +7,10 @@ const wizard = readFileSync('components/teacher/AssignmentWizard.tsx', 'utf8');
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
 const gameService = readFileSync('services/gameService.ts', 'utf8');
 const studentApp = readFileSync('App.tsx', 'utf8');
-const report = readFileSync('components/CollectiveAssignmentReport.tsx', 'utf8');
+const report = [
+  readFileSync('components/CollectiveAssignmentReport.tsx', 'utf8'),
+  readFileSync('components/CollectiveAssignmentReportView.tsx', 'utf8'),
+].join('\n');
 const reportCss = readFileSync('components/CollectiveAssignmentReport.css', 'utf8');
 const emailDispatcher = readFileSync('supabase/functions/school_email_dispatcher/index.ts', 'utf8');
 const migration = readFileSync('supabase/migrations/20260821190000_assignment_categories_term_safe_reporting.sql', 'utf8');
