@@ -4,7 +4,10 @@ import test from 'node:test';
 
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
 const bank = readFileSync('components/teacher/QuestionBank.tsx', 'utf8');
-const report = readFileSync('components/CollectiveAssignmentReport.tsx', 'utf8');
+const report = [
+  readFileSync('components/CollectiveAssignmentReport.tsx', 'utf8'),
+  readFileSync('components/CollectiveAssignmentReportView.tsx', 'utf8'),
+].join('\n');
 const preview = readFileSync('components/teacher/QuestionPreviewModal.tsx', 'utf8');
 const reportStyles = readFileSync('components/CollectiveAssignmentReport.css', 'utf8');
 const gameService = readFileSync('services/gameService.ts', 'utf8');
