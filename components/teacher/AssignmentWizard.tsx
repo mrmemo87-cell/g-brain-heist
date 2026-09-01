@@ -11,6 +11,14 @@ type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
 type XpFilter = 'all' | 'low' | 'medium' | 'high';
 type QuestionSort = 'recommended' | 'xp-high' | 'xp-low' | 'time-short' | 'difficulty';
 type QuestionPool = 'all' | 'brains-heist' | 'mine';
+type AssignmentRosterStudent = StudentForAssignment & {
+  assignment_eligible?: boolean;
+  access_status?: 'active' | 'suspended' | 'banned' | string;
+  banned_until?: string | null;
+};
+
+const canReceiveNewAssignment = (student: StudentForAssignment) =>
+  (student as AssignmentRosterStudent).assignment_eligible !== false;
 
 interface AssignmentWizardProps {
   initialStep?: WizardStep;
@@ -181,6 +189,23 @@ export default function AssignmentWizard({
     return [...classes.values()];
   }, [allocatedClasses, assignmentSubject]);
 
+  const assignableStudents = useMemo(
+    () => availableStudents.filter(canReceiveNewAssignment),
+    [availableStudents],
+  );
+  const unavailableStudents = useMemo(
+    () => availableStudents.filter((student) => !canReceiveNewAssignment(student)),
+    [availableStudents],
+  );
+
+  useEffect(() => {
+    const allowed = new Set(assignableStudents.map((student) => student.id));
+    setSelectedStudentIds((current) => {
+      const next = current.filter((id) => allowed.has(id));
+      return next.length === current.length ? current : next;
+    });
+  }, [assignableStudents, setSelectedStudentIds]);
+
   const uniqueQuestions = useMemo(() => {
     const ids = new Set<string>();
     const content = new Set<string>();
@@ -208,12 +233,12 @@ export default function AssignmentWizard({
       ? uniqueClasses
         .filter((item) => assignmentBatches.includes('All') || assignmentBatches.includes(item.class_code))
         .map((item) => Number(item.grade_level))
-      : availableStudents
+      : assignableStudents
         .filter((student) => selectedStudentIds.includes(student.id))
         .map((student) => Number(student.grade));
 
     return [...new Set(grades.filter((grade) => Number.isInteger(grade) && grade > 0))];
-  }, [assignmentBatches, assignmentMode, availableStudents, selectedStudentIds, uniqueClasses]);
+  }, [assignmentBatches, assignmentMode, assignableStudents, selectedStudentIds, uniqueClasses]);
 
   const topics = useMemo(
     () => [...new Set(subjectQuestions.map((question) => question.topic_name || question.topic || 'General'))]
@@ -295,10 +320,10 @@ export default function AssignmentWizard({
   );
 
   const audienceStudents = useMemo(() => {
-    if (assignmentMode === 'custom') return availableStudents.filter((student) => selectedStudentIds.includes(student.id));
+    if (assignmentMode === 'custom') return assignableStudents.filter((student) => selectedStudentIds.includes(student.id));
     const batches = new Set(selectedClasses.map((item) => item.class_code));
-    return availableStudents.filter((student) => student.batch && batches.has(student.batch));
-  }, [assignmentMode, availableStudents, selectedClasses, selectedStudentIds]);
+    return assignableStudents.filter((student) => student.batch && batches.has(student.batch));
+  }, [assignmentMode, assignableStudents, selectedClasses, selectedStudentIds]);
 
   const totalXp = selectedQuestions.reduce((total, question) => total + (question.points || 0), 0);
   const totalSeconds = selectedQuestions.reduce((total, question) => total + (question.time_limit || 60), 0);
@@ -466,15 +491,27 @@ export default function AssignmentWizard({
                 </button>
               </div>
 
+              {unavailableStudents.length > 0 ? (
+                <p className="aw-intro" role="status">
+                  {unavailableStudents.length} enrolled student{unavailableStudents.length === 1 ? ' is' : 's are'} currently unavailable for new assignments because of account access restrictions. They stay visible in class rosters and historical reports.
+                </p>
+              ) : null}
+
               {assignmentMode === 'batch' ? (
                 <div className="aw-class-grid">
                   {uniqueClasses.map((item) => {
-                    const count = availableStudents.filter((student) => student.batch === item.class_code).length;
+                    const enrolledCount = availableStudents.filter((student) => student.batch === item.class_code).length;
+                    const availableCount = assignableStudents.filter((student) => student.batch === item.class_code).length;
                     const selected = assignmentBatches.includes('All') || assignmentBatches.includes(item.class_code);
+                    const audienceLabel = enrolledCount === 0
+                      ? 'No registered students yet'
+                      : availableCount === enrolledCount
+                        ? `${availableCount} student${availableCount === 1 ? '' : 's'}`
+                        : `${availableCount} available · ${enrolledCount} enrolled`;
                     return (
                       <button key={item.class_code} type="button" aria-pressed={selected} onClick={() => toggleBatch(item.class_code)} className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}>
                         <span className="aw-class-icon" aria-hidden="true">🏫</span>
-                        <span className="aw-class-card__details"><strong>{item.class_code}</strong><small>{item.subject} · {count > 0 ? `${count} student${count === 1 ? '' : 's'}` : 'No registered students yet'}</small></span>
+                        <span className="aw-class-card__details"><strong>{item.class_code}</strong><small>{item.subject} · {audienceLabel}</small></span>
                         <span className="aw-check">{selected ? '✓' : ''}</span>
                       </button>
                     );
@@ -484,11 +521,11 @@ export default function AssignmentWizard({
                 <div className="aw-students">
                   <div className="aw-toolbar aw-toolbar--simple">
                     <label className="aw-search"><span>⌕</span><input value={studentSearch} onChange={(event) => setStudentSearch(event.target.value)} placeholder="Search students…" aria-label="Search students" /></label>
-                    <button type="button" onClick={() => setSelectedStudentIds(availableStudents.map((student) => student.id))}>Select all</button>
+                    <button type="button" onClick={() => setSelectedStudentIds(assignableStudents.map((student) => student.id))}>Select all</button>
                     <button type="button" onClick={() => setSelectedStudentIds([])}>Clear</button>
                   </div>
                   <div className="aw-student-grid">
-                    {availableStudents.filter((student) => [student.display_name, student.username, student.batch].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase())).map((student) => {
+                    {assignableStudents.filter((student) => [student.display_name, student.username, student.batch].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase())).map((student) => {
                       const selected = selectedStudentIds.includes(student.id);
                       return (
                         <button key={student.id} type="button" aria-pressed={selected} onClick={() => toggleStudent(student.id)} className={selected ? 'aw-student-card is-selected' : 'aw-student-card'}>
@@ -498,6 +535,7 @@ export default function AssignmentWizard({
                         </button>
                       );
                     })}
+                    {!assignableStudents.length ? <div className="aw-empty">No students are currently available for a new assignment.</div> : null}
                   </div>
                 </div>
               )}
