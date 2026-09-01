@@ -174,3 +174,32 @@
   .sap-trend-tooltip{display:none!important}
   .sap-trend-card{box-shadow:none!important;transform:none!important}
 }
+
+/* Academic Profile reporting-integrity layer: keep evidence confidence visually distinct from support. */
+.sap-trust-summary {
+  margin: 0 0 18px;
+  padding: 18px 20px;
+  border: 1px solid #dbe7f4;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f8fbff 0%, #f5faf8 100%);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+.sap-trust-summary > span { display: block; margin-bottom: 5px; color: #315b78; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.sap-trust-summary > p { margin: 0; color: #243447; font-size: 0.98rem; line-height: 1.65; }
+.sap-status--neutral { background: #f1f5f9 !important; color: #475569 !important; border-color: #cbd5e1 !important; }
+.sap-status--review { background: #fff7ed !important; color: #9a3412 !important; border-color: #fed7aa !important; }
+.sap-confirm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.sap-confirm-card { padding: 16px; border: 1px solid #dbe4ee; border-radius: 16px; background: #fbfdff; }
+.sap-confirm-card.is-positive { border-color: #b9e3d0; background: #f5fbf8; }
+.sap-confirm-card.is-review { border-color: #fed7aa; background: #fffaf5; }
+.sap-confirm-card h3 { margin: 7px 0 4px; color: #172033; font-size: 1rem; }
+.sap-confirm-card p { margin: 0; color: #607084; font-size: 0.84rem; }
+.sap-confirm-card small { display: block; margin-top: 10px; color: #536579; line-height: 1.45; }
+.sap-confirm-card dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0 0; }
+.sap-confirm-card dl div { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.82); }
+.sap-confirm-card dt { color: #748399; font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; }
+.sap-confirm-card dd { margin: 2px 0 0; color: #1f2d3d; font-weight: 800; }
+@media (max-width: 720px) {
+  .sap-trust-summary { padding: 15px 16px; }
+  .sap-confirm-grid { grid-template-columns: 1fr; }
+}

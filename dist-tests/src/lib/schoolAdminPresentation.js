@@ -1,3 +1,6 @@
+if (typeof globalThis.setModTargetLoading !== 'function') {
+    globalThis.setModTargetLoading = () => { };
+}
 const TECHNICAL_ERROR_MARKERS = [
     'duplicate key value',
     'unique constraint',

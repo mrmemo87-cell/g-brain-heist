@@ -941,9 +941,9 @@ const applyRewardDelta = async ({
 // Helper to update profile fields with retry logic and verification
 const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetries = 3) => {
   let lastError: Error | null = null;
-  
+
   console.log(`[updateProfile] Starting update for user ${userId}:`, updates);
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       // Use .select() to return updated rows - if RLS blocks, this will return empty
@@ -959,31 +959,31 @@ const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetri
         .eq('id', userId)
         .select('id, xp, coins, level, gemstones')
         .single();
-      
+
       if (error) {
         console.error(`[updateProfile] Attempt ${attempt} error:`, error.message, error.code, error.details);
         throw error;
       }
-      
+
       // Verify the update actually affected a row
       if (!data) {
         console.error(`[updateProfile] Attempt ${attempt}: No row returned - RLS may be blocking the update`);
         throw new Error('Update returned no rows - possible RLS restriction');
       }
-      
+
       // CRITICAL: Verify the returned data matches what we tried to set
       const mismatches: string[] = [];
       if (safeUpdates.coins !== undefined && data.coins !== safeUpdates.coins) {
         mismatches.push(`coins: expected ${safeUpdates.coins}, got ${data.coins}`);
       }
-      
+
       if (mismatches.length > 0) {
         console.error(`[updateProfile] CRITICAL: Data mismatch after update!`, mismatches);
         throw new Error(`Update succeeded but data mismatch: ${mismatches.join(', ')}`);
       }
-      
+
       console.log(`[updateProfile] SUCCESS for user ${userId}. Verified values: xp=${data.xp}, coins=${data.coins}`);
-      
+
       // EXTRA VERIFICATION: Do a separate read to ensure persistence
       // This catches any edge cases where update returns stale data
       await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
@@ -992,7 +992,7 @@ const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetri
         .select('xp, coins, level')
         .eq('id', userId)
         .single();
-      
+
       if (verifyError) {
         console.warn(`[updateProfile] Post-update verification read failed:`, verifyError);
         // Don't throw - the update might have succeeded
@@ -1001,14 +1001,14 @@ const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetri
         if (safeUpdates.coins !== undefined && verifyData.coins !== safeUpdates.coins) {
           verifyMismatches.push(`coins: wrote ${safeUpdates.coins}, read back ${verifyData.coins}`);
         }
-        
+
         if (verifyMismatches.length > 0) {
           console.error(`[updateProfile] CRITICAL: Verification read shows data NOT persisted!`, verifyMismatches);
           throw new Error(`Data not persisted: ${verifyMismatches.join(', ')}`);
         }
         console.log(`[updateProfile] Verification read confirmed: xp=${verifyData.xp}, coins=${verifyData.coins}`);
       }
-      
+
       return; // Success
     } catch (err) {
       lastError = err as Error;
@@ -1019,7 +1019,7 @@ const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetri
       }
     }
   }
-  
+
   console.error('[updateProfile] CRITICAL: All attempts failed for user', userId, updates, lastError);
   throw lastError || new Error('Failed to update profile after multiple attempts');
 };
@@ -1266,7 +1266,7 @@ const fetchClanScoreValue = async (clanId: string): Promise<number | null> => {
 const getTotalAttackPower = (profile: Profile, inventory: InventoryItem[]): number => {
   let total = profile.attack_power;
   const now = Date.now();
-  
+
   inventory.forEach(item => {
     if (item.state === 'active' && item.attack_bonus) {
       // Check if item is expired
@@ -1281,14 +1281,14 @@ const getTotalAttackPower = (profile: Profile, inventory: InventoryItem[]): numb
       }
     }
   });
-  
+
   return total;
 };
 
 const getTotalDefensePower = (profile: Profile, inventory: InventoryItem[]): number => {
   let total = profile.defense_power;
   const now = Date.now();
-  
+
   inventory.forEach(item => {
     if (item.state === 'active' && item.defense_bonus) {
       // Check if item is expired
@@ -1303,7 +1303,7 @@ const getTotalDefensePower = (profile: Profile, inventory: InventoryItem[]): num
       }
     }
   });
-  
+
   return total;
 };
 
@@ -1321,7 +1321,7 @@ const getActiveCosmeticFrame = async (userId: string): Promise<'neon' | null> =>
 
   const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
   const hasNeonFrame = activeCosmetics.some(item => item.item_id === 'item_cosmetic_frame');
-  
+
   const frameValue = hasNeonFrame ? 'neon' : null;
 
   // Sync to users table for better visibility across queries
@@ -1351,7 +1351,7 @@ const getActiveCosmeticTheme = async (userId: string): Promise<'flicker' | null>
 
   const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
   const hasFlickerTheme = activeCosmetics.some(item => item.item_id === 'item_cosmetic_theme');
-  
+
   const themeValue = hasFlickerTheme ? 'flicker' : null;
 
   // Sync to users table for better visibility across queries
@@ -1381,7 +1381,7 @@ const getActiveCosmeticEffect = async (userId: string): Promise<'glitch' | null>
 
   const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
   const hasGlitchEffect = activeCosmetics.some(item => item.item_id === 'item_cosmetic_glitch');
-  
+
   const effectValue = hasGlitchEffect ? 'glitch' : null;
 
   // Sync to users table for better visibility across queries
@@ -1401,7 +1401,7 @@ const getActiveCosmeticEffect = async (userId: string): Promise<'glitch' | null>
 const cleanupExpiredItems = () => {
   const now = Date.now();
   const originalLength = MOCK_INVENTORY.length;
-  
+
   MOCK_INVENTORY = MOCK_INVENTORY.filter(item => {
     if (item.expires_at) {
       const expiryTime = new Date(item.expires_at).getTime();
@@ -1409,7 +1409,7 @@ const cleanupExpiredItems = () => {
     }
     return true;
   });
-  
+
   if (MOCK_INVENTORY.length !== originalLength) {
     saveInventory();
   }
@@ -1545,13 +1545,13 @@ export const whoami = async (): Promise<Profile> => {
   whoamiInFlight = (async () => {
       // Get current authenticated user with retry logic
       const user = await getCurrentUser();
-  
+
     console.log(`[whoami] Fetching profile for user ${user.id}`);
-  
+
     // Fetch profile from database with retry logic - use fresh read
     let profile: any = null;
     let profileError: any = null;
-    
+
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         // Add timestamp to query to ensure fresh data (bypass any caching)
@@ -1560,16 +1560,16 @@ export const whoami = async (): Promise<Profile> => {
           .select('*')
           .eq('id', user.id)
           .single();
-        
+
         profile = result.data;
         profileError = result.error;
-        
+
         if (!profileError && profile) {
           console.log(`[whoami] Got profile: xp=${profile.xp}, coins=${profile.coins}, level=${profile.level}`);
           break; // Success
         }
         if (profileError?.code === 'PGRST116') break; // Not found - don't retry
-        
+
         throw profileError || new Error('Profile data is null');
       } catch (err) {
         if (attempt < 3) {
@@ -1580,16 +1580,16 @@ export const whoami = async (): Promise<Profile> => {
         }
       }
     }
-  
+
     // If profile doesn't exist (OAuth user), create it
     if (profileError && profileError.code === 'PGRST116') {
       console.log('Profile not found for OAuth user, creating new profile...');
-      
+
       // Extract username from email or use name from OAuth provider
       const emailUsername = user.email?.split('@')[0] || 'user';
       const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'];
       const username = displayName || emailUsername;
-  
+
       // Create user profile with default student role
       const profileData = {
           id: user.id,
@@ -1601,18 +1601,18 @@ export const whoami = async (): Promise<Profile> => {
           needs_setup: true,
           avatar_url: user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`,
       };
-  
+
       const { data: newProfile, error: createError } = await supabase
           .from('users')
           .insert(profileData)
           .select()
           .single();
-  
+
       if (createError) {
           console.error('Failed to create OAuth profile:', createError);
           throw new Error(`Failed to create user profile: ${createError.message}`);
       }
-  
+
       profile = newProfile;
       console.log('OAuth profile created successfully for:', user.email);
     } else if (profileError) {
@@ -1622,53 +1622,53 @@ export const whoami = async (): Promise<Profile> => {
       console.error('Profile is null despite no error');
       throw new Error('Profile not found');
       }
-  
+
       const banned = isBannedFlag(profile.is_banned);
       if (banned) {
           storeBanMessage(BAN_MESSAGE);
           await supabase.auth.signOut();
           throw new Error(BAN_MESSAGE);
       }
-  
+
     if (typeof profile.gemstones !== 'number') {
       profile.gemstones = 0;
     }
-  
+
     if (profile.grade !== null) {
       const gradeLabel = String(profile.grade).trim();
       const parsedGrade = Number(gradeLabel);
-  
+
       // Preserve every school-configured numeric grade. Curriculum-specific
       // features may still gate their own supported bands, but the core profile
       // must not erase a valid school placement such as Grade 4 or Year 13.
       profile.grade = Number.isInteger(parsedGrade) ? parsedGrade : (gradeLabel || null);
     }
-  
+
       profile.is_admin = typeof profile.is_admin === 'boolean'
           ? profile.is_admin
           : profile.role === 'admin';
-  
+
       profile.is_banned = banned;
       profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
-  
+
     // ====== AP REGENERATION LOGIC ======
     // Only regenerate AP for students (teachers and admins don't use game mechanics)
     if (profile.role === 'student') {
       try {
         const { data: regenData, error: regenError } = await regenerateUserAp(user.id);
-    
+
         if (regenError) {
           console.warn('Database AP regeneration function not available, using fallback:', regenError.message);
           throw regenError; // Trigger fallback
         }
-    
+
         if (regenData && regenData.length > 0) {
           const { new_ap, ap_regenerated, minutes_elapsed } = regenData[0];
           console.log(`AP Regeneration: ${profile.ap_now} → ${new_ap} (+${ap_regenerated} AP, ${minutes_elapsed} min elapsed)`);
-          
+
           profile.ap_now = new_ap;
           profile.last_ap_update = new Date().toISOString();
-    
+
           // ====== NOTIFICATION: AP FULL ======
           // Only send AP notifications to students
           if (ap_regenerated > 0 && new_ap === profile.ap_max) {
@@ -1687,29 +1687,29 @@ export const whoami = async (): Promise<Profile> => {
         const msElapsed = now.getTime() - lastApUpdate.getTime();
         const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
         const apToRegen = Math.floor(minutesElapsed / 10);
-        
+
         console.log(`Fallback AP Regen: Last update: ${lastApUpdate.toISOString()}, Minutes elapsed: ${minutesElapsed}, AP to regen: ${apToRegen}`);
-        
+
         if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
           const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
-          
+
           // Calculate exact timestamp: set timer to when the LAST AP was earned (not now)
           // Example: 35 minutes elapsed = 3 AP earned. Last AP was earned 5 minutes ago.
           const remainderMinutes = minutesElapsed % 10;
           const newLastUpdate = new Date(now.getTime() - (remainderMinutes * 60000));
-          
-          const updateData: any = { 
+
+          const updateData: any = {
             ap_now: newAP,
             last_ap_update: newLastUpdate.toISOString()
           };
-          
+
           console.log(`Updating AP in DB: ${profile.ap_now} → ${newAP}, Timer: ${newLastUpdate.toISOString()}`);
-          
+
           const { error: updateError } = await supabase
             .from('users')
             .update(updateData)
             .eq('id', user.id);
-            
+
           if (updateError) {
             console.error('Failed to update AP in database:', updateError);
           } else {
@@ -1727,11 +1727,11 @@ export const whoami = async (): Promise<Profile> => {
       profile.ap_now = profile.ap_max || 100;
       profile.last_ap_update = new Date().toISOString();
     }
-    
+
     // The database awards at most once per Bishkek calendar day. The one-time
     // receipt is attached to the hydrated profile for the celebration modal.
     await recordDailyStreakForProfile(profile as Profile);
-  
+
     // Show the same temporary shield defense that combat actually uses. Firewall
     // bonuses are already permanent base-defense updates and must not be doubled.
     const now = new Date();
@@ -1746,7 +1746,7 @@ export const whoami = async (): Promise<Profile> => {
     const activeShieldDefense = userHasShield
       ? Math.max(...(activeShields || []).map((item) => Number(item.defense_bonus) || 20))
       : 0;
-  
+
     // Register in shared player list for multiplayer features
     addPlayerToSharedList({
       id: profile.id,
@@ -1759,7 +1759,7 @@ export const whoami = async (): Promise<Profile> => {
           active_cosmetic_frame: profile.active_cosmetic_frame,
       has_shield: userHasShield,
     });
-  
+
       const existingClanInfo = {
           id: profile.clan_id ?? null,
           role: profile.clan_role,
@@ -1768,27 +1768,27 @@ export const whoami = async (): Promise<Profile> => {
           score: profile.clan_total_score ?? null,
           buffs: profile.active_clan_buffs ?? [],
       };
-  
+
       // Clear transient buff effects before rehydrating clan data
       applyClanBuffsToProfile(profile, []);
-  
+
       let resolvedClanId: string | null = profile.clan_id ?? null;
       let resolvedClanRole: ClanRole | undefined = profile.clan_role;
       let resolvedCustomTitle: string | null = profile.clan_custom_title ?? null;
       let resolvedClanName: string | null = profile.clan_name ?? null;
-  
+
       const { data: membership, error: membershipError } = await supabase
           .from('clan_members')
           .select('clan_id, role, custom_title, clans(name)')
           .eq('user_id', profile.id)
           .maybeSingle();
-  
+
       if (membershipError && membershipError.code !== 'PGRST116') {
           console.warn('Failed to fetch clan membership:', membershipError.message);
       }
-  
+
       let resolvedMembership = membership;
-  
+
       if (resolvedMembership && resolvedMembership.clan_id) {
           resolvedClanId = resolvedMembership.clan_id;
           resolvedClanRole = resolvedMembership.role as ClanRole;
@@ -1796,7 +1796,7 @@ export const whoami = async (): Promise<Profile> => {
           const clanRecord = Array.isArray(resolvedMembership.clans) ? resolvedMembership.clans[0] : resolvedMembership.clans;
           resolvedClanName = clanRecord?.name ?? null;
       }
-  
+
       if (resolvedClanId) {
           if (!resolvedClanName) {
               const { data: clanRow, error: clanError } = await supabase
@@ -1804,17 +1804,17 @@ export const whoami = async (): Promise<Profile> => {
                   .select('name')
                   .eq('id', resolvedClanId)
                   .maybeSingle();
-  
+
               if (clanError && clanError.code !== 'PGRST116') {
                   console.warn('Failed to load clan name from clans table:', clanError.message);
               }
-  
+
               resolvedClanName = clanRow?.name ?? resolvedClanName;
           }
-  
+
           let clanScore: number | null = null;
           let activeBuffs: ActiveClanBuff[] = [];
-          
+
           try {
               const [score, buffs] = await Promise.all([
                   fetchClanScoreValue(resolvedClanId),
@@ -1827,7 +1827,7 @@ export const whoami = async (): Promise<Profile> => {
               clanScore = null;
               activeBuffs = [];
           }
-  
+
           profile.clan_id = resolvedClanId;
           profile.clan_role = resolvedClanRole;
           profile.clan_custom_title = resolvedCustomTitle;
@@ -1851,28 +1851,28 @@ export const whoami = async (): Promise<Profile> => {
       }
 
       profile.defense_power_effective = (profile.defense_power_effective ?? profile.defense_power) + activeShieldDefense;
-  
+
     try {
       profile.active_cosmetic_frame = await getActiveCosmeticFrame(profile.id);
     } catch (cosmeticError) {
       console.warn('Failed to attach cosmetic frame to profile:', cosmeticError);
       profile.active_cosmetic_frame = null;
     }
-  
+
     try {
       profile.active_cosmetic_theme = await getActiveCosmeticTheme(profile.id);
     } catch (cosmeticError) {
       console.warn('Failed to attach cosmetic theme to profile:', cosmeticError);
       profile.active_cosmetic_theme = null;
     }
-  
+
     try {
       profile.active_cosmetic_effect = await getActiveCosmeticEffect(profile.id);
     } catch (cosmeticError) {
       console.warn('Failed to attach cosmetic effect to profile:', cosmeticError);
       profile.active_cosmetic_effect = null;
     }
-  
+
     // Fetch school info for display (name and logo)
     if (profile.school_id) {
       try {
@@ -1881,7 +1881,7 @@ export const whoami = async (): Promise<Profile> => {
           .select('name, logo_url')
           .eq('id', profile.school_id)
           .single();
-        
+
         if (!schoolError && schoolData) {
           profile.school_name = schoolData.name;
           profile.school_logo_url = schoolData.logo_url;
@@ -1890,9 +1890,9 @@ export const whoami = async (): Promise<Profile> => {
         console.warn('Failed to fetch school info:', schoolErr);
       }
     }
-  
+
       profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
-  
+
       try {
           profile.xp_status = await fetchMyXpStatus(supabase, {
               xp: profile.xp,
@@ -1901,7 +1901,7 @@ export const whoami = async (): Promise<Profile> => {
       } catch (error) {
           console.warn('[whoami] Failed to fetch XP status:', error);
       }
-  
+
     return profile;
   })();
 
@@ -2019,20 +2019,20 @@ export const getPublicProfile = async (userId: string): Promise<Profile | null> 
   // Retry logic for fetching profile
   let profile: any = null;
   let fetchError: any = null;
-  
+
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       // Use RPC function to bypass RLS and get public profile
       const { data, error } = await supabase.rpc('get_public_profile', {
         target_user_id: userId
       });
-      
+
       if (error) throw error;
-      
+
       // The RPC returns JSON, so data is the profile object directly
       profile = data;
       fetchError = null;
-      
+
       if (profile) break; // Success
     } catch (err) {
       fetchError = err;
@@ -2104,10 +2104,10 @@ export const tasks_list = async (): Promise<Task[]> => {
   let dailyPvpWins = 0;
   let weeklyTasksCompleted = 0;
   let progressReadFromDb = false;
-  
+
   try {
     const user = await getCurrentUser();
-    
+
     // Use UTC day/week boundaries so task windows match server-side reward checks.
     const now = new Date();
     const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -2117,7 +2117,7 @@ export const tasks_list = async (): Promise<Task[]> => {
     // Get start of week (Sunday, UTC)
     const weekStart = new Date(todayStart);
     weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay());
-    
+
     // Query canonical quest completions from quest_runs (Quest Mode 2.0).
     const { count: completedRunsCount, error: completedRunsError } = await supabase
       .from('quest_runs')
@@ -2154,7 +2154,7 @@ export const tasks_list = async (): Promise<Task[]> => {
     const legacyActivityCompletions = questData?.length || 0;
     const sessionDerivedCompletions = uniqueQuestSessions.size;
     dailyQuestsCompleted = Math.max(questRunsCompleted, legacyActivityCompletions, sessionDerivedCompletions);
-    
+
     // Query database for today's PvP wins
     // Canonical win events are `pvp_win`; keep `attack_success` as a compatibility
     // alias for environments that still emit the legacy kind.
@@ -2165,9 +2165,9 @@ export const tasks_list = async (): Promise<Task[]> => {
       .eq('kind', 'pvp_win')
       .gte('created_at', todayStart.toISOString())
       .lt('created_at', todayEnd.toISOString());
-    
+
     dailyPvpWins = pvpData?.length || 0;
-    
+
     // Query database for this week's DAILY task claims
     const { data: weeklyData } = await supabase
       .from('activities')
@@ -2176,10 +2176,10 @@ export const tasks_list = async (): Promise<Task[]> => {
       .eq('kind', 'task_claimed')
       .eq('data->>task_kind', 'daily')
       .gte('created_at', weekStart.toISOString());
-    
+
     weeklyTasksCompleted = weeklyData?.length || 0;
     progressReadFromDb = true;
-    
+
   } catch (error) {
     // Fall back to localStorage if database query fails
     console.warn('Failed to fetch task progress from database, using localStorage:', error);
@@ -2188,7 +2188,7 @@ export const tasks_list = async (): Promise<Task[]> => {
     dailyPvpWins = progress.daily_pvp_wins;
     weeklyTasksCompleted = progress.weekly_tasks_completed;
   }
-  
+
   const progress = getTaskProgress();
   if (progressReadFromDb) {
     // DB is canonical: keep local cache aligned with server-side reset state.
@@ -2202,7 +2202,7 @@ export const tasks_list = async (): Promise<Task[]> => {
     dailyPvpWins = Math.max(dailyPvpWins, progress.daily_pvp_wins);
     weeklyTasksCompleted = Math.max(weeklyTasksCompleted, progress.weekly_tasks_completed);
   }
-  
+
   // Build storage keys for claim tracking
   const today = new Date().toISOString().split('T')[0];
   const claimedDailyKey = `task_claims_daily_${today}`;
@@ -2221,7 +2221,7 @@ export const tasks_list = async (): Promise<Task[]> => {
   const claimedDailyTasks = JSON.parse(localStorage.getItem(claimedDailyKey) || '[]') as string[];
   const claimedWeeklyTasks = JSON.parse(localStorage.getItem(claimedWeeklyKey) || '[]') as string[];
   const legacyClaimedTasks = JSON.parse(localStorage.getItem(legacyClaimedKey) || '[]') as string[];
-  
+
   // Calculate time until midnight for daily reset
   const now = new Date();
   const tomorrow = new Date(now);
@@ -2232,12 +2232,12 @@ export const tasks_list = async (): Promise<Task[]> => {
   const minutesUntilMidnight = Math.floor((msUntilMidnight % (1000 * 60 * 60)) / (1000 * 60));
   const secondsUntilMidnight = Math.floor((msUntilMidnight % (1000 * 60)) / 1000);
   const dailyExpiry = `${hoursUntilMidnight}h ${minutesUntilMidnight}m ${secondsUntilMidnight}s`;
-  
+
   // Calculate days until next Sunday for weekly reset
   const dayOfWeekNow = now.getDay();
   const daysUntilSunday = dayOfWeekNow === 0 ? 7 : 7 - dayOfWeekNow;
   const weeklyExpiry = daysUntilSunday === 1 ? '1d' : `${daysUntilSunday}d`;
-  
+
   // Also check database for claimed status
   let claimedDailyFromDb: string[] = [];
   let claimedWeeklyFromDb: string[] = [];
@@ -2280,7 +2280,7 @@ export const tasks_list = async (): Promise<Task[]> => {
   const allClaimedWeeklyTasks = claimedReadFromDb
     ? [...new Set([...claimedWeeklyFromDb, ...claimedWeeklyTasks])]
     : [...new Set([...claimedWeeklyTasks])];
-  
+
   const tasks: Task[] = [
     {
       id: 'task_d1',
@@ -2323,19 +2323,19 @@ export const task_claim = async (task_id: string): Promise<TaskClaimReward> => {
   // Get task details
   const tasks = await tasks_list();
   const task = tasks.find(t => t.id === task_id);
-  
+
   if (!task) {
     throw new Error('Task not found');
   }
-  
+
   if (task.claimed) {
     throw new Error('Task already claimed');
   }
-  
+
   if (task.progress < task.target) {
     throw new Error('Task not completed yet');
   }
-  
+
   if (!task.reward) {
     throw new Error('No reward defined for this task');
   }
@@ -2571,7 +2571,7 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
 function getTimeAgo(date: Date): string {
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
+
   if (seconds < 60) return 'Just now';
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
@@ -2625,7 +2625,7 @@ export const activity_reaction_toggle = async (activity_id: string, emoji: strin
     .eq('activity_id', activity_id)
     .eq('user_id', user.id)
     .single();
-  
+
   if (existingReaction) {
     if (existingReaction.emoji === emoji) {
       // Remove the reaction (toggle off)
@@ -2633,7 +2633,7 @@ export const activity_reaction_toggle = async (activity_id: string, emoji: strin
         .from('activity_reactions')
         .delete()
         .eq('id', existingReaction.id);
-      
+
       return mockApiCall({ added: false });
     } else {
       // Update to new emoji
@@ -2641,7 +2641,7 @@ export const activity_reaction_toggle = async (activity_id: string, emoji: strin
         .from('activity_reactions')
         .update({ emoji: emoji })
         .eq('id', existingReaction.id);
-      
+
       return mockApiCall({ added: true });
     }
   } else {
@@ -2653,7 +2653,7 @@ export const activity_reaction_toggle = async (activity_id: string, emoji: strin
         user_id: user.id,
         emoji: emoji,
       });
-    
+
     return mockApiCall({ added: true });
   }
 };
@@ -2757,10 +2757,10 @@ export const mcq_questions_get = async (subject_id: string, limit: number = 5): 
 export const get_student_subject_progress = async (): Promise<{ id: string; name: string; answeredCount: number; totalAvailable: number }[]> => {
     try {
         const user = await getCurrentUser();
-        
+
         // Get all subjects
         const subjects = await mcq_subjects_list();
-        
+
         // Get DISTINCT question_ids answered by THIS student (not duplicate attempts)
         // This prevents counting the same question multiple times
         let attemptCounts: any[] = [];
@@ -2769,7 +2769,7 @@ export const get_student_subject_progress = async (): Promise<{ id: string; name
                 .from('question_attempts')
                 .select('question_id')
                 .eq('student_id', user.id);
-            
+
             if (attemptError) {
                 console.error('Error fetching student attempts:', attemptError);
             } else {
@@ -2778,9 +2778,9 @@ export const get_student_subject_progress = async (): Promise<{ id: string; name
         } catch (err) {
             console.warn('Failed to fetch attempt counts:', err);
         }
-        
+
         const questionData = (await get_public_questions()).map(({ id, subject }) => ({ id, subject }));
-        
+
         // Build a map of question_id -> subject
         const questionSubjectMap: Record<string, string> = {};
         const totalBySubject: Record<string, number> = {};
@@ -2790,7 +2790,7 @@ export const get_student_subject_progress = async (): Promise<{ id: string; name
                 totalBySubject[q.subject] = (totalBySubject[q.subject] || 0) + 1;
             }
         }
-        
+
         // Build answer counts by subject using UNIQUE question_ids only
         // Use a Set to track which questions have been answered per subject
         const answeredQuestionsPerSubject: Record<string, Set<string>> = {};
@@ -2803,19 +2803,19 @@ export const get_student_subject_progress = async (): Promise<{ id: string; name
                 answeredQuestionsPerSubject[subject].add(attempt.question_id);
             }
         }
-        
+
         // Convert Sets to counts
         const answeredBySubject: Record<string, number> = {};
         for (const [subject, questionSet] of Object.entries(answeredQuestionsPerSubject)) {
             answeredBySubject[subject] = questionSet.size;
         }
-        
+
         // Map to result with subject names (case-insensitive matching for robustness)
         return subjects.map(s => {
             // Try exact match first, then case-insensitive
             let answered = answeredBySubject[s.name] || 0;
             let total = totalBySubject[s.name] || 0;
-            
+
             // If no match, try case-insensitive
             if (answered === 0 && total === 0) {
                 const lowerName = s.name.toLowerCase();
@@ -2832,7 +2832,7 @@ export const get_student_subject_progress = async (): Promise<{ id: string; name
                     }
                 }
             }
-            
+
             return {
                 id: s.id,
                 name: s.name,
@@ -2875,10 +2875,10 @@ export const get_student_subject_progress_with_difficulty = async (): Promise<Su
     try {
         const user = await getCurrentUser();
         console.log('[Progress] Fetching progress for user:', user.id);
-        
+
         // Get all subjects
         const subjects = await mcq_subjects_list();
-        
+
         // Get student's answered question IDs - using RLS to filter by student_id
         let attemptCounts: { question_id: string }[] = [];
         try {
@@ -2888,7 +2888,7 @@ export const get_student_subject_progress_with_difficulty = async (): Promise<Su
                 .from('question_attempts')
                 .select('question_id')
                 .eq('student_id', user.id);
-            
+
             if (attemptError) {
                 console.error('[Progress] Error fetching student attempts:', attemptError);
             } else {
@@ -2898,12 +2898,12 @@ export const get_student_subject_progress_with_difficulty = async (): Promise<Su
         } catch (err) {
             console.warn('[Progress] Failed to fetch attempt counts:', err);
         }
-        
+
         // Build set of answered question IDs
         const answeredQuestionIds = new Set(attemptCounts.map(a => a.question_id));
-        
+
         const questionData = (await get_public_questions()).map(({ id, subject, difficulty }) => ({ id, subject, difficulty }));
-        
+
         // Normalize difficulty values (db uses 'med' but UI uses 'medium')
         const normalizeDifficulty = (d: string | null): 'easy' | 'medium' | 'hard' => {
             if (!d) return 'easy'; // Default to easy if no difficulty set
@@ -2913,7 +2913,7 @@ export const get_student_subject_progress_with_difficulty = async (): Promise<Su
             if (lower === 'hard') return 'hard';
             return 'easy'; // Default fallback
         };
-        
+
         // Build progress per subject with difficulty breakdown
         const subjectProgress: Record<string, {
             total: number;
@@ -2924,14 +2924,14 @@ export const get_student_subject_progress_with_difficulty = async (): Promise<Su
                 hard: { total: number; completed: number };
             };
         }> = {};
-        
+
         for (const q of questionData) {
             if (!q.subject) continue;
-            
+
             const subjectKey = q.subject;
             const difficulty = normalizeDifficulty(q.difficulty);
             const isAnswered = answeredQuestionIds.has(q.id);
-            
+
             if (!subjectProgress[subjectKey]) {
                 subjectProgress[subjectKey] = {
                     total: 0,
@@ -2943,21 +2943,21 @@ export const get_student_subject_progress_with_difficulty = async (): Promise<Su
                     }
                 };
             }
-            
+
             subjectProgress[subjectKey].total++;
             subjectProgress[subjectKey].difficulties[difficulty].total++;
-            
+
             if (isAnswered) {
                 subjectProgress[subjectKey].answered++;
                 subjectProgress[subjectKey].difficulties[difficulty].completed++;
             }
         }
-        
+
         // Map subjects to results with case-insensitive matching
         return subjects.map(s => {
             // Try exact match first
             let progress = subjectProgress[s.name];
-            
+
             // If no match, try case-insensitive
             if (!progress) {
                 const lowerName = s.name.toLowerCase();
@@ -2968,13 +2968,13 @@ export const get_student_subject_progress_with_difficulty = async (): Promise<Su
                     }
                 }
             }
-            
+
             const defaultDifficulties = {
                 easy: { total: 0, completed: 0 },
                 medium: { total: 0, completed: 0 },
                 hard: { total: 0, completed: 0 }
             };
-            
+
             return {
                 id: s.id,
                 name: s.name,
@@ -3015,16 +3015,16 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
             .single(),
         supabase.rpc('get_attack_targets', { p_limit: 100 }),
     ]);
-    
+
     const userLevel = profileData?.level || 1;
     const userBatch = profileData?.batch || '8B';
     const userAttackPower = profileData?.attack_power || 10;
-    
+
     if (error) throw error;
-    
+
     const playerList = players || [];
     const playerIds = playerList.map((p: any) => p.id);
-    
+
     const [neonOwners, flickerOwners, glitchOwners] = await Promise.all([
         fetchNeonFrameOwners(playerIds),
         fetchFlickerThemeOwners(playerIds),
@@ -3034,7 +3034,7 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
     const realTargets: RaidTarget[] = playerList.map((p: any) => {
         // RPC already returns has_shield, clan_id, clan_name
         const targetHasShield = p.has_shield || false;
-        
+
         // Calculate win rate based on attack vs defense
         const defenderPower = (p.defense_power || 10) + (targetHasShield ? 20 : 0);
         const winRate = Math.min(0.95, Math.max(0.05, userAttackPower / (userAttackPower + defenderPower)));
@@ -3066,12 +3066,12 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
         // Same batch gets priority
         if (a.batch === userBatch && b.batch !== userBatch) return -1;
         if (b.batch === userBatch && a.batch !== userBatch) return 1;
-        
+
         // Similar level gets priority
         const levelDiffA = Math.abs(a.level - userLevel);
         const levelDiffB = Math.abs(b.level - userLevel);
         if (levelDiffA !== levelDiffB) return levelDiffA - levelDiffB;
-        
+
         // Active players (online recently) get priority
         const timeA = a.last_seen ? new Date(a.last_seen).getTime() : 0;
         const timeB = b.last_seen ? new Date(b.last_seen).getTime() : 0;
@@ -3210,7 +3210,7 @@ const MOCK_SHOP_ITEMS: ShopItem[] = [
 
 export const shop_list = async (): Promise<ShopItem[]> => {
     const user = await getCurrentUser();
-    
+
     // Get today's purchases from database
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const { data: purchases } = await supabase
@@ -3218,19 +3218,19 @@ export const shop_list = async (): Promise<ShopItem[]> => {
         .select('item_id, quantity')
         .eq('user_id', user.id)
         .eq('purchase_date', today); // Use purchase_date column (DATE type)
-    
+
     // Count purchases by item_id
     const purchaseCounts: Record<string, number> = {};
     purchases?.forEach(p => {
         purchaseCounts[p.item_id] = (purchaseCounts[p.item_id] || 0) + p.quantity;
     });
-    
+
     // Update owned_today with real purchase counts
     const itemsWithRealCounts = MOCK_SHOP_ITEMS.map(item => ({
         ...item,
         owned_today: purchaseCounts[item.id] || 0
     }));
-    
+
     return mockApiCall(itemsWithRealCounts);
 };
 
@@ -3275,9 +3275,9 @@ export const shop_buy = async (item_id: string, quantity: number): Promise<Purch
         .eq('user_id', user.id)
         .eq('item_id', item_id)
         .eq('purchase_date', today); // Use purchase_date column (DATE type)
-    
+
     const currentPurchaseCount = todayPurchases?.reduce((sum, p) => sum + p.quantity, 0) || 0;
-    
+
     if ((currentPurchaseCount + quantity) > item.daily_limit) {
         return Promise.reject({ message: 'Daily purchase limit exceeded.' });
     }
@@ -3301,11 +3301,11 @@ export const shop_buy = async (item_id: string, quantity: number): Promise<Purch
         kind: 'shop_purchase',
         actor_id: user.id,
         actor_username: user.email?.split('@')[0] || 'Unknown',
-        data: { 
-            item_id: item.id, 
-            item_name: item.name, 
+        data: {
+            item_id: item.id,
+            item_name: item.name,
             quantity: quantity,
-            amount: totalCoinCost 
+            amount: totalCoinCost
         },
     });
 
@@ -3335,7 +3335,7 @@ export const shop_buy = async (item_id: string, quantity: number): Promise<Purch
         };
         inventoryItems.push(newItem);
     }
-    
+
     await supabase.from('inventory').insert(inventoryItems);
 
     const receipt: PurchaseReceipt = {
@@ -3347,13 +3347,13 @@ export const shop_buy = async (item_id: string, quantity: number): Promise<Purch
         item: item,
         quantity: quantity
     };
-    
+
     return mockApiCall(receipt);
 };
 
 export const inventory_list = async (): Promise<InventoryItem[]> => {
     const user = await getCurrentUser();
-    
+
     // Delete expired items from database
     const now = new Date().toISOString();
     await supabase
@@ -3363,16 +3363,16 @@ export const inventory_list = async (): Promise<InventoryItem[]> => {
         .eq('state', 'active')
         .not('expires_at', 'is', null)
         .lt('expires_at', now);
-    
+
     // Fetch user's inventory
     const { data: items, error } = await supabase
         .from('inventory')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
-    
+
     return mockApiCall(items || []);
 };
 
@@ -3842,7 +3842,7 @@ export const clan_reject_join_request = async (requestId: string): Promise<boole
 
 export const clan_cancel_join_request = async (requestId: string): Promise<boolean> => {
     const user = await getCurrentUser();
-    
+
     const { data: request, error: fetchError } = await supabase
         .from('clan_join_requests')
         .select('user_id, status')
@@ -3907,7 +3907,7 @@ export const clan_details = async (): Promise<Clan | null> => {
     if (error || !clan) {
         return mockApiCall(null);
     }
-    
+
     let memberRows: any[] = [];
     const { data: membersData, error: membersError } = await supabase
         .from('clan_member_scores')
@@ -3944,10 +3944,10 @@ export const clan_details = async (): Promise<Clan | null> => {
     })) as ClanMember[];
 
     const calculatedScore = members.reduce((sum, member) => sum + (member.total_score || 0), 0);
-    
+
     let clanScore: number | null = null;
     let activeBuffs: ActiveClanBuff[] = [];
-    
+
     try {
         const [score, buffs] = await Promise.all([
             fetchClanScoreValue(clan.id),
@@ -3978,36 +3978,36 @@ export const clan_details = async (): Promise<Clan | null> => {
         clan_total_score: totalScore,
         leader_id: clan.leader_id,
     };
-    
+
     return mockApiCall(fullClan);
 };
 
 export const clan_create = async (name: string, notice: string): Promise<Clan> => {
     const user = await getCurrentUser();
     const creationFee = 1000;
-    
+
     // Parallelize initial checks for speed
     const [profileResult, membershipResult, usernameResult] = await Promise.all([
         supabase.from('users').select('coins').eq('id', user.id).single(),
         supabase.from('clan_members').select('clan_id').eq('user_id', user.id).maybeSingle(),
         supabase.from('users').select('username').eq('id', user.id).single(),
     ]);
-    
+
     const profile = profileResult.data;
     const existingMembership = membershipResult.data;
     const username = usernameResult.data?.username || 'Unknown';
-    
+
     if (!profile || profile.coins < creationFee) {
         throw new Error('Not enough coins to create a clan.');
     }
-    
+
     if (existingMembership) {
         throw new Error('You are already in a clan.');
     }
-    
+
     // Deduct coins and create clan in parallel-ish flow
     await updateProfile(user.id, { coins: profile.coins - creationFee });
-    
+
     // Create clan
     const { data: newClan, error: clanError } = await supabase
         .from('clans')
@@ -4020,23 +4020,23 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         })
         .select()
         .single();
-    
+
     if (clanError) {
         console.error('Clan creation error:', clanError);
         throw new Error(clanError.message || 'Failed to create clan.');
     }
-    
+
     if (!newClan) {
         throw new Error('Failed to create clan - no data returned.');
     }
-    
+
     // Add creator as leader (don't wait for activity log)
     const { error: memberError } = await supabase.from('clan_members').insert({
         clan_id: newClan.id,
         user_id: user.id,
         role: 'leader',
     });
-    
+
     if (memberError) {
         console.error('Clan member creation error:', memberError);
         throw new Error('Failed to add you as clan leader.');
@@ -4055,7 +4055,7 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
             console.warn('Failed to log clan_create activity:', e);
         }
     })();
-    
+
     // Return immediate clan object without heavy clan_details() call
     // The UI will refresh the full details on next mount
     const immediateClan: Clan = {
@@ -4086,7 +4086,7 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         clan_total_score: 0,
         leader_id: user.id,
     };
-    
+
     return immediateClan;
 };
 
@@ -4117,12 +4117,12 @@ export const clan_chat_recent = async (clanId?: string): Promise<ClanChatMessage
         .eq('clan_id', targetClanId)
         .order('created_at', { ascending: false })
         .limit(20);
-    
+
     if (error) {
         console.error('Error fetching chat:', error);
         return mockApiCall([]);
     }
-    
+
     const chatMessages: ClanChatMessage[] = (messages || []).map((m: any) => ({
         id: m.id,
         user: m.username || 'Unknown',
@@ -4130,7 +4130,7 @@ export const clan_chat_recent = async (clanId?: string): Promise<ClanChatMessage
         created_at: formatChatTimestamp(new Date(m.created_at)),
         is_self: m.user_id === user.id,
     })).reverse(); // Reverse to show oldest first
-    
+
     return mockApiCall(chatMessages);
 };
 
@@ -4147,18 +4147,18 @@ const toxicityFilter = (message: string): string => {
 export const clan_chat_post = async (message: string, clanId?: string): Promise<ClanChatMessage> => {
     const user = await getCurrentUser();
     const cleanMessage = toxicityFilter(message);
-    
+
     // Get user's profile for username
     const { data: profile } = await supabase
         .from('users')
         .select('username')
         .eq('id', user.id)
         .single();
-    
+
     if (!profile) {
         throw new Error('User profile not found.');
     }
-    
+
     let targetClanId = clanId;
 
     if (!targetClanId) {
@@ -4175,7 +4175,7 @@ export const clan_chat_post = async (message: string, clanId?: string): Promise<
     if (!targetClanId) {
         throw new Error('You are not in a clan.');
     }
-    
+
     // Insert chat message with username directly
     const { data: newMessage, error } = await supabase
         .from('clan_chat')
@@ -4187,16 +4187,16 @@ export const clan_chat_post = async (message: string, clanId?: string): Promise<
         })
         .select('*')
         .single();
-    
+
     if (error) {
         console.error('Chat post error:', error);
         throw new Error(error.message || 'Failed to post message.');
     }
-    
+
     if (!newMessage) {
         throw new Error('Failed to post message - no data returned.');
     }
-    
+
     const chatMessage: ClanChatMessage = {
         id: newMessage.id,
         user: newMessage.username,
@@ -4204,17 +4204,17 @@ export const clan_chat_post = async (message: string, clanId?: string): Promise<
         created_at: formatChatTimestamp(new Date()),
         is_self: true,
     };
-    
+
     return mockApiCall(chatMessage);
 };
 
 export const clan_get_available_buffs = async (): Promise<ClanBuffTemplate[]> => {
     try {
         // Keep a timeout guard, but allow slower environments enough time to respond.
-        const timeoutPromise = new Promise<never>((_, reject) => 
+        const timeoutPromise = new Promise<never>((_, reject) =>
             setTimeout(() => reject(new Error('Timeout')), 6000)
         );
-        
+
         const queryPromise = supabase
             .from('clan_buff_templates')
             .select('*')
@@ -4245,7 +4245,7 @@ export const clan_get_available_buffs = async (): Promise<ClanBuffTemplate[]> =>
 
 export const clan_deposit_coins = async (amount: number): Promise<{ new_clan_vault: number; new_user_coins: number }> => {
     const user = await getCurrentUser();
-    
+
     if (amount <= 0) {
         throw new Error('Invalid amount.');
     }
@@ -4389,66 +4389,66 @@ export const clan_update_member_role = async (
 
 export const clan_leave = async (): Promise<boolean> => {
     const user = await getCurrentUser();
-    
+
     // Check if user is in a clan
     const { data: membership } = await supabase
         .from('clan_members')
         .select('clan_id, role')
         .eq('user_id', user.id)
         .single();
-    
+
     if (!membership) {
         throw new Error('You are not in a clan.');
     }
-    
+
     // Leaders cannot leave, they must delete the clan or transfer leadership
     if (membership.role === 'leader') {
         throw new Error('Leaders cannot leave. Delete the clan or transfer leadership first.');
     }
-    
+
     // Remove user from clan
     const { error } = await supabase
         .from('clan_members')
         .delete()
         .eq('user_id', user.id);
-    
+
     if (error) {
         console.error('Failed to leave clan:', error);
         throw new Error('Failed to leave clan.');
     }
-    
+
     return mockApiCall(true);
 };
 
 export const clan_delete = async (): Promise<boolean> => {
     const user = await getCurrentUser();
-    
+
     // Get user's clan and verify they're the leader
     const { data: membership } = await supabase
         .from('clan_members')
         .select('clan_id, role')
         .eq('user_id', user.id)
         .single();
-    
+
     if (!membership) {
         throw new Error('You are not in a clan.');
     }
-    
+
     if (membership.role !== 'leader') {
         throw new Error('Only the clan leader can delete the clan.');
     }
-    
+
     // Delete the clan (cascade will delete members and chat)
     const { error } = await supabase
         .from('clans')
         .delete()
         .eq('id', membership.clan_id);
-    
+
     if (error) {
         console.error('Failed to delete clan:', error);
         throw new Error('Failed to delete clan.');
     }
-    
+
     return mockApiCall(true);
 };
 
@@ -4462,22 +4462,22 @@ export const clan_demote_member = async (user_id: string): Promise<Clan> => {
 
 export const clan_kick_member = async (user_id: string): Promise<Clan> => {
     const user = await getCurrentUser();
-    
+
     // Get current user's clan and role
     const { data: membership } = await supabase
         .from('clan_members')
         .select('clan_id, role')
         .eq('user_id', user.id)
         .single();
-    
+
     if (!membership) {
         throw new Error('Not in a clan.');
     }
-    
+
     if (!['leader', 'officer', 'moderator'].includes(membership.role)) {
         throw new Error('Only leaders, officers, and moderators can kick members.');
     }
-    
+
     // Cannot kick the leader
     const { data: targetMember } = await supabase
         .from('clan_members')
@@ -4485,23 +4485,23 @@ export const clan_kick_member = async (user_id: string): Promise<Clan> => {
         .eq('user_id', user_id)
         .eq('clan_id', membership.clan_id)
         .single();
-    
+
     if (targetMember?.role === 'leader') {
         throw new Error('Cannot kick the clan leader.');
     }
-    
+
     // Remove the member
     const { error } = await supabase
         .from('clan_members')
         .delete()
         .eq('user_id', user_id)
         .eq('clan_id', membership.clan_id);
-    
+
     if (error) {
         console.error('Failed to kick member:', error);
         throw new Error('Failed to kick member.');
     }
-    
+
     return await clan_details() as Clan;
 };
 
@@ -4752,13 +4752,13 @@ export const update_username = async (newUsername: string): Promise<Profile> => 
  */
 export const upload_question_image = async (file: File): Promise<string> => {
     const user = await getCurrentUser();
-    
+
     // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
     if (!validTypes.includes(file.type)) {
         throw new Error('Invalid file type. Please upload a JPEG, PNG, GIF, SVG, or WebP image.');
     }
-    
+
     // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
@@ -4950,7 +4950,7 @@ export const achievements_list = async (): Promise<Achievement[]> => {
     // Count assignments (with error handling for RLS issues)
     let assignmentsCompleted = 0;
     let perfectScores = 0;
-    
+
     try {
         const { data: assignmentResults, error: assignmentError } = await supabase
             .from('student_assignment_results')
@@ -5514,29 +5514,29 @@ export const get_subject_question_progress = async (subject: string): Promise<{ 
         const questions = await get_public_questions(subject);
         const questionIds = questions.map(q => q.id);
         const totalCount = questionIds.length;
-        
+
         if (totalCount === 0) {
             return { answeredCount: 0, totalCount: 0 };
         }
-        
+
         // Get student's attempts for these questions
         const { data: attempts, error: attemptsError } = await supabase
             .from('question_attempts')
             .select('question_id')
             .eq('student_id', user.id)
             .in('question_id', questionIds);
-        
+
         if (attemptsError) {
             console.error('Error fetching attempts for progress:', attemptsError);
             return { answeredCount: 0, totalCount };
         }
-        
+
         // Count unique question_ids answered
         const uniqueAnswered = new Set((attempts || []).map(a => a.question_id));
-        
-        return { 
-            answeredCount: uniqueAnswered.size, 
-            totalCount 
+
+        return {
+            answeredCount: uniqueAnswered.size,
+            totalCount
         };
     } catch (error) {
         console.error('get_subject_question_progress failed:', error);
@@ -5675,6 +5675,8 @@ export const create_assignment = async (
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
+        p_assignment_category: payload.assignment_category ?? null,
+        p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
         p_student_ids: payload.student_ids ?? null,
         p_publish_status: payload.publish_status ?? 'published',
@@ -5691,6 +5693,34 @@ export const create_assignment = async (
     return assignment;
 };
 
+type AssignmentCategoryContextRow = {
+    assignment_id: string;
+    assignment_category?: TeacherAssignmentSummary['assignment_category'];
+    academic_year_id?: string | null;
+    academic_term_id?: string | null;
+    class_id?: string | null;
+};
+
+const mergeAssignmentCategoryContext = <T extends { assignment_id?: string; id?: string }>(
+    assignments: T[],
+    contextRows: AssignmentCategoryContextRow[]
+): T[] => {
+    const context = new Map(contextRows.map((row) => [row.assignment_id, row]));
+    return assignments.map((assignment) => {
+        const assignmentId = assignment.assignment_id || assignment.id;
+        const extra = assignmentId ? context.get(assignmentId) : undefined;
+        return extra ? { ...assignment, ...extra } : assignment;
+    });
+};
+
+const enrichStudentAssignmentsWithCategoryContext = async <T extends StudentAssignmentTask>(assignments: T[]): Promise<T[]> => {
+    const ids = assignments.map((assignment) => assignment.assignment_id).filter(Boolean);
+    if (!ids.length) return assignments;
+    const { data, error } = await supabase.rpc('rpc_my_assignment_category_context', { p_assignment_ids: ids });
+    if (error) throw new Error(error.message || 'Failed to load assignment category context');
+    return mergeAssignmentCategoryContext(assignments, (data as AssignmentCategoryContextRow[]) || []) as T[];
+};
+
 export const get_teacher_assignments = async (teacherId?: string): Promise<TeacherAssignmentSummary[]> => {
     let resolvedTeacherId = teacherId;
     if (!resolvedTeacherId) {
@@ -5702,7 +5732,10 @@ export const get_teacher_assignments = async (teacherId?: string): Promise<Teach
     const { data, error } = await rpcGetAssignmentsForTeacher({ p_teacher_id: resolvedTeacherId });
     if (error) throw new Error(error.message || 'Failed to load assignments');
 
-    return (data as TeacherAssignmentSummary[]) || [];
+    const assignments = (data as TeacherAssignmentSummary[]) || [];
+    const { data: contextData, error: contextError } = await supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId });
+    if (contextError) throw new Error(contextError.message || 'Failed to load assignment category context');
+    return mergeAssignmentCategoryContext(assignments, (contextData as AssignmentCategoryContextRow[]) || []) as TeacherAssignmentSummary[];
 };
 
 export const delete_teacher_assignment = async (assignmentId: string): Promise<void> => {
@@ -5736,6 +5769,8 @@ export const update_teacher_assignment = async (
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
+        p_assignment_category: payload.assignment_category ?? null,
+        p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
         p_student_ids: payload.student_ids ?? null,
         p_publish_status: payload.publish_status ?? 'published',
@@ -5777,7 +5812,7 @@ export const get_students_for_assignment = async (teacherId?: string): Promise<S
     }
 
     const { data, error } = await rpcGetStudentsForAssignment({ p_teacher_id: resolvedTeacherId });
-    
+
     if (error) {
         console.error('RPC error getting students:', error);
         throw new Error(error.message || 'Failed to load students');
@@ -5791,12 +5826,12 @@ export const get_students_for_assignment = async (teacherId?: string): Promise<S
 export const get_student_active_assignment = async (): Promise<StudentAssignmentTask | null> => {
     console.log('[gameService] Calling rpc_get_student_active_assignment...');
     const { data, error } = await rpcGetStudentActiveAssignment();
-    
+
     if (error) {
         console.error('[gameService] Error from rpc_get_student_active_assignment:', error);
         throw new Error(error.message || 'Failed to load assignment');
     }
-    
+
     console.log('[gameService] Raw assignment data:', data);
 
     const row = Array.isArray(data) ? data[0] : data;
@@ -5806,12 +5841,12 @@ export const get_student_active_assignment = async (): Promise<StudentAssignment
     }
 
     const parsedRow = row as StudentAssignmentTask;
-    console.log('[gameService] Parsed assignment:', { 
-        id: parsedRow.assignment_id, 
+    console.log('[gameService] Parsed assignment:', {
+        id: parsedRow.assignment_id,
         title: parsedRow.title,
-        questionsCount: parsedRow.questions?.length || 0 
+        questionsCount: parsedRow.questions?.length || 0
     });
-    
+
     let normalizedQuestions = ((parsedRow.questions ?? []) as TeacherQuestion[]).map(normalizeTeacherQuestionPayload);
 
     if (!normalizedQuestions.length) {
@@ -5832,10 +5867,11 @@ export const get_student_active_assignment = async (): Promise<StudentAssignment
         }
     }
 
-    return {
+    const enriched = await enrichStudentAssignmentsWithCategoryContext([{
         ...parsedRow,
         questions: normalizedQuestions,
-    };
+    }]);
+    return enriched[0] || null;
 };
 
 // ── Brains Master Premium ─────────────────────────────────────────────
@@ -5879,7 +5915,7 @@ export const get_student_pending_assignments = async (): Promise<StudentAssignme
         return [];
     }
 
-    return rows.map((row) => {
+    const normalizedAssignments = rows.map((row) => {
         const parsedRow = row as StudentAssignmentTask;
         const normalizedQuestions = ((parsedRow.questions ?? []) as TeacherQuestion[]).map(normalizeTeacherQuestionPayload);
         return {
@@ -5887,6 +5923,7 @@ export const get_student_pending_assignments = async (): Promise<StudentAssignme
             questions: normalizedQuestions,
         };
     });
+    return enrichStudentAssignmentsWithCategoryContext(normalizedAssignments);
 };
 
 export type AssignmentSubmissionResult = {
