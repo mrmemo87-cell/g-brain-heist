@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const compatibility = readFileSync(
-  'supabase/migrations/20260901092500_verified_importer_global_pool_compatibility.sql',
+  'supabase/migrations/20260901033233_20260901092500_verified_importer_global_pool_compatibility.sql',
   'utf8',
 );
 const supplement = readFileSync(
