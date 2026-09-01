@@ -74,7 +74,24 @@ jobs:
         run: npm run security:migrations
 
       - name: Test
-        run: npm test
+        id: regression-tests
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee academic-profile-test-output.txt
+
+      - name: Upload regression output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: academic-profile-test-output
+          path: academic-profile-test-output.txt
+          if-no-files-found: error
+
+      - name: Enforce regression result
+        if: steps.regression-tests.outcome != 'success'
+        run: exit 1
 
       - name: Production build
         run: npm run build
@@ -83,7 +100,7 @@ jobs:
         run: git diff --check
 
       - name: Remove one-off patch machinery
-        run: rm .github/workflows/_oneoff_academic_profile_reporting_integrity.yml scripts/_oneoff_patch_academic_profile_reporting_integrity.py
+        run: rm .github/workflows/_oneoff_academic_profile_reporting_integrity.yml scripts/_oneoff_patch_academic_profile_reporting_integrity.py academic-profile-test-output.txt
 
       - name: Commit verified patch
         shell: bash
