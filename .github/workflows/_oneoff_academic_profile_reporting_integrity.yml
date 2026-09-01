@@ -40,6 +40,33 @@ jobs:
       - name: Apply reporting-integrity patch
         run: python3 scripts/_oneoff_patch_academic_profile_reporting_integrity.py "$MIGRATION_PATH"
 
+      - name: Align reporting-integrity regression expectations
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          school_test = Path('tests/studentAcademicProfileSchoolLanguage.test.ts')
+          text = school_test.read_text(encoding='utf-8')
+          text = text.replace(
+              "  assert.match(source, /sap-trend-line--\\$\\{trendSeries\\.tone\\}/);",
+              "  assert.match(source, /comparableTrendSegments\\(trendSeries\\.events\\)/);\n  assert.match(source, /from previous comparable result/);",
+          )
+          text = text.replace(
+              "  assert.match(source, /numbered point details/);",
+              "  assert.match(source, /Trend lines only connect the same skill across separate assessment dates/);",
+          )
+          school_test.write_text(text, encoding='utf-8')
+
+          integrity_test = Path('tests/academicProfileReportingIntegrity.test.ts')
+          text = integrity_test.read_text(encoding='utf-8')
+          text = text.replace(
+              "  assert.match(migration, /if v_latest = ''focus'' then/);\n  assert.match(migration, /v_status := ''insufficient_evidence''/);",
+              "  assert.ok(migration.includes(\"if v_latest = ''focus'' then\"));\n  assert.ok(migration.includes(\"v_status := ''insufficient_evidence''\"));",
+          )
+          integrity_test.write_text(text, encoding='utf-8')
+          PY
+
       - name: Typecheck
         run: npm run typecheck
 
