@@ -99,7 +99,10 @@ jobs:
                   text = path.read_text(encoding='utf-8')
               except (UnicodeDecodeError, OSError):
                   continue
-              normalized = '\n'.join(line.rstrip() for line in text.splitlines()) + '\n'
+              lines = [line.rstrip() for line in text.splitlines()]
+              while lines and lines[-1] == '':
+                  lines.pop()
+              normalized = ('\n'.join(lines) + '\n') if lines else ''
               if normalized != text:
                   path.write_text(normalized, encoding='utf-8')
           PY
@@ -132,7 +135,10 @@ jobs:
                   text = path.read_text(encoding='utf-8')
               except (UnicodeDecodeError, OSError):
                   continue
-              normalized = '\n'.join(line.rstrip() for line in text.splitlines()) + '\n'
+              lines = [line.rstrip() for line in text.splitlines()]
+              while lines and lines[-1] == '':
+                  lines.pop()
+              normalized = ('\n'.join(lines) + '\n') if lines else ''
               if normalized != text:
                   path.write_text(normalized, encoding='utf-8')
           PY
