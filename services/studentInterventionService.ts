@@ -137,6 +137,7 @@ export async function createInterventionPracticeAssignment(input: {
   description?: string | null;
   instructions?: string | null;
   difficulty?: string | null;
+  assignmentCategory: 'classwork' | 'homework' | 'quiz' | 'term_exam' | null;
   publishStatus: 'draft' | 'scheduled' | 'published';
   closeSubmissionsAfterDue: boolean;
   notifyStudentsByEmail: boolean;
@@ -160,6 +161,7 @@ export async function createInterventionPracticeAssignment(input: {
     p_student_id: input.studentId,
     p_skill_key: input.skillKey,
     p_diagnostic_targets: input.diagnosticTargets,
+    p_assignment_category: input.assignmentCategory,
     p_client_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
     p_description: input.description || null,
     p_publish_status: input.publishStatus,
