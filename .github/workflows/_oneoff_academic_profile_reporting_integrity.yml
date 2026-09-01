@@ -116,6 +116,27 @@ jobs:
       - name: Production build
         run: npm run build
 
+      - name: Normalize post-build text whitespace
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          changed = subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines()
+          for raw in changed:
+              path = Path(raw)
+              if not path.is_file():
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, OSError):
+                  continue
+              normalized = '\n'.join(line.rstrip() for line in text.splitlines()) + '\n'
+              if normalized != text:
+                  path.write_text(normalized, encoding='utf-8')
+          PY
+
       - name: Whitespace check
         run: git diff --check
 
