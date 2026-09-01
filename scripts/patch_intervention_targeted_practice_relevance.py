@@ -56,3 +56,25 @@ if text != original:
     print('Intervention targeted-practice relevance patch applied.')
 else:
     print('Intervention targeted-practice relevance already materialized; skipping patch.')
+
+# Keep the older governance regression aligned with the stronger contract. The
+# backend may still expose recommended_question_ids for compatibility, but the
+# targeted-practice UI must auto-select exact atomic-subskill IDs only.
+test_path = Path('tests/verifiedLearningIntelligenceGovernance.test.ts')
+test_text = test_path.read_text(encoding='utf-8')
+test_original = test_text
+old_assertion = "  assert.match(interventionWorkspace, /recommended_question_ids/);"
+new_assertions = (
+    "  assert.match(interventionWorkspace, /exact_question_ids/);\n"
+    "  assert.doesNotMatch(interventionWorkspace, /context\\.recommendation\\.recommended_question_ids/);"
+)
+if new_assertions not in test_text:
+    if old_assertion not in test_text:
+        raise SystemExit('verified learning governance exact-practice contract: expected source assertion not found')
+    test_text = test_text.replace(old_assertion, new_assertions, 1)
+
+if test_text != test_original:
+    test_path.write_text(test_text, encoding='utf-8')
+    print('Verified learning governance exact-practice contract updated.')
+else:
+    print('Verified learning governance exact-practice contract already current; skipping patch.')
