@@ -19,6 +19,8 @@ interface InterventionTargetedPracticeWorkspaceProps {
   onComplete: () => void;
 }
 
+type TargetedPracticeAssignmentCategory = 'classwork' | 'homework' | 'quiz' | 'term_exam';
+
 const normalize = (value?: string | null) => (value || '')
   .normalize('NFKC')
   .toLocaleLowerCase()
@@ -61,6 +63,7 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
   const [assignmentDueAt, setAssignmentDueAt] = useState(localDateTime(7));
   const [assignmentAssignedAt, setAssignmentAssignedAt] = useState(() => new Date().toISOString().slice(0, 16));
   const [assignmentPublishStatus, setAssignmentPublishStatus] = useState<'draft' | 'scheduled' | 'published'>('published');
+  const [assignmentCategory, setAssignmentCategory] = useState<TargetedPracticeAssignmentCategory | null>(null);
   const [assignmentCloseAfterDue, setAssignmentCloseAfterDue] = useState(false);
   const [assignmentNotifyByEmail, setAssignmentNotifyByEmail] = useState(false);
   const [assignmentDifficulty, setAssignmentDifficulty] = useState<QuestionDifficulty>('medium');
@@ -93,16 +96,17 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
         setTeacherId(teacher.id);
         const subjectQuestions = allQuestions.filter((question) => normalize(question.subject) === normalize(subject));
         setQuestions(subjectQuestions);
-        // The backend resolves exact canonical leaf matches first, followed by
-        // other verified items under the same governed primary skill. The UI
-        // never substitutes text-similar questions for those authoritative IDs.
+        // Automatic intervention practice must be a precise remediation set. Only
+        // exact governed atomic-subskill matches are preselected. Broader primary-
+        // skill matches remain visible in the bank for deliberate teacher choice.
         const byId = new Map(subjectQuestions.map((question) => [question.id, question]));
-        const governed = (context.recommendation.recommended_question_ids || [])
+        const governedExact = (context.recommendation.exact_question_ids || [])
           .map((questionId) => byId.get(questionId))
           .filter((question): question is TeacherQuestion => Boolean(question))
           .filter((question) => isOfficialVerifiedQuestion(question, studentGrade))
-          .map((question) => question.id);
-        setAssignmentQuestionIds(governed);
+          .map((question) => question.id)
+          .slice(0, 6);
+        setAssignmentQuestionIds(governedExact);
       } catch (error) {
         if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Targeted practice could not be prepared.');
       } finally {
@@ -122,6 +126,9 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
       return brainsAlert('Intervention practice is locked to the selected student.', 'error');
     }
     if (!assignmentTitle.trim()) return brainsAlert('Assignment title is required.', 'info');
+    if (publishStatus !== 'draft' && !assignmentCategory) {
+      return brainsAlert('Choose Classwork, Homework, Quiz, or Term Exam before publishing.', 'info');
+    }
     try {
       setAssignmentSubmitting(true);
       const quota = await tryConsumePilotQuota('assignments_created');
@@ -138,6 +145,7 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
         description: assignmentDescription || undefined,
         instructions: assignmentInstructions || undefined,
         difficulty: assignmentDifficulty,
+        assignmentCategory,
         publishStatus,
         closeSubmissionsAfterDue: assignmentCloseAfterDue,
         notifyStudentsByEmail: assignmentNotifyByEmail,
@@ -199,8 +207,8 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
 
   return <section className="intervention-targeted-workspace">
     <header className="intervention-targeted-banner">
-      <div><span>Brains Heist · Targeted Practice</span><h2>{context.recommendation.skill}</h2><p>For <strong>{context.student.name}</strong> only. Automatic suggestions use current, grade-eligible Brains Heist Verified questions. Teacher questions remain available for deliberate classroom-only practice.</p></div>
-      <div><span>Confirmed focus</span><strong>{context.recommendation.diagnostic_targets.join(' · ') || context.recommendation.skill}</strong><small>Practice is rehearsal. Independent assessed work remains the progress check.</small></div>
+      <div><span>Brains Heist · Targeted Practice</span><h2>{context.recommendation.skill}</h2><p>For <strong>{context.student.name}</strong> only. Automatic selections are exact, grade-eligible Brains Heist Verified matches to the governed weak area. Broader related questions stay unselected for teacher review.</p></div>
+      <div><span>Confirmed focus</span><strong>{context.recommendation.diagnostic_targets.join(' · ') || context.recommendation.skill}</strong><small>{context.recommendation.available_exact_questions > 0 ? `${context.recommendation.available_exact_questions} exact verified question${context.recommendation.available_exact_questions === 1 ? '' : 's'} available.` : 'No exact verified question is currently available; choose a related question deliberately if it genuinely matches the confirmed need.'} Practice is rehearsal; independent assessed work remains the progress check.</small></div>
     </header>
     <AssignmentWizard
       initialStep={3}
@@ -225,6 +233,9 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
       setAssignmentAssignedAt={setAssignmentAssignedAt}
       assignmentPublishStatus={assignmentPublishStatus}
       setAssignmentPublishStatus={setAssignmentPublishStatus}
+      assignmentCategory={assignmentCategory}
+      setAssignmentCategory={setAssignmentCategory}
+      schoolId={context.student.school_id}
       assignmentCloseAfterDue={assignmentCloseAfterDue}
       setAssignmentCloseAfterDue={setAssignmentCloseAfterDue}
       assignmentNotifyByEmail={assignmentNotifyByEmail}
