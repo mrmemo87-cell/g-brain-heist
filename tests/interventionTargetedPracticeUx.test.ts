@@ -8,6 +8,8 @@ const shell = readFileSync('components/TeacherPortalShell.tsx', 'utf8');
 const service = readFileSync('services/studentInterventionService.ts', 'utf8');
 const migration = readFileSync('supabase/migrations/20260822222316_intervention_targeted_practice_provenance.sql', 'utf8');
 const authorityMigration = readFileSync('supabase/migrations/20260824174442_lock_academic_profile_verified_evidence.sql', 'utf8');
+const categoryMigration = readFileSync('supabase/migrations/20260901084500_intervention_practice_assignment_category.sql', 'utf8');
+const relevancePatch = readFileSync('scripts/patch_intervention_targeted_practice_relevance.py', 'utf8');
 
 const occurrences = (source: string, value: string) => source.split(value).length - 1;
 
@@ -55,14 +57,39 @@ test('practice provenance is committed atomically before the intervention plan i
   assert.match(authorityMigration, /If any authorization, audience, question, or\n-- provenance check fails, the assignment creation rolls back with it/);
 });
 
-test('automatic question selection uses authoritative taxonomy IDs and fails closed on grade', () => {
-  assert.match(workspace, /recommended_question_ids/);
-  assert.match(workspace, /The UI\n\s*\/\/ never substitutes text-similar questions/);
+test('automatic question selection is exact to the governed weak area', () => {
+  assert.match(workspace, /context\.recommendation\.exact_question_ids/);
+  assert.doesNotMatch(workspace, /context\.recommendation\.recommended_question_ids/);
+  assert.match(workspace, /Only\n\s*\/\/ exact governed atomic-subskill matches are preselected/);
+  assert.match(workspace, /Broader related questions stay unselected for teacher review/);
   assert.doesNotMatch(workspace, /questionScore/);
   assert.match(workspace, /Number\.isInteger\(grade\)/);
   assert.match(workspace, /question\.eligible_grade_levels!\.includes\(grade\)/);
   assert.match(authorityMigration, /exact_question_ids/);
   assert.match(authorityMigration, /related_question_ids/);
+});
+
+test('same-labelled but distinct governed weaknesses cannot merge question sets', () => {
+  assert.match(intervention, /item\.skill_key/);
+  assert.doesNotMatch(intervention, /\[item\.subject, item\.topic \|\| '', item\.skill\]/);
+  assert.match(intervention, /recommended_question_ids: \[\.\.\.new Set\(item\.exact_question_ids \|\| \[\]\)\]\.slice\(0, 6\)/);
+  assert.match(intervention, /key=\{`\$\{r\.subject\}-\$\{r\.topic \|\| ''\}-\$\{r\.skill_key\}`\}/);
+  assert.match(relevancePatch, /governed weaknesses/);
+  assert.match(relevancePatch, /Broader primary-skill/);
+});
+
+test('targeted practice assignment type is controlled and persisted end to end', () => {
+  assert.match(workspace, /assignmentCategory, setAssignmentCategory/);
+  assert.match(workspace, /assignmentCategory=\{assignmentCategory\}/);
+  assert.match(workspace, /setAssignmentCategory=\{setAssignmentCategory\}/);
+  assert.match(workspace, /schoolId=\{context\.student\.school_id\}/);
+  assert.match(workspace, /assignmentCategory,/);
+  assert.match(service, /assignmentCategory: 'classwork' \| 'homework' \| 'quiz' \| 'term_exam' \| null/);
+  assert.match(service, /p_assignment_category: input\.assignmentCategory/);
+  assert.match(categoryMigration, /p_assignment_category text/);
+  assert.match(categoryMigration, /p_assignment_category,\n\s*coalesce\(nullif\(trim\(p_client_timezone\)/);
+  assert.match(categoryMigration, /'custom'::text/);
+  assert.doesNotMatch(categoryMigration, /'classwork'::text/);
 });
 
 test('coached practice cannot count as independent mastery evidence', () => {
