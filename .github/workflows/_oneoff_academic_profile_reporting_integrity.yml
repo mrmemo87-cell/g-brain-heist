@@ -49,6 +49,10 @@ jobs:
           school_test = Path('tests/studentAcademicProfileSchoolLanguage.test.ts')
           text = school_test.read_text(encoding='utf-8')
           text = text.replace(
+              "  assert.equal(disclosures.length, 6);",
+              "  assert.equal(disclosures.length, 7);\n  assert.match(source, /Evidence to confirm/);",
+          )
+          text = text.replace(
               "  assert.match(source, /sap-trend-line--\\$\\{trendSeries\\.tone\\}/);",
               "  assert.match(source, /comparableTrendSegments\\(trendSeries\\.events\\)/);\n  assert.match(source, /from previous comparable result/);",
           )
@@ -57,6 +61,18 @@ jobs:
               "  assert.match(source, /Trend lines only connect the same skill across separate assessment dates/);",
           )
           school_test.write_text(text, encoding='utf-8')
+
+          lockdown_test = Path('tests/academicLockdownBillingPolish.test.ts')
+          text = lockdown_test.read_text(encoding='utf-8')
+          text = text.replace(
+              "  const report = read('components/student-progress/IndividualStudentAcademicReportV2.tsx');\n  for (const source of [profile, report]) {",
+              "  const report = read('components/student-progress/IndividualStudentAcademicReportV2.tsx');\n  const semantics = read('components/student-progress/academicReportingSemantics.ts');\n  for (const source of [profile, report]) {",
+          )
+          text = text.replace(
+              "    assert.match(source, /No evidence in this period/);\n  }",
+              "    assert.match(source, /summarizeComparableTrend/);\n  }\n  assert.match(semantics, /No evidence in this period/);\n  assert.match(semantics, /Not enough comparable evidence yet/);",
+          )
+          lockdown_test.write_text(text, encoding='utf-8')
 
           integrity_test = Path('tests/academicProfileReportingIntegrity.test.ts')
           text = integrity_test.read_text(encoding='utf-8')
