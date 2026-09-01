@@ -21,7 +21,8 @@ test('Student Academic Profile uses school language and source-specific evidence
 test('secondary academic profile sections use one closed-by-default disclosure system', () => {
   const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
   const disclosures = source.match(/<ProfileDisclosure/g) || [];
-  assert.equal(disclosures.length, 6);
+  assert.equal(disclosures.length, 7);
+  assert.match(source, /Evidence to confirm/);
   assert.match(source, /sap-profile-disclosure/);
   assert.match(source, /className="when-closed">Open/);
   assert.match(source, /className="when-open">Close/);
@@ -33,7 +34,8 @@ test('English combines assignment and Writing Hub evidence in one colour-coded t
   assert.match(source, /label: 'Assignments', tone: 'assignment'/);
   assert.match(source, /label: 'Writing Hub', tone: 'writing'/);
   assert.match(source, /subject: name, series/);
-  assert.match(source, /sap-trend-line--\$\{trendSeries\.tone\}/);
+  assert.match(source, /comparableTrendSegments\(trendSeries\.events\)/);
+  assert.match(source, /from previous comparable result/);
   assert.match(source, /sap-trend-point--\$\{point\.series\.tone\}/);
 });
 
@@ -57,7 +59,7 @@ test('printed individual report contains subject trend graphs and point details'
   assert.match(source, /PrintSubjectTrendChart/);
   assert.match(source, /sap-print-trend-grid/);
   assert.match(source, /sap-print-trend-point-list/);
-  assert.match(source, /numbered point details/);
+  assert.match(source, /Trend lines only connect the same skill across separate assessment dates/);
   assert.match(source, /Learning timeline \+ trend graphs/);
 });
 

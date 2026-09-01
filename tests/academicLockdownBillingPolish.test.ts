@@ -7,14 +7,17 @@ const read = (path: string) => fs.readFileSync(path, 'utf8');
 test('English Academic Profile trends separate Writing Hub from assignments', () => {
   const profile = read('components/student-progress/StudentAcademicProfileV2.tsx');
   const report = read('components/student-progress/IndividualStudentAcademicReportV2.tsx');
+  const semantics = read('components/student-progress/academicReportingSemantics.ts');
   for (const source of [profile, report]) {
     assert.match(source, /English|english/);
     assert.match(source, /Writing Hub/);
     assert.match(source, /Assignments/);
     assert.match(source, /writing_attempt/);
     assert.match(source, /assignment_result/);
-    assert.match(source, /No evidence in this period/);
+    assert.match(source, /summarizeComparableTrend/);
   }
+  assert.match(semantics, /No evidence in this period/);
+  assert.match(semantics, /Not enough comparable evidence yet/);
 });
 
 test('Academic report header has explicit high contrast text', () => {

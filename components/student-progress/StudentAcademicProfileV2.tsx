@@ -14,6 +14,19 @@ import {
 } from '../../services/academicProgressExperienceService';
 import IndividualStudentAcademicReport from './IndividualStudentAcademicReportV2';
 import { AcademicProgressHeader, normalizeAcademicSubjectOptions } from './AcademicProgressSuite';
+import {
+  buildAcademicSnapshot,
+  calendarDayKey,
+  comparableTrendSegments,
+  evidenceConfirmationLabel,
+  focusStatusLabel,
+  isActiveSupportStatus,
+  isEvidenceToConfirmStatus,
+  isTeacherReviewStatus,
+  observationDisplayLabel,
+  reportingStatusTone,
+  summarizeComparableTrend,
+} from './academicReportingSemantics';
 import './StudentAcademicProfile.css';
 import './StudentAcademicConfidence.css';
 import './StudentAcademicProfileV2.css';
@@ -39,6 +52,7 @@ type TrendEvent = {
   key: string;
   observedAt: string;
   score: number;
+  comparableKey: string;
   label: string;
   source: string;
   detail: string;
@@ -57,7 +71,7 @@ type TrendChart = { subject: string; series: TrendSeries[] };
 type DisclosureTone = 'trend' | 'support' | 'progress' | 'evidence' | 'results' | 'method';
 
 const scoreBand = (score: number | null) => score === null ? 'neutral' : score >= 80 ? 'strong' : score >= 60 ? 'developing' : 'focus';
-const statusBand = (status: string) => status === 'persistent' ? 'critical' : ['insufficient_evidence', 'recurring', 'new_focus'].includes(status) ? 'focus' : status === 'improving' ? 'improving' : status === 'resolved' ? 'resolved' : 'strong';
+const statusBand = (status: FocusItem['status'], latestType?: TimelineItem['observation_type'] | null) => reportingStatusTone(status, latestType);
 const formatDate = (value?: string | null) => {
   if (!value) return '—';
   const date = new Date(value);
@@ -83,7 +97,7 @@ const sourceMeta = (item: TimelineItem) => {
   if (item.source_type === 'assignment_result') {
     return { label: 'Assignment', detail: textValue(evidence.assignment_title) || 'School assignment', tone: 'assignment' };
   }
-  if (item.source_type === 'writing_attempt') {
+  if (item.source_type === 'writing_attempt' || item.source_type === 'writing_assessment_review') {
     const genre = textValue(evidence.genre);
     return { label: genre ? titleCase(genre) : 'Writing', detail: 'Writing Hub', tone: 'writing' };
   }
@@ -103,24 +117,26 @@ const evidenceExplanation = (item: TimelineItem) => {
   const objective = textValue(evidence.objective);
   if (objective) return objective;
   if (item.observation_type === 'focus') return `This assessed work shows that ${item.subskill || item.skill} needs more support.`;
-  if (item.observation_type === 'strength') return `This assessed work shows secure performance in ${item.subskill || item.skill}.`;
+  if (item.observation_type === 'strength') return `This assessed work provides positive evidence in ${item.subskill || item.skill}. More evidence may still be needed before this becomes an established strength.`;
   return `This assessed work shows developing performance in ${item.subskill || item.skill}.`;
 };
 
 const observationSignal = (item: TimelineItem) => {
   const pct = item.evidence_percentage == null ? null : Number(item.evidence_percentage);
   const bounded = pct == null || Number.isNaN(pct) ? null : Math.max(0, Math.min(100, pct));
-  if (item.observation_type === 'focus') return bounded == null ? 28 : 16 + bounded * 0.24;
-  if (item.observation_type === 'strength') return bounded == null ? 90 : 80 + bounded * 0.16;
-  return bounded == null ? 62 : 48 + bounded * 0.24;
+  if (bounded != null) return bounded;
+  if (item.observation_type === 'focus') return 30;
+  if (item.observation_type === 'strength') return 90;
+  return 65;
 };
 
-const trendPositionLabel = (score: number) => score >= 78 ? 'Strong evidence' : score >= 46 ? 'Developing evidence' : 'Needs support';
-const evidenceBandClass = (score: number) => score >= 78 ? 'strong' : score >= 46 ? 'developing' : 'support';
+const trendPositionLabel = (score: number) => score >= 80 ? 'Strong evidence' : score >= 60 ? 'Developing evidence' : 'Needs support';
+const evidenceBandClass = (score: number) => score >= 80 ? 'strong' : score >= 60 ? 'developing' : 'support';
 
 const buildTrendEvents = (items: TimelineItem[], subject: string, sourceType?: TimelineItem['source_type']): TrendEvent[] => {
   const groups = new Map<string, {
     values: number[];
+    comparableKey: string;
     observedAt: string;
     label: string;
     source: string;
@@ -132,9 +148,11 @@ const buildTrendEvents = (items: TimelineItem[], subject: string, sourceType?: T
   items.filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject)
     && (!sourceType || item.source_type === sourceType)).forEach((item) => {
     const meta = sourceMeta(item);
-    const key = `${item.source_type}:${item.source_id || item.observed_at}`;
+    const comparableKey = `${normalizeSubject(item.subject)}|${item.skill.toLowerCase()}|${String(item.subskill || '').toLowerCase()}`;
+    const key = `${item.source_type}:${item.source_id || item.observed_at}:${comparableKey}`;
     const group = groups.get(key) || {
       values: [],
+      comparableKey,
       observedAt: item.observed_at,
       label: item.subskill || item.skill,
       source: meta.label,
@@ -154,6 +172,7 @@ const buildTrendEvents = (items: TimelineItem[], subject: string, sourceType?: T
     key,
     observedAt: group.observedAt,
     score: Math.round(group.values.reduce((sum, value) => sum + value, 0) / Math.max(group.values.length, 1)),
+    comparableKey: group.comparableKey,
     label: group.label,
     source: group.source,
     detail: group.detail,
@@ -216,19 +235,18 @@ const SubjectTrendChart: React.FC<{ subject: string; series: TrendSeries[] }> = 
     x: xAt(event, index, trendSeries.events.length),
     y: yAt(event.score),
   })));
-  const overallDelta = allEvents.length > 1 ? allEvents[allEvents.length - 1].event.score - allEvents[0].event.score : 0;
-  const trendText = allEvents.length === 0
-    ? 'No evidence in this period'
-    : allEvents.length < 2
-      ? 'One evidence point so far'
-      : overallDelta >= 10
-        ? 'Overall evidence is moving up'
-        : overallDelta <= -10
-          ? 'Recent evidence needs attention'
-          : 'Overall evidence is broadly steady';
+  const trendText = summarizeComparableTrend(allEvents.map(({ event }) => ({
+    observedAt: event.observedAt,
+    score: event.score,
+    comparableKey: event.comparableKey,
+  })));
   const activePoint = activeKey ? plottedPoints.find((point) => point.key === activeKey) || null : null;
-  const activeSeriesIndex = activePoint ? activePoint.series.events.findIndex((event) => event.key === activePoint.event.key) : -1;
-  const previousEvent = activePoint && activeSeriesIndex > 0 ? activePoint.series.events[activeSeriesIndex - 1] : null;
+  const previousComparable = activePoint ? activePoint.series.events
+    .filter((event) => event.comparableKey === activePoint.event.comparableKey
+      && event.observedAt < activePoint.event.observedAt
+      && calendarDayKey(event.observedAt) !== calendarDayKey(activePoint.event.observedAt))
+    .sort((a, b) => a.observedAt.localeCompare(b.observedAt)) : [];
+  const previousEvent = previousComparable.length ? previousComparable[previousComparable.length - 1] : null;
   const pointDelta = activePoint && previousEvent ? activePoint.event.score - previousEvent.score : null;
   const xPercent = activePoint ? (activePoint.x / width) * 100 : 50;
   const yPercent = activePoint ? (activePoint.y / height) * 100 : 50;
@@ -249,11 +267,14 @@ const SubjectTrendChart: React.FC<{ subject: string; series: TrendSeries[] }> = 
       <div className="sap-trend-chart-wrap">
         <svg className="sap-trend-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${subject} learning evidence trend over the selected period`}>
           {[25, 60, 90].map((value) => <g key={value}><line x1={left} y1={yAt(value)} x2={width - right} y2={yAt(value)} className="sap-trend-guide"/><text x={left - 10} y={yAt(value) + 4} textAnchor="end" className="sap-trend-axis">{value === 25 ? 'Needs support' : value === 60 ? 'Developing' : 'Strong'}</text></g>)}
-          {activeSeries.map((trendSeries) => trendSeries.events.length > 1 ? <polyline
-            key={`${trendSeries.key}:line`}
-            points={trendSeries.events.map((event, index) => `${xAt(event, index, trendSeries.events.length)},${yAt(event.score)}`).join(' ')}
+          {activeSeries.flatMap((trendSeries) => comparableTrendSegments(trendSeries.events).map(([start, end], index) => <line
+            key={`${trendSeries.key}:segment:${index}`}
+            x1={xAt(start)}
+            y1={yAt(start.score)}
+            x2={xAt(end)}
+            y2={yAt(end.score)}
             className={`sap-trend-line sap-trend-line--${trendSeries.tone}`}
-          /> : null)}
+          />))}
           {plottedPoints.map((point) => <circle
             key={point.key}
             cx={point.x}
@@ -279,11 +300,11 @@ const SubjectTrendChart: React.FC<{ subject: string; series: TrendSeries[] }> = 
           <div className="sap-trend-tooltip-head"><strong>{formatDate(activePoint.event.observedAt)}</strong><span className={`sap-trend-source-pill sap-trend-source-pill--${activePoint.series.tone}`}>{activePoint.series.label}</span></div>
           <b>{activePoint.event.detail}</b>
           <p className="sap-trend-tooltip-skill">{activePoint.event.label}</p>
-          <div className="sap-trend-tooltip-position"><span>Evidence position</span><strong className={`sap-evidence-position sap-evidence-position--${evidenceBandClass(activePoint.event.score)}`}>{trendPositionLabel(activePoint.event.score)}</strong>{pointDelta == null ? null : <em className={pointDelta >= 0 ? 'is-up' : 'is-down'}>{pointDelta >= 0 ? '↑' : '↓'} {Math.abs(pointDelta)} from previous {activePoint.series.label.toLowerCase()} activity</em>}</div>
+          <div className="sap-trend-tooltip-position"><span>Evidence position</span><strong className={`sap-evidence-position sap-evidence-position--${evidenceBandClass(activePoint.event.score)}`}>{trendPositionLabel(activePoint.event.score)}</strong>{pointDelta == null ? null : <em className={pointDelta >= 0 ? 'is-up' : 'is-down'}>{pointDelta >= 0 ? '↑' : '↓'} {Math.abs(pointDelta)} from previous comparable result</em>}</div>
           <div className="sap-trend-evidence-mix" aria-label="Evidence mix">
             <span className="is-support"><i aria-hidden="true"/><span>Needs support</span><b>{activePoint.event.focusCount}</b></span>
             <span className="is-developing"><i aria-hidden="true"/><span>Developing</span><b>{activePoint.event.developingCount}</b></span>
-            <span className="is-strength"><i aria-hidden="true"/><span>Strength</span><b>{activePoint.event.strengthCount}</b></span>
+            <span className="is-strength"><i aria-hidden="true"/><span>Positive evidence</span><b>{activePoint.event.strengthCount}</b></span>
           </div>
         </div> : null}
       </div>
@@ -369,7 +390,9 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
     if (canonical && canonical !== subject) setSubject(canonical);
   }, [allSubjects, subject]);
 
-  const currentFocus = useMemo(() => profile?.focus_areas.filter((item) => ['insufficient_evidence', 'new_focus', 'recurring', 'persistent'].includes(String(item.status))) ?? [], [profile]);
+  const currentFocus = useMemo(() => profile?.focus_areas.filter((item) => isActiveSupportStatus(item.status)) ?? [], [profile]);
+  const evidenceToConfirm = useMemo(() => profile?.focus_areas.filter((item) => isEvidenceToConfirmStatus(item.status)) ?? [], [profile]);
+  const reviewItems = useMemo(() => profile?.focus_areas.filter((item) => isTeacherReviewStatus(item.status)) ?? [], [profile]);
   const strengths = useMemo(() => profile?.focus_areas.filter((item) => ['emerging_strength', 'consistent_strength'].includes(String(item.status))) ?? [], [profile]);
   const improving = useMemo(() => profile?.focus_areas.filter((item) => item.status === 'improving') ?? [], [profile]);
   const resolved = useMemo(() => profile?.focus_areas.filter((item) => item.status === 'resolved') ?? [], [profile]);
@@ -384,6 +407,9 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
     return map;
   }, [profile]);
 
+  const latestForFocusItem = (item: FocusItem) => latestTimelineForFocus.get(`${normalizeSubject(item.subject)}|${item.skill.toLowerCase()}|${String(item.subskill || '').toLowerCase()}`) || null;
+  const positiveEvidenceToConfirm = evidenceToConfirm.filter((item) => latestForFocusItem(item)?.observation_type === 'strength');
+
   const trendSubjects = useMemo<TrendChart[]>(() => {
     if (!profile) return [];
     const subjects = subject === 'all' ? allSubjects : [subject];
@@ -391,7 +417,10 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
       const subjectExists = profile.subjects.some((row) => normalizeSubject(row.subject) === normalizeSubject(name));
       if (normalizeSubject(name) === 'english') {
         const assignmentEvents = buildTrendEvents(profile.timeline, name, 'assignment_result');
-        const writingEvents = buildTrendEvents(profile.timeline, name, 'writing_attempt');
+        const writingEvents = [
+          ...buildTrendEvents(profile.timeline, name, 'writing_assessment_review'),
+          ...buildTrendEvents(profile.timeline, name, 'writing_attempt'),
+        ].sort((a, b) => a.observedAt.localeCompare(b.observedAt));
         const seriesCandidates: TrendSeries[] = [
           { key: 'assignments', label: 'Assignments', tone: 'assignment', events: assignmentEvents },
           { key: 'writing-hub', label: 'Writing Hub', tone: 'writing', events: writingEvents },
@@ -428,8 +457,15 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
   const preparedBy = context?.viewer.name || teacherName || undefined;
   const archivedYear = profile.scope.archived === true;
   const profileYearLabel = profile.scope.academic_year_name || academicYearName || null;
-  const supportCount = profile.summary.persistent_focus_count + profile.summary.recurring_focus_count;
-  const formatStatus = (item: FocusItem) => String(item.status) === 'insufficient_evidence' ? 'New support signal' : formatLearningStatus(item.status);
+  const supportCount = currentFocus.length;
+  const formatStatus = (item: FocusItem) => focusStatusLabel(item.status, latestForFocusItem(item)?.observation_type, item.first_observed_at, item.last_observed_at);
+  const snapshotText = buildAcademicSnapshot({
+    studentName: profile.student.name,
+    completedAssignments: profile.summary.completed_assignments,
+    supportLabels: currentFocus.map((item) => item.subskill ? `${item.skill} — ${item.subskill}` : item.skill),
+    positiveEvidenceLabels: positiveEvidenceToConfirm.map((item) => item.subskill ? `${item.skill} — ${item.subskill}` : item.skill),
+    teacherReviewCount: reviewItems.length,
+  });
 
   return <section className="sap-shell sap-school-language">
     <AcademicProgressHeader
@@ -452,22 +488,25 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
     </div>
 
     <div className="sap-kpis">
-      <article><span>Assignment average</span><strong className={`sap-score sap-score--${scoreBand(profile.summary.assignment_average)}`}>{profile.summary.assignment_average === null ? '—' : `${profile.summary.assignment_average}%`}</strong><small>{profile.summary.completed_assignments} completed</small></article>
+      <article><span>Completed assignment average</span><strong className={`sap-score sap-score--${scoreBand(profile.summary.assignment_average)}`}>{profile.summary.assignment_average === null ? '—' : `${profile.summary.assignment_average}%`}</strong><small>Based on {profile.summary.completed_assignments} completed assignment{profile.summary.completed_assignments === 1 ? '' : 's'}</small></article>
       <article><span>Needs support</span><strong>{supportCount}</strong><small>{profile.summary.persistent_focus_count} long-running</small></article>
-      <article><span>Making progress</span><strong className="sap-positive">{profile.summary.improving_count}</strong><small>Moving in the right direction</small></article>
+      <article><span>Making progress</span><strong className="sap-positive">{profile.summary.improving_count}</strong><small>Established movement over time</small></article>
       <article><span>Now secure</span><strong className="sap-positive">{profile.summary.resolved_count}</strong><small>Previous needs resolved</small></article>
-      <article><span>Strengths</span><strong className="sap-positive">{profile.summary.strength_count}</strong><small>Positive evidence</small></article>
+      <article><span>Established strengths</span><strong className="sap-positive">{profile.summary.strength_count}</strong><small>{positiveEvidenceToConfirm.length ? `${positiveEvidenceToConfirm.length} positive signal${positiveEvidenceToConfirm.length === 1 ? '' : 's'} awaiting more evidence` : 'Longitudinally supported strengths'}</small></article>
     </div>
+
+    <section className="sap-trust-summary" aria-label="Teacher snapshot"><span>Teacher snapshot</span><p>{snapshotText}</p></section>
 
     <section className="sap-panel sap-overview-panel">
       <div className="sap-panel-heading sap-heading-simple"><div><span>Main overview</span><h2>Subject picture</h2></div><p>Results and current learning needs for the selected period.</p></div>
       <div className="sap-subject-grid">{profile.subjects.map((entry) => {
         const subjectFocus = currentFocus.filter((item) => normalizeSubject(item.subject) === normalizeSubject(entry.subject)).length;
-        return <article key={entry.subject} className="sap-subject-card"><div><h3>{entry.subject}</h3><span>{entry.completed_assignments} completed</span></div><strong className={`sap-score sap-score--${scoreBand(entry.assignment_average)}`}>{entry.assignment_average === null ? 'Not assessed' : `${entry.assignment_average}%`}</strong><dl><div><dt>Needs support</dt><dd>{subjectFocus}</dd></div><div><dt>Improving</dt><dd>{entry.improving_count}</dd></div><div><dt>Secure</dt><dd>{entry.resolved_count}</dd></div><div><dt>Strengths</dt><dd>{entry.strength_count}</dd></div></dl><small>Latest evidence {formatDate(entry.latest_evidence_at)}</small></article>;
+        const subjectConfirm = evidenceToConfirm.filter((item) => normalizeSubject(item.subject) === normalizeSubject(entry.subject)).length;
+        return <article key={entry.subject} className="sap-subject-card"><div><h3>{entry.subject}</h3><span>{entry.completed_assignments} completed</span></div><strong className={`sap-score sap-score--${scoreBand(entry.assignment_average)}`}>{entry.assignment_average === null ? 'Not assessed' : `${entry.assignment_average}%`}</strong><dl><div><dt>Needs support</dt><dd>{subjectFocus}</dd></div><div><dt>Evidence to confirm</dt><dd>{subjectConfirm}</dd></div><div><dt>Improving</dt><dd>{entry.improving_count}</dd></div><div><dt>Secure</dt><dd>{entry.resolved_count}</dd></div><div><dt>Established strengths</dt><dd>{entry.strength_count}</dd></div></dl><small>Latest evidence {formatDate(entry.latest_evidence_at)}</small></article>;
       })}{!profile.subjects.length ? <div className="sap-empty">No subject evidence is available in the selected period.</div> : null}</div>
     </section>
 
-    <ProfileDisclosure tone="trend" eyebrow="Learning trends" title="How is the student moving over time?" description="One timeline per subject. English combines assignments and Writing Hub as separate colour-coded evidence streams." meta={`${trendSubjects.length} subject trend${trendSubjects.length === 1 ? '' : 's'}`}>
+    <ProfileDisclosure tone="trend" eyebrow="Learning trends" title="How is the student moving over time?" description="Trends compare the same skill across separate assessment dates. Same-day or cross-skill evidence is shown without being called progress. English keeps assignments and Writing Hub as separate evidence streams." meta={`${trendSubjects.length} subject trend${trendSubjects.length === 1 ? '' : 's'}`}>
       <div className="sap-trend-grid">{trendSubjects.map((entry) => <SubjectTrendChart key={entry.subject} subject={entry.subject} series={entry.series}/>)}</div>
     </ProfileDisclosure>
 
@@ -476,15 +515,27 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
         const key = `${normalizeSubject(item.subject)}|${item.skill.toLowerCase()}|${String(item.subskill || '').toLowerCase()}`;
         const evidence = latestTimelineForFocus.get(key);
         const correction = getCorrections(evidence)[0];
-        return <article key={item.skill_key}><div className="sap-focus-main"><span className={`sap-status sap-status--${statusBand(String(item.status))}`}>{formatStatus(item)}</span><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><p>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</p>{evidence ? <small className="sap-focus-explain">{evidenceExplanation(evidence)}</small> : null}{correction && (correction.original || correction.better_version) ? <div className="sap-example"><span>Example</span><del>{correction.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{correction.better_version || 'Correction'}</ins></div> : null}</div><dl><div><dt>First seen</dt><dd>{formatDate(item.first_observed_at)}</dd></div><div><dt>Latest</dt><dd>{formatDate(item.last_observed_at)}</dd></div><div><dt>Evidence</dt><dd>{item.evidence_items}</dd></div><div><dt>Latest result</dt><dd>{item.latest_evidence_percentage == null ? '—' : `${item.latest_evidence_percentage}%`}</dd></div></dl></article>;
+        return <article key={item.skill_key}><div className="sap-focus-main"><span className={`sap-status sap-status--${statusBand(String(item.status))}`}>{formatStatus(item)}</span><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><p>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</p>{evidence ? <small className="sap-focus-explain">{evidenceExplanation(evidence)}</small> : null}{correction && (correction.original || correction.better_version) ? <div className="sap-example"><span>Example</span><del>{correction.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{correction.better_version || 'Correction'}</ins></div> : null}</div><dl><div><dt>First seen</dt><dd>{formatDate(item.first_observed_at)}</dd></div><div><dt>Latest</dt><dd>{formatDate(item.last_observed_at)}</dd></div><div><dt>Assessment records</dt><dd>{item.evidence_items}</dd></div><div><dt>Assessed items</dt><dd>{item.evidence_occurrences}</dd></div><div><dt>Latest result</dt><dd>{item.latest_evidence_percentage == null ? '—' : `${item.latest_evidence_percentage}%`}</dd></div></dl></article>;
       })}{!currentFocus.length ? <div className="sap-empty">No current support needs are identified in this period.</div> : null}</div>
     </ProfileDisclosure>
 
-    <ProfileDisclosure tone="progress" eyebrow="Positive movement" title="Progress and strengths" description="A concise view of areas that are improving, secure or consistently strong." meta={`${improving.length + resolved.length + strengths.length} positive signal${improving.length + resolved.length + strengths.length === 1 ? '' : 's'}`}>
-      <div className="sap-progress-columns"><div><h3>Making progress</h3>{improving.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</strong><span>{item.subject}</span></p>)}{!improving.length ? <small>No improving areas yet.</small> : null}</div><div><h3>Now secure</h3>{resolved.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}{!resolved.length ? <small>No resolved areas yet.</small> : null}</div><div><h3>Strengths</h3>{strengths.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}{!strengths.length ? <small>No established strengths yet.</small> : null}</div></div>
+    <ProfileDisclosure tone="progress" eyebrow="Evidence to confirm" title="What is promising but not established yet?" description="Low-data signals stay separate from support needs and established strengths until enough qualified evidence exists." meta={`${evidenceToConfirm.length + reviewItems.length} item${evidenceToConfirm.length + reviewItems.length === 1 ? '' : 's'}`}>
+      <div className="sap-confirm-grid">
+        {evidenceToConfirm.map((item) => {
+          const latest = latestForFocusItem(item);
+          const positive = latest?.observation_type === 'strength';
+          return <article key={item.skill_key} className={`sap-confirm-card ${positive ? 'is-positive' : ''}`}><span className={`sap-status sap-status--${statusBand(item.status, latest?.observation_type)}`}>{evidenceConfirmationLabel(latest?.observation_type)}</span><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><p>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</p><small>{latest ? evidenceExplanation(latest) : 'More qualified evidence is needed before making a stronger conclusion.'}</small><dl><div><dt>Assessment records</dt><dd>{item.evidence_items}</dd></div><div><dt>Assessed items</dt><dd>{item.evidence_occurrences}</dd></div><div><dt>Latest result</dt><dd>{item.latest_evidence_percentage == null ? '—' : `${item.latest_evidence_percentage}%`}</dd></div><div><dt>Confidence</dt><dd>More evidence needed</dd></div></dl></article>;
+        })}
+        {reviewItems.map((item) => <article key={item.skill_key} className="sap-confirm-card is-review"><span className="sap-status sap-status--review">Teacher review needed</span><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><p>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</p><small>Recent qualified evidence points in different directions. Review the underlying work before making a support or strength conclusion.</small></article>)}
+        {!evidenceToConfirm.length && !reviewItems.length ? <div className="sap-empty">No evidence is currently waiting for confirmation or teacher review.</div> : null}
+      </div>
     </ProfileDisclosure>
 
-    <ProfileDisclosure tone="evidence" eyebrow="Detailed evidence" title="Evidence activity" description="Chronological source evidence for deeper review. This stays closed until detail is needed." meta={`${profile.timeline.length} record${profile.timeline.length === 1 ? '' : 's'}`}>
+    <ProfileDisclosure tone="progress" eyebrow="Positive movement" title="Progress and strengths" description="A concise view of areas that are improving, secure or consistently strong." meta={`${improving.length + resolved.length + strengths.length} positive signal${improving.length + resolved.length + strengths.length === 1 ? '' : 's'}`}>
+      <div className="sap-progress-columns"><div><h3>Making progress</h3>{improving.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</strong><span>{item.subject}</span></p>)}{!improving.length ? <small>No improving areas yet.</small> : null}</div><div><h3>Now secure</h3>{resolved.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}{!resolved.length ? <small>No resolved areas yet.</small> : null}</div><div><h3>Established strengths</h3>{strengths.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}{!strengths.length ? <small>No established strengths yet.</small> : null}</div></div>
+    </ProfileDisclosure>
+
+    <ProfileDisclosure tone="evidence" eyebrow="Detailed evidence" title="Evidence activity" description="Chronological qualified skill-level evidence for deeper review. A positive evidence record is not automatically an established strength." meta={`${profile.timeline.length} record${profile.timeline.length === 1 ? '' : 's'}`}>
       <div className="sap-evidence-list">{profile.timeline.slice(0, 60).map((item) => {
         const meta = sourceMeta(item);
         const corrections = getCorrections(item);
@@ -493,7 +544,7 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
         const improvementAction = textValue(evidence.improvement_action);
         return <article key={item.id} className={`sap-evidence-card sap-evidence-card--${item.observation_type}`}>
           <div className="sap-evidence-top"><span className={`sap-source-badge sap-source-badge--${meta.tone}`}>{meta.label}</span><time>{formatDate(item.observed_at)}</time></div>
-          <div className="sap-evidence-heading"><div><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><span>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</span></div><span className={`sap-status sap-status--${item.observation_type === 'focus' ? 'focus' : item.observation_type === 'strength' ? 'strong' : 'improving'}`}>{item.observation_type === 'focus' ? 'Needs support' : item.observation_type === 'strength' ? 'Strength' : 'Developing'}</span></div>
+          <div className="sap-evidence-heading"><div><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><span>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</span></div><span className={`sap-status sap-status--${item.observation_type === 'focus' ? 'focus' : item.observation_type === 'strength' ? 'strong' : 'improving'}`}>{observationDisplayLabel(item.observation_type)}</span></div>
           <p className="sap-evidence-explanation">{evidenceExplanation(item)}</p>
           {firstCorrection && (firstCorrection.original || firstCorrection.better_version) ? <div className="sap-example sap-example--wide"><span>From the student's work</span><del>{firstCorrection.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{firstCorrection.better_version || 'Correction'}</ins></div> : null}
           {improvementAction ? <p className="sap-next-step"><strong>Helpful next step:</strong> {improvementAction}</p> : null}
@@ -503,12 +554,12 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
       })}{!profile.timeline.length ? <div className="sap-empty">No learning evidence is available in this period.</div> : null}</div>
     </ProfileDisclosure>
 
-    <ProfileDisclosure tone="results" eyebrow="Assessment record" title="Assignment results" description="Completed assignment outcomes for the selected period." meta={`${profile.assignments.length} completed`}>
+    <ProfileDisclosure tone="results" eyebrow="Assessment record" title="Assignment results" description="Official completed assignment outcomes used for the assignment average. Skill-level evidence may contain additional qualified diagnostic records." meta={`${profile.assignments.length} completed`}>
       <div className="sap-table-wrap"><table className="sap-table"><thead><tr><th>Date</th><th>Subject</th><th>Assignment</th><th>Topic</th><th>Correct</th><th>Result</th></tr></thead><tbody>{profile.assignments.map((item) => <tr key={`${item.assignment_id}:${item.completed_at}`}><td>{formatDate(item.completed_at)}</td><td>{item.subject}</td><td><strong>{item.title}</strong></td><td>{item.topic || '—'}</td><td>{item.correct}/{item.correct + item.incorrect}</td><td><span className={`sap-score-chip sap-score-chip--${scoreBand(item.accuracy)}`}>{item.accuracy}%</span></td></tr>)}</tbody></table>{!profile.assignments.length ? <div className="sap-empty">No completed assignments in this period.</div> : null}</div>
     </ProfileDisclosure>
 
     <ProfileDisclosure tone="method" eyebrow="Reporting method" title="How this profile works" description="Definitions, confidence and governed reporting terminology." meta="Reference">
-      <div className="sap-glossary"><div><strong>New focus</strong><span>A recent assessed need. It is visible early, but is not called persistent yet.</span></div><div><strong>Recurring</strong><span>The same need has appeared more than once.</span></div><div><strong>Persistent</strong><span>A repeated need supported by enough evidence over time.</span></div><div><strong>Improving</strong><span>Later assessed work is moving in the right direction.</span></div><div><strong>Resolved</strong><span>Later evidence shows the previous need is now secure.</span></div><div><strong>Confidence</strong><span>How complete, recent and consistent the evidence is. It is not a mark.</span></div></div>
+      <div className="sap-glossary"><div><strong>New focus</strong><span>A recent assessed need. It is visible early, but is not called persistent yet.</span></div><div><strong>Recurring</strong><span>The same need has appeared more than once.</span></div><div><strong>Persistent</strong><span>A repeated need supported by enough evidence over time.</span></div><div><strong>Improving</strong><span>Later assessed work is moving in the right direction.</span></div><div><strong>Resolved</strong><span>Later evidence shows the previous need is now secure.</span></div><div><strong>Evidence to confirm</strong><span>Promising, developing or potential support evidence that is not yet strong enough for a longitudinal conclusion.</span></div><div><strong>Established strength</strong><span>A strength supported by enough qualified evidence over time, not just one high result.</span></div><div><strong>Teacher review needed</strong><span>Qualified evidence points in different directions, so the system withholds a simple conclusion.</span></div><div><strong>Confidence</strong><span>How complete, recent and consistent the evidence is. It is not a mark.</span></div></div>
       {latestConfidenceStates.length ? <div className="sap-confidence-summary" aria-label="Evidence confidence summary"><span><strong>{latestConfidenceStates.filter((item) => item.assessmentState === 'assessed').length}</strong> well-evidenced skills</span><span><strong>{latestConfidenceStates.filter((item) => ['not_assessed', 'low_data'].includes(item.assessmentState)).length}</strong> need more evidence</span><span><strong>{latestConfidenceStates.filter((item) => item.assessmentState === 'stale').length}</strong> need newer evidence</span><span><strong>{latestConfidenceStates.filter((item) => item.teacherReviewRequired).length}</strong> need teacher review</span></div> : <p>No confidence details are available yet.</p>}
       <div className="sap-technical-summary"><strong>Technical reporting terminology</strong><p><b>Qualified evidence:</b> assessed evidence that meets the system's quality rules. <b>Coverage:</b> how much of the mapped curriculum has been assessed. <b>Reporting readiness:</b> whether there is enough governed evidence for higher-confidence reporting. <b>Contradictory evidence:</b> recent evidence that points in different directions and may need teacher review.</p></div>
     </ProfileDisclosure>

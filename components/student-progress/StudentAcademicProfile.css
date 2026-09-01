@@ -30,3 +30,8 @@
   color: #94a3b8 !important;
   opacity: 1;
 }
+
+/* Academic Profile print trust summary */
+.sap-print-trust-summary { margin: 12px 0 16px; padding: 12px 14px; border: 1px solid #dbe7f4; border-radius: 12px; background: #f8fbff; }
+.sap-print-trust-summary > span { display: block; margin-bottom: 4px; color: #315b78; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.sap-print-trust-summary > p { margin: 0; color: #243447; font-size: 10px; line-height: 1.55; }
