@@ -1,0 +1,334 @@
+/*
+ * Brains Heist professional light theme.
+ *
+ * This layer is intentionally separate from `light-mode.css`: LightMode is a
+ * performance/effects preference, while this file owns the visual palette for
+ * every product surface. It loads last so legacy dark utility classes can be
+ * translated without rewriting hundreds of screens at once.
+ */
+
+:root {
+  color-scheme: light;
+  --platform-page: #f5f7fb;
+  --platform-page-strong: #eef2f7;
+  --platform-surface: #ffffff;
+  --platform-surface-muted: #f8fafc;
+  --platform-surface-selected: #eff6ff;
+  --platform-border: #dbe3ee;
+  --platform-border-strong: #cbd5e1;
+  --platform-text: #0f172a;
+  --platform-text-soft: #334155;
+  --platform-muted: #64748b;
+  --platform-faint: #94a3b8;
+  --platform-accent: #0f6cbd;
+  --platform-accent-soft: #e8f2ff;
+  --platform-success: #047857;
+  --platform-warning: #b45309;
+  --platform-danger: #be123c;
+  --platform-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
+body.platform-light-theme {
+  --ink-900: var(--platform-page);
+  --ink-800: var(--platform-surface);
+  --paper-50: var(--platform-text);
+  --mist-400: var(--platform-muted);
+  background: var(--platform-page) !important;
+  color: var(--platform-text) !important;
+}
+
+body.platform-light-theme::before,
+body.platform-light-theme::after {
+  display: none !important;
+}
+
+body.platform-light-theme #root,
+body.platform-light-theme .lite-mode-wrapper {
+  background: transparent !important;
+  color: var(--platform-text) !important;
+}
+
+body.platform-light-theme ::selection {
+  background: #bfdbfe;
+  color: #0f172a;
+}
+
+/* Shared professional surfaces */
+body.platform-light-theme .card-glass,
+body.platform-light-theme [class*="rounded-2xl"][class*="border"][class*="bg-[#0"],
+body.platform-light-theme [class*="rounded-xl"][class*="border"][class*="bg-[#0"] {
+  background: var(--platform-surface) !important;
+  border-color: var(--platform-border) !important;
+  color: var(--platform-text) !important;
+  box-shadow: var(--platform-shadow) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.platform-light-theme .card-glass::after {
+  display: none !important;
+}
+
+/* Legacy dark surface utilities -> light neutral surfaces. */
+body.platform-light-theme [class*="bg-black/"],
+body.platform-light-theme [class*="bg-slate-950"],
+body.platform-light-theme [class*="bg-slate-900"],
+body.platform-light-theme [class*="bg-slate-800"],
+body.platform-light-theme [class*="bg-gray-950"],
+body.platform-light-theme [class*="bg-gray-900"],
+body.platform-light-theme [class*="bg-gray-800"],
+body.platform-light-theme [class*="bg-[#07111f"],
+body.platform-light-theme [class*="bg-[#081321"],
+body.platform-light-theme [class*="bg-[#0a1626"],
+body.platform-light-theme [class*="bg-[#0b1727"] {
+  background-color: var(--platform-surface-muted) !important;
+  background-image: none !important;
+}
+
+body.platform-light-theme [class*="border-slate-8"],
+body.platform-light-theme [class*="border-slate-7"],
+body.platform-light-theme [class*="border-slate-6"],
+body.platform-light-theme [class*="border-gray-8"],
+body.platform-light-theme [class*="border-gray-7"],
+body.platform-light-theme [class*="border-gray-6"],
+body.platform-light-theme [class*="border-white/10"],
+body.platform-light-theme [class*="border-white/15"],
+body.platform-light-theme [class*="border-white/20"] {
+  border-color: var(--platform-border) !important;
+}
+
+/* Typography on surfaces. Avoid changing text inside strong colored buttons. */
+body.platform-light-theme :where(
+  .card-glass,
+  .superadmin-shell,
+  .school-admin-portal,
+  .student-dashboard-shell,
+  .student-profile-panel,
+  .student-next-mission,
+  .student-activity-feed
+) :where(h1, h2, h3, h4, h5, h6, p, span, dt, dd, th, td, label).text-white,
+body.platform-light-theme :where(
+  .card-glass,
+  .superadmin-shell,
+  .school-admin-portal,
+  .student-dashboard-shell,
+  .student-profile-panel,
+  .student-next-mission,
+  .student-activity-feed
+) [class*="text-slate-100"],
+body.platform-light-theme :where(
+  .card-glass,
+  .superadmin-shell,
+  .school-admin-portal,
+  .student-dashboard-shell,
+  .student-profile-panel,
+  .student-next-mission,
+  .student-activity-feed
+) [class*="text-slate-200"],
+body.platform-light-theme :where(
+  .card-glass,
+  .superadmin-shell,
+  .school-admin-portal,
+  .student-dashboard-shell,
+  .student-profile-panel,
+  .student-next-mission,
+  .student-activity-feed
+) [class*="text-gray-100"],
+body.platform-light-theme :where(
+  .card-glass,
+  .superadmin-shell,
+  .school-admin-portal,
+  .student-dashboard-shell,
+  .student-profile-panel,
+  .student-next-mission,
+  .student-activity-feed
+) [class*="text-gray-200"] {
+  color: var(--platform-text) !important;
+}
+
+body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-slate-300"],
+body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-gray-300"] {
+  color: var(--platform-text-soft) !important;
+}
+
+body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-slate-400"],
+body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-gray-400"],
+body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-slate-500"],
+body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-gray-500"] {
+  color: var(--platform-muted) !important;
+}
+
+/* Forms become consistent white enterprise controls. */
+body.platform-light-theme input:not([type="checkbox"]):not([type="radio"]),
+body.platform-light-theme textarea,
+body.platform-light-theme select {
+  background: #ffffff !important;
+  border-color: var(--platform-border-strong) !important;
+  color: var(--platform-text) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+}
+
+body.platform-light-theme input::placeholder,
+body.platform-light-theme textarea::placeholder {
+  color: var(--platform-faint) !important;
+}
+
+body.platform-light-theme input:focus,
+body.platform-light-theme textarea:focus,
+body.platform-light-theme select:focus {
+  border-color: #60a5fa !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.13) !important;
+}
+
+/* Neutral buttons that inherited old dark backgrounds. Colored action buttons keep their intent. */
+body.platform-light-theme button[class*="bg-slate-9"],
+body.platform-light-theme button[class*="bg-slate-8"],
+body.platform-light-theme button[class*="bg-black/"],
+body.platform-light-theme a[class*="bg-slate-9"],
+body.platform-light-theme a[class*="bg-slate-8"] {
+  background: #ffffff !important;
+  border-color: var(--platform-border-strong) !important;
+  color: var(--platform-text-soft) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+body.platform-light-theme button[class*="bg-slate-9"]:hover,
+body.platform-light-theme button[class*="bg-slate-8"]:hover,
+body.platform-light-theme button[class*="bg-black/"]:hover,
+body.platform-light-theme a[class*="bg-slate-9"]:hover,
+body.platform-light-theme a[class*="bg-slate-8"]:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+/* Superadmin control center */
+body.platform-light-theme .superadmin-shell {
+  background: var(--platform-page) !important;
+  background-image: none !important;
+  color: var(--platform-text) !important;
+}
+
+body.platform-light-theme .superadmin-shell > aside,
+body.platform-light-theme .superadmin-shell > div > header {
+  background: rgba(255, 255, 255, 0.97) !important;
+  border-color: var(--platform-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+body.platform-light-theme .superadmin-shell .superadmin-nav button[aria-current="page"] {
+  background: var(--platform-accent-soft) !important;
+  border-color: #bfdbfe !important;
+  color: #0f4c81 !important;
+  box-shadow: inset 3px 0 0 #2563eb !important;
+}
+
+body.platform-light-theme .superadmin-shell .superadmin-nav button:not([aria-current="page"]):hover {
+  background: #f8fafc !important;
+  border-color: var(--platform-border) !important;
+  color: var(--platform-text) !important;
+}
+
+body.platform-light-theme .superadmin-shell table thead {
+  background: #f8fafc !important;
+}
+
+body.platform-light-theme .superadmin-shell table th {
+  color: #475569 !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+body.platform-light-theme .superadmin-shell table tbody tr:hover {
+  background: #f8fbff !important;
+}
+
+/* School admin and teacher operational areas. */
+body.platform-light-theme .school-admin-portal,
+body.platform-light-theme [class*="teacher-portal"],
+body.platform-light-theme [class*="TeacherPortal"] {
+  background: var(--platform-page) !important;
+  color: var(--platform-text) !important;
+}
+
+body.platform-light-theme .school-admin-portal [class*="bg-gradient-to"],
+body.platform-light-theme [class*="teacher-portal"] [class*="bg-gradient-to"] {
+  box-shadow: none !important;
+}
+
+/* Student dashboard: keep accent colors, replace the dark glass foundation. */
+body.platform-light-theme .student-dashboard-shell::before,
+body.platform-light-theme .student-dashboard-bottom-nav::before,
+body.platform-light-theme .student-dashboard-bottom-nav::after,
+body.platform-light-theme .student-next-mission::before,
+body.platform-light-theme .student-next-mission::after,
+body.platform-light-theme .student-profile-panel::before {
+  opacity: 0.2 !important;
+}
+
+body.platform-light-theme .student-dashboard-rail,
+body.platform-light-theme .student-dashboard-bottom-nav,
+body.platform-light-theme .student-next-mission,
+body.platform-light-theme .student-profile-panel,
+body.platform-light-theme .student-quick-stat,
+body.platform-light-theme .student-activity-feed,
+body.platform-light-theme .student-profile-summary,
+body.platform-light-theme .student-profile-stat,
+body.platform-light-theme .student-activity-item {
+  background: #ffffff !important;
+  border-color: var(--platform-border) !important;
+  color: var(--platform-text) !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.platform-light-theme .student-dashboard-nav-link:not(.is-active),
+body.platform-light-theme .student-dashboard-bottom-link:not(.is-active) {
+  color: #475569 !important;
+}
+
+/* Legacy full-screen pages with inline dark backgrounds should still inherit the platform palette. */
+body.platform-light-theme .min-h-screen[style*="background"],
+body.platform-light-theme .min-h-screen[style*="backgroundColor"] {
+  background: var(--platform-page) !important;
+  color: var(--platform-text) !important;
+}
+
+body.platform-light-theme .fixed.inset-0.pointer-events-none[class*="bg-gradient"] {
+  background: linear-gradient(180deg, rgba(239, 246, 255, 0.78), rgba(248, 250, 252, 0.88)) !important;
+}
+
+/* Dialogs remain separated from the page without returning to a black UI. */
+body.platform-light-theme [role="dialog"] > :where(div, section, article),
+body.platform-light-theme [class*="modal"] > :where(div, section, article) {
+  border-color: var(--platform-border) !important;
+}
+
+/* Subtle professional scrollbars, including wide admin data tables. */
+body.platform-light-theme * {
+  scrollbar-width: thin;
+  scrollbar-color: #b8c4d4 #eef2f7;
+}
+
+body.platform-light-theme ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+body.platform-light-theme ::-webkit-scrollbar-track {
+  background: #eef2f7;
+  border-radius: 999px;
+}
+
+body.platform-light-theme ::-webkit-scrollbar-thumb {
+  background: #b8c4d4;
+  border: 2px solid #eef2f7;
+  border-radius: 999px;
+}
+
+body.platform-light-theme ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
