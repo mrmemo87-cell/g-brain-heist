@@ -30,6 +30,9 @@ jobs:
       - name: Apply guarded portal shell patch
         run: python3 .github/scripts/apply_superadmin_ux_shell.py
 
+      - name: Apply guarded UX follow-up patch
+        run: python3 .github/scripts/apply_superadmin_ux_followup.py
+
       - name: Typecheck
         run: npm run typecheck
 
@@ -65,7 +68,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm .github/scripts/apply_superadmin_ux_shell.py .github/workflows/apply-superadmin-ux-overhaul.yml
-          git add components/AdminPortal.tsx
+          git rm .github/scripts/apply_superadmin_ux_shell.py .github/scripts/apply_superadmin_ux_followup.py .github/workflows/apply-superadmin-ux-overhaul.yml
+          git add components/AdminPortal.tsx components/admin/tabs/DashboardTab.tsx
           git commit -m "Integrate professional Superadmin portal UX"
           git push origin HEAD:superadmin-ux-overhaul
