@@ -1,0 +1,59 @@
+name: One-shot admin cleanup v5
+
+on:
+  push:
+    branches:
+      - fix-admin-filters-cambridge-light-theme
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-commit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix-admin-filters-cambridge-light-theme
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Apply previously guarded source patch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          workflow = Path('.github/workflows/one-shot-admin-cleanup-v4.yml').read_text()
+          marker = "          python3 - <<'PY'\n"
+          start = workflow.index(marker) + len(marker)
+          end = workflow.index("\n          PY", start)
+          body = workflow[start:end]
+          lines = []
+          for line in body.splitlines():
+              lines.append(line[10:] if line.startswith('          ') else line)
+          Path('/tmp/admin_cleanup_patch.py').write_text('\n'.join(lines) + '\n')
+          PY
+          python3 /tmp/admin_cleanup_patch.py
+
+      - name: Full repository verification gate
+        run: npm run verify
+
+      - name: Commit verified patch and remove one-shot workflows
+        shell: bash
+        run: |
+          rm .github/workflows/one-shot-admin-cleanup-v4.yml
+          rm .github/workflows/one-shot-admin-cleanup-v5.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/AdminPortal.tsx components/admin/tabs/UsersTab.tsx components/admin/tabs/SchoolsTab.tsx src/contexts/LightModeContext.tsx src/styles/platform-light-theme.css index.tsx tests/superadminPortalUx.test.ts tests/platformLightTheme.test.ts supabase/migrations/20260903141000_fix_superadmin_filters_and_cambridge_access.sql supabase/migrations/20260903141500_fix_superadmin_user_rpc_return_casts.sql .github/workflows/one-shot-admin-cleanup-v4.yml .github/workflows/one-shot-admin-cleanup-v5.yml
+          git commit -m "Fix admin filters Cambridge reporting and platform light theme"
+          git push origin HEAD:fix-admin-filters-cambridge-light-theme
