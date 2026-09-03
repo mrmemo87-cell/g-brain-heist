@@ -25,14 +25,21 @@ const UsersTab: React.FC = () => {
     resetUserProgress, resolveUserEmail, resolveUserLabel, roleChangeLoading, searchQuery, schoolOptions,
     setCustomCoinAmount, setCustomGemstoneAmount, setCustomLevel, setCustomLevelAmount, setCustomXpAmount, setSearchQuery,
     setShowCustomGrant, setUserBanState, setUserLevel, setUserPage, showCustomGrant, userPage,
+    userRoleFilter, setUserRoleFilter, userGradeFilter, setUserGradeFilter,
+    userSchoolFilter, setUserSchoolFilter, userStatusFilter, setUserStatusFilter, userSortKey, setUserSortKey,
     users, usersError, usersLoading,
   } = useAdmin();
 
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [gradeFilter, setGradeFilter] = useState('all');
-  const [schoolFilter, setSchoolFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [sortKey, setSortKey] = useState<SortKey>('last-active');
+  const roleFilter = userRoleFilter;
+  const setRoleFilter = setUserRoleFilter;
+  const gradeFilter = userGradeFilter;
+  const setGradeFilter = setUserGradeFilter;
+  const schoolFilter = userSchoolFilter;
+  const setSchoolFilter = setUserSchoolFilter;
+  const statusFilter = userStatusFilter;
+  const setStatusFilter = setUserStatusFilter;
+  const sortKey: SortKey = userSortKey;
+  const setSortKey = setUserSortKey;
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // AdminContext intentionally remains loose-typed. Normalize every collection at
@@ -96,18 +103,16 @@ const UsersTab: React.FC = () => {
     return Array.from(roles).filter(Boolean).sort();
   }, [safeUsers]);
 
-  const schoolFilterOptions = useMemo(() => {
-    const names = new Set<string>();
-    safeSchoolOptions.forEach((school) => school.name && names.add(school.name));
-    safeUsers.forEach((user) => names.add(schoolName(user)));
-    return Array.from(names).filter(Boolean).sort((a, b) => a.localeCompare(b));
-  }, [safeSchoolOptions, safeUsers]);
+  const schoolFilterOptions = useMemo(
+    () => [...safeSchoolOptions].sort((a, b) => a.name.localeCompare(b.name)),
+    [safeSchoolOptions]
+  );
 
   const filteredUsers = useMemo(() => {
     const rows = safeUsers.filter((user) => {
       if (roleFilter !== 'all' && normalizedRole(user) !== roleFilter) return false;
       if (gradeFilter !== 'all' && String(userGrade(user) ?? '') !== gradeFilter) return false;
-      if (schoolFilter !== 'all' && schoolName(user) !== schoolFilter) return false;
+      if (schoolFilter !== 'all' && String(user?.school_id || '') !== schoolFilter) return false;
       if (statusFilter !== 'all' && normalizedStatus(user) !== statusFilter) return false;
       return true;
     });
@@ -189,12 +194,12 @@ const UsersTab: React.FC = () => {
 
   return (
     <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
-      <section className="min-w-0 overflow-hidden rounded-2xl border border-slate-800/90 bg-[#0a1626]/88 shadow-[0_24px_70px_rgba(2,8,23,0.22)]">
+      <section className="min-w-0 rounded-2xl border border-slate-800/90 bg-[#0a1626]/88 shadow-[0_24px_70px_rgba(2,8,23,0.22)]">
         <div className="border-b border-slate-800/80 px-4 py-4 sm:px-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-base font-bold text-white">Platform users</h2>
-              <p className="mt-1 text-xs text-slate-500">Search is server-backed. Dropdown filters organize the currently loaded page without another network request.</p>
+              <p className="mt-1 text-xs text-slate-500">Search, role, grade, school, status and sorting are server-backed across the full platform dataset.</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="hidden text-xs text-slate-500 sm:inline">{safeUsers.length} loaded · page {userPage + 1}</span>
@@ -231,12 +236,11 @@ const UsersTab: React.FC = () => {
             </select>
             <select value={schoolFilter} onChange={(event) => setSchoolFilter(event.target.value)} className="h-10 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
               <option value="all">All schools</option>
-              {schoolFilterOptions.map((school) => <option key={school} value={school}>{school}</option>)}
+              {schoolFilterOptions.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}
             </select>
             <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="h-10 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
               <option value="all">All statuses</option>
               <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
               <option value="banned">Banned</option>
             </select>
             <select value={sortKey} onChange={(event) => setSortKey(event.target.value as SortKey)} className="h-10 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
@@ -256,8 +260,8 @@ const UsersTab: React.FC = () => {
           </div>
         )}
 
-        <div className="min-w-0 overflow-x-auto">
-          <table className="w-full min-w-[1050px] text-left">
+        <div className="w-full max-w-full overflow-x-auto overscroll-x-contain pb-2 [scrollbar-gutter:stable]">
+          <table className="w-max min-w-[1180px] text-left">
             <thead>
               <tr className="border-b border-slate-800/90 bg-slate-950/25">
                 <th className="px-4 py-3 sm:px-5">User</th>

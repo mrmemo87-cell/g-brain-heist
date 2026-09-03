@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAdmin } from '../AdminContext';
 
 const SchoolsTab: React.FC = () => {
@@ -12,6 +12,18 @@ const SchoolsTab: React.FC = () => {
     setSchoolAdminSchoolId, setSchoolMemberSearch, setSchoolMembers, setSchoolMembersError, 
     setSchoolQuotas, users,
   } = useAdmin();
+
+  const [memberRoleFilter, setMemberRoleFilter] = useState('all');
+  const [memberGradeFilter, setMemberGradeFilter] = useState('all');
+
+  const visibleSchoolMembers = useMemo(() => {
+    if (!schoolAdminSchoolId) return [];
+    return filteredSchoolMembers.filter((member: any) => {
+      if (memberRoleFilter !== 'all' && member.role !== memberRoleFilter) return false;
+      if (memberGradeFilter !== 'all' && String(member.grade ?? '') !== memberGradeFilter) return false;
+      return true;
+    });
+  }, [filteredSchoolMembers, memberGradeFilter, memberRoleFilter, schoolAdminSchoolId]);
 
   return (
     <div className="space-y-6">
@@ -39,7 +51,7 @@ const SchoolsTab: React.FC = () => {
             </button>
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-[2fr,1fr]">
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr_1fr]">
             <select
               value={schoolAdminSchoolId}
               onChange={(event) => {
@@ -47,6 +59,9 @@ const SchoolsTab: React.FC = () => {
                 setSchoolAdminSchoolId(selectedId);
                 setSchoolMembers([]);
                 setSchoolMembersError(null);
+                setSchoolMemberSearch('');
+                setMemberRoleFilter('all');
+                setMemberGradeFilter('all');
                 if (selectedId) {
                   loadSchoolMembers(selectedId);
                   loadSchoolQuotas(selectedId);
@@ -71,6 +86,16 @@ const SchoolsTab: React.FC = () => {
               placeholder="Search username or email..."
               className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
+            <select value={memberRoleFilter} onChange={(event) => setMemberRoleFilter(event.target.value)} className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white">
+              <option value="all">All roles</option>
+              <option value="student">Students</option>
+              <option value="teacher">Teachers</option>
+              <option value="school_admin">School admins</option>
+            </select>
+            <select value={memberGradeFilter} onChange={(event) => setMemberGradeFilter(event.target.value)} className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white">
+              <option value="all">All grades</option>
+              {[6, 7, 8, 9, 10, 11, 12].map((grade) => <option key={grade} value={String(grade)}>Grade {grade}</option>)}
+            </select>
           </div>
 
           {schoolAdminSchoolId && (
@@ -162,7 +187,7 @@ const SchoolsTab: React.FC = () => {
             </div>
           )}
 
-          {!schoolMembersLoading && schoolAdminSchoolId && filteredSchoolMembers.length === 0 && (
+          {!schoolMembersLoading && schoolAdminSchoolId && visibleSchoolMembers.length === 0 && (
             <div className="mt-4 rounded-lg border border-white/10 bg-black/30 p-8 text-center text-sm text-gray-400">
               <p className="text-4xl mb-2">🔍</p>
               <p>No members found for this school.</p>
@@ -170,12 +195,12 @@ const SchoolsTab: React.FC = () => {
             </div>
           )}
 
-          {filteredSchoolMembers.length > 0 && (
+          {schoolAdminSchoolId && visibleSchoolMembers.length > 0 && (
             <div className="mt-4 space-y-3">
               <p className="text-xs text-gray-400">
-                Showing {filteredSchoolMembers.length} member{filteredSchoolMembers.length !== 1 ? 's' : ''}
+                Selected school only · showing {visibleSchoolMembers.length} member{visibleSchoolMembers.length !== 1 ? 's' : ''}
               </p>
-              {filteredSchoolMembers.map((member) => {
+              {visibleSchoolMembers.map((member) => {
                 const isAdmin = member.role === 'school_admin';
                 return (
                   <div

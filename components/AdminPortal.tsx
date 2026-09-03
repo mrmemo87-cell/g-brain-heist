@@ -56,6 +56,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [viewRefreshVersions, setViewRefreshVersions] = useState<Partial<Record<AdminTab, number>>>({});
   const [users, setUsers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('all');
+  const [userGradeFilter, setUserGradeFilter] = useState('all');
+  const [userSchoolFilter, setUserSchoolFilter] = useState('all');
+  const [userStatusFilter, setUserStatusFilter] = useState('all');
+  const [userSortKey, setUserSortKey] = useState<'last-active' | 'name' | 'xp' | 'level'>('last-active');
   const [userPage, setUserPage] = useState(0);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState<string | null>(null);
@@ -199,32 +204,21 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     12: ['12A', '12B', '12C', 'N/A'],
   };
 
-  // Fetch Cambridge Quiz Scores (school-isolated for admins)
+  // Fetch Cambridge reports only through the governed SECURITY DEFINER RPC.
+  // Direct table fallbacks are intentionally forbidden by the Cambridge security model.
   const fetchQuizScores = async () => {
     setQuizScoresLoading(true);
     try {
-      // Use school-scoped RPC to get only scores from admin's school
       const { data, error } = await supabase.rpc('get_school_cambridge_scores', { p_limit: 500 });
+      if (error) throw error;
 
-      if (error) {
-        // Fallback to direct query if RPC doesn't exist yet (migration not run)
-        reportRpcError('RPC get_school_cambridge_scores not available, falling back:', error, 'Failed to load Cambridge scores.');
-        const fallback = await supabase
-          .from('quiz_scores')
-          .select('*')
-          .order('submitted_at', { ascending: false });
-        
-        if (fallback.error) throw fallback.error;
-        setQuizScores(fallback.data || []);
-        calculateQuizStats(fallback.data || []);
-        return;
-      }
-
-      const scores = data || [];
+      const scores = Array.isArray(data) ? data : [];
       setQuizScores(scores);
       calculateQuizStats(scores);
     } catch (error) {
-      reportRpcError('Failed to fetch quiz scores:', error, 'Failed to fetch Cambridge test scores');
+      setQuizScores([]);
+      calculateQuizStats([]);
+      reportRpcError('Failed to fetch Cambridge reports:', error, 'Failed to load Cambridge reports.');
     } finally {
       setQuizScoresLoading(false);
     }
@@ -579,6 +573,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   useEffect(() => {
     if (activeTab === 'applications' || activeTab === 'schools') {
       loadSchoolRequests();
+    }
+    if (activeTab === 'applications' || activeTab === 'schools' || activeTab === 'users') {
       loadSchoolOptions();
     }
   }, [activeTab, loadSchoolRequests, loadSchoolOptions]);
@@ -1121,18 +1117,31 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       setUsersLoading(true);
       setUsersError(null);
       try {
-        const { data, error } = await supabase.rpc('rpc_admin_list_users', {
+        const superadminParams = {
           p_limit: PAGE_SIZE,
           p_offset: page * PAGE_SIZE,
           p_search: query.trim() || null,
-        });
+          p_role: userRoleFilter === 'all' ? null : userRoleFilter,
+          p_grade: userGradeFilter === 'all' ? null : Number.parseInt(userGradeFilter, 10),
+          p_school_id: userSchoolFilter === 'all' ? null : userSchoolFilter,
+          p_status: userStatusFilter === 'all' ? null : userStatusFilter,
+          p_sort: userSortKey,
+        };
+        const regularAdminParams = {
+          p_limit: PAGE_SIZE,
+          p_offset: page * PAGE_SIZE,
+          p_search: query.trim() || null,
+        };
+        const { data, error } = isSuperadmin
+          ? await supabase.rpc('rpc_superadmin_list_users', superadminParams)
+          : await supabase.rpc('rpc_admin_list_users', regularAdminParams);
         if (error) throw error;
 
-        const list = (data as any[]) ?? [];
-        setUsers(list);
-        setHasNextPage(list.length === PAGE_SIZE);
-      } catch (error) {
-        const message = reportRpcError('Failed to fetch users:', error, 'Failed to load users.');
+        const rows = Array.isArray(data) ? data : [];
+        setUsers(rows);
+        setHasNextPage(rows.length === PAGE_SIZE);
+      } catch (error: any) {
+        const message = error?.message || 'Failed to load users.';
         setUsersError(message);
         setUsers([]);
         setHasNextPage(false);
@@ -1140,7 +1149,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         setUsersLoading(false);
       }
     },
-    [PAGE_SIZE, addToast]
+    [PAGE_SIZE, isSuperadmin, userGradeFilter, userRoleFilter, userSchoolFilter, userSortKey, userStatusFilter]
   );
 
   const refreshAdminData = useCallback(async () => {
@@ -1156,7 +1165,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
   useEffect(() => {
     setUserPage(0);
-  }, [searchQuery]);
+  }, [searchQuery, userRoleFilter, userGradeFilter, userSchoolFilter, userStatusFilter, userSortKey]);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -1776,7 +1785,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     profile, addToast, supabase,
     // State
     stats, statsLoading, statsError, users, usersLoading, usersError,
-    searchQuery, setSearchQuery, userPage, setUserPage, hasNextPage, PAGE_SIZE,
+    searchQuery, setSearchQuery,
+    userRoleFilter, setUserRoleFilter, userGradeFilter, setUserGradeFilter,
+    userSchoolFilter, setUserSchoolFilter, userStatusFilter, setUserStatusFilter, userSortKey, setUserSortKey,
+    userPage, setUserPage, hasNextPage, PAGE_SIZE,
     adminVisible, setAdminVisible,
     showAnnouncementComposer, setShowAnnouncementComposer,
     announcementText, setAnnouncementText, announcementExpiry, setAnnouncementExpiry,

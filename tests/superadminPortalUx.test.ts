@@ -53,3 +53,18 @@ test('dashboard removes game-like god-mode presentation and isolates destructive
   assert.doesNotMatch(dashboardTab, /God Mode/);
   assert.doesNotMatch(dashboardTab, /Godly Cards/);
 });
+
+
+test('superadmin user filters are server-backed and the wide table owns horizontal scroll', () => {
+  assert.match(adminPortal, /rpc_superadmin_list_users/);
+  assert.match(adminPortal, /userRoleFilter/);
+  assert.match(adminPortal, /userSchoolFilter/);
+  assert.match(usersTab, /overscroll-x-contain/);
+  assert.match(usersTab, /min-w-\[1180px\]/);
+  assert.match(usersTab, /full platform dataset/);
+});
+
+test('Cambridge reports keep the hardened RPC boundary without direct table fallback', () => {
+  assert.match(adminPortal, /get_school_cambridge_scores/);
+  assert.doesNotMatch(adminPortal, /from\('quiz_scores'\)\s*\.select\('\*'\)/);
+});
