@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Grade } from '../../../types';
 import { useAdmin } from '../AdminContext';
 import ClickableUsername from '../../ClickableUsername';
 
@@ -12,6 +13,13 @@ const UsersTab: React.FC = () => {
     setShowCustomGrant, setUserBanState, setUserLevel, setUserPage, showCustomGrant, userPage,
     users, usersError, usersLoading,
   } = useAdmin();
+
+  // The admin context is intentionally loose-typed. Keep this tab fail-safe if a
+  // context value or RPC payload is temporarily missing/malformed instead of
+  // crashing the whole Superadmin portal and forcing a refresh.
+  const safeUsers = Array.isArray(users) ? users : [];
+  const safeGradeOptions = Array.isArray(gradeOptions) ? gradeOptions : [];
+  const safeBatchByGrade = batchByGrade && typeof batchByGrade === 'object' ? batchByGrade : {};
 
   return (
     <div className="card-glass p-6 border-2 border-purple-400/50">
@@ -27,7 +35,7 @@ const UsersTab: React.FC = () => {
           className="w-full px-4 py-3 bg-black/40 border-2 border-purple-400/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:shadow-[0_0_20px_rgba(168,85,247,0.4)]"
         />
         <p className="text-sm text-gray-400 mt-2">
-          Showing {users.length} users • Page {userPage + 1}
+          Showing {safeUsers.length} users • Page {userPage + 1}
         </p>
       </div>
 
@@ -68,12 +76,12 @@ const UsersTab: React.FC = () => {
             Loading users…
           </div>
         )}
-        {!usersLoading && users.length === 0 && (
+        {!usersLoading && safeUsers.length === 0 && (
           <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-6 text-center text-sm text-gray-300">
             No users found for this page.
           </div>
         )}
-        {!usersLoading && users.map((user) => {
+        {!usersLoading && safeUsers.map((user) => {
           const isBanned = Boolean(user.is_banned);
           const userGrade: Grade | null = (() => {
             if (typeof user.grade === 'number') {
@@ -88,7 +96,7 @@ const UsersTab: React.FC = () => {
 
           const gradeValue = userGrade ?? '';
           const batchValue = typeof user.batch === 'string' ? user.batch : '';
-          const availableBatches = userGrade ? batchByGrade[userGrade] : ['N/A'];
+          const availableBatches = userGrade ? (safeBatchByGrade[userGrade] ?? ['N/A']) : ['N/A'];
 
           return (
             <div
@@ -156,7 +164,7 @@ const UsersTab: React.FC = () => {
                     className="w-full bg-black/40 border border-purple-400/50 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-300"
                   >
                     <option value="">Unset</option>
-                    {gradeOptions.map((grade) => (
+                    {safeGradeOptions.map((grade) => (
                       <option key={grade} value={grade}>{grade}</option>
                     ))}
                   </select>
