@@ -1,0 +1,33 @@
+name: One-shot theme scope v2
+
+on:
+  push:
+    branches:
+      - "fix/login-theme-superadmin-contrast"
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/login-theme-superadmin-contrast
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: python3 scripts/one_shot_theme_scope_patch.py
+      - run: npm run verify
+      - name: Commit verified patch
+        run: |
+          rm -f .github/workflows/one-shot-theme-scope-v2.yml scripts/one_shot_theme_scope_patch.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Restore public login UX and improve Superadmin contrast"
+          git push origin HEAD:fix/login-theme-superadmin-contrast
