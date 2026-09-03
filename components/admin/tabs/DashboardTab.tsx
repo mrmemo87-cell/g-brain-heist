@@ -10,7 +10,7 @@ const DashboardTab: React.FC = () => {
   const metrics = [
     { key: 'totalUsers', label: 'Total users', detail: 'All registered platform accounts', accent: 'cyan' },
     { key: 'totalTeachers', label: 'Teachers', detail: 'Teacher accounts across the platform', accent: 'violet' },
-    { key: 'bhMembers', label: 'Brain Heist members', detail: 'Core Brain Heist product accounts', accent: 'sky' },
+    { key: 'bhMembers', label: 'Brains Heist members', detail: 'Core Brains Heist product accounts', accent: 'sky' },
     { key: 'ieltsUsers', label: 'IELTS users', detail: 'IELTS learner accounts', accent: 'amber' },
     { key: 'ieltsTeachers', label: 'IELTS teachers', detail: 'IELTS teaching accounts', accent: 'emerald' },
   ] as const;

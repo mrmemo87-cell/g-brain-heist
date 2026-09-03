@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Batch, Grade, Profile, ToastMessage, SchoolRole } from '../types';
-import BackButton from './BackButton';
 import * as AuthService from '../services/authService';
 import { supabase } from '../services/supabaseClient';
 import * as CompetitionService from '../services/competitionService';
@@ -18,6 +17,7 @@ import {
 } from './cambridgeListeningReview';
 
 import AdminContext from './admin/AdminContext';
+import SuperadminShell from './admin/SuperadminShell';
 import DashboardTab from './admin/tabs/DashboardTab';
 import UsersTab from './admin/tabs/UsersTab';
 import SchoolsTab from './admin/tabs/SchoolsTab';
@@ -52,6 +52,8 @@ const SUPERADMIN_TABS: AdminTab[] = ['dashboard', 'users', 'question-bank', 'sch
 const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast }) => {
   const PAGE_SIZE = 50;
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+  const [visitedTabs, setVisitedTabs] = useState<Set<AdminTab>>(() => new Set<AdminTab>(['dashboard']));
+  const [viewRefreshVersions, setViewRefreshVersions] = useState<Partial<Record<AdminTab, number>>>({});
   const [users, setUsers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [userPage, setUserPage] = useState(0);
@@ -666,6 +668,18 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       isMounted = false;
     };
   }, []);
+
+  // Keep a tab mounted after its first visit. This preserves filters, scroll state and
+  // already-loaded local data instead of re-fetching/resetting every time the admin
+  // moves between sections. Explicit Refresh can still remount independent views.
+  useEffect(() => {
+    setVisitedTabs((previous) => {
+      if (previous.has(activeTab)) return previous;
+      const next = new Set(previous);
+      next.add(activeTab);
+      return next;
+    });
+  }, [activeTab]);
 
   // Helper to calculate quiz stats
   const calculateQuizStats = (scores: any[]) => {
@@ -1702,6 +1716,60 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   };
 
 
+  const refreshActiveView = useCallback(async () => {
+    switch (activeTab) {
+      case 'dashboard':
+        await refreshAdminData();
+        return;
+      case 'users':
+        await fetchUsers(userPage, searchQuery);
+        return;
+      case 'schools': {
+        const tasks: Promise<unknown>[] = [loadSchoolOptions(), loadSchoolRequests()];
+        if (schoolAdminSchoolId) {
+          tasks.push(loadSchoolMembers(schoolAdminSchoolId));
+          tasks.push(loadSchoolQuotas(schoolAdminSchoolId));
+        }
+        await Promise.all(tasks);
+        return;
+      }
+      case 'applications':
+        await Promise.all([loadSchoolRequests(), loadSchoolOptions()]);
+        return;
+      case 'analytics':
+        await fetchAnalytics();
+        return;
+      case 'cambridge':
+        await fetchQuizScores();
+        return;
+      case 'system':
+        await fetchAnnouncements();
+        return;
+      default:
+        // Tabs with self-contained loaders refresh by remounting only that visited
+        // view. Other cached tabs remain mounted and keep their working state.
+        setViewRefreshVersions((previous) => ({
+          ...previous,
+          [activeTab]: (previous[activeTab] ?? 0) + 1,
+        }));
+    }
+  }, [
+    activeTab,
+    fetchAnalytics,
+    fetchAnnouncements,
+    fetchQuizScores,
+    fetchUsers,
+    loadSchoolMembers,
+    loadSchoolOptions,
+    loadSchoolQuotas,
+    loadSchoolRequests,
+    refreshAdminData,
+    schoolAdminSchoolId,
+    searchQuery,
+    userPage,
+  ]);
+
+
   // ─── Context value for child components ──────────────
   const contextValue = {
     // Props & externals
@@ -1773,232 +1841,53 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
   return (
     <AdminContext.Provider value={contextValue}>
-    <div className="admin-portal min-h-screen relative overflow-hidden">
-      {/* Epic Animated Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-pink-900/20 to-red-900/20 animate-pulse-slow"></div>
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="admin-particles"></div>
-        </div>
-      </div>
-
-      <div className="admin-portal-content relative z-10 p-6">
-        <BackButton onClick={handleLogout} label={isLoggingOut ? 'Logging out…' : 'Log out'} />
-
-        {/* Godly Admin Header */}
-        <div className="admin-portal-hero text-center mb-8 relative">
-          <div className="inline-block relative">
-            {/* Rotating Glow Effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 blur-3xl opacity-50 animate-spin-slow"></div>
-            
-            <h1 className="relative font-heading text-6xl font-black mb-2 animate-float">
-              <span className="bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,215,0,0.8)]">
-                ⚡ ADMIN PORTAL ⚡
-              </span>
-            </h1>
-            
-            <div className="flex items-center justify-center gap-3 mt-4">
-              <div className="w-16 h-16 rounded-full border-4 border-yellow-400 animate-pulse-glow overflow-hidden bg-gray-800 flex items-center justify-center">
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt="Admin" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                ) : (
-                  <span className="text-2xl">👑</span>
-                )}
-              </div>
-              <div className="text-left">
-                <p className="text-2xl font-bold text-yellow-300 drop-shadow-[0_0_10px_rgba(255,215,0,1)]">
-                  {profile.username}
-                </p>
-                <p className="text-sm text-purple-300">👑 Supreme Administrator 👑</p>
-              </div>
+      <SuperadminShell
+        profile={profile}
+        activeTab={activeTab}
+        availableTabs={isSuperadmin ? SUPERADMIN_TABS : ADMIN_TABS}
+        onTabChange={(tab) => setActiveTab(tab as AdminTab)}
+        applicationsUnreadTotal={applicationsUnreadTotal}
+        isSuperadmin={isSuperadmin}
+        adminVisible={adminVisible}
+        onToggleAdminVisibility={toggleAdminVisibility}
+        onRefresh={refreshActiveView}
+        onLogout={handleLogout}
+        isLoggingOut={isLoggingOut}
+      >
+        <div className="min-w-0">
+          {Array.from(visitedTabs).map((tab) => (
+            <div
+              key={`${tab}-${viewRefreshVersions[tab] ?? 0}`}
+              hidden={tab !== activeTab}
+              aria-hidden={tab !== activeTab}
+            >
+              {tab === 'dashboard' && <DashboardTab />}
+              {tab === 'users' && <UsersTab />}
+              {tab === 'question-bank' && isSuperadmin && (
+                <React.Suspense fallback={<div className="card-glass p-8 text-center text-slate-400">Opening the protected question vault…</div>}>
+                  <QuestionBankInspectorTab />
+                </React.Suspense>
+              )}
+              {tab === 'schools' && <SchoolsTab />}
+              {tab === 'applications' && <ApplicationsTab />}
+              {tab === 'identity-requests' && isSuperadmin && <IdentityRequestsTab addToast={addToast} />}
+              {tab === 'booked-appointments' && <BookedAppointmentsTab />}
+              {tab === 'billing' && <BillingAccessTab />}
+              {tab === 'game' && <GameTab />}
+              {tab === 'clans' && <ClansTab />}
+              {tab === 'analytics' && <AnalyticsTab />}
+              {tab === 'cambridge' && <CambridgeTab />}
+              {tab === 'ielts' && <IeltsTab />}
+              {tab === 'system' && <SystemTab />}
             </div>
-          </div>
+          ))}
         </div>
+      </SuperadminShell>
 
-        {/* Visibility Toggle - Godly Button */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <button
-            onClick={toggleAdminVisibility}
-            className={`w-full relative group overflow-hidden rounded-2xl p-6 transition-all duration-500 ${
-              adminVisible
-                ? 'bg-gradient-to-r from-green-600/30 to-emerald-600/30 border-2 border-green-400 hover:shadow-[0_0_40px_rgba(34,197,94,0.6)]'
-                : 'bg-gradient-to-r from-purple-600/30 to-indigo-600/30 border-2 border-purple-400 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)]'
-            }`}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            
-            <div className="admin-portal-visibility-content relative flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className={`text-5xl ${adminVisible ? 'animate-pulse-glow' : ''}`}>
-                  {adminVisible ? '👁️' : '👻'}
-                </div>
-                <div className="text-left">
-                  <p className="text-2xl font-bold text-white mb-1">
-                    {adminVisible ? 'VISIBLE MODE' : 'GHOST MODE'}
-                  </p>
-                  <p className="text-sm text-gray-300">
-                    {adminVisible 
-                      ? 'You appear in leaderboards & PvP (but cannot be attacked)'
-                      : 'You are hidden from leaderboards & PvP'
-                    }
-                  </p>
-                </div>
-              </div>
-              <div className="text-4xl font-bold text-white animate-bounce">
-                {adminVisible ? '→ HIDE' : '→ SHOW'}
-              </div>
-            </div>
-          </button>
-        </div>
-
-        {/* Tab Navigation - Epic Style */}
-        <div className="admin-portal-tabs max-w-6xl mx-auto mb-6">
-          <div className="admin-portal-tablist flex flex-wrap gap-2 justify-center" role="tablist" aria-label="Admin portal navigation">
-            {(isSuperadmin ? SUPERADMIN_TABS : ADMIN_TABS).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                role="tab"
-                aria-selected={activeTab === tab}
-                className={`admin-portal-tab relative px-6 py-3 rounded-xl font-heading text-lg font-bold transition-all duration-300 ${
-                  activeTab === tab
-                    ? 'bg-gradient-to-r from-yellow-400 to-pink-500 text-black shadow-[0_0_30px_rgba(255,215,0,0.8)] scale-110'
-                    : 'bg-black/40 text-gray-400 hover:text-white border border-gray-600 hover:border-yellow-400'
-                }`}
-              >
-                {activeTab === tab && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-pink-500 blur-xl opacity-50 -z-10"></div>
-                )}
-                {tab.replace(/-/g, ' ').toUpperCase()}
-                {tab === 'applications' && applicationsUnreadTotal > 0 && (
-                  <span className="absolute -right-2 -top-2 inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white shadow-lg">
-                    {Math.min(applicationsUnreadTotal, 99)}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Tab Content */}
-        <div className="max-w-7xl mx-auto">
-          {activeTab === 'dashboard' && <DashboardTab />}
-          {activeTab === 'users' && <UsersTab />}
-          {activeTab === 'question-bank' && isSuperadmin && (
-            <React.Suspense fallback={<div className="card-glass p-8 text-center text-gray-300">Opening the protected question vault…</div>}>
-              <QuestionBankInspectorTab />
-            </React.Suspense>
-          )}
-          {activeTab === 'schools' && <SchoolsTab />}
-          {activeTab === 'applications' && <ApplicationsTab />}
-          {activeTab === 'identity-requests' && isSuperadmin && <IdentityRequestsTab addToast={addToast} />}
-          {activeTab === 'booked-appointments' && <BookedAppointmentsTab />}
-          {activeTab === 'billing' && <BillingAccessTab />}
-          {activeTab === 'game' && <GameTab />}
-          {activeTab === 'clans' && <ClansTab />}
-          {activeTab === 'analytics' && <AnalyticsTab />}
-          {activeTab === 'cambridge' && <CambridgeTab />}
-          {activeTab === 'ielts' && <IeltsTab />}
-          {activeTab === 'system' && <SystemTab />}
-        </div>
-      </div>
-
-      {/* Custom Styles */}
       <style>{`
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
-        }
-        
-        .animate-spin-slow {
-          animation: spin-slow 20s linear infinite;
-        }
-        
-        .animate-pulse-slow {
-          animation: pulse-slow 4s ease-in-out infinite;
-        }
-        
-        .admin-particles {
-          background-image: 
-            radial-gradient(2px 2px at 20% 30%, rgba(255, 215, 0, 0.5), transparent),
-            radial-gradient(2px 2px at 60% 70%, rgba(255, 105, 180, 0.5), transparent),
-            radial-gradient(2px 2px at 50% 50%, rgba(138, 43, 226, 0.5), transparent),
-            radial-gradient(2px 2px at 80% 10%, rgba(255, 215, 0, 0.5), transparent);
-          background-size: 200% 200%;
-          background-position: 0% 0%;
-          height: 100%;
-          width: 100%;
-          animation: particle-float 20s ease-in-out infinite;
-        }
-        
-        @keyframes particle-float {
-          0%, 100% { background-position: 0% 0%; }
-          25% { background-position: 100% 0%; }
-          50% { background-position: 100% 100%; }
-          75% { background-position: 0% 100%; }
-        }
-
-        @media (max-width: 768px) {
-          .admin-portal-content {
-            padding: 1rem;
-          }
-
-          .admin-portal-hero h1 {
-            font-size: 2.25rem;
-            line-height: 1.1;
-          }
-
-          .admin-portal-hero .text-2xl {
-            font-size: 1.25rem;
-          }
-
-          .admin-portal-hero .text-sm {
-            font-size: 0.75rem;
-          }
-
-          .admin-portal-visibility-content {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.75rem;
-          }
-
-          .admin-portal-visibility-content .text-4xl {
-            align-self: flex-end;
-          }
-
-          .admin-portal-tabs {
-            margin-bottom: 1rem;
-          }
-
-          .admin-portal-tablist {
-            flex-wrap: nowrap;
-            justify-content: flex-start;
-            overflow-x: auto;
-            padding-bottom: 0.5rem;
-            scroll-snap-type: x mandatory;
-          }
-
-          .admin-portal-tab {
-            flex: 0 0 auto;
-            font-size: 0.75rem;
-            padding: 0.5rem 0.75rem;
-            scroll-snap-align: start;
-          }
-        }
-
-        /* Print styles - only print the modal content */
         @media print {
-          body * {
-            visibility: hidden;
-          }
-          .print-content, .print-content * {
-            visibility: visible;
-          }
+          body * { visibility: hidden; }
+          .print-content, .print-content * { visibility: visible; }
           .print-content {
             position: absolute;
             left: 0;
@@ -2013,20 +1902,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
             background: white !important;
             padding: 0 !important;
           }
-          .no-print {
-            display: none !important;
-          }
-          .print-content button {
-            display: none !important;
-          }
+          .no-print, .print-content button { display: none !important; }
         }
       `}</style>
 
-      {/* Modals */}
       <ReportModal />
       <AnswerReflectionModal />
       <AnnouncementModal />
-    </div>
     </AdminContext.Provider>
   );
 };
