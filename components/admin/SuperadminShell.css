@@ -1,0 +1,115 @@
+.superadmin-shell {
+  --sa-surface: rgba(10, 22, 38, 0.88);
+  --sa-surface-soft: rgba(15, 28, 47, 0.68);
+  --sa-border: rgba(148, 163, 184, 0.16);
+  --sa-border-strong: rgba(148, 163, 184, 0.24);
+  --sa-text-muted: #94a3b8;
+  color-scheme: dark;
+}
+
+.superadmin-shell * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.55) rgba(15, 23, 42, 0.2);
+}
+
+.superadmin-shell *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.superadmin-shell *::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.2);
+}
+
+.superadmin-shell *::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.5);
+}
+
+.superadmin-shell *::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.72);
+}
+
+.superadmin-shell :is(button, input, select, textarea):focus-visible {
+  outline: 2px solid rgba(34, 211, 238, 0.55);
+  outline-offset: 2px;
+}
+
+/* Bring legacy tab surfaces into the new control-center visual language without
+   changing their underlying behavior. */
+.superadmin-shell .card-glass {
+  border: 1px solid var(--sa-border) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(180deg, rgba(12, 25, 43, 0.9), rgba(8, 19, 33, 0.9)) !important;
+  box-shadow: 0 20px 60px rgba(2, 8, 23, 0.2) !important;
+  backdrop-filter: blur(14px);
+}
+
+.superadmin-shell .card-glass:hover {
+  transform: none !important;
+}
+
+.superadmin-shell :is(input, select, textarea) {
+  border-color: rgba(100, 116, 139, 0.42) !important;
+  background-color: rgba(2, 8, 23, 0.54) !important;
+  color: #e2e8f0 !important;
+  box-shadow: none !important;
+}
+
+.superadmin-shell :is(input, textarea)::placeholder {
+  color: #64748b !important;
+}
+
+.superadmin-shell :is(input, select, textarea):focus {
+  border-color: rgba(34, 211, 238, 0.48) !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08) !important;
+}
+
+.superadmin-shell .font-heading {
+  letter-spacing: -0.015em;
+}
+
+.superadmin-shell .animate-pulse-glow,
+.superadmin-shell .animate-float,
+.superadmin-shell .animate-pulse-slow,
+.superadmin-shell .animate-spin-slow {
+  animation: none !important;
+}
+
+.superadmin-shell table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.superadmin-shell th {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.superadmin-shell td {
+  color: #cbd5e1;
+}
+
+.superadmin-shell .superadmin-nav button {
+  box-shadow: none;
+}
+
+@media (max-width: 1023px) {
+  .superadmin-shell {
+    min-height: 100dvh;
+  }
+}
+
+@media print {
+  .superadmin-shell aside,
+  .superadmin-shell header {
+    display: none !important;
+  }
+
+  .superadmin-shell main {
+    padding: 0 !important;
+  }
+}
