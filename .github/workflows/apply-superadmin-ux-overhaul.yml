@@ -1,5 +1,6 @@
 name: Apply Superadmin UX overhaul
 
+# Guarded one-shot integration workflow. Removed automatically after a green run.
 on:
   push:
     branches:
