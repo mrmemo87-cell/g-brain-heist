@@ -11,8 +11,8 @@ test('Academic Profiles preserve enrolled suspended and banned students without 
   assert.match(migration, /rpc_teacher_academic_profile_students_for_year/i);
   assert.match(migration, /rpc_student_academic_subjects_for_year/i);
   assert.match(migration, /rpc_student_academic_profile_for_year/i);
-  assert.match(migration, /sm\.status in \('active', 'suspended'\)/i);
-  assert.doesNotMatch(migration, /sm\.status in \([^)]*'pending'/i);
+  assert.match(migration, /sm\.status in \(''active'', ''suspended''\)/i);
+  assert.doesNotMatch(migration, /sm\.status in \([^)]*''pending''/i);
 });
 
 test('Academic Profile moderation visibility patch fails closed if protected function shapes drift', () => {
