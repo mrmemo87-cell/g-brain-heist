@@ -1,0 +1,52 @@
+name: Apply Superadmin UX overhaul
+
+on:
+  push:
+    branches:
+      - superadmin-ux-overhaul
+    paths:
+      - .github/workflows/apply-superadmin-ux-overhaul.yml
+
+permissions:
+  contents: write
+
+jobs:
+  overhaul-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: superadmin-ux-overhaul
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply guarded portal shell patch
+        run: python3 .github/scripts/apply_superadmin_ux_shell.py
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
+
+      - name: Test suite
+        run: npm test
+
+      - name: Verify diff hygiene
+        run: git diff --check
+
+      - name: Commit verified shell integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/scripts/apply_superadmin_ux_shell.py .github/workflows/apply-superadmin-ux-overhaul.yml
+          git add components/AdminPortal.tsx
+          git commit -m "Integrate professional Superadmin portal UX"
+          git push origin HEAD:superadmin-ux-overhaul
