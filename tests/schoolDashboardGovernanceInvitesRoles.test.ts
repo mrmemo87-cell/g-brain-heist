@@ -98,14 +98,14 @@ test('School Head and School Admin switch dashboards from matching header action
 test('all detected account roles are offered in the post-sign-in workspace chooser', () => {
   assert.match(app, /getGuardianChildren/);
   assert.match(app, /hasParentWorkspace/);
-  assert.match(app, /hasStudentWorkspace/);
-  assert.match(app, /hasTeacherWorkspace/);
-  assert.match(app, /hasSchoolAdminWorkspace/);
-  assert.match(app, /hasPrincipalWorkspace/);
-  assert.match(app, /hasSuperadminWorkspace/);
-  assert.match(chooser, /Student/);
-  assert.match(chooser, /Teacher/);
-  assert.match(chooser, /School Admin/);
-  assert.match(chooser, /Principal/);
-  assert.match(chooser, /Superadmin/);
+  assert.match(app, /profile\.role === 'student' && Boolean\(profile\.school_id\)/);
+  assert.match(app, /canOpenTeacherWorkspace/);
+  assert.match(app, /schoolCapabilities\?\.can_administer/);
+  assert.match(app, /isSchoolHeadRole/);
+  assert.match(app, /isAdminMode/);
+  assert.match(chooser, /Student Dashboard/);
+  assert.match(chooser, /Teacher Portal/);
+  assert.match(chooser, /School Administration/);
+  assert.match(chooser, /School Head/);
+  assert.match(chooser, /Super Admin/);
 });
