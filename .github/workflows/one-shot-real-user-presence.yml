@@ -28,9 +28,10 @@ jobs:
 
       - name: Preserve intended source patch
         run: |
-          mkdir -p /tmp/real-presence/components/admin/tabs
+          mkdir -p /tmp/real-presence/components/admin/tabs /tmp/real-presence/services
           cp App.tsx /tmp/real-presence/App.tsx
           cp components/admin/tabs/UsersTab.tsx /tmp/real-presence/components/admin/tabs/UsersTab.tsx
+          cp services/gameService.ts /tmp/real-presence/services/gameService.ts
 
       - run: npm run verify
 
@@ -39,6 +40,7 @@ jobs:
           git reset --hard HEAD
           cp /tmp/real-presence/App.tsx App.tsx
           cp /tmp/real-presence/components/admin/tabs/UsersTab.tsx components/admin/tabs/UsersTab.tsx
+          cp /tmp/real-presence/services/gameService.ts services/gameService.ts
           rm -f scripts/one_shot_real_user_presence_patch.py
           rm -f .github/workflows/one-shot-real-user-presence.yml
 
@@ -46,7 +48,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add App.tsx components/admin/tabs/UsersTab.tsx supabase/migrations/20260904002000_real_user_presence_tracking.sql tests/userPresenceTracking.test.ts scripts/one_shot_real_user_presence_patch.py .github/workflows/one-shot-real-user-presence.yml
+          git add App.tsx components/admin/tabs/UsersTab.tsx services/gameService.ts supabase/migrations/20260904002000_real_user_presence_tracking.sql tests/userPresenceTracking.test.ts scripts/one_shot_real_user_presence_patch.py .github/workflows/one-shot-real-user-presence.yml
           git diff --cached --check
           git commit -m "Track real user last active presence"
           git push origin HEAD:fix/real-user-last-active
