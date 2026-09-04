@@ -98,10 +98,105 @@
   color: #ffffff !important;
 }
 
-/* Document Center segmented navigation */
-.school-admin-themed-tab section[aria-label="School Document Center"] [role="tab"][aria-selected="true"] {
+/* Billing Studio: the request action is the primary conversion CTA, not a peer of Save. */
+.school-admin-themed-tab .billing-tab-ui button.bg-emerald-600 {
+  min-height: 2.75rem;
+  border: 1px solid #123f73 !important;
+  background: linear-gradient(135deg, #173f76 0%, #1e5f9d 62%, #0e7490 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(23, 63, 118, .22), 0 1px 2px rgba(15, 23, 42, .18) !important;
+  letter-spacing: .01em;
+}
+
+.school-admin-themed-tab .billing-tab-ui button.bg-emerald-600:hover:not(:disabled) {
+  background: linear-gradient(135deg, #123764 0%, #174f86 62%, #0c667e 100%) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 11px 26px rgba(23, 63, 118, .27), 0 2px 4px rgba(15, 23, 42, .18) !important;
+}
+
+.school-admin-themed-tab .billing-tab-ui button.bg-emerald-600:focus-visible {
+  outline: 3px solid rgba(14, 165, 233, .28) !important;
+  outline-offset: 2px;
+}
+
+.school-admin-themed-tab .billing-tab-ui button.bg-emerald-600:disabled {
+  border-color: #cbd5e1 !important;
+  background: #e2e8f0 !important;
+  color: #64748b !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  transform: none;
+}
+
+/* Document Center segmented navigation. The section itself owns the themed-tab class. */
+.school-admin-themed-tab[aria-label="School Document Center"] [role="tab"][aria-selected="true"] {
   background: #1e4b82 !important;
   color: #ffffff !important;
+}
+
+.school-admin-themed-tab[aria-label="School Document Center"] [role="tab"][aria-selected="true"] * {
+  color: #ffffff !important;
+}
+
+/* Admissions main navigation: preserve a white foreground on the selected school-blue tab. */
+.admission-hub-admin-theme [role="tab"][aria-selected="true"] {
+  border-color: #1e4b82 !important;
+  background: #1e4b82 !important;
+  color: #ffffff !important;
+  box-shadow: 0 5px 14px rgba(30, 75, 130, .16);
+}
+
+.admission-hub-admin-theme [role="tab"][aria-selected="true"] * {
+  color: #ffffff !important;
+}
+
+/* IELTS segmented navigation: selected labels and icons must stay readable on the blue surface. */
+.school-admin-ielts-tab [role="tab"][aria-selected="true"] {
+  border-color: #1e4b82 !important;
+  background: linear-gradient(135deg, #0f766e 0%, #1e4b82 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 16px rgba(30, 75, 130, .18) !important;
+}
+
+.school-admin-ielts-tab [role="tab"][aria-selected="true"] * {
+  color: #ffffff !important;
+}
+
+/* Secure workspace badge stays legible after the generic light-theme adapter rewrites its parent. */
+.school-admin-ielts-tab span[class*="bg-blue-500/15"] {
+  border: 1px solid #bfd7ee !important;
+  background: #eaf4ff !important;
+  color: #123f73 !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7);
+}
+
+/* Exam Manager actions: explicit enabled/disabled contrast for monitor and assignment controls. */
+.school-admin-ielts-tab button.bg-blue-700.text-white,
+.school-admin-ielts-tab button.bg-emerald-700.text-white,
+.school-admin-ielts-tab button.bg-amber-700.text-white {
+  border: 1px solid #173f76 !important;
+  background: #1e4b82 !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  box-shadow: 0 3px 9px rgba(30, 75, 130, .16);
+}
+
+.school-admin-ielts-tab button.bg-blue-700.text-white:hover:not(:disabled),
+.school-admin-ielts-tab button.bg-emerald-700.text-white:hover:not(:disabled),
+.school-admin-ielts-tab button.bg-amber-700.text-white:hover:not(:disabled) {
+  background: #173d6c !important;
+  color: #ffffff !important;
+}
+
+.school-admin-ielts-tab button.bg-blue-700.text-white:disabled,
+.school-admin-ielts-tab button.bg-emerald-700.text-white:disabled,
+.school-admin-ielts-tab button.bg-amber-700.text-white:disabled {
+  border-color: #cbd5e1 !important;
+  background: #e2e8f0 !important;
+  color: #475569 !important;
+  opacity: 1 !important;
+  box-shadow: none;
 }
 
 /* Document Center report library: intentional dark report-family header. */
