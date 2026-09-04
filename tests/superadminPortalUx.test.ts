@@ -4,6 +4,9 @@ import test from 'node:test';
 
 const shell = readFileSync('components/admin/SuperadminShell.tsx', 'utf8');
 const usersTab = readFileSync('components/admin/tabs/UsersTab.tsx', 'utf8');
+const userIntelligencePanel = readFileSync('components/admin/users/UserIntelligencePanel.tsx', 'utf8');
+const userIntelligenceService = readFileSync('services/superadminUserIntelligenceService.ts', 'utf8');
+const userIntelligenceMigration = readFileSync('supabase/migrations/20260904070000_superadmin_user_intelligence.sql', 'utf8');
 const dashboardTab = readFileSync('components/admin/tabs/DashboardTab.tsx', 'utf8');
 const adminPortal = readFileSync('components/AdminPortal.tsx', 'utf8');
 
@@ -40,10 +43,37 @@ test('users tab uses table management, filters, refresh and a contextual details
   assert.match(usersTab, /Sort: last active/);
   assert.match(usersTab, /Refresh list/);
   assert.match(usersTab, /User details/);
+  assert.match(usersTab, /UserIntelligencePanel/);
   assert.match(usersTab, /Placement & role/);
   assert.match(usersTab, /Quick actions/);
   assert.match(usersTab, /Account controls/);
   assert.match(usersTab, /Delete user permanently/);
+  assert.match(usersTab, /_430px/);
+});
+
+test('user intelligence panel exposes governed identity, integrity, activity and access views', () => {
+  assert.match(userIntelligencePanel, /Account intelligence/);
+  assert.match(userIntelligencePanel, /Identity, integrity, usage and access signals/);
+  assert.match(userIntelligencePanel, /overview/);
+  assert.match(userIntelligencePanel, /activity/);
+  assert.match(userIntelligencePanel, /access/);
+  assert.match(userIntelligencePanel, /Placement integrity/);
+  assert.match(userIntelligencePanel, /Google name/);
+  assert.match(userIntelligencePanel, /IELTS breakdown/);
+  assert.match(userIntelligencePanel, /Latest authenticated session/);
+  assert.match(userIntelligencePanel, /No product activity/);
+});
+
+test('user intelligence data stays behind a superadmin-only on-demand RPC', () => {
+  assert.match(userIntelligenceService, /rpc_superadmin_user_intelligence/);
+  assert.match(userIntelligenceMigration, /security definer/i);
+  assert.match(userIntelligenceMigration, /public\.is_superadmin\(v_actor\)/);
+  assert.match(userIntelligenceMigration, /platform_administrator_access_required/);
+  assert.match(userIntelligenceMigration, /school_claim_without_link/);
+  assert.match(userIntelligenceMigration, /auth_name_not_synced/);
+  assert.match(userIntelligenceMigration, /auth\.sessions/);
+  assert.match(userIntelligenceMigration, /revoke all on function public\.rpc_superadmin_user_intelligence\(uuid\) from public, anon/);
+  assert.match(userIntelligenceMigration, /grant execute on function public\.rpc_superadmin_user_intelligence\(uuid\) to authenticated/);
 });
 
 test('dashboard removes game-like god-mode presentation and isolates destructive operations', () => {
