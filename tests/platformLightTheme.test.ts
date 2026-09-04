@@ -9,10 +9,10 @@ const superadminShell = readFileSync('components/admin/SuperadminShell.tsx', 'ut
 
 test('professional light palette is scoped to the Superadmin shell only', () => {
   assert.doesNotMatch(context, /classList\.add\('platform-light-theme'\)/);
+  assert.doesNotMatch(entry, /classList\.add\('platform-light-theme'\)/);
   assert.match(entry, /platform-light-theme\.css/);
   assert.match(superadminShell, /className="superadmin-shell/);
 
-  // The old authenticated-session body class is intentionally inert here.
   assert.doesNotMatch(styles, /body\.platform-light-theme/);
   assert.doesNotMatch(styles, /^\s*:root\s*\{/m);
   assert.match(styles, /body:has\(\.superadmin-shell\)/);
