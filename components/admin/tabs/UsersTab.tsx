@@ -194,9 +194,9 @@ const UsersTab: React.FC = () => {
   };
 
   return (
-    <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_430px]">
-      <section className="min-w-0 rounded-2xl border border-slate-800/90 bg-[#0a1626]/88 shadow-[0_24px_70px_rgba(2,8,23,0.22)]">
-        <div className="border-b border-slate-800/80 px-4 py-4 sm:px-5">
+    <div className="grid min-w-0 gap-4 xl:h-[calc(100dvh-112px)] xl:min-h-[560px] xl:grid-cols-[minmax(0,1fr)_430px] xl:overflow-hidden">
+      <section className="min-w-0 rounded-2xl border border-slate-800/90 bg-[#0a1626]/88 shadow-[0_24px_70px_rgba(2,8,23,0.22)] xl:flex xl:min-h-0 xl:flex-col xl:overflow-hidden">
+        <div className="shrink-0 border-b border-slate-800/80 px-4 py-4 sm:px-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-base font-bold text-white">Platform users</h2>
@@ -216,55 +216,55 @@ const UsersTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-[minmax(220px,1.6fr)_minmax(130px,.7fr)_minmax(120px,.65fr)_minmax(150px,.9fr)_minmax(125px,.65fr)_minmax(150px,.8fr)_auto]">
-            <div className="relative">
+          <div className="mt-4 grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="relative min-w-0 sm:col-span-2 lg:col-span-2">
               <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
               <input
                 type="search"
                 placeholder="Search username, email or class…"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950/50 pl-9 pr-3 text-sm text-white placeholder:text-slate-600"
+                className="h-10 w-full min-w-0 rounded-lg border border-slate-700 bg-slate-950/50 pl-9 pr-3 text-sm text-white placeholder:text-slate-600"
               />
             </div>
-            <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)} className="h-10 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
+            <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)} className="h-10 w-full min-w-0 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
               <option value="all">All roles</option>
               {roleOptions.map((role) => <option key={role} value={role}>{role.replace(/_/g, ' ')}</option>)}
             </select>
-            <select value={gradeFilter} onChange={(event) => setGradeFilter(event.target.value)} className="h-10 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
+            <select value={gradeFilter} onChange={(event) => setGradeFilter(event.target.value)} className="h-10 w-full min-w-0 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
               <option value="all">All grades</option>
               {safeGradeOptions.map((grade) => <option key={grade} value={String(grade)}>Grade {grade}</option>)}
             </select>
-            <select value={schoolFilter} onChange={(event) => setSchoolFilter(event.target.value)} className="h-10 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
+            <select value={schoolFilter} onChange={(event) => setSchoolFilter(event.target.value)} className="h-10 w-full min-w-0 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
               <option value="all">All schools</option>
               {schoolFilterOptions.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}
             </select>
-            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="h-10 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="h-10 w-full min-w-0 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
               <option value="all">All statuses</option>
               <option value="active">Active</option>
               <option value="banned">Banned</option>
             </select>
-            <select value={sortKey} onChange={(event) => setSortKey(event.target.value as SortKey)} className="h-10 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
+            <select value={sortKey} onChange={(event) => setSortKey(event.target.value as SortKey)} className="h-10 w-full min-w-0 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-xs text-slate-200">
               <option value="last-active">Sort: last active</option>
               <option value="name">Sort: name</option>
               <option value="xp">Sort: XP</option>
               <option value="level">Sort: level</option>
             </select>
-            <button type="button" onClick={clearFilters} className="h-10 rounded-lg border border-slate-700 px-3 text-xs font-semibold text-slate-400 transition hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200">Reset</button>
+            <button type="button" onClick={clearFilters} className="h-10 w-full min-w-0 rounded-lg border border-slate-700 px-3 text-xs font-semibold text-slate-400 transition hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200">Reset</button>
           </div>
         </div>
 
         {usersError && (
-          <div className="m-4 flex items-start justify-between gap-3 rounded-xl border border-rose-400/25 bg-rose-400/8 px-4 py-3 text-sm text-rose-200">
+          <div className="m-4 flex shrink-0 items-start justify-between gap-3 rounded-xl border border-rose-400/25 bg-rose-400/8 px-4 py-3 text-sm text-rose-200">
             <span>{usersError}</span>
             <button type="button" onClick={() => void fetchUsers(userPage, searchQuery)} className="shrink-0 text-xs font-bold text-rose-200 underline decoration-rose-400/40 underline-offset-4">Retry</button>
           </div>
         )}
 
-        <div className="w-full max-w-full overflow-x-auto overscroll-x-contain pb-2 [scrollbar-gutter:stable]">
+        <div className="w-full max-w-full overflow-auto overscroll-x-contain overscroll-y-contain pb-2 [scrollbar-gutter:stable] xl:min-h-0 xl:flex-1">
           <table className="w-max min-w-[1180px] text-left">
-            <thead>
-              <tr className="border-b border-slate-800/90 bg-slate-950/25">
+            <thead className="sticky top-0 z-10">
+              <tr className="border-b border-slate-800/90 bg-[#091524]/98 shadow-[0_1px_0_rgba(51,65,85,0.35)] backdrop-blur">
                 <th className="px-4 py-3 sm:px-5">User</th>
                 <th className="px-3 py-3">Role</th>
                 <th className="px-3 py-3">School</th>
@@ -348,7 +348,7 @@ const UsersTab: React.FC = () => {
           </table>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-slate-800/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="flex shrink-0 flex-col gap-3 border-t border-slate-800/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <p className="text-xs text-slate-500">Showing {filteredUsers.length} of {safeUsers.length} loaded users · {PAGE_SIZE} requested per page</p>
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => setUserPage((page: number) => Math.max(0, page - 1))} disabled={userPage === 0 || usersLoading} className="h-8 rounded-lg border border-slate-700 px-3 text-xs font-semibold text-slate-400 transition hover:border-slate-600 hover:text-white disabled:opacity-35">Previous</button>
@@ -358,15 +358,15 @@ const UsersTab: React.FC = () => {
         </div>
       </section>
 
-      <aside className="min-w-0 xl:sticky xl:top-[96px] xl:self-start">
+      <aside className="min-w-0 xl:h-full xl:min-h-0">
         {selectedUser ? (() => {
           const grade = userGrade(selectedUser);
           const availableBatches = grade ? (safeBatchByGrade[grade] ?? ['N/A']) : ['N/A'];
           const role = normalizedRole(selectedUser);
           const customOpen = Boolean(showCustomGrant?.[selectedUser.id]);
           return (
-            <div className="overflow-hidden rounded-2xl border border-slate-800/90 bg-[#0a1626]/92 shadow-[0_24px_70px_rgba(2,8,23,0.24)]">
-              <div className="flex items-start justify-between border-b border-slate-800/80 p-4">
+            <div key={selectedUser.id} className="overflow-hidden rounded-2xl border border-slate-800/90 bg-[#0a1626]/92 shadow-[0_24px_70px_rgba(2,8,23,0.24)] xl:flex xl:h-full xl:min-h-0 xl:flex-col">
+              <div className="flex shrink-0 items-start justify-between border-b border-slate-800/80 bg-[#0a1626]/98 p-4">
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full border border-slate-700 bg-slate-800 text-sm font-black text-slate-300">
                     <span>{String(resolveUserLabel(selectedUser)).slice(0, 1).toUpperCase()}</span>
@@ -382,7 +382,7 @@ const UsersTab: React.FC = () => {
                 <button type="button" onClick={() => setSelectedUserId(null)} aria-label="Close user details" className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-slate-800 text-slate-500 transition hover:bg-slate-800 hover:text-white">×</button>
               </div>
 
-              <div className="space-y-4 p-4">
+              <div className="space-y-4 p-4 xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:overscroll-contain xl:[scrollbar-gutter:stable]">
                 <div>
                   <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-600">User details</p>
                   <dl className="space-y-2 rounded-xl border border-slate-800 bg-slate-950/30 p-3 text-xs">
@@ -450,7 +450,7 @@ const UsersTab: React.FC = () => {
             </div>
           );
         })() : (
-          <div className="rounded-2xl border border-dashed border-slate-800 bg-[#0a1626]/55 p-6 text-center xl:min-h-[360px] xl:grid xl:place-items-center">
+          <div className="rounded-2xl border border-dashed border-slate-800 bg-[#0a1626]/55 p-6 text-center xl:grid xl:h-full xl:min-h-0 xl:place-items-center">
             <div><div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-slate-800 bg-slate-900/60 text-slate-500"><svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c.6-3.2 2.4-5 5.5-5s4.9 1.8 5.5 5" /><path d="M15 6a3 3 0 0 1 0 5" /></svg></div><p className="mt-3 text-sm font-semibold text-slate-300">Select a user</p><p className="mx-auto mt-1 max-w-[220px] text-xs leading-5 text-slate-600">Choose a row to open account details, placement controls and management actions here.</p></div>
           </div>
         )}
