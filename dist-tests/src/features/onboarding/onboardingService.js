@@ -1,9 +1,9 @@
-import { supabase } from '../../../services/supabaseClient';
-import { getOnboardingFlags, logOnboardingDebug } from './featureFlags';
-import { emitOnboardingEvent } from './onboardingAnalytics';
-import { resolveOnboarding } from './onboardingResolver';
-import { ONBOARDING_PROFILE_SELECT } from './profileSelect';
-import { buildSetupProfileFallback } from './setupCompletion';
+import { supabase } from '../../../services/supabaseClient.js';
+import { getOnboardingFlags, logOnboardingDebug } from './featureFlags.js';
+import { emitOnboardingEvent } from './onboardingAnalytics.js';
+import { resolveOnboarding } from './onboardingResolver.js';
+import { ONBOARDING_PROFILE_SELECT } from './profileSelect.js';
+import { buildSetupProfileFallback } from './setupCompletion.js';
 const ONBOARDING_TABLE = 'user_onboarding';
 const PROFILE_REFRESH_RETRY_DELAYS_MS = [150, 350];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

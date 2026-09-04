@@ -41,12 +41,6 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
   });
   const [autoEnabledReason, setAutoEnabledReason] = useState<string | null>(null);
 
-  useEffect(() => {
-    document.body.classList.add('platform-light-theme');
-    return () => {
-      document.body.classList.remove('platform-light-theme');
-    };
-  }, []);
   const [autoProtectionSuppressed, setAutoProtectionSuppressed] = useState(false);
   const [studentThemeColor, setStudentThemeColorState] = useState<StudentThemeColor>(() => {
     if (typeof window === 'undefined') return 'blue';

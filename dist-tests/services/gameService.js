@@ -4260,6 +4260,7 @@ export const create_question = async (questionData) => {
         eligible_grade_levels: questionData.eligible_grade_levels || [],
         curriculum_review_status: 'draft',
         content_origin: 'teacher',
+        pool_scope: 'teacher',
         verification_status: 'unverified',
         analytics_eligible: false,
         is_public: false
@@ -4282,6 +4283,7 @@ export const get_my_questions = async () => {
         .select('*')
         .eq('teacher_id', teacher.id)
         .eq('content_origin', 'teacher')
+        .eq('pool_scope', 'teacher')
         .order('created_at', { ascending: false });
     if (error)
         throw error;
@@ -4312,9 +4314,9 @@ export const get_my_questions = async () => {
     });
 };
 /**
- * Get ALL active questions from the global question bank
- * Teachers can see questions created by any teacher across all schools.
- * This is the global question bank - Content = shared.
+ * Get the caller's governed question catalogue. The database returns only
+ * exact-curriculum Global Verified, same-school Verified, and the caller's
+ * own private Teacher Pool questions.
  */
 export const get_all_questions = async (filters) => {
     const { data, error } = await supabase.rpc('get_all_active_questions', {
@@ -4611,6 +4613,8 @@ export const create_assignment = async (payload) => {
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
+        p_assignment_category: payload.assignment_category ?? null,
+        p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
         p_student_ids: payload.student_ids ?? null,
         p_publish_status: payload.publish_status ?? 'published',
@@ -4625,6 +4629,23 @@ export const create_assignment = async (payload) => {
     }
     return assignment;
 };
+const mergeAssignmentCategoryContext = (assignments, contextRows) => {
+    const context = new Map(contextRows.map((row) => [row.assignment_id, row]));
+    return assignments.map((assignment) => {
+        const assignmentId = assignment.assignment_id || assignment.id;
+        const extra = assignmentId ? context.get(assignmentId) : undefined;
+        return extra ? { ...assignment, ...extra } : assignment;
+    });
+};
+const enrichStudentAssignmentsWithCategoryContext = async (assignments) => {
+    const ids = assignments.map((assignment) => assignment.assignment_id).filter(Boolean);
+    if (!ids.length)
+        return assignments;
+    const { data, error } = await supabase.rpc('rpc_my_assignment_category_context', { p_assignment_ids: ids });
+    if (error)
+        throw new Error(error.message || 'Failed to load assignment category context');
+    return mergeAssignmentCategoryContext(assignments, data || []);
+};
 export const get_teacher_assignments = async (teacherId) => {
     let resolvedTeacherId = teacherId;
     if (!resolvedTeacherId) {
@@ -4636,7 +4657,11 @@ export const get_teacher_assignments = async (teacherId) => {
     const { data, error } = await rpcGetAssignmentsForTeacher({ p_teacher_id: resolvedTeacherId });
     if (error)
         throw new Error(error.message || 'Failed to load assignments');
-    return data || [];
+    const assignments = data || [];
+    const { data: contextData, error: contextError } = await supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId });
+    if (contextError)
+        throw new Error(contextError.message || 'Failed to load assignment category context');
+    return mergeAssignmentCategoryContext(assignments, contextData || []);
 };
 export const delete_teacher_assignment = async (assignmentId) => {
     if (!assignmentId)
@@ -4671,6 +4696,8 @@ export const update_teacher_assignment = async (assignmentId, payload) => {
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
+        p_assignment_category: payload.assignment_category ?? null,
+        p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
         p_student_ids: payload.student_ids ?? null,
         p_publish_status: payload.publish_status ?? 'published',
@@ -4750,10 +4777,11 @@ export const get_student_active_assignment = async () => {
             console.info('[gameService] After normalization:', normalizedQuestions.length, normalizedQuestions);
         }
     }
-    return {
-        ...parsedRow,
-        questions: normalizedQuestions,
-    };
+    const enriched = await enrichStudentAssignmentsWithCategoryContext([{
+            ...parsedRow,
+            questions: normalizedQuestions,
+        }]);
+    return enriched[0] || null;
 };
 // ── Brains Master Premium ─────────────────────────────────────────────
 export const brains_master_purchase = async () => {
@@ -4790,7 +4818,7 @@ export const get_student_pending_assignments = async () => {
         console.log('[gameService] No pending assignments found (data is null/empty)');
         return [];
     }
-    return rows.map((row) => {
+    const normalizedAssignments = rows.map((row) => {
         const parsedRow = row;
         const normalizedQuestions = (parsedRow.questions ?? []).map(normalizeTeacherQuestionPayload);
         return {
@@ -4798,6 +4826,7 @@ export const get_student_pending_assignments = async () => {
             questions: normalizedQuestions,
         };
     });
+    return enrichStudentAssignmentsWithCategoryContext(normalizedAssignments);
 };
 export const submit_assignment_result = async (payload) => {
     const { error } = await rpcSubmitAssignmentResult({

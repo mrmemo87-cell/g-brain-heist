@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getOnboardingFlags, logOnboardingDebug } from './featureFlags';
-import { emitOnboardingEvent } from './onboardingAnalytics';
-import { resolveNextOnboardingStep } from './onboardingService';
-import { isActiveLearnerFtue } from './ftueTakeover';
+import { getOnboardingFlags, logOnboardingDebug } from './featureFlags.js';
+import { emitOnboardingEvent } from './onboardingAnalytics.js';
+import { resolveNextOnboardingStep } from './onboardingService.js';
+import { isActiveLearnerFtue } from './ftueTakeover.js';
 /**
  * Route-level hook for the Phase 1 FTUE foundation. It resolves onboarding state
  * without owning any screen flow, so future onboarding UI can be added without

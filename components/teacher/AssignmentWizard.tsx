@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { QuestionDifficulty, QuestionType, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
+import type { AssignmentCategory, QuestionDifficulty, QuestionType, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
+import { fetchSchoolAcademicSetup, type SchoolAcademicSetup } from '../../services/schoolAcademicSetupService';
+import { ASSIGNMENT_CATEGORY_META, getAssignmentCategoryMeta } from '../../src/lib/assignmentCategory';
 import type { TeacherAllocatedClass } from '../../services/schoolAdminService';
 import { brainsAlert, brainsConfirm } from '../../src/utils/brainsAlert';
 import QuestionPreviewModal from './QuestionPreviewModal';
@@ -43,6 +45,9 @@ interface AssignmentWizardProps {
   setAssignmentAssignedAt: (value: string) => void;
   assignmentPublishStatus: 'draft' | 'scheduled' | 'published';
   setAssignmentPublishStatus: (value: 'draft' | 'scheduled' | 'published') => void;
+  assignmentCategory: AssignmentCategory | null;
+  setAssignmentCategory: (value: AssignmentCategory | null) => void;
+  schoolId?: string;
   assignmentCloseAfterDue: boolean;
   setAssignmentCloseAfterDue: (value: boolean) => void;
   assignmentNotifyByEmail: boolean;
@@ -120,6 +125,13 @@ const isPastDueDate = (value: string) => {
   return Number.isNaN(due.getTime()) || due.getTime() <= Date.now();
 };
 
+const localDateKey = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function AssignmentWizard({
   initialStep = 1,
   lockedSubject = null,
@@ -143,6 +155,9 @@ export default function AssignmentWizard({
   setAssignmentAssignedAt,
   assignmentPublishStatus,
   setAssignmentPublishStatus,
+  assignmentCategory,
+  setAssignmentCategory,
+  schoolId,
   assignmentCloseAfterDue,
   setAssignmentCloseAfterDue,
   assignmentNotifyByEmail,
@@ -179,7 +194,34 @@ export default function AssignmentWizard({
   const [previewQuestion, setPreviewQuestion] = useState<TeacherQuestion | null>(null);
   const [customDueDate, setCustomDueDate] = useState(false);
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
+  const [academicSetup, setAcademicSetup] = useState<SchoolAcademicSetup | null>(null);
+  const [academicSetupLoading, setAcademicSetupLoading] = useState(false);
   const wizardTopRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!schoolId) { setAcademicSetup(null); return; }
+    let cancelled = false;
+    setAcademicSetupLoading(true);
+    void fetchSchoolAcademicSetup(schoolId)
+      .then((setup) => { if (!cancelled) setAcademicSetup(setup); })
+      .catch((error) => { console.error('Failed to load academic calendar for assignment scheduling', error); if (!cancelled) setAcademicSetup(null); })
+      .finally(() => { if (!cancelled) setAcademicSetupLoading(false); });
+    return () => { cancelled = true; };
+  }, [schoolId]);
+
+  const scheduleWindow = useMemo(() => {
+    if (!academicSetup) return null;
+    const today = localDateKey();
+    const year = academicSetup.years.find((item) => item.status === 'current' && today >= item.startsOn && today <= item.endsOn);
+    if (!year) return null;
+    const term = academicSetup.terms.find((item) => item.academicYearId === year.id && today >= item.startsOn && today <= item.endsOn);
+    return term ? { year, term } : null;
+  }, [academicSetup]);
+
+  const scheduledDateKey = assignmentAssignedAt ? assignmentAssignedAt.slice(0, 10) : '';
+  const scheduledOutsideCurrentTerm = assignmentPublishStatus === 'scheduled' && Boolean(scheduleWindow) && Boolean(scheduledDateKey) && Boolean(
+    scheduleWindow && (scheduledDateKey < scheduleWindow.term.startsOn || scheduledDateKey > scheduleWindow.term.endsOn)
+  );
 
   const uniqueClasses = useMemo(() => {
     const classes = new Map<string, TeacherAllocatedClass>();
@@ -240,11 +282,29 @@ export default function AssignmentWizard({
     return [...new Set(grades.filter((grade) => Number.isInteger(grade) && grade > 0))];
   }, [assignmentBatches, assignmentMode, assignableStudents, selectedStudentIds, uniqueClasses]);
 
-  const topics = useMemo(
-    () => [...new Set(subjectQuestions.map((question) => question.topic_name || question.topic || 'General'))]
-      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })),
-    [subjectQuestions],
+  const assignmentEligibleQuestions = useMemo(
+    () => subjectQuestions.filter((question) => {
+      const eligibleGrades = question.eligible_grade_levels || [];
+      const matchesAudienceGrades = !isBrainsHeistPoolQuestion(question, teacherId)
+        || audienceGrades.length === 0
+        || audienceGrades.every((grade) => eligibleGrades.includes(grade));
+      const matchesPool = questionPool === 'all'
+        || (questionPool === 'mine' && isMyPoolQuestion(question, teacherId))
+        || (questionPool === 'brains-heist' && isBrainsHeistPoolQuestion(question, teacherId));
+      return matchesAudienceGrades && matchesPool;
+    }),
+    [audienceGrades, questionPool, subjectQuestions, teacherId],
   );
+
+  const topics = useMemo(
+    () => [...new Set(assignmentEligibleQuestions.map((question) => question.topic_name || question.topic || 'General'))]
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })),
+    [assignmentEligibleQuestions],
+  );
+
+  useEffect(() => {
+    if (topicFilter !== 'all' && !topics.includes(topicFilter)) setTopicFilter('all');
+  }, [topicFilter, topics]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuestionSearch(questionSearch.trim().toLocaleLowerCase()), 180);
@@ -252,7 +312,7 @@ export default function AssignmentWizard({
   }, [questionSearch]);
 
   const filteredQuestions = useMemo(() => {
-    const matches = subjectQuestions.filter((question) => {
+    const matches = assignmentEligibleQuestions.filter((question) => {
       const topic = question.topic_name || question.topic || 'General';
       const haystack = [
         question.question_text,
@@ -262,16 +322,8 @@ export default function AssignmentWizard({
         question.difficulty,
       ].join(' ').toLocaleLowerCase();
       const xp = question.points || 0;
-      const eligibleGrades = question.eligible_grade_levels || [];
-      const matchesAudienceGrades = !isBrainsHeistPoolQuestion(question, teacherId)
-        || audienceGrades.length === 0
-        || audienceGrades.every((grade) => eligibleGrades.includes(grade));
       return (
-        matchesAudienceGrades &&
         (!debouncedQuestionSearch || haystack.includes(debouncedQuestionSearch)) &&
-        (questionPool === 'all' ||
-          (questionPool === 'mine' && isMyPoolQuestion(question, teacherId)) ||
-          (questionPool === 'brains-heist' && isBrainsHeistPoolQuestion(question, teacherId))) &&
         (topicFilter === 'all' || topic === topicFilter) &&
         (difficultyFilter === 'all' || question.difficulty === difficultyFilter) &&
         (typeFilter === 'all' || question.question_type === typeFilter) &&
@@ -289,7 +341,7 @@ export default function AssignmentWizard({
       if (sort === 'difficulty') return difficultyScore[a.difficulty] - difficultyScore[b.difficulty];
       return Number(assignmentQuestionIds.includes(b.id)) - Number(assignmentQuestionIds.includes(a.id));
     });
-  }, [assignmentQuestionIds, audienceGrades, debouncedQuestionSearch, difficultyFilter, questionPool, sort, subjectQuestions, teacherId, topicFilter, typeFilter, xpFilter]);
+  }, [assignmentEligibleQuestions, assignmentQuestionIds, debouncedQuestionSearch, difficultyFilter, sort, topicFilter, typeFilter, xpFilter]);
 
   useEffect(() => {
     if (!audienceGrades.length) return;
@@ -383,11 +435,20 @@ export default function AssignmentWizard({
     if (currentStep === 4 && !assignmentTitle.trim()) {
       return brainsAlert('Add an assignment title before continuing.', 'info');
     }
+    if (currentStep === 4 && !assignmentCategory) {
+      return brainsAlert('Choose whether this is Classwork, Homework, Quiz, or Term Exam.', 'info');
+    }
     if (currentStep === 5 && isPastDueDate(assignmentDueAt)) {
       return brainsAlert('Choose a due date and time in the future.', 'error');
     }
     if (currentStep === 5 && assignmentPublishStatus === 'scheduled' && (!assignmentAssignedAt || new Date(assignmentAssignedAt).getTime() <= Date.now())) {
-      return brainsAlert('Choose a future publication date and time.', 'error');
+      return brainsAlert('Choose a future publication date and time in your local timezone.', 'error');
+    }
+    if (currentStep === 5 && assignmentPublishStatus === 'scheduled' && !scheduleWindow) {
+      return brainsAlert('Scheduling requires the school admin to configure the current academic year and term.', 'error');
+    }
+    if (currentStep === 5 && scheduledOutsideCurrentTerm) {
+      return brainsAlert(`Schedule this assignment inside ${scheduleWindow?.term.name || 'the current term'} of ${scheduleWindow?.year.name || 'the current academic year'}.`, 'error');
     }
     if (currentStep < 6) setReviewConfirmed(false);
     goToStep(Math.min(6, currentStep + 1) as WizardStep);
@@ -420,6 +481,16 @@ export default function AssignmentWizard({
     if (!assignmentTitle.trim()) {
       brainsAlert('Assignment title is required.', 'info');
       goToStep(4);
+      return;
+    }
+    if (!assignmentCategory) {
+      brainsAlert('Choose Classwork, Homework, Quiz, or Term Exam before publishing.', 'info');
+      goToStep(4);
+      return;
+    }
+    if (assignmentPublishStatus === 'scheduled' && (!scheduleWindow || scheduledOutsideCurrentTerm || !assignmentAssignedAt || new Date(assignmentAssignedAt).getTime() <= Date.now())) {
+      brainsAlert('Scheduled publication must be a future local time inside the current academic term and year.', 'error');
+      goToStep(5);
       return;
     }
     if (isPastDueDate(assignmentDueAt)) {
@@ -653,6 +724,7 @@ export default function AssignmentWizard({
           {step === 4 && (
             <div className="aw-step aw-details">
               <label><span>Assignment title <strong aria-hidden="true">*</strong></span><input required aria-required="true" value={assignmentTitle} onChange={(event) => { setAssignmentTitle(event.target.value); setReviewConfirmed(false); }} placeholder="e.g. Fractions confidence check" /><small>Required. This is the name students and reports will show.</small></label>
+              <fieldset className="grid gap-2"><legend className="text-sm font-bold text-slate-700">Assignment type <strong aria-hidden="true">*</strong></legend><div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Assignment type">{(Object.keys(ASSIGNMENT_CATEGORY_META) as AssignmentCategory[]).map((category) => { const meta = ASSIGNMENT_CATEGORY_META[category]; const selected = assignmentCategory === category; return <button key={category} type="button" role="radio" aria-checked={selected} onClick={() => { setAssignmentCategory(category); setReviewConfirmed(false); }} className={`rounded-xl border px-4 py-3 text-left transition ${selected ? 'ring-2 ring-slate-700 ring-offset-1' : 'hover:shadow-sm'}`} style={{ backgroundColor: meta.background, borderColor: meta.border, color: meta.text }}><strong className="block">{meta.label}</strong><small>{category === 'classwork' ? 'Work completed during class' : category === 'homework' ? 'Work completed outside class' : category === 'quiz' ? 'Short assessment or knowledge check' : 'Formal assessment for the current term'}</small></button>; })}</div><small className="text-slate-500">The type is reporting metadata only; it does not change marks, XP, rewards, or completion rules.</small></fieldset>
               <label><span>Description</span><textarea rows={3} value={assignmentDescription} onChange={(event) => setAssignmentDescription(event.target.value)} placeholder="Explain the learning goal and why this work matters…" /></label>
               <label><span>Instructions</span><textarea rows={3} value={assignmentInstructions} onChange={(event) => setAssignmentInstructions(event.target.value)} placeholder="Tell students what to prepare, show, or submit…" /></label>
             </div>
@@ -674,7 +746,7 @@ export default function AssignmentWizard({
                   <button type="button" className={assignmentPublishStatus === 'published' ? 'aw-due-card is-selected' : 'aw-due-card'} onClick={() => { setAssignmentPublishStatus('published'); setAssignmentAssignedAt(localDateTimeValue()); }}><strong>Publish now</strong><small>Available immediately</small></button>
                   <button type="button" className={assignmentPublishStatus === 'scheduled' ? 'aw-due-card is-selected' : 'aw-due-card'} onClick={() => setAssignmentPublishStatus('scheduled')}><strong>Schedule</strong><small>Choose a release time</small></button>
                 </div>
-                {assignmentPublishStatus === 'scheduled' ? <label className="aw-custom-date"><span>Publish at</span><input type="datetime-local" min={localDateTimeValue()} value={assignmentAssignedAt} onChange={(event) => setAssignmentAssignedAt(event.target.value)} /></label> : null}
+                {assignmentPublishStatus === 'scheduled' ? <label className="aw-custom-date"><span>Publish at</span><input type="datetime-local" min={localDateTimeValue()} max={scheduleWindow ? `${scheduleWindow.term.endsOn}T23:59` : undefined} value={assignmentAssignedAt} aria-invalid={scheduledOutsideCurrentTerm || (!academicSetupLoading && !scheduleWindow)} onChange={(event) => setAssignmentAssignedAt(event.target.value)} />{academicSetupLoading ? <small>Checking the school calendar…</small> : scheduleWindow ? <small>Scheduling is limited to {scheduleWindow.term.name} ({scheduleWindow.term.startsOn}–{scheduleWindow.term.endsOn}) in {scheduleWindow.year.name}.</small> : <small className="aw-field-error">The school admin must configure a current academic year and term before assignments can be scheduled.</small>}{scheduledOutsideCurrentTerm ? <small className="aw-field-error">Choose a publication time inside the current term.</small> : null}</label> : null}
                 <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm text-slate-700"><input className="mt-1" type="checkbox" checked={assignmentCloseAfterDue} onChange={(event) => setAssignmentCloseAfterDue(event.target.checked)} /><span><strong>Close submissions after due date</strong><br/><small className="text-slate-500">Off by default. When off, late work stays open and is marked Late.</small></span></label>
                 <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm text-slate-700"><input className="mt-1" type="checkbox" checked={assignmentNotifyByEmail} onChange={(event) => setAssignmentNotifyByEmail(event.target.checked)} /><span><strong>Notify students by email?</strong><br/><small className="text-slate-500">The notification is queued for the time the assignment becomes available.</small></span></label>
               </div>
@@ -692,6 +764,7 @@ export default function AssignmentWizard({
               </div>
               {[
                 ['Subject', assignmentSubject, 1],
+                ['Assignment type', getAssignmentCategoryMeta(assignmentCategory).label, 4],
                 ['Audience', assignmentMode === 'batch' ? selectedClasses.map((item) => item.class_code).join(', ') : `${audienceStudents.length} individual students`, 2],
                 ['Questions', `${selectedQuestions.length} across ${new Set(selectedQuestions.map((q) => q.topic_name || q.topic || 'General')).size} topics · ${averageDifficulty}`, 3],
                 ['Details', [assignmentDescription, assignmentInstructions].filter(Boolean).join(' · ') || 'No additional details', 4],
