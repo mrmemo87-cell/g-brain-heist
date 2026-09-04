@@ -337,3 +337,72 @@ body.platform-light-theme ::-webkit-scrollbar-thumb:hover {
 body.platform-light-theme [class~="fixed"][class*="inset-0"][class*="bg-black/"] {
   background-color: rgba(15, 23, 42, 0.38) !important;
 }
+
+
+/* Superadmin accessibility contrast pass.
+ * Legacy tabs still carry neon-era text utilities. On the professional light shell
+ * those pale values resolve to readable enterprise colors instead of pastel-on-white.
+ */
+body.platform-light-theme .superadmin-shell [class*="text-cyan-100"],
+body.platform-light-theme .superadmin-shell [class*="text-cyan-200"],
+body.platform-light-theme .superadmin-shell [class*="text-cyan-300"] {
+  color: #0e5f7a !important;
+}
+
+body.platform-light-theme .superadmin-shell [class*="text-blue-100"],
+body.platform-light-theme .superadmin-shell [class*="text-blue-200"],
+body.platform-light-theme .superadmin-shell [class*="text-blue-300"] {
+  color: #1d4ed8 !important;
+}
+
+body.platform-light-theme .superadmin-shell [class*="text-emerald-100"],
+body.platform-light-theme .superadmin-shell [class*="text-emerald-200"],
+body.platform-light-theme .superadmin-shell [class*="text-green-100"],
+body.platform-light-theme .superadmin-shell [class*="text-green-200"] {
+  color: #047857 !important;
+}
+
+body.platform-light-theme .superadmin-shell [class*="text-amber-100"],
+body.platform-light-theme .superadmin-shell [class*="text-amber-200"],
+body.platform-light-theme .superadmin-shell [class*="text-yellow-100"],
+body.platform-light-theme .superadmin-shell [class*="text-yellow-200"] {
+  color: #92400e !important;
+}
+
+body.platform-light-theme .superadmin-shell [class*="text-red-100"],
+body.platform-light-theme .superadmin-shell [class*="text-red-200"],
+body.platform-light-theme .superadmin-shell [class*="text-rose-100"],
+body.platform-light-theme .superadmin-shell [class*="text-rose-200"] {
+  color: #b42318 !important;
+}
+
+body.platform-light-theme .superadmin-shell [class*="text-purple-100"],
+body.platform-light-theme .superadmin-shell [class*="text-purple-200"],
+body.platform-light-theme .superadmin-shell [class*="text-fuchsia-100"],
+body.platform-light-theme .superadmin-shell [class*="text-fuchsia-200"] {
+  color: #6d28d9 !important;
+}
+
+body.platform-light-theme .superadmin-shell [class*="text-gray-500"],
+body.platform-light-theme .superadmin-shell [class*="text-slate-500"] {
+  color: #64748b !important;
+}
+
+body.platform-light-theme .superadmin-shell .card-glass {
+  border-color: #dbe3ee !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06) !important;
+}
+
+body.platform-light-theme .superadmin-shell :is(input, textarea, select) {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+
+body.platform-light-theme .superadmin-shell :is(input, textarea)::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+body.platform-light-theme .superadmin-shell button:disabled {
+  opacity: 0.58 !important;
+}
