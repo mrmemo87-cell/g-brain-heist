@@ -54,4 +54,13 @@ replace_once(
     'remove fake updated_at activity fallback',
 )
 
+# gameService.ts: legacy whoami refreshes should touch the isolated presence ledger,
+# not public.users (which has profile-side update triggers).
+replace_once(
+    'services/gameService.ts',
+    "  // Update last_seen\n  supabase.from('users').update({ last_seen: new Date().toISOString() }).eq('id', user.id).then(() => {});\n",
+    "  // Record real activity without mutating profile metadata/triggers.\n  supabase.rpc('rpc_touch_last_seen').then(() => {});\n",
+    'route whoami presence through rpc',
+)
+
 print('Real user presence patch applied.')
