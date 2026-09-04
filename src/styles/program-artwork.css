@@ -77,6 +77,80 @@
   width: 100%;
 }
 
+/* School Admin keeps its light visual language while programme artwork remains fully visible. */
+.school-admin-content .school-admin-themed-tab .program-identity-banner {
+  border-color: #d8e6f4 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 58%, #f1f8ff 100%) !important;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, .07) !important;
+}
+
+.school-admin-content .school-admin-themed-tab .program-identity-banner__art {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(34, 211, 238, .13), transparent 63%),
+    linear-gradient(145deg, #f7fbff 0%, #edf7ff 100%) !important;
+  border-left: 1px solid #e2edf7;
+}
+
+.school-admin-content .school-admin-themed-tab .program-identity-banner__image {
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 1rem 1.35rem;
+  object-fit: contain !important;
+  object-position: center !important;
+  opacity: 1 !important;
+}
+
+.school-admin-content .school-admin-themed-tab .program-identity-banner__shade {
+  z-index: 2;
+  background: linear-gradient(90deg, rgba(255, 255, 255, .18), transparent 36%) !important;
+}
+
+/* The generic School Admin light-theme adapter must never turn navy Cambridge actions dark-on-dark. */
+.school-admin-content .school-admin-themed-tab button.cambridge-white-action,
+.school-admin-content .school-admin-themed-tab button.cambridge-white-action *,
+.school-admin-content .school-admin-themed-tab .cambridge-white-action,
+.school-admin-content .school-admin-themed-tab .cambridge-white-action * {
+  color: #ffffff !important;
+}
+
+.school-admin-content .school-admin-themed-tab button.cambridge-white-action {
+  border-color: #153a70 !important;
+  background: linear-gradient(180deg, #1f4f8d 0%, #173f76 100%) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .16), 0 8px 18px rgba(23, 63, 118, .16) !important;
+  text-shadow: 0 1px 1px rgba(8, 24, 48, .18);
+  transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+}
+
+.school-admin-content .school-admin-themed-tab button.cambridge-white-action:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, .18), 0 11px 24px rgba(23, 63, 118, .2) !important;
+}
+
+.school-admin-content .school-admin-themed-tab button.cambridge-white-action:focus-visible {
+  outline: 3px solid rgba(14, 165, 233, .3) !important;
+  outline-offset: 2px;
+}
+
+.school-admin-content .school-admin-themed-tab button.cambridge-white-action:disabled {
+  opacity: .55;
+  filter: saturate(.75);
+  transform: none;
+  box-shadow: none !important;
+}
+
+@media (max-width: 767px) {
+  .school-admin-content .school-admin-themed-tab .program-identity-banner__art {
+    border-left: 0;
+    border-top: 1px solid #e2edf7;
+  }
+
+  .school-admin-content .school-admin-themed-tab .program-identity-banner__image {
+    padding: .85rem 1rem;
+  }
+}
+
 @media (max-width: 640px) {
   .student-learning-card__icon {
     height: 5.9rem !important;
