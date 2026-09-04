@@ -155,3 +155,6 @@ begin
   ),'[]'::jsonb);
 end;
 $$;
+
+revoke all on function public.rpc_ielts_practice_list_assignments(uuid,uuid,text) from public,anon;
+grant execute on function public.rpc_ielts_practice_list_assignments(uuid,uuid,text) to authenticated,service_role;
