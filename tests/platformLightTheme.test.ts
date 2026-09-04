@@ -5,28 +5,39 @@ import test from 'node:test';
 const context = readFileSync('src/contexts/LightModeContext.tsx', 'utf8');
 const entry = readFileSync('index.tsx', 'utf8');
 const styles = readFileSync('src/styles/platform-light-theme.css', 'utf8');
+const superadminShell = readFileSync('components/admin/SuperadminShell.tsx', 'utf8');
 
-test('platform light palette is independent from the performance-style preference', () => {
+test('professional light palette is scoped to the Superadmin shell only', () => {
   assert.doesNotMatch(context, /classList\.add\('platform-light-theme'\)/);
-  assert.match(entry, /if \(isAuthenticated\)[\s\S]{0,220}classList\.add\('platform-light-theme'\)/);
+  assert.doesNotMatch(entry, /classList\.add\('platform-light-theme'\)/);
   assert.match(entry, /platform-light-theme\.css/);
-  assert.match(styles, /body\.platform-light-theme/);
+  assert.match(superadminShell, /className="superadmin-shell/);
+
+  assert.doesNotMatch(styles, /body\.platform-light-theme/);
+  assert.doesNotMatch(styles, /^\s*:root\s*\{/m);
+  assert.match(styles, /body:has\(\.superadmin-shell\)/);
+
+  // Regression guard: the Superadmin theme must never target other role surfaces.
+  assert.doesNotMatch(styles, /\.student-dashboard-/);
+  assert.doesNotMatch(styles, /\.student-profile-/);
+  assert.doesNotMatch(styles, /\.student-next-mission/);
+  assert.doesNotMatch(styles, /\.student-activity-/);
+  assert.doesNotMatch(styles, /\.school-admin-portal/);
+  assert.doesNotMatch(styles, /\[class\*="teacher-portal"\]/i);
+
   assert.match(styles, /--platform-page:\s*#f5f7fb/i);
   assert.match(styles, /--platform-surface:\s*#ffffff/i);
   assert.match(styles, /\.superadmin-shell/);
-  assert.match(styles, /\.school-admin-portal/);
-  assert.match(styles, /\.student-dashboard-shell/);
 });
 
-test('professional light layer keeps form controls and wide-table scrollbars readable', () => {
-  assert.match(styles, /input:not\(\[type="checkbox"\]\)/);
+test('Superadmin light layer keeps form controls and wide-table scrollbars readable', () => {
+  assert.match(styles, /body:has\(\.superadmin-shell\) input:not\(\[type="checkbox"\]\)/);
   assert.match(styles, /background:\s*#ffffff\s*!important/);
-  assert.match(styles, /::-webkit-scrollbar/);
+  assert.match(styles, /body:has\(\.superadmin-shell\) ::-webkit-scrollbar/);
   assert.match(styles, /height:\s*10px/);
 });
 
-
-test('public LoginView keeps its original branded UX outside the authenticated light palette', () => {
+test('public LoginView keeps its original branded UX outside the Superadmin palette', () => {
   const login = readFileSync('components/LoginView.tsx', 'utf8');
   assert.match(login, /bg-\[#030a14\]/);
   assert.match(login, /bg-\[#081321\]\/90/);
