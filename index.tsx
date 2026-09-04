@@ -266,6 +266,18 @@ const Main: React.FC = () => {
     isAuthenticatedRef.current = isAuthenticated;
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      document.body.classList.add('platform-light-theme');
+    } else {
+      document.body.classList.remove('platform-light-theme');
+    }
+
+    return () => {
+      document.body.classList.remove('platform-light-theme');
+    };
+  }, [isAuthenticated]);
+
   const logAuthFlow = useCallback((message: string, details?: Record<string, unknown>) => {
     if (!import.meta.env.DEV) return;
     console.info(`[auth-flow] ${message}`, details ?? '');
