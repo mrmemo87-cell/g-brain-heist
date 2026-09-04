@@ -1,14 +1,24 @@
 -- Make Superadmin "Last active" reflect real authenticated activity instead of stale profile timestamps.
--- 1) Backfill last_seen from Supabase Auth sign-in truth when it is newer.
--- 2) Add a safe self-only heartbeat RPC for active app sessions.
--- 3) Make the Superadmin users RPC expose the newest truthful activity timestamp.
+-- Presence heartbeats live in their own table so they do not mutate users.updated_at or trigger profile-side effects.
 
-update public.users u
-set last_seen = au.last_sign_in_at
-from auth.users au
-where au.id = u.id
-  and au.last_sign_in_at is not null
-  and (u.last_seen is null or au.last_sign_in_at > u.last_seen);
+create table if not exists public.user_presence (
+  user_id uuid primary key references public.users(id) on delete cascade,
+  last_active_at timestamptz not null default now()
+);
+
+alter table public.user_presence enable row level security;
+revoke all on table public.user_presence from public, anon, authenticated;
+
+-- Seed the presence ledger with the newest truthful activity already available.
+insert into public.user_presence as p (user_id, last_active_at)
+select
+  u.id,
+  greatest(u.last_seen, au.last_sign_in_at)
+from public.users u
+left join auth.users au on au.id = u.id
+where greatest(u.last_seen, au.last_sign_in_at) is not null
+on conflict (user_id) do update
+set last_active_at = greatest(p.last_active_at, excluded.last_active_at);
 
 create or replace function public.rpc_touch_last_seen()
 returns timestamptz
@@ -24,13 +34,10 @@ begin
     raise exception 'not_authenticated' using errcode = '42501';
   end if;
 
-  update public.users
-  set last_seen = v_now
-  where id = v_actor;
-
-  if not found then
-    raise exception 'profile_not_found' using errcode = 'P0002';
-  end if;
+  insert into public.user_presence(user_id, last_active_at)
+  values (v_actor, v_now)
+  on conflict (user_id) do update
+  set last_active_at = excluded.last_active_at;
 
   return v_now;
 end;
@@ -114,10 +121,11 @@ begin
     coalesce(u.level, 1),
     u.school_id,
     s.name::text,
-    greatest(u.last_seen, au.last_sign_in_at)
+    greatest(up.last_active_at, u.last_seen, au.last_sign_in_at)
   from public.users u
   left join auth.users au on au.id = u.id
   left join public.schools s on s.id = u.school_id
+  left join public.user_presence up on up.user_id = u.id
   where (
       v_search is null
       or coalesce(u.username, '') ilike '%' || v_search || '%'
@@ -137,7 +145,7 @@ begin
     case when v_sort = 'name' then lower(coalesce(u.username, au.email::text, u.email, '')) end asc nulls last,
     case when v_sort = 'xp' then coalesce(u.xp, 0) end desc nulls last,
     case when v_sort = 'level' then coalesce(u.level, 0) end desc nulls last,
-    case when v_sort = 'last-active' then greatest(u.last_seen, au.last_sign_in_at) end desc nulls last,
+    case when v_sort = 'last-active' then greatest(up.last_active_at, u.last_seen, au.last_sign_in_at) end desc nulls last,
     u.id
   limit greatest(1, least(coalesce(p_limit, 50), 200))
   offset greatest(0, coalesce(p_offset, 0));
