@@ -1,0 +1,52 @@
+name: One-shot real user presence
+
+on:
+  push:
+    branches:
+      - fix/real-user-last-active
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/real-user-last-active
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: python3 scripts/one_shot_real_user_presence_patch.py
+
+      - name: Preserve intended source patch
+        run: |
+          mkdir -p /tmp/real-presence/components/admin/tabs
+          cp App.tsx /tmp/real-presence/App.tsx
+          cp components/admin/tabs/UsersTab.tsx /tmp/real-presence/components/admin/tabs/UsersTab.tsx
+
+      - run: npm run verify
+
+      - name: Restore only verified intended changes
+        run: |
+          git reset --hard HEAD
+          cp /tmp/real-presence/App.tsx App.tsx
+          cp /tmp/real-presence/components/admin/tabs/UsersTab.tsx components/admin/tabs/UsersTab.tsx
+          rm -f scripts/one_shot_real_user_presence_patch.py
+          rm -f .github/workflows/one-shot-real-user-presence.yml
+
+      - name: Commit clean verified patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add App.tsx components/admin/tabs/UsersTab.tsx supabase/migrations/20260904002000_real_user_presence_tracking.sql tests/userPresenceTracking.test.ts scripts/one_shot_real_user_presence_patch.py .github/workflows/one-shot-real-user-presence.yml
+          git diff --cached --check
+          git commit -m "Track real user last active presence"
+          git push origin HEAD:fix/real-user-last-active
