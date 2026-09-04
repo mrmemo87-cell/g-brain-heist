@@ -2,6 +2,7 @@ import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import IeltsExamModeAdminGuard from '../../ielts/IeltsExamModeAdminGuard';
 import IeltsExamManager from '../../../src/pages/ielts/IeltsExamManager';
+import '../schoolAdminContrastSurfaces.css';
 
 interface IeltsExamsTabProps {
   onOpenMonitor?: (examEventId: string) => void;
@@ -22,7 +23,7 @@ const IeltsExamsTab: React.FC<IeltsExamsTabProps> = ({ onOpenMonitor }) => {
               Exam content, assignments, timers, autosaves, and emergency controls are limited to authorised staff at this school.
             </p>
           </div>
-          <span className="inline-flex items-center justify-center rounded-xl bg-blue-500/15 px-5 py-3 font-semibold text-blue-100 ring-1 ring-blue-400/30">
+          <span className="ielts-secure-workspace inline-flex items-center justify-center rounded-xl bg-blue-500/15 px-5 py-3 font-semibold text-blue-100 ring-1 ring-blue-400/30">
             Secure exam workspace
           </span>
         </div>
