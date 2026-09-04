@@ -77,33 +77,50 @@
   width: 100%;
 }
 
-/* School Admin keeps its light visual language while programme artwork remains fully visible. */
-.school-admin-content .school-admin-themed-tab .program-identity-banner {
+/* School Admin keeps its light visual language while programme artwork remains fully visible.
+   Do not require .school-admin-themed-tab here: Cambridge and Admissions banners sit directly
+   inside .school-admin-content. */
+.school-admin-content .program-identity-banner {
   border-color: #d8e6f4 !important;
   background: linear-gradient(135deg, #ffffff 0%, #f8fbff 58%, #f1f8ff 100%) !important;
   box-shadow: 0 14px 34px rgba(15, 23, 42, .07) !important;
 }
 
-.school-admin-content .school-admin-themed-tab .program-identity-banner__art {
+.school-admin-content .program-identity-banner__copy p,
+.school-admin-content .program-identity-banner__copy h2 {
+  color: #17243b !important;
+}
+
+.school-admin-content .program-identity-banner__copy > p:first-child {
+  color: #0891b2 !important;
+}
+
+.school-admin-content .program-identity-banner__copy > p:last-child {
+  color: #475569 !important;
+}
+
+.school-admin-content .program-identity-banner__art {
   isolation: isolate;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(34, 211, 238, .13), transparent 63%),
-    linear-gradient(145deg, #f7fbff 0%, #edf7ff 100%) !important;
+  background-color: #f5faff !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
   border-left: 1px solid #e2edf7;
 }
 
-.school-admin-content .school-admin-themed-tab .program-identity-banner__image {
+.school-admin-content .program-identity-banner__image {
+  display: block !important;
+  visibility: visible !important;
   z-index: 1;
   box-sizing: border-box;
-  padding: 1rem 1.35rem;
+  padding: .75rem 1rem;
   object-fit: contain !important;
   object-position: center !important;
   opacity: 1 !important;
 }
 
-.school-admin-content .school-admin-themed-tab .program-identity-banner__shade {
-  z-index: 2;
-  background: linear-gradient(90deg, rgba(255, 255, 255, .18), transparent 36%) !important;
+.school-admin-content .program-identity-banner__shade {
+  display: none !important;
 }
 
 /* The generic School Admin light-theme adapter must never turn navy Cambridge actions dark-on-dark. */
@@ -141,13 +158,13 @@
 }
 
 @media (max-width: 767px) {
-  .school-admin-content .school-admin-themed-tab .program-identity-banner__art {
+  .school-admin-content .program-identity-banner__art {
     border-left: 0;
     border-top: 1px solid #e2edf7;
   }
 
-  .school-admin-content .school-admin-themed-tab .program-identity-banner__image {
-    padding: .85rem 1rem;
+  .school-admin-content .program-identity-banner__image {
+    padding: .65rem .85rem;
   }
 }
 
