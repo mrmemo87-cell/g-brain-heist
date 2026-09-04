@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import type { Grade } from '../../../types';
 import { useAdmin } from '../AdminContext';
 import ClickableUsername from '../../ClickableUsername';
+import UserIntelligencePanel from '../users/UserIntelligencePanel';
 
 type UserAction =
   | 'details'
@@ -193,7 +194,7 @@ const UsersTab: React.FC = () => {
   };
 
   return (
-    <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
+    <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_430px]">
       <section className="min-w-0 rounded-2xl border border-slate-800/90 bg-[#0a1626]/88 shadow-[0_24px_70px_rgba(2,8,23,0.22)]">
         <div className="border-b border-slate-800/80 px-4 py-4 sm:px-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -391,6 +392,8 @@ const UsersTab: React.FC = () => {
                     <div className="flex items-center justify-between gap-3"><dt className="text-slate-500">Status</dt><dd>{statusBadge(selectedUser)}</dd></div>
                   </dl>
                 </div>
+
+                <UserIntelligencePanel userId={selectedUser.id} />
 
                 <div>
                   <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-600">Placement & role</p>
