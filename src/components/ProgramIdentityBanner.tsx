@@ -31,13 +31,21 @@ const ProgramIdentityBanner: React.FC<ProgramIdentityBannerProps> = ({
           <h2 className={`mt-1 font-heading font-black tracking-[-0.035em] text-white ${compact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'}`}>{title}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{description}</p>
         </div>
-        <div className={`program-identity-banner__art relative overflow-hidden bg-slate-900 ${compact ? 'min-h-[8.5rem] md:min-h-[9.5rem]' : 'min-h-[10rem] md:min-h-[11.5rem]'}`}>
+        <div
+          className={`program-identity-banner__art relative overflow-hidden bg-slate-900 ${compact ? 'min-h-[8.5rem] md:min-h-[9.5rem]' : 'min-h-[10rem] md:min-h-[11.5rem]'}`}
+          style={{
+            backgroundImage: `url("${artwork.src}")`,
+            backgroundPosition: artwork.objectPosition,
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'contain',
+          }}
+        >
           <img
             src={artwork.src}
-            alt=""
-            loading="lazy"
+            alt={artwork.alt}
+            loading="eager"
             decoding="async"
-            className="program-identity-banner__image absolute inset-0 h-full w-full object-cover"
+            className="program-identity-banner__image absolute inset-0 h-full w-full object-contain"
             style={{ objectPosition: artwork.objectPosition }}
           />
           <div className="program-identity-banner__shade pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/55 via-slate-950/10 to-transparent md:from-slate-950/15" aria-hidden="true" />
