@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const app = readFileSync('App.tsx', 'utf8');
+const gameService = readFileSync('services/gameService.ts', 'utf8');
 const usersTab = readFileSync('components/admin/tabs/UsersTab.tsx', 'utf8');
 const migration = readFileSync('supabase/migrations/20260904002000_real_user_presence_tracking.sql', 'utf8');
 
@@ -11,6 +12,11 @@ test('authenticated app sessions heartbeat real user presence', () => {
   assert.match(app, /setInterval\(touchPresence,\s*60_000\)/);
   assert.match(app, /visibilitychange/);
   assert.match(app, /addEventListener\('focus',\s*touchPresence\)/);
+});
+
+test('legacy whoami refreshes use the isolated presence ledger', () => {
+  assert.match(gameService, /supabase\.rpc\('rpc_touch_last_seen'\)/);
+  assert.doesNotMatch(gameService, /update\(\{\s*last_seen:/);
 });
 
 test('Superadmin Last active never falls back to generic updated_at metadata', () => {
