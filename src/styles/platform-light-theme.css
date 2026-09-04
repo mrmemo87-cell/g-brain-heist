@@ -1,13 +1,16 @@
 /*
- * Brains Heist professional light theme.
+ * Brains Heist Superadmin professional light theme.
  *
- * This layer is intentionally separate from `light-mode.css`: LightMode is a
- * performance/effects preference, while this file owns the visual palette for
- * every product surface. It loads last so legacy dark utility classes can be
- * translated without rewriting hundreds of screens at once.
+ * IMPORTANT: this stylesheet is intentionally scoped to the Superadmin shell.
+ * It is imported globally, but must not restyle student, teacher, school-admin,
+ * public/auth, IELTS, or other product surfaces.
+ *
+ * The legacy `platform-light-theme` body class may still be toggled by the app
+ * entry point, but this stylesheet does not consume that class. The theme is
+ * activated only while `.superadmin-shell` exists in the document.
  */
 
-:root {
+body:has(.superadmin-shell) {
   color-scheme: light;
   --platform-page: #f5f7fb;
   --platform-page-strong: #eef2f7;
@@ -26,9 +29,6 @@
   --platform-warning: #b45309;
   --platform-danger: #be123c;
   --platform-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
-}
-
-body.platform-light-theme {
   --ink-900: var(--platform-page);
   --ink-800: var(--platform-surface);
   --paper-50: var(--platform-text);
@@ -37,26 +37,26 @@ body.platform-light-theme {
   color: var(--platform-text) !important;
 }
 
-body.platform-light-theme::before,
-body.platform-light-theme::after {
+body:has(.superadmin-shell)::before,
+body:has(.superadmin-shell)::after {
   display: none !important;
 }
 
-body.platform-light-theme #root,
-body.platform-light-theme .lite-mode-wrapper {
+body:has(.superadmin-shell) #root,
+body:has(.superadmin-shell) .lite-mode-wrapper {
   background: transparent !important;
   color: var(--platform-text) !important;
 }
 
-body.platform-light-theme ::selection {
+body:has(.superadmin-shell) ::selection {
   background: #bfdbfe;
   color: #0f172a;
 }
 
-/* Shared professional surfaces */
-body.platform-light-theme .card-glass,
-body.platform-light-theme [class*="rounded-2xl"][class*="border"][class*="bg-[#0"],
-body.platform-light-theme [class*="rounded-xl"][class*="border"][class*="bg-[#0"] {
+/* Shared surfaces, but only while the Superadmin shell is mounted. */
+body:has(.superadmin-shell) .card-glass,
+body:has(.superadmin-shell) [class*="rounded-2xl"][class*="border"][class*="bg-[#0"],
+body:has(.superadmin-shell) [class*="rounded-xl"][class*="border"][class*="bg-[#0"] {
   background: var(--platform-surface) !important;
   border-color: var(--platform-border) !important;
   color: var(--platform-text) !important;
@@ -65,344 +65,255 @@ body.platform-light-theme [class*="rounded-xl"][class*="border"][class*="bg-[#0"
   -webkit-backdrop-filter: none !important;
 }
 
-body.platform-light-theme .card-glass::after {
+body:has(.superadmin-shell) .card-glass::after {
   display: none !important;
 }
 
-/* Legacy dark surface utilities -> light neutral surfaces. */
-body.platform-light-theme [class*="bg-black/"],
-body.platform-light-theme [class*="bg-slate-950"],
-body.platform-light-theme [class*="bg-slate-900"],
-body.platform-light-theme [class*="bg-slate-800"],
-body.platform-light-theme [class*="bg-gray-950"],
-body.platform-light-theme [class*="bg-gray-900"],
-body.platform-light-theme [class*="bg-gray-800"],
-body.platform-light-theme [class*="bg-[#07111f"],
-body.platform-light-theme [class*="bg-[#081321"],
-body.platform-light-theme [class*="bg-[#0a1626"],
-body.platform-light-theme [class*="bg-[#0b1727"] {
+/* Legacy dark surface utilities -> light neutral surfaces inside Superadmin only. */
+body:has(.superadmin-shell) [class*="bg-black/"],
+body:has(.superadmin-shell) [class*="bg-slate-950"],
+body:has(.superadmin-shell) [class*="bg-slate-900"],
+body:has(.superadmin-shell) [class*="bg-slate-800"],
+body:has(.superadmin-shell) [class*="bg-gray-950"],
+body:has(.superadmin-shell) [class*="bg-gray-900"],
+body:has(.superadmin-shell) [class*="bg-gray-800"],
+body:has(.superadmin-shell) [class*="bg-[#07111f"],
+body:has(.superadmin-shell) [class*="bg-[#081321"],
+body:has(.superadmin-shell) [class*="bg-[#0a1626"],
+body:has(.superadmin-shell) [class*="bg-[#0b1727"] {
   background-color: var(--platform-surface-muted) !important;
   background-image: none !important;
 }
 
-body.platform-light-theme [class*="border-slate-8"],
-body.platform-light-theme [class*="border-slate-7"],
-body.platform-light-theme [class*="border-slate-6"],
-body.platform-light-theme [class*="border-gray-8"],
-body.platform-light-theme [class*="border-gray-7"],
-body.platform-light-theme [class*="border-gray-6"],
-body.platform-light-theme [class*="border-white/10"],
-body.platform-light-theme [class*="border-white/15"],
-body.platform-light-theme [class*="border-white/20"] {
+body:has(.superadmin-shell) [class*="border-slate-8"],
+body:has(.superadmin-shell) [class*="border-slate-7"],
+body:has(.superadmin-shell) [class*="border-slate-6"],
+body:has(.superadmin-shell) [class*="border-gray-8"],
+body:has(.superadmin-shell) [class*="border-gray-7"],
+body:has(.superadmin-shell) [class*="border-gray-6"],
+body:has(.superadmin-shell) [class*="border-white/10"],
+body:has(.superadmin-shell) [class*="border-white/15"],
+body:has(.superadmin-shell) [class*="border-white/20"] {
   border-color: var(--platform-border) !important;
 }
 
-/* Typography on surfaces. Avoid changing text inside strong colored buttons. */
-body.platform-light-theme :where(
-  .card-glass,
-  .superadmin-shell,
-  .school-admin-portal,
-  .student-dashboard-shell,
-  .student-profile-panel,
-  .student-next-mission,
-  .student-activity-feed
-) :where(h1, h2, h3, h4, h5, h6, p, span, dt, dd, th, td, label).text-white,
-body.platform-light-theme :where(
-  .card-glass,
-  .superadmin-shell,
-  .school-admin-portal,
-  .student-dashboard-shell,
-  .student-profile-panel,
-  .student-next-mission,
-  .student-activity-feed
-) [class*="text-slate-100"],
-body.platform-light-theme :where(
-  .card-glass,
-  .superadmin-shell,
-  .school-admin-portal,
-  .student-dashboard-shell,
-  .student-profile-panel,
-  .student-next-mission,
-  .student-activity-feed
-) [class*="text-slate-200"],
-body.platform-light-theme :where(
-  .card-glass,
-  .superadmin-shell,
-  .school-admin-portal,
-  .student-dashboard-shell,
-  .student-profile-panel,
-  .student-next-mission,
-  .student-activity-feed
-) [class*="text-gray-100"],
-body.platform-light-theme :where(
-  .card-glass,
-  .superadmin-shell,
-  .school-admin-portal,
-  .student-dashboard-shell,
-  .student-profile-panel,
-  .student-next-mission,
-  .student-activity-feed
-) [class*="text-gray-200"] {
+/* Typography on Superadmin surfaces. */
+body:has(.superadmin-shell) :where(.card-glass, .superadmin-shell)
+  :where(h1, h2, h3, h4, h5, h6, p, span, dt, dd, th, td, label).text-white,
+body:has(.superadmin-shell) :where(.card-glass, .superadmin-shell) [class*="text-slate-100"],
+body:has(.superadmin-shell) :where(.card-glass, .superadmin-shell) [class*="text-slate-200"],
+body:has(.superadmin-shell) :where(.card-glass, .superadmin-shell) [class*="text-gray-100"],
+body:has(.superadmin-shell) :where(.card-glass, .superadmin-shell) [class*="text-gray-200"] {
   color: var(--platform-text) !important;
 }
 
-body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-slate-300"],
-body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-gray-300"] {
+body:has(.superadmin-shell) :where(.card-glass, .superadmin-shell) [class*="text-slate-300"],
+body:has(.superadmin-shell) :where(.card-glass, .superadmin-shell) [class*="text-gray-300"] {
   color: var(--platform-text-soft) !important;
 }
 
-body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-slate-400"],
-body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-gray-400"],
-body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-slate-500"],
-body.platform-light-theme :where(.card-glass, .superadmin-shell, .school-admin-portal, .student-dashboard-shell) [class*="text-gray-500"] {
+body:has(.superadmin-shell) :where(.card-glass, .superadmin-shell) [class*="text-slate-400"],
+body:has(.superadmin-shell) :where(.card-glass, .superadmin-shell) [class*="text-gray-400"],
+body:has(.superadmin-shell) :where(.card-glass, .superadmin-shell) [class*="text-slate-500"],
+body:has(.superadmin-shell) :where(.card-glass, .superadmin-shell) [class*="text-gray-500"] {
   color: var(--platform-muted) !important;
 }
 
-/* Forms become consistent white enterprise controls. */
-body.platform-light-theme input:not([type="checkbox"]):not([type="radio"]),
-body.platform-light-theme textarea,
-body.platform-light-theme select {
+/* Superadmin forms. Portalled dialogs are covered because the body scope is conditional. */
+body:has(.superadmin-shell) input:not([type="checkbox"]):not([type="radio"]),
+body:has(.superadmin-shell) textarea,
+body:has(.superadmin-shell) select {
   background: #ffffff !important;
   border-color: var(--platform-border-strong) !important;
   color: var(--platform-text) !important;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
 }
 
-body.platform-light-theme input::placeholder,
-body.platform-light-theme textarea::placeholder {
+body:has(.superadmin-shell) input::placeholder,
+body:has(.superadmin-shell) textarea::placeholder {
   color: var(--platform-faint) !important;
 }
 
-body.platform-light-theme input:focus,
-body.platform-light-theme textarea:focus,
-body.platform-light-theme select:focus {
+body:has(.superadmin-shell) input:focus,
+body:has(.superadmin-shell) textarea:focus,
+body:has(.superadmin-shell) select:focus {
   border-color: #60a5fa !important;
   outline: none !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.13) !important;
 }
 
-/* Neutral buttons that inherited old dark backgrounds. Colored action buttons keep their intent. */
-body.platform-light-theme button[class*="bg-slate-9"],
-body.platform-light-theme button[class*="bg-slate-8"],
-body.platform-light-theme button[class*="bg-black/"],
-body.platform-light-theme a[class*="bg-slate-9"],
-body.platform-light-theme a[class*="bg-slate-8"] {
+/* Neutral legacy buttons. Colored action buttons keep their intent. */
+body:has(.superadmin-shell) button[class*="bg-slate-9"],
+body:has(.superadmin-shell) button[class*="bg-slate-8"],
+body:has(.superadmin-shell) button[class*="bg-black/"],
+body:has(.superadmin-shell) a[class*="bg-slate-9"],
+body:has(.superadmin-shell) a[class*="bg-slate-8"] {
   background: #ffffff !important;
   border-color: var(--platform-border-strong) !important;
   color: var(--platform-text-soft) !important;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
 }
 
-body.platform-light-theme button[class*="bg-slate-9"]:hover,
-body.platform-light-theme button[class*="bg-slate-8"]:hover,
-body.platform-light-theme button[class*="bg-black/"]:hover,
-body.platform-light-theme a[class*="bg-slate-9"]:hover,
-body.platform-light-theme a[class*="bg-slate-8"]:hover {
+body:has(.superadmin-shell) button[class*="bg-slate-9"]:hover,
+body:has(.superadmin-shell) button[class*="bg-slate-8"]:hover,
+body:has(.superadmin-shell) button[class*="bg-black/"]:hover,
+body:has(.superadmin-shell) a[class*="bg-slate-9"]:hover,
+body:has(.superadmin-shell) a[class*="bg-slate-8"]:hover {
   background: #f8fafc !important;
   border-color: #94a3b8 !important;
 }
 
-/* Superadmin control center */
-body.platform-light-theme .superadmin-shell {
-  background: var(--platform-page) !important;
+/* Superadmin control center. */
+.superadmin-shell {
+  background: var(--platform-page, #f5f7fb) !important;
   background-image: none !important;
-  color: var(--platform-text) !important;
+  color: var(--platform-text, #0f172a) !important;
 }
 
-body.platform-light-theme .superadmin-shell > aside,
-body.platform-light-theme .superadmin-shell > div > header {
+.superadmin-shell > aside,
+.superadmin-shell > div > header {
   background: rgba(255, 255, 255, 0.97) !important;
-  border-color: var(--platform-border) !important;
+  border-color: var(--platform-border, #dbe3ee) !important;
   box-shadow: none !important;
   backdrop-filter: blur(12px) !important;
 }
 
-body.platform-light-theme .superadmin-shell .superadmin-nav button[aria-current="page"] {
-  background: var(--platform-accent-soft) !important;
+.superadmin-shell .superadmin-nav button[aria-current="page"] {
+  background: var(--platform-accent-soft, #e8f2ff) !important;
   border-color: #bfdbfe !important;
   color: #0f4c81 !important;
   box-shadow: inset 3px 0 0 #2563eb !important;
 }
 
-body.platform-light-theme .superadmin-shell .superadmin-nav button:not([aria-current="page"]):hover {
+.superadmin-shell .superadmin-nav button:not([aria-current="page"]):hover {
   background: #f8fafc !important;
-  border-color: var(--platform-border) !important;
-  color: var(--platform-text) !important;
+  border-color: var(--platform-border, #dbe3ee) !important;
+  color: var(--platform-text, #0f172a) !important;
 }
 
-body.platform-light-theme .superadmin-shell table thead {
+.superadmin-shell table thead {
   background: #f8fafc !important;
 }
 
-body.platform-light-theme .superadmin-shell table th {
+.superadmin-shell table th {
   color: #475569 !important;
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-body.platform-light-theme .superadmin-shell table tbody tr:hover {
+.superadmin-shell table tbody tr:hover {
   background: #f8fbff !important;
 }
 
-/* School admin and teacher operational areas. */
-body.platform-light-theme .school-admin-portal,
-body.platform-light-theme [class*="teacher-portal"],
-body.platform-light-theme [class*="TeacherPortal"] {
+/* Legacy full-screen admin panels with inline dark backgrounds. */
+body:has(.superadmin-shell) .min-h-screen[style*="background"],
+body:has(.superadmin-shell) .min-h-screen[style*="backgroundColor"] {
   background: var(--platform-page) !important;
   color: var(--platform-text) !important;
 }
 
-body.platform-light-theme .school-admin-portal [class*="bg-gradient-to"],
-body.platform-light-theme [class*="teacher-portal"] [class*="bg-gradient-to"] {
-  box-shadow: none !important;
-}
-
-/* Student dashboard: keep accent colors, replace the dark glass foundation. */
-body.platform-light-theme .student-dashboard-shell::before,
-body.platform-light-theme .student-dashboard-bottom-nav::before,
-body.platform-light-theme .student-dashboard-bottom-nav::after,
-body.platform-light-theme .student-next-mission::before,
-body.platform-light-theme .student-next-mission::after,
-body.platform-light-theme .student-profile-panel::before {
-  opacity: 0.2 !important;
-}
-
-body.platform-light-theme .student-dashboard-rail,
-body.platform-light-theme .student-dashboard-bottom-nav,
-body.platform-light-theme .student-next-mission,
-body.platform-light-theme .student-profile-panel,
-body.platform-light-theme .student-quick-stat,
-body.platform-light-theme .student-activity-feed,
-body.platform-light-theme .student-profile-summary,
-body.platform-light-theme .student-profile-stat,
-body.platform-light-theme .student-activity-item {
-  background: #ffffff !important;
-  border-color: var(--platform-border) !important;
-  color: var(--platform-text) !important;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-body.platform-light-theme .student-dashboard-nav-link:not(.is-active),
-body.platform-light-theme .student-dashboard-bottom-link:not(.is-active) {
-  color: #475569 !important;
-}
-
-/* Legacy full-screen pages with inline dark backgrounds should still inherit the platform palette. */
-body.platform-light-theme .min-h-screen[style*="background"],
-body.platform-light-theme .min-h-screen[style*="backgroundColor"] {
-  background: var(--platform-page) !important;
-  color: var(--platform-text) !important;
-}
-
-body.platform-light-theme .fixed.inset-0.pointer-events-none[class*="bg-gradient"] {
+body:has(.superadmin-shell) .fixed.inset-0.pointer-events-none[class*="bg-gradient"] {
   background: linear-gradient(180deg, rgba(239, 246, 255, 0.78), rgba(248, 250, 252, 0.88)) !important;
 }
 
 /* Dialogs remain separated from the page without returning to a black UI. */
-body.platform-light-theme [role="dialog"] > :where(div, section, article),
-body.platform-light-theme [class*="modal"] > :where(div, section, article) {
+body:has(.superadmin-shell) [role="dialog"] > :where(div, section, article),
+body:has(.superadmin-shell) [class*="modal"] > :where(div, section, article) {
   border-color: var(--platform-border) !important;
 }
 
-/* Subtle professional scrollbars, including wide admin data tables. */
-body.platform-light-theme * {
+/* Subtle professional scrollbars for Superadmin data tables and dialogs. */
+body:has(.superadmin-shell) * {
   scrollbar-width: thin;
   scrollbar-color: #b8c4d4 #eef2f7;
 }
 
-body.platform-light-theme ::-webkit-scrollbar {
+body:has(.superadmin-shell) ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
-body.platform-light-theme ::-webkit-scrollbar-track {
+body:has(.superadmin-shell) ::-webkit-scrollbar-track {
   background: #eef2f7;
   border-radius: 999px;
 }
 
-body.platform-light-theme ::-webkit-scrollbar-thumb {
+body:has(.superadmin-shell) ::-webkit-scrollbar-thumb {
   background: #b8c4d4;
   border: 2px solid #eef2f7;
   border-radius: 999px;
 }
 
-body.platform-light-theme ::-webkit-scrollbar-thumb:hover {
+body:has(.superadmin-shell) ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
-
-body.platform-light-theme [class~="fixed"][class*="inset-0"][class*="bg-black/"] {
+body:has(.superadmin-shell) [class~="fixed"][class*="inset-0"][class*="bg-black/"] {
   background-color: rgba(15, 23, 42, 0.38) !important;
 }
 
-
-/* Superadmin accessibility contrast pass.
- * Legacy tabs still carry neon-era text utilities. On the professional light shell
- * those pale values resolve to readable enterprise colors instead of pastel-on-white.
- */
-body.platform-light-theme .superadmin-shell [class*="text-cyan-100"],
-body.platform-light-theme .superadmin-shell [class*="text-cyan-200"],
-body.platform-light-theme .superadmin-shell [class*="text-cyan-300"] {
+/* Superadmin accessibility contrast pass. */
+.superadmin-shell [class*="text-cyan-100"],
+.superadmin-shell [class*="text-cyan-200"],
+.superadmin-shell [class*="text-cyan-300"] {
   color: #0e5f7a !important;
 }
 
-body.platform-light-theme .superadmin-shell [class*="text-blue-100"],
-body.platform-light-theme .superadmin-shell [class*="text-blue-200"],
-body.platform-light-theme .superadmin-shell [class*="text-blue-300"] {
+.superadmin-shell [class*="text-blue-100"],
+.superadmin-shell [class*="text-blue-200"],
+.superadmin-shell [class*="text-blue-300"] {
   color: #1d4ed8 !important;
 }
 
-body.platform-light-theme .superadmin-shell [class*="text-emerald-100"],
-body.platform-light-theme .superadmin-shell [class*="text-emerald-200"],
-body.platform-light-theme .superadmin-shell [class*="text-green-100"],
-body.platform-light-theme .superadmin-shell [class*="text-green-200"] {
+.superadmin-shell [class*="text-emerald-100"],
+.superadmin-shell [class*="text-emerald-200"],
+.superadmin-shell [class*="text-green-100"],
+.superadmin-shell [class*="text-green-200"] {
   color: #047857 !important;
 }
 
-body.platform-light-theme .superadmin-shell [class*="text-amber-100"],
-body.platform-light-theme .superadmin-shell [class*="text-amber-200"],
-body.platform-light-theme .superadmin-shell [class*="text-yellow-100"],
-body.platform-light-theme .superadmin-shell [class*="text-yellow-200"] {
+.superadmin-shell [class*="text-amber-100"],
+.superadmin-shell [class*="text-amber-200"],
+.superadmin-shell [class*="text-yellow-100"],
+.superadmin-shell [class*="text-yellow-200"] {
   color: #92400e !important;
 }
 
-body.platform-light-theme .superadmin-shell [class*="text-red-100"],
-body.platform-light-theme .superadmin-shell [class*="text-red-200"],
-body.platform-light-theme .superadmin-shell [class*="text-rose-100"],
-body.platform-light-theme .superadmin-shell [class*="text-rose-200"] {
+.superadmin-shell [class*="text-red-100"],
+.superadmin-shell [class*="text-red-200"],
+.superadmin-shell [class*="text-rose-100"],
+.superadmin-shell [class*="text-rose-200"] {
   color: #b42318 !important;
 }
 
-body.platform-light-theme .superadmin-shell [class*="text-purple-100"],
-body.platform-light-theme .superadmin-shell [class*="text-purple-200"],
-body.platform-light-theme .superadmin-shell [class*="text-fuchsia-100"],
-body.platform-light-theme .superadmin-shell [class*="text-fuchsia-200"] {
+.superadmin-shell [class*="text-purple-100"],
+.superadmin-shell [class*="text-purple-200"],
+.superadmin-shell [class*="text-fuchsia-100"],
+.superadmin-shell [class*="text-fuchsia-200"] {
   color: #6d28d9 !important;
 }
 
-body.platform-light-theme .superadmin-shell [class*="text-gray-500"],
-body.platform-light-theme .superadmin-shell [class*="text-slate-500"] {
+.superadmin-shell [class*="text-gray-500"],
+.superadmin-shell [class*="text-slate-500"] {
   color: #64748b !important;
 }
 
-body.platform-light-theme .superadmin-shell .card-glass {
+.superadmin-shell .card-glass {
   border-color: #dbe3ee !important;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06) !important;
 }
 
-body.platform-light-theme .superadmin-shell :is(input, textarea, select) {
+.superadmin-shell :is(input, textarea, select) {
   color: #0f172a !important;
   background-color: #ffffff !important;
 }
 
-body.platform-light-theme .superadmin-shell :is(input, textarea)::placeholder {
+.superadmin-shell :is(input, textarea)::placeholder {
   color: #94a3b8 !important;
   opacity: 1 !important;
 }
 
-body.platform-light-theme .superadmin-shell button:disabled {
+.superadmin-shell button:disabled {
   opacity: 0.58 !important;
 }
