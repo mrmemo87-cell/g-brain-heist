@@ -21,3 +21,8 @@ subprocess.run([sys.executable, 'scripts/patch_collective_report_opaque_sticky_c
 subprocess.run([sys.executable, 'scripts/patch_teacher_roster_reporting_truth.py'], check=True)
 subprocess.run([sys.executable, 'scripts/patch_assignment_category_emails.py'], check=True)
 subprocess.run([sys.executable, 'scripts/patch_intervention_targeted_practice_relevance.py'], check=True)
+
+# Keep the roster/plan separation as the final TeacherPortal invariant. Later
+# materializers are allowed to evolve assignment/reporting UI, but must never
+# reintroduce a billing or Pilot dependency into core roster visibility.
+subprocess.run([sys.executable, 'scripts/patch_teacher_roster_reporting_truth.py'], check=True)
