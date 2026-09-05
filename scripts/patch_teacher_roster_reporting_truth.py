@@ -18,6 +18,13 @@ collective = Path('components/CollectiveAssignmentReport.tsx')
 
 replace_once(
     portal,
+    """  useEffect(() => {\n    if (!effectiveEntitlements) return;\n    if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {\n      setAvailableStudents([]);\n      setAssignments([]);\n      return;\n    }\n\n    void GameService.get_students_for_assignment()\n      .then(setAvailableStudents)\n      .catch((error) => {\n        console.error('Error loading students:', error);\n        setAvailableStudents([]);\n      });\n    void GameService.get_teacher_assignments()\n      .then(setAssignments)\n      .catch((error) => {\n        console.error('Error loading assignments:', error);\n        setAssignments([]);\n      });\n  }, [canUseTeacherFeature, effectiveEntitlements]);""",
+    """  useEffect(() => {\n    if (!effectiveEntitlements) return;\n\n    // The class roster is core school membership data, not a paid assignment\n    // capability. Always load the teacher's authorized roster so My Classes,\n    // dashboard counts, reporting context, and student selection stay truthful\n    // on every plan. Assignment creation/history remains entitlement-gated below.\n    void GameService.get_students_for_assignment()\n      .then(setAvailableStudents)\n      .catch((error) => {\n        console.error('Error loading teacher roster:', error);\n        setAvailableStudents([]);\n      });\n\n    if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {\n      setAssignments([]);\n      return;\n    }\n\n    void GameService.get_teacher_assignments()\n      .then(setAssignments)\n      .catch((error) => {\n        console.error('Error loading assignments:', error);\n        setAssignments([]);\n      });\n  }, [canUseTeacherFeature, effectiveEntitlements]);""",
+    'Teacher roster visibility independent of assignment entitlement',
+)
+
+replace_once(
+    portal,
     "          student_name: officialNames.get(row.student_id) || 'Student name unavailable',",
     "          student_name: officialNames.get(row.student_id) || row.student_name || 'Student name unavailable',",
     'Assignment report official-name fallback',
