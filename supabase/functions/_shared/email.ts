@@ -19,6 +19,8 @@ export type BrandedEmail = {
   note?: string | null;
 };
 
+export type EmailRenderMode = "school" | "platform_operations";
+
 export const cleanText = (value: unknown, maxLength = 500) =>
   String(value ?? "").trim().slice(0, maxLength);
 
@@ -64,11 +66,28 @@ export const publishableSupabaseKey = () => {
   return requiredEnv("SUPABASE_ANON_KEY");
 };
 
-export const schoolSender = (configuredFrom: string, schoolName: string) => {
+const senderAddress = (configuredFrom: string) => {
   const match = configuredFrom.match(/<([^>]+)>/);
-  const address = cleanText(match?.[1] || configuredFrom, 254);
+  return cleanText(match?.[1] || configuredFrom, 254);
+};
+
+export const schoolSender = (configuredFrom: string, schoolName: string) => {
+  const address = senderAddress(configuredFrom);
   const display = cleanText(schoolName, 90).replace(/[\r\n"<>]/g, "") || "Your school";
   return `${display} via ${PRODUCT_NAME} <${address}>`;
+};
+
+export const operationsSender = (configuredFrom: string) =>
+  `${PRODUCT_NAME} Operations <${senderAddress(configuredFrom)}>`;
+
+const NON_ROUTABLE_EMAIL_SUFFIXES = [".local", ".localhost", ".invalid", ".test", ".example"];
+
+export const isRoutableEmailAddress = (value: unknown) => {
+  const email = cleanText(value, 254).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return false;
+  const domain = email.slice(email.lastIndexOf("@") + 1).replace(/\.$/, "");
+  if (!domain || ["localhost", "local", "invalid", "test", "example"].includes(domain)) return false;
+  return !NON_ROUTABLE_EMAIL_SUFFIXES.some((suffix) => domain.endsWith(suffix));
 };
 
 const schoolMark = (school: EmailSchoolBrand) => {
@@ -81,8 +100,13 @@ const schoolMark = (school: EmailSchoolBrand) => {
   return `<span role="img" aria-label="${escapeHtml(schoolName)} school mark" style="display:inline-block;width:50px;height:50px;line-height:50px;text-align:center;border-radius:12px;background:#fff;color:#0f172a;font-size:22px;font-weight:800">${escapeHtml(schoolName.slice(0, 1).toUpperCase() || "S")}</span>`;
 };
 
-export const renderBrandedEmail = (school: EmailSchoolBrand, email: BrandedEmail) => {
+export const renderBrandedEmail = (
+  school: EmailSchoolBrand,
+  email: BrandedEmail,
+  mode: EmailRenderMode = "school",
+) => {
   const schoolName = cleanText(school.name, 140) || "Your school";
+  const isOperations = mode === "platform_operations";
   const details = (email.details || []).filter((item) => cleanText(item.value));
   const detailHtml = details.length
     ? `<div style="margin:20px 0;padding:17px;border-radius:12px;background:#111f33;color:#cbd5e1">${details.map((item) => `<p style="margin:0 0 8px"><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(item.value)}</p>`).join("").replace(/<\/p>$/, "</p>")}</div>`
@@ -95,17 +119,23 @@ export const renderBrandedEmail = (school: EmailSchoolBrand, email: BrandedEmail
     ? `<p style="margin:18px 0 0;color:#94a3b8;font-size:13px;line-height:1.6">${escapeHtml(email.note)}</p>`
     : "";
   const productMark = `<img src="${PRODUCT_LOGO_URL}" alt="Brains Heist logo" width="46" height="46" style="display:block;width:46px;height:46px;object-fit:contain;border-radius:11px;background:#08111f;padding:3px"/>`;
+  const brandHeader = isOperations
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="62" valign="middle">${productMark}</td><td valign="middle"><div style="color:#fff;font-size:17px;font-weight:800">Brains Heist Operations</div><div style="color:#67e8f9;font-size:11px;margin-top:3px">Internal platform notification</div></td></tr></table>`
+    : `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="62" valign="middle">${schoolMark(school)}</td><td valign="middle" style="padding-right:12px"><div style="color:#fff;font-size:17px;font-weight:800">${escapeHtml(schoolName)}</div><div style="color:#cbd5e1;font-size:11px;margin-top:3px">School communication</div></td><td width="18" align="center" style="color:#94a3b8;font-size:18px">×</td><td width="54" align="right">${productMark}</td><td valign="middle" style="padding-left:9px"><div style="color:#fff;font-size:14px;font-weight:800;white-space:nowrap">Brains Heist</div><div style="color:#67e8f9;font-size:10px;margin-top:2px;white-space:nowrap">Academic progress platform</div></td></tr></table>`;
+  const footer = isOperations
+    ? "This Brains Heist operational notification was generated for an authorized platform administrator. Review sensitive details only inside the protected administration workspace."
+    : "This school-authorized transactional message was delivered securely through Brains Heist. Sign in to view private academic information; sensitive results are never placed in email.";
 
-  const html = `<!doctype html><html lang="en"><body style="margin:0;background:#07111f;font-family:Arial,sans-serif;color:#e2e8f0"><div style="display:none;max-height:0;overflow:hidden">${escapeHtml(email.preview)}</div><div style="padding:30px 14px"><div style="max-width:640px;margin:0 auto;border:1px solid #1e3a5f;border-radius:18px;overflow:hidden;background:#0b1728"><div style="padding:26px 28px;background:linear-gradient(135deg,#082f49,#312e81,#581c87)"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="62" valign="middle">${schoolMark(school)}</td><td valign="middle" style="padding-right:12px"><div style="color:#fff;font-size:17px;font-weight:800">${escapeHtml(schoolName)}</div><div style="color:#cbd5e1;font-size:11px;margin-top:3px">School communication</div></td><td width="18" align="center" style="color:#94a3b8;font-size:18px">×</td><td width="54" align="right">${productMark}</td><td valign="middle" style="padding-left:9px"><div style="color:#fff;font-size:14px;font-weight:800;white-space:nowrap">Brains Heist</div><div style="color:#67e8f9;font-size:10px;margin-top:2px;white-space:nowrap">Academic progress platform</div></td></tr></table></div><div style="padding:28px"><p style="margin:0 0 8px;color:#67e8f9;font-size:12px;font-weight:800;letter-spacing:1.6px">${escapeHtml(email.kicker.toUpperCase())}</p><h1 style="margin:0 0 16px;color:#fff;font-size:27px;line-height:1.25">${escapeHtml(email.headline)}</h1><p style="margin:0 0 20px;color:#cbd5e1;line-height:1.65">${escapeHtml(email.intro)}</p>${detailHtml}${actionHtml}${noteHtml}<p style="margin:26px 0 0;color:#64748b;font-size:12px;line-height:1.55">This school-authorized transactional message was delivered securely through Brains Heist. Sign in to view private academic information; sensitive results are never placed in email.</p></div></div></div></body></html>`;
+  const html = `<!doctype html><html lang="en"><body style="margin:0;background:#07111f;font-family:Arial,sans-serif;color:#e2e8f0"><div style="display:none;max-height:0;overflow:hidden">${escapeHtml(email.preview)}</div><div style="padding:30px 14px"><div style="max-width:640px;margin:0 auto;border:1px solid #1e3a5f;border-radius:18px;overflow:hidden;background:#0b1728"><div style="padding:26px 28px;background:linear-gradient(135deg,#082f49,#312e81,#581c87)">${brandHeader}</div><div style="padding:28px"><p style="margin:0 0 8px;color:#67e8f9;font-size:12px;font-weight:800;letter-spacing:1.6px">${escapeHtml(email.kicker.toUpperCase())}</p><h1 style="margin:0 0 16px;color:#fff;font-size:27px;line-height:1.25">${escapeHtml(email.headline)}</h1><p style="margin:0 0 20px;color:#cbd5e1;line-height:1.65">${escapeHtml(email.intro)}</p>${detailHtml}${actionHtml}${noteHtml}<p style="margin:26px 0 0;color:#64748b;font-size:12px;line-height:1.55">${escapeHtml(footer)}</p></div></div></div></body></html>`;
 
   const text = [
-    `${schoolName} × Brains Heist`,
+    isOperations ? "Brains Heist Operations" : `${schoolName} × Brains Heist`,
     email.headline,
     email.intro,
     ...details.map((item) => `${item.label}: ${item.value}`),
     email.action && actionUrl ? `${email.action.label}: ${actionUrl}` : "",
     cleanText(email.note, 1200),
-    "This school-authorized transactional message was delivered securely through Brains Heist.",
+    footer,
   ].filter(Boolean).join("\n\n");
 
   return { subject: cleanText(email.subject, 180), html, text };
@@ -121,6 +151,9 @@ export const sendWithResend = async (params: {
   html: string;
   text: string;
 }) => {
+  if (!isRoutableEmailAddress(params.to)) {
+    throw new Error("Recipient email address is not routable");
+  }
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
