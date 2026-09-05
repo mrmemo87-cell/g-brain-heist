@@ -18,16 +18,28 @@ test('teacher roster remains visible while assignment eligibility stays fail clo
   assert.match(migration, /not \(u\.banned_until is not null and u\.banned_until > now\(\)\)/);
 });
 
-test('teacher class roster is never paywalled by assignment entitlement', () => {
-  assert.match(materializer, /patch_teacher_roster_reporting_truth\.py/);
-  assert.match(patcher, /The class roster is core school membership data, not a paid assignment/);
+test('teacher class roster loads without Pilot or entitlement initialization', () => {
+  const materializerCalls = materializer.match(/patch_teacher_roster_reporting_truth\.py/g) || [];
+  assert.ok(materializerCalls.length >= 2, 'roster invariant must be reasserted after later materializers');
+  assert.match(patcher, /school has never started a Pilot/);
+  assert.match(patcher, /Billing only gates paid capabilities; it never hides students/);
 
   const rosterLoad = portal.indexOf('void GameService.get_students_for_assignment()');
-  const assignmentGate = portal.indexOf('if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {', rosterLoad);
-  const assignmentLoad = portal.indexOf('void GameService.get_teacher_assignments()', assignmentGate);
+  const rosterEffectStart = portal.lastIndexOf('useEffect(() => {', rosterLoad);
+  const rosterEffectEnd = portal.indexOf('  }, [profile.id]);', rosterLoad);
 
   assert.ok(rosterLoad >= 0, 'teacher roster loader must exist');
-  assert.ok(assignmentGate > rosterLoad, 'teacher roster must load before the assignment plan gate');
+  assert.ok(rosterEffectStart >= 0 && rosterEffectEnd > rosterLoad, 'teacher roster must have its own lifecycle effect');
+
+  const rosterEffect = portal.slice(rosterEffectStart, rosterEffectEnd);
+  assert.doesNotMatch(rosterEffect, /effectiveEntitlements/);
+  assert.doesNotMatch(rosterEffect, /FEATURE_KEYS\.ASSIGNMENTS/);
+  assert.doesNotMatch(rosterEffect, /setAssignments/);
+
+  const assignmentGate = portal.indexOf('if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {', rosterEffectEnd);
+  const assignmentLoad = portal.indexOf('void GameService.get_teacher_assignments()', assignmentGate);
+
+  assert.ok(assignmentGate > rosterEffectEnd, 'assignment entitlement gate must be separate from roster loading');
   assert.ok(assignmentLoad > assignmentGate, 'assignment history must remain behind the assignment plan gate');
 
   const assignmentGateBlock = portal.slice(assignmentGate, assignmentLoad);
