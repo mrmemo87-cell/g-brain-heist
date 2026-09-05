@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 const migration = readFileSync('supabase/migrations/20260901113000_teacher_roster_reporting_truth.sql', 'utf8');
 const workspaceMigration = readFileSync('supabase/migrations/20260905064600_teacher_class_roster_workspace.sql', 'utf8');
+const featureGateMigration = readFileSync('supabase/migrations/20260905065300_classify_teacher_roster_as_core_school_data.sql', 'utf8');
 const wizard = readFileSync('components/teacher/AssignmentWizard.tsx', 'utf8');
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
 const collective = readFileSync('components/CollectiveAssignmentReport.tsx', 'utf8');
@@ -29,6 +30,14 @@ test('My Classes workspace is auth-scoped, canonical, and billing independent', 
   assert.match(workspaceMigration, /grant execute on function public\.rpc_get_my_teacher_class_roster\(\) to authenticated/);
   assert.doesNotMatch(workspaceMigration, /p_teacher_id/);
   assert.doesNotMatch(workspaceMigration, /pilot/i);
+});
+
+test('core teacher roster reads are not blocked by the global assignment feature gate', () => {
+  assert.match(featureGateMigration, /private\.enforce_request_entitlement\(\)/);
+  assert.match(featureGateMigration, /'\/rpc\/rpc_create_assignment'/);
+  assert.match(featureGateMigration, /'\/rpc\/rpc_get_assignments_for_teacher'/);
+  assert.match(featureGateMigration, /v_feature := 'assignments'/);
+  assert.doesNotMatch(featureGateMigration, /'\/rpc\/rpc_get_students_for_assignment'/);
 });
 
 test('teacher portal uses one canonical core roster loader and cannot clear it from assignment gating', () => {
