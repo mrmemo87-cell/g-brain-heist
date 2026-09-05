@@ -26,6 +26,7 @@ const historicalDefinerRevokeExceptions = new Set([
   '20260821202736_fix_assignment_category_wrapper_composite_return.sql:rpc_create_assignment',
   '20260821202736_fix_assignment_category_wrapper_composite_return.sql:rpc_update_teacher_assignment',
   '20260821205000_fix_school_member_sync_for_moderation.sql:sync_user_school_id',
+  '20260904033000_harden_school_member_removal_and_rosters.sql:remove_school_member_legacy_assignment_vocabulary',
 ]);
 
 const getFunctionBlocks = (normalizedSql) => {
