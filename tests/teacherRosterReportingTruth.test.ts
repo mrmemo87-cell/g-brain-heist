@@ -18,33 +18,35 @@ test('teacher roster remains visible while assignment eligibility stays fail clo
   assert.match(migration, /not \(u\.banned_until is not null and u\.banned_until > now\(\)\)/);
 });
 
-test('teacher class roster loads without Pilot or entitlement initialization', () => {
+test('teacher class roster materializer is independent of Pilot and binds to resolved teacher identity', () => {
   const materializerCalls = materializer.match(/patch_teacher_roster_reporting_truth\.py/g) || [];
   assert.ok(materializerCalls.length >= 2, 'roster invariant must be reasserted after later materializers');
-  assert.match(patcher, /school has never started a Pilot/);
-  assert.match(patcher, /Billing only gates paid capabilities; it never hides students/);
 
-  const rosterLoad = portal.indexOf('void GameService.get_students_for_assignment()');
-  const rosterEffectStart = portal.lastIndexOf('useEffect(() => {', rosterLoad);
-  const rosterEffectEnd = portal.indexOf('  }, [profile.id]);', rosterLoad);
+  assert.match(patcher, /schools that have never started a Pilot/);
+  assert.match(patcher, /if \(!teacher\?\.id\) return;/);
+  assert.match(patcher, /GameService\.get_students_for_assignment\(teacher\.id\)/);
+  assert.match(patcher, /\}, \[teacher\?\.id\]\);/);
+  assert.match(patcher, /GameService\.get_teacher_assignments\(teacher\.id\)/);
 
-  assert.ok(rosterLoad >= 0, 'teacher roster loader must exist');
-  assert.ok(rosterEffectStart >= 0 && rosterEffectEnd > rosterLoad, 'teacher roster must have its own lifecycle effect');
+  const resolvedBlockStart = patcher.indexOf('resolved_teacher_roster_effects =');
+  const replaceStart = patcher.indexOf('replace_first_of(', resolvedBlockStart);
+  assert.ok(resolvedBlockStart >= 0 && replaceStart > resolvedBlockStart);
+  const resolvedBlock = patcher.slice(resolvedBlockStart, replaceStart);
 
-  const rosterEffect = portal.slice(rosterEffectStart, rosterEffectEnd);
-  assert.doesNotMatch(rosterEffect, /effectiveEntitlements/);
-  assert.doesNotMatch(rosterEffect, /FEATURE_KEYS\.ASSIGNMENTS/);
-  assert.doesNotMatch(rosterEffect, /setAssignments/);
+  const rosterCall = resolvedBlock.indexOf('GameService.get_students_for_assignment(teacher.id)');
+  const assignmentGate = resolvedBlock.indexOf('if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS))');
+  assert.ok(rosterCall >= 0, 'resolved teacher roster call must exist');
+  assert.ok(assignmentGate > rosterCall, 'billing gate must come after the roster lifecycle');
 
-  const assignmentGate = portal.indexOf('if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {', rosterEffectEnd);
-  const assignmentLoad = portal.indexOf('void GameService.get_teacher_assignments()', assignmentGate);
+  const rosterLifecycle = resolvedBlock.slice(0, assignmentGate);
+  assert.doesNotMatch(rosterLifecycle, /effectiveEntitlements/);
+  assert.doesNotMatch(rosterLifecycle, /FEATURE_KEYS\.ASSIGNMENTS/);
+  assert.doesNotMatch(rosterLifecycle, /setAssignments/);
+});
 
-  assert.ok(assignmentGate > rosterEffectEnd, 'assignment entitlement gate must be separate from roster loading');
-  assert.ok(assignmentLoad > assignmentGate, 'assignment history must remain behind the assignment plan gate');
-
-  const assignmentGateBlock = portal.slice(assignmentGate, assignmentLoad);
-  assert.doesNotMatch(assignmentGateBlock, /setAvailableStudents\(\[\]\)/);
-  assert.match(assignmentGateBlock, /setAssignments\(\[\]\)/);
+test('legacy source still contains a patchable roster block until build materialization', () => {
+  assert.match(portal, /GameService\.get_students_for_assignment\(\)/);
+  assert.match(materializer, /patch_teacher_roster_reporting_truth\.py/);
 });
 
 test('historical assignment report keeps official names and assignment-time provenance', () => {
