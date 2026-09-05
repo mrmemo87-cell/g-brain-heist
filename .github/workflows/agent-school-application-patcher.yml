@@ -20,26 +20,15 @@ jobs:
       - run: python3 scripts/patch_school_application_professional_flow.py
       - run: npm ci
       - run: npm run typecheck
-      - name: Run tests with diagnostics
-        shell: bash
-        run: |
-          set +e
-          npm test > school_application_test_output.txt 2>&1
-          status=$?
-          if [ "$status" -ne 0 ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add school_application_test_output.txt
-            git commit -m "Capture school application test diagnostics"
-            git push
-            exit "$status"
-          fi
-          rm -f school_application_test_output.txt
+      - run: npm run test:clean
+      - run: npm run test:build
+      - name: Run school application regression tests
+        run: NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/schoolApplicationProfessionalFlow.test.js dist-tests/tests/schoolRequestEmailNotifications.test.js
       - run: npm run build
       - run: git diff --check
       - name: Commit validated school application flow
         run: |
-          rm -f scripts/patch_school_application_professional_flow.py
+          rm -f scripts/patch_school_application_professional_flow.py scripts/.school-flow-retry-1 school_application_test_output.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
