@@ -18,6 +18,23 @@ test('teacher roster remains visible while assignment eligibility stays fail clo
   assert.match(migration, /not \(u\.banned_until is not null and u\.banned_until > now\(\)\)/);
 });
 
+test('teacher class roster is never paywalled by assignment entitlement', () => {
+  assert.match(materializer, /patch_teacher_roster_reporting_truth\.py/);
+  assert.match(patcher, /The class roster is core school membership data, not a paid assignment/);
+
+  const rosterLoad = portal.indexOf('void GameService.get_students_for_assignment()');
+  const assignmentGate = portal.indexOf('if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {', rosterLoad);
+  const assignmentLoad = portal.indexOf('void GameService.get_teacher_assignments()', assignmentGate);
+
+  assert.ok(rosterLoad >= 0, 'teacher roster loader must exist');
+  assert.ok(assignmentGate > rosterLoad, 'teacher roster must load before the assignment plan gate');
+  assert.ok(assignmentLoad > assignmentGate, 'assignment history must remain behind the assignment plan gate');
+
+  const assignmentGateBlock = portal.slice(assignmentGate, assignmentLoad);
+  assert.doesNotMatch(assignmentGateBlock, /setAvailableStudents\(\[\]\)/);
+  assert.match(assignmentGateBlock, /setAssignments\(\[\]\)/);
+});
+
 test('historical assignment report keeps official names and assignment-time provenance', () => {
   assert.match(migration, /coalesce\(nullif\(trim\(u\.full_name\), ''\), nullif\(trim\(u\.username\), ''\), 'Student'\)/);
   assert.match(migration, /left join public\.student_assignments sa/);
