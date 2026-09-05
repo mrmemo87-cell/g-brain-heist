@@ -3749,7 +3749,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         if (requestId !== reportLoadRequestRef.current) return;
         const rows = (((data as TeacherAssignmentReportRow[] | null) || [])).map((row) => ({
           ...row,
-          student_name: officialNames.get(row.student_id) || 'Student name unavailable',
+          student_name: officialNames.get(row.student_id) || row.student_name || 'Student name unavailable',
         }));
         setAssignmentReport(rows);
         setAssignments((current) => current.map((item) => item.id === assignment.id ? { ...item, completed_count: rows.length } : item));

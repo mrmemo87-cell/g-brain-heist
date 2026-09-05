@@ -209,7 +209,10 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
     }
 
     setRequests(result.requests);
-    setSelectedRequestId(result.requests[0]?.id ?? null);
+    const preferredRequest = result.requests.find((request) =>
+      request.status === 'pending' || request.status === 'needs_more_info'
+    ) ?? result.requests[0] ?? null;
+    setSelectedRequestId(preferredRequest?.id ?? null);
 
     const unreadPairs = await Promise.all(
       result.requests.map(async (request) => {
@@ -288,14 +291,26 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen || activeView !== 'applications') return;
+    if (!isOpen) return;
     if (!session && sessionChecked) {
       setRequests([]);
-      setRequestsError('Log in to view your applications.');
+      setRequestsError('Log in to view your school application.');
       return;
     }
+    if (!session) return;
     void loadMyRequests();
-  }, [activeView, isOpen, loadMyRequests, session, sessionChecked]);
+  }, [isOpen, loadMyRequests, session, sessionChecked]);
+
+  useEffect(() => {
+    if (!isOpen || requests.length === 0) return;
+    const preferredRequest = requests.find((request) =>
+      request.status === 'pending' || request.status === 'needs_more_info'
+    ) ?? requests[0];
+    if (!preferredRequest) return;
+    setSelectedRequestId(preferredRequest.id);
+    setActiveView('applications');
+    setStatusView(false);
+  }, [isOpen, requests]);
 
   useEffect(() => {
     if (!selectedRequestId) {
@@ -363,11 +378,11 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-semibold text-white">
-              {activeView === 'applications' ? 'My school applications' : 'Apply to add your school'}
+              {activeView === 'applications' ? 'Your school application' : 'Apply to add your school'}
             </h2>
             <p className="text-sm text-slate-300">
               {activeView === 'applications'
-                ? 'Track status updates and respond if we need more info.'
+                ? 'Track the review and respond only if we ask for more information.'
                 : 'We will review your request and email you once it is approved.'}
             </p>
           </div>
@@ -380,7 +395,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
           </button>
         </div>
 
-        <div className="mt-4 flex gap-2">
+        <div className="hidden" aria-hidden="true">
           <button
             type="button"
             onClick={() => setActiveView('apply')}
@@ -422,7 +437,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
               </div>
             ) : requests.length === 0 ? (
               <div className="rounded-lg border border-white/10 bg-black/30 p-4 text-sm text-slate-300">
-                No applications yet. Submit a request to get started.
+                No school application is on file yet. Submit one request to get started.
               </div>
             ) : (
               <>
@@ -482,18 +497,44 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                         selectedRequest.status ||
                         'Pending'}
                     </p>
-                    {selectedRequest.admin_notes && (
+                    {selectedRequest.status === 'pending' && (
+                      <div className="mt-3 rounded-lg border border-cyan-400/25 bg-cyan-400/5 p-3 text-sm leading-relaxed text-cyan-50">
+                        <p className="font-semibold">No action required right now.</p>
+                        <p className="mt-1 text-cyan-100/80">Most applications are reviewed within 24 hours. We will email your verified Brains Heist address as soon as there is an update.</p>
+                      </div>
+                    )}
+                    {selectedRequest.status === 'approved' && (
+                      <div className="mt-3 rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm leading-relaxed text-emerald-50">
+                        <p className="font-semibold">Your school workspace is active.</p>
+                        <p className="mt-1 text-emerald-100/80">You have been provisioned as the School Admin and School Head for this school. Continue in Brains Heist to finish the school setup.</p>
+                      </div>
+                    )}
+                    {selectedRequest.admin_notes && selectedRequest.status !== 'pending' && (
                       <p className="mt-2 text-sm text-slate-300">{selectedRequest.admin_notes}</p>
+                    )}
+                    {(selectedRequest.status === 'rejected' || selectedRequest.status === 'duplicate') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveView('apply');
+                          setSelectedRequestId(null);
+                          setStatusView(false);
+                          setRequestsError(null);
+                        }}
+                        className="mt-4 rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-white hover:border-cyan-300/50"
+                      >
+                        Submit a different school application
+                      </button>
                     )}
                   </div>
                 )}
 
-                {selectedRequest && (
+                {selectedRequest && selectedRequest.status === 'needs_more_info' && (
                   <div className="rounded-lg border border-white/10 bg-black/30 p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-semibold text-white">Conversation</p>
-                        <p className="text-xs text-slate-400">Live updates. New replies appear automatically.</p>
+                        <p className="text-sm font-semibold text-white">Review conversation</p>
+                        <p className="text-xs text-slate-400">Replies are available only when the reviewer asks for more information.</p>
                       </div>
                       {messagesUnavailable && (
                         <span className="text-xs text-slate-400">Messaging unavailable</span>
@@ -522,14 +563,14 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                       <SchoolRequestConversation messages={requestMessages} viewerRole="applicant" />
                     )}
 
-                    {(selectedRequest.status === 'pending' || selectedRequest.status === 'needs_more_info') && (
+                    {selectedRequest.status === 'needs_more_info' && (
                       <div className="mt-4 space-y-3">
                         <textarea
                           value={replyMessage}
                           onChange={(event) => setReplyMessage(event.target.value)}
                           rows={3}
                           className="w-full rounded-lg border border-amber-400/30 bg-black/30 p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-300"
-                          placeholder="Type your reply to continue the conversation."
+                          placeholder="Reply with the requested information."
                         />
                         <button
                           type="button"
@@ -537,7 +578,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                           disabled={replySending || !replyMessage.trim()}
                           className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
                         >
-                          {replySending ? 'Sending...' : 'Send message'}
+                          {replySending ? 'Sending...' : 'Send requested information'}
                         </button>
                       </div>
                     )}
@@ -552,6 +593,12 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
               <p className="text-sm uppercase tracking-[0.2em] text-cyan-300">Status</p>
               <p className="mt-2 text-lg font-semibold text-white">{statusLabels[requestStatus] ?? 'Pending'}</p>
               {message && <p className="mt-2 text-sm text-slate-300">{message}</p>}
+              {requestStatus === 'pending' && (
+                <div className="mt-3 rounded-lg border border-cyan-400/25 bg-cyan-400/5 p-3 text-sm text-cyan-50">
+                  <p className="font-semibold">No action required.</p>
+                  <p className="mt-1 text-cyan-100/80">Most applications are reviewed within 24 hours. We will email you when the review changes.</p>
+                </div>
+              )}
               <p className="mt-3 text-xs text-slate-400">
                 Review emails are sent only to the verified email address on the Brains Heist account that submitted this request.
               </p>

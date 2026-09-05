@@ -1,4 +1,4 @@
-import { supabase } from '../../../services/supabaseClient';
+import { supabase } from '../../../services/supabaseClient.js';
 const isMissingTableError = (error) => {
     if (!error)
         return false;

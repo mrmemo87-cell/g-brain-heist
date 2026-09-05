@@ -1,5 +1,5 @@
-import { applyAction, createInitialGameState } from "../features/lockdown/lockdownEngine";
-import { buildRoomSettings } from "../features/lockdown/defaultRoomSettings";
+import { applyAction, createInitialGameState } from "../features/lockdown/lockdownEngine.js";
+import { buildRoomSettings } from "../features/lockdown/defaultRoomSettings.js";
 export class InMemoryLockdownTransport {
     constructor() {
         this.rooms = new Map();

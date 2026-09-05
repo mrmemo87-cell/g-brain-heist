@@ -283,7 +283,7 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined, initialRole =
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-purple-400/40 bg-purple-500/15 px-3 py-2 text-sm font-semibold text-purple-100 transition-colors hover:border-purple-300 hover:bg-purple-500/25"
               >
                 <img src={neonIcon('invite_teacher')} alt="" className="h-4 w-4 object-contain" />
-                Open my applications / request school
+                Open school application
               </button>
             </div>
           </div>

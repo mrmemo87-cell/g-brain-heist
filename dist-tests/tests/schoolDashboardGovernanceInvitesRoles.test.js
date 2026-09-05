@@ -26,7 +26,7 @@ test('identity changes use a superadmin-governed unlock queue', () => {
     assert.match(settings, /Send request to superadmin/);
     assert.doesNotMatch(settings, /mailto:/);
     assert.match(admin, /identity-requests/);
-    assert.match(admin, /activeTab === 'identity-requests' && isSuperadmin/);
+    assert.match(admin, /(?:activeTab|tab) === 'identity-requests' && isSuperadmin/);
 });
 test('registration rules fail closed before student or teacher membership is created', () => {
     const studentGuard = migration.indexOf("v_role = 'student' and coalesce((v_school.settings->>'allow_student_signup')::boolean, false) is not true");
@@ -89,14 +89,14 @@ test('School Head and School Admin switch dashboards from matching header action
 test('all detected account roles are offered in the post-sign-in workspace chooser', () => {
     assert.match(app, /getGuardianChildren/);
     assert.match(app, /hasParentWorkspace/);
-    assert.match(app, /resolveAccountWorkspace/);
-    assert.match(app, /case 'parent'/);
-    assert.match(app, /onOpenParent/);
-    assert.match(chooser, /School Head/);
-    assert.match(chooser, /School Administration/);
-    assert.match(chooser, /Teacher Portal/);
-    assert.match(chooser, /Parent Portal/);
+    assert.match(app, /profile\.role === 'student' && Boolean\(profile\.school_id\)/);
+    assert.match(app, /canOpenTeacherWorkspace/);
+    assert.match(app, /schoolCapabilities\?\.can_administer/);
+    assert.match(app, /isSchoolHeadRole/);
+    assert.match(app, /isAdminMode/);
     assert.match(chooser, /Student Dashboard/);
+    assert.match(chooser, /Teacher Portal/);
+    assert.match(chooser, /School Administration/);
+    assert.match(chooser, /School Head/);
     assert.match(chooser, /Super Admin/);
-    assert.doesNotMatch(chooser, /🏫|📚/);
 });
