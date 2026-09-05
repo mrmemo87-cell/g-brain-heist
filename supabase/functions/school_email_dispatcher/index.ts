@@ -2,6 +2,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 import {
   PRODUCT_APP_URL,
   cleanText,
+  isRoutableEmailAddress,
+  operationsSender,
   renderBrandedEmail,
   requiredEnv,
   schoolSender,
@@ -36,6 +38,16 @@ const fmt = (value: unknown) => {
     dateStyle: "medium", timeStyle: "short", timeZone: "UTC",
   }).format(date) + " UTC";
 };
+const fmtMoney = (amountMinor: unknown, currency: unknown) => {
+  const amount = Number(cleanText(amountMinor, 40));
+  const code = cleanText(currency, 3).toUpperCase() || "USD";
+  if (!Number.isFinite(amount)) return "Not specified";
+  try {
+    return new Intl.NumberFormat("en", { style: "currency", currency: code }).format(amount / 100);
+  } catch {
+    return `${(amount / 100).toFixed(2)} ${code}`;
+  }
+};
 const sha256 = async (value: string) => {
   const bytes = await crypto.subtle.digest(
     "SHA-256",
@@ -54,6 +66,8 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
   const status = cleanText(payload.status, 80).replaceAll("_", " ");
   const attemptType = cleanText(payload.attempt_type, 30) || "IELTS";
   const role = cleanText(payload.role, 60).replaceAll("_", " ");
+  const contextSchoolName = cleanText(payload.school_name, 140) ||
+    cleanText(row.school_name_override, 140) || schoolName;
   const decisionAlerts = Array.isArray(payload.alerts)
     ? payload.alerts.slice(0, 10).flatMap((value): Array<Record<string, unknown>> => (
       value && typeof value === "object" && !Array.isArray(value) ? [value as Record<string, unknown>] : []
@@ -76,12 +90,12 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
       };
     case "owner_school_request":
       return {
-        subject: `School request: ${schoolName} | Brains Heist`,
-        preview: `${schoolName} has a school-request update.`,
+        subject: `School request: ${contextSchoolName} | Brains Heist Operations`,
+        preview: `${contextSchoolName} has a school-request update.`,
         kicker: "Platform operations",
         headline: "School request requires attention",
         intro: "A school request was created or changed. Review it in the protected administration workspace.",
-        details: [{ label: "School", value: schoolName }, { label: "Status", value: status || "Updated" }, { label: "Request ID", value: cleanText(payload.request_id, 80) }],
+        details: [{ label: "School", value: contextSchoolName }, { label: "Status", value: status || "Updated" }, { label: "Request ID", value: cleanText(payload.request_id, 80) }],
         action: { label: "Open administration", url: appRoute("/") },
       };
     case "assignment_result_ready":
@@ -251,6 +265,19 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
         details: [{ label: "Quote", value: title || "School package" }, { label: "Status", value: status || "Updated" }, { label: "Expires", value: fmt(payload.expires_at) }],
         action: { label: "Review plan and billing", url: appRoute("/") },
       };
+    case "billing_payment_status":
+      return {
+        subject: `Payment ${status || "update"} | ${schoolName} × Brains Heist`,
+        preview: "Your school billing payment status has changed.",
+        kicker: "Plan and billing", headline: "Your school payment has been updated",
+        intro: "Review the current payment status and any required action in the protected billing workspace.",
+        details: [
+          { label: "Status", value: status || "Updated" },
+          { label: "Amount", value: fmtMoney(payload.amount_minor, payload.currency) },
+          { label: "Method", value: cleanText(payload.method, 60).replaceAll("_", " ") },
+        ],
+        action: { label: "Review plan and billing", url: appRoute("/") },
+      };
     case "billing_subscription_status":
       return {
         subject: `Subscription ${status || "update"} | ${schoolName} × Brains Heist`,
@@ -294,20 +321,34 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
       };
     case "owner_demo_request":
       return {
-        subject: `New demo request: ${schoolName} | Brains Heist`,
-        preview: `${schoolName} requested a Brains Heist demo.`,
+        subject: `New demo request: ${contextSchoolName} | Brains Heist Operations`,
+        preview: `${contextSchoolName} requested a Brains Heist demo.`,
         kicker: "Platform operations", headline: "A new school requested a demo",
         intro: "Open the protected administration workspace to review and follow up with the lead.",
-        details: [{ label: "School", value: schoolName }, { label: "Lead ID", value: cleanText(payload.demo_request_id, 80) }],
+        details: [{ label: "School", value: contextSchoolName }, { label: "Lead ID", value: cleanText(payload.demo_request_id, 80) }],
         action: { label: "Open administration", url: appRoute("/") },
       };
     case "owner_new_user":
       return {
-        subject: "New account created | Brains Heist",
+        subject: "New account created | Brains Heist Operations",
         preview: "A new Brains Heist account was created.",
         kicker: "Platform operations", headline: "A new account was created",
         intro: "Review the account in the protected administration workspace if operational follow-up is required.",
         details: [{ label: "Username", value: cleanText(payload.username, 100) }, { label: "User ID", value: cleanText(payload.user_id, 80) }],
+        action: { label: "Open administration", url: appRoute("/") },
+      };
+    case "owner_billing_payment":
+      return {
+        subject: `Billing payment ${status || "update"}: ${contextSchoolName} | Brains Heist Operations`,
+        preview: `${contextSchoolName} has a billing payment update.`,
+        kicker: "Platform operations", headline: "A school billing payment was updated",
+        intro: "Review the payment event in the protected administration workspace before taking any operational action.",
+        details: [
+          { label: "School", value: contextSchoolName },
+          { label: "Status", value: status || "Updated" },
+          { label: "Amount", value: fmtMoney(payload.amount_minor, payload.currency) },
+          { label: "Payment ID", value: cleanText(payload.payment_attempt_id, 80) },
+        ],
         action: { label: "Open administration", url: appRoute("/") },
       };
     default:
@@ -377,7 +418,17 @@ Deno.serve(async (req) => {
         const to = authUser?.email?.trim().toLowerCase();
         if (!to || !(authUser.email_confirmed_at || authUser.confirmed_at)) {
           await db.from("assignment_email_notifications").update({
-            status: "skipped", last_error: "Student does not have a verified email address",
+            status: "skipped", delivery_status: "not_sent",
+            last_error: "Student does not have a verified email address",
+            updated_at: new Date().toISOString(),
+          }).eq("id", claim.id);
+          skipped++;
+          continue;
+        }
+        if (!isRoutableEmailAddress(to)) {
+          await db.from("assignment_email_notifications").update({
+            status: "skipped", delivery_status: "not_sent",
+            last_error: "Student email address is not routable",
             updated_at: new Date().toISOString(),
           }).eq("id", claim.id);
           skipped++;
@@ -451,6 +502,16 @@ Deno.serve(async (req) => {
           skipped++;
           continue;
         }
+        const guardianTo = cleanText(queue.invited_email, 254).toLowerCase();
+        if (!isRoutableEmailAddress(guardianTo)) {
+          await db.from("guardian_invitation_email_notifications").update({
+            status: "skipped", delivery_status: "not_sent", raw_token: null,
+            last_error: "Guardian invitation email address is not routable",
+            updated_at: new Date().toISOString(),
+          }).eq("id", claim.id);
+          skipped++;
+          continue;
+        }
         const school = schoolData as EmailSchoolBrand;
         const schoolName = cleanText(school.name, 140) || "Your school";
         const studentName = cleanText(student?.full_name || student?.username, 100) || "your child";
@@ -468,7 +529,7 @@ Deno.serve(async (req) => {
         });
         const providerId = await sendWithResend({
           apiKey: resendApiKey, from: schoolSender(configuredFrom, schoolName),
-          to: queue.invited_email, replyTo,
+          to: guardianTo, replyTo,
           idempotencyKey: `guardian-invitation-${claim.id}`, ...rendered,
         });
         await db.from("guardian_invitation_email_notifications").update({
@@ -506,9 +567,9 @@ Deno.serve(async (req) => {
             to = authUser.email.trim().toLowerCase();
           }
         }
-        if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+        if (!isRoutableEmailAddress(to)) {
           await db.from("transactional_email_outbox").update({
-            status: "skipped", last_error: "No verified recipient email is available",
+            status: "skipped", last_error: "No verified, routable recipient email is available",
             updated_at: new Date().toISOString(),
           }).eq("id", row.id);
           skipped++;
@@ -544,17 +605,30 @@ Deno.serve(async (req) => {
           ? (await db.from("schools").select("id,name,logo_url")
             .eq("id", row.school_id).maybeSingle()).data
           : null;
-        const school: EmailSchoolBrand = schoolData || {
+        const contextSchool: EmailSchoolBrand = schoolData || {
           id: row.school_id,
-          name: row.school_name_override ||
-            (row.audience === "platform_owner" ? "Brains Heist Operations" : "Your school"),
+          name: row.school_name_override || "Your school",
           logo_url: null,
         };
-        const schoolName = cleanText(school.name, 140) || "Your school";
-        const rendered = renderBrandedEmail(school, templateFor(row, schoolName));
+        const contextSchoolName = cleanText(contextSchool.name, 140) || "Your school";
+        const isPlatformOperations = row.audience === "platform_owner";
+        const renderBrand: EmailSchoolBrand = isPlatformOperations
+          ? { id: null, name: "Brains Heist Operations", logo_url: null }
+          : contextSchool;
+        const rendered = renderBrandedEmail(
+          renderBrand,
+          templateFor(row, contextSchoolName),
+          isPlatformOperations ? "platform_operations" : "school",
+        );
         const providerId = await sendWithResend({
-          apiKey: resendApiKey, from: schoolSender(configuredFrom, schoolName), to,
-          replyTo, idempotencyKey: row.idempotency_key, ...rendered,
+          apiKey: resendApiKey,
+          from: isPlatformOperations
+            ? operationsSender(configuredFrom)
+            : schoolSender(configuredFrom, contextSchoolName),
+          to,
+          replyTo,
+          idempotencyKey: row.idempotency_key,
+          ...rendered,
         });
         const acceptedAt = new Date().toISOString();
         await db.from("transactional_email_outbox").update({
