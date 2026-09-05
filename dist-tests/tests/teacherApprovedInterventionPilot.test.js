@@ -4,7 +4,7 @@ import test from 'node:test';
 const migration = readFileSync('supabase/migrations/20260811110000_teacher_approved_intervention_pilot.sql', 'utf8');
 const roadmap = readFileSync('docs/academic-intelligence-roadmap.md', 'utf8');
 const service = readFileSync('services/studentInterventionService.ts', 'utf8');
-const page = readFileSync('components/student-progress/TeacherInterventionIntelligencePage.tsx', 'utf8');
+const page = readFileSync('components/student-progress/TeacherInterventionIntelligencePageV2.tsx', 'utf8');
 const pilotTables = [
     'student_learning_intervention_approvals',
     'student_learning_intervention_checkpoints',
@@ -55,7 +55,7 @@ test('explicit approval is mandatory and never starts a plan', () => {
     assert.match(migration, /Only a pending planned intervention can be reviewed/i);
     assert.match(migration, /Teacher approval is required before starting this intervention/i);
     assert.match(migration, /'planAutomaticallyStarted', false/i);
-    assert.match(page, /Review & approve plan/i);
+    assert.match(page, /Approve plan/i);
 });
 test('follow-up uses only same-year post-baseline observations', () => {
     assert.match(migration, /o\.academic_year_id = v_i\.academic_year_id/i);
@@ -132,11 +132,11 @@ test('browser RPCs are explicit and privileged tables remain inaccessible', () =
     assert.doesNotMatch(migration, /auth\.role\(\)/i);
 });
 test('teacher UI captures targets and presents measured follow-up', () => {
-    assert.match(page, /Measurable student goal/i);
-    assert.match(page, /Qualifying follow-ups/i);
-    assert.match(page, /Successful follow-ups/i);
-    assert.match(page, /evidence baseline will be frozen and hashed/i);
-    assert.match(page, /Evaluate follow-up & record outcome/i);
+    assert.match(page, /Practice action/i);
+    assert.match(page, /Independent check/i);
+    assert.match(page, /follow-ups/i);
+    assert.match(page, /Technical record/i);
+    assert.match(page, /Check progress/i);
     assert.match(service, /rpc_teacher_create_learning_intervention_v3/i);
     assert.match(service, /rpc_teacher_evaluate_learning_intervention/i);
 });

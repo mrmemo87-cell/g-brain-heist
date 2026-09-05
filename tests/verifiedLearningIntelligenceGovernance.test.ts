@@ -261,7 +261,8 @@ test('targeted practice is atomic and selects authoritative, grade-eligible ques
   }
 
   assert.match(interventionService, /rpc_create_intervention_practice_assignment/);
-  assert.match(interventionWorkspace, /recommended_question_ids/);
+  assert.match(interventionWorkspace, /exact_question_ids/);
+  assert.doesNotMatch(interventionWorkspace, /context\.recommendation\.recommended_question_ids/);
   assert.doesNotMatch(interventionWorkspace, /questionScore/);
 });
 

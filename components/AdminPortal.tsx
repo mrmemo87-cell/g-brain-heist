@@ -552,10 +552,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
 
     if (action === 'approve') {
-      const inviteLabel = result.inviteCode || 'generated';
-      const schoolIdLabel = result.schoolId || 'created';
       addToast(
-        `Approved request. Invite code: ${inviteLabel} • School ID: ${schoolIdLabel}. Requester joined as student/teacher. Assign a school admin separately.`,
+        'School approved. The workspace is active and the requester has been provisioned as School Admin and School Head. An approval email has been queued.',
         'success'
       );
     } else {

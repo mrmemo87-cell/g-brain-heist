@@ -50,7 +50,9 @@ const uniqueExamples = (items: InterventionRecommendation['evidence_examples']) 
 const aggregateRecommendations = (recommendations: InterventionRecommendation[]) => {
   const grouped = new Map<string, InterventionRecommendation>();
   recommendations.forEach((item) => {
-    const key = [item.subject, item.topic || '', item.skill].map((value) => value.trim().toLocaleLowerCase()).join('|');
+    // Never merge distinct governed weaknesses just because their display labels match.
+    // skill_key identifies the canonical objective / diagnostic atomic subskill.
+    const key = [item.subject, item.topic || '', item.skill_key].map((value) => value.trim().toLocaleLowerCase()).join('|');
     const existing = grouped.get(key);
     if (!existing) {
       grouped.set(key, {
@@ -59,7 +61,9 @@ const aggregateRecommendations = (recommendations: InterventionRecommendation[])
         available_related_questions: item.available_related_questions || 0,
         exact_question_ids: [...(item.exact_question_ids || [])],
         related_question_ids: [...(item.related_question_ids || [])],
-        recommended_question_ids: [...(item.recommended_question_ids || [])],
+        // Automatic practice is deliberately exact-only. Broader primary-skill
+        // matches remain available separately for deliberate teacher selection.
+        recommended_question_ids: [...new Set(item.exact_question_ids || [])].slice(0, 6),
         diagnostic_targets: [...item.diagnostic_targets],
         evidence_examples: uniqueExamples(item.evidence_examples),
       });
@@ -87,8 +91,6 @@ const aggregateRecommendations = (recommendations: InterventionRecommendation[])
       recommended_question_ids: [...new Set([
         ...(existing.exact_question_ids || []),
         ...(item.exact_question_ids || []),
-        ...(existing.recommended_question_ids || []),
-        ...(item.recommended_question_ids || []),
       ])].slice(0, 6),
       last_observed_at: new Date(existing.last_observed_at).getTime() >= new Date(item.last_observed_at).getTime() ? existing.last_observed_at : item.last_observed_at,
       confidence: (item.confidence?.score || 0) > (existing.confidence?.score || 0) ? item.confidence : existing.confidence,
@@ -199,7 +201,7 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
   const renderRecommendation = (r: InterventionRecommendation, mode: 'action' | 'watch') => {
     const example = r.evidence_examples[0];
     const evidenceLabel = `${r.evidence_items} assessed evidence item${r.evidence_items === 1 ? '' : 's'}`;
-    return <article key={`${r.subject}-${r.topic || ''}-${r.skill}`} className={`priority-${r.priority} intervention-candidate ${mode === 'watch' ? 'is-watching' : 'is-actionable'}`}>
+    return <article key={`${r.subject}-${r.topic || ''}-${r.skill_key}`} className={`priority-${r.priority} intervention-candidate ${mode === 'watch' ? 'is-watching' : 'is-actionable'}`}>
       <div className="intervention-card-top"><span>{r.subject}{r.topic ? ` · ${r.topic}` : ''}</span><b>{r.readiness === 'ready' ? 'Ready for practice' : r.readiness === 'review_evidence' ? 'Ready for review' : r.readiness === 'open_plan' ? 'Support active' : 'Gathering evidence'}</b></div>
       <h3>{r.skill}</h3>
       <p className="intervention-card-summary">{r.readiness === 'collect_evidence' ? 'Brains Heist has noticed this area, but it is still building a fair evidence baseline.' : r.rationale}</p>

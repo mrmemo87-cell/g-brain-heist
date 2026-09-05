@@ -98,7 +98,7 @@ const notifySchoolRequestByEmail = async (
       });
       return {
         sent: false,
-        warning: 'The request was saved, but the email update could not be sent. The current status is still available in My applications.',
+        warning: 'The request was saved, but the email update could not be sent. The current status is still available in your school application.',
       };
     }
 
@@ -111,7 +111,7 @@ const notifySchoolRequestByEmail = async (
     });
     return {
       sent: false,
-      warning: 'The request was saved, but the email update could not be sent. The current status is still available in My applications.',
+      warning: 'The request was saved, but the email update could not be sent. The current status is still available in your school application.',
     };
   }
 };
@@ -213,8 +213,8 @@ export const requestSchool = async (payload: SchoolRequestPayload): Promise<Scho
       return {
         ...result,
         message: email.sent
-          ? 'Your request has been submitted. A confirmation is queued for your verified Brains Heist email, and future superadmin updates will be queued there too.'
-          : 'Your request has been submitted. Track it in My applications while email delivery is temporarily unavailable.',
+          ? 'Application submitted. No action is required right now. Most applications are reviewed within 24 hours, and we will email your verified Brains Heist address when the status changes.'
+          : 'Application submitted. No action is required right now. Your status remains available here while email delivery retries in the background.',
         emailWarning: email.warning,
       };
     }
@@ -355,7 +355,7 @@ export const listMySchoolRequests = async (): Promise<{
 
   const { data, error } = await supabase
     .from('school_requests')
-    .select('id, requested_name, requester_email, requester_role, status, created_at, admin_notes, approved_school_id')
+    .select('id, requested_name, requester_email, requester_role, status, created_at, admin_notes, approved_school_id, city, country, website, contact_email, decision_maker_name, decision_maker_title')
     .eq('requested_by', authData.user.id)
     .order('created_at', { ascending: false });
 
