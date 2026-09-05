@@ -46,6 +46,32 @@ test('signed Resend webhooks update delivery state and maintain suppressions', (
   assert.match(config, /\[functions\.resend_webhook\][\s\S]*verify_jwt = false/);
 });
 
+test('transactional delivery blocks definitely non-routable QA addresses before Resend', () => {
+  assert.match(branding, /NON_ROUTABLE_EMAIL_SUFFIXES/);
+  for (const suffix of ['.local', '.localhost', '.invalid', '.test', '.example']) {
+    assert.match(branding, new RegExp(suffix.replace('.', '\\.')));
+  }
+  assert.match(branding, /isRoutableEmailAddress\(params\.to\)/);
+  assert.match(branding, /Recipient email address is not routable/);
+  assert.match(dispatcher, /Student email address is not routable/);
+  assert.match(dispatcher, /Guardian invitation email address is not routable/);
+  assert.match(dispatcher, /No verified, routable recipient email is available/);
+});
+
+test('platform-owner alerts use a dedicated Brains Heist Operations identity', () => {
+  assert.match(branding, /operationsSender/);
+  assert.match(branding, /Internal platform notification/);
+  assert.match(dispatcher, /operationsSender\(configuredFrom\)/);
+  assert.match(dispatcher, /isPlatformOperations \? "platform_operations" : "school"/);
+  assert.match(dispatcher, /Brains Heist Operations/);
+  assert.match(dispatcher, /School request: \$\{contextSchoolName\} \| Brains Heist Operations/);
+});
+
+test('billing payment outbox templates are supported by the dispatcher', () => {
+  assert.match(dispatcher, /case "billing_payment_status"/);
+  assert.match(dispatcher, /case "owner_billing_payment"/);
+});
+
 test('professional events cover each school audience and platform operations', () => {
   for (const audience of ['school_head', 'school_admin', 'teacher', 'student', 'parent', 'applicant', 'platform_owner']) {
     assert.match(migration, new RegExp(audience));
