@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 const migration = readFileSync('supabase/migrations/20260901113000_teacher_roster_reporting_truth.sql', 'utf8');
+const workspaceMigration = readFileSync('supabase/migrations/20260905064600_teacher_class_roster_workspace.sql', 'utf8');
 const wizard = readFileSync('components/teacher/AssignmentWizard.tsx', 'utf8');
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
 const collective = readFileSync('components/CollectiveAssignmentReport.tsx', 'utf8');
@@ -18,35 +19,48 @@ test('teacher roster remains visible while assignment eligibility stays fail clo
   assert.match(migration, /not \(u\.banned_until is not null and u\.banned_until > now\(\)\)/);
 });
 
-test('teacher class roster materializer is independent of Pilot and binds to resolved teacher identity', () => {
+test('My Classes workspace is auth-scoped, canonical, and billing independent', () => {
+  assert.match(workspaceMigration, /rpc_get_my_teacher_class_roster\(\)/);
+  assert.match(workspaceMigration, /security invoker/i);
+  assert.match(workspaceMigration, /cta\.teacher_user_id = auth\.uid\(\)/);
+  assert.match(workspaceMigration, /public\.class_teacher_assignments/);
+  assert.match(workspaceMigration, /public\.class_students/);
+  assert.match(workspaceMigration, /public\.users/);
+  assert.match(workspaceMigration, /grant execute on function public\.rpc_get_my_teacher_class_roster\(\) to authenticated/);
+  assert.doesNotMatch(workspaceMigration, /p_teacher_id/);
+  assert.doesNotMatch(workspaceMigration, /pilot/i);
+});
+
+test('teacher portal uses one canonical core roster loader and cannot clear it from assignment gating', () => {
   const materializerCalls = materializer.match(/patch_teacher_roster_reporting_truth\.py/g) || [];
   assert.ok(materializerCalls.length >= 2, 'roster invariant must be reasserted after later materializers');
 
-  assert.match(patcher, /schools that have never started a Pilot/);
-  assert.match(patcher, /if \(!teacher\?\.id\) return;/);
-  assert.match(patcher, /GameService\.get_students_for_assignment\(teacher\.id\)/);
-  assert.match(patcher, /\}, \[teacher\?\.id\]\);/);
-  assert.match(patcher, /GameService\.get_teacher_assignments\(teacher\.id\)/);
+  assert.match(patcher, /rpc_get_my_teacher_class_roster/);
+  assert.match(patcher, /Teacher assignment effect separated from canonical roster workspace/);
+  assert.match(patcher, /duplicate legacy block removed/);
 
-  const resolvedBlockStart = patcher.indexOf('resolved_teacher_roster_effects =');
-  const replaceStart = patcher.indexOf('replace_first_of(', resolvedBlockStart);
-  assert.ok(resolvedBlockStart >= 0 && replaceStart > resolvedBlockStart);
-  const resolvedBlock = patcher.slice(resolvedBlockStart, replaceStart);
+  const canonicalCalls = portal.match(/supabase\.rpc\('rpc_get_my_teacher_class_roster'\)/g) || [];
+  assert.equal(canonicalCalls.length, 1, 'My Classes must have exactly one canonical workspace loader');
 
-  const rosterCall = resolvedBlock.indexOf('GameService.get_students_for_assignment(teacher.id)');
-  const assignmentGate = resolvedBlock.indexOf('if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS))');
-  assert.ok(rosterCall >= 0, 'resolved teacher roster call must exist');
-  assert.ok(assignmentGate > rosterCall, 'billing gate must come after the roster lifecycle');
+  const compatibilityCalls = portal.match(/GameService\.get_students_for_assignment\(/g) || [];
+  assert.equal(compatibilityCalls.length, 1, 'assignment roster API may exist only as the canonical loader fallback');
 
-  const rosterLifecycle = resolvedBlock.slice(0, assignmentGate);
-  assert.doesNotMatch(rosterLifecycle, /effectiveEntitlements/);
-  assert.doesNotMatch(rosterLifecycle, /FEATURE_KEYS\.ASSIGNMENTS/);
-  assert.doesNotMatch(rosterLifecycle, /setAssignments/);
+  assert.doesNotMatch(portal, /setAvailableStudents\(\[\]\)/);
+
+  const assignmentGate = portal.indexOf('if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS))');
+  const assignmentLoad = portal.indexOf('GameService.get_teacher_assignments(teacher.id)', assignmentGate);
+  assert.ok(assignmentGate >= 0 && assignmentLoad > assignmentGate);
+  const assignmentEffect = portal.slice(portal.lastIndexOf('useEffect(() => {', assignmentGate), assignmentLoad);
+  assert.doesNotMatch(assignmentEffect, /setAvailableStudents/);
+  assert.doesNotMatch(assignmentEffect, /rpc_get_my_teacher_class_roster/);
 });
 
-test('legacy source still contains a patchable roster block until build materialization', () => {
-  assert.match(portal, /GameService\.get_students_for_assignment\(\)/);
-  assert.match(materializer, /patch_teacher_roster_reporting_truth\.py/);
+test('canonical workspace maps enrolled students into the same roster used by My Classes', () => {
+  assert.match(portal, /studentsById = new Map<string, StudentForAssignment>/);
+  assert.match(portal, /id: row\.student_id/);
+  assert.match(portal, /display_name: row\.student_display_name/);
+  assert.match(portal, /batch: row\.class_code \|\| null/);
+  assert.match(portal, /setAvailableStudents\(Array\.from\(studentsById\.values\(\)\)\)/);
 });
 
 test('historical assignment report keeps official names and assignment-time provenance', () => {
