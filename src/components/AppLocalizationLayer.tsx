@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Language } from '../i18n/language';
 import { hasInterfaceTranslation, normalizeInterfaceSource, translateInterfaceText } from '../i18n/interfaceTranslations';
+import { hasSupplementalInterfaceTranslation, translateSupplementalInterfaceText } from '../i18n/interfaceTranslationSupplement';
 
 const ENGLISH_CONTENT_SELECTOR = [
   '[lang="en"]',
@@ -40,7 +41,18 @@ function ensureEnglishDirection(element: Element) {
   if (!element.hasAttribute('dir')) element.setAttribute('dir', 'ltr');
 }
 
+function hasApprovedTranslation(value: string): boolean {
+  return hasInterfaceTranslation(value) || hasSupplementalInterfaceTranslation(value);
+}
+
+function translateApprovedText(language: Language, value: string): string {
+  const supplemental = translateSupplementalInterfaceText(language, value);
+  if (supplemental !== null) return supplemental;
+  return translateInterfaceText(language, value);
+}
+
 function LanguageControl({ language, setLanguage }: { language: Language; setLanguage: (language: Language) => void }) {
+  const [open, setOpen] = useState(false);
   const labels: Record<Language, { short: string; name: string }> = useMemo(() => ({
     en: { short: 'EN', name: 'English' },
     ar: { short: 'ع', name: 'العربية' },
@@ -50,69 +62,80 @@ function LanguageControl({ language, setLanguage }: { language: Language; setLan
   return (
     <div
       data-global-language-control="true"
-      role="group"
-      aria-label="Interface language"
       dir="ltr"
       style={{
         position: 'fixed',
-        right: 'max(14px, env(safe-area-inset-right))',
-        bottom: 'max(14px, env(safe-area-inset-bottom))',
+        left: 'max(10px, env(safe-area-inset-left))',
+        top: '50%',
+        transform: 'translateY(-50%)',
         zIndex: 2147483000,
         display: 'flex',
         alignItems: 'center',
-        gap: 6,
-        padding: 6,
-        borderRadius: 18,
-        border: '1px solid rgba(103,232,249,0.28)',
-        background: 'linear-gradient(145deg, rgba(11,18,32,0.97), rgba(17,24,39,0.97))',
-        boxShadow: '0 18px 55px rgba(2,6,23,0.52), 0 0 30px rgba(34,211,238,0.10), inset 0 1px 0 rgba(255,255,255,0.06)',
-        WebkitBackdropFilter: 'blur(16px)',
-        backdropFilter: 'blur(16px)',
+        gap: open ? 6 : 0,
+        padding: 5,
+        borderRadius: 16,
+        border: '1px solid rgba(103,232,249,0.3)',
+        background: 'linear-gradient(145deg, rgba(11,18,32,0.96), rgba(17,24,39,0.96))',
+        boxShadow: '0 12px 34px rgba(2,6,23,0.42), 0 0 22px rgba(34,211,238,0.09), inset 0 1px 0 rgba(255,255,255,0.06)',
+        WebkitBackdropFilter: 'blur(14px)',
+        backdropFilter: 'blur(14px)',
         fontFamily: 'inherit',
+        maxWidth: open ? 236 : 46,
+        overflow: 'hidden',
+        transition: 'max-width 180ms ease, gap 180ms ease',
       }}
     >
-      <span
-        aria-hidden="true"
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-label="Interface language"
+        aria-expanded={open}
+        title="Interface language"
         style={{
-          width: 34,
-          height: 34,
+          width: 36,
+          minWidth: 36,
+          height: 36,
           display: 'grid',
           placeItems: 'center',
           borderRadius: 12,
           color: '#67e8f9',
-          background: 'rgba(34,211,238,0.08)',
-          border: '1px solid rgba(103,232,249,0.14)',
+          background: open ? 'rgba(34,211,238,0.12)' : 'rgba(34,211,238,0.08)',
+          border: '1px solid rgba(103,232,249,0.18)',
+          cursor: 'pointer',
           fontSize: 17,
+          padding: 0,
         }}
       >
         🌐
-      </span>
-      {(['en', 'ar', 'ru'] as Language[]).map((code) => {
+      </button>
+      {open && (['en', 'ar', 'ru'] as Language[]).map((code) => {
         const active = language === code;
         return (
           <button
             key={code}
             type="button"
-            onClick={() => setLanguage(code)}
+            onClick={() => {
+              setLanguage(code);
+              setOpen(false);
+            }}
             aria-pressed={active}
             aria-label={labels[code].name}
             title={labels[code].name}
             style={{
               minWidth: 38,
-              height: 38,
-              padding: '0 10px',
+              height: 36,
+              padding: '0 9px',
               border: active ? '1px solid rgba(103,232,249,0.82)' : '1px solid transparent',
-              borderRadius: 12,
+              borderRadius: 11,
               cursor: 'pointer',
               color: active ? '#06111d' : '#dbeafe',
               background: active
                 ? 'linear-gradient(135deg, #67e8f9 0%, #38bdf8 58%, #a78bfa 100%)'
                 : 'transparent',
-              boxShadow: active ? '0 7px 20px rgba(56,189,248,0.28)' : 'none',
+              boxShadow: active ? '0 7px 20px rgba(56,189,248,0.24)' : 'none',
               fontSize: code === 'ar' ? 17 : 12,
               fontWeight: 900,
               letterSpacing: code === 'ar' ? 0 : '0.04em',
-              transition: 'transform 140ms ease, background 140ms ease, border-color 140ms ease',
             }}
           >
             {labels[code].short}
@@ -156,13 +179,13 @@ export function AppLocalizationLayer({
 
       const { leading, trailing, core } = splitOuterWhitespace(sourceRaw);
       const normalized = normalizeInterfaceSource(core);
-      if (!normalized || !hasInterfaceTranslation(normalized)) {
+      if (!normalized || !hasApprovedTranslation(normalized)) {
         if (previous && current !== sourceRaw) text.nodeValue = sourceRaw;
         textStates.current.delete(text);
         return;
       }
 
-      const translated = translateInterfaceText(language, normalized);
+      const translated = translateApprovedText(language, normalized);
       const next = `${leading}${translated}${trailing}`;
       textStates.current.set(text, { source: sourceRaw, rendered: next });
       if (current !== next) text.nodeValue = next;
@@ -186,13 +209,14 @@ export function AppLocalizationLayer({
         let source = previous?.source ?? current;
         if (previous && current !== previous.rendered && current !== previous.source) source = current;
 
-        if (!hasInterfaceTranslation(source)) {
+        const normalized = normalizeInterfaceSource(source);
+        if (!normalized || !hasApprovedTranslation(normalized)) {
           if (previous && current !== source) element.setAttribute(attr, source);
           byAttribute.delete(attr);
           continue;
         }
 
-        const translated = translateInterfaceText(language, source);
+        const translated = translateApprovedText(language, normalized);
         byAttribute.set(attr, { source, rendered: translated });
         if (current !== translated) element.setAttribute(attr, translated);
       }
