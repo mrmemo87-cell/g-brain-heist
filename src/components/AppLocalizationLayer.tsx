@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Language } from '../i18n/language';
 import { hasInterfaceTranslation, normalizeInterfaceSource, translateInterfaceText } from '../i18n/interfaceTranslations';
 import { hasSupplementalInterfaceTranslation, translateSupplementalInterfaceText } from '../i18n/interfaceTranslationSupplement';
+import { hasFragmentInterfaceTranslation, translateFragmentInterfaceText } from '../i18n/interfaceTranslationFragments';
 
 const ENGLISH_CONTENT_SELECTOR = [
   '[lang="en"]',
@@ -42,10 +43,14 @@ function ensureEnglishDirection(element: Element) {
 }
 
 function hasApprovedTranslation(value: string): boolean {
-  return hasInterfaceTranslation(value) || hasSupplementalInterfaceTranslation(value);
+  return hasInterfaceTranslation(value)
+    || hasSupplementalInterfaceTranslation(value)
+    || hasFragmentInterfaceTranslation(value);
 }
 
 function translateApprovedText(language: Language, value: string): string {
+  const fragment = translateFragmentInterfaceText(language, value);
+  if (fragment !== null) return fragment;
   const supplemental = translateSupplementalInterfaceText(language, value);
   if (supplemental !== null) return supplemental;
   return translateInterfaceText(language, value);
