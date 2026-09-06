@@ -354,6 +354,30 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     [pendingAssignments],
   );
 
+  useEffect(() => {
+    if (!isPlayerMode || !profile?.id || isSchoolAdminRole) return;
+
+    const touchPresence = () => {
+      if (document.visibilityState !== 'visible') return;
+      void supabase.rpc('rpc_touch_last_seen').catch(() => {});
+    };
+
+    touchPresence();
+    const intervalId = setInterval(touchPresence, 60_000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') touchPresence();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', touchPresence);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', touchPresence);
+    };
+  }, [isPlayerMode, profile?.id, isSchoolAdminRole]);
+
   const SkeletonBlock: React.FC<{ className?: string }> = ({ className }) => (
     <div className={`skeleton-bone rounded-xl bg-white/10 ${className ?? ''}`} />
   );

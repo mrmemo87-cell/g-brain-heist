@@ -1483,8 +1483,8 @@ export const whoamiTeacher = async (): Promise<Profile> => {
     } catch { /* non-critical */ }
   }
 
-  // Update last_seen
-  supabase.from('users').update({ last_seen: new Date().toISOString() }).eq('id', user.id).then(() => {});
+  // Update presence without mutating profile metadata.
+  void supabase.rpc('rpc_touch_last_seen');
 
   return profile;
 };
@@ -1533,7 +1533,7 @@ export const whoamiFast = async (): Promise<Profile> => {
   await streakRewardPromise;
 
   // Presence must never delay the dashboard.
-  void supabase.from('users').update({ last_seen: new Date().toISOString() }).eq('id', user.id);
+  void supabase.rpc('rpc_touch_last_seen');
   return profile as Profile;
 };
 

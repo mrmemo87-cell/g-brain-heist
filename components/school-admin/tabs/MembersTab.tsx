@@ -152,9 +152,7 @@ const MembersTab: React.FC = () => {
   const totalPages = Math.max(1, Math.ceil(filteredPeople.length / memberPageSize));
   const visiblePeople = filteredPeople.slice((memberPage - 1) * memberPageSize, memberPage * memberPageSize);
 
-  React.useEffect(() => {
-    setMemberPage(1);
-  }, [academicYearFilter, classFilter, statusFilter, activePeopleTab, memberPageSize, memberSearch, setMemberPage]);
+  React.useEffect(() => { setMemberPage(1); }, [academicYearFilter, classFilter, statusFilter, activePeopleTab, memberPageSize, memberSearch, setMemberPage]);
 
   React.useEffect(() => {
     setMemberPage((page: number) => Math.min(page, totalPages));
@@ -244,7 +242,7 @@ const MembersTab: React.FC = () => {
       </div>
     </section>
 
-    <div className="community-role-tabs" role="tablist" aria-label="Choose a school people directory">
+    <div className="community-role-tabs" role="tablist" aria-label="Filter staff and students by role">
       {renderDirectoryTab('admin')}
       {renderDirectoryTab('teacher')}
       {renderDirectoryTab('student')}

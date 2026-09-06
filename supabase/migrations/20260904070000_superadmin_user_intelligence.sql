@@ -46,7 +46,7 @@ begin
     v_warnings := v_warnings || jsonb_build_array(jsonb_build_object(
       'code', 'tutorial_incomplete', 'severity', 'info',
       'title', 'Tutorial not completed',
-      'message', 'The Brain Heist tutorial has not been completed.'
+      'message', 'The Brains Heist tutorial has not been completed.'
     ));
   end if;
 

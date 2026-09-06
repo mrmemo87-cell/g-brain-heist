@@ -80,4 +80,4 @@ revoke all on function public.rpc_get_my_teacher_class_roster() from anon;
 grant execute on function public.rpc_get_my_teacher_class_roster() to authenticated;
 
 comment on function public.rpc_get_my_teacher_class_roster() is
-  'Canonical teacher workspace roster. Returns allocated classes, subjects, and enrolled students together from class_teacher_assignments + class_students, scoped by auth.uid() and RLS. Independent of billing/Pilot entitlements.';
+  'Canonical teacher workspace roster. Returns allocated classes, subjects, and enrolled students together from class_teacher_assignments + class_students, scoped by auth.uid() and RLS. Independent of billing and plan entitlements.';

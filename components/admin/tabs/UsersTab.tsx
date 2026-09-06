@@ -78,7 +78,7 @@ const UsersTab: React.FC = () => {
   };
 
   const lastActiveDate = (user: any) => {
-    const raw = user?.last_seen ?? user?.last_active ?? user?.last_active_at ?? user?.updated_at ?? null;
+    const raw = user?.last_seen ?? user?.last_active ?? user?.last_active_at ?? null;
     if (!raw) return null;
     const date = new Date(raw);
     return Number.isNaN(date.getTime()) ? null : date;
