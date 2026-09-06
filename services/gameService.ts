@@ -5675,8 +5675,6 @@ export const create_assignment = async (
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
-        p_assignment_category: payload.assignment_category ?? null,
-        p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
         p_student_ids: payload.student_ids ?? null,
         p_publish_status: payload.publish_status ?? 'published',
@@ -5693,34 +5691,6 @@ export const create_assignment = async (
     return assignment;
 };
 
-type AssignmentCategoryContextRow = {
-    assignment_id: string;
-    assignment_category?: TeacherAssignmentSummary['assignment_category'];
-    academic_year_id?: string | null;
-    academic_term_id?: string | null;
-    class_id?: string | null;
-};
-
-const mergeAssignmentCategoryContext = <T extends { assignment_id?: string; id?: string }>(
-    assignments: T[],
-    contextRows: AssignmentCategoryContextRow[]
-): T[] => {
-    const context = new Map(contextRows.map((row) => [row.assignment_id, row]));
-    return assignments.map((assignment) => {
-        const assignmentId = assignment.assignment_id || assignment.id;
-        const extra = assignmentId ? context.get(assignmentId) : undefined;
-        return extra ? { ...assignment, ...extra } : assignment;
-    });
-};
-
-const enrichStudentAssignmentsWithCategoryContext = async <T extends StudentAssignmentTask>(assignments: T[]): Promise<T[]> => {
-    const ids = assignments.map((assignment) => assignment.assignment_id).filter(Boolean);
-    if (!ids.length) return assignments;
-    const { data, error } = await supabase.rpc('rpc_my_assignment_category_context', { p_assignment_ids: ids });
-    if (error) throw new Error(error.message || 'Failed to load assignment category context');
-    return mergeAssignmentCategoryContext(assignments, (data as AssignmentCategoryContextRow[]) || []) as T[];
-};
-
 export const get_teacher_assignments = async (teacherId?: string): Promise<TeacherAssignmentSummary[]> => {
     let resolvedTeacherId = teacherId;
     if (!resolvedTeacherId) {
@@ -5732,10 +5702,7 @@ export const get_teacher_assignments = async (teacherId?: string): Promise<Teach
     const { data, error } = await rpcGetAssignmentsForTeacher({ p_teacher_id: resolvedTeacherId });
     if (error) throw new Error(error.message || 'Failed to load assignments');
 
-    const assignments = (data as TeacherAssignmentSummary[]) || [];
-    const { data: contextData, error: contextError } = await supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId });
-    if (contextError) throw new Error(contextError.message || 'Failed to load assignment category context');
-    return mergeAssignmentCategoryContext(assignments, (contextData as AssignmentCategoryContextRow[]) || []) as TeacherAssignmentSummary[];
+    return (data as TeacherAssignmentSummary[]) || [];
 };
 
 export const delete_teacher_assignment = async (assignmentId: string): Promise<void> => {
@@ -5769,8 +5736,6 @@ export const update_teacher_assignment = async (
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
-        p_assignment_category: payload.assignment_category ?? null,
-        p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
         p_student_ids: payload.student_ids ?? null,
         p_publish_status: payload.publish_status ?? 'published',
@@ -5867,11 +5832,10 @@ export const get_student_active_assignment = async (): Promise<StudentAssignment
         }
     }
 
-    const enriched = await enrichStudentAssignmentsWithCategoryContext([{
+    return {
         ...parsedRow,
         questions: normalizedQuestions,
-    }]);
-    return enriched[0] || null;
+    };
 };
 
 // ── Brains Master Premium ─────────────────────────────────────────────
@@ -5915,7 +5879,7 @@ export const get_student_pending_assignments = async (): Promise<StudentAssignme
         return [];
     }
 
-    const normalizedAssignments = rows.map((row) => {
+    return rows.map((row) => {
         const parsedRow = row as StudentAssignmentTask;
         const normalizedQuestions = ((parsedRow.questions ?? []) as TeacherQuestion[]).map(normalizeTeacherQuestionPayload);
         return {
@@ -5923,7 +5887,6 @@ export const get_student_pending_assignments = async (): Promise<StudentAssignme
             questions: normalizedQuestions,
         };
     });
-    return enrichStudentAssignmentsWithCategoryContext(normalizedAssignments);
 };
 
 export type AssignmentSubmissionResult = {
