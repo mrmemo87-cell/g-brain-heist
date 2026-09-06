@@ -6,6 +6,9 @@
 body.light-mode .language-mini-card { background: #fff; color: #0f172a; border-color: #94a3b8; }
 .language-mini-card--compact { padding-inline: .35rem; gap: .15rem; }
 .language-mini-card--compact select { width: 5.5rem; font-size: .75rem; }
+/* The app-wide floating globe is now the single student dashboard language control. */
+.student-mobile-header .language-mini-card,
+header.localized-ui .language-mini-card { display: none; }
 .localized-ui[lang="ar"], .localized-ui[lang="ar"] .font-heading { font-family: Tahoma, Arial, sans-serif; letter-spacing: normal; }
 .localized-ui[lang="ru"] { font-family: 'IBM Plex Sans', Arial, sans-serif; }
 .localized-ui .text-left:dir(rtl) { text-align: start; }
