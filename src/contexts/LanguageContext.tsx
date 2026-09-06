@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { isLanguage, languages, readLanguage, saveLanguage, translate, type Language, type Translate } from '../i18n/language';
+import AppLocalizationLayer from '../components/AppLocalizationLayer';
 
 interface LanguageContextValue {
   language: Language;
@@ -22,9 +23,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     try { saveLanguage(next, window.localStorage); } catch { /* Storage access may be blocked. */ }
   }, []);
   const t = useCallback<Translate>((key, params) => translate(language, key, params), [language]);
-  const value = useMemo(() => ({ language, direction: languages[language].direction, setLanguage, t }), [language, setLanguage, t]);
-  // Never set document language/direction: unlocalized routes and English exams stay untouched.
-  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
+  const direction = languages[language].direction;
+  const value = useMemo(() => ({ language, direction, setLanguage, t }), [language, direction, setLanguage, t]);
+
+  return (
+    <LanguageContext.Provider value={value}>
+      <AppLocalizationLayer language={language} direction={direction} setLanguage={setLanguage}>
+        {children}
+      </AppLocalizationLayer>
+    </LanguageContext.Provider>
+  );
 }
 
 export const useLanguage = () => useContext(LanguageContext);
