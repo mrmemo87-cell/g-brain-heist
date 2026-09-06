@@ -1,0 +1,93 @@
+name: Complete professional localization
+on:
+  push:
+    branches: [fix/complete-professional-localization]
+permissions:
+  contents: write
+jobs:
+  complete-localization:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/complete-professional-localization
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply localization integration patches
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'Missing expected text in {path}: {old[:100]!r}')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          # Wire the professional exact/pattern catalogue into the global React translator.
+          replace_once(
+              'src/components/AppLocalizationLayer.tsx',
+              "import { hasAuditedInterfaceTranslation, translateAuditedInterfaceText } from '../i18n/interfaceTranslationAudit';\n",
+              "import { hasAuditedInterfaceTranslation, translateAuditedInterfaceText } from '../i18n/interfaceTranslationAudit';\nimport { hasProfessionalInterfaceTranslation, translateProfessionalInterfaceText } from '../i18n/interfaceTranslationProfessional';\n",
+          )
+          replace_once(
+              'src/components/AppLocalizationLayer.tsx',
+              "    || hasFragmentInterfaceTranslation(value)\n    || hasAuditedInterfaceTranslation(value);",
+              "    || hasFragmentInterfaceTranslation(value)\n    || hasAuditedInterfaceTranslation(value)\n    || hasProfessionalInterfaceTranslation(value);",
+          )
+          replace_once(
+              'src/components/AppLocalizationLayer.tsx',
+              "function translateApprovedText(language: Language, value: string): string {\n  const fragment = translateFragmentInterfaceText(language, value);",
+              "function translateApprovedText(language: Language, value: string): string {\n  const professional = translateProfessionalInterfaceText(language, value);\n  if (professional !== null) return professional;\n  const fragment = translateFragmentInterfaceText(language, value);",
+          )
+
+          # There is one app-wide floating control plus Settings. Remove duplicate header controls.
+          header = Path('components/Header.tsx')
+          text = header.read_text(encoding='utf-8')
+          text = text.replace("import LanguageMiniCard from '../src/components/LanguageMiniCard';\n", '', 1)
+          text = text.replace('                <LanguageMiniCard compact />\n', '', 1)
+          text = text.replace('                <LanguageMiniCard />\n', '', 1)
+          if '<LanguageMiniCard' in text:
+              raise SystemExit('Header still contains duplicate LanguageMiniCard')
+          header.write_text(text, encoding='utf-8')
+
+          # Upgrade every standalone public/legal page to the v2 shared runtime.
+          for name in ['contact.html', 'terms.html', 'privacy.html', 'refund.html']:
+              p = Path('public') / name
+              text = p.read_text(encoding='utf-8')
+              text = text.replace('/static-localization.js', '/static-localization-v2.js')
+              p.write_text(text, encoding='utf-8')
+
+          for name in ['pricing.html', 'prime.html']:
+              p = Path('public') / name
+              text = p.read_text(encoding='utf-8')
+              marker = '  <link rel="icon" type="image/png" href="/favicon.png" />\n'
+              script = '  <script defer src="/static-localization-v2.js"></script>\n'
+              if script not in text:
+                  if marker not in text:
+                      raise SystemExit(f'favicon marker missing in {name}')
+                  text = text.replace(marker, marker + script, 1)
+              p.write_text(text, encoding='utf-8')
+
+          # Make the Prime ribbon localizable through the shared runtime CSS variable.
+          prime = Path('public/prime.html')
+          text = prime.read_text(encoding='utf-8')
+          text = text.replace("content: 'BEST VALUE';", "content: var(--brains-heist-best-value, 'BEST VALUE');", 1)
+          prime.write_text(text, encoding='utf-8')
+          PY
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Commit validated localization sweep
+        run: |
+          rm -f .github/workflows/localization-completion-patcher.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Complete professional Arabic and Russian localization"
+          git push
