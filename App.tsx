@@ -359,7 +359,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
     const touchPresence = () => {
       if (document.visibilityState !== 'visible') return;
-      void supabase.rpc('rpc_touch_last_seen').catch(() => {});
+      void supabase.rpc('rpc_touch_last_seen').then(() => {}, () => {});
     };
 
     touchPresence();
