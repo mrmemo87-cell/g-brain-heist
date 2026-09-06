@@ -1,3 +1,4 @@
+import { useLanguage } from '../src/contexts/LanguageContext';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Profile, ActiveClanBuff } from '../types';
 import { TrophyIcon, BattleIcon, ShieldIcon, ClanIcon } from './icons';
@@ -91,6 +92,7 @@ const groupActiveBuffs = (buffs: ActiveClanBuff[]) => Object.values(
 
 
 const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
+  const { t, language, direction } = useLanguage();
   const xpProgress = getXpProgress(profile.xp, profile.level);
 
   // Level mismatch warnings suppressed - using hard curve formula now
@@ -114,29 +116,29 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   const groupedClanBuffs = useMemo(() => groupActiveBuffs(clanBuffs), [clanBuffs]);
   const attackValue = profile.attack_power_effective ?? profile.attack_power;
   const defenseValue = profile.defense_power_effective ?? profile.defense_power;
-  const attackSubtitle = groupedClanBuffs.length ? `Base ${profile.attack_power}` : undefined;
-  const defenseSubtitle = groupedClanBuffs.length ? `Base ${profile.defense_power}` : undefined;
+  const attackSubtitle = groupedClanBuffs.length ? t('Base {value}', { value: profile.attack_power }) : undefined;
+  const defenseSubtitle = groupedClanBuffs.length ? t('Base {value}', { value: profile.defense_power }) : undefined;
 
 
 
   const secondaryStats: StatDisplayProps[] = [
     {
       icon: <TrophyIcon className="w-4 h-4" />,
-      label: 'Total Score',
+      label: t("Total Score"),
       value: totalScore.toLocaleString(),
       subtitle: 'XP + PvP',
       accentClass: 'text-amber-200 border border-amber-300/40',
     },
     {
       icon: <BattleIcon className="w-4 h-4" />,
-      label: 'PvP Score',
+      label: t("PvP Score"),
       value: profile.pvp_score.toLocaleString(),
-      subtitle: '3 pts per win',
+      subtitle: t("3 pts per win"),
       accentClass: 'text-rose-200 border border-rose-300/40',
     },
     {
       icon: <BattleIcon className="w-4 h-4" />,
-      label: 'Attack',
+      label: t("Attack"),
       value: attackValue || 10,
       subtitle: attackSubtitle,
       accentClass: 'text-orange-300 border-2 border-orange-500/60 bg-orange-950/30 shadow-[0_0_12px_rgba(249,115,22,0.3)]',
@@ -144,7 +146,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
     },
     {
       icon: <ShieldIcon className="w-4 h-4" />,
-      label: 'Defense',
+      label: t("Defense"),
       value: defenseValue || 10,
       subtitle: defenseSubtitle,
       accentClass: 'text-emerald-300 border-2 border-emerald-500/60 bg-emerald-950/30 shadow-[0_0_12px_rgba(16,185,129,0.3)]',
@@ -183,7 +185,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
     },
   ];
   return (
-    <div data-testid="dashboard-profile-card" className="student-profile-panel animate-fade-in-up rounded-2xl border p-3 sm:p-4">
+    <div data-testid="dashboard-profile-card" lang={language} dir={direction} className="localized-ui student-profile-panel animate-fade-in-up rounded-2xl border p-3 sm:p-4">
       <div className="flex flex-col gap-3">
         <div className="student-profile-summary flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border bg-black/40 p-3">
           <div className="flex items-center gap-3">
@@ -199,12 +201,12 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
             />
             <div className="space-y-0.5">
               <h2 className="student-profile-name text-lg sm:text-xl font-bold font-heading">
-                {profile.username}
+                <bdi>{profile.username}</bdi>
               </h2>
               <p className="text-xs sm:text-sm" style={{ color: 'var(--mist-400)' }}>
-                {profile.batch ? `Class ${profile.batch} | ` : ''}
-                {profile.role === 'teacher' ? '👨‍🏫 Teacher | ' : ''}
-                Level {xpProgress.effectiveLevel}
+                {profile.batch ? `${t('Class')} ${profile.batch} | ` : ''}
+                {profile.role === 'teacher' ? `👨‍🏫 ${t('Teacher')} | ` : ''}
+                {t('Level {level}', { level: xpProgress.effectiveLevel })}
               </p>
             </div>
           </div>
@@ -226,8 +228,8 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Stats</p>
-            <span className="text-[11px] text-slate-400">Performance & combat</span>
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">{t("Stats")}</p>
+            <span className="text-[11px] text-slate-400">{t("Performance & combat")}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2">
             {secondaryStats.map((stat) => (
@@ -245,7 +247,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 text-amber-400 flex-shrink-0"><ClanIcon /></div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-wide text-amber-200/80">Clan</p>
+                    <p className="text-[10px] uppercase tracking-wide text-amber-200/80">{t("Clan")}</p>
                     <p className="text-base sm:text-lg font-heading text-amber-300">{profile.clan_name}</p>
                     <p className="text-xs text-gray-400 capitalize">
                       {profile.clan_role}
@@ -256,7 +258,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
                 {typeof profile.clan_total_score === 'number' && (
                   <div className="text-right">
                     <p className="font-semibold text-white text-sm">{profile.clan_total_score.toLocaleString()}</p>
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wide">Clan Score</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide">{t("Clan Score")}</p>
                   </div>
                 )}
               </div>
@@ -265,7 +267,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
             {groupedClanBuffs.length > 0 && (
               <div className="rounded-xl border border-sky-400/25 bg-slate-900/70 p-3 shadow-[0_10px_30px_rgba(14,165,233,0.15)] space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-heading text-sm text-amber-200">Active Clan Effects</h3>
+                  <h3 className="font-heading text-sm text-amber-200">{t("Active Clan Effects")}</h3>
                   <p className="text-[10px] uppercase tracking-wider text-gray-400">{groupedClanBuffs.length} active</p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

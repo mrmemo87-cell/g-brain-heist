@@ -1,3 +1,4 @@
+import { useLanguage } from './src/contexts/LanguageContext';
 import React, { Suspense, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, SchoolGrade, StudentAssignmentTask, XpStatus, DailyStreakRewardReceipt } from './types';
 import * as GameService from './services/gameService';
@@ -237,6 +238,7 @@ const WritingHubRouteFallback: React.FC = () => (
 );
 
 const App: React.FC<AppProps> = ({ onLogout }) => {
+  const { t, language, direction } = useLanguage();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [appMode, setAppMode] = useState<'pending' | 'player' | 'admin'>('pending');
   const [isAdminMode, setIsAdminMode] = useState(false);
@@ -1959,7 +1961,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   const renderAssignmentSection = () => {
     if (!profile) {
-      return <SectionPlaceholder title="Assignment" lines={3} />;
+      return <SectionPlaceholder title={t("Assignment")} lines={3} />;
     }
     if (profile.role !== 'student') {
       return null;
@@ -1968,7 +1970,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     if (nonCriticalErrors.assignment) {
       return (
         <SectionError
-          title="Assignment"
+          title={t("Assignment")}
           message={nonCriticalErrors.assignment}
           onRetry={() => retryNonCritical('assignment')}
         />
@@ -1976,14 +1978,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
 
     if (!pendingAssignments.length && (nonCriticalStatus.assignment === 'loading' || criticalLoading)) {
-      return <SectionPlaceholder title="Teacher assignments" lines={3} />;
+      return <SectionPlaceholder title={t("Teacher assignments")} lines={3} />;
     }
 
     if (!pendingAssignments.length) {
       return (
         <div className="student-assignment-section card-glass rounded-2xl p-5">
-          <h3 className="student-assignment-heading font-heading mb-2 text-lg">Teacher assignments</h3>
-          <p className="text-sm text-gray-300">No active assignments right now.</p>
+          <h3 className="student-assignment-heading font-heading mb-2 text-lg">{t("Teacher assignments")}</h3>
+          <p className="text-sm text-gray-300">{t("No active assignments right now.")}</p>
         </div>
       );
     }
@@ -1992,35 +1994,35 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       <div className="student-assignment-section card-glass rounded-2xl p-5">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>
-            <h3 className="student-assignment-heading font-heading text-lg">Teacher assignments</h3>
-            <p className="mt-1 text-xs text-gray-400">{actionableAssignments.length} ready to complete · open any card for full details</p>
+            <h3 className="student-assignment-heading font-heading text-lg">{t("Teacher assignments")}</h3>
+            <p className="mt-1 text-xs text-gray-400">{t('Ready to complete: {count} · open any card for full details', { count: actionableAssignments.length })}</p>
           </div>
         </div>
         <div className="grid gap-3">
           {pendingAssignments.map((assignment) => {
-            const dueLabel = assignment.due_at ? new Date(assignment.due_at).toLocaleString() : 'No deadline';
-            const statusLabel = assignment.is_closed ? 'Closed' : assignment.is_late ? 'Late · still open' : 'Ready';
+            const dueLabel = assignment.due_at ? new Date(assignment.due_at).toLocaleString() : t("No deadline");
+            const statusLabel = assignment.is_closed ? t("Closed") : assignment.is_late ? t("Late · still open") : t("Ready");
             const categoryMeta = getAssignmentCategoryMeta(assignment.assignment_category);
             return (
               <details key={assignment.assignment_id} className="student-assignment-card rounded-xl border border-slate-700 bg-slate-950/45">
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-3 p-4 focus-visible:outline focus-visible:outline-2">
                   <span className="min-w-0">
-                    <span className="block text-sm font-black text-white">{assignment.title || assignment.topic_name || 'New assignment'}</span>
+                    <span className="block text-sm font-black text-white">{assignment.title || assignment.topic_name || t("New assignment")}</span>
                     <span className="mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide" style={assignmentCategoryBadgeStyle(assignment.assignment_category)}>{categoryMeta.label}</span>
-                    <span className="mt-1 block text-xs text-slate-400">{assignment.subject_name || 'General'} · {assignment.teacher_username || 'Your teacher'} · Due {dueLabel}</span>
+                    <span className="mt-1 block text-xs text-slate-400">{assignment.subject_name || t("General")} · {assignment.teacher_username || t("Your teacher")} · {t('Due {date}', { date: dueLabel })}</span>
                   </span>
                   <span className={`flex-none rounded-full px-2.5 py-1 text-[11px] font-bold ${assignment.is_closed ? 'bg-slate-700 text-slate-200' : assignment.is_late ? 'bg-amber-500/20 text-amber-200' : 'bg-emerald-500/20 text-emerald-200'}`}>{statusLabel}</span>
                 </summary>
                 <div className="border-t border-slate-700/70 p-4">
                   <dl className="grid gap-3 text-xs text-slate-300 sm:grid-cols-2">
-                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">Topic</dt><dd className="mt-1">{assignment.topic_name || 'General'}</dd></div>
-                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">Questions</dt><dd className="mt-1">{assignment.questions.length}</dd></div>
-                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">Given</dt><dd className="mt-1">{new Date(assignment.assigned_at).toLocaleString()}</dd></div>
-                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">Class</dt><dd className="mt-1">{assignment.batch || 'Selected students'}</dd></div>
+                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Topic")}</dt><dd className="mt-1">{assignment.topic_name || t("General")}</dd></div>
+                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Questions")}</dt><dd className="mt-1">{assignment.questions.length}</dd></div>
+                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Given")}</dt><dd className="mt-1">{new Date(assignment.assigned_at).toLocaleString()}</dd></div>
+                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Class")}</dt><dd className="mt-1">{assignment.batch || t("Selected students")}</dd></div>
                   </dl>
-                  {assignment.instructions ? <div className="mt-4 rounded-lg bg-white/5 p-3 text-sm leading-6 text-slate-300"><strong className="text-white">Teacher instructions:</strong> {assignment.instructions}</div> : null}
+                  {assignment.instructions ? <div className="mt-4 rounded-lg bg-white/5 p-3 text-sm leading-6 text-slate-300"><strong className="text-white">{t("Teacher instructions:")}</strong> <span dir="auto">{assignment.instructions}</span></div> : null}
                   <button type="button" disabled={assignment.is_closed} onClick={() => handleOpenStudentAssignment(assignment)} className="student-primary-button mt-4 w-full sm:w-auto">
-                    {assignment.is_closed ? 'Assignment closed' : 'Go to this assignment'} <span aria-hidden>{assignment.is_closed ? '🔒' : '→'}</span>
+                    {assignment.is_closed ? t("Assignment closed") : t("Go to this assignment")} <span aria-hidden>{assignment.is_closed ? '🔒' : '→'}</span>
                   </button>
                 </div>
               </details>
@@ -2035,7 +2037,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     if (nonCriticalErrors.caps) {
       return (
         <SectionError
-          title="Caps"
+          title={t("Caps")}
           message={nonCriticalErrors.caps}
           onRetry={() => retryNonCritical('caps')}
         />
@@ -2043,14 +2045,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
 
     if (!caps && (nonCriticalStatus.caps === 'loading' || criticalLoading)) {
-      return <SectionPlaceholder title="Caps" lines={4} />;
+      return <SectionPlaceholder title={t("Caps")} lines={4} />;
     }
 
     if (!caps) {
       return (
         <div className="card-glass p-5">
-          <h3 className="student-section-heading font-heading mb-2 text-lg">Caps</h3>
-          <p className="text-sm text-gray-300">Caps data is unavailable.</p>
+          <h3 className="student-section-heading font-heading mb-2 text-lg">{t("Caps")}</h3>
+          <p className="text-sm text-gray-300">{t("Caps data is unavailable.")}</p>
         </div>
       );
     }
@@ -2062,7 +2064,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     if (nonCriticalErrors.tasks) {
       return (
         <SectionError
-          title="Tasks"
+          title={t("Tasks")}
           message={nonCriticalErrors.tasks}
           onRetry={() => retryNonCritical('tasks')}
         />
@@ -2070,14 +2072,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
 
     if (!tasks.length && (nonCriticalStatus.tasks === 'loading' || criticalLoading)) {
-      return <SectionPlaceholder title="Tasks" lines={5} />;
+      return <SectionPlaceholder title={t("Tasks")} lines={5} />;
     }
 
     if (!tasks.length) {
       return (
         <div className="card-glass p-5">
-          <h3 className="student-section-heading font-heading mb-2 text-lg">Tasks</h3>
-          <p className="text-sm text-gray-300">No tasks available right now.</p>
+          <h3 className="student-section-heading font-heading mb-2 text-lg">{t("Tasks")}</h3>
+          <p className="text-sm text-gray-300">{t("No tasks available right now.")}</p>
         </div>
       );
     }
@@ -2089,7 +2091,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     if (nonCriticalErrors.news) {
       return (
         <SectionError
-          title="News"
+          title={t("News")}
           message={nonCriticalErrors.news}
           onRetry={() => retryNonCritical('news')}
         />
@@ -2097,19 +2099,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
 
     if (!news.length && (nonCriticalStatus.news === 'loading' || criticalLoading)) {
-      return <SectionPlaceholder title="News" lines={6} />;
+      return <SectionPlaceholder title={t("News")} lines={6} />;
     }
 
     if (!news.length) {
       return (
         <div className="card-glass p-5">
-          <h3 className="student-section-heading font-heading mb-2 text-lg">News</h3>
-          <p className="text-sm text-gray-300">No news yet. Check back soon.</p>
+          <h3 className="student-section-heading font-heading mb-2 text-lg">{t("News")}</h3>
+          <p className="text-sm text-gray-300">{t("No news yet. Check back soon.")}</p>
         </div>
       );
     }
 
-    return <NewsFeed news={news} />;
+    return <div lang="en" dir="ltr"><NewsFeed news={news} /></div>;
   };
 
   const renderProfileSlot = () => {
@@ -2543,11 +2545,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
-            const nextActionLabel = activeAssignment ? 'Start assignment' : 'Start today’s practice';
-            const nextActionTitle = activeAssignment?.title || 'Daily skill practice';
+            const nextActionLabel = activeAssignment ? t("Start assignment") : t("Start today’s practice");
+            const nextActionTitle = activeAssignment?.title || t("Daily skill practice");
 
             return (
-              <main className="mt-4 sm:mt-6">
+              <main className="localized-ui mt-4 sm:mt-6" lang={language} dir={direction}>
                 {profile && !hasSchool && (
                   <div className="mb-4 sm:mb-6"><JoinSchoolCard onJoined={handleJoinSchoolSuccess} /></div>
                 )}
@@ -2563,7 +2565,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     onNavigate={dashboardNavigate}
                   />
 
-                  <section className="student-dashboard-feed" aria-label={`${studentDashboardTab} dashboard tab`}>
+                  <section className="student-dashboard-feed" lang={studentDashboardTab === 'clan' || studentDashboardTab === 'leaderboard' || studentLearningView === 'academic-profile' ? 'en' : language} dir={studentDashboardTab === 'clan' || studentDashboardTab === 'leaderboard' || studentLearningView === 'academic-profile' ? 'ltr' : direction} aria-label={`${studentDashboardTab} dashboard tab`}>
                     {studentDashboardTab === 'home' && (
                       <>
                         {renderProfileSlot()}
@@ -2571,14 +2573,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                           <div className="student-next-mission__atmosphere pointer-events-none absolute inset-0" aria-hidden />
                           <div className="relative">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="student-theme-pill rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wider">Up next</span>
-                              <span className="text-xs font-semibold text-slate-300">{activeAssignment ? 'Teacher assignment' : 'Matched to your progress'}</span>
+                              <span className="student-theme-pill rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wider">{t("Up next")}</span>
+                              <span className="text-xs font-semibold text-slate-300">{activeAssignment ? t("Teacher assignment") : t("Matched to your progress")}</span>
                             </div>
-                            <h2 className="mt-4 font-heading text-2xl text-white sm:text-3xl">{nextActionTitle}</h2>
+                            <h2 className="mt-4 font-heading text-2xl text-white sm:text-3xl"><bdi>{nextActionTitle}</bdi></h2>
                             <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">
                               {activeAssignment
-                                ? `${activeAssignment.subject_name || 'General'} · ${activeAssignment.due_at ? `Due ${new Date(activeAssignment.due_at).toLocaleString()}` : 'No deadline'}`
-                                : 'A short adaptive mission based on your current level. Finish it to keep your streak moving.'}
+                                ? `${activeAssignment.subject_name || t("General")} · ${activeAssignment.due_at ? t('Due {date}', { date: new Date(activeAssignment.due_at).toLocaleString(language) }) : t("No deadline")}`
+                                : t("A short adaptive mission based on your current level. Finish it to keep your streak moving.")}
                             </p>
                             <button type="button" onClick={handleQuestAction} className="student-primary-button mt-5">
                               {nextActionLabel} <span className="ml-2" aria-hidden>→</span>
@@ -2586,15 +2588,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                           </div>
                         </article>
 
-                        <section className="student-quick-stats" aria-label="Player stats">
-                          <button type="button" onClick={() => { setHelpInitialSection('streak'); setShowHelp(true); }} aria-label={`Open streak rewards guide. Current streak: ${profile?.streak || 0} days`} className="student-feed-card student-quick-stat text-left transition hover:-translate-y-0.5 hover:border-orange-300/50"><span className="student-quick-stat__icon" aria-hidden>🔥</span><span><strong>Streak</strong><b>{profile?.streak || 0} days</b><small>Tap to view the reward ladder</small></span></button>
-                          <div className="student-feed-card student-quick-stat"><span className="student-quick-stat__icon" aria-hidden>⚡</span><span><strong>Action points</strong><b>{profile?.ap_now || 0}/{profile?.ap_max || 0}</b><small>Ready for missions</small></span></div>
+                        <section className="student-quick-stats" aria-label={t("Player stats")}>
+                          <button type="button" onClick={() => { setHelpInitialSection('streak'); setShowHelp(true); }} aria-label={t('Open streak rewards guide. Current streak: {count} days', { count: profile?.streak || 0 })} className="student-feed-card student-quick-stat text-left transition hover:-translate-y-0.5 hover:border-orange-300/50"><span className="student-quick-stat__icon" aria-hidden>🔥</span><span><strong>{t("Streak")}</strong><b>{t('Days: {count}', { count: profile?.streak || 0 })}</b><small>{t("Tap to view the reward ladder")}</small></span></button>
+                          <div className="student-feed-card student-quick-stat"><span className="student-quick-stat__icon" aria-hidden>⚡</span><span><strong>{t("Action points")}</strong><b>{profile?.ap_now || 0}/{profile?.ap_max || 0}</b><small>{t("Ready for missions")}</small></span></div>
                         </section>
                         {renderCapsSection()}
                         <article className="student-feed-card student-invite-card">
                           <span className="student-invite-card__icon" aria-hidden>👥</span>
-                          <div className="student-invite-card__copy"><h2>Invite a friend</h2><p>Share a secure link and learn together.</p></div>
-                          <button type="button" onClick={() => void handleShareInvite()} className="student-secondary-button">Share link</button>
+                          <div className="student-invite-card__copy"><h2>{t("Invite a friend")}</h2><p>{t("Share a secure link and learn together.")}</p></div>
+                          <button type="button" onClick={() => void handleShareInvite()} className="student-secondary-button">{t("Share link")}</button>
                         </article>
                         {renderNewsSection()}
                       </>
@@ -2612,14 +2614,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         <StudentAcademicProfile
                           studentId={profile.id}
                           mode="student"
-                          backLabel="Back to Learn"
+                          backLabel={t("Back to Learn")}
                           onClose={() => setStudentLearningView('catalog')}
                         />
                       ) : <div className="student-learning-grid">
-                        {isStudent && hasSchool && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>📈</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">Your learning record</span><h2>Academic Progress</h2><p>See your subject performance, strengths, improvement, focus areas, evidence confidence, and curriculum coverage.</p></div><button type="button" onClick={() => setStudentLearningView('academic-profile')} className="student-primary-button">Open Academic Progress <span aria-hidden>→</span></button></article>}
-                        {isStudent && <StudentProgrammeCard programme="writing" eyebrow="Writing coach" title="Writing Hub" description="Draft, repair, and improve with guided AI coaching." locked={hasSchool && !canUseSchoolModule('writing')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.writing} onRequest={() => void handleProgrammeAccessRequest('writing')} openLabel="Open Writing Hub" onPreload={preloadWritingHub} onOpen={() => handleViewChange('writing')} />}
-                        {isStudent && hasSchool && <StudentProgrammeCard programme="ielts" eyebrow="Exam preparation" title="IELTS Prep" description="Focused preparation across reading, writing, listening, and speaking." locked={!canUseSchoolModule('ielts')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.ielts} onRequest={() => void handleProgrammeAccessRequest('ielts')} openLabel="Open IELTS Prep" onOpen={() => { window.location.href = '/ielts'; }} />}
-                        {isStudent && hasSchool && <StudentProgrammeCard programme="cambridge" eyebrow="Subject practice" title="Cambridge Tests" description="Practice Cambridge reading, grammar, and science tests." locked={!canUseSchoolModule('cambridge')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.cambridge} onRequest={() => void handleProgrammeAccessRequest('cambridge')} openLabel="Open Cambridge Tests" onOpen={() => handleViewChange('cambridge')} />}
+                        {isStudent && hasSchool && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>📈</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">{t("Your learning record")}</span><h2>{t("Academic Progress")}</h2><p>{t("See your subject performance, strengths, improvement, focus areas, evidence confidence, and curriculum coverage.")}</p></div><button type="button" onClick={() => setStudentLearningView('academic-profile')} className="student-primary-button">{t("Open Academic Progress")}<span aria-hidden>→</span></button></article>}
+                        {isStudent && <StudentProgrammeCard programme="writing" eyebrow={t("Writing coach")} title={t("Writing Hub")} description={t("Draft, repair, and improve with guided AI coaching.")} locked={hasSchool && !canUseSchoolModule('writing')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.writing} onRequest={() => void handleProgrammeAccessRequest('writing')} openLabel={t("Open Writing Hub")} onPreload={preloadWritingHub} onOpen={() => handleViewChange('writing')} />}
+                        {isStudent && hasSchool && <StudentProgrammeCard programme="ielts" eyebrow={t("Exam preparation")} title={t("IELTS Prep")} description={t("Focused preparation across reading, writing, listening, and speaking.")} locked={!canUseSchoolModule('ielts')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.ielts} onRequest={() => void handleProgrammeAccessRequest('ielts')} openLabel={t("Open IELTS Prep")} onOpen={() => { window.location.href = '/ielts'; }} />}
+                        {isStudent && hasSchool && <StudentProgrammeCard programme="cambridge" eyebrow={t("Subject practice")} title={t("Cambridge Tests")} description={t("Practice Cambridge reading, grammar, and science tests.")} locked={!canUseSchoolModule('cambridge')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.cambridge} onRequest={() => void handleProgrammeAccessRequest('cambridge')} openLabel={t("Open Cambridge Tests")} onOpen={() => handleViewChange('cambridge')} />}
                       </div>
                     )}
 
@@ -2639,7 +2641,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     )}
 
                     {studentDashboardTab === 'tournaments' && (
-                      <article className="student-feed-card p-6 text-center"><img src="/mission-console-images/tournament.webp" alt="" className="mx-auto h-40 w-40 object-contain" /><h2 className="font-heading text-2xl text-white">Tournaments</h2><p className="mt-2 text-sm text-slate-400">Compete in live events and climb the tournament standings.</p><button type="button" onClick={() => handleViewChange('tournament')} className="student-primary-button mt-5">Open Tournaments</button></article>
+                      <article className="student-feed-card p-6 text-center"><img src="/mission-console-images/tournament.webp" alt="" className="mx-auto h-40 w-40 object-contain" /><h2 className="font-heading text-2xl text-white">{t("Tournaments")}</h2><p className="mt-2 text-sm text-slate-400">{t("Compete in live events and climb the tournament standings.")}</p><button type="button" onClick={() => handleViewChange('tournament')} className="student-primary-button mt-5">{t("Open Tournaments")}</button></article>
                     )}
 
                     {studentDashboardTab === 'clan' && (
@@ -2667,9 +2669,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     {studentDashboardTab === 'more' && (
                       <div className="student-more-grid">
                         {([
-                          { id: 'tasks', icon: '✅', label: 'Tasks', description: pendingTasks > 0 ? `${pendingTasks} task${pendingTasks === 1 ? '' : 's'} waiting for you` : 'Review assignments and completed work' },
-                          { id: 'tournaments', icon: '🏅', label: 'Tournaments', description: 'View live events and competition standings' },
-                          { id: 'leaderboard', icon: '🏆', label: 'Leaderboard', description: 'See your position in your school community' },
+                          { id: 'tasks', icon: '✅', label: t("Tasks"), description: pendingTasks > 0 ? t('Tasks waiting: {count}', { count: pendingTasks }) : t("Review assignments and completed work") },
+                          { id: 'tournaments', icon: '🏅', label: t("Tournaments"), description: t("View live events and competition standings") },
+                          { id: 'leaderboard', icon: '🏆', label: t("Leaderboard"), description: t("See your position in your school community") },
                         ] as Array<{ id: StudentDashboardDestination; icon: string; label: string; description: string }>).map((item) => <button key={item.id} type="button" onClick={() => dashboardNavigate(item.id)} className="student-feed-card student-more-card"><span className="student-more-card__icon" aria-hidden>{item.icon}</span><span className="student-more-card__copy"><strong>{item.label}</strong><small>{item.description}</small></span><span className="student-more-card__arrow" aria-hidden>→</span></button>)}
                       </div>
                     )}

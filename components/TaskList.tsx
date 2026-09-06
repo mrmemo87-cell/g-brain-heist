@@ -1,3 +1,4 @@
+import { useLanguage } from '../src/contexts/LanguageContext';
 import React, { useState } from 'react';
 import { Task } from '../types';
 import * as GameService from '../services/gameService';
@@ -13,6 +14,7 @@ interface TaskItemProps {
 }
 
 const TaskItem: React.FC<TaskItemProps> = ({ task, onClaim, claiming }) => {
+  const { t } = useLanguage();
   const progressPercent = Math.min(100, (task.progress / task.target) * 100);
   const isDaily = task.kind === 'daily';
   const isCompleted = task.progress >= task.target;
@@ -52,7 +54,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClaim, claiming }) => {
   return (
     <div className="bg-black/20 p-4 rounded-2xl border animate-fade-in-up" style={{ borderColor: `rgba(${isDaily ? '0, 208, 232' : '255, 45, 145'}, 0.4)` }}>
       <div className="flex justify-between items-start mb-2">
-        <h4 className="font-semibold text-gray-200">{task.title}</h4>
+        <h4 className="font-semibold text-gray-200"><bdi>{task.title}</bdi></h4>
         <span className="text-sm font-mono" style={{ color: 'var(--mist-400)' }}>{task.progress}/{task.target}</span>
       </div>
       <div className="w-full bg-black/30 rounded-full h-1.5 mb-2">
@@ -82,11 +84,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClaim, claiming }) => {
             disabled={claiming}
             className="px-4 py-2 text-xs md:text-sm font-bold rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-black hover:from-amber-400 hover:to-yellow-400 active:scale-95 transition-all disabled:opacity-50 min-h-[44px] touch-manipulation animate-pulse-glow"
           >
-            {claiming ? 'Claiming...' : '✨ Claim'}
+            {claiming ? t("Claiming...") : t("✨ Claim")}
           </button>
         )}
         {task.claimed && (
-          <span className="text-xs text-green-400 font-semibold">✓ Claimed</span>
+          <span className="text-xs text-green-400 font-semibold">{t("✓ Claimed")}</span>
         )}
       </div>
     </div>
@@ -100,6 +102,7 @@ interface TaskListProps {
 }
 
 const TaskList: React.FC<TaskListProps> = ({ tasks, onTasksUpdate, addToast }) => {
+  const { t, language, direction } = useLanguage();
   const [claimingTaskId, setClaimingTaskId] = useState<string | null>(null);
   
   const dailyTasks = tasks.filter(t => t.kind === 'daily');
@@ -159,12 +162,11 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onTasksUpdate, addToast }) =
   };
 
   return (
-    <div className="card-glass p-5">
+    <div className="localized-ui card-glass p-5" lang={language} dir={direction}>
       <div className="mb-6">
         <h3 className="font-heading text-xl mb-3 flex items-center gap-2" style={{ color: 'var(--ion-blue)' }}>
           <img src={neonIcon('reward_chest')} alt="" className="h-6 w-6 object-contain" />
-          Daily Tasks
-        </h3>
+          {t("Daily Tasks")}</h3>
         <div className="space-y-3">
           {dailyTasks.map(task => (
             <TaskItem 
@@ -179,8 +181,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onTasksUpdate, addToast }) =
       <div>
         <h3 className="font-heading text-xl mb-3 flex items-center gap-2" style={{ color: 'var(--plasma-pink)' }}>
           <img src={neonIcon('quest')} alt="" className="h-6 w-6 object-contain" />
-          Weekly Tasks
-        </h3>
+          {t("Weekly Tasks")}</h3>
         <div className="space-y-3">
           {weeklyTasks.map(task => (
             <TaskItem 

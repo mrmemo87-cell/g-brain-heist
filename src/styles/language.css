@@ -1,0 +1,31 @@
+/* Scoped localization: document and English assessment content remain LTR. */
+.language-mini-card { display: inline-flex; align-items: center; gap: .3rem; flex-shrink: 0; max-width: 100%; min-height: 44px; padding-inline: .5rem; border: 1px solid #64748b; border-radius: .75rem; background: #0f172a; color: #f8fafc; }
+.language-mini-card select { min-width: 0; width: 7rem; min-height: 42px; border: 0; background: transparent; color: inherit; font: inherit; font-size: .85rem; cursor: pointer; }
+.language-mini-card select option { color: #0f172a; background: #fff; }
+.language-mini-card:focus-within { outline: 2px solid #22d3ee; outline-offset: 2px; }
+body.light-mode .language-mini-card { background: #fff; color: #0f172a; border-color: #94a3b8; }
+.language-mini-card--compact { padding-inline: .35rem; gap: .15rem; }
+.language-mini-card--compact select { width: 5.5rem; font-size: .75rem; }
+.localized-ui[lang="ar"], .localized-ui[lang="ar"] .font-heading { font-family: Tahoma, Arial, sans-serif; letter-spacing: normal; }
+.localized-ui[lang="ru"] { font-family: 'IBM Plex Sans', Arial, sans-serif; }
+.localized-ui .text-left:dir(rtl) { text-align: start; }
+.localized-ui .text-right:dir(rtl) { text-align: end; }
+.localized-ui[dir="rtl"] input[type="text"] { text-align: start; }
+.localized-ui[dir="rtl"] .student-primary-button > span[aria-hidden],
+.localized-ui[dir="rtl"] .student-more-card__arrow { display: inline-block; transform: scaleX(-1); }
+.localized-ui[dir="rtl"] .student-dashboard-nav-badge { margin-left: 0; margin-inline-start: auto; }
+.localized-ui .student-dashboard-nav-label { white-space: normal; overflow-wrap: anywhere; }
+.localized-ui .student-dashboard-bottom-label { font-size: .65rem; }
+.localized-ui[dir="rtl"] .student-dashboard-bottom-label { font-size: .75rem; }
+.localized-ui .student-dashboard-identity strong { unicode-bidi: plaintext; }
+.localized-ui .student-display-style-option,
+.localized-ui .student-theme-option { text-align: start; }
+.localized-ui .student-theme-option__check { position: static; margin-inline-start: auto; }
+.localized-ui input, .localized-ui button { max-width: 100%; }
+.language-preference { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+.language-preference p { flex-basis: 100%; font-size: .8rem; color: #cbd5e1; line-height: 1.6; }
+/* Keep the mobile brand/actions in their established physical order; localize text separately. */
+@media (max-width: 767px) {
+  .student-mobile-header__primary { flex-wrap: wrap; row-gap: .5rem; }
+  .student-mobile-header__actions { flex-shrink: 0; }
+}

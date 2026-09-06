@@ -1,0 +1,11 @@
+# Student interface languages
+
+The first release adds English, Arabic and Russian to the student header, dashboard navigation, core dashboard cards, resource limits, task claim controls and settings. A shared native select appears in both header layouts and in settings. The choice is stored on the current browser using `brains-heist:ui-language:v1` and falls back to English when storage is unavailable or invalid.
+
+`src/i18n/messages.ts` is the UI-only, typed message catalog. English message IDs are also fallback text. Arabic and Russian entries must preserve every placeholder; `tests/interfaceLanguage.test.ts` verifies this contract. Only explicit interface literals may use `t()`. Never feed questions, passages, answer choices, rubrics, teacher-authored material, usernames, school names or other stored content through the catalog. Keep route IDs, feature/quota identifiers, role/status values and API parameters unchanged.
+
+`LanguageProvider` sits above the router. It does not set document-level language or direction, reload pages, or remount the router. Translated surfaces declare their own `lang` and `dir`. English IELTS/Cambridge routes and standalone test frames retain their original text and direction. Arabic uses scoped RTL styles, with an adjusted mobile active indicator and direction-aware desktop tooltips.
+
+Coverage is intentionally incremental. Deeper game views, most staff/admin screens, login/onboarding, activity-feed bodies, some dynamic server messages, cosmetic-effect descriptions, emails, exports, and text baked into images remain in their original language. The shared settings modal also reflects the selected language wherever it is already used. This release does not translate IELTS or Cambridge assessment materials or add a language card to their independent page layouts.
+
+Before production release, visually smoke-test the student desktop/mobile header and settings in all three languages, including Basic/Glassy modes, long school names, and Arabic mixed with English names/numbers. Confirm language switching preserves unsaved fields, navigation state and any active assessment work. Local DOM integration checks verify state preservation but cannot establish actual browser layout or font appearance.

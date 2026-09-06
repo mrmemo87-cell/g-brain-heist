@@ -11,8 +11,8 @@ test('teacher account settings hide student-only progression fields', () => {
   assert.match(settingsModal, /profile\.role !== 'teacher'/);
   assert.match(settingsModal, /Interface style/);
   assert.match(settingsModal, /role="radio"/);
-  assert.match(settingsModal, />Glassy</);
-  assert.match(settingsModal, />Basic</);
+  assert.match(settingsModal, /t\("Glassy"\)/);
+  assert.match(settingsModal, /t\("Basic"\)/);
 });
 
 test('teacher dashboard shortcuts navigate to their destinations', () => {

@@ -8,6 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ConfigErrorScreen from './components/ConfigErrorScreen';
 import * as AuthService from './services/authService';
 import { supabase, isMissingSupabaseConfig } from './services/supabaseClient';
+import { LanguageProvider } from './src/contexts/LanguageContext';
 import { LightModeProvider } from './src/contexts/LightModeContext';
 import './src/index.css';
 import './src/styles/light-mode.css';
@@ -934,7 +935,7 @@ root.render(
       ) : (
         <QueryClientProvider client={queryClient}>
           <LightModeProvider>
-            <RouterProvider router={router} />
+            <LanguageProvider><RouterProvider router={router} /></LanguageProvider>
           </LightModeProvider>
         </QueryClientProvider>
       )}

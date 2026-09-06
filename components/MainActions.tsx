@@ -1,3 +1,4 @@
+import { useLanguage } from '../src/contexts/LanguageContext';
 import React, { useState, useEffect } from 'react';
 import { fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 import { visualAssets, neonIcon } from './visualAssets';
@@ -236,6 +237,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   profile: _profile,
   onUpgrade,
 }) => {
+  const { t } = useLanguage();
   const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
 
   // Fetch pilot quotas on mount (only if on pilot plan)
@@ -337,7 +339,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               onClick={locked ? handleLocked('Launch Attack') : handlePilotClick('Launch Attack', onStartPvp)}
               icon={<img src="/mission-console-images/attack.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
-              label="Launch Attack"
+              label={t("Launch Attack")}
               circleIcon
               hideLabel
               className={missionCardClass}
@@ -352,7 +354,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenRaid}
                 icon={<span aria-hidden className="text-3xl">🚀</span>}
-                label="Raids"
+                label={t("Raids")}
                 color="72, 61, 139"
                 glowClass="glow-purple"
               />
@@ -361,7 +363,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               onClick={locked ? handleLocked('Visit Shop') : handlePilotClick('Visit Shop', onVisitShop)}
               icon={<img src="/mission-console-images/shop.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
-              label="Visit Shop"
+              label={t("Visit Shop")}
               circleIcon
               hideLabel
               className={missionCardClass}
@@ -376,12 +378,12 @@ const MainActions: React.FC<MainActionsProps> = ({
               onClick={locked ? handleLocked('Leaderboard') : handlePilotClick('Leaderboard', onViewLeaderboard)}
               icon={<img src="/mission-console-images/leaderboard.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
-              label="Leaderboard"
+              label={t("Leaderboard")}
               circleIcon
               hideLabel
               className={missionCardClass}
               containerBare
-              ariaLabel="Leaderboard"
+              ariaLabel={t("Leaderboard")}
               color="255, 215, 0"
               glowClass="glow-warn"
               locked={locked}
@@ -392,12 +394,12 @@ const MainActions: React.FC<MainActionsProps> = ({
               onClick={locked ? handleLocked('Clans') : handlePilotClick('Clan', onGoToClan)}
               icon={<img src="/mission-console-images/clan.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
-              label="Clan"
+              label={t("Clan")}
               circleIcon
               hideLabel
               className={missionCardClass}
               containerBare
-              ariaLabel="Clan"
+              ariaLabel={t("Clan")}
               color="255, 176, 32"
               glowClass="glow-warn"
               badgeText={!locked && clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
@@ -409,12 +411,12 @@ const MainActions: React.FC<MainActionsProps> = ({
               onClick={locked ? handleLocked('Inventory') : handlePilotClick('Inventory', onVisitInventory)}
               icon={<img src="/mission-console-images/inventory.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
-              label="Inventory"
+              label={t("Inventory")}
               circleIcon
               hideLabel
               className={missionCardClass}
               containerBare
-              ariaLabel="Inventory"
+              ariaLabel={t("Inventory")}
               color="158, 93, 255"
               glowClass="glow-purple"
               locked={locked}
@@ -425,12 +427,12 @@ const MainActions: React.FC<MainActionsProps> = ({
               onClick={locked ? handleLocked('Achievements') : handlePilotClick('Achievements', onViewAchievements)}
               icon={<img src="/mission-console-images/achievements.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
               iconBare
-              label="Achievements"
+              label={t("Achievements")}
               circleIcon
               hideLabel
               className={missionCardClass}
               containerBare
-              ariaLabel="Achievements"
+              ariaLabel={t("Achievements")}
               color="255, 100, 200"
               glowClass="glow-plasma"
               locked={locked}
@@ -442,7 +444,7 @@ const MainActions: React.FC<MainActionsProps> = ({
                 onClick={handlePilotClick('Lockdown Mode', onOpenLockdown)}
                 icon={<img src="/mission-console-images/lockdown.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
                 iconBare
-                label="Lockdown Mode"
+                label={t("Lockdown Mode")}
                 circleIcon
                 hideLabel
                 className={`${missionCardClass} col-span-2 w-[calc(50%-0.375rem)] justify-self-center sm:col-span-1 sm:col-start-2 sm:w-full`}
@@ -529,7 +531,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenTeacherPortal}
                 icon={<span aria-hidden className="text-3xl">🧑‍🏫📘</span>}
-                label="Teacher"
+                label={t("Teacher")}
                 color="100, 200, 255"
                 glowClass="glow-ion"
               />

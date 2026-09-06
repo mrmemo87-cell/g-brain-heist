@@ -1,6 +1,8 @@
+import { useLanguage } from '../src/contexts/LanguageContext';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
+import type { MessageKey } from '../src/i18n/messages';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
 
 export type StudentDashboardDestination =
@@ -23,7 +25,7 @@ type StudentDashboardNavigationProps = {
   onNavigate: (destination: StudentDashboardDestination) => void;
 };
 
-const destinations: Array<{ id: StudentDashboardDestination; icon: string; label: string }> = [
+const destinations: Array<{ id: StudentDashboardDestination; icon: string; label: MessageKey }> = [
   { id: 'home', icon: '🏠', label: 'Home' },
   { id: 'learn', icon: '📚', label: 'Learn' },
   { id: 'game', icon: '🎮', label: 'Game' },
@@ -68,6 +70,7 @@ const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps
   activeDestination,
   onNavigate,
 }) => {
+  const { t, language, direction } = useLanguage();
   const {
     navigationRef,
     revealNavigation,
@@ -87,16 +90,16 @@ const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps
     <nav
       ref={navigationRef}
       data-testid="dashboard-navigation-mobile"
-      className="student-dashboard-bottom-nav"
-      style={{ '--student-nav-active-index': activeIndex } as React.CSSProperties}
+      className="student-dashboard-bottom-nav localized-ui" lang={language} dir={direction}
+      style={{ '--student-nav-active-index': direction === 'rtl' ? mobileDestinations.length - 1 - activeIndex : activeIndex } as React.CSSProperties}
       onFocus={revealNavigation}
-      aria-label="Student dashboard mobile navigation"
+      aria-label={t("Student dashboard mobile navigation")}
     >
       <button
         type="button"
         className="smart-mobile-nav-reveal"
         onClick={revealNavigation}
-        aria-label="Show student navigation"
+        aria-label={t("Show student navigation")}
       >
         <span aria-hidden="true" />
       </button>
@@ -108,14 +111,14 @@ const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps
             type="button"
             className={`student-dashboard-bottom-link ${destination.id === activeDestination ? 'is-active' : ''}`}
             onClick={() => navigate(destination.id)}
-            aria-label={destination.label}
+            aria-label={t(destination.label)}
             aria-current={destination.id === activeDestination ? 'page' : undefined}
           >
             <span className="student-dashboard-bottom-icon" aria-hidden>
               {destination.icon}
               {badge > 0 && <span className="student-dashboard-bottom-badge">{Math.min(badge, 9)}{badge > 9 ? '+' : ''}</span>}
             </span>
-            <span className="student-dashboard-bottom-label">{destination.label}</span>
+            <span className="student-dashboard-bottom-label">{t(destination.label)}</span>
           </button>
         );
       })}
@@ -132,8 +135,11 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
   activeDestination,
   onNavigate,
 }) => {
+  const { t, language, direction } = useLanguage();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialSidebarCollapsed);
   const [navTooltip, setNavTooltip] = useState<{ label: string; anchor: HTMLElement } | null>(null);
+
+  useEffect(() => { setNavTooltip(null); }, [language]);
 
   useEffect(() => {
     const compactViewport = window.matchMedia(STUDENT_SIDEBAR_COMPACT_QUERY);
@@ -166,18 +172,18 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
 
   return (
     <>
-      <aside data-testid="dashboard-navigation-desktop" className={`student-dashboard-rail ${sidebarCollapsed ? 'is-collapsed' : ''}`} aria-label="Student dashboard navigation">
+      <aside data-testid="dashboard-navigation-desktop" lang={language} dir={direction} className={`localized-ui student-dashboard-rail ${sidebarCollapsed ? 'is-collapsed' : ''}`} aria-label={t("Student dashboard navigation")}>
         <button
           type="button"
           className="student-dashboard-sidebar-toggle"
           onClick={toggleSidebar}
-          aria-label={sidebarCollapsed ? 'Expand side navigation' : 'Collapse side navigation'}
+          aria-label={sidebarCollapsed ? t("Expand side navigation") : t("Collapse side navigation")}
           aria-expanded={!sidebarCollapsed}
           aria-controls="student-primary-navigation"
-          title={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+          title={sidebarCollapsed ? t("Expand navigation") : t("Collapse navigation")}
         >
-          <span className="student-dashboard-sidebar-toggle__icon" aria-hidden>{sidebarCollapsed ? '›' : '‹'}</span>
-          <span>{sidebarCollapsed ? 'Expand' : 'Collapse'}</span>
+          <span className="student-dashboard-sidebar-toggle__icon" aria-hidden>{(sidebarCollapsed !== (direction === 'rtl')) ? '›' : '‹'}</span>
+          <span>{sidebarCollapsed ? t("Expand") : t("Collapse")}</span>
         </button>
 
         <button type="button" className="student-dashboard-identity" onClick={() => onNavigate('more')} title={sidebarCollapsed ? username : undefined}>
@@ -186,7 +192,7 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
           </span>
           <span className="min-w-0">
             <strong className="block truncate text-sm text-white">{username}</strong>
-            <span className="block text-xs text-slate-400">Level {level} agent</span>
+            <span className="block text-xs text-slate-400">{t('Level {level} agent', { level })}</span>
           </span>
         </button>
 
@@ -200,16 +206,16 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
                 className={`student-dashboard-nav-link ${destination.id === activeDestination ? 'is-active' : ''}`}
                 onClick={() => onNavigate(destination.id)}
                 aria-current={destination.id === activeDestination ? 'page' : undefined}
-                aria-label={destination.label}
-                title={sidebarCollapsed ? destination.label : undefined}
-                data-label={destination.label}
-                onMouseEnter={(event) => sidebarCollapsed && setNavTooltip({ label: destination.label, anchor: event.currentTarget })}
+                aria-label={t(destination.label)}
+                title={sidebarCollapsed ? t(destination.label) : undefined}
+                data-label={t(destination.label)}
+                onMouseEnter={(event) => sidebarCollapsed && setNavTooltip({ label: t(destination.label), anchor: event.currentTarget })}
                 onMouseLeave={() => setNavTooltip(null)}
-                onFocus={(event) => sidebarCollapsed && setNavTooltip({ label: destination.label, anchor: event.currentTarget })}
+                onFocus={(event) => sidebarCollapsed && setNavTooltip({ label: t(destination.label), anchor: event.currentTarget })}
                 onBlur={() => setNavTooltip(null)}
               >
                 <span className="student-dashboard-nav-icon" aria-hidden>{destination.icon}</span>
-                <span className="student-dashboard-nav-label">{destination.label}</span>
+                <span className="student-dashboard-nav-label">{t(destination.label)}</span>
                 {badge > 0 && <span className="student-dashboard-nav-badge">{Math.min(badge, 99)}</span>}
               </button>
             );

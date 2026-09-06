@@ -1,3 +1,5 @@
+import LanguageMiniCard from '../src/components/LanguageMiniCard';
+import { useLanguage } from '../src/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { Profile } from '../types';
 import { CoinIcon, XPIcon, APIcon, LogoutIcon, StreakIcon, GemIcon } from './icons';
@@ -111,6 +113,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onShowStreak, onNavigate, onNotificationAction, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh, isAdminMode, isSchoolAdmin, onOpenSchoolAdmin }) => {
+  const { t, language, direction } = useLanguage();
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -151,9 +154,9 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
         const diff = end - now;
         if (diff > 0) {
           const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-          countdown = `${days}d left`;
+          countdown = t('{count}d left', { count: days });
         } else {
-          countdown = 'Expired';
+          countdown = t("Expired");
         }
       }
       return { label: 'PILOT', color: 'cyan', countdown };
@@ -206,7 +209,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
       audioService.play('collect');
     } catch (error: any) {
       console.error('Failed to apply avatar change:', error);
-      setAvatarUploadError(error.message || 'Failed to update avatar. Please try again.');
+      setAvatarUploadError(error.message || t("Failed to update avatar. Please try again."));
       audioService.play('wrong');
       throw error;
     }
@@ -251,7 +254,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
       audioService.play('collect');
     } catch (error: any) {
       console.error('Failed to upload avatar:', error);
-      setAvatarUploadError(error.message || 'Failed to upload avatar. Please try again.');
+      setAvatarUploadError(error.message || t("Failed to upload avatar. Please try again."));
       audioService.play('wrong');
     } finally {
       setUploadingAvatar(false);
@@ -376,33 +379,35 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   return (
     <>
       <header
-        className="relative z-40 border-b border-slate-800/60 bg-slate-950/95 backdrop-blur"
+        lang={language} dir={direction}
+        className="localized-ui relative z-40 border-b border-slate-800/60 bg-slate-950/95 backdrop-blur"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-2 px-3 py-2 sm:px-4 lg:px-6">
           
           {/* Mobile Layout (< 768px) */}
-          <div className="student-mobile-header md:hidden">
+          <div className="student-mobile-header md:hidden" dir="ltr">
             <div className="student-mobile-header__primary">
               <div className="student-mobile-header__brand">
-                <button type="button" onClick={handleBrandClick} aria-label={`Go to ${schoolBrand.name} dashboard`}>
+                <button type="button" onClick={handleBrandClick} aria-label={t('Go to {name} dashboard', { name: schoolBrand.name })}>
                   <SchoolBrand brand={schoolBrand} showName={false} imageClassName="w-8 h-8 flex-shrink-0 object-contain" />
                 </button>
                 <button
                   type="button"
                   onClick={handleBrandClick}
                   className="student-mobile-header__name font-heading select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
-                  aria-label="Go to dashboard"
+                  aria-label={t("Go to dashboard")}
                 >
                   {schoolBrand.name}
                 </button>
               </div>
               <div className="student-mobile-header__actions" ref={mobileMenuRef}>
+                <LanguageMiniCard compact />
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen((prev) => !prev)}
                   className="student-mobile-header__menu"
-                  aria-label="Open account menu"
+                  aria-label={t("Open account menu")}
                   aria-expanded={mobileMenuOpen}
                 >
                   ⋯
@@ -415,7 +420,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     setUnreadCount(0);
                   }}
                   className="student-mobile-header__notifications"
-                  aria-label={unreadCount > 0 ? `Open notifications, ${unreadCount} unread` : 'Open notifications'}
+                  aria-label={unreadCount > 0 ? t('Open notifications, {count} unread', { count: unreadCount }) : t("Open notifications")}
                   aria-haspopup="dialog"
                   aria-expanded={showNotifications}
                 >
@@ -444,8 +449,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                         className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
                       >
                         <span className="text-lg">❓</span>
-                        Help & Guides
-                      </button>
+                        {t("Help & Guides")}</button>
                       <button
                         type="button"
                         onClick={() => {
@@ -455,8 +459,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                         className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
                       >
                         <span className="text-lg">⚙️</span>
-                        Settings
-                      </button>
+                        {t("Settings")}</button>
                       {isAdmin(profile) && (
                         <button
                           type="button"
@@ -467,8 +470,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                           className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-amber-200 transition hover:bg-amber-500/20"
                         >
                           <span className="text-lg">👑</span>
-                          Admin Portal
-                        </button>
+                          {t("Admin Portal")}</button>
                       )}
                       <button
                         type="button"
@@ -479,8 +481,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                         className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-rose-200 transition hover:bg-rose-500/20"
                       >
                         <LogoutIcon className="h-5 w-5" />
-                        Log Out
-                      </button>
+                        {t("Log Out")}</button>
                     </div>
                   </div>
                 )}
@@ -488,7 +489,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             </div>
 
             {profile.role !== 'teacher' && (
-              <div className="student-mobile-hud" aria-label="Player resources">
+              <div className="student-mobile-hud" aria-label={t("Player resources")}>
                 {badgeInfo && badgeInfo.label !== 'FREE' && (
                   <div className="plan-badge-mobile flex-shrink-0">
                     <div className={`plan-badge plan-badge--${badgeInfo.color}`}>
@@ -534,7 +535,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   </span>
                 </div>
                 {/* Streak */}
-                <button type="button" onClick={onShowStreak} aria-label={`Open streak rewards guide. Current streak: ${profile.streak || 0} days`} title="Open streak rewards" className={`student-mobile-hud__chip transition hover:border-orange-300/70 hover:bg-orange-500/20 ${
+                <button type="button" onClick={onShowStreak} aria-label={t('Open streak rewards guide. Current streak: {count} days', { count: profile.streak || 0 })} title={t("Open streak rewards")} className={`student-mobile-hud__chip transition hover:border-orange-300/70 hover:bg-orange-500/20 ${
                   profile.streak >= 7 ? 'border-orange-500/50 bg-orange-500/15' : 'border-slate-700 bg-slate-800/40'
                 }`}>
                   {getStreakBadge(profile.streak) ? (
@@ -558,14 +559,14 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               {/* Left: Brand + Username */}
               <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                 <div className="relative group flex items-center gap-1.5 lg:gap-2 flex-shrink-0">
-                  <button type="button" onClick={handleBrandClick} aria-label={`Go to ${schoolBrand.name} dashboard`}>
+                  <button type="button" onClick={handleBrandClick} aria-label={t('Go to {name} dashboard', { name: schoolBrand.name })}>
                     <SchoolBrand brand={schoolBrand} showName={false} imageClassName="w-8 h-8 lg:w-10 lg:h-10 object-contain" />
                   </button>
                   <button
                     type="button"
                     onClick={handleBrandClick}
                     className="font-heading text-xl lg:text-2xl xl:text-3xl font-black tracking-wider select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 rounded"
-                    aria-label="Go to dashboard"
+                    aria-label={t("Go to dashboard")}
                   >
                     <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent">
                       {schoolBrand.name}
@@ -619,6 +620,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
               {/* Right: Action Buttons */}
               <div className="flex items-center gap-1 lg:gap-1.5 flex-shrink-0">
+                <LanguageMiniCard />
                 {/* Notification Bell */}
                 <button 
                   onClick={() => {
@@ -626,7 +628,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     if (!showNotifications) setUnreadCount(0);
                   }}
                   className="relative p-1.5 lg:p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-purple-500 hover:bg-purple-500/10 transition-all backdrop-blur-sm"
-                  aria-label="Notifications"
+                  aria-label={t("Notifications")}
                 >
                   <span className="text-sm lg:text-base">🔔</span>
                   {unreadCount > 0 && (
@@ -640,8 +642,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 <button 
                   onClick={() => onShowHelp?.()}
                   className="p-1.5 lg:p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-cyan-500 hover:bg-cyan-500/10 transition-all backdrop-blur-sm"
-                  aria-label="Help"
-                  title="Help & Guide"
+                  aria-label={t("Help")}
+                  title={t("Help & Guide")}
                 >
                   <span className="text-sm lg:text-base">❓</span>
                 </button>
@@ -651,7 +653,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   <button 
                     onClick={() => onNavigate?.('admin')}
                     className="p-1.5 lg:p-2 rounded-lg bg-gradient-to-br from-amber-600/40 to-yellow-600/40 border border-amber-500/80 hover:border-amber-400 hover:bg-amber-500/20 transition-all backdrop-blur-sm shadow-md shadow-amber-500/20 animate-pulse"
-                    aria-label="Admin Portal"
+                    aria-label={t("Admin Portal")}
                     title="Admin Portal 👑"
                   >
                     <span className="text-sm lg:text-base">👑</span>
@@ -663,7 +665,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   <button 
                     onClick={onOpenSchoolAdmin}
                     className="p-1.5 lg:p-2 rounded-lg bg-gradient-to-br from-purple-600/40 to-indigo-600/40 border border-purple-500/80 hover:border-purple-400 hover:bg-purple-500/20 transition-all backdrop-blur-sm shadow-md shadow-purple-500/20"
-                    aria-label="School Admin Portal"
+                    aria-label={t("School Admin Portal")}
                     title="School Admin Portal 🏫"
                   >
                     <span className="text-sm lg:text-base">🏫</span>
@@ -674,7 +676,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 <button 
                   onClick={() => setShowSettingsModal(true)}
                   className="p-1.5 lg:p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-yellow-500 hover:bg-yellow-500/10 transition-all backdrop-blur-sm"
-                  aria-label="Settings"
+                  aria-label={t("Settings")}
                 >
                   <span className="text-sm lg:text-base">⚙️</span>
                 </button>
@@ -683,7 +685,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 <button 
                   onClick={onLogout}
                   className="flex p-1.5 lg:p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-red-500 hover:bg-red-500/10 transition-all backdrop-blur-sm items-center justify-center"
-                  aria-label="Log Out"
+                  aria-label={t("Log Out")}
                 >
                   <LogoutIcon className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-red-400" />
                 </button>
@@ -718,7 +720,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 </div>
 
                 {/* Streak */}
-                <button type="button" onClick={onShowStreak} aria-label={`Open streak rewards guide. Current streak: ${profile.streak || 0} days`} title="Open streak rewards" className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-orange-300/70 ${
+                <button type="button" onClick={onShowStreak} aria-label={t('Open streak rewards guide. Current streak: {count} days', { count: profile.streak || 0 })} title={t("Open streak rewards")} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-orange-300/70 ${
                   profile.streak >= 7 
                     ? 'bg-gradient-to-br from-orange-600/30 to-red-600/30 border-orange-500/60' 
                     : 'bg-gradient-to-br from-gray-700/20 to-gray-600/20 border-gray-500/30'
@@ -762,7 +764,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             setShowProfileModal(false);
             onNavigate?.('pvp');
           }}
-          attackLabel="Launch PvP"
+          attackLabel={t("Launch PvP")}
         />
       )}
 

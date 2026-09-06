@@ -14,7 +14,7 @@ test('student mobile header protects long school names and fixed-size actions', 
   assert.match(header, /student-mobile-header__brand/);
   assert.match(header, /student-mobile-header__name/);
   assert.match(header, /student-mobile-header__notifications/);
-  assert.match(header, /aria-label=\{unreadCount > 0 \? `Open notifications/);
+  assert.match(header, /aria-label=\{unreadCount > 0 \? t\('Open notifications/);
   assert.doesNotMatch(header, /student-mobile-header__avatar/);
   assert.match(styles, /\.student-mobile-header__name[^}]*text-overflow:\s*ellipsis/s);
   assert.match(styles, /\.student-mobile-header__notifications[^}]*flex:\s*none/s);
@@ -53,7 +53,7 @@ test('clan and leaderboard render directly inside the persistent dashboard shell
   assert.match(app, /studentDashboardTab === 'leaderboard'[\s\S]*?<LeaderboardView[\s\S]*?embedded/);
   assert.match(app, /onGoToClan=\{\(\) => dashboardNavigate\('clan'\)\}/);
   assert.match(app, /onViewLeaderboard=\{\(\) => dashboardNavigate\('leaderboard'\)\}/);
-  assert.match(app, /label: 'Leaderboard'/);
+  assert.match(app, /label: t\("Leaderboard"\)/);
   assert.doesNotMatch(app, />View Leaderboard<\/button>/);
 });
 
@@ -67,8 +67,8 @@ test('student learning tools share one visible primary action system', () => {
 });
 
 test('secondary dashboard information is compact and understandable', () => {
-  assert.match(capTracker, /<details className="student-cap-card">/);
-  assert.match(capTracker, /used<\/span>/);
+  assert.match(capTracker, /<details className="student-cap-card localized-ui" lang=\{language\} dir=\{direction\}>/);
+  assert.match(capTracker, /t\('\{count\} used', \{ count: used\.toLocaleString\(language\) \}\)/);
   assert.match(capTracker, /remaining/);
   assert.match(app, /student-invite-card/);
   assert.match(app, /Daily skill practice/);
@@ -85,9 +85,9 @@ test('game mission cards stay compact and keep lockdown last', () => {
   assert.match(mainActions, /const missionCardClass = 'min-h-\[10rem\] sm:min-h-\[11rem\]'/);
   assert.doesNotMatch(mainActions, /min-h-\[18rem\]/);
 
-  const inventoryPosition = mainActions.indexOf('label="Inventory"');
-  const achievementsPosition = mainActions.indexOf('label="Achievements"');
-  const lockdownPosition = mainActions.indexOf('label="Lockdown Mode"');
+  const inventoryPosition = mainActions.indexOf('label={t("Inventory")}');
+  const achievementsPosition = mainActions.indexOf('label={t("Achievements")}');
+  const lockdownPosition = mainActions.indexOf('label={t("Lockdown Mode")}');
 
   assert.ok(inventoryPosition >= 0);
   assert.ok(achievementsPosition > inventoryPosition);

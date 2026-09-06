@@ -33,8 +33,8 @@ test('profile glass keeps its summary and stat panels solid', () => {
 });
 
 test('Basic style explains the performance tradeoff in simple language', () => {
-  assert.match(settings, />Glassy</);
-  assert.match(settings, />Basic</);
+  assert.match(settings, /t\("Glassy"\)/);
+  assert.match(settings, /t\("Basic"\)/);
   assert.match(settings, /fewer effects for smoother use and longer battery life/);
   assert.doesNotMatch(settings, /Ultra Performance/);
   assert.match(performanceStyles, /body\.light-mode \.student-dashboard-bottom-nav,[\s\S]*?backdrop-filter:\s*none !important/s);
@@ -62,7 +62,7 @@ test('settings provide an accessible live preview and personality for every pale
   assert.match(settings, /student-theme-live-preview/);
   assert.match(settings, /student-display-style-option/);
   assert.match(settings, /data-theme-color=\{color\}/);
-  assert.match(settings, /aria-label=\{`\$\{option\.label\}: \$\{option\.personality\}`\}/);
+  assert.match(settings, /aria-label=\{`\$\{t\(option\.label\)\}: \$\{t\(option\.personality\)\}`\}/);
   assert.match(settings, /Clear, electric, focused/);
   assert.match(settings, /Bright, playful, confident/);
   assert.match(settings, /Creative, bold, dreamy/);

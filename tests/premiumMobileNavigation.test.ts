@@ -32,7 +32,7 @@ test('teacher and student bottom navigation share the premium reveal pattern', (
   assert.match(studentNavigation, /STUDENT_MOBILE_NAV_QUERY = '\(max-width: 1024px\)'/);
   assert.match(studentNavigation, /useSmartCollapsedNavigation\(activeDestination, STUDENT_MOBILE_NAV_QUERY\)/);
   assert.match(studentNavigation, /ref=\{navigationRef\}/);
-  assert.match(studentNavigation, /aria-label="Show student navigation"/);
+  assert.match(studentNavigation, /aria-label=\{t\("Show student navigation"\)\}/);
   assert.match(studentNavigation, /<CollapsedNavTooltip label=\{navTooltip\.label\} anchor=\{navTooltip\.anchor\}/);
   assert.match(teacherStyles, /\.teacher-mobile-bottom-nav[\s\S]*var\(--smart-nav-translate-y/);
   assert.match(globalStyles, /\.student-dashboard-bottom-nav[\s\S]*var\(--smart-nav-translate-y/);
