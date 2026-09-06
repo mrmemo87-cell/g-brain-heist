@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { withPortalLocalization } from '../../src/components/PortalLocalizationBoundary';
 import { supabase } from '../../services/supabaseClient';
 import {
   claimGuardianInvitation,
@@ -216,4 +217,4 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ onChooseWorkspace, onLogout
   />;
 };
 
-export default ParentPortal;
+export default withPortalLocalization(ParentPortal, 'Parent Portal');

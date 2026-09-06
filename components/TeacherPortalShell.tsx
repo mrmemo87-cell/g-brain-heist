@@ -1,4 +1,5 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
+import { withPortalLocalization } from '../src/components/PortalLocalizationBoundary';
 import { createPortal } from 'react-dom';
 import TeacherPortal from './TeacherPortal';
 import { supabase } from '../services/supabaseClient';
@@ -266,4 +267,4 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
   );
 };
 
-export default TeacherPortalShell;
+export default withPortalLocalization(TeacherPortalShell, 'Teacher Portal');

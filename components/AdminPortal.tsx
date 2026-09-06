@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { withPortalLocalization } from '../src/components/PortalLocalizationBoundary';
 import { Batch, Grade, Profile, ToastMessage, SchoolRole } from '../types';
 import * as AuthService from '../services/authService';
 import { supabase } from '../services/supabaseClient';
@@ -1925,4 +1926,4 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   );
 };
 
-export default AdminPortal;
+export default withPortalLocalization(AdminPortal, 'Admin Portal');

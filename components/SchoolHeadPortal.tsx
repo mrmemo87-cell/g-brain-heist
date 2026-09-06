@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { withPortalLocalization } from '../src/components/PortalLocalizationBoundary';
 import { createPortal } from 'react-dom';
 import type { ToastMessage } from '../types';
 import { listSchoolMembers, type SchoolMember } from '../services/schoolAdminService';
@@ -455,4 +456,4 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
   );
 };
 
-export default SchoolHeadPortal;
+export default withPortalLocalization(SchoolHeadPortal, 'School Head Portal');

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { withPortalLocalization } from '../src/components/PortalLocalizationBoundary';
 import { createPortal } from 'react-dom';
 import '../src/styles/school-admin-mobile.css';
 import { ToastMessage } from '../types';
@@ -2137,4 +2138,4 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 };
 
 
-export default SchoolAdminPortal;
+export default withPortalLocalization(SchoolAdminPortal, 'School Admin Portal');
