@@ -25,47 +25,49 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
-          # Bridge every existing typed student message plus the final completion catalog
-          # into the global localization layer. Assessment locks remain untouched.
+          def replace_once(source: str, old: str, new: str, label: str) -> str:
+              if old not in source:
+                  raise SystemExit(f'{label} source contract changed')
+              return source.replace(old, new, 1)
+
+          # Bridge the existing typed AR/RU message catalogue and the final
+          # completion catalogue into the global interface translator.
           path = Path('src/components/AppLocalizationLayer.tsx')
           source = path.read_text()
-          source = source.replace(
+          source = replace_once(
+              source,
               "import type { Language } from '../i18n/language';",
               "import { translate as translateTypedMessage, type Language } from '../i18n/language';\nimport { messages, type MessageKey } from '../i18n/messages';",
+              'language import',
           )
           marker = "import { hasAuditedInterfaceTranslation, translateAuditedInterfaceText } from '../i18n/interfaceTranslationAudit';"
-          source = source.replace(
+          source = replace_once(
+              source,
               marker,
               marker + "\nimport { hasCompletionInterfaceTranslation, translateCompletionInterfaceText } from '../i18n/interfaceTranslationCompletion';",
+              'completion import',
           )
-          old_has = """function hasApprovedTranslation(value: string): boolean {
-            return hasInterfaceTranslation(value)
-              || hasSupplementalInterfaceTranslation(value)
-              || hasFragmentInterfaceTranslation(value)
-              || hasAuditedInterfaceTranslation(value);
-          }"""
-          new_has = """function hasApprovedTranslation(value: string): boolean {
+          source, count = re.subn(
+              r"function hasApprovedTranslation\(value: string\): boolean \{.*?\n\}",
+              """function hasApprovedTranslation(value: string): boolean {
             return Object.hasOwn(messages, value)
               || hasInterfaceTranslation(value)
               || hasSupplementalInterfaceTranslation(value)
               || hasFragmentInterfaceTranslation(value)
               || hasAuditedInterfaceTranslation(value)
               || hasCompletionInterfaceTranslation(value);
-          }"""
-          if old_has not in source:
+          }""",
+              source,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
               raise SystemExit('hasApprovedTranslation source contract changed')
-          source = source.replace(old_has, new_has)
-          old_translate = """function translateApprovedText(language: Language, value: string): string {
-            const fragment = translateFragmentInterfaceText(language, value);
-            if (fragment !== null) return fragment;
-            const audited = translateAuditedInterfaceText(language, value);
-            if (audited !== null) return audited;
-            const supplemental = translateSupplementalInterfaceText(language, value);
-            if (supplemental !== null) return supplemental;
-            return translateInterfaceText(language, value);
-          }"""
-          new_translate = """function translateApprovedText(language: Language, value: string): string {
+          source, count = re.subn(
+              r"function translateApprovedText\(language: Language, value: string\): string \{.*?\n\}",
+              """function translateApprovedText(language: Language, value: string): string {
             const fragment = translateFragmentInterfaceText(language, value);
             if (fragment !== null) return fragment;
             const completion = translateCompletionInterfaceText(language, value);
@@ -76,33 +78,32 @@ jobs:
             if (supplemental !== null) return supplemental;
             if (Object.hasOwn(messages, value)) return translateTypedMessage(language, value as MessageKey);
             return translateInterfaceText(language, value);
-          }"""
-          if old_translate not in source:
+          }""",
+              source,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
               raise SystemExit('translateApprovedText source contract changed')
-          path.write_text(source.replace(old_translate, new_translate))
+          path.write_text(source)
 
-          # Extend standalone page localization with the professional completion catalog,
-          # dynamic pricing strings, metadata translation and stronger Arabic RTL tables.
+          # Extend static HTML localization with professional exact + dynamic
+          # translations, metadata localization and correct Arabic table direction.
           path = Path('public/static-localization.js')
           source = path.read_text()
-          anchor = "  };\n\n  let lang ="
-          if anchor not in source:
-              raise SystemExit('static localization dictionary anchor changed')
-          source = source.replace(
-              anchor,
+          source = replace_once(
+              source,
+              "  };\n\n  let lang =",
               "  };\n\n  const completionMessages = window.__BH_STATIC_I18N_COMPLETION__ || {};\n"
               "  Object.assign(M, completionMessages);\n"
               "  const dynamicPatterns = window.__BH_STATIC_I18N_PATTERNS__ || [];\n"
               "  const completionFragments = Object.keys(completionMessages).filter((key) => key.length >= 16).sort((a, b) => b.length - a.length);\n\n"
               "  let lang =",
-              1,
+              'static dictionary anchor',
           )
-          old_translated = """  function translated(value) {
-            const pair = M[value];
-            if (!pair || lang === 'en') return value;
-            return pair[lang === 'ar' ? 0 : 1] || value;
-          }"""
-          new_translated = """  function translated(value) {
+          source, count = re.subn(
+              r"  function translated\(value\) \{.*?\n  \}",
+              """  function translated(value) {
             if (lang === 'en') return value;
             const pair = M[value];
             if (pair) return pair[lang === 'ar' ? 0 : 1] || value;
@@ -119,38 +120,48 @@ jobs:
               if (replacement) output = output.split(key).join(replacement);
             }
             return output;
-          }"""
-          if old_translated not in source:
+          }""",
+              source,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
               raise SystemExit('translated() source contract changed')
-          source = source.replace(old_translated, new_translated)
-          source = source.replace("['title','aria-label','placeholder']", "['title','aria-label','placeholder','content']")
-          old_apply = """    document.documentElement.lang = lang;
-            document.documentElement.dir = languages[lang].dir;
-            document.body?.classList.toggle('static-localized-rtl', lang === 'ar');"""
-          new_apply = """    document.documentElement.lang = lang;
-            document.documentElement.dir = languages[lang].dir;
-            document.body?.classList.toggle('static-localized-rtl', lang === 'ar');
-            document.title = translated(document.documentElement.dataset.staticSourceTitle || (document.documentElement.dataset.staticSourceTitle = document.title));
-            document.head.querySelectorAll('meta[name="description"]').forEach(translateElement);"""
-          if old_apply not in source:
-              raise SystemExit('static apply() source contract changed')
-          source = source.replace(old_apply, new_apply)
-          source = source.replace(
+          source = replace_once(
+              source,
+              "['title','aria-label','placeholder']",
+              "['title','aria-label','placeholder','content']",
+              'static translated attributes',
+          )
+          source = replace_once(
+              source,
+              "    document.body?.classList.toggle('static-localized-rtl', lang === 'ar');",
+              "    document.body?.classList.toggle('static-localized-rtl', lang === 'ar');\n"
+              "    const sourceTitle = document.documentElement.dataset.staticSourceTitle || document.title;\n"
+              "    document.documentElement.dataset.staticSourceTitle = sourceTitle;\n"
+              "    document.title = translated(sourceTitle);\n"
+              "    document.head.querySelectorAll('meta[name=\"description\"]').forEach(translateElement);",
+              'static apply metadata',
+          )
+          source = replace_once(
+              source,
               ".static-localized-rtl ul,.static-localized-rtl ol{padding-right:1.5rem;padding-left:0}`;",
               ".static-localized-rtl ul,.static-localized-rtl ol{padding-right:1.5rem;padding-left:0}.static-localized-rtl th,.static-localized-rtl td{text-align:right}.static-localized-rtl .footer-inner,.static-localized-rtl .nav,.static-localized-rtl .step-head{direction:rtl}`;",
+              'static RTL style',
           )
           path.write_text(source)
 
-          # Every non-assessment standalone public page shares the same AR/RU layer.
-          existing = ['contact.html', 'terms.html', 'privacy.html', 'refund.html']
-          for name in existing:
+          # Every non-assessment standalone public page uses the same language
+          # preference. Assessment/test HTML remains intentionally English-only.
+          for name in ['contact.html', 'terms.html', 'privacy.html', 'refund.html']:
               path = Path('public') / name
               source = path.read_text()
               if '/static-localization-completion.js' not in source:
-                  source = source.replace(
+                  source = replace_once(
+                      source,
                       '<script defer src="/static-localization.js"></script>',
                       '<script defer src="/static-localization-completion.js"></script>\n  <script defer src="/static-localization.js"></script>',
-                      1,
+                      f'{name} localization script',
                   )
               path.write_text(source)
 
@@ -158,10 +169,11 @@ jobs:
               path = Path('public') / name
               source = path.read_text()
               if '/static-localization-completion.js' not in source:
-                  source = source.replace(
+                  source = replace_once(
+                      source,
                       '</head>',
                       '  <script defer src="/static-localization-completion.js"></script>\n  <script defer src="/static-localization.js"></script>\n</head>',
-                      1,
+                      f'{name} localization scripts',
                   )
               path.write_text(source)
           PY
