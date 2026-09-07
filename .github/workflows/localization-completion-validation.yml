@@ -1,0 +1,181 @@
+name: Localization completion validation
+
+on:
+  push:
+    branches:
+      - fix/professional-localization-completion
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply localization wiring
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # Bridge every existing typed student message plus the final completion catalog
+          # into the global localization layer. Assessment locks remain untouched.
+          path = Path('src/components/AppLocalizationLayer.tsx')
+          source = path.read_text()
+          source = source.replace(
+              "import type { Language } from '../i18n/language';",
+              "import { translate as translateTypedMessage, type Language } from '../i18n/language';\nimport { messages, type MessageKey } from '../i18n/messages';",
+          )
+          marker = "import { hasAuditedInterfaceTranslation, translateAuditedInterfaceText } from '../i18n/interfaceTranslationAudit';"
+          source = source.replace(
+              marker,
+              marker + "\nimport { hasCompletionInterfaceTranslation, translateCompletionInterfaceText } from '../i18n/interfaceTranslationCompletion';",
+          )
+          old_has = """function hasApprovedTranslation(value: string): boolean {
+            return hasInterfaceTranslation(value)
+              || hasSupplementalInterfaceTranslation(value)
+              || hasFragmentInterfaceTranslation(value)
+              || hasAuditedInterfaceTranslation(value);
+          }"""
+          new_has = """function hasApprovedTranslation(value: string): boolean {
+            return Object.hasOwn(messages, value)
+              || hasInterfaceTranslation(value)
+              || hasSupplementalInterfaceTranslation(value)
+              || hasFragmentInterfaceTranslation(value)
+              || hasAuditedInterfaceTranslation(value)
+              || hasCompletionInterfaceTranslation(value);
+          }"""
+          if old_has not in source:
+              raise SystemExit('hasApprovedTranslation source contract changed')
+          source = source.replace(old_has, new_has)
+          old_translate = """function translateApprovedText(language: Language, value: string): string {
+            const fragment = translateFragmentInterfaceText(language, value);
+            if (fragment !== null) return fragment;
+            const audited = translateAuditedInterfaceText(language, value);
+            if (audited !== null) return audited;
+            const supplemental = translateSupplementalInterfaceText(language, value);
+            if (supplemental !== null) return supplemental;
+            return translateInterfaceText(language, value);
+          }"""
+          new_translate = """function translateApprovedText(language: Language, value: string): string {
+            const fragment = translateFragmentInterfaceText(language, value);
+            if (fragment !== null) return fragment;
+            const completion = translateCompletionInterfaceText(language, value);
+            if (completion !== null) return completion;
+            const audited = translateAuditedInterfaceText(language, value);
+            if (audited !== null) return audited;
+            const supplemental = translateSupplementalInterfaceText(language, value);
+            if (supplemental !== null) return supplemental;
+            if (Object.hasOwn(messages, value)) return translateTypedMessage(language, value as MessageKey);
+            return translateInterfaceText(language, value);
+          }"""
+          if old_translate not in source:
+              raise SystemExit('translateApprovedText source contract changed')
+          path.write_text(source.replace(old_translate, new_translate))
+
+          # Extend standalone page localization with the professional completion catalog,
+          # dynamic pricing strings, metadata translation and stronger Arabic RTL tables.
+          path = Path('public/static-localization.js')
+          source = path.read_text()
+          anchor = "  };\n\n  let lang ="
+          if anchor not in source:
+              raise SystemExit('static localization dictionary anchor changed')
+          source = source.replace(
+              anchor,
+              "  };\n\n  const completionMessages = window.__BH_STATIC_I18N_COMPLETION__ || {};\n"
+              "  Object.assign(M, completionMessages);\n"
+              "  const dynamicPatterns = window.__BH_STATIC_I18N_PATTERNS__ || [];\n"
+              "  const completionFragments = Object.keys(completionMessages).filter((key) => key.length >= 16).sort((a, b) => b.length - a.length);\n\n"
+              "  let lang =",
+              1,
+          )
+          old_translated = """  function translated(value) {
+            const pair = M[value];
+            if (!pair || lang === 'en') return value;
+            return pair[lang === 'ar' ? 0 : 1] || value;
+          }"""
+          new_translated = """  function translated(value) {
+            if (lang === 'en') return value;
+            const pair = M[value];
+            if (pair) return pair[lang === 'ar' ? 0 : 1] || value;
+            for (const rule of dynamicPatterns) {
+              const match = value.match(rule.pattern);
+              if (!match) continue;
+              const formatter = rule[lang];
+              if (typeof formatter === 'function') return formatter(match);
+            }
+            let output = value;
+            for (const key of completionFragments) {
+              if (!output.includes(key)) continue;
+              const replacement = M[key]?.[lang === 'ar' ? 0 : 1];
+              if (replacement) output = output.split(key).join(replacement);
+            }
+            return output;
+          }"""
+          if old_translated not in source:
+              raise SystemExit('translated() source contract changed')
+          source = source.replace(old_translated, new_translated)
+          source = source.replace("['title','aria-label','placeholder']", "['title','aria-label','placeholder','content']")
+          old_apply = """    document.documentElement.lang = lang;
+            document.documentElement.dir = languages[lang].dir;
+            document.body?.classList.toggle('static-localized-rtl', lang === 'ar');"""
+          new_apply = """    document.documentElement.lang = lang;
+            document.documentElement.dir = languages[lang].dir;
+            document.body?.classList.toggle('static-localized-rtl', lang === 'ar');
+            document.title = translated(document.documentElement.dataset.staticSourceTitle || (document.documentElement.dataset.staticSourceTitle = document.title));
+            document.head.querySelectorAll('meta[name="description"]').forEach(translateElement);"""
+          if old_apply not in source:
+              raise SystemExit('static apply() source contract changed')
+          source = source.replace(old_apply, new_apply)
+          source = source.replace(
+              ".static-localized-rtl ul,.static-localized-rtl ol{padding-right:1.5rem;padding-left:0}`;",
+              ".static-localized-rtl ul,.static-localized-rtl ol{padding-right:1.5rem;padding-left:0}.static-localized-rtl th,.static-localized-rtl td{text-align:right}.static-localized-rtl .footer-inner,.static-localized-rtl .nav,.static-localized-rtl .step-head{direction:rtl}`;",
+          )
+          path.write_text(source)
+
+          # Every non-assessment standalone public page shares the same AR/RU layer.
+          existing = ['contact.html', 'terms.html', 'privacy.html', 'refund.html']
+          for name in existing:
+              path = Path('public') / name
+              source = path.read_text()
+              if '/static-localization-completion.js' not in source:
+                  source = source.replace(
+                      '<script defer src="/static-localization.js"></script>',
+                      '<script defer src="/static-localization-completion.js"></script>\n  <script defer src="/static-localization.js"></script>',
+                      1,
+                  )
+              path.write_text(source)
+
+          for name in ['pricing.html', 'prime.html']:
+              path = Path('public') / name
+              source = path.read_text()
+              if '/static-localization-completion.js' not in source:
+                  source = source.replace(
+                      '</head>',
+                      '  <script defer src="/static-localization-completion.js"></script>\n  <script defer src="/static-localization.js"></script>\n</head>',
+                      1,
+                  )
+              path.write_text(source)
+          PY
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Commit validated patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/localization-completion-validation.yml
+          git add src/components/AppLocalizationLayer.tsx public/static-localization.js public/contact.html public/terms.html public/privacy.html public/refund.html public/pricing.html public/prime.html
+          git diff --cached --check
+          git commit -m "Wire professional localization completion across app and public pages"
+          git push origin HEAD:fix/professional-localization-completion
