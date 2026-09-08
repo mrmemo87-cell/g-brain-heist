@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { useLanguage } from '../../src/contexts/LanguageContext';
+import LoginFooter from '../LoginFooter';
 import { PORTAL_COPY } from './portalCopy';
 
 interface ExploreUniverseProps {
@@ -35,12 +36,12 @@ const ExploreUniverse: React.FC<ExploreUniverseProps> = ({ onBack, onRequestDemo
     }, [language]);
 
     return (
-        <div ref={rootRef} dir={direction} lang={language} className="relative min-h-screen overflow-hidden bg-[#06101d] px-5 py-7 text-white sm:px-8 lg:px-12">
+        <div ref={rootRef} dir={direction} lang={language} className="relative min-h-screen overflow-hidden bg-[#06101d] text-white">
             <div className="pointer-events-none absolute inset-0 opacity-[0.16] [background-image:linear-gradient(rgba(34,211,238,0.075)_1px,transparent_1px),linear-gradient(90deg,rgba(217,70,239,0.06)_1px,transparent_1px)] [background-size:72px_72px]" aria-hidden="true" />
             <div className="pointer-events-none absolute left-1/2 top-24 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-cyan-400/[0.10] blur-[135px]" aria-hidden="true" />
             <div className="pointer-events-none absolute -bottom-36 -right-16 h-[30rem] w-[30rem] rounded-full bg-fuchsia-500/[0.10] blur-[125px]" aria-hidden="true" />
 
-            <div className="relative z-10 mx-auto max-w-7xl">
+            <div className="relative z-10 mx-auto max-w-7xl px-5 py-7 sm:px-8 lg:px-12">
                 <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                     <button type="button" onClick={onBack} className={`rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-bold text-slate-300 transition hover:border-cyan-300/30 hover:text-white sm:px-4 sm:text-sm ${direction === 'rtl' ? 'justify-self-start text-right' : 'justify-self-start text-left'}`}>{direction === 'rtl' ? '→ ' : '← '}{copy.backPortal}</button>
                     <img src="/logo.png" alt="Brains Heist" className="h-10 w-10 object-contain drop-shadow-[0_0_18px_rgba(34,211,238,0.28)] sm:h-12 sm:w-12" />
@@ -73,6 +74,7 @@ const ExploreUniverse: React.FC<ExploreUniverseProps> = ({ onBack, onRequestDemo
                     <button type="button" onClick={onBack} className="mt-3 text-lg font-black text-white transition hover:text-cyan-200">{copy.returnSignIn}</button>
                 </div>
             </div>
+            <LoginFooter onRequestDemo={onRequestDemo} />
         </div>
     );
 };
