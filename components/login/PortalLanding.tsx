@@ -17,52 +17,21 @@ const PortalLanding: React.FC<PortalLandingProps> = ({ onExplore, children }) =>
 
     useEffect(() => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
         const ctx = gsap.context(() => {
             gsap.set([brandRef.current, headlineRef.current, cardWrapRef.current], { opacity: 0, y: 26, filter: 'blur(8px)' });
             gsap.timeline({ defaults: { ease: 'power3.out' } })
                 .to(brandRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.7 })
                 .to(headlineRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8 }, '-=0.4')
                 .to(cardWrapRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.9 }, '-=0.52');
-
-            if (gridRef.current) {
-                gsap.to(gridRef.current, {
-                    backgroundPosition: '0px 76px',
-                    duration: 12,
-                    repeat: -1,
-                    yoyo: true,
-                    ease: 'sine.inOut',
-                });
-            }
-            if (glowOneRef.current) {
-                gsap.to(glowOneRef.current, {
-                    xPercent: 14,
-                    yPercent: -10,
-                    scale: 1.14,
-                    duration: 8,
-                    repeat: -1,
-                    yoyo: true,
-                    ease: 'sine.inOut',
-                });
-            }
-            if (glowTwoRef.current) {
-                gsap.to(glowTwoRef.current, {
-                    xPercent: -12,
-                    yPercent: 14,
-                    scale: 1.12,
-                    duration: 10,
-                    repeat: -1,
-                    yoyo: true,
-                    ease: 'sine.inOut',
-                });
-            }
+            if (gridRef.current) gsap.to(gridRef.current, { backgroundPosition: '0px 76px', duration: 12, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+            if (glowOneRef.current) gsap.to(glowOneRef.current, { xPercent: 14, yPercent: -10, scale: 1.14, duration: 8, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+            if (glowTwoRef.current) gsap.to(glowTwoRef.current, { xPercent: -12, yPercent: 14, scale: 1.12, duration: 10, repeat: -1, yoyo: true, ease: 'sine.inOut' });
         }, rootRef);
-
         return () => ctx.revert();
     }, []);
 
     return (
-        <div ref={rootRef} className="relative min-h-screen overflow-hidden bg-[#06101d] text-white">
+        <div ref={rootRef} dir="ltr" className="relative min-h-screen overflow-hidden bg-[#06101d] text-white">
             <div ref={gridRef} className="pointer-events-none absolute inset-0 opacity-[0.16] [background-image:linear-gradient(rgba(34,211,238,0.075)_1px,transparent_1px),linear-gradient(90deg,rgba(217,70,239,0.06)_1px,transparent_1px)] [background-size:72px_72px]" aria-hidden="true" />
             <div ref={glowOneRef} className="pointer-events-none absolute -left-32 top-8 h-[34rem] w-[34rem] rounded-full bg-cyan-400/[0.13] blur-[120px]" aria-hidden="true" />
             <div ref={glowTwoRef} className="pointer-events-none absolute -right-32 bottom-0 h-[32rem] w-[32rem] rounded-full bg-fuchsia-500/[0.11] blur-[120px]" aria-hidden="true" />
@@ -71,10 +40,7 @@ const PortalLanding: React.FC<PortalLandingProps> = ({ onExplore, children }) =>
             <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-5 py-7 sm:px-8 lg:px-12">
                 <div ref={brandRef} className="mx-auto flex flex-col items-center text-center">
                     <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-300/30 bg-[#091828]/80 shadow-[0_0_38px_rgba(34,211,238,0.16)] sm:h-16 sm:w-16">
-                            <span className="text-2xl" aria-hidden="true">🧠</span>
-                            <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-lg border border-fuchsia-300/30 bg-[#081321] text-xs" aria-hidden="true">🔒</span>
-                        </div>
+                        <img src="/logo.png" alt="Brains Heist" className="h-16 w-16 object-contain drop-shadow-[0_0_28px_rgba(34,211,238,0.32)] sm:h-20 sm:w-20" />
                         <div className="text-left">
                             <div className="text-3xl font-black tracking-tight sm:text-5xl">Brains <span className="bg-gradient-to-r from-cyan-300 via-teal-200 to-fuchsia-400 bg-clip-text text-transparent">Heist</span></div>
                             <div className="mt-1 text-[10px] font-extrabold uppercase tracking-[0.5em] text-slate-500 sm:text-xs">Learn · Compete · Grow</div>
@@ -92,11 +58,7 @@ const PortalLanding: React.FC<PortalLandingProps> = ({ onExplore, children }) =>
 
                     <div ref={cardWrapRef} className="mx-auto w-full max-w-md">
                         {children}
-                        <button
-                            type="button"
-                            onClick={onExplore}
-                            className="group mt-7 w-full rounded-2xl border border-white/10 bg-white/[0.025] px-5 py-4 text-center transition duration-300 hover:border-cyan-300/35 hover:bg-cyan-300/[0.05]"
-                        >
+                        <button type="button" onClick={onExplore} className="group mt-7 w-full rounded-2xl border border-white/10 bg-white/[0.025] px-5 py-4 text-center transition duration-300 hover:border-cyan-300/35 hover:bg-cyan-300/[0.05]">
                             <span className="block text-[10px] font-extrabold uppercase tracking-[0.33em] text-slate-500 transition group-hover:text-cyan-300/80">Not here to sign in?</span>
                             <span className="mt-1.5 flex items-center justify-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-white">
                                 <span className="flex h-7 w-7 items-center justify-center rounded-full border border-cyan-300/30 bg-cyan-300/[0.06] text-cyan-300 shadow-[0_0_22px_rgba(34,211,238,0.16)]">◉</span>
