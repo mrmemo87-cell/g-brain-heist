@@ -24,6 +24,7 @@ const SKIP_TRANSLATION_SELECTOR = [
 
 type TextState = { source: string; rendered: string };
 type AttributeState = { source: string; rendered: string };
+type TrackedTranslation = { translated: string; matched: boolean };
 
 function splitOuterWhitespace(value: string) {
   const leading = value.match(/^\s*/)?.[0] ?? '';
@@ -58,6 +59,51 @@ function translateApprovedText(language: Language, value: string): string {
   const supplemental = translateSupplementalInterfaceText(language, value);
   if (supplemental !== null) return supplemental;
   return translateInterfaceText(language, value);
+}
+
+function translationCandidate(value: string): string | null {
+  const normalized = normalizeInterfaceSource(value);
+  if (!normalized) return null;
+  if (hasApprovedTranslation(normalized)) return normalized;
+
+  const capitalized = normalized.length > 1
+    ? `${normalized.charAt(0).toUpperCase()}${normalized.slice(1)}`
+    : normalized.toUpperCase();
+  return capitalized !== normalized && hasApprovedTranslation(capitalized) ? capitalized : null;
+}
+
+function translateTrackedText(language: Language, value: string): TrackedTranslation {
+  const normalized = normalizeInterfaceSource(value);
+  if (!normalized) return { translated: value, matched: false };
+
+  const wholeCandidate = translationCandidate(normalized);
+  if (wholeCandidate) {
+    return {
+      translated: language === 'en' ? value : translateApprovedText(language, wholeCandidate),
+      matched: true,
+    };
+  }
+
+  let matched = false;
+  const translated = value
+    .split(/(\s+)/)
+    .map((part) => {
+      if (!part || /^\s+$/.test(part)) return part;
+
+      const tokenMatch = part.match(/^([^A-Za-z0-9]*)([A-Za-z0-9][A-Za-z0-9'’/&+-]*)([^A-Za-z0-9]*)$/);
+      if (!tokenMatch) return part;
+
+      const [, prefix, core, suffix] = tokenMatch;
+      const candidate = translationCandidate(core);
+      if (!candidate) return part;
+
+      matched = true;
+      const translatedCore = language === 'en' ? core : translateApprovedText(language, candidate);
+      return `${prefix}${translatedCore}${suffix}`;
+    })
+    .join('');
+
+  return { translated, matched };
 }
 
 function LanguageControl({ language, setLanguage }: { language: Language; setLanguage: (language: Language) => void }) {
@@ -187,15 +233,14 @@ export function AppLocalizationLayer({
       }
 
       const { leading, trailing, core } = splitOuterWhitespace(sourceRaw);
-      const normalized = normalizeInterfaceSource(core);
-      if (!normalized || !hasApprovedTranslation(normalized)) {
+      const tracked = translateTrackedText(language, core);
+      if (!tracked.matched) {
         if (previous && current !== sourceRaw) text.nodeValue = sourceRaw;
         textStates.current.delete(text);
         return;
       }
 
-      const translated = translateApprovedText(language, normalized);
-      const next = `${leading}${translated}${trailing}`;
+      const next = `${leading}${tracked.translated}${trailing}`;
       textStates.current.set(text, { source: sourceRaw, rendered: next });
       if (current !== next) text.nodeValue = next;
     };
@@ -218,16 +263,15 @@ export function AppLocalizationLayer({
         let source = previous?.source ?? current;
         if (previous && current !== previous.rendered && current !== previous.source) source = current;
 
-        const normalized = normalizeInterfaceSource(source);
-        if (!normalized || !hasApprovedTranslation(normalized)) {
+        const tracked = translateTrackedText(language, source);
+        if (!tracked.matched) {
           if (previous && current !== source) element.setAttribute(attr, source);
           byAttribute.delete(attr);
           continue;
         }
 
-        const translated = translateApprovedText(language, normalized);
-        byAttribute.set(attr, { source, rendered: translated });
-        if (current !== translated) element.setAttribute(attr, translated);
+        byAttribute.set(attr, { source, rendered: tracked.translated });
+        if (current !== tracked.translated) element.setAttribute(attr, tracked.translated);
       }
     };
 
@@ -277,7 +321,7 @@ export function AppLocalizationLayer({
       data-interface-language={language}
       lang={language}
       dir={direction}
-      style={{ minHeight: '100%', width: '100%' }}
+      style={{ minHeight: '100%', width: '100%', direction }}
     >
       {children}
       <LanguageControl language={language} setLanguage={setLanguage} />
