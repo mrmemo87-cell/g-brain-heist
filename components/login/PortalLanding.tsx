@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { useLanguage } from '../../src/contexts/LanguageContext';
+import LoginFooter from '../LoginFooter';
 import { PORTAL_COPY } from './portalCopy';
 
 interface PortalLandingProps {
@@ -76,6 +77,7 @@ const PortalLanding: React.FC<PortalLandingProps> = ({ onExplore, children }) =>
                     </div>
                 </section>
             </main>
+            <LoginFooter />
         </div>
     );
 };
