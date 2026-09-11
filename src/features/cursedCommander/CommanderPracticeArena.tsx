@@ -20,7 +20,7 @@ const COPY = {
     subtitle: 'Isolated practice arena',
     practiceOnly: 'PRACTICE ONLY',
     safety: 'No Coins, XP, AP, rank, inventory, purchases or rewards are changed.',
-    testers: 'Server-authorized preview testers only.',
+    testers: 'Available to authenticated student accounts.',
     startTitle: 'Enter the first Commander combat slice',
     startBody: 'Fight one commander and two units with a fixed practice loadout. The server resolves every move and signs the battle transcript.',
     start: 'Start practice battle',
@@ -50,7 +50,7 @@ const COPY = {
     defeat: 'Practice defeat',
     draw: 'Practice draw',
     finishedNote: 'This result is practice-only and does not affect live progression.',
-    accessDenied: 'Commander Preview is not enabled for this account yet.',
+    accessDenied: 'Commander Preview is available to student accounts only.',
     expired: 'This practice transcript expired. Start a fresh battle.',
     unavailable: 'The Commander practice server is not available right now.',
     invalidTarget: 'Choose a living enemy target first.',
@@ -63,7 +63,7 @@ const COPY = {
     subtitle: 'ساحة تدريب معزولة',
     practiceOnly: 'تدريب فقط',
     safety: 'لن تتغير العملات أو XP أو AP أو التصنيف أو المخزون أو المشتريات أو المكافآت.',
-    testers: 'متاح فقط للمختبرين المصرح لهم من الخادم.',
+    testers: 'متاح لحسابات الطلاب المسجلين فقط.',
     startTitle: 'ادخل أول تجربة قتال للقائد',
     startBody: 'واجه قائدًا ووحدتين باستخدام تجهيز تدريب ثابت. الخادم يحسب كل حركة ويوقّع سجل المعركة.',
     start: 'ابدأ معركة تدريب',
@@ -93,7 +93,7 @@ const COPY = {
     defeat: 'خسارة تدريبية',
     draw: 'تعادل تدريبي',
     finishedNote: 'هذه النتيجة تدريبية فقط ولا تؤثر في تقدمك الحقيقي.',
-    accessDenied: 'معاينة القائد غير مفعلة لهذا الحساب حتى الآن.',
+    accessDenied: 'معاينة القائد متاحة لحسابات الطلاب فقط.',
     expired: 'انتهت صلاحية سجل التدريب. ابدأ معركة جديدة.',
     unavailable: 'خادم تدريب القائد غير متاح الآن.',
     invalidTarget: 'اختر أولًا هدفًا حيًا من الخصم.',
@@ -106,7 +106,7 @@ const COPY = {
     subtitle: 'Изолированная тренировочная арена',
     practiceOnly: 'ТОЛЬКО ТРЕНИРОВКА',
     safety: 'Монеты, XP, AP, рейтинг, инвентарь, покупки и награды не изменяются.',
-    testers: 'Доступ только для тестеров, разрешённых сервером.',
+    testers: 'Доступно авторизованным аккаунтам учеников.',
     startTitle: 'Войдите в первый боевой прототип Commander',
     startBody: 'Сразитесь с командиром и двумя бойцами с фиксированным тренировочным комплектом. Каждый ход рассчитывается сервером, а журнал боя подписывается.',
     start: 'Начать тренировочный бой',
@@ -136,7 +136,7 @@ const COPY = {
     defeat: 'Поражение в тренировке',
     draw: 'Ничья в тренировке',
     finishedNote: 'Этот результат существует только в тренировке и не влияет на реальный прогресс.',
-    accessDenied: 'Commander Preview пока не включён для этого аккаунта.',
+    accessDenied: 'Commander Preview доступен только аккаунтам учеников.',
     expired: 'Срок тренировочного журнала истёк. Начните новый бой.',
     unavailable: 'Сервер тренировочного Commander сейчас недоступен.',
     invalidTarget: 'Сначала выберите живую цель противника.',
@@ -147,7 +147,7 @@ const COPY = {
 } as const;
 
 const formatError = (code: string, copy: (typeof COPY)['en']) => {
-  if (code.includes('commander_preview_not_enabled')) return copy.accessDenied;
+  if (code.includes('commander_preview_not_enabled') || code.includes('commander_preview_students_only')) return copy.accessDenied;
   if (code.includes('transcript_expired')) return copy.expired;
   if (code.includes('preview_') || code.includes('Failed to send') || code.includes('FunctionsHttpError')) return copy.unavailable;
   if (code.includes('invalid_target')) return copy.invalidTarget;
@@ -205,6 +205,19 @@ const eventText = (event: CommanderPracticeEvent, language: keyof typeof COPY) =
     case 'battle_draw': return 'Practice ended in a draw.';
   }
 };
+
+const visibleBattleEvents = (events: CommanderPracticeEvent[]) =>
+  events.filter((event, index) => {
+    if (event.code !== 'focus_target' || (event.amount ?? 0) > 0) return true;
+    const next = events[index + 1];
+    return !(
+      next?.code === 'focus_target'
+      && next.turn === event.turn
+      && next.actorName === event.actorName
+      && next.targetName === event.targetName
+      && (next.amount ?? 0) > 0
+    );
+  });
 
 const CombatantCard: React.FC<{
   combatant: CommanderPracticeCombatant;
@@ -291,6 +304,10 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
   );
 
   const chooseDefaultTarget = (nextSession: CommanderPracticeSession) => {
+    if (nextSession.battle.status !== 'active') {
+      setSelectedTargetId(null);
+      return;
+    }
     const enemies = nextSession.battle.combatants.filter((combatant) => combatant.side === 'enemy' && combatant.hp > 0);
     const currentStillAlive = enemies.some((combatant) => combatant.id === selectedTargetId);
     if (!currentStillAlive) {
@@ -382,7 +399,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
             <div>
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-amber-300/40 bg-amber-400/10 px-2.5 py-1 text-[11px] font-black tracking-[0.16em] text-amber-200">{copy.practiceOnly}</span>
-                <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-[11px] font-semibold text-cyan-100">COMMANDER · V1 PREVIEW</span>
+                <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-[11px] font-semibold text-cyan-100">COMMANDER · PRACTICE PREVIEW</span>
               </div>
               <h1 id="commander-preview-title" className="font-heading text-2xl font-black text-white sm:text-3xl">{copy.title}</h1>
               <p className="mt-1 text-sm text-slate-300">{copy.subtitle}</p>
@@ -482,7 +499,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
                         combatant={combatant}
                         targetable={false}
                         selected={false}
-                        focused={battle.enemyFocusTarget === combatant.id}
+                        focused={!finished && battle.enemyFocusTarget === combatant.id}
                         selectedLabel={copy.selected}
                         hpLabel={copy.hp}
                         shieldLabel={copy.shield}
@@ -503,8 +520,8 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
                         key={combatant.id}
                         combatant={combatant}
                         targetable={!finished && !busy}
-                        selected={selectedTargetId === combatant.id}
-                        focused={battle.playerFocusTarget === combatant.id}
+                        selected={!finished && selectedTargetId === combatant.id}
+                        focused={!finished && battle.playerFocusTarget === combatant.id}
                         selectedLabel={copy.selected}
                         hpLabel={copy.hp}
                         shieldLabel={copy.shield}
@@ -560,7 +577,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
               <section className="rounded-3xl border border-slate-800 bg-slate-950/80 p-4">
                 <h2 className="font-heading text-sm font-black uppercase tracking-[0.12em] text-slate-200">{copy.battleLog}</h2>
                 <ol className="mt-3 max-h-64 space-y-2 overflow-y-auto pe-1" aria-live="polite">
-                  {[...battle.events].reverse().map((event) => (
+                  {visibleBattleEvents(battle.events).reverse().map((event) => (
                     <li key={event.id} className="rounded-xl border border-slate-800/80 bg-slate-900/70 px-3 py-2 text-xs leading-5 text-slate-300">
                       <span className="me-2 font-mono text-[10px] font-bold text-slate-500">T{event.turn}</span>
                       {eventText(event, language)}
