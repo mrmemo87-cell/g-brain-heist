@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   startCommanderPractice,
@@ -101,7 +102,7 @@ const COPY = {
     shield: 'الدرع',
   },
   ru: {
-    title: 'Commander Preview',
+    title: 'Предпросмотр Командира',
     subtitle: 'Изолированная тренировочная арена',
     practiceOnly: 'ТОЛЬКО ТРЕНИРОВКА',
     safety: 'Монеты, XP, AP, рейтинг, инвентарь, покупки и награды не изменяются.',
@@ -263,13 +264,22 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const pendingRequest = useRef<AbortController | null>(null);
+
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) onClose();
+    const dialog = dialogRef.current;
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    dialog?.showModal();
+    document.body.style.overflow = 'hidden';
+    return () => {
+      pendingRequest.current?.abort();
+      dialog?.close();
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [busy, onClose]);
+  }, []);
 
   const playerCombatants = useMemo(
     () => session?.battle.combatants.filter((combatant) => combatant.side === 'player') ?? [],
@@ -290,10 +300,15 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
   };
 
   const begin = async () => {
+    if (pendingRequest.current) return;
+    const controller = new AbortController();
+    pendingRequest.current = controller;
+    const timeout = window.setTimeout(() => controller.abort(), 20_000);
     setBusy(true);
     setError(null);
     try {
-      const next = await startCommanderPractice();
+      const next = await startCommanderPractice(controller.signal);
+      if (controller.signal.aborted) return;
       setSession(next);
       const firstTarget = next.battle.combatants.find(
         (combatant) => combatant.side === 'enemy' && combatant.role === 'commander' && combatant.hp > 0,
@@ -303,17 +318,22 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
       const code = cause instanceof Error ? cause.message : String(cause);
       setError(formatError(code, copy as (typeof COPY)['en']));
     } finally {
+      window.clearTimeout(timeout);
+      pendingRequest.current = null;
       setBusy(false);
     }
   };
 
   const playMove = async (move: CommanderPracticeMove) => {
-    if (!session || session.battle.status !== 'active' || busy) return;
+    if (!session || session.battle.status !== 'active' || pendingRequest.current) return;
     if (move !== 'guard' && !selectedTargetId) {
       setError(copy.invalidTarget);
       return;
     }
 
+    const controller = new AbortController();
+    pendingRequest.current = controller;
+    const timeout = window.setTimeout(() => controller.abort(), 20_000);
     setBusy(true);
     setError(null);
     try {
@@ -321,13 +341,17 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
         session.transcript,
         move,
         move === 'guard' ? null : selectedTargetId,
+        controller.signal,
       );
+      if (controller.signal.aborted) return;
       setSession(next);
       chooseDefaultTarget(next);
     } catch (cause) {
       const code = cause instanceof Error ? cause.message : String(cause);
       setError(formatError(code, copy as (typeof COPY)['en']));
     } finally {
+      window.clearTimeout(timeout);
+      pendingRequest.current = null;
       setBusy(false);
     }
   };
@@ -340,12 +364,14 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
       ? copy.defeat
       : copy.draw;
 
-  return (
-    <div
-      role="dialog"
+  return createPortal(
+    <dialog
+      ref={dialogRef}
+      onCancel={(event) => { event.preventDefault(); onClose(); }}
+      data-no-interface-translation="true"
       aria-modal="true"
       aria-labelledby="commander-preview-title"
-      className="fixed inset-0 z-[220] overflow-y-auto bg-slate-950/95 px-3 py-4 backdrop-blur-xl sm:px-6 sm:py-6"
+      className="fixed inset-0 m-0 h-[100dvh] max-h-none w-screen max-w-none border-0 z-[220] overflow-y-auto bg-slate-950/95 px-3 py-4 backdrop-blur-xl sm:px-6 sm:py-6"
       lang={language}
       dir={direction}
     >
@@ -364,7 +390,6 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
             <button
               type="button"
               onClick={onClose}
-              disabled={busy}
               className="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:text-white disabled:opacity-50"
             >
               ✕ {copy.close}
@@ -547,7 +572,8 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
           )}
         </main>
       </div>
-    </div>
+    </dialog>,
+    document.body,
   );
 };
 

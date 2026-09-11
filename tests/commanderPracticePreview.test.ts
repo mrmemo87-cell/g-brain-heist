@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import ts from 'typescript';
 import {
   applyPracticeTurn,
   startPracticeBattle,
@@ -54,7 +55,15 @@ test('preview API is authenticated, allowlisted, signed, and persistence-free', 
   assert.match(api, /COMMANDER_PREVIEW_SIGNING_SECRET/);
   assert.match(api, /crypto\.subtle\.sign/);
   assert.match(api, /crypto\.subtle\.verify/);
-  assert.doesNotMatch(api, /\.from\s*\(/);
+  const ast = ts.createSourceFile('index.ts', api, ts.ScriptTarget.Latest, true);
+  const inspect = (node: ts.Node) => {
+    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)
+      && node.expression.name.text === 'from') {
+      assert.equal(node.expression.expression.getText(ast), 'Uint8Array', 'Only byte conversion may call .from()');
+    }
+    ts.forEachChild(node, inspect);
+  };
+  inspect(ast);
   assert.doesNotMatch(api, /\.rpc\s*\(/);
   assert.doesNotMatch(api, /\bfetch\s*\(/);
   assert.match(config, /\[functions\.commander_practice\][\s\S]*?verify_jwt\s*=\s*true/);
@@ -68,4 +77,13 @@ test('Game tab adds Commander Preview without replacing legacy Attack', () => {
   assert.match(mainActions, /handlePilotClick\('Launch Attack', onStartPvp\)/);
   assert.match(mainActions, /mission-console-images\/attack\.webp/);
   assert.match(mainActions, /onOpenLockdown[\s\S]*?Lockdown Mode/);
+});
+
+test('the cooldown sent to the arena rejects Death Bolt until it reaches zero', () => {
+  const state = startPracticeBattle(99);
+  state.playerDeathBoltCooldown = 1;
+  assert.throws(() => applyPracticeTurn(state, { move: 'death_bolt', targetId: 'enemy_commander' }), /death_bolt_on_cooldown/);
+  const ready = applyPracticeTurn(state, { move: 'guard' });
+  assert.equal(ready.playerDeathBoltCooldown, 0);
+  assert.doesNotThrow(() => applyPracticeTurn(ready, { move: 'death_bolt', targetId: 'enemy_commander' }));
 });

@@ -64,8 +64,13 @@ test('email confirmation has code verification, resend, and a seven-day lifecycl
   assert.match(auth, /auth\.verifyOtp\([\s\S]{0,160}token: normalizedToken[\s\S]{0,80}type: 'signup'/);
   assert.match(auth, /auth\.resend\([\s\S]{0,120}type: 'signup'/);
   assert.match(auth, /7 \* 24 \* 60 \* 60 \* 1000/);
-  assert.match(login, /Confirm and continue/);
-  assert.match(login, /Resend confirmation/);
+  const card = read('components/login/AuthPortalCard.tsx');
+  assert.match(login, /<AuthPortalCard/);
+  assert.match(login, /onSubmit=\{handleSubmit\}/);
+  assert.match(login, /onResendConfirmation=\{\(\) => void handleResendConfirmation\(\)\}/);
+  assert.match(card, /Confirm and continue/);
+  assert.match(card, /Resend confirmation/);
+  assert.match(card, /onClick=\{onResendConfirmation\}/);
 });
 
 test('School Head first-login setup is removed while delegated billing stays read-only', () => {

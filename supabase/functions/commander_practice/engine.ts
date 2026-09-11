@@ -349,6 +349,11 @@ export const applyPracticeTurn = (
   if (currentState.status !== "active") throw new Error("battle_finished");
   if (currentState.turn < 1 || currentState.turn > currentState.maxTurns) throw new Error("invalid_turn");
 
+  // The cooldown returned to the client governs the next submitted move.
+  if (intent.move === "death_bolt" && currentState.playerDeathBoltCooldown > 0) {
+    throw new Error("death_bolt_on_cooldown");
+  }
+
   const state = JSON.parse(JSON.stringify(currentState)) as PracticeBattleState;
   state.playerDeathBoltCooldown = Math.max(0, state.playerDeathBoltCooldown - 1);
   state.enemyDeathBoltCooldown = Math.max(0, state.enemyDeathBoltCooldown - 1);

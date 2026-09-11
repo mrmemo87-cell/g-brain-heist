@@ -39,10 +39,18 @@ test('Superadmin light layer keeps form controls and wide-table scrollbars reada
 
 test('public LoginView keeps its original branded UX outside the Superadmin palette', () => {
   const login = readFileSync('components/LoginView.tsx', 'utf8');
-  assert.match(login, /bg-\[#030a14\]/);
-  assert.match(login, /bg-\[#081321\]\/90/);
-  assert.match(login, /text-white/);
-  assert.match(login, /from-cyan-300 via-cyan-400 to-teal-300/);
+  const landing = readFileSync('components/login/PortalLanding.tsx', 'utf8');
+  const explore = readFileSync('components/login/ExploreUniverse.tsx', 'utf8');
+  const card = readFileSync('components/login/AuthPortalCard.tsx', 'utf8');
+  for (const component of ['PortalLanding', 'ExploreUniverse', 'AuthPortalCard']) {
+    assert.ok(login.includes(`<${component}`), `${component} remains wired into LoginView`);
+  }
+  for (const surface of [landing, explore]) {
+    assert.match(surface, /bg-\[#06101d\] text-white/);
+    assert.doesNotMatch(surface, /superadmin-shell|platform-light-theme/);
+  }
+  assert.match(card, /bg-\[#081321\]\/95/);
+  assert.match(card, /from-cyan-300 via-cyan-400 to-teal-300/);
 });
 
 test('Superadmin legacy accent text is remapped to readable light-theme contrast', () => {

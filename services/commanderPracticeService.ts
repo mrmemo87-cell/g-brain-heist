@@ -97,8 +97,9 @@ const requireSession = async (
   };
 };
 
-export async function startCommanderPractice(): Promise<CommanderPracticeSession> {
+export async function startCommanderPractice(signal?: AbortSignal): Promise<CommanderPracticeSession> {
   const { data, error } = await supabase.functions.invoke<PracticeApiResponse>('commander_practice', {
+    signal,
     body: { action: 'start' },
   });
   return requireSession(data, error);
@@ -108,8 +109,10 @@ export async function submitCommanderPracticeTurn(
   transcript: string,
   move: CommanderPracticeMove,
   targetId?: string | null,
+  signal?: AbortSignal,
 ): Promise<CommanderPracticeSession> {
   const { data, error } = await supabase.functions.invoke<PracticeApiResponse>('commander_practice', {
+    signal,
     body: {
       action: 'turn',
       transcript,

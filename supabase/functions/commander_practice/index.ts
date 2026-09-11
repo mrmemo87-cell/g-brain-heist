@@ -43,7 +43,7 @@ const corsHeaders = {
 const json = (status: number, payload: unknown) =>
   new Response(JSON.stringify(payload), {
     status,
-    headers: { "content-type": "application/json", ...corsHeaders },
+    headers: { "content-type": "application/json", "Cache-Control": "no-store", ...corsHeaders },
   });
 
 const base64UrlEncode = (bytes: Uint8Array) => {
@@ -132,9 +132,9 @@ const verifyTranscript = async (token: string, userId: string): Promise<Practice
   return payload;
 };
 
-const isAllowedTester = (user: { id: string; email?: string | null }) => {
+const isAllowedTester = (user: { id: string; email?: string | null; email_confirmed_at?: string | null }) => {
   const email = String(user.email ?? "").trim().toLowerCase();
-  return testerIds.has(user.id.toLowerCase()) || (Boolean(email) && testerEmails.has(email));
+  return testerIds.has(user.id.toLowerCase()) || (Boolean(email) && Boolean(user.email_confirmed_at) && testerEmails.has(email));
 };
 
 const randomSeed = () => {
@@ -162,7 +162,8 @@ serve(async (req) => {
   const token = authHeader.replace(/^Bearer\s+/i, "").trim();
   if (!token) return json(401, { ok: false, version: FUNCTION_VERSION, error: "missing_bearer_token" });
 
-  const { data: authData, error: authError } = await admin.auth.getUser(token);
+  const { data: authData, error: authError } = await admin.auth.getUser(token)
+    .catch(() => ({ data: { user: null }, error: new Error("auth_unavailable") }));
   const user = authData?.user;
   if (authError || !user) {
     return json(401, { ok: false, version: FUNCTION_VERSION, error: "invalid_auth_token" });
