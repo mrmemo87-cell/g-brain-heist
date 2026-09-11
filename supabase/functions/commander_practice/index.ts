@@ -7,7 +7,7 @@ import {
   type PracticeMove,
 } from "./engine.ts";
 
-const FUNCTION_VERSION = "commander_practice_v1";
+const FUNCTION_VERSION = "commander_practice_v2";
 const TOKEN_VERSION = 1 as const;
 const TRANSCRIPT_TTL_MS = 15 * 60 * 1000;
 const MAX_TOKEN_LENGTH = 24_000;
@@ -21,17 +21,6 @@ const admin = supabaseUrl && serviceRoleKey
       auth: { persistSession: false, autoRefreshToken: false },
     })
   : null;
-
-const parseAllowlist = (name: string) =>
-  new Set(
-    (Deno.env.get(name) ?? "")
-      .split(",")
-      .map((value) => value.trim().toLowerCase())
-      .filter(Boolean),
-  );
-
-const testerIds = parseAllowlist("COMMANDER_PREVIEW_TESTER_IDS");
-const testerEmails = parseAllowlist("COMMANDER_PREVIEW_TESTER_EMAILS");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -132,9 +121,17 @@ const verifyTranscript = async (token: string, userId: string): Promise<Practice
   return payload;
 };
 
-const isAllowedTester = (user: { id: string; email?: string | null; email_confirmed_at?: string | null }) => {
-  const email = String(user.email ?? "").trim().toLowerCase();
-  return testerIds.has(user.id.toLowerCase()) || (Boolean(email) && Boolean(user.email_confirmed_at) && testerEmails.has(email));
+const isStudentAccount = async (userId: string) => {
+  if (!admin) throw new Error("preview_auth_not_configured");
+
+  const { data, error } = await admin
+    .from("users")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) throw new Error("preview_student_lookup_failed");
+  return data?.role === "student";
 };
 
 const randomSeed = () => {
@@ -169,8 +166,13 @@ serve(async (req) => {
     return json(401, { ok: false, version: FUNCTION_VERSION, error: "invalid_auth_token" });
   }
 
-  if (!isAllowedTester(user)) {
-    return json(403, { ok: false, version: FUNCTION_VERSION, error: "commander_preview_not_enabled" });
+  try {
+    if (!(await isStudentAccount(user.id))) {
+      return json(403, { ok: false, version: FUNCTION_VERSION, error: "commander_preview_students_only" });
+    }
+  } catch (error) {
+    const code = error instanceof Error ? error.message : "preview_student_lookup_failed";
+    return json(503, { ok: false, version: FUNCTION_VERSION, error: code });
   }
 
   let body: Record<string, unknown>;
