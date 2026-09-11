@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 import { visualAssets, neonIcon } from './visualAssets';
 
+const CommanderPracticeArena = React.lazy(() => import('../src/features/cursedCommander/CommanderPracticeArena'));
+
 // Default school icon as SVG data URL
 const defaultSchoolIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIgMTBWNkwxMiAyIDIgNnY0Yy4zNC0uMDguNjUtLjEgMS0uMWg1LjFsMi40NSAzLjA2YTEgMSAwIDAgMCAxLjU2IDBMMTQuNTUgOS45SDE5Ljljey4zNSAwIC42Ny4wMiAxIC4xWiIvPjxwYXRoIGQ9Ik0xMiAyMnYtNiIvPjxwYXRoIGQ9Ik00IDEwdjEwYzAgLjU1LjQ1IDEgMSAxaDE0Yy41NSAwIDEtLjQ1IDEtMVYxMCIvPjwvc3ZnPg==';
 
@@ -237,8 +239,9 @@ const MainActions: React.FC<MainActionsProps> = ({
   profile: _profile,
   onUpgrade,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
+  const [showCommanderPreview, setShowCommanderPreview] = useState(false);
 
   // Fetch pilot quotas on mount (only if on pilot plan)
   useEffect(() => {
@@ -275,269 +278,298 @@ const MainActions: React.FC<MainActionsProps> = ({
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
   const missionCardClass = 'min-h-[10rem] sm:min-h-[11rem]';
   const missionIconClass = 'h-24 w-24 object-contain drop-shadow-[0_0_22px_rgba(255,255,255,0.35)] brightness-110 contrast-110 saturate-125 sm:h-28 sm:w-28';
+  const commanderPreviewLabel = language === 'ar' ? 'معاينة القائد' : language === 'ru' ? 'Commander Preview' : 'Commander Preview';
+  const commanderPreviewSubtitle = language === 'ar'
+    ? 'ساحة تدريب معزولة · للمختبرين فقط'
+    : language === 'ru'
+      ? 'Изолированная тренировка · только для тестеров'
+      : 'Isolated practice arena · testers only';
   
   return (
-    <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-80"
-        style={{
-          background:
-            'radial-gradient(circle at 15% 25%, rgba(16, 185, 129, 0.08), transparent 30%), radial-gradient(circle at 85% 15%, rgba(14, 165, 233, 0.08), transparent 28%), radial-gradient(closest-side at 50% 120%, rgba(255, 255, 255, 0.04), transparent)',
-        }}
-      />
-      <div className="relative grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-            {/* ── Primary actions (always visible) ── */}
-            {onOpenCompetitionPlay && (
-              <ActionButton
-                onClick={onOpenCompetitionPlay}
-                icon={
-                  <div className="relative flex items-center justify-center">
-                    <img
-                      src={displaySchoolLogo}
-                      alt={`${displaySchoolName} play`}
-                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40 bg-slate-800"
-                      onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
-                    />
-                    <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">🎭</span>
-                  </div>
-                }
-                label={`${displaySchoolName} Play`}
-                subtitle={`Jump into ${displaySchoolName} story missions`}
-                color="0, 255, 200"
-                glowClass="glow-success animate-pulse-glow"
-                className="col-span-2"
-              />
-            )}
-            {onOpenCompetitionLeaderboard && (
-              <ActionButton
-                onClick={onOpenCompetitionLeaderboard}
-                icon={
-                  <div className="relative flex items-center justify-center">
-                    <img
-                      src={displaySchoolLogo}
-                      alt={`${displaySchoolName} rankings`}
-                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40 bg-slate-800"
-                      onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
-                    />
-                    <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">🏁</span>
-                  </div>
-                }
-                label={`${displaySchoolName} Rankings`}
-                subtitle="Track your house on the leaderboard"
-                color="0, 160, 255"
-                glowClass="glow-ion"
+    <>
+      <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-80"
+          style={{
+            background:
+              'radial-gradient(circle at 15% 25%, rgba(16, 185, 129, 0.08), transparent 30%), radial-gradient(circle at 85% 15%, rgba(14, 165, 233, 0.08), transparent 28%), radial-gradient(closest-side at 50% 120%, rgba(255, 255, 255, 0.04), transparent)',
+          }}
+        />
+        <div className="relative grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+              {/* ── Primary actions (always visible) ── */}
+              {onOpenCompetitionPlay && (
+                <ActionButton
+                  onClick={onOpenCompetitionPlay}
+                  icon={
+                    <div className="relative flex items-center justify-center">
+                      <img
+                        src={displaySchoolLogo}
+                        alt={`${displaySchoolName} play`}
+                        className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40 bg-slate-800"
+                        onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
+                      />
+                      <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">🎭</span>
+                    </div>
+                  }
+                  label={`${displaySchoolName} Play`}
+                  subtitle={`Jump into ${displaySchoolName} story missions`}
+                  color="0, 255, 200"
+                  glowClass="glow-success animate-pulse-glow"
+                  className="col-span-2"
+                />
+              )}
+              {onOpenCompetitionLeaderboard && (
+                <ActionButton
+                  onClick={onOpenCompetitionLeaderboard}
+                  icon={
+                    <div className="relative flex items-center justify-center">
+                      <img
+                        src={displaySchoolLogo}
+                        alt={`${displaySchoolName} rankings`}
+                        className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40 bg-slate-800"
+                        onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
+                      />
+                      <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">🏁</span>
+                    </div>
+                  }
+                  label={`${displaySchoolName} Rankings`}
+                  subtitle="Track your house on the leaderboard"
+                  color="0, 160, 255"
+                  glowClass="glow-ion"
+                  className="col-span-2 sm:col-span-3"
+                />
+              )}
+              <QuestPlayButton
+                onClick={onStartQuest}
+                hasPendingAssignment={hasPendingAssignment}
                 className="col-span-2 sm:col-span-3"
               />
-            )}
-            <QuestPlayButton
-              onClick={onStartQuest}
-              hasPendingAssignment={hasPendingAssignment}
-              className="col-span-2 sm:col-span-3"
-            />
-            <ActionButton
-              onClick={locked ? handleLocked('Launch Attack') : handlePilotClick('Launch Attack', onStartPvp)}
-              icon={<img src="/mission-console-images/attack.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Launch Attack")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              color="255, 45, 145"
-              glowClass="glow-plasma animate-pulse-glow"
-              locked={locked}
-              quotaInfo={q('Launch Attack')}
-              quotaLabel={ql('Launch Attack')}
-            />
-            {onOpenRaid && (
               <ActionButton
-                onClick={onOpenRaid}
-                icon={<span aria-hidden className="text-3xl">🚀</span>}
-                label={t("Raids")}
-                color="72, 61, 139"
-                glowClass="glow-purple"
+                onClick={() => setShowCommanderPreview(true)}
+                icon={<span aria-hidden className="text-4xl">🧠⚔️</span>}
+                label={commanderPreviewLabel}
+                subtitle={commanderPreviewSubtitle}
+                className="col-span-2 min-h-[8rem] sm:col-span-3"
+                color="0, 208, 232"
+                glowClass="glow-ion"
               />
-            )}
-            <ActionButton
-              onClick={locked ? handleLocked('Visit Shop') : handlePilotClick('Visit Shop', onVisitShop)}
-              icon={<img src="/mission-console-images/shop.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Visit Shop")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              color="22, 226, 161"
-              glowClass="glow-success"
-              locked={locked}
-              quotaInfo={q('Visit Shop')}
-              quotaLabel={ql('Visit Shop')}
-            />
-            <ActionButton
-              onClick={locked ? handleLocked('Leaderboard') : handlePilotClick('Leaderboard', onViewLeaderboard)}
-              icon={<img src="/mission-console-images/leaderboard.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Leaderboard")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              ariaLabel={t("Leaderboard")}
-              color="255, 215, 0"
-              glowClass="glow-warn"
-              locked={locked}
-              quotaInfo={q('Leaderboard')}
-              quotaLabel={ql('Leaderboard')}
-            />
-            <ActionButton
-              onClick={locked ? handleLocked('Clans') : handlePilotClick('Clan', onGoToClan)}
-              icon={<img src="/mission-console-images/clan.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Clan")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              ariaLabel={t("Clan")}
-              color="255, 176, 32"
-              glowClass="glow-warn"
-              badgeText={!locked && clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
-              locked={locked}
-              quotaInfo={q('Clan')}
-              quotaLabel={ql('Clan')}
-            />
-            <ActionButton
-              onClick={locked ? handleLocked('Inventory') : handlePilotClick('Inventory', onVisitInventory)}
-              icon={<img src="/mission-console-images/inventory.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Inventory")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              ariaLabel={t("Inventory")}
-              color="158, 93, 255"
-              glowClass="glow-purple"
-              locked={locked}
-              quotaInfo={q('Inventory')}
-              quotaLabel={ql('Inventory')}
-            />
-            <ActionButton
-              onClick={locked ? handleLocked('Achievements') : handlePilotClick('Achievements', onViewAchievements)}
-              icon={<img src="/mission-console-images/achievements.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Achievements")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              ariaLabel={t("Achievements")}
-              color="255, 100, 200"
-              glowClass="glow-plasma"
-              locked={locked}
-              quotaInfo={q('Achievements')}
-              quotaLabel={ql('Achievements')}
-            />
-            {onOpenLockdown && (
               <ActionButton
-                onClick={handlePilotClick('Lockdown Mode', onOpenLockdown)}
-                icon={<img src="/mission-console-images/lockdown.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+                onClick={locked ? handleLocked('Launch Attack') : handlePilotClick('Launch Attack', onStartPvp)}
+                icon={<img src="/mission-console-images/attack.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
                 iconBare
-                label={t("Lockdown Mode")}
+                label={t("Launch Attack")}
                 circleIcon
                 hideLabel
-                className={`${missionCardClass} col-span-2 w-[calc(50%-0.375rem)] justify-self-center sm:col-span-1 sm:col-start-2 sm:w-full`}
+                className={missionCardClass}
                 containerBare
-                color="255, 69, 58"
-                glowClass="glow-plasma"
-                quotaInfo={q('Lockdown Mode')}
-                quotaLabel={ql('Lockdown Mode')}
+                color="255, 45, 145"
+                glowClass="glow-plasma animate-pulse-glow"
+                locked={locked}
+                quotaInfo={q('Launch Attack')}
+                quotaLabel={ql('Launch Attack')}
               />
-            )}
-            {/* ── Admin / staff actions ── */}
-            {onOpenAdminPortal && (
+              {onOpenRaid && (
+                <ActionButton
+                  onClick={onOpenRaid}
+                  icon={<span aria-hidden className="text-3xl">🚀</span>}
+                  label={t("Raids")}
+                  color="72, 61, 139"
+                  glowClass="glow-purple"
+                />
+              )}
               <ActionButton
-                onClick={onOpenAdminPortal}
-                icon={<span aria-hidden className="text-4xl">⚡</span>}
-                label="ADMIN"
+                onClick={locked ? handleLocked('Visit Shop') : handlePilotClick('Visit Shop', onVisitShop)}
+                icon={<img src="/mission-console-images/shop.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+                iconBare
+                label={t("Visit Shop")}
+                circleIcon
+                hideLabel
+                className={missionCardClass}
+                containerBare
+                color="22, 226, 161"
+                glowClass="glow-success"
+                locked={locked}
+                quotaInfo={q('Visit Shop')}
+                quotaLabel={ql('Visit Shop')}
+              />
+              <ActionButton
+                onClick={locked ? handleLocked('Leaderboard') : handlePilotClick('Leaderboard', onViewLeaderboard)}
+                icon={<img src="/mission-console-images/leaderboard.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+                iconBare
+                label={t("Leaderboard")}
+                circleIcon
+                hideLabel
+                className={missionCardClass}
+                containerBare
+                ariaLabel={t("Leaderboard")}
                 color="255, 215, 0"
                 glowClass="glow-warn"
-                className="col-span-2 animate-pulse-glow"
+                locked={locked}
+                quotaInfo={q('Leaderboard')}
+                quotaLabel={ql('Leaderboard')}
               />
-            )}
-            {onOpenSchoolAdmin && (
               <ActionButton
-                onClick={onOpenSchoolAdmin}
-                icon={<span aria-hidden className="text-4xl">🏫</span>}
-                label="School Admin"
-                subtitle="Manage your school"
-                color="168, 85, 247"
-                glowClass="glow-ion"
-                className="col-span-2"
-              />
-            )}
-            {onOpenAdmissions && (
-              <ActionButton
-                onClick={onOpenAdmissions}
-                icon={<span aria-hidden className="text-4xl">🎓</span>}
-                label="Admissions"
-                subtitle="Entrance tests & placement"
-                color="234, 179, 8"
+                onClick={locked ? handleLocked('Clans') : handlePilotClick('Clan', onGoToClan)}
+                icon={<img src="/mission-console-images/clan.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+                iconBare
+                label={t("Clan")}
+                circleIcon
+                hideLabel
+                className={missionCardClass}
+                containerBare
+                ariaLabel={t("Clan")}
+                color="255, 176, 32"
                 glowClass="glow-warn"
-                className="col-span-2"
+                badgeText={!locked && clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
+                locked={locked}
+                quotaInfo={q('Clan')}
+                quotaLabel={ql('Clan')}
               />
-            )}
-            {onOpenRaidAdmin && (
               <ActionButton
-                onClick={onOpenRaidAdmin}
-                icon={<span aria-hidden className="text-3xl">🛡️</span>}
-                label="Raid Admin"
-                color="0, 191, 255"
-                glowClass="glow-ion"
+                onClick={locked ? handleLocked('Inventory') : handlePilotClick('Inventory', onVisitInventory)}
+                icon={<img src="/mission-console-images/inventory.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+                iconBare
+                label={t("Inventory")}
+                circleIcon
+                hideLabel
+                className={missionCardClass}
+                containerBare
+                ariaLabel={t("Inventory")}
+                color="158, 93, 255"
+                glowClass="glow-purple"
+                locked={locked}
+                quotaInfo={q('Inventory')}
+                quotaLabel={ql('Inventory')}
               />
-            )}
-            {onOpenCompetitionAdmin && (
               <ActionButton
-                onClick={onOpenCompetitionAdmin}
-                icon={
-                  <div className="relative flex items-center justify-center">
-                    <img
-                      src={displaySchoolLogo}
-                      alt={`${displaySchoolName} admin`}
-                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40 bg-slate-800"
-                      onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
-                    />
-                    <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">📊</span>
-                  </div>
-                }
-                label={`${displaySchoolName} Admin`}
-                color="0, 191, 255"
-                glowClass="glow-ion"
-                className="col-span-2"
+                onClick={locked ? handleLocked('Achievements') : handlePilotClick('Achievements', onViewAchievements)}
+                icon={<img src="/mission-console-images/achievements.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+                iconBare
+                label={t("Achievements")}
+                circleIcon
+                hideLabel
+                className={missionCardClass}
+                containerBare
+                ariaLabel={t("Achievements")}
+                color="255, 100, 200"
+                glowClass="glow-plasma"
+                locked={locked}
+                quotaInfo={q('Achievements')}
+                quotaLabel={ql('Achievements')}
               />
-            )}
-            {onOpenTournamentAdmin && (
-              <ActionButton
-                onClick={onOpenTournamentAdmin}
-                icon={<span aria-hidden className="text-3xl">🎮🛰️</span>}
-                label="Tournament Ops"
-                color="135, 206, 250"
-                glowClass="glow-ion"
-                className="col-span-2"
-              />
-            )}
-            {onOpenTeacherPortal && (
-              <ActionButton
-                onClick={onOpenTeacherPortal}
-                icon={<span aria-hidden className="text-3xl">🧑‍🏫📘</span>}
-                label={t("Teacher")}
-                color="100, 200, 255"
-                glowClass="glow-ion"
-              />
-            )}
-        </div>
-      </section>
+              {onOpenLockdown && (
+                <ActionButton
+                  onClick={handlePilotClick('Lockdown Mode', onOpenLockdown)}
+                  icon={<img src="/mission-console-images/lockdown.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
+                  iconBare
+                  label={t("Lockdown Mode")}
+                  circleIcon
+                  hideLabel
+                  className={`${missionCardClass} col-span-2 w-[calc(50%-0.375rem)] justify-self-center sm:col-span-1 sm:col-start-2 sm:w-full`}
+                  containerBare
+                  color="255, 69, 58"
+                  glowClass="glow-plasma"
+                  quotaInfo={q('Lockdown Mode')}
+                  quotaLabel={ql('Lockdown Mode')}
+                />
+              )}
+              {/* ── Admin / staff actions ── */}
+              {onOpenAdminPortal && (
+                <ActionButton
+                  onClick={onOpenAdminPortal}
+                  icon={<span aria-hidden className="text-4xl">⚡</span>}
+                  label="ADMIN"
+                  color="255, 215, 0"
+                  glowClass="glow-warn"
+                  className="col-span-2 animate-pulse-glow"
+                />
+              )}
+              {onOpenSchoolAdmin && (
+                <ActionButton
+                  onClick={onOpenSchoolAdmin}
+                  icon={<span aria-hidden className="text-4xl">🏫</span>}
+                  label="School Admin"
+                  subtitle="Manage your school"
+                  color="168, 85, 247"
+                  glowClass="glow-ion"
+                  className="col-span-2"
+                />
+              )}
+              {onOpenAdmissions && (
+                <ActionButton
+                  onClick={onOpenAdmissions}
+                  icon={<span aria-hidden className="text-4xl">🎓</span>}
+                  label="Admissions"
+                  subtitle="Entrance tests & placement"
+                  color="234, 179, 8"
+                  glowClass="glow-warn"
+                  className="col-span-2"
+                />
+              )}
+              {onOpenRaidAdmin && (
+                <ActionButton
+                  onClick={onOpenRaidAdmin}
+                  icon={<span aria-hidden className="text-3xl">🛡️</span>}
+                  label="Raid Admin"
+                  color="0, 191, 255"
+                  glowClass="glow-ion"
+                />
+              )}
+              {onOpenCompetitionAdmin && (
+                <ActionButton
+                  onClick={onOpenCompetitionAdmin}
+                  icon={
+                    <div className="relative flex items-center justify-center">
+                      <img
+                        src={displaySchoolLogo}
+                        alt={`${displaySchoolName} admin`}
+                        className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40 bg-slate-800"
+                        onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
+                      />
+                      <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">📊</span>
+                    </div>
+                  }
+                  label={`${displaySchoolName} Admin`}
+                  color="0, 191, 255"
+                  glowClass="glow-ion"
+                  className="col-span-2"
+                />
+              )}
+              {onOpenTournamentAdmin && (
+                <ActionButton
+                  onClick={onOpenTournamentAdmin}
+                  icon={<span aria-hidden className="text-3xl">🎮🛰️</span>}
+                  label="Tournament Ops"
+                  color="135, 206, 250"
+                  glowClass="glow-ion"
+                  className="col-span-2"
+                />
+              )}
+              {onOpenTeacherPortal && (
+                <ActionButton
+                  onClick={onOpenTeacherPortal}
+                  icon={<span aria-hidden className="text-3xl">🧑‍🏫📘</span>}
+                  label={t("Teacher")}
+                  color="100, 200, 255"
+                  glowClass="glow-ion"
+                />
+              )}
+          </div>
+        </section>
+
+        {showCommanderPreview && (
+          <React.Suspense
+            fallback={
+              <div className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/95 text-sm font-semibold text-cyan-200 backdrop-blur-xl">
+                {commanderPreviewLabel}…
+              </div>
+            }
+          >
+            <CommanderPracticeArena onClose={() => setShowCommanderPreview(false)} />
+          </React.Suspense>
+        )}
+      </>
     );
   };
 
