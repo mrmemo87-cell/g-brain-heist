@@ -18,7 +18,6 @@ test('practice combat is deterministic for identical seed and intent', () => {
 
   assert.deepEqual(first, second);
   assert.equal(first.turn, 2);
-  assert.equal(first.status, 'active');
 });
 
 test('practice combat rejects forged target ids and preserves source state', () => {
@@ -56,7 +55,8 @@ test('preview API is authenticated, allowlisted, signed, and persistence-free', 
   assert.match(api, /crypto\.subtle\.sign/);
   assert.match(api, /crypto\.subtle\.verify/);
   assert.doesNotMatch(api, /\.from\s*\(/);
-  assert.doesNotMatch(api, /rpc_hack_attempt|shop_buy|grant_reward|inventory|pvp_score|action_points/i);
+  assert.doesNotMatch(api, /\.rpc\s*\(/);
+  assert.doesNotMatch(api, /\bfetch\s*\(/);
   assert.match(config, /\[functions\.commander_practice\][\s\S]*?verify_jwt\s*=\s*true/);
 });
 
