@@ -21,3 +21,6 @@ verify_jwt = false
 
 [functions.teacher_question_pdf_extract]
 verify_jwt = true
+
+[functions.commander_practice]
+verify_jwt = true
