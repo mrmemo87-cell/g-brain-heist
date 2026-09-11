@@ -2,6 +2,9 @@ import { useLanguage } from '../src/contexts/LanguageContext';
 import React, { useState, useEffect } from 'react';
 import { fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 import { visualAssets, neonIcon } from './visualAssets';
+import CommanderPreviewBoundary from '../src/features/cursedCommander/CommanderPreviewBoundary';
+
+const CommanderPracticeArena = React.lazy(() => import('../src/features/cursedCommander/CommanderPracticeArena'));
 
 // Default school icon as SVG data URL
 const defaultSchoolIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIgMTBWNkwxMiAyIDIgNnY0Yy4zNC0uMDguNjUtLjEgMS0uMWg1LjFsMi40NSAzLjA2YTEgMSAwIDAgMCAxLjU2IDBMMTQuNTUgOS45SDE5Ljljey4zNSAwIC42Ny4wMiAxIC4xWiIvPjxwYXRoIGQ9Ik0xMiAyMnYtNiIvPjxwYXRoIGQ9Ik00IDEwdjEwYzAgLjU1LjQ1IDEgMSAxaDE0Yy41NSAwIDEtLjQ1IDEtMVYxMCIvPjwvc3ZnPg==';
@@ -237,8 +240,9 @@ const MainActions: React.FC<MainActionsProps> = ({
   profile: _profile,
   onUpgrade,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
+  const [showCommanderPreview, setShowCommanderPreview] = useState(false);
 
   // Fetch pilot quotas on mount (only if on pilot plan)
   useEffect(() => {
@@ -275,8 +279,17 @@ const MainActions: React.FC<MainActionsProps> = ({
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
   const missionCardClass = 'min-h-[10rem] sm:min-h-[11rem]';
   const missionIconClass = 'h-24 w-24 object-contain drop-shadow-[0_0_22px_rgba(255,255,255,0.35)] brightness-110 contrast-110 saturate-125 sm:h-28 sm:w-28';
+  const commanderPreviewLabel = language === 'ar' ? 'معاينة القائد' : language === 'ru' ? 'Предпросмотр Командира' : 'Commander Preview';
+  const commanderCloseLabel = language === 'ar' ? 'إغلاق' : language === 'ru' ? 'Закрыть' : 'Close';
+  const commanderErrorLabel = language === 'ar' ? 'تعذر تحميل المعاينة' : language === 'ru' ? 'Не удалось загрузить предпросмотр' : 'Preview could not load';
+  const commanderPreviewSubtitle = language === 'ar'
+    ? 'ساحة تدريب معزولة · للمختبرين فقط'
+    : language === 'ru'
+      ? 'Изолированная тренировка · только для тестеров'
+      : 'Isolated practice arena · testers only';
   
   return (
+    <>
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
       <span
         aria-hidden
@@ -334,6 +347,15 @@ const MainActions: React.FC<MainActionsProps> = ({
               onClick={onStartQuest}
               hasPendingAssignment={hasPendingAssignment}
               className="col-span-2 sm:col-span-3"
+            />
+            <ActionButton
+              onClick={() => setShowCommanderPreview(true)}
+              icon={<span aria-hidden className="text-4xl">🧠⚔️</span>}
+              label={commanderPreviewLabel}
+              subtitle={commanderPreviewSubtitle}
+              className="col-span-2 min-h-[8rem] sm:col-span-3"
+              color="0, 208, 232"
+              glowClass="glow-ion"
             />
             <ActionButton
               onClick={locked ? handleLocked('Launch Attack') : handlePilotClick('Launch Attack', onStartPvp)}
@@ -538,7 +560,26 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
         </div>
       </section>
-    );
-  };
+
+      {showCommanderPreview && (
+        <CommanderPreviewBoundary fallback={
+          <div role="alert" className="mt-3 rounded-xl bg-slate-900 p-4 text-slate-200">
+            {commanderErrorLabel}
+            <button type="button" onClick={() => setShowCommanderPreview(false)} className="ms-3 rounded-lg border border-slate-600 px-3 py-2">{commanderCloseLabel}</button>
+          </div>
+        }>
+          <React.Suspense fallback={
+            <div role="status" className="mt-3 rounded-xl bg-slate-900 p-4 text-cyan-200">
+              {commanderPreviewLabel}…
+              <button type="button" onClick={() => setShowCommanderPreview(false)} className="ms-3 rounded-lg border border-slate-600 px-3 py-2">{commanderCloseLabel}</button>
+            </div>
+          }>
+            <CommanderPracticeArena onClose={() => setShowCommanderPreview(false)} />
+          </React.Suspense>
+        </CommanderPreviewBoundary>
+      )}
+    </>
+  );
+};
 
 export default React.memo(MainActions);

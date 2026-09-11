@@ -6,4 +6,4 @@ The global layer translates approved exact interface copy plus a small set of sa
 
 Legacy `withPortalLocalization(...)` wrappers remain only as compatibility shims, so older portal imports do not need risky large-file rewrites and no longer render their own language controls.
 
-A single Brain Heist styled language control is shown consistently across routes and reuses the same `brains-heist:ui-language:v1` preference. New visible hard-coded product copy should be added to `src/i18n/interfaceTranslations.ts` or migrated to keyed `t(...)` messages.
+A single Brains Heist styled language control is shown consistently across routes and reuses the same `brains-heist:ui-language:v1` preference. New visible hard-coded product copy should be added to `src/i18n/interfaceTranslations.ts` or migrated to keyed `t(...)` messages.
