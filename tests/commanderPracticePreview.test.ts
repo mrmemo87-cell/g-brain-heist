@@ -45,26 +45,44 @@ test('death bolt has a server-enforced cooldown', () => {
   );
 });
 
-test('preview API is authenticated, allowlisted, signed, and persistence-free', () => {
+test('preview API is authenticated, student-gated, signed, and write-free', () => {
   const api = readFileSync('supabase/functions/commander_practice/index.ts', 'utf8');
   const config = readFileSync('supabase/config.toml', 'utf8');
 
   assert.match(api, /admin\.auth\.getUser\(token\)/);
-  assert.match(api, /COMMANDER_PREVIEW_TESTER_IDS/);
-  assert.match(api, /COMMANDER_PREVIEW_TESTER_EMAILS/);
+  assert.match(api, /admin[\s\S]*?\.from\("users"\)[\s\S]*?\.select\("role"\)[\s\S]*?\.eq\("id", userId\)[\s\S]*?\.maybeSingle\(\)/);
+  assert.match(api, /data\?\.role === "student"/);
+  assert.match(api, /commander_preview_students_only/);
+  assert.doesNotMatch(api, /COMMANDER_PREVIEW_TESTER_IDS/);
+  assert.doesNotMatch(api, /COMMANDER_PREVIEW_TESTER_EMAILS/);
   assert.match(api, /COMMANDER_PREVIEW_SIGNING_SECRET/);
   assert.match(api, /crypto\.subtle\.sign/);
   assert.match(api, /crypto\.subtle\.verify/);
+
   const ast = ts.createSourceFile('index.ts', api, ts.ScriptTarget.Latest, true);
+  let profileReads = 0;
   const inspect = (node: ts.Node) => {
     if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)
       && node.expression.name.text === 'from') {
-      assert.equal(node.expression.expression.getText(ast), 'Uint8Array', 'Only byte conversion may call .from()');
+      const owner = node.expression.expression.getText(ast);
+      if (owner === 'Uint8Array') {
+        ts.forEachChild(node, inspect);
+        return;
+      }
+
+      assert.equal(owner, 'admin', 'Only the authenticated admin client may read a table');
+      assert.equal(node.arguments.length, 1, 'Commander preview must use exactly one table argument');
+      assert.equal(node.arguments[0]?.getText(ast), '"users"', 'Commander preview may only read the users role table');
+      profileReads += 1;
     }
     ts.forEachChild(node, inspect);
   };
   inspect(ast);
-  assert.doesNotMatch(api, /\.rpc\s*\(/);
+  assert.equal(profileReads, 1, 'Commander preview should perform one role-table read');
+
+  for (const method of ['insert', 'update', 'upsert', 'delete', 'rpc']) {
+    assert.doesNotMatch(api, new RegExp(`\\.${method}\\s*\\(`), `${method} must remain unavailable in practice preview`);
+  }
   assert.doesNotMatch(api, /\bfetch\s*\(/);
   assert.match(config, /\[functions\.commander_practice\][\s\S]*?verify_jwt\s*=\s*true/);
 });
