@@ -175,8 +175,8 @@ test('authored Commander sprites expose combat poses and real archer projectiles
   assert.match(spriteAssets, /defeated: string/);
   assert.match(spriteAssets, /justShot\?: string/);
   assert.match(battlefield, /getCommanderProjectileUrl/);
-  assert.match(battlefield, /<image href=\{authoredProjectile\}/);
-  assert.match(battlefield, /rotate="auto"/);
+  assert.match(battlefield, /cc-authored-projectile/);
+  assert.match(battlefield, /rotate="0"/);
   assert.match(battlefield, /return 'attacked'/);
   assert.match(battlefield, /return 'justShot'/);
 });

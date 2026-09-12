@@ -51,6 +51,7 @@ type CommanderSpritePoses = {
 export type CommanderSpriteDefinition = {
   poses: CommanderSpritePoses;
   projectile?: string;
+  projectileAngle?: number;
   ranged: boolean;
   /** Fine-tuning only. Formation coordinates remain authoritative. */
   visualScale: number;
@@ -79,6 +80,7 @@ export const COMMANDER_SPRITES: Record<string, CommanderSpriteDefinition> = {
   player_archer: {
     poses: { standing: shadeStanding, attacking: shadeAttacking, justShot: shadeJustShot, attacked: shadeAttacked, defeated: shadeDefeated },
     projectile: shadeArrow,
+    projectileAngle: 46,
     ranged: true,
     visualScale: 1,
     offsetX: 0,
@@ -101,6 +103,7 @@ export const COMMANDER_SPRITES: Record<string, CommanderSpriteDefinition> = {
   enemy_archer: {
     poses: { standing: hollowStanding, attacking: hollowAttacking, justShot: hollowJustShot, attacked: hollowAttacked, defeated: hollowDefeated },
     projectile: hollowArrow,
+    projectileAngle: -36.5,
     ranged: true,
     visualScale: 1,
     offsetX: 0,
@@ -130,6 +133,8 @@ export const getCommanderSpriteCalibration = (combatantId: string, pose: Command
 
 export const getCommanderProjectileUrl = (combatantId: string) => COMMANDER_SPRITES[combatantId]?.projectile ?? null;
 
+export const getCommanderProjectileAngle = (combatantId: string) => COMMANDER_SPRITES[combatantId]?.projectileAngle ?? 0;
+
 export const isCommanderRangedSprite = (combatantId: string) => COMMANDER_SPRITES[combatantId]?.ranged ?? false;
 
 const uniqueUrls = (urls: Array<string | null | undefined>) => [...new Set(urls.filter((value): value is string => Boolean(value)))];
@@ -143,20 +148,29 @@ const allSpriteUrls = uniqueUrls(Object.values(COMMANDER_SPRITES).flatMap((defin
   definition.projectile,
 ]));
 
+export const failedCommanderSprites = new Set<string>();
+
 const loadImage = (src: string) => new Promise<void>((resolve) => {
   const image = new Image();
   let settled = false;
   const finish = () => {
     if (settled) return;
     settled = true;
+    window.clearTimeout(timeout);
+    image.onload = null;
+    image.onerror = null;
     resolve();
   };
-  image.onload = finish;
-  image.onerror = finish;
+  const fail = () => { failedCommanderSprites.add(src); finish(); };
+  const timeout = window.setTimeout(fail, 12000);
+  const complete = finish;
+  const decoded = () => { window.clearTimeout(timeout); complete(); };
+  image.onload = () => { void image.decode().then(decoded, fail); };
+  image.onerror = fail;
   image.decoding = 'async';
   image.src = src;
   if (image.complete) {
-    void image.decode?.().catch(() => undefined).finally(finish);
+    void image.decode().then(decoded, fail);
   }
 });
 
