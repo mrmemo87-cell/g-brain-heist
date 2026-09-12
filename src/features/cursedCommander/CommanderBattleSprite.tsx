@@ -52,6 +52,7 @@ const CommanderBattleSprite: React.FC<Props> = ({
   const [visibleSrc, setVisibleSrc] = useState<string | null>(requestedSrc);
   const [visiblePose, setVisiblePose] = useState<CommanderSpritePose>(resolvedPose);
   const [previousFrame, setPreviousFrame] = useState<{ src: string; pose: CommanderSpritePose } | null>(null);
+  const [fadePrevious, setFadePrevious] = useState(false);
   const transitionId = useRef(0);
 
   useEffect(() => {
@@ -66,13 +67,21 @@ const CommanderBattleSprite: React.FC<Props> = ({
 
     const id = ++transitionId.current;
     let cancelled = false;
+    let firstFrame = 0;
+    let secondFrame = 0;
     const image = new Image();
 
     const reveal = () => {
       if (cancelled || id !== transitionId.current) return;
       setPreviousFrame(visibleSrc ? { src: visibleSrc, pose: visiblePose } : null);
+      setFadePrevious(false);
       setVisibleSrc(requestedSrc);
       setVisiblePose(resolvedPose);
+      firstFrame = window.requestAnimationFrame(() => {
+        secondFrame = window.requestAnimationFrame(() => {
+          if (!cancelled && id === transitionId.current) setFadePrevious(true);
+        });
+      });
     };
 
     image.onload = reveal;
@@ -81,19 +90,24 @@ const CommanderBattleSprite: React.FC<Props> = ({
     image.src = requestedSrc;
 
     if (image.complete) {
-      void image.decode?.().catch(() => undefined).finally(reveal);
+      void image.decode().catch(() => undefined).finally(reveal);
     }
 
     return () => {
       cancelled = true;
+      if (firstFrame) window.cancelAnimationFrame(firstFrame);
+      if (secondFrame) window.cancelAnimationFrame(secondFrame);
     };
   }, [requestedSrc, resolvedPose, visiblePose, visibleSrc]);
 
   useEffect(() => {
-    if (!previousFrame) return;
-    const timer = window.setTimeout(() => setPreviousFrame(null), POSE_FADE_MS);
+    if (!previousFrame || !fadePrevious) return;
+    const timer = window.setTimeout(() => {
+      setPreviousFrame(null);
+      setFadePrevious(false);
+    }, POSE_FADE_MS + 24);
     return () => window.clearTimeout(timer);
-  }, [previousFrame]);
+  }, [fadePrevious, previousFrame]);
 
   const visibleCalibration = useMemo(
     () => getCommanderSpriteCalibration(combatant.id, visiblePose),
@@ -138,7 +152,7 @@ const CommanderBattleSprite: React.FC<Props> = ({
             transform: imageTransform(previousCalibration),
             transformOrigin: '50% 100%',
             filter: spriteFilterFor(combatant, previousFrame.pose, active),
-            opacity: 0,
+            opacity: fadePrevious ? 0 : 1,
             transition: `opacity ${POSE_FADE_MS}ms ease-out`,
           }}
         />
