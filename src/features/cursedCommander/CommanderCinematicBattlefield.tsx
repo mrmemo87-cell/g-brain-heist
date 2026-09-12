@@ -22,6 +22,11 @@ import {
   unlockCommanderAudio,
   type CommanderSfxCue,
 } from './commanderBattleSound';
+import {
+  getCommanderProjectileUrl,
+  isCommanderRangedSprite,
+  type CommanderSpritePose,
+} from './commanderSpriteAssets';
 
 export type CommanderPlaybackPhase = 'windup' | 'impact' | 'settle' | null;
 
@@ -52,11 +57,7 @@ type Props = {
   onRestart: () => void;
 };
 
-type CombatFloatTone = 'damage' | 'heal' | 'shieldDamage' | 'shieldGain' | 'ko';
-
-type UnitStyle = React.CSSProperties & {
-  '--cc-unit-scale': number;
-};
+type CombatFloatTone = 'damage' | 'shieldDamage' | 'shieldGain' | 'ko';
 
 const hpPercent = (combatant: CommanderPracticeCombatant) =>
   Math.max(0, Math.min(100, Math.round((combatant.hp / combatant.maxHp) * 100)));
@@ -64,19 +65,47 @@ const hpPercent = (combatant: CommanderPracticeCombatant) =>
 const shieldPercent = (combatant: CommanderPracticeCombatant) =>
   Math.max(0, Math.min(100, Math.round((combatant.shield / 30) * 100)));
 
+const resolveSpritePose = (
+  combatant: CommanderPracticeCombatant,
+  step: CommanderCinematicStep | null,
+  phase: CommanderPlaybackPhase,
+): CommanderSpritePose => {
+  if (combatant.hp <= 0) return 'defeated';
+  if (!step) return 'standing';
+
+  const actor = step.event.actorName === combatant.name;
+  const target = step.event.targetName === combatant.name;
+
+  if (step.kind === 'defeat' && step.event.actorName === combatant.name && phase === 'impact') return 'defeated';
+  if (target && step.kind === 'attack' && phase === 'impact') return 'attacked';
+
+  if (actor && step.kind === 'attack') {
+    if (isCommanderRangedSprite(combatant.id) && (phase === 'impact' || phase === 'settle')) return 'justShot';
+    if (phase === 'windup' || phase === 'impact') return 'attacking';
+  }
+
+  if (actor && (step.kind === 'guard' || step.kind === 'focus_lock' || step.event.code === 'focus_target')) {
+    return phase === 'settle' ? 'standing' : 'attacking';
+  }
+
+  return 'standing';
+};
+
 const ActionGlyph: React.FC<{ step: CommanderCinematicStep | null; className?: string }> = ({ step, className = '' }) => {
   const code = step?.event.code;
   const stroke = code === 'death_bolt' ? '#d8b4fe' : code === 'guard' ? '#67e8f9' : code === 'focus_target' ? '#fbbf24' : '#f8fafc';
   return (
     <svg aria-hidden viewBox="0 0 48 48" className={className}>
       {code === 'focus_target' ? (
-        <g fill="none" stroke={stroke} strokeWidth="3"><circle cx="24" cy="24" r="10" /><circle cx="24" cy="24" r="3" fill={stroke} /><path d="M24 5v8M24 35v8M5 24h8M35 24h8" strokeLinecap="round" /></g>
+        <g fill="none" stroke={stroke} strokeWidth="3">
+          <circle cx="24" cy="24" r="10" />
+          <circle cx="24" cy="24" r="3" fill={stroke} />
+          <path d="M24 5v8M24 35v8M5 24h8M35 24h8" strokeLinecap="round" />
+        </g>
       ) : code === 'death_bolt' ? (
         <path d="M27 4 10 27h12l-3 17 19-26H26Z" fill={stroke} />
       ) : code === 'guard' ? (
         <path d="M24 5 39 11v12c0 10-6 16-15 20C15 39 9 33 9 23V11Z" fill="#164e63" stroke={stroke} strokeWidth="2.5" />
-      ) : code === 'combatant_defeated' ? (
-        <path d="M12 12 36 36M36 12 12 36" stroke="#fb7185" strokeWidth="5" strokeLinecap="round" />
       ) : (
         <path d="m9 31 9-18 6 11 6-16 9 23-15 10Z" fill="#38bdf8" opacity=".92" />
       )}
@@ -116,14 +145,12 @@ const TacticalBackdrop = () => (
 const TacticalTargetReticle: React.FC<{ selected: boolean; focused: boolean; focusLock: boolean }> = ({ selected, focused, focusLock }) => {
   if (!selected && !focused && !focusLock) return null;
   return (
-    <span aria-hidden className="pointer-events-none absolute left-1/2 top-[39%] z-40 h-[88%] w-[88%] -translate-x-1/2 -translate-y-1/2">
+    <span aria-hidden className="pointer-events-none absolute left-1/2 top-[42%] z-50 h-[76%] w-[76%] -translate-x-1/2 -translate-y-1/2">
       <svg viewBox="0 0 160 160" className="h-full w-full overflow-visible">
-        <defs>
-          <filter id="ccTargetGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.4" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-        </defs>
+        <defs><filter id="ccTargetGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.4" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter></defs>
         {selected && (
           <g className="cc-target-reticle-spin" fill="none" stroke="#fbbf24" filter="url(#ccTargetGlow)">
-            <circle cx="80" cy="80" r="55" strokeWidth="2" strokeDasharray="22 17" opacity=".75" />
+            <circle cx="80" cy="80" r="55" strokeWidth="2" strokeDasharray="22 17" opacity=".82" />
             <path d="M80 12v18M80 130v18M12 80h18M130 80h18" strokeWidth="3" strokeLinecap="round" />
             <path d="M38 49V38h11M111 38h11v11M122 111v11h-11M49 122H38v-11" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
           </g>
@@ -135,7 +162,7 @@ const TacticalTargetReticle: React.FC<{ selected: boolean; focused: boolean; foc
             <path d="M80 31v18M80 111v18M31 80h18M111 80h18" strokeWidth="2.5" strokeLinecap="round" />
           </g>
         )}
-        {selected && <path className="cc-target-chevron" d="m80 5 9 12H71Z" fill="#fbbf24" filter="url(#ccTargetGlow)" />}
+        {selected && <path className="cc-target-chevron" d="m80 4 10 14H70Z" fill="#fbbf24" filter="url(#ccTargetGlow)" />}
       </svg>
     </span>
   );
@@ -143,34 +170,27 @@ const TacticalTargetReticle: React.FC<{ selected: boolean; focused: boolean; foc
 
 const CombatFloat: React.FC<{ tone: CombatFloatTone; children: React.ReactNode; compact?: boolean; delayMs?: number }> = ({ tone, children, compact = false, delayMs = 0 }) => {
   const classes: Record<CombatFloatTone, string> = {
-    damage: 'text-red-300 [text-shadow:0_0_14px_rgba(239,68,68,.85)]',
-    heal: 'text-emerald-300 [text-shadow:0_0_14px_rgba(16,185,129,.8)]',
-    shieldDamage: 'text-amber-200 [text-shadow:0_0_14px_rgba(245,158,11,.8)]',
-    shieldGain: 'text-cyan-200 [text-shadow:0_0_14px_rgba(34,211,238,.85)]',
-    ko: 'text-red-200 [text-shadow:0_0_18px_rgba(239,68,68,.95)]',
+    damage: 'text-red-300 [text-shadow:0_0_18px_rgba(239,68,68,.95)]',
+    shieldDamage: 'text-amber-200 [text-shadow:0_0_16px_rgba(245,158,11,.9)]',
+    shieldGain: 'text-cyan-200 [text-shadow:0_0_18px_rgba(34,211,238,.9)]',
+    ko: 'text-red-100 [text-shadow:0_0_22px_rgba(239,68,68,1)]',
   };
-  return <span style={{ animationDelay: `${delayMs}ms` }} className={`cc-combat-float block font-heading font-black tracking-wide ${compact ? 'text-[10px] sm:text-xs' : 'text-xl sm:text-2xl'} ${classes[tone]}`}>{children}</span>;
+  return <span style={{ animationDelay: `${delayMs}ms` }} className={`cc-combat-float block font-heading font-black tracking-wide ${compact ? 'text-[10px] sm:text-xs' : 'text-xl sm:text-3xl'} ${classes[tone]}`}>{children}</span>;
 };
 
 const ImpactBurst: React.FC<{ deathBolt: boolean; shieldOnly: boolean }> = ({ deathBolt, shieldOnly }) => {
   const color = deathBolt ? '#d8b4fe' : shieldOnly ? '#fbbf24' : '#fb7185';
   return (
-    <svg aria-hidden viewBox="0 0 120 120" className="cc-impact-burst pointer-events-none absolute left-1/2 top-1/2 z-40 h-28 w-28 -translate-x-1/2 -translate-y-1/2">
-      <circle cx="60" cy="60" r="18" fill={color} opacity=".2" /><circle cx="60" cy="60" r="29" fill="none" stroke={color} strokeWidth="3" opacity=".9" /><g stroke={color} strokeWidth="4" strokeLinecap="round"><path d="M60 5v23M60 92v23M5 60h23M92 60h23M21 21l16 16M83 83l16 16M99 21 83 37M37 83 21 99" /></g>
+    <svg aria-hidden viewBox="0 0 120 120" className="cc-impact-burst pointer-events-none absolute left-1/2 top-[44%] z-50 h-28 w-28 -translate-x-1/2 -translate-y-1/2">
+      <circle cx="60" cy="60" r="18" fill={color} opacity=".22" />
+      <circle cx="60" cy="60" r="30" fill="none" stroke={color} strokeWidth="3" opacity=".9" />
+      <g stroke={color} strokeWidth="4" strokeLinecap="round"><path d="M60 5v23M60 92v23M5 60h23M92 60h23M21 21l16 16M83 83l16 16M99 21 83 37M37 83 21 99" /></g>
     </svg>
   );
 };
 
-const MeleeSlashFx: React.FC<{ side: CommanderPracticeCombatant['side'] }> = ({ side }) => (
-  <svg aria-hidden viewBox="0 0 140 140" className={`cc-melee-slash pointer-events-none absolute left-1/2 top-1/2 z-40 h-32 w-32 -translate-x-1/2 -translate-y-1/2 ${side === 'enemy' ? '-scale-x-100' : ''}`}>
-    <defs><filter id="ccSlashGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="3" result="g" /><feMerge><feMergeNode in="g" /><feMergeNode in="SourceGraphic" /></feMerge></filter></defs>
-    <path d="M22 105C54 76 81 49 119 29" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" filter="url(#ccSlashGlow)" />
-    <path d="M29 113C65 91 95 61 127 43" fill="none" stroke="#67e8f9" strokeWidth="2.2" strokeLinecap="round" opacity=".8" />
-  </svg>
-);
-
 const DeathBoltCharge: React.FC = () => (
-  <span aria-hidden className="cc-deathbolt-charge pointer-events-none absolute left-1/2 top-[38%] z-40 h-20 w-20 -translate-x-1/2 -translate-y-1/2">
+  <span aria-hidden className="cc-deathbolt-charge pointer-events-none absolute left-1/2 top-[38%] z-50 h-24 w-24 -translate-x-1/2 -translate-y-1/2">
     <svg viewBox="0 0 100 100" className="h-full w-full overflow-visible">
       <defs><radialGradient id="ccBoltCharge"><stop offset="0" stopColor="#fff" /><stop offset=".28" stopColor="#d8b4fe" stopOpacity=".95" /><stop offset="1" stopColor="#7c3aed" stopOpacity="0" /></radialGradient></defs>
       <circle cx="50" cy="50" r="45" fill="url(#ccBoltCharge)" />
@@ -183,30 +203,41 @@ const ProjectilePath: React.FC<{
   step: CommanderCinematicStep | null;
   phase: CommanderPlaybackPhase;
   combatants: CommanderPracticeCombatant[];
-}> = ({ step, phase, combatants }) => {
+  speed: 1 | 2;
+}> = ({ step, phase, combatants, speed }) => {
   if (!step || step.kind !== 'attack' || phase === 'settle') return null;
+  const actorCombatant = combatants.find((candidate) => candidate.name === step.event.actorName);
   const actor = getCommanderFormationPointByName(combatants, step.event.actorName);
   const target = getCommanderFormationPointByName(combatants, step.event.targetName);
-  if (!actor || !target) return null;
-  const ranged = step.event.code === 'death_bolt' || step.event.code === 'focus_target' || /archer|ranger/i.test(step.event.actorName ?? '');
+  if (!actorCombatant || !actor || !target) return null;
+
+  const authoredProjectile = getCommanderProjectileUrl(actorCombatant.id);
+  const ranged = authoredProjectile || step.event.code === 'death_bolt' || step.event.code === 'focus_target';
   if (!ranged) return null;
 
   const mx = (actor.x + target.x) / 2;
-  const my = Math.min(actor.y, target.y) - (step.event.code === 'death_bolt' ? 19 : 11);
-  const path = `M ${actor.x} ${actor.y - 11} Q ${mx} ${my} ${target.x} ${target.y - 10}`;
-  const color = step.event.code === 'death_bolt' ? '#c084fc' : step.event.code === 'focus_target' ? '#fbbf24' : step.event.side === 'player' ? '#67e8f9' : '#fda4af';
+  const my = Math.min(actor.y, target.y) - (step.event.code === 'death_bolt' ? 18 : 9);
+  const path = `M ${actor.x} ${actor.y - 12} Q ${mx} ${my} ${target.x} ${target.y - 11}`;
+  const duration = speed === 2 ? (step.event.code === 'death_bolt' ? 360 : 300) : (step.event.code === 'death_bolt' ? 650 : 520);
   const suffix = step.id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const color = step.event.code === 'death_bolt' ? '#c084fc' : step.event.code === 'focus_target' ? '#fbbf24' : step.event.side === 'player' ? '#67e8f9' : '#fda4af';
 
   return (
-    <svg key={`${step.id}-${phase}`} aria-hidden className="pointer-events-none absolute inset-0 z-30 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-      <defs>
-        <filter id={`ccProjectileGlow-${suffix}`} x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="1.2" result="p" /><feMerge><feMergeNode in="p" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-      </defs>
-      <path d={path} fill="none" stroke={color} strokeWidth={step.event.code === 'death_bolt' ? 1.5 : 0.55} strokeLinecap="round" opacity={step.event.code === 'focus_target' ? '.45' : '.3'} className="cc-projectile-trail" />
-      <circle r={step.event.code === 'death_bolt' ? 1.75 : 1} fill="#fff" filter={`url(#ccProjectileGlow-${suffix})`} className="cc-projectile-orb">
-        <animateMotion dur={step.event.code === 'death_bolt' ? '500ms' : '380ms'} begin="0s" fill="freeze" path={path} />
-      </circle>
-      {step.event.code === 'death_bolt' && <circle r=".8" fill="#d8b4fe" opacity=".9"><animateMotion dur="500ms" begin="55ms" fill="freeze" path={path} /></circle>}
+    <svg key={step.id} aria-hidden className="pointer-events-none absolute inset-0 z-40 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <defs><filter id={`ccProjectileGlow-${suffix}`} x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.2" result="p" /><feMerge><feMergeNode in="p" /><feMergeNode in="SourceGraphic" /></feMerge></filter></defs>
+      <path d={path} fill="none" stroke={color} strokeWidth={step.event.code === 'death_bolt' ? 1.5 : .45} strokeLinecap="round" opacity={authoredProjectile ? '.16' : '.36'} className="cc-projectile-trail" />
+      {authoredProjectile ? (
+        <image href={authoredProjectile} x="-4" y="-3" width="8" height="6" preserveAspectRatio="xMidYMid meet" className="cc-authored-projectile">
+          <animateMotion dur={`${duration}ms`} begin="0s" fill="freeze" path={path} rotate="auto" />
+        </image>
+      ) : (
+        <>
+          <circle r={step.event.code === 'death_bolt' ? 1.8 : 1} fill="#fff" filter={`url(#ccProjectileGlow-${suffix})`} className="cc-projectile-orb">
+            <animateMotion dur={`${duration}ms`} begin="0s" fill="freeze" path={path} />
+          </circle>
+          {step.event.code === 'death_bolt' && <circle r=".8" fill="#d8b4fe" opacity=".9"><animateMotion dur={`${duration}ms`} begin="70ms" fill="freeze" path={path} /></circle>}
+        </>
+      )}
     </svg>
   );
 };
@@ -221,9 +252,8 @@ const EventBanner: React.FC<{
   const actor = combatants.find((candidate) => candidate.name === step.event.actorName);
   const target = combatants.find((candidate) => candidate.name === step.event.targetName);
   const label = step.kind === 'focus_lock' ? copy.locked : step.event.code === 'death_bolt' ? copy.bolt : step.event.code === 'guard' ? copy.guard : step.event.code === 'focus_target' ? copy.focus : copy.impact;
-
   return (
-    <div className="cc-event-banner pointer-events-none absolute left-1/2 top-4 z-50 w-[min(92%,520px)] -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/72 px-3 py-2 shadow-[0_8px_36px_rgba(2,6,23,.48)] backdrop-blur-lg">
+    <div className="cc-event-banner pointer-events-none absolute left-1/2 top-4 z-[70] w-[min(92%,520px)] -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/78 px-3 py-2 shadow-[0_8px_36px_rgba(2,6,23,.58)] backdrop-blur-lg">
       <div className="flex items-center justify-center gap-2" dir="ltr">
         {actor && <div className="h-8 w-8 shrink-0"><CommanderUnitPortrait combatant={actor} instance={`stage-actor-${step.id}`} defeated={actor.hp <= 0} /></div>}
         <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-violet-100"><ActionGlyph step={step} className="h-5 w-5" />{label}</span>
@@ -279,15 +309,13 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
     if (lastSoundKeyRef.current === key) return;
     lastSoundKeyRef.current = key;
 
+    const actor = combatants.find((candidate) => candidate.name === activeStep.event.actorName);
     let cue: CommanderSfxCue | null = null;
-    const rangedActor = /archer|ranger/i.test(activeStep.event.actorName ?? '');
-
     if (phase === 'windup') {
       if (activeStep.kind === 'focus_lock' || activeStep.event.code === 'focus_target') cue = 'focus';
       else if (activeStep.event.code === 'death_bolt') cue = 'deathBoltCharge';
-      else if (activeStep.kind === 'attack') cue = rangedActor ? 'rangedFire' : 'meleeWindup';
+      else if (activeStep.kind === 'attack') cue = actor && isCommanderRangedSprite(actor.id) ? 'rangedFire' : 'meleeWindup';
     }
-
     if (phase === 'impact') {
       if (activeStep.kind === 'guard') cue = 'guard';
       else if (activeStep.kind === 'defeat') cue = 'ko';
@@ -295,9 +323,8 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
       else if (activeStep.event.code === 'death_bolt') cue = 'deathBoltImpact';
       else if (activeStep.kind === 'attack') cue = activeStep.shieldDamage > 0 ? 'shieldHit' : 'hit';
     }
-
     if (cue) void playCommanderSfx(cue);
-  }, [activeStep, phase, soundOn]);
+  }, [activeStep, phase, soundOn, combatants]);
 
   const handleSelectTarget = (id: string) => {
     if (soundOn) {
@@ -336,36 +363,23 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
     const guard = activeStep?.kind === 'guard' && activeStep.event.actorName === combatant.name;
     const focusLock = activeStep?.kind === 'focus_lock' && activeStep.event.targetName === combatant.name;
     const canTarget = combatant.side === 'enemy' && targetable && combatant.hp > 0;
-    const impactTarget = target && phase === 'impact';
-    const impactGuard = guard && phase === 'impact';
+    const impactTarget = Boolean(target && phase === 'impact');
+    const impactGuard = Boolean(guard && phase === 'impact');
     const shieldOnlyHit = Boolean(activeStep?.kind === 'attack' && activeStep.shieldDamage > 0 && activeStep.hpDamage === 0);
-    const rangedActor = /archer|ranger/i.test(combatant.name);
-    const meleeAttack = activeStep?.kind === 'attack' && !rangedActor && activeStep.event.code !== 'death_bolt' && activeStep.event.code !== 'focus_target';
+    const pose = resolveSpritePose(combatant, activeStep, phase);
 
-    let actorMotionClass = '';
+    let actionClass = '';
     if (actor && animationsOn) {
-      if (guard) actorMotionClass = 'cc-stage-guard-brace';
-      else if (activeStep?.event.code === 'death_bolt') actorMotionClass = 'cc-stage-deathbolt-cast';
-      else if (activeStep?.event.code === 'focus_target' || activeStep?.kind === 'focus_lock') actorMotionClass = 'cc-stage-focus-cast';
-      else if (activeStep?.kind === 'attack' && rangedActor) actorMotionClass = 'cc-stage-ranged-cast';
-      else if (activeStep?.kind === 'attack') actorMotionClass = combatant.side === 'player' ? 'cc-stage-lunge-right' : 'cc-stage-lunge-left';
+      if (guard) actionClass = 'cc-actor-guard';
+      else if (activeStep?.event.code === 'death_bolt') actionClass = 'cc-actor-deathbolt';
+      else if (activeStep?.event.code === 'focus_target' || activeStep?.kind === 'focus_lock') actionClass = 'cc-actor-focus';
+      else if (activeStep?.kind === 'attack' && isCommanderRangedSprite(combatant.id)) actionClass = 'cc-actor-ranged';
+      else if (activeStep?.kind === 'attack') actionClass = combatant.side === 'player' ? 'cc-actor-melee-right' : 'cc-actor-melee-left';
     }
 
-    const hitMotionClass = impactTarget && animationsOn
-      ? activeStep?.event.code === 'death_bolt'
-        ? 'cc-stage-hit-heavy'
-        : shieldOnlyHit
-          ? 'cc-stage-hit-shield'
-          : 'cc-stage-hit'
+    const hitClass = impactTarget && animationsOn
+      ? activeStep?.event.code === 'death_bolt' ? 'cc-target-hit-heavy' : shieldOnlyHit ? 'cc-target-hit-shield' : 'cc-target-hit'
       : '';
-
-    const unitStyle: UnitStyle = {
-      left: `${point.x}%`,
-      top: `${point.y}%`,
-      width: 'clamp(74px, 14vw, 164px)',
-      zIndex: point.z,
-      '--cc-unit-scale': point.scale,
-    };
 
     return (
       <button
@@ -373,42 +387,49 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         key={combatant.id}
         disabled={!canTarget}
         onClick={() => canTarget && handleSelectTarget(combatant.id)}
-        className={`cc-stage-unit group absolute bg-transparent p-0 text-center outline-none ${canTarget ? 'cc-stage-unit-targetable cursor-pointer' : 'cursor-default'} ${combatant.hp <= 0 ? 'opacity-55' : ''}`}
-        style={unitStyle}
+        className={`cc-stage-unit absolute bg-transparent p-0 text-center outline-none ${canTarget ? 'cursor-pointer' : 'cursor-default'} ${combatant.hp <= 0 ? 'opacity-75' : ''}`}
+        style={{
+          left: `${point.x}%`,
+          top: `${point.y}%`,
+          width: 'clamp(92px, 15vw, 182px)',
+          zIndex: point.z,
+          transform: 'translate(-50%, -82%)',
+        }}
         aria-label={`${combatant.name}${selected ? `, ${copy.selected}` : ''}`}
       >
-        <span aria-hidden className={`absolute left-1/2 top-[86%] h-5 w-[82%] -translate-x-1/2 rounded-[50%] border transition-[box-shadow,border-color,background-color] duration-200 ${selected ? 'border-amber-300/90 bg-amber-300/12 shadow-[0_0_24px_rgba(251,191,36,.46)]' : combatant.side === 'player' ? 'border-cyan-300/35 bg-cyan-300/[0.04]' : 'border-rose-300/35 bg-rose-300/[0.04]'} ${focused || focusLock ? 'cc-stage-focus-ground' : ''}`} />
-        {canTarget && <span aria-hidden className="pointer-events-none absolute left-1/2 top-[42%] h-[72%] w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200/0 opacity-0 shadow-[0_0_28px_rgba(251,191,36,.28)] transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100" />}
-        <TacticalTargetReticle selected={selected} focused={focused} focusLock={focusLock} />
+        <div className="cc-stage-scale-shell relative" style={{ transform: `scale(${point.scale})`, transformOrigin: '50% 86%' }}>
+          <span aria-hidden className={`absolute left-1/2 top-[87%] h-5 w-[76%] -translate-x-1/2 rounded-[50%] border transition-[box-shadow,border-color,background-color,opacity] duration-200 ${selected ? 'border-amber-300/90 bg-amber-300/12 shadow-[0_0_26px_rgba(251,191,36,.5)]' : combatant.side === 'player' ? 'border-cyan-300/35 bg-cyan-300/[0.04]' : 'border-rose-300/35 bg-rose-300/[0.04]'} ${focused || focusLock ? 'cc-stage-focus-ground' : ''}`} />
+          {canTarget && <span aria-hidden className="pointer-events-none absolute left-1/2 top-[43%] h-[66%] w-[66%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 shadow-[0_0_30px_rgba(251,191,36,.34)] transition-opacity duration-150 hover:opacity-100" />}
+          <TacticalTargetReticle selected={selected} focused={focused} focusLock={focusLock} />
 
-        <div className={`cc-stage-sprite-shell relative mx-auto h-[clamp(132px,24vw,220px)] w-full origin-bottom ${actorMotionClass} ${hitMotionClass} ${defeat && animationsOn ? 'cc-stage-defeat' : ''}`}>
-          <CommanderBattleSprite combatant={combatant} active={Boolean(actor)} defeated={combatant.hp <= 0} />
-          {actor && activeStep?.event.code === 'death_bolt' && phase === 'windup' && effectsOn && <DeathBoltCharge />}
-          {guard && effectsOn && phase !== 'settle' && <span aria-hidden className="cc-stage-shield-bloom absolute inset-x-[10%] bottom-[8%] top-[8%] rounded-[48%] border-2 border-cyan-200/75 bg-cyan-300/[0.08] shadow-[0_0_34px_rgba(34,211,238,.58)]" />}
-          {impactTarget && effectsOn && activeStep?.kind === 'attack' && <ImpactBurst deathBolt={activeStep.event.code === 'death_bolt'} shieldOnly={shieldOnlyHit} />}
-          {impactTarget && effectsOn && activeStep?.kind === 'attack' && meleeAttack && <MeleeSlashFx side={activeStep.event.side === 'enemy' ? 'enemy' : 'player'} />}
+          <div className={`cc-stage-action-shell relative mx-auto h-[clamp(160px,27vw,248px)] w-full origin-bottom ${actionClass} ${hitClass} ${defeat && animationsOn ? 'cc-stage-defeat' : ''}`}>
+            <CommanderBattleSprite combatant={combatant} pose={pose} active={Boolean(actor)} defeated={pose === 'defeated'} />
+            {actor && activeStep?.event.code === 'death_bolt' && phase === 'windup' && effectsOn && <DeathBoltCharge />}
+            {guard && effectsOn && phase !== 'settle' && <span aria-hidden className="cc-stage-shield-bloom absolute inset-x-[8%] bottom-[6%] top-[8%] rounded-[48%] border-2 border-cyan-200/75 bg-cyan-300/[0.08] shadow-[0_0_38px_rgba(34,211,238,.62)]" />}
+            {impactTarget && effectsOn && activeStep?.kind === 'attack' && <ImpactBurst deathBolt={activeStep.event.code === 'death_bolt'} shieldOnly={shieldOnlyHit} />}
+          </div>
+
+          <div className="relative z-30 -mt-4 px-1">
+            <div className="mx-auto max-w-[160px] truncate text-[9px] font-black leading-3 text-white [text-shadow:0_2px_6px_rgba(2,6,23,1)] sm:text-[11px]">{combatant.name}</div>
+            {combatant.role === 'commander' && <span className="mt-0.5 inline-block text-[7px] font-black uppercase tracking-[0.18em] text-violet-200">CMD</span>}
+            {combatant.hp > 0 ? (
+              <div className="mx-auto mt-1 w-[88%] max-w-[136px]">
+                <div className="flex items-center justify-between text-[7px] font-bold text-slate-100 sm:text-[9px]"><span>{combatant.hp}/{combatant.maxHp}</span><span className="text-cyan-200">◇{combatant.shield}</span></div>
+                <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-slate-950/90 ring-1 ring-black/40"><div className="h-full bg-gradient-to-r from-emerald-400 to-lime-300 transition-[width] duration-500" style={{ width: `${hpPercent(combatant)}%` }} /></div>
+                <div className="mt-0.5 h-0.5 overflow-hidden rounded-full bg-slate-950/90"><div className="h-full bg-gradient-to-r from-sky-500 to-cyan-200 transition-[width] duration-500" style={{ width: `${shieldPercent(combatant)}%` }} /></div>
+              </div>
+            ) : <div className="mt-1 text-[8px] font-black uppercase tracking-[0.18em] text-red-300">{copy.knockedOut}</div>}
+          </div>
+
+          {impactTarget && activeStep?.kind === 'attack' && (
+            <span key={`${activeStep.id}-damage`} className="pointer-events-none absolute left-1/2 top-[2%] z-[80] flex -translate-x-1/2 flex-col items-center whitespace-nowrap">
+              {activeStep.shieldDamage > 0 && <CombatFloat tone="shieldDamage" compact>◇ -{activeStep.shieldDamage} {copy.shield}</CombatFloat>}
+              {activeStep.hpDamage > 0 && <CombatFloat tone="damage" delayMs={activeStep.shieldDamage > 0 ? 120 : 0}>-{activeStep.hpDamage}</CombatFloat>}
+            </span>
+          )}
+          {impactGuard && <span key={`${activeStep?.id}-guard`} className="pointer-events-none absolute left-1/2 top-[5%] z-[80] -translate-x-1/2 whitespace-nowrap"><CombatFloat tone="shieldGain">+{activeStep?.event.amount ?? 0} {copy.shield}</CombatFloat></span>}
+          {defeat && phase === 'impact' && <span className="pointer-events-none absolute left-1/2 top-[5%] z-[80] -translate-x-1/2"><CombatFloat tone="ko">K.O.</CombatFloat></span>}
         </div>
-
-        <div className="relative z-30 -mt-2 px-1">
-          <div className="mx-auto max-w-[145px] text-[9px] font-black leading-3 text-white [text-shadow:0_2px_5px_rgba(2,6,23,1)] sm:text-[11px]">{combatant.name}</div>
-          {combatant.role === 'commander' && <span className="mt-0.5 inline-block text-[7px] font-black uppercase tracking-[0.18em] text-violet-200">CMD</span>}
-          {combatant.hp > 0 ? (
-            <div className="mx-auto mt-1 w-[88%] max-w-[130px]">
-              <div className="flex items-center justify-between text-[7px] font-bold text-slate-100 sm:text-[9px]"><span>{combatant.hp}/{combatant.maxHp}</span><span className="text-cyan-200">◇{combatant.shield}</span></div>
-              <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-slate-950/90 ring-1 ring-black/40"><div className="h-full bg-gradient-to-r from-emerald-400 to-lime-300 transition-[width] duration-500" style={{ width: `${hpPercent(combatant)}%` }} /></div>
-              <div className="mt-0.5 h-0.5 overflow-hidden rounded-full bg-slate-950/90"><div className="h-full bg-gradient-to-r from-sky-500 to-cyan-200 transition-[width] duration-500" style={{ width: `${shieldPercent(combatant)}%` }} /></div>
-            </div>
-          ) : <div className="mt-1 text-[8px] font-black uppercase tracking-[0.18em] text-red-300">{copy.knockedOut}</div>}
-        </div>
-
-        {impactTarget && activeStep?.kind === 'attack' && (
-          <span key={`${activeStep.id}-damage`} className="pointer-events-none absolute left-1/2 top-[5%] z-50 flex -translate-x-1/2 flex-col items-center whitespace-nowrap">
-            {activeStep.shieldDamage > 0 && <CombatFloat tone="shieldDamage" compact delayMs={0}>◇ -{activeStep.shieldDamage} {copy.shield}</CombatFloat>}
-            {activeStep.hpDamage > 0 && <CombatFloat tone="damage" delayMs={activeStep.shieldDamage > 0 ? 90 : 0}>-{activeStep.hpDamage}</CombatFloat>}
-          </span>
-        )}
-        {impactGuard && <span key={`${activeStep?.id}-guard`} className="pointer-events-none absolute left-1/2 top-[8%] z-50 -translate-x-1/2 whitespace-nowrap"><CombatFloat tone="shieldGain">+{activeStep?.event.amount ?? 0} {copy.shield}</CombatFloat></span>}
-        {defeat && phase === 'impact' && <span className="pointer-events-none absolute left-1/2 top-[8%] z-50 -translate-x-1/2"><CombatFloat tone="ko">K.O.</CombatFloat></span>}
       </button>
     );
   };
@@ -416,58 +437,57 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
   return (
     <section className={`relative overflow-hidden rounded-[2rem] border border-cyan-400/24 bg-[#020617] shadow-[0_0_70px_rgba(34,211,238,.1)] ${isDeathBoltImpact && animationsOn ? 'cc-stage-arena-hit' : ''}`}>
       <style>{`
-        @keyframes ccStageLungeRight { 0%{transform:translateX(0) rotate(0)} 20%{transform:translateX(-6px) rotate(-1deg)} 56%{transform:translateX(42px) rotate(2deg)} 72%{transform:translateX(34px) rotate(1deg)} 100%{transform:translateX(0) rotate(0)} }
-        @keyframes ccStageLungeLeft { 0%{transform:translateX(0) rotate(0)} 20%{transform:translateX(6px) rotate(1deg)} 56%{transform:translateX(-42px) rotate(-2deg)} 72%{transform:translateX(-34px) rotate(-1deg)} 100%{transform:translateX(0) rotate(0)} }
-        @keyframes ccStageRangedCast { 0%,100%{transform:translateY(0) rotate(0)} 24%{transform:translateY(2px) rotate(-2deg)} 48%{transform:translateY(-5px) rotate(1deg);filter:brightness(1.35)} 66%{transform:translateY(-2px) rotate(0)} }
-        @keyframes ccStageFocusCast { 0%,100%{transform:translateY(0) scale(1)} 35%{transform:translateY(-4px) scale(1.025)} 58%{transform:translateY(-6px) scale(1.04);filter:brightness(1.45)} }
-        @keyframes ccStageDeathBoltCast { 0%{transform:translateY(0) scale(1);filter:brightness(1)} 30%{transform:translateY(4px) scale(.98)} 62%{transform:translateY(-10px) scale(1.06);filter:brightness(1.75) saturate(1.3)} 100%{transform:translateY(0) scale(1);filter:brightness(1)} }
-        @keyframes ccStageGuardBrace { 0%,100%{transform:translateY(0) scale(1)} 35%{transform:translateY(4px) scale(1.035,.96)} 62%{transform:translateY(1px) scale(1.06);filter:brightness(1.35)} }
-        @keyframes ccStageHit { 0%,100%{transform:translateX(0);filter:brightness(1)} 16%{transform:translateX(-8px);filter:brightness(2.3)} 34%{transform:translateX(7px)} 52%{transform:translateX(-4px)} 70%{transform:translateX(2px)} }
-        @keyframes ccStageHitShield { 0%,100%{transform:translateX(0);filter:brightness(1)} 20%{transform:translateX(-5px) scale(1.01);filter:brightness(1.9)} 42%{transform:translateX(4px)} 68%{transform:translateX(-2px)} }
-        @keyframes ccStageHitHeavy { 0%,100%{transform:translateX(0) scale(1);filter:brightness(1)} 10%{transform:translateX(-11px) scale(1.04);filter:brightness(3)} 25%{transform:translateX(10px) scale(.99)} 43%{transform:translateX(-7px) scale(1.02)} 62%{transform:translateX(4px)} 80%{transform:translateX(-2px)} }
-        @keyframes ccStageDefeat { 0%{opacity:1;transform:translateY(0) rotate(0)} 55%{opacity:.82;transform:translateY(8px) rotate(4deg)} 100%{opacity:.48;transform:translateY(18px) rotate(8deg)} }
-        @keyframes ccTargetSpin { to{transform:rotate(360deg)} }
-        @keyframes ccFocusSpin { to{transform:rotate(-360deg)} }
-        @keyframes ccTargetChevron { 0%,100%{transform:translateY(0);opacity:.8} 50%{transform:translateY(6px);opacity:1} }
-        @keyframes ccStageFocusGround { 0%,100%{box-shadow:0 0 10px rgba(232,121,249,.25)} 50%{box-shadow:0 0 30px rgba(232,121,249,.7)} }
-        @keyframes ccStageShield { 0%{transform:scale(.6);opacity:0} 45%{transform:scale(1.08);opacity:1} 100%{transform:scale(1.28);opacity:0} }
-        @keyframes ccStageFloat { 0%{opacity:0;transform:translate3d(0,12px,0) scale(.72)} 15%{opacity:1;transform:translate3d(0,-2px,0) scale(1.18)} 62%{opacity:1;transform:translate3d(0,-26px,0) scale(1)} 100%{opacity:0;transform:translate3d(0,-48px,0) scale(.94)} }
-        @keyframes ccStageBurst { 0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-10deg)} 25%{opacity:1;transform:translate(-50%,-50%) scale(1.08) rotate(4deg)} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.5) rotate(17deg)} }
-        @keyframes ccStageSlash { 0%{opacity:0;transform:translate(-50%,-50%) scale(.55) rotate(-8deg)} 18%{opacity:1} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.22) rotate(7deg)} }
-        @keyframes ccStageArenaHit { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 40%{transform:translateX(4px)} 60%{transform:translateX(-2px)} 80%{transform:translateX(1px)} }
-        @keyframes ccStageEvent { from{opacity:0;transform:translate(-50%,-8px) scale(.98)} to{opacity:1;transform:translate(-50%,0) scale(1)} }
-        @keyframes ccStageTrail { from{stroke-dashoffset:18} to{stroke-dashoffset:0} }
-        @keyframes ccDeathCharge { 0%{opacity:0;transform:translate(-50%,-50%) scale(.35) rotate(0)} 45%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(120deg)} 100%{opacity:.82;transform:translate(-50%,-50%) scale(.82) rotate(220deg)} }
-        .cc-stage-unit{transform:translate(-50%,-82%) scale(var(--cc-unit-scale));transform-origin:50% 82%;transition:filter 180ms ease,opacity 180ms ease;will-change:filter}
-        .cc-stage-unit:hover,.cc-stage-unit:focus-visible{transform:translate(-50%,-82%) scale(var(--cc-unit-scale))!important}
-        .cc-stage-unit-targetable:hover .cc-stage-sprite-shell,.cc-stage-unit-targetable:focus-visible .cc-stage-sprite-shell{filter:brightness(1.12) drop-shadow(0 0 8px rgba(251,191,36,.18))}
-        .cc-stage-lunge-right{animation:ccStageLungeRight 760ms cubic-bezier(.16,.84,.24,1)}
-        .cc-stage-lunge-left{animation:ccStageLungeLeft 760ms cubic-bezier(.16,.84,.24,1)}
-        .cc-stage-ranged-cast{animation:ccStageRangedCast 650ms cubic-bezier(.2,.8,.2,1)}
-        .cc-stage-focus-cast{animation:ccStageFocusCast 690ms ease-in-out}
-        .cc-stage-deathbolt-cast{animation:ccStageDeathBoltCast 900ms cubic-bezier(.16,.84,.25,1)}
-        .cc-stage-guard-brace{animation:ccStageGuardBrace 720ms ease-out}
-        .cc-stage-hit{animation:ccStageHit 560ms ease-out}
-        .cc-stage-hit-shield{animation:ccStageHitShield 480ms ease-out}
-        .cc-stage-hit-heavy{animation:ccStageHitHeavy 680ms ease-out}
-        .cc-stage-defeat{animation:ccStageDefeat 850ms ease-out forwards}
-        .cc-target-reticle-spin{transform-origin:80px 80px;animation:ccTargetSpin 4.8s linear infinite}
-        .cc-focus-reticle-spin{transform-origin:80px 80px;animation:ccFocusSpin 3.2s linear infinite}
-        .cc-target-chevron{animation:ccTargetChevron 1s ease-in-out infinite}
-        .cc-stage-focus-ground{animation:ccStageFocusGround 1.5s ease-in-out infinite}
-        .cc-stage-shield-bloom{animation:ccStageShield 780ms ease-out forwards}
-        .cc-combat-float{animation:ccStageFloat 900ms cubic-bezier(.13,.86,.2,1) forwards;will-change:transform,opacity}
-        .cc-impact-burst{animation:ccStageBurst 580ms ease-out forwards}
-        .cc-melee-slash{animation:ccStageSlash 420ms ease-out forwards}
-        .cc-stage-arena-hit{animation:ccStageArenaHit 210ms linear}
-        .cc-event-banner{animation:ccStageEvent 230ms ease-out}
-        .cc-projectile-trail{stroke-dasharray:3 3;animation:ccStageTrail 250ms linear infinite}
-        .cc-projectile-orb{filter:drop-shadow(0 0 10px rgba(255,255,255,.95))}
-        .cc-deathbolt-charge{animation:ccDeathCharge 760ms ease-out forwards}
-        @media (prefers-reduced-motion:reduce){.cc-stage-lunge-right,.cc-stage-lunge-left,.cc-stage-ranged-cast,.cc-stage-focus-cast,.cc-stage-deathbolt-cast,.cc-stage-guard-brace,.cc-stage-hit,.cc-stage-hit-shield,.cc-stage-hit-heavy,.cc-stage-defeat,.cc-target-reticle-spin,.cc-focus-reticle-spin,.cc-target-chevron,.cc-stage-focus-ground,.cc-stage-shield-bloom,.cc-combat-float,.cc-impact-burst,.cc-melee-slash,.cc-stage-arena-hit,.cc-event-banner,.cc-projectile-trail,.cc-deathbolt-charge{animation:none!important}}
+        @keyframes ccActorMeleeRight{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}58%{transform:translateX(24px)}76%{transform:translateX(16px)}}
+        @keyframes ccActorMeleeLeft{0%,100%{transform:translateX(0)}25%{transform:translateX(5px)}58%{transform:translateX(-24px)}76%{transform:translateX(-16px)}}
+        @keyframes ccActorRanged{0%,100%{transform:translateY(0) rotate(0)}28%{transform:translateY(3px) rotate(-1deg)}52%{transform:translateY(-4px) rotate(1deg)}68%{transform:translateY(-2px)}}
+        @keyframes ccActorFocus{0%,100%{transform:translateY(0) scale(1)}42%{transform:translateY(-5px) scale(1.025)}62%{filter:brightness(1.35)}}
+        @keyframes ccActorDeathBolt{0%,100%{transform:translateY(0) scale(1)}32%{transform:translateY(4px) scale(.985)}63%{transform:translateY(-8px) scale(1.04);filter:brightness(1.5)}}
+        @keyframes ccActorGuard{0%,100%{transform:translateY(0) scale(1)}38%{transform:translateY(4px) scale(1.025,.97)}65%{filter:brightness(1.28)}}
+        @keyframes ccTargetHit{0%,100%{transform:translateX(0)}18%{transform:translateX(-7px);filter:brightness(1.8)}38%{transform:translateX(6px)}58%{transform:translateX(-3px)}}
+        @keyframes ccTargetHitShield{0%,100%{transform:translateX(0)}22%{transform:translateX(-4px);filter:brightness(1.55)}48%{transform:translateX(3px)}}
+        @keyframes ccTargetHitHeavy{0%,100%{transform:translateX(0) scale(1)}12%{transform:translateX(-9px) scale(1.025);filter:brightness(2.2)}29%{transform:translateX(8px)}48%{transform:translateX(-5px)}68%{transform:translateX(3px)}}
+        @keyframes ccStageDefeat{0%{opacity:1;filter:brightness(1)}55%{opacity:.82;filter:brightness(.82)}100%{opacity:.62;filter:brightness(.7)}}
+        @keyframes ccTargetSpin{to{transform:rotate(360deg)}}
+        @keyframes ccFocusSpin{to{transform:rotate(-360deg)}}
+        @keyframes ccTargetChevron{0%,100%{transform:translateY(0);opacity:.8}50%{transform:translateY(7px);opacity:1}}
+        @keyframes ccStageFocusGround{0%,100%{box-shadow:0 0 10px rgba(232,121,249,.25)}50%{box-shadow:0 0 30px rgba(232,121,249,.75)}}
+        @keyframes ccStageShield{0%{transform:scale(.6);opacity:0}45%{transform:scale(1.06);opacity:1}100%{transform:scale(1.25);opacity:0}}
+        @keyframes ccStageFloat{0%{opacity:0;transform:translate3d(0,14px,0) scale(.76)}14%{opacity:1;transform:translate3d(0,-2px,0) scale(1.16)}70%{opacity:1;transform:translate3d(0,-58px,0) scale(1)}100%{opacity:0;transform:translate3d(0,-90px,0) scale(.94)}}
+        @keyframes ccStageBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.55)}}
+        @keyframes ccStageArenaHit{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(1px)}}
+        @keyframes ccStageEvent{from{opacity:0;transform:translate(-50%,-8px) scale(.98)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+        @keyframes ccStageTrail{from{stroke-dashoffset:18}to{stroke-dashoffset:0}}
+        @keyframes ccDeathCharge{0%{opacity:0;transform:translate(-50%,-50%) scale(.35) rotate(0)}45%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(120deg)}100%{opacity:.82;transform:translate(-50%,-50%) scale(.82) rotate(220deg)}}
+        @keyframes ccSpriteSwap{0%{opacity:.45;filter:brightness(.82)}100%{opacity:1;filter:brightness(1)}}
+        .cc-stage-unit:hover,.cc-stage-unit:focus-visible{transform:translate(-50%,-82%)!important}
+        .cc-stage-unit:hover .cc-stage-action-shell,.cc-stage-unit:focus-visible .cc-stage-action-shell{filter:brightness(1.06) drop-shadow(0 0 9px rgba(251,191,36,.12))}
+        .cc-authored-sprite{animation:ccSpriteSwap 150ms ease-out}
+        .cc-actor-melee-right{animation:ccActorMeleeRight 900ms cubic-bezier(.16,.84,.24,1)}
+        .cc-actor-melee-left{animation:ccActorMeleeLeft 900ms cubic-bezier(.16,.84,.24,1)}
+        .cc-actor-ranged{animation:ccActorRanged 900ms cubic-bezier(.2,.8,.2,1)}
+        .cc-actor-focus{animation:ccActorFocus 900ms ease-in-out}
+        .cc-actor-deathbolt{animation:ccActorDeathBolt 1100ms cubic-bezier(.16,.84,.25,1)}
+        .cc-actor-guard{animation:ccActorGuard 900ms ease-out}
+        .cc-target-hit{animation:ccTargetHit 720ms ease-out}
+        .cc-target-hit-shield{animation:ccTargetHitShield 620ms ease-out}
+        .cc-target-hit-heavy{animation:ccTargetHitHeavy 820ms ease-out}
+        .cc-stage-defeat{animation:ccStageDefeat 1100ms ease-out forwards}
+        .cc-target-reticle-spin{transform-origin:80px 80px;animation:ccTargetSpin 5.5s linear infinite}
+        .cc-focus-reticle-spin{transform-origin:80px 80px;animation:ccFocusSpin 3.6s linear infinite}
+        .cc-target-chevron{animation:ccTargetChevron 1.1s ease-in-out infinite}
+        .cc-stage-focus-ground{animation:ccStageFocusGround 1.6s ease-in-out infinite}
+        .cc-stage-shield-bloom{animation:ccStageShield 1000ms ease-out forwards}
+        .cc-combat-float{animation:ccStageFloat 1450ms cubic-bezier(.16,.82,.2,1) forwards;will-change:transform,opacity}
+        .cc-impact-burst{animation:ccStageBurst 720ms ease-out forwards}
+        .cc-stage-arena-hit{animation:ccStageArenaHit 240ms linear}
+        .cc-event-banner{animation:ccStageEvent 260ms ease-out}
+        .cc-projectile-trail{stroke-dasharray:3 3;animation:ccStageTrail 320ms linear infinite}
+        .cc-projectile-orb,.cc-authored-projectile{filter:drop-shadow(0 0 10px rgba(255,255,255,.95))}
+        .cc-deathbolt-charge{animation:ccDeathCharge 900ms ease-out forwards}
+        @media(prefers-reduced-motion:reduce){.cc-authored-sprite,.cc-actor-melee-right,.cc-actor-melee-left,.cc-actor-ranged,.cc-actor-focus,.cc-actor-deathbolt,.cc-actor-guard,.cc-target-hit,.cc-target-hit-shield,.cc-target-hit-heavy,.cc-stage-defeat,.cc-target-reticle-spin,.cc-focus-reticle-spin,.cc-target-chevron,.cc-stage-focus-ground,.cc-stage-shield-bloom,.cc-combat-float,.cc-impact-burst,.cc-stage-arena-hit,.cc-event-banner,.cc-projectile-trail,.cc-deathbolt-charge{animation:none!important}}
       `}</style>
 
-      <div className="relative z-50 flex flex-wrap items-center justify-between gap-2 border-b border-white/5 bg-slate-950/54 px-3 py-2.5 backdrop-blur-md sm:px-4">
+      <div className="relative z-[90] flex flex-wrap items-center justify-between gap-2 border-b border-white/5 bg-slate-950/54 px-3 py-2.5 backdrop-blur-md sm:px-4">
         <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold">
           <span className="font-heading text-cyan-100">⚔ {copy.turn} {turn} {copy.of} {maxTurns}</span>
           <span className="text-slate-400">⏱ {copy.expires}: {expiry}</span>
@@ -482,16 +502,16 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         </div>
       </div>
 
-      <div className="relative h-[510px] overflow-hidden sm:h-[570px] lg:h-[620px]" dir="ltr">
+      <div className="relative h-[540px] overflow-hidden sm:h-[600px] lg:h-[650px]" dir="ltr">
         <TacticalBackdrop />
-        {effectsOn && <><span aria-hidden className="pointer-events-none absolute left-[8%] top-[30%] h-36 w-36 rounded-full bg-cyan-400/[0.06] blur-3xl" /><span aria-hidden className="pointer-events-none absolute right-[8%] top-[30%] h-36 w-36 rounded-full bg-fuchsia-500/[0.06] blur-3xl" /></>}
+        {effectsOn && <><span aria-hidden className="pointer-events-none absolute left-[7%] top-[28%] h-40 w-40 rounded-full bg-cyan-400/[0.06] blur-3xl" /><span aria-hidden className="pointer-events-none absolute right-[7%] top-[28%] h-40 w-40 rounded-full bg-fuchsia-500/[0.06] blur-3xl" /></>}
         <div className="pointer-events-none absolute inset-x-0 top-3 z-20 flex justify-between px-4 text-[8px] font-black uppercase tracking-[0.2em] sm:px-6 sm:text-[10px]"><span className="text-cyan-300">● {copy.you}</span><span className="text-fuchsia-300">{targetable ? `◎ ${copy.selectTarget}` : `● ${copy.enemy}`}</span></div>
         <EventBanner step={activeStep} combatants={combatants} language={language} copy={copy} />
         {combatants.map(unit)}
-        {effectsOn && animationsOn && <ProjectilePath step={activeStep} phase={phase} combatants={combatants} />}
+        {effectsOn && animationsOn && <ProjectilePath step={activeStep} phase={phase} combatants={combatants} speed={speed} />}
 
         {outcomeLabel && !activeStep && (
-          <div className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center bg-slate-950/28 backdrop-blur-[1px]">
+          <div className="pointer-events-none absolute inset-0 z-[100] flex items-center justify-center bg-slate-950/30 backdrop-blur-[1px]">
             <div className="text-center"><div className="text-5xl" aria-hidden>{status === 'victory' ? '🏆' : status === 'defeat' ? '☠️' : '⚖️'}</div><div className={`mt-2 font-heading text-2xl font-black sm:text-4xl ${status === 'victory' ? 'text-emerald-300' : status === 'defeat' ? 'text-red-300' : 'text-amber-300'}`}>{outcomeLabel}</div><p className="mt-1 text-xs text-slate-300">{copy.finishedNote}</p></div>
           </div>
         )}
