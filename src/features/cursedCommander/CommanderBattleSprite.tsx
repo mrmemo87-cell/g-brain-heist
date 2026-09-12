@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { CommanderPracticeCombatant } from '../../../services/commanderPracticeService';
 import {
+  getCommanderSpriteCalibration,
   getCommanderSpriteDefinition,
   getCommanderSpriteUrl,
   warmCommanderCombatSprites,
@@ -15,11 +16,27 @@ type Props = {
   className?: string;
 };
 
+const POSE_FADE_MS = 170;
+
+const spriteFilterFor = (
+  combatant: CommanderPracticeCombatant,
+  pose: CommanderSpritePose,
+  active: boolean,
+) => {
+  const accent = combatant.side === 'player' ? '#22d3ee' : '#fb7185';
+  if (pose === 'defeated') return 'grayscale(.45) brightness(.72) saturate(.72)';
+  return active
+    ? `drop-shadow(0 0 22px ${accent}) drop-shadow(0 12px 18px rgba(2,6,23,.5))`
+    : `drop-shadow(0 0 10px ${accent}66) drop-shadow(0 10px 14px rgba(2,6,23,.45))`;
+};
+
 /**
- * Battlefield artwork renderer.
- * Formation/movement lives on the outer battlefield actor. This component only
- * swaps authored PNG poses inside a fixed-size canvas, so pose changes cannot
- * move a unit out of its tactical slot.
+ * Production battlefield sprite renderer.
+ *
+ * Formation/movement remains on the outer tactical actor. This renderer only
+ * swaps authored PNG poses inside one foot-anchored canvas. The next pose is
+ * decoded before it is revealed and the previous frame briefly crossfades out,
+ * preventing network/decode flashes without ever changing the unit's world slot.
  */
 const CommanderBattleSprite: React.FC<Props> = ({
   combatant,
@@ -30,14 +47,64 @@ const CommanderBattleSprite: React.FC<Props> = ({
 }) => {
   const definition = getCommanderSpriteDefinition(combatant.id);
   const resolvedPose: CommanderSpritePose = defeated || combatant.hp <= 0 ? 'defeated' : pose;
-  const src = getCommanderSpriteUrl(combatant.id, resolvedPose);
-  const accent = combatant.side === 'player' ? '#22d3ee' : '#fb7185';
+  const requestedSrc = getCommanderSpriteUrl(combatant.id, resolvedPose);
+
+  const [visibleSrc, setVisibleSrc] = useState<string | null>(requestedSrc);
+  const [visiblePose, setVisiblePose] = useState<CommanderSpritePose>(resolvedPose);
+  const [previousFrame, setPreviousFrame] = useState<{ src: string; pose: CommanderSpritePose } | null>(null);
+  const transitionId = useRef(0);
 
   useEffect(() => {
     warmCommanderCombatSprites();
   }, []);
 
-  if (!definition || !src) {
+  useEffect(() => {
+    if (!requestedSrc || requestedSrc === visibleSrc) {
+      if (visiblePose !== resolvedPose) setVisiblePose(resolvedPose);
+      return;
+    }
+
+    const id = ++transitionId.current;
+    let cancelled = false;
+    const image = new Image();
+
+    const reveal = () => {
+      if (cancelled || id !== transitionId.current) return;
+      setPreviousFrame(visibleSrc ? { src: visibleSrc, pose: visiblePose } : null);
+      setVisibleSrc(requestedSrc);
+      setVisiblePose(resolvedPose);
+    };
+
+    image.onload = reveal;
+    image.onerror = reveal;
+    image.decoding = 'async';
+    image.src = requestedSrc;
+
+    if (image.complete) {
+      void image.decode?.().catch(() => undefined).finally(reveal);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [requestedSrc, resolvedPose, visiblePose, visibleSrc]);
+
+  useEffect(() => {
+    if (!previousFrame) return;
+    const timer = window.setTimeout(() => setPreviousFrame(null), POSE_FADE_MS);
+    return () => window.clearTimeout(timer);
+  }, [previousFrame]);
+
+  const visibleCalibration = useMemo(
+    () => getCommanderSpriteCalibration(combatant.id, visiblePose),
+    [combatant.id, visiblePose],
+  );
+  const previousCalibration = useMemo(
+    () => previousFrame ? getCommanderSpriteCalibration(combatant.id, previousFrame.pose) : null,
+    [combatant.id, previousFrame],
+  );
+
+  if (!definition || !visibleSrc || !visibleCalibration) {
     return (
       <div
         aria-hidden
@@ -50,32 +117,43 @@ const CommanderBattleSprite: React.FC<Props> = ({
   }
 
   const mirror = definition.mirrorX ? -1 : 1;
-  const imageTransform = `translate(${definition.offsetX}%, ${definition.offsetY}%) scale(${definition.visualScale * mirror}, ${definition.visualScale})`;
-  const filter = resolvedPose === 'defeated'
-    ? 'grayscale(.45) brightness(.72) saturate(.72)'
-    : active
-      ? `drop-shadow(0 0 22px ${accent}) drop-shadow(0 12px 18px rgba(2,6,23,.5))`
-      : `drop-shadow(0 0 10px ${accent}66) drop-shadow(0 10px 14px rgba(2,6,23,.45))`;
+  const imageTransform = (calibration: NonNullable<ReturnType<typeof getCommanderSpriteCalibration>>) =>
+    `translate(${calibration.offsetX}%, ${calibration.offsetY}%) scale(${calibration.visualScale * mirror}, ${calibration.visualScale})`;
 
   return (
     <div
       aria-hidden
       data-commander-sprite={combatant.id}
-      data-commander-pose={resolvedPose}
+      data-commander-pose={visiblePose}
       className={`relative h-full w-full overflow-visible ${className}`}
     >
+      {previousFrame && previousCalibration && (
+        <img
+          src={previousFrame.src}
+          alt=""
+          draggable={false}
+          decoding="async"
+          className="cc-authored-sprite cc-authored-sprite-previous pointer-events-none absolute inset-0 h-full w-full select-none object-contain object-bottom"
+          style={{
+            transform: imageTransform(previousCalibration),
+            transformOrigin: '50% 100%',
+            filter: spriteFilterFor(combatant, previousFrame.pose, active),
+            opacity: 0,
+            transition: `opacity ${POSE_FADE_MS}ms ease-out`,
+          }}
+        />
+      )}
       <img
-        key={`${combatant.id}-${resolvedPose}`}
-        src={src}
+        src={visibleSrc}
         alt=""
         draggable={false}
         loading="eager"
         decoding="async"
-        className="cc-authored-sprite absolute inset-0 h-full w-full select-none object-contain object-bottom"
+        className="cc-authored-sprite cc-authored-sprite-current pointer-events-none absolute inset-0 h-full w-full select-none object-contain object-bottom"
         style={{
-          transform: imageTransform,
+          transform: imageTransform(visibleCalibration),
           transformOrigin: '50% 100%',
-          filter,
+          filter: spriteFilterFor(combatant, visiblePose, active),
         }}
       />
     </div>
