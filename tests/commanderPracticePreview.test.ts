@@ -119,3 +119,14 @@ test('Commander arena includes visual-only confirmed-event battlefield playback'
   assert.match(arena, /🛡️/);
   assert.doesNotMatch(arena, /supabase\.from|supabase\.rpc|\.insert\s*\(|\.update\s*\(|\.upsert\s*\(|\.delete\s*\(/);
 });
+
+test('enemy targeting and enemy stats live only inside the battlefield', () => {
+  const arena = readFileSync('src/features/cursedCommander/CommanderPracticeArena.tsx', 'utf8');
+
+  assert.doesNotMatch(arena, /const enemyCombatants = useMemo/);
+  assert.doesNotMatch(arena, /enemyCombatants\.map/);
+  assert.match(arena, /enemies\.map\(unit\)/);
+  assert.match(arena, /copy\.hp.*combatant\.hp\/\{combatant\.maxHp\}/s);
+  assert.match(arena, /copy\.shield.*combatant\.shield/s);
+  assert.match(arena, /onSelectTarget/);
+});

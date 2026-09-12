@@ -331,6 +331,9 @@ type BattlefieldCopy = {
   knockedOut: string;
   you: string;
   enemy: string;
+  selectTarget: string;
+  hp: string;
+  shield: string;
 };
 
 const LiveBattlefield: React.FC<{
@@ -343,6 +346,7 @@ const LiveBattlefield: React.FC<{
   animationsOn: boolean;
   effectsOn: boolean;
   speed: 1 | 2;
+  language: keyof typeof COPY;
   copy: BattlefieldCopy;
   onSelectTarget: (id: string) => void;
   onToggleAnimations: () => void;
@@ -358,6 +362,7 @@ const LiveBattlefield: React.FC<{
   animationsOn,
   effectsOn,
   speed,
+  language,
   copy,
   onSelectTarget,
   onToggleAnimations,
@@ -383,11 +388,11 @@ const LiveBattlefield: React.FC<{
         type="button"
         disabled={!canTarget}
         onClick={() => canTarget && onSelectTarget(combatant.id)}
-        className={`cc-field-unit relative min-w-0 rounded-2xl border px-2 py-2 text-center transition-all ${
+        className={`cc-field-unit relative min-w-0 rounded-2xl border px-2 py-2.5 text-center transition-all ${
           combatant.hp <= 0
             ? 'border-slate-800 bg-slate-950/70 opacity-40 grayscale'
             : selected
-              ? 'border-amber-300 bg-amber-400/10 shadow-[0_0_24px_rgba(251,191,36,0.28)]'
+              ? 'border-amber-300 bg-amber-400/10 shadow-[0_0_28px_rgba(251,191,36,0.34)]'
               : combatant.side === 'player'
                 ? 'border-cyan-400/30 bg-cyan-500/[0.08]'
                 : 'border-fuchsia-400/30 bg-fuchsia-500/[0.08]'
@@ -396,21 +401,31 @@ const LiveBattlefield: React.FC<{
       >
         {selected && <span className="absolute -top-2 start-1/2 -translate-x-1/2 rounded-full bg-amber-300 px-2 py-0.5 text-[9px] font-black uppercase text-slate-950">{copy.selected}</span>}
         {focused && combatant.hp > 0 && <span className="absolute -end-1 -top-2 text-lg drop-shadow-[0_0_8px_rgba(244,114,182,0.9)]" aria-label="Focus">🎯</span>}
-        <div className="text-3xl sm:text-4xl" aria-hidden>{combatantEmoji(combatant)}</div>
+        {combatant.role === 'commander' && <span className="absolute start-2 top-2 rounded-full border border-violet-300/30 bg-violet-400/10 px-1.5 py-0.5 text-[8px] font-black text-violet-100">CMD</span>}
+        <div className="text-3xl sm:text-5xl" aria-hidden>{combatantEmoji(combatant)}</div>
         <div className="mt-1 truncate text-[10px] font-bold text-white sm:text-xs">{combatant.name}</div>
         {combatant.hp <= 0 ? (
           <div className="mt-1 text-[9px] font-bold uppercase tracking-wider text-slate-500">{copy.knockedOut}</div>
         ) : (
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800">
-            <div className="h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${hpPercent(combatant)}%` }} />
-          </div>
+          <>
+            <div className="mt-2 flex items-center justify-between gap-1 text-[8px] font-semibold text-slate-300 sm:text-[10px]">
+              <span>{copy.hp} {combatant.hp}/{combatant.maxHp}</span>
+              <span className="text-sky-200">🛡️ {combatant.shield}</span>
+            </div>
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-800">
+              <div className="h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${hpPercent(combatant)}%` }} />
+            </div>
+            <div className="mt-1 h-1 overflow-hidden rounded-full bg-slate-900">
+              <div className="h-full rounded-full bg-sky-400 transition-all" style={{ width: `${Math.min(100, (combatant.shield / 30) * 100)}%` }} aria-label={`${copy.shield} ${combatant.shield}`} />
+            </div>
+          </>
         )}
       </button>
     );
   };
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-cyan-400/30 bg-slate-950 shadow-[0_0_40px_rgba(34,211,238,0.09)]">
+    <section className="relative overflow-hidden rounded-3xl border border-cyan-400/30 bg-slate-950 shadow-[0_0_50px_rgba(34,211,238,0.12)]">
       <style>{`
         @keyframes ccActorMove { 0%,100% { transform: translateY(0) scale(1); } 45% { transform: translateY(-8px) scale(1.06); } }
         @keyframes ccTargetHit { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 50% { transform: translateX(4px); } 75% { transform: translateX(-2px); } }
@@ -425,7 +440,7 @@ const LiveBattlefield: React.FC<{
         }
       `}</style>
 
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(56,189,248,0.15),transparent_30%),linear-gradient(180deg,rgba(15,23,42,0.2),rgba(2,6,23,0.92))]" />
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_35%,rgba(34,211,238,0.18),transparent_24%),radial-gradient(circle_at_82%_35%,rgba(236,72,153,0.16),transparent_24%),radial-gradient(circle_at_50%_10%,rgba(139,92,246,0.16),transparent_32%),linear-gradient(180deg,rgba(15,23,42,0.2),rgba(2,6,23,0.94))]" />
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 opacity-40 [background-image:linear-gradient(rgba(56,189,248,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,.12)_1px,transparent_1px)] [background-size:32px_32px] [transform:perspective(240px)_rotateX(50deg)] [transform-origin:bottom]" />
 
       <div className="relative border-b border-slate-800/80 px-4 py-3 sm:flex sm:items-center sm:justify-between sm:gap-3">
@@ -446,16 +461,16 @@ const LiveBattlefield: React.FC<{
         </div>
       </div>
 
-      <div className="relative min-h-[310px] p-4 sm:min-h-[340px] sm:p-5" dir="ltr">
-        <div className="mb-3 grid grid-cols-2 gap-3 text-[10px] font-black uppercase tracking-[0.16em]">
+      <div className="relative min-h-[350px] p-4 sm:min-h-[420px] sm:p-6" dir="ltr">
+        <div className="mb-4 grid grid-cols-2 gap-3 text-[10px] font-black uppercase tracking-[0.16em]">
           <span className="text-cyan-300">◀ {copy.you}</span>
-          <span className="text-right text-fuchsia-300">{copy.enemy} ▶</span>
+          <span className="text-right text-fuchsia-300">🎯 {targetable ? copy.selectTarget : copy.enemy} ▶</span>
         </div>
 
-        <div className="grid grid-cols-[minmax(0,1fr)_72px_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_120px_minmax(0,1fr)] sm:gap-4">
+        <div className="grid grid-cols-[minmax(0,1fr)_72px_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_140px_minmax(0,1fr)] sm:gap-5">
           <div className="grid gap-2 sm:grid-cols-3">{players.map(unit)}</div>
 
-          <div className="relative flex min-h-40 items-center justify-center" aria-live="polite">
+          <div className="relative flex min-h-44 items-center justify-center" aria-live="polite">
             <div className="absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-cyan-400/20 via-violet-300/80 to-fuchsia-400/20" />
             <div className={`relative z-10 rounded-full border px-3 py-2 text-2xl shadow-xl ${activeEvent ? 'border-violet-300/50 bg-violet-400/15' : 'border-slate-700 bg-slate-900/80'}`}>
               {activeEvent ? eventEffect(activeEvent) : '⚔️'}
@@ -474,9 +489,9 @@ const LiveBattlefield: React.FC<{
           <div className="grid gap-2 sm:grid-cols-3">{enemies.map(unit)}</div>
         </div>
 
-        <div className="mt-4 flex min-h-8 items-center justify-center rounded-xl border border-slate-800/80 bg-slate-950/70 px-3 py-2 text-center text-xs font-semibold text-slate-300">
+        <div className="mt-5 flex min-h-8 items-center justify-center rounded-xl border border-slate-800/80 bg-slate-950/70 px-3 py-2 text-center text-xs font-semibold text-slate-300">
           {activeEvent ? (
-            <span className="text-cyan-100"><span className="me-2 animate-pulse">▶</span>{eventText(activeEvent, 'en')}</span>
+            <span className="text-cyan-100"><span className="me-2 animate-pulse">▶</span>{eventText(activeEvent, language)}</span>
           ) : (
             <span>{copy.waiting}</span>
           )}
@@ -519,10 +534,6 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
 
   const playerCombatants = useMemo(
     () => session?.battle.combatants.filter((combatant) => combatant.side === 'player') ?? [],
-    [session],
-  );
-  const enemyCombatants = useMemo(
-    () => session?.battle.combatants.filter((combatant) => combatant.side === 'enemy') ?? [],
     [session],
   );
 
@@ -737,46 +748,22 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
                 </section>
               )}
 
-              <section className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-3xl border border-cyan-400/20 bg-cyan-400/[0.04] p-4">
-                  <h2 className="mb-3 font-heading text-sm font-black uppercase tracking-[0.12em] text-cyan-200">{copy.you}</h2>
-                  <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                    {playerCombatants.map((combatant) => (
-                      <CombatantCard
-                        key={combatant.id}
-                        combatant={combatant}
-                        targetable={false}
-                        selected={false}
-                        focused={!finished && battle.enemyFocusTarget === combatant.id}
-                        selectedLabel={copy.selected}
-                        hpLabel={copy.hp}
-                        shieldLabel={copy.shield}
-                        onSelect={() => {}}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-3xl border border-fuchsia-400/20 bg-fuchsia-400/[0.04] p-4">
-                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="font-heading text-sm font-black uppercase tracking-[0.12em] text-fuchsia-200">{copy.enemy}</h2>
-                    {!finished && <span className="text-xs text-slate-400">{copy.selectTarget}</span>}
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                    {enemyCombatants.map((combatant) => (
-                      <CombatantCard
-                        key={combatant.id}
-                        combatant={combatant}
-                        targetable={!finished && !busy}
-                        selected={!finished && selectedTargetId === combatant.id}
-                        focused={!finished && battle.playerFocusTarget === combatant.id}
-                        selectedLabel={copy.selected}
-                        hpLabel={copy.hp}
-                        shieldLabel={copy.shield}
-                        onSelect={() => setSelectedTargetId(combatant.id)}
-                      />
-                    ))}
-                  </div>
+              <section className="rounded-3xl border border-cyan-400/20 bg-cyan-400/[0.04] p-4">
+                <h2 className="mb-3 font-heading text-sm font-black uppercase tracking-[0.12em] text-cyan-200">{copy.you}</h2>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {playerCombatants.map((combatant) => (
+                    <CombatantCard
+                      key={combatant.id}
+                      combatant={combatant}
+                      targetable={false}
+                      selected={false}
+                      focused={!finished && battle.enemyFocusTarget === combatant.id}
+                      selectedLabel={copy.selected}
+                      hpLabel={copy.hp}
+                      shieldLabel={copy.shield}
+                      onSelect={() => {}}
+                    />
+                  ))}
                 </div>
               </section>
 
@@ -790,6 +777,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
                 animationsOn={animationsOn}
                 effectsOn={effectsOn}
                 speed={speed}
+                language={language}
                 copy={copy}
                 onSelectTarget={setSelectedTargetId}
                 onToggleAnimations={() => setAnimationsOn((value) => !value)}
