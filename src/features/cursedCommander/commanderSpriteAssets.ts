@@ -34,6 +34,12 @@ import hollowArrow from '../../assets/Hollow Ranger/Hollow Ranger arrow.png';
 
 export type CommanderSpritePose = 'standing' | 'attacking' | 'justShot' | 'attacked' | 'defeated';
 
+export type CommanderSpritePoseCalibration = {
+  visualScale?: number;
+  offsetX?: number;
+  offsetY?: number;
+};
+
 type CommanderSpritePoses = {
   standing: string;
   attacking: string;
@@ -51,6 +57,8 @@ export type CommanderSpriteDefinition = {
   offsetX: number;
   offsetY: number;
   mirrorX?: boolean;
+  /** Optional pose-specific art calibration. Never changes battlefield slot coordinates. */
+  poseCalibration?: Partial<Record<CommanderSpritePose, CommanderSpritePoseCalibration>>;
 };
 
 export const COMMANDER_SPRITES: Record<string, CommanderSpriteDefinition> = {
@@ -109,12 +117,25 @@ export const getCommanderSpriteUrl = (combatantId: string, pose: CommanderSprite
   return definition.poses[pose];
 };
 
+export const getCommanderSpriteCalibration = (combatantId: string, pose: CommanderSpritePose) => {
+  const definition = COMMANDER_SPRITES[combatantId];
+  if (!definition) return null;
+  const poseCalibration = definition.poseCalibration?.[pose];
+  return {
+    visualScale: poseCalibration?.visualScale ?? definition.visualScale,
+    offsetX: poseCalibration?.offsetX ?? definition.offsetX,
+    offsetY: poseCalibration?.offsetY ?? definition.offsetY,
+  };
+};
+
 export const getCommanderProjectileUrl = (combatantId: string) => COMMANDER_SPRITES[combatantId]?.projectile ?? null;
 
 export const isCommanderRangedSprite = (combatantId: string) => COMMANDER_SPRITES[combatantId]?.ranged ?? false;
 
 const uniqueUrls = (urls: Array<string | null | undefined>) => [...new Set(urls.filter((value): value is string => Boolean(value)))];
-const combatUrls = uniqueUrls(Object.values(COMMANDER_SPRITES).flatMap((definition) => [
+
+const allSpriteUrls = uniqueUrls(Object.values(COMMANDER_SPRITES).flatMap((definition) => [
+  definition.poses.standing,
   definition.poses.attacking,
   definition.poses.justShot,
   definition.poses.attacked,
@@ -122,13 +143,33 @@ const combatUrls = uniqueUrls(Object.values(COMMANDER_SPRITES).flatMap((definiti
   definition.projectile,
 ]));
 
-const preloadUrls = (urls: string[]) => {
-  if (typeof window === 'undefined') return;
-  urls.forEach((src) => {
-    const image = new Image();
-    image.decoding = 'async';
-    image.src = src;
-  });
+const loadImage = (src: string) => new Promise<void>((resolve) => {
+  const image = new Image();
+  let settled = false;
+  const finish = () => {
+    if (settled) return;
+    settled = true;
+    resolve();
+  };
+  image.onload = finish;
+  image.onerror = finish;
+  image.decoding = 'async';
+  image.src = src;
+  if (image.complete) {
+    void image.decode?.().catch(() => undefined).finally(finish);
+  }
+});
+
+let preloadPromise: Promise<void> | null = null;
+
+/**
+ * Decode the complete authored Commander sprite set once per page session.
+ * Fail-soft by design: a single broken image must never block the practice battle.
+ */
+export const preloadCommanderSpriteAssets = () => {
+  if (typeof window === 'undefined') return Promise.resolve();
+  if (!preloadPromise) preloadPromise = Promise.all(allSpriteUrls.map(loadImage)).then(() => undefined);
+  return preloadPromise;
 };
 
 let combatWarmScheduled = false;
@@ -137,14 +178,15 @@ type IdleCapableWindow = Window & {
   requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
 };
 
-/** Warm action, hit, KO and projectile art once, without blocking the battle UI. */
+/** Warm the authored poses/projectiles without blocking the initial battle UI. */
 export const warmCommanderCombatSprites = () => {
   if (typeof window === 'undefined' || combatWarmScheduled) return;
   combatWarmScheduled = true;
   const idleWindow = window as IdleCapableWindow;
+  const warm = () => { void preloadCommanderSpriteAssets(); };
   if (idleWindow.requestIdleCallback) {
-    idleWindow.requestIdleCallback(() => preloadUrls(combatUrls), { timeout: 1800 });
+    idleWindow.requestIdleCallback(warm, { timeout: 1600 });
     return;
   }
-  window.setTimeout(() => preloadUrls(combatUrls), 250);
+  window.setTimeout(warm, 180);
 };
