@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { CommanderPracticeCombatant } from '../../../services/commanderPracticeService';
 import {
   getCommanderSpriteDefinition,
   getCommanderSpriteUrl,
+  warmCommanderCombatSprites,
   type CommanderSpritePose,
 } from './commanderSpriteAssets';
 
@@ -32,6 +33,10 @@ const CommanderBattleSprite: React.FC<Props> = ({
   const resolvedPose: CommanderSpritePose = defeated || combatant.hp <= 0 ? 'defeated' : pose;
   const src = getCommanderSpriteUrl(combatant.id, resolvedPose);
   const accent = combatant.side === 'player' ? '#22d3ee' : '#fb7185';
+
+  useEffect(() => {
+    warmCommanderCombatSprites();
+  }, []);
 
   if (!definition || !src) {
     return (
