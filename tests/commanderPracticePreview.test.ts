@@ -156,6 +156,7 @@ test('Commander arena uses server-confirmed tactical playback without persistenc
 });
 
 test('combat feedback floats and fades with distinct semantic colors', () => {
+  const arena = readFileSync('src/features/cursedCommander/CommanderPracticeArena.tsx', 'utf8');
   const battlefield = readFileSync('src/features/cursedCommander/CommanderCinematicBattlefield.tsx', 'utf8');
 
   assert.match(battlefield, /damage:.*text-red-300/s);
@@ -164,18 +165,36 @@ test('combat feedback floats and fades with distinct semantic colors', () => {
   assert.match(battlefield, /shieldGain:.*text-cyan-200/s);
   assert.match(battlefield, /ccStageFloat[\s\S]*opacity:0[\s\S]*translate3d\(0,-48px,0\)/);
   assert.match(battlefield, /animation:ccStageFloat 900ms/);
+  assert.match(arena, /ccReadableCombatFloat[\s\S]*translate3d\(0,-82px,0\)/);
+  assert.match(arena, /animation:ccReadableCombatFloat 1200ms/);
   assert.match(battlefield, /-\{activeStep\.hpDamage\}/);
   assert.match(battlefield, /\+\{activeStep\?\.event\.amount \?\? 0\} \{copy\.shield\}/);
 });
 
 test('battlefield hover keeps formation coordinates fixed while selection reticle is unit-anchored', () => {
+  const arena = readFileSync('src/features/cursedCommander/CommanderPracticeArena.tsx', 'utf8');
   const battlefield = readFileSync('src/features/cursedCommander/CommanderCinematicBattlefield.tsx', 'utf8');
 
   assert.match(battlefield, /\.cc-stage-unit\{transform:translate\(-50%,-82%\) scale\(var\(--cc-unit-scale\)\)/);
   assert.match(battlefield, /\.cc-stage-unit:hover,.cc-stage-unit:focus-visible\{transform:translate\(-50%,-82%\) scale\(var\(--cc-unit-scale\)\)!important\}/);
+  assert.match(arena, /data-commander-practice-root="true"/);
+  assert.match(arena, /translate:-50% -82%!important/);
+  assert.match(arena, /scale:var\(--cc-unit-scale\)!important/);
+  assert.match(arena, /transform:none!important/);
   assert.match(battlefield, /left-1\/2 top-\[39%\][\s\S]*TacticalTargetReticle|TacticalTargetReticle[\s\S]*left-1\/2 top-\[39%\]/);
   assert.match(battlefield, /cc-target-reticle-spin/);
   assert.match(battlefield, /cc-focus-reticle-spin/);
+});
+
+test('default Commander playback leaves enough time to read each combat event', () => {
+  const arena = readFileSync('src/features/cursedCommander/CommanderPracticeArena.tsx', 'utf8');
+
+  assert.match(arena, /attackWindup: 650/);
+  assert.match(arena, /attackImpact: 1450/);
+  assert.match(arena, /deathBoltImpact: 1650/);
+  assert.match(arena, /guardImpact: 1400/);
+  assert.match(arena, /outcomeImpact: 1700/);
+  assert.match(arena, /const multiplier = speed === 2 \? 0\.6 : 1/);
 });
 
 test('battlefield is formation-first instead of rendering duplicated squad cards', () => {
