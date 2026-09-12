@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { CommanderPracticeCombatant } from '../../../services/commanderPracticeService';
 import {
+  failedCommanderSprites,
   getCommanderSpriteCalibration,
   getCommanderSpriteDefinition,
   getCommanderSpriteUrl,
@@ -118,7 +119,7 @@ const CommanderBattleSprite: React.FC<Props> = ({
     [combatant.id, previousFrame],
   );
 
-  if (!definition || !visibleSrc || !visibleCalibration) {
+  if (!definition || !visibleSrc || !visibleCalibration || failedCommanderSprites.has(visibleSrc)) {
     return (
       <div
         aria-hidden

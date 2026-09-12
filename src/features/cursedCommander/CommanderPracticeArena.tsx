@@ -1,3 +1,5 @@
+import { preloadCommanderSpriteAssets } from './commanderSpriteAssets';
+import { preloadCommanderAudio, unlockCommanderAudio, stopCommanderAudio } from './commanderBattleSound';
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -85,6 +87,9 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
   const [visualPlayerFocusTarget, setVisualPlayerFocusTarget] = useState<string | null>(null);
   const [visualEnemyFocusTarget, setVisualEnemyFocusTarget] = useState<string | null>(null);
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
+  const [soundOn, setSoundOn] = useState(true);
+  const [introReady, setIntroReady] = useState(false);
+  const [battlePresentationKey, setBattlePresentationKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeStep, setActiveStep] = useState<CommanderCinematicStep | null>(null);
@@ -104,6 +109,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
     dialog?.showModal();
     document.body.style.overflow = 'hidden';
     return () => {
+      stopCommanderAudio();
       playbackRun.current += 1;
       pendingRequest.current?.abort();
       dialog?.close();
@@ -238,6 +244,9 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
 
   const begin = async () => {
     if (pendingRequest.current) return;
+    if (soundOn) void unlockCommanderAudio();
+    stopCommanderAudio();
+    setIntroReady(false);
     playbackRun.current += 1;
     setActiveStep(null);
     setPlaybackPhase(null);
@@ -247,8 +256,9 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
     setBusy(true);
     setError(null);
     try {
-      const next = await startCommanderPractice(controller.signal);
+      const [next] = await Promise.all([startCommanderPractice(controller.signal), preloadCommanderSpriteAssets(), preloadCommanderAudio()]);
       if (controller.signal.aborted) return;
+      setBattlePresentationKey(value => value + 1);
       setSession(next);
       reconcileVisualBattle(next.battle);
       const firstTarget = next.battle.combatants.find(
@@ -256,6 +266,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
       ) ?? next.battle.combatants.find((combatant) => combatant.side === 'enemy' && combatant.hp > 0);
       setSelectedTargetId(firstTarget?.id ?? null);
     } catch (cause) {
+      setIntroReady(Boolean(session));
       const code = cause instanceof Error ? cause.message : String(cause);
       setError(formatCommanderError(code, copy));
     } finally {
@@ -266,7 +277,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
   };
 
   const playMove = async (move: CommanderPracticeMove) => {
-    if (!session || session.battle.status !== 'active' || pendingRequest.current || busy) return;
+    if (!introReady || !session || session.battle.status !== 'active' || pendingRequest.current || busy) return;
     if (move !== 'guard' && !selectedTargetId) {
       setError(copy.invalidTarget);
       return;
@@ -362,6 +373,8 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
             </section>
           )}
 
+          {busy && !introReady && <div role="status" className="rounded-3xl border border-cyan-300/20 bg-slate-950 p-8 text-center font-heading text-sm tracking-widest text-cyan-200">BATTLE INITIALIZING<span className="mt-2 block text-xs tracking-normal text-slate-400">Preparing battlefield and units…</span></div>}
+
           {error && (
             <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
               <span>{error}</span>
@@ -372,6 +385,10 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
           {session && battle && (
             <>
               <CommanderCinematicBattlefield
+                key={battlePresentationKey}
+                onIntroReady={() => setIntroReady(true)}
+                soundOn={soundOn}
+                onToggleSound={() => setSoundOn(value => !value)}
                 combatants={renderedCombatants}
                 selectedTargetId={battle.status === 'active' ? selectedTargetId : null}
                 playerFocusTarget={battle.status === 'active' ? visualPlayerFocusTarget : null}
@@ -379,7 +396,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
                 activeStep={activeStep}
                 phase={playbackPhase}
                 status={battle.status}
-                targetable={battle.status === 'active' && !busy}
+                targetable={introReady && battle.status === 'active' && !busy}
                 animationsOn={animationsOn}
                 effectsOn={effectsOn}
                 speed={speed}

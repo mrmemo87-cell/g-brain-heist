@@ -1,4 +1,9 @@
 export type CommanderSfxCue =
+  | 'intro'
+  | 'team'
+  | 'deploy'
+  | 'countdown'
+  | 'battleStart'
   | 'ui'
   | 'select'
   | 'focus'
@@ -14,161 +19,84 @@ export type CommanderSfxCue =
   | 'defeat'
   | 'draw';
 
-type WebkitWindow = Window & typeof globalThis & {
-  webkitAudioContext?: typeof AudioContext;
+// Vite bundles the supplied assets; no generated or legacy sound fallback.
+const clips = {
+  drums: new URL('../../assets/mixkit-drums-of-war-call-2780.wav', import.meta.url).href,
+  percussion: new URL('../../assets/mixkit-futuristic-space-war-percussion-2787.wav', import.meta.url).href,
+  arrow: new URL('../../assets/mixkit-metal-arrow-fast-hit-2770.wav', import.meta.url).href,
+  hit: new URL('../../assets/deep hit.wav', import.meta.url).href,
+  shield: new URL('../../assets/sheilded hit.wav', import.meta.url).href,
+  bolt: new URL('../../assets/death bolt.wav', import.meta.url).href,
+  effort: new URL('../../assets/mixkit-voice-from-effort-to-punch-2174.wav', import.meta.url).href,
+  defeat: new URL('../../assets/defeated.wav', import.meta.url).href,
 };
-
+const cues: Record<CommanderSfxCue, [keyof typeof clips, number, number]> = {
+  intro: ['percussion', .12, 12], team: ['drums', .22, .8], deploy: ['shield', .12, .18],
+  countdown: ['hit', .16, .25], battleStart: ['drums', .38, 1.2],
+  ui: ['shield', .08, .1], select: ['shield', .12, .16], focus: ['shield', .2, .45],
+  meleeWindup: ['effort', .2, .5], rangedFire: ['arrow', .25, .6],
+  deathBoltCharge: ['percussion', .16, .7], deathBoltImpact: ['bolt', .35, 1.5],
+  hit: ['hit', .3, .6], shieldHit: ['shield', .28, .6], guard: ['shield', .22, .7],
+  ko: ['defeat', .22, .8], victory: ['drums', .35, 2.5], defeat: ['defeat', .3, 2], draw: ['percussion', .2, 1],
+};
 let context: AudioContext | null = null;
-
+let generation = 0;
+const buffers = new Map<string, Promise<AudioBuffer | null>>();
+const active = new Map<CommanderSfxCue, { source: AudioBufferSourceNode; gain: GainNode }>();
 const getContext = () => {
   if (typeof window === 'undefined') return null;
-  if (context) return context;
-  const AudioContextCtor = window.AudioContext ?? (window as WebkitWindow).webkitAudioContext;
-  if (!AudioContextCtor) return null;
-  context = new AudioContextCtor();
-  return context;
+  const Constructor = window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Constructor) return null;
+  try { return context ??= new Constructor(); } catch { return null; }
 };
-
-const ensureRunning = async (audio: AudioContext) => {
-  if (audio.state === 'suspended') {
-    try {
-      await audio.resume();
-    } catch {
-      // Audio is optional. Browser autoplay policy can keep the context suspended.
-    }
+const load = (url: string) => {
+  if (!buffers.has(url)) {
+    const audio = getContext();
+    if (!audio) return Promise.resolve(null);
+    buffers.set(url, fetch(url, { signal: AbortSignal.timeout(8000) })
+      .then(response => { if (!response.ok) throw new Error('Audio unavailable'); return response.arrayBuffer(); })
+      .then(bytes => audio.decodeAudioData(bytes)).catch(() => null));
   }
+  return buffers.get(url)!;
 };
-
-const tone = (
-  audio: AudioContext,
-  frequency: number,
-  endFrequency: number,
-  duration: number,
-  type: OscillatorType,
-  peakGain: number,
-  delay = 0,
-) => {
-  const start = audio.currentTime + delay;
-  const oscillator = audio.createOscillator();
-  const gain = audio.createGain();
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(Math.max(1, frequency), start);
-  oscillator.frequency.exponentialRampToValueAtTime(Math.max(1, endFrequency), start + duration);
-  gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, peakGain), start + Math.min(0.025, duration / 4));
-  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  oscillator.connect(gain);
-  gain.connect(audio.destination);
-  oscillator.start(start);
-  oscillator.stop(start + duration + 0.02);
-};
-
-const noise = (
-  audio: AudioContext,
-  duration: number,
-  peakGain: number,
-  delay = 0,
-  cutoff = 1700,
-) => {
-  const sampleRate = audio.sampleRate;
-  const length = Math.max(1, Math.floor(sampleRate * duration));
-  const buffer = audio.createBuffer(1, length, sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < length; i += 1) {
-    const envelope = 1 - (i / length);
-    data[i] = (Math.random() * 2 - 1) * envelope;
-  }
-
-  const source = audio.createBufferSource();
-  const filter = audio.createBiquadFilter();
-  const gain = audio.createGain();
-  const start = audio.currentTime + delay;
-  source.buffer = buffer;
-  filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(cutoff, start);
-  gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, peakGain), start + 0.012);
-  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  source.connect(filter);
-  filter.connect(gain);
-  gain.connect(audio.destination);
-  source.start(start);
-  source.stop(start + duration + 0.02);
-};
-
-const playChord = (audio: AudioContext, notes: number[], ascending: boolean) => {
-  notes.forEach((frequency, index) => {
-    const position = ascending ? index : notes.length - 1 - index;
-    tone(audio, frequency, frequency * 1.02, 0.22, 'sine', 0.04, position * 0.075);
-    tone(audio, frequency / 2, frequency / 2, 0.27, 'triangle', 0.018, position * 0.075);
-  });
-};
-
-export const playCommanderSfx = async (cue: CommanderSfxCue) => {
-  const audio = getContext();
-  if (!audio) return;
-  await ensureRunning(audio);
-  if (audio.state !== 'running') return;
-
-  switch (cue) {
-    case 'ui':
-      tone(audio, 520, 700, 0.07, 'sine', 0.028);
-      break;
-    case 'select':
-      tone(audio, 620, 980, 0.11, 'triangle', 0.04);
-      tone(audio, 1080, 1320, 0.07, 'sine', 0.022, 0.055);
-      break;
-    case 'focus':
-      tone(audio, 360, 880, 0.2, 'triangle', 0.04);
-      tone(audio, 1120, 1420, 0.08, 'sine', 0.028, 0.13);
-      break;
-    case 'meleeWindup':
-      noise(audio, 0.11, 0.025, 0, 950);
-      tone(audio, 230, 105, 0.16, 'sawtooth', 0.025);
-      break;
-    case 'rangedFire':
-      tone(audio, 980, 360, 0.16, 'triangle', 0.035);
-      noise(audio, 0.08, 0.018, 0.02, 2400);
-      break;
-    case 'deathBoltCharge':
-      tone(audio, 95, 760, 0.36, 'sawtooth', 0.035);
-      tone(audio, 190, 1120, 0.42, 'sine', 0.03);
-      break;
-    case 'deathBoltImpact':
-      noise(audio, 0.3, 0.06, 0, 1200);
-      tone(audio, 145, 46, 0.34, 'sawtooth', 0.055);
-      tone(audio, 720, 180, 0.18, 'square', 0.02);
-      break;
-    case 'hit':
-      noise(audio, 0.12, 0.042, 0, 1450);
-      tone(audio, 175, 92, 0.12, 'triangle', 0.035);
-      break;
-    case 'shieldHit':
-      tone(audio, 1250, 560, 0.19, 'triangle', 0.04);
-      tone(audio, 430, 620, 0.16, 'sine', 0.027);
-      break;
-    case 'guard':
-      tone(audio, 310, 820, 0.28, 'sine', 0.035);
-      tone(audio, 620, 1040, 0.3, 'triangle', 0.026, 0.05);
-      break;
-    case 'ko':
-      noise(audio, 0.22, 0.035, 0, 700);
-      tone(audio, 170, 48, 0.42, 'sawtooth', 0.05);
-      break;
-    case 'victory':
-      playChord(audio, [392, 523.25, 659.25, 783.99], true);
-      break;
-    case 'defeat':
-      playChord(audio, [392, 329.63, 261.63, 196], false);
-      break;
-    case 'draw':
-      playChord(audio, [293.66, 349.23, 293.66], true);
-      break;
-  }
-};
-
+export const preloadCommanderAudio = () => Promise.all(Object.values(clips).map(load));
 export const unlockCommanderAudio = async () => {
   const audio = getContext();
-  if (!audio) return;
-  await ensureRunning(audio);
+  if (audio?.state === 'suspended') { try { await audio.resume(); } catch { /* Optional audio. */ } }
+};
+export const stopCommanderAudio = () => {
+  generation += 1; // Invalidates any pending decode/play request too.
+  for (const { source, gain } of active.values()) {
+    const now = context?.currentTime ?? 0;
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.setTargetAtTime(0, now, .035);
+    try { source.stop(now + .15); } catch { /* Already ended. */ }
+  }
+  active.clear();
+};
+export const playCommanderSfx = async (cue: CommanderSfxCue) => {
+  const audio = getContext();
+  if (!audio || audio.state !== 'running') return;
+  const run = generation;
+  const [clip, volume, maxDuration] = cues[cue];
+  const buffer = await load(clips[clip]);
+  if (!buffer || run !== generation || audio.state !== 'running') return;
+  const previous = active.get(cue);
+  if (previous) { try { previous.source.stop(); } catch { /* Already ended. */ } }
+  const source = audio.createBufferSource();
+  const gain = audio.createGain();
+  source.buffer = buffer;
+  const duration = Math.min(buffer.duration, maxDuration);
+  const now = audio.currentTime;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(volume, now + Math.min(.04, duration / 4));
+  gain.gain.setValueAtTime(volume, now + Math.max(.04, duration - .15));
+  gain.gain.linearRampToValueAtTime(0, now + duration);
+  source.connect(gain); gain.connect(audio.destination);
+  active.set(cue, { source, gain });
+  source.onended = () => {
+    source.disconnect(); gain.disconnect();
+    if (active.get(cue)?.source === source) active.delete(cue);
+  };
+  source.start(now, 0, duration);
 };
