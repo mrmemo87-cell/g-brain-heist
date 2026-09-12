@@ -20,7 +20,7 @@ export const COMMANDER_COPY = {
     expired: 'This practice session ended. Start a new battle.', unavailable: 'The Commander practice server is not available right now.',
     invalidTarget: 'Choose a living enemy target first.', genericError: 'The practice turn could not be resolved.',
     hp: 'HP', shield: 'Shield', battlefield: 'Live battlefield', battlefieldHint: 'Every hit below is a confirmed server result.',
-    animations: 'Animations', effects: 'Effects', speed: 'Speed', waiting: 'Choose a target and command.', knockedOut: 'Knocked out',
+    animations: 'Animations', effects: 'Effects', sound: 'Sound', speed: 'Speed', waiting: 'Choose a target and command.', knockedOut: 'Knocked out',
     impact: 'Impact', shieldHit: 'Shield hit', locked: 'Target locked', reinforced: 'Shield reinforced',
   },
   ar: {
@@ -40,7 +40,7 @@ export const COMMANDER_COPY = {
     expired: 'انتهت جلسة التدريب. ابدأ معركة جديدة.', unavailable: 'خادم تدريب القائد غير متاح الآن.',
     invalidTarget: 'اختر أولًا هدفًا حيًا من الخصم.', genericError: 'تعذر حساب حركة التدريب.',
     hp: 'الصحة', shield: 'الدرع', battlefield: 'ساحة القتال الحية', battlefieldHint: 'كل ضربة هنا هي نتيجة مؤكدة من الخادم.',
-    animations: 'الحركة', effects: 'المؤثرات', speed: 'السرعة', waiting: 'اختر هدفًا وحركة.', knockedOut: 'خارج القتال',
+    animations: 'الحركة', effects: 'المؤثرات', sound: 'الصوت', speed: 'السرعة', waiting: 'اختر هدفًا وحركة.', knockedOut: 'خارج القتال',
     impact: 'إصابة', shieldHit: 'ضربة درع', locked: 'تم تثبيت الهدف', reinforced: 'تم تعزيز الدرع',
   },
   ru: {
@@ -60,7 +60,7 @@ export const COMMANDER_COPY = {
     expired: 'Тренировочная сессия закончилась. Начните новый бой.', unavailable: 'Сервер тренировочного Commander сейчас недоступен.',
     invalidTarget: 'Сначала выберите живую цель противника.', genericError: 'Не удалось рассчитать тренировочный ход.',
     hp: 'HP', shield: 'Щит', battlefield: 'Живое поле боя', battlefieldHint: 'Каждый удар здесь подтверждён сервером.',
-    animations: 'Анимация', effects: 'Эффекты', speed: 'Скорость', waiting: 'Выберите цель и действие.', knockedOut: 'Выбыл',
+    animations: 'Анимация', effects: 'Эффекты', sound: 'Звук', speed: 'Скорость', waiting: 'Выберите цель и действие.', knockedOut: 'Выбыл',
     impact: 'Удар', shieldHit: 'Удар по щиту', locked: 'Цель захвачена', reinforced: 'Щит усилен',
   },
 } as const;

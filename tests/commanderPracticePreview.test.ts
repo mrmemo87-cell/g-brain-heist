@@ -114,6 +114,7 @@ test('Commander arena uses server-confirmed tactical playback without persistenc
   const sprites = readFileSync('src/features/cursedCommander/CommanderBattleSprite.tsx', 'utf8');
   const formation = readFileSync('src/features/cursedCommander/commanderFormationLayout.ts', 'utf8');
   const dock = readFileSync('src/features/cursedCommander/CommanderCommandDock.tsx', 'utf8');
+  const sound = readFileSync('src/features/cursedCommander/commanderBattleSound.ts', 'utf8');
 
   assert.match(arena, /CommanderCinematicBattlefield/);
   assert.match(arena, /buildCommanderCinematicSteps\(confirmedEvents\)/);
@@ -128,6 +129,10 @@ test('Commander arena uses server-confirmed tactical playback without persistenc
   assert.match(battlefield, /cc-stage-shield-bloom/);
   assert.match(battlefield, /CommanderBattleSprite/);
   assert.match(battlefield, /CommanderCommandDock/);
+  assert.match(battlefield, /TacticalTargetReticle/);
+  assert.match(battlefield, /MeleeSlashFx/);
+  assert.match(battlefield, /DeathBoltCharge/);
+  assert.match(battlefield, /playCommanderSfx/);
   assert.match(formation, /player_guard.*x: 38.*lane: 'front'/s);
   assert.match(formation, /player_archer.*x: 13.*lane: 'rear'/s);
   assert.match(formation, /enemy_guard.*x: 62.*lane: 'front'/s);
@@ -139,22 +144,38 @@ test('Commander arena uses server-confirmed tactical playback without persistenc
   assert.match(dock, /focus_target/);
   assert.match(dock, /death_bolt/);
   assert.match(dock, /guard/);
+  assert.match(sound, /AudioContext/);
+  assert.match(sound, /deathBoltCharge/);
+  assert.match(sound, /shieldHit/);
+  assert.match(sound, /victory/);
   assert.doesNotMatch(battlefield, /unitEmoji/);
 
-  for (const source of [arena, battlefield, playback, portraits, sprites, formation, dock]) {
+  for (const source of [arena, battlefield, playback, portraits, sprites, formation, dock, sound]) {
     assert.doesNotMatch(source, /supabase\.from|supabase\.rpc|\.insert\s*\(|\.update\s*\(|\.upsert\s*\(|\.delete\s*\(/);
   }
 });
 
-test('combat feedback reserves distinct semantic colors for damage, healing, and shields', () => {
+test('combat feedback floats and fades with distinct semantic colors', () => {
   const battlefield = readFileSync('src/features/cursedCommander/CommanderCinematicBattlefield.tsx', 'utf8');
 
   assert.match(battlefield, /damage:.*text-red-300/s);
   assert.match(battlefield, /heal:.*text-emerald-300/s);
   assert.match(battlefield, /shieldDamage:.*text-amber-200/s);
   assert.match(battlefield, /shieldGain:.*text-cyan-200/s);
+  assert.match(battlefield, /ccStageFloat[\s\S]*opacity:0[\s\S]*translate3d\(0,-48px,0\)/);
+  assert.match(battlefield, /animation:ccStageFloat 900ms/);
   assert.match(battlefield, /-\{activeStep\.hpDamage\}/);
-  assert.match(battlefield, /\+\{activeStep\?\.event\.amount \?\? 0\}/);
+  assert.match(battlefield, /\+\{activeStep\?\.event\.amount \?\? 0\} \{copy\.shield\}/);
+});
+
+test('battlefield hover keeps formation coordinates fixed while selection reticle is unit-anchored', () => {
+  const battlefield = readFileSync('src/features/cursedCommander/CommanderCinematicBattlefield.tsx', 'utf8');
+
+  assert.match(battlefield, /\.cc-stage-unit\{transform:translate\(-50%,-82%\) scale\(var\(--cc-unit-scale\)\)/);
+  assert.match(battlefield, /\.cc-stage-unit:hover,.cc-stage-unit:focus-visible\{transform:translate\(-50%,-82%\) scale\(var\(--cc-unit-scale\)\)!important\}/);
+  assert.match(battlefield, /left-1\/2 top-\[39%\][\s\S]*TacticalTargetReticle|TacticalTargetReticle[\s\S]*left-1\/2 top-\[39%\]/);
+  assert.match(battlefield, /cc-target-reticle-spin/);
+  assert.match(battlefield, /cc-focus-reticle-spin/);
 });
 
 test('battlefield is formation-first instead of rendering duplicated squad cards', () => {
@@ -167,7 +188,7 @@ test('battlefield is formation-first instead of rendering duplicated squad cards
   assert.doesNotMatch(arena, /enemyCombatants\.map/);
   assert.match(battlefield, /combatants\.map\(unit\)/);
   assert.match(battlefield, /getCommanderFormationPoint\(combatant\)/);
-  assert.match(battlefield, /position.*absolute|className={`absolute/s);
+  assert.match(battlefield, /className={`cc-stage-unit group absolute/);
   assert.match(battlefield, /onSelectTarget/);
   assert.match(battlefield, /combatant\.hp\/combatant\.maxHp/);
   assert.match(battlefield, /combatant\.shield/);
