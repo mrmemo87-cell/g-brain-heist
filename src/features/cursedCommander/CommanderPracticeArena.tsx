@@ -31,6 +31,52 @@ type CommanderPracticeArenaProps = {
 
 const sleep = (milliseconds: number) => new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
 
+const COMMANDER_PLAYBACK_TIMING = {
+  focusWindup: 550,
+  focusImpact: 900,
+  attackWindup: 650,
+  deathBoltWindup: 900,
+  attackImpact: 1450,
+  deathBoltImpact: 1650,
+  attackSettle: 320,
+  deathBoltSettle: 360,
+  guardWindup: 450,
+  guardImpact: 1400,
+  defeatImpact: 1300,
+  outcomeImpact: 1700,
+  fallbackImpact: 900,
+} as const;
+
+const COMMANDER_READABILITY_STYLES = `
+  [data-commander-practice-root="true"] .cc-stage-unit{
+    translate:-50% -82%!important;
+    scale:var(--cc-unit-scale)!important;
+    transform:none!important;
+  }
+  [data-commander-practice-root="true"] .cc-stage-unit:hover,
+  [data-commander-practice-root="true"] .cc-stage-unit:focus-visible{
+    translate:-50% -82%!important;
+    scale:var(--cc-unit-scale)!important;
+    transform:none!important;
+  }
+  @keyframes ccReadableCombatFloat {
+    0%{opacity:0;transform:translate3d(0,14px,0) scale(.78)}
+    14%{opacity:1;transform:translate3d(0,-2px,0) scale(1.18)}
+    68%{opacity:1;transform:translate3d(0,-54px,0) scale(1)}
+    100%{opacity:0;transform:translate3d(0,-82px,0) scale(.94)}
+  }
+  [data-commander-practice-root="true"] .cc-combat-float{
+    animation:ccReadableCombatFloat 1200ms cubic-bezier(.18,.82,.22,1) forwards!important;
+    will-change:transform,opacity;
+  }
+  [data-commander-practice-root="true"][data-commander-speed="2"] .cc-combat-float{
+    animation-duration:700ms!important;
+  }
+  @media (prefers-reduced-motion:reduce){
+    [data-commander-practice-root="true"] .cc-combat-float{animation:none!important}
+  }
+`;
+
 const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose }) => {
   const { language, direction } = useLanguage();
   const copy = COMMANDER_COPY[language];
@@ -106,7 +152,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
   ) => {
     const run = ++playbackRun.current;
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-    const multiplier = speed === 2 ? 0.52 : 1;
+    const multiplier = speed === 2 ? 0.6 : 1;
 
     if (!animationsOn || reducedMotion || steps.length === 0) {
       reconcileVisualBattle(finalBattle);
@@ -121,52 +167,53 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
       setPlaybackPhase('windup');
 
       if (step.kind === 'focus_lock') {
-        await sleep(330 * multiplier);
+        await sleep(COMMANDER_PLAYBACK_TIMING.focusWindup * multiplier);
         if (run !== playbackRun.current) return;
         setPlaybackPhase('impact');
         updateVisualFocusForStep(step, finalBattle);
-        await sleep(410 * multiplier);
+        await sleep(COMMANDER_PLAYBACK_TIMING.focusImpact * multiplier);
         continue;
       }
 
       if (step.kind === 'attack') {
-        await sleep((step.event.code === 'death_bolt' ? 500 : 330) * multiplier);
+        const deathBolt = step.event.code === 'death_bolt';
+        await sleep((deathBolt ? COMMANDER_PLAYBACK_TIMING.deathBoltWindup : COMMANDER_PLAYBACK_TIMING.attackWindup) * multiplier);
         if (run !== playbackRun.current) return;
         setPlaybackPhase('impact');
         setVisualCombatants((current) => applyCommanderCinematicStep(current, step));
         updateVisualFocusForStep(step, finalBattle);
-        await sleep((step.event.code === 'death_bolt' ? 560 : 410) * multiplier);
+        await sleep((deathBolt ? COMMANDER_PLAYBACK_TIMING.deathBoltImpact : COMMANDER_PLAYBACK_TIMING.attackImpact) * multiplier);
         if (run !== playbackRun.current) return;
         setPlaybackPhase('settle');
-        await sleep(120 * multiplier);
+        await sleep((deathBolt ? COMMANDER_PLAYBACK_TIMING.deathBoltSettle : COMMANDER_PLAYBACK_TIMING.attackSettle) * multiplier);
         continue;
       }
 
       if (step.kind === 'guard') {
-        await sleep(240 * multiplier);
+        await sleep(COMMANDER_PLAYBACK_TIMING.guardWindup * multiplier);
         if (run !== playbackRun.current) return;
         setPlaybackPhase('impact');
         setVisualCombatants((current) => applyCommanderCinematicStep(current, step));
-        await sleep(600 * multiplier);
+        await sleep(COMMANDER_PLAYBACK_TIMING.guardImpact * multiplier);
         continue;
       }
 
       if (step.kind === 'defeat') {
         setPlaybackPhase('impact');
         setVisualCombatants((current) => applyCommanderCinematicStep(current, step));
-        await sleep(680 * multiplier);
+        await sleep(COMMANDER_PLAYBACK_TIMING.defeatImpact * multiplier);
         continue;
       }
 
       if (step.kind === 'outcome') {
         setPlaybackPhase('impact');
-        await sleep(780 * multiplier);
+        await sleep(COMMANDER_PLAYBACK_TIMING.outcomeImpact * multiplier);
         continue;
       }
 
       setPlaybackPhase('impact');
       setVisualCombatants((current) => applyCommanderCinematicStep(current, step));
-      await sleep(360 * multiplier);
+      await sleep(COMMANDER_PLAYBACK_TIMING.fallbackImpact * multiplier);
     }
 
     if (run === playbackRun.current) {
@@ -266,12 +313,15 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
       ref={dialogRef}
       onCancel={(event) => { event.preventDefault(); onClose(); }}
       data-no-interface-translation="true"
+      data-commander-practice-root="true"
+      data-commander-speed={speed}
       aria-modal="true"
       aria-labelledby="commander-preview-title"
       className="fixed inset-0 z-[220] m-0 h-[100dvh] max-h-none w-screen max-w-none overflow-y-auto border-0 bg-slate-950/95 px-2 py-3 backdrop-blur-xl sm:px-5 sm:py-5"
       lang={language}
       dir={direction}
     >
+      <style>{COMMANDER_READABILITY_STYLES}</style>
       <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-[2rem] border border-cyan-400/20 bg-slate-950 shadow-[0_0_80px_rgba(34,211,238,0.12)]">
         <header className="relative overflow-hidden border-b border-slate-800 px-4 py-4 sm:px-6">
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(34,211,238,0.18),transparent_34%),radial-gradient(circle_at_82%_20%,rgba(168,85,247,0.16),transparent_32%)]" />
