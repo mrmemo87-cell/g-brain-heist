@@ -106,33 +106,42 @@ test('the cooldown sent to the arena rejects Death Bolt until it reaches zero', 
   assert.doesNotThrow(() => applyPracticeTurn(ready, { move: 'death_bolt', targetId: 'enemy_commander' }));
 });
 
-test('Commander arena uses server-confirmed cinematic playback without persistence writes', () => {
+test('Commander arena uses server-confirmed tactical playback without persistence writes', () => {
   const arena = readFileSync('src/features/cursedCommander/CommanderPracticeArena.tsx', 'utf8');
   const battlefield = readFileSync('src/features/cursedCommander/CommanderCinematicBattlefield.tsx', 'utf8');
   const playback = readFileSync('src/features/cursedCommander/commanderCinematicPlayback.ts', 'utf8');
   const portraits = readFileSync('src/features/cursedCommander/CommanderUnitPortrait.tsx', 'utf8');
+  const sprites = readFileSync('src/features/cursedCommander/CommanderBattleSprite.tsx', 'utf8');
+  const formation = readFileSync('src/features/cursedCommander/commanderFormationLayout.ts', 'utf8');
+  const dock = readFileSync('src/features/cursedCommander/CommanderCommandDock.tsx', 'utf8');
 
   assert.match(arena, /CommanderCinematicBattlefield/);
   assert.match(arena, /buildCommanderCinematicSteps\(confirmedEvents\)/);
   assert.match(arena, /applyCommanderCinematicStep/);
   assert.match(arena, /prefers-reduced-motion/);
   assert.match(arena, /speed.*1 \| 2/s);
-  assert.match(battlefield, /ArenaBackdrop/);
-  assert.match(battlefield, /cc-death-bolt-shot/);
+  assert.match(battlefield, /TacticalBackdrop/);
+  assert.match(battlefield, /ProjectilePath/);
   assert.match(battlefield, /cc-combat-float/);
   assert.match(battlefield, /ImpactBurst/);
-  assert.match(battlefield, /CombatEventBanner/);
-  assert.match(battlefield, /cc-shield-bloom/);
+  assert.match(battlefield, /EventBanner/);
+  assert.match(battlefield, /cc-stage-shield-bloom/);
+  assert.match(battlefield, /CommanderBattleSprite/);
+  assert.match(battlefield, /CommanderCommandDock/);
+  assert.match(formation, /player_guard.*x: 38.*lane: 'front'/s);
+  assert.match(formation, /player_archer.*x: 13.*lane: 'rear'/s);
+  assert.match(formation, /enemy_guard.*x: 62.*lane: 'front'/s);
   assert.match(playback, /pendingShieldByTarget/);
   assert.match(portraits, /CipherCommander/);
-  assert.match(portraits, /NeonGuard/);
-  assert.match(portraits, /ShadeArcher/);
-  assert.match(portraits, /WardenNull/);
-  assert.match(portraits, /IronRevenant/);
-  assert.match(portraits, /HollowRanger/);
+  assert.match(sprites, /CommanderBody/);
+  assert.match(sprites, /GuardBody/);
+  assert.match(sprites, /ArcherBody/);
+  assert.match(dock, /focus_target/);
+  assert.match(dock, /death_bolt/);
+  assert.match(dock, /guard/);
   assert.doesNotMatch(battlefield, /unitEmoji/);
 
-  for (const source of [arena, battlefield, playback, portraits]) {
+  for (const source of [arena, battlefield, playback, portraits, sprites, formation, dock]) {
     assert.doesNotMatch(source, /supabase\.from|supabase\.rpc|\.insert\s*\(|\.update\s*\(|\.upsert\s*\(|\.delete\s*\(/);
   }
 });
@@ -144,18 +153,24 @@ test('combat feedback reserves distinct semantic colors for damage, healing, and
   assert.match(battlefield, /heal:.*text-emerald-300/s);
   assert.match(battlefield, /shieldDamage:.*text-amber-200/s);
   assert.match(battlefield, /shieldGain:.*text-cyan-200/s);
-  assert.match(battlefield, /-\{activeStep\.hpDamage\} HP/);
+  assert.match(battlefield, /-\{activeStep\.hpDamage\}/);
   assert.match(battlefield, /\+\{activeStep\?\.event\.amount \?\? 0\}/);
 });
 
-test('enemy targeting and enemy stats live only inside the cinematic battlefield', () => {
+test('battlefield is formation-first instead of rendering duplicated squad cards', () => {
   const arena = readFileSync('src/features/cursedCommander/CommanderPracticeArena.tsx', 'utf8');
   const battlefield = readFileSync('src/features/cursedCommander/CommanderCinematicBattlefield.tsx', 'utf8');
+  const formation = readFileSync('src/features/cursedCommander/commanderFormationLayout.ts', 'utf8');
 
-  assert.doesNotMatch(arena, /const enemyCombatants = useMemo/);
+  assert.doesNotMatch(arena, /CombatantCard/);
+  assert.doesNotMatch(arena, /playerCombatants\.map/);
   assert.doesNotMatch(arena, /enemyCombatants\.map/);
-  assert.match(battlefield, /enemies\.map\(unit\)/);
-  assert.match(battlefield, /copy\.hp.*combatant\.hp/s);
-  assert.match(battlefield, /copy\.shield|combatant\.shield/s);
+  assert.match(battlefield, /combatants\.map\(unit\)/);
+  assert.match(battlefield, /getCommanderFormationPoint\(combatant\)/);
+  assert.match(battlefield, /position.*absolute|className={`absolute/s);
   assert.match(battlefield, /onSelectTarget/);
+  assert.match(battlefield, /combatant\.hp\/combatant\.maxHp/);
+  assert.match(battlefield, /combatant\.shield/);
+  assert.match(formation, /lane: 'front'/);
+  assert.match(formation, /lane: 'rear'/);
 });
