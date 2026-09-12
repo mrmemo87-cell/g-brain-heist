@@ -110,6 +110,7 @@ test('Commander arena uses server-confirmed cinematic playback without persisten
   const arena = readFileSync('src/features/cursedCommander/CommanderPracticeArena.tsx', 'utf8');
   const battlefield = readFileSync('src/features/cursedCommander/CommanderCinematicBattlefield.tsx', 'utf8');
   const playback = readFileSync('src/features/cursedCommander/commanderCinematicPlayback.ts', 'utf8');
+  const portraits = readFileSync('src/features/cursedCommander/CommanderUnitPortrait.tsx', 'utf8');
 
   assert.match(arena, /CommanderCinematicBattlefield/);
   assert.match(arena, /buildCommanderCinematicSteps\(confirmedEvents\)/);
@@ -118,13 +119,33 @@ test('Commander arena uses server-confirmed cinematic playback without persisten
   assert.match(arena, /speed.*1 \| 2/s);
   assert.match(battlefield, /ArenaBackdrop/);
   assert.match(battlefield, /cc-death-bolt-shot/);
-  assert.match(battlefield, /cc-damage-float/);
+  assert.match(battlefield, /cc-combat-float/);
+  assert.match(battlefield, /ImpactBurst/);
+  assert.match(battlefield, /CombatEventBanner/);
   assert.match(battlefield, /cc-shield-bloom/);
   assert.match(playback, /pendingShieldByTarget/);
+  assert.match(portraits, /CipherCommander/);
+  assert.match(portraits, /NeonGuard/);
+  assert.match(portraits, /ShadeArcher/);
+  assert.match(portraits, /WardenNull/);
+  assert.match(portraits, /IronRevenant/);
+  assert.match(portraits, /HollowRanger/);
+  assert.doesNotMatch(battlefield, /unitEmoji/);
 
-  for (const source of [arena, battlefield, playback]) {
+  for (const source of [arena, battlefield, playback, portraits]) {
     assert.doesNotMatch(source, /supabase\.from|supabase\.rpc|\.insert\s*\(|\.update\s*\(|\.upsert\s*\(|\.delete\s*\(/);
   }
+});
+
+test('combat feedback reserves distinct semantic colors for damage, healing, and shields', () => {
+  const battlefield = readFileSync('src/features/cursedCommander/CommanderCinematicBattlefield.tsx', 'utf8');
+
+  assert.match(battlefield, /damage:.*text-red-300/s);
+  assert.match(battlefield, /heal:.*text-emerald-300/s);
+  assert.match(battlefield, /shieldDamage:.*text-amber-200/s);
+  assert.match(battlefield, /shieldGain:.*text-cyan-200/s);
+  assert.match(battlefield, /-\{activeStep\.hpDamage\} HP/);
+  assert.match(battlefield, /\+\{activeStep\?\.event\.amount \?\? 0\}/);
 });
 
 test('enemy targeting and enemy stats live only inside the cinematic battlefield', () => {
