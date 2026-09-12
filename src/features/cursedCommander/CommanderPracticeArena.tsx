@@ -1,7 +1,7 @@
 import { preloadCommanderSpriteAssets } from './commanderSpriteAssets';
 import { preloadCommanderAudio, unlockCommanderAudio, stopCommanderAudio } from './commanderBattleSound';
 import React, { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { readCommanderSession, saveCommanderSession } from './commanderSessionCache';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   startCommanderPractice,
@@ -28,6 +28,7 @@ import {
 } from './commanderPracticeCopy';
 
 type CommanderPracticeArenaProps = {
+  userId: string;
   onClose: () => void;
 };
 
@@ -79,10 +80,22 @@ const COMMANDER_READABILITY_STYLES = `
   }
 `;
 
-const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose }) => {
+const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose, userId }) => {
   const { language, direction } = useLanguage();
   const copy = COMMANDER_COPY[language];
-  const [session, setSession] = useState<CommanderPracticeSession | null>(null);
+  const [checkpoint] = useState(() => {
+    try { return readCommanderSession(window.localStorage, userId); } catch { return null; }
+  });
+  const [session, setSession] = useState<CommanderPracticeSession | null>(checkpoint?.session ?? null);
+  const [assetsReady, setAssetsReady] = useState(false);
+  const [restored, setRestored] = useState(Boolean(checkpoint));
+  const [recoveryVersion, setRecoveryVersion] = useState(0);
+  const [recoveryFailed, setRecoveryFailed] = useState(false);
+  const [storageFailed, setStorageFailed] = useState(false);
+  const saveCheckpoint = (next: CommanderPracticeSession, pending?: Parameters<typeof saveCommanderSession>[3]) => {
+    try { setStorageFailed(!saveCommanderSession(window.localStorage, userId, next, pending)); }
+    catch { setStorageFailed(true); }
+  };
   const [visualCombatants, setVisualCombatants] = useState<CommanderPracticeCombatant[]>([]);
   const [visualPlayerFocusTarget, setVisualPlayerFocusTarget] = useState<string | null>(null);
   const [visualEnemyFocusTarget, setVisualEnemyFocusTarget] = useState<string | null>(null);
@@ -90,7 +103,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
   const [soundOn, setSoundOn] = useState(true);
   const [introReady, setIntroReady] = useState(false);
   const [battlePresentationKey, setBattlePresentationKey] = useState(0);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(Boolean(checkpoint));
   const [error, setError] = useState<string | null>(null);
   const [activeStep, setActiveStep] = useState<CommanderCinematicStep | null>(null);
   const [playbackPhase, setPlaybackPhase] = useState<CommanderPlaybackPhase>(null);
@@ -98,25 +111,54 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
   const [effectsOn, setEffectsOn] = useState(true);
   const [speed, setSpeed] = useState<1 | 2>(1);
 
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const pendingRequest = useRef<AbortController | null>(null);
   const playbackRun = useRef(0);
 
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    const previousFocus = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    dialog?.showModal();
-    document.body.style.overflow = 'hidden';
-    return () => {
-      stopCommanderAudio();
-      playbackRun.current += 1;
-      pendingRequest.current?.abort();
-      dialog?.close();
-      document.body.style.overflow = previousOverflow;
-      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
-    };
+  useEffect(() => () => {
+    stopCommanderAudio();
+    playbackRun.current += 1;
+    pendingRequest.current?.abort();
   }, []);
+
+  useEffect(() => {
+    if (!checkpoint) return;
+    let alive = true;
+    const controller = new AbortController();
+    pendingRequest.current = controller;
+    const timeout = window.setTimeout(() => controller.abort(), 20000);
+    setBusy(true);
+    setRecoveryFailed(false);
+    void (async () => {
+      try {
+        await Promise.all([preloadCommanderSpriteAssets(), preloadCommanderAudio()]);
+        let next = checkpoint.session;
+        if (checkpoint.pending) {
+          // The practice engine is deterministic and has no persistent combat
+          // writes. Retrying this same signed input recovers this exact turn.
+          next = await submitCommanderPracticeTurn(next.transcript, checkpoint.pending.move, checkpoint.pending.targetId, controller.signal);
+          if (!alive) return;
+          if (controller.signal.aborted) throw new Error('request_timeout');
+          saveCheckpoint(next);
+        }
+        if (!alive) return;
+        if (controller.signal.aborted) throw new Error('request_timeout');
+        setSession(next);
+        reconcileVisualBattle(next.battle);
+        chooseDefaultTarget(next);
+        setAssetsReady(true);
+        setError(null);
+      } catch (cause) {
+        if (!alive) return;
+        setError(formatCommanderError(cause instanceof Error ? cause.message : String(cause), copy));
+        setRecoveryFailed(true);
+      } finally {
+        window.clearTimeout(timeout);
+        if (pendingRequest.current === controller) pendingRequest.current = null;
+        if (alive) setBusy(false);
+      }
+    })();
+    return () => { alive = false; controller.abort(); window.clearTimeout(timeout); };
+  }, [checkpoint, recoveryVersion]);
 
   const battle = session?.battle ?? null;
   const renderedCombatants = visualCombatants.length
@@ -247,6 +289,9 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
     if (soundOn) void unlockCommanderAudio();
     stopCommanderAudio();
     setIntroReady(false);
+    setRestored(false);
+    setRecoveryFailed(false);
+    setAssetsReady(false);
     playbackRun.current += 1;
     setActiveStep(null);
     setPlaybackPhase(null);
@@ -258,6 +303,8 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
     try {
       const [next] = await Promise.all([startCommanderPractice(controller.signal), preloadCommanderSpriteAssets(), preloadCommanderAudio()]);
       if (controller.signal.aborted) return;
+      saveCheckpoint(next);
+      setAssetsReady(true);
       setBattlePresentationKey(value => value + 1);
       setSession(next);
       reconcileVisualBattle(next.battle);
@@ -267,6 +314,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
       setSelectedTargetId(firstTarget?.id ?? null);
     } catch (cause) {
       setIntroReady(Boolean(session));
+      setAssetsReady(Boolean(session));
       const code = cause instanceof Error ? cause.message : String(cause);
       setError(formatCommanderError(code, copy));
     } finally {
@@ -291,6 +339,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
     setError(null);
 
     try {
+      saveCheckpoint(session, { move, targetId: move === 'guard' ? null : selectedTargetId });
       const next = await submitCommanderPracticeTurn(
         session.transcript,
         move,
@@ -299,6 +348,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
       );
       if (controller.signal.aborted) return;
 
+      saveCheckpoint(next); // Checkpoint BEFORE playback, so refresh cannot undo damage.
       const confirmedEvents = next.battle.events.filter((event) => !previousEventIds.has(event.id));
       const steps = buildCommanderCinematicSteps(confirmedEvents);
       await playConfirmedSteps(steps, next.battle);
@@ -319,16 +369,13 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
     }
   };
 
-  return createPortal(
-    <dialog
-      ref={dialogRef}
-      onCancel={(event) => { event.preventDefault(); onClose(); }}
+  return (
+    <section
       data-no-interface-translation="true"
       data-commander-practice-root="true"
       data-commander-speed={speed}
-      aria-modal="true"
       aria-labelledby="commander-preview-title"
-      className="fixed inset-0 z-[220] m-0 h-[100dvh] max-h-none w-screen max-w-none overflow-y-auto border-0 bg-slate-950/95 px-2 py-3 backdrop-blur-xl sm:px-5 sm:py-5"
+      className="w-full min-w-0 bg-slate-950 py-3 sm:py-5"
       lang={language}
       dir={direction}
     >
@@ -345,7 +392,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
               <h1 id="commander-preview-title" className="font-heading text-2xl font-black text-white sm:text-3xl">{copy.title}</h1>
               <p className="mt-1 text-sm text-slate-300">{copy.subtitle}</p>
             </div>
-            <button type="button" onClick={onClose} className="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:text-white">✕ {copy.close}</button>
+            <button type="button" onClick={onClose} className="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:text-white">← {copy.back}</button>
           </div>
         </header>
 
@@ -375,6 +422,10 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
 
           {busy && !introReady && <div role="status" className="rounded-3xl border border-cyan-300/20 bg-slate-950 p-8 text-center font-heading text-sm tracking-widest text-cyan-200">BATTLE INITIALIZING<span className="mt-2 block text-xs tracking-normal text-slate-400">Preparing battlefield and units…</span></div>}
 
+          {storageFailed && <p role="status" className="text-sm text-amber-200">{copy.storageUnavailable}</p>}
+          {recoveryFailed && <button type="button" onClick={() => setRecoveryVersion(value => value + 1)} className="rounded-xl border border-cyan-300 px-4 py-3 text-cyan-100">{copy.recoveryRetry}</button>}
+          {recoveryFailed && <button type="button" onClick={() => void begin()} disabled={busy} className="ml-3 rounded-xl border border-slate-600 px-4 py-3 text-slate-200">{copy.restart}</button>}
+
           {error && (
             <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
               <span>{error}</span>
@@ -382,10 +433,11 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
             </div>
           )}
 
-          {session && battle && (
+          {assetsReady && session && battle && (
             <>
               <CommanderCinematicBattlefield
                 key={battlePresentationKey}
+                skipOpening={restored}
                 onIntroReady={() => setIntroReady(true)}
                 soundOn={soundOn}
                 onToggleSound={() => setSoundOn(value => !value)}
@@ -430,8 +482,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
           )}
         </main>
       </div>
-    </dialog>,
-    document.body,
+    </section>
   );
 };
 

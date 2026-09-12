@@ -21,13 +21,13 @@ test('Commander authored sprite registry covers every combatant and archer proje
   assert.match(assets, /poseCalibration/);
 });
 
-test('Commander battle sprite decodes before pose reveal and keeps a fixed art canvas', () => {
+test('Commander battle sprite replaces poses on one fixed art canvas', () => {
   const sprite = readFileSync('src/features/cursedCommander/CommanderBattleSprite.tsx', 'utf8');
 
-  assert.match(sprite, /new Image\(\)/);
-  assert.match(sprite, /image\.decode/);
-  assert.match(sprite, /previousFrame/);
-  assert.match(sprite, /POSE_FADE_MS/);
+  assert.equal((sprite.match(/<img\b/g) ?? []).length, 1);
+  assert.doesNotMatch(sprite, /previousFrame|POSE_FADE_MS|fadePrevious/);
+  const assets = readFileSync('src/features/cursedCommander/commanderSpriteAssets.ts', 'utf8');
+  assert.match(assets, /image\.decode/);
   assert.match(sprite, /getCommanderSpriteCalibration/);
   assert.match(sprite, /object-contain object-bottom/);
   assert.match(sprite, /pointer-events-none/);

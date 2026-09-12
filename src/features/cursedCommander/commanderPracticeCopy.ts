@@ -2,6 +2,7 @@ import type { CommanderPracticeEvent } from '../../../services/commanderPractice
 
 export const COMMANDER_COPY = {
   en: {
+    back: 'Back', recoveryRetry: 'Retry battle recovery', storageUnavailable: 'Your browser could not save this battle. Keep this page open to retain progress.',
     title: 'Commander Preview', subtitle: 'Practice arena', practiceOnly: 'PRACTICE ONLY',
     safety: 'Practice mode — your progress stays the same.', testers: 'Open to authenticated student accounts.',
     startTitle: 'Enter the Commander practice arena',
@@ -24,6 +25,7 @@ export const COMMANDER_COPY = {
     impact: 'Impact', shieldHit: 'Shield hit', locked: 'Target locked', reinforced: 'Shield reinforced',
   },
   ar: {
+    back: 'رجوع', recoveryRetry: 'أعد محاولة استعادة المعركة', storageUnavailable: 'تعذر حفظ المعركة في متصفحك. أبقِ هذه الصفحة مفتوحة للاحتفاظ بالتقدم.',
     title: 'معاينة القائد', subtitle: 'ساحة التدريب', practiceOnly: 'تدريب فقط',
     safety: 'وضع التدريب — يبقى تقدمك الحقيقي كما هو.', testers: 'متاح لحسابات الطلاب المسجلين.',
     startTitle: 'ادخل ساحة تدريب القائد',
@@ -44,6 +46,7 @@ export const COMMANDER_COPY = {
     impact: 'إصابة', shieldHit: 'ضربة درع', locked: 'تم تثبيت الهدف', reinforced: 'تم تعزيز الدرع',
   },
   ru: {
+    back: 'Назад', recoveryRetry: 'Повторить восстановление боя', storageUnavailable: 'Браузер не смог сохранить бой. Не закрывайте страницу, чтобы сохранить прогресс.',
     title: 'Предпросмотр Командира', subtitle: 'Тренировочная арена', practiceOnly: 'ТОЛЬКО ТРЕНИРОВКА',
     safety: 'Режим тренировки — ваш реальный прогресс не меняется.', testers: 'Доступно авторизованным аккаунтам учеников.',
     startTitle: 'Войдите на тренировочную арену Commander',
