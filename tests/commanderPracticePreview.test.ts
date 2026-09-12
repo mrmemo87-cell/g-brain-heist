@@ -105,3 +105,17 @@ test('the cooldown sent to the arena rejects Death Bolt until it reaches zero', 
   assert.equal(ready.playerDeathBoltCooldown, 0);
   assert.doesNotThrow(() => applyPracticeTurn(ready, { move: 'death_bolt', targetId: 'enemy_commander' }));
 });
+
+test('Commander arena includes visual-only confirmed-event battlefield playback', () => {
+  const arena = readFileSync('src/features/cursedCommander/CommanderPracticeArena.tsx', 'utf8');
+
+  assert.match(arena, /LiveBattlefield/);
+  assert.match(arena, /playConfirmedEvents/);
+  assert.match(arena, /confirmedEvents/);
+  assert.match(arena, /prefers-reduced-motion/);
+  assert.match(arena, /Speed.*1×|speed.*1 \| 2/s);
+  assert.match(arena, /☄️/);
+  assert.match(arena, /🎯/);
+  assert.match(arena, /🛡️/);
+  assert.doesNotMatch(arena, /supabase\.from|supabase\.rpc|\.insert\s*\(|\.update\s*\(|\.upsert\s*\(|\.delete\s*\(/);
+});
