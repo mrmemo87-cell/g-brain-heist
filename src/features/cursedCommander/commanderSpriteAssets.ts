@@ -136,11 +136,20 @@ const preloadUrls = (urls: string[]) => {
 /** Load the six idle sprites before the arena becomes interactive. */
 export const preloadCommanderStandingSprites = () => preloadUrls(standingUrls);
 
-/** Warm action, hit, KO and projectile art without blocking the battle UI. */
+let combatWarmScheduled = false;
+
+type IdleCapableWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+};
+
+/** Warm action, hit, KO and projectile art once, without blocking the battle UI. */
 export const warmCommanderCombatSprites = () => {
-  if (typeof window === 'undefined') return;
-  const schedule = 'requestIdleCallback' in window
-    ? (callback: () => void) => window.requestIdleCallback(callback, { timeout: 1800 })
-    : (callback: () => void) => window.setTimeout(callback, 250);
-  schedule(() => preloadUrls(combatUrls));
+  if (typeof window === 'undefined' || combatWarmScheduled) return;
+  combatWarmScheduled = true;
+  const idleWindow = window as IdleCapableWindow;
+  if (idleWindow.requestIdleCallback) {
+    idleWindow.requestIdleCallback(() => preloadUrls(combatUrls), { timeout: 1800 });
+    return;
+  }
+  window.setTimeout(() => preloadUrls(combatUrls), 250);
 };
