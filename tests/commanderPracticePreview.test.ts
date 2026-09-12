@@ -106,27 +106,35 @@ test('the cooldown sent to the arena rejects Death Bolt until it reaches zero', 
   assert.doesNotThrow(() => applyPracticeTurn(ready, { move: 'death_bolt', targetId: 'enemy_commander' }));
 });
 
-test('Commander arena includes visual-only confirmed-event battlefield playback', () => {
+test('Commander arena uses server-confirmed cinematic playback without persistence writes', () => {
   const arena = readFileSync('src/features/cursedCommander/CommanderPracticeArena.tsx', 'utf8');
+  const battlefield = readFileSync('src/features/cursedCommander/CommanderCinematicBattlefield.tsx', 'utf8');
+  const playback = readFileSync('src/features/cursedCommander/commanderCinematicPlayback.ts', 'utf8');
 
-  assert.match(arena, /LiveBattlefield/);
-  assert.match(arena, /playConfirmedEvents/);
-  assert.match(arena, /confirmedEvents/);
+  assert.match(arena, /CommanderCinematicBattlefield/);
+  assert.match(arena, /buildCommanderCinematicSteps\(confirmedEvents\)/);
+  assert.match(arena, /applyCommanderCinematicStep/);
   assert.match(arena, /prefers-reduced-motion/);
-  assert.match(arena, /Speed.*1×|speed.*1 \| 2/s);
-  assert.match(arena, /☄️/);
-  assert.match(arena, /🎯/);
-  assert.match(arena, /🛡️/);
-  assert.doesNotMatch(arena, /supabase\.from|supabase\.rpc|\.insert\s*\(|\.update\s*\(|\.upsert\s*\(|\.delete\s*\(/);
+  assert.match(arena, /speed.*1 \| 2/s);
+  assert.match(battlefield, /ArenaBackdrop/);
+  assert.match(battlefield, /cc-death-bolt-shot/);
+  assert.match(battlefield, /cc-damage-float/);
+  assert.match(battlefield, /cc-shield-bloom/);
+  assert.match(playback, /pendingShieldByTarget/);
+
+  for (const source of [arena, battlefield, playback]) {
+    assert.doesNotMatch(source, /supabase\.from|supabase\.rpc|\.insert\s*\(|\.update\s*\(|\.upsert\s*\(|\.delete\s*\(/);
+  }
 });
 
-test('enemy targeting and enemy stats live only inside the battlefield', () => {
+test('enemy targeting and enemy stats live only inside the cinematic battlefield', () => {
   const arena = readFileSync('src/features/cursedCommander/CommanderPracticeArena.tsx', 'utf8');
+  const battlefield = readFileSync('src/features/cursedCommander/CommanderCinematicBattlefield.tsx', 'utf8');
 
   assert.doesNotMatch(arena, /const enemyCombatants = useMemo/);
   assert.doesNotMatch(arena, /enemyCombatants\.map/);
-  assert.match(arena, /enemies\.map\(unit\)/);
-  assert.match(arena, /copy\.hp.*combatant\.hp\/\{combatant\.maxHp\}/s);
-  assert.match(arena, /copy\.shield.*combatant\.shield/s);
-  assert.match(arena, /onSelectTarget/);
+  assert.match(battlefield, /enemies\.map\(unit\)/);
+  assert.match(battlefield, /copy\.hp.*combatant\.hp/s);
+  assert.match(battlefield, /copy\.shield|combatant\.shield/s);
+  assert.match(battlefield, /onSelectTarget/);
 });
