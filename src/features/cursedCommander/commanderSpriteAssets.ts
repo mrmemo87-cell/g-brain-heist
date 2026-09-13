@@ -1,3 +1,4 @@
+import { COMMANDER_VFX } from './commanderVfxAssets';
 import cipherStanding from '../../assets/Cipher-Commander/Cipher Commander standing.png';
 import cipherAttacking from '../../assets/Cipher-Commander/Cipher Commander attacking.png';
 import cipherAttacked from '../../assets/Cipher-Commander/Cipher Commander attacked.png';
@@ -182,7 +183,7 @@ let preloadPromise: Promise<void> | null = null;
  */
 export const preloadCommanderSpriteAssets = () => {
   if (typeof window === 'undefined') return Promise.resolve();
-  if (!preloadPromise) preloadPromise = Promise.all(allSpriteUrls.map(loadImage)).then(() => undefined);
+  if (!preloadPromise) preloadPromise = Promise.all([...allSpriteUrls, ...Object.values(COMMANDER_VFX)].map(loadImage)).then(() => undefined);
   return preloadPromise;
 };
 
