@@ -3,6 +3,8 @@ import { supabase } from "./supabaseClient";
 export type CommanderSlot = "guard" | "archer" | "weapon" | "shield";
 export type CommanderStat = "force" | "defense" | "dexterity" | "stamina";
 export type CommanderOperation = "enroll" | "buy" | "equip" | "train" | "goal";
+export type CommanderSchool = "neutral" | "void" | "storm" | "rot" | "grave";
+export type CommanderRarity = "common" | "rare" | "epic" | "legendary";
 export type CommanderCatalogItem = {
   id: string;
   name: string;
@@ -11,6 +13,9 @@ export type CommanderCatalogItem = {
   price: number;
   description: string;
   stats: Record<string, number>;
+  /** Additive metadata: older deployments may omit these until the catalog migration lands. */
+  school?: CommanderSchool;
+  rarity?: CommanderRarity;
 };
 export type CommanderOwnedLoadout = {
   version: 1;
