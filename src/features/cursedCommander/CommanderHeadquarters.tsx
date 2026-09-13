@@ -209,6 +209,14 @@ export default function CommanderHeadquarters({
       }
     }
   };
+  const claimStarterSquad = () =>
+    void execute({
+      operation: "enroll",
+      target: null,
+      title: "Claim starter squad",
+      cost: 0,
+      detail: "",
+    });
   const propose = (next: Choice) => {
     if (busy || retryPending) return;
     setChoice(next);
@@ -418,15 +426,7 @@ export default function CommanderHeadquarters({
               <button
                 className="cc-hq-primary"
                 disabled={!hq || unavailable}
-                onClick={() =>
-                  void execute({
-                    operation: "enroll",
-                    target: null,
-                    title: "Claim starter squad",
-                    cost: 0,
-                    detail: "",
-                  })
-                }
+                onClick={claimStarterSquad}
               >
                 {busy ? "Preparing your squad…" : "Claim starter squad"}
               </button>
@@ -772,8 +772,8 @@ export default function CommanderHeadquarters({
                 </p>
                 {!p && (
                   <p>
-                    Claim your free starter squad at the top of this page to
-                    unlock training.
+                    Claim your free starter squad below to unlock all four
+                    training paths. Claiming costs 0 Coins.
                   </p>
                 )}
                 <div className="cc-hq-training">
@@ -799,19 +799,27 @@ export default function CommanderHeadquarters({
                         />
                         <button
                           className="cc-hq-secondary"
-                          disabled={unavailable || !p || capped || coins < cost}
+                          disabled={
+                            unavailable || (!!p && (capped || coins < cost))
+                          }
                           onClick={() =>
-                            propose({
-                              operation: "train",
-                              target: stat.id,
-                              title: `Train ${stat.name} to rank ${rank + 1}?`,
-                              cost,
-                              detail: stat.detail,
-                            })
+                            !p
+                              ? claimStarterSquad()
+                              : propose({
+                                  operation: "train",
+                                  target: stat.id,
+                                  title: `Train ${stat.name} to rank ${rank + 1}?`,
+                                  cost,
+                                  detail: stat.detail,
+                                })
                           }
                         >
                           {!p
-                            ? "Claim starter squad first"
+                            ? busy
+                              ? "Preparing your squad…"
+                              : retryPending
+                                ? "Resolve pending action above"
+                                : "Claim starter squad · Free"
                             : unavailable
                               ? retryPending
                                 ? "Resolve pending action above"
