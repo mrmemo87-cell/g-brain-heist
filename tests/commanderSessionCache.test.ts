@@ -48,7 +48,12 @@ test('compact projection keeps both teams inside the board without mutating cano
   const battle = startPracticeBattle(99); const before = structuredClone(battle);
   const slots = battle.combatants.map(unit => getCommanderPresentationPoint(unit, true));
   assert.equal(new Set(slots.map(p => `${p.x}:${p.y}`)).size, 6);
-  assert.ok(slots.every(p => p.x >= 25 && p.x <= 75 && p.y >= 30 && p.y <= 90));
+  assert.ok(slots.every(p => p.x >= 14 && p.x <= 86 && p.y >= 30 && p.y <= 90));
+  for (const side of ['player', 'enemy']) {
+    const points = battle.combatants.filter(unit => unit.side === side).map(unit => getCommanderPresentationPoint(unit, true)).sort((a, b) => a.y - b.y);
+    assert.equal(new Set(points.map(point => point.x)).size, 3, 'each squad must form a staggered battlefield wedge');
+    assert.ok(side === 'player' ? points[0].x < points[1].x && points[1].x < points[2].x : points[0].x > points[1].x && points[1].x > points[2].x);
+  }
   assert.deepEqual(battle, before);
 });
 
