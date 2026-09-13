@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import StreakRewardGuide from './StreakRewardGuide';
+import CommanderHelpGuide from './CommanderHelpGuide';
 
 interface HelpModalProps {
   onClose: () => void;
@@ -18,6 +19,7 @@ type HelpSection =
   | 'pvp'
   | 'clans'
   | 'lockdown'
+  | 'commander'
   | 'shop'
   | 'achievements'
   | 'ap'
@@ -53,6 +55,7 @@ const HelpModal: React.FC<HelpModalProps> = ({
     { id: 'pvp', icon: '⚔️', title: 'PvP Raids' },
     { id: 'clans', icon: '🏰', title: 'Clans' },
     { id: 'lockdown', icon: '🔒', title: 'Lockdown Mode' },
+    { id: 'commander', icon: '☠️', title: 'Cursed Commander' },
     { id: 'shop', icon: '🛒', title: 'Shop & Items' },
     { id: 'achievements', icon: '🏆', title: 'Achievements' },
     { id: 'ap', icon: '⚡', title: 'Action Points (AP)' },
@@ -398,6 +401,8 @@ const HelpModal: React.FC<HelpModalProps> = ({
         </div>
       </div>
     ),
+
+    commander: <CommanderHelpGuide />,
 
     shop: (
       <div className="space-y-3 sm:space-y-4">
