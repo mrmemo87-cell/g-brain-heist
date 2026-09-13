@@ -1,5 +1,6 @@
+import { getCommanderPresentationPoint, commanderProjectileAngle } from './commanderPresentationLayout';
 import { useCommanderIntro } from './useCommanderIntro';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type {
   CommanderPracticeCombatant,
   CommanderPracticeMove,
@@ -14,10 +15,6 @@ import {
 import CommanderBattleSprite from './CommanderBattleSprite';
 import CommanderCommandDock from './CommanderCommandDock';
 import CommanderUnitPortrait from './CommanderUnitPortrait';
-import {
-  getCommanderFormationPoint,
-  getCommanderFormationPointByName,
-} from './commanderFormationLayout';
 import {
   stopCommanderAudio,
   playCommanderSfx,
@@ -34,6 +31,7 @@ import {
 export type CommanderPlaybackPhase = 'windup' | 'impact' | 'settle' | null;
 
 type Props = {
+  skipOpening?: boolean;
   onIntroReady: () => void;
   soundOn: boolean;
   onToggleSound: () => void;
@@ -210,43 +208,47 @@ const ProjectilePath: React.FC<{
   phase: CommanderPlaybackPhase;
   combatants: CommanderPracticeCombatant[];
   speed: 1 | 2;
-}> = ({ step, phase, combatants, speed }) => {
+  compact: boolean;
+  boardSize: { width: number; height: number };
+}> = ({ step, phase, combatants, speed, compact, boardSize }) => {
   if (!step || step.kind !== 'attack' || phase === 'settle') return null;
   const actorCombatant = combatants.find((candidate) => candidate.name === step.event.actorName);
-  const actor = getCommanderFormationPointByName(combatants, step.event.actorName);
-  const target = getCommanderFormationPointByName(combatants, step.event.targetName);
+  const targetCombatant = combatants.find(candidate => candidate.name === step.event.targetName);
+  const actor = actorCombatant && getCommanderPresentationPoint(actorCombatant, compact);
+  const target = targetCombatant && getCommanderPresentationPoint(targetCombatant, compact);
   if (!actorCombatant || !actor || !target) return null;
 
   const authoredProjectile = getCommanderProjectileUrl(actorCombatant.id);
   const ranged = authoredProjectile || step.event.code === 'death_bolt' || step.event.code === 'focus_target';
   if (!ranged) return null;
 
-  const mx = (actor.x + target.x) / 2;
-  const my = Math.min(actor.y, target.y) - (step.event.code === 'death_bolt' ? 18 : 9);
-  const path = `M ${actor.x} ${actor.y - 12} Q ${mx} ${my} ${target.x} ${target.y - 11}`;
+  const sourceY = actor.y - (compact ? 16 : 12);
+  const targetY = target.y - (compact ? 16 : 11);
+  // Straight screen-space travel points at the target throughout the shot.
+  const path = `M ${actor.x * boardSize.width / 100} ${sourceY * boardSize.height / 100} L ${target.x * boardSize.width / 100} ${targetY * boardSize.height / 100}`;
+  const angle = commanderProjectileAngle(target.x - actor.x, targetY - sourceY, boardSize.width, boardSize.height, getCommanderProjectileAngle(actorCombatant.id));
   const duration = speed === 2 ? (step.event.code === 'death_bolt' ? 360 : 300) : (step.event.code === 'death_bolt' ? 650 : 520);
   const suffix = step.id.replace(/[^a-zA-Z0-9_-]/g, '');
   const color = step.event.code === 'death_bolt' ? '#c084fc' : step.event.code === 'focus_target' ? '#fbbf24' : step.event.side === 'player' ? '#67e8f9' : '#fda4af';
 
   return (
-    <svg key={step.id} aria-hidden className="pointer-events-none absolute inset-0 z-40 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-      <defs><filter id={`ccProjectileGlow-${suffix}`} x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.2" result="p" /><feMerge><feMergeNode in="p" /><feMergeNode in="SourceGraphic" /></feMerge></filter></defs>
-      <path d={path} fill="none" stroke={color} strokeWidth={step.event.code === 'death_bolt' ? 1.5 : .45} strokeLinecap="round" opacity={authoredProjectile ? '.16' : '.36'} className="cc-projectile-trail" />
+    <svg key={step.id} aria-hidden className="pointer-events-none absolute inset-0 z-40 h-full w-full" viewBox={`0 0 ${boardSize.width || 1} ${boardSize.height || 1}`} preserveAspectRatio="none">
+      <defs><filter id={`ccProjectileGlow-${suffix}`} x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3" result="p" /><feMerge><feMergeNode in="p" /><feMergeNode in="SourceGraphic" /></feMerge></filter></defs>
+      <path d={path} fill="none" stroke={color} strokeWidth={step.event.code === 'death_bolt' ? 3 : 1.5} strokeLinecap="round" opacity={authoredProjectile ? '.16' : '.36'} className="cc-projectile-trail" />
       {authoredProjectile ? (
         <g>
           <animateMotion dur={`${duration}ms`} begin="0s" fill="freeze" path={path} rotate="0" />
-          {/* Authored arrows have different diagonal axes. Calibrate inside a square
-              canvas, independently of motion and the responsive SVG viewport. */}
-          <svg x="-3" y="-3" width="6" height="6" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" overflow="visible">
-            <image href={authoredProjectile} x="10" y="10" width="80" height="80" preserveAspectRatio="xMidYMid meet" className="cc-authored-projectile" transform={`rotate(${(target.y >= actor.y ? 90 : -90) - getCommanderProjectileAngle(actorCombatant.id)} 50 50)`} />
+          {/* Rotate the square art canvas in rendered pixel space, toward the enemy. */}
+          <svg x="-28" y="-28" width="56" height="56" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" overflow="visible">
+            <image href={authoredProjectile} x="10" y="10" width="80" height="80" preserveAspectRatio="xMidYMid meet" className="cc-authored-projectile" transform={`rotate(${angle} 50 50)`} />
           </svg>
         </g>
       ) : (
         <>
-          <circle r={step.event.code === 'death_bolt' ? 1.8 : 1} fill="#fff" filter={`url(#ccProjectileGlow-${suffix})`} className="cc-projectile-orb">
+          <circle r={step.event.code === 'death_bolt' ? 9 : 5} fill="#fff" filter={`url(#ccProjectileGlow-${suffix})`} className="cc-projectile-orb">
             <animateMotion dur={`${duration}ms`} begin="0s" fill="freeze" path={path} />
           </circle>
-          {step.event.code === 'death_bolt' && <circle r=".8" fill="#d8b4fe" opacity=".9"><animateMotion dur={`${duration}ms`} begin="70ms" fill="freeze" path={path} /></circle>}
+          {step.event.code === 'death_bolt' && <circle r="4" fill="#d8b4fe" opacity=".9"><animateMotion dur={`${duration}ms`} begin="70ms" fill="freeze" path={path} /></circle>}
         </>
       )}
     </svg>
@@ -280,6 +282,7 @@ const EventBanner: React.FC<{
 const CommanderCinematicBattlefield: React.FC<Props> = ({
   combatants,
   onIntroReady,
+  skipOpening = false,
   soundOn,
   onToggleSound,
   selectedTargetId,
@@ -306,15 +309,19 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
   onMove,
   onRestart,
 }) => {
-  const intro = useCommanderIntro(combatants, onIntroReady, soundOn, animationsOn);
-  const boardScroll = useRef<HTMLDivElement>(null);
+  const intro = useCommanderIntro(combatants, onIntroReady, soundOn, animationsOn, skipOpening);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [boardSize, setBoardSize] = useState({ width: 0, height: 0 });
+  const compact = boardSize.width ? boardSize.width < 900 : window.innerWidth < 900;
   useEffect(() => {
-    if (intro.done) return;
-    const board = boardScroll.current;
+    const board = boardRef.current;
     if (!board) return;
-    const reduced = !animationsOn || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    board.scrollTo({ left: intro.team === 'enemy' ? board.scrollWidth - board.clientWidth : intro.team === 'player' ? 0 : (board.scrollWidth - board.clientWidth) / 2, behavior: reduced ? 'instant' : 'smooth' });
-  }, [intro.team, intro.done, animationsOn]);
+    const update = () => setBoardSize({ width: board.clientWidth, height: board.clientHeight });
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(board);
+    return () => observer.disconnect();
+  }, []);
   const lastSoundKeyRef = useRef('');
   const isDeathBoltImpact = effectsOn && activeStep?.event.code === 'death_bolt' && phase === 'impact';
   const outcomeLabel = status === 'victory' ? copy.victory : status === 'defeat' ? copy.defeat : status === 'draw' ? copy.draw : null;
@@ -374,7 +381,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
   };
 
   const unit = (combatant: CommanderPracticeCombatant) => {
-    const point = getCommanderFormationPoint(combatant);
+    const point = getCommanderPresentationPoint(combatant, compact);
     const selected = intro.done && combatant.side === 'enemy' && selectedTargetId === combatant.id;
     const focused = combatant.side === 'enemy' ? playerFocusTarget === combatant.id : enemyFocusTarget === combatant.id;
     const actor = activeStep?.event.actorName === combatant.name;
@@ -411,34 +418,33 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         style={{
           left: `${point.x}%`,
           top: `${point.y}%`,
-          width: 'min(11cqw, 150px, 22cqh)',
+          width: compact ? 'min(42cqw, 140px)' : 'min(11cqw, 170px)',
           zIndex: point.z,
           transform: 'translate(-50%, -82%)',
         }}
         aria-label={`${combatant.name}${selected ? `, ${copy.selected}` : ''}`}
       >
         <div className="cc-deployment-shell" style={{ opacity: intro.done || intro.revealed.includes(combatant.id) ? 1 : 0, transform: intro.done || intro.revealed.includes(combatant.id) ? 'translateY(0) scale(1)' : 'translateY(10px) scale(.85)', transition: animationsOn ? 'opacity 260ms ease-out, transform 320ms ease-out' : 'none' }}>
-        <div className="cc-stage-scale-shell relative" style={{ transform: `scale(${point.scale})`, transformOrigin: '50% 86%' }}>
+        <div className="cc-stage-scale-shell relative" >
           <span aria-hidden className={`absolute left-1/2 top-[87%] h-5 w-[76%] -translate-x-1/2 rounded-[50%] border transition-[box-shadow,border-color,background-color,opacity] duration-200 ${selected ? 'border-amber-300/90 bg-amber-300/12 shadow-[0_0_26px_rgba(251,191,36,.5)]' : combatant.side === 'player' ? 'border-cyan-300/35 bg-cyan-300/[0.04]' : 'border-rose-300/35 bg-rose-300/[0.04]'} ${focused || focusLock ? 'cc-stage-focus-ground' : ''}`} />
           <TacticalTargetReticle selected={selected} focused={focused} focusLock={focusLock} />
 
-          <div className={`cc-stage-action-shell relative mx-auto aspect-[1/1.55] w-full origin-bottom ${actionClass} ${hitClass} ${defeat && animationsOn ? 'cc-stage-defeat' : ''}`}>
+          <div className={`cc-stage-action-shell relative mx-auto aspect-[1/1.15] w-full origin-bottom ${actionClass} ${hitClass} ${defeat && animationsOn ? 'cc-stage-defeat' : ''}`}>
             <CommanderBattleSprite combatant={combatant} pose={pose} active={Boolean(actor)} defeated={pose === 'defeated'} />
             {actor && activeStep?.event.code === 'death_bolt' && phase === 'windup' && effectsOn && <DeathBoltCharge />}
             {guard && effectsOn && phase !== 'settle' && <span aria-hidden className="cc-stage-shield-bloom absolute inset-x-[8%] bottom-[6%] top-[8%] rounded-[48%] border-2 border-cyan-200/75 bg-cyan-300/[0.08] shadow-[0_0_38px_rgba(34,211,238,.62)]" />}
             {impactTarget && effectsOn && activeStep?.kind === 'attack' && <ImpactBurst deathBolt={activeStep.event.code === 'death_bolt'} shieldOnly={shieldOnlyHit} />}
           </div>
 
-          <div className="relative z-30 -mt-4 px-1">
-            <div className="mx-auto max-w-[160px] break-words text-[9px] font-black leading-3 text-white [text-shadow:0_2px_6px_rgba(2,6,23,1)] sm:text-[11px]">{combatant.name}</div>
-            {combatant.role === 'commander' && <span className="mt-0.5 inline-block text-[7px] font-black uppercase tracking-[0.18em] text-violet-200">CMD</span>}
-            {combatant.hp > 0 ? (
-              <div className="mx-auto mt-1 w-[88%] max-w-[136px]">
-                <div className="flex items-center justify-between text-[7px] font-bold text-slate-100 sm:text-[9px]"><span>{combatant.hp}/{combatant.maxHp}</span><span className="text-cyan-200">◇{combatant.shield}</span></div>
-                <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-slate-950/90 ring-1 ring-black/40"><div className="h-full bg-gradient-to-r from-emerald-400 to-lime-300 transition-[width] duration-500" style={{ width: `${hpPercent(combatant)}%` }} /></div>
-                <div className="mt-0.5 h-0.5 overflow-hidden rounded-full bg-slate-950/90"><div className="h-full bg-gradient-to-r from-sky-500 to-cyan-200 transition-[width] duration-500" style={{ width: `${shieldPercent(combatant)}%` }} /></div>
+          <div className="cc-unit-vitals relative z-[60] rounded-lg border border-white/15 bg-slate-950/95 px-1.5 py-1.5 text-left shadow-lg">
+            <div className="mx-auto max-w-[170px] break-words text-[11px] font-black leading-[1.2] text-white sm:text-xs">{combatant.name}</div>
+
+              <div className="mt-1 space-y-1 font-mono text-[11px] font-bold leading-tight text-white">
+                <div className="flex items-center justify-between gap-1"><span className="text-emerald-300">HP</span><span>{combatant.hp}/{combatant.maxHp}</span></div>
+                <div role="progressbar" aria-label={`${combatant.name} HP`} aria-valuenow={combatant.hp} aria-valuemin={0} aria-valuemax={combatant.maxHp} className="h-2 overflow-hidden rounded-full bg-slate-700"><div className="h-full bg-gradient-to-r from-emerald-400 to-lime-300" style={{ width: `${hpPercent(combatant)}%` }} /></div>
+                <div className="flex items-center justify-between gap-1"><span className="text-cyan-200">SH {combatant.shield}</span><span className="text-amber-200">ATK {combatant.attack}</span></div>
+                <div role="meter" aria-label={`${combatant.name} shield`} aria-valuenow={combatant.shield} aria-valuemin={0} aria-valuemax={Math.max(30, combatant.shield)} className="h-1.5 overflow-hidden rounded-full bg-slate-700"><div className="h-full bg-cyan-300" style={{ width: `${shieldPercent(combatant)}%` }} /></div>
               </div>
-            ) : <div className="mt-1 text-[8px] font-black uppercase tracking-[0.18em] text-red-300">{copy.knockedOut}</div>}
           </div>
 
           {impactTarget && activeStep?.kind === 'attack' && (
@@ -484,7 +490,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         @keyframes ccSpriteSwap{0%{opacity:.45;filter:brightness(.82)}100%{opacity:1;filter:brightness(1)}}
         .cc-stage-unit:hover,.cc-stage-unit:focus-visible{transform:translate(-50%,-82%)!important}
         .cc-stage-unit:hover .cc-stage-action-shell,.cc-stage-unit:focus-visible .cc-stage-action-shell{filter:brightness(1.06) drop-shadow(0 0 9px rgba(251,191,36,.12))}
-        .cc-authored-sprite{animation:ccSpriteSwap 150ms ease-out}
+        .cc-authored-sprite{animation:none}
         .cc-actor-melee-right{animation:ccActorMeleeRight 900ms cubic-bezier(.16,.84,.24,1)}
         .cc-actor-melee-left{animation:ccActorMeleeLeft 900ms cubic-bezier(.16,.84,.24,1)}
         .cc-actor-ranged{animation:ccActorRanged 900ms cubic-bezier(.2,.8,.2,1)}
@@ -526,9 +532,8 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
       </div>
 
       <div className="relative">
-      <p className="px-4 py-1 text-center text-[10px] text-slate-400 sm:hidden">Swipe across the battlefield to inspect both formations.</p>
-      <div ref={boardScroll} className="overflow-x-auto" tabIndex={0} aria-label="Battlefield" dir="ltr">
-      <div className="cc-battle-board relative min-w-[640px] overflow-hidden" style={{ height: 'clamp(440px, 68svh, 650px)', containerType: 'size' }} dir="ltr">
+      <div aria-label="Battlefield" dir="ltr">
+      <div ref={boardRef} data-compact={compact} className="cc-battle-board relative w-full overflow-hidden" style={{ height: compact ? 'clamp(800px, 110svh, 940px)' : 'clamp(600px, 78svh, 760px)', containerType: 'size' }} dir="ltr">
         <TacticalBackdrop />
         {!intro.done && <div aria-hidden className="cc-opening-black pointer-events-none absolute inset-0 z-[80] bg-black" />}
         {!intro.done && <div aria-hidden className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,.7))]" />}
@@ -537,7 +542,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         <div className="pointer-events-none absolute inset-x-0 top-3 z-20 flex justify-between px-4 text-[8px] font-black uppercase tracking-[0.2em] sm:px-6 sm:text-[10px]"><span className="text-cyan-300">● {copy.you}</span><span className="text-fuchsia-300">{targetable ? `◎ ${copy.selectTarget}` : `● ${copy.enemy}`}</span></div>
         <EventBanner step={activeStep} combatants={combatants} language={language} copy={copy} />
         {combatants.map(unit)}
-        {effectsOn && animationsOn && <ProjectilePath step={activeStep} phase={phase} combatants={combatants} speed={speed} />}
+        {effectsOn && animationsOn && <ProjectilePath step={activeStep} phase={phase} combatants={combatants} speed={speed} compact={compact} boardSize={boardSize} />}
 
         {outcomeLabel && !activeStep && (
           <div className="pointer-events-none absolute inset-0 z-[100] flex items-center justify-center bg-slate-950/30 backdrop-blur-[1px]">

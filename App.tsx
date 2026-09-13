@@ -76,6 +76,7 @@ const AnnouncementBanner = lazyRetry(() => import('./components/phase1/Announcem
 const RaidView = lazyRetry(() => import('./src/features/raids/RaidView'), 'RaidView');
 const RaidAdminView = lazyRetry(() => import('./src/features/raids/RaidAdminView'), 'RaidAdminView');
 const ClanTerritoryManager = lazyRetry(() => import('./src/features/clanTerritory/ClanTerritoryManager'), 'ClanTerritoryManager');
+const CommanderPracticeArena = lazyRetry(() => import('./src/features/cursedCommander/CommanderPracticeArena'), 'CommanderPracticeArena');
 const LockdownManager = lazyRetry(() => import('./src/features/lockdown/LockdownManager'), 'LockdownManager');
 const CambridgeTestsHub = lazyRetry(() => import('./components/CambridgeTestsHub'), 'CambridgeTestsHub');
 const SchoolAdminPortal = lazyRetry(() => import('./components/SchoolAdminPortal'), 'SchoolAdminPortal');
@@ -178,7 +179,7 @@ const DEFAULT_SESSION_STATUS: SessionStatus = {
 
 type NonCriticalLoadState = 'idle' | 'loading' | 'ready' | 'error' | 'cached';
 type NonCriticalKey = 'tasks' | 'caps' | 'news' | 'assignment' | 'sessionStatus';
-type AppView = 'workspace_chooser' | 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'cambridge' | 'school_admin' | 'school_head' | 'parent';
+type AppView = 'workspace_chooser' | 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'commander' | 'cambridge' | 'school_admin' | 'school_head' | 'parent';
 type AccountWorkspace = Extract<AppView, 'school_head' | 'school_admin' | 'teacher' | 'parent'>;
 
 const resolveAccountWorkspace = (
@@ -527,6 +528,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [addToast, caps, isPlayerMode]);
 
   const handleViewChange = (nextView: AppView) => {
+    if (nextView === 'commander' && profile?.role !== 'student') {
+      addToast('Commander practice is available to student accounts.', 'info');
+      return;
+    }
     const gatedModule = nextView === 'cambridge' ? 'cambridge' : nextView === 'writing' ? 'writing' : nextView === 'ielts' ? 'ielts' : null;
     if (gatedModule && hasSchool && !canUseSchoolModule(gatedModule)) {
       addToast(schoolProgrammeLockMessage(gatedModule), 'info');
@@ -611,6 +616,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       );
       setView('ielts');
       return;
+    }
+    if (nextView === 'commander' || view === 'commander') {
+      const url = new URL(window.location.href);
+      if (nextView === 'commander') url.searchParams.set('view', 'commander');
+      else if (url.searchParams.get('view') === 'commander') url.searchParams.delete('view');
+      window.history.replaceState({}, '', url);
     }
     setView(nextView);
   };
@@ -1146,6 +1157,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         setIsAdminMode(false);
         setAppMode('player');
         if (hasParentAccess) setView(profileData.role === 'student' && profileData.school_id ? 'workspace_chooser' : 'parent');
+        if (!hasParentAccess && profileData.role === 'student' && !profileData.required_changes?.username && !profileData.required_changes?.avatar && new URLSearchParams(window.location.search).get('view') === 'commander') setView('commander');
         loadCachedData();
       }
 
@@ -2377,6 +2389,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   )}
               </div>
             );
+        case 'commander':
+          return profile?.role === 'student' ? renderLazy(<CommanderPracticeArena key={profile.id} userId={profile.id} onClose={() => handleViewChange('dashboard')} />) : null;
         case 'lockdown':
           return renderLazy(
             <LockdownManager
@@ -2657,7 +2671,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         onVisitInventory={() => handleViewChange('inventory')} onViewLeaderboard={() => dashboardNavigate('leaderboard')}
                         onViewAchievements={() => handleViewChange('achievements')} onOpenTournament={() => handleViewChange('tournament')}
                         onOpenIeltsPrep={canUseSchoolModule('ielts') ? () => { window.location.href = '/ielts'; } : undefined}
-                        onOpenCambridgeTests={canUseSchoolModule('cambridge') ? () => handleViewChange('cambridge') : undefined} onOpenLockdown={() => handleViewChange('lockdown')}
+                        onOpenCambridgeTests={canUseSchoolModule('cambridge') ? () => handleViewChange('cambridge') : undefined} onOpenCommander={() => handleViewChange('commander')} onOpenLockdown={() => handleViewChange('lockdown')}
                         profile={profile!} isIndividual={!hasSchool} hasPendingAssignment={actionableAssignments.length > 0}
                         clanBadgeCount={pendingClanRequests + unreadClanChatMessages} schoolName={profile?.school_name} schoolLogoUrl={profile?.school_logo_url}
                         isPro={isProUser} isPilot={isPilotPlan} onUpgrade={(featureLabel) => { setUpgradeFeatureLabel(featureLabel); setShowUpgradeModal(true); }}

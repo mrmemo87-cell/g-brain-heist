@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { buildCommanderIntroTimeline } from './commanderIntroTimeline';
 import { playCommanderSfx, stopCommanderAudio } from './commanderBattleSound';
 
-export function useCommanderIntro(units: readonly { id: string; side: string }[], onReady: () => void, soundOn: boolean, animationsOn: boolean) {
-  const [state, setState] = useState({ done: false, team: '', label: 'BATTLE INITIALIZING', revealed: [] as string[] });
+export function useCommanderIntro(units: readonly { id: string; side: string }[], onReady: () => void, soundOn: boolean, animationsOn: boolean, skipOpening = false) {
+  const [state, setState] = useState({ done: skipOpening, team: '', label: 'BATTLE INITIALIZING', revealed: [] as string[] });
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const completed = useRef(false);
   const sound = useRef(soundOn);
@@ -22,6 +22,7 @@ export function useCommanderIntro(units: readonly { id: string; side: string }[]
   };
   useEffect(() => {
     completed.current = false;
+    if (skipOpening) { finish(); return () => { stopCommanderAudio(); }; }
     setState({ done: false, team: '', label: 'BATTLE INITIALIZING', revealed: [] });
     const reduced = !animationsOn || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (sound.current) void playCommanderSfx('intro');
@@ -45,6 +46,6 @@ export function useCommanderIntro(units: readonly { id: string; side: string }[]
     };
     // A new roster/remount starts an intro; visual/audio toggles never restart it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roster]);
+  }, [roster, skipOpening]);
   return { ...state, skip: finish };
 }

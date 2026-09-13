@@ -90,8 +90,10 @@ test('preview API is authenticated, student-gated, signed, and write-free', () =
 test('Game tab adds Commander Preview without replacing legacy Attack', () => {
   const mainActions = readFileSync('components/MainActions.tsx', 'utf8');
 
-  assert.match(mainActions, /CommanderPracticeArena/);
-  assert.match(mainActions, /setShowCommanderPreview\(true\)/);
+  assert.match(mainActions, /onOpenCommander/);
+  const app = readFileSync('App.tsx', 'utf8');
+  assert.match(app, /case 'commander'/);
+  assert.match(app, /CommanderPracticeArena/);
   assert.match(mainActions, /handlePilotClick\('Launch Attack', onStartPvp\)/);
   assert.match(mainActions, /mission-console-images\/attack\.webp/);
   assert.match(mainActions, /onOpenLockdown[\s\S]*?Lockdown Mode/);
@@ -227,7 +229,7 @@ test('battlefield is formation-first instead of rendering duplicated squad cards
   assert.doesNotMatch(arena, /playerCombatants\.map/);
   assert.doesNotMatch(arena, /enemyCombatants\.map/);
   assert.match(battlefield, /combatants\.map\(unit\)/);
-  assert.match(battlefield, /getCommanderFormationPoint\(combatant\)/);
+  assert.match(battlefield, /getCommanderPresentationPoint\(combatant, compact\)/);
   assert.match(battlefield, /className={`cc-stage-unit absolute/);
   assert.match(battlefield, /onSelectTarget/);
   assert.match(battlefield, /combatant\.hp\/combatant\.maxHp/);

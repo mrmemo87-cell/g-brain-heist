@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 import type { CommanderPracticeCombatant } from '../../../services/commanderPracticeService';
 import {
   failedCommanderSprites,
@@ -17,8 +17,6 @@ type Props = {
   className?: string;
 };
 
-const POSE_FADE_MS = 170;
-
 const spriteFilterFor = (
   combatant: CommanderPracticeCombatant,
   pose: CommanderSpritePose,
@@ -36,7 +34,7 @@ const spriteFilterFor = (
  *
  * Formation/movement remains on the outer tactical actor. This renderer only
  * swaps authored PNG poses inside one foot-anchored canvas. The next pose is
- * decoded before it is revealed and the previous frame briefly crossfades out,
+ * decoded before gameplay; pose changes replace the previous frame immediately,
  * preventing network/decode flashes without ever changing the unit's world slot.
  */
 const CommanderBattleSprite: React.FC<Props> = ({
@@ -50,74 +48,12 @@ const CommanderBattleSprite: React.FC<Props> = ({
   const resolvedPose: CommanderSpritePose = defeated || combatant.hp <= 0 ? 'defeated' : pose;
   const requestedSrc = getCommanderSpriteUrl(combatant.id, resolvedPose);
 
-  const [visibleSrc, setVisibleSrc] = useState<string | null>(requestedSrc);
-  const [visiblePose, setVisiblePose] = useState<CommanderSpritePose>(resolvedPose);
-  const [previousFrame, setPreviousFrame] = useState<{ src: string; pose: CommanderSpritePose } | null>(null);
-  const [fadePrevious, setFadePrevious] = useState(false);
-  const transitionId = useRef(0);
-
-  useEffect(() => {
-    warmCommanderCombatSprites();
-  }, []);
-
-  useEffect(() => {
-    if (!requestedSrc || requestedSrc === visibleSrc) {
-      if (visiblePose !== resolvedPose) setVisiblePose(resolvedPose);
-      return;
-    }
-
-    const id = ++transitionId.current;
-    let cancelled = false;
-    let firstFrame = 0;
-    let secondFrame = 0;
-    const image = new Image();
-
-    const reveal = () => {
-      if (cancelled || id !== transitionId.current) return;
-      setPreviousFrame(visibleSrc ? { src: visibleSrc, pose: visiblePose } : null);
-      setFadePrevious(false);
-      setVisibleSrc(requestedSrc);
-      setVisiblePose(resolvedPose);
-      firstFrame = window.requestAnimationFrame(() => {
-        secondFrame = window.requestAnimationFrame(() => {
-          if (!cancelled && id === transitionId.current) setFadePrevious(true);
-        });
-      });
-    };
-
-    image.onload = reveal;
-    image.onerror = reveal;
-    image.decoding = 'async';
-    image.src = requestedSrc;
-
-    if (image.complete) {
-      void image.decode().catch(() => undefined).finally(reveal);
-    }
-
-    return () => {
-      cancelled = true;
-      if (firstFrame) window.cancelAnimationFrame(firstFrame);
-      if (secondFrame) window.cancelAnimationFrame(secondFrame);
-    };
-  }, [requestedSrc, resolvedPose, visiblePose, visibleSrc]);
-
-  useEffect(() => {
-    if (!previousFrame || !fadePrevious) return;
-    const timer = window.setTimeout(() => {
-      setPreviousFrame(null);
-      setFadePrevious(false);
-    }, POSE_FADE_MS + 24);
-    return () => window.clearTimeout(timer);
-  }, [fadePrevious, previousFrame]);
-
-  const visibleCalibration = useMemo(
-    () => getCommanderSpriteCalibration(combatant.id, visiblePose),
-    [combatant.id, visiblePose],
-  );
-  const previousCalibration = useMemo(
-    () => previousFrame ? getCommanderSpriteCalibration(combatant.id, previousFrame.pose) : null,
-    [combatant.id, previousFrame],
-  );
+  useEffect(() => { warmCommanderCombatSprites(); }, []);
+  // All poses are decoded by the opening gate. Keep exactly one image mounted:
+  // swapping src removes the previous pose in the same render (no ghost frame).
+  const visibleSrc = requestedSrc;
+  const visiblePose = resolvedPose;
+  const visibleCalibration = getCommanderSpriteCalibration(combatant.id, visiblePose);
 
   if (!definition || !visibleSrc || !visibleCalibration || failedCommanderSprites.has(visibleSrc)) {
     return (
@@ -142,22 +78,6 @@ const CommanderBattleSprite: React.FC<Props> = ({
       data-commander-pose={visiblePose}
       className={`relative h-full w-full overflow-visible ${className}`}
     >
-      {previousFrame && previousCalibration && (
-        <img
-          src={previousFrame.src}
-          alt=""
-          draggable={false}
-          decoding="async"
-          className="cc-authored-sprite cc-authored-sprite-previous pointer-events-none absolute inset-0 h-full w-full select-none object-contain object-bottom"
-          style={{
-            transform: imageTransform(previousCalibration),
-            transformOrigin: '50% 100%',
-            filter: spriteFilterFor(combatant, previousFrame.pose, active),
-            opacity: fadePrevious ? 0 : 1,
-            transition: `opacity ${POSE_FADE_MS}ms ease-out`,
-          }}
-        />
-      )}
       <img
         src={visibleSrc}
         alt=""
