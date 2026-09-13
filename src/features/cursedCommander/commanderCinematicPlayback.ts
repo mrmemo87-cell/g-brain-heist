@@ -7,6 +7,7 @@ export type CommanderCinematicStepKind =
   | 'focus_lock'
   | 'attack'
   | 'guard'
+  | 'restore'
   | 'defeat'
   | 'outcome'
   | 'status';
@@ -22,6 +23,8 @@ export type CommanderCinematicStep = {
 const isAttack = (event: CommanderPracticeEvent) =>
   (event.code === 'focus_target' && (event.amount ?? 0) > 0)
   || event.code === 'death_bolt'
+  || event.code === 'chain_surge'
+  || event.code === 'rot_miasma'
   || event.code === 'unit_attack';
 
 const isOutcome = (event: CommanderPracticeEvent) =>
@@ -77,6 +80,11 @@ export const buildCommanderCinematicSteps = (
       continue;
     }
 
+    if (event.code === 'raise_dead') {
+      steps.push({ id: event.id, kind: 'restore', event, shieldDamage: 0, hpDamage: 0 });
+      continue;
+    }
+
     if (event.code === 'combatant_defeated') {
       steps.push({ id: event.id, kind: 'defeat', event, shieldDamage: 0, hpDamage: 0 });
       continue;
@@ -121,6 +129,13 @@ export const applyCommanderCinematicStep = (
     return updateCombatant(combatants, step.event.actorName, (combatant) => ({
       ...combatant,
       shield: Math.max(0, combatant.shield + Math.max(0, step.event.amount ?? 0)),
+    }));
+  }
+
+  if (step.kind === 'restore') {
+    return updateCombatant(combatants, step.event.targetName, (combatant) => ({
+      ...combatant,
+      hp: Math.min(combatant.maxHp, Math.max(0, combatant.hp) + Math.max(0, step.event.amount ?? 0)),
     }));
   }
 

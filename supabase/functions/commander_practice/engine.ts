@@ -1,10 +1,23 @@
 export type PracticeSide = "player" | "enemy";
 export type PracticeStatus = "active" | "victory" | "defeat" | "draw";
-export type PracticeMove = "focus_target" | "death_bolt" | "guard";
+export type PracticeSchool = "neutral" | "void" | "storm" | "rot" | "grave";
+export type PracticeMove =
+  | "focus_target"
+  | "death_bolt"
+  | "guard"
+  | "chain_surge"
+  | "rot_miasma"
+  | "raise_dead";
+export type PracticePower = Extract<
+  PracticeMove,
+  "death_bolt" | "chain_surge" | "rot_miasma" | "raise_dead"
+>;
 export type PracticeRole = "commander" | "unit";
 
 export type PracticeCombatant = {
   maxShield?: number;
+  catalogId?: string;
+  school?: PracticeSchool;
   id: string;
   side: PracticeSide;
   role: PracticeRole;
@@ -19,6 +32,9 @@ export type PracticeEventCode =
   | "battle_started"
   | "focus_target"
   | "death_bolt"
+  | "chain_surge"
+  | "rot_miasma"
+  | "raise_dead"
   | "guard"
   | "unit_attack"
   | "shield_absorb"
@@ -39,6 +55,8 @@ export type PracticeEvent = {
 
 export type PracticeBattleState = {
   playerTactics?: { bolt: number; focus: number; guard: number; shieldCap: number };
+  /** Signature Void power is always present. Equipped unit schools unlock alternates. */
+  playerPowers?: PracticePower[];
   loadoutLabel?: string;
   loadoutVersion?: number;
   version: 1;
@@ -48,6 +66,7 @@ export type PracticeBattleState = {
   status: PracticeStatus;
   playerFocusTarget: string | null;
   enemyFocusTarget: string | null;
+  /** Legacy field name retained for transcript/cache compatibility; this is the shared player power cooldown. */
   playerDeathBoltCooldown: number;
   enemyDeathBoltCooldown: number;
   combatants: PracticeCombatant[];
@@ -60,6 +79,17 @@ export type PracticeTurnIntent = {
 };
 
 const MAX_EVENTS = 24;
+const PLAYER_POWER_ORDER: PracticePower[] = ["death_bolt", "chain_surge", "rot_miasma", "raise_dead"];
+const SCHOOL_POWER: Partial<Record<PracticeSchool, PracticePower>> = {
+  void: "death_bolt",
+  storm: "chain_surge",
+  rot: "rot_miasma",
+  grave: "raise_dead",
+};
+const POWER_MOVES = new Set<PracticeMove>(PLAYER_POWER_ORDER);
+const VALID_SCHOOLS = new Set<PracticeSchool>(["neutral", "void", "storm", "rot", "grave"]);
+const powerCooldownError = (move: PracticeMove) =>
+  move === "death_bolt" ? "death_bolt_on_cooldown" : "commander_power_on_cooldown";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
@@ -117,7 +147,7 @@ const applyDamage = (
   actor: PracticeCombatant,
   target: PracticeCombatant,
   amount: number,
-  attackCode: "death_bolt" | "unit_attack" | "focus_target",
+  attackCode: "death_bolt" | "chain_surge" | "rot_miasma" | "unit_attack" | "focus_target",
 ) => {
   const requestedDamage = Math.max(0, Math.round(amount));
   const absorbed = Math.min(target.shield, requestedDamage);
@@ -214,6 +244,120 @@ const requireTarget = (
   return target;
 };
 
+const playerPowers = (state: PracticeBattleState): PracticePower[] => {
+  const configured = state.playerPowers?.filter((power): power is PracticePower => PLAYER_POWER_ORDER.includes(power));
+  return configured?.length ? configured : ["death_bolt"];
+};
+
+const requirePlayerPower = (state: PracticeBattleState, move: PracticeMove) => {
+  if (!POWER_MOVES.has(move)) return;
+  if (!playerPowers(state).includes(move as PracticePower)) throw new Error("commander_power_locked");
+  if (state.playerDeathBoltCooldown > 0) throw new Error(powerCooldownError(move));
+};
+
+const performDeathBolt = (
+  state: PracticeBattleState,
+  playerCommander: PracticeCombatant,
+  target: PracticeCombatant,
+) => {
+  const focused = state.playerFocusTarget === target.id;
+  applyDamage(
+    state,
+    playerCommander,
+    target,
+    (state.playerTactics?.bolt ?? 26) + (focused ? 8 : 0),
+    "death_bolt",
+  );
+  state.playerDeathBoltCooldown = 2;
+  if (focused) state.playerFocusTarget = null;
+};
+
+const performChainSurge = (
+  state: PracticeBattleState,
+  playerCommander: PracticeCombatant,
+  target: PracticeCombatant,
+) => {
+  const focused = state.playerFocusTarget === target.id;
+  const bolt = state.playerTactics?.bolt ?? 26;
+  const primaryDamage = Math.max(12, Math.round(bolt * 0.68)) + (focused ? 5 : 0);
+  applyDamage(state, playerCommander, target, primaryDamage, "chain_surge");
+
+  const secondaryTargets = living(state, "enemy").filter((candidate) => candidate.id !== target.id);
+  if (secondaryTargets.length > 0) {
+    const secondary = secondaryTargets[roll(state, `player:chain:${target.id}`, secondaryTargets.length)];
+    applyDamage(
+      state,
+      playerCommander,
+      secondary,
+      Math.max(7, Math.round(primaryDamage * 0.55)),
+      "chain_surge",
+    );
+  }
+  state.playerDeathBoltCooldown = 3;
+  if (focused) state.playerFocusTarget = null;
+};
+
+const performRotMiasma = (
+  state: PracticeBattleState,
+  playerCommander: PracticeCombatant,
+  target: PracticeCombatant,
+) => {
+  const focus = state.playerTactics?.focus ?? 7;
+  const bolt = state.playerTactics?.bolt ?? 26;
+  const pulse = Math.max(6, Math.round(focus * 0.75 + bolt * 0.12));
+  const focused = state.playerFocusTarget === target.id;
+  const targets = living(state, "enemy");
+
+  for (const enemy of targets) {
+    const selectedBonus = enemy.id === target.id ? 4 : 0;
+    const focusBonus = focused && enemy.id === target.id ? 3 : 0;
+    applyDamage(state, playerCommander, enemy, pulse + selectedBonus + focusBonus, "rot_miasma");
+  }
+  state.playerDeathBoltCooldown = 3;
+};
+
+const performRaiseDead = (
+  state: PracticeBattleState,
+  playerCommander: PracticeCombatant,
+) => {
+  const fallen = state.combatants.find(
+    (combatant) => combatant.side === "player" && combatant.role === "unit" && combatant.hp <= 0,
+  );
+  if (fallen) {
+    const restored = Math.max(1, Math.round(fallen.maxHp * 0.35));
+    fallen.hp = Math.min(fallen.maxHp, restored);
+    fallen.shield = 0;
+    pushEvent(state, {
+      side: "player",
+      code: "raise_dead",
+      actorName: playerCommander.name,
+      targetName: fallen.name,
+      amount: fallen.hp,
+      idSuffix: `${fallen.id}:revive`,
+    });
+    state.playerDeathBoltCooldown = 3;
+    return;
+  }
+
+  const wounded = state.combatants
+    .filter((combatant) => combatant.side === "player" && combatant.role === "unit" && combatant.hp > 0 && combatant.hp < combatant.maxHp)
+    .sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp))[0];
+  if (!wounded) throw new Error("raise_dead_no_valid_target");
+
+  const healCap = Math.max(12, Math.round((state.playerTactics?.guard ?? 18) * 0.75));
+  const restored = Math.min(healCap, wounded.maxHp - wounded.hp);
+  wounded.hp += restored;
+  pushEvent(state, {
+    side: "player",
+    code: "raise_dead",
+    actorName: playerCommander.name,
+    targetName: wounded.name,
+    amount: restored,
+    idSuffix: `${wounded.id}:mend`,
+  });
+  state.playerDeathBoltCooldown = 3;
+};
+
 const performPlayerMove = (state: PracticeBattleState, intent: PracticeTurnIntent) => {
   const playerCommander = commander(state, "player");
   if (!playerCommander || playerCommander.hp <= 0) throw new Error("player_commander_unavailable");
@@ -228,6 +372,12 @@ const performPlayerMove = (state: PracticeBattleState, intent: PracticeTurnInten
       amount: Math.max(0, gained),
       idSuffix: playerCommander.id,
     });
+    return;
+  }
+
+  if (intent.move === "raise_dead") {
+    requirePlayerPower(state, intent.move);
+    performRaiseDead(state, playerCommander);
     return;
   }
 
@@ -246,12 +396,18 @@ const performPlayerMove = (state: PracticeBattleState, intent: PracticeTurnInten
     return;
   }
 
+  requirePlayerPower(state, intent.move);
+
   if (intent.move === "death_bolt") {
-    if (state.playerDeathBoltCooldown > 0) throw new Error("death_bolt_on_cooldown");
-    const focused = state.playerFocusTarget === target.id;
-    applyDamage(state, playerCommander, target, (state.playerTactics?.bolt ?? 26) + (focused ? 8 : 0), "death_bolt");
-    state.playerDeathBoltCooldown = 2;
-    if (focused) state.playerFocusTarget = null;
+    performDeathBolt(state, playerCommander, target);
+    return;
+  }
+  if (intent.move === "chain_surge") {
+    performChainSurge(state, playerCommander, target);
+    return;
+  }
+  if (intent.move === "rot_miasma") {
+    performRotMiasma(state, playerCommander, target);
     return;
   }
 
@@ -330,10 +486,11 @@ export const startPracticeBattle = (seed: number): PracticeBattleState => {
     enemyFocusTarget: null,
     playerDeathBoltCooldown: 0,
     enemyDeathBoltCooldown: 0,
+    playerPowers: ["death_bolt"],
     combatants: [
-      { id: "player_commander", side: "player", role: "commander", name: "Cipher Commander", hp: 100, maxHp: 100, shield: 12, attack: 0 },
-      { id: "player_guard", side: "player", role: "unit", name: "Neon Guard", hp: 66, maxHp: 66, shield: 6, attack: 8 },
-      { id: "player_archer", side: "player", role: "unit", name: "Shade Archer", hp: 54, maxHp: 54, shield: 0, attack: 10 },
+      { id: "player_commander", side: "player", role: "commander", name: "Cipher Commander", hp: 100, maxHp: 100, shield: 12, attack: 0, school: "void" },
+      { id: "player_guard", side: "player", role: "unit", name: "Neon Guard", hp: 66, maxHp: 66, shield: 6, attack: 8, school: "neutral" },
+      { id: "player_archer", side: "player", role: "unit", name: "Shade Archer", hp: 54, maxHp: 54, shield: 0, attack: 10, school: "neutral" },
       { id: "enemy_commander", side: "enemy", role: "commander", name: "Warden Null", hp: 98, maxHp: 98, shield: 10, attack: 0 },
       { id: "enemy_guard", side: "enemy", role: "unit", name: "Iron Revenant", hp: 68, maxHp: 68, shield: 5, attack: 8 },
       { id: "enemy_archer", side: "enemy", role: "unit", name: "Hollow Ranger", hp: 52, maxHp: 52, shield: 0, attack: 10 },
@@ -353,9 +510,9 @@ export const applyPracticeTurn = (
   if (currentState.status !== "active") throw new Error("battle_finished");
   if (currentState.turn < 1 || currentState.turn > currentState.maxTurns) throw new Error("invalid_turn");
 
-  // The cooldown returned to the client governs the next submitted move.
-  if (intent.move === "death_bolt" && currentState.playerDeathBoltCooldown > 0) {
-    throw new Error("death_bolt_on_cooldown");
+  // The cooldown returned to the client governs the next submitted power move.
+  if (POWER_MOVES.has(intent.move) && currentState.playerDeathBoltCooldown > 0) {
+    throw new Error(powerCooldownError(intent.move));
   }
 
   const state = JSON.parse(JSON.stringify(currentState)) as PracticeBattleState;
@@ -365,7 +522,7 @@ export const applyPracticeTurn = (
   performPlayerMove(state, intent);
   if (resolveOutcome(state)) return state;
 
-  const preferredEnemyTarget = intent.move === "guard"
+  const preferredEnemyTarget = intent.move === "guard" || intent.move === "raise_dead"
     ? state.playerFocusTarget
     : (intent.targetId ?? state.playerFocusTarget);
   performAutomaticUnitAttacks(state, "player", "enemy", preferredEnemyTarget ?? null);
@@ -403,6 +560,7 @@ export function buildOwnedPracticeBattle(seed: number, input: unknown): Practice
   player.maxShield = state.playerTactics.shieldCap;
   const expected = new Set(['player_guard', 'player_archer']);
   const names = new Set(state.combatants.filter(u => !expected.has(u.id)).map(u => u.name));
+  const unlocked = new Set<PracticePower>(['death_bolt']);
   for (const value of x['units']) {
     if (!value || typeof value !== 'object') throw new Error('invalid_owned_loadout');
     const unit = value as Record<string, unknown>;
@@ -414,7 +572,21 @@ export function buildOwnedPracticeBattle(seed: number, input: unknown): Practice
     target.hp = target.maxHp = integer(unit['hp'], 1, 300);
     target.shield = integer(unit['shield'], 0, 150);
     target.attack = integer(unit['attack'], 1, 100);
+
+    const schoolValue = unit['school'];
+    if (schoolValue !== undefined) {
+      if (typeof schoolValue !== 'string' || !VALID_SCHOOLS.has(schoolValue as PracticeSchool)) throw new Error('invalid_owned_loadout');
+      target.school = schoolValue as PracticeSchool;
+      const power = SCHOOL_POWER[target.school];
+      if (power) unlocked.add(power);
+    }
+    const catalogId = unit['catalogId'];
+    if (catalogId !== undefined) {
+      if (typeof catalogId !== 'string' || !catalogId.trim() || catalogId.length > 80) throw new Error('invalid_owned_loadout');
+      target.catalogId = catalogId;
+    }
   }
+  state.playerPowers = PLAYER_POWER_ORDER.filter((power) => unlocked.has(power));
   state.loadoutLabel = `${String(x['weaponName'] ?? 'Weapon')} · ${String(x['shieldName'] ?? 'Shield')}`;
   state.loadoutVersion = integer(x['profileVersion'], 1, 2_000_000_000);
   return state;

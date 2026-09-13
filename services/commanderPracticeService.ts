@@ -2,10 +2,14 @@ import { supabase } from './supabaseClient';
 
 export type CommanderPracticeSide = 'player' | 'enemy';
 export type CommanderPracticeStatus = 'active' | 'victory' | 'defeat' | 'draw';
-export type CommanderPracticeMove = 'focus_target' | 'death_bolt' | 'guard';
+export type CommanderPracticeSchool = 'neutral' | 'void' | 'storm' | 'rot' | 'grave';
+export type CommanderPracticeMove = 'focus_target' | 'death_bolt' | 'guard' | 'chain_surge' | 'rot_miasma' | 'raise_dead';
+export type CommanderPracticePower = Extract<CommanderPracticeMove, 'death_bolt' | 'chain_surge' | 'rot_miasma' | 'raise_dead'>;
 
 export type CommanderPracticeCombatant = {
   maxShield?: number;
+  catalogId?: string;
+  school?: CommanderPracticeSchool;
   id: string;
   side: CommanderPracticeSide;
   role: 'commander' | 'unit';
@@ -24,6 +28,9 @@ export type CommanderPracticeEvent = {
     | 'battle_started'
     | 'focus_target'
     | 'death_bolt'
+    | 'chain_surge'
+    | 'rot_miasma'
+    | 'raise_dead'
     | 'guard'
     | 'unit_attack'
     | 'shield_absorb'
@@ -40,6 +47,7 @@ export type CommanderPracticeBattle = {
   loadoutLabel?: string;
   loadoutVersion?: number;
   playerTactics?: { bolt: number; focus: number; guard: number; shieldCap: number };
+  playerPowers?: CommanderPracticePower[];
   version: 1;
   seed: number;
   turn: number;
@@ -47,6 +55,7 @@ export type CommanderPracticeBattle = {
   status: CommanderPracticeStatus;
   playerFocusTarget: string | null;
   enemyFocusTarget: string | null;
+  /** Shared player Commander Power cooldown. Kept under the legacy field name for transcript compatibility. */
   playerDeathBoltCooldown: number;
   enemyDeathBoltCooldown: number;
   combatants: CommanderPracticeCombatant[];

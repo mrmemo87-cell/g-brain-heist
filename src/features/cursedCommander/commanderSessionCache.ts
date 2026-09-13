@@ -6,6 +6,9 @@ export type CachedCommanderSession = { session: CommanderPracticeSession; pendin
 const key = (userId: string, owned = false) => `bh:commander:practice:v1:${userId}${owned ? ':owned' : ''}`;
 const object = (value: unknown): value is Record<string, any> => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
+const allowedMoves = ['guard','focus_target','death_bolt','chain_surge','rot_miasma','raise_dead'] as const;
+const allowedPowers = ['death_bolt','chain_surge','rot_miasma','raise_dead'] as const;
+const allowedSchools = ['neutral','void','storm','rot','grave'] as const;
 
 /** The cache is a display/recovery checkpoint, never combat authority. The existing
  * turn endpoint still verifies the HMAC, user binding and expiry on every action. */
@@ -26,14 +29,17 @@ export function readCommanderSession(storage: StorageLike, userId: string, now =
       || !finite(state['playerDeathBoltCooldown']) || !finite(state['enemyDeathBoltCooldown'])
       || ![null, 'string'].includes(state['playerFocusTarget'] === null ? null : typeof state['playerFocusTarget'])
       || ![null, 'string'].includes(state['enemyFocusTarget'] === null ? null : typeof state['enemyFocusTarget'])) return null;
+    if (state['playerPowers'] !== undefined && (!Array.isArray(state['playerPowers']) || !state['playerPowers'].every((power: unknown) => typeof power === 'string' && (allowedPowers as readonly string[]).includes(power)))) return null;
     if (!state['combatants'].every((unit: unknown) => object(unit) && typeof unit['id'] === 'string' && typeof unit['name'] === 'string'
       && ['player','enemy'].includes(unit['side']) && ['commander','unit'].includes(unit['role'])
+      && (unit['school'] === undefined || (typeof unit['school'] === 'string' && (allowedSchools as readonly string[]).includes(unit['school'])))
+      && (unit['catalogId'] === undefined || typeof unit['catalogId'] === 'string')
       && finite(unit['hp']) && finite(unit['maxHp']) && unit['hp'] >= 0 && unit['maxHp'] > 0 && unit['hp'] <= unit['maxHp']
       && finite(unit['shield']) && unit['shield'] >= 0 && finite(unit['attack']))) return null;
     if (new Set(state['combatants'].map((unit: { id: string }) => unit['id'])).size !== state['combatants'].length) return null;
     if (!state['events'].every((event: unknown) => object(event) && typeof event['id'] === 'string' && typeof event['code'] === 'string' && Number.isInteger(event['turn']))) return null;
     const pending = cache['pending'];
-    if (pending !== undefined && (!object(pending) || !['guard','focus_target','death_bolt'].includes(pending['move']) || !(pending['targetId'] === null || typeof pending['targetId'] === 'string'))) return null;
+    if (pending !== undefined && (!object(pending) || !allowedMoves.includes(pending['move'] as any) || !(pending['targetId'] === null || typeof pending['targetId'] === 'string'))) return null;
     return { session: { transcript: cache['transcript'], expiresAt: new Date(payload['exp']).toISOString(), battle: state as CommanderPracticeBattle }, pending };
   } catch { return null; }
 }

@@ -11,6 +11,7 @@ import {
 
 const combatants: CommanderPracticeCombatant[] = [
   { id: 'player_commander', side: 'player', role: 'commander', name: 'Cipher Commander', hp: 100, maxHp: 100, shield: 12, attack: 0 },
+  { id: 'player_archer', side: 'player', role: 'unit', name: 'Plague Scribe', hp: 0, maxHp: 58, shield: 0, attack: 9, school: 'rot' },
   { id: 'enemy_commander', side: 'enemy', role: 'commander', name: 'Warden Null', hp: 98, maxHp: 98, shield: 10, attack: 0 },
 ];
 
@@ -30,6 +31,23 @@ test('cinematic playback groups shield absorption into the attack that caused it
   const warden = next.find((combatant) => combatant.id === 'enemy_commander');
   assert.equal(warden?.shield, 0);
   assert.equal(warden?.hp, 74);
+});
+
+test('school attack events use normal damage playback while Grave uses a restore beat', () => {
+  const attacks: CommanderPracticeEvent[] = [
+    { id: 'storm', turn: 2, side: 'player', code: 'chain_surge', actorName: 'Cipher Commander', targetName: 'Warden Null', amount: 16 },
+    { id: 'rot', turn: 2, side: 'player', code: 'rot_miasma', actorName: 'Cipher Commander', targetName: 'Warden Null', amount: 8 },
+  ];
+  assert.deepEqual(buildCommanderCinematicSteps(attacks).map((step) => step.kind), ['attack', 'attack']);
+
+  const restoreEvent: CommanderPracticeEvent = {
+    id: 'grave', turn: 3, side: 'player', code: 'raise_dead', actorName: 'Cipher Commander', targetName: 'Plague Scribe', amount: 20,
+  };
+  const restore = buildCommanderCinematicSteps([restoreEvent])[0]!;
+  assert.equal(restore.kind, 'restore');
+  const next = applyCommanderCinematicStep(combatants, restore);
+  assert.equal(next.find((combatant) => combatant.id === 'player_archer')?.hp, 20);
+  assert.equal(combatants.find((combatant) => combatant.id === 'player_archer')?.hp, 0, 'playback must not mutate the source snapshot');
 });
 
 test('focus acquisition remains a separate cinematic beat before focus damage', () => {
