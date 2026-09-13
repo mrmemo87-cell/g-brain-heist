@@ -141,7 +141,14 @@ const randomSeed = () => {
   return values[0] >>> 0;
 };
 
-const allowedMoves = new Set<PracticeMove>(["focus_target", "death_bolt", "guard"]);
+const allowedMoves = new Set<PracticeMove>([
+  "focus_target",
+  "death_bolt",
+  "guard",
+  "chain_surge",
+  "rot_miasma",
+  "raise_dead",
+]);
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
