@@ -112,17 +112,48 @@ export const COMMANDER_SPRITES: Record<string, CommanderSpriteDefinition> = {
   },
 };
 
-export const getCommanderSpriteDefinition = (combatantId: string) => COMMANDER_SPRITES[combatantId];
+/**
+ * Player formation ids stay stable for deterministic combat. Catalog identity is
+ * now a separate presentation key so bespoke recruit pose sheets can be dropped
+ * in later without changing battle state, formation ids, or transcript rules.
+ */
+export const COMMANDER_CATALOG_SPRITE_KEYS: Record<string, string> = {
+  neon_guard: 'player_guard',
+  neon_bulwark: 'player_guard',
+  grave_bastion: 'player_guard',
+  rift_reaver: 'player_guard',
+  shade_archer: 'player_archer',
+  shade_deadeye: 'player_archer',
+  plague_scribe: 'player_archer',
+  volt_seer: 'player_archer',
+};
 
-export const getCommanderSpriteUrl = (combatantId: string, pose: CommanderSpritePose) => {
-  const definition = COMMANDER_SPRITES[combatantId];
+export const resolveCommanderSpriteKey = (combatantId: string, catalogId?: string | null) =>
+  (catalogId && COMMANDER_CATALOG_SPRITE_KEYS[catalogId]) || combatantId;
+
+const definitionFor = (combatantId: string, catalogId?: string | null) =>
+  COMMANDER_SPRITES[resolveCommanderSpriteKey(combatantId, catalogId)];
+
+export const getCommanderSpriteDefinition = (combatantId: string, catalogId?: string | null) =>
+  definitionFor(combatantId, catalogId);
+
+export const getCommanderSpriteUrl = (
+  combatantId: string,
+  pose: CommanderSpritePose,
+  catalogId?: string | null,
+) => {
+  const definition = definitionFor(combatantId, catalogId);
   if (!definition) return null;
   if (pose === 'justShot') return definition.poses.justShot ?? definition.poses.attacking;
   return definition.poses[pose];
 };
 
-export const getCommanderSpriteCalibration = (combatantId: string, pose: CommanderSpritePose) => {
-  const definition = COMMANDER_SPRITES[combatantId];
+export const getCommanderSpriteCalibration = (
+  combatantId: string,
+  pose: CommanderSpritePose,
+  catalogId?: string | null,
+) => {
+  const definition = definitionFor(combatantId, catalogId);
   if (!definition) return null;
   const poseCalibration = definition.poseCalibration?.[pose];
   return {
@@ -132,11 +163,14 @@ export const getCommanderSpriteCalibration = (combatantId: string, pose: Command
   };
 };
 
-export const getCommanderProjectileUrl = (combatantId: string) => COMMANDER_SPRITES[combatantId]?.projectile ?? null;
+export const getCommanderProjectileUrl = (combatantId: string, catalogId?: string | null) =>
+  definitionFor(combatantId, catalogId)?.projectile ?? null;
 
-export const getCommanderProjectileAngle = (combatantId: string) => COMMANDER_SPRITES[combatantId]?.projectileAngle ?? 0;
+export const getCommanderProjectileAngle = (combatantId: string, catalogId?: string | null) =>
+  definitionFor(combatantId, catalogId)?.projectileAngle ?? 0;
 
-export const isCommanderRangedSprite = (combatantId: string) => COMMANDER_SPRITES[combatantId]?.ranged ?? false;
+export const isCommanderRangedSprite = (combatantId: string, catalogId?: string | null) =>
+  definitionFor(combatantId, catalogId)?.ranged ?? false;
 
 const uniqueUrls = (urls: Array<string | null | undefined>) => [...new Set(urls.filter((value): value is string => Boolean(value)))];
 
