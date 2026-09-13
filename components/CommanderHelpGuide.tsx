@@ -63,6 +63,46 @@ const CommanderHelpGuide: React.FC = () => (
       </div>
     </div>
 
+    <div className="rounded-xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-3 sm:p-4">
+      <div className="mb-3">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Faction schools</p>
+        <h3 className="mt-1 text-base font-black text-white sm:text-lg">Choose a combat identity, not just bigger numbers</h3>
+        <p className="mt-1 text-sm text-gray-400">
+          Schools label each recruit's identity and future synergy direction. Right now they do not add hidden damage bonuses or weakness multipliers.
+        </p>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div className="rounded-lg border border-violet-500/30 bg-gradient-to-br from-violet-500/15 to-fuchsia-500/5 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <strong className="text-violet-200">VOID</strong>
+            <span className="rounded-full border border-violet-400/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-black tracking-widest text-violet-300">BURST</span>
+          </div>
+          <p className="mt-1 text-sm text-gray-300"><strong className="text-white">Rift Reaver</strong> is a brutal frontline bruiser: low protection, huge guard-slot pressure.</p>
+        </div>
+        <div className="rounded-lg border border-cyan-400/30 bg-gradient-to-br from-cyan-400/15 to-blue-600/5 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <strong className="text-cyan-200">STORM</strong>
+            <span className="rounded-full border border-cyan-300/30 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-black tracking-widest text-cyan-200">TEMPO</span>
+          </div>
+          <p className="mt-1 text-sm text-gray-300"><strong className="text-white">Volt Seer</strong> is the roster's glass cannon: highest raw unit attack, lowest forgiveness.</p>
+        </div>
+        <div className="rounded-lg border border-lime-400/30 bg-gradient-to-br from-lime-400/10 to-yellow-400/5 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <strong className="text-lime-200">GRAVE</strong>
+            <span className="rounded-full border border-lime-300/30 bg-lime-400/10 px-2 py-0.5 text-[10px] font-black tracking-widest text-lime-200">ENDURE</span>
+          </div>
+          <p className="mt-1 text-sm text-gray-300"><strong className="text-white">Grave Bastion</strong> is a fortress: massive HP and shield, deliberately low attack.</p>
+        </div>
+        <div className="rounded-lg border border-fuchsia-400/30 bg-gradient-to-br from-fuchsia-500/12 to-lime-400/5 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <strong className="text-fuchsia-200">ROT</strong>
+            <span className="rounded-full border border-fuchsia-300/30 bg-fuchsia-400/10 px-2 py-0.5 text-[10px] font-black tracking-widest text-fuchsia-200">CONTROL</span>
+          </div>
+          <p className="mt-1 text-sm text-gray-300"><strong className="text-white">Plague Scribe</strong> is the tactical ranged option, built as the foundation for future decay and control play.</p>
+        </div>
+      </div>
+    </div>
+
     <div className="rounded-lg border border-purple-500/30 bg-purple-500/10 p-3 sm:p-4">
       <h3 className="mb-3 text-base font-bold text-purple-300 sm:text-lg">🧬 Training paths — choose your identity</h3>
       <p className="mb-3 text-sm text-gray-300 sm:text-base">
@@ -91,9 +131,9 @@ const CommanderHelpGuide: React.FC = () => (
     <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 sm:p-4">
       <h3 className="mb-2 text-base font-bold text-emerald-300 sm:text-lg">🧠 Build ideas</h3>
       <div className="space-y-2 text-sm text-gray-300 sm:text-base">
-        <p><strong className="text-white">The Fortress:</strong> lean into Defense + Stamina if you want to survive longer and protect your Commander.</p>
-        <p><strong className="text-white">The Executioner:</strong> lean into Force + Dexterity if you want pressure and faster knockouts.</p>
-        <p><strong className="text-white">The Tactician:</strong> spread ranks across all four stats for a flexible squad that can switch plans mid-fight.</p>
+        <p><strong className="text-white">The Fortress:</strong> Grave Bastion + Defense/Stamina if you want to absorb pressure and keep your Commander standing.</p>
+        <p><strong className="text-white">The Executioner:</strong> Rift Reaver or Volt Seer + Force/Dexterity for fast, risky knockout pressure.</p>
+        <p><strong className="text-white">The Tactician:</strong> Plague Scribe with balanced ranks for a flexible squad that leaves room for future control powers.</p>
       </div>
     </div>
 

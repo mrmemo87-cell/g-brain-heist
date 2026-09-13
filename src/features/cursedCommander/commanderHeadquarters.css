@@ -740,3 +740,171 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Faction roster polish ────────────────────────────────────────────────
+   Army cards are server-ordered by price + id. The four elite additions occupy
+   slots 5–8 after the two starters and two rare variants. These treatments are
+   presentation-only: no combat or economy rules depend on them. */
+.cc-hq-catalog .cc-hq-item {
+  position: relative;
+  isolation: isolate;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+.cc-hq-catalog .cc-hq-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 180ms ease;
+  background: linear-gradient(145deg, rgba(255,255,255,.055), transparent 38%, rgba(255,255,255,.018));
+}
+.cc-hq-catalog .cc-hq-item:hover {
+  transform: translateY(-4px);
+}
+.cc-hq-catalog .cc-hq-item:hover::before {
+  opacity: 1;
+}
+.cc-hq-item-art,
+.cc-hq-item-body {
+  position: relative;
+  z-index: 1;
+}
+.cc-hq-item-art::after {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(3,7,18,.72);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(10px);
+  color: #dbeafe;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  line-height: 1;
+}
+
+/* Grave Bastion — antique gold + spectral green. */
+.cc-hq-catalog .cc-hq-item:nth-child(5) {
+  border-color: rgba(190, 242, 100, .28);
+  box-shadow: 0 18px 55px rgba(22, 101, 52, .12);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(5) .cc-hq-item-art {
+  background:
+    radial-gradient(circle at 50% 62%, rgba(132, 204, 22, .24), transparent 38%),
+    radial-gradient(circle at 72% 15%, rgba(250, 204, 21, .15), transparent 28%),
+    linear-gradient(145deg, #07140f, #111827 68%);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(5) .cc-hq-item-art::after {
+  content: "GRAVE · EPIC";
+  color: #d9f99d;
+  border-color: rgba(190, 242, 100, .26);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(5) .cc-hq-item-art img {
+  filter: sepia(.2) hue-rotate(52deg) saturate(1.35) drop-shadow(0 16px 26px rgba(132,204,22,.18));
+}
+
+/* Plague Scribe — toxic chartreuse + ultraviolet ink. */
+.cc-hq-catalog .cc-hq-item:nth-child(6) {
+  border-color: rgba(217, 70, 239, .3);
+  box-shadow: 0 18px 55px rgba(126, 34, 206, .12);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(6) .cc-hq-item-art {
+  background:
+    radial-gradient(circle at 50% 68%, rgba(163, 230, 53, .2), transparent 36%),
+    radial-gradient(circle at 75% 17%, rgba(217, 70, 239, .2), transparent 30%),
+    linear-gradient(145deg, #11091a, #151126 70%);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(6) .cc-hq-item-art::after {
+  content: "ROT · EPIC";
+  color: #e879f9;
+  border-color: rgba(217, 70, 239, .28);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(6) .cc-hq-item-art img {
+  filter: hue-rotate(92deg) saturate(1.35) contrast(1.04) drop-shadow(0 16px 26px rgba(217,70,239,.17));
+}
+
+/* Rift Reaver — hot violet + void magenta. */
+.cc-hq-catalog .cc-hq-item:nth-child(7) {
+  border-color: rgba(168, 85, 247, .35);
+  box-shadow: 0 18px 58px rgba(126, 34, 206, .16);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(7) .cc-hq-item-art {
+  background:
+    radial-gradient(circle at 48% 70%, rgba(168, 85, 247, .25), transparent 38%),
+    radial-gradient(circle at 76% 12%, rgba(236, 72, 153, .18), transparent 30%),
+    linear-gradient(145deg, #10091d, #111827 72%);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(7) .cc-hq-item-art::after {
+  content: "VOID · EPIC";
+  color: #d8b4fe;
+  border-color: rgba(168, 85, 247, .3);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(7) .cc-hq-item-art img {
+  filter: hue-rotate(232deg) saturate(1.3) drop-shadow(0 16px 28px rgba(168,85,247,.22));
+}
+
+/* Volt Seer — electric cyan + royal blue. */
+.cc-hq-catalog .cc-hq-item:nth-child(8) {
+  border-color: rgba(34, 211, 238, .4);
+  box-shadow: 0 18px 60px rgba(14, 165, 233, .17);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(8) .cc-hq-item-art {
+  background:
+    radial-gradient(circle at 50% 70%, rgba(34, 211, 238, .28), transparent 38%),
+    radial-gradient(circle at 78% 10%, rgba(59, 130, 246, .2), transparent 28%),
+    linear-gradient(145deg, #061725, #0b1220 70%);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(8) .cc-hq-item-art::after {
+  content: "STORM · EPIC";
+  color: #67e8f9;
+  border-color: rgba(34, 211, 238, .32);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(8) .cc-hq-item-art img {
+  filter: hue-rotate(164deg) saturate(1.28) drop-shadow(0 16px 30px rgba(34,211,238,.22));
+}
+
+.cc-hq-catalog .cc-hq-item:nth-child(n+5):nth-child(-n+8) h3 {
+  letter-spacing: -.015em;
+  text-shadow: 0 0 22px rgba(255,255,255,.08);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(n+5):nth-child(-n+8) .cc-hq-owned {
+  border-color: rgba(255,255,255,.16);
+  background: rgba(3,7,18,.78);
+  backdrop-filter: blur(10px);
+}
+.cc-hq-catalog .cc-hq-item:nth-child(n+5):nth-child(-n+8) .cc-hq-primary {
+  border-color: rgba(255,255,255,.16);
+  background: linear-gradient(120deg, #f8fafc, #a5f3fc 55%, #c4b5fd);
+  box-shadow: 0 10px 28px rgba(56,189,248,.13);
+}
+
+@media (max-width: 600px) {
+  .cc-hq-item-art::after {
+    top: 8px;
+    right: 8px;
+    padding: 4px 6px;
+    font-size: 7px;
+    letter-spacing: .11em;
+  }
+  .cc-hq-catalog .cc-hq-item:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-hq-catalog .cc-hq-item,
+  .cc-hq-catalog .cc-hq-item::before {
+    transition: none !important;
+  }
+  .cc-hq-catalog .cc-hq-item:hover {
+    transform: none;
+  }
+}
