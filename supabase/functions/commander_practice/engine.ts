@@ -88,6 +88,8 @@ const SCHOOL_POWER: Partial<Record<PracticeSchool, PracticePower>> = {
 };
 const POWER_MOVES = new Set<PracticeMove>(PLAYER_POWER_ORDER);
 const VALID_SCHOOLS = new Set<PracticeSchool>(["neutral", "void", "storm", "rot", "grave"]);
+const powerCooldownError = (move: PracticeMove) =>
+  move === "death_bolt" ? "death_bolt_on_cooldown" : "commander_power_on_cooldown";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
@@ -250,7 +252,7 @@ const playerPowers = (state: PracticeBattleState): PracticePower[] => {
 const requirePlayerPower = (state: PracticeBattleState, move: PracticeMove) => {
   if (!POWER_MOVES.has(move)) return;
   if (!playerPowers(state).includes(move as PracticePower)) throw new Error("commander_power_locked");
-  if (state.playerDeathBoltCooldown > 0) throw new Error("commander_power_on_cooldown");
+  if (state.playerDeathBoltCooldown > 0) throw new Error(powerCooldownError(move));
 };
 
 const performDeathBolt = (
@@ -510,7 +512,7 @@ export const applyPracticeTurn = (
 
   // The cooldown returned to the client governs the next submitted power move.
   if (POWER_MOVES.has(intent.move) && currentState.playerDeathBoltCooldown > 0) {
-    throw new Error("commander_power_on_cooldown");
+    throw new Error(powerCooldownError(intent.move));
   }
 
   const state = JSON.parse(JSON.stringify(currentState)) as PracticeBattleState;
