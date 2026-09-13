@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 import {
   applyPracticeTurn,
+  buildOwnedPracticeBattle,
   startPracticeBattle,
   type PracticeBattleState,
   type PracticeMove,
@@ -126,12 +127,12 @@ const isStudentAccount = async (userId: string) => {
 
   const { data, error } = await admin
     .from("users")
-    .select("role")
+    .select("role,is_banned,banned_until")
     .eq("id", userId)
     .maybeSingle();
 
   if (error) throw new Error("preview_student_lookup_failed");
-  return data?.role === "student";
+  return data?.role === "student" && !data.is_banned && (!data.banned_until || new Date(data.banned_until).getTime() <= Date.now());
 };
 
 const randomSeed = () => {
@@ -189,7 +190,14 @@ serve(async (req) => {
   try {
     if (action === "start") {
       const exp = Date.now() + TRANSCRIPT_TTL_MS;
-      const state = startPracticeBattle(randomSeed());
+      let state: PracticeBattleState;
+      if (body.loadout === 'owned') {
+        const { data: loadout, error } = await admin.rpc('rpc_commander_owned_loadout', { p_user_id: user.id });
+        if (error || !loadout) throw new Error('commander_loadout_unavailable');
+        state = buildOwnedPracticeBattle(randomSeed(), loadout);
+      } else {
+        state = startPracticeBattle(randomSeed());
+      }
       const transcript = await signTranscript({ v: TOKEN_VERSION, sub: user.id, exp, state });
       return json(200, {
         ok: true,

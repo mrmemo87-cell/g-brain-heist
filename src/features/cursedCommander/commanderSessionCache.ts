@@ -3,15 +3,15 @@ import type { CommanderPracticeBattle, CommanderPracticeMove, CommanderPracticeS
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 export type PendingCommanderMove = { move: CommanderPracticeMove; targetId: string | null };
 export type CachedCommanderSession = { session: CommanderPracticeSession; pending?: PendingCommanderMove };
-const key = (userId: string) => `bh:commander:practice:v1:${userId}`;
+const key = (userId: string, owned = false) => `bh:commander:practice:v1:${userId}${owned ? ':owned' : ''}`;
 const object = (value: unknown): value is Record<string, any> => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
 
 /** The cache is a display/recovery checkpoint, never combat authority. The existing
  * turn endpoint still verifies the HMAC, user binding and expiry on every action. */
-export function readCommanderSession(storage: StorageLike, userId: string, now = Date.now()): CachedCommanderSession | null {
+export function readCommanderSession(storage: StorageLike, userId: string, now = Date.now(), owned = false): CachedCommanderSession | null {
   try {
-    const raw = storage.getItem(key(userId));
+    const raw = storage.getItem(key(userId, owned));
     if (!raw || raw.length > 64000) return null;
     const cache: unknown = JSON.parse(raw);
     if (!object(cache) || cache['version'] !== 1 || typeof cache['transcript'] !== 'string' || cache['transcript'].length > 24000) return null;
@@ -37,7 +37,7 @@ export function readCommanderSession(storage: StorageLike, userId: string, now =
     return { session: { transcript: cache['transcript'], expiresAt: new Date(payload['exp']).toISOString(), battle: state as CommanderPracticeBattle }, pending };
   } catch { return null; }
 }
-export function saveCommanderSession(storage: StorageLike, userId: string, session: CommanderPracticeSession, pending?: PendingCommanderMove): boolean {
-  try { storage.setItem(key(userId), JSON.stringify({ version: 1, transcript: session.transcript, ...(pending ? { pending } : {}) })); return true; }
+export function saveCommanderSession(storage: StorageLike, userId: string, session: CommanderPracticeSession, pending?: PendingCommanderMove, owned = false): boolean {
+  try { storage.setItem(key(userId, owned), JSON.stringify({ version: 1, transcript: session.transcript, ...(pending ? { pending } : {}) })); return true; }
   catch { return false; }
 }

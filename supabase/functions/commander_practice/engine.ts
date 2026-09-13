@@ -4,6 +4,7 @@ export type PracticeMove = "focus_target" | "death_bolt" | "guard";
 export type PracticeRole = "commander" | "unit";
 
 export type PracticeCombatant = {
+  maxShield?: number;
   id: string;
   side: PracticeSide;
   role: PracticeRole;
@@ -37,6 +38,9 @@ export type PracticeEvent = {
 };
 
 export type PracticeBattleState = {
+  playerTactics?: { bolt: number; focus: number; guard: number; shieldCap: number };
+  loadoutLabel?: string;
+  loadoutVersion?: number;
   version: 1;
   seed: number;
   turn: number;
@@ -215,7 +219,7 @@ const performPlayerMove = (state: PracticeBattleState, intent: PracticeTurnInten
   if (!playerCommander || playerCommander.hp <= 0) throw new Error("player_commander_unavailable");
 
   if (intent.move === "guard") {
-    const gained = Math.min(30 - playerCommander.shield, 18);
+    const gained = Math.min((state.playerTactics?.shieldCap ?? 30) - playerCommander.shield, state.playerTactics?.guard ?? 18);
     playerCommander.shield += Math.max(0, gained);
     pushEvent(state, {
       side: "player",
@@ -238,14 +242,14 @@ const performPlayerMove = (state: PracticeBattleState, intent: PracticeTurnInten
       targetName: target.name,
       idSuffix: target.id,
     });
-    applyDamage(state, playerCommander, target, 7, "focus_target");
+    applyDamage(state, playerCommander, target, state.playerTactics?.focus ?? 7, "focus_target");
     return;
   }
 
   if (intent.move === "death_bolt") {
     if (state.playerDeathBoltCooldown > 0) throw new Error("death_bolt_on_cooldown");
     const focused = state.playerFocusTarget === target.id;
-    applyDamage(state, playerCommander, target, 26 + (focused ? 8 : 0), "death_bolt");
+    applyDamage(state, playerCommander, target, (state.playerTactics?.bolt ?? 26) + (focused ? 8 : 0), "death_bolt");
     state.playerDeathBoltCooldown = 2;
     if (focused) state.playerFocusTarget = null;
     return;
@@ -378,3 +382,40 @@ export const applyPracticeTurn = (
   state.turn += 1;
   return state;
 };
+
+/** Accept only the server RPC's bounded schema; never a browser-supplied army. */
+export function buildOwnedPracticeBattle(seed: number, input: unknown): PracticeBattleState {
+  if (!input || typeof input !== 'object') throw new Error('invalid_owned_loadout');
+  const x = input as Record<string, unknown>;
+  const integer = (value: unknown, min: number, max: number): number => {
+    if (typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max) throw new Error('invalid_owned_loadout');
+    return value;
+  };
+  if (x['version'] !== 1 || !Array.isArray(x['units']) || x['units'].length !== 2) throw new Error('invalid_owned_loadout');
+  const state = startPracticeBattle(seed);
+  const player = state.combatants.find(u => u.id === 'player_commander')!;
+  player.hp = player.maxHp = integer(x['hp'], 50, 500);
+  player.shield = integer(x['shield'], 0, 150);
+  state.playerTactics = {
+    bolt: integer(x['bolt'], 1, 150), focus: integer(x['focus'], 1, 100),
+    guard: integer(x['guard'], 1, 150), shieldCap: integer(x['shieldCap'], player.shield, 200),
+  };
+  player.maxShield = state.playerTactics.shieldCap;
+  const expected = new Set(['player_guard', 'player_archer']);
+  const names = new Set(state.combatants.filter(u => !expected.has(u.id)).map(u => u.name));
+  for (const value of x['units']) {
+    if (!value || typeof value !== 'object') throw new Error('invalid_owned_loadout');
+    const unit = value as Record<string, unknown>;
+    if (typeof unit['id'] !== 'string' || !expected.delete(unit['id']) || typeof unit['name'] !== 'string' || !unit['name'].trim() || unit['name'].length > 60) throw new Error('invalid_owned_loadout');
+    if (names.has(unit['name'])) throw new Error('invalid_owned_loadout');
+    names.add(unit['name']);
+    const target = state.combatants.find(u => u.id === unit['id'])!;
+    target.name = unit['name'];
+    target.hp = target.maxHp = integer(unit['hp'], 1, 300);
+    target.shield = integer(unit['shield'], 0, 150);
+    target.attack = integer(unit['attack'], 1, 100);
+  }
+  state.loadoutLabel = `${String(x['weaponName'] ?? 'Weapon')} · ${String(x['shieldName'] ?? 'Shield')}`;
+  state.loadoutVersion = integer(x['profileVersion'], 1, 2_000_000_000);
+  return state;
+}

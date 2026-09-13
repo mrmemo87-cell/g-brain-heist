@@ -76,7 +76,7 @@ const AnnouncementBanner = lazyRetry(() => import('./components/phase1/Announcem
 const RaidView = lazyRetry(() => import('./src/features/raids/RaidView'), 'RaidView');
 const RaidAdminView = lazyRetry(() => import('./src/features/raids/RaidAdminView'), 'RaidAdminView');
 const ClanTerritoryManager = lazyRetry(() => import('./src/features/clanTerritory/ClanTerritoryManager'), 'ClanTerritoryManager');
-const CommanderPracticeArena = lazyRetry(() => import('./src/features/cursedCommander/CommanderPracticeArena'), 'CommanderPracticeArena');
+const CommanderHeadquarters = lazyRetry(() => import('./src/features/cursedCommander/CommanderHeadquarters'), 'CommanderHeadquarters');
 const LockdownManager = lazyRetry(() => import('./src/features/lockdown/LockdownManager'), 'LockdownManager');
 const CambridgeTestsHub = lazyRetry(() => import('./components/CambridgeTestsHub'), 'CambridgeTestsHub');
 const SchoolAdminPortal = lazyRetry(() => import('./components/SchoolAdminPortal'), 'SchoolAdminPortal');
@@ -2390,7 +2390,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               </div>
             );
         case 'commander':
-          return profile?.role === 'student' ? renderLazy(<CommanderPracticeArena key={profile.id} userId={profile.id} onClose={() => handleViewChange('dashboard')} />) : null;
+          return profile?.role === 'student' ? renderLazy(<CommanderHeadquarters key={profile.id} userId={profile.id} onClose={() => handleViewChange('dashboard')} />) : null;
         case 'lockdown':
           return renderLazy(
             <LockdownManager
