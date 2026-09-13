@@ -241,6 +241,9 @@ const WritingHubRouteFallback: React.FC = () => (
 const App: React.FC<AppProps> = ({ onLogout }) => {
   const { t, language, direction } = useLanguage();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const handleCommanderBalance = useCallback((userId: string, coins: number) => {
+    setProfile(prev => prev?.id === userId && prev.coins !== coins ? { ...prev, coins } : prev);
+  }, []);
   const [appMode, setAppMode] = useState<'pending' | 'player' | 'admin'>('pending');
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [tasks, setTasks] = useState<Task[]>(() => readCache<Task[]>(CACHE_KEYS.tasks) ?? []);
@@ -2390,7 +2393,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               </div>
             );
         case 'commander':
-          return profile?.role === 'student' ? renderLazy(<CommanderHeadquarters key={profile.id} userId={profile.id} onClose={() => handleViewChange('dashboard')} />) : null;
+          return profile?.role === 'student' ? renderLazy(<CommanderHeadquarters key={profile.id} userId={profile.id} onBalanceChange={handleCommanderBalance} onClose={() => handleViewChange('dashboard')} />) : null;
         case 'lockdown':
           return renderLazy(
             <LockdownManager

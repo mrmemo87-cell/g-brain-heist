@@ -1,6 +1,14 @@
 # Commander headquarters: connected pilot
 
-## Shipped in this change
+## Shared-wallet correction (2026-09-13)
+
+The shared-wallet migration supersedes the separate-coin pilot described below. Commander now reads and atomically spends `public.users.coins`, the existing Brains Heist balance. Commander XP and ranks remain separate. Starter enrollment grants only the free squad, with no Coins. The Commander learning bridge grants XP only; the existing task reward RPC remains the single source of account Coin rewards. Existing ownership/ranks remain intact. No pilot profiles or transactions existed at cutover, so no balances required conversion.
+
+Snapshots expose the shared wallet before enrollment and keep `profile.coins` as a compatibility alias. Buy/train lock the account row, check the current balance, debit atomically, and preserve request idempotency. The UI shows Brains Heist Coins, explains enrollment, and synchronizes the dashboard balance after confirmed actions.
+
+Validation: transaction-only live PostgreSQL smoke test in `scripts/verify-commander-shared-wallet.sql` checks 650 Coins before/after free enrollment, training to 625, exact retry without another debit, purchase to 525, equipped/trained combat stats, and denial after a concurrent external spend. All test changes roll back.
+
+## Original pilot record (coin separation superseded)
 
 The existing `commander` App view now opens a persistent headquarters. It includes a responsive overview, army collection/deployment, armory purchases/equipment, four training paths, one pinned purchase goal, and an economic activity record. Goal copy shows the item price, balance, and missing Coins only.
 
