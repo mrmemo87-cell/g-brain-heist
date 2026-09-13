@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CommanderPracticeCombatant } from '../../../services/commanderPracticeService';
+import { getCommanderRecruitIdentity } from './commanderRecruitIdentity';
 
 type CommanderUnitPortraitProps = {
   combatant: CommanderPracticeCombatant;
@@ -103,20 +104,24 @@ const CommanderUnitPortrait: React.FC<CommanderUnitPortraitProps> = ({
   className = '',
 }) => {
   const player = combatant.side === 'player';
-  const accent = player ? '#22d3ee' : '#fb7185';
-  const secondary = player ? '#a78bfa' : '#fbbf24';
-  const id = `${safeId(instance)}-${safeId(combatant.id)}`;
+  const identity = getCommanderRecruitIdentity(combatant.catalogId, combatant.school);
+  const accent = player ? identity.accent : '#fb7185';
+  const secondary = player ? identity.accent2 : '#fbbf24';
+  const id = `${safeId(instance)}-${safeId(combatant.id)}-${safeId(combatant.catalogId ?? identity.school)}`;
+  const showSigil = player && combatant.role === 'unit' && combatant.catalogId && identity.school !== 'neutral';
 
   return (
     <svg
       aria-hidden
       viewBox="0 0 120 120"
       className={`h-full w-full overflow-visible ${className}`}
+      data-commander-portrait-school={identity.school}
+      data-commander-portrait-catalog-id={combatant.catalogId ?? undefined}
     >
       <defs>
         <radialGradient id={`${id}-bg`} cx="50%" cy="38%" r="70%">
           <stop offset="0" stopColor={accent} stopOpacity=".22" />
-          <stop offset=".55" stopColor={player ? '#172554' : '#3b0a28'} stopOpacity=".48" />
+          <stop offset=".55" stopColor={player ? secondary : '#3b0a28'} stopOpacity=".3" />
           <stop offset="1" stopColor="#020617" stopOpacity=".96" />
         </radialGradient>
         <linearGradient id={`${id}-rim`} x1="0" y1="0" x2="1" y2="1">
@@ -134,6 +139,14 @@ const CommanderUnitPortrait: React.FC<CommanderUnitPortraitProps> = ({
       <g opacity={defeated ? 0.34 : 1} filter={defeated ? undefined : `url(#${id}-glow)`}>
         {portraitArt(combatant, accent, secondary)}
       </g>
+
+      {showSigil && !defeated && (
+        <g>
+          <circle cx="96" cy="24" r="13" fill="#020617" fillOpacity=".88" stroke={accent} strokeWidth="1.5" />
+          <circle cx="96" cy="24" r="10" fill={secondary} fillOpacity=".11" stroke={secondary} strokeOpacity=".42" strokeWidth=".8" />
+          <text x="96" y="28" textAnchor="middle" fill={accent} fontFamily="system-ui, sans-serif" fontWeight="900" fontSize="11">{identity.sigil}</text>
+        </g>
+      )}
 
       {defeated && (
         <g>
