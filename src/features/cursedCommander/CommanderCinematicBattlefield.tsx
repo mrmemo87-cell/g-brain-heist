@@ -418,7 +418,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         style={{
           left: `${point.x}%`,
           top: `${point.y}%`,
-          width: compact ? 'min(42cqw, 140px)' : 'min(11cqw, 170px)',
+          width: compact ? 'min(27cqw, 120px)' : 'min(11cqw, 170px)',
           zIndex: point.z,
           transform: 'translate(-50%, -82%)',
         }}
@@ -440,9 +440,9 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
             <div className="mx-auto max-w-[170px] break-words text-[11px] font-black leading-[1.2] text-white sm:text-xs">{combatant.name}</div>
 
               <div className="mt-1 space-y-1 font-mono text-[11px] font-bold leading-tight text-white">
-                <div className="flex items-center justify-between gap-1"><span className="text-emerald-300">HP</span><span>{combatant.hp}/{combatant.maxHp}</span></div>
+                <div className="flex flex-wrap items-center justify-between gap-x-1"><span className="text-emerald-300">HP</span><span>{combatant.hp}/{combatant.maxHp}</span></div>
                 <div role="progressbar" aria-label={`${combatant.name} HP`} aria-valuenow={combatant.hp} aria-valuemin={0} aria-valuemax={combatant.maxHp} className="h-2 overflow-hidden rounded-full bg-slate-700"><div className="h-full bg-gradient-to-r from-emerald-400 to-lime-300" style={{ width: `${hpPercent(combatant)}%` }} /></div>
-                <div className="flex items-center justify-between gap-1"><span className="text-cyan-200">SH {combatant.shield}</span><span className="text-amber-200">ATK {combatant.attack}</span></div>
+                <div className="flex flex-wrap items-center justify-between gap-x-1"><span className="text-cyan-200">SH {combatant.shield}</span><span className="text-amber-200">ATK {combatant.attack}</span></div>
                 <div role="meter" aria-label={`${combatant.name} shield`} aria-valuenow={combatant.shield} aria-valuemin={0} aria-valuemax={Math.max(30, combatant.shield)} className="h-1.5 overflow-hidden rounded-full bg-slate-700"><div className="h-full bg-cyan-300" style={{ width: `${shieldPercent(combatant)}%` }} /></div>
               </div>
           </div>
@@ -533,7 +533,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
 
       <div className="relative">
       <div aria-label="Battlefield" dir="ltr">
-      <div ref={boardRef} data-compact={compact} className="cc-battle-board relative w-full overflow-hidden" style={{ height: compact ? 'clamp(800px, 110svh, 940px)' : 'clamp(600px, 78svh, 760px)', containerType: 'size' }} dir="ltr">
+      <div ref={boardRef} data-compact={compact} className="cc-battle-board relative w-full overflow-hidden" style={{ height: compact ? `${Math.max(780, Math.min(840, boardSize.width + 440))}px` : 'clamp(600px, 78svh, 760px)', containerType: 'size' }} dir="ltr">
         <TacticalBackdrop />
         {!intro.done && <div aria-hidden className="cc-opening-black pointer-events-none absolute inset-0 z-[80] bg-black" />}
         {!intro.done && <div aria-hidden className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,.7))]" />}

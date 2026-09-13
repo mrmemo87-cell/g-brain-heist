@@ -5,7 +5,10 @@ import { getCommanderFormationPoint } from './commanderFormationLayout';
 export const getCommanderPresentationPoint = (unit: CommanderPracticeCombatant, compact: boolean) => {
   const point = getCommanderFormationPoint(unit);
   if (!compact) return point;
-  return { ...point, x: unit.side === 'player' ? 25 : 75, y: point.lane === 'rear' ? 30 : point.lane === 'mid' ? 60 : 90, scale: 1 };
+  // Mirror the battlefield's rear/mid/front wedge instead of stacking a squad
+  // at one x-coordinate. Extra depth keeps each unit's vitals readable on phones.
+  const x = point.lane === 'rear' ? 14 : point.lane === 'mid' ? 25 : 35;
+  return { ...point, x: unit.side === 'player' ? x : 100 - x, y: point.lane === 'rear' ? 30 : point.lane === 'mid' ? 60 : 90, scale: 1 };
 };
 
 /** SVG coordinates must be converted to rendered pixels before rotating artwork. */
