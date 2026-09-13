@@ -80,9 +80,11 @@ const sprite = (slot: string) =>
 export default function CommanderHeadquarters({
   userId,
   onClose,
+  onBalanceChange,
 }: {
   userId: string;
   onClose: () => void;
+  onBalanceChange?: (userId: string, coins: number) => void;
 }) {
   const [hq, setHq] = useState<Headquarters | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
@@ -214,13 +216,17 @@ export default function CommanderHeadquarters({
   };
   const p = hq?.profile,
     loadout = hq?.loadout;
+  const coins = hq?.wallet?.coins ?? p?.coins ?? 0;
+  useEffect(() => {
+    if (hq?.wallet) onBalanceChange?.(userId, hq.wallet.coins);
+  }, [hq, userId, onBalanceChange]);
   const unavailable = busy || retryPending || loading;
   const find = (id: string | null | undefined) =>
     hq?.catalog.find((i) => i.id === id);
   const goal = find(p?.goal);
   const costLabel = (price: number) =>
-    price > (p?.coins ?? 0)
-      ? `${format(commanderMissingCoins(price, p?.coins ?? 0))} Coins needed`
+    price > coins
+      ? `${format(commanderMissingCoins(price, coins))} Coins needed`
       : `${format(price)} Coins`;
   const catalogCards = (items: CommanderCatalogItem[]) => (
     <div className="cc-hq-catalog">
@@ -295,7 +301,7 @@ export default function CommanderHeadquarters({
                   unavailable ||
                   !p ||
                   equipped ||
-                  (!owned && p.coins < item.price)
+                  (!owned && coins < item.price)
                 }
                 onClick={() =>
                   propose({
@@ -317,7 +323,7 @@ export default function CommanderHeadquarters({
                     ? item.kind === "unit"
                       ? "Deploy unit"
                       : "Equip item"
-                    : p && p.coins < item.price
+                    : p && coins < item.price
                       ? costLabel(item.price)
                       : item.kind === "unit"
                         ? "Recruit unit"
@@ -428,7 +434,7 @@ export default function CommanderHeadquarters({
             <span>
               {p
                 ? "Your equipped army · no battle costs"
-                : `${format(hq?.campaign.rules["starterCoins"] ?? 150)} Commander Coins · 2 starter units`}
+                : "Free starter squad · 2 starter units"}
             </span>
           </div>
         </div>
@@ -484,11 +490,11 @@ export default function CommanderHeadquarters({
         <>
           <div className="cc-hq-metrics">
             <div>
-              <span>COMMANDER COINS</span>
+              <span>BRAINS HEIST COINS</span>
               <strong>
-                {format(p?.coins ?? 0)} <small>◈</small>
+                {format(coins)} <small>◈</small>
               </strong>
-              <p>Expedition balance</p>
+              <p>Your shared account balance</p>
             </div>
             <div>
               <span>COMMANDER LEVEL</span>
@@ -542,7 +548,7 @@ export default function CommanderHeadquarters({
                 {choice.cost > 0 && (
                   <strong>
                     {format(choice.cost)} Coins · Balance after:{" "}
-                    {format((p?.coins ?? 0) - choice.cost)}
+                    {format(coins - choice.cost)}
                   </strong>
                 )}
               </div>
@@ -647,16 +653,16 @@ export default function CommanderHeadquarters({
                       <>
                         <p>
                           {format(goal.price)} Coins · Your balance:{" "}
-                          {format(p?.coins ?? 0)}
+                          {format(coins)}
                         </p>
                         <strong className="cc-hq-goal-amount">
-                          {p && p.coins >= goal.price
+                          {p && coins >= goal.price
                             ? "Ready to acquire"
-                            : `${format(commanderMissingCoins(goal.price, p?.coins ?? 0))} Coins needed`}
+                            : `${format(commanderMissingCoins(goal.price, coins))} Coins needed`}
                         </strong>
                         <progress
                           max={goal.price}
-                          value={Math.min(p?.coins ?? 0, goal.price)}
+                          value={Math.min(coins, goal.price)}
                           aria-label={`${goal.name} budget`}
                         />
                         <button
@@ -706,8 +712,8 @@ export default function CommanderHeadquarters({
                       aria-label="Commander level progress"
                     />
                     <p>
-                      Current training limit: rank {p?.rankCap ?? 5}. Your
-                      account balance and academic records stay separate.
+                      Current training limit: rank {p?.rankCap ?? 5}. Commander
+                      XP and ranks are separate from account XP.
                     </p>
                     <button
                       className="cc-hq-secondary"
@@ -756,11 +762,20 @@ export default function CommanderHeadquarters({
                     <span className="cc-hq-eyebrow">COMMANDER TRAINING</span>
                     <h2>Commit to your strengths</h2>
                     <p>
-                      Permanent for this expedition. Review each improvement
-                      before spending Coins.
+                      Permanent for this expedition. Training uses your Brains
+                      Heist Coins.
                     </p>
                   </div>
                 </div>
+                <p role="status">
+                  Available: {format(coins)} Brains Heist Coins.
+                </p>
+                {!p && (
+                  <p>
+                    Claim your free starter squad at the top of this page to
+                    unlock training.
+                  </p>
+                )}
                 <div className="cc-hq-training">
                   {stats.map((stat) => {
                     const rank = commanderStatRank(hq, stat.id),
@@ -784,9 +799,7 @@ export default function CommanderHeadquarters({
                         />
                         <button
                           className="cc-hq-secondary"
-                          disabled={
-                            unavailable || !p || capped || p.coins < cost
-                          }
+                          disabled={unavailable || !p || capped || coins < cost}
                           onClick={() =>
                             propose({
                               operation: "train",
@@ -797,11 +810,17 @@ export default function CommanderHeadquarters({
                             })
                           }
                         >
-                          {capped
-                            ? "Training limit reached"
-                            : p && p.coins < cost
-                              ? costLabel(cost)
-                              : `Train · ${format(cost)} Coins`}
+                          {!p
+                            ? "Claim starter squad first"
+                            : unavailable
+                              ? retryPending
+                                ? "Resolve pending action above"
+                                : "Updating…"
+                              : capped
+                                ? "Training limit reached"
+                                : p && coins < cost
+                                  ? costLabel(cost)
+                                  : `Train · ${format(cost)} Coins`}
                         </button>
                       </article>
                     );

@@ -32,6 +32,7 @@ export type CommanderOwnedLoadout = {
   }>;
 };
 export type CommanderHeadquarters = {
+  wallet?: { coins: number; currency: "brains_heist_coins" };
   campaign: { id: string; title: string; rules: Record<string, number> };
   profile: null | {
     coins: number;
