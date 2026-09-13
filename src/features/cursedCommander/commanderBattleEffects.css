@@ -1,0 +1,41 @@
+.cc-painted-arena{position:absolute;inset:0;pointer-events:none;overflow:hidden;background:#07101c}
+.cc-painted-arena>img{width:100%;height:100%;object-fit:cover;object-position:50% 45%;opacity:.88}
+.cc-arena-depth{position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,6,23,.08),transparent 30%,rgba(2,6,23,.28)),radial-gradient(ellipse at 50% 48%,transparent 30%,rgba(2,6,23,.62))}
+.cc-arena-sidelight{position:absolute;inset-block:18% 0;width:40%;opacity:.45}
+.cc-arena-sidelight--ally{left:0;background:radial-gradient(ellipse at left,rgba(34,211,238,.15),transparent 70%)}
+.cc-arena-sidelight--enemy{right:0;background:radial-gradient(ellipse at right,rgba(244,63,94,.14),transparent 70%)}
+.cc-vfx-anchor{position:absolute;left:50%;top:42%;z-index:50;pointer-events:none;width:145%;aspect-ratio:1;translate:-50% -50%}
+.cc-vfx-anchor img{width:100%;height:100%;object-fit:contain}
+.cc-vfx-impact{animation:ccVfxImpact 720ms cubic-bezier(.16,.7,.2,1) both}
+.cc-vfx-void>img:first-child{filter:hue-rotate(235deg) saturate(.9)}
+.cc-vfx-cyan{filter:hue-rotate(155deg) saturate(.75)}
+.cc-vfx-impact-fracture{position:absolute;inset:0;rotate:-65deg;opacity:.7}
+.cc-vfx-charge{width:130%;animation:ccVfxCharge 850ms ease-in both}
+.cc-vfx-charge>img{rotate:-35deg}
+.cc-vfx-charge-core{position:absolute;inset:40% 28%;background:radial-gradient(ellipse,rgba(233,213,255,.7),rgba(168,85,247,.16) 38%,transparent 70%)}
+.cc-vfx-aegis{position:absolute;inset:-10% -12% -7%;z-index:45;pointer-events:none;animation:ccVfxAegis 950ms ease-out both;filter:drop-shadow(0 0 5px rgba(34,211,238,.45))}
+.cc-vfx-aegis>svg{position:absolute;width:100%;height:100%}
+.cc-vfx-aegis-energy{position:absolute;width:135%;height:80%;top:12%;left:-18%;object-fit:contain;rotate:90deg;filter:hue-rotate(300deg);opacity:.22}
+.cc-vfx-lock{position:absolute;inset:-2% -7% 27%;z-index:48;color:#fbbf24;pointer-events:none;filter:drop-shadow(0 0 3px rgba(251,191,36,.45))}
+.cc-vfx-lock--focused{color:#e879f9}
+.cc-vfx-lock>svg{width:100%;height:100%}
+.cc-vfx-lock-scan{animation:ccVfxScan 1400ms ease-in-out infinite}
+.cc-storm-discharge{position:absolute;inset:0;z-index:12;pointer-events:none;overflow:hidden;animation:ccStormExposure 760ms ease-out both}
+.cc-storm-discharge>svg{position:absolute;inset:0;width:100%;height:100%;opacity:.5}
+.cc-storm-exposure{position:absolute;inset:0;background:linear-gradient(135deg,rgba(165,180,252,.18),rgba(192,132,252,.06) 55%,transparent)}
+.cc-vfx-flight{animation:ccVfxFlight var(--cc-flight-total,740ms) linear both}
+.cc-vfx-wake{opacity:.6}
+@keyframes ccVfxFlight{0%,8%{opacity:0}18%,78%{opacity:1}100%{opacity:0}}
+@keyframes ccVfxImpact{0%{opacity:0;scale:.45;rotate:-12deg}16%{opacity:.95;scale:1;rotate:0deg}65%{opacity:.55}100%{opacity:0;scale:1.22;rotate:8deg}}
+@keyframes ccVfxCharge{0%{opacity:0;scale:.15}35%{opacity:.8;scale:.65}70%{opacity:.95;scale:.85}100%{opacity:0;scale:.45}}
+@keyframes ccVfxAegis{0%{opacity:0;scale:.82}25%,65%{opacity:.95;scale:1}100%{opacity:0;scale:1.07}}
+@keyframes ccVfxScan{0%,100%{opacity:.35}50%{opacity:.9}}
+@keyframes ccStormExposure{0%{opacity:0}12%{opacity:.75}100%{opacity:0}}
+[data-commander-speed="2"] .cc-vfx-impact{animation-duration:360ms}
+[data-commander-speed="2"] .cc-vfx-charge{animation-duration:425ms}
+[data-commander-speed="2"] .cc-vfx-aegis{animation-duration:475ms}
+[data-commander-speed="2"] .cc-storm-discharge{animation-duration:380ms}
+[data-cc-animated="false"] .cc-vfx-impact,[data-cc-animated="false"] .cc-vfx-charge,[data-cc-animated="false"] .cc-vfx-aegis{animation:none;opacity:.55}
+[data-cc-animated="false"] .cc-vfx-lock-scan{animation:none}
+[data-cc-animated="false"] .cc-storm-discharge{display:none}
+@media(prefers-reduced-motion:reduce){.cc-vfx-flight,.cc-storm-discharge{display:none}.cc-vfx-impact,.cc-vfx-charge,.cc-vfx-aegis,.cc-vfx-lock-scan{animation:none;opacity:.55}}

@@ -1,4 +1,5 @@
 export type CommanderSfxCue =
+  | 'thunder'
   | 'intro'
   | 'team'
   | 'deploy'
@@ -21,6 +22,7 @@ export type CommanderSfxCue =
 
 // Vite bundles the supplied assets; no generated or legacy sound fallback.
 const clips = {
+  thunder: new URL('../../assets/mixkit-fast-thunder-impact-1279.wav', import.meta.url).href,
   drums: new URL('../../assets/mixkit-drums-of-war-call-2780.wav', import.meta.url).href,
   percussion: new URL('../../assets/mixkit-futuristic-space-war-percussion-2787.wav', import.meta.url).href,
   arrow: new URL('../../assets/mixkit-metal-arrow-fast-hit-2770.wav', import.meta.url).href,
@@ -30,7 +32,8 @@ const clips = {
   effort: new URL('../../assets/mixkit-voice-from-effort-to-punch-2174.wav', import.meta.url).href,
   defeat: new URL('../../assets/defeated.wav', import.meta.url).href,
 };
-const cues: Record<CommanderSfxCue, [keyof typeof clips, number, number]> = {
+const cues: Record<CommanderSfxCue, [keyof typeof clips, number, number, number?]> = {
+  thunder: ['thunder', .18, 1.2, .62],
   intro: ['percussion', .12, 12], team: ['drums', .22, .8], deploy: ['shield', .12, .18],
   countdown: ['hit', .16, .25], battleStart: ['drums', .38, 1.2],
   ui: ['shield', .08, .1], select: ['shield', .12, .16], focus: ['shield', .2, .45],
@@ -78,7 +81,7 @@ export const playCommanderSfx = async (cue: CommanderSfxCue) => {
   const audio = getContext();
   if (!audio || audio.state !== 'running') return;
   const run = generation;
-  const [clip, volume, maxDuration] = cues[cue];
+  const [clip, volume, maxDuration, offset = 0] = cues[cue];
   const buffer = await load(clips[clip]);
   if (!buffer || run !== generation || audio.state !== 'running') return;
   const previous = active.get(cue);
@@ -86,7 +89,9 @@ export const playCommanderSfx = async (cue: CommanderSfxCue) => {
   const source = audio.createBufferSource();
   const gain = audio.createGain();
   source.buffer = buffer;
-  const duration = Math.min(buffer.duration, maxDuration);
+  // Start thunder at its attack transient; other clips retain their original start.
+  const startOffset = Math.min(offset, Math.max(0, buffer.duration - .01));
+  const duration = Math.min(buffer.duration - startOffset, maxDuration);
   const now = audio.currentTime;
   gain.gain.setValueAtTime(0, now);
   gain.gain.linearRampToValueAtTime(volume, now + Math.min(.04, duration / 4));
@@ -98,5 +103,5 @@ export const playCommanderSfx = async (cue: CommanderSfxCue) => {
     source.disconnect(); gain.disconnect();
     if (active.get(cue)?.source === source) active.delete(cue);
   };
-  source.start(now, 0, duration);
+  source.start(now, startOffset, duration);
 };

@@ -1,3 +1,5 @@
+import { TacticalBackdrop, TacticalTargetReticle, ImpactBurst, DeathBoltCharge, AegisShield, StormDischarge } from './CommanderBattleEffects';
+import { COMMANDER_VFX } from './commanderVfxAssets';
 import { getCommanderPresentationPoint, commanderProjectileAngle } from './commanderPresentationLayout';
 import { useCommanderIntro } from './useCommanderIntro';
 import React, { useEffect, useRef, useState } from 'react';
@@ -97,7 +99,8 @@ const resolveSpritePose = (
 
 const ActionGlyph: React.FC<{ step: CommanderCinematicStep | null; className?: string }> = ({ step, className = '' }) => {
   const code = step?.event.code;
-  const stroke = code === 'death_bolt' ? '#d8b4fe' : code === 'guard' ? '#67e8f9' : code === 'focus_target' ? '#fbbf24' : '#f8fafc';
+  if (code === 'death_bolt' || code === 'unit_attack') return <img aria-hidden alt="" src={code === 'death_bolt' ? COMMANDER_VFX.lance : COMMANDER_VFX.slash} className={className} />;
+  const stroke = code === 'guard' ? '#67e8f9' : code === 'focus_target' ? '#fbbf24' : '#f8fafc';
   return (
     <svg aria-hidden viewBox="0 0 48 48" className={className}>
       {code === 'focus_target' ? (
@@ -106,8 +109,6 @@ const ActionGlyph: React.FC<{ step: CommanderCinematicStep | null; className?: s
           <circle cx="24" cy="24" r="3" fill={stroke} />
           <path d="M24 5v8M24 35v8M5 24h8M35 24h8" strokeLinecap="round" />
         </g>
-      ) : code === 'death_bolt' ? (
-        <path d="M27 4 10 27h12l-3 17 19-26H26Z" fill={stroke} />
       ) : code === 'guard' ? (
         <path d="M24 5 39 11v12c0 10-6 16-15 20C15 39 9 33 9 23V11Z" fill="#164e63" stroke={stroke} strokeWidth="2.5" />
       ) : (
@@ -124,54 +125,6 @@ const SoundGlyph: React.FC<{ enabled: boolean }> = ({ enabled }) => (
   </svg>
 );
 
-const TacticalBackdrop = () => (
-  <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 1200 680" preserveAspectRatio="none">
-    <defs>
-      <linearGradient id="ccStageSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#07152a" /><stop offset=".52" stopColor="#0a1630" /><stop offset="1" stopColor="#020617" /></linearGradient>
-      <linearGradient id="ccStageHorizon" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#22d3ee" stopOpacity=".9" /><stop offset=".5" stopColor="#8b5cf6" stopOpacity="1" /><stop offset="1" stopColor="#fb7185" stopOpacity=".9" /></linearGradient>
-      <radialGradient id="ccStageMoon"><stop offset="0" stopColor="#ddd6fe" stopOpacity=".75" /><stop offset=".45" stopColor="#8b5cf6" stopOpacity=".18" /><stop offset="1" stopColor="#8b5cf6" stopOpacity="0" /></radialGradient>
-      <linearGradient id="ccGround" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0d1730" stopOpacity=".4" /><stop offset="1" stopColor="#020617" stopOpacity=".98" /></linearGradient>
-      <filter id="ccStageGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="8" /></filter>
-    </defs>
-    <rect width="1200" height="680" fill="url(#ccStageSky)" />
-    <circle cx="600" cy="120" r="180" fill="url(#ccStageMoon)" />
-    <path d="M0 350 120 210l88 105 118-154 110 158 132-96 111 94 122-134 121 132 128-91 150 119v60H0Z" fill="#091225" opacity=".96" />
-    <path d="M0 386 132 320l108 42 130-70 136 82 132-58 135 66 126-76 137 58 164-46v86H0Z" fill="#050c19" opacity=".95" />
-    <g opacity=".72"><rect x="66" y="274" width="31" height="126" fill="#0f2640" /><rect x="108" y="315" width="18" height="85" fill="#0f2640" /><rect x="172" y="292" width="36" height="108" fill="#11263d" /><rect x="995" y="285" width="36" height="115" fill="#321026" /><rect x="1044" y="323" width="20" height="77" fill="#321026" /><rect x="1103" y="298" width="32" height="102" fill="#321026" /></g>
-    <line x1="0" y1="400" x2="1200" y2="400" stroke="url(#ccStageHorizon)" strokeWidth="2" />
-    <rect y="401" width="1200" height="279" fill="url(#ccGround)" />
-    <g stroke="#38bdf8" strokeOpacity=".12" strokeWidth="1"><path d="M600 401 80 680M600 401 270 680M600 401 460 680M600 401 740 680M600 401 930 680M600 401 1120 680" /><path d="M70 450h1060M28 510h1144M0 590h1200" /></g>
-    <ellipse cx="292" cy="520" rx="190" ry="66" fill="#22d3ee" opacity=".035" filter="url(#ccStageGlow)" />
-    <ellipse cx="908" cy="520" rx="190" ry="66" fill="#fb7185" opacity=".035" filter="url(#ccStageGlow)" />
-  </svg>
-);
-
-const TacticalTargetReticle: React.FC<{ selected: boolean; focused: boolean; focusLock: boolean }> = ({ selected, focused, focusLock }) => {
-  if (!selected && !focused && !focusLock) return null;
-  return (
-    <span aria-hidden className="pointer-events-none absolute left-1/2 top-[42%] z-50 h-[76%] w-[76%] -translate-x-1/2 -translate-y-1/2">
-      <svg viewBox="0 0 160 160" className="h-full w-full overflow-visible">
-        <defs><filter id="ccTargetGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.4" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter></defs>
-        {selected && (
-          <g className="cc-target-reticle-spin" fill="none" stroke="#fbbf24" filter="url(#ccTargetGlow)">
-            <circle cx="80" cy="80" r="55" strokeWidth="2" strokeDasharray="22 17" opacity=".82" />
-            <path d="M80 12v18M80 130v18M12 80h18M130 80h18" strokeWidth="3" strokeLinecap="round" />
-            <path d="M38 49V38h11M111 38h11v11M122 111v11h-11M49 122H38v-11" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-          </g>
-        )}
-        {(focused || focusLock) && (
-          <g className="cc-focus-reticle-spin" fill="none" stroke="#e879f9" filter="url(#ccTargetGlow)">
-            <circle cx="80" cy="80" r="43" strokeWidth="2.5" strokeDasharray="8 9" />
-            <circle cx="80" cy="80" r="8" strokeWidth="2" opacity=".9" />
-            <path d="M80 31v18M80 111v18M31 80h18M111 80h18" strokeWidth="2.5" strokeLinecap="round" />
-          </g>
-        )}
-        {selected && <path className="cc-target-chevron" d="m80 4 10 14H70Z" fill="#fbbf24" filter="url(#ccTargetGlow)" />}
-      </svg>
-    </span>
-  );
-};
-
 const CombatFloat: React.FC<{ tone: CombatFloatTone; children: React.ReactNode; compact?: boolean; delayMs?: number }> = ({ tone, children, compact = false, delayMs = 0 }) => {
   const classes: Record<CombatFloatTone, string> = {
     damage: 'text-red-300 [text-shadow:0_0_18px_rgba(239,68,68,.95)]',
@@ -182,27 +135,6 @@ const CombatFloat: React.FC<{ tone: CombatFloatTone; children: React.ReactNode; 
   return <span style={{ animationDelay: `${delayMs}ms` }} className={`cc-combat-float block font-heading font-black tracking-wide ${compact ? 'text-[10px] sm:text-xs' : 'text-xl sm:text-3xl'} ${classes[tone]}`}>{children}</span>;
 };
 
-const ImpactBurst: React.FC<{ deathBolt: boolean; shieldOnly: boolean }> = ({ deathBolt, shieldOnly }) => {
-  const color = deathBolt ? '#d8b4fe' : shieldOnly ? '#fbbf24' : '#fb7185';
-  return (
-    <svg aria-hidden viewBox="0 0 120 120" className="cc-impact-burst pointer-events-none absolute left-1/2 top-[44%] z-50 h-28 w-28 -translate-x-1/2 -translate-y-1/2">
-      <circle cx="60" cy="60" r="18" fill={color} opacity=".22" />
-      <circle cx="60" cy="60" r="30" fill="none" stroke={color} strokeWidth="3" opacity=".9" />
-      <g stroke={color} strokeWidth="4" strokeLinecap="round"><path d="M60 5v23M60 92v23M5 60h23M92 60h23M21 21l16 16M83 83l16 16M99 21 83 37M37 83 21 99" /></g>
-    </svg>
-  );
-};
-
-const DeathBoltCharge: React.FC = () => (
-  <span aria-hidden className="cc-deathbolt-charge pointer-events-none absolute left-1/2 top-[38%] z-50 h-24 w-24 -translate-x-1/2 -translate-y-1/2">
-    <svg viewBox="0 0 100 100" className="h-full w-full overflow-visible">
-      <defs><radialGradient id="ccBoltCharge"><stop offset="0" stopColor="#fff" /><stop offset=".28" stopColor="#d8b4fe" stopOpacity=".95" /><stop offset="1" stopColor="#7c3aed" stopOpacity="0" /></radialGradient></defs>
-      <circle cx="50" cy="50" r="45" fill="url(#ccBoltCharge)" />
-      <g fill="none" stroke="#e9d5ff" strokeWidth="2" strokeLinecap="round"><path d="M50 4v17M50 79v17M4 50h17M79 50h17" /><path d="M18 18l12 12M70 70l12 12M82 18 70 30M30 70 18 82" /></g>
-    </svg>
-  </span>
-);
-
 const ProjectilePath: React.FC<{
   step: CommanderCinematicStep | null;
   phase: CommanderPlaybackPhase;
@@ -211,7 +143,7 @@ const ProjectilePath: React.FC<{
   compact: boolean;
   boardSize: { width: number; height: number };
 }> = ({ step, phase, combatants, speed, compact, boardSize }) => {
-  if (!step || step.kind !== 'attack' || phase === 'settle') return null;
+  if (!step || step.kind !== 'attack' || phase !== 'windup') return null;
   const actorCombatant = combatants.find((candidate) => candidate.name === step.event.actorName);
   const targetCombatant = combatants.find(candidate => candidate.name === step.event.targetName);
   const actor = actorCombatant && getCommanderPresentationPoint(actorCombatant, compact);
@@ -227,30 +159,22 @@ const ProjectilePath: React.FC<{
   // Straight screen-space travel points at the target throughout the shot.
   const path = `M ${actor.x * boardSize.width / 100} ${sourceY * boardSize.height / 100} L ${target.x * boardSize.width / 100} ${targetY * boardSize.height / 100}`;
   const angle = commanderProjectileAngle(target.x - actor.x, targetY - sourceY, boardSize.width, boardSize.height, getCommanderProjectileAngle(actorCombatant.id));
-  const duration = speed === 2 ? (step.event.code === 'death_bolt' ? 360 : 300) : (step.event.code === 'death_bolt' ? 650 : 520);
-  const suffix = step.id.replace(/[^a-zA-Z0-9_-]/g, '');
-  const color = step.event.code === 'death_bolt' ? '#c084fc' : step.event.code === 'focus_target' ? '#fbbf24' : step.event.side === 'player' ? '#67e8f9' : '#fda4af';
-
+  const duration = (step.event.code === 'death_bolt' ? 650 : 520) / speed;
+  const deathBolt = step.event.code === 'death_bolt';
+  const flightAngle = commanderProjectileAngle(target.x - actor.x, targetY - sourceY, boardSize.width, boardSize.height, 0);
+  const delay = (deathBolt ? 180 : 70) / speed;
+  const size = Math.min(150, Math.max(80, boardSize.width * .22));
   return (
-    <svg key={step.id} aria-hidden className="pointer-events-none absolute inset-0 z-40 h-full w-full" viewBox={`0 0 ${boardSize.width || 1} ${boardSize.height || 1}`} preserveAspectRatio="none">
-      <defs><filter id={`ccProjectileGlow-${suffix}`} x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3" result="p" /><feMerge><feMergeNode in="p" /><feMergeNode in="SourceGraphic" /></feMerge></filter></defs>
-      <path d={path} fill="none" stroke={color} strokeWidth={step.event.code === 'death_bolt' ? 3 : 1.5} strokeLinecap="round" opacity={authoredProjectile ? '.16' : '.36'} className="cc-projectile-trail" />
-      {authoredProjectile ? (
-        <g>
-          <animateMotion dur={`${duration}ms`} begin="0s" fill="freeze" path={path} rotate="0" />
-          {/* Rotate the square art canvas in rendered pixel space, toward the enemy. */}
-          <svg x="-28" y="-28" width="56" height="56" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" overflow="visible">
-            <image href={authoredProjectile} x="10" y="10" width="80" height="80" preserveAspectRatio="xMidYMid meet" className="cc-authored-projectile" transform={`rotate(${angle} 50 50)`} />
-          </svg>
+    <svg key={step.id} aria-hidden className="cc-vfx-flight pointer-events-none absolute inset-0 z-40 h-full w-full" style={{ '--cc-flight-total': `${duration + delay}ms` } as React.CSSProperties} viewBox={`0 0 ${boardSize.width || 1} ${boardSize.height || 1}`} preserveAspectRatio="none">
+      <g visibility="hidden">
+        <set attributeName="visibility" to="visible" begin={`${delay}ms`} />
+        <animateMotion dur={`${duration}ms`} begin={`${delay}ms`} fill="freeze" path={path} rotate="0" />
+        <g transform={`rotate(${flightAngle})`}>
+          {/* A short textured wake travels WITH the projectile, never a board-spanning guide line. */}
+          <image href={COMMANDER_VFX.lance} x={-size} y={-size / 2} width={size} height={size} className="cc-vfx-wake" style={{ filter: deathBolt ? undefined : actorCombatant.side === 'player' ? 'hue-rotate(300deg)' : 'hue-rotate(100deg)', opacity: deathBolt ? 1 : .45 }} />
         </g>
-      ) : (
-        <>
-          <circle r={step.event.code === 'death_bolt' ? 9 : 5} fill="#fff" filter={`url(#ccProjectileGlow-${suffix})`} className="cc-projectile-orb">
-            <animateMotion dur={`${duration}ms`} begin="0s" fill="freeze" path={path} />
-          </circle>
-          {step.event.code === 'death_bolt' && <circle r="4" fill="#d8b4fe" opacity=".9"><animateMotion dur={`${duration}ms`} begin="70ms" fill="freeze" path={path} /></circle>}
-        </>
-      )}
+        {!deathBolt && authoredProjectile && <svg x="-28" y="-28" width="56" height="56" viewBox="0 0 100 100" overflow="visible"><image className="cc-authored-projectile" href={authoredProjectile} x="10" y="10" width="80" height="80" transform={`rotate(${angle} 50 50)`} /></svg>}
+      </g>
     </svg>
   );
 };
@@ -353,7 +277,8 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
       else if (activeStep.kind === 'attack') cue = activeStep.shieldDamage > 0 ? 'shieldHit' : 'hit';
     }
     if (cue) void playCommanderSfx(cue);
-  }, [activeStep, phase, soundOn, combatants]);
+    if (phase === 'impact' && activeStep.event.code === 'death_bolt' && effectsOn) void playCommanderSfx('thunder');
+  }, [activeStep, phase, soundOn, combatants, effectsOn]);
 
   const handleSelectTarget = (id: string) => {
     if (!intro.done || busy) return;
@@ -432,7 +357,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
           <div className={`cc-stage-action-shell relative mx-auto aspect-[1/1.15] w-full origin-bottom ${actionClass} ${hitClass} ${defeat && animationsOn ? 'cc-stage-defeat' : ''}`}>
             <CommanderBattleSprite combatant={combatant} pose={pose} active={Boolean(actor)} defeated={pose === 'defeated'} />
             {actor && activeStep?.event.code === 'death_bolt' && phase === 'windup' && effectsOn && <DeathBoltCharge />}
-            {guard && effectsOn && phase !== 'settle' && <span aria-hidden className="cc-stage-shield-bloom absolute inset-x-[8%] bottom-[6%] top-[8%] rounded-[48%] border-2 border-cyan-200/75 bg-cyan-300/[0.08] shadow-[0_0_38px_rgba(34,211,238,.62)]" />}
+            {guard && effectsOn && phase !== 'settle' && <AegisShield />}
             {impactTarget && effectsOn && activeStep?.kind === 'attack' && <ImpactBurst deathBolt={activeStep.event.code === 'death_bolt'} shieldOnly={shieldOnlyHit} />}
           </div>
 
@@ -462,7 +387,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
   };
 
   return (
-    <section className={`relative overflow-hidden rounded-[2rem] border border-cyan-400/24 bg-[#020617] shadow-[0_0_70px_rgba(34,211,238,.1)] ${isDeathBoltImpact && animationsOn ? 'cc-stage-arena-hit' : ''}`}>
+    <section data-cc-animated={animationsOn} className={`relative overflow-hidden rounded-[2rem] border border-cyan-400/24 bg-[#020617] shadow-[0_0_70px_rgba(34,211,238,.1)] ${isDeathBoltImpact && animationsOn ? 'cc-stage-arena-hit' : ''}`}>
       <style>{`
         @keyframes ccOpeningFade{from{opacity:1}to{opacity:0}}
         .cc-opening-black{animation:ccOpeningFade 450ms ease-out forwards}
@@ -476,17 +401,10 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         @keyframes ccTargetHitShield{0%,100%{transform:translateX(0)}22%{transform:translateX(-4px);filter:brightness(1.55)}48%{transform:translateX(3px)}}
         @keyframes ccTargetHitHeavy{0%,100%{transform:translateX(0) scale(1)}12%{transform:translateX(-9px) scale(1.025);filter:brightness(2.2)}29%{transform:translateX(8px)}48%{transform:translateX(-5px)}68%{transform:translateX(3px)}}
         @keyframes ccStageDefeat{0%{opacity:1;filter:brightness(1)}55%{opacity:.82;filter:brightness(.82)}100%{opacity:.62;filter:brightness(.7)}}
-        @keyframes ccTargetSpin{to{transform:rotate(360deg)}}
-        @keyframes ccFocusSpin{to{transform:rotate(-360deg)}}
-        @keyframes ccTargetChevron{0%,100%{transform:translateY(0);opacity:.8}50%{transform:translateY(7px);opacity:1}}
         @keyframes ccStageFocusGround{0%,100%{box-shadow:0 0 10px rgba(232,121,249,.25)}50%{box-shadow:0 0 30px rgba(232,121,249,.75)}}
-        @keyframes ccStageShield{0%{transform:scale(.6);opacity:0}45%{transform:scale(1.06);opacity:1}100%{transform:scale(1.25);opacity:0}}
         @keyframes ccStageFloat{0%{opacity:0;transform:translate3d(0,14px,0) scale(.76)}14%{opacity:1;transform:translate3d(0,-2px,0) scale(1.16)}70%{opacity:1;transform:translate3d(0,-58px,0) scale(1)}100%{opacity:0;transform:translate3d(0,-90px,0) scale(.94)}}
-        @keyframes ccStageBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.55)}}
         @keyframes ccStageArenaHit{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(1px)}}
         @keyframes ccStageEvent{from{opacity:0;transform:translate(-50%,-8px) scale(.98)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
-        @keyframes ccStageTrail{from{stroke-dashoffset:18}to{stroke-dashoffset:0}}
-        @keyframes ccDeathCharge{0%{opacity:0;transform:translate(-50%,-50%) scale(.35) rotate(0)}45%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(120deg)}100%{opacity:.82;transform:translate(-50%,-50%) scale(.82) rotate(220deg)}}
         @keyframes ccSpriteSwap{0%{opacity:.45;filter:brightness(.82)}100%{opacity:1;filter:brightness(1)}}
         .cc-stage-unit:hover,.cc-stage-unit:focus-visible{transform:translate(-50%,-82%)!important}
         .cc-stage-unit:hover .cc-stage-action-shell,.cc-stage-unit:focus-visible .cc-stage-action-shell{filter:brightness(1.06) drop-shadow(0 0 9px rgba(251,191,36,.12))}
@@ -501,19 +419,11 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         .cc-target-hit-shield{animation:ccTargetHitShield 620ms ease-out}
         .cc-target-hit-heavy{animation:ccTargetHitHeavy 820ms ease-out}
         .cc-stage-defeat{animation:ccStageDefeat 1100ms ease-out forwards}
-        .cc-target-reticle-spin{transform-origin:80px 80px;animation:ccTargetSpin 5.5s linear infinite}
-        .cc-focus-reticle-spin{transform-origin:80px 80px;animation:ccFocusSpin 3.6s linear infinite}
-        .cc-target-chevron{animation:ccTargetChevron 1.1s ease-in-out infinite}
         .cc-stage-focus-ground{animation:ccStageFocusGround 1.6s ease-in-out infinite}
-        .cc-stage-shield-bloom{animation:ccStageShield 1000ms ease-out forwards}
         .cc-combat-float{animation:ccStageFloat 1450ms cubic-bezier(.16,.82,.2,1) forwards;will-change:transform,opacity}
-        .cc-impact-burst{animation:ccStageBurst 720ms ease-out forwards}
         .cc-stage-arena-hit{animation:ccStageArenaHit 240ms linear}
         .cc-event-banner{animation:ccStageEvent 260ms ease-out}
-        .cc-projectile-trail{stroke-dasharray:3 3;animation:ccStageTrail 320ms linear infinite}
-        .cc-projectile-orb,.cc-authored-projectile{filter:drop-shadow(0 0 10px rgba(255,255,255,.95))}
-        .cc-deathbolt-charge{animation:ccDeathCharge 900ms ease-out forwards}
-        @media(prefers-reduced-motion:reduce){.cc-deployment-shell{transition:none!important}.cc-opening-black{animation:none;opacity:0}.cc-authored-sprite,.cc-actor-melee-right,.cc-actor-melee-left,.cc-actor-ranged,.cc-actor-focus,.cc-actor-deathbolt,.cc-actor-guard,.cc-target-hit,.cc-target-hit-shield,.cc-target-hit-heavy,.cc-stage-defeat,.cc-target-reticle-spin,.cc-focus-reticle-spin,.cc-target-chevron,.cc-stage-focus-ground,.cc-stage-shield-bloom,.cc-combat-float,.cc-impact-burst,.cc-stage-arena-hit,.cc-event-banner,.cc-projectile-trail,.cc-deathbolt-charge{animation:none!important}}
+        @media(prefers-reduced-motion:reduce){.cc-deployment-shell{transition:none!important}.cc-opening-black{animation:none;opacity:0}.cc-authored-sprite,.cc-actor-melee-right,.cc-actor-melee-left,.cc-actor-ranged,.cc-actor-focus,.cc-actor-deathbolt,.cc-actor-guard,.cc-target-hit,.cc-target-hit-shield,.cc-target-hit-heavy,.cc-stage-defeat,.cc-stage-focus-ground,.cc-combat-float,.cc-stage-arena-hit,.cc-event-banner{animation:none!important}}
       `}</style>
 
       <div className="relative z-[90] flex flex-wrap items-center justify-between gap-2 border-b border-white/5 bg-slate-950/54 px-3 py-2.5 backdrop-blur-md sm:px-4">
@@ -535,6 +445,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
       <div aria-label="Battlefield" dir="ltr">
       <div ref={boardRef} data-compact={compact} className="cc-battle-board relative w-full overflow-hidden" style={{ height: compact ? `${Math.max(780, Math.min(840, boardSize.width + 440))}px` : 'clamp(600px, 78svh, 760px)', containerType: 'size' }} dir="ltr">
         <TacticalBackdrop />
+        {isDeathBoltImpact && animationsOn && <StormDischarge key={activeStep?.id} />}
         {!intro.done && <div aria-hidden className="cc-opening-black pointer-events-none absolute inset-0 z-[80] bg-black" />}
         {!intro.done && <div aria-hidden className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,.7))]" />}
         {!intro.done && intro.team && <div aria-hidden className={`pointer-events-none absolute inset-y-0 w-1/2 ${intro.team === 'player' ? 'left-0 bg-cyan-400/5' : 'right-0 bg-fuchsia-400/5'}`} />}
@@ -561,7 +472,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
       </div>}
       </div>
       {status === 'active' && <CommanderCommandDock copy={copy} busy={busy || !intro.done} selectedTargetId={selectedTargetId} deathBoltCooldown={deathBoltCooldown} onMove={handleMove} />}
-      {isDeathBoltImpact && <div aria-hidden className="pointer-events-none absolute inset-0 z-40 bg-[radial-gradient(circle_at_50%_46%,rgba(216,180,254,.24),transparent_34%)] mix-blend-screen" />}
+
     </section>
   );
 };
