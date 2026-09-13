@@ -1,0 +1,75 @@
+@keyframes ccEliteAuraBreathe {
+  0%, 100% { opacity: .48; transform: scale(.94); }
+  50% { opacity: .92; transform: scale(1.08); }
+}
+
+@keyframes ccEliteOrbitDrift {
+  0% { transform: rotate(0deg) scale(.94); opacity: .38; }
+  50% { transform: rotate(180deg) scale(1.04); opacity: .74; }
+  100% { transform: rotate(360deg) scale(.94); opacity: .38; }
+}
+
+@keyframes ccEliteGroundPulse {
+  0%, 100% { opacity: .42; transform: translateX(-50%) scaleX(.84); }
+  50% { opacity: .94; transform: translateX(-50%) scaleX(1.08); }
+}
+
+@keyframes ccEliteSigilFloat {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-5px) rotate(3deg); }
+}
+
+@keyframes ccEliteSigilEnergy {
+  0%, 100% { filter: drop-shadow(0 0 5px currentColor) brightness(.92); }
+  50% { filter: drop-shadow(0 0 14px currentColor) brightness(1.18); }
+}
+
+@keyframes ccEliteActiveSurge {
+  0% { opacity: .4; transform: scale(.88); }
+  55% { opacity: 1; transform: scale(1.16); }
+  100% { opacity: .62; transform: scale(1); }
+}
+
+.cc-elite-aura {
+  animation: ccEliteAuraBreathe 3.8s ease-in-out infinite;
+}
+
+.cc-elite-orbit {
+  transform-origin: 50% 50%;
+  animation: ccEliteOrbitDrift 9s linear infinite;
+}
+
+.cc-elite-ground {
+  transform-origin: 50% 50%;
+  animation: ccEliteGroundPulse 3.2s ease-in-out infinite;
+}
+
+.cc-elite-sigil {
+  animation: ccEliteSigilFloat 3s ease-in-out infinite;
+}
+
+.cc-elite-sigil-image {
+  animation: ccEliteSigilEnergy 2.2s ease-in-out infinite;
+}
+
+[data-commander-active='true'] .cc-elite-aura,
+[data-commander-active='true'] .cc-elite-ground {
+  animation: ccEliteActiveSurge .72s cubic-bezier(.22,.9,.32,1) both;
+}
+
+[data-commander-school='storm'] .cc-elite-orbit { animation-duration: 4.8s; }
+[data-commander-school='void'] .cc-elite-orbit { animation-direction: reverse; animation-duration: 7.2s; }
+[data-commander-school='rot'] .cc-elite-aura { animation-duration: 4.6s; }
+[data-commander-school='grave'] .cc-elite-ground { animation-duration: 4.2s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-elite-aura,
+  .cc-elite-orbit,
+  .cc-elite-ground,
+  .cc-elite-sigil,
+  .cc-elite-sigil-image,
+  [data-commander-active='true'] .cc-elite-aura,
+  [data-commander-active='true'] .cc-elite-ground {
+    animation: none !important;
+  }
+}
