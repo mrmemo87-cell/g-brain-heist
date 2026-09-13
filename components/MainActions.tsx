@@ -277,12 +277,12 @@ const MainActions: React.FC<MainActionsProps> = ({
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
   const missionCardClass = 'min-h-[10rem] sm:min-h-[11rem]';
   const missionIconClass = 'h-24 w-24 object-contain drop-shadow-[0_0_22px_rgba(255,255,255,0.35)] brightness-110 contrast-110 saturate-125 sm:h-28 sm:w-28';
-  const commanderPreviewLabel = language === 'ar' ? 'معاينة القائد' : language === 'ru' ? 'Предпросмотр Командира' : 'Commander Preview';
+  const commanderPreviewLabel = language === 'ar' ? 'القائد الملعون' : language === 'ru' ? 'Проклятый Командир' : 'Cursed Commander';
   const commanderPreviewSubtitle = language === 'ar'
-    ? 'ساحة تدريب معزولة · للمختبرين فقط'
+    ? 'جهّز فريقك · ادخل المعركة'
     : language === 'ru'
-      ? 'Изолированная тренировка · только для тестеров'
-      : 'Isolated practice arena · testers only';
+      ? 'Собери отряд · выходи на арену'
+      : 'Build your squad · enter the arena';
   
   return (
     <>

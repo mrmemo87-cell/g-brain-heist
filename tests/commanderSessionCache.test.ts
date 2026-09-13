@@ -68,3 +68,17 @@ test('projectile headings point toward targets in rendered pixels across narrow 
     }
   }
 });
+
+test('owned-army practice uses a separate checkpoint without discarding fixed practice', () => {
+  const values = new Map<string,string>();
+  const storage = { getItem: (key:string) => values.get(key) ?? null, setItem: (key:string,value:string) => { values.set(key,value); }, removeItem: (key:string) => { values.delete(key); } };
+  const now = Date.now();
+  const fixed = startPracticeBattle(5);
+  const owned = { ...startPracticeBattle(6), loadoutVersion: 3, loadoutLabel: 'Rift Blade · Aegis Shield' };
+  const session = (battle: typeof fixed) => ({ battle, expiresAt: new Date(now+60000).toISOString(), transcript: Buffer.from(JSON.stringify({v:1,sub:'student',exp:now+60000,state:battle})).toString('base64url')+'.signature' });
+  saveCommanderSession(storage,'student',session(fixed));
+  saveCommanderSession(storage,'student',session(owned),undefined,true);
+  assert.equal(readCommanderSession(storage,'student',now)?.session.battle.seed,5);
+  assert.equal(readCommanderSession(storage,'student',now,true)?.session.battle.seed,6);
+  assert.equal(readCommanderSession(storage,'student',now,true)?.session.battle.loadoutVersion,3);
+});

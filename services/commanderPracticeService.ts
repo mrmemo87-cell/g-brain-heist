@@ -5,6 +5,7 @@ export type CommanderPracticeStatus = 'active' | 'victory' | 'defeat' | 'draw';
 export type CommanderPracticeMove = 'focus_target' | 'death_bolt' | 'guard';
 
 export type CommanderPracticeCombatant = {
+  maxShield?: number;
   id: string;
   side: CommanderPracticeSide;
   role: 'commander' | 'unit';
@@ -36,6 +37,9 @@ export type CommanderPracticeEvent = {
 };
 
 export type CommanderPracticeBattle = {
+  loadoutLabel?: string;
+  loadoutVersion?: number;
+  playerTactics?: { bolt: number; focus: number; guard: number; shieldCap: number };
   version: 1;
   seed: number;
   turn: number;
@@ -97,10 +101,10 @@ const requireSession = async (
   };
 };
 
-export async function startCommanderPractice(signal?: AbortSignal): Promise<CommanderPracticeSession> {
+export async function startCommanderPractice(signal?: AbortSignal, ownedLoadout = false): Promise<CommanderPracticeSession> {
   const { data, error } = await supabase.functions.invoke<PracticeApiResponse>('commander_practice', {
     signal,
-    body: { action: 'start' },
+    body: { action: 'start', ...(ownedLoadout ? { loadout: 'owned' } : {}) },
   });
   return requireSession(data, error);
 }

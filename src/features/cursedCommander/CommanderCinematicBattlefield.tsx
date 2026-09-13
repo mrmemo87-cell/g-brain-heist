@@ -69,7 +69,7 @@ const hpPercent = (combatant: CommanderPracticeCombatant) =>
   Math.max(0, Math.min(100, Math.round((combatant.hp / combatant.maxHp) * 100)));
 
 const shieldPercent = (combatant: CommanderPracticeCombatant) =>
-  Math.max(0, Math.min(100, Math.round((combatant.shield / 30) * 100)));
+  Math.max(0, Math.min(100, Math.round((combatant.shield / Math.max(1, combatant.maxShield ?? 30)) * 100)));
 
 const resolveSpritePose = (
   combatant: CommanderPracticeCombatant,
@@ -368,7 +368,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
                 <div className="flex flex-wrap items-center justify-between gap-x-1"><span className="text-emerald-300">HP</span><span>{combatant.hp}/{combatant.maxHp}</span></div>
                 <div role="progressbar" aria-label={`${combatant.name} HP`} aria-valuenow={combatant.hp} aria-valuemin={0} aria-valuemax={combatant.maxHp} className="h-2 overflow-hidden rounded-full bg-slate-700"><div className="h-full bg-gradient-to-r from-emerald-400 to-lime-300" style={{ width: `${hpPercent(combatant)}%` }} /></div>
                 <div className="flex flex-wrap items-center justify-between gap-x-1"><span className="text-cyan-200">SH {combatant.shield}</span><span className="text-amber-200">ATK {combatant.attack}</span></div>
-                <div role="meter" aria-label={`${combatant.name} shield`} aria-valuenow={combatant.shield} aria-valuemin={0} aria-valuemax={Math.max(30, combatant.shield)} className="h-1.5 overflow-hidden rounded-full bg-slate-700"><div className="h-full bg-cyan-300" style={{ width: `${shieldPercent(combatant)}%` }} /></div>
+                <div role="meter" aria-label={`${combatant.name} shield`} aria-valuenow={combatant.shield} aria-valuemin={0} aria-valuemax={Math.max(combatant.maxShield ?? 30, combatant.shield)} className="h-1.5 overflow-hidden rounded-full bg-slate-700"><div className="h-full bg-cyan-300" style={{ width: `${shieldPercent(combatant)}%` }} /></div>
               </div>
           </div>
 
