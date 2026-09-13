@@ -63,7 +63,7 @@ type Props = {
   onRestart: () => void;
 };
 
-type CombatFloatTone = 'damage' | 'shieldDamage' | 'shieldGain' | 'ko';
+type CombatFloatTone = 'damage' | 'shieldDamage' | 'shieldGain' | 'restore' | 'ko';
 
 const hpPercent = (combatant: CommanderPracticeCombatant) =>
   Math.max(0, Math.min(100, Math.round((combatant.hp / combatant.maxHp) * 100)));
@@ -90,7 +90,7 @@ const resolveSpritePose = (
     if (phase === 'windup' || phase === 'impact') return 'attacking';
   }
 
-  if (actor && (step.kind === 'guard' || step.kind === 'focus_lock' || step.event.code === 'focus_target')) {
+  if (actor && (step.kind === 'guard' || step.kind === 'restore' || step.kind === 'focus_lock' || step.event.code === 'focus_target')) {
     return phase === 'settle' ? 'standing' : 'attacking';
   }
 
@@ -100,7 +100,12 @@ const resolveSpritePose = (
 const ActionGlyph: React.FC<{ step: CommanderCinematicStep | null; className?: string }> = ({ step, className = '' }) => {
   const code = step?.event.code;
   if (code === 'death_bolt' || code === 'unit_attack') return <img aria-hidden alt="" src={code === 'death_bolt' ? COMMANDER_VFX.lance : COMMANDER_VFX.slash} className={className} />;
-  const stroke = code === 'guard' ? '#67e8f9' : code === 'focus_target' ? '#fbbf24' : '#f8fafc';
+  const stroke = code === 'guard' ? '#67e8f9'
+    : code === 'focus_target' ? '#fbbf24'
+      : code === 'chain_surge' ? '#67e8f9'
+        : code === 'rot_miasma' ? '#bef264'
+          : code === 'raise_dead' ? '#d9f99d'
+            : '#f8fafc';
   return (
     <svg aria-hidden viewBox="0 0 48 48" className={className}>
       {code === 'focus_target' ? (
@@ -111,6 +116,12 @@ const ActionGlyph: React.FC<{ step: CommanderCinematicStep | null; className?: s
         </g>
       ) : code === 'guard' ? (
         <path d="M24 5 39 11v12c0 10-6 16-15 20C15 39 9 33 9 23V11Z" fill="#164e63" stroke={stroke} strokeWidth="2.5" />
+      ) : code === 'raise_dead' ? (
+        <g fill="none" stroke={stroke} strokeWidth="2.8" strokeLinecap="round"><path d="M14 42V23c0-10 4-16 10-16s10 6 10 16v19"/><path d="M8 42h32M24 14v17M18 21h12"/></g>
+      ) : code === 'rot_miasma' ? (
+        <g fill="none" stroke={stroke} strokeWidth="2.5"><circle cx="24" cy="24" r="7"/><circle cx="24" cy="24" r="15" strokeDasharray="3 5"/><path d="M24 4v8M24 36v8M4 24h8M36 24h8"/></g>
+      ) : code === 'chain_surge' ? (
+        <path d="M27 4 10 27h12l-3 17 19-26H26Z" fill={stroke} />
       ) : (
         <path d="m9 31 9-18 6 11 6-16 9 23-15 10Z" fill="#38bdf8" opacity=".92" />
       )}
@@ -130,6 +141,7 @@ const CombatFloat: React.FC<{ tone: CombatFloatTone; children: React.ReactNode; 
     damage: 'text-red-300 [text-shadow:0_0_18px_rgba(239,68,68,.95)]',
     shieldDamage: 'text-amber-200 [text-shadow:0_0_16px_rgba(245,158,11,.9)]',
     shieldGain: 'text-cyan-200 [text-shadow:0_0_18px_rgba(34,211,238,.9)]',
+    restore: 'text-lime-200 [text-shadow:0_0_20px_rgba(163,230,53,.92)]',
     ko: 'text-red-100 [text-shadow:0_0_22px_rgba(239,68,68,1)]',
   };
   return <span style={{ animationDelay: `${delayMs}ms` }} className={`cc-combat-float block font-heading font-black tracking-wide ${compact ? 'text-[10px] sm:text-xs' : 'text-xl sm:text-3xl'} ${classes[tone]}`}>{children}</span>;
@@ -151,29 +163,29 @@ const ProjectilePath: React.FC<{
   if (!actorCombatant || !actor || !target) return null;
 
   const authoredProjectile = getCommanderProjectileUrl(actorCombatant.id);
-  const ranged = authoredProjectile || step.event.code === 'death_bolt' || step.event.code === 'focus_target';
+  const schoolProjectile = step.event.code === 'death_bolt' || step.event.code === 'chain_surge' || step.event.code === 'focus_target';
+  const ranged = authoredProjectile || schoolProjectile;
   if (!ranged) return null;
 
   const sourceY = actor.y - (compact ? 16 : 12);
   const targetY = target.y - (compact ? 16 : 11);
-  // Straight screen-space travel points at the target throughout the shot.
   const path = `M ${actor.x * boardSize.width / 100} ${sourceY * boardSize.height / 100} L ${target.x * boardSize.width / 100} ${targetY * boardSize.height / 100}`;
   const angle = commanderProjectileAngle(target.x - actor.x, targetY - sourceY, boardSize.width, boardSize.height, getCommanderProjectileAngle(actorCombatant.id));
-  const duration = (step.event.code === 'death_bolt' ? 650 : 520) / speed;
-  const deathBolt = step.event.code === 'death_bolt';
+  const powerShot = step.event.code === 'death_bolt' || step.event.code === 'chain_surge';
+  const duration = (powerShot ? 650 : 520) / speed;
   const flightAngle = commanderProjectileAngle(target.x - actor.x, targetY - sourceY, boardSize.width, boardSize.height, 0);
-  const delay = (deathBolt ? 180 : 70) / speed;
+  const delay = (powerShot ? 180 : 70) / speed;
   const size = Math.min(150, Math.max(80, boardSize.width * .22));
+  const powerFilter = step.event.code === 'chain_surge' ? 'hue-rotate(145deg) saturate(1.4)' : undefined;
   return (
     <svg key={step.id} aria-hidden className="cc-vfx-flight pointer-events-none absolute inset-0 z-40 h-full w-full" style={{ '--cc-flight-total': `${duration + delay}ms` } as React.CSSProperties} viewBox={`0 0 ${boardSize.width || 1} ${boardSize.height || 1}`} preserveAspectRatio="none">
       <g visibility="hidden">
         <set attributeName="visibility" to="visible" begin={`${delay}ms`} />
         <animateMotion dur={`${duration}ms`} begin={`${delay}ms`} fill="freeze" path={path} rotate="0" />
         <g transform={`rotate(${flightAngle})`}>
-          {/* A short textured wake travels WITH the projectile, never a board-spanning guide line. */}
-          <image href={COMMANDER_VFX.lance} x={-size} y={-size / 2} width={size} height={size} className="cc-vfx-wake" style={{ filter: deathBolt ? undefined : actorCombatant.side === 'player' ? 'hue-rotate(300deg)' : 'hue-rotate(100deg)', opacity: deathBolt ? 1 : .45 }} />
+          <image href={COMMANDER_VFX.lance} x={-size} y={-size / 2} width={size} height={size} className="cc-vfx-wake" style={{ filter: powerFilter ?? (powerShot ? undefined : actorCombatant.side === 'player' ? 'hue-rotate(300deg)' : 'hue-rotate(100deg)'), opacity: powerShot ? 1 : .45 }} />
         </g>
-        {!deathBolt && authoredProjectile && <svg x="-28" y="-28" width="56" height="56" viewBox="0 0 100 100" overflow="visible"><image className="cc-authored-projectile" href={authoredProjectile} x="10" y="10" width="80" height="80" transform={`rotate(${angle} 50 50)`} /></svg>}
+        {!powerShot && authoredProjectile && <svg x="-28" y="-28" width="56" height="56" viewBox="0 0 100 100" overflow="visible"><image className="cc-authored-projectile" href={authoredProjectile} x="10" y="10" width="80" height="80" transform={`rotate(${angle} 50 50)`} /></svg>}
       </g>
     </svg>
   );
@@ -188,7 +200,14 @@ const EventBanner: React.FC<{
   if (!step) return null;
   const actor = combatants.find((candidate) => candidate.name === step.event.actorName);
   const target = combatants.find((candidate) => candidate.name === step.event.targetName);
-  const label = step.kind === 'focus_lock' ? copy.locked : step.event.code === 'death_bolt' ? copy.bolt : step.event.code === 'guard' ? copy.guard : step.event.code === 'focus_target' ? copy.focus : copy.impact;
+  const label = step.kind === 'focus_lock' ? copy.locked
+    : step.event.code === 'death_bolt' ? copy.bolt
+      : step.event.code === 'chain_surge' ? copy.stormPower
+        : step.event.code === 'rot_miasma' ? copy.rotPower
+          : step.event.code === 'raise_dead' ? copy.gravePower
+            : step.event.code === 'guard' ? copy.guard
+              : step.event.code === 'focus_target' ? copy.focus
+                : copy.impact;
   return (
     <div className="cc-event-banner pointer-events-none absolute left-1/2 top-4 z-[70] w-[min(92%,520px)] -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/78 px-3 py-2 shadow-[0_8px_36px_rgba(2,6,23,.58)] backdrop-blur-lg">
       <div className="flex items-center justify-center gap-2" dir="ltr">
@@ -197,6 +216,7 @@ const EventBanner: React.FC<{
         {target && <div className="h-8 w-8 shrink-0"><CommanderUnitPortrait combatant={target} instance={`stage-target-${step.id}`} defeated={target.hp <= 0} /></div>}
         {step.kind === 'attack' && step.hpDamage > 0 && <span className="text-[10px] font-black text-red-300">-{step.hpDamage} HP</span>}
         {step.kind === 'guard' && (step.event.amount ?? 0) > 0 && <span className="text-[10px] font-black text-cyan-200">+{step.event.amount} SH</span>}
+        {step.kind === 'restore' && (step.event.amount ?? 0) > 0 && <span className="text-[10px] font-black text-lime-200">+{step.event.amount} HP</span>}
       </div>
       <span className="sr-only">{commanderEventText(step.event, language)}</span>
     </div>
@@ -248,6 +268,9 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
   }, []);
   const lastSoundKeyRef = useRef('');
   const isDeathBoltImpact = effectsOn && activeStep?.event.code === 'death_bolt' && phase === 'impact';
+  const isStormImpact = effectsOn && activeStep?.event.code === 'chain_surge' && phase === 'impact';
+  const isRotImpact = effectsOn && activeStep?.event.code === 'rot_miasma' && phase === 'impact';
+  const isGraveImpact = effectsOn && activeStep?.event.code === 'raise_dead' && phase === 'impact';
   const outcomeLabel = status === 'victory' ? copy.victory : status === 'defeat' ? copy.defeat : status === 'draw' ? copy.draw : null;
   const expiry = new Date(expiresAt).toLocaleTimeString(language === 'ar' ? 'ar' : language === 'ru' ? 'ru-RU' : 'en-US', { hour: '2-digit', minute: '2-digit' });
 
@@ -266,18 +289,18 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
     let cue: CommanderSfxCue | null = null;
     if (phase === 'windup') {
       if (activeStep.kind === 'focus_lock' || activeStep.event.code === 'focus_target') cue = 'focus';
-      else if (activeStep.event.code === 'death_bolt') cue = 'deathBoltCharge';
+      else if (activeStep.event.code === 'death_bolt' || activeStep.event.code === 'chain_surge') cue = 'deathBoltCharge';
       else if (activeStep.kind === 'attack') cue = actor && isCommanderRangedSprite(actor.id) ? 'rangedFire' : 'meleeWindup';
     }
     if (phase === 'impact') {
-      if (activeStep.kind === 'guard') cue = 'guard';
+      if (activeStep.kind === 'guard' || activeStep.kind === 'restore') cue = 'guard';
       else if (activeStep.kind === 'defeat') cue = 'ko';
       else if (activeStep.kind === 'outcome') cue = activeStep.event.code === 'battle_victory' ? 'victory' : activeStep.event.code === 'battle_defeat' ? 'defeat' : 'draw';
-      else if (activeStep.event.code === 'death_bolt') cue = 'deathBoltImpact';
+      else if (activeStep.event.code === 'death_bolt' || activeStep.event.code === 'chain_surge') cue = 'deathBoltImpact';
       else if (activeStep.kind === 'attack') cue = activeStep.shieldDamage > 0 ? 'shieldHit' : 'hit';
     }
     if (cue) void playCommanderSfx(cue);
-    if (phase === 'impact' && activeStep.event.code === 'death_bolt' && effectsOn) void playCommanderSfx('thunder');
+    if (phase === 'impact' && (activeStep.event.code === 'death_bolt' || activeStep.event.code === 'chain_surge') && effectsOn) void playCommanderSfx('thunder');
   }, [activeStep, phase, soundOn, combatants, effectsOn]);
 
   const handleSelectTarget = (id: string) => {
@@ -313,24 +336,26 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
     const target = activeStep?.event.targetName === combatant.name;
     const defeat = activeStep?.kind === 'defeat' && activeStep.event.actorName === combatant.name;
     const guard = activeStep?.kind === 'guard' && activeStep.event.actorName === combatant.name;
+    const restore = activeStep?.kind === 'restore' && activeStep.event.targetName === combatant.name;
     const focusLock = activeStep?.kind === 'focus_lock' && activeStep.event.targetName === combatant.name;
     const canTarget = intro.done && combatant.side === 'enemy' && targetable && combatant.hp > 0;
     const impactTarget = Boolean(target && phase === 'impact');
     const impactGuard = Boolean(guard && phase === 'impact');
+    const impactRestore = Boolean(restore && phase === 'impact');
     const shieldOnlyHit = Boolean(activeStep?.kind === 'attack' && activeStep.shieldDamage > 0 && activeStep.hpDamage === 0);
     const pose = resolveSpritePose(combatant, activeStep, phase);
 
     let actionClass = '';
     if (actor && animationsOn) {
-      if (guard) actionClass = 'cc-actor-guard';
-      else if (activeStep?.event.code === 'death_bolt') actionClass = 'cc-actor-deathbolt';
+      if (guard || activeStep?.kind === 'restore') actionClass = 'cc-actor-guard';
+      else if (activeStep?.event.code === 'death_bolt' || activeStep?.event.code === 'chain_surge') actionClass = 'cc-actor-deathbolt';
       else if (activeStep?.event.code === 'focus_target' || activeStep?.kind === 'focus_lock') actionClass = 'cc-actor-focus';
       else if (activeStep?.kind === 'attack' && isCommanderRangedSprite(combatant.id)) actionClass = 'cc-actor-ranged';
       else if (activeStep?.kind === 'attack') actionClass = combatant.side === 'player' ? 'cc-actor-melee-right' : 'cc-actor-melee-left';
     }
 
-    const hitClass = impactTarget && animationsOn
-      ? activeStep?.event.code === 'death_bolt' ? 'cc-target-hit-heavy' : shieldOnlyHit ? 'cc-target-hit-shield' : 'cc-target-hit'
+    const hitClass = impactTarget && activeStep?.kind === 'attack' && animationsOn
+      ? (activeStep.event.code === 'death_bolt' || activeStep.event.code === 'chain_surge') ? 'cc-target-hit-heavy' : shieldOnlyHit ? 'cc-target-hit-shield' : 'cc-target-hit'
       : '';
 
     return (
@@ -356,13 +381,17 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
 
           <div className={`cc-stage-action-shell relative mx-auto aspect-[1/1.15] w-full origin-bottom ${actionClass} ${hitClass} ${defeat && animationsOn ? 'cc-stage-defeat' : ''}`}>
             <CommanderBattleSprite combatant={combatant} pose={pose} active={Boolean(actor)} defeated={pose === 'defeated'} />
-            {actor && activeStep?.event.code === 'death_bolt' && phase === 'windup' && effectsOn && <DeathBoltCharge />}
+            {actor && (activeStep?.event.code === 'death_bolt' || activeStep?.event.code === 'chain_surge') && phase === 'windup' && effectsOn && <DeathBoltCharge />}
             {guard && effectsOn && phase !== 'settle' && <AegisShield />}
-            {impactTarget && effectsOn && activeStep?.kind === 'attack' && <ImpactBurst deathBolt={activeStep.event.code === 'death_bolt'} shieldOnly={shieldOnlyHit} />}
+            {impactTarget && effectsOn && activeStep?.kind === 'attack' && <ImpactBurst deathBolt={activeStep.event.code === 'death_bolt' || activeStep.event.code === 'chain_surge'} shieldOnly={shieldOnlyHit} />}
+            {impactRestore && effectsOn && <span aria-hidden className="absolute inset-[8%] rounded-full border border-lime-200/40 bg-lime-300/[0.08] shadow-[0_0_42px_rgba(163,230,53,.4),inset_0_0_32px_rgba(250,204,21,.12)]" />}
           </div>
 
           <div className="cc-unit-vitals relative z-[60] rounded-lg border border-white/15 bg-slate-950/95 px-1.5 py-1.5 text-left shadow-lg">
-            <div className="mx-auto max-w-[170px] break-words text-[11px] font-black leading-[1.2] text-white sm:text-xs">{combatant.name}</div>
+            <div className="flex items-start justify-between gap-1">
+              <div className="max-w-[130px] break-words text-[11px] font-black leading-[1.2] text-white sm:text-xs">{combatant.name}</div>
+              {combatant.school && combatant.school !== 'neutral' && <span className="rounded-full border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[6px] font-black uppercase tracking-[0.1em] text-slate-300">{combatant.school}</span>}
+            </div>
 
               <div className="mt-1 space-y-1 font-mono text-[11px] font-bold leading-tight text-white">
                 <div className="flex flex-wrap items-center justify-between gap-x-1"><span className="text-emerald-300">HP</span><span>{combatant.hp}/{combatant.maxHp}</span></div>
@@ -379,6 +408,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
             </span>
           )}
           {impactGuard && <span key={`${activeStep?.id}-guard`} className="pointer-events-none absolute left-1/2 top-[5%] z-[80] -translate-x-1/2 whitespace-nowrap"><CombatFloat tone="shieldGain">+{activeStep?.event.amount ?? 0} {copy.shield}</CombatFloat></span>}
+          {impactRestore && <span key={`${activeStep?.id}-restore`} className="pointer-events-none absolute left-1/2 top-[5%] z-[80] -translate-x-1/2 whitespace-nowrap"><CombatFloat tone="restore">+{activeStep?.event.amount ?? 0} HP</CombatFloat></span>}
           {defeat && phase === 'impact' && <span className="pointer-events-none absolute left-1/2 top-[5%] z-[80] -translate-x-1/2"><CombatFloat tone="ko">K.O.</CombatFloat></span>}
         </div>
         </div>
@@ -405,7 +435,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         @keyframes ccStageFloat{0%{opacity:0;transform:translate3d(0,14px,0) scale(.76)}14%{opacity:1;transform:translate3d(0,-2px,0) scale(1.16)}70%{opacity:1;transform:translate3d(0,-58px,0) scale(1)}100%{opacity:0;transform:translate3d(0,-90px,0) scale(.94)}}
         @keyframes ccStageArenaHit{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(1px)}}
         @keyframes ccStageEvent{from{opacity:0;transform:translate(-50%,-8px) scale(.98)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
-        @keyframes ccSpriteSwap{0%{opacity:.45;filter:brightness(.82)}100%{opacity:1;filter:brightness(1)}}
+        @keyframes ccPowerPulse{0%{opacity:0;transform:scale(.82)}28%{opacity:.8}100%{opacity:0;transform:scale(1.16)}}
         .cc-stage-unit:hover,.cc-stage-unit:focus-visible{transform:translate(-50%,-82%)!important}
         .cc-stage-unit:hover .cc-stage-action-shell,.cc-stage-unit:focus-visible .cc-stage-action-shell{filter:brightness(1.06) drop-shadow(0 0 9px rgba(251,191,36,.12))}
         .cc-authored-sprite{animation:none}
@@ -423,7 +453,8 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         .cc-combat-float{animation:ccStageFloat 1450ms cubic-bezier(.16,.82,.2,1) forwards;will-change:transform,opacity}
         .cc-stage-arena-hit{animation:ccStageArenaHit 240ms linear}
         .cc-event-banner{animation:ccStageEvent 260ms ease-out}
-        @media(prefers-reduced-motion:reduce){.cc-deployment-shell{transition:none!important}.cc-opening-black{animation:none;opacity:0}.cc-authored-sprite,.cc-actor-melee-right,.cc-actor-melee-left,.cc-actor-ranged,.cc-actor-focus,.cc-actor-deathbolt,.cc-actor-guard,.cc-target-hit,.cc-target-hit-shield,.cc-target-hit-heavy,.cc-stage-defeat,.cc-stage-focus-ground,.cc-combat-float,.cc-stage-arena-hit,.cc-event-banner{animation:none!important}}
+        .cc-power-pulse{animation:ccPowerPulse 900ms ease-out forwards}
+        @media(prefers-reduced-motion:reduce){.cc-deployment-shell{transition:none!important}.cc-opening-black{animation:none;opacity:0}.cc-authored-sprite,.cc-actor-melee-right,.cc-actor-melee-left,.cc-actor-ranged,.cc-actor-focus,.cc-actor-deathbolt,.cc-actor-guard,.cc-target-hit,.cc-target-hit-shield,.cc-target-hit-heavy,.cc-stage-defeat,.cc-stage-focus-ground,.cc-combat-float,.cc-stage-arena-hit,.cc-event-banner,.cc-power-pulse{animation:none!important}}
       `}</style>
 
       <div className="relative z-[90] flex flex-wrap items-center justify-between gap-2 border-b border-white/5 bg-slate-950/54 px-3 py-2.5 backdrop-blur-md sm:px-4">
@@ -445,7 +476,9 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
       <div aria-label="Battlefield" dir="ltr">
       <div ref={boardRef} data-compact={compact} className="cc-battle-board relative w-full overflow-hidden" style={{ height: compact ? `${Math.max(780, Math.min(840, boardSize.width + 440))}px` : 'clamp(600px, 78svh, 760px)', containerType: 'size' }} dir="ltr">
         <TacticalBackdrop />
-        {isDeathBoltImpact && animationsOn && <StormDischarge key={activeStep?.id} />}
+        {(isDeathBoltImpact || isStormImpact) && animationsOn && <StormDischarge key={activeStep?.id} />}
+        {isRotImpact && animationsOn && <span aria-hidden className="cc-power-pulse pointer-events-none absolute inset-[10%] z-30 rounded-[40%] border border-lime-300/30 bg-[radial-gradient(circle,rgba(163,230,53,.14),rgba(217,70,239,.08)_45%,transparent_72%)] shadow-[0_0_90px_rgba(132,204,22,.22)]" />}
+        {isGraveImpact && animationsOn && <span aria-hidden className="cc-power-pulse pointer-events-none absolute inset-[14%] z-30 rounded-[45%] border border-lime-200/25 bg-[radial-gradient(circle,rgba(217,249,157,.15),rgba(250,204,21,.06)_48%,transparent_72%)] shadow-[0_0_90px_rgba(163,230,53,.18)]" />}
         {!intro.done && <div aria-hidden className="cc-opening-black pointer-events-none absolute inset-0 z-[80] bg-black" />}
         {!intro.done && <div aria-hidden className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,.7))]" />}
         {!intro.done && intro.team && <div aria-hidden className={`pointer-events-none absolute inset-y-0 w-1/2 ${intro.team === 'player' ? 'left-0 bg-cyan-400/5' : 'right-0 bg-fuchsia-400/5'}`} />}
@@ -471,7 +504,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         <button type="button" onClick={intro.skip} className="pointer-events-auto mt-3 rounded-full border border-white/20 bg-slate-950/90 px-4 py-2 text-[10px] font-bold tracking-widest text-slate-200">SKIP INTRO</button>
       </div>}
       </div>
-      {status === 'active' && <CommanderCommandDock copy={copy} busy={busy || !intro.done} selectedTargetId={selectedTargetId} deathBoltCooldown={deathBoltCooldown} onMove={handleMove} />}
+      {status === 'active' && <CommanderCommandDock copy={copy} busy={busy || !intro.done} combatants={combatants} selectedTargetId={selectedTargetId} deathBoltCooldown={deathBoltCooldown} onMove={handleMove} />}
 
     </section>
   );
