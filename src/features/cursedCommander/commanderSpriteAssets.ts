@@ -69,6 +69,8 @@ export type CommanderSpriteDefinition = {
  * catalog id automatically switches from the starter fallback to its authored set.
  */
 const eliteSpriteAssets = import.meta.glob([
+  '../../assets/Neon Bulwark/*.png',
+  '../../assets/Shade Deadeye/*.png',
   '../../assets/Grave Bastion/*.png',
   '../../assets/Rift Reaver/*.png',
   '../../assets/Plague Scribe/*.png',
@@ -76,6 +78,17 @@ const eliteSpriteAssets = import.meta.glob([
 ], { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 
 const eliteAsset = (path: string, fallback: string) => eliteSpriteAssets[path] ?? fallback;
+
+const bulwarkStanding = eliteAsset('../../assets/Neon Bulwark/Neon Bulwark standing.png', neonStanding);
+const bulwarkAttacking = eliteAsset('../../assets/Neon Bulwark/Neon Bulwark attacking.png', neonAttacking);
+const bulwarkAttacked = eliteAsset('../../assets/Neon Bulwark/Neon Bulwark attacked.png', neonAttacked);
+const bulwarkDefeated = eliteAsset('../../assets/Neon Bulwark/Neon Bulwark defeated.png', neonDefeated);
+
+const deadeyeStanding = eliteAsset('../../assets/Shade Deadeye/Shade Deadeye standing.png', shadeStanding);
+const deadeyeAttacking = eliteAsset('../../assets/Shade Deadeye/Shade Deadeye attacking.png', shadeAttacking);
+const deadeyeJustShot = eliteAsset('../../assets/Shade Deadeye/Shade Deadeye just shot.png', shadeJustShot);
+const deadeyeAttacked = eliteAsset('../../assets/Shade Deadeye/Shade Deadeye attacked.png', shadeAttacked);
+const deadeyeDefeated = eliteAsset('../../assets/Shade Deadeye/Shade Deadeye defeated.png', shadeDefeated);
 
 const graveStanding = eliteAsset('../../assets/Grave Bastion/Grave Bastion standing.png', neonStanding);
 const graveAttacking = eliteAsset('../../assets/Grave Bastion/Grave Bastion attacking.png', neonAttacking);
@@ -116,8 +129,24 @@ export const COMMANDER_SPRITES: Record<string, CommanderSpriteDefinition> = {
     offsetX: 0,
     offsetY: 0,
   },
+  player_neon_bulwark: {
+    poses: { standing: bulwarkStanding, attacking: bulwarkAttacking, attacked: bulwarkAttacked, defeated: bulwarkDefeated },
+    ranged: false,
+    visualScale: 1.04,
+    offsetX: 0,
+    offsetY: 0,
+  },
   player_archer: {
     poses: { standing: shadeStanding, attacking: shadeAttacking, justShot: shadeJustShot, attacked: shadeAttacked, defeated: shadeDefeated },
+    projectile: shadeArrow,
+    projectileAngle: 46,
+    ranged: true,
+    visualScale: 1,
+    offsetX: 0,
+    offsetY: 0,
+  },
+  player_shade_deadeye: {
+    poses: { standing: deadeyeStanding, attacking: deadeyeAttacking, justShot: deadeyeJustShot, attacked: deadeyeAttacked, defeated: deadeyeDefeated },
     projectile: shadeArrow,
     projectileAngle: 46,
     ranged: true,
@@ -189,11 +218,11 @@ export const COMMANDER_SPRITES: Record<string, CommanderSpriteDefinition> = {
 /** Stable combatant ids remain deterministic; catalog identity only picks presentation. */
 export const COMMANDER_CATALOG_SPRITE_KEYS: Record<string, string> = {
   neon_guard: 'player_guard',
-  neon_bulwark: 'player_guard',
+  neon_bulwark: 'player_neon_bulwark',
   grave_bastion: 'player_grave_bastion',
   rift_reaver: 'player_rift_reaver',
   shade_archer: 'player_archer',
-  shade_deadeye: 'player_archer',
+  shade_deadeye: 'player_shade_deadeye',
   plague_scribe: 'player_plague_scribe',
   volt_seer: 'player_volt_seer',
 };
