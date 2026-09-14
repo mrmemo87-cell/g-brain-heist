@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import test from 'node:test';
+
+const root = process.cwd();
+const read = (path: string) => readFileSync(join(root, path), 'utf8');
+
+test('Commander headquarters uses the command-center presentation and real loadout identity', () => {
+  const source = read('src/features/cursedCommander/CommanderHeadquarters.tsx');
+  const service = read('services/commanderHeadquartersService.ts');
+
+  assert.match(source, /commanderHeadquartersCommandCenter\.css/);
+  assert.match(source, /COMMANDER_VFX\.headquarters/);
+  assert.match(source, /getCommanderRecruitIdentity/);
+  assert.match(source, /sprite\(item\.slot, item\.id\)/);
+  assert.match(source, /loadout\?\.units\[0\]\?\.catalogId/);
+  assert.match(source, /loadout\?\.units\[1\]\?\.school/);
+  assert.match(source, /Quick Deploy/);
+  assert.match(source, /Strike output/);
+  assert.match(source, /Shield reserve/);
+  assert.equal(source.includes('420 / 800 XP'), false, 'unit-specific XP must not be faked');
+
+  assert.match(service, /catalogId\?: string/);
+  assert.match(service, /school\?: CommanderSchool/);
+});
+
+test('Commander command-center art and responsive UX contract are shipped', () => {
+  const css = read('src/features/cursedCommander/commanderHeadquartersCommandCenter.css');
+  const vfx = read('src/features/cursedCommander/commanderVfxAssets.ts');
+  const art = 'src/assets/commander-vfx/headquarters-command-center.svg';
+
+  assert.equal(existsSync(join(root, art)), true, 'headquarters command-center art must ship');
+  assert.match(vfx, /headquarters-command-center\.svg/);
+  assert.match(vfx, /headquarters,/);
+  assert.match(css, /scroll-snap-type:\s*x mandatory/);
+  assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  assert.match(css, /cc-command-squad-card--commander/);
+  assert.match(css, /cc-command-hero-action\.is-primary/);
+});

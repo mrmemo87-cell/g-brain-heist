@@ -15,10 +15,12 @@ import {
   commanderStatRank,
   commanderTrainingCost,
 } from "./commanderHeadquartersModel";
+import { getCommanderRecruitIdentity } from "./commanderRecruitIdentity";
 import { getCommanderSpriteUrl } from "./commanderSpriteAssets";
 import { COMMANDER_VFX } from "./commanderVfxAssets";
 import CommanderPracticeArena from "./CommanderPracticeArena";
 import "./commanderHeadquarters.css";
+import "./commanderHeadquartersCommandCenter.css";
 
 type Tab = "overview" | "army" | "armory" | "training" | "records";
 type Choice = {
@@ -28,13 +30,16 @@ type Choice = {
   cost: number;
   detail: string;
 };
-const tabs: Array<[Tab, string, string]> = [
-  ["overview", "Headquarters", "◈"],
-  ["army", "Army", "♜"],
-  ["armory", "Armory", "◇"],
-  ["training", "Training", "↗"],
-  ["records", "Records", "≡"],
+type SquadSlot = "guard" | "commander" | "archer";
+
+const tabs: Array<[Tab, string]> = [
+  ["overview", "Headquarters"],
+  ["army", "Army"],
+  ["armory", "Armory"],
+  ["training", "Training"],
+  ["records", "Records"],
 ];
+
 const stats: Array<{
   id: CommanderStat;
   name: string;
@@ -66,16 +71,68 @@ const stats: Array<{
     icon: "✧",
   },
 ];
+
 const format = (n: number) => n.toLocaleString("en-US");
-const sprite = (slot: string) =>
-  getCommanderSpriteUrl(
-    slot === "guard"
-      ? "player_guard"
-      : slot === "archer"
-        ? "player_archer"
-        : "player_commander",
-    "standing",
+
+const combatantId = (slot: SquadSlot | string) =>
+  slot === "guard"
+    ? "player_guard"
+    : slot === "archer"
+      ? "player_archer"
+      : "player_commander";
+
+const sprite = (slot: SquadSlot | string, catalogId?: string | null) =>
+  getCommanderSpriteUrl(combatantId(slot), "standing", catalogId) ?? undefined;
+
+const themeStyle = (accent: string, accent2: string, glow: string) =>
+  ({
+    "--cc-accent": accent,
+    "--cc-accent-2": accent2,
+    "--cc-card-glow": glow,
+  }) as React.CSSProperties;
+
+const TabIcon = ({ tab }: { tab: Tab }) => {
+  if (tab === "overview") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="m12 3 8 8-8 8-8-8 8-8Z" />
+        <path d="m12 8 3 3-3 3-3-3 3-3Z" />
+      </svg>
+    );
+  }
+  if (tab === "army") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="M7 5h10l-1 4 2 3-2 7H8l-2-7 2-3-1-4Z" />
+        <path d="M9 9h6M10 14h4" />
+      </svg>
+    );
+  }
+  if (tab === "armory") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="m12 3 7 4v5c0 4.4-2.8 7.4-7 9-4.2-1.6-7-4.6-7-9V7l7-4Z" />
+        <path d="m9 12 2 2 4-5" />
+      </svg>
+    );
+  }
+  if (tab === "training") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="M5 18 18 5M11 5h7v7" />
+        <path d="M5 12v6h6" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden>
+      <path d="M6 6h12M6 12h12M6 18h12" />
+      <circle cx="9" cy="6" r="1" />
+      <circle cx="15" cy="12" r="1" />
+      <circle cx="11" cy="18" r="1" />
+    </svg>
   );
+};
 
 export default function CommanderHeadquarters({
   userId,
@@ -126,6 +183,7 @@ export default function CommanderHeadquarters({
       if (alive.current && request.current === controller) setLoading(false);
     }
   }, []);
+
   useEffect(() => {
     alive.current = true;
     void refresh();
@@ -134,6 +192,7 @@ export default function CommanderHeadquarters({
       request.current?.abort();
     };
   }, [refresh]);
+
   useEffect(() => {
     if (choice) confirmation.current?.focus();
   }, [choice]);
@@ -209,6 +268,7 @@ export default function CommanderHeadquarters({
       }
     }
   };
+
   const claimStarterSquad = () =>
     void execute({
       operation: "enroll",
@@ -217,48 +277,96 @@ export default function CommanderHeadquarters({
       cost: 0,
       detail: "",
     });
+
   const propose = (next: Choice) => {
     if (busy || retryPending) return;
     setChoice(next);
     setNotice("");
   };
-  const p = hq?.profile,
-    loadout = hq?.loadout;
+
+  const p = hq?.profile;
+  const loadout = hq?.loadout;
   const coins = hq?.wallet?.coins ?? p?.coins ?? 0;
+
   useEffect(() => {
     if (hq?.wallet) onBalanceChange?.(userId, hq.wallet.coins);
   }, [hq, userId, onBalanceChange]);
+
   const unavailable = busy || retryPending || loading;
   const find = (id: string | null | undefined) =>
-    hq?.catalog.find((i) => i.id === id);
+    hq?.catalog.find((item) => item.id === id);
   const goal = find(p?.goal);
+  const guardItem = find(p?.guard);
+  const archerItem = find(p?.archer);
+  const level = p?.level ?? 1;
+  const levelFloor = commanderLevelXp(level);
+  const levelCeiling = level >= 100 ? levelFloor + 1 : commanderLevelXp(level + 1);
+  const levelProgress = level >= 100 ? 1 : Math.max(0, (p?.xp ?? 0) - levelFloor);
+  const levelSpan = level >= 100 ? 1 : Math.max(1, levelCeiling - levelFloor);
+  const deployed = p ? 3 : 0;
+  const strikeOutput = loadout
+    ? loadout.bolt + loadout.units.reduce((sum, unit) => sum + unit.attack, 0)
+    : 0;
+  const shieldReserve = loadout
+    ? loadout.shield + loadout.units.reduce((sum, unit) => sum + unit.shield, 0)
+    : 0;
+
   const costLabel = (price: number) =>
     price > coins
       ? `${format(commanderMissingCoins(price, coins))} Coins needed`
       : `${format(price)} Coins`;
+
+  const selectTab = (next: Tab) => {
+    setTab(next);
+    setChoice(null);
+  };
+
   const catalogCards = (items: CommanderCatalogItem[]) => (
-    <div className="cc-hq-catalog">
+    <div className="cc-hq-catalog cc-command-catalog">
       {items.map((item) => {
-        const owned = hq!.owned.includes(item.id),
-          equipped = commanderItemEquipped(hq!, item),
-          current = find(p?.[item.slot]);
+        const owned = hq!.owned.includes(item.id);
+        const equipped = commanderItemEquipped(hq!, item);
+        const current = find(p?.[item.slot]);
+        const identity = getCommanderRecruitIdentity(
+          item.kind === "unit" ? item.id : null,
+          item.kind === "unit" ? item.school : "neutral",
+        );
+        const unitArt = item.kind === "unit" ? sprite(item.slot, item.id) : undefined;
         return (
           <article
-            className={`cc-hq-item ${equipped ? "is-equipped" : ""}`}
+            className={`cc-hq-item cc-command-catalog-card ${equipped ? "is-equipped" : ""}`}
             key={item.id}
+            data-school={item.school ?? "neutral"}
+            style={themeStyle(identity.accent, identity.accent2, identity.glow)}
           >
             <div className={`cc-hq-item-art cc-hq-item-art--${item.slot}`}>
-              <span className="cc-hq-item-tag">
-                {item.slot === "guard"
-                  ? "Frontline"
-                  : item.slot === "archer"
-                    ? "Ranged"
-                    : item.slot}
-              </span>
+              <div className="cc-command-catalog-kicker">
+                <span>
+                  {item.slot === "guard"
+                    ? "Frontline"
+                    : item.slot === "archer"
+                      ? "Ranged"
+                      : item.slot}
+                </span>
+                {item.kind === "unit" && (
+                  <span className="cc-command-rarity">
+                    {(item.rarity ?? "common").toUpperCase()}
+                  </span>
+                )}
+              </div>
+              {item.kind === "unit" && identity.sigilUrl && (
+                <img
+                  className="cc-command-faction-sigil"
+                  src={identity.sigilUrl}
+                  alt=""
+                  draggable={false}
+                />
+              )}
               <img
+                className="cc-command-catalog-art"
                 src={
                   item.kind === "unit"
-                    ? sprite(item.slot)
+                    ? unitArt
                     : item.kind === "weapon"
                       ? COMMANDER_VFX.lance
                       : COMMANDER_VFX.slash
@@ -276,7 +384,15 @@ export default function CommanderHeadquarters({
             </div>
             <div className="cc-hq-item-body">
               <h3>{item.name}</h3>
+              {item.kind === "unit" && (
+                <p className="cc-command-codename">
+                  {identity.sigil} {identity.codename}
+                </p>
+              )}
               <p>{item.description}</p>
+              {item.kind === "unit" && (
+                <p className="cc-command-doctrine">{identity.doctrine}</p>
+              )}
               <dl className="cc-hq-item-stats">
                 {Object.entries(item.stats)
                   .filter(([, value]) => value !== 0)
@@ -372,78 +488,119 @@ export default function CommanderHeadquarters({
         }}
       />
     );
+
+  const guardIdentity = getCommanderRecruitIdentity(
+    loadout?.units[0]?.catalogId ?? guardItem?.id,
+    loadout?.units[0]?.school ?? guardItem?.school,
+  );
+  const archerIdentity = getCommanderRecruitIdentity(
+    loadout?.units[1]?.catalogId ?? archerItem?.id,
+    loadout?.units[1]?.school ?? archerItem?.school,
+  );
+
+  const squad = [
+    {
+      slot: "guard" as const,
+      index: "01",
+      role: "FRONTLINE",
+      name: guardItem?.name ?? loadout?.units[0]?.name ?? "Neon Guard",
+      unit: loadout?.units[0] ?? null,
+      catalogId: loadout?.units[0]?.catalogId ?? guardItem?.id ?? "neon_guard",
+      identity: guardIdentity,
+      rarity: guardItem?.rarity ?? "common",
+      school: loadout?.units[0]?.school ?? guardItem?.school ?? "neutral",
+    },
+    {
+      slot: "commander" as const,
+      index: "02",
+      role: "COMMANDER",
+      name: "Cipher Commander",
+      unit: loadout
+        ? { hp: loadout.hp, shield: loadout.shield, attack: loadout.bolt }
+        : null,
+      catalogId: null,
+      identity: {
+        school: "void",
+        sigil: "◈",
+        sigilUrl: null,
+        codename: "Cipher Prime",
+        doctrine: "Direct the formation. Break the enemy rhythm.",
+        power: "Death Bolt",
+        accent: "#c084fc",
+        accent2: "#7c3aed",
+        glow: "rgba(168,85,247,.42)",
+      },
+      rarity: "core",
+      school: "command",
+    },
+    {
+      slot: "archer" as const,
+      index: "03",
+      role: "RANGED",
+      name: archerItem?.name ?? loadout?.units[1]?.name ?? "Shade Archer",
+      unit: loadout?.units[1] ?? null,
+      catalogId: loadout?.units[1]?.catalogId ?? archerItem?.id ?? "shade_archer",
+      identity: archerIdentity,
+      rarity: archerItem?.rarity ?? "common",
+      school: loadout?.units[1]?.school ?? archerItem?.school ?? "neutral",
+    },
+  ];
+
   return (
     <section
-      className="cc-hq"
+      className="cc-hq cc-command-center"
       lang="en"
       dir="ltr"
       data-no-interface-translation="true"
       aria-labelledby="cc-hq-title"
     >
-      <header className="cc-hq-top">
-        <button className="cc-hq-back" onClick={onClose}>
-          ← Dashboard
-        </button>
-        <span className="cc-hq-edition">COMMANDER / FOUNDERS PILOT</span>
-        <button
-          className="cc-hq-text-button"
-          onClick={() => void refresh()}
-          disabled={unavailable}
-        >
-          Refresh
-        </button>
-      </header>
-      <div
-        className="cc-hq-hero"
-        style={{
-          backgroundImage: `linear-gradient(90deg,rgba(4,10,22,.96),rgba(4,10,22,.45)),url(${COMMANDER_VFX.arena})`,
-        }}
-      >
-        <div className="cc-hq-hero-copy">
-          <span className="cc-hq-eyebrow">
-            {hq?.campaign.title ?? "Your command begins here"}
+      <header className="cc-command-bar">
+        <button className="cc-command-brand" onClick={onClose} aria-label="Return to dashboard">
+          <span className="cc-command-brand-mark" aria-hidden>◇</span>
+          <span>
+            <strong>CURSED COMMANDER</strong>
+            <small>Field operations</small>
           </span>
-          <h1 id="cc-hq-title">
-            CURSED
-            <br />
-            <span>COMMANDER</span>
-          </h1>
-          <p>
-            Build your army. Choose your edge.
-            <br />
-            Make every command count.
-          </p>
-          <div className="cc-hq-hero-actions">
-            {p ? (
-              <button
-                className="cc-hq-primary"
-                disabled={unavailable}
-                onClick={() => setPractice("owned")}
-              >
-                Enter practice <span aria-hidden>↗</span>
-              </button>
-            ) : (
-              <button
-                className="cc-hq-primary"
-                disabled={!hq || unavailable}
-                onClick={claimStarterSquad}
-              >
-                {busy ? "Preparing your squad…" : "Claim starter squad"}
-              </button>
-            )}
-            <span>
-              {p
-                ? "Your equipped army · no battle costs"
-                : "Free starter squad · 2 starter units"}
-            </span>
+        </button>
+
+        <nav className="cc-command-nav" aria-label="Commander sections">
+          {tabs.map(([id, label]) => (
+            <button
+              key={id}
+              aria-current={tab === id ? "page" : undefined}
+              onClick={() => selectTab(id)}
+            >
+              <TabIcon tab={id} />
+              <span>{label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="cc-command-status">
+          <div className="cc-command-rank">
+            <div className="cc-command-rank-avatar" aria-hidden>
+              <img src={sprite("commander")} alt="" draggable={false} />
+            </div>
+            <div>
+              <span>COMMANDER</span>
+              <strong>Level {level}</strong>
+              <progress max={levelSpan} value={Math.min(levelProgress, levelSpan)} aria-label="Commander level progress" />
+            </div>
           </div>
+          <div className="cc-command-resource" title="Brains Heist Coins">
+            <span aria-hidden>◉</span>
+            <strong>{format(coins)}</strong>
+          </div>
+          <div className="cc-command-resource" title="Owned Commander items">
+            <span aria-hidden>◇</span>
+            <strong>{hq ? hq.owned.length : 0}</strong>
+          </div>
+          <button className="cc-command-refresh" onClick={() => void refresh()} disabled={unavailable} aria-label="Refresh headquarters">
+            ↻
+          </button>
         </div>
-        <div className="cc-hq-hero-unit" aria-hidden>
-          <div />
-          <img src={sprite("commander")} alt="" draggable={false} />
-          <span>CIPHER / COMMANDER</span>
-        </div>
-      </div>
+      </header>
+
       {error && (
         <div className="cc-hq-message cc-hq-message--error" role="alert">
           <p>{error}</p>
@@ -451,9 +608,7 @@ export default function CommanderHeadquarters({
             <button
               className="cc-hq-secondary"
               disabled={busy}
-              onClick={() =>
-                attempt.current && void execute(attempt.current.choice, true)
-              }
+              onClick={() => attempt.current && void execute(attempt.current.choice, true)}
             >
               Retry same action
             </button>
@@ -475,435 +630,380 @@ export default function CommanderHeadquarters({
           </button>
         </div>
       )}
+
       {notice && (
         <p className="cc-hq-message" role="status">
           ✓ {notice}
         </p>
       )}
+
       {loading && !hq && (
         <div className="cc-hq-loading" role="status">
           <span />
           Loading your headquarters…
         </div>
       )}
+
       {hq && (
         <>
-          <div className="cc-hq-metrics">
-            <div>
-              <span>BRAINS HEIST COINS</span>
-              <strong>
-                {format(coins)} <small>◈</small>
-              </strong>
-              <p>Your shared account balance</p>
-            </div>
-            <div>
-              <span>COMMANDER LEVEL</span>
-              <strong>
-                {p?.level ?? 1}
-                <small> / 100</small>
-              </strong>
-              <p>{format(p?.xp ?? 0)} XP</p>
-            </div>
-            <div>
-              <span>DEPLOYED SQUAD</span>
-              <strong>
-                {p ? "02" : "—"}
-                <small> / 02</small>
-              </strong>
-              <p>{p ? "Formation ready" : "Claim your starter squad"}</p>
-            </div>
-            <div>
-              <span>COLLECTION</span>
-              <strong>{String(hq.owned.length).padStart(2, "0")}</strong>
-              <p>Units & equipment</p>
-            </div>
-          </div>
-          <nav className="cc-hq-nav" aria-label="Commander sections">
-            {tabs.map(([id, label, icon]) => (
-              <button
-                key={id}
-                aria-current={tab === id ? "page" : undefined}
-                onClick={() => {
-                  setTab(id);
-                  setChoice(null);
-                }}
+          {tab === "overview" && (
+            <>
+              <section
+                className="cc-command-hero"
+                style={{ backgroundImage: `url(${COMMANDER_VFX.headquarters})` }}
               >
-                <span aria-hidden>{icon}</span>
-                {label}
-              </button>
-            ))}
-          </nav>
-          {choice && (
-            <div
-              className="cc-hq-confirm"
-              role="region"
-              aria-label="Confirm Commander action"
-              tabIndex={-1}
-              ref={confirmation}
-            >
-              <div>
-                <span className="cc-hq-eyebrow">CONFIRM YOUR COMMAND</span>
-                <h2>{choice.title}</h2>
-                <p>{choice.detail}</p>
-                {choice.cost > 0 && (
-                  <strong>
-                    {format(choice.cost)} Coins · Balance after:{" "}
-                    {format(coins - choice.cost)}
-                  </strong>
-                )}
-              </div>
-              <div className="cc-hq-confirm-actions">
-                <button
-                  className="cc-hq-primary"
-                  disabled={unavailable}
-                  onClick={() => void execute(choice)}
-                >
-                  {busy ? "Confirming…" : "Confirm"}
-                </button>
-                <button
-                  className="cc-hq-secondary"
-                  disabled={busy || retryPending}
-                  onClick={() => setChoice(null)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-          <div className="cc-hq-content" aria-busy={busy}>
-            {tab === "overview" && (
-              <>
-                <div className="cc-hq-section-title">
-                  <div>
-                    <span className="cc-hq-eyebrow">DEPLOYMENT OVERVIEW</span>
-                    <h2>Your field command</h2>
-                  </div>
-                  {p && (
-                    <button
-                      className="cc-hq-text-button"
-                      onClick={() => setTab("army")}
-                    >
-                      Manage army ↗
-                    </button>
-                  )}
-                </div>
-                <div className="cc-hq-squad">
-                  {[
-                    {
-                      slot: "guard",
-                      name: find(p?.guard)?.name ?? "Neon Guard",
-                      unit: loadout?.units[0],
-                    },
-                    {
-                      slot: "commander",
-                      name: "Cipher Commander",
-                      unit: loadout
-                        ? {
-                            hp: loadout.hp,
-                            shield: loadout.shield,
-                            attack: loadout.bolt,
-                          }
-                        : null,
-                    },
-                    {
-                      slot: "archer",
-                      name: find(p?.archer)?.name ?? "Shade Archer",
-                      unit: loadout?.units[1],
-                    },
-                  ].map(({ slot, name, unit }) => (
-                    <article
-                      className={`cc-hq-squad-card cc-hq-squad-card--${slot}`}
-                      key={slot}
-                    >
-                      <span>
-                        {slot === "commander"
-                          ? "COMMANDER"
-                          : slot === "guard"
-                            ? "FRONTLINE"
-                            : "RANGED"}
-                      </span>
-                      <img src={sprite(slot)} alt="" draggable={false} />
-                      <h3>{name}</h3>
-                      {unit ? (
-                        <dl>
-                          <div>
-                            <dt>HP</dt>
-                            <dd>{unit.hp}</dd>
-                          </div>
-                          <div>
-                            <dt>SH</dt>
-                            <dd>{unit.shield}</dd>
-                          </div>
-                          <div>
-                            <dt>{slot === "commander" ? "BOLT" : "ATK"}</dt>
-                            <dd>{unit.attack}</dd>
-                          </div>
-                        </dl>
-                      ) : (
-                        <p>Starter squad</p>
-                      )}
-                    </article>
-                  ))}
-                </div>
-                <div className="cc-hq-overview-bottom">
-                  <article className="cc-hq-panel">
-                    <span className="cc-hq-eyebrow">NEXT ACQUISITION</span>
-                    <h2>{goal?.name ?? "Choose your next edge"}</h2>
-                    {goal ? (
-                      <>
-                        <p>
-                          {format(goal.price)} Coins · Your balance:{" "}
-                          {format(coins)}
-                        </p>
-                        <strong className="cc-hq-goal-amount">
-                          {p && coins >= goal.price
-                            ? "Ready to acquire"
-                            : `${format(commanderMissingCoins(goal.price, coins))} Coins needed`}
-                        </strong>
-                        <progress
-                          max={goal.price}
-                          value={Math.min(coins, goal.price)}
-                          aria-label={`${goal.name} budget`}
-                        />
-                        <button
-                          className="cc-hq-secondary"
-                          onClick={() =>
-                            setTab(goal.kind === "unit" ? "army" : "armory")
-                          }
-                        >
-                          View goal ↗
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <p>
-                          Pin a unit or equipment item to keep its price and
-                          your remaining balance in view.
-                        </p>
-                        <button
-                          className="cc-hq-secondary"
-                          onClick={() => setTab("armory")}
-                        >
-                          Explore armory ↗
-                        </button>
-                      </>
-                    )}
-                  </article>
-                  <article className="cc-hq-panel">
-                    <span className="cc-hq-eyebrow">COMMANDER PROGRESSION</span>
-                    <h2>Level {p?.level ?? 1}</h2>
-                    <p>
-                      {p?.level === 100
-                        ? "Maximum Commander level reached."
-                        : `${format(Math.max(0, commanderLevelXp((p?.level ?? 1) + 1) - (p?.xp ?? 0)))} XP to the next level`}
-                    </p>
-                    <progress
-                      max={
-                        p?.level === 100
-                          ? 1
-                          : commanderLevelXp((p?.level ?? 1) + 1) -
-                            commanderLevelXp(p?.level ?? 1)
-                      }
-                      value={
-                        p?.level === 100
-                          ? 1
-                          : (p?.xp ?? 0) - commanderLevelXp(p?.level ?? 1)
-                      }
-                      aria-label="Commander level progress"
-                    />
-                    <p>
-                      Current training limit: rank {p?.rankCap ?? 5}. Commander
-                      XP and ranks are separate from account XP.
-                    </p>
-                    <button
-                      className="cc-hq-secondary"
-                      onClick={() => setTab("training")}
-                    >
-                      Open training ↗
-                    </button>
-                  </article>
-                </div>
-              </>
-            )}
-            {tab === "army" && (
-              <>
-                <div className="cc-hq-section-title">
-                  <div>
-                    <span className="cc-hq-eyebrow">THE BARRACKS</span>
-                    <h2>Build a squad with a purpose</h2>
-                    <p>
-                      One frontline unit. One ranged unit. Recruit alternatives
-                      and deploy the pair that fits your plan.
-                    </p>
+                <div className="cc-command-hero-copy">
+                  <span className="cc-hq-eyebrow">DEPLOYMENT OVERVIEW</span>
+                  <h1 id="cc-hq-title">Your Field Command</h1>
+                  <p>Lead the formation. Upgrade with intent. Make every deployment count.</p>
+
+                  <div className="cc-command-metrics" aria-label="Deployment summary">
+                    <div>
+                      <span aria-hidden>♟</span>
+                      <strong>{deployed} / 3</strong>
+                      <small>Active force</small>
+                    </div>
+                    <div>
+                      <span aria-hidden>⚔</span>
+                      <strong>{strikeOutput || "—"}</strong>
+                      <small>Strike output</small>
+                    </div>
+                    <div>
+                      <span aria-hidden>⬡</span>
+                      <strong>{shieldReserve || "—"}</strong>
+                      <small>Shield reserve</small>
+                    </div>
+                    <div>
+                      <span aria-hidden>✦</span>
+                      <strong>Level {level}</strong>
+                      <small>Command rank</small>
+                    </div>
                   </div>
                 </div>
-                {catalogCards(hq.catalog.filter((i) => i.kind === "unit"))}
-              </>
-            )}
-            {tab === "armory" && (
-              <>
-                <div className="cc-hq-section-title">
-                  <div>
-                    <span className="cc-hq-eyebrow">THE ARMORY</span>
-                    <h2>Every advantage has a shape</h2>
-                    <p>
-                      One weapon and one shield. Purchases join your collection;
-                      you choose what to equip.
-                    </p>
-                  </div>
-                </div>
-                {catalogCards(hq.catalog.filter((i) => i.kind !== "unit"))}
-              </>
-            )}
-            {tab === "training" && (
-              <>
-                <div className="cc-hq-section-title">
-                  <div>
-                    <span className="cc-hq-eyebrow">COMMANDER TRAINING</span>
-                    <h2>Commit to your strengths</h2>
-                    <p>
-                      Permanent for this expedition. Training uses your Brains
-                      Heist Coins.
-                    </p>
-                  </div>
-                </div>
-                <p role="status">
-                  Available: {format(coins)} Brains Heist Coins.
-                </p>
-                {!p && (
-                  <p>
-                    Claim your free starter squad below to unlock all four
-                    training paths. Claiming costs 0 Coins.
-                  </p>
-                )}
-                <div className="cc-hq-training">
-                  {stats.map((stat) => {
-                    const rank = commanderStatRank(hq, stat.id),
-                      cost = commanderTrainingCost(rank, hq.campaign.rules),
-                      capped = rank >= (p?.rankCap ?? 5);
-                    return (
-                      <article className="cc-hq-panel" key={stat.id}>
-                        <div className="cc-hq-training-top">
-                          <span aria-hidden>{stat.icon}</span>
-                          <p>
-                            RANK <strong>{rank}</strong>
-                            <small> / {p?.rankCap ?? 5}</small>
-                          </p>
-                        </div>
-                        <h3>{stat.name}</h3>
-                        <p>{stat.detail}</p>
-                        <progress
-                          max={p?.rankCap ?? 5}
-                          value={rank}
-                          aria-label={`${stat.name} rank`}
-                        />
-                        <button
-                          className="cc-hq-secondary"
-                          disabled={
-                            unavailable || (!!p && (capped || coins < cost))
-                          }
-                          onClick={() =>
-                            !p
-                              ? claimStarterSquad()
-                              : propose({
-                                  operation: "train",
-                                  target: stat.id,
-                                  title: `Train ${stat.name} to rank ${rank + 1}?`,
-                                  cost,
-                                  detail: stat.detail,
-                                })
-                          }
-                        >
-                          {!p
-                            ? busy
-                              ? "Preparing your squad…"
-                              : retryPending
-                                ? "Resolve pending action above"
-                                : "Claim starter squad · Free"
-                            : unavailable
-                              ? retryPending
-                                ? "Resolve pending action above"
-                                : "Updating…"
-                              : capped
-                                ? "Training limit reached"
-                                : p && coins < cost
-                                  ? costLabel(cost)
-                                  : `Train · ${format(cost)} Coins`}
-                        </button>
-                      </article>
-                    );
-                  })}
-                </div>
-              </>
-            )}
-            {tab === "records" && (
-              <>
-                <div className="cc-hq-section-title">
-                  <div>
-                    <span className="cc-hq-eyebrow">EXPEDITION RECORDS</span>
-                    <h2>Your recent commands</h2>
-                    <p>Confirmed upgrades, deployments, and balance changes.</p>
-                  </div>
-                </div>
-                <div className="cc-hq-history">
-                  {!hq.history.length ? (
-                    <p>Your story starts with your first squad.</p>
+
+                <div className="cc-command-hero-side">
+                  <p className="cc-command-doctrine-quote">“A stronger army starts with a sharper command.”</p>
+                  {p ? (
+                    <>
+                      <button className="cc-command-hero-action is-primary" onClick={() => selectTab("army")}>
+                        <span className="cc-command-action-icon" aria-hidden>♜</span>
+                        <span><strong>Manage Army</strong><small>Recruit, compare and deploy</small></span>
+                        <b aria-hidden>→</b>
+                      </button>
+                      <button
+                        className="cc-command-hero-action"
+                        disabled={unavailable}
+                        onClick={() => setPractice("owned")}
+                      >
+                        <span className="cc-command-action-icon" aria-hidden>◎</span>
+                        <span><strong>Quick Deploy</strong><small>Enter practice with this formation</small></span>
+                        <b aria-hidden>→</b>
+                      </button>
+                    </>
                   ) : (
-                    hq.history.map((entry, index) => (
-                      <article key={`${entry.created_at}-${index}`}>
-                        <span className="cc-hq-history-icon" aria-hidden>
-                          {entry.operation === "reward"
-                            ? "◈"
-                            : entry.operation === "equip"
-                              ? "◇"
-                              : "↗"}
-                        </span>
-                        <div>
-                          <strong>
-                            {(
-                              {
-                                enroll: "Expedition joined",
-                                buy: "Added to collection",
-                                equip: "Loadout changed",
-                                train: "Training completed",
-                                goal: "Goal updated",
-                                reward: "Expedition reward",
-                              } as Record<string, string>
-                            )[entry.operation] ?? "Army updated"}
-                          </strong>
-                          <p>
-                            {find(entry.payload.target)?.name ??
-                              entry.payload.target ??
-                              hq.campaign.title}{" "}
-                            ·{" "}
-                            {new Date(entry.created_at).toLocaleDateString(
-                              "en-US",
-                              { month: "short", day: "numeric" },
-                            )}
-                          </p>
-                        </div>
-                        <span
-                          className={
-                            entry.coins_delta > 0 ? "cc-hq-positive" : ""
-                          }
-                        >
-                          {entry.coins_delta !== 0
-                            ? `${entry.coins_delta > 0 ? "+" : ""}${format(entry.coins_delta)} Coins`
-                            : ""}
-                          {entry.xp_delta > 0 && (
-                            <small>+{format(entry.xp_delta)} XP</small>
-                          )}
-                        </span>
-                      </article>
-                    ))
+                    <button
+                      className="cc-command-hero-action is-primary"
+                      disabled={unavailable}
+                      onClick={claimStarterSquad}
+                    >
+                      <span className="cc-command-action-icon" aria-hidden>✦</span>
+                      <span><strong>Claim Starter Squad</strong><small>Begin your Commander expedition</small></span>
+                      <b aria-hidden>→</b>
+                    </button>
                   )}
                 </div>
-              </>
-            )}
-          </div>
-          <footer className="cc-hq-footer">
-            <span>FOUNDERS PILOT · Practice uses your equipped army.</span>
-            <span>No ranked losses. No account reset.</span>
+              </section>
+
+              <div className="cc-command-section-heading">
+                <div>
+                  <span className="cc-hq-eyebrow">ACTIVE FORMATION</span>
+                  <h2>Your deployed squad</h2>
+                  <p>Each role has a job. Read the doctrine, track the real combat stats, and deploy with purpose.</p>
+                </div>
+                <button className="cc-hq-text-button" onClick={() => selectTab("army")}>Full roster ↗</button>
+              </div>
+
+              <div className="cc-command-squad" aria-label="Current Commander formation">
+                {squad.map(({ slot, index, role, name, unit, catalogId, identity, rarity, school }) => (
+                  <article
+                    className={`cc-command-squad-card cc-command-squad-card--${slot}`}
+                    key={slot}
+                    data-school={school}
+                    style={themeStyle(identity.accent, identity.accent2, identity.glow)}
+                  >
+                    <div className="cc-command-card-topline">
+                      <span className="cc-command-card-index">{index}</span>
+                      <div className="cc-command-role">
+                        {identity.sigilUrl ? (
+                          <img src={identity.sigilUrl} alt="" draggable={false} />
+                        ) : (
+                          <span aria-hidden>{identity.sigil}</span>
+                        )}
+                        <div>
+                          <strong>{role}</strong>
+                          <small>{identity.codename}</small>
+                        </div>
+                      </div>
+                      <span className="cc-command-rarity">{String(rarity).toUpperCase()}</span>
+                    </div>
+
+                    <div className="cc-command-unit-stage" aria-hidden>
+                      <div className="cc-command-stage-grid" />
+                      <div className="cc-command-stage-halo" />
+                      <img
+                        src={sprite(slot, catalogId)}
+                        alt=""
+                        draggable={false}
+                        style={{ filter: `${identity.colorFilter ?? ""} drop-shadow(0 18px 22px rgba(0,0,0,.42))` }}
+                      />
+                    </div>
+
+                    <div className="cc-command-unit-copy">
+                      <h3>{name}</h3>
+                      <p>{identity.doctrine}</p>
+                    </div>
+
+                    {unit ? (
+                      <dl className="cc-command-unit-stats">
+                        <div><dt>HP</dt><dd>{unit.hp}</dd></div>
+                        <div><dt>SH</dt><dd>{unit.shield}</dd></div>
+                        <div><dt>{slot === "commander" ? "BOLT" : "ATK"}</dt><dd>{unit.attack}</dd></div>
+                      </dl>
+                    ) : (
+                      <div className="cc-command-unit-empty">Claim your starter squad to activate combat stats.</div>
+                    )}
+
+                    <div className="cc-command-power">
+                      <span className="cc-command-power-icon" aria-hidden>{identity.sigil}</span>
+                      <div>
+                        <strong>{identity.power}</strong>
+                        <small>{slot === "commander" ? "Commander ability" : `${String(school).toUpperCase()} doctrine`}</small>
+                      </div>
+                    </div>
+
+                    <button
+                      className="cc-command-card-action"
+                      onClick={() => selectTab(slot === "commander" ? "training" : "army")}
+                    >
+                      {slot === "commander" ? "Open Training" : "View Details"} <span aria-hidden>→</span>
+                    </button>
+                  </article>
+                ))}
+              </div>
+
+              <div className="cc-hq-overview-bottom cc-command-secondary-grid">
+                <article className="cc-hq-panel cc-command-support-card">
+                  <span className="cc-hq-eyebrow">NEXT ACQUISITION</span>
+                  <h2>{goal?.name ?? "Choose your next edge"}</h2>
+                  {goal ? (
+                    <>
+                      <p>{format(goal.price)} Coins · Your balance: {format(coins)}</p>
+                      <strong className="cc-hq-goal-amount">
+                        {p && coins >= goal.price
+                          ? "Ready to acquire"
+                          : `${format(commanderMissingCoins(goal.price, coins))} Coins needed`}
+                      </strong>
+                      <progress max={goal.price} value={Math.min(coins, goal.price)} aria-label={`${goal.name} budget`} />
+                      <button className="cc-hq-secondary" onClick={() => selectTab(goal.kind === "unit" ? "army" : "armory")}>
+                        View goal ↗
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p>Pin a unit or equipment item to keep its price and your remaining balance in view.</p>
+                      <button className="cc-hq-secondary" onClick={() => selectTab("armory")}>Explore armory ↗</button>
+                    </>
+                  )}
+                </article>
+
+                <article className="cc-hq-panel cc-command-support-card">
+                  <span className="cc-hq-eyebrow">COMMANDER PROGRESSION</span>
+                  <h2>Level {level}</h2>
+                  <p>
+                    {level === 100
+                      ? "Maximum Commander level reached."
+                      : `${format(Math.max(0, commanderLevelXp(level + 1) - (p?.xp ?? 0)))} XP to the next level`}
+                  </p>
+                  <progress max={levelSpan} value={Math.min(levelProgress, levelSpan)} aria-label="Commander level progress" />
+                  <p>Current training limit: rank {p?.rankCap ?? 5}. Commander XP and ranks are separate from account XP.</p>
+                  <button className="cc-hq-secondary" onClick={() => selectTab("training")}>Open training ↗</button>
+                </article>
+              </div>
+            </>
+          )}
+
+          {tab !== "overview" && (
+            <>
+              <div className="cc-command-subpage-banner">
+                <button className="cc-command-back-overview" onClick={() => selectTab("overview")}>← Headquarters</button>
+                <span>{hq.campaign.title}</span>
+                <span>{format(coins)} Coins</span>
+              </div>
+
+              {choice && (
+                <div className="cc-hq-confirm" role="region" aria-label="Confirm Commander action" tabIndex={-1} ref={confirmation}>
+                  <div>
+                    <span className="cc-hq-eyebrow">CONFIRM YOUR COMMAND</span>
+                    <h2>{choice.title}</h2>
+                    <p>{choice.detail}</p>
+                    {choice.cost > 0 && (
+                      <strong>{format(choice.cost)} Coins · Balance after: {format(coins - choice.cost)}</strong>
+                    )}
+                  </div>
+                  <div className="cc-hq-confirm-actions">
+                    <button className="cc-hq-primary" disabled={unavailable} onClick={() => void execute(choice)}>
+                      {busy ? "Confirming…" : "Confirm"}
+                    </button>
+                    <button className="cc-hq-secondary" disabled={busy || retryPending} onClick={() => setChoice(null)}>Cancel</button>
+                  </div>
+                </div>
+              )}
+
+              <div className="cc-hq-content" aria-busy={busy}>
+                {tab === "army" && (
+                  <>
+                    <div className="cc-hq-section-title">
+                      <div>
+                        <span className="cc-hq-eyebrow">THE BARRACKS</span>
+                        <h2>Build a squad with a purpose</h2>
+                        <p>One frontline unit. One ranged unit. Recruit alternatives and deploy the pair that fits your plan.</p>
+                      </div>
+                    </div>
+                    {catalogCards(hq.catalog.filter((item) => item.kind === "unit"))}
+                  </>
+                )}
+
+                {tab === "armory" && (
+                  <>
+                    <div className="cc-hq-section-title">
+                      <div>
+                        <span className="cc-hq-eyebrow">THE ARMORY</span>
+                        <h2>Every advantage has a shape</h2>
+                        <p>One weapon and one shield. Purchases join your collection; you choose what to equip.</p>
+                      </div>
+                    </div>
+                    {catalogCards(hq.catalog.filter((item) => item.kind !== "unit"))}
+                  </>
+                )}
+
+                {tab === "training" && (
+                  <>
+                    <div className="cc-hq-section-title">
+                      <div>
+                        <span className="cc-hq-eyebrow">COMMANDER TRAINING</span>
+                        <h2>Commit to your strengths</h2>
+                        <p>Permanent for this expedition. Training uses your Brains Heist Coins.</p>
+                      </div>
+                    </div>
+                    <p role="status">Available: {format(coins)} Brains Heist Coins.</p>
+                    {!p && <p>Claim your free starter squad below to unlock all four training paths. Claiming costs 0 Coins.</p>}
+                    <div className="cc-hq-training">
+                      {stats.map((stat) => {
+                        const rank = commanderStatRank(hq, stat.id);
+                        const cost = commanderTrainingCost(rank, hq.campaign.rules);
+                        const capped = rank >= (p?.rankCap ?? 5);
+                        return (
+                          <article className="cc-hq-panel" key={stat.id}>
+                            <div className="cc-hq-training-top">
+                              <span aria-hidden>{stat.icon}</span>
+                              <p>RANK <strong>{rank}</strong><small> / {p?.rankCap ?? 5}</small></p>
+                            </div>
+                            <h3>{stat.name}</h3>
+                            <p>{stat.detail}</p>
+                            <progress max={p?.rankCap ?? 5} value={rank} aria-label={`${stat.name} rank`} />
+                            <button
+                              className="cc-hq-secondary"
+                              disabled={unavailable || (!!p && (capped || coins < cost))}
+                              onClick={() =>
+                                !p
+                                  ? claimStarterSquad()
+                                  : propose({
+                                      operation: "train",
+                                      target: stat.id,
+                                      title: `Train ${stat.name} to rank ${rank + 1}?`,
+                                      cost,
+                                      detail: stat.detail,
+                                    })
+                              }
+                            >
+                              {!p
+                                ? busy
+                                  ? "Preparing your squad…"
+                                  : retryPending
+                                    ? "Resolve pending action above"
+                                    : "Claim starter squad · Free"
+                                : unavailable
+                                  ? retryPending
+                                    ? "Resolve pending action above"
+                                    : "Updating…"
+                                  : capped
+                                    ? "Training limit reached"
+                                    : coins < cost
+                                      ? costLabel(cost)
+                                      : `Train · ${format(cost)} Coins`}
+                            </button>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                {tab === "records" && (
+                  <>
+                    <div className="cc-hq-section-title">
+                      <div>
+                        <span className="cc-hq-eyebrow">EXPEDITION RECORDS</span>
+                        <h2>Your recent commands</h2>
+                        <p>Confirmed upgrades, deployments, and balance changes.</p>
+                      </div>
+                    </div>
+                    <div className="cc-hq-history">
+                      {!hq.history.length ? (
+                        <p>Your story starts with your first squad.</p>
+                      ) : (
+                        hq.history.map((entry, index) => (
+                          <article key={`${entry.created_at}-${index}`}>
+                            <span className="cc-hq-history-icon" aria-hidden>
+                              {entry.operation === "reward" ? "◈" : entry.operation === "equip" ? "◇" : "↗"}
+                            </span>
+                            <div>
+                              <strong>
+                                {(
+                                  {
+                                    enroll: "Expedition joined",
+                                    buy: "Added to collection",
+                                    equip: "Loadout changed",
+                                    train: "Training completed",
+                                    goal: "Goal updated",
+                                    reward: "Expedition reward",
+                                  } as Record<string, string>
+                                )[entry.operation] ?? "Army updated"}
+                              </strong>
+                              <p>
+                                {find(entry.payload.target)?.name ?? entry.payload.target ?? hq.campaign.title} ·{" "}
+                                {new Date(entry.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                              </p>
+                            </div>
+                            <span className={entry.coins_delta > 0 ? "cc-hq-positive" : ""}>
+                              {entry.coins_delta !== 0
+                                ? `${entry.coins_delta > 0 ? "+" : ""}${format(entry.coins_delta)} Coins`
+                                : ""}
+                              {entry.xp_delta > 0 && <small>+{format(entry.xp_delta)} XP</small>}
+                            </span>
+                          </article>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+
+          <footer className="cc-hq-footer cc-command-footer">
+            <span>DISCIPLINE BUILDS LEGENDS.</span>
+            <span>Practice uses your equipped army · No ranked losses · No account reset.</span>
           </footer>
         </>
       )}
