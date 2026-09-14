@@ -31,10 +31,17 @@ test('Commander training console ships lightweight presentation assets without o
       true,
       `${asset} must ship with the Commander training console`,
     );
-    assert.match(css, new RegExp(`/commander-training/${asset.replace('.', '\\.')}\\b`));
+    assert.ok(
+      css.includes(`/commander-training/${asset}`),
+      `${asset} must be referenced by the Training presentation`,
+    );
   }
 
   assert.match(css, /\.cc-hq-content:has\(\.cc-hq-training\)/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.equal(css.includes('420 / 800 XP'), false, 'training presentation must not bake fake progression values');
+  assert.equal(
+    css.includes('420 / 800 XP'),
+    false,
+    'training presentation must not bake fake progression values',
+  );
 });
