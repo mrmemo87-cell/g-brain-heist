@@ -1,23 +1,23 @@
+import graveSigil from '../../assets/commander-factions/grave-sigil.png';
+import rotSigil from '../../assets/commander-factions/rot-sigil.png';
+import voidSigil from '../../assets/commander-factions/void-sigil.png';
+import stormSigil from '../../assets/commander-factions/storm-sigil.png';
+import summonPortal from '../../assets/commander-vfx/commander-summon-portal.png';
+import legendaryBurst from '../../assets/commander-vfx/commander-legendary-burst.png';
+
 export type CommanderPremiumSchool = 'void' | 'storm' | 'rot' | 'grave';
 
-const premiumAssets = import.meta.glob([
-  '../../assets/commander-factions/*.png',
-  '../../assets/commander-vfx/commander-summon-portal.png',
-  '../../assets/commander-vfx/commander-legendary-burst.png',
-], { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
-
-const premiumAsset = (path: string) => premiumAssets[path] ?? null;
-
-export const COMMANDER_FACTION_SIGILS: Record<CommanderPremiumSchool, string | null> = {
-  grave: premiumAsset('../../assets/commander-factions/grave-sigil.png'),
-  rot: premiumAsset('../../assets/commander-factions/rot-sigil.png'),
-  void: premiumAsset('../../assets/commander-factions/void-sigil.png'),
-  storm: premiumAsset('../../assets/commander-factions/storm-sigil.png'),
+/** Required production assets: direct imports make a missing PNG fail at build time. */
+export const COMMANDER_FACTION_SIGILS: Record<CommanderPremiumSchool, string> = {
+  grave: graveSigil,
+  rot: rotSigil,
+  void: voidSigil,
+  storm: stormSigil,
 };
 
 export const COMMANDER_PREMIUM_VFX = {
-  summonPortal: premiumAsset('../../assets/commander-vfx/commander-summon-portal.png'),
-  legendaryBurst: premiumAsset('../../assets/commander-vfx/commander-legendary-burst.png'),
+  summonPortal,
+  legendaryBurst,
 } as const;
 
 export const commanderFactionSigilUrl = (school: string | null | undefined) =>
