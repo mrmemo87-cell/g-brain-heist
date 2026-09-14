@@ -5,6 +5,14 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <style>
+      .cc-hq .cc-command-nav {
+        grid-template-columns: minmax(0, 1.35fr) repeat(4, minmax(0, 1fr));
+      }
+
+      .cc-hq .cc-command-nav button > span {
+        white-space: nowrap;
+      }
+
       .cc-hq .cc-command-nav button[aria-current]:focus-visible {
         outline: none;
       }
