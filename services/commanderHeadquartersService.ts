@@ -30,6 +30,9 @@ export type CommanderOwnedLoadout = {
   shieldName: string;
   units: Array<{
     id: "player_guard" | "player_archer";
+    /** Trusted catalog identity is returned by newer Commander loadout snapshots. */
+    catalogId?: string;
+    school?: CommanderSchool;
     name: string;
     hp: number;
     shield: number;
