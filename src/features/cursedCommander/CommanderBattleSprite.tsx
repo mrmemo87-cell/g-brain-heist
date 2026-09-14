@@ -9,6 +9,7 @@ import {
   type CommanderSpritePose,
 } from './commanderSpriteAssets';
 import { getCommanderRecruitIdentity } from './commanderRecruitIdentity';
+import { COMMANDER_VFX } from './commanderVfxAssets';
 import './commanderPremiumMotion.css';
 
 type Props = {
@@ -18,6 +19,15 @@ type Props = {
   defeated?: boolean;
   className?: string;
 };
+
+const PREMIUM_ELITE_CATALOG_IDS = new Set([
+  'grave_bastion',
+  'rift_reaver',
+  'plague_scribe',
+  'volt_seer',
+]);
+
+const PREMIUM_RANGED_CATALOG_IDS = new Set(['plague_scribe', 'volt_seer']);
 
 const spriteFilterFor = (
   combatant: CommanderPracticeCombatant,
@@ -93,6 +103,13 @@ const CommanderBattleSprite: React.FC<Props> = ({
   const imageTransform = (calibration: NonNullable<ReturnType<typeof getCommanderSpriteCalibration>>) =>
     `translate(${calibration.offsetX}%, ${calibration.offsetY}%) scale(${calibration.visualScale * mirror}, ${calibration.visualScale})`;
   const showIdentity = combatant.side === 'player' && combatant.role === 'unit' && school !== 'neutral' && resolvedPose !== 'defeated';
+  const isPremiumElite = Boolean(combatant.catalogId && PREMIUM_ELITE_CATALOG_IDS.has(combatant.catalogId));
+  const showAuthoredProjectile = Boolean(
+    combatant.catalogId
+      && PREMIUM_RANGED_CATALOG_IDS.has(combatant.catalogId)
+      && definition.projectile
+      && (resolvedPose === 'attacking' || resolvedPose === 'justShot'),
+  );
 
   return (
     <div
@@ -104,6 +121,22 @@ const CommanderBattleSprite: React.FC<Props> = ({
       data-commander-active={active ? 'true' : 'false'}
       className={`cc-elite-sprite-shell relative h-full w-full overflow-visible ${className}`}
     >
+      {isPremiumElite && combatant.side === 'player' && active && resolvedPose === 'standing' && (
+        <img
+          className="cc-elite-reveal-portal pointer-events-none absolute"
+          src={COMMANDER_VFX.summonPortal}
+          alt=""
+          draggable={false}
+        />
+      )}
+      {isPremiumElite && active && (resolvedPose === 'attacking' || resolvedPose === 'justShot') && (
+        <img
+          className="cc-elite-legendary-burst pointer-events-none absolute"
+          src={COMMANDER_VFX.legendaryBurst}
+          alt=""
+          draggable={false}
+        />
+      )}
       {showIdentity && (
         <>
           <span
@@ -126,7 +159,7 @@ const CommanderBattleSprite: React.FC<Props> = ({
             }}
           />
           <span
-            className="cc-elite-sigil pointer-events-none absolute right-[5%] top-[7%] grid h-9 w-9 place-items-center rounded-full border p-1 text-[12px] font-black shadow-lg backdrop-blur-sm"
+            className="cc-elite-sigil pointer-events-none absolute right-[5%] top-[7%] z-20 grid h-9 w-9 place-items-center rounded-full border p-1 text-[12px] font-black shadow-lg backdrop-blur-sm"
             style={{
               color: accent,
               borderColor: `${accent}66`,
@@ -150,13 +183,22 @@ const CommanderBattleSprite: React.FC<Props> = ({
           />
         </>
       )}
+      {showAuthoredProjectile && definition.projectile && (
+        <img
+          key={`${combatant.catalogId}-${resolvedPose}`}
+          className="cc-elite-authored-projectile pointer-events-none absolute z-30"
+          src={definition.projectile}
+          alt=""
+          draggable={false}
+        />
+      )}
       <img
         src={visibleSrc}
         alt=""
         draggable={false}
         loading="eager"
         decoding="async"
-        className="cc-authored-sprite cc-authored-sprite-current pointer-events-none absolute inset-0 h-full w-full select-none object-contain object-bottom"
+        className="cc-authored-sprite cc-authored-sprite-current pointer-events-none absolute inset-0 z-10 h-full w-full select-none object-contain object-bottom"
         style={{
           transform: imageTransform(visibleCalibration),
           transformOrigin: '50% 100%',
