@@ -3,6 +3,7 @@ import headquarters from '../../assets/commander-vfx/headquarters-command-center
 import lance from '../../assets/commander-vfx/death-lance.png';
 import slash from '../../assets/commander-vfx/impact-slash.png';
 import { COMMANDER_PREMIUM_VFX } from './commanderPremiumAssets';
+import './commanderTraining.css';
 
 /** Shared by the existing sprite preload gate and presentation components. */
 export const COMMANDER_VFX = {
