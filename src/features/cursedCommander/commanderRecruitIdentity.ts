@@ -1,9 +1,12 @@
+import { commanderFactionSigilUrl } from './commanderPremiumAssets';
+
 export type CommanderRecruitSchool = 'neutral' | 'void' | 'storm' | 'rot' | 'grave';
 
 export type CommanderRecruitIdentity = {
   catalogId: string | null;
   school: CommanderRecruitSchool;
   sigil: string;
+  sigilUrl: string | null;
   codename: string;
   doctrine: string;
   power: string;
@@ -13,7 +16,7 @@ export type CommanderRecruitIdentity = {
   colorFilter: string;
 };
 
-type SchoolTheme = Omit<CommanderRecruitIdentity, 'catalogId' | 'codename' | 'doctrine'>;
+type SchoolTheme = Omit<CommanderRecruitIdentity, 'catalogId' | 'codename' | 'doctrine' | 'sigilUrl'>;
 
 const SCHOOL_THEMES: Record<CommanderRecruitSchool, SchoolTheme> = {
   neutral: {
@@ -125,6 +128,7 @@ export const getCommanderRecruitIdentity = (
     ...theme,
     catalogId: catalogId ?? null,
     sigil: profile?.sigil ?? theme.sigil,
+    sigilUrl: commanderFactionSigilUrl(normalizedSchool),
     codename: profile?.codename ?? (normalizedSchool === 'neutral' ? 'Field Operative' : `${normalizedSchool.toUpperCase()} Operative`),
     doctrine: profile?.doctrine ?? 'Adapt to the field. Protect the formation.',
     colorFilter: profile?.colorFilter ?? theme.colorFilter,

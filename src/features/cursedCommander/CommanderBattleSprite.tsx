@@ -9,6 +9,8 @@ import {
   type CommanderSpritePose,
 } from './commanderSpriteAssets';
 import { getCommanderRecruitIdentity } from './commanderRecruitIdentity';
+import { COMMANDER_VFX } from './commanderVfxAssets';
+import './commanderPremiumMotion.css';
 
 type Props = {
   combatant: CommanderPracticeCombatant;
@@ -17,6 +19,15 @@ type Props = {
   defeated?: boolean;
   className?: string;
 };
+
+const PREMIUM_ELITE_CATALOG_IDS = new Set([
+  'grave_bastion',
+  'rift_reaver',
+  'plague_scribe',
+  'volt_seer',
+]);
+
+const PREMIUM_RANGED_CATALOG_IDS = new Set(['plague_scribe', 'volt_seer']);
 
 const spriteFilterFor = (
   combatant: CommanderPracticeCombatant,
@@ -37,13 +48,18 @@ const spriteFilterFor = (
   return `${identity.colorFilter} ${energy} drop-shadow(0 11px 16px rgba(2,6,23,.48))`;
 };
 
+const EliteSigil = ({ url, fallback, accent }: { url: string | null; fallback: string; accent: string }) =>
+  url ? (
+    <img className="cc-elite-sigil-image h-full w-full object-contain" src={url} alt="" draggable={false} />
+  ) : (
+    <span style={{ color: accent }}>{fallback}</span>
+  );
+
 /**
  * Production battlefield sprite renderer.
- *
  * Formation/movement remains on the outer tactical actor. This renderer only
  * swaps authored PNG poses inside one foot-anchored canvas. Catalog identity
- * controls presentation only: faction light, sigils and color treatment never
- * affect deterministic combat math.
+ * controls presentation only and never changes deterministic combat math.
  */
 const CommanderBattleSprite: React.FC<Props> = ({
   combatant,
@@ -72,10 +88,11 @@ const CommanderBattleSprite: React.FC<Props> = ({
         data-commander-sprite="fallback"
         data-commander-school={school}
         data-commander-catalog-id={combatant.catalogId ?? undefined}
+        data-commander-active={active ? 'true' : 'false'}
         className={`relative flex h-full w-full items-end justify-center ${className}`}
       >
         {combatant.side === 'player' && school !== 'neutral' && (
-          <span className="pointer-events-none absolute inset-[8%] rounded-full blur-xl" style={{ background: `radial-gradient(circle, ${accent}42 0%, ${accent2}18 44%, transparent 72%)` }} />
+          <span className="cc-elite-aura pointer-events-none absolute inset-[8%] rounded-full blur-xl" style={{ background: `radial-gradient(circle, ${accent}42 0%, ${accent2}18 44%, transparent 72%)` }} />
         )}
         <span className="relative mb-2 text-5xl opacity-80">{combatant.role === 'commander' ? '♛' : identity.sigil}</span>
       </div>
@@ -86,6 +103,13 @@ const CommanderBattleSprite: React.FC<Props> = ({
   const imageTransform = (calibration: NonNullable<ReturnType<typeof getCommanderSpriteCalibration>>) =>
     `translate(${calibration.offsetX}%, ${calibration.offsetY}%) scale(${calibration.visualScale * mirror}, ${calibration.visualScale})`;
   const showIdentity = combatant.side === 'player' && combatant.role === 'unit' && school !== 'neutral' && resolvedPose !== 'defeated';
+  const isPremiumElite = Boolean(combatant.catalogId && PREMIUM_ELITE_CATALOG_IDS.has(combatant.catalogId));
+  const showAuthoredProjectile = Boolean(
+    combatant.catalogId
+      && PREMIUM_RANGED_CATALOG_IDS.has(combatant.catalogId)
+      && definition.projectile
+      && (resolvedPose === 'attacking' || resolvedPose === 'justShot'),
+  );
 
   return (
     <div
@@ -94,23 +118,40 @@ const CommanderBattleSprite: React.FC<Props> = ({
       data-commander-school={school}
       data-commander-catalog-id={combatant.catalogId ?? undefined}
       data-commander-pose={visiblePose}
-      className={`relative h-full w-full overflow-visible ${className}`}
+      data-commander-active={active ? 'true' : 'false'}
+      className={`cc-elite-sprite-shell relative h-full w-full overflow-visible ${className}`}
     >
+      {isPremiumElite && combatant.side === 'player' && active && resolvedPose === 'standing' && (
+        <img
+          className="cc-elite-reveal-portal pointer-events-none absolute"
+          src={COMMANDER_VFX.summonPortal}
+          alt=""
+          draggable={false}
+        />
+      )}
+      {isPremiumElite && active && (resolvedPose === 'attacking' || resolvedPose === 'justShot') && (
+        <img
+          className="cc-elite-legendary-burst pointer-events-none absolute"
+          src={COMMANDER_VFX.legendaryBurst}
+          alt=""
+          draggable={false}
+        />
+      )}
       {showIdentity && (
         <>
           <span
-            className="pointer-events-none absolute inset-[4%] rounded-full blur-2xl"
+            className="cc-elite-aura pointer-events-none absolute inset-[4%] rounded-full blur-2xl"
             style={{ background: `radial-gradient(circle, ${accent}38 0%, ${accent2}1f 38%, transparent 72%)` }}
           />
           <span
-            className="pointer-events-none absolute inset-[17%] rounded-full opacity-70"
+            className="cc-elite-orbit pointer-events-none absolute inset-[17%] rounded-full opacity-70"
             style={{
               background: `conic-gradient(from 210deg, transparent 0 10%, ${accent}66 18%, transparent 30% 52%, ${accent2}55 62%, transparent 76%)`,
               filter: 'blur(5px)',
             }}
           />
           <span
-            className="pointer-events-none absolute bottom-[7%] left-1/2 h-[17%] w-[72%] -translate-x-1/2 rounded-[50%] border opacity-90 blur-[.5px]"
+            className="cc-elite-ground pointer-events-none absolute bottom-[7%] left-1/2 h-[17%] w-[72%] -translate-x-1/2 rounded-[50%] border opacity-90 blur-[.5px]"
             style={{
               borderColor: `${accent}99`,
               background: `radial-gradient(ellipse, ${accent}24, transparent 68%)`,
@@ -118,15 +159,15 @@ const CommanderBattleSprite: React.FC<Props> = ({
             }}
           />
           <span
-            className="pointer-events-none absolute right-[7%] top-[9%] grid h-7 w-7 place-items-center rounded-full border text-[12px] font-black shadow-lg backdrop-blur-sm"
+            className="cc-elite-sigil pointer-events-none absolute right-[5%] top-[7%] z-20 grid h-9 w-9 place-items-center rounded-full border p-1 text-[12px] font-black shadow-lg backdrop-blur-sm"
             style={{
               color: accent,
               borderColor: `${accent}66`,
-              background: `linear-gradient(145deg, rgba(2,6,23,.82), ${accent2}22)`,
+              background: `linear-gradient(145deg, rgba(2,6,23,.86), ${accent2}22)`,
               boxShadow: `0 0 18px ${accent}35, inset 0 0 12px ${accent2}22`,
             }}
           >
-            {identity.sigil}
+            <EliteSigil url={identity.sigilUrl} fallback={identity.sigil} accent={accent} />
           </span>
         </>
       )}
@@ -142,13 +183,22 @@ const CommanderBattleSprite: React.FC<Props> = ({
           />
         </>
       )}
+      {showAuthoredProjectile && definition.projectile && (
+        <img
+          key={`${combatant.catalogId}-${resolvedPose}`}
+          className="cc-elite-authored-projectile pointer-events-none absolute z-30"
+          src={definition.projectile}
+          alt=""
+          draggable={false}
+        />
+      )}
       <img
         src={visibleSrc}
         alt=""
         draggable={false}
         loading="eager"
         decoding="async"
-        className="cc-authored-sprite cc-authored-sprite-current pointer-events-none absolute inset-0 h-full w-full select-none object-contain object-bottom"
+        className="cc-authored-sprite cc-authored-sprite-current pointer-events-none absolute inset-0 z-10 h-full w-full select-none object-contain object-bottom"
         style={{
           transform: imageTransform(visibleCalibration),
           transformOrigin: '50% 100%',

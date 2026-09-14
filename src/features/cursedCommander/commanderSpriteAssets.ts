@@ -63,6 +63,44 @@ export type CommanderSpriteDefinition = {
   poseCalibration?: Partial<Record<CommanderSpritePose, CommanderSpritePoseCalibration>>;
 };
 
+/**
+ * Premium recruit art is optional at build time so a missing binary never blocks
+ * a release. Once the PNG pack exists in src/assets, Vite includes it and each
+ * catalog id automatically switches from the starter fallback to its authored set.
+ */
+const eliteSpriteAssets = import.meta.glob([
+  '../../assets/Grave Bastion/*.png',
+  '../../assets/Rift Reaver/*.png',
+  '../../assets/Plague Scribe/*.png',
+  '../../assets/Volt Seer/*.png',
+], { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+
+const eliteAsset = (path: string, fallback: string) => eliteSpriteAssets[path] ?? fallback;
+
+const graveStanding = eliteAsset('../../assets/Grave Bastion/Grave Bastion standing.png', neonStanding);
+const graveAttacking = eliteAsset('../../assets/Grave Bastion/Grave Bastion attacking.png', neonAttacking);
+const graveAttacked = eliteAsset('../../assets/Grave Bastion/Grave Bastion attacked.png', neonAttacked);
+const graveDefeated = eliteAsset('../../assets/Grave Bastion/Grave Bastion defeated.png', neonDefeated);
+
+const reaverStanding = eliteAsset('../../assets/Rift Reaver/Rift Reaver standing.png', neonStanding);
+const reaverAttacking = eliteAsset('../../assets/Rift Reaver/Rift Reaver attacking.png', neonAttacking);
+const reaverAttacked = eliteAsset('../../assets/Rift Reaver/Rift Reaver attacked.png', neonAttacked);
+const reaverDefeated = eliteAsset('../../assets/Rift Reaver/Rift Reaver defeated.png', neonDefeated);
+
+const scribeStanding = eliteAsset('../../assets/Plague Scribe/Plague Scribe standing.png', shadeStanding);
+const scribeAttacking = eliteAsset('../../assets/Plague Scribe/Plague Scribe attacking.png', shadeAttacking);
+const scribeJustShot = eliteAsset('../../assets/Plague Scribe/Plague Scribe just shot.png', shadeJustShot);
+const scribeAttacked = eliteAsset('../../assets/Plague Scribe/Plague Scribe attacked.png', shadeAttacked);
+const scribeDefeated = eliteAsset('../../assets/Plague Scribe/Plague Scribe defeated.png', shadeDefeated);
+const scribeProjectile = eliteAsset('../../assets/Plague Scribe/Plague Scribe projectile.png', shadeArrow);
+
+const voltStanding = eliteAsset('../../assets/Volt Seer/Volt Seer standing.png', shadeStanding);
+const voltAttacking = eliteAsset('../../assets/Volt Seer/Volt Seer attacking.png', shadeAttacking);
+const voltJustShot = eliteAsset('../../assets/Volt Seer/Volt Seer just shot.png', shadeJustShot);
+const voltAttacked = eliteAsset('../../assets/Volt Seer/Volt Seer attacked.png', shadeAttacked);
+const voltDefeated = eliteAsset('../../assets/Volt Seer/Volt Seer defeated.png', shadeDefeated);
+const voltProjectile = eliteAsset('../../assets/Volt Seer/Volt Seer projectile.png', shadeArrow);
+
 export const COMMANDER_SPRITES: Record<string, CommanderSpriteDefinition> = {
   player_commander: {
     poses: { standing: cipherStanding, attacking: cipherAttacking, attacked: cipherAttacked, defeated: cipherDefeated },
@@ -86,6 +124,42 @@ export const COMMANDER_SPRITES: Record<string, CommanderSpriteDefinition> = {
     visualScale: 1,
     offsetX: 0,
     offsetY: 0,
+  },
+  player_grave_bastion: {
+    poses: { standing: graveStanding, attacking: graveAttacking, attacked: graveAttacked, defeated: graveDefeated },
+    ranged: false,
+    visualScale: 1.08,
+    offsetX: 0,
+    offsetY: 1,
+    poseCalibration: { attacking: { visualScale: 1.1 }, attacked: { visualScale: 1.07 }, defeated: { visualScale: 1.04, offsetY: 3 } },
+  },
+  player_rift_reaver: {
+    poses: { standing: reaverStanding, attacking: reaverAttacking, attacked: reaverAttacked, defeated: reaverDefeated },
+    ranged: false,
+    visualScale: 1.06,
+    offsetX: 0,
+    offsetY: 1,
+    poseCalibration: { attacking: { visualScale: 1.12, offsetX: 1 }, attacked: { visualScale: 1.06 }, defeated: { visualScale: 1.02, offsetY: 3 } },
+  },
+  player_plague_scribe: {
+    poses: { standing: scribeStanding, attacking: scribeAttacking, justShot: scribeJustShot, attacked: scribeAttacked, defeated: scribeDefeated },
+    projectile: scribeProjectile,
+    projectileAngle: 8,
+    ranged: true,
+    visualScale: 1.03,
+    offsetX: 0,
+    offsetY: 1,
+    poseCalibration: { attacking: { visualScale: 1.07 }, justShot: { visualScale: 1.05 }, defeated: { visualScale: 1, offsetY: 3 } },
+  },
+  player_volt_seer: {
+    poses: { standing: voltStanding, attacking: voltAttacking, justShot: voltJustShot, attacked: voltAttacked, defeated: voltDefeated },
+    projectile: voltProjectile,
+    projectileAngle: 0,
+    ranged: true,
+    visualScale: 1.05,
+    offsetX: 0,
+    offsetY: 0,
+    poseCalibration: { attacking: { visualScale: 1.1 }, justShot: { visualScale: 1.07 }, defeated: { visualScale: 1.01, offsetY: 3 } },
   },
   enemy_commander: {
     poses: { standing: wardenStanding, attacking: wardenAttacking, attacked: wardenAttacked, defeated: wardenDefeated },
@@ -112,20 +186,16 @@ export const COMMANDER_SPRITES: Record<string, CommanderSpriteDefinition> = {
   },
 };
 
-/**
- * Player formation ids stay stable for deterministic combat. Catalog identity is
- * now a separate presentation key so bespoke recruit pose sheets can be dropped
- * in later without changing battle state, formation ids, or transcript rules.
- */
+/** Stable combatant ids remain deterministic; catalog identity only picks presentation. */
 export const COMMANDER_CATALOG_SPRITE_KEYS: Record<string, string> = {
   neon_guard: 'player_guard',
   neon_bulwark: 'player_guard',
-  grave_bastion: 'player_guard',
-  rift_reaver: 'player_guard',
+  grave_bastion: 'player_grave_bastion',
+  rift_reaver: 'player_rift_reaver',
   shade_archer: 'player_archer',
   shade_deadeye: 'player_archer',
-  plague_scribe: 'player_archer',
-  volt_seer: 'player_archer',
+  plague_scribe: 'player_plague_scribe',
+  volt_seer: 'player_volt_seer',
 };
 
 export const resolveCommanderSpriteKey = (combatantId: string, catalogId?: string | null) =>
@@ -211,10 +281,7 @@ const loadImage = (src: string) => new Promise<void>((resolve) => {
 
 let preloadPromise: Promise<void> | null = null;
 
-/**
- * Decode the complete authored Commander sprite set once per page session.
- * Fail-soft by design: a single broken image must never block the practice battle.
- */
+/** Decode every authored Commander pose/projectile and premium VFX once per page session. */
 export const preloadCommanderSpriteAssets = () => {
   if (typeof window === 'undefined') return Promise.resolve();
   if (!preloadPromise) preloadPromise = Promise.all([...allSpriteUrls, ...Object.values(COMMANDER_VFX)].map(loadImage)).then(() => undefined);
