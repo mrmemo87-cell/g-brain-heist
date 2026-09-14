@@ -8,6 +8,6 @@ export const COMMANDER_VFX = {
   arena,
   lance,
   slash,
-  summonPortal: COMMANDER_PREMIUM_VFX.summonPortal ?? lance,
-  legendaryBurst: COMMANDER_PREMIUM_VFX.legendaryBurst ?? slash,
+  summonPortal: COMMANDER_PREMIUM_VFX.summonPortal,
+  legendaryBurst: COMMANDER_PREMIUM_VFX.legendaryBurst,
 } as const;
