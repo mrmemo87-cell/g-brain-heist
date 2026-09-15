@@ -1,5 +1,6 @@
 import type {
   CommanderCatalogItem,
+  CommanderEvolutionPassive,
   CommanderHeadquarters,
   CommanderStat,
   CommanderUnitProgress,
@@ -113,4 +114,155 @@ export const commanderUnitNextRankGain = (
     shield: next.shield - current.shield,
     attack: next.attack - current.attack,
   };
+};
+
+export const commanderUnitEvolutionUnlockLevel = (rules: Record<string, number>) =>
+  rules["unitEvolutionUnlockLevel"] ?? 21;
+
+export const commanderUnitEvolutionMaxTier = (rules: Record<string, number>) =>
+  rules["unitEvolutionMaxTier"] ?? 3;
+
+export const commanderUnitEvolutionRequiredLevel = (
+  targetTier: number,
+  rules: Record<string, number>,
+) => {
+  if (targetTier <= 1) return commanderUnitEvolutionUnlockLevel(rules);
+  if (targetTier === 2) return rules["unitEvolutionTier2Level"] ?? 25;
+  return rules["unitEvolutionTier3Level"] ?? 30;
+};
+
+export const commanderUnitEvolutionTierCap = (
+  level: number,
+  rules: Record<string, number>,
+) => {
+  if (level < commanderUnitEvolutionUnlockLevel(rules)) return 0;
+  if (level < (rules["unitEvolutionTier2Level"] ?? 25)) return 1;
+  if (level < (rules["unitEvolutionTier3Level"] ?? 30)) return 2;
+  return commanderUnitEvolutionMaxTier(rules);
+};
+
+export const commanderUnitEvolutionStage = (tier: number) => {
+  if (tier >= 3) return "Mythic";
+  if (tier === 2) return "Exalted";
+  if (tier === 1) return "Ascended";
+  return "Base";
+};
+
+export const commanderUnitEvolutionCost = (
+  item: CommanderCatalogItem,
+  targetTier: number,
+  rules: Record<string, number>,
+) => {
+  const tier = Math.max(1, Math.min(3, Math.floor(targetTier)));
+  const base = tier === 1
+    ? (rules["unitEvolutionTier1Cost"] ?? 200)
+    : tier === 2
+      ? (rules["unitEvolutionTier2Cost"] ?? 350)
+      : (rules["unitEvolutionTier3Cost"] ?? 550);
+  const rarityMultiplier = item.rarity === "legendary"
+    ? (rules["unitEvolutionLegendaryMultiplier"] ?? 1.5)
+    : item.rarity === "epic"
+      ? (rules["unitEvolutionEpicMultiplier"] ?? 1.3)
+      : item.rarity === "rare"
+        ? (rules["unitEvolutionRareMultiplier"] ?? 1.15)
+        : 1;
+  return Math.round(base * rarityMultiplier);
+};
+
+export const commanderUnitEvolutionBonus = (
+  item: CommanderCatalogItem,
+  tier: number,
+): CommanderUnitRankBonus => {
+  const safeTier = Math.max(0, Math.min(3, Math.floor(tier)));
+  if (item.kind !== "unit" || (item.slot !== "guard" && item.slot !== "archer"))
+    return { hp: 0, shield: 0, attack: 0 };
+
+  let hp = item.slot === "guard" ? 4 * safeTier : 2 * safeTier;
+  let shield = item.slot === "guard" ? safeTier : 0;
+  let attack = item.slot === "guard" ? Math.floor(safeTier / 2) : safeTier;
+
+  if (item.school === "storm") {
+    if (item.slot === "guard") shield += Math.ceil(safeTier / 2);
+    else attack += Math.floor(safeTier / 2);
+  } else if (item.school === "grave") {
+    hp += item.slot === "guard" ? 2 * safeTier : safeTier;
+  } else if (item.school === "void") {
+    attack += Math.ceil(safeTier / 2);
+  } else if (item.school === "rot") {
+    hp += safeTier;
+  }
+
+  return { hp, shield, attack };
+};
+
+export const commanderUnitNextEvolutionGain = (
+  item: CommanderCatalogItem,
+  currentTier: number,
+): CommanderUnitRankBonus => {
+  const current = commanderUnitEvolutionBonus(item, currentTier);
+  const next = commanderUnitEvolutionBonus(item, currentTier + 1);
+  return {
+    hp: next.hp - current.hp,
+    shield: next.shield - current.shield,
+    attack: next.attack - current.attack,
+  };
+};
+
+export const commanderUnitEvolutionPassive = (
+  item: CommanderCatalogItem,
+  tier: number,
+): CommanderEvolutionPassive | null => {
+  const safeTier = Math.max(0, Math.min(3, Math.floor(tier)));
+  if (safeTier === 0 || item.kind !== "unit") return null;
+
+  const school = item.school ?? "neutral";
+  const key = `${item.slot}:${school}`;
+  const passives: Record<string, Omit<CommanderEvolutionPassive, "tier">> = {
+    "guard:storm": {
+      id: "overcharge_plating",
+      label: "Overcharge Plating",
+      description: "Storm evolution reinforces shield reserve with every evolution tier.",
+    },
+    "archer:storm": {
+      id: "arc_sight",
+      label: "Arc Sight",
+      description: "Storm evolution sharpens ranged pressure at higher evolution tiers.",
+    },
+    "guard:void": {
+      id: "phase_guard",
+      label: "Phase Guard",
+      description: "Void evolution adds a sharper counter-strike profile to the frontline.",
+    },
+    "archer:void": {
+      id: "execution_mark",
+      label: "Execution Mark",
+      description: "Void evolution intensifies precision attack gains.",
+    },
+    "guard:grave": {
+      id: "gravewall",
+      label: "Gravewall",
+      description: "Grave evolution adds extra maximum health to the frontline.",
+    },
+    "archer:grave": {
+      id: "gravesight",
+      label: "Gravesight",
+      description: "Grave evolution adds survivability without giving up ranged pressure.",
+    },
+    "guard:rot": {
+      id: "blight_ward",
+      label: "Blight Ward",
+      description: "Rot evolution hardens the frontline with additional health.",
+    },
+    "archer:rot": {
+      id: "virulent_focus",
+      label: "Virulent Focus",
+      description: "Rot evolution adds resilient pressure to the ranged line.",
+    },
+  };
+  const passive = passives[key] ?? {
+    id: "adaptive_doctrine",
+    label: "Adaptive Doctrine",
+    description: "Evolution reinforces this unit while preserving its battlefield role.",
+  };
+  return { ...passive, tier: safeTier };
 };
