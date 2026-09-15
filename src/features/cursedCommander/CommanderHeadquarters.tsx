@@ -14,6 +14,7 @@ import {
   commanderMissingCoins,
   commanderStatRank,
   commanderTrainingCost,
+  commanderUnitEvolutionStage,
 } from "./commanderHeadquartersModel";
 import { getCommanderRecruitIdentity } from "./commanderRecruitIdentity";
 import { getCommanderSpriteUrl } from "./commanderSpriteAssets";
@@ -22,6 +23,7 @@ import CommanderPracticeArena from "./CommanderPracticeArena";
 import CommanderPvpLobby, { type CommanderPvpLaunch } from "./CommanderPvpLobby";
 import CommanderPvpArena from "./CommanderPvpArena";
 import CommanderUnitTrainingPanel from "./CommanderUnitTrainingPanel";
+import CommanderUnitEvolutionPanel from "./CommanderUnitEvolutionPanel";
 import "./commanderHeadquarters.css";
 import "./commanderHeadquartersCommandCenter.css";
 
@@ -240,13 +242,15 @@ export default function CommanderHeadquarters({
             ? "Army updated. The new loadout will be used in your next battle."
             : action.choice.operation === "unit_train"
               ? "Unit training complete. The upgraded stats apply to new Practice and Player Battles."
-              : action.choice.operation === "train"
-                ? "Training complete. Your army stats are updated."
-                : action.choice.operation === "enroll"
-                  ? "Your expedition begins. Your starter squad is ready."
-                  : action.choice.target
-                    ? "Goal pinned to headquarters."
-                    : "Goal cleared.",
+              : action.choice.operation === "evolve_unit"
+                ? "Unit evolution complete. The evolved stats now apply to new Practice and Player Battles."
+                : action.choice.operation === "train"
+                  ? "Training complete. Your army stats are updated."
+                  : action.choice.operation === "enroll"
+                    ? "Your expedition begins. Your starter squad is ready."
+                    : action.choice.target
+                      ? "Goal pinned to headquarters."
+                      : "Goal cleared.",
       );
     } catch (cause) {
       if (!alive.current) return;
@@ -722,7 +726,7 @@ export default function CommanderHeadquarters({
                       </button>
                       <button className="cc-command-hero-action" onClick={() => selectTab("army")}>
                         <span className="cc-command-action-icon" aria-hidden>♜</span>
-                        <span><strong>Manage Army</strong><small>Recruit, train and deploy</small></span>
+                        <span><strong>Manage Army</strong><small>Recruit, train and evolve</small></span>
                         <b aria-hidden>→</b>
                       </button>
                       <button
@@ -811,7 +815,11 @@ export default function CommanderHeadquarters({
                     <div className="cc-command-power">
                       <span className="cc-command-power-icon" aria-hidden>{identity.sigil}</span>
                       <div>
-                        <strong>{slot !== "commander" && unit && "unitRank" in unit && typeof unit.unitRank === "number" ? `Rank ${unit.unitRank} · ` : ""}{identity.power}</strong>
+                        <strong>
+                          {slot !== "commander" && unit && "unitRank" in unit && typeof unit.unitRank === "number" ? `Rank ${unit.unitRank} · ` : ""}
+                          {slot !== "commander" && unit && "evolutionTier" in unit && typeof unit.evolutionTier === "number" && unit.evolutionTier > 0 ? `${commanderUnitEvolutionStage(unit.evolutionTier)} · ` : ""}
+                          {identity.power}
+                        </strong>
                         <small>{slot === "commander" ? "Commander ability" : `${String(school).toUpperCase()} doctrine`}</small>
                       </div>
                     </div>
@@ -861,12 +869,18 @@ export default function CommanderHeadquarters({
                   </p>
                   <progress max={levelSpan} value={Math.min(levelProgress, levelSpan)} aria-label="Commander level progress" />
                   <p>
-                    Commander training limit: rank {p?.rankCap ?? 5} · {level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11)
-                      ? `Unit training cap: rank ${p?.unitRankCap ?? 1}`
-                      : `Unit Training unlocks at Level ${hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11}`}
+                    Commander training limit: rank {p?.rankCap ?? 5} · {level >= (hq.campaign.rules["unitEvolutionUnlockLevel"] ?? 21)
+                      ? `Unit Evolution: ${commanderUnitEvolutionStage(level >= (hq.campaign.rules["unitEvolutionTier3Level"] ?? 30) ? 3 : level >= (hq.campaign.rules["unitEvolutionTier2Level"] ?? 25) ? 2 : 1)} access`
+                      : level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11)
+                        ? `Unit training cap: rank ${p?.unitRankCap ?? 1}`
+                        : `Unit Training unlocks at Level ${hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11}`}
                   </p>
                   <button className="cc-hq-secondary" onClick={() => selectTab(level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11) ? "army" : "training")}>
-                    {level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11) ? "Open unit development ↗" : "Open training ↗"}
+                    {level >= (hq.campaign.rules["unitEvolutionUnlockLevel"] ?? 21)
+                      ? "Open unit evolution ↗"
+                      : level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11)
+                        ? "Open unit development ↗"
+                        : "Open training ↗"}
                   </button>
                 </article>
               </div>
@@ -922,6 +936,20 @@ export default function CommanderHeadquarters({
                           title: `Train ${item.name}?`,
                           cost,
                           detail: "Permanent unit development for this expedition. The trained stats are server-calculated and will apply to future Practice and Player Battles.",
+                        })
+                      }
+                    />
+                    <CommanderUnitEvolutionPanel
+                      hq={hq}
+                      coins={coins}
+                      disabled={unavailable}
+                      onEvolve={(item, cost, targetTier) =>
+                        propose({
+                          operation: "evolve_unit",
+                          target: item.id,
+                          title: `Evolve ${item.name} to ${commanderUnitEvolutionStage(targetTier)}?`,
+                          cost,
+                          detail: "Permanent unit evolution for this expedition. Rank 10 training is preserved; server-calculated evolution bonuses apply to future Practice and Player Battles.",
                         })
                       }
                     />
@@ -1031,6 +1059,7 @@ export default function CommanderHeadquarters({
                                     equip: "Loadout changed",
                                     train: "Commander training completed",
                                     unit_train: "Unit training completed",
+                                    evolve_unit: "Unit evolution completed",
                                     goal: "Goal updated",
                                     reward: "Expedition reward",
                                   } as Record<string, string>
