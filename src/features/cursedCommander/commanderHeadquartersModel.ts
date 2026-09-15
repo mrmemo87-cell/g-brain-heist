@@ -1,5 +1,7 @@
 import type {
   CommanderCatalogItem,
+  CommanderFormationId,
+  CommanderFormationModifiers,
   CommanderHeadquarters,
   CommanderMasterySchool,
   CommanderStat,
@@ -113,6 +115,206 @@ export const commanderSchoolMasteryDoctrine = (school: CommanderMasterySchool) =
     effect: string;
   }>;
   return doctrines[school];
+};
+
+export const commanderFormationMaxRank = (rules: Record<string, number>) =>
+  rules["formationMaxRank"] ?? 7;
+
+export const commanderFormationUnlockLevel = (
+  id: CommanderFormationId,
+  rules: Record<string, number>,
+) => {
+  if (id === "bastion_wedge") return rules["formationBastionUnlockLevel"] ?? 45;
+  if (id === "spearhead") return rules["formationSpearheadUnlockLevel"] ?? 50;
+  if (id === "arc_lattice") return rules["formationArcUnlockLevel"] ?? 55;
+  return rules["formationUnlockLevel"] ?? 41;
+};
+
+export const commanderFormationRankCap = (
+  level: number,
+  rules: Record<string, number>,
+) => {
+  const milestones = [
+    rules["formationUnlockLevel"] ?? 41,
+    rules["formationRank2Level"] ?? 50,
+    rules["formationRank3Level"] ?? 60,
+    rules["formationRank4Level"] ?? 70,
+    rules["formationRank5Level"] ?? 80,
+    rules["formationRank6Level"] ?? 90,
+    rules["formationRank7Level"] ?? 100,
+  ];
+  return Math.min(
+    commanderFormationMaxRank(rules),
+    milestones.reduce((rank, milestone) => rank + (level >= milestone ? 1 : 0), 0),
+  );
+};
+
+export const commanderFormationNextLevel = (
+  id: CommanderFormationId,
+  currentRank: number,
+  rules: Record<string, number>,
+) => {
+  if (currentRank <= 0) return commanderFormationUnlockLevel(id, rules);
+  const levels = [
+    rules["formationRank2Level"] ?? 50,
+    rules["formationRank3Level"] ?? 60,
+    rules["formationRank4Level"] ?? 70,
+    rules["formationRank5Level"] ?? 80,
+    rules["formationRank6Level"] ?? 90,
+    rules["formationRank7Level"] ?? 100,
+  ];
+  return levels[currentRank - 1] ?? null;
+};
+
+export const commanderFormationTrainingCost = (
+  currentRank: number,
+  rules: Record<string, number>,
+) => Math.round(
+  (rules["formationTrainingBase"] ?? 600)
+  * (rules["formationTrainingGrowth"] ?? 1.35) ** Math.max(0, currentRank),
+);
+
+export const commanderFormationRank = (
+  hq: CommanderHeadquarters,
+  id: CommanderFormationId,
+) => Math.max(0, Math.min(
+  commanderFormationMaxRank(hq.campaign.rules),
+  hq.loadout?.formation?.ranks?.[id] ?? 0,
+));
+
+export const commanderActiveFormation = (hq: CommanderHeadquarters): CommanderFormationId =>
+  hq.loadout?.formation?.activeId ?? "command_line";
+
+export type CommanderFormationDefinition = {
+  id: CommanderFormationId;
+  name: string;
+  role: string;
+  icon: string;
+  summary: string;
+  doctrine: string;
+  tradeoff: string;
+};
+
+export const COMMANDER_FORMATIONS: CommanderFormationDefinition[] = [
+  {
+    id: "command_line",
+    name: "Command Line",
+    role: "BALANCED",
+    icon: "◇",
+    summary: "A disciplined three-point line that reinforces every role without overcommitting.",
+    doctrine: "Small all-round gains to Commander control, squad endurance, and measured pressure.",
+    tradeoff: "No extreme advantage; specialists can outperform it in their preferred battle state.",
+  },
+  {
+    id: "bastion_wedge",
+    name: "Bastion Wedge",
+    role: "DEFENSE",
+    icon: "⬡",
+    summary: "Collapse around the frontline and force the enemy to break reinforced layers first.",
+    doctrine: "Major shield, Guard, Commander durability, and frontline endurance gains.",
+    tradeoff: "Reduces Death Bolt pressure and trims ranged damage as doctrine rank rises.",
+  },
+  {
+    id: "spearhead",
+    name: "Spearhead",
+    role: "ASSAULT",
+    icon: "▲",
+    summary: "Push the formation forward and convert defensive reserve into decisive pressure.",
+    doctrine: "Improves Death Bolt, Focus, and both unit attacks for aggressive turns.",
+    tradeoff: "Sacrifices Commander HP, starting shield, Guard strength, and shield capacity.",
+  },
+  {
+    id: "arc_lattice",
+    name: "Arc Lattice",
+    role: "POWER",
+    icon: "✦",
+    summary: "Spread the squad into a casting lattice that amplifies Commander tactical channels.",
+    doctrine: "Strong Focus growth plus Bolt and Guard gains for School-power-oriented play.",
+    tradeoff: "Reduces deployed unit HP and a small amount of starting Commander shield.",
+  },
+];
+
+export const commanderFormationModifiers = (
+  id: CommanderFormationId,
+  rank: number,
+): CommanderFormationModifiers => {
+  const r = Math.max(0, Math.min(7, Math.trunc(rank)));
+  if (id === "bastion_wedge") {
+    return {
+      commanderHp: 2 * r,
+      commanderShield: 3 * r,
+      bolt: -r,
+      focus: 0,
+      guard: 2 * r,
+      shieldCap: 3 * r,
+      guardHp: 3 * r,
+      guardShield: 2 * r,
+      guardAttack: 0,
+      archerHp: r,
+      archerShield: 0,
+      archerAttack: -Math.floor(r / 2),
+    };
+  }
+  if (id === "spearhead") {
+    return {
+      commanderHp: -2 * r,
+      commanderShield: -r,
+      bolt: 2 * r,
+      focus: r,
+      guard: -r,
+      shieldCap: -r,
+      guardHp: 0,
+      guardShield: 0,
+      guardAttack: Math.floor((r + 1) / 2),
+      archerHp: 0,
+      archerShield: 0,
+      archerAttack: Math.floor((r + 1) / 2),
+    };
+  }
+  if (id === "arc_lattice") {
+    return {
+      commanderHp: 0,
+      commanderShield: -Math.floor(r / 2),
+      bolt: r,
+      focus: 2 * r,
+      guard: r,
+      shieldCap: 0,
+      guardHp: -r,
+      guardShield: 0,
+      guardAttack: 0,
+      archerHp: -r,
+      archerShield: 0,
+      archerAttack: 0,
+    };
+  }
+  return {
+    commanderHp: r,
+    commanderShield: r,
+    bolt: Math.floor(r / 2),
+    focus: Math.floor(r / 2),
+    guard: r,
+    shieldCap: r,
+    guardHp: r,
+    guardShield: 0,
+    guardAttack: Math.floor(r / 3),
+    archerHp: r,
+    archerShield: 0,
+    archerAttack: Math.floor(r / 3),
+  };
+};
+
+export const commanderFormationNextGain = (
+  id: CommanderFormationId,
+  currentRank: number,
+): CommanderFormationModifiers => {
+  const current = commanderFormationModifiers(id, currentRank);
+  const next = commanderFormationModifiers(id, currentRank + 1);
+  return Object.fromEntries(
+    Object.entries(next).map(([key, value]) => [
+      key,
+      value - current[key as keyof CommanderFormationModifiers],
+    ]),
+  ) as CommanderFormationModifiers;
 };
 
 export const commanderUnitEvolutionTierCap = (

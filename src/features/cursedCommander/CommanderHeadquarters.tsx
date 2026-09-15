@@ -22,6 +22,7 @@ import CommanderPracticeArena from "./CommanderPracticeArena";
 import CommanderPvpLobby, { type CommanderPvpLaunch } from "./CommanderPvpLobby";
 import CommanderPvpArena from "./CommanderPvpArena";
 import CommanderUnitTrainingPanel from "./CommanderUnitTrainingPanel";
+import CommanderFormationPanel from "./CommanderFormationPanel";
 import "./commanderHeadquarters.css";
 import "./commanderHeadquartersCommandCenter.css";
 
@@ -240,13 +241,17 @@ export default function CommanderHeadquarters({
             ? "Army updated. The new loadout will be used in your next battle."
             : action.choice.operation === "unit_train"
               ? "Unit training complete. The upgraded stats apply to new Practice and Player Battles."
-              : action.choice.operation === "train"
-                ? "Training complete. Your army stats are updated."
-                : action.choice.operation === "enroll"
-                  ? "Your expedition begins. Your starter squad is ready."
-                  : action.choice.target
-                    ? "Goal pinned to headquarters."
-                    : "Goal cleared.",
+              : action.choice.operation === "formation_train"
+                ? "Formation doctrine advanced. Trusted combat stats are updated for future Practice and Player Battles."
+                : action.choice.operation === "formation_set"
+                  ? "Active formation updated. New battles will use this doctrine; existing Player Battles keep their frozen snapshots."
+                  : action.choice.operation === "train"
+                    ? "Training complete. Your army stats are updated."
+                    : action.choice.operation === "enroll"
+                      ? "Your expedition begins. Your starter squad is ready."
+                      : action.choice.target
+                        ? "Goal pinned to headquarters."
+                        : "Goal cleared.",
       );
     } catch (cause) {
       if (!alive.current) return;
@@ -866,7 +871,11 @@ export default function CommanderHeadquarters({
                       : `Unit Training unlocks at Level ${hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11}`}
                   </p>
                   <button className="cc-hq-secondary" onClick={() => selectTab(level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11) ? "army" : "training")}>
-                    {level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11) ? "Open unit development ↗" : "Open training ↗"}
+                    {level >= (hq.campaign.rules["formationUnlockLevel"] ?? 41)
+                      ? "Open Formation Command ↗"
+                      : level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11)
+                        ? "Open unit development ↗"
+                        : "Open training ↗"}
                   </button>
                 </article>
               </div>
@@ -922,6 +931,29 @@ export default function CommanderHeadquarters({
                           title: `Train ${item.name}?`,
                           cost,
                           detail: "Permanent unit development for this expedition. The trained stats are server-calculated and will apply to future Practice and Player Battles.",
+                        })
+                      }
+                    />
+                    <CommanderFormationPanel
+                      hq={hq}
+                      coins={coins}
+                      disabled={unavailable}
+                      onAdvance={(formation, cost) =>
+                        propose({
+                          operation: "formation_train",
+                          target: formation.id,
+                          title: `Advance ${formation.name} doctrine?`,
+                          cost,
+                          detail: "Permanent Formation Command progression. The server calculates the exact strengths and trade-offs from the formation ID and doctrine rank; future Practice and Player Battles receive only the trusted composed loadout.",
+                        })
+                      }
+                      onActivate={(formation) =>
+                        propose({
+                          operation: "formation_set",
+                          target: formation.id,
+                          title: `Activate ${formation.name}?`,
+                          cost: 0,
+                          detail: "Sets this doctrine for future Practice and Player Battles. Any Player Battle already in progress keeps the trusted loadout snapshot captured when that battle started.",
                         })
                       }
                     />
@@ -1031,6 +1063,8 @@ export default function CommanderHeadquarters({
                                     equip: "Loadout changed",
                                     train: "Commander training completed",
                                     unit_train: "Unit training completed",
+                                    formation_train: "Formation doctrine advanced",
+                                    formation_set: "Active formation changed",
                                     goal: "Goal updated",
                                     reward: "Expedition reward",
                                   } as Record<string, string>
@@ -1059,7 +1093,7 @@ export default function CommanderHeadquarters({
 
           <footer className="cc-hq-footer cc-command-footer">
             <span>DISCIPLINE BUILDS LEGENDS.</span>
-            <span>Practice is safe · Player Battles record the result · Unit development is server-authoritative · No Commander PvP Coin or account XP transfer.</span>
+            <span>Practice is safe · Player Battles record the result · Unit development and Formation Command are server-authoritative · No Commander PvP Coin or account XP transfer.</span>
           </footer>
         </>
       )}
