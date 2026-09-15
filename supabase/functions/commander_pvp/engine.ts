@@ -4,8 +4,10 @@ import {
   type PracticeCombatant,
   type PracticeEvent,
   type PracticeEventCode,
+  type PracticeMasterySchool,
   type PracticeMove,
   type PracticePower,
+  type PracticeSchoolMastery,
   type PracticeSide,
   type PracticeTurnIntent,
 } from "../commander_practice/engine.ts";
@@ -13,6 +15,7 @@ import {
 export type CommanderPvpBattleState = PracticeBattleState & {
   enemyTactics: { bolt: number; focus: number; guard: number; shieldCap: number };
   enemyPowers: PracticePower[];
+  enemySchoolMastery?: PracticeSchoolMastery;
   enemyLoadoutLabel?: string;
   enemyLoadoutVersion?: number;
 };
@@ -72,6 +75,16 @@ const powersFor = (state: CommanderPvpBattleState, side: PracticeSide): Practice
   const valid = configured?.filter((power): power is PracticePower => POWER_ORDER.includes(power));
   return valid?.length ? valid : ["death_bolt"];
 };
+
+const masteryFor = (
+  state: CommanderPvpBattleState,
+  side: PracticeSide,
+  school: PracticeMasterySchool,
+) => clamp(Math.trunc(
+  side === "player"
+    ? state.playerSchoolMastery?.[school] ?? 0
+    : state.enemySchoolMastery?.[school] ?? 0,
+), 0, 3);
 
 const focusFor = (state: CommanderPvpBattleState, side: PracticeSide) =>
   side === "player" ? state.playerFocusTarget : state.enemyFocusTarget;
@@ -226,7 +239,13 @@ const performDeathBolt = (
   target: PracticeCombatant,
 ) => {
   const focused = focusFor(state, side) === target.id;
-  applyDamage(state, actor, target, tacticsFor(state, side).bolt + (focused ? 8 : 0), "death_bolt");
+  applyDamage(
+    state,
+    actor,
+    target,
+    tacticsFor(state, side).bolt + (focused ? 8 : 0) + masteryFor(state, side, "void") * 3,
+    "death_bolt",
+  );
   setCooldown(state, side, 2);
   if (focused) setFocus(state, side, null);
 };
@@ -238,12 +257,13 @@ const performChainSurge = (
   target: PracticeCombatant,
 ) => {
   const focused = focusFor(state, side) === target.id;
-  const primary = Math.max(12, Math.round(tacticsFor(state, side).bolt * 0.68)) + (focused ? 5 : 0);
+  const stormRank = masteryFor(state, side, "storm");
+  const primary = Math.max(12, Math.round(tacticsFor(state, side).bolt * 0.68)) + (focused ? 5 : 0) + stormRank * 2;
   applyDamage(state, actor, target, primary, "chain_surge");
   const remaining = living(state, enemySide(side)).filter((candidate) => candidate.id !== target.id);
   if (remaining.length > 0) {
     const secondary = remaining[roll(state, `${side}:chain:${target.id}`, remaining.length)];
-    applyDamage(state, actor, secondary, Math.max(7, Math.round(primary * 0.55)), "chain_surge");
+    applyDamage(state, actor, secondary, Math.max(7, Math.round(primary * 0.55)) + stormRank, "chain_surge");
   }
   setCooldown(state, side, 3);
   if (focused) setFocus(state, side, null);
@@ -256,7 +276,7 @@ const performRotMiasma = (
   target: PracticeCombatant,
 ) => {
   const tactics = tacticsFor(state, side);
-  const pulse = Math.max(6, Math.round(tactics.focus * 0.75 + tactics.bolt * 0.12));
+  const pulse = Math.max(6, Math.round(tactics.focus * 0.75 + tactics.bolt * 0.12)) + masteryFor(state, side, "rot");
   const focused = focusFor(state, side) === target.id;
   for (const enemy of living(state, enemySide(side))) {
     const selectedBonus = enemy.id === target.id ? 4 : 0;
@@ -272,11 +292,12 @@ const performRaiseDead = (
   actor: PracticeCombatant,
   failIfHealthy = true,
 ) => {
+  const graveRank = masteryFor(state, side, "grave");
   const fallen = state.combatants.find(
     (combatant) => combatant.side === side && combatant.role === "unit" && combatant.hp <= 0,
   );
   if (fallen) {
-    const restored = Math.max(1, Math.round(fallen.maxHp * 0.35));
+    const restored = Math.max(1, Math.round(fallen.maxHp * (0.35 + graveRank * 0.03)));
     fallen.hp = Math.min(fallen.maxHp, restored);
     fallen.shield = 0;
     pushEvent(state, {
@@ -299,7 +320,7 @@ const performRaiseDead = (
     return false;
   }
 
-  const healCap = Math.max(12, Math.round(tacticsFor(state, side).guard * 0.75));
+  const healCap = Math.max(12, Math.round(tacticsFor(state, side).guard * 0.75)) + graveRank * 2;
   const restored = Math.min(healCap, wounded.maxHp - wounded.hp);
   wounded.hp += restored;
   pushEvent(state, {
@@ -441,7 +462,7 @@ const renameDefenderCombatant = (combatant: PracticeCombatant, defenderUsername:
 
 /**
  * Builds PvP from two trusted server loadouts. Both armies keep their real Commander
- * tactics, recruit stats, schools and unlocked powers; only the defender is AI-driven.
+ * tactics, recruit stats, schools, School Mastery and unlocked powers; only the defender is AI-driven.
  */
 export const buildCommanderPvpBattle = (
   seed: number,
@@ -476,6 +497,7 @@ export const buildCommanderPvpBattle = (
 
   state.enemyTactics = clone(defender.playerTactics);
   state.enemyPowers = [...(defender.playerPowers ?? ["death_bolt"])];
+  state.enemySchoolMastery = defender.playerSchoolMastery ? clone(defender.playerSchoolMastery) : undefined;
   state.enemyLoadoutLabel = defender.loadoutLabel;
   state.enemyLoadoutVersion = defender.loadoutVersion;
   state.maxTurns = 12;
