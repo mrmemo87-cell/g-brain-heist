@@ -2,9 +2,15 @@ import { supabase } from "./supabaseClient";
 
 export type CommanderSlot = "guard" | "archer" | "weapon" | "shield";
 export type CommanderStat = "force" | "defense" | "dexterity" | "stamina";
-export type CommanderOperation = "enroll" | "buy" | "equip" | "train" | "unit_train" | "goal";
+export type CommanderOperation = "enroll" | "buy" | "equip" | "train" | "unit_train" | "evolve_unit" | "goal";
 export type CommanderSchool = "neutral" | "void" | "storm" | "rot" | "grave";
 export type CommanderRarity = "common" | "rare" | "epic" | "legendary";
+export type CommanderEvolutionPassive = {
+  id: string;
+  label: string;
+  description: string;
+  tier: number;
+};
 export type CommanderCatalogItem = {
   id: string;
   name: string;
@@ -45,6 +51,8 @@ export type CommanderOwnedLoadout = {
     catalogId?: string;
     school?: CommanderSchool;
     unitRank?: number;
+    evolutionTier?: number;
+    evolutionPassive?: CommanderEvolutionPassive | null;
     name: string;
     hp: number;
     shield: number;
@@ -103,10 +111,18 @@ export const commanderHeadquartersError = (cause: unknown) => {
       "This unit has reached the training limit for your current Commander level.",
     commander_unit_training_locked:
       "Unit Training unlocks at Commander Level 11.",
+    commander_unit_evolution_locked:
+      "Unit Evolution unlocks at Commander Level 21.",
+    commander_unit_evolution_rank_required:
+      "Train this unit to Rank 10 before evolving it.",
+    commander_unit_evolution_level_required:
+      "Reach the required Commander level for this evolution tier.",
+    commander_unit_evolution_max:
+      "This unit has reached Mythic evolution.",
     commander_unit_not_owned:
-      "Recruit this unit before training it.",
+      "Recruit this unit before developing it.",
     commander_invalid_unit:
-      "This unit cannot be trained.",
+      "This unit cannot be developed.",
     commander_not_owned:
       "Add this item to your collection before equipping it.",
     commander_enroll_first: "Claim your starter squad first.",
@@ -136,12 +152,18 @@ export async function sendCommanderCommand(
   requestId: string,
   signal?: AbortSignal,
 ): Promise<CommanderHeadquarters> {
-  let request = supabase.rpc("rpc_commander_command", {
-    p_request_id: requestId,
-    p_operation: operation,
-    p_target: target,
-    p_expected_version: version,
-  });
+  let request = operation === "evolve_unit"
+    ? supabase.rpc("rpc_commander_evolve_unit", {
+        p_request_id: requestId,
+        p_target: target,
+        p_expected_version: version,
+      })
+    : supabase.rpc("rpc_commander_command", {
+        p_request_id: requestId,
+        p_operation: operation,
+        p_target: target,
+        p_expected_version: version,
+      });
   if (signal) request = request.abortSignal(signal);
   const { data, error } = await request;
   if (error || !data?.campaign || !Array.isArray(data.catalog))
