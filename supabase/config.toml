@@ -24,3 +24,6 @@ verify_jwt = true
 
 [functions.commander_practice]
 verify_jwt = true
+
+[functions.commander_pvp]
+verify_jwt = true

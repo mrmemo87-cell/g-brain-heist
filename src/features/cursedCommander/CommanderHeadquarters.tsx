@@ -19,6 +19,8 @@ import { getCommanderRecruitIdentity } from "./commanderRecruitIdentity";
 import { getCommanderSpriteUrl } from "./commanderSpriteAssets";
 import { COMMANDER_VFX } from "./commanderVfxAssets";
 import CommanderPracticeArena from "./CommanderPracticeArena";
+import CommanderPvpLobby, { type CommanderPvpLaunch } from "./CommanderPvpLobby";
+import CommanderPvpArena from "./CommanderPvpArena";
 import "./commanderHeadquarters.css";
 import "./commanderHeadquartersCommandCenter.css";
 
@@ -151,6 +153,8 @@ export default function CommanderHeadquarters({
   const [notice, setNotice] = useState("");
   const [choice, setChoice] = useState<Choice | null>(null);
   const [practice, setPractice] = useState<"owned" | "fixed" | null>(null);
+  const [pvpOpen, setPvpOpen] = useState(false);
+  const [pvpLaunch, setPvpLaunch] = useState<CommanderPvpLaunch | null>(null);
   const request = useRef<AbortController | null>(null);
   const alive = useRef(true);
   const inFlight = useRef(false);
@@ -489,6 +493,29 @@ export default function CommanderHeadquarters({
       />
     );
 
+  if (pvpLaunch)
+    return (
+      <CommanderPvpArena
+        launch={pvpLaunch}
+        onClose={() => {
+          setPvpLaunch(null);
+          setPvpOpen(true);
+          void refresh();
+        }}
+      />
+    );
+
+  if (pvpOpen)
+    return (
+      <CommanderPvpLobby
+        onClose={() => {
+          setPvpOpen(false);
+          void refresh();
+        }}
+        onBattle={(launch) => setPvpLaunch(launch)}
+      />
+    );
+
   const guardIdentity = getCommanderRecruitIdentity(
     loadout?.units[0]?.catalogId ?? guardItem?.id,
     loadout?.units[0]?.school ?? guardItem?.school,
@@ -685,7 +712,12 @@ export default function CommanderHeadquarters({
                   <p className="cc-command-doctrine-quote">“A stronger army starts with a sharper command.”</p>
                   {p ? (
                     <>
-                      <button className="cc-command-hero-action is-primary" onClick={() => selectTab("army")}>
+                      <button className="cc-command-hero-action is-primary" onClick={() => setPvpOpen(true)}>
+                        <span className="cc-command-action-icon" aria-hidden>⚔</span>
+                        <span><strong>Player Battles</strong><small>Challenge another Commander army</small></span>
+                        <b aria-hidden>→</b>
+                      </button>
+                      <button className="cc-command-hero-action" onClick={() => selectTab("army")}>
                         <span className="cc-command-action-icon" aria-hidden>♜</span>
                         <span><strong>Manage Army</strong><small>Recruit, compare and deploy</small></span>
                         <b aria-hidden>→</b>
@@ -696,7 +728,7 @@ export default function CommanderHeadquarters({
                         onClick={() => setPractice("owned")}
                       >
                         <span className="cc-command-action-icon" aria-hidden>◎</span>
-                        <span><strong>Quick Deploy</strong><small>Enter practice with this formation</small></span>
+                        <span><strong>Practice</strong><small>Test this formation without a recorded result</small></span>
                         <b aria-hidden>→</b>
                       </button>
                     </>
@@ -1003,7 +1035,7 @@ export default function CommanderHeadquarters({
 
           <footer className="cc-hq-footer cc-command-footer">
             <span>DISCIPLINE BUILDS LEGENDS.</span>
-            <span>Practice uses your equipped army · No ranked losses · No account reset.</span>
+            <span>Practice is safe · Player Battles record the result · No Commander PvP Coin or account XP transfer.</span>
           </footer>
         </>
       )}
