@@ -1,6 +1,8 @@
 export type PracticeSide = "player" | "enemy";
 export type PracticeStatus = "active" | "victory" | "defeat" | "draw";
 export type PracticeSchool = "neutral" | "void" | "storm" | "rot" | "grave";
+export type PracticeMasterySchool = Exclude<PracticeSchool, "neutral">;
+export type PracticeSchoolMastery = Partial<Record<PracticeMasterySchool, number>>;
 export type PracticeMove =
   | "focus_target"
   | "death_bolt"
@@ -57,6 +59,8 @@ export type PracticeBattleState = {
   playerTactics?: { bolt: number; focus: number; guard: number; shieldCap: number };
   /** Signature Void power is always present. Equipped unit schools unlock alternates. */
   playerPowers?: PracticePower[];
+  /** Permanent trusted school ranks; a rank only matters when its matching power is available. */
+  playerSchoolMastery?: PracticeSchoolMastery;
   loadoutLabel?: string;
   loadoutVersion?: number;
   version: 1;
@@ -86,6 +90,7 @@ const SCHOOL_POWER: Partial<Record<PracticeSchool, PracticePower>> = {
   rot: "rot_miasma",
   grave: "raise_dead",
 };
+const MASTERY_SCHOOLS: PracticeMasterySchool[] = ["void", "storm", "rot", "grave"];
 const POWER_MOVES = new Set<PracticeMove>(PLAYER_POWER_ORDER);
 const VALID_SCHOOLS = new Set<PracticeSchool>(["neutral", "void", "storm", "rot", "grave"]);
 const powerCooldownError = (move: PracticeMove) =>
@@ -102,6 +107,9 @@ const hash32 = (input: string) => {
   }
   return hash >>> 0;
 };
+
+const masteryRank = (state: PracticeBattleState, school: PracticeMasterySchool) =>
+  clamp(Math.trunc(state.playerSchoolMastery?.[school] ?? 0), 0, 3);
 
 const roll = (state: PracticeBattleState, label: string, maxExclusive: number) => {
   if (maxExclusive <= 1) return 0;
@@ -265,7 +273,7 @@ const performDeathBolt = (
     state,
     playerCommander,
     target,
-    (state.playerTactics?.bolt ?? 26) + (focused ? 8 : 0),
+    (state.playerTactics?.bolt ?? 26) + (focused ? 8 : 0) + masteryRank(state, "void") * 3,
     "death_bolt",
   );
   state.playerDeathBoltCooldown = 2;
@@ -279,7 +287,8 @@ const performChainSurge = (
 ) => {
   const focused = state.playerFocusTarget === target.id;
   const bolt = state.playerTactics?.bolt ?? 26;
-  const primaryDamage = Math.max(12, Math.round(bolt * 0.68)) + (focused ? 5 : 0);
+  const stormRank = masteryRank(state, "storm");
+  const primaryDamage = Math.max(12, Math.round(bolt * 0.68)) + (focused ? 5 : 0) + stormRank * 2;
   applyDamage(state, playerCommander, target, primaryDamage, "chain_surge");
 
   const secondaryTargets = living(state, "enemy").filter((candidate) => candidate.id !== target.id);
@@ -289,7 +298,7 @@ const performChainSurge = (
       state,
       playerCommander,
       secondary,
-      Math.max(7, Math.round(primaryDamage * 0.55)),
+      Math.max(7, Math.round(primaryDamage * 0.55)) + stormRank,
       "chain_surge",
     );
   }
@@ -304,7 +313,7 @@ const performRotMiasma = (
 ) => {
   const focus = state.playerTactics?.focus ?? 7;
   const bolt = state.playerTactics?.bolt ?? 26;
-  const pulse = Math.max(6, Math.round(focus * 0.75 + bolt * 0.12));
+  const pulse = Math.max(6, Math.round(focus * 0.75 + bolt * 0.12)) + masteryRank(state, "rot");
   const focused = state.playerFocusTarget === target.id;
   const targets = living(state, "enemy");
 
@@ -320,11 +329,12 @@ const performRaiseDead = (
   state: PracticeBattleState,
   playerCommander: PracticeCombatant,
 ) => {
+  const graveRank = masteryRank(state, "grave");
   const fallen = state.combatants.find(
     (combatant) => combatant.side === "player" && combatant.role === "unit" && combatant.hp <= 0,
   );
   if (fallen) {
-    const restored = Math.max(1, Math.round(fallen.maxHp * 0.35));
+    const restored = Math.max(1, Math.round(fallen.maxHp * (0.35 + graveRank * 0.03)));
     fallen.hp = Math.min(fallen.maxHp, restored);
     fallen.shield = 0;
     pushEvent(state, {
@@ -344,7 +354,7 @@ const performRaiseDead = (
     .sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp))[0];
   if (!wounded) throw new Error("raise_dead_no_valid_target");
 
-  const healCap = Math.max(12, Math.round((state.playerTactics?.guard ?? 18) * 0.75));
+  const healCap = Math.max(12, Math.round((state.playerTactics?.guard ?? 18) * 0.75)) + graveRank * 2;
   const restored = Math.min(healCap, wounded.maxHp - wounded.hp);
   wounded.hp += restored;
   pushEvent(state, {
@@ -558,6 +568,20 @@ export function buildOwnedPracticeBattle(seed: number, input: unknown): Practice
     guard: integer(x['guard'], 1, 150), shieldCap: integer(x['shieldCap'], player.shield, 200),
   };
   player.maxShield = state.playerTactics.shieldCap;
+
+  const masteryInput = x['schoolMastery'];
+  if (masteryInput !== undefined) {
+    if (!masteryInput || typeof masteryInput !== 'object' || Array.isArray(masteryInput)) throw new Error('invalid_owned_loadout');
+    const masteryRecord = masteryInput as Record<string, unknown>;
+    if (Object.keys(masteryRecord).some(key => !MASTERY_SCHOOLS.includes(key as PracticeMasterySchool))) throw new Error('invalid_owned_loadout');
+    const mastery: PracticeSchoolMastery = {};
+    for (const school of MASTERY_SCHOOLS) {
+      const value = masteryRecord[school];
+      if (value !== undefined) mastery[school] = integer(value, 0, 3);
+    }
+    state.playerSchoolMastery = mastery;
+  }
+
   const expected = new Set(['player_guard', 'player_archer']);
   const names = new Set(state.combatants.filter(u => !expected.has(u.id)).map(u => u.name));
   const unlocked = new Set<PracticePower>(['death_bolt']);
