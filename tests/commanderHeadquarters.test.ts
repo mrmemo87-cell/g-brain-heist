@@ -9,6 +9,10 @@ import {
   commanderLevelXp,
   commanderMissingCoins,
   commanderTrainingCost,
+  commanderUnitNextRankGain,
+  commanderUnitRankBonus,
+  commanderUnitRankCap,
+  commanderUnitTrainingCost,
 } from "../src/features/cursedCommander/commanderHeadquartersModel";
 
 const loadout = () => ({
@@ -183,4 +187,54 @@ test("goal prices show only missing Coins and training follows the configured cu
   );
   assert.equal(commanderLevelXp(2), 100);
   assert.equal(commanderLevelXp(100), 106920);
+});
+
+test("unit training opens at Level 11, caps at Rank 10, and follows its own Coin curve", () => {
+  const rules = {
+    unitTrainingUnlockLevel: 11,
+    unitTrainingMaxRank: 10,
+    unitTrainingBase: 50,
+    unitTrainingGrowth: 1.2,
+  };
+  assert.equal(commanderUnitRankCap(10, rules), 1);
+  assert.equal(commanderUnitRankCap(11, rules), 2);
+  assert.equal(commanderUnitRankCap(15, rules), 6);
+  assert.equal(commanderUnitRankCap(19, rules), 10);
+  assert.equal(commanderUnitRankCap(100, rules), 10);
+  assert.equal(commanderUnitTrainingCost(1, rules), 50);
+  assert.equal(commanderUnitTrainingCost(2, rules), 60);
+  assert.equal(commanderUnitTrainingCost(3, rules), 72);
+});
+
+test("unit rank bonuses favor frontline endurance and ranged pressure without replacing Dexterity", () => {
+  const rules = {
+    unitGuardHpPerRank: 2,
+    unitGuardShieldEvery: 3,
+    unitGuardAttackEvery: 3,
+    unitArcherHpPerRank: 1,
+    unitArcherAttackEvery: 2,
+  };
+  const guard = {
+    id: "neon_guard",
+    name: "Neon Guard",
+    kind: "unit" as const,
+    slot: "guard" as const,
+    price: 0,
+    description: "",
+    stats: { hp: 66, shield: 6, attack: 8 },
+  };
+  const archer = {
+    id: "shade_archer",
+    name: "Shade Archer",
+    kind: "unit" as const,
+    slot: "archer" as const,
+    price: 0,
+    description: "",
+    stats: { hp: 54, shield: 0, attack: 10 },
+  };
+
+  assert.deepEqual(commanderUnitRankBonus(guard, 10, rules), { hp: 18, shield: 3, attack: 3 });
+  assert.deepEqual(commanderUnitRankBonus(archer, 10, rules), { hp: 9, shield: 0, attack: 4 });
+  assert.deepEqual(commanderUnitNextRankGain(guard, 3, rules), { hp: 2, shield: 1, attack: 1 });
+  assert.deepEqual(commanderUnitNextRankGain(archer, 2, rules), { hp: 1, shield: 0, attack: 1 });
 });
