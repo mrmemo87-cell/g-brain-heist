@@ -21,6 +21,7 @@ import { COMMANDER_VFX } from "./commanderVfxAssets";
 import CommanderPracticeArena from "./CommanderPracticeArena";
 import CommanderPvpLobby, { type CommanderPvpLaunch } from "./CommanderPvpLobby";
 import CommanderPvpArena from "./CommanderPvpArena";
+import CommanderUnitTrainingPanel from "./CommanderUnitTrainingPanel";
 import "./commanderHeadquarters.css";
 import "./commanderHeadquartersCommandCenter.css";
 
@@ -237,13 +238,15 @@ export default function CommanderHeadquarters({
           ? "Added to your collection. Equip it when you are ready."
           : action.choice.operation === "equip"
             ? "Army updated. The new loadout will be used in your next battle."
-            : action.choice.operation === "train"
-              ? "Training complete. Your army stats are updated."
-              : action.choice.operation === "enroll"
-                ? "Your expedition begins. Your starter squad is ready."
-                : action.choice.target
-                  ? "Goal pinned to headquarters."
-                  : "Goal cleared.",
+            : action.choice.operation === "unit_train"
+              ? "Unit training complete. The upgraded stats apply to new Practice and Player Battles."
+              : action.choice.operation === "train"
+                ? "Training complete. Your army stats are updated."
+                : action.choice.operation === "enroll"
+                  ? "Your expedition begins. Your starter squad is ready."
+                  : action.choice.target
+                    ? "Goal pinned to headquarters."
+                    : "Goal cleared.",
       );
     } catch (cause) {
       if (!alive.current) return;
@@ -719,7 +722,7 @@ export default function CommanderHeadquarters({
                       </button>
                       <button className="cc-command-hero-action" onClick={() => selectTab("army")}>
                         <span className="cc-command-action-icon" aria-hidden>♜</span>
-                        <span><strong>Manage Army</strong><small>Recruit, compare and deploy</small></span>
+                        <span><strong>Manage Army</strong><small>Recruit, train and deploy</small></span>
                         <b aria-hidden>→</b>
                       </button>
                       <button
@@ -808,7 +811,7 @@ export default function CommanderHeadquarters({
                     <div className="cc-command-power">
                       <span className="cc-command-power-icon" aria-hidden>{identity.sigil}</span>
                       <div>
-                        <strong>{identity.power}</strong>
+                        <strong>{slot !== "commander" && unit && "unitRank" in unit && unit.unitRank ? `Rank ${unit.unitRank} · ` : ""}{identity.power}</strong>
                         <small>{slot === "commander" ? "Commander ability" : `${String(school).toUpperCase()} doctrine`}</small>
                       </div>
                     </div>
@@ -817,7 +820,7 @@ export default function CommanderHeadquarters({
                       className="cc-command-card-action"
                       onClick={() => selectTab(slot === "commander" ? "training" : "army")}
                     >
-                      {slot === "commander" ? "Open Training" : "View Details"} <span aria-hidden>→</span>
+                      {slot === "commander" ? "Open Training" : "View Development"} <span aria-hidden>→</span>
                     </button>
                   </article>
                 ))}
@@ -857,8 +860,14 @@ export default function CommanderHeadquarters({
                       : `${format(Math.max(0, commanderLevelXp(level + 1) - (p?.xp ?? 0)))} XP to the next level`}
                   </p>
                   <progress max={levelSpan} value={Math.min(levelProgress, levelSpan)} aria-label="Commander level progress" />
-                  <p>Current training limit: rank {p?.rankCap ?? 5}. Commander XP and ranks are separate from account XP.</p>
-                  <button className="cc-hq-secondary" onClick={() => selectTab("training")}>Open training ↗</button>
+                  <p>
+                    Commander training limit: rank {p?.rankCap ?? 5} · {level >= (hq.campaign.rules.unitTrainingUnlockLevel ?? 11)
+                      ? `Unit training cap: rank ${p?.unitRankCap ?? 1}`
+                      : `Unit Training unlocks at Level ${hq.campaign.rules.unitTrainingUnlockLevel ?? 11}`}
+                  </p>
+                  <button className="cc-hq-secondary" onClick={() => selectTab(level >= (hq.campaign.rules.unitTrainingUnlockLevel ?? 11) ? "army" : "training")}>
+                    {level >= (hq.campaign.rules.unitTrainingUnlockLevel ?? 11) ? "Open unit development ↗" : "Open training ↗"}
+                  </button>
                 </article>
               </div>
             </>
@@ -898,10 +907,24 @@ export default function CommanderHeadquarters({
                       <div>
                         <span className="cc-hq-eyebrow">THE BARRACKS</span>
                         <h2>Build a squad with a purpose</h2>
-                        <p>One frontline unit. One ranged unit. Recruit alternatives and deploy the pair that fits your plan.</p>
+                        <p>One frontline unit. One ranged unit. Recruit alternatives, develop the soldiers you own, and deploy the pair that fits your plan.</p>
                       </div>
                     </div>
                     {catalogCards(hq.catalog.filter((item) => item.kind === "unit"))}
+                    <CommanderUnitTrainingPanel
+                      hq={hq}
+                      coins={coins}
+                      disabled={unavailable}
+                      onTrain={(item, cost) =>
+                        propose({
+                          operation: "unit_train",
+                          target: item.id,
+                          title: `Train ${item.name}?`,
+                          cost,
+                          detail: "Permanent unit development for this expedition. The trained stats are server-calculated and will apply to future Practice and Player Battles.",
+                        })
+                      }
+                    />
                   </>
                 )}
 
@@ -1006,7 +1029,8 @@ export default function CommanderHeadquarters({
                                     enroll: "Expedition joined",
                                     buy: "Added to collection",
                                     equip: "Loadout changed",
-                                    train: "Training completed",
+                                    train: "Commander training completed",
+                                    unit_train: "Unit training completed",
                                     goal: "Goal updated",
                                     reward: "Expedition reward",
                                   } as Record<string, string>
@@ -1035,7 +1059,7 @@ export default function CommanderHeadquarters({
 
           <footer className="cc-hq-footer cc-command-footer">
             <span>DISCIPLINE BUILDS LEGENDS.</span>
-            <span>Practice is safe · Player Battles record the result · No Commander PvP Coin or account XP transfer.</span>
+            <span>Practice is safe · Player Battles record the result · Unit development is server-authoritative · No Commander PvP Coin or account XP transfer.</span>
           </footer>
         </>
       )}
