@@ -811,7 +811,7 @@ export default function CommanderHeadquarters({
                     <div className="cc-command-power">
                       <span className="cc-command-power-icon" aria-hidden>{identity.sigil}</span>
                       <div>
-                        <strong>{slot !== "commander" && unit && "unitRank" in unit && unit.unitRank ? `Rank ${unit.unitRank} · ` : ""}{identity.power}</strong>
+                        <strong>{slot !== "commander" && unit && "unitRank" in unit && typeof unit.unitRank === "number" ? `Rank ${unit.unitRank} · ` : ""}{identity.power}</strong>
                         <small>{slot === "commander" ? "Commander ability" : `${String(school).toUpperCase()} doctrine`}</small>
                       </div>
                     </div>
@@ -861,12 +861,12 @@ export default function CommanderHeadquarters({
                   </p>
                   <progress max={levelSpan} value={Math.min(levelProgress, levelSpan)} aria-label="Commander level progress" />
                   <p>
-                    Commander training limit: rank {p?.rankCap ?? 5} · {level >= (hq.campaign.rules.unitTrainingUnlockLevel ?? 11)
+                    Commander training limit: rank {p?.rankCap ?? 5} · {level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11)
                       ? `Unit training cap: rank ${p?.unitRankCap ?? 1}`
-                      : `Unit Training unlocks at Level ${hq.campaign.rules.unitTrainingUnlockLevel ?? 11}`}
+                      : `Unit Training unlocks at Level ${hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11}`}
                   </p>
-                  <button className="cc-hq-secondary" onClick={() => selectTab(level >= (hq.campaign.rules.unitTrainingUnlockLevel ?? 11) ? "army" : "training")}>
-                    {level >= (hq.campaign.rules.unitTrainingUnlockLevel ?? 11) ? "Open unit development ↗" : "Open training ↗"}
+                  <button className="cc-hq-secondary" onClick={() => selectTab(level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11) ? "army" : "training")}>
+                    {level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11) ? "Open unit development ↗" : "Open training ↗"}
                   </button>
                 </article>
               </div>
