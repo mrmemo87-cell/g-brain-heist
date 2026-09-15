@@ -1,6 +1,7 @@
 import type {
   CommanderCatalogItem,
   CommanderHeadquarters,
+  CommanderMasterySchool,
   CommanderStat,
   CommanderUnitProgress,
 } from "../../../services/commanderHeadquartersService";
@@ -33,6 +34,86 @@ export const commanderUnitEvolutionUnlockLevel = (rules: Record<string, number>)
 
 export const commanderUnitEvolutionMaxTier = (rules: Record<string, number>) =>
   rules["unitEvolutionMaxTier"] ?? 3;
+
+export const commanderSchoolMasteryUnlockLevel = (rules: Record<string, number>) =>
+  rules["schoolMasteryUnlockLevel"] ?? 31;
+
+export const commanderSchoolMasteryMaxRank = (rules: Record<string, number>) =>
+  rules["schoolMasteryMaxRank"] ?? 3;
+
+export const commanderSchoolMasteryRankCap = (
+  level: number,
+  rules: Record<string, number>,
+) => {
+  const rank1 = commanderSchoolMasteryUnlockLevel(rules);
+  const rank2 = rules["schoolMasteryRank2Level"] ?? 35;
+  const rank3 = rules["schoolMasteryRank3Level"] ?? 40;
+  if (level < rank1) return 0;
+  if (level < rank2) return 1;
+  if (level < rank3) return 2;
+  return commanderSchoolMasteryMaxRank(rules);
+};
+
+export const commanderSchoolMasteryNextLevel = (
+  currentRank: number,
+  rules: Record<string, number>,
+) => {
+  if (currentRank <= 0) return commanderSchoolMasteryUnlockLevel(rules);
+  if (currentRank === 1) return rules["schoolMasteryRank2Level"] ?? 35;
+  if (currentRank === 2) return rules["schoolMasteryRank3Level"] ?? 40;
+  return null;
+};
+
+export const commanderSchoolMasteryCost = (
+  currentRank: number,
+  rules: Record<string, number>,
+) => Math.round(
+  (rules["schoolMasteryBase"] ?? 450)
+  * (rules["schoolMasteryGrowth"] ?? 1.55) ** Math.max(0, currentRank),
+);
+
+export const commanderSchoolMasteryRank = (
+  hq: CommanderHeadquarters,
+  school: CommanderMasterySchool,
+) => Math.max(0, Math.min(
+  commanderSchoolMasteryMaxRank(hq.campaign.rules),
+  hq.loadout?.schoolMastery?.[school] ?? 0,
+));
+
+export const commanderSchoolMasteryDoctrine = (school: CommanderMasterySchool) => {
+  const doctrines = {
+    void: {
+      name: "Null Vector",
+      power: "Death Bolt",
+      summary: "Condense the Void strike into a cleaner execution vector.",
+      effect: "+3 Death Bolt damage per Mastery rank",
+    },
+    storm: {
+      name: "Overcharge Lattice",
+      power: "Chain Surge",
+      summary: "Stabilize the first discharge and strengthen the returning arc.",
+      effect: "+2 primary and +1 arc damage per Mastery rank",
+    },
+    rot: {
+      name: "Blight Protocol",
+      power: "Rot Miasma",
+      summary: "Increase the pressure carried by every Miasma pulse on the field.",
+      effect: "+1 damage to every Miasma target per Mastery rank",
+    },
+    grave: {
+      name: "Revenant Covenant",
+      power: "Raise Dead",
+      summary: "Return fallen units with more strength and reinforce emergency mending.",
+      effect: "+3% revive health and +2 mend HP per Mastery rank",
+    },
+  } satisfies Record<CommanderMasterySchool, {
+    name: string;
+    power: string;
+    summary: string;
+    effect: string;
+  }>;
+  return doctrines[school];
+};
 
 export const commanderUnitEvolutionTierCap = (
   level: number,

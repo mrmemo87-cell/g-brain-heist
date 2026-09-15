@@ -2,10 +2,18 @@ import React from "react";
 import type {
   CommanderCatalogItem,
   CommanderHeadquarters,
+  CommanderMasterySchool,
 } from "../../../services/commanderHeadquartersService";
 import {
   commanderItemEquipped,
   commanderMissingCoins,
+  commanderSchoolMasteryCost,
+  commanderSchoolMasteryDoctrine,
+  commanderSchoolMasteryMaxRank,
+  commanderSchoolMasteryNextLevel,
+  commanderSchoolMasteryRank,
+  commanderSchoolMasteryRankCap,
+  commanderSchoolMasteryUnlockLevel,
   commanderUnitEvolutionBonus,
   commanderUnitEvolutionCost,
   commanderUnitEvolutionDoctrine,
@@ -23,6 +31,7 @@ import { getCommanderRecruitIdentity } from "./commanderRecruitIdentity";
 import { getCommanderSpriteUrl } from "./commanderSpriteAssets";
 import "./commanderUnitTraining.css";
 import "./commanderUnitEvolution.css";
+import "./commanderSchoolMastery.css";
 
 type Props = {
   hq: CommanderHeadquarters;
@@ -31,6 +40,7 @@ type Props = {
   onTrain: (item: CommanderCatalogItem, cost: number) => void;
 };
 
+const MASTERY_SCHOOLS: CommanderMasterySchool[] = ["void", "storm", "rot", "grave"];
 const format = (value: number) => value.toLocaleString("en-US");
 
 const gainText = (value: number, label: string) =>
@@ -51,10 +61,14 @@ export default function CommanderUnitTrainingPanel({
   const level = hq.profile?.level ?? 1;
   const trainingUnlockLevel = commanderUnitTrainingUnlockLevel(rules);
   const evolutionUnlockLevel = commanderUnitEvolutionUnlockLevel(rules);
+  const masteryUnlockLevel = commanderSchoolMasteryUnlockLevel(rules);
   const trainingUnlocked = Boolean(hq.profile) && level >= trainingUnlockLevel;
   const evolutionCap = commanderUnitEvolutionTierCap(level, rules);
   const maxEvolutionTier = commanderUnitEvolutionMaxTier(rules);
   const evolutionUnlocked = Boolean(hq.profile) && level >= evolutionUnlockLevel;
+  const masteryCap = commanderSchoolMasteryRankCap(level, rules);
+  const maxMasteryRank = commanderSchoolMasteryMaxRank(rules);
+  const masteryUnlocked = Boolean(hq.profile) && level >= masteryUnlockLevel;
   const ownedUnits = hq.catalog.filter(
     (item) => item.kind === "unit" && hq.owned.includes(item.id),
   );
@@ -63,12 +77,12 @@ export default function CommanderUnitTrainingPanel({
     <section className="cc-unit-training" aria-labelledby="cc-unit-training-title">
       <div className="cc-unit-training-head">
         <div>
-          <span className="cc-hq-eyebrow">UNIT DEVELOPMENT · LEVELS 11–30</span>
-          <h2 id="cc-unit-training-title">Train veterans. Evolve specialists.</h2>
+          <span className="cc-hq-eyebrow">UNIT DEVELOPMENT · LEVELS 11–40</span>
+          <h2 id="cc-unit-training-title">Train veterans. Evolve specialists. Master schools.</h2>
           <p>
-            Every owned unit develops independently. Commander Level opens higher ranks and
-            Evolution tiers; Brains Heist Coins pay for permanent development. All bonuses are
-            calculated server-side and flow into both Practice and Player Battles.
+            Every owned unit develops independently through Rank and Evolution. At Level 31,
+            fully evolved specialists can unlock permanent School Mastery for Void, Storm, Rot,
+            and Grave powers. Brains Heist Coins fund every upgrade; combat remains server-authoritative.
           </p>
         </div>
         <div className="cc-unit-development-statuses">
@@ -86,8 +100,17 @@ export default function CommanderUnitTrainingPanel({
             <strong>{evolutionUnlocked ? `Tier cap ${evolutionCap} / ${maxEvolutionTier}` : `Level ${evolutionUnlockLevel}`}</strong>
             <small>
               {evolutionUnlocked
-                ? "Rank 10 veterans can evolve at Commander Levels 21, 25, and 30."
+                ? "Rank 10 veterans evolve at Commander Levels 21, 25, and 30."
                 : "Reach Rank 10 first, then unlock the first Evolution tier at Level 21."}
+            </small>
+          </div>
+          <div className={`cc-unit-training-unlock cc-school-mastery-unlock ${masteryUnlocked ? "is-open" : "is-locked"}`}>
+            <span>{masteryUnlocked ? "MASTERY ONLINE" : "MASTERY LOCKED"}</span>
+            <strong>{masteryUnlocked ? `Mastery cap ${masteryCap} / ${maxMasteryRank}` : `Level ${masteryUnlockLevel}`}</strong>
+            <small>
+              {masteryUnlocked
+                ? "Tier III evolved units can advance their School power at Levels 31, 35, and 40."
+                : "Complete a unit's Evolution path before beginning School Mastery."}
             </small>
           </div>
         </div>
@@ -252,7 +275,7 @@ export default function CommanderUnitTrainingPanel({
                       <span>{evolutionMaxed ? "FINAL FRAME" : `NEXT · EVOLUTION TIER ${tier + 1}`}</span>
                       <strong>
                         {evolutionMaxed
-                          ? "EVOLUTION PATH COMPLETE"
+                          ? "EVOLUTION COMPLETE · SCHOOL MASTERY READY"
                           : evolutionGains.length
                             ? evolutionGains.join(" · ")
                             : "Doctrine reinforcement"}
@@ -272,7 +295,7 @@ export default function CommanderUnitTrainingPanel({
                       onClick={() => onTrain(evolutionItem, evolutionCost)}
                     >
                       {evolutionMaxed
-                        ? "Evolution complete"
+                        ? `Evolution complete · Mastery at Level ${masteryUnlockLevel}`
                         : !evolutionRankReady
                           ? "Reach Unit Rank 10"
                           : !evolutionUnlocked
@@ -291,12 +314,122 @@ export default function CommanderUnitTrainingPanel({
         </div>
       )}
 
+      {hq.profile && (
+        <section className="cc-school-mastery" aria-labelledby="cc-school-mastery-title">
+          <div className="cc-school-mastery-heading">
+            <div>
+              <span className="cc-hq-eyebrow">SCHOOL MASTERY · LEVELS 31–40</span>
+              <h3 id="cc-school-mastery-title">Turn faction identity into battlefield doctrine</h3>
+              <p>
+                Mastery is shared by the entire school. A Tier III evolved unit qualifies its school;
+                once trained, the bonus follows that school power whenever the power is available in your loadout.
+              </p>
+            </div>
+            <strong>{masteryCap} / {maxMasteryRank} CURRENT CAP</strong>
+          </div>
+
+          <div className="cc-school-mastery-grid">
+            {MASTERY_SCHOOLS.map((school) => {
+              const identity = getCommanderRecruitIdentity(null, school);
+              const doctrine = commanderSchoolMasteryDoctrine(school);
+              const rank = commanderSchoolMasteryRank(hq, school);
+              const maxed = rank >= maxMasteryRank;
+              const atCap = !maxed && rank >= masteryCap;
+              const nextLevel = commanderSchoolMasteryNextLevel(rank, rules);
+              const cost = maxed ? 0 : commanderSchoolMasteryCost(rank, rules);
+              const short = Math.max(0, commanderMissingCoins(cost, coins));
+              const schoolUnits = ownedUnits.filter((item) => item.school === school);
+              const qualifyingUnit = schoolUnits.find(
+                (item) => commanderUnitProgressFor(hq, item.id).evolutionTier >= maxEvolutionTier,
+              );
+              const active = school === "void" || Boolean(hq.loadout?.units.some((unit) => unit.school === school));
+              const masteryItem = qualifyingUnit
+                ? {
+                    ...qualifyingUnit,
+                    name: `${identity.school.toUpperCase()} School · Mastery ${Math.min(maxMasteryRank, rank + 1)}`,
+                  }
+                : null;
+
+              return (
+                <article
+                  key={school}
+                  className={`cc-school-mastery-card ${active ? "is-active" : ""} ${rank > 0 ? "is-trained" : ""}`}
+                  data-school={school}
+                  style={{
+                    "--cc-mastery-accent": identity.accent,
+                    "--cc-mastery-accent-2": identity.accent2,
+                    "--cc-mastery-glow": identity.glow,
+                  } as React.CSSProperties}
+                >
+                  <div className="cc-school-mastery-card-head">
+                    <span className="cc-school-mastery-sigil" aria-hidden>
+                      {identity.sigilUrl ? <img src={identity.sigilUrl} alt="" draggable={false} /> : identity.sigil}
+                    </span>
+                    <div>
+                      <small>{school.toUpperCase()} SCHOOL · {active ? "POWER ACTIVE" : "STORED DOCTRINE"}</small>
+                      <h4>{doctrine.name}</h4>
+                      <strong>{doctrine.power}</strong>
+                    </div>
+                    <b>R{rank}</b>
+                  </div>
+
+                  <p>{doctrine.summary}</p>
+                  <div className="cc-school-mastery-effect">{doctrine.effect}</div>
+
+                  <div className="cc-school-mastery-ranks" aria-label={`${school} School Mastery rank ${rank} of ${maxMasteryRank}`}>
+                    {Array.from({ length: maxMasteryRank }, (_, index) => (
+                      <i key={index} className={index < rank ? "is-filled" : index < masteryCap ? "is-open" : ""} />
+                    ))}
+                  </div>
+
+                  <div className="cc-school-mastery-qualification">
+                    <span>{qualifyingUnit ? "QUALIFIED BY" : "QUALIFICATION"}</span>
+                    <strong>
+                      {qualifyingUnit
+                        ? `${qualifyingUnit.name} · EVO ${commanderUnitProgressFor(hq, qualifyingUnit.id).evolutionTier}`
+                        : schoolUnits.length
+                          ? `Evolve a ${school.toUpperCase()} unit to Tier III`
+                          : `Recruit and evolve a ${school.toUpperCase()} unit`}
+                    </strong>
+                  </div>
+
+                  <button
+                    className="cc-school-mastery-action"
+                    disabled={
+                      disabled
+                      || !masteryUnlocked
+                      || !masteryItem
+                      || maxed
+                      || atCap
+                      || short > 0
+                    }
+                    onClick={() => masteryItem && onTrain(masteryItem, cost)}
+                  >
+                    {maxed
+                      ? "School Mastery complete"
+                      : !masteryItem
+                        ? `Requires Tier III ${school.toUpperCase()} specialist`
+                        : !masteryUnlocked
+                          ? `Unlocks at Commander Level ${masteryUnlockLevel}`
+                          : atCap
+                            ? `Next rank unlocks at Level ${nextLevel ?? masteryUnlockLevel}`
+                            : short > 0
+                              ? `${format(short)} more Coins needed`
+                              : `Master ${school.toUpperCase()} to Rank ${rank + 1} · ${format(cost)} Coins`}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <div className="cc-unit-training-doctrine">
         <strong>Controlled power curve</strong>
         <span>
-          Rank training handles Levels 11–20. Evolution starts at Level 21 and unlocks only
-          at milestone Levels 21, 25, and 30. Frontline Evolution reinforces survivability;
-          ranged Evolution reinforces pressure. No new currency and no PvP-grind rewards are introduced.
+          Rank training handles Levels 11–20, Evolution handles 21–30, and School Mastery begins
+          at 31. Mastery strengthens the existing Void, Storm, Rot, and Grave powers rather than
+          adding another combat slot, currency, or PvP farming loop.
         </span>
       </div>
     </section>

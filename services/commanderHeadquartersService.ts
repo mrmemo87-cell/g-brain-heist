@@ -4,6 +4,7 @@ export type CommanderSlot = "guard" | "archer" | "weapon" | "shield";
 export type CommanderStat = "force" | "defense" | "dexterity" | "stamina";
 export type CommanderOperation = "enroll" | "buy" | "equip" | "train" | "unit_train" | "goal";
 export type CommanderSchool = "neutral" | "void" | "storm" | "rot" | "grave";
+export type CommanderMasterySchool = Exclude<CommanderSchool, "neutral">;
 export type CommanderRarity = "common" | "rare" | "epic" | "legendary";
 export type CommanderCatalogItem = {
   id: string;
@@ -39,6 +40,8 @@ export type CommanderOwnedLoadout = {
   shieldCap: number;
   weaponName: string;
   shieldName: string;
+  /** Permanent school mastery is trusted server state. Combat only applies a rank when its power is available. */
+  schoolMastery?: Partial<Record<CommanderMasterySchool, number>>;
   units: Array<{
     id: "player_guard" | "player_archer";
     /** Trusted catalog identity is returned by newer Commander loadout snapshots. */
@@ -111,6 +114,12 @@ export const commanderHeadquartersError = (cause: unknown) => {
       "This unit must reach Rank 10 before it can evolve.",
     commander_unit_evolution_cap:
       "Reach the next Evolution milestone before evolving this unit again.",
+    commander_school_mastery_locked:
+      "School Mastery unlocks at Commander Level 31 after a unit reaches Evolution Tier III.",
+    commander_school_mastery_cap:
+      "Reach the next School Mastery milestone before advancing this school again.",
+    commander_school_mastery_unavailable:
+      "This unit does not provide a School Mastery path.",
     commander_unit_not_owned:
       "Recruit this unit before developing it.",
     commander_invalid_unit:
