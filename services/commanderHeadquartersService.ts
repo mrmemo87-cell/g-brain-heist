@@ -2,7 +2,7 @@ import { supabase } from "./supabaseClient";
 
 export type CommanderSlot = "guard" | "archer" | "weapon" | "shield";
 export type CommanderStat = "force" | "defense" | "dexterity" | "stamina";
-export type CommanderOperation = "enroll" | "buy" | "equip" | "train" | "goal";
+export type CommanderOperation = "enroll" | "buy" | "equip" | "train" | "unit_train" | "goal";
 export type CommanderSchool = "neutral" | "void" | "storm" | "rot" | "grave";
 export type CommanderRarity = "common" | "rare" | "epic" | "legendary";
 export type CommanderCatalogItem = {
@@ -16,6 +16,17 @@ export type CommanderCatalogItem = {
   /** Additive metadata: older deployments may omit these until the catalog migration lands. */
   school?: CommanderSchool;
   rarity?: CommanderRarity;
+};
+export type CommanderUnitProgress = {
+  itemId: string;
+  unitRank: number;
+  evolutionTier: number;
+  trainingPoints: number;
+  version: number;
+  rankCap: number;
+  maxRank: number;
+  nextCost: number | null;
+  veteran: boolean;
 };
 export type CommanderOwnedLoadout = {
   version: 1;
@@ -33,6 +44,7 @@ export type CommanderOwnedLoadout = {
     /** Trusted catalog identity is returned by newer Commander loadout snapshots. */
     catalogId?: string;
     school?: CommanderSchool;
+    unitRank?: number;
     name: string;
     hp: number;
     shield: number;
@@ -47,6 +59,7 @@ export type CommanderHeadquarters = {
     xp: number;
     level: number;
     rankCap: number;
+    unitRankCap?: number;
     version: number;
     force_rank: number;
     defense_rank: number;
@@ -60,6 +73,7 @@ export type CommanderHeadquarters = {
   };
   catalog: CommanderCatalogItem[];
   owned: string[];
+  unitProgress?: CommanderUnitProgress[];
   loadout: CommanderOwnedLoadout | null;
   history: Array<{
     operation: string;
@@ -85,6 +99,14 @@ export const commanderHeadquartersError = (cause: unknown) => {
     commander_already_owned: "This item is already in your collection.",
     commander_rank_cap:
       "Reach the next required Commander level to train further.",
+    commander_unit_rank_cap:
+      "This unit has reached the training limit for your current Commander level.",
+    commander_unit_training_locked:
+      "Unit Training unlocks at Commander Level 11.",
+    commander_unit_not_owned:
+      "Recruit this unit before training it.",
+    commander_invalid_unit:
+      "This unit cannot be trained.",
     commander_not_owned:
       "Add this item to your collection before equipping it.",
     commander_enroll_first: "Claim your starter squad first.",
