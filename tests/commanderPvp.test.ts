@@ -1,9 +1,28 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import {
+import ts from 'typescript';
+import * as practiceEngine from '../supabase/functions/commander_practice/engine';
+
+// Execute the actual Deno PvP engine source while resolving its explicit .ts Edge import
+// to the same practice engine used by production. This keeps tsconfig.tests emit portable.
+const source = readFileSync('supabase/functions/commander_pvp/engine.ts', 'utf8');
+const compiled = ts.transpileModule(source, {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText;
+const moduleExports: Record<string, unknown> = {};
+const requireDependency = (specifier: string) => {
+  if (specifier === '../commander_practice/engine.ts') return practiceEngine;
+  throw new Error(`Unexpected Commander PvP engine import: ${specifier}`);
+};
+new Function('require', 'exports', compiled)(requireDependency, moduleExports);
+const {
   applyCommanderPvpTurn,
   buildCommanderPvpBattle,
-} from '../supabase/functions/commander_pvp/engine';
+} = moduleExports as {
+  applyCommanderPvpTurn: (state: any, intent: { move: string; targetId?: string | null }) => any;
+  buildCommanderPvpBattle: (seed: number, attacker: unknown, defender: unknown, username?: string) => any;
+};
 
 const attackerLoadout = () => ({
   version: 1,
@@ -49,13 +68,13 @@ test('Commander PvP freezes both real player loadouts into canonical battle slot
   assert.deepEqual(attacker, attackerBefore);
   assert.deepEqual(defender, defenderBefore);
   assert.equal(battle.combatants.length, 6);
-  assert.equal(battle.combatants.find((unit) => unit.id === 'player_commander')?.maxHp, 118);
-  assert.equal(battle.combatants.find((unit) => unit.id === 'player_guard')?.catalogId, 'rift_reaver');
-  assert.equal(battle.combatants.find((unit) => unit.id === 'player_archer')?.attack, 21);
+  assert.equal(battle.combatants.find((unit: any) => unit.id === 'player_commander')?.maxHp, 118);
+  assert.equal(battle.combatants.find((unit: any) => unit.id === 'player_guard')?.catalogId, 'rift_reaver');
+  assert.equal(battle.combatants.find((unit: any) => unit.id === 'player_archer')?.attack, 21);
 
-  const enemyCommander = battle.combatants.find((unit) => unit.id === 'enemy_commander');
-  const enemyGuard = battle.combatants.find((unit) => unit.id === 'enemy_guard');
-  const enemyArcher = battle.combatants.find((unit) => unit.id === 'enemy_archer');
+  const enemyCommander = battle.combatants.find((unit: any) => unit.id === 'enemy_commander');
+  const enemyGuard = battle.combatants.find((unit: any) => unit.id === 'enemy_guard');
+  const enemyArcher = battle.combatants.find((unit: any) => unit.id === 'enemy_archer');
   assert.equal(enemyCommander?.name, "Nova's Commander");
   assert.equal(enemyCommander?.maxHp, 136);
   assert.equal(enemyCommander?.shield, 36);
@@ -82,15 +101,15 @@ test('Commander PvP is deterministic and never mutates the stored turn snapshot'
   assert.deepEqual(state, before);
   assert.deepEqual(first, second);
   assert.equal(first.turn, 2);
-  assert.ok(first.events.some((event) => event.side === 'player' && event.code === 'focus_target'));
-  assert.ok(first.events.some((event) => event.side === 'enemy'));
+  assert.ok(first.events.some((event: any) => event.side === 'player' && event.code === 'focus_target'));
+  assert.ok(first.events.some((event: any) => event.side === 'enemy'));
 });
 
 test('Commander PvP keeps player school powers authoritative', () => {
   const state = buildCommanderPvpBattle(77, attackerLoadout(), defenderLoadout(), 'Nova');
   const surge = applyCommanderPvpTurn(state, { move: 'chain_surge', targetId: 'enemy_commander' });
   assert.equal(
-    surge.events.filter((event) => event.side === 'player' && event.code === 'chain_surge').length,
+    surge.events.filter((event: any) => event.side === 'player' && event.code === 'chain_surge').length,
     2,
   );
 
