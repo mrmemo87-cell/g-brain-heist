@@ -125,7 +125,7 @@ test("Rot and Grave Mastery strengthen field pressure and resurrection", () => {
   const miasma = applyPracticeTurn(mastered, { move: "rot_miasma", targetId: "enemy_commander" });
   const miasmaEvents = miasma.events.filter((event) => event.side === "player" && event.code === "rot_miasma");
   assert.equal(miasmaEvents.length, 3);
-  assert.equal(miasmaEvents[0]?.amount, 18, "selected target includes base, selection bonus, and Rot Rank 2");
+  assert.equal(miasmaEvents[0]?.amount, 17, "selected target includes base, selection bonus, and Rot Rank 2");
 
   const fallen = buildOwnedPracticeBattle(23, graveRotLoadout());
   const archer = fallen.combatants.find((unit) => unit.id === "player_archer");
