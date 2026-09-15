@@ -45,6 +45,8 @@ export type CommanderOwnedLoadout = {
     catalogId?: string;
     school?: CommanderSchool;
     unitRank?: number;
+    evolutionTier?: number;
+    evolutionPassive?: "bulwark_matrix" | "predator_matrix";
     name: string;
     hp: number;
     shield: number;
@@ -103,10 +105,16 @@ export const commanderHeadquartersError = (cause: unknown) => {
       "This unit has reached the training limit for your current Commander level.",
     commander_unit_training_locked:
       "Unit Training unlocks at Commander Level 11.",
+    commander_unit_evolution_locked:
+      "Unit Evolution unlocks at Commander Level 21 after the unit reaches Rank 10.",
+    commander_unit_evolution_rank:
+      "This unit must reach Rank 10 before it can evolve.",
+    commander_unit_evolution_cap:
+      "Reach the next Evolution milestone before evolving this unit again.",
     commander_unit_not_owned:
-      "Recruit this unit before training it.",
+      "Recruit this unit before developing it.",
     commander_invalid_unit:
-      "This unit cannot be trained.",
+      "This unit cannot be developed.",
     commander_not_owned:
       "Add this item to your collection before equipping it.",
     commander_enroll_first: "Claim your starter squad first.",
