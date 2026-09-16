@@ -28,6 +28,14 @@ test('Commander PvP function authenticates both sides through trusted server loa
   assert.match(config, /\[functions\.commander_pvp\][\s\S]*?verify_jwt\s*=\s*true/);
 });
 
+test('Commander PvP client sends the signed-in JWT to the verified Edge Function', () => {
+  const service = read('services/commanderPvpService.ts');
+  assert.match(service, /supabase\.auth\.getSession\(\)/);
+  assert.match(service, /Authorization:\s*`Bearer \$\{session\.access_token\}`/);
+  assert.match(service, /commander_pvp_auth_required/);
+  assert.match(service, /functions\.invoke<PvpApiResponse>\('commander_pvp',[\s\S]*?headers/);
+});
+
 test('Commander PvP client exposes a recorded battle network instead of practice semantics', () => {
   const lobby = read('src/features/cursedCommander/CommanderPvpLobby.tsx');
   const arena = read('src/features/cursedCommander/CommanderPvpArena.tsx');
