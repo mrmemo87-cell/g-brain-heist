@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { getEnvVar } from './env.js';
 import type {
   CommanderPracticeBattle,
   CommanderPracticeMove,
@@ -64,6 +65,8 @@ export type CommanderPvpSession = {
 type PvpApiResponse = {
   ok?: boolean;
   error?: string;
+  code?: string;
+  message?: string;
   battleId?: string;
   expiresAt?: string;
   opponent?: CommanderPvpOpponent;
@@ -71,7 +74,13 @@ type PvpApiResponse = {
   persistentWrites?: boolean;
 };
 
-const requirePvpAuthHeaders = async (): Promise<Record<string, string>> => {
+type PvpRequestBody =
+  | { action: 'start'; targetUserId: string }
+  | { action: 'resume'; battleId?: string }
+  | { action: 'turn'; battleId: string; move: CommanderPracticeMove; targetId: string | null }
+  | { action: 'cancel'; battleId: string };
+
+const requirePvpRequestContext = async () => {
   const {
     data: { session },
     error,
@@ -81,35 +90,56 @@ const requirePvpAuthHeaders = async (): Promise<Record<string, string>> => {
     throw new Error('commander_pvp_auth_required');
   }
 
+  const supabaseUrl = (getEnvVar('VITE_SUPABASE_URL') ?? '').replace(/\/+$/, '');
+  const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY') ?? '';
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('commander_pvp_not_configured');
+  }
+
   return {
-    Authorization: `Bearer ${session.access_token}`,
+    endpoint: `${supabaseUrl}/functions/v1/commander_pvp`,
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: supabaseAnonKey,
+      'Content-Type': 'application/json',
+    },
   };
 };
 
-const extractFunctionError = async (error: unknown, data: PvpApiResponse | null) => {
-  if (data?.error) return data.error;
-  if (error && typeof error === 'object' && 'context' in error) {
-    const context = (error as { context?: unknown }).context;
-    if (context instanceof Response) {
-      try {
-        const payload = await context.clone().json() as { error?: unknown; code?: unknown; message?: unknown };
-        if (typeof payload?.error === 'string' && payload.error) return payload.error;
-        if (typeof payload?.code === 'string' && payload.code) return payload.code;
-        if (typeof payload?.message === 'string' && payload.message) return payload.message;
-      } catch {
-        // Fall through to the connector error.
-      }
-    }
+const invokeCommanderPvp = async (
+  body: PvpRequestBody,
+  signal?: AbortSignal,
+): Promise<PvpApiResponse> => {
+  const { endpoint, headers } = await requirePvpRequestContext();
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    signal,
+    body: JSON.stringify(body),
+  });
+
+  let payload: PvpApiResponse | null = null;
+  try {
+    const parsed = await response.json() as unknown;
+    if (parsed && typeof parsed === 'object') payload = parsed as PvpApiResponse;
+  } catch {
+    // Preserve the HTTP status below if the gateway returned a non-JSON body.
   }
-  if (error instanceof Error && error.message) return error.message;
-  return 'commander_pvp_unavailable';
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.error
+      ?? payload?.code
+      ?? payload?.message
+      ?? `commander_pvp_http_${response.status}`,
+    );
+  }
+
+  return payload ?? {};
 };
 
-const requireSession = async (
-  data: PvpApiResponse | null,
-  error: unknown,
-): Promise<CommanderPvpSession> => {
-  if (error || !data?.ok) throw new Error(await extractFunctionError(error, data));
+const requireSession = (data: PvpApiResponse): CommanderPvpSession => {
+  if (!data.ok) throw new Error(data.error ?? data.code ?? data.message ?? 'commander_pvp_unavailable');
   if (!data.battleId || !data.expiresAt || !data.opponent || !data.battle || data.persistentWrites !== true) {
     throw new Error('invalid_commander_pvp_response');
   }
@@ -149,26 +179,17 @@ export async function startCommanderPvp(
   targetUserId: string,
   signal?: AbortSignal,
 ): Promise<CommanderPvpSession> {
-  const headers = await requirePvpAuthHeaders();
-  const { data, error } = await supabase.functions.invoke<PvpApiResponse>('commander_pvp', {
-    headers,
-    signal,
-    body: { action: 'start', targetUserId },
-  });
-  return requireSession(data, error);
+  return requireSession(await invokeCommanderPvp({ action: 'start', targetUserId }, signal));
 }
 
 export async function resumeCommanderPvp(
   battleId?: string,
   signal?: AbortSignal,
 ): Promise<CommanderPvpSession> {
-  const headers = await requirePvpAuthHeaders();
-  const { data, error } = await supabase.functions.invoke<PvpApiResponse>('commander_pvp', {
-    headers,
-    signal,
-    body: { action: 'resume', ...(battleId ? { battleId } : {}) },
-  });
-  return requireSession(data, error);
+  return requireSession(await invokeCommanderPvp({
+    action: 'resume',
+    ...(battleId ? { battleId } : {}),
+  }, signal));
 }
 
 export async function submitCommanderPvpTurn(
@@ -177,27 +198,17 @@ export async function submitCommanderPvpTurn(
   targetId?: string | null,
   signal?: AbortSignal,
 ): Promise<CommanderPvpSession> {
-  const headers = await requirePvpAuthHeaders();
-  const { data, error } = await supabase.functions.invoke<PvpApiResponse>('commander_pvp', {
-    headers,
-    signal,
-    body: {
-      action: 'turn',
-      battleId,
-      move,
-      targetId: targetId ?? null,
-    },
-  });
-  return requireSession(data, error);
+  return requireSession(await invokeCommanderPvp({
+    action: 'turn',
+    battleId,
+    move,
+    targetId: targetId ?? null,
+  }, signal));
 }
 
 export async function cancelCommanderPvp(battleId: string): Promise<void> {
-  const headers = await requirePvpAuthHeaders();
-  const { data, error } = await supabase.functions.invoke<{ ok?: boolean; error?: string }>('commander_pvp', {
-    headers,
-    body: { action: 'cancel', battleId },
-  });
-  if (error || !data?.ok) throw new Error(data?.error ?? (error instanceof Error ? error.message : 'commander_pvp_cancel_failed'));
+  const data = await invokeCommanderPvp({ action: 'cancel', battleId });
+  if (!data.ok) throw new Error(data.error ?? data.code ?? data.message ?? 'commander_pvp_cancel_failed');
 }
 
 export const commanderPvpError = (cause: unknown) => {
