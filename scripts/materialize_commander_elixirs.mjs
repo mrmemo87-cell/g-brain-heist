@@ -52,4 +52,14 @@ replaceOnce(
 );
 
 writeFileSync(path, source);
+
+const cssPath = 'src/features/cursedCommander/commanderHeadquartersCommandCenter.css';
+let css = readFileSync(cssPath, 'utf8');
+if (!css.includes('grid-template-columns: repeat(6, minmax(0, 1fr));')) {
+  const oldNav = 'grid-template-columns: repeat(5, minmax(0, 1fr));';
+  if (!css.includes(oldNav)) throw new Error('Commander elixir materializer could not find desktop nav columns');
+  css = css.replace(oldNav, 'grid-template-columns: repeat(6, minmax(0, 1fr));');
+  writeFileSync(cssPath, css);
+}
+
 console.log('Commander Supplies navigation materialized.');
