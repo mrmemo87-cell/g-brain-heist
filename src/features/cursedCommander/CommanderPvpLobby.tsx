@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  cancelCommanderPvp,
   commanderPvpError,
   getCommanderPvpLobby,
   type CommanderPvpLobby,
@@ -36,11 +37,21 @@ const resultClass = (result: string) => {
   return 'border-slate-600 bg-slate-800/70 text-slate-300';
 };
 
+const formatRemaining = (remainingMs: number) => {
+  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+};
+
 const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
   const [lobby, setLobby] = useState<CommanderPvpLobby | null>(null);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [now, setNow] = useState(() => Date.now());
+  const [abandoning, setAbandoning] = useState(false);
+  const [confirmAbandon, setConfirmAbandon] = useState(false);
 
   const load = useCallback(async (query = '') => {
     setLoading(true);
@@ -63,6 +74,24 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
     return () => window.clearTimeout(timer);
   }, [load, search]);
 
+  useEffect(() => {
+    if (!lobby?.activeBattle) return undefined;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [lobby?.activeBattle]);
+
+  useEffect(() => {
+    const expiresAt = lobby?.activeBattle?.expires_at;
+    if (!expiresAt) return undefined;
+    const delay = Math.max(0, new Date(expiresAt).getTime() - Date.now()) + 350;
+    const timer = window.setTimeout(() => void load(search), delay);
+    return () => window.clearTimeout(timer);
+  }, [lobby?.activeBattle?.expires_at, load, search]);
+
+  useEffect(() => {
+    setConfirmAbandon(false);
+  }, [lobby?.activeBattle?.battle_id]);
+
   const cooldownMs = (lobby?.rules.cooldownSeconds ?? 300) * 1000;
   const targetCooldown = (target: CommanderPvpTarget) => {
     if (!target.last_attacked_at) return 0;
@@ -70,6 +99,25 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
   };
 
   const targets = useMemo(() => lobby?.targets ?? [], [lobby]);
+  const activeRemainingMs = lobby?.activeBattle
+    ? Math.max(0, new Date(lobby.activeBattle.expires_at).getTime() - now)
+    : 0;
+
+  const abandonActiveBattle = async () => {
+    const battleId = lobby?.activeBattle?.battle_id;
+    if (!battleId || abandoning) return;
+    setAbandoning(true);
+    setError('');
+    try {
+      await cancelCommanderPvp(battleId);
+      setConfirmAbandon(false);
+      await load(search);
+    } catch (cause) {
+      setError(commanderPvpError(cause));
+    } finally {
+      setAbandoning(false);
+    }
+  };
 
   return (
     <section className="w-full min-w-0 bg-slate-950 py-3 sm:py-5" data-no-interface-translation="true" lang="en" dir="ltr">
@@ -109,26 +157,66 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
 
           {lobby?.activeBattle && (
             <section className="rounded-3xl border border-amber-300/30 bg-gradient-to-r from-amber-400/[0.08] via-slate-900/70 to-violet-400/[0.06] p-5">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <span className="text-[10px] font-black tracking-[0.18em] text-amber-300">ACTIVE BATTLE</span>
-                  <h2 className="mt-1 font-heading text-xl font-black text-white">{lobby.activeBattle.opponent_username}</h2>
-                  <p className="mt-1 text-xs text-slate-400">Commander Level {lobby.activeBattle.opponent_level} · Your battle is saved on the server.</p>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <span className="text-[10px] font-black tracking-[0.18em] text-amber-300">BATTLE IN PROGRESS</span>
+                  <h2 className="mt-1 font-heading text-xl font-black text-white">Vs {lobby.activeBattle.opponent_username}</h2>
+                  <p className="mt-1 text-xs leading-5 text-slate-300">
+                    Your battle is safely saved on the server. Resume from the exact saved turn, or abandon it to return to the network.
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1.5 font-bold text-slate-300">Commander Level {lobby.activeBattle.opponent_level}</span>
+                    <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1.5 font-black text-amber-200">Time remaining · {formatRemaining(activeRemainingMs)}</span>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onBattle({
-                    userId: lobby.activeBattle!.opponent_user_id,
-                    username: lobby.activeBattle!.opponent_username,
-                    avatarUrl: lobby.activeBattle!.opponent_avatar_url,
-                    level: lobby.activeBattle!.opponent_level,
-                    battleId: lobby.activeBattle!.battle_id,
-                  })}
-                  className="rounded-2xl bg-gradient-to-r from-amber-300 to-orange-400 px-5 py-3 font-heading text-sm font-black text-slate-950 shadow-lg shadow-amber-500/10 transition hover:brightness-110"
-                >
-                  Resume Battle →
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onBattle({
+                      userId: lobby.activeBattle!.opponent_user_id,
+                      username: lobby.activeBattle!.opponent_username,
+                      avatarUrl: lobby.activeBattle!.opponent_avatar_url,
+                      level: lobby.activeBattle!.opponent_level,
+                      battleId: lobby.activeBattle!.battle_id,
+                    })}
+                    className="rounded-2xl bg-gradient-to-r from-amber-300 to-orange-400 px-5 py-3 font-heading text-sm font-black text-slate-950 shadow-lg shadow-amber-500/10 transition hover:brightness-110"
+                  >
+                    Resume Battle →
+                  </button>
+                  {!confirmAbandon ? (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmAbandon(true)}
+                      className="rounded-2xl border border-rose-400/30 bg-rose-400/[0.06] px-4 py-3 text-sm font-bold text-rose-200 transition hover:bg-rose-400/10"
+                    >
+                      Abandon Battle
+                    </button>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-rose-400/25 bg-rose-400/[0.06] p-2">
+                      <span className="px-2 text-xs font-bold text-rose-100">Cancel this battle?</span>
+                      <button
+                        type="button"
+                        onClick={() => void abandonActiveBattle()}
+                        disabled={abandoning}
+                        className="rounded-xl bg-rose-400 px-3 py-2 text-xs font-black text-slate-950 disabled:opacity-50"
+                      >
+                        {abandoning ? 'Cancelling…' : 'Yes, abandon'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmAbandon(false)}
+                        disabled={abandoning}
+                        className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold text-slate-300 disabled:opacity-50"
+                      >
+                        Keep battle
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
+              <p className="mt-4 border-t border-slate-800/80 pt-3 text-[11px] leading-5 text-slate-500">
+                Disconnecting does not decide the battle. It remains resumable until the server timer expires. Abandoning records it as cancelled; no Coins or account XP are transferred.
+              </p>
             </section>
           )}
 
@@ -189,7 +277,7 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
                       onClick={() => onBattle({ userId: target.user_id, username: target.username, avatarUrl: target.avatar_url, level: target.level })}
                       className="mt-4 w-full rounded-xl border border-cyan-300/35 bg-cyan-300/10 px-4 py-2.5 font-heading text-xs font-black tracking-wider text-cyan-100 transition hover:bg-cyan-300/15 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800/60 disabled:text-slate-500"
                     >
-                      {lobby?.activeBattle ? 'FINISH ACTIVE BATTLE' : cooldown ? `COOLDOWN · ${minutes}M` : 'ATTACK COMMANDER'}
+                      {lobby?.activeBattle ? 'BATTLE IN PROGRESS' : cooldown ? `COOLDOWN · ${minutes}M` : 'ATTACK COMMANDER'}
                     </button>
                   </article>
                 );
