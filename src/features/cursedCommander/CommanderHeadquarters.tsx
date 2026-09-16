@@ -9,7 +9,6 @@ import {
   type CommanderStat,
 } from "../../../services/commanderHeadquartersService";
 import {
-  commanderItemEquipped,
   commanderLevelXp,
   commanderMissingCoins,
   commanderStatRank,
@@ -23,6 +22,7 @@ import CommanderPvpLobby, { type CommanderPvpLaunch } from "./CommanderPvpLobby"
 import CommanderPvpArena from "./CommanderPvpArena";
 import CommanderUnitTrainingPanel from "./CommanderUnitTrainingPanel";
 import CommanderFormationPanel from "./CommanderFormationPanel";
+import CommanderCatalogCards from "./CommanderCatalogCards";
 import "./commanderHeadquarters.css";
 import "./commanderHeadquartersCommandCenter.css";
 
@@ -334,159 +334,23 @@ export default function CommanderHeadquarters({
   };
 
   const catalogCards = (items: CommanderCatalogItem[]) => (
-    <div className="cc-hq-catalog cc-command-catalog">
-      {items.map((item) => {
-        const owned = hq!.owned.includes(item.id);
-        const equipped = commanderItemEquipped(hq!, item);
-        const current = find(p?.[item.slot]);
-        const identity = getCommanderRecruitIdentity(
-          item.kind === "unit" ? item.id : null,
-          item.kind === "unit" ? item.school : "neutral",
-        );
-        const unitArt = item.kind === "unit" ? sprite(item.slot, item.id) : undefined;
-        return (
-          <article
-            className={`cc-hq-item cc-command-catalog-card ${equipped ? "is-equipped" : ""}`}
-            key={item.id}
-            data-school={item.school ?? "neutral"}
-            style={themeStyle(identity.accent, identity.accent2, identity.glow)}
-          >
-            <div className={`cc-hq-item-art cc-hq-item-art--${item.slot}`}>
-              <div className="cc-command-catalog-kicker">
-                <span>
-                  {item.slot === "guard"
-                    ? "Frontline"
-                    : item.slot === "archer"
-                      ? "Ranged"
-                      : item.slot}
-                </span>
-                {item.kind === "unit" && (
-                  <span className="cc-command-rarity">
-                    {(item.rarity ?? "common").toUpperCase()}
-                  </span>
-                )}
-              </div>
-              {item.kind === "unit" && identity.sigilUrl && (
-                <img
-                  className="cc-command-faction-sigil"
-                  src={identity.sigilUrl}
-                  alt=""
-                  draggable={false}
-                />
-              )}
-              <img
-                className="cc-command-catalog-art"
-                src={
-                  item.kind === "unit"
-                    ? unitArt
-                    : item.kind === "weapon"
-                      ? COMMANDER_VFX.lance
-                      : COMMANDER_VFX.slash
-                }
-                alt=""
-                draggable={false}
-              />
-              <span className="cc-hq-owned">
-                {equipped
-                  ? "● Equipped"
-                  : owned
-                    ? "Owned"
-                    : `${format(item.price)} Coins`}
-              </span>
-            </div>
-            <div className="cc-hq-item-body">
-              <h3>{item.name}</h3>
-              {item.kind === "unit" && (
-                <p className="cc-command-codename">
-                  {identity.sigil} {identity.codename}
-                </p>
-              )}
-              <p>{item.description}</p>
-              {item.kind === "unit" && (
-                <p className="cc-command-doctrine">{identity.doctrine}</p>
-              )}
-              <dl className="cc-hq-item-stats">
-                {Object.entries(item.stats)
-                  .filter(([, value]) => value !== 0)
-                  .map(([name, value]) => (
-                    <div key={name}>
-                      <dt>
-                        {name === "bolt"
-                          ? "Bolt"
-                          : name === "focus"
-                            ? "Focus"
-                            : name === "guard"
-                              ? "Guard"
-                              : name.toUpperCase()}
-                      </dt>
-                      <dd>
-                        {item.kind === "weapon" && value > 0 ? "+" : ""}
-                        {value}
-                      </dd>
-                    </div>
-                  ))}
-              </dl>
-              {!equipped && current && (
-                <p className="cc-hq-replaces">
-                  {owned ? "Equipping replaces" : "Current"}: {current.name}
-                </p>
-              )}
-              <button
-                className={owned ? "cc-hq-secondary" : "cc-hq-primary"}
-                disabled={
-                  unavailable ||
-                  !p ||
-                  equipped ||
-                  (!owned && coins < item.price)
-                }
-                onClick={() =>
-                  propose({
-                    operation: owned ? "equip" : "buy",
-                    target: item.id,
-                    title: owned
-                      ? `Equip ${item.name}?`
-                      : `${item.kind === "unit" ? "Recruit" : "Buy"} ${item.name}?`,
-                    cost: owned ? 0 : item.price,
-                    detail: owned
-                      ? `Replaces ${current?.name ?? "the current item"}. Active battles keep their original loadout.`
-                      : "Adds this item to your collection. Your equipped loadout stays in place until you change it.",
-                  })
-                }
-              >
-                {equipped
-                  ? "Equipped"
-                  : owned
-                    ? item.kind === "unit"
-                      ? "Deploy unit"
-                      : "Equip item"
-                    : p && coins < item.price
-                      ? costLabel(item.price)
-                      : item.kind === "unit"
-                        ? "Recruit unit"
-                        : "Buy item"}
-              </button>
-              {!owned && (
-                <button
-                  className="cc-hq-text-button"
-                  disabled={unavailable || !p}
-                  onClick={() =>
-                    void execute({
-                      operation: "goal",
-                      target: p?.goal === item.id ? null : item.id,
-                      title: "Pin goal",
-                      cost: 0,
-                      detail: "",
-                    })
-                  }
-                >
-                  {p?.goal === item.id ? "Unpin goal" : "Set as goal"}
-                </button>
-              )}
-            </div>
-          </article>
-        );
-      })}
-    </div>
+    <CommanderCatalogCards
+      items={items}
+      hq={hq!}
+      coins={coins}
+      level={level}
+      disabled={unavailable || !p}
+      onPropose={(intent) => propose(intent)}
+      onGoal={(itemId, selected) =>
+        void execute({
+          operation: "goal",
+          target: selected ? null : itemId,
+          title: selected ? "Unpin goal" : "Pin goal",
+          cost: 0,
+          detail: "",
+        })
+      }
+    />
   );
 
   if (practice)
