@@ -26,6 +26,8 @@ export type CommanderCatalogItem = {
   /** Additive metadata: older deployments may omit these until the catalog migration lands. */
   school?: CommanderSchool;
   rarity?: CommanderRarity;
+  /** Minimum Commander level required for a new purchase. Existing owners are grandfathered. */
+  unlock_level?: number;
 };
 export type CommanderUnitProgress = {
   itemId: string;
@@ -132,6 +134,8 @@ export const commanderHeadquartersError = (cause: unknown) => {
     commander_stale_profile:
       "Your army changed in another session. Refresh to see the latest version.",
     commander_already_owned: "This item is already in your collection.",
+    commander_item_level_locked:
+      "Reach the required Commander level before purchasing this item.",
     commander_rank_cap:
       "Reach the next required Commander level to train further.",
     commander_unit_rank_cap:
