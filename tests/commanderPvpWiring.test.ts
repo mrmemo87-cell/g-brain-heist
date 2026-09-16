@@ -70,3 +70,15 @@ test('Commander PvP client exposes a recorded battle network instead of practice
   assert.match(arena, /persistent/i);
   assert.match(arena, /submitCommanderPvpTurn/);
 });
+
+test('Commander PvP interrupted battles have explicit resume, expiry, and abandon UX', () => {
+  const lobby = read('src/features/cursedCommander/CommanderPvpLobby.tsx');
+  assert.match(lobby, /BATTLE IN PROGRESS/);
+  assert.match(lobby, /Time remaining/);
+  assert.match(lobby, /Resume Battle/);
+  assert.match(lobby, /Abandon Battle/);
+  assert.match(lobby, /cancelCommanderPvp/);
+  assert.match(lobby, /Cancel this battle\?/);
+  assert.match(lobby, /Disconnecting does not decide the battle/);
+  assert.doesNotMatch(lobby, /FINISH ACTIVE BATTLE/);
+});
