@@ -15,6 +15,14 @@ test('Commander PvP migration is persistent, RLS protected, and reward neutral',
   assert.doesNotMatch(sql, /update\s+public\.users\s+set\s+(?:coins|xp)/i);
 });
 
+test('Commander PvP service role has only the battle table writes required by the Edge Function', () => {
+  const sql = read('supabase/migrations/20260916063851_grant_commander_pvp_service_role.sql');
+  assert.match(sql, /grant\s+select,\s*insert,\s*update[\s\S]*commander_pvp_battles[\s\S]*to\s+service_role/i);
+  assert.doesNotMatch(sql, /\bdelete\b/i);
+  assert.doesNotMatch(sql, /\bauthenticated\b/i);
+  assert.doesNotMatch(sql, /\banon\b/i);
+});
+
 test('Commander PvP function authenticates both sides through trusted server loadouts', () => {
   const api = read('supabase/functions/commander_pvp/index.ts');
   const config = read('supabase/config.toml');
