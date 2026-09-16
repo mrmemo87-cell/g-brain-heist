@@ -23,6 +23,16 @@ test('Commander PvP service role has only the battle table writes required by th
   assert.doesNotMatch(sql, /\banon\b/i);
 });
 
+test('Commander PvP service role can read only the campaign table required to start a battle', () => {
+  const sql = read('supabase/migrations/20260916082308_grant_commander_pvp_campaign_service_role.sql');
+  assert.match(sql, /grant\s+select[\s\S]*commander_campaigns[\s\S]*to\s+service_role/i);
+  assert.doesNotMatch(sql, /\binsert\b/i);
+  assert.doesNotMatch(sql, /\bupdate\b/i);
+  assert.doesNotMatch(sql, /\bdelete\b/i);
+  assert.doesNotMatch(sql, /\bauthenticated\b/i);
+  assert.doesNotMatch(sql, /\banon\b/i);
+});
+
 test('Commander PvP function authenticates both sides through trusted server loadouts', () => {
   const api = read('supabase/functions/commander_pvp/index.ts');
   const config = read('supabase/config.toml');
