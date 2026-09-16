@@ -36,12 +36,18 @@ test('Commander PvP function authenticates both sides through trusted server loa
   assert.match(config, /\[functions\.commander_pvp\][\s\S]*?verify_jwt\s*=\s*true/);
 });
 
-test('Commander PvP client sends the signed-in JWT to the verified Edge Function', () => {
+test('Commander PvP client sends auth and API key explicitly to the verified Edge Function', () => {
   const service = read('services/commanderPvpService.ts');
   assert.match(service, /supabase\.auth\.getSession\(\)/);
+  assert.match(service, /VITE_SUPABASE_URL/);
+  assert.match(service, /VITE_SUPABASE_ANON_KEY/);
+  assert.match(service, /\/functions\/v1\/commander_pvp/);
   assert.match(service, /Authorization:\s*`Bearer \$\{session\.access_token\}`/);
+  assert.match(service, /apikey:\s*supabaseAnonKey/);
+  assert.match(service, /'Content-Type':\s*'application\/json'/);
+  assert.match(service, /fetch\(endpoint,[\s\S]*?headers/);
+  assert.doesNotMatch(service, /functions\.invoke/);
   assert.match(service, /commander_pvp_auth_required/);
-  assert.match(service, /functions\.invoke<PvpApiResponse>\('commander_pvp',[\s\S]*?headers/);
 });
 
 test('Commander PvP client exposes a recorded battle network instead of practice semantics', () => {
