@@ -2,7 +2,16 @@ import { supabase } from "./supabaseClient";
 
 export type CommanderSlot = "guard" | "archer" | "weapon" | "shield";
 export type CommanderStat = "force" | "defense" | "dexterity" | "stamina";
-export type CommanderOperation = "enroll" | "buy" | "equip" | "train" | "unit_train" | "goal";
+export type CommanderFormationId = "command_line" | "bastion_wedge" | "spearhead" | "arc_lattice";
+export type CommanderOperation =
+  | "enroll"
+  | "buy"
+  | "equip"
+  | "train"
+  | "unit_train"
+  | "formation_train"
+  | "formation_set"
+  | "goal";
 export type CommanderSchool = "neutral" | "void" | "storm" | "rot" | "grave";
 export type CommanderMasterySchool = Exclude<CommanderSchool, "neutral">;
 export type CommanderRarity = "common" | "rare" | "epic" | "legendary";
@@ -29,6 +38,20 @@ export type CommanderUnitProgress = {
   nextCost: number | null;
   veteran: boolean;
 };
+export type CommanderFormationModifiers = {
+  commanderHp: number;
+  commanderShield: number;
+  bolt: number;
+  focus: number;
+  guard: number;
+  shieldCap: number;
+  guardHp: number;
+  guardShield: number;
+  guardAttack: number;
+  archerHp: number;
+  archerShield: number;
+  archerAttack: number;
+};
 export type CommanderOwnedLoadout = {
   version: 1;
   profileVersion: number;
@@ -42,6 +65,13 @@ export type CommanderOwnedLoadout = {
   shieldName: string;
   /** Permanent school mastery is trusted server state. Combat only applies a rank when its power is available. */
   schoolMastery?: Partial<Record<CommanderMasterySchool, number>>;
+  /** Formation state is composed by the trusted DB loadout. Browsers never submit these combat modifiers. */
+  formation?: {
+    activeId: CommanderFormationId;
+    rank: number;
+    ranks: Record<CommanderFormationId, number>;
+    modifiers?: CommanderFormationModifiers;
+  };
   units: Array<{
     id: "player_guard" | "player_archer";
     /** Trusted catalog identity is returned by newer Commander loadout snapshots. */
@@ -120,6 +150,18 @@ export const commanderHeadquartersError = (cause: unknown) => {
       "Reach the next School Mastery milestone before advancing this school again.",
     commander_school_mastery_unavailable:
       "This unit does not provide a School Mastery path.",
+    commander_formation_locked:
+      "Reach the required Commander level to unlock this formation.",
+    commander_formation_rank_cap:
+      "This formation has reached the doctrine limit for your current Commander level.",
+    commander_formation_maxed:
+      "This formation has reached Legendary Doctrine Rank 7.",
+    commander_formation_not_unlocked:
+      "Advance this formation to Doctrine Rank 1 before activating it.",
+    commander_formation_already_active:
+      "This formation is already active.",
+    commander_invalid_formation:
+      "That formation is not available in this Commander campaign.",
     commander_unit_not_owned:
       "Recruit this unit before developing it.",
     commander_invalid_unit:
@@ -153,12 +195,25 @@ export async function sendCommanderCommand(
   requestId: string,
   signal?: AbortSignal,
 ): Promise<CommanderHeadquarters> {
-  let request = supabase.rpc("rpc_commander_command", {
-    p_request_id: requestId,
-    p_operation: operation,
-    p_target: target,
-    p_expected_version: version,
-  });
+  const formationAction = operation === "formation_train"
+    ? "train"
+    : operation === "formation_set"
+      ? "set"
+      : null;
+
+  let request = formationAction
+    ? supabase.rpc("rpc_commander_formation_command", {
+        p_request_id: requestId,
+        p_action: formationAction,
+        p_formation: target,
+        p_expected_version: version,
+      })
+    : supabase.rpc("rpc_commander_command", {
+        p_request_id: requestId,
+        p_operation: operation,
+        p_target: target,
+        p_expected_version: version,
+      });
   if (signal) request = request.abortSignal(signal);
   const { data, error } = await request;
   if (error || !data?.campaign || !Array.isArray(data.catalog))

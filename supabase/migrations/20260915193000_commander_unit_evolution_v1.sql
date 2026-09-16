@@ -4,7 +4,7 @@
 --   * Build directly on Unit Training without adding a second currency or PvP grind loop.
 --   * Require Unit Rank 10 before Evolution.
 --   * Gate Evolution tiers at Commander Levels 21, 25, and 30.
---   * Spend the existing shared Brain Heist Coin wallet atomically/idempotently.
+--   * Spend the existing shared Brains Heist Coin wallet atomically/idempotently.
 --   * Apply Evolution bonuses only inside the trusted server loadout used by Practice + PvP.
 --   * Preserve the existing unit_train command contract: once a unit is Rank 10, the same
 --     server-authoritative development command advances its eligible Evolution tier.

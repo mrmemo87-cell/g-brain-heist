@@ -4,7 +4,7 @@
 
 This release adds the secure multiplayer foundation for Commander before deeper Level 11–100 progression is allowed to influence competitive combat.
 
-It intentionally keeps the existing three-character formation (Commander + frontline + ranged), current Commander stat ranks, catalog balance, shared Brain Heist Coin wallet, and practice mode unchanged.
+It intentionally keeps the existing three-character formation (Commander + frontline + ranged), current Commander stat ranks, catalog balance, shared Brains Heist Coin wallet, and practice mode unchanged.
 
 ## Player-battle model
 

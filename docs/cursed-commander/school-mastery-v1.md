@@ -19,7 +19,7 @@ The existing `unit_train` mutation contract remains the single server-authoritat
 
 ## Economy
 
-School Mastery uses the shared Brain Heist Coin wallet.
+School Mastery uses the shared Brains Heist Coin wallet.
 
 Default campaign rules:
 

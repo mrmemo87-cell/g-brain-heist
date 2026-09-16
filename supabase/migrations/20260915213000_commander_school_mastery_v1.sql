@@ -5,7 +5,7 @@
 --   * Keep one permanent Mastery rank per faction school, shared across all units of that school.
 --   * Require a fully evolved unit of the school to qualify the progression path.
 --   * Gate Mastery ranks at Commander Levels 31, 35, and 40.
---   * Spend the existing shared Brain Heist Coin wallet atomically/idempotently.
+--   * Spend the existing shared Brains Heist Coin wallet atomically/idempotently.
 --   * Expose trusted Mastery ranks through commander_private.loadout() so Practice and PvP
 --     apply the same power bonuses without accepting browser-authored combat values.
 begin;

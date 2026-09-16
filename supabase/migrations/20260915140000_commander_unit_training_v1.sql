@@ -2,7 +2,7 @@
 --
 -- Design goals:
 --   * Commander XP unlocks how far units may train.
---   * The shared Brain Heist Coin wallet pays for each upgrade.
+--   * The shared Brains Heist Coin wallet pays for each upgrade.
 --   * Every owned unit progresses independently.
 --   * Combat remains server-authoritative: trained stats are baked into the trusted
 --     owned-loadout RPC and therefore flow into both practice and PvP snapshots.
