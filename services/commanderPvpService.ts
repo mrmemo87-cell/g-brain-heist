@@ -71,14 +71,31 @@ type PvpApiResponse = {
   persistentWrites?: boolean;
 };
 
+const requirePvpAuthHeaders = async (): Promise<Record<string, string>> => {
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  if (error || !session?.access_token) {
+    throw new Error('commander_pvp_auth_required');
+  }
+
+  return {
+    Authorization: `Bearer ${session.access_token}`,
+  };
+};
+
 const extractFunctionError = async (error: unknown, data: PvpApiResponse | null) => {
   if (data?.error) return data.error;
   if (error && typeof error === 'object' && 'context' in error) {
     const context = (error as { context?: unknown }).context;
     if (context instanceof Response) {
       try {
-        const payload = await context.clone().json() as { error?: unknown };
+        const payload = await context.clone().json() as { error?: unknown; code?: unknown; message?: unknown };
         if (typeof payload?.error === 'string' && payload.error) return payload.error;
+        if (typeof payload?.code === 'string' && payload.code) return payload.code;
+        if (typeof payload?.message === 'string' && payload.message) return payload.message;
       } catch {
         // Fall through to the connector error.
       }
@@ -132,7 +149,9 @@ export async function startCommanderPvp(
   targetUserId: string,
   signal?: AbortSignal,
 ): Promise<CommanderPvpSession> {
+  const headers = await requirePvpAuthHeaders();
   const { data, error } = await supabase.functions.invoke<PvpApiResponse>('commander_pvp', {
+    headers,
     signal,
     body: { action: 'start', targetUserId },
   });
@@ -143,7 +162,9 @@ export async function resumeCommanderPvp(
   battleId?: string,
   signal?: AbortSignal,
 ): Promise<CommanderPvpSession> {
+  const headers = await requirePvpAuthHeaders();
   const { data, error } = await supabase.functions.invoke<PvpApiResponse>('commander_pvp', {
+    headers,
     signal,
     body: { action: 'resume', ...(battleId ? { battleId } : {}) },
   });
@@ -156,7 +177,9 @@ export async function submitCommanderPvpTurn(
   targetId?: string | null,
   signal?: AbortSignal,
 ): Promise<CommanderPvpSession> {
+  const headers = await requirePvpAuthHeaders();
   const { data, error } = await supabase.functions.invoke<PvpApiResponse>('commander_pvp', {
+    headers,
     signal,
     body: {
       action: 'turn',
@@ -169,7 +192,9 @@ export async function submitCommanderPvpTurn(
 }
 
 export async function cancelCommanderPvp(battleId: string): Promise<void> {
+  const headers = await requirePvpAuthHeaders();
   const { data, error } = await supabase.functions.invoke<{ ok?: boolean; error?: string }>('commander_pvp', {
+    headers,
     body: { action: 'cancel', battleId },
   });
   if (error || !data?.ok) throw new Error(data?.error ?? (error instanceof Error ? error.message : 'commander_pvp_cancel_failed'));
@@ -177,6 +202,14 @@ export async function cancelCommanderPvp(battleId: string): Promise<void> {
 
 export const commanderPvpError = (cause: unknown) => {
   const message = cause instanceof Error ? cause.message : String(cause ?? '');
+  if (
+    message.includes('commander_pvp_auth_required')
+    || message.includes('UNAUTHORIZED_NO_AUTH_HEADER')
+    || message.includes('Missing authorization header')
+    || message.includes('invalid_auth_token')
+  ) {
+    return 'Your session could not be verified. Please sign in again and retry.';
+  }
   if (message.includes('commander_enroll_first')) return 'Claim your Commander starter squad before entering player battles.';
   if (message.includes('commander_pvp_self_target')) return 'Choose another Commander to attack.';
   if (message.includes('commander_pvp_target_cooldown')) return 'That Commander was attacked recently. Choose another opponent or wait for the cooldown.';
