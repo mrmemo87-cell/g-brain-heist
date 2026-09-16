@@ -1,0 +1,522 @@
+.cc-elixirs {
+  --elixir-accent: #67e8f9;
+  --elixir-glow: rgba(103,232,249,.25);
+  display: grid;
+  gap: 18px;
+}
+
+.cc-elixir-topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid rgba(103,232,249,.14);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 9% 0%, rgba(34,211,238,.09), transparent 35%),
+    linear-gradient(145deg, rgba(9,24,42,.95), rgba(5,13,25,.98));
+}
+
+.cc-elixir-topbar h2 {
+  margin: 5px 0 5px !important;
+  color: #f0f8ff;
+  font-size: 27px !important;
+}
+
+.cc-elixir-topbar p {
+  max-width: 720px;
+  margin: 0;
+  color: #8195ac;
+  font-size: 11px;
+}
+
+.cc-elixir-wallet {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 155px;
+  padding: 11px 14px;
+  border: 1px solid rgba(192,132,252,.28);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(83,36,124,.18), rgba(9,17,31,.88));
+  box-shadow: inset 0 0 22px rgba(168,85,247,.05);
+}
+
+.cc-elixir-wallet > span {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  color: #c4b5fd;
+  border: 1px solid rgba(192,132,252,.25);
+  border-radius: 10px;
+  background: rgba(139,92,246,.08);
+}
+
+.cc-elixir-wallet svg,
+.cc-elixir-buy svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cc-elixir-wallet small,
+.cc-elixir-wallet strong {
+  display: block;
+}
+
+.cc-elixir-wallet small {
+  color: #8f82ad;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.cc-elixir-wallet strong {
+  margin-top: 2px;
+  color: #ede9fe;
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cc-elixir-rule-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(148,163,184,.1);
+  border-radius: 12px;
+  background: rgba(148,163,184,.08);
+}
+
+.cc-elixir-rule-strip span {
+  padding: 10px 12px;
+  background: rgba(5,14,26,.95);
+  color: #71869e;
+  font-size: 8px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.cc-elixir-rule-strip strong {
+  color: #b8d8e6;
+  letter-spacing: .08em;
+}
+
+.cc-elixir-active {
+  --elixir-accent: #67e8f9;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--elixir-accent) 48%, transparent);
+  border-radius: 14px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--elixir-accent) 9%, rgba(8,18,32,.95)), rgba(5,12,23,.96));
+  box-shadow: inset 0 0 30px color-mix(in srgb, var(--elixir-accent) 4%, transparent), 0 0 26px var(--elixir-glow);
+}
+
+.cc-elixir-active-pulse {
+  position: absolute;
+  inset: 0 auto 0 -20%;
+  z-index: -1;
+  width: 55%;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--elixir-accent) 13%, transparent), transparent);
+  transform: skewX(-18deg);
+}
+
+.cc-elixir-active-glyph {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid color-mix(in srgb, var(--elixir-accent) 50%, transparent);
+  border-radius: 12px;
+  color: var(--elixir-accent);
+  background: color-mix(in srgb, var(--elixir-accent) 8%, rgba(3,10,20,.84));
+  box-shadow: 0 0 22px var(--elixir-glow);
+  font-size: 22px;
+}
+
+.cc-elixir-active-copy small,
+.cc-elixir-active-copy strong,
+.cc-elixir-active-copy span,
+.cc-elixir-timer small,
+.cc-elixir-timer strong {
+  display: block;
+}
+
+.cc-elixir-active-copy small,
+.cc-elixir-timer small {
+  color: color-mix(in srgb, var(--elixir-accent) 76%, #fff);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.cc-elixir-active-copy strong {
+  margin-top: 3px;
+  color: #f3f8ff;
+  font-size: 15px;
+}
+
+.cc-elixir-active-copy span {
+  margin-top: 3px;
+  color: #8fa3b9;
+  font-size: 9px;
+}
+
+.cc-elixir-timer {
+  min-width: 115px;
+  padding-left: 14px;
+  border-left: 1px solid color-mix(in srgb, var(--elixir-accent) 20%, transparent);
+  text-align: right;
+}
+
+.cc-elixir-timer strong {
+  margin-top: 3px;
+  color: #fff;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+
+.cc-elixir-no-active {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 15px;
+  border: 1px dashed rgba(148,163,184,.2);
+  border-radius: 13px;
+  color: #60768f;
+  background: rgba(6,15,28,.64);
+}
+
+.cc-elixir-no-active > span {
+  color: #8297ad;
+  font-size: 23px;
+}
+
+.cc-elixir-no-active strong,
+.cc-elixir-no-active small {
+  display: block;
+}
+
+.cc-elixir-no-active strong { color: #b5c5d6; font-size: 10px; }
+.cc-elixir-no-active small { margin-top: 2px; font-size: 8px; }
+
+.cc-elixir-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 13px;
+  border-radius: 11px;
+  font-size: 10px;
+}
+
+.cc-elixir-message.is-error {
+  border: 1px solid rgba(251,113,133,.28);
+  background: rgba(127,29,29,.16);
+  color: #fecdd3;
+}
+
+.cc-elixir-message.is-success {
+  border: 1px solid rgba(52,211,153,.26);
+  background: rgba(6,78,59,.17);
+  color: #a7f3d0;
+}
+
+.cc-elixir-message span { flex: 1; }
+.cc-elixir-message button {
+  padding: 6px 9px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.cc-elixir-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cc-elixir-card {
+  --elixir-accent: #67e8f9;
+  --elixir-glow: rgba(103,232,249,.25);
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--elixir-accent) 38%, rgba(148,163,184,.08));
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 50% 17%, color-mix(in srgb, var(--elixir-accent) 10%, transparent), transparent 31%),
+    linear-gradient(180deg, rgba(8,20,36,.98), rgba(4,11,22,.99));
+  box-shadow: 0 18px 45px rgba(0,0,0,.23), inset 0 1px 0 rgba(255,255,255,.025);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.cc-elixir-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--elixir-accent) 62%, transparent);
+  box-shadow: 0 24px 55px rgba(0,0,0,.3), 0 0 26px color-mix(in srgb, var(--elixir-accent) 9%, transparent);
+}
+
+.cc-elixir-card-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 190px;
+  overflow: hidden;
+  border-bottom: 1px solid color-mix(in srgb, var(--elixir-accent) 16%, transparent);
+  background:
+    radial-gradient(circle at 50% 72%, color-mix(in srgb, var(--elixir-accent) 22%, transparent), transparent 35%),
+    linear-gradient(180deg, color-mix(in srgb, var(--elixir-accent) 4%, #081523), #06101d);
+}
+
+.cc-elixir-card-grid {
+  position: absolute;
+  inset: 0;
+  opacity: .18;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--elixir-accent) 18%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--elixir-accent) 18%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(circle, black, transparent 70%);
+}
+
+.cc-elixir-card-rarity {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 7px;
+  border: 1px solid color-mix(in srgb, var(--elixir-accent) 35%, transparent);
+  border-radius: 999px;
+  background: rgba(3,10,20,.76);
+  color: color-mix(in srgb, var(--elixir-accent) 82%, #fff);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.cc-elixir-flask {
+  position: relative;
+  z-index: 2;
+  width: 116px;
+  height: 148px;
+  filter: drop-shadow(0 15px 20px rgba(0,0,0,.4)) drop-shadow(0 0 18px var(--elixir-glow));
+}
+
+.cc-elixir-flask svg { width: 100%; height: 100%; }
+.cc-elixir-glass {
+  fill: rgba(11,25,43,.58);
+  stroke: color-mix(in srgb, var(--elixir-accent) 65%, #dbeafe);
+  stroke-width: 2;
+}
+.cc-elixir-liquid { fill: color-mix(in srgb, var(--elixir-accent) 65%, transparent); opacity: .72; }
+.cc-elixir-shine { fill: none; stroke: rgba(255,255,255,.38); stroke-width: 3; stroke-linecap: round; }
+.cc-elixir-bubble { fill: color-mix(in srgb, var(--elixir-accent) 72%, #fff); opacity: .7; }
+
+.cc-elixir-flask > span {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  text-shadow: 0 0 12px var(--elixir-accent);
+  font-size: 25px;
+}
+
+.cc-elixir-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+
+.cc-elixir-eyebrow {
+  color: var(--elixir-accent);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.cc-command-center .cc-elixir-card h3 {
+  margin: -3px 0 0;
+  color: #eef7ff;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.cc-elixir-effect {
+  min-height: 42px;
+  margin: 0;
+  color: #8397ae;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.cc-elixir-variants {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.cc-elixir-variant {
+  padding: 9px;
+  border: 1px solid rgba(148,163,184,.11);
+  border-radius: 10px;
+  background: rgba(3,10,20,.5);
+}
+
+.cc-elixir-variant-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.cc-elixir-variant-head strong,
+.cc-elixir-variant-head span {
+  display: block;
+}
+
+.cc-elixir-variant-head strong {
+  color: color-mix(in srgb, var(--elixir-accent) 78%, #fff);
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+
+.cc-elixir-variant-head div > span {
+  margin-top: 2px;
+  color: #697f97;
+  font-size: 7px;
+}
+
+.cc-elixir-owned {
+  color: #73879c !important;
+  font-size: 7px !important;
+  font-weight: 800;
+}
+
+.cc-elixir-variant-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.cc-elixir-variant-actions button {
+  min-height: 34px;
+  border-radius: 8px;
+  font-size: 8px;
+  font-weight: 900;
+  transition: filter 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.cc-elixir-variant-actions button:not(:disabled):hover { filter: brightness(1.12); }
+.cc-elixir-variant-actions button:disabled { cursor: not-allowed; opacity: .43; }
+
+.cc-elixir-buy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid rgba(192,132,252,.3);
+  background: linear-gradient(180deg, rgba(139,92,246,.16), rgba(44,21,76,.16));
+  color: #ddd6fe;
+}
+
+.cc-elixir-buy svg { width: 13px; height: 13px; }
+
+.cc-elixir-activate {
+  border: 1px solid color-mix(in srgb, var(--elixir-accent) 36%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--elixir-accent) 12%, rgba(4,13,25,.8)), rgba(5,14,27,.9));
+  color: color-mix(in srgb, var(--elixir-accent) 82%, #fff);
+}
+
+.cc-elixir-activate.is-extend {
+  border-color: color-mix(in srgb, var(--elixir-accent) 62%, transparent);
+  box-shadow: inset 0 0 16px color-mix(in srgb, var(--elixir-accent) 7%, transparent);
+}
+
+.cc-elixir-footnote {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 15px;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(148,163,184,.09);
+  color: #687d94;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.cc-elixir-footnote strong {
+  color: #8ceaf6;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+
+.cc-elixir-loading {
+  padding: 42px;
+  border: 1px solid rgba(103,232,249,.12);
+  border-radius: 14px;
+  color: #8aa3ba;
+  text-align: center;
+  font-size: 11px;
+}
+
+.cc-elixir-loading span {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #67e8f9;
+  box-shadow: 0 0 12px rgba(103,232,249,.45);
+}
+
+@media (max-width: 1240px) {
+  .cc-elixir-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 850px) {
+  .cc-elixir-rule-strip { grid-template-columns: 1fr; }
+  .cc-elixir-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .cc-elixir-topbar { flex-direction: column; }
+  .cc-elixir-wallet { width: 100%; }
+  .cc-elixir-active { grid-template-columns: 42px 1fr; }
+  .cc-elixir-timer { grid-column: 1 / -1; padding: 9px 0 0; border-left: 0; border-top: 1px solid rgba(148,163,184,.1); text-align: left; }
+  .cc-elixir-grid { grid-template-columns: 1fr; }
+  .cc-elixir-card-stage { height: 170px; }
+  .cc-elixir-footnote { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cc-elixir-active-pulse { animation: ccElixirSweep 4.5s ease-in-out infinite; }
+  .cc-elixir-liquid { animation: ccElixirGlow 2.8s ease-in-out infinite; }
+}
+
+@keyframes ccElixirSweep {
+  0%, 100% { transform: translateX(-20%) skewX(-18deg); opacity: .3; }
+  50% { transform: translateX(220%) skewX(-18deg); opacity: .8; }
+}
+
+@keyframes ccElixirGlow {
+  0%, 100% { opacity: .58; }
+  50% { opacity: .88; }
+}
