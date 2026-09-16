@@ -29,10 +29,10 @@ test('Commander elite recruits have explicit collectible identities', () => {
 test('Commander sprite resolution is catalog-aware without changing stable battle ids', () => {
   assert.match(sprites, /COMMANDER_CATALOG_SPRITE_KEYS/);
   assert.match(sprites, /resolveCommanderSpriteKey/);
-  assert.match(sprites, /grave_bastion: 'player_guard'/);
-  assert.match(sprites, /rift_reaver: 'player_guard'/);
-  assert.match(sprites, /plague_scribe: 'player_archer'/);
-  assert.match(sprites, /volt_seer: 'player_archer'/);
+  assert.match(sprites, /grave_bastion: 'player_grave_bastion'/);
+  assert.match(sprites, /rift_reaver: 'player_rift_reaver'/);
+  assert.match(sprites, /plague_scribe: 'player_plague_scribe'/);
+  assert.match(sprites, /volt_seer: 'player_volt_seer'/);
   assert.match(sprites, /catalogId\?: string \| null/);
 });
 

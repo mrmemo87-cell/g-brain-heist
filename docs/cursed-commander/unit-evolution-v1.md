@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Unit Evolution is the second long-term Commander progression band after Unit Training. It deliberately extends the same owned-unit records and shared Brain Heist Coin wallet rather than introducing another currency or a separate grind loop.
+Unit Evolution is the second long-term Commander progression band after Unit Training. It deliberately extends the same owned-unit records and shared Brains Heist Coin wallet rather than introducing another currency or a separate grind loop.
 
 ## Player rules
 
@@ -11,7 +11,7 @@ Unit Evolution is the second long-term Commander progression band after Unit Tra
 - Evolution Tier I unlocks at Commander Level **21**.
 - Evolution Tier II unlocks at Commander Level **25**.
 - Evolution Tier III unlocks at Commander Level **30**.
-- Evolution spends the existing Brain Heist Coin balance.
+- Evolution spends the existing Brains Heist Coin balance.
 - Practice and Player Battles do not award special Evolution currency.
 - Each owned unit evolves independently.
 

@@ -21,19 +21,46 @@ function setup(options: {
   const env: Record<string, string> = {
     SUPABASE_URL: 'https://example.invalid', SUPABASE_SERVICE_ROLE_KEY: 'test-only',
     COMMANDER_PREVIEW_SIGNING_SECRET: secret,
-    COMMANDER_PREVIEW_TESTER_IDS: 'tester-a,tester-b', ...options.env,
+    ...options.env,
   };
   const users = options.users ?? { a: { id: 'tester-a' }, b: { id: 'tester-b' }, outsider: { id: 'outsider' } };
   let handler: ((request: Request) => Promise<Response>) | undefined;
   let authCalls = 0;
-  const authOnly = new Proxy({}, {
+  let roleReads = 0;
+  const client = new Proxy({}, {
     get(_target, property) {
-      assert.equal(property, 'auth', `Preview attempted forbidden client access: ${String(property)}`);
-      return { getUser: async (token: string) => {
-        authCalls++;
-        if (options.authThrows) throw new Error('Auth network failed');
-        return { data: { user: users[token] ?? null }, error: null };
-      } };
+      if (property === 'auth') {
+        return { getUser: async (token: string) => {
+          authCalls++;
+          if (options.authThrows) throw new Error('Auth network failed');
+          return { data: { user: users[token] ?? null }, error: null };
+        } };
+      }
+      if (property === 'from') {
+        return (table: string) => {
+          assert.equal(table, 'users');
+          return {
+            select: (columns: string) => {
+              assert.equal(columns, 'role,is_banned,banned_until');
+              return {
+                eq: (column: string, id: string) => {
+                  assert.equal(column, 'id');
+                  roleReads++;
+                  return {
+                    maybeSingle: async () => ({
+                      data: id === 'outsider'
+                        ? { role: 'teacher', is_banned: false, banned_until: null }
+                        : { role: 'student', is_banned: false, banned_until: null },
+                      error: null,
+                    }),
+                  };
+                },
+              };
+            },
+          };
+        };
+      }
+      throw new Error(`Preview attempted forbidden client access: ${String(property)}`);
     },
   });
   const requireDependency = (specifier: string) => {
@@ -42,7 +69,7 @@ function setup(options: {
       return { serve: (value: typeof handler) => { handler = value; } };
     }
     if (specifier === 'https://esm.sh/@supabase/supabase-js@2.78.0') {
-      return { createClient: () => authOnly };
+      return { createClient: () => client };
     }
     throw new Error(`Unexpected Edge import: ${specifier}`);
   };
@@ -53,8 +80,9 @@ function setup(options: {
   assert.ok(handler);
   return {
     authCalls: () => authCalls,
+    roleReads: () => roleReads,
     request: (body: unknown, token: string | null = 'a', method = 'POST') => handler!(new Request('https://example.invalid/commander_practice', {
-      method, headers: token ? { Authorization: `Bearer ${token}` } : {},
+      method, headers: token ? { Authorization: 'Bearer ' + token } : {},
       ...(method === 'POST' ? { body: JSON.stringify(body) } : {}),
     })),
   };
@@ -64,29 +92,28 @@ const signed = (payload: unknown) => {
   return `${body}.${createHmac('sha256', secret).update(body).digest('base64url')}`;
 };
 
-test('practice endpoint fails closed for missing setup, auth, and tester permission', async () => {
+test('practice endpoint fails closed for missing setup, auth, and student permission', async () => {
   for (const env of [ { SUPABASE_SERVICE_ROLE_KEY: '' }, { COMMANDER_PREVIEW_SIGNING_SECRET: '' } ] as Record<string, string>[]) {
     const api = setup({ env });
     assert.equal((await api.request({ action: 'start' })).status, 503);
     assert.equal(api.authCalls(), 0);
+    assert.equal(api.roleReads(), 0);
   }
   const api = setup();
   for (const [token, status] of [[null, 401], ['invalid', 401], ['outsider', 403]] as const) {
     assert.equal((await api.request({ action: 'start' }, token)).status, status);
   }
   assert.equal((await setup({ authThrows: true }).request({ action: 'start' })).status, 401);
-  assert.equal((await setup({ env: { COMMANDER_PREVIEW_TESTER_IDS: '' } }).request({ action: 'start' })).status, 403);
 });
 
-test('email tester access requires a confirmed address; explicit user IDs still work', async () => {
-  const options = { env: { COMMANDER_PREVIEW_TESTER_IDS: '', COMMANDER_PREVIEW_TESTER_EMAILS: ' Tester@Example.com ' } };
-  for (const confirmed of [false, true]) {
-    const api = setup({ ...options, users: { a: { id: 'email-tester', email: 'tester@example.com', ...(confirmed ? { email_confirmed_at: '2026-09-01T00:00:00Z' } : {}) } } });
-    assert.equal((await api.request({ action: 'start' })).status, confirmed ? 200 : 403);
-  }
+test('practice start performs one role lookup for an authenticated student', async () => {
+  const api = setup();
+  assert.equal((await api.request({ action: 'start' })).status, 200);
+  assert.equal(api.authCalls(), 1);
+  assert.equal(api.roleReads(), 1);
 });
 
-test('real practice HTTP flow signs turns, preserves expiry, and accesses auth only', async () => {
+test('real practice HTTP flow signs turns, preserves expiry, and accesses auth plus one role lookup per request', async () => {
   const api = setup();
   const started = await api.request({ action: 'start' });
   assert.equal(started.status, 200);
@@ -102,6 +129,7 @@ test('real practice HTTP flow signs turns, preserves expiry, and accesses auth o
   assert.equal(next.expiresAt, session.expiresAt);
   assert.notEqual(next.transcript, session.transcript);
   assert.equal(api.authCalls(), 2);
+  assert.equal(api.roleReads(), 2);
 });
 
 test('practice rejects tampered, expired, malformed, and other-player transcripts', async () => {

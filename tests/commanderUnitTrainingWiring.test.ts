@@ -39,8 +39,8 @@ test('unit training is exposed through the typed Headquarters contract and profe
   assert.match(headquarters, /CommanderUnitTrainingPanel/);
   assert.match(headquarters, /operation: "unit_train"/);
   assert.match(headquarters, /Unit training complete/);
-  assert.match(panel, /LEVELS 11–20/);
-  assert.match(panel, /Brains Heist Coins pay for the upgrade/);
-  assert.match(panel, /Practice\s+and Player Battles/);
+  assert.match(panel, /LEVELS 11–40/);
+  assert.match(panel, /Brains Heist Coins fund every upgrade/);
+  assert.match(panel, /combat remains server-authoritative/);
   assert.match(panel, /Current Commander cap/);
 });

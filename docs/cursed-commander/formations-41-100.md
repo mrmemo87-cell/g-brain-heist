@@ -37,7 +37,7 @@ Formation availability is deliberately staggered:
 | Spearhead | 50 | Assault |
 | Arc Lattice | 55 | Commander power / control |
 
-A newly available formation begins at Doctrine Rank 0. The player pays the shared Brain Heist Coin wallet to establish Rank I, after which that formation may be activated. Rank advancement is then limited by the global Commander-level doctrine cap.
+A newly available formation begins at Doctrine Rank 0. The player pays the shared Brains Heist Coin wallet to establish Rank I, after which that formation may be activated. Rank advancement is then limited by the global Commander-level doctrine cap.
 
 Default training cost is `round(600 * 1.35^current_rank)`. These economy values live in the active Commander campaign rules and can be tuned without changing the client.
 

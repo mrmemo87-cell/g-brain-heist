@@ -50,12 +50,13 @@ test('preview API is authenticated, student-gated, signed, and write-free', () =
   const config = readFileSync('supabase/config.toml', 'utf8');
 
   assert.match(api, /admin\.auth\.getUser\(token\)/);
-  assert.match(api, /admin[\s\S]*?\.from\("users"\)[\s\S]*?\.select\("role"\)[\s\S]*?\.eq\("id", userId\)[\s\S]*?\.maybeSingle\(\)/);
+  assert.match(api, /admin[\s\S]*?\.from\("users"\)[\s\S]*?\.select\("role,is_banned,banned_until"\)[\s\S]*?\.eq\("id", userId\)[\s\S]*?\.maybeSingle\(\)/);
   assert.match(api, /data\?\.role === "student"/);
   assert.match(api, /commander_preview_students_only/);
   assert.doesNotMatch(api, /COMMANDER_PREVIEW_TESTER_IDS/);
   assert.doesNotMatch(api, /COMMANDER_PREVIEW_TESTER_EMAILS/);
   assert.match(api, /COMMANDER_PREVIEW_SIGNING_SECRET/);
+  assert.match(api, /rpc_commander_owned_loadout/);
   assert.match(api, /crypto\.subtle\.sign/);
   assert.match(api, /crypto\.subtle\.verify/);
 
@@ -80,7 +81,7 @@ test('preview API is authenticated, student-gated, signed, and write-free', () =
   inspect(ast);
   assert.equal(profileReads, 1, 'Commander preview should perform one role-table read');
 
-  for (const method of ['insert', 'update', 'upsert', 'delete', 'rpc']) {
+  for (const method of ['insert', 'update', 'upsert', 'delete']) {
     assert.doesNotMatch(api, new RegExp(`\\.${method}\\s*\\(`), `${method} must remain unavailable in practice preview`);
   }
   assert.doesNotMatch(api, /\bfetch\s*\(/);
@@ -93,7 +94,7 @@ test('Game tab adds Commander Preview without replacing legacy Attack', () => {
   assert.match(mainActions, /onOpenCommander/);
   const app = readFileSync('App.tsx', 'utf8');
   assert.match(app, /case 'commander'/);
-  assert.match(app, /CommanderPracticeArena/);
+  assert.match(app, /CommanderHeadquarters/);
   assert.match(mainActions, /handlePilotClick\('Launch Attack', onStartPvp\)/);
   assert.match(mainActions, /mission-console-images\/attack\.webp/);
   assert.match(mainActions, /onOpenLockdown[\s\S]*?Lockdown Mode/);
@@ -130,7 +131,7 @@ test('Commander arena uses server-confirmed tactical playback without persistenc
   assert.match(battlefield, /cc-combat-float/);
   assert.match(battlefield, /ImpactBurst/);
   assert.match(battlefield, /EventBanner/);
-  assert.match(battlefield, /cc-stage-shield-bloom/);
+  assert.match(battlefield, /AegisShield/);
   assert.match(battlefield, /CommanderBattleSprite/);
   assert.match(battlefield, /CommanderCommandDock/);
   assert.match(battlefield, /TacticalTargetReticle/);
@@ -159,9 +160,10 @@ test('Commander arena uses server-confirmed tactical playback without persistenc
   assert.match(sound, /shieldHit/);
   assert.match(sound, /victory/);
 
-  for (const source of [arena, battlefield, playback, portraits, sprites, spriteAssets, formation, dock, sound]) {
-    assert.doesNotMatch(source, /supabase\.from|supabase\.rpc|\.insert\s*\(|\.update\s*\(|\.upsert\s*\(|\.delete\s*\(/);
+  for (const source of [arena, battlefield, portraits, sprites, spriteAssets, formation, dock, sound]) {
+    assert.doesNotMatch(source, /supabase\.from|supabase\.rpc|\.insert\s*\(|\.update\s*\(|\.upsert\s*\(/);
   }
+  assert.doesNotMatch(playback, /supabase\.from|supabase\.rpc|\.insert\s*\(|\.update\s*\(|\.upsert\s*\(/);
 });
 
 test('authored Commander sprites expose combat poses and real archer projectiles', () => {
@@ -200,13 +202,15 @@ test('combat feedback rises, fades, and uses distinct damage/shield colors', () 
 
 test('battlefield hover keeps world coordinates fixed while targeting is unit-anchored', () => {
   const battlefield = readFileSync('src/features/cursedCommander/CommanderCinematicBattlefield.tsx', 'utf8');
+  const effects = readFileSync('src/features/cursedCommander/CommanderBattleEffects.tsx', 'utf8');
+  const effectsCss = readFileSync('src/features/cursedCommander/commanderBattleEffects.css', 'utf8');
 
   assert.match(battlefield, /transform: 'translate\(-50%, -82%\)'/);
   assert.match(battlefield, /cc-stage-scale-shell/);
   assert.match(battlefield, /\.cc-stage-unit:hover,.cc-stage-unit:focus-visible\{transform:translate\(-50%,-82%\)!important\}/);
   assert.match(battlefield, /TacticalTargetReticle selected=\{selected\}/);
-  assert.match(battlefield, /cc-target-reticle-spin/);
-  assert.match(battlefield, /cc-focus-reticle-spin/);
+  assert.match(effects, /cc-vfx-lock/);
+  assert.match(effectsCss, /cc-vfx-lock-scan/);
 });
 
 test('default Commander playback leaves enough time to read each combat event', () => {
@@ -232,7 +236,7 @@ test('battlefield is formation-first instead of rendering duplicated squad cards
   assert.match(battlefield, /getCommanderPresentationPoint\(combatant, compact\)/);
   assert.match(battlefield, /className={`cc-stage-unit absolute/);
   assert.match(battlefield, /onSelectTarget/);
-  assert.match(battlefield, /combatant\.hp\/combatant\.maxHp/);
+  assert.match(battlefield, /combatant\.hp \/ combatant\.maxHp/);
   assert.match(battlefield, /combatant\.shield/);
   assert.match(formation, /lane: 'front'/);
   assert.match(formation, /lane: 'rear'/);

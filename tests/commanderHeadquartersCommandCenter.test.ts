@@ -16,7 +16,7 @@ test('Commander headquarters uses the command-center presentation and real loado
   assert.match(source, /sprite\(item\.slot, item\.id\)/);
   assert.match(source, /loadout\?\.units\[0\]\?\.catalogId/);
   assert.match(source, /loadout\?\.units\[1\]\?\.school/);
-  assert.match(source, /Quick Deploy/);
+  assert.match(source, /Manage Army/);
   assert.match(source, /Strike output/);
   assert.match(source, /Shield reserve/);
   assert.equal(source.includes('420 / 800 XP'), false, 'unit-specific XP must not be faked');

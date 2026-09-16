@@ -4,7 +4,7 @@
 --   * Make Formation Command the long-range Commander progression track from Level 41 through 100.
 --   * Keep the existing three-combatant contract (Commander + frontline + ranged); no fourth-slot rewrite.
 --   * Store formation doctrine and active selection only on the server.
---   * Spend the shared Brain Heist Coin wallet atomically and idempotently for doctrine advancement.
+--   * Spend the shared Brains Heist Coin wallet atomically and idempotently for doctrine advancement.
 --   * Bake bounded formation trade-offs into commander_private.loadout(), so Practice and PvP receive
 --     the same trusted stats and existing PvP snapshots freeze the chosen formation automatically.
 --   * Preserve all existing Commander command/RPC contracts by using a dedicated formation RPC.

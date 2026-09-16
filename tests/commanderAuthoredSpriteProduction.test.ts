@@ -24,7 +24,7 @@ test('Commander authored sprite registry covers every combatant and archer proje
 test('Commander battle sprite replaces poses on one fixed art canvas', () => {
   const sprite = readFileSync('src/features/cursedCommander/CommanderBattleSprite.tsx', 'utf8');
 
-  assert.equal((sprite.match(/<img\b/g) ?? []).length, 1);
+  assert.equal((sprite.match(/cc-authored-sprite-current/g) ?? []).length, 1);
   assert.doesNotMatch(sprite, /previousFrame|POSE_FADE_MS|fadePrevious/);
   const assets = readFileSync('src/features/cursedCommander/commanderSpriteAssets.ts', 'utf8');
   assert.match(assets, /image\.decode/);

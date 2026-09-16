@@ -84,7 +84,7 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
               </div>
               <h1 className="font-heading text-3xl font-black text-white sm:text-4xl">Player Battles</h1>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
-                Attack another enrolled Commander anywhere in Brain Heist. Their current saved army becomes the defending formation and the result is recorded.
+                Attack another enrolled Commander anywhere in Brains Heist. Their current saved army becomes the defending formation and the result is recorded.
               </p>
             </div>
             <button type="button" onClick={onClose} className="rounded-xl border border-slate-700 bg-slate-900/80 px-4 py-2 text-sm font-bold text-slate-200 transition hover:border-cyan-400/40 hover:text-white">← Headquarters</button>
