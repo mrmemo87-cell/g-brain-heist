@@ -1,3 +1,5 @@
+@import "./commanderPremiumUx.css";
+
 .cc-unit-training {
   display: grid;
   gap: 22px;
@@ -347,5 +349,204 @@
 
   .cc-unit-training-doctrine {
     flex-direction: column;
+  }
+}
+
+/* Cascade-safe premium overrides. These are intentionally more specific than
+   the legacy Commander styles because this stylesheet is imported by the
+   training module before the parent command-center stylesheet. */
+.cc-hq.cc-command-center > .cc-command-bar {
+  top: 76px !important;
+  z-index: 39 !important;
+  min-height: 70px;
+  padding-block: 8px;
+  background: rgba(5, 11, 23, 0.96);
+  border-bottom-color: rgba(103, 232, 249, 0.2);
+}
+
+.cc-hq.cc-command-center .cc-command-nav button {
+  min-height: 46px;
+}
+
+.cc-hq.cc-command-center .cc-command-nav button[aria-current] {
+  border-color: rgba(34, 211, 238, 0.48);
+  background: linear-gradient(180deg, rgba(11, 89, 119, 0.45), rgba(6, 30, 52, 0.72));
+  color: #d9fbff;
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.1), inset 0 0 22px rgba(34, 211, 238, 0.05);
+}
+
+.cc-hq.cc-command-center .cc-command-doctrine-quote,
+.cc-hq.cc-command-center .cc-hq-section-title p,
+.cc-hq.cc-command-center .cc-command-section-heading p,
+.cc-hq.cc-command-center .cc-command-unit-copy p,
+.cc-hq.cc-command-center .cc-command-doctrine,
+.cc-hq.cc-command-center .cc-hq-item-body > p:not(.cc-command-codename),
+.cc-hq.cc-command-center .cc-unit-training-head > div:first-child > p,
+.cc-hq.cc-command-center .cc-unit-training-unlock small,
+.cc-hq.cc-command-center .cc-unit-evolution > p,
+.cc-hq.cc-command-center .cc-school-mastery-heading p,
+.cc-hq.cc-command-center .cc-formation-command-head p,
+.cc-hq.cc-command-center .cc-formation-card p,
+.cc-hq.cc-command-center .cc-elixir-card p {
+  display: none !important;
+}
+
+.cc-hq.cc-command-center .cc-unit-training {
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.cc-hq.cc-command-center .cc-unit-training-head {
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.cc-hq.cc-command-center .cc-unit-development-statuses {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cc-hq.cc-command-center .cc-unit-training-unlock {
+  min-height: 72px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  gap: 2px;
+}
+
+.cc-hq.cc-command-center .cc-unit-training-unlock strong {
+  font-size: 1rem;
+}
+
+.cc-hq.cc-command-center .cc-unit-training-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.cc-hq.cc-command-center .cc-unit-training-card {
+  grid-template-columns: minmax(215px, 41%) minmax(0, 59%);
+  min-height: 610px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 22% 42%, color-mix(in srgb, var(--cc-unit-accent, #67e8f9) 20%, transparent), transparent 38%),
+    linear-gradient(155deg, rgba(9, 22, 40, 0.98), rgba(5, 11, 24, 0.99));
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.36), 0 0 32px color-mix(in srgb, var(--cc-unit-accent, #67e8f9) 8%, transparent);
+}
+
+.cc-hq.cc-command-center .cc-unit-training-stage {
+  min-height: 610px;
+  background:
+    radial-gradient(circle at 50% 54%, color-mix(in srgb, var(--cc-unit-accent, #67e8f9) 15%, transparent), transparent 38%),
+    linear-gradient(180deg, rgba(9, 19, 35, 0.18), rgba(3, 8, 18, 0.82)),
+    repeating-linear-gradient(0deg, rgba(148, 163, 184, 0.025) 0 1px, transparent 1px 30px),
+    repeating-linear-gradient(90deg, rgba(148, 163, 184, 0.025) 0 1px, transparent 1px 30px);
+}
+
+.cc-hq.cc-command-center .cc-unit-training-stage img {
+  width: min(142%, 390px);
+  max-height: 555px;
+  filter: drop-shadow(0 24px 28px rgba(0, 0, 0, 0.54)) drop-shadow(0 0 18px var(--cc-unit-glow, rgba(34, 211, 238, 0.18)));
+}
+
+.cc-hq.cc-command-center .cc-unit-training-body {
+  gap: 12px;
+  padding: 18px;
+}
+
+.cc-hq.cc-command-center .cc-unit-training-title-row {
+  min-height: 52px;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.cc-hq.cc-command-center .cc-unit-training-meter {
+  gap: 6px;
+  padding: 12px 13px;
+  border: 1px solid color-mix(in srgb, var(--cc-unit-accent, #67e8f9) 24%, rgba(148, 163, 184, 0.1));
+  border-radius: 12px;
+  background: rgba(3, 10, 21, 0.48);
+}
+
+.cc-hq.cc-command-center .cc-unit-training-meter small {
+  display: none;
+}
+
+.cc-hq.cc-command-center .cc-unit-training-bonuses > div,
+.cc-hq.cc-command-center .cc-unit-evolution-bonuses > div {
+  min-height: 56px;
+  display: grid;
+  align-content: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(14, 25, 48, 0.72);
+}
+
+.cc-hq.cc-command-center .cc-unit-training-next,
+.cc-hq.cc-command-center .cc-unit-evolution-next {
+  min-height: 50px;
+  align-content: center;
+}
+
+.cc-hq.cc-command-center .cc-unit-training-action:disabled,
+.cc-hq.cc-command-center .cc-unit-evolution-action:disabled {
+  opacity: 1;
+  cursor: default;
+  color: #8da3bb;
+  background: linear-gradient(90deg, rgba(44, 62, 88, 0.72), rgba(23, 57, 78, 0.76));
+  border-color: rgba(118, 168, 197, 0.24);
+  box-shadow: none;
+}
+
+.cc-hq.cc-command-center .cc-unit-training-action:disabled::before,
+.cc-hq.cc-command-center .cc-unit-evolution-action:disabled::before {
+  content: "🔒";
+  margin-right: 7px;
+  filter: grayscale(1);
+  opacity: 0.8;
+}
+
+.cc-hq.cc-command-center [id] {
+  scroll-margin-top: 166px;
+}
+
+@media (max-width: 1180px) {
+  .cc-hq.cc-command-center .cc-unit-training-grid { grid-template-columns: 1fr; }
+  .cc-hq.cc-command-center .cc-unit-training-card {
+    min-height: 520px;
+    grid-template-columns: minmax(240px, 38%) minmax(0, 62%);
+  }
+  .cc-hq.cc-command-center .cc-unit-training-stage { min-height: 520px; }
+}
+
+@media (max-width: 900px) {
+  .cc-hq.cc-command-center > .cc-command-bar {
+    position: sticky !important;
+    top: 76px !important;
+  }
+  .cc-hq.cc-command-center .cc-command-status { display: none; }
+  .cc-hq.cc-command-center .cc-command-nav {
+    grid-template-columns: repeat(5, minmax(110px, 1fr));
+    overflow-x: auto;
+  }
+  .cc-hq.cc-command-center .cc-unit-training-head { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 700px) {
+  .cc-hq.cc-command-center > .cc-command-bar { top: 68px !important; }
+  .cc-hq.cc-command-center .cc-unit-development-statuses { grid-template-columns: 1fr; }
+  .cc-hq.cc-command-center .cc-unit-training-unlock { min-height: 56px; }
+  .cc-hq.cc-command-center .cc-unit-training-card {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .cc-hq.cc-command-center .cc-unit-training-stage {
+    min-height: 330px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  }
+  .cc-hq.cc-command-center .cc-unit-training-stage img {
+    max-height: 315px;
+    width: min(100%, 310px);
   }
 }
