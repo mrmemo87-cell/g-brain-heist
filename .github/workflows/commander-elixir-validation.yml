@@ -1,0 +1,87 @@
+name: Commander Elixir Validation
+
+on:
+  push:
+    branches:
+      - agent/premium-commander-elixir-art
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Inspect PNG metadata
+        shell: bash
+        run: |
+          python3 - <<'PY' | tee png-metadata.txt
+          from pathlib import Path
+          import struct
+
+          root = Path('src/assets/Elixir')
+          for path in sorted(root.glob('*.png')):
+              data = path.read_bytes()
+              if data[:8] != b'\x89PNG\r\n\x1a\n':
+                  raise SystemExit(f'Not a PNG: {path}')
+              width, height = struct.unpack('>II', data[16:24])
+              bit_depth = data[24]
+              color_type = data[25]
+              has_alpha = color_type in (4, 6) or b'tRNS' in data
+              print(f'{path.name}\t{width}x{height}\tbit_depth={bit_depth}\tcolor_type={color_type}\ttransparency={has_alpha}\tbytes={len(data)}')
+          PY
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify elixir assets are in production bundle
+        shell: bash
+        run: |
+          find dist -type f | grep -E 'Force Elixir|Greater Force|Bastion Elixir|Greater Bastion|Reflex Elixir|Greater Reflex|Vitality Elixir|Greater Vitality|Commander.*Omni Elixir' | tee bundle-assets.txt
+          test "$(wc -l < bundle-assets.txt)" -ge 9
+
+      - name: Build tests
+        run: npm run test:clean && npm run test:build
+
+      - name: Commander elixir targeted tests
+        shell: bash
+        run: |
+          NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test \
+            node --test dist-tests/tests/commanderElixirs.test.js | tee commander-tests.txt
+
+      - name: Diff check
+        run: git diff --check 67c7eb545fedce3a1beb88475b9f9f5aae3f73e0 HEAD
+
+      - name: Full test suite diagnostic
+        shell: bash
+        run: |
+          set +e
+          npm test > full-tests.txt 2>&1
+          code=$?
+          echo "FULL_TEST_EXIT=$code" | tee full-test-status.txt
+          tail -n 120 full-tests.txt | tee full-tests-tail.txt
+          exit 0
+
+      - name: Upload validation report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: commander-elixir-validation
+          path: |
+            png-metadata.txt
+            bundle-assets.txt
+            commander-tests.txt
+            full-test-status.txt
+            full-tests-tail.txt
