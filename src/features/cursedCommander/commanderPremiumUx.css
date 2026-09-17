@@ -1,7 +1,15 @@
 @import "./commanderPremiumUxBase.css";
 
-/* Character-stage alignment polish.
- * Center the full-body unit art inside the cyan/purple light column instead of
+/* Commander nav + character-stage polish.
+ * The Commander bar already participates in page flow, so offsetting the sticky
+ * element by the app-shell height moved it down without reserving that extra
+ * space and caused it to cover the top of the hero (including Player Battles).
+ * Keep the tab bar sticky at the top of the Commander viewport instead. */
+.cc-hq.cc-command-center.cc-command-center > .cc-command-bar {
+  top: 0 !important;
+}
+
+/* Center the full-body unit art inside the cyan/purple light column instead of
  * bottom-anchoring it. Keep the halo and floor ring on their natural stage
  * positions so the character, light and platform read as one composition. */
 .cc-hq.cc-command-center .cc-unit-training-stage {
@@ -18,7 +26,17 @@
   transform: none;
 }
 
+@media (max-width: 900px) {
+  .cc-hq.cc-command-center.cc-command-center > .cc-command-bar {
+    top: 0 !important;
+  }
+}
+
 @media (max-width: 700px) {
+  .cc-hq.cc-command-center.cc-command-center > .cc-command-bar {
+    top: 0 !important;
+  }
+
   .cc-hq.cc-command-center .cc-unit-training-stage img {
     transform: translateY(-3px);
   }
