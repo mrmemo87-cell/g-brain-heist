@@ -1,0 +1,77 @@
+name: Elixir art inspection
+
+on:
+  push:
+    branches:
+      - agent/elixir-art-inspection
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Pillow
+        run: python -m pip install pillow
+      - name: Inspect Commander elixir PNGs
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw, ImageFont
+
+          root = Path('src/assets/Elixir')
+          files = sorted(root.glob('*.png'))
+          rows = []
+          thumbs = []
+          font = ImageFont.load_default()
+          for path in files:
+              with Image.open(path) as im:
+                  rgba = im.convert('RGBA')
+                  alpha = rgba.getchannel('A')
+                  amin, amax = alpha.getextrema()
+                  has_alpha = amin < 255
+                  transparent_pixels = sum(1 for px in alpha.getdata() if px < 255)
+                  total_pixels = rgba.width * rgba.height
+                  pct = transparent_pixels / total_pixels * 100
+                  rows.append(f"{path.name}\t{rgba.width}x{rgba.height}\tmode={im.mode}\talpha={has_alpha}\ttransparent_or_partial={pct:.2f}%\tsize={path.stat().st_size}")
+
+                  tile = Image.new('RGBA', (440, 420), (7, 13, 24, 255))
+                  checker = Image.new('RGBA', (400, 330), (13, 24, 40, 255))
+                  draw_checker = ImageDraw.Draw(checker)
+                  step = 24
+                  for y in range(0, 330, step):
+                      for x in range(0, 400, step):
+                          if (x // step + y // step) % 2:
+                              draw_checker.rectangle((x, y, x + step - 1, y + step - 1), fill=(22, 34, 52, 255))
+                  art = rgba.copy()
+                  art.thumbnail((360, 300), Image.Resampling.LANCZOS)
+                  checker.alpha_composite(art, ((400 - art.width)//2, (330 - art.height)//2))
+                  tile.alpha_composite(checker, (20, 20))
+                  d = ImageDraw.Draw(tile)
+                  label = path.name
+                  if len(label) > 54:
+                      label = label[:51] + '...'
+                  d.text((20, 362), label, fill=(235, 242, 255, 255), font=font)
+                  d.text((20, 383), f"{rgba.width}x{rgba.height} · {path.stat().st_size/1024/1024:.2f} MiB · alpha {pct:.1f}%", fill=(157, 173, 196, 255), font=font)
+                  thumbs.append(tile)
+
+          Path('elixir-inspection.txt').write_text('\n'.join(rows) + '\n', encoding='utf-8')
+          cols = 3
+          rows_n = (len(thumbs) + cols - 1) // cols
+          sheet = Image.new('RGBA', (cols * 440, rows_n * 420), (3, 8, 16, 255))
+          for i, tile in enumerate(thumbs):
+              sheet.alpha_composite(tile, ((i % cols) * 440, (i // cols) * 420))
+          sheet.convert('RGB').save('elixir-contact-sheet.jpg', quality=92)
+          print(Path('elixir-inspection.txt').read_text())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: elixir-art-inspection
+          path: |
+            elixir-inspection.txt
+            elixir-contact-sheet.jpg
