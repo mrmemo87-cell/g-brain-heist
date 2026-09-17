@@ -1,3 +1,5 @@
+@import "./commanderPremiumUx.css";
+
 .cc-unit-training {
   display: grid;
   gap: 22px;
