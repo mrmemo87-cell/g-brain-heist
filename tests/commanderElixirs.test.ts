@@ -12,6 +12,7 @@ const pvpMigration = readFileSync(
 );
 const service = readFileSync('services/commanderElixirService.ts', 'utf8');
 const panel = readFileSync('src/features/cursedCommander/CommanderElixirsPanel.tsx', 'utf8');
+const assetMap = readFileSync('src/features/cursedCommander/commanderElixirAssets.ts', 'utf8');
 const materializer = readFileSync('scripts/materialize_commander_elixirs.mjs', 'utf8');
 const packageJson = readFileSync('package.json', 'utf8');
 
@@ -64,8 +65,41 @@ test('Commander Supplies client exposes purchase, activation, inventory and time
   assert.match(service, /rpc_commander_elixir_activate/);
   assert.match(panel, /Gemstones only/i);
   assert.match(panel, /ONE ACTIVE/i);
-  assert.match(panel, /Extend \+\$\{item\.durationMinutes\}m/);
+  assert.match(panel, /EXTEND \+\$\{item\.durationMinutes\} MIN/);
+  assert.match(panel, /ANOTHER ELIXIR ACTIVE/);
   assert.match(panel, /formatDuration\(activeRemaining\)/);
+});
+
+test('all live Commander elixir catalog IDs have explicit Vite artwork mappings', () => {
+  const ids = [
+    'force_30',
+    'force_60',
+    'defense_30',
+    'defense_60',
+    'dexterity_30',
+    'dexterity_60',
+    'stamina_30',
+    'stamina_60',
+    'omni_30',
+  ];
+
+  for (const id of ids) {
+    assert.match(assetMap, new RegExp(`\\b${id}:`));
+  }
+
+  assert.match(assetMap, /Force Elixir — 30 min\.png/);
+  assert.match(assetMap, /Greater Force — 60 min\.png/);
+  assert.match(assetMap, /Bastion Elixir — 30 min\.png/);
+  assert.match(assetMap, /Greater Bastion — 60 min\.png/);
+  assert.match(assetMap, /Reflex Elixir — 30 min\.png/);
+  assert.match(assetMap, /Greater Reflex — 60 min\.png/);
+  assert.match(assetMap, /Vitality Elixir — 30 min\.png/);
+  assert.match(assetMap, /Greater Vitality — 60 min\.png/);
+  assert.match(assetMap, /Commander : Omni Elixir — 30 min\.png/);
+  assert.match(panel, /loading="lazy"/);
+  assert.match(panel, /decoding="async"/);
+  assert.match(panel, /getCommanderElixirArt\(snapshot\.active\.id\)/);
+  assert.doesNotMatch(panel, /const Flask/);
 });
 
 test('PvP lobby exposes visible current and frozen elixir state', () => {
