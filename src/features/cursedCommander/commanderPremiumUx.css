@@ -1,28 +1,54 @@
 @import "./commanderPremiumUxBase.css";
 
-/* Commander nav + character-stage polish.
- * Root cause: Supplies is injected as a sixth Commander tab during the build,
- * while several older Commander styles still assume exactly five columns.
- * The nav must not depend on a hard-coded tab count. Keep every tab in one
- * horizontal track on desktop and switch to horizontal scrolling on compact
- * screens, so future tabs cannot force Records (or any other tab) onto a new row. */
+/* Commander navigation layout ownership.
+ * Keep this file as the final authority for the Commander tab bar so legacy
+ * five-column rules, the build-time Supplies injection, and older sticky
+ * offsets cannot change geometry when a different tab is selected. */
 .cc-hq.cc-command-center.cc-command-center > .cc-command-bar {
+  position: sticky !important;
   top: 0 !important;
+  z-index: 39 !important;
+  grid-template-columns: minmax(180px, 200px) minmax(0, 1fr) max-content !important;
+  column-gap: 14px;
 }
 
 .cc-hq.cc-command-center .cc-command-nav {
-  display: grid;
-  grid-template-columns: none !important;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
+  display: flex !important;
   align-items: stretch;
+  gap: 6px;
   min-width: 0;
-  overflow: visible;
+  width: 100%;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+}
+
+.cc-hq.cc-command-center .cc-command-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .cc-hq.cc-command-center .cc-command-nav > button {
-  min-width: 0;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-width: max-content !important;
+  min-height: 46px;
+  padding: 8px 10px;
   white-space: nowrap;
+}
+
+.cc-hq.cc-command-center .cc-command-nav > button > span {
+  white-space: nowrap;
+}
+
+/* The selected state is a normal pill around the complete tab content. */
+.cc-hq.cc-command-center .cc-command-nav > button[aria-current="page"] {
+  position: relative;
+  overflow: hidden;
+}
+
+.cc-hq.cc-command-center .cc-command-nav > button::after {
+  display: none !important;
 }
 
 /* Center the full-body unit art inside the cyan/purple light column instead of
@@ -42,28 +68,35 @@
   transform: none;
 }
 
+@media (max-width: 1180px) {
+  .cc-hq.cc-command-center.cc-command-center > .cc-command-bar {
+    grid-template-columns: minmax(160px, 180px) minmax(0, 1fr) !important;
+  }
+
+  .cc-hq.cc-command-center .cc-command-status {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 900px) {
   .cc-hq.cc-command-center.cc-command-center > .cc-command-bar {
     top: 0 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .cc-hq.cc-command-center .cc-command-nav {
-    grid-template-columns: none !important;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(108px, 1fr);
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: none;
-  }
-
-  .cc-hq.cc-command-center .cc-command-nav::-webkit-scrollbar {
-    display: none;
+  .cc-hq.cc-command-center .cc-command-nav > button {
+    flex: 0 0 auto;
+    min-width: 104px !important;
   }
 }
 
 @media (max-width: 700px) {
   .cc-hq.cc-command-center.cc-command-center > .cc-command-bar {
     top: 0 !important;
+  }
+
+  .cc-hq.cc-command-center .cc-command-nav > button {
+    min-width: 92px !important;
   }
 
   .cc-hq.cc-command-center .cc-unit-training-stage img {
