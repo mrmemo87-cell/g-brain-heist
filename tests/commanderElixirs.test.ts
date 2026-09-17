@@ -12,6 +12,7 @@ const pvpMigration = readFileSync(
 );
 const service = readFileSync('services/commanderElixirService.ts', 'utf8');
 const panel = readFileSync('src/features/cursedCommander/CommanderElixirsPanel.tsx', 'utf8');
+const assets = readFileSync('src/features/cursedCommander/commanderElixirAssets.ts', 'utf8');
 const materializer = readFileSync('scripts/materialize_commander_elixirs.mjs', 'utf8');
 const packageJson = readFileSync('package.json', 'utf8');
 
@@ -64,8 +65,36 @@ test('Commander Supplies client exposes purchase, activation, inventory and time
   assert.match(service, /rpc_commander_elixir_activate/);
   assert.match(panel, /Gemstones only/i);
   assert.match(panel, /ONE ACTIVE/i);
-  assert.match(panel, /Extend \+\$\{item\.durationMinutes\}m/);
+  assert.match(panel, /EXTEND \+\$\{item\.durationMinutes\} MIN/);
   assert.match(panel, /formatDuration\(activeRemaining\)/);
+  assert.match(panel, /loading="lazy"/);
+  assert.match(panel, /getCommanderElixirArt\(snapshot\.active\.id\)/);
+  assert.doesNotMatch(panel, /const Flask/);
+});
+
+test('all live Commander elixir catalog IDs have explicit Vite artwork imports', () => {
+  for (const id of [
+    'force_30',
+    'force_60',
+    'defense_30',
+    'defense_60',
+    'dexterity_30',
+    'dexterity_60',
+    'stamina_30',
+    'stamina_60',
+    'omni_30',
+  ]) {
+    assert.match(assets, new RegExp(`\\b${id}:`));
+  }
+  assert.match(assets, /assets\/Elixir\/Force Elixir — 30 min\.png/);
+  assert.match(assets, /assets\/Elixir\/Greater Force — 60 min\.png/);
+  assert.match(assets, /assets\/Elixir\/Bastion Elixir — 30 min\.png/);
+  assert.match(assets, /assets\/Elixir\/Greater Bastion — 60 min\.png/);
+  assert.match(assets, /assets\/Elixir\/Reflex Elixir — 30 min\.png/);
+  assert.match(assets, /assets\/Elixir\/Greater Reflex — 60 min\.png/);
+  assert.match(assets, /assets\/Elixir\/Vitality Elixir — 30 min\.png/);
+  assert.match(assets, /assets\/Elixir\/Greater Vitality — 60 min\.png/);
+  assert.match(assets, /assets\/Elixir\/Commander : Omni Elixir — 30 min\.png/);
 });
 
 test('PvP lobby exposes visible current and frozen elixir state', () => {
@@ -80,6 +109,7 @@ test('PvP lobby exposes visible current and frozen elixir state', () => {
 test('Supplies is materialized in all normal development and validation flows', () => {
   assert.match(materializer, /\["supplies", "Supplies"\]/);
   assert.match(materializer, /CommanderElixirsPanel/);
+  assert.doesNotMatch(materializer, /commanderElixirAssets/);
   assert.match(packageJson, /materialize_commander_elixirs\.mjs && vite/);
   assert.match(packageJson, /materialize_commander_elixirs\.mjs && python3 scripts\/materialize_assignment_edit_feature\.py && tsc/);
   assert.match(packageJson, /materialize_commander_elixirs\.mjs && python3 scripts\/materialize_assignment_edit_feature\.py && npm run test:clean/);

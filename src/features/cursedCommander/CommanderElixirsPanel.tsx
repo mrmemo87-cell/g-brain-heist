@@ -1,13 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   activateCommanderElixir,
   commanderElixirError,
   getCommanderElixirs,
   purchaseCommanderElixir,
-  type CommanderElixirCatalogItem,
   type CommanderElixirSnapshot,
   type CommanderElixirStat,
 } from "../../../services/commanderElixirService";
+import { getCommanderElixirArt } from "./commanderElixirAssets";
 import "./commanderElixirs.css";
 
 type PendingAction = {
@@ -20,8 +20,6 @@ type Props = {
   disabled?: boolean;
 };
 
-const STAT_ORDER: CommanderElixirStat[] = ["force", "defense", "dexterity", "stamina", "omni"];
-
 const META: Record<CommanderElixirStat, {
   label: string;
   eyebrow: string;
@@ -32,19 +30,19 @@ const META: Record<CommanderElixirStat, {
 }> = {
   force: {
     label: "Force",
-    eyebrow: "OFFENSIVE CATALYST",
-    effect: "+2 Death Bolt · +1 Focus per effective rank",
+    eyebrow: "FORCE CATALYST",
+    effect: "+2 Death Bolt and +1 Focus per effective rank",
     glyph: "ϟ",
-    accent: "#fb7185",
-    glow: "rgba(251,113,133,.28)",
+    accent: "#fb5f5f",
+    glow: "rgba(251,95,95,.25)",
   },
   defense: {
     label: "Defense",
     eyebrow: "BASTION CATALYST",
-    effect: "+2 Shield · Guard · Shield Cap per effective rank",
+    effect: "+2 Shield, Guard and Shield Capacity per effective rank",
     glyph: "⬡",
-    accent: "#22d3ee",
-    glow: "rgba(34,211,238,.28)",
+    accent: "#2dd4ff",
+    glow: "rgba(45,212,255,.24)",
   },
   dexterity: {
     label: "Dexterity",
@@ -52,7 +50,7 @@ const META: Record<CommanderElixirStat, {
     effect: "+1 ATK to each deployed unit per effective rank",
     glyph: "⌁",
     accent: "#c084fc",
-    glow: "rgba(192,132,252,.28)",
+    glow: "rgba(192,132,252,.25)",
   },
   stamina: {
     label: "Stamina",
@@ -60,15 +58,15 @@ const META: Record<CommanderElixirStat, {
     effect: "+6 Commander HP per effective rank",
     glyph: "✧",
     accent: "#34d399",
-    glow: "rgba(52,211,153,.28)",
+    glow: "rgba(52,211,153,.24)",
   },
   omni: {
     label: "Commander",
     eyebrow: "OMNI CATALYST",
-    effect: "+1 effective rank to all four Commander training stats",
+    effect: "Applies all four +1-rank Commander combat effects",
     glyph: "◈",
     accent: "#fbbf24",
-    glow: "rgba(251,191,36,.3)",
+    glow: "rgba(251,191,36,.26)",
   },
 };
 
@@ -89,18 +87,15 @@ const GemIcon = () => (
   </svg>
 );
 
-const Flask = ({ stat }: { stat: CommanderElixirStat }) => (
-  <div className="cc-elixir-flask" aria-hidden>
-    <svg viewBox="0 0 120 150">
-      <path className="cc-elixir-glass" d="M46 12h28v12l-7 7v27l28 48c9 16-2 32-20 32H45c-18 0-29-16-20-32l28-48V31l-7-7V12Z" />
-      <path className="cc-elixir-liquid" d="M36 92h48l12 21c6 11-2 20-15 20H39c-13 0-21-9-15-20l12-21Z" />
-      <path className="cc-elixir-shine" d="M51 36v27L34 94" />
-      <circle className="cc-elixir-bubble" cx="49" cy="111" r="4" />
-      <circle className="cc-elixir-bubble" cx="66" cy="102" r="3" />
-    </svg>
-    <span>{META[stat].glyph}</span>
-  </div>
-);
+const powerLabel = (stat: CommanderElixirStat, boostRanks: number) =>
+  stat === "omni"
+    ? `+${boostRanks} ALL COMMANDER STATS`
+    : `+${boostRanks} EFFECTIVE ${META[stat].label.toUpperCase()}`;
+
+const activePowerLabel = (stat: CommanderElixirStat, boostRanks: number) =>
+  stat === "omni"
+    ? `+${boostRanks} all Commander stats`
+    : `+${boostRanks} effective ${META[stat].label}`;
 
 export default function CommanderElixirsPanel({ disabled = false }: Props) {
   const [snapshot, setSnapshot] = useState<CommanderElixirSnapshot | null>(null);
@@ -141,14 +136,6 @@ export default function CommanderElixirsPanel({ disabled = false }: Props) {
     return () => window.clearTimeout(timer);
   }, [load, snapshot?.active?.expiresAt]);
 
-  const grouped = useMemo(() => {
-    const map = new Map<CommanderElixirStat, CommanderElixirCatalogItem[]>();
-    for (const stat of STAT_ORDER) map.set(stat, []);
-    for (const item of snapshot?.catalog ?? []) map.get(item.statKey)?.push(item);
-    for (const variants of map.values()) variants.sort((a, b) => a.durationMinutes - b.durationMinutes);
-    return map;
-  }, [snapshot?.catalog]);
-
   const run = async (action: PendingAction, retry = false) => {
     if (busyId) return;
     if (!retry) pending.current = action;
@@ -179,6 +166,7 @@ export default function CommanderElixirsPanel({ disabled = false }: Props) {
     ? Math.max(0, new Date(snapshot.active.expiresAt).getTime() - now)
     : 0;
   const gems = snapshot?.wallet.gemstones ?? 0;
+  const activeArt = snapshot?.active ? getCommanderElixirArt(snapshot.active.id) : undefined;
 
   if (loading && !snapshot) {
     return <div className="cc-elixir-loading"><span /> Calibrating Commander Supplies…</div>;
@@ -199,19 +187,21 @@ export default function CommanderElixirsPanel({ disabled = false }: Props) {
       </div>
 
       <div className="cc-elixir-rule-strip">
-        <span><strong>ONE ACTIVE</strong> combat elixir at a time</span>
-        <span><strong>NO POWER STACKING</strong> · same elixir extends time</span>
-        <span><strong>PVP SNAPSHOT</strong> freezes the boost when battle starts</span>
+        <span><strong>ONE ACTIVE</strong><small>Only one combat elixir can be active.</small></span>
+        <span><strong>NO POWER STACKING</strong><small>Using the same elixir extends its duration.</small></span>
+        <span><strong>PVP SNAPSHOT</strong><small>The active boost is frozen when battle begins.</small></span>
       </div>
 
       {snapshot?.active ? (
-        <div className="cc-elixir-active" style={{ "--elixir-accent": META[snapshot.active.statKey].accent, "--elixir-glow": META[snapshot.active.statKey].glow } as React.CSSProperties}>
+        <div className={`cc-elixir-active is-${snapshot.active.statKey}`} style={{ "--elixir-accent": META[snapshot.active.statKey].accent, "--elixir-glow": META[snapshot.active.statKey].glow } as React.CSSProperties}>
           <div className="cc-elixir-active-pulse" />
-          <span className="cc-elixir-active-glyph">{META[snapshot.active.statKey].glyph}</span>
+          <div className="cc-elixir-active-art" aria-hidden>
+            {activeArt ? <img src={activeArt} alt="" decoding="async" /> : <span>{META[snapshot.active.statKey].glyph}</span>}
+          </div>
           <div className="cc-elixir-active-copy">
             <small>ACTIVE COMBAT CATALYST</small>
             <strong>{snapshot.active.name}</strong>
-            <span>+{snapshot.active.boostRanks} effective {snapshot.active.statKey === "omni" ? "rank to all skills" : `${META[snapshot.active.statKey].label} rank${snapshot.active.boostRanks === 1 ? "" : "s"}`}</span>
+            <span>{activePowerLabel(snapshot.active.statKey, snapshot.active.boostRanks)}</span>
           </div>
           <div className="cc-elixir-timer"><small>TIME REMAINING</small><strong>{formatDuration(activeRemaining)}</strong></div>
         </div>
@@ -229,60 +219,93 @@ export default function CommanderElixirsPanel({ disabled = false }: Props) {
       {notice && <div className="cc-elixir-message is-success" role="status">✓ {notice}</div>}
 
       <div className="cc-elixir-grid">
-        {STAT_ORDER.map((stat) => {
-          const variants = grouped.get(stat) ?? [];
-          if (!variants.length) return null;
-          const meta = META[stat];
+        {(snapshot?.catalog ?? []).map((item) => {
+          const meta = META[item.statKey];
+          const art = getCommanderElixirArt(item.id);
+          const qty = Math.max(0, Number(snapshot?.inventory[item.id] ?? 0));
+          const affordable = gems >= item.gemstonePrice;
+          const shortfall = Math.max(0, item.gemstonePrice - gems);
+          const sameActive = snapshot?.active?.id === item.id;
+          const otherActive = Boolean(snapshot?.active && !sameActive);
+          const working = busyId === item.id;
+          const canActivate = qty > 0;
+          const rarity = item.rarity.toLowerCase();
+
           return (
             <article
-              key={stat}
-              className={`cc-elixir-card is-${stat}`}
+              key={item.id}
+              className={`cc-elixir-card is-${item.statKey} is-${rarity}`}
               style={{ "--elixir-accent": meta.accent, "--elixir-glow": meta.glow } as React.CSSProperties}
             >
+              <div className="cc-elixir-card-head">
+                <small>{meta.eyebrow}</small>
+                <div>
+                  <span className={`cc-elixir-rarity is-${rarity}`}>{item.rarity.toUpperCase()}</span>
+                  <span className="cc-elixir-duration">{item.durationMinutes} MIN</span>
+                </div>
+              </div>
+
               <div className="cc-elixir-card-stage">
                 <div className="cc-elixir-card-grid" />
-                <Flask stat={stat} />
-                <span className="cc-elixir-card-rarity">{variants.some((item) => item.rarity === "epic") ? "EPIC" : variants.some((item) => item.rarity === "rare") ? "TACTICAL" : "COMMON"}</span>
+                <div className="cc-elixir-card-aura" />
+                {art ? (
+                  <img
+                    className="cc-elixir-art"
+                    src={art}
+                    alt={`${item.name} artwork`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <div className="cc-elixir-art-fallback" role="img" aria-label={`${item.name} artwork unavailable`}>
+                    <span>{meta.glyph}</span>
+                    <small>ARTWORK UNAVAILABLE</small>
+                  </div>
+                )}
               </div>
+
               <div className="cc-elixir-card-body">
-                <small className="cc-elixir-eyebrow">{meta.eyebrow}</small>
-                <h3>{meta.label} Elixirs</h3>
+                <div className="cc-elixir-title-block">
+                  <h3>{item.name}</h3>
+                  <strong>{powerLabel(item.statKey, item.boostRanks)}</strong>
+                </div>
                 <p className="cc-elixir-effect">{meta.effect}</p>
 
-                <div className="cc-elixir-variants">
-                  {variants.map((item) => {
-                    const qty = Math.max(0, Number(snapshot?.inventory[item.id] ?? 0));
-                    const affordable = gems >= item.gemstonePrice;
-                    const sameActive = snapshot?.active?.id === item.id;
-                    const otherActive = Boolean(snapshot?.active && !sameActive);
-                    const working = busyId === item.id;
-                    return (
-                      <div className="cc-elixir-variant" key={item.id}>
-                        <div className="cc-elixir-variant-head">
-                          <div><strong>{item.durationMinutes} MIN</strong><span>+{item.boostRanks} effective rank{item.boostRanks === 1 ? "" : "s"}</span></div>
-                          <span className="cc-elixir-owned">OWNED · {qty}</span>
-                        </div>
-                        <div className="cc-elixir-variant-actions">
-                          <button
-                            className="cc-elixir-buy"
-                            disabled={disabled || working || !affordable}
-                            onClick={() => start("purchase", item.id)}
-                          >
-                            <GemIcon />
-                            {working ? "Working…" : affordable ? `Buy · ${item.gemstonePrice}` : `${item.gemstonePrice - gems} more`}
-                          </button>
-                          <button
-                            className={`cc-elixir-activate ${sameActive ? "is-extend" : ""}`}
-                            disabled={disabled || working || qty < 1 || otherActive}
-                            onClick={() => start("activate", item.id)}
-                            title={otherActive ? "Another elixir is active" : undefined}
-                          >
-                            {sameActive ? `Extend +${item.durationMinutes}m` : otherActive ? "Active type locked" : "Activate"}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="cc-elixir-commerce">
+                  <span className="cc-elixir-owned">OWNED <strong>×{qty}</strong></span>
+                  <span className="cc-elixir-price" aria-label={`${item.gemstonePrice} Gemstones`}><GemIcon /><strong>{item.gemstonePrice}</strong></span>
+                </div>
+
+                <div className={`cc-elixir-actions ${canActivate ? "has-owned" : "needs-purchase"}`}>
+                  {canActivate ? (
+                    <>
+                      <button
+                        className="cc-elixir-buy is-secondary"
+                        disabled={disabled || working || !affordable}
+                        onClick={() => start("purchase", item.id)}
+                      >
+                        <GemIcon />
+                        {working ? "WORKING…" : affordable ? `BUY ANOTHER · ${item.gemstonePrice}` : `NEED ${shortfall} MORE`}
+                      </button>
+                      <button
+                        className={`cc-elixir-activate ${sameActive ? "is-extend" : ""}`}
+                        disabled={disabled || working || otherActive}
+                        onClick={() => start("activate", item.id)}
+                        title={otherActive ? "Another elixir is active" : undefined}
+                      >
+                        {working ? "WORKING…" : sameActive ? `EXTEND +${item.durationMinutes} MIN` : otherActive ? "ANOTHER ELIXIR ACTIVE" : "ACTIVATE"}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className="cc-elixir-buy is-primary"
+                      disabled={disabled || working || !affordable}
+                      onClick={() => start("purchase", item.id)}
+                    >
+                      <GemIcon />
+                      {working ? "WORKING…" : affordable ? `BUY · ${item.gemstonePrice}` : `NEED ${shortfall} MORE`}
+                    </button>
+                  )}
                 </div>
               </div>
             </article>
@@ -292,7 +315,7 @@ export default function CommanderElixirsPanel({ disabled = false }: Props) {
 
       <div className="cc-elixir-footnote">
         <strong>SERVER-AUTHORITATIVE EFFECTS</strong>
-        <span>Force modifies Bolt/Focus · Defense modifies Shield/Guard/Cap · Dexterity modifies deployed unit ATK · Stamina modifies Commander HP. Elixir effects are calculated only by the trusted combat loadout.</span>
+        <span>Force modifies Bolt/Focus · Defense modifies Shield/Guard/Capacity · Dexterity modifies deployed unit ATK · Stamina modifies Commander HP. Elixir effects are calculated only by the trusted combat loadout.</span>
       </div>
     </section>
   );
