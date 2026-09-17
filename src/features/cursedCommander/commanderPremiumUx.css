@@ -1,12 +1,28 @@
 @import "./commanderPremiumUxBase.css";
 
 /* Commander nav + character-stage polish.
- * The Commander bar already participates in page flow, so offsetting the sticky
- * element by the app-shell height moved it down without reserving that extra
- * space and caused it to cover the top of the hero (including Player Battles).
- * Keep the tab bar sticky at the top of the Commander viewport instead. */
+ * Root cause: Supplies is injected as a sixth Commander tab during the build,
+ * while several older Commander styles still assume exactly five columns.
+ * The nav must not depend on a hard-coded tab count. Keep every tab in one
+ * horizontal track on desktop and switch to horizontal scrolling on compact
+ * screens, so future tabs cannot force Records (or any other tab) onto a new row. */
 .cc-hq.cc-command-center.cc-command-center > .cc-command-bar {
   top: 0 !important;
+}
+
+.cc-hq.cc-command-center .cc-command-nav {
+  display: grid;
+  grid-template-columns: none !important;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  align-items: stretch;
+  min-width: 0;
+  overflow: visible;
+}
+
+.cc-hq.cc-command-center .cc-command-nav > button {
+  min-width: 0;
+  white-space: nowrap;
 }
 
 /* Center the full-body unit art inside the cyan/purple light column instead of
@@ -29,6 +45,19 @@
 @media (max-width: 900px) {
   .cc-hq.cc-command-center.cc-command-center > .cc-command-bar {
     top: 0 !important;
+  }
+
+  .cc-hq.cc-command-center .cc-command-nav {
+    grid-template-columns: none !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(108px, 1fr);
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  .cc-hq.cc-command-center .cc-command-nav::-webkit-scrollbar {
+    display: none;
   }
 }
 
