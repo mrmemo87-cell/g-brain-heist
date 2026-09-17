@@ -1,29 +1,25 @@
 @import "./commanderPremiumUxBase.css";
 
 /* Character-stage alignment polish.
- * Lift the unit art into the center of the cyan/purple light column while
- * keeping the feet visually grounded on the stage ring. */
+ * Center the full-body unit art inside the cyan/purple light column instead of
+ * bottom-anchoring it. Keep the halo and floor ring on their natural stage
+ * positions so the character, light and platform read as one composition. */
 .cc-hq.cc-command-center .cc-unit-training-stage {
-  --cc-unit-art-lift: 24px;
-  padding-bottom: var(--cc-unit-art-lift);
+  align-items: center;
+  padding-bottom: 0;
 }
 
-.cc-hq.cc-command-center .cc-unit-training-stage::after {
-  transform: translateY(calc(var(--cc-unit-art-lift) * -0.78));
+.cc-hq.cc-command-center .cc-unit-training-stage img {
+  transform: translateY(-6px);
 }
 
+.cc-hq.cc-command-center .cc-unit-training-stage::after,
 .cc-hq.cc-command-center .cc-unit-training-halo {
-  transform: translateY(calc(var(--cc-unit-art-lift) * -0.55));
-}
-
-@media (max-width: 1180px) {
-  .cc-hq.cc-command-center .cc-unit-training-stage {
-    --cc-unit-art-lift: 20px;
-  }
+  transform: none;
 }
 
 @media (max-width: 700px) {
-  .cc-hq.cc-command-center .cc-unit-training-stage {
-    --cc-unit-art-lift: 10px;
+  .cc-hq.cc-command-center .cc-unit-training-stage img {
+    transform: translateY(-3px);
   }
 }
