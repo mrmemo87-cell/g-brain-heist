@@ -1,4 +1,5 @@
 import type { QuestionDifficulty, QuestionType, Subject } from '../types';
+import '../components/teacher/QuestionBatchWorkspaceRecovery.css';
 import { supabase } from './supabaseClient';
 
 export const TEACHER_QUESTION_SOURCE_BUCKET = 'teacher-question-sources';
