@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") || "";
-const QUESTION_MODEL = "gpt-5.6";
+const QUESTION_MODEL = "gpt-6-astra";
 const SOURCE_BUCKET = "teacher-question-sources";
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_PAGES = 60;
