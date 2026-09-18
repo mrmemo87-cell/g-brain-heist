@@ -42,6 +42,13 @@ test('server extraction verifies identity and keeps provider state disabled', ()
   assert.match(edgeFunction, /Every taxonomy field is an AI proposal requiring human governance/);
 });
 
+test('PDF extraction uses the flagship model and a valid high-detail PDF data URI', () => {
+  assert.match(edgeFunction, /const QUESTION_MODEL = "gpt-5\.6"/);
+  assert.match(edgeFunction, /file_data: `data:application\/pdf;base64,\$\{bytesToBase64\(bytes\)\}`/);
+  assert.match(edgeFunction, /detail: "high"/);
+  assert.match(edgeFunction, /requestId: aiResponse\.headers\.get\("x-request-id"\)/);
+});
+
 test('submission is atomic, immutable and excluded from Academic Profiles', () => {
   assert.match(migration, /create or replace function public\.rpc_teacher_submit_question_batch/);
   assert.match(migration, /security definer[\s\S]*set search_path = ''/);
@@ -83,7 +90,7 @@ test('learning-material generation is source-grounded and prompt-injection resis
   assert.match(edgeFunction, /source_grounding_note/);
   assert.match(edgeFunction, /learning_objective/);
   assert.match(edgeFunction, /student question must be fully self-contained in text/);
-  assert.match(edgeFunction, /OPENAI_QUESTION_GENERATION_MODEL/);
+  assert.match(edgeFunction, /const chosenModel = QUESTION_MODEL/);
   assert.match(edgeFunction, /store: false/);
   assert.match(edgeFunction, /pendingSourceCleanup/);
   assert.match(edgeFunction, /orphan cleanup failed/);

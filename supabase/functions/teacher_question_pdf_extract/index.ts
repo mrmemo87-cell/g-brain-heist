@@ -4,8 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") || "";
-const EXTRACTION_MODEL = Deno.env.get("OPENAI_QUESTION_EXTRACTION_MODEL") || "gpt-4.1-mini";
-const GENERATION_MODEL = Deno.env.get("OPENAI_QUESTION_GENERATION_MODEL") || "gpt-4.1";
+const QUESTION_MODEL = "gpt-5.6";
 const SOURCE_BUCKET = "teacher-question-sources";
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_PAGES = 60;
@@ -588,7 +587,7 @@ serve(async (request) => {
         "Return extracted source questions first, followed by newly created grounded questions. Never label a created question as extracted.",
       ] : []),
     ].join("\n");
-    const chosenModel = createsQuestions ? GENERATION_MODEL : EXTRACTION_MODEL;
+    const chosenModel = QUESTION_MODEL;
 
     const aiResponse = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -615,7 +614,8 @@ serve(async (request) => {
             {
               type: "input_file",
               filename: cleanFileName(body?.fileName),
-              file_data: bytesToBase64(bytes),
+              file_data: `data:application/pdf;base64,${bytesToBase64(bytes)}`,
+              detail: "high",
             },
           ],
         }],
@@ -634,7 +634,12 @@ serve(async (request) => {
 
     const aiBody = await aiResponse.json().catch(() => ({})) as Record<string, unknown>;
     if (!aiResponse.ok) {
-      console.error("teacher_question_pdf_extract provider error", aiResponse.status, aiBody.error);
+      console.error("teacher_question_pdf_extract provider error", {
+        status: aiResponse.status,
+        requestId: aiResponse.headers.get("x-request-id"),
+        model: chosenModel,
+        error: aiBody.error || aiBody,
+      });
       return jsonResponse(502, { error: "The PDF could not be analysed right now. Your file is safe; please try again." });
     }
 
