@@ -90,6 +90,23 @@ export interface TeacherQuestionPdfExtraction {
   sourceFileName: string;
 }
 
+export interface TeacherQuestionSavedDraftRequest {
+  target_grade?: number | null;
+  requested_generated_question_count?: number;
+  allowed_question_types?: QuestionType[];
+  purpose?: TeacherQuestionPurpose;
+  challenge?: TeacherQuestionChallenge;
+  page_range?: { from?: number; to?: number };
+  learning_priorities?: string;
+  visual_policy?: TeacherQuestionVisualPolicy;
+}
+
+export interface TeacherQuestionSavedDraft {
+  extraction: TeacherQuestionPdfExtraction;
+  completedAt: string;
+  processingRequest: TeacherQuestionSavedDraftRequest;
+}
+
 export interface TeacherQuestionBatchSubmitResult {
   success: true;
   batchId: string;
@@ -141,6 +158,13 @@ const readPdfSignature = async (file: File) => {
   return new TextDecoder().decode(bytes);
 };
 
+const validatePdfFile = async (file: File) => {
+  if (!file.name.toLocaleLowerCase().endsWith('.pdf')) throw new Error('Choose a PDF file.');
+  if (file.size < 5) throw new Error('This PDF is empty.');
+  if (file.size > MAX_TEACHER_QUESTION_PDF_BYTES) throw new Error('Use a PDF no larger than 20 MB.');
+  if (await readPdfSignature(file) !== '%PDF-') throw new Error('This file is not a valid PDF.');
+};
+
 const extractionErrorMessage = async (error: unknown) => {
   const context = (error as { context?: Response })?.context;
   if (context && typeof context.json === 'function') {
@@ -183,6 +207,16 @@ const candidateFromPayload = (value: unknown, index: number): TeacherQuestionBat
     },
   };
 };
+
+const modeFromValue = (value: unknown): TeacherPdfProcessingMode => (
+  value === 'generate' || value === 'both' ? value : 'extract'
+);
+
+const documentTypeFromValue = (value: unknown): TeacherPdfDocumentType => (
+  value === 'learning_material' || value === 'mixed' || value === 'unsupported'
+    ? value
+    : 'question_paper'
+);
 
 export const questionCandidateFingerprint = (candidate: TeacherQuestionBatchCandidate) => [
   candidate.subject,
@@ -239,6 +273,57 @@ export const setCandidateAssessmentProcess = (
   },
 });
 
+export const findSavedTeacherQuestionPdfDrafts = async (
+  file: File,
+): Promise<TeacherQuestionSavedDraft[]> => {
+  await validatePdfFile(file);
+  const sourceSha256 = await sha256Hex(file);
+  const { data, error } = await supabase.rpc('rpc_teacher_question_pdf_drafts_by_hash', {
+    p_sha256: sourceSha256,
+  });
+  if (error) {
+    console.warn('[teacher-question-pdf] Saved draft lookup failed:', error.message);
+    return [];
+  }
+
+  const response = (data || {}) as { success?: boolean; drafts?: unknown[] };
+  if (!response.success || !Array.isArray(response.drafts)) return [];
+
+  return response.drafts.flatMap((value) => {
+    const draft = value && typeof value === 'object' ? value as Record<string, unknown> : null;
+    const rawQuestions = draft && Array.isArray(draft.questions) ? draft.questions : [];
+    if (!draft || typeof draft.extractionId !== 'string' || !rawQuestions.length) return [];
+    const processingRequest = draft.processingRequest && typeof draft.processingRequest === 'object'
+      ? draft.processingRequest as TeacherQuestionSavedDraftRequest
+      : {};
+    const extraction: TeacherQuestionPdfExtraction = {
+      extractionId: draft.extractionId,
+      model: typeof draft.model === 'string' ? draft.model : 'AI-assisted extraction',
+      sourceSha256: typeof draft.sourceSha256 === 'string' ? draft.sourceSha256 : sourceSha256,
+      sourceFileSize: Number(draft.sourceFileSize || file.size),
+      detectedPageCount: Number.isFinite(Number(draft.detectedPageCount)) ? Number(draft.detectedPageCount) : null,
+      processingMode: modeFromValue(draft.processingMode),
+      detectedDocumentType: documentTypeFromValue(draft.detectedDocumentType),
+      documentTypeConfidence: Number.isFinite(Number(draft.documentTypeConfidence)) ? Number(draft.documentTypeConfidence) : 0,
+      sourceRightsAttested: draft.sourceRightsAttested === true,
+      document_title: typeof draft.document_title === 'string' && draft.document_title.trim()
+        ? draft.document_title
+        : file.name.replace(/\.pdf$/i, ''),
+      document_summary: typeof draft.document_summary === 'string'
+        ? draft.document_summary
+        : 'Saved review draft.',
+      questions: rawQuestions.slice(0, MAX_TEACHER_QUESTION_BATCH_SIZE).map(candidateFromPayload),
+      sourceObjectPath: typeof draft.sourceObjectPath === 'string' ? draft.sourceObjectPath : '',
+      sourceFileName: typeof draft.sourceFileName === 'string' ? draft.sourceFileName : file.name,
+    };
+    return [{
+      extraction,
+      completedAt: typeof draft.completedAt === 'string' ? draft.completedAt : '',
+      processingRequest,
+    }];
+  });
+};
+
 export const uploadAndExtractTeacherQuestionPdf = async (
   file: File,
   options: TeacherQuestionPdfRequest & {
@@ -246,10 +331,7 @@ export const uploadAndExtractTeacherQuestionPdf = async (
   },
 ): Promise<TeacherQuestionPdfExtraction> => {
   options.onStageChange?.('checking');
-  if (!file.name.toLocaleLowerCase().endsWith('.pdf')) throw new Error('Choose a PDF file.');
-  if (file.size < 5) throw new Error('This PDF is empty.');
-  if (file.size > MAX_TEACHER_QUESTION_PDF_BYTES) throw new Error('Use a PDF no larger than 20 MB.');
-  if (await readPdfSignature(file) !== '%PDF-') throw new Error('This file is not a valid PDF.');
+  await validatePdfFile(file);
   const createsQuestions = options.processingMode !== 'extract';
   if (createsQuestions) {
     if (!options.preferredSubject) throw new Error('Choose the subject for the questions.');
