@@ -1,6 +1,7 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { QuestionDifficulty, QuestionType, Subject } from '../../types';
 import {
+  findSavedTeacherQuestionPdfDrafts,
   getQuestionCandidateIssues,
   MAX_GENERATED_QUESTION_COUNT,
   MAX_TEACHER_QUESTION_PDF_BYTES,
@@ -15,6 +16,7 @@ import {
   type TeacherQuestionPdfExtraction,
   type TeacherQuestionPurpose,
   type TeacherQuestionChallenge,
+  type TeacherQuestionSavedDraft,
   type TeacherQuestionVisualPolicy,
   type TeacherQuestionUploadStage,
 } from '../../services/teacherQuestionBatchService';
@@ -31,6 +33,7 @@ const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   true_false: 'True / False',
   short_answer: 'Short answer',
 };
+const REVIEW_STORAGE_PREFIX = 'brains-heist:teacher-question-review:';
 
 const MODE_DETAILS: Record<TeacherPdfProcessingMode, { title: string; detail: string; icon: string }> = {
   extract: { title: 'Extract existing questions', detail: 'For question papers, worksheets and answer keys.', icon: 'EX' },
@@ -45,9 +48,9 @@ const stageCopy = (
   checking: { title: 'Checking the PDF', detail: 'Confirming the file is safe and readable.' },
   uploading: { title: 'Uploading privately', detail: 'The source stays in protected teacher storage.' },
   extracting: mode === 'extract'
-    ? { title: 'Finding questions and answers', detail: 'Reading the paper, layout and answer key. This can take a minute.' }
-    : { title: 'Studying the source', detail: 'Reading the explanations and illustrations, then creating a grounded review draft.' },
-  securing: { title: 'Preparing your review', detail: 'Checking provenance and securing the audit record.' },
+    ? { title: 'Finding questions and answers', detail: 'Reading the paper, layout and answer key.' }
+    : { title: 'Creating your review draft', detail: 'Reading the source, grounding each question and preparing answers.' },
+  securing: { title: 'Saving the draft', detail: 'Securing the source evidence so you can safely resume later.' },
 }[stage]);
 
 interface QuestionBatchWorkspaceProps {
@@ -74,6 +77,12 @@ const subjectKey = (value: string) => {
   return normalized;
 };
 
+const formatDraftTime = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Saved earlier';
+  return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
 const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
   defaultSubject,
   defaultTopic,
@@ -83,10 +92,14 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
   onOpenMyPool,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const draftLookupRef = useRef(0);
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [working, setWorking] = useState(false);
   const [uploadStage, setUploadStage] = useState<TeacherQuestionUploadStage>('checking');
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [savedDrafts, setSavedDrafts] = useState<TeacherQuestionSavedDraft[]>([]);
+  const [checkingSavedDrafts, setCheckingSavedDrafts] = useState(false);
   const [extraction, setExtraction] = useState<TeacherQuestionPdfExtraction | null>(null);
   const [questions, setQuestions] = useState<TeacherQuestionBatchCandidate[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -129,6 +142,17 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
       && sourceRightsAttested
       && pageRangeValid,
   );
+  const estimatedWait = processingMode === 'extract'
+    ? 'Usually 20–60 seconds'
+    : questionCount <= 12
+      ? 'Usually 30–90 seconds'
+      : 'Usually 45–120 seconds';
+  const missingSetup = createsQuestions ? [
+    !targetGrade ? 'target grade' : null,
+    !questionTypes.length ? 'question type' : null,
+    !sourceRightsAttested ? 'usage confirmation' : null,
+    !pageRangeValid ? 'valid page range' : null,
+  ].filter(Boolean) as string[] : [];
 
   const issueMap = useMemo(() => new Map(questions.map((question) => [
     question.client_id,
@@ -160,12 +184,93 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
       || (fingerprints.get(questionCandidateFingerprint(question)) || 0) > 1
   )).length, [fingerprints, issueMap, questions]);
 
-  const chooseFile = (nextFile: File | null) => {
+  useEffect(() => {
+    if (!working) {
+      setElapsedSeconds(0);
+      return undefined;
+    }
+    const timer = window.setInterval(() => setElapsedSeconds((current) => current + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, [working]);
+
+  useEffect(() => {
+    if (!extraction || !questions.length || result) return;
+    try {
+      window.localStorage.setItem(`${REVIEW_STORAGE_PREFIX}${extraction.extractionId}`, JSON.stringify(questions));
+    } catch (storageError) {
+      console.warn('[teacher-question-pdf] Could not autosave review edits:', storageError);
+    }
+  }, [extraction, questions, result]);
+
+  const applyDraftBlueprint = (draft: TeacherQuestionSavedDraft) => {
+    const request = draft.processingRequest;
+    const suggestedSubject = draft.extraction.questions[0]?.subject;
+    setProcessingMode(draft.extraction.processingMode);
+    if (suggestedSubject && availableSubjects.some((subject) => subjectKey(subject) === subjectKey(suggestedSubject))) {
+      setGenerationSubject(suggestedSubject);
+      setBulkSubject(suggestedSubject);
+    }
+    if (request.target_grade && request.target_grade >= 1 && request.target_grade <= 12) {
+      setTargetGrade(request.target_grade);
+      setBulkGrades([request.target_grade]);
+    }
+    if (request.requested_generated_question_count) {
+      setQuestionCount(Math.min(MAX_GENERATED_QUESTION_COUNT, Math.max(1, request.requested_generated_question_count)));
+    }
+    if (request.allowed_question_types?.length) setQuestionTypes(request.allowed_question_types);
+    if (request.purpose) setPurpose(request.purpose);
+    if (request.challenge) setChallenge(request.challenge);
+    setPageFrom(request.page_range?.from && request.page_range.from > 1 ? request.page_range.from : '');
+    setPageTo(request.page_range?.to && request.page_range.to < 60 ? request.page_range.to : '');
+    setLearningPriorities(request.learning_priorities || '');
+    if (request.visual_policy) setVisualPolicy(request.visual_policy);
+    setSourceRightsAttested(draft.extraction.sourceRightsAttested);
+  };
+
+  const openExtraction = (nextExtraction: TeacherQuestionPdfExtraction) => {
+    const allowedSubjectKeys = new Set(availableSubjects.map(subjectKey));
+    const fallbackSubject = availableSubjects.find((subject) => subjectKey(subject) === subjectKey(defaultSubject || ''))
+      || availableSubjects[0];
+    let sourceQuestions = nextExtraction.questions;
+    try {
+      const savedReview = window.localStorage.getItem(`${REVIEW_STORAGE_PREFIX}${nextExtraction.extractionId}`);
+      if (savedReview) {
+        const parsed = JSON.parse(savedReview) as TeacherQuestionBatchCandidate[];
+        if (Array.isArray(parsed) && parsed.length === nextExtraction.questions.length) sourceQuestions = parsed;
+      }
+    } catch (storageError) {
+      console.warn('[teacher-question-pdf] Saved review could not be restored:', storageError);
+    }
+    const reviewQuestions = sourceQuestions.map((question) => allowedSubjectKeys.has(subjectKey(question.subject))
+      ? { ...question, client_id: question.client_id || crypto.randomUUID() }
+      : {
+        ...question,
+        client_id: question.client_id || crypto.randomUUID(),
+        subject: fallbackSubject,
+        needs_human_attention: true,
+        attention_reason: `The PDF suggested ${question.subject}. Confirm the closest subject you are assigned to teach.`,
+      });
+    setExtraction(nextExtraction);
+    setQuestions(reviewQuestions);
+    const firstGrade = reviewQuestions[0]?.eligible_grade_levels?.[0];
+    if (reviewQuestions[0]?.subject) setBulkSubject(reviewQuestions[0].subject);
+    if (firstGrade) setBulkGrades([firstGrade]);
+    const firstAttention = reviewQuestions.find((question) => getQuestionCandidateIssues(question).length > 0)
+      || reviewQuestions[0];
+    setExpandedIds(firstAttention ? new Set([firstAttention.client_id]) : new Set());
+    setTeacherConfirmed(false);
+    setError(null);
+  };
+
+  const chooseFile = async (nextFile: File | null) => {
+    const lookupId = ++draftLookupRef.current;
     setError(null);
     setExtraction(null);
     setQuestions([]);
     setResult(null);
     setTeacherConfirmed(false);
+    setSavedDrafts([]);
+    setCheckingSavedDrafts(false);
     if (!nextFile) {
       setFile(null);
       return;
@@ -184,11 +289,25 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
       return;
     }
     setFile(nextFile);
+    setCheckingSavedDrafts(true);
+    try {
+      const drafts = await findSavedTeacherQuestionPdfDrafts(nextFile);
+      if (draftLookupRef.current !== lookupId) return;
+      setSavedDrafts(drafts);
+      if (drafts[0]) applyDraftBlueprint(drafts[0]);
+    } catch (lookupError) {
+      if (draftLookupRef.current === lookupId) {
+        console.warn('[teacher-question-pdf] Draft recovery check failed:', lookupError);
+      }
+    } finally {
+      if (draftLookupRef.current === lookupId) setCheckingSavedDrafts(false);
+    }
   };
 
   const analysePdf = async () => {
     if (!file || working) return;
     setWorking(true);
+    setElapsedSeconds(0);
     setError(null);
     try {
       const nextExtraction = await uploadAndExtractTeacherQuestionPdf(file, {
@@ -207,28 +326,14 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
         sourceRightsAttested: createsQuestions ? sourceRightsAttested : false,
         onStageChange: setUploadStage,
       });
-      const allowedSubjectKeys = new Set(availableSubjects.map(subjectKey));
-      const fallbackSubject = availableSubjects.find((subject) => subjectKey(subject) === subjectKey(defaultSubject || ''))
-        || availableSubjects[0];
-      const reviewQuestions = nextExtraction.questions.map((question) => allowedSubjectKeys.has(subjectKey(question.subject))
-        ? question
-        : {
-          ...question,
-          subject: fallbackSubject,
-          needs_human_attention: true,
-          attention_reason: `The PDF suggested ${question.subject}. Confirm the closest subject you are assigned to teach.`,
-        });
-      setExtraction(nextExtraction);
-      setQuestions(reviewQuestions);
+      openExtraction(nextExtraction);
       if (createsQuestions) {
         setBulkSubject(selectedGenerationSubject as Subject);
         setBulkGrades([Number(targetGrade)]);
       }
-      const firstAttention = reviewQuestions.find((question) => getQuestionCandidateIssues(question).length > 0)
-        || reviewQuestions[0];
-      setExpandedIds(firstAttention ? new Set([firstAttention.client_id]) : new Set());
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'The PDF could not be analysed.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setWorking(false);
     }
@@ -300,8 +405,17 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
     setError(null);
     try {
       const submission = await submitTeacherQuestionBatch(extraction.extractionId, questions);
+      try {
+        window.localStorage.removeItem(`${REVIEW_STORAGE_PREFIX}${extraction.extractionId}`);
+      } catch (storageError) {
+        console.warn('[teacher-question-pdf] Could not clear submitted local draft:', storageError);
+      }
       setResult(submission);
-      await onSubmitted?.(submission);
+      try {
+        await onSubmitted?.(submission);
+      } catch (refreshError) {
+        console.warn('[teacher-question-pdf] Submission succeeded but question-bank refresh failed:', refreshError);
+      }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'The batch could not be submitted.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -311,6 +425,7 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
   };
 
   const resetWorkspace = () => {
+    ++draftLookupRef.current;
     setFile(null);
     setExtraction(null);
     setQuestions([]);
@@ -319,6 +434,8 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
     setResult(null);
     setError(null);
     setLastRemoved(null);
+    setSavedDrafts([]);
+    setCheckingSavedDrafts(false);
     setSourceRightsAttested(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -333,7 +450,7 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
           <p>{result.submitted} question{result.submitted === 1 ? '' : 's'} reached the governed review queue. {result.duplicatesSkipped ? `${result.duplicatesSkipped} existing duplicate${result.duplicatesSkipped === 1 ? ' was' : 's were'} linked instead of copied.` : ''}</p>
           <div className="question-batch__protection">
             <span aria-hidden="true">◆</span>
-            <div><strong>Academic Profile stays protected</strong><small>These questions can support your classroom, but they are not official learning evidence unless a later governed promotion is completed.</small></div>
+            <div><strong>Submission confirmed</strong><small>Your batch is saved. A background refresh problem will never turn a successful submission into an error message.</small></div>
           </div>
           <dl>
             <div><dt>Status</dt><dd>In review</dd></div>
@@ -342,7 +459,7 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
           </dl>
           <div className="question-batch__complete-actions">
             <button type="button" className="question-batch__primary" onClick={onOpenMyPool}>View in My Pool</button>
-            <button type="button" className="question-batch__secondary" onClick={resetWorkspace}>Upload another PDF</button>
+            <button type="button" className="question-batch__secondary" onClick={resetWorkspace}>Start another PDF</button>
           </div>
         </div>
       </section>
@@ -356,15 +473,15 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
         <div>
           <span className="question-batch__eyebrow">Teacher question workspace</span>
           <h1 id="question-batch-title">Add Question Batch</h1>
-          <p>Turn a question paper or teaching chapter into a reviewed question batch—with transparent source evidence and you in control.</p>
+          <p>Create or extract questions from a PDF, review them, then submit. Saved drafts can be resumed after a refresh.</p>
         </div>
-        <span className="question-batch__private-badge">Private source · human reviewed</span>
+        <span className="question-batch__private-badge">Private · resumable · human reviewed</span>
       </header>
 
       <ol className="question-batch__steps" aria-label="Question batch progress">
-        <li className={!extraction ? 'is-active' : 'is-complete'}><span>{extraction ? '✓' : '1'}</span><div><strong>Choose &amp; upload</strong><small>Paper, chapter or mixed PDF</small></div></li>
-        <li className={extraction ? 'is-active' : ''}><span>2</span><div><strong>Check questions</strong><small>Fix only what needs attention</small></div></li>
-        <li><span>3</span><div><strong>Submit for review</strong><small>Superadmin governance queue</small></div></li>
+        <li className={!extraction ? 'is-active' : 'is-complete'}><span>{extraction ? '✓' : '1'}</span><div><strong>Choose PDF</strong><small>Set the source and target</small></div></li>
+        <li className={extraction ? 'is-active' : ''}><span>2</span><div><strong>Review</strong><small>Check questions and answers</small></div></li>
+        <li><span>3</span><div><strong>Submit</strong><small>Send to governance review</small></div></li>
       </ol>
 
       {error ? <div className="question-batch__error" role="alert"><span>!</span><div><strong>We could not finish that step</strong><p>{error}</p></div><button type="button" onClick={() => setError(null)} aria-label="Dismiss error">×</button></div> : null}
@@ -376,7 +493,7 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
             <div>
               {(Object.keys(MODE_DETAILS) as TeacherPdfProcessingMode[]).map((mode) => (
                 <label key={mode} className={processingMode === mode ? 'is-selected' : ''}>
-                  <input type="radio" name="pdf-processing-mode" value={mode} checked={processingMode === mode} onChange={() => { setProcessingMode(mode); setSourceRightsAttested(false); setError(null); }} />
+                  <input type="radio" name="pdf-processing-mode" value={mode} checked={processingMode === mode} onChange={() => { setProcessingMode(mode); setSourceRightsAttested(false); setSavedDrafts([]); setError(null); }} />
                   <span aria-hidden="true">{MODE_DETAILS[mode].icon}</span>
                   <div><strong>{MODE_DETAILS[mode].title}</strong><small>{MODE_DETAILS[mode].detail}</small></div>
                   <b aria-hidden="true">{processingMode === mode ? '✓' : '○'}</b>
@@ -387,15 +504,15 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
 
           {createsQuestions ? (
             <section className="question-batch__blueprint" aria-labelledby="question-blueprint-title">
-              <header><div><span>Question Blueprint</span><h2 id="question-blueprint-title">Set the learning target</h2><p>Four quick choices are enough. Fine-tuning is optional.</p></div><b>{processingMode === 'both' ? 'Mixed source' : 'Learning material'}</b></header>
+              <header><div><span>Question Blueprint</span><h2 id="question-blueprint-title">Set the learning target</h2><p>Choose the essentials. Everything else is optional.</p></div><b>{processingMode === 'both' ? 'Mixed source' : 'Learning material'}</b></header>
               <div className="question-batch__blueprint-quick">
                 <label><span>Subject</span><select value={selectedGenerationSubject} onChange={(event) => setGenerationSubject(event.target.value as Subject)}>{availableSubjects.map((subject) => <option key={subject} value={subject}>{subject}</option>)}</select></label>
                 <label><span>Target grade</span><select value={targetGrade} onChange={(event) => setTargetGrade(event.target.value ? Number(event.target.value) : '')}><option value="">Choose grade</option>{GRADES.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select></label>
                 <label><span>{processingMode === 'both' ? 'New questions' : 'Questions'}</span><input type="number" min="1" max={MAX_GENERATED_QUESTION_COUNT} value={questionCount} onChange={(event) => setQuestionCount(Math.min(MAX_GENERATED_QUESTION_COUNT, Math.max(1, Number(event.target.value) || 1)))} /></label>
-                <label><span>Classroom purpose</span><select value={purpose} onChange={(event) => setPurpose(event.target.value as TeacherQuestionPurpose)}><option value="retrieval_practice">Retrieval practice</option><option value="diagnostic">Diagnostic check</option><option value="homework">Homework</option><option value="exam_practice">Exam practice</option></select></label>
+                <label><span>Purpose</span><select value={purpose} onChange={(event) => setPurpose(event.target.value as TeacherQuestionPurpose)}><option value="retrieval_practice">Retrieval practice</option><option value="diagnostic">Diagnostic check</option><option value="homework">Homework</option><option value="exam_practice">Exam practice</option></select></label>
               </div>
               <details className="question-batch__blueprint-details">
-                <summary><span>Fine-tune the draft <small>optional</small></span><b>＋</b></summary>
+                <summary><span>Fine-tune <small>optional</small></span><b>＋</b></summary>
                 <div>
                   <label><span>Topic focus <em>optional</em></span><input value={bulkTopic} maxLength={160} onChange={(event) => setBulkTopic(event.target.value)} placeholder="e.g. Cell structure" /></label>
                   <label><span>Challenge</span><select value={challenge} onChange={(event) => setChallenge(event.target.value as TeacherQuestionChallenge)}><option value="accessible">Accessible</option><option value="balanced">Balanced</option><option value="challenging">Challenging</option></select></label>
@@ -407,7 +524,7 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
                 </div>
               </details>
               {!pageRangeValid ? <p className="question-batch__blueprint-error" role="alert">The first page must come before the last page.</p> : null}
-              <label className="question-batch__rights"><input type="checkbox" checked={sourceRightsAttested} onChange={(event) => setSourceRightsAttested(event.target.checked)} /><span><strong>I may use this material for classroom question creation</strong><small>The PDF stays private. Created questions use original wording and retain page-level source evidence for review.</small></span></label>
+              <label className="question-batch__rights"><input type="checkbox" checked={sourceRightsAttested} onChange={(event) => setSourceRightsAttested(event.target.checked)} /><span><strong>I may use this material for classroom question creation</strong><small>The PDF stays private and page-level source evidence remains attached to the draft.</small></span></label>
             </section>
           ) : null}
 
@@ -421,57 +538,79 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
                 onDrop={(event) => {
                   event.preventDefault();
                   setDragging(false);
-                  chooseFile(event.dataTransfer.files?.[0] || null);
+                  void chooseFile(event.dataTransfer.files?.[0] || null);
                 }}
               >
-                <input ref={fileInputRef} id="teacher-question-pdf" type="file" accept=".pdf,application/pdf" onChange={(event) => chooseFile(event.target.files?.[0] || null)} disabled={working} />
+                <input ref={fileInputRef} id="teacher-question-pdf" type="file" accept=".pdf,application/pdf" onChange={(event) => void chooseFile(event.target.files?.[0] || null)} disabled={working} />
                 {!file ? (
                   <label htmlFor="teacher-question-pdf">
                     <span className="question-batch__upload-icon" aria-hidden="true">PDF</span>
-                    <strong>{processingMode === 'extract' ? 'Drop your question paper here' : processingMode === 'generate' ? 'Drop your chapter or teaching PDF here' : 'Drop your mixed teaching PDF here'}</strong>
-                    <small>or choose a PDF from your device</small>
+                    <strong>{processingMode === 'extract' ? 'Choose a question paper' : processingMode === 'generate' ? 'Choose a teaching PDF' : 'Choose a mixed PDF'}</strong>
+                    <small>Drop it here or select it from your device</small>
                     <b>Choose PDF</b>
                   </label>
                 ) : (
                   <div className="question-batch__file">
                     <span aria-hidden="true">PDF</span>
-                    <div><strong>{file.name}</strong><small>{formatBytes(file.size)} · Ready to analyse</small></div>
+                    <div><strong>{file.name}</strong><small>{formatBytes(file.size)} · {checkingSavedDrafts ? 'Checking for saved work…' : 'Ready'}</small></div>
                     <button type="button" onClick={() => fileInputRef.current?.click()} disabled={working}>Replace</button>
                   </div>
                 )}
               </div>
+
+              {checkingSavedDrafts ? (
+                <div className="question-batch__saved-drafts is-loading" role="status">
+                  <span className="question-batch__saved-icon" aria-hidden="true">↻</span>
+                  <div><strong>Checking for saved drafts</strong><p>If you worked on this PDF before, we’ll bring the draft back instead of making you start again.</p></div>
+                </div>
+              ) : savedDrafts.length ? (
+                <section className="question-batch__saved-drafts" aria-label="Saved drafts for this PDF">
+                  <div className="question-batch__saved-heading"><span className="question-batch__saved-icon" aria-hidden="true">✓</span><div><strong>Saved work found</strong><p>Resume instantly—no AI rerun and no extra wait.</p></div></div>
+                  <div className="question-batch__saved-list">
+                    {savedDrafts.map((draft) => {
+                      const count = draft.extraction.questions.length;
+                      const grade = draft.processingRequest.target_grade;
+                      const types = draft.processingRequest.allowed_question_types?.map((type) => QUESTION_TYPE_LABELS[type]).join(' + ');
+                      return <button key={draft.extraction.extractionId} type="button" onClick={() => { applyDraftBlueprint(draft); openExtraction(draft.extraction); }}><span><strong>{count} question{count === 1 ? '' : 's'}{grade ? ` · Grade ${grade}` : ''}</strong><small>{types || MODE_DETAILS[draft.extraction.processingMode].title} · {formatDraftTime(draft.completedAt)}</small></span><b>Resume</b></button>;
+                    })}
+                  </div>
+                  <small className="question-batch__saved-footnote">Want a different version? Adjust the blueprint and create a fresh draft below.</small>
+                </section>
+              ) : null}
+
               <div className="question-batch__upload-actions">
-                <p><span>✓</span> Nothing is added until you review and submit.</p>
-                <button type="button" className="question-batch__primary" onClick={() => void analysePdf()} disabled={!file || !blueprintReady || working}>{working ? currentStageCopy.title : processingMode === 'extract' ? 'Find questions' : processingMode === 'generate' ? 'Create review draft' : 'Prepare mixed draft'}</button>
+                <div><p><span>✓</span> Nothing is added until you review and submit.</p>{file ? <small className="question-batch__eta">{estimatedWait} for a fresh AI draft.</small> : null}</div>
+                <button type="button" className="question-batch__primary" onClick={() => void analysePdf()} disabled={!file || !blueprintReady || working || checkingSavedDrafts}>{working ? currentStageCopy.title : savedDrafts.length ? 'Create fresh draft' : processingMode === 'extract' ? 'Find questions' : processingMode === 'generate' ? 'Create review draft' : 'Prepare mixed draft'}</button>
               </div>
+              {file && !blueprintReady && !working && !checkingSavedDrafts ? <p className="question-batch__disabled-help">To continue, complete: {missingSetup.join(', ')}.</p> : null}
               {working ? (
                 <div className="question-batch__progress" role="status" aria-live="polite">
                   <div className="question-batch__progress-orbit" aria-hidden="true"><span /><span /><span /></div>
-                  <div><strong>{currentStageCopy.title}</strong><p>{currentStageCopy.detail}</p></div>
+                  <div><strong>{currentStageCopy.title}</strong><p>{currentStageCopy.detail}</p><small>{estimatedWait} · {elapsedSeconds}s elapsed. You can stay on this page; the draft will appear automatically.</small></div>
                 </div>
               ) : null}
             </main>
 
             <aside className="question-batch__upload-aside">
               <span className="question-batch__aside-number">01</span>
-              <h2>{createsQuestions ? 'Designed for real chapters' : 'What works best'}</h2>
+              <h2>Good to know</h2>
               <ul>{createsQuestions ? <>
-                <li><span>✓</span><div><strong>Long chapters are welcome</strong><small>Up to 60 pages or 20 MB. A focused page range gives the strongest first draft.</small></div></li>
-                <li><span>✓</span><div><strong>Illustrations become evidence</strong><small>Visuals may inform the draft, but student questions stay understandable without the source image.</small></div></li>
-                <li><span>✓</span><div><strong>Every question stays traceable</strong><small>Page, grounding note and learning objective travel with it to superadmin review.</small></div></li>
+                <li><span>✓</span><div><strong>Up to 60 pages or 20 MB</strong><small>Use a page range only when you want a narrower focus.</small></div></li>
+                <li><span>✓</span><div><strong>Drafts are saved</strong><small>If you refresh, choose the same PDF and resume your saved draft.</small></div></li>
+                <li><span>✓</span><div><strong>Source stays traceable</strong><small>Page evidence and learning objective remain attached for review.</small></div></li>
               </> : <>
-                <li><span>✓</span><div><strong>One paper at a time</strong><small>Up to 50 questions, 60 pages or 20 MB.</small></div></li>
-                <li><span>✓</span><div><strong>Include the answer key</strong><small>It makes the first draft much more accurate.</small></div></li>
-                <li><span>✓</span><div><strong>Scans are welcome</strong><small>Clear, upright pages give the strongest result.</small></div></li>
+                <li><span>✓</span><div><strong>Up to 50 questions</strong><small>Question papers, worksheets and answer keys work best.</small></div></li>
+                <li><span>✓</span><div><strong>Include the answer key</strong><small>It improves the first draft and reduces manual fixes.</small></div></li>
+                <li><span>✓</span><div><strong>Drafts are saved</strong><small>Refreshes no longer mean starting over.</small></div></li>
               </>}</ul>
-              <div className="question-batch__safety-note"><span aria-hidden="true">◆</span><p><strong>Your PDF is private.</strong> It is stored in a teacher-only source vault and is never exposed as a public file.</p></div>
+              <div className="question-batch__safety-note"><span aria-hidden="true">◆</span><p><strong>Your PDF is private.</strong> It stays in the teacher-only source vault.</p></div>
             </aside>
           </div>
         </>
       ) : (
         <div className="question-batch__review">
           <section className="question-batch__review-summary">
-            <div><span className="question-batch__eyebrow">{generatedCount ? 'Creation draft ready' : 'Extraction ready'}</span><div className="question-batch__review-badges"><b>{MODE_DETAILS[extraction.processingMode].title}</b><b>{extraction.detectedDocumentType.replace(/_/g, ' ')}</b></div><h2>{extraction.document_title}</h2><p>{extraction.document_summary}</p><small>{extraction.sourceFileName} · {formatBytes(extraction.sourceFileSize)}{extraction.detectedPageCount ? ` · about ${extraction.detectedPageCount} pages` : ''}</small></div>
+            <div><span className="question-batch__eyebrow">{generatedCount ? 'Creation draft ready' : 'Extraction ready'}</span><div className="question-batch__review-badges"><b>{MODE_DETAILS[extraction.processingMode].title}</b><b>{extraction.detectedDocumentType.replace(/_/g, ' ')}</b></div><h2>{extraction.document_title}</h2><p>{extraction.document_summary}</p><small>{extraction.sourceFileName} · {formatBytes(extraction.sourceFileSize)}{extraction.detectedPageCount ? ` · about ${extraction.detectedPageCount} pages` : ''} · autosaved</small></div>
             <div className="question-batch__summary-metrics">
               <article><strong>{questions.length}</strong><span>{generatedCount ? `${generatedCount} created · ${questions.length - generatedCount} extracted` : 'Questions found'}</span></article>
               <article className={issueCount ? 'is-warning' : 'is-ready'}><strong>{issueCount}</strong><span>Need a fix</span></article>
