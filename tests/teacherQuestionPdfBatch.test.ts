@@ -10,6 +10,7 @@ const edgeFunction = readFileSync('supabase/functions/teacher_question_pdf_extra
 const migration = readFileSync('supabase/migrations/20260825120400_teacher_pdf_question_batches.sql', 'utf8');
 const generationMigration = readFileSync('supabase/migrations/20260825120600_teacher_learning_material_question_generation.sql', 'utf8');
 const triggerFixMigration = readFileSync('supabase/migrations/20260918070758_fix_teacher_question_tier_trigger_search_path.sql', 'utf8');
+const recoveryMigration = readFileSync('supabase/migrations/20260918143000_teacher_question_pdf_draft_recovery.sql', 'utf8');
 const adminService = readFileSync('services/adminQuestionBankService.ts', 'utf8');
 const inspector = readFileSync('components/admin/tabs/QuestionBankInspectorTab.tsx', 'utf8');
 
@@ -68,6 +69,33 @@ test('teacher question tier trigger is safe under an empty caller search path', 
   assert.match(triggerFixMigration, /set search_path = ''/);
   assert.match(triggerFixMigration, /from public\.questions q/);
   assert.doesNotMatch(triggerFixMigration, /from\s+questions\b/i);
+});
+
+test('unsubmitted PDF drafts can be safely recovered by file hash', () => {
+  assert.match(recoveryMigration, /rpc_teacher_question_pdf_drafts_by_hash/);
+  assert.match(recoveryMigration, /e\.teacher_user_id = v_actor/);
+  assert.match(recoveryMigration, /e\.source_file_sha256 = v_hash/);
+  assert.match(recoveryMigration, /not exists \([\s\S]*from public\.teacher_question_batches b[\s\S]*b\.extraction_id = e\.id/);
+  assert.match(recoveryMigration, /limit 5/);
+  assert.match(service, /findSavedTeacherQuestionPdfDrafts/);
+  assert.match(service, /rpc_teacher_question_pdf_drafts_by_hash/);
+});
+
+test('teacher PDF workspace explains waiting and restores saved work after refresh', () => {
+  assert.match(workspace, /Saved work found/);
+  assert.match(workspace, /Resume instantly/);
+  assert.match(workspace, /Usually 30–90 seconds/);
+  assert.match(workspace, /elapsedSeconds/);
+  assert.match(workspace, /REVIEW_STORAGE_PREFIX/);
+  assert.match(workspace, /window\.localStorage\.setItem/);
+  assert.match(workspace, /complete: \$\{missingSetup\.join\(', '\)\}/);
+});
+
+test('successful submit is not reported as failed when the follow-up bank refresh fails', () => {
+  assert.match(workspace, /const submission = await submitTeacherQuestionBatch/);
+  assert.match(workspace, /setResult\(submission\)/);
+  assert.match(workspace, /await onSubmitted\?\.\(submission\)/);
+  assert.match(workspace, /Submission succeeded but question-bank refresh failed/);
 });
 
 test('superadmin can isolate in-review questions and inspect proposed mapping', () => {
