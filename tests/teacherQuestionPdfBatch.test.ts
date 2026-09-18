@@ -9,6 +9,7 @@ const service = readFileSync('services/teacherQuestionBatchService.ts', 'utf8');
 const edgeFunction = readFileSync('supabase/functions/teacher_question_pdf_extract/index.ts', 'utf8');
 const migration = readFileSync('supabase/migrations/20260825120400_teacher_pdf_question_batches.sql', 'utf8');
 const generationMigration = readFileSync('supabase/migrations/20260825120600_teacher_learning_material_question_generation.sql', 'utf8');
+const triggerFixMigration = readFileSync('supabase/migrations/20260918070758_fix_teacher_question_tier_trigger_search_path.sql', 'utf8');
 const adminService = readFileSync('services/adminQuestionBankService.ts', 'utf8');
 const inspector = readFileSync('components/admin/tabs/QuestionBankInspectorTab.tsx', 'utf8');
 
@@ -43,7 +44,7 @@ test('server extraction verifies identity and keeps provider state disabled', ()
 });
 
 test('PDF extraction uses the flagship model and a valid high-detail PDF data URI', () => {
-  assert.match(edgeFunction, /const QUESTION_MODEL = "gpt-5\.6"/);
+  assert.match(edgeFunction, /const QUESTION_MODEL = "gpt-5\.6-sol"/);
   assert.match(edgeFunction, /file_data: `data:application\/pdf;base64,\$\{bytesToBase64\(bytes\)\}`/);
   assert.match(edgeFunction, /detail: "high"/);
   assert.match(edgeFunction, /requestId: aiResponse\.headers\.get\("x-request-id"\)/);
@@ -61,6 +62,12 @@ test('submission is atomic, immutable and excluded from Academic Profiles', () =
   assert.match(workspace, /I checked the questions and answer key/);
   assert.match(workspace, /Proposal, not official evidence/);
   assert.match(service, /candidate\.needs_human_attention/);
+});
+
+test('teacher question tier trigger is safe under an empty caller search path', () => {
+  assert.match(triggerFixMigration, /set search_path = ''/);
+  assert.match(triggerFixMigration, /from public\.questions q/);
+  assert.doesNotMatch(triggerFixMigration, /from\s+questions\b/i);
 });
 
 test('superadmin can isolate in-review questions and inspect proposed mapping', () => {
