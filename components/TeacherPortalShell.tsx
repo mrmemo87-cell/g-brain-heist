@@ -61,9 +61,10 @@ const applyCurrentYearDashboardMetrics = (
 ) => {
   const cards = Array.from(root.querySelectorAll<HTMLButtonElement>('.teacher-dashboard-stat'));
   const numberFormat = new Intl.NumberFormat();
-  const accuracy = metrics.answered_question_count > 0
+  const hasAnswerEvidence = metrics.answered_question_count > 0;
+  const accuracy = hasAnswerEvidence
     ? (metrics.correct_answer_count * 100) / metrics.answered_question_count
-    : 0;
+    : null;
 
   cards.forEach((card) => {
     const title = card.querySelector('.teacher-dashboard-stat-info h4');
@@ -82,17 +83,22 @@ const applyCurrentYearDashboardMetrics = (
     if (currentTitle === 'Reports' || currentTitle === 'Completed Submissions') {
       setDashboardText(title, 'Completed Submissions');
       setDashboardText(value, numberFormat.format(metrics.submission_count));
-      setDashboardText(subtitle, 'Student submissions received');
+      setDashboardText(
+        subtitle,
+        metrics.submission_count > 0 ? 'Student submissions received' : 'No current submissions yet',
+      );
       card.setAttribute('aria-label', 'Open Completed Submissions reports');
       return;
     }
 
     if (currentTitle === 'Assignment Success' || currentTitle === 'Answer Accuracy') {
       setDashboardText(title, 'Answer Accuracy');
-      setDashboardText(value, `${accuracy.toFixed(1)}%`);
+      setDashboardText(value, accuracy == null ? '—' : `${accuracy.toFixed(1)}%`);
       setDashboardText(
         subtitle,
-        `${numberFormat.format(metrics.correct_answer_count)} / ${numberFormat.format(metrics.answered_question_count)} answers correct`,
+        hasAnswerEvidence
+          ? `${numberFormat.format(metrics.correct_answer_count)} / ${numberFormat.format(metrics.answered_question_count)} answers correct`
+          : 'No current assignment answers yet',
       );
       card.setAttribute('aria-label', 'Open Answer Accuracy reports');
     }
