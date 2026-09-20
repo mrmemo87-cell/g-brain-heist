@@ -13,15 +13,23 @@ const shaderSource = readFileSync(
 
 test('Neon Megacity uses an invisible SVG territory hit layer for reliable phone taps', () => {
   assert.match(mapSource, /data-territory-hit=\{territory\.zoneId\}/);
-  assert.match(mapSource, /handleTerritoryPointerDown/);
-  assert.match(mapSource, /handleTerritoryPointerUp/);
-  assert.match(mapSource, /movement > 18/);
-  assert.match(mapSource, /pointerEvents: onZoneSelect \? "all" : "none"/);
-  assert.match(mapSource, /touchAction: onZoneSelect \? "pan-y" : "auto"/);
+  assert.match(mapSource, /const onPointerDown =/);
+  assert.match(mapSource, /const onPointerUp =/);
+  assert.match(mapSource, /Math\.hypot\(event\.clientX-start\.x,event\.clientY-start\.y\) > 20/);
+  assert.match(mapSource, /pointerEvents:onZoneSelect\?"all":"none"/);
+  assert.match(mapSource, /touchAction:onZoneSelect\?"manipulation":"auto"/);
   assert.match(mapSource, /fill="rgba\(255,255,255,0\.001\)"/);
   assert.match(mapSource, /stroke="rgba\(255,255,255,0\.001\)"/);
-  assert.match(mapSource, /strokeWidth=\{18\}/);
+  assert.match(mapSource, /strokeWidth=\{10\}/);
   assert.doesNotMatch(mapSource, /isSelected \? "rgba\(250,204,21/);
+});
+
+test('production map keeps the artwork and V6 canvas aligned at native aspect ratio', () => {
+  assert.match(mapSource, /aspectRatio: `\$\{NEON_MEGACITY_WIDTH\} \/ \$\{NEON_MEGACITY_HEIGHT\}`/);
+  assert.match(mapSource, /object-fill/);
+  assert.match(mapSource, /aria-label="Neon Megacity V6 shader layer"/);
+  assert.match(shaderSource, /export const RENDER_WIDTH = NEON_MEGACITY_WIDTH/);
+  assert.match(shaderSource, /export const RENDER_HEIGHT = NEON_MEGACITY_HEIGHT/);
 });
 
 test('production map does not paint whole territory polygons over the artwork', () => {
@@ -29,13 +37,13 @@ test('production map does not paint whole territory polygons over the artwork', 
   assert.doesNotMatch(mapSource, /mixBlendMode: "screen"/);
   assert.doesNotMatch(mapSource, /id=\{`neon-zone-/);
   assert.doesNotMatch(mapSource, /occupationRatio/);
-  assert.match(mapSource, /Enhanced lighting unavailable — territory selection remains active/);
+  assert.match(mapSource, /Enhanced V6 lighting unavailable — territory selection remains active/);
 });
 
-test('mobile city artwork is not covered by permanent district tooltips', () => {
-  assert.match(mapSource, /hidden -translate-x-1\/2 -translate-y-1\/2/);
-  assert.match(mapSource, /sm:block/);
-  assert.match(mapSource, /Tap a district/);
+test('embedded student map keeps the city surface full-height instead of adding the selected-zone footer', () => {
+  assert.match(mapSource, /const embeddedMode = hideHeader && hideLegend/);
+  assert.match(mapSource, /!embeddedMode && selectedTerritory && selectedVisual/);
+  assert.match(mapSource, /hidden min-w-\[92px\].*sm:block/);
 });
 
 test('shader mask uses spaced IDs to survive browser texture color conversion', () => {
@@ -47,8 +55,8 @@ test('shader mask uses spaced IDs to survive browser texture color conversion', 
 test('production shader stays visually locked to the approved V6 lighting model', () => {
   assert.match(shaderSource, /chromaLight=smoothstep\(0\.10,0\.48,sat\)\*smoothstep\(0\.08,0\.54,lum\)/);
   assert.match(shaderSource, /brightLight=smoothstep\(0\.28,0\.82,lum\)\*smoothstep\(0\.04,0\.22,sat\)/);
-  assert.match(shaderSource, /emissive=clamp\(chromaLight\*0\.90\+brightLight\*0\.42/);
-  assert.match(shaderSource, /0\.26;/);
+  assert.match(shaderSource, /emissive=clamp\(chromaLight\*0\.90 \+ brightLight\*0\.42/);
+  assert.match(shaderSource, /materialMask=.*\*0\.26/);
   assert.match(shaderSource, /hueReplace\(clanColor,clamp\(lum\*1\.16,0\.0,0\.96\)\)/);
   assert.match(shaderSource, /lightStrength=emissive\*mix\(0\.60,0\.96/);
   assert.match(shaderSource, /hueReplace\(clanColor,clamp\(lum\*0\.82,0\.0,0\.68\)\)/);

@@ -4,7 +4,6 @@ import {
   buildIdMask,
   FRAGMENT_SHADER,
   hexToRgb,
-  MAX_SHADER_CLANS,
   VERTEX_SHADER,
   zoneNumber,
   type ZoneVisual,
@@ -106,7 +105,7 @@ export const useNeonMegacityShader = ({
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]), gl.STATIC_DRAW);
         const position = gl.getAttribLocation(program, "aPos");
         gl.enableVertexAttribArray(position);
-        gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(position, 2, gl.FLOAT,false,0,0);
 
         makeTexture(0, image, gl.LINEAR);
         makeTexture(1, maskCanvas, gl.NEAREST);
@@ -122,43 +121,49 @@ export const useNeonMegacityShader = ({
         }
         gl.uniform2fv(gl.getUniformLocation(program, "uCenters[0]"), centers);
 
-        const uniform = (name: string) => gl.getUniformLocation(program, name);
-        const clanLocs = Array.from({ length: MAX_SHADER_CLANS }, (_, index) => uniform(`uClan${index}[0]`));
-        const shareLocs = Array.from({ length: MAX_SHADER_CLANS }, (_, index) => uniform(`uShare${index}[0]`));
-        const coverageLoc = uniform("uCoverage[0]");
-        const contestedLoc = uniform("uContested[0]");
-        const captureLoc = uniform("uCaptureTime[0]");
-        const selectedLoc = uniform("uSelected");
-        const hoveredLoc = uniform("uHovered");
-        const selectAtLoc = uniform("uSelectAt");
-        const timeLoc = uniform("uTime");
+        const primaryLoc = gl.getUniformLocation(program, "uPrimaryColor[0]");
+        const secondaryLoc = gl.getUniformLocation(program, "uSecondaryColor[0]");
+        const coverageLoc = gl.getUniformLocation(program, "uCoverage[0]");
+        const primaryFracLoc = gl.getUniformLocation(program, "uPrimaryFrac[0]");
+        const secondaryFracLoc = gl.getUniformLocation(program, "uSecondaryFrac[0]");
+        const contestedLoc = gl.getUniformLocation(program, "uContested[0]");
+        const captureLoc = gl.getUniformLocation(program, "uCaptureTime[0]");
+        const selectedLoc = gl.getUniformLocation(program, "uSelected");
+        const hoveredLoc = gl.getUniformLocation(program, "uHovered");
+        const selectAtLoc = gl.getUniformLocation(program, "uSelectAt");
+        const timeLoc = gl.getUniformLocation(program, "uTime");
 
         const render = () => {
           if (cancelled) return;
           const elapsed = performance.now() / 1000 - startTimeRef.current;
-          const clanArrays = Array.from({ length: MAX_SHADER_CLANS }, () => new Float32Array(33));
-          const shareArrays = Array.from({ length: MAX_SHADER_CLANS }, () => new Float32Array(11));
+          const primary = new Float32Array(33);
+          const secondary = new Float32Array(33);
           const coverage = new Float32Array(11);
+          const primaryFrac = new Float32Array(11);
+          const secondaryFrac = new Float32Array(11);
           const contested = new Float32Array(11);
           const capture = new Float32Array(11);
 
           for (const territory of NEON_MEGACITY_TERRITORIES) {
             const id = zoneNumber(territory.zoneId);
             const visual = zoneVisualsRef.current[territory.zoneId];
+            const leader = visual.entries[0];
+            const runnerUp = visual.entries[1];
+            if (leader) primary.set(hexToRgb(leader.color), id * 3);
+            if (runnerUp) secondary.set(hexToRgb(runnerUp.color), id * 3);
+            else if (leader) secondary.set(hexToRgb(leader.color), id * 3);
             coverage[id] = visual.occupation / 100;
+            primaryFrac[id] = visual.primaryFrac;
+            secondaryFrac[id] = visual.secondaryFrac;
             contested[id] = visual.contested ? 1 : 0;
             capture[id] = captureAtRef.current[territory.zoneId] ?? -999;
-            for (let index = 0; index < MAX_SHADER_CLANS; index += 1) {
-              const entry = visual.entries[index];
-              const color: [number, number, number] = entry ? hexToRgb(entry.color) : [0, 0, 0];
-              clanArrays[index].set(color, id * 3);
-              shareArrays[index][id] = entry?.normalizedShare ?? 0;
-            }
           }
 
-          clanArrays.forEach((array, index) => gl.uniform3fv(clanLocs[index], array));
-          shareArrays.forEach((array, index) => gl.uniform1fv(shareLocs[index], array));
+          gl.uniform3fv(primaryLoc, primary);
+          gl.uniform3fv(secondaryLoc, secondary);
           gl.uniform1fv(coverageLoc, coverage);
+          gl.uniform1fv(primaryFracLoc, primaryFrac);
+          gl.uniform1fv(secondaryFracLoc, secondaryFrac);
           gl.uniform1fv(contestedLoc, contested);
           gl.uniform1fv(captureLoc, capture);
           gl.uniform1i(selectedLoc, zoneNumber(selectedZoneRef.current));
@@ -166,7 +171,7 @@ export const useNeonMegacityShader = ({
           gl.uniform1f(selectAtLoc, selectAtRef.current);
           gl.uniform1f(timeLoc, elapsed);
           gl.viewport(0, 0, canvas.width, canvas.height);
-          gl.drawArrays(gl.TRIANGLES, 0, 6);
+          gl.drawArrays(gl.TRIANGLES,0,6);
           animationFrame = requestAnimationFrame(render);
         };
 
