@@ -31,4 +31,57 @@ header.localized-ui .language-mini-card { display: none; }
 @media (max-width: 767px) {
   .student-mobile-header__primary { flex-wrap: wrap; row-gap: .5rem; }
   .student-mobile-header__actions { flex-shrink: 0; }
+
+  /* Keep the floating language control out of the middle of mobile game cards. */
+  [data-global-language-control="true"] {
+    top: max(76px, calc(env(safe-area-inset-top) + 64px)) !important;
+    bottom: auto !important;
+    transform: none !important;
+  }
+
+  /* Commander cards: give irregular unit silhouettes a responsive, contained stage. */
+  .cc-command-center .cc-premium-hero {
+    height: clamp(290px, 88vw, 370px) !important;
+    min-height: 290px;
+    padding: 8px 8px 38px;
+    box-sizing: border-box;
+  }
+
+  .cc-command-center .cc-premium-art {
+    width: min(100%, 350px);
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+  }
+
+  .cc-command-center .cc-premium-body {
+    position: relative;
+    z-index: 3;
+  }
+
+  .cc-command-center .cc-premium-state-chip {
+    bottom: 8px;
+  }
+
+  .cc-command-center .cc-premium-actions {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@media (max-width: 430px) {
+  .cc-command-center .cc-premium-hero {
+    height: clamp(300px, 94vw, 390px) !important;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .cc-command-center .cc-premium-card:hover {
+    transform: none;
+  }
+
+  .cc-command-center .cc-premium-card:hover .cc-premium-art {
+    transform: none;
+  }
 }
