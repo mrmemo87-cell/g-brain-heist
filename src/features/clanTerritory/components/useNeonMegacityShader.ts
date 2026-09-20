@@ -50,8 +50,8 @@ export const useNeonMegacityShader = ({
     if (!canvas) return;
     const gl = canvas.getContext("webgl2", { alpha: false, antialias: true, premultipliedAlpha: false });
     if (!gl) {
-      callbacksRef.current.onReady(false);
-      callbacksRef.current.onError("WebGL2 is not available on this device.");
+      callbacksRef.current?.onReady(false);
+      callbacksRef.current?.onError("WebGL2 is not available on this device.");
       return;
     }
 
@@ -175,20 +175,20 @@ export const useNeonMegacityShader = ({
           animationFrame = requestAnimationFrame(render);
         };
 
-        callbacksRef.current.onError(null);
-        callbacksRef.current.onReady(true);
+        callbacksRef.current?.onError(null);
+        callbacksRef.current?.onReady(true);
         render();
       } catch (error) {
         console.error("[NeonMegacityShaderMap] initialization failed", error);
-        callbacksRef.current.onReady(false);
-        callbacksRef.current.onError(error instanceof Error ? error.message : "Could not initialize Neon Megacity.");
+        callbacksRef.current?.onReady(false);
+        callbacksRef.current?.onError(error instanceof Error ? error.message : "Could not initialize Neon Megacity.");
       }
     };
 
     image.onerror = () => {
       if (!cancelled) {
-        callbacksRef.current.onReady(false);
-        callbacksRef.current.onError("Could not load Neon Megacity artwork.");
+        callbacksRef.current?.onReady(false);
+        callbacksRef.current?.onError("Could not load Neon Megacity artwork.");
       }
     };
 
