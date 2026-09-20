@@ -26,6 +26,7 @@ type ShaderRefs = {
 type UseShaderArgs = ShaderRefs & {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
   cityArtUrl: string;
+  renderKey?: string | number | boolean;
   onReady: (ready: boolean) => void;
   onError: (message: string | null) => void;
 };
@@ -33,6 +34,7 @@ type UseShaderArgs = ShaderRefs & {
 export const useNeonMegacityShader = ({
   canvasRef,
   cityArtUrl,
+  renderKey,
   zoneVisualsRef,
   selectedZoneRef,
   hoveredZoneRef,
@@ -48,6 +50,8 @@ export const useNeonMegacityShader = ({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    callbacksRef.current?.onReady(false);
+
     const gl = canvas.getContext("webgl2", { alpha: false, antialias: true, premultipliedAlpha: false });
     if (!gl) {
       callbacksRef.current?.onReady(false);
@@ -196,5 +200,5 @@ export const useNeonMegacityShader = ({
       cancelled = true;
       cancelAnimationFrame(animationFrame);
     };
-  }, [canvasRef, captureAtRef, cityArtUrl, hoveredZoneRef, selectAtRef, selectedZoneRef, startTimeRef, zoneVisualsRef]);
+  }, [canvasRef, captureAtRef, cityArtUrl, hoveredZoneRef, renderKey, selectAtRef, selectedZoneRef, startTimeRef, zoneVisualsRef]);
 };
