@@ -24,7 +24,7 @@ type MapEntryShape = {
 export const MAP_REGISTRY = {
   countries: {
     default:       { id: 'default',       category: 'countries', emoji: '🗺️',  label: 'Default',         desc: 'Standard 8-zone battlefield',      zoneCount: 8,  assetMap: true as const },
-    city:          { id: 'city',          category: 'countries', emoji: '🏙️',  label: 'City',            desc: 'Urban warfare, 10 districts',       zoneCount: 10, assetMap: true as const },
+    city:          { id: 'city',          category: 'countries', emoji: '🌃',  label: 'Neon Megacity',   desc: 'Animated cyber-city, 10 districts', zoneCount: 10, assetMap: true as const },
     kyrgyzstan:    { id: 'kyrgyzstan',    category: 'countries', emoji: '🇰🇬', label: 'Kyrgyzstan',      desc: 'Regional conquest, 7 oblasts',      zoneCount: 7  },
     usa:           { id: 'usa',           category: 'countries', emoji: '🇺🇸', label: 'USA',             desc: 'States + DC, 51 zones',             zoneCount: 51, assetMap: true as const },
     unitedkingdom: { id: 'unitedkingdom', category: 'countries', emoji: '🇬🇧', label: 'United Kingdom',  desc: 'UK regions + isles, 16 zones',      zoneCount: 16 },
