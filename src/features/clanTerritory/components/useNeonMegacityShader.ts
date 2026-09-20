@@ -1,4 +1,4 @@
-import { useEffect, useRef, type MutableRefObject } from "react";
+import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import type { ZoneId } from "../clanTerritoryTypes";
 import {
   buildIdMask,
@@ -26,7 +26,6 @@ type ShaderRefs = {
 type UseShaderArgs = ShaderRefs & {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
   cityArtUrl: string;
-  renderKey?: string | number | boolean;
   onReady: (ready: boolean) => void;
   onError: (message: string | null) => void;
 };
@@ -34,7 +33,6 @@ type UseShaderArgs = ShaderRefs & {
 export const useNeonMegacityShader = ({
   canvasRef,
   cityArtUrl,
-  renderKey,
   zoneVisualsRef,
   selectedZoneRef,
   hoveredZoneRef,
@@ -46,6 +44,18 @@ export const useNeonMegacityShader = ({
 }: UseShaderArgs) => {
   const callbacksRef = useRef({ onReady, onError });
   callbacksRef.current = { onReady, onError };
+
+  const boundCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [canvasVersion, setCanvasVersion] = useState(0);
+
+  // The student experience moves the same logical map between compact battle mode
+  // and a full-screen V6 tactical surface. React remounts the canvas during that
+  // transition, so explicitly detect the DOM node swap and re-bind WebGL.
+  useEffect(() => {
+    if (canvasRef.current === boundCanvasRef.current) return;
+    boundCanvasRef.current = canvasRef.current;
+    setCanvasVersion((version) => version + 1);
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -200,5 +210,5 @@ export const useNeonMegacityShader = ({
       cancelled = true;
       cancelAnimationFrame(animationFrame);
     };
-  }, [canvasRef, captureAtRef, cityArtUrl, hoveredZoneRef, renderKey, selectAtRef, selectedZoneRef, startTimeRef, zoneVisualsRef]);
+  }, [canvasRef, canvasVersion, captureAtRef, cityArtUrl, hoveredZoneRef, selectAtRef, selectedZoneRef, startTimeRef, zoneVisualsRef]);
 };
