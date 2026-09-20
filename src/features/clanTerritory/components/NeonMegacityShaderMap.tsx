@@ -5,12 +5,7 @@ import {
   NEON_MEGACITY_TERRITORIES,
   NEON_MEGACITY_WIDTH,
 } from "../neonMegacityTerritories";
-import {
-  getZoneVisual,
-  RENDER_HEIGHT,
-  RENDER_WIDTH,
-  type ZoneVisual,
-} from "./neonMegacityShader";
+import { getZoneVisual, RENDER_HEIGHT, RENDER_WIDTH, type ZoneVisual } from "./neonMegacityShader";
 import { useNeonMegacityShader } from "./useNeonMegacityShader";
 
 // @ts-expect-error - Vite raw asset import
@@ -51,15 +46,8 @@ export type NeonMegacityShaderMapProps = {
   containerClassName?: string;
 };
 
-type PointerStart = {
-  pointerId: number;
-  x: number;
-  y: number;
-  zoneId: ZoneId;
-};
-
-const polygonPoints = (points: readonly (readonly [number, number])[]) =>
-  points.map(([x, y]) => `${x},${y}`).join(" ");
+type PointerStart = { pointerId: number; x: number; y: number; zoneId: ZoneId };
+const polygonPoints = (points: readonly (readonly [number, number])[]) => points.map(([x,y]) => `${x},${y}`).join(" ");
 
 export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
   zones,
@@ -72,7 +60,7 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
   containerClassName = "",
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const startTimeRef = useRef<number>(performance.now() / 1000);
+  const startTimeRef = useRef<number>(performance.now()/1000);
   const selectAtRef = useRef<number>(-999);
   const previousLeaderRef = useRef<Record<ZoneId, ClanId | null>>({});
   const captureAtRef = useRef<Record<ZoneId, number>>({});
@@ -80,19 +68,15 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
   const [hoveredZoneId, setHoveredZoneId] = useState<ZoneId | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [shaderReady, setShaderReady] = useState(false);
+  const embeddedMode = hideHeader && hideLegend;
 
   const zoneVisuals = useMemo(() => {
     const result: Record<ZoneId, ZoneVisual> = {};
-    for (const territory of NEON_MEGACITY_TERRITORIES) {
-      result[territory.zoneId] = getZoneVisual(zones[territory.zoneId], clans);
-    }
+    for (const territory of NEON_MEGACITY_TERRITORIES) result[territory.zoneId] = getZoneVisual(zones[territory.zoneId], clans);
     return result;
   }, [zones, clans]);
-
   const selectedVisual = selectedZoneId ? zoneVisuals[selectedZoneId] : undefined;
-  const selectedTerritory = selectedZoneId
-    ? NEON_MEGACITY_TERRITORIES.find((territory) => territory.zoneId === selectedZoneId)
-    : undefined;
+  const selectedTerritory = selectedZoneId ? NEON_MEGACITY_TERRITORIES.find((t) => t.zoneId === selectedZoneId) : undefined;
 
   const zoneVisualsRef = useRef(zoneVisuals);
   const selectedZoneRef = useRef<ZoneId | null>(selectedZoneId);
@@ -101,12 +85,9 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
   selectedZoneRef.current = selectedZoneId;
   hoveredZoneRef.current = hoveredZoneId;
 
+  useEffect(() => { selectAtRef.current = performance.now()/1000-startTimeRef.current; }, [selectedZoneId]);
   useEffect(() => {
-    selectAtRef.current = performance.now() / 1000 - startTimeRef.current;
-  }, [selectedZoneId]);
-
-  useEffect(() => {
-    const elapsed = performance.now() / 1000 - startTimeRef.current;
+    const elapsed = performance.now()/1000-startTimeRef.current;
     for (const territory of NEON_MEGACITY_TERRITORIES) {
       const leader = zoneVisuals[territory.zoneId].entries[0]?.clanId ?? null;
       const previous = previousLeaderRef.current[territory.zoneId];
@@ -116,138 +97,60 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
   }, [zoneVisuals]);
 
   useNeonMegacityShader({
-    canvasRef,
-    cityArtUrl,
-    zoneVisualsRef,
-    selectedZoneRef,
-    hoveredZoneRef,
-    selectAtRef,
-    captureAtRef,
-    startTimeRef,
-    onReady: setShaderReady,
-    onError: setLoadError,
+    canvasRef, cityArtUrl, zoneVisualsRef, selectedZoneRef, hoveredZoneRef,
+    selectAtRef, captureAtRef, startTimeRef, onReady: setShaderReady, onError: setLoadError,
   });
 
-  const handleTerritoryPointerDown = (
-    event: React.PointerEvent<SVGPolygonElement>,
-    zoneId: ZoneId,
-  ) => {
+  const onPointerDown = (event: React.PointerEvent<SVGPolygonElement>, zoneId: ZoneId) => {
     if (!onZoneSelect) return;
-    pointerStartRef.current = {
-      pointerId: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-      zoneId,
-    };
+    pointerStartRef.current = { pointerId:event.pointerId, x:event.clientX, y:event.clientY, zoneId };
+    try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Safari can reject capture during scroll. */ }
   };
-
-  const handleTerritoryPointerUp = (
-    event: React.PointerEvent<SVGPolygonElement>,
-    zoneId: ZoneId,
-  ) => {
+  const onPointerUp = (event: React.PointerEvent<SVGPolygonElement>, zoneId: ZoneId) => {
     if (!onZoneSelect) return;
     const start = pointerStartRef.current;
     pointerStartRef.current = null;
     if (!start || start.pointerId !== event.pointerId || start.zoneId !== zoneId) return;
-
-    const movement = Math.hypot(event.clientX - start.x, event.clientY - start.y);
-    if (movement > 18) return;
-
+    if (Math.hypot(event.clientX-start.x,event.clientY-start.y) > 20) return;
     event.preventDefault();
     setHoveredZoneId(event.pointerType === "touch" ? null : zoneId);
     onZoneSelect(zoneId);
   };
-
-  const handleTerritoryPointerCancel = (event: React.PointerEvent<SVGPolygonElement>) => {
-    if (pointerStartRef.current?.pointerId === event.pointerId) {
-      pointerStartRef.current = null;
-    }
+  const onPointerCancel = (event: React.PointerEvent<SVGPolygonElement>) => {
+    if (pointerStartRef.current?.pointerId === event.pointerId) pointerStartRef.current = null;
     setHoveredZoneId(null);
   };
 
   const activeClanIds = useMemo(() => {
     const ids = new Set<ClanId>();
-    Object.values(zones).forEach((zone) => {
-      Object.entries(zone.influence ?? {}).forEach(([clanId, influence]) => {
-        if (influence > 0) ids.add(clanId);
-      });
-    });
+    Object.values(zones).forEach((zone) => Object.entries(zone.influence ?? {}).forEach(([id,value]) => { if(value>0) ids.add(id); }));
     return ids;
   }, [zones]);
-  const visibleClans = Object.values(clans).filter((clan) => activeClanIds.has(clan.id)).slice(0, 6);
+  const visibleClans = Object.values(clans).filter((clan) => activeClanIds.has(clan.id)).slice(0,6);
 
   return (
-    <div className={`relative w-full overflow-hidden rounded-2xl border border-cyan-950/60 bg-slate-950 ${containerClassName}`}>
+    <div className={`relative w-full overflow-hidden rounded-2xl border border-cyan-950/60 bg-[#020611] ${containerClassName}`}>
       {!hideHeader && (
         <div className="flex items-center justify-between gap-3 border-b border-cyan-950/40 bg-slate-950/90 px-3 py-2.5 sm:px-4 sm:py-3">
           <div>
             <h3 className="text-xs font-black uppercase tracking-[0.18em] text-cyan-100 sm:text-sm">Neon Megacity</h3>
             <p className="mt-0.5 text-[10px] text-slate-400 sm:text-[11px]">Live occupation · dynamic clan lighting</p>
           </div>
-          {selectedTerritory && selectedVisual && (
-            <div className="text-right">
-              <div className="text-[11px] font-bold text-white sm:text-xs">{selectedTerritory.name}</div>
-              <div className="text-[10px] text-slate-400 sm:text-[11px]">{Math.round(selectedVisual.occupation)}% occupied</div>
-            </div>
-          )}
+          {selectedTerritory && selectedVisual && <div className="text-right"><div className="text-[11px] font-bold text-white sm:text-xs">{selectedTerritory.name}</div><div className="text-[10px] text-slate-400 sm:text-[11px]">{Math.round(selectedVisual.occupation)}% occupied</div></div>}
         </div>
       )}
 
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-black">
-        <img
-          src={cityArtUrl}
-          alt="Neon Megacity"
-          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
-          draggable={false}
-        />
-        <canvas
-          ref={canvasRef}
-          width={RENDER_WIDTH}
-          height={RENDER_HEIGHT}
-          aria-label="Neon Megacity shader layer"
-          className={`pointer-events-none relative z-[1] block h-full w-full select-none transition-opacity duration-300 ${shaderReady ? "opacity-100" : "opacity-0"}`}
-        />
+      <div className="relative w-full overflow-hidden bg-[#020611]" style={{ aspectRatio: `${NEON_MEGACITY_WIDTH} / ${NEON_MEGACITY_HEIGHT}` }}>
+        <img src={cityArtUrl} alt="Neon Megacity" className="pointer-events-none absolute inset-0 h-full w-full select-none object-fill" draggable={false} />
+        <canvas ref={canvasRef} width={RENDER_WIDTH} height={RENDER_HEIGHT} aria-label="Neon Megacity V6 shader layer" className={`pointer-events-none absolute inset-0 z-[1] block h-full w-full select-none ${shaderReady ? "opacity-100" : "opacity-0"}`} />
 
-        <svg
-          className="absolute inset-0 z-[2] h-full w-full select-none"
-          viewBox={`0 0 ${NEON_MEGACITY_WIDTH} ${NEON_MEGACITY_HEIGHT}`}
-          preserveAspectRatio="none"
-          aria-label="Interactive Neon Megacity territory hit layer"
-          style={{ touchAction: onZoneSelect ? "pan-y" : "auto" }}
-        >
+        <svg className="absolute inset-0 z-[2] h-full w-full select-none" viewBox={`0 0 ${NEON_MEGACITY_WIDTH} ${NEON_MEGACITY_HEIGHT}`} preserveAspectRatio="none" aria-label="Interactive Neon Megacity territory hit layer" style={{ touchAction: onZoneSelect ? "manipulation" : "auto" }}>
           {NEON_MEGACITY_TERRITORIES.map((territory) => (
-            <polygon
-              key={`hit-${territory.zoneId}`}
-              data-territory-hit={territory.zoneId}
-              points={polygonPoints(territory.points)}
-              fill="rgba(255,255,255,0.001)"
-              stroke="rgba(255,255,255,0.001)"
-              strokeWidth={18}
-              vectorEffect="non-scaling-stroke"
-              role={onZoneSelect ? "button" : undefined}
-              tabIndex={onZoneSelect ? 0 : -1}
-              aria-label={onZoneSelect ? `Select ${territory.name}` : undefined}
-              style={{
-                pointerEvents: onZoneSelect ? "all" : "none",
-                cursor: onZoneSelect ? "pointer" : "default",
-                touchAction: onZoneSelect ? "pan-y" : "auto",
-              }}
-              onPointerDown={(event) => handleTerritoryPointerDown(event, territory.zoneId)}
-              onPointerUp={(event) => handleTerritoryPointerUp(event, territory.zoneId)}
-              onPointerCancel={handleTerritoryPointerCancel}
-              onPointerEnter={(event) => {
-                if (event.pointerType !== "touch") setHoveredZoneId(territory.zoneId);
-              }}
-              onPointerLeave={(event) => {
-                if (event.pointerType !== "touch") setHoveredZoneId(null);
-              }}
-              onKeyDown={(event) => {
-                if (!onZoneSelect) return;
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  onZoneSelect(territory.zoneId);
-                }
-              }}
+            <polygon key={territory.zoneId} data-territory-hit={territory.zoneId} points={polygonPoints(territory.points)} fill="rgba(255,255,255,0.001)" stroke="rgba(255,255,255,0.001)" strokeWidth={10} vectorEffect="non-scaling-stroke" role={onZoneSelect ? "button" : undefined} tabIndex={onZoneSelect ? 0 : -1} aria-label={onZoneSelect ? `Select ${territory.name}` : undefined}
+              style={{ pointerEvents:onZoneSelect?"all":"none", cursor:onZoneSelect?"pointer":"default", touchAction:onZoneSelect?"manipulation":"auto" }}
+              onPointerDown={(e)=>onPointerDown(e,territory.zoneId)} onPointerUp={(e)=>onPointerUp(e,territory.zoneId)} onPointerCancel={onPointerCancel}
+              onPointerEnter={(e)=>{if(e.pointerType!=="touch")setHoveredZoneId(territory.zoneId);}} onPointerLeave={(e)=>{if(e.pointerType!=="touch")setHoveredZoneId(null);}}
+              onKeyDown={(e)=>{if(onZoneSelect&&(e.key==="Enter"||e.key===" ")){e.preventDefault();onZoneSelect(territory.zoneId);}}}
             />
           ))}
         </svg>
@@ -255,97 +158,37 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
         {NEON_MEGACITY_TERRITORIES.map((territory) => {
           const visual = zoneVisuals[territory.zoneId];
           if (!visual || visual.rawTotal <= 0) return null;
+          const shares = [...visual.entries];
           return (
-            <div
-              key={territory.zoneId}
-              className={`pointer-events-none absolute z-[3] hidden -translate-x-1/2 -translate-y-1/2 rounded-md border px-1.5 py-1 shadow-lg backdrop-blur-sm sm:block ${selectedZoneId === territory.zoneId ? "border-yellow-300/70 bg-slate-950/88" : "border-cyan-200/10 bg-slate-950/68"}`}
-              style={{
-                left: `${(territory.badgeAnchor[0] / NEON_MEGACITY_WIDTH) * 100}%`,
-                top: `${(territory.badgeAnchor[1] / NEON_MEGACITY_HEIGHT) * 100}%`,
-              }}
-            >
-              <div className="max-w-[86px] truncate whitespace-nowrap text-[8px] font-black tracking-wide text-slate-100 lg:max-w-[104px] lg:text-[9px]">
-                {territory.name}
+            <div key={`badge-${territory.zoneId}`} className={`pointer-events-none absolute z-[3] hidden min-w-[92px] max-w-[128px] -translate-x-1/2 -translate-y-1/2 rounded-[9px] border px-[7px] py-[5px] text-center shadow-[0_7px_20px_rgba(0,0,0,.30)] backdrop-blur-[7px] sm:block ${selectedZoneId===territory.zoneId?"border-yellow-300/70 bg-[#030913]/90":"border-cyan-100/15 bg-[#030913]/85"}`}
+              style={{left:`${(territory.badgeAnchor[0]/NEON_MEGACITY_WIDTH)*100}%`,top:`${(territory.badgeAnchor[1]/NEON_MEGACITY_HEIGHT)*100}%`}}>
+              <div className="mb-1 text-[8px] font-black tracking-[0.08em] text-[#b9ddec]">{territory.id} · {territory.name}</div>
+              <div className="flex flex-wrap justify-center gap-x-[5px] gap-y-[2px]">
+                {shares.map((entry)=><span key={entry.clanId} className="text-[9px] font-black" style={{color:entry.color}}>{entry.name.slice(0,1).toUpperCase()}{Math.round(entry.territoryPct)}</span>)}
+                {visual.neutralPct>0&&<span className="text-[9px] font-black text-slate-400">Ø{Math.round(visual.neutralPct)}</span>}
               </div>
-              <div className="mt-1 flex h-1 min-w-14 overflow-hidden rounded-full bg-slate-700/80">
-                {visual.entries.map((entry) => (
-                  <span
-                    key={entry.clanId}
-                    style={{ width: `${entry.territoryPct}%`, backgroundColor: entry.color }}
-                  />
-                ))}
-                {visual.neutralPct > 0 && (
-                  <span className="bg-slate-500/80" style={{ width: `${visual.neutralPct}%` }} />
-                )}
+              <div className="mt-[5px] flex h-1 overflow-hidden rounded-full bg-[#101b2a]">
+                {shares.map((entry)=><span key={entry.clanId} style={{width:`${entry.territoryPct}%`,backgroundColor:entry.color}}/> )}
+                {visual.neutralPct>0&&<span className="bg-slate-600" style={{width:`${visual.neutralPct}%`}}/>}
               </div>
+              {visual.contested&&<div className="mt-1 text-[8px] font-black tracking-[0.11em] text-fuchsia-200">CONTESTED</div>}
             </div>
           );
         })}
 
-        {onZoneSelect && (
-          <div className="pointer-events-none absolute bottom-2 left-1/2 z-[4] -translate-x-1/2 rounded-full border border-cyan-300/15 bg-slate-950/72 px-2.5 py-1 text-[9px] font-bold text-cyan-100 backdrop-blur sm:hidden">
-            Tap a district
-          </div>
-        )}
-
-        {loadError && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] bg-slate-950/70 px-3 py-1.5 text-center text-[9px] text-amber-200">
-            Enhanced lighting unavailable — territory selection remains active.
-          </div>
-        )}
+        {loadError && <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] bg-slate-950/80 px-3 py-1 text-center text-[9px] text-amber-200">Enhanced V6 lighting unavailable — territory selection remains active.</div>}
       </div>
 
       {overlay}
 
-      {selectedTerritory && selectedVisual && (
+      {!embeddedMode && selectedTerritory && selectedVisual && (
         <div className="border-t border-slate-800/80 bg-slate-950/95 px-3 py-2.5 sm:px-4 sm:py-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <div className="text-xs font-black text-white">{selectedTerritory.name}</div>
-              <div className="text-[9px] uppercase tracking-[0.16em] text-slate-500 sm:text-[10px]">
-                {selectedTerritory.type}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-[9px] uppercase tracking-wider text-slate-500 sm:text-[10px]">Occupation</div>
-              <div className="text-base font-black text-white sm:text-lg">{Math.round(selectedVisual.occupation)}%</div>
-            </div>
-          </div>
-          <div className="mt-2 grid grid-cols-2 gap-1.5 lg:grid-cols-4">
-            {selectedVisual.entries.map((entry) => (
-              <div key={entry.clanId} className="rounded-lg bg-slate-900/80 px-2.5 py-2 text-[10px] sm:text-[11px]">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="truncate font-bold" style={{ color: entry.color }}>
-                    {entry.name}
-                  </span>
-                  <span className="font-black text-white">{Math.round(entry.territoryPct)}%</span>
-                </div>
-              </div>
-            ))}
-            {selectedVisual.neutralPct > 0 && (
-              <div className="rounded-lg bg-slate-900/80 px-2.5 py-2 text-[10px] sm:text-[11px]">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-slate-400">Neutral</span>
-                  <span className="font-black text-white">{Math.round(selectedVisual.neutralPct)}%</span>
-                </div>
-              </div>
-            )}
-          </div>
+          <div className="flex items-center justify-between gap-2"><div><div className="text-xs font-black text-white">{selectedTerritory.name}</div><div className="text-[9px] uppercase tracking-[0.16em] text-slate-500">{selectedTerritory.type}</div></div><div className="text-right"><div className="text-[9px] uppercase text-slate-500">Occupation</div><div className="text-base font-black text-white">{Math.round(selectedVisual.occupation)}%</div></div></div>
+          <div className="mt-2 grid grid-cols-2 gap-1.5 lg:grid-cols-4">{selectedVisual.entries.map((entry)=><div key={entry.clanId} className="rounded-lg bg-slate-900/80 px-2.5 py-2 text-[10px]"><div className="flex justify-between gap-2"><span className="truncate font-bold" style={{color:entry.color}}>{entry.name}</span><span className="font-black">{Math.round(entry.territoryPct)}%</span></div></div>)}{selectedVisual.neutralPct>0&&<div className="rounded-lg bg-slate-900/80 px-2.5 py-2 text-[10px]"><div className="flex justify-between"><span className="font-bold text-slate-400">Neutral</span><span className="font-black">{Math.round(selectedVisual.neutralPct)}%</span></div></div>}</div>
         </div>
       )}
 
-      {!hideLegend && visibleClans.length > 0 && (
-        <div className="border-t border-slate-800/80 bg-slate-900/70 px-3 py-2.5 sm:px-4 sm:py-3">
-          <div className="flex flex-wrap gap-2">
-            {visibleClans.map((clan) => (
-              <div key={clan.id} className="flex items-center gap-2 rounded-lg bg-slate-800/50 px-2 py-1.5 text-[11px] sm:text-xs">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: clan.color }} />
-                <span className="font-semibold text-white">{clan.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {!hideLegend && visibleClans.length>0 && <div className="border-t border-slate-800/80 bg-slate-900/70 px-3 py-2.5"><div className="flex flex-wrap gap-2">{visibleClans.map((clan)=><div key={clan.id} className="flex items-center gap-2 rounded-lg bg-slate-800/50 px-2 py-1.5 text-[11px]"><span className="h-2.5 w-2.5 rounded-full" style={{backgroundColor:clan.color}}/><span className="font-semibold text-white">{clan.name}</span></div>)}</div></div>}
     </div>
   );
 };
