@@ -88,7 +88,8 @@ test('teacher PDF workspace explains waiting and restores saved work after refre
   assert.match(workspace, /elapsedSeconds/);
   assert.match(workspace, /REVIEW_STORAGE_PREFIX/);
   assert.match(workspace, /window\.localStorage\.setItem/);
-  assert.match(workspace, /complete: \$\{missingSetup\.join\(', '\)\}/);
+  assert.match(workspace, /To continue, complete:/);
+  assert.match(workspace, /missingSetup\.join\(', '\)/);
 });
 
 test('successful submit is not reported as failed when the follow-up bank refresh fails', () => {

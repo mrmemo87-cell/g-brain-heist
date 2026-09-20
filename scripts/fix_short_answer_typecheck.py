@@ -5,6 +5,8 @@ def replace_all(path: str, replacements: dict[str, str]) -> None:
     p = Path(path)
     text = p.read_text(encoding='utf-8')
     for old, new in replacements.items():
+        if new in text:
+            continue
         if old not in text:
             raise RuntimeError(f'{path}: missing expected token {old!r}')
         text = text.replace(old, new)
@@ -33,6 +35,9 @@ p = Path('services/teacherQuestionBatchService.ts')
 text = p.read_text(encoding='utf-8')
 old = "const draft = value && typeof value === 'object' ? value as Record<string, unknown> : null;"
 new = "const draft = value && typeof value === 'object' ? value as any : null;"
+if new in text:
+    print('Strict TypeScript index access and governed PDF contract expectation fixed.')
+    raise SystemExit(0)
 if old not in text:
     raise RuntimeError('teacherQuestionBatchService.ts: saved-draft record cast not found')
 p.write_text(text.replace(old, new, 1), encoding='utf-8')

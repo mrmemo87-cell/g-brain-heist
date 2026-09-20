@@ -11,6 +11,8 @@ def write(path: str, text: str) -> None:
 
 def replace_once(path: str, old: str, new: str) -> None:
     text = read(path)
+    if new in text:
+        return
     count = text.count(old)
     if count != 1:
         raise RuntimeError(f'{path}: expected one match, found {count}: {old[:120]!r}')
