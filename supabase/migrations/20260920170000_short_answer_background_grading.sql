@@ -1,12 +1,10 @@
--- Short-answer grading: deterministic accepted answers first, semantic review only when needed.
+-- Production-grade short-answer assignment grading.
 --
--- Design goals:
---   * existing MCQ / true-false grading remains synchronous and authoritative;
---   * short answers may carry multiple accepted answers in the question snapshot;
---   * unmatched non-empty short answers are persisted as under_review, never as wrong;
---   * assignment submission never waits for semantic review;
---   * completed results are recalculated silently when AI review resolves;
---   * browser-supplied correctness and answer keys remain non-authoritative.
+-- Deterministic accepted-answer matching is always attempted first. A non-empty
+-- short answer that does not match is persisted as under_review rather than
+-- being marked wrong. Assignment submission remains immediate and stores a
+-- confirmed score that excludes pending answers. A service-only background
+-- reviewer may later resolve the answer and silently recalculate the result.
 
 alter table public.questions
   add column if not exists accepted_answers text[] not null default '{}'::text[],
@@ -37,6 +35,39 @@ alter table public.questions
       and grading_mode in ('accepted_answers', 'semantic_review')
     )
   );
+
+create or replace function private.initialize_question_grading_metadata()
+returns trigger
+language plpgsql
+set search_path = ''
+as $function$
+begin
+  if cardinality(coalesce(new.accepted_answers, '{}'::text[])) = 0
+     and nullif(trim(new.correct_answer), '') is not null then
+    new.accepted_answers := array[new.correct_answer];
+  end if;
+
+  if new.question_type = 'short_answer' then
+    if coalesce(nullif(trim(new.grading_mode), ''), 'exact') = 'exact' then
+      new.grading_mode := 'accepted_answers';
+    end if;
+  else
+    new.grading_mode := 'exact';
+  end if;
+
+  new.grading_config := coalesce(new.grading_config, '{}'::jsonb);
+  return new;
+end;
+$function$;
+
+revoke all on function private.initialize_question_grading_metadata()
+  from public, anon, authenticated, service_role;
+
+drop trigger if exists trg_01_initialize_question_grading_metadata on public.questions;
+create trigger trg_01_initialize_question_grading_metadata
+before insert or update of question_type, correct_answer, accepted_answers, grading_mode, grading_config
+on public.questions
+for each row execute function private.initialize_question_grading_metadata();
 
 alter table public.student_assignment_answers
   alter column is_correct drop not null,
@@ -84,16 +115,13 @@ language sql
 immutable
 strict
 set search_path = ''
-as $$
+as $function$
   select lower(
     regexp_replace(
       regexp_replace(
         trim(
           translate(
-            translate(p_value,
-              '₀₁₂₃₄₅₆₇₈₉',
-              '0123456789'
-            ),
+            translate(p_value, '₀₁₂₃₄₅₆₇₈₉', '0123456789'),
             '“”‘’–—',
             '""''---'
           )
@@ -107,7 +135,7 @@ as $$
       'g'
     )
   );
-$$;
+$function$;
 
 revoke all on function private.normalize_assignment_answer(text)
   from public, anon, authenticated;
@@ -125,7 +153,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $function$
 declare
   v_student uuid := auth.uid();
   v_snapshot jsonb;
@@ -140,6 +168,7 @@ declare
   v_normalized_answer text;
   v_accepted_answers jsonb;
   v_answer text;
+  v_points integer := 0;
 begin
   if v_student is null then raise exception 'NOT_AUTHENTICATED'; end if;
 
@@ -159,8 +188,10 @@ begin
   if nullif(trim(v_snapshot->>'correct_answer'), '') is null then raise exception 'ASSIGNMENT_ANSWER_KEY_MISSING'; end if;
 
   v_question_type := coalesce(nullif(trim(v_snapshot->>'question_type'), ''), 'multiple_choice');
-  v_grading_mode := coalesce(nullif(trim(v_snapshot->>'grading_mode'), ''),
-    case when v_question_type = 'short_answer' then 'accepted_answers' else 'exact' end);
+  v_grading_mode := coalesce(
+    nullif(trim(v_snapshot->>'grading_mode'), ''),
+    case when v_question_type = 'short_answer' then 'accepted_answers' else 'exact' end
+  );
   v_normalized_student := private.normalize_assignment_answer(coalesce(p_student_answer, ''));
 
   if v_normalized_student = '' then
@@ -168,7 +199,7 @@ begin
   elsif v_question_type = 'short_answer' then
     v_accepted_answers := case
       when jsonb_typeof(v_snapshot->'accepted_answers') = 'array'
-        and jsonb_array_length(v_snapshot->'accepted_answers') > 0
+       and jsonb_array_length(v_snapshot->'accepted_answers') > 0
       then v_snapshot->'accepted_answers'
       else jsonb_build_array(v_snapshot->>'correct_answer')
     end;
@@ -187,14 +218,16 @@ begin
     end loop;
 
     if not v_is_correct then
-      -- A non-empty short answer that misses the deterministic accepted-answer
-      -- set is not automatically wrong. It is queued for semantic review.
       v_is_correct := null;
       v_grading_status := 'under_review';
     end if;
   else
     v_normalized_answer := private.normalize_assignment_answer(v_snapshot->>'correct_answer');
     v_is_correct := v_normalized_student = v_normalized_answer;
+  end if;
+
+  if v_grading_status = 'graded' and v_is_correct is true then
+    v_points := greatest(0, coalesce((v_snapshot->>'points')::integer, 0));
   end if;
 
   insert into public.student_assignment_answers (
@@ -206,8 +239,10 @@ begin
     p_assignment_id, v_student, p_question_id, v_snapshot->>'question_text',
     v_snapshot->>'correct_answer', coalesce(p_student_answer, ''), v_is_correct,
     greatest(0, least(coalesce(p_time_taken_ms, 0), 3600000)), now(),
-    v_grading_status, 'deterministic', case when v_grading_status = 'graded' then 1 else null end,
-    null, case when v_grading_status = 'graded' then now() else null end,
+    v_grading_status, 'deterministic',
+    case when v_grading_status = 'graded' then 1 else null end,
+    null,
+    case when v_grading_status = 'graded' then now() else null end,
     null, null, null
   ) on conflict (assignment_id, student_id, question_id) do update set
     question_text = excluded.question_text,
@@ -237,10 +272,11 @@ begin
     'grading_status', v_grading_status,
     'pending_review', v_grading_status = 'under_review',
     'question_type', v_question_type,
-    'grading_mode', v_grading_mode
+    'grading_mode', v_grading_mode,
+    'points_earned', v_points
   );
 end;
-$$;
+$function$;
 
 revoke all on function public.rpc_submit_assignment_answer_v2(uuid,uuid,text,text,text,boolean,integer)
   from public, anon;
@@ -255,7 +291,7 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $function$
 declare
   v_correct integer;
   v_incorrect integer;
@@ -303,7 +339,7 @@ begin
   where assignment_id = p_assignment_id
     and student_id = p_student_id;
 end;
-$$;
+$function$;
 
 revoke all on function private.recalculate_assignment_result_after_review(uuid,uuid)
   from public, anon, authenticated;
@@ -320,7 +356,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $function$
 declare
   v_student_id uuid := auth.uid();
   v_assignment_status text;
@@ -355,7 +391,9 @@ begin
     select 1 from public.student_assignment_results r
     where r.assignment_id = p_assignment_id
       and r.student_id = v_student_id
-  ) then raise exception 'ASSIGNMENT_ALREADY_SUBMITTED'; end if;
+  ) then
+    raise exception 'ASSIGNMENT_ALREADY_SUBMITTED';
+  end if;
   if p_time_taken < 0 then raise exception 'INVALID_VALUES'; end if;
 
   select
@@ -417,12 +455,47 @@ begin
     'grading_status', case when v_pending > 0 then 'pending_review' else 'final' end
   );
 end;
-$$;
+$function$;
 
 revoke all on function public.rpc_submit_assignment_result_v2(uuid,integer,integer,integer,integer,integer)
   from public, anon;
 grant execute on function public.rpc_submit_assignment_result_v2(uuid,integer,integer,integer,integer,integer)
   to authenticated, service_role;
+
+create or replace function public.rpc_claim_short_answer_review(p_answer_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_answer public.student_assignment_answers%rowtype;
+begin
+  update public.student_assignment_answers
+  set grading_status = 'reviewing',
+      review_started_at = now(),
+      review_error = null
+  where id = p_answer_id
+    and grading_status = 'under_review'
+  returning * into v_answer;
+
+  if v_answer.id is null then
+    return jsonb_build_object('claimed', false);
+  end if;
+
+  return jsonb_build_object(
+    'claimed', true,
+    'student_answer', v_answer.student_answer,
+    'assignment_id', v_answer.assignment_id,
+    'question_id', v_answer.question_id
+  );
+end;
+$function$;
+
+revoke all on function public.rpc_claim_short_answer_review(uuid)
+  from public, anon, authenticated;
+grant execute on function public.rpc_claim_short_answer_review(uuid)
+  to service_role;
 
 create or replace function public.rpc_apply_short_answer_review(
   p_answer_id uuid,
@@ -435,24 +508,26 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $function$
 declare
   v_answer public.student_assignment_answers%rowtype;
   v_snapshot jsonb;
 begin
-  select saa.*, aq.question_snapshot
-  into v_answer, v_snapshot
+  select saa.* into v_answer
   from public.student_assignment_answers saa
-  join public.assignment_questions aq
-    on aq.assignment_id = saa.assignment_id
-   and aq.question_id = saa.question_id
   where saa.id = p_answer_id
     and saa.grading_status in ('under_review', 'reviewing')
-  for update of saa;
+  for update;
 
   if v_answer.id is null then
     return jsonb_build_object('success', true, 'already_resolved', true);
   end if;
+
+  select aq.question_snapshot into v_snapshot
+  from public.assignment_questions aq
+  where aq.assignment_id = v_answer.assignment_id
+    and aq.question_id = v_answer.question_id;
+
   if coalesce(v_snapshot->>'question_type', '') <> 'short_answer' then
     raise exception 'SHORT_ANSWER_REVIEW_ONLY';
   end if;
@@ -468,7 +543,10 @@ begin
       review_error = null
   where id = v_answer.id;
 
-  perform private.recalculate_assignment_result_after_review(v_answer.assignment_id, v_answer.student_id);
+  perform private.recalculate_assignment_result_after_review(
+    v_answer.assignment_id,
+    v_answer.student_id
+  );
 
   return jsonb_build_object(
     'success', true,
@@ -476,63 +554,38 @@ begin
     'is_correct', p_is_correct
   );
 end;
-$$;
+$function$;
 
 revoke all on function public.rpc_apply_short_answer_review(uuid,boolean,numeric,text,text)
   from public, anon, authenticated;
 grant execute on function public.rpc_apply_short_answer_review(uuid,boolean,numeric,text,text)
   to service_role;
 
--- Keep the legacy completed-answer RPC safe now that an assignment can be
--- completed while one or more answers are still under review. Never reveal an
--- answer key or correctness while semantic grading is pending.
-create or replace function public.rpc_get_my_assignment_answers(p_assignment_id uuid)
-returns table(
-  question_id uuid,
-  question_text text,
-  correct_answer text,
-  student_answer text,
-  is_correct boolean,
-  time_taken_ms integer,
-  answered_at timestamptz,
-  explanation text
+create or replace function public.rpc_release_short_answer_review(
+  p_answer_id uuid,
+  p_error text
 )
+returns void
 language plpgsql
 security definer
 set search_path = ''
-as $$
-declare
-  v_student_id uuid := auth.uid();
+as $function$
 begin
-  if v_student_id is null then raise exception 'NOT_AUTHENTICATED'; end if;
-  if not exists (
-    select 1 from public.student_assignments sa
-    where sa.assignment_id = p_assignment_id
-      and sa.student_id = v_student_id
-      and sa.status = 'completed'
-  ) then raise exception 'Assignment not completed or not assigned to you'; end if;
-
-  return query
-  select
-    saa.question_id,
-    saa.question_text,
-    case when saa.grading_status = 'graded' then saa.correct_answer else '' end,
-    saa.student_answer,
-    saa.is_correct,
-    saa.time_taken_ms,
-    saa.answered_at,
-    case when saa.grading_status = 'graded' then q.explanation else null end
-  from public.student_assignment_answers saa
-  left join public.questions q on q.id = saa.question_id
-  where saa.assignment_id = p_assignment_id
-    and saa.student_id = v_student_id
-  order by saa.answered_at;
+  update public.student_assignment_answers
+  set grading_status = 'under_review',
+      review_started_at = null,
+      review_error = left(coalesce(p_error, ''), 2000)
+  where id = p_answer_id
+    and grading_status = 'reviewing';
 end;
-$$;
+$function$;
 
-revoke all on function public.rpc_get_my_assignment_answers(uuid) from public, anon;
-grant execute on function public.rpc_get_my_assignment_answers(uuid) to authenticated, service_role;
+revoke all on function public.rpc_release_short_answer_review(uuid,text)
+  from public, anon, authenticated;
+grant execute on function public.rpc_release_short_answer_review(uuid,text)
+  to service_role;
 
+-- Pending semantic decisions never reveal protected answer keys to students.
 create or replace function public.rpc_get_my_assignment_answers_v2(p_assignment_id uuid)
 returns table(
   question_id uuid,
@@ -550,7 +603,7 @@ returns table(
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $function$
 declare
   v_student_id uuid := auth.uid();
 begin
@@ -560,7 +613,9 @@ begin
     where sa.assignment_id = p_assignment_id
       and sa.student_id = v_student_id
       and sa.status = 'completed'
-  ) then raise exception 'Assignment not completed or not assigned to you'; end if;
+  ) then
+    raise exception 'Assignment not completed or not assigned to you';
+  end if;
 
   return query
   select
@@ -581,10 +636,12 @@ begin
     and saa.student_id = v_student_id
   order by saa.answered_at;
 end;
-$$;
+$function$;
 
-revoke all on function public.rpc_get_my_assignment_answers_v2(uuid) from public, anon;
-grant execute on function public.rpc_get_my_assignment_answers_v2(uuid) to authenticated, service_role;
+revoke all on function public.rpc_get_my_assignment_answers_v2(uuid)
+  from public, anon;
+grant execute on function public.rpc_get_my_assignment_answers_v2(uuid)
+  to authenticated, service_role;
 
 create or replace function public.rpc_get_student_completed_assignments_v2()
 returns table(
@@ -604,7 +661,7 @@ returns table(
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $function$
 declare
   v_student_id uuid := auth.uid();
 begin
@@ -631,7 +688,9 @@ begin
   where sar.student_id = v_student_id
   order by sar.completed_at desc;
 end;
-$$;
+$function$;
 
-revoke all on function public.rpc_get_student_completed_assignments_v2() from public, anon;
-grant execute on function public.rpc_get_student_completed_assignments_v2() to authenticated, service_role;
+revoke all on function public.rpc_get_student_completed_assignments_v2()
+  from public, anon;
+grant execute on function public.rpc_get_student_completed_assignments_v2()
+  to authenticated, service_role;
