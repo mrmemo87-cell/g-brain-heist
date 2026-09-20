@@ -9,7 +9,6 @@ import {
   getZoneVisual,
   RENDER_HEIGHT,
   RENDER_WIDTH,
-  territoryAtPoint,
   type ZoneVisual,
 } from "./neonMegacityShader";
 import { useNeonMegacityShader } from "./useNeonMegacityShader";
@@ -56,7 +55,11 @@ type PointerStart = {
   pointerId: number;
   x: number;
   y: number;
+  zoneId: ZoneId;
 };
+
+const polygonPoints = (points: readonly (readonly [number, number])[]) =>
+  points.map(([x, y]) => `${x},${y}`).join(" ");
 
 export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
   zones,
@@ -125,52 +128,37 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
     onError: setLoadError,
   });
 
-  const territoryFromPointer = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return null;
-    const x = ((event.clientX - rect.left) / rect.width) * NEON_MEGACITY_WIDTH;
-    const y = ((event.clientY - rect.top) / rect.height) * NEON_MEGACITY_HEIGHT;
-    return territoryAtPoint(x, y);
-  };
-
-  const handlePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    // Touch does not have a useful hover state and retaining one after a tap can
-    // make the map look selected when it is not.
-    if (event.pointerType === "touch") return;
-    setHoveredZoneId(territoryFromPointer(event)?.zoneId ?? null);
-  };
-
-  const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
+  const handleTerritoryPointerDown = (
+    event: React.PointerEvent<SVGPolygonElement>,
+    zoneId: ZoneId,
+  ) => {
     if (!onZoneSelect) return;
     pointerStartRef.current = {
       pointerId: event.pointerId,
       x: event.clientX,
       y: event.clientY,
+      zoneId,
     };
-    event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
-  const handlePointerUp = (event: React.PointerEvent<HTMLCanvasElement>) => {
+  const handleTerritoryPointerUp = (
+    event: React.PointerEvent<SVGPolygonElement>,
+    zoneId: ZoneId,
+  ) => {
     if (!onZoneSelect) return;
     const start = pointerStartRef.current;
     pointerStartRef.current = null;
+    if (!start || start.pointerId !== event.pointerId || start.zoneId !== zoneId) return;
 
-    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
-      event.currentTarget.releasePointerCapture?.(event.pointerId);
-    }
-
-    if (!start || start.pointerId !== event.pointerId) return;
     const movement = Math.hypot(event.clientX - start.x, event.clientY - start.y);
-    if (movement > 14) return;
+    if (movement > 18) return;
 
-    const territory = territoryFromPointer(event);
-    if (!territory) return;
     event.preventDefault();
-    setHoveredZoneId(event.pointerType === "touch" ? null : territory.zoneId);
-    onZoneSelect(territory.zoneId);
+    setHoveredZoneId(event.pointerType === "touch" ? null : zoneId);
+    onZoneSelect(zoneId);
   };
 
-  const handlePointerCancel = (event: React.PointerEvent<HTMLCanvasElement>) => {
+  const handleTerritoryPointerCancel = (event: React.PointerEvent<SVGPolygonElement>) => {
     if (pointerStartRef.current?.pointerId === event.pointerId) {
       pointerStartRef.current = null;
     }
@@ -211,15 +199,105 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
           ref={canvasRef}
           width={RENDER_WIDTH}
           height={RENDER_HEIGHT}
-          aria-label="Interactive Neon Megacity territory map"
-          className={`relative z-[1] block h-full w-full select-none transition-opacity duration-300 ${shaderReady ? "opacity-100" : "opacity-0"} ${onZoneSelect ? "cursor-crosshair" : "cursor-default"}`}
-          style={{ touchAction: onZoneSelect ? "pan-y" : "auto" }}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerCancel}
-          onPointerLeave={() => setHoveredZoneId(null)}
+          aria-label="Neon Megacity shader layer"
+          className={`pointer-events-none relative z-[1] block h-full w-full select-none transition-opacity duration-300 ${shaderReady ? "opacity-100" : "opacity-0"}`}
         />
+
+        <svg
+          className="absolute inset-0 z-[2] h-full w-full select-none"
+          viewBox={`0 0 ${NEON_MEGACITY_WIDTH} ${NEON_MEGACITY_HEIGHT}`}
+          preserveAspectRatio="none"
+          aria-label="Interactive Neon Megacity territory hit layer"
+          style={{ touchAction: onZoneSelect ? "pan-y" : "auto" }}
+        >
+          <defs>
+            {NEON_MEGACITY_TERRITORIES.map((territory) => {
+              const visual = zoneVisuals[territory.zoneId];
+              let cursor = 0;
+              return (
+                <linearGradient key={`gradient-${territory.zoneId}`} id={`neon-zone-${territory.zoneId}`} x1="0" y1="0" x2="1" y2="0">
+                  {visual.entries.flatMap((entry) => {
+                    const start = cursor;
+                    const end = Math.min(100, cursor + entry.territoryPct);
+                    cursor = end;
+                    return [
+                      <stop key={`${entry.clanId}-start`} offset={`${start}%`} stopColor={entry.color} />,
+                      <stop key={`${entry.clanId}-end`} offset={`${end}%`} stopColor={entry.color} />,
+                    ];
+                  })}
+                  {cursor < 100 && (
+                    <>
+                      <stop offset={`${cursor}%`} stopColor="#0f172a" stopOpacity="0" />
+                      <stop offset="100%" stopColor="#0f172a" stopOpacity="0" />
+                    </>
+                  )}
+                </linearGradient>
+              );
+            })}
+          </defs>
+
+          {NEON_MEGACITY_TERRITORIES.map((territory) => {
+            const visual = zoneVisuals[territory.zoneId];
+            if (!visual || visual.rawTotal <= 0) return null;
+            const occupationRatio = visual.occupation / 100;
+            const points = polygonPoints(territory.points);
+            return (
+              <g key={`color-${territory.zoneId}`} pointerEvents="none">
+                <polygon
+                  points={points}
+                  fill={`url(#neon-zone-${territory.zoneId})`}
+                  opacity={0.2 + occupationRatio * 0.25}
+                  style={{ mixBlendMode: "color" }}
+                />
+                <polygon
+                  points={points}
+                  fill={`url(#neon-zone-${territory.zoneId})`}
+                  opacity={0.05 + occupationRatio * 0.1}
+                  style={{ mixBlendMode: "screen" }}
+                />
+              </g>
+            );
+          })}
+
+          {NEON_MEGACITY_TERRITORIES.map((territory) => {
+            const isSelected = selectedZoneId === territory.zoneId;
+            return (
+              <polygon
+                key={`hit-${territory.zoneId}`}
+                data-territory-hit={territory.zoneId}
+                points={polygonPoints(territory.points)}
+                fill="rgba(255,255,255,0.001)"
+                stroke={isSelected ? "rgba(250,204,21,0.9)" : "rgba(255,255,255,0.001)"}
+                strokeWidth={isSelected ? 3 : 18}
+                vectorEffect="non-scaling-stroke"
+                role={onZoneSelect ? "button" : undefined}
+                tabIndex={onZoneSelect ? 0 : -1}
+                aria-label={onZoneSelect ? `Select ${territory.name}` : undefined}
+                style={{
+                  pointerEvents: onZoneSelect ? "all" : "none",
+                  cursor: onZoneSelect ? "pointer" : "default",
+                  touchAction: onZoneSelect ? "pan-y" : "auto",
+                }}
+                onPointerDown={(event) => handleTerritoryPointerDown(event, territory.zoneId)}
+                onPointerUp={(event) => handleTerritoryPointerUp(event, territory.zoneId)}
+                onPointerCancel={handleTerritoryPointerCancel}
+                onPointerEnter={(event) => {
+                  if (event.pointerType !== "touch") setHoveredZoneId(territory.zoneId);
+                }}
+                onPointerLeave={(event) => {
+                  if (event.pointerType !== "touch") setHoveredZoneId(null);
+                }}
+                onKeyDown={(event) => {
+                  if (!onZoneSelect) return;
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onZoneSelect(territory.zoneId);
+                  }
+                }}
+              />
+            );
+          })}
+        </svg>
 
         {NEON_MEGACITY_TERRITORIES.map((territory) => {
           const visual = zoneVisuals[territory.zoneId];
@@ -227,7 +305,7 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
           return (
             <div
               key={territory.zoneId}
-              className={`pointer-events-none absolute z-[2] hidden -translate-x-1/2 -translate-y-1/2 rounded-md border px-1.5 py-1 shadow-lg backdrop-blur-sm sm:block ${selectedZoneId === territory.zoneId ? "border-yellow-300/70 bg-slate-950/88" : "border-cyan-200/10 bg-slate-950/68"}`}
+              className={`pointer-events-none absolute z-[3] hidden -translate-x-1/2 -translate-y-1/2 rounded-md border px-1.5 py-1 shadow-lg backdrop-blur-sm sm:block ${selectedZoneId === territory.zoneId ? "border-yellow-300/70 bg-slate-950/88" : "border-cyan-200/10 bg-slate-950/68"}`}
               style={{ left: `${(territory.badgeAnchor[0] / NEON_MEGACITY_WIDTH) * 100}%`, top: `${(territory.badgeAnchor[1] / NEON_MEGACITY_HEIGHT) * 100}%` }}
             >
               <div className="max-w-[86px] truncate whitespace-nowrap text-[8px] font-black tracking-wide text-slate-100 lg:max-w-[104px] lg:text-[9px]">{territory.name}</div>
@@ -240,12 +318,16 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
         })}
 
         {onZoneSelect && (
-          <div className="pointer-events-none absolute bottom-2 left-1/2 z-[2] -translate-x-1/2 rounded-full border border-cyan-300/15 bg-slate-950/72 px-2.5 py-1 text-[9px] font-bold text-cyan-100 backdrop-blur sm:hidden">
+          <div className="pointer-events-none absolute bottom-2 left-1/2 z-[4] -translate-x-1/2 rounded-full border border-cyan-300/15 bg-slate-950/72 px-2.5 py-1 text-[9px] font-bold text-cyan-100 backdrop-blur sm:hidden">
             Tap a district
           </div>
         )}
 
-        {loadError && <div className="pointer-events-none absolute inset-0 z-[3] flex items-end justify-center px-6 pb-3 text-center text-xs text-amber-200">{loadError}</div>}
+        {loadError && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] bg-slate-950/70 px-3 py-1.5 text-center text-[9px] text-amber-200">
+            Enhanced lighting unavailable — territory colors and selection remain active.
+          </div>
+        )}
       </div>
 
       {overlay}
