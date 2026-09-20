@@ -10,6 +10,7 @@ import {
 export const RENDER_WIDTH = 1280;
 export const RENDER_HEIGHT = 720;
 export const MAX_SHADER_CLANS = 4;
+export const ID_MASK_STEP = 24;
 
 export type RankedInfluence = {
   clanId: ClanId;
@@ -84,7 +85,10 @@ export const buildIdMask = (): HTMLCanvasElement => {
     ctx.beginPath();
     territory.points.forEach(([x, y], index) => index === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
     ctx.closePath();
-    ctx.fillStyle = `rgb(${id},0,0)`;
+    // Keep zone IDs far apart in the 8-bit mask. Very dark rgb(1..10,0,0)
+    // values can lose precision during browser canvas/texture color conversion,
+    // especially on mobile Safari. 24-step encoding remains safely below 255.
+    ctx.fillStyle = `rgb(${id * ID_MASK_STEP},0,0)`;
     ctx.fill();
   }
   return mask;
@@ -140,7 +144,7 @@ uniform float uCaptureTime[11];
 uniform vec2 uCenters[11];
 in vec2 vUv;
 out vec4 fragColor;
-float zoneAt(vec2 uv){ return texture(uId,uv).r*255.0; }
+float zoneAt(vec2 uv){ return texture(uId,uv).r*255.0/24.0; }
 bool sameZone(float a,float b){ return abs(a-b)<0.35; }
 float hash21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
 float hashCluster(vec2 uv,float id){ vec2 cell=floor(uv*vec2(58.0,34.0)); return hash21(cell+vec2(id*19.7,id*7.3)); }
