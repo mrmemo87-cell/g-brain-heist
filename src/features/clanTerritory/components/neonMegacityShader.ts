@@ -181,12 +181,12 @@ void main(){
   float sat=(mx-mn)/(mx+0.001);
   float lum=luminance(original);
   float whiteLike=(1.0-smoothstep(0.08,0.26,sat))*smoothstep(0.52,0.88,lum);
-  float chromaLight=smoothstep(0.10,0.48,sat)*smoothstep(0.08,0.54,lum);
-  float brightLight=smoothstep(0.28,0.82,lum)*smoothstep(0.04,0.22,sat);
-  float emissive=clamp(chromaLight*0.90+brightLight*0.42,0.0,1.0)*(1.0-whiteLike*0.96);
-  float materialMask=smoothstep(0.16,0.58,sat)*smoothstep(0.07,0.36,lum)*(1.0-smoothstep(0.42,0.76,lum))*0.26;
-  float neutralLum=clamp(lum*1.04,0.0,1.0);
-  vec3 neutralLight=vec3(neutralLum*0.79,neutralLum*0.88,neutralLum);
+  float chromaLight=smoothstep(0.08,0.44,sat)*smoothstep(0.065,0.50,lum);
+  float brightLight=smoothstep(0.22,0.76,lum)*smoothstep(0.03,0.20,sat);
+  float emissive=clamp(chromaLight*0.98+brightLight*0.52,0.0,1.0)*(1.0-whiteLike*0.95);
+  float materialMask=smoothstep(0.11,0.50,sat)*smoothstep(0.055,0.31,lum)*(1.0-smoothstep(0.48,0.80,lum))*0.38;
+  float neutralLum=clamp(lum*1.02,0.0,1.0);
+  vec3 neutralLight=vec3(neutralLum*0.77,neutralLum*0.87,neutralLum);
   float coverage=uCoverage[id];
   float border=boundaryBand(idf,vUv);
   if(coverage>0.001){
@@ -195,29 +195,35 @@ void main(){
       float ownerHash=hash21(floor(vUv*vec2(86.0,49.0))+vec2(float(id)*3.1,float(id)*11.7));
       if(uContested[id]>0.5){ ownerHash=fract(ownerHash+sin(vUv.x*24.0+vUv.y*17.0+uTime*1.8)*0.018); }
       vec3 clanColor=pickClanColor(id,ownerHash);
-      vec3 pureClanLight=hueReplace(clanColor,clamp(lum*1.16,0.0,0.96));
-      float lightStrength=emissive*mix(0.60,0.96,smoothstep(0.24,0.82,emissive));
-      vec3 lightRelit=mix(original,pureClanLight,lightStrength);
-      vec3 clanMaterial=hueReplace(clanColor,clamp(lum*0.82,0.0,0.68));
+      vec3 sourceNeutral=mix(original*0.94,neutralLight,clamp(emissive*0.72+materialMask*0.55,0.0,0.88));
+      vec3 pureClanLight=hueReplace(clanColor,clamp(lum*1.34+0.02,0.0,1.0));
+      float lightStrength=emissive*mix(0.78,1.0,smoothstep(0.18,0.76,emissive));
+      vec3 lightRelit=mix(sourceNeutral,pureClanLight,lightStrength);
+      vec3 clanMaterial=hueReplace(clanColor,clamp(lum*0.98+0.015,0.0,0.78));
       vec3 relit=mix(lightRelit,clanMaterial,materialMask);
-      c=mix(original,relit,1.0-border*0.76);
-    }else{ c=mix(original,neutralLight,emissive*0.42); }
+      relit+=clanColor*(0.025+emissive*0.075)*coverage;
+      c=mix(original,relit,1.0-border*0.74);
+    }else{
+      c=mix(original,neutralLight,emissive*0.54);
+    }
     float age=uTime-uCaptureTime[id];
     if(age>=0.0&&age<1.45){
       float d=distance(vUv,uCenters[id]);
       float radius=age*0.39;
       float ring=1.0-smoothstep(0.0,0.022,abs(d-radius));
-      vec3 pulseHue=hueReplace(uClan0[id],clamp(lum*1.30+0.18,0.22,1.0));
-      c+=pulseHue*ring*(1.0-age/1.45)*(0.15+emissive*0.68);
+      vec3 pulseHue=hueReplace(uClan0[id],clamp(lum*1.38+0.20,0.24,1.0));
+      c+=pulseHue*ring*(1.0-age/1.45)*(0.17+emissive*0.76);
     }
-  }else{ c=mix(original,neutralLight,emissive*0.24); }
-  if(id==uHovered){ c+=vec3(0.18,0.74,0.92)*border*0.055; }
+  }else{
+    c=mix(original,neutralLight,emissive*0.30);
+  }
+  if(id==uHovered){ c+=vec3(0.18,0.74,0.92)*border*0.06; }
   float selAge=uTime-uSelectAt;
   if(id==uSelected&&selAge>=0.0&&selAge<0.85){
     float d=distance(vUv,uCenters[id]);
     float radius=selAge*0.35;
     float ring=1.0-smoothstep(0.0,0.017,abs(d-radius));
-    c+=vec3(1.0,0.76,0.10)*ring*(1.0-selAge/0.85)*0.54;
+    c+=vec3(1.0,0.76,0.10)*ring*(1.0-selAge/0.85)*0.58;
   }
   fragColor=vec4(clamp(c,0.0,1.0),1.0);
 }`;
