@@ -37,9 +37,4 @@ if old not in text:
     raise RuntimeError('teacherQuestionBatchService.ts: saved-draft record cast not found')
 p.write_text(text.replace(old, new, 1), encoding='utf-8')
 
-replace_all('tests/teacherQuestionPdfBatch.test.ts', {
-    "assert.match(serviceSource, /rpc_teacher_submit_question_batch_v2/);":
-        "assert.match(serviceSource, /rpc_teacher_submit_question_batch_v3/);",
-})
-
 print('Strict TypeScript index access and governed PDF contract expectation fixed.')
