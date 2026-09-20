@@ -5,7 +5,7 @@ export type BalanceableTeacherQuestion = {
   candidate_origin: string;
 };
 
-const normalizedAnswer = (value: string) => value.trim().toLocaleLowerCase();
+const normalizedAnswer = (value: string) => value.trim().toLowerCase();
 
 const stableHash32 = (value: string) => {
   let hash = 0x811c9dc5;
