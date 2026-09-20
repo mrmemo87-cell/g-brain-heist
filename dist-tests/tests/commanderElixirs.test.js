@@ -32,7 +32,7 @@ test('combat elixir formulas mirror Commander training effects', () => {
     assert.match(migration, /\{attack\}.*\+ v_boost/i);
 });
 test('only one active elixir is allowed and identical elixirs extend duration', () => {
-    assert.match(migration, /primary key \(user_id\)/i);
+    assert.match(migration, /user_id uuid primary key/i);
     assert.match(migration, /v_active\.elixir_id <> p_elixir_id/i);
     assert.match(migration, /commander_elixir_other_active/i);
     assert.match(migration, /greatest\(v_active\.expires_at, now\(\)\)/i);
