@@ -6,6 +6,7 @@ export const TEACHER_QUESTION_SOURCE_BUCKET = 'teacher-question-sources';
 export const MAX_TEACHER_QUESTION_PDF_BYTES = 20 * 1024 * 1024;
 export const MAX_TEACHER_QUESTION_BATCH_SIZE = 50;
 export const MAX_GENERATED_QUESTION_COUNT = 24;
+export const TEACHER_QUESTION_QUALITY_REVISION = 2;
 
 export type AssessmentProcessCode = 'AO1' | 'AO2' | 'AO3' | 'AO4';
 export type CognitiveProcess = 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate';
@@ -77,6 +78,7 @@ export interface TeacherQuestionBatchCandidate {
 
 export interface TeacherQuestionPdfExtraction {
   extractionId: string;
+  qualityRevision: number;
   model: string;
   sourceSha256: string;
   sourceFileSize: number;
@@ -93,6 +95,7 @@ export interface TeacherQuestionPdfExtraction {
 }
 
 export interface TeacherQuestionSavedDraftRequest {
+  quality_revision?: number;
   target_grade?: number | null;
   requested_generated_question_count?: number;
   allowed_question_types?: QuestionType[];
@@ -149,6 +152,20 @@ const AO_DETAILS: Record<AssessmentProcessCode, {
 };
 
 const normalize = (value: string) => value.normalize('NFKC').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+const SOURCE_DEPENDENCY_MARKERS = [
+  'the material', 'this material', 'source material', 'the source', 'this source',
+  'the worksheet', 'this worksheet', 'the lesson', 'this lesson',
+  'the activity', 'this activity', 'the page', 'this page',
+  'shown above', 'shown below', 'as shown above', 'as shown below',
+  'taught in the material', 'taught by the material', 'according to the material',
+  'according to the source', 'source pattern', "activity's question pattern",
+  'activity’s question pattern',
+] as const;
+
+export const hasStudentSourceDependency = (value: string) => {
+  const normalized = normalize(value);
+  return SOURCE_DEPENDENCY_MARKERS.some((marker) => normalized.includes(marker));
+};
 
 const sha256Hex = async (file: File) => {
   const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
@@ -266,6 +283,9 @@ export const getQuestionCandidateIssues = (candidate: TeacherQuestionBatchCandid
   if (candidate.taxonomy_proposal.atomic_subskill_name.trim().length < 3) issues.push('The subskill needs review.');
   if (candidate.taxonomy_proposal.evidence_statement.trim().length < 20) issues.push('The evidence statement needs review.');
   if (candidate.candidate_origin === 'ai_generated_from_source') {
+    if (hasStudentSourceDependency(candidate.question_text)) {
+      issues.push('Rewrite this question so the student can answer without seeing the PDF, worksheet, lesson or source activity.');
+    }
     if (!candidate.source_page) issues.push('Confirm the source page used to create this question.');
     if (candidate.source_grounding_note.trim().length < 20) issues.push('The source-grounding note needs review.');
     if (candidate.learning_objective.trim().length < 10) issues.push('The learning objective needs review.');
@@ -313,6 +333,7 @@ export const findSavedTeacherQuestionPdfDrafts = async (
       : {};
     const extraction: TeacherQuestionPdfExtraction = {
       extractionId: draft.extractionId,
+      qualityRevision: Number(processingRequest.quality_revision || 1),
       model: typeof draft.model === 'string' ? draft.model : 'AI-assisted extraction',
       sourceSha256: typeof draft.sourceSha256 === 'string' ? draft.sourceSha256 : sourceSha256,
       sourceFileSize: Number(draft.sourceFileSize || file.size),
@@ -414,6 +435,7 @@ export const uploadAndExtractTeacherQuestionPdf = async (
 
   return {
     extractionId: payload.extractionId,
+    qualityRevision: Number(payload.qualityRevision || 1),
     model: payload.model || 'AI-assisted extraction',
     sourceSha256,
     sourceFileSize: Number(payload.sourceFileSize || file.size),
@@ -437,6 +459,16 @@ export const submitTeacherQuestionBatch = async (
   if (!questions.length || questions.length > MAX_TEACHER_QUESTION_BATCH_SIZE) {
     throw new Error('Submit between 1 and 50 reviewed questions.');
   }
+  const generatedQuestions = questions.filter((question) => question.candidate_origin === 'ai_generated_from_source');
+  const distinctAtomicSubskills = new Set(generatedQuestions
+    .map((question) => normalize(question.taxonomy_proposal.atomic_subskill_name))
+    .filter(Boolean));
+  if (generatedQuestions.length >= 8
+      && distinctAtomicSubskills.size >= 6
+      && distinctAtomicSubskills.size >= Math.ceil(generatedQuestions.length * 0.60)) {
+    throw new Error('The diagnostic mapping is too fragmented. Reuse a smaller set of stable subskills across related questions before submitting.');
+  }
+
   const fingerprints = new Set<string>();
   questions.forEach((question) => {
     const issues = getQuestionCandidateIssues(question);

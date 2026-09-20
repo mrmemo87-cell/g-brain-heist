@@ -34,6 +34,10 @@ const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   short_answer: 'Short answer',
 };
 const REVIEW_STORAGE_PREFIX = 'brains-heist:teacher-question-review:';
+interface SavedQuestionReviewEnvelope {
+  qualityRevision: number;
+  questions: TeacherQuestionBatchCandidate[];
+}
 
 const MODE_DETAILS: Record<TeacherPdfProcessingMode, { title: string; detail: string; icon: string }> = {
   extract: { title: 'Extract existing questions', detail: 'For question papers, worksheets and answer keys.', icon: 'EX' },
@@ -196,7 +200,11 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
   useEffect(() => {
     if (!extraction || !questions.length || result) return;
     try {
-      window.localStorage.setItem(`${REVIEW_STORAGE_PREFIX}${extraction.extractionId}`, JSON.stringify(questions));
+      const savedReview: SavedQuestionReviewEnvelope = {
+        qualityRevision: extraction.qualityRevision,
+        questions,
+      };
+      window.localStorage.setItem(`${REVIEW_STORAGE_PREFIX}${extraction.extractionId}`, JSON.stringify(savedReview));
     } catch (storageError) {
       console.warn('[teacher-question-pdf] Could not autosave review edits:', storageError);
     }
@@ -235,8 +243,17 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
     try {
       const savedReview = window.localStorage.getItem(`${REVIEW_STORAGE_PREFIX}${nextExtraction.extractionId}`);
       if (savedReview) {
-        const parsed = JSON.parse(savedReview) as TeacherQuestionBatchCandidate[];
-        if (Array.isArray(parsed) && parsed.length === nextExtraction.questions.length) sourceQuestions = parsed;
+        const parsed = JSON.parse(savedReview) as SavedQuestionReviewEnvelope | TeacherQuestionBatchCandidate[];
+        if (Array.isArray(parsed)) {
+          if (nextExtraction.qualityRevision <= 1 && parsed.length === nextExtraction.questions.length) {
+            sourceQuestions = parsed;
+          }
+        } else if (parsed
+          && parsed.qualityRevision === nextExtraction.qualityRevision
+          && Array.isArray(parsed.questions)
+          && parsed.questions.length === nextExtraction.questions.length) {
+          sourceQuestions = parsed.questions;
+        }
       }
     } catch (storageError) {
       console.warn('[teacher-question-pdf] Saved review could not be restored:', storageError);
