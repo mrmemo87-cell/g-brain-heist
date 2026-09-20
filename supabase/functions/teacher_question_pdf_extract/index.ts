@@ -1,5 +1,9 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
+import {
+  balanceGeneratedMultipleChoiceOptions,
+  hasBalancedGeneratedMultipleChoiceAnswers,
+} from "../_shared/teacherQuestionOptionBalance.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -319,6 +323,14 @@ const normalizeExtraction = (
     };
   });
 
+  const balanceSeed = questions
+    .map((question) => `${question.source_index}|${question.question_text}|${question.correct_answer}`)
+    .join("\n");
+  const balancedQuestions = balanceGeneratedMultipleChoiceOptions(questions, balanceSeed);
+  if (!hasBalancedGeneratedMultipleChoiceAnswers(balancedQuestions)) {
+    throw new Error("generated_mcq_answer_position_balance_failed");
+  }
+
   const detectedDocumentType = ["question_paper", "learning_material", "mixed", "unsupported"]
     .includes(String(payload.detected_document_type))
     ? String(payload.detected_document_type)
@@ -328,7 +340,7 @@ const normalizeExtraction = (
     document_type_confidence: clamp(payload.document_type_confidence, 0, 1, 0),
     document_title: String(payload.document_title || "Question paper").trim().slice(0, 240),
     document_summary: String(payload.document_summary || "Questions extracted for teacher review.").trim().slice(0, 1000),
-    questions,
+    questions: balancedQuestions,
   };
 };
 
@@ -576,6 +588,7 @@ serve(async (request) => {
         ? "Do not use facts that depend on an illustration, diagram or other visual. Use text evidence only."
         : "You may use visual evidence to understand the topic, but each student question must be fully self-contained in text. Set source_evidence_kind and describe the visual evidence for the reviewer.",
       "Create a useful spread across the requested question types and challenge level. Avoid trick questions, ambiguous distractors and simple wording changes that test the same fact repeatedly.",
+      "For created multiple-choice questions, vary option order naturally and do not use a fixed correct-answer position. The server will enforce balanced answer positions before teacher review.",
     ];
     const instructions = [
       ...sharedInstructions,
