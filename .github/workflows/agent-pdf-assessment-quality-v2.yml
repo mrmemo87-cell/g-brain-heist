@@ -1,0 +1,40 @@
+name: Validate PDF assessment quality v2
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: write
+jobs:
+  materialize-and-verify:
+    if: github.head_ref == 'fix/pdf-assessment-quality-v2'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/pdf-assessment-quality-v2
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Materialize assessment quality hardening
+        run: python3 scripts/patch_pdf_assessment_quality_v2.py
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run security:migrations
+      - run: npm test
+      - run: npm run build
+      - run: git diff --check
+      - name: Commit validated source
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          rm -rf dist-tests
+          git checkout origin/main -- dist-tests || true
+          rm -f scripts/patch_pdf_assessment_quality_v2.py .github/workflows/agent-pdf-assessment-quality-v2.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "Harden PDF assessment quality and diagnostic evidence"
+          git push
