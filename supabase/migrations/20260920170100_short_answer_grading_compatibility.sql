@@ -140,6 +140,12 @@ begin
             where saa.assignment_id = a.id
               and saa.student_id = v_student_id
           ),
+          'resume_pending_review_count', (
+            select count(*) filter (where saa.grading_status in ('under_review', 'reviewing'))::integer
+            from public.student_assignment_answers saa
+            where saa.assignment_id = a.id
+              and saa.student_id = v_student_id
+          ),
           'resume_score', (
             select coalesce(sum(
               case when saa.is_correct is true then
@@ -202,6 +208,28 @@ $function$;
 revoke all on function public.rpc_get_student_pending_assignments_v2()
   from public, anon;
 grant execute on function public.rpc_get_student_pending_assignments_v2()
+  to authenticated, service_role;
+
+create or replace function public.rpc_get_student_active_assignment_v2()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_pending jsonb;
+begin
+  v_pending := public.rpc_get_student_pending_assignments_v2();
+  if jsonb_typeof(v_pending) <> 'array' or jsonb_array_length(v_pending) = 0 then
+    return null;
+  end if;
+  return v_pending -> 0;
+end;
+$function$;
+
+revoke all on function public.rpc_get_student_active_assignment_v2()
+  from public, anon;
+grant execute on function public.rpc_get_student_active_assignment_v2()
   to authenticated, service_role;
 
 -- Legacy completed-answer readers are also prevented from revealing a pending

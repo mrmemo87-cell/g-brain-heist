@@ -35,7 +35,8 @@ test('programme requests are live, counted, and visible before a programme is pu
 test('Clan Wars and Lockdown Mode open their distinct workspaces', () => {
     assert.match(teacher, /setView\('clan-wars'\)/);
     assert.match(teacher, /<ClanTerritoryManager/);
-    assert.match(teacher, /onClick=\{onLockdown\}[\s\S]*?<h4 className="teacher-action-title">Lockdown Mode<\/h4>/);
+    assert.match(teacher, /if \(onLockdown\) \{[\s\S]*?onLockdown\(\);[\s\S]*?<h4 className="teacher-action-title">Lockdown Mode<\/h4>/);
+    assert.doesNotMatch(teacher, /Lockdown Mode opens[\s\S]{0,500}setView\('clan-wars'\)/);
     assert.match(app, /const LockdownManager = lazyRetry/);
     assert.match(app, /case 'lockdown':[\s\S]*?<LockdownManager/);
     assert.doesNotMatch(app, /case 'lockdown':[\s\S]{0,500}<ClanTerritoryManager/);

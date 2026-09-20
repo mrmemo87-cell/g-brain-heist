@@ -1,4 +1,4 @@
-import { QuestionRiskRoute } from "../features/lockdown/lockdownTypes";
+import { QuestionRiskRoute } from "../features/lockdown/lockdownTypes.js";
 export var QuestionDifficulty;
 (function (QuestionDifficulty) {
     QuestionDifficulty["EASY"] = "EASY";

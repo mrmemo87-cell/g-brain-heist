@@ -4,10 +4,10 @@ import test from 'node:test';
 const studio = readFileSync('components/school-admin/BillingStudio.tsx', 'utf8');
 const portal = readFileSync('components/SchoolAdminPortal.tsx', 'utf8');
 const styles = readFileSync('src/index.css', 'utf8');
-test('billing configuration starts monthly and preserves a reconcilable receipt hierarchy', () => {
-    assert.match(studio, /contractTerm: 'monthly'/);
-    assert.match(portal, /useState<'monthly' \| 'yearly'>\('monthly'\)/);
-    const totalPosition = studio.indexOf('>Total</strong>');
+test('billing configuration uses the annual contract baseline and preserves a reconcilable receipt hierarchy', () => {
+    assert.match(studio, /contractTerm: 'annual'/);
+    assert.match(studio, /quote\.contract_term === 'monthly' \? 'annual' : quote\.contract_term/);
+    const totalPosition = studio.indexOf('>Total before discounts</strong>');
     const discountsPosition = studio.indexOf('calculation.discounts.combination_bps');
     const toPayPosition = studio.indexOf('>To Pay</p>');
     assert.ok(totalPosition >= 0, 'receipt should show Total');

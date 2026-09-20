@@ -11,6 +11,7 @@ type AssignmentAnswerSubmission = {
   is_correct?: boolean | null;
   grading_status?: 'graded' | 'under_review' | 'reviewing';
   pending_review?: boolean;
+  points_earned?: number;
 };
 
 const withClient = (client?: RpcClient): RpcClient => client ?? supabase;
@@ -124,11 +125,11 @@ export const getStudentsForAssignment = (
 };
 
 export const getStudentActiveAssignment = (client?: RpcClient): RpcResult<unknown> => {
-  return execute('rpc_get_student_active_assignment', {}, client);
+  return execute('rpc_get_student_active_assignment_v2', {}, client);
 };
 
 export const getStudentPendingAssignments = (client?: RpcClient): RpcResult<unknown> => {
-  return execute('rpc_get_student_pending_assignments', {}, client);
+  return execute('rpc_get_student_pending_assignments_v2', {}, client);
 };
 
 export const submitAssignmentResult = (
@@ -145,8 +146,8 @@ export const submitAssignmentAnswer = async (
   const result = await execute<AssignmentAnswerSubmission>('rpc_submit_assignment_answer_v2', payload, client);
 
   if (!result.error && !client && result.data?.grading_status === 'under_review') {
-    const assignmentId = typeof payload.p_assignment_id === 'string' ? payload.p_assignment_id : null;
-    const questionId = typeof payload.p_question_id === 'string' ? payload.p_question_id : null;
+    const assignmentId = typeof payload['p_assignment_id'] === 'string' ? payload['p_assignment_id'] : null;
+    const questionId = typeof payload['p_question_id'] === 'string' ? payload['p_question_id'] : null;
     if (assignmentId && questionId) {
       void supabase.functions.invoke('assignment_short_answer_review', {
         body: { assignmentId, questionId },

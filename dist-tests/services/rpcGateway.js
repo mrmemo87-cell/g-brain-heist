@@ -60,16 +60,31 @@ export const getStudentsForAssignment = (payload, client) => {
     return execute('rpc_get_students_for_assignment', payload, client);
 };
 export const getStudentActiveAssignment = (client) => {
-    return execute('rpc_get_student_active_assignment', {}, client);
+    return execute('rpc_get_student_active_assignment_v2', {}, client);
 };
 export const getStudentPendingAssignments = (client) => {
-    return execute('rpc_get_student_pending_assignments', {}, client);
+    return execute('rpc_get_student_pending_assignments_v2', {}, client);
 };
 export const submitAssignmentResult = (payload, client) => {
-    return execute('rpc_submit_assignment_result', payload, client);
+    return execute('rpc_submit_assignment_result_v2', payload, client);
 };
-export const submitAssignmentAnswer = (payload, client) => {
-    return execute('rpc_submit_assignment_answer', payload, client);
+export const submitAssignmentAnswer = async (payload, client) => {
+    const result = await execute('rpc_submit_assignment_answer_v2', payload, client);
+    if (!result.error && !client && result.data?.grading_status === 'under_review') {
+        const assignmentId = typeof payload['p_assignment_id'] === 'string' ? payload['p_assignment_id'] : null;
+        const questionId = typeof payload['p_question_id'] === 'string' ? payload['p_question_id'] : null;
+        if (assignmentId && questionId) {
+            void supabase.functions.invoke('assignment_short_answer_review', {
+                body: { assignmentId, questionId },
+            }).then(({ error }) => {
+                if (error)
+                    console.warn('[short-answer-review] Background review dispatch failed:', error.message);
+            }).catch((error) => {
+                console.warn('[short-answer-review] Background review dispatch failed:', error);
+            });
+        }
+    }
+    return result;
 };
 export const teacherAssignmentReport = (payload, client) => {
     return execute('rpc_teacher_assignment_report', payload, client);
@@ -81,7 +96,7 @@ export const getAssignmentQuestionAnalysis = (payload, client) => {
     return execute('rpc_get_assignment_question_analysis', payload, client);
 };
 export const getStudentCompletedAssignments = (client) => {
-    return execute('rpc_get_student_completed_assignments', {}, client);
+    return execute('rpc_get_student_completed_assignments_v2', {}, client);
 };
 export const checkAssignmentAchievements = (userId, client) => {
     return execute('check_assignment_achievements', { p_user_id: userId }, client);
@@ -107,5 +122,5 @@ export const fetchRaidStatus = (raidId, client) => {
     return execute('get_raid_status', { p_raid_id: raidId }, client);
 };
 export const getMyAssignmentAnswers = (assignmentId, client) => {
-    return execute('rpc_get_my_assignment_answers', { p_assignment_id: assignmentId }, client);
+    return execute('rpc_get_my_assignment_answers_v2', { p_assignment_id: assignmentId }, client);
 };

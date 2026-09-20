@@ -166,6 +166,11 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                     <span className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1.5 font-bold text-slate-300">Commander Level {lobby.activeBattle.opponent_level}</span>
+                    {lobby.activeBattle.opponent_elixir && (
+                      <span className="rounded-full border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-1.5 font-black text-fuchsia-100">
+                        ⚗ Frozen boost · {lobby.activeBattle.opponent_elixir.name} · +{lobby.activeBattle.opponent_elixir.boostRanks} {lobby.activeBattle.opponent_elixir.statKey === 'omni' ? 'ALL SKILLS' : lobby.activeBattle.opponent_elixir.statKey.toUpperCase()}
+                      </span>
+                    )}
                     <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1.5 font-black text-amber-200">Time remaining · {formatRemaining(activeRemainingMs)}</span>
                   </div>
                 </div>
@@ -270,6 +275,13 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
                         <strong className="mt-1 block truncate text-slate-100">{target.archer_name}</strong>
                       </div>
                     </div>
+
+                    {target.active_elixir && (
+                      <div className="mt-2 rounded-xl border border-fuchsia-300/25 bg-fuchsia-400/[0.07] px-3 py-2">
+                        <span className="block text-[9px] font-black tracking-[0.12em] text-fuchsia-300">ACTIVE COMBAT ELIXIR</span>
+                        <strong className="mt-1 block text-xs text-fuchsia-50">⚗ {target.active_elixir.name} · +{target.active_elixir.boostRanks} {target.active_elixir.statKey === 'omni' ? 'ALL SKILLS' : target.active_elixir.statKey.toUpperCase()}</strong>
+                      </div>
+                    )}
 
                     <button
                       type="button"

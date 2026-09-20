@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 const migration = readFileSync('supabase/migrations/20260817140000_evidence_led_intervention_workspace.sql', 'utf8');
 const service = readFileSync('services/studentInterventionService.ts', 'utf8');
-const page = readFileSync('components/student-progress/TeacherInterventionIntelligencePage.tsx', 'utf8');
+const page = readFileSync('components/student-progress/TeacherInterventionIntelligencePageV2.tsx', 'utf8');
 // This contract also runs in the Vercel preview build before the workspace is promoted.
 test('professional evidence reviews are append-only and fail closed', () => {
     assert.match(migration, /create table if not exists public\.student_learning_professional_reviews/i);
@@ -39,9 +39,9 @@ test('teacher UI explains evidence, decisions, plan action and follow-up', () =>
     assert.match(service, /rpc_teacher_student_intervention_workspace_v2/i);
     assert.match(service, /rpc_teacher_review_learning_focus_evidence/i);
     assert.match(service, /rpc_teacher_create_learning_intervention_v3/i);
-    assert.match(page, /What specifically needs attention/i);
-    assert.match(page, /Review exact evidence/i);
-    assert.match(page, /What the teacher will do/i);
-    assert.match(page, /What will count as follow-up evidence/i);
+    assert.match(page, /What specifically needs support/i);
+    assert.match(page, /Review evidence/i);
+    assert.match(page, /Practice action/i);
+    assert.match(page, /Independent check/i);
     assert.match(page, /modal-error/i);
 });

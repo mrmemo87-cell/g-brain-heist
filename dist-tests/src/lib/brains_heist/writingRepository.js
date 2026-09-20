@@ -128,7 +128,15 @@ export const loadWritingStoreSnapshot = async (options = {}) => {
             })();
             return [[`${row.student_id}::${inferredGenre}`, statePayload]];
         }),
-        attempts: attemptRows.map((row) => row.payload),
+        attempts: attemptRows.map((row) => ({
+            ...(row?.payload && typeof row.payload === 'object' && !Array.isArray(row.payload) ? row.payload : {}),
+            // The database column is the academic-year authority. Keep it in the
+            // hydrated in-memory attempt so the UI does not have to infer year from
+            // dates (important during pre-term rollover windows).
+            academic_year_id: typeof row?.academic_year_id === 'string'
+                ? row.academic_year_id
+                : (typeof row?.payload?.academic_year_id === 'string' ? row.payload.academic_year_id : null),
+        })),
         weeklyPlans: weeklyRows.map((row) => row.payload),
         dailyTasks: taskRows.map((row) => row.payload),
         dailySubmissions: submissionRows.map((row) => row.payload),
@@ -234,12 +242,20 @@ const replaceTableByKey = async (table, rows, key) => {
 const upsertWritingAttempts = async (rows) => {
     if (!rows.length)
         return;
-    const payloadRows = rows
-        .filter((payload) => Boolean(readKey(payload, 'id')))
-        .map((payload) => ({
-        attempt_key: readKey(payload, 'id'),
-        payload: safe(payload),
-    }));
+    const payloadByAttemptKey = new Map();
+    rows.forEach((payload) => {
+        const attemptKey = readKey(payload, 'id');
+        if (!attemptKey)
+            return;
+        // The in-memory writing history can temporarily contain duplicate copies of
+        // the same attempt while feedback is enriched. Postgres rejects duplicate
+        // conflict keys within one UPSERT, so keep the latest payload per attempt.
+        payloadByAttemptKey.set(attemptKey, {
+            attempt_key: attemptKey,
+            payload: safe(payload),
+        });
+    });
+    const payloadRows = [...payloadByAttemptKey.values()];
     if (!payloadRows.length)
         return;
     const upsertRes = await supabase

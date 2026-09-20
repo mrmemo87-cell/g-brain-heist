@@ -241,7 +241,7 @@ export const openProfessionalWritingReport = (report, options) => {
     const schoolId = report.institution?.school_id;
     if (schoolId) {
         const fileName = schoolDocumentFileName(report.institution?.school_name, report.student.student_name, 'Writing_Report', report.period);
-        void import('../../../services/supabaseClient').then(({ supabase }) => supabase.from('school_document_records').insert({
+        void import('../../../services/supabaseClient.js').then(({ supabase }) => supabase.from('school_document_records').insert({
             school_id: schoolId,
             document_id: documentId,
             template_key: 'writing-report',

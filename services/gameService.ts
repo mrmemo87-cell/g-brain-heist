@@ -5675,6 +5675,8 @@ export const create_assignment = async (
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
+        p_assignment_category: payload.assignment_category ?? null,
+        p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
         p_student_ids: payload.student_ids ?? null,
         p_publish_status: payload.publish_status ?? 'published',
@@ -5691,6 +5693,34 @@ export const create_assignment = async (
     return assignment;
 };
 
+type AssignmentCategoryContextRow = {
+    assignment_id: string;
+    assignment_category?: TeacherAssignmentSummary['assignment_category'];
+    academic_year_id?: string | null;
+    academic_term_id?: string | null;
+    class_id?: string | null;
+};
+
+const mergeAssignmentCategoryContext = <T extends { assignment_id?: string; id?: string }>(
+    assignments: T[],
+    contextRows: AssignmentCategoryContextRow[]
+): T[] => {
+    const context = new Map(contextRows.map((row) => [row.assignment_id, row]));
+    return assignments.map((assignment) => {
+        const assignmentId = assignment.assignment_id || assignment.id;
+        const extra = assignmentId ? context.get(assignmentId) : undefined;
+        return extra ? { ...assignment, ...extra } : assignment;
+    });
+};
+
+const enrichStudentAssignmentsWithCategoryContext = async <T extends StudentAssignmentTask>(assignments: T[]): Promise<T[]> => {
+    const ids = assignments.map((assignment) => assignment.assignment_id).filter(Boolean);
+    if (!ids.length) return assignments;
+    const { data, error } = await supabase.rpc('rpc_my_assignment_category_context', { p_assignment_ids: ids });
+    if (error) throw new Error(error.message || 'Failed to load assignment category context');
+    return mergeAssignmentCategoryContext(assignments, (data as AssignmentCategoryContextRow[]) || []) as T[];
+};
+
 export const get_teacher_assignments = async (teacherId?: string): Promise<TeacherAssignmentSummary[]> => {
     let resolvedTeacherId = teacherId;
     if (!resolvedTeacherId) {
@@ -5702,7 +5732,10 @@ export const get_teacher_assignments = async (teacherId?: string): Promise<Teach
     const { data, error } = await rpcGetAssignmentsForTeacher({ p_teacher_id: resolvedTeacherId });
     if (error) throw new Error(error.message || 'Failed to load assignments');
 
-    return (data as TeacherAssignmentSummary[]) || [];
+    const assignments = (data as TeacherAssignmentSummary[]) || [];
+    const { data: contextData, error: contextError } = await supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId });
+    if (contextError) throw new Error(contextError.message || 'Failed to load assignment category context');
+    return mergeAssignmentCategoryContext(assignments, (contextData as AssignmentCategoryContextRow[]) || []) as TeacherAssignmentSummary[];
 };
 
 export const delete_teacher_assignment = async (assignmentId: string): Promise<void> => {
@@ -5736,6 +5769,8 @@ export const update_teacher_assignment = async (
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
+        p_assignment_category: payload.assignment_category ?? null,
+        p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
         p_student_ids: payload.student_ids ?? null,
         p_publish_status: payload.publish_status ?? 'published',
@@ -5832,10 +5867,11 @@ export const get_student_active_assignment = async (): Promise<StudentAssignment
         }
     }
 
-    return {
+    const enriched = await enrichStudentAssignmentsWithCategoryContext([{
         ...parsedRow,
         questions: normalizedQuestions,
-    };
+    }]);
+    return enriched[0] || null;
 };
 
 // ── Brains Master Premium ─────────────────────────────────────────────
@@ -5879,7 +5915,7 @@ export const get_student_pending_assignments = async (): Promise<StudentAssignme
         return [];
     }
 
-    return rows.map((row) => {
+    const normalizedAssignments = rows.map((row) => {
         const parsedRow = row as StudentAssignmentTask;
         const normalizedQuestions = ((parsedRow.questions ?? []) as TeacherQuestion[]).map(normalizeTeacherQuestionPayload);
         return {
@@ -5887,14 +5923,29 @@ export const get_student_pending_assignments = async (): Promise<StudentAssignme
             questions: normalizedQuestions,
         };
     });
+    return enrichStudentAssignmentsWithCategoryContext(normalizedAssignments);
 };
 
 export type AssignmentSubmissionResult = {
     status: 'submitted' | 'already_submitted';
+    correct?: number;
+    incorrect?: number;
+    pendingReviewCount?: number;
+    confirmedQuestionCount?: number;
+    accuracy?: number;
+    score?: number;
+    gradingStatus?: 'final' | 'pending_review';
+};
+
+export type AssignmentAnswerSubmissionResult = {
+    isCorrect: boolean | null;
+    gradingStatus: 'graded' | 'under_review' | 'reviewing';
+    pendingReview: boolean;
+    pointsEarned: number;
 };
 
 export const submit_assignment_result = async (payload: AssignmentResultInput): Promise<AssignmentSubmissionResult> => {
-    const { error } = await rpcSubmitAssignmentResult({
+    const { data, error } = await rpcSubmitAssignmentResult({
         p_assignment_id: payload.assignmentId,
         p_correct: payload.correct,
         p_incorrect: payload.incorrect,
@@ -5920,7 +5971,17 @@ export const submit_assignment_result = async (payload: AssignmentResultInput): 
         throw new Error(message);
     }
 
-    return { status: 'submitted' };
+    const result = (data || {}) as Record<string, unknown>;
+    return {
+        status: 'submitted',
+        correct: Number.isFinite(Number(result['correct'])) ? Number(result['correct']) : undefined,
+        incorrect: Number.isFinite(Number(result['incorrect'])) ? Number(result['incorrect']) : undefined,
+        pendingReviewCount: Number.isFinite(Number(result['pending_review_count'])) ? Number(result['pending_review_count']) : undefined,
+        confirmedQuestionCount: Number.isFinite(Number(result['confirmed_question_count'])) ? Number(result['confirmed_question_count']) : undefined,
+        accuracy: Number.isFinite(Number(result['accuracy'])) ? Number(result['accuracy']) : undefined,
+        score: Number.isFinite(Number(result['score'])) ? Number(result['score']) : undefined,
+        gradingStatus: result['grading_status'] === 'pending_review' ? 'pending_review' : 'final',
+    };
 };
 
 export const get_teacher_assignment_report = async (
@@ -5987,8 +6048,8 @@ export const get_all_assignment_reports = async (
  * Submit an individual student answer for an assignment question.
  * This enables detailed analysis for teachers.
  */
-export const submit_assignment_answer = async (payload: StudentAnswerInput): Promise<void> => {
-    const { error } = await rpcSubmitAssignmentAnswer({
+export const submit_assignment_answer = async (payload: StudentAnswerInput): Promise<AssignmentAnswerSubmissionResult> => {
+    const { data, error } = await rpcSubmitAssignmentAnswer({
         p_assignment_id: payload.assignmentId,
         p_question_id: payload.questionId,
         p_question_text: payload.questionText,
@@ -6000,8 +6061,22 @@ export const submit_assignment_answer = async (payload: StudentAnswerInput): Pro
 
     if (error) {
         console.error('Failed to submit assignment answer:', error);
-        // Don't throw - this is a non-critical tracking feature
+        throw new Error(error.message || 'Failed to save assignment answer');
     }
+
+    const result = (data || {}) as Record<string, unknown>;
+    const isCorrect = typeof result['is_correct'] === 'boolean' ? result['is_correct'] : null;
+    const gradingStatus = result['grading_status'] === 'under_review'
+        ? 'under_review'
+        : result['grading_status'] === 'reviewing'
+            ? 'reviewing'
+            : 'graded';
+    return {
+        isCorrect,
+        gradingStatus,
+        pendingReview: result['pending_review'] === true || gradingStatus !== 'graded',
+        pointsEarned: Math.max(0, Number(result['points_earned']) || 0),
+    };
 };
 
 /**
@@ -6061,7 +6136,7 @@ export const get_student_completed_assignments = async (): Promise<CompletedAssi
     return ((data as any[]) || []).map((a) => ({
         ...a,
         id: a.assignment_id, // Alias for React key
-        total_questions: (a.correct || 0) + (a.incorrect || 0)
+        total_questions: (a.correct || 0) + (a.incorrect || 0) + (a.pending_review_count || 0)
     })) as CompletedAssignment[];
 };
 

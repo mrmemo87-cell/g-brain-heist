@@ -1,6 +1,6 @@
-import { supabase } from "../../services/supabaseClient";
-import { applyAction, createInitialGameState } from "../features/lockdown/lockdownEngine";
-import { buildRoomSettings } from "../features/lockdown/defaultRoomSettings";
+import { supabase } from "../../services/supabaseClient.js";
+import { applyAction, createInitialGameState } from "../features/lockdown/lockdownEngine.js";
+import { buildRoomSettings } from "../features/lockdown/defaultRoomSettings.js";
 export class SupabaseLockdownTransport {
     constructor() {
         this.channel = null;

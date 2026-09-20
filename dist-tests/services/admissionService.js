@@ -3,8 +3,8 @@
  * Handles all Supabase interactions for the admission testing system.
  * Uses the adm_* tables and rpc_adm_* RPCs created by ADM_SCHEMA_MIGRATION.sql / ADM_RPCS.sql.
  */
-import { supabase } from './supabaseClient';
-import { calculateDiagnosticBreakdown, calculatePlacementRecommendation, deriveAdmissionSubject } from '../src/lib/admissionPlacementIntelligence';
+import { supabase } from './supabaseClient.js';
+import { calculateDiagnosticBreakdown, calculatePlacementRecommendation, deriveAdmissionSubject } from '../src/lib/admissionPlacementIntelligence.js';
 export const SUBJECT_META = {
     english: { label: 'English', icon: '📖', color: 'cyan', poolFile: 'english_stage9_pool.json', pools: { 7: 'english_stage7_pool.json', 8: 'english_stage8_pool.json', 9: 'english_stage9_pool.json' } },
     math: { label: 'Mathematics', icon: '🔢', color: 'violet', poolFile: 'math_stage9_pool.json' },
@@ -197,7 +197,7 @@ export async function deleteAttempt(attemptId) {
         throw error;
 }
 // ── Test Form CRUD + RPCs ──
-export { CURRENT_ADMISSION_SUBJECTS, normalizeAdmissionSubjectKey, getAdmissionFormSubjectFromCode, getAdmissionFormGrade, getAdmissionFormSubject, isCurrentManagedAdmissionForm, getCurrentAdmissionPackageForms } from '../src/lib/admissionCurrentPackageForms';
+export { CURRENT_ADMISSION_SUBJECTS, normalizeAdmissionSubjectKey, getAdmissionFormSubjectFromCode, getAdmissionFormGrade, getAdmissionFormSubject, isCurrentManagedAdmissionForm, getCurrentAdmissionPackageForms } from '../src/lib/admissionCurrentPackageForms.js';
 export async function fetchTestForms(schoolId) {
     const { data, error } = await supabase
         .from('adm_test_forms')

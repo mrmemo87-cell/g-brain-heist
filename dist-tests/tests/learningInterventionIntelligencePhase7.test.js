@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 const migration = readFileSync('supabase/migrations/20260809177000_learning_intervention_intelligence.sql', 'utf8');
-const page = readFileSync('components/student-progress/TeacherInterventionIntelligencePage.tsx', 'utf8');
+const page = readFileSync('components/student-progress/TeacherInterventionIntelligencePageV2.tsx', 'utf8');
 const vite = readFileSync('vite.config.ts', 'utf8');
 test('intervention recommendations are driven by current longitudinal focus state', () => {
     assert.match(migration, /student_learning_focus_states/i);
@@ -14,7 +14,7 @@ test('intervention recommendations are driven by current longitudinal focus stat
 test('stale focus areas are reassessed instead of assumed to remain weak', () => {
     assert.match(migration, /days_since_evidence>=60 then 'reassessment'/i);
     assert.match(migration, /Reassess before assuming the difficulty is still current/i);
-    assert.match(page, /Collect more assessed evidence/i);
+    assert.match(page, /More assessed evidence is required before intervention/i);
 });
 test('recommendations use real available question content and writing-specific practice', () => {
     assert.match(migration, /from public\.questions q/i);
@@ -36,10 +36,10 @@ test('teachers can create plans only inside active subject scope', () => {
     assert.match(migration, /student_learning_can_manage_intervention/i);
 });
 test('teacher intervention UI supports recommendation to tracked outcome', () => {
-    assert.match(page, /Evidence-led intervention queue/i);
-    assert.match(page, /Build support plan/i);
+    assert.match(page, /Needs attention/i);
+    assert.match(page, /Create targeted practice/i);
     assert.match(page, /Start plan/i);
-    assert.match(page, /Evaluate follow-up & record outcome/i);
-    assert.match(page, /evidence baseline will be frozen and hashed/i);
+    assert.match(page, /Check progress/i);
+    assert.match(page, /Technical record/i);
     assert.match(vite, /teacherInterventions:\s*path\.resolve\(__dirname, 'teacher-interventions\.html'\)/i);
 });

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 const rpc = readFileSync('supabase/migrations/20260809174000_student_academic_profile_rpc.sql', 'utf8');
-const profile = readFileSync('components/student-progress/StudentAcademicProfile.tsx', 'utf8');
+const profile = readFileSync('components/student-progress/StudentAcademicProfileV2.tsx', 'utf8');
 const report = readFileSync('components/student-progress/AcademicReportBuilder.tsx', 'utf8');
 const service = readFileSync('services/studentAcademicProfileService.ts', 'utf8');
 const vite = readFileSync('vite.config.ts', 'utf8');
@@ -21,13 +21,13 @@ test('academic profile returns one report-safe contract for subjects, assignment
     assert.match(service, /StudentAcademicProfile/i);
 });
 test('teacher and student profile UI contains the longitudinal academic sections', () => {
-    assert.match(profile, /Subject breakdown/i);
-    assert.match(profile, /Persistent and recurring focus/i);
-    assert.match(profile, /Strengths and improvement/i);
-    assert.match(profile, /Assignment marks and grades/i);
-    assert.match(profile, /Progress timeline/i);
+    assert.match(profile, /Subject picture/i);
+    assert.match(profile, /What should we work on/i);
+    assert.match(profile, /Progress and strengths/i);
+    assert.match(profile, /Assignment results/i);
+    assert.match(profile, /Learning trends/i);
     assert.match(profile, /Generate individual report/i);
-    assert.match(profile, /one low result does not automatically become a persistent weakness/i);
+    assert.match(profile, /A recent assessed need[\s\S]*is not called persistent yet/i);
 });
 test('individual report is explicit about evidence accuracy and missing work', () => {
     assert.match(report, /Missing evidence will be disclosed as “not assessed,” never/i);
