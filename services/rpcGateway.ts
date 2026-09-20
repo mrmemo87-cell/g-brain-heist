@@ -6,6 +6,14 @@ type RpcResult<T> = Promise<{ data: T; error: { message?: string } | null }>;
 
 type NotificationParams = Record<string, unknown>;
 
+type AssignmentAnswerSubmission = {
+  success?: boolean;
+  is_correct?: boolean | null;
+  grading_status?: 'graded' | 'under_review' | 'reviewing';
+  pending_review?: boolean;
+  points_earned?: number;
+};
+
 const withClient = (client?: RpcClient): RpcClient => client ?? supabase;
 
 const execute = <T>(name: string, params: Record<string, unknown>, client?: RpcClient): RpcResult<T> => {
@@ -117,25 +125,41 @@ export const getStudentsForAssignment = (
 };
 
 export const getStudentActiveAssignment = (client?: RpcClient): RpcResult<unknown> => {
-  return execute('rpc_get_student_active_assignment', {}, client);
+  return execute('rpc_get_student_active_assignment_v2', {}, client);
 };
 
 export const getStudentPendingAssignments = (client?: RpcClient): RpcResult<unknown> => {
-  return execute('rpc_get_student_pending_assignments', {}, client);
+  return execute('rpc_get_student_pending_assignments_v2', {}, client);
 };
 
 export const submitAssignmentResult = (
   payload: Record<string, unknown>,
   client?: RpcClient
 ): RpcResult<unknown> => {
-  return execute('rpc_submit_assignment_result', payload, client);
+  return execute('rpc_submit_assignment_result_v2', payload, client);
 };
 
-export const submitAssignmentAnswer = (
+export const submitAssignmentAnswer = async (
   payload: Record<string, unknown>,
   client?: RpcClient
-): RpcResult<unknown> => {
-  return execute('rpc_submit_assignment_answer', payload, client);
+): RpcResult<AssignmentAnswerSubmission> => {
+  const result = await execute<AssignmentAnswerSubmission>('rpc_submit_assignment_answer_v2', payload, client);
+
+  if (!result.error && !client && result.data?.grading_status === 'under_review') {
+    const assignmentId = typeof payload['p_assignment_id'] === 'string' ? payload['p_assignment_id'] : null;
+    const questionId = typeof payload['p_question_id'] === 'string' ? payload['p_question_id'] : null;
+    if (assignmentId && questionId) {
+      void supabase.functions.invoke('assignment_short_answer_review', {
+        body: { assignmentId, questionId },
+      }).then(({ error }) => {
+        if (error) console.warn('[short-answer-review] Background review dispatch failed:', error.message);
+      }).catch((error) => {
+        console.warn('[short-answer-review] Background review dispatch failed:', error);
+      });
+    }
+  }
+
+  return result;
 };
 
 export const teacherAssignmentReport = (
@@ -162,7 +186,7 @@ export const getAssignmentQuestionAnalysis = (
 export const getStudentCompletedAssignments = (
   client?: RpcClient
 ): RpcResult<unknown> => {
-  return execute('rpc_get_student_completed_assignments', {}, client);
+  return execute('rpc_get_student_completed_assignments_v2', {}, client);
 };
 
 export const checkAssignmentAchievements = (
@@ -217,5 +241,5 @@ export const getMyAssignmentAnswers = (
   assignmentId: string,
   client?: RpcClient
 ): RpcResult<unknown> => {
-  return execute('rpc_get_my_assignment_answers', { p_assignment_id: assignmentId }, client);
+  return execute('rpc_get_my_assignment_answers_v2', { p_assignment_id: assignmentId }, client);
 };

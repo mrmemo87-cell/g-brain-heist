@@ -15,6 +15,7 @@ import type {
   CommanderPracticeMove,
 } from '../../../services/commanderPracticeService';
 import CommanderCinematicBattlefield, { type CommanderPlaybackPhase } from './CommanderCinematicBattlefield';
+import CommanderPvpElixirStatus from './CommanderPvpElixirStatus';
 import {
   applyCommanderCinematicStep,
   buildCommanderCinematicSteps,
@@ -220,13 +221,12 @@ const CommanderPvpArena: React.FC<Props> = ({ launch, onClose }) => {
     try {
       if (soundOn) void unlockCommanderAudio();
       stopCommanderAudio();
-      const [next] = await Promise.all([
-        launch.battleId
-          ? resumeCommanderPvp(launch.battleId, controller.signal)
-          : startCommanderPvp(launch.userId, controller.signal),
-        preloadCommanderSpriteAssets(),
-        preloadCommanderAudio(),
-      ]);
+      const next = await (launch.battleId
+        ? resumeCommanderPvp(launch.battleId, controller.signal)
+        : startCommanderPvp(launch.userId, controller.signal));
+      // Asset warming is best-effort. Never hold battle entry behind mobile image decode/network latency.
+      void preloadCommanderSpriteAssets();
+      void preloadCommanderAudio();
       if (controller.signal.aborted) return;
       setSession(next);
       reconcile(next.battle);
@@ -334,6 +334,7 @@ const CommanderPvpArena: React.FC<Props> = ({ launch, onClose }) => {
           )}
 
           {session && <p className="rounded-xl border border-cyan-400/20 bg-cyan-400/5 px-3 py-2 text-xs text-cyan-100">Battle ID {session.battleId.slice(0, 8)} · Defender snapshot locked when this battle started · Equipment changes apply to your next battle.</p>}
+          {session && <CommanderPvpElixirStatus battleId={session.battleId} />}
 
           {assetsReady && session && battle && (
             <>

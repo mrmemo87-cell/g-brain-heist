@@ -13,7 +13,7 @@ test('Commander headquarters uses the command-center presentation and real loado
   assert.match(source, /commanderHeadquartersCommandCenter\.css/);
   assert.match(source, /COMMANDER_VFX\.headquarters/);
   assert.match(source, /getCommanderRecruitIdentity/);
-  assert.match(source, /sprite\(item\.slot, item\.id\)/);
+  assert.match(source, /sprite\(slot, catalogId\)/);
   assert.match(source, /loadout\?\.units\[0\]\?\.catalogId/);
   assert.match(source, /loadout\?\.units\[1\]\?\.school/);
   assert.match(source, /Manage Army/);

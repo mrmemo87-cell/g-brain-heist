@@ -2,15 +2,27 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
+const portalShell = readFileSync('components/TeacherPortalShell.tsx', 'utf8');
 const service = readFileSync('services/gameService.ts', 'utf8');
 const migration = readFileSync('supabase/migrations/20260726024030_teacher_assignment_success_summary.sql', 'utf8');
+const currentYearMigration = readFileSync('supabase/migrations/20260828063451_teacher_dashboard_current_year_metrics.sql', 'utf8');
 test('teacher dashboard uses submitted assignments for success metrics', () => {
     assert.match(portal, /get_teacher_assignment_success_summary\(\)/);
     assert.match(portal, /assignmentSuccess\?\.submission_count/);
-    assert.match(portal, /Assignment Success/);
     assert.match(portal, /answered_question_count/);
     assert.doesNotMatch(portal, /myQuestions\.reduce\(\(sum, q\) => sum \+ \(q\.times_correct/);
     assert.match(service, /rpcGetTeacherAssignmentSuccessSummary\(\)/);
+});
+test('teacher dashboard presents current-year assignment metrics with accurate labels', () => {
+    assert.match(portalShell, /rpc_teacher_assignment_success_summary/);
+    assert.match(portalShell, /Active Assignments/);
+    assert.match(portalShell, /total assignments/);
+    assert.match(portalShell, /Completed Submissions/);
+    assert.match(portalShell, /Student submissions received/);
+    assert.match(portalShell, /Answer Accuracy/);
+    assert.match(portalShell, /accuracy\.toFixed\(1\)/);
+    assert.match(portalShell, /Intl\.NumberFormat/);
+    assert.match(portalShell, /answers correct/);
 });
 test('assignment success RPC is scoped to the authenticated teacher', () => {
     assert.match(migration, /security definer/i);
@@ -22,4 +34,17 @@ test('assignment success RPC is scoped to the authenticated teacher', () => {
     assert.match(migration, /legacy_quarantined_assignment_students/i);
     assert.match(migration, /revoke all on function public\.rpc_teacher_assignment_success_summary\(\) from public/i);
     assert.match(migration, /grant execute on function public\.rpc_teacher_assignment_success_summary\(\) to authenticated/i);
+});
+test('teacher dashboard summary is limited to the current school academic year', () => {
+    assert.match(currentYearMigration, /join current_teacher t on t\.id = a\.teacher_id/i);
+    assert.match(currentYearMigration, /join public\.school_academic_years y/i);
+    assert.match(currentYearMigration, /y\.id = a\.academic_year_id/i);
+    assert.match(currentYearMigration, /y\.school_id = a\.school_id/i);
+    assert.match(currentYearMigration, /y\.status = 'current'/i);
+    assert.match(currentYearMigration, /'assignment_count', a\.assignment_count/i);
+    assert.match(currentYearMigration, /'active_assignment_count', a\.active_assignment_count/i);
+    assert.match(currentYearMigration, /legacy_quarantined_assignment_students/i);
+    assert.match(currentYearMigration, /revoke all on function public\.rpc_teacher_assignment_success_summary\(\) from public/i);
+    assert.match(currentYearMigration, /revoke all on function public\.rpc_teacher_assignment_success_summary\(\) from anon/i);
+    assert.match(currentYearMigration, /grant execute on function public\.rpc_teacher_assignment_success_summary\(\) to authenticated/i);
 });

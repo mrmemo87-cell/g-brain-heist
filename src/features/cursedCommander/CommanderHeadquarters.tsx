@@ -23,10 +23,11 @@ import CommanderPvpArena from "./CommanderPvpArena";
 import CommanderUnitTrainingPanel from "./CommanderUnitTrainingPanel";
 import CommanderFormationPanel from "./CommanderFormationPanel";
 import CommanderCatalogCards from "./CommanderCatalogCards";
+import CommanderElixirsPanel from "./CommanderElixirsPanel";
 import "./commanderHeadquarters.css";
 import "./commanderHeadquartersCommandCenter.css";
 
-type Tab = "overview" | "army" | "armory" | "training" | "records";
+type Tab = "overview" | "army" | "armory" | "training" | "supplies" | "records";
 type Choice = {
   operation: CommanderOperation;
   target: string | null;
@@ -41,6 +42,7 @@ const tabs: Array<[Tab, string]> = [
   ["army", "Army"],
   ["armory", "Armory"],
   ["training", "Training"],
+  ["supplies", "Supplies"],
   ["records", "Records"],
 ];
 
@@ -125,6 +127,14 @@ const TabIcon = ({ tab }: { tab: Tab }) => {
       <svg viewBox="0 0 24 24" aria-hidden>
         <path d="M5 18 18 5M11 5h7v7" />
         <path d="M5 12v6h6" />
+      </svg>
+    );
+  }
+  if (tab === "supplies") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="M9 3h6M10 3v6l-5 8c-1 2 .4 4 2.8 4h8.4c2.4 0 3.8-2 2.8-4l-5-8V3" />
+        <path d="M7.5 15h9" />
       </svg>
     );
   }
@@ -751,7 +761,7 @@ export default function CommanderHeadquarters({
               <div className="cc-command-subpage-banner">
                 <button className="cc-command-back-overview" onClick={() => selectTab("overview")}>← Headquarters</button>
                 <span>{hq.campaign.title}</span>
-                <span>{format(coins)} Coins</span>
+                <span>{tab === "supplies" ? "Gemstones only" : `${format(coins)} Coins`}</span>
               </div>
 
               {choice && (
@@ -900,6 +910,10 @@ export default function CommanderHeadquarters({
                   </>
                 )}
 
+                {tab === "supplies" && (
+                  <CommanderElixirsPanel disabled={unavailable || !p} />
+                )}
+
                 {tab === "records" && (
                   <>
                     <div className="cc-hq-section-title">
@@ -957,7 +971,7 @@ export default function CommanderHeadquarters({
 
           <footer className="cc-hq-footer cc-command-footer">
             <span>DISCIPLINE BUILDS LEGENDS.</span>
-            <span>Practice is safe · Player Battles record the result · Unit development and Formation Command are server-authoritative · No Commander PvP Coin or account XP transfer.</span>
+            <span>Practice is safe · Player Battles record the result · Unit development, Formation Command, and Elixirs are server-authoritative · No Commander PvP Coin or account XP transfer.</span>
           </footer>
         </>
       )}

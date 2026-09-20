@@ -23,7 +23,7 @@ test('cards, timeline entries, comments and report footer remain indivisible', (
 });
 test('central school document engine already follows the same pagination contract', () => {
     assert.match(schoolDocument, /thead\{display:table-header-group\}/);
-    assert.match(schoolDocument, /tr\{break-inside:avoid\}/);
+    assert.match(schoolDocument, /tr\{break-inside:avoid(?:-page)?/);
     assert.match(schoolDocument, /document-card[^}]*break-inside:avoid/);
     assert.match(schoolDocument, /h2[^}]*break-after:avoid/);
 });

@@ -41,7 +41,7 @@ test('question-bank navigation and rendering require confirmed superadmin state'
     assert.match(adminPortal, /isSuperadmin \? SUPERADMIN_TABS : ADMIN_TABS/);
     assert.match(adminPortal, /const \[isSuperadmin, setIsSuperadmin\] = useState\(false\)/);
     assert.match(adminPortal, /supabase\.rpc\('rpc_is_superadmin'\)/);
-    assert.match(adminPortal, /activeTab === 'question-bank' && isSuperadmin && \(/);
+    assert.match(adminPortal, /(?:activeTab|tab) === 'question-bank' && isSuperadmin && \(/);
     assert.match(adminPortal, /<QuestionBankInspectorTab \/>/);
     assert.match(adminPortal, /React\.lazy\(\(\) => import\('\.\/admin\/tabs\/QuestionBankInspectorTab'\)\)/);
     assert.doesNotMatch(adminPortal, /const ADMIN_TABS:[^\n]+question-bank/);

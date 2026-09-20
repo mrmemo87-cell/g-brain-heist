@@ -58,6 +58,7 @@ export interface TeacherQuestionBatchCandidate {
   question_text: string;
   options: string[];
   correct_answer: string;
+  accepted_answers: string[];
   explanation: string;
   time_limit: number;
   points: number;
@@ -197,6 +198,9 @@ const candidateFromPayload = (value: unknown, index: number): TeacherQuestionBat
       : 0,
     learning_objective: candidate.learning_objective || '',
     options: Array.isArray(candidate.options) ? candidate.options : [],
+    accepted_answers: Array.isArray(candidate.accepted_answers)
+      ? candidate.accepted_answers.map((answer) => String(answer).trim()).filter(Boolean).slice(0, 12)
+      : candidate.correct_answer?.trim() ? [candidate.correct_answer.trim()] : [],
     eligible_grade_levels: Array.isArray(candidate.eligible_grade_levels)
       ? candidate.eligible_grade_levels
       : [],
@@ -224,6 +228,7 @@ export const questionCandidateFingerprint = (candidate: TeacherQuestionBatchCand
   candidate.topic,
   candidate.question_text,
   candidate.correct_answer,
+  ...candidate.accepted_answers,
   ...candidate.options,
 ].map(normalize).join('|');
 
@@ -236,6 +241,15 @@ export const getQuestionCandidateIssues = (candidate: TeacherQuestionBatchCandid
   if (candidate.visual_required) issues.push('This question depends on a visual. Rewrite it as self-contained text or remove it.');
   if (candidate.needs_human_attention && !candidate.visual_required) {
     issues.push(candidate.attention_reason.trim() || 'Confirm this question against the source PDF.');
+  }
+  if (candidate.question_type === 'short_answer') {
+    const acceptedAnswers = candidate.accepted_answers.map((answer) => answer.trim()).filter(Boolean);
+    if (!acceptedAnswers.length) issues.push('Add at least one accepted answer.');
+    if (acceptedAnswers.length > 12) issues.push('Use no more than 12 accepted answers.');
+    if (new Set(acceptedAnswers.map(normalize)).size !== acceptedAnswers.length) issues.push('Remove duplicate accepted answers.');
+    if (candidate.correct_answer.trim() && !acceptedAnswers.some((answer) => normalize(answer) === normalize(candidate.correct_answer))) {
+      issues.push('Include the canonical correct answer in the accepted-answer list.');
+    }
   }
   if (candidate.question_type === 'multiple_choice') {
     const options = candidate.options.map((option) => option.trim()).filter(Boolean);
@@ -291,7 +305,7 @@ export const findSavedTeacherQuestionPdfDrafts = async (
   if (!response.success || !Array.isArray(response.drafts)) return [];
 
   return response.drafts.flatMap((value) => {
-    const draft = value && typeof value === 'object' ? value as Record<string, unknown> : null;
+    const draft = value && typeof value === 'object' ? value as any : null;
     const rawQuestions = draft && Array.isArray(draft.questions) ? draft.questions : [];
     if (!draft || typeof draft.extractionId !== 'string' || !rawQuestions.length) return [];
     const processingRequest = draft.processingRequest && typeof draft.processingRequest === 'object'
@@ -447,6 +461,14 @@ export const submitTeacherQuestionBatch = async (
         ? ['True', 'False']
         : question.options.map((option) => option.trim()).filter(Boolean),
     correct_answer: question.correct_answer.trim(),
+    accepted_answers: question.question_type === 'short_answer'
+      ? [...new Map([question.correct_answer, ...question.accepted_answers]
+          .map((answer) => answer.trim())
+          .filter(Boolean)
+          .map((answer) => [normalize(answer), answer])).values()].slice(0, 12)
+      : [question.correct_answer.trim()],
+    grading_mode: question.question_type === 'short_answer' ? 'accepted_answers' : 'exact',
+    grading_config: question.question_type === 'short_answer' ? { semantic_fallback: true } : {},
     explanation: question.explanation.trim(),
     time_limit: question.time_limit,
     points: question.points,
@@ -461,7 +483,7 @@ export const submitTeacherQuestionBatch = async (
     learning_objective: question.learning_objective.trim(),
   }));
 
-  const { data, error } = await supabase.rpc('rpc_teacher_submit_question_batch_v2', {
+  const { data, error } = await supabase.rpc('rpc_teacher_submit_question_batch_v3', {
     p_extraction_id: extractionId,
     p_questions: payload,
   });

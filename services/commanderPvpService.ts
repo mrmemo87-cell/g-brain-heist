@@ -5,6 +5,14 @@ import type {
   CommanderPracticeMove,
 } from './commanderPracticeService';
 
+export type CommanderPvpElixir = {
+  id: string;
+  name: string;
+  statKey: 'force' | 'defense' | 'dexterity' | 'stamina' | 'omni';
+  boostRanks: number;
+  expiresAt: string;
+};
+
 export type CommanderPvpTarget = {
   user_id: string;
   username: string;
@@ -14,6 +22,7 @@ export type CommanderPvpTarget = {
   archer_name: string;
   guard_school: string;
   archer_school: string;
+  active_elixir: CommanderPvpElixir | null;
   last_attacked_at: string | null;
 };
 
@@ -34,6 +43,7 @@ export type CommanderPvpActiveBattle = {
   opponent_username: string;
   opponent_avatar_url: string | null;
   opponent_level: number;
+  opponent_elixir: CommanderPvpElixir | null;
   created_at: string;
   expires_at: string;
 };

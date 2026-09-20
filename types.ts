@@ -253,6 +253,7 @@ export type Subject = 'Maths' | 'Science' | 'Biology' | 'Chemistry' | 'Physics' 
 // Academic assignments target school-defined class codes (for example G3-B),
 // not the legacy 6A-12C game batch list.
 export type AssignmentBatch = SchoolBatch | 'All';
+export type AssignmentCategory = 'classwork' | 'homework' | 'quiz' | 'term_exam';
 
 export interface Question {
   id: string;
@@ -919,6 +920,8 @@ export interface TeacherQuestion {
   question_type: QuestionType;
   options?: (string | QuestionOption)[]; // For multiple choice - can be strings or objects with images
   correct_answer: string;
+  accepted_answers?: string[];
+  grading_mode?: 'exact' | 'accepted_answers' | 'semantic_review';
   
   // Additional info
   explanation?: string;
@@ -1050,6 +1053,10 @@ export interface TeacherAssignmentSummary {
   completed_count: number;
   student_count: number;
   assignment_mode?: 'batch' | 'custom';
+  assignment_category?: AssignmentCategory | null;
+  academic_year_id?: string | null;
+  academic_term_id?: string | null;
+  class_id?: string | null;
   publish_status?: 'draft' | 'scheduled' | 'published';
   close_submissions_after_due?: boolean;
   notify_students_by_email?: boolean;
@@ -1070,6 +1077,10 @@ export interface StudentAssignmentTask {
   title?: string | null;
   instructions?: string | null;
   publish_status?: 'draft' | 'scheduled' | 'published';
+  assignment_category?: AssignmentCategory | null;
+  academic_year_id?: string | null;
+  academic_term_id?: string | null;
+  class_id?: string | null;
   close_submissions_after_due?: boolean;
   is_late?: boolean;
   is_closed?: boolean;
@@ -1077,6 +1088,7 @@ export interface StudentAssignmentTask {
   answered_question_ids?: string[];
   resume_answered_count?: number;
   resume_correct_count?: number;
+  resume_pending_review_count?: number;
   resume_score?: number;
   resume_time_taken_ms?: number;
   questions: TeacherQuestion[];
@@ -1116,6 +1128,8 @@ export interface CreateAssignmentRequest {
   publish_status?: 'draft' | 'scheduled' | 'published';
   close_submissions_after_due?: boolean;
   notify_students_by_email?: boolean;
+  assignment_category?: AssignmentCategory | null;
+  client_timezone?: string;
 }
 
 export interface StudentForAssignment {
@@ -1149,7 +1163,7 @@ export interface StudentAssignmentAnswer {
   question_text: string;
   correct_answer: string;
   student_answer: string;
-  is_correct: boolean;
+  is_correct: boolean | null;
   time_taken_ms: number;
   answered_at: string;
   explanation: string | null;
@@ -1188,7 +1202,9 @@ export interface CompletedAssignment {
   accuracy: number;
   correct: number;
   incorrect: number;
-  total_questions: number; // Computed: correct + incorrect
+  pending_review_count?: number;
+  grading_status?: 'final' | 'pending_review';
+  total_questions: number; // Computed: correct + incorrect + pending review
   completed_at: string;
   title: string | null;
 }
@@ -1206,7 +1222,10 @@ export interface MyAssignmentAnswer {
   question_text: string;
   correct_answer: string;
   student_answer: string;
-  is_correct: boolean;
+  is_correct: boolean | null;
+  grading_status?: 'graded' | 'under_review' | 'reviewing';
+  grading_source?: 'deterministic' | 'ai' | 'teacher';
+  grading_confidence?: number | null;
   time_taken_ms: number;
   answered_at: string;
   explanation: string | null;

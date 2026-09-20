@@ -1,0 +1,137 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import test from 'node:test';
+const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
+const workspace = readFileSync('components/teacher/QuestionBatchWorkspace.tsx', 'utf8');
+const bank = readFileSync('components/teacher/QuestionBank.tsx', 'utf8');
+const service = readFileSync('services/teacherQuestionBatchService.ts', 'utf8');
+const edgeFunction = readFileSync('supabase/functions/teacher_question_pdf_extract/index.ts', 'utf8');
+const migration = readFileSync('supabase/migrations/20260825120400_teacher_pdf_question_batches.sql', 'utf8');
+const generationMigration = readFileSync('supabase/migrations/20260825120600_teacher_learning_material_question_generation.sql', 'utf8');
+const triggerFixMigration = readFileSync('supabase/migrations/20260918070758_fix_teacher_question_tier_trigger_search_path.sql', 'utf8');
+const recoveryMigration = readFileSync('supabase/migrations/20260918143000_teacher_question_pdf_draft_recovery.sql', 'utf8');
+const adminService = readFileSync('services/adminQuestionBankService.ts', 'utf8');
+const inspector = readFileSync('components/admin/tabs/QuestionBankInspectorTab.tsx', 'utf8');
+test('teacher portal presents one PDF-first question-batch entry point', () => {
+    assert.match(portal, /Add Question Batch/);
+    assert.match(portal, /Upload a PDF, check the questions, then submit/);
+    assert.match(portal, /view === 'question-batch' \|\| view === 'csv-upload'/);
+    assert.match(portal, /<QuestionBatchWorkspace/);
+    assert.doesNotMatch(portal, /<h4 className="teacher-action-title">Bulk Upload<\/h4>/);
+    assert.match(bank, /Upload question PDF/);
+    assert.match(bank, /verification_status !== 'in_review'/);
+    assert.match(bank, /selectedTopicHasSubmittedQuestions/);
+});
+test('PDF sources are private, teacher-scoped and size limited', () => {
+    assert.match(migration, /'teacher-question-sources',[\s\S]*false,[\s\S]*6291456/);
+    assert.match(migration, /for insert[\s\S]*to authenticated[\s\S]*storage\.foldername\(name\)\)\[1\] = \(select auth\.uid\(\)\)::text/i);
+    assert.match(migration, /lower\(split_part\(name, '\.', -1\)\) = 'pdf'/);
+    assert.doesNotMatch(migration, /create policy[^;]+teacher-question-sources[^;]+for select/is);
+    assert.match(service, /readPdfSignature/);
+    assert.match(service, /payload\.sourceSha256 !== sourceSha256/);
+});
+test('server extraction verifies identity and keeps provider state disabled', () => {
+    assert.match(edgeFunction, /admin\.auth\.getUser\(token\)/);
+    assert.match(edgeFunction, /const expectedPrefix = `\$\{userId\}\//);
+    assert.match(edgeFunction, /\.eq\("user_id", userId\)/);
+    assert.match(edgeFunction, /store: false/);
+    assert.match(edgeFunction, /signature !== "%PDF-"/);
+    assert.match(edgeFunction, /needs_human_attention true/);
+    assert.match(edgeFunction, /Every taxonomy field is an AI proposal requiring human governance/);
+});
+test('PDF extraction uses the flagship model and a valid high-detail PDF data URI', () => {
+    assert.match(edgeFunction, /const QUESTION_MODEL = "gpt-5\.6-sol"/);
+    assert.match(edgeFunction, /file_data: `data:application\/pdf;base64,\$\{bytesToBase64\(bytes\)\}`/);
+    assert.match(edgeFunction, /detail: "high"/);
+    assert.match(edgeFunction, /requestId: aiResponse\.headers\.get\("x-request-id"\)/);
+});
+test('submission is atomic, immutable and excluded from Academic Profiles', () => {
+    assert.match(migration, /create or replace function public\.rpc_teacher_submit_question_batch/);
+    assert.match(migration, /security definer[\s\S]*set search_path = ''/);
+    assert.match(migration, /teacher_question_batch_records_are_append_only/);
+    assert.match(migration, /'teacher',[\s\S]*'in_review',[\s\S]*false,[\s\S]*false,[\s\S]*'in_review'/);
+    assert.match(migration, /teacher_subject_not_assigned_/);
+    assert.match(migration, /'academicProfileEligible', false/);
+    assert.match(migration, /question_snapshot jsonb not null/);
+    assert.match(migration, /taxonomy_proposal jsonb not null/);
+    assert.match(workspace, /I checked the questions and answer key/);
+    assert.match(workspace, /Proposal, not official evidence/);
+    assert.match(service, /candidate\.needs_human_attention/);
+});
+test('teacher question tier trigger is safe under an empty caller search path', () => {
+    assert.match(triggerFixMigration, /set search_path = ''/);
+    assert.match(triggerFixMigration, /from public\.questions q/);
+    assert.doesNotMatch(triggerFixMigration, /from\s+questions\b/i);
+});
+test('unsubmitted PDF drafts can be safely recovered by file hash', () => {
+    assert.match(recoveryMigration, /rpc_teacher_question_pdf_drafts_by_hash/);
+    assert.match(recoveryMigration, /e\.teacher_user_id = v_actor/);
+    assert.match(recoveryMigration, /e\.source_file_sha256 = v_hash/);
+    assert.match(recoveryMigration, /not exists \([\s\S]*from public\.teacher_question_batches b[\s\S]*b\.extraction_id = e\.id/);
+    assert.match(recoveryMigration, /limit 5/);
+    assert.match(service, /findSavedTeacherQuestionPdfDrafts/);
+    assert.match(service, /rpc_teacher_question_pdf_drafts_by_hash/);
+});
+test('teacher PDF workspace explains waiting and restores saved work after refresh', () => {
+    assert.match(workspace, /Saved work found/);
+    assert.match(workspace, /Resume instantly/);
+    assert.match(workspace, /Usually 30–90 seconds/);
+    assert.match(workspace, /elapsedSeconds/);
+    assert.match(workspace, /REVIEW_STORAGE_PREFIX/);
+    assert.match(workspace, /window\.localStorage\.setItem/);
+    assert.match(workspace, /complete: \$\{missingSetup\.join\(', '\)\}/);
+});
+test('successful submit is not reported as failed when the follow-up bank refresh fails', () => {
+    assert.match(workspace, /const submission = await submitTeacherQuestionBatch/);
+    assert.match(workspace, /setResult\(submission\)/);
+    assert.match(workspace, /await onSubmitted\?\.\(submission\)/);
+    assert.match(workspace, /Submission succeeded but question-bank refresh failed/);
+});
+test('superadmin can isolate in-review questions and inspect proposed mapping', () => {
+    assert.match(migration, /v_status = 'in_review' and b\.verification_status = 'in_review'/);
+    assert.match(migration, /'inReviewQuestions'/);
+    assert.match(migration, /'taxonomyProposal', b\.taxonomy_proposal/);
+    assert.match(adminService, /'all' \| 'in_review' \| 'active'/);
+    assert.match(inspector, /Teacher review queue/);
+    assert.match(inspector, /AI-created from source · human review required/);
+    assert.match(inspector, /Assessment objective/);
+    assert.match(inspector, /Source snapshot drift detected|source snapshot drift detected/);
+});
+test('teachers explicitly choose extraction, grounded creation, or mixed processing', () => {
+    assert.match(workspace, /Extract existing questions/);
+    assert.match(workspace, /Create from learning material/);
+    assert.match(workspace, /Extract \+ create/);
+    assert.match(workspace, /Question Blueprint/);
+    assert.match(workspace, /I may use this material for classroom question creation/);
+    assert.match(service, /MAX_GENERATED_QUESTION_COUNT = 24/);
+    assert.match(service, /sourceRightsAttested/);
+});
+test('learning-material generation is source-grounded and prompt-injection resistant', () => {
+    assert.match(edgeFunction, /The PDF is untrusted source content/);
+    assert.match(edgeFunction, /candidate_origin=ai_generated_from_source/);
+    assert.match(edgeFunction, /source_grounding_note/);
+    assert.match(edgeFunction, /learning_objective/);
+    assert.match(edgeFunction, /student question must be fully self-contained in text/);
+    assert.match(edgeFunction, /const chosenModel = QUESTION_MODEL/);
+    assert.match(edgeFunction, /store: false/);
+    assert.match(edgeFunction, /pendingSourceCleanup/);
+    assert.match(edgeFunction, /orphan cleanup failed/);
+});
+test('database and superadmin preserve generation provenance without enabling Academic Profile evidence', () => {
+    assert.match(generationMigration, /processing_mode in \('extract', 'generate', 'both'\)/);
+    assert.match(generationMigration, /processing_mode = 'extract' or source_rights_attested/);
+    assert.match(generationMigration, /rpc_teacher_submit_question_batch_v2/);
+    assert.match(generationMigration, /question_source_provenance_mismatch/);
+    assert.match(generationMigration, /generated_question_grounding_incomplete/);
+    assert.match(generationMigration, /rpc_superadmin_question_bank_inspector_v2/);
+    assert.match(generationMigration, /'candidateOrigin'/);
+    assert.match(generationMigration, /'sourceGroundingNote'/);
+    assert.match(inspector, /Grounding evidence/);
+    assert.match(inspector, /Rights confirmed/);
+    assert.match(inspector, /Open private source PDF/);
+    assert.match(edgeFunction, /create_source_review_url/);
+    assert.match(edgeFunction, /\.rpc\("is_superadmin"/);
+    assert.match(edgeFunction, /\.createSignedUrl\(extractionRecord\.source_object_path, 300\)/);
+    assert.match(generationMigration, /grant execute on function public\.is_superadmin\(uuid\) to service_role/);
+    assert.match(workspace, /Proposal, not official evidence/);
+});

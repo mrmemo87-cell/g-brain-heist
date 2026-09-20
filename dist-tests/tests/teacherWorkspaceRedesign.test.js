@@ -36,15 +36,22 @@ test('assignment wizard follows the subject-first light workflow', () => {
     assert.match(wizard, /scrollIntoView\(\{ behavior: 'smooth', block: 'start' \}\)/);
     assert.doesNotMatch(wizard, /window\.scrollTo/);
 });
-test('question bank uses verified official and teacher-owned pools', () => {
+test('question bank separates global, school-verified, and teacher-owned pools', () => {
     assert.match(questionBank, />Brains Heist Verified</);
+    assert.match(questionBank, /School Verified/);
     assert.match(questionBank, />My Pool</);
     assert.match(questionBank, /Question workspace/);
     assert.doesNotMatch(questionBank, /Mission|Loadout|Quest-ready|🎮/i);
     assert.match(questionBank, /isBrainsHeistPoolQuestion/);
-    assert.match(questionBank, /Official Academic Profile evidence · read-only/);
+    assert.match(questionBank, /isSchoolPoolQuestion/);
+    assert.match(questionBank, /official Academic Profile evidence/);
     assert.match(questionBank, /Rename topic/);
     assert.match(questionBank, /Delete topic/);
+    assert.match(questionBank, /initialPoolResolvedRef/);
+    assert.match(questionBank, /pools\['brains-heist'\]\.length > 0/);
+    assert.match(questionBank, /pools\.school\.length > 0[\s\S]*'school'[\s\S]*pools\.mine\.length > 0[\s\S]*'mine'/);
+    assert.doesNotMatch(portal, /Error loading global question bank:[\s\S]{0,160}setQuestions\(\[\]\)/);
+    assert.match(portal, /currently loaded questions have been kept/);
 });
 test('desktop navigation can collapse to create more workspace', () => {
     assert.match(portal, /desktopSidebarCollapsed/);
@@ -57,7 +64,7 @@ test('desktop navigation can collapse to create more workspace', () => {
     assert.match(portal, /data-label=\{tab\.label\}/);
 });
 test('teacher navigation has a clean tablet breakpoint and an independently scrollable sidebar', () => {
-    assert.match(teacherTheme, /\.teacher-sidebar\s*\{[^}]*max-height: calc\(100dvh - 104px\);[^}]*overflow-y: auto;[^}]*overscroll-behavior: contain;/s);
+    assert.match(teacherTheme, /\.teacher-sidebar\s*\{[^}]*max-height: calc\(100dvh - \d+px\);[^}]*overflow-y: auto;[^}]*overscroll-behavior: contain;/s);
     assert.match(teacherTheme, /\.teacher-sidebar-toggle\s*\{[^}]*position: sticky;[^}]*top: 0;[^}]*z-index: 6;/s);
     assert.match(teacherTheme, /@media \(max-width: 1024px\)\s*\{[\s\S]*?\.teacher-desktop-sidebar\s*\{\s*display: none;\s*\}/);
     assert.doesNotMatch(teacherTheme, /@media \(max-width: 1023px\)\s*\{\s*\.teacher-portal-container/);

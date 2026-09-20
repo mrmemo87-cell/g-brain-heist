@@ -352,18 +352,30 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
   const updateQuestionType = (clientId: string, questionType: QuestionType) => {
     updateQuestion(clientId, (question) => {
       if (questionType === 'true_false') {
+        const correctAnswer = ['true', 'false'].includes(question.correct_answer.toLocaleLowerCase())
+          ? question.correct_answer
+          : 'True';
         return {
           ...question,
           question_type: questionType,
           options: ['True', 'False'],
-          correct_answer: ['true', 'false'].includes(question.correct_answer.toLocaleLowerCase())
-            ? question.correct_answer
-            : 'True',
+          correct_answer: correctAnswer,
+          accepted_answers: [correctAnswer],
         };
       }
-      if (questionType === 'short_answer') return { ...question, question_type: questionType, options: [] };
+      if (questionType === 'short_answer') {
+        const canonical = question.correct_answer.trim();
+        return {
+          ...question,
+          question_type: questionType,
+          options: [],
+          accepted_answers: question.accepted_answers.length
+            ? question.accepted_answers
+            : canonical ? [canonical] : [],
+        };
+      }
       const options = question.options.length >= 2 ? question.options : ['', '', '', ''];
-      return { ...question, question_type: questionType, options };
+      return { ...question, question_type: questionType, options, accepted_answers: question.correct_answer ? [question.correct_answer] : [] };
     });
   };
 
@@ -691,6 +703,9 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
                               <fieldset className="question-batch__options"><legend>Answer options</legend>{question.options.map((option, optionIndex) => <label key={`${question.client_id}-option-${optionIndex}`}><span>{optionLabel(optionIndex)}</span><input value={option} onChange={(event) => updateQuestion(question.client_id, (current) => ({ ...current, options: current.options.map((item, index) => index === optionIndex ? event.target.value : item) }))} /><button type="button" onClick={() => updateQuestion(question.client_id, (current) => ({ ...current, options: current.options.filter((_, index) => index !== optionIndex) }))} disabled={question.options.length <= 2} aria-label={`Remove option ${optionLabel(optionIndex)}`}>×</button></label>)}<button type="button" className="question-batch__add-option" onClick={() => updateQuestion(question.client_id, (current) => ({ ...current, options: [...current.options, ''] }))} disabled={question.options.length >= 6}>+ Add option</button></fieldset>
                             ) : null}
                             <label><span>Correct answer</span>{question.question_type === 'multiple_choice' ? <select value={question.correct_answer} onChange={(event) => updateQuestion(question.client_id, (current) => ({ ...current, correct_answer: event.target.value }))}><option value="">Choose the correct option</option>{question.options.filter(Boolean).map((option, optionIndex) => <option key={`${option}-${optionIndex}`} value={option}>{optionLabel(optionIndex)}. {option}</option>)}</select> : question.question_type === 'true_false' ? <select value={question.correct_answer} onChange={(event) => updateQuestion(question.client_id, (current) => ({ ...current, correct_answer: event.target.value }))}><option value="True">True</option><option value="False">False</option></select> : <textarea rows={2} value={question.correct_answer} maxLength={2000} onChange={(event) => updateQuestion(question.client_id, (current) => ({ ...current, correct_answer: event.target.value }))} />}</label>
+                            {question.question_type === 'short_answer' ? (
+                              <label><span>Accepted answers <em>one per line</em></span><textarea rows={4} value={question.accepted_answers.join('\n')} maxLength={4000} onChange={(event) => updateQuestion(question.client_id, (current) => ({ ...current, accepted_answers: event.target.value.split('\n').map((answer) => answer.trim()).filter(Boolean).slice(0, 12) }))} /><small>Include the canonical answer plus only genuinely equivalent wording or notation. Anything else is reviewed in the background instead of being marked wrong automatically.</small></label>
+                            ) : null}
                             <label><span>Teacher explanation <em>optional</em></span><textarea rows={3} value={question.explanation} maxLength={5000} onChange={(event) => updateQuestion(question.client_id, (current) => ({ ...current, explanation: event.target.value }))} /></label>
                           </div>
                         </section>

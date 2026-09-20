@@ -168,6 +168,7 @@ const getOptionImageUrl = (option: string | QuestionOption): string | undefined 
 
 type QuestStage = 'loading' | 'subject_selection' | 'unified_subject_play' | 'mission_preview' | 'mission_board' | 'in_progress' | 'completed' | 'assignment_blocked' | 'ftue_training';
 type QuestMode = 'practice' | 'teacher' | 'assignment' | 'ftue_training';
+type AssignmentAnswerReviewStatus = 'correct' | 'incorrect' | 'under_review' | null;
 
 const MISSION_LOAD_TIMEOUT_MS = 12000;
 
@@ -334,6 +335,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [nextAction, setNextAction] = useState<(() => void) | null>(null);
   const [nextActionLabel, setNextActionLabel] = useState<string>('');
   const [freeformAnswer, setFreeformAnswer] = useState('');
+  const [assignmentAnswerReviewStatus, setAssignmentAnswerReviewStatus] = useState<AssignmentAnswerReviewStatus>(null);
+  const [assignmentPendingReviews, setAssignmentPendingReviews] = useState(0);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedMission, setSelectedMission] = useState<QuestMission | null>(null);
   const [launchMission, setLaunchMission] = useState<QuestMission | null>(null);
@@ -958,6 +961,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setTopicSummary(null);
     setAssignmentSubmissionState('idle');
     setAssignmentSubmissionError(null);
+    setAssignmentAnswerReviewStatus(null);
+    setAssignmentPendingReviews(Math.max(0, Number(assignment.resume_pending_review_count) || 0));
+    setFreeformAnswer('');
     setAssignmentStartTime(null);
   };
 
@@ -1064,6 +1070,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setNextAction(null);
     setNextActionLabel('');
     setFreeformAnswer('');
+    setAssignmentAnswerReviewStatus(null);
+    setAssignmentPendingReviews(0);
     await loadSubjects();
     setStage('subject_selection');
   };
@@ -1212,6 +1220,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     );
     const resumeTimeMs = Math.max(0, Number(activeAssignment.resume_time_taken_ms) || 0);
     const resumedCorrect = Math.max(0, Number(activeAssignment.resume_correct_count) || 0);
+    const resumedPendingReviews = Math.max(0, Number(activeAssignment.resume_pending_review_count) || 0);
     const resumedScore = Math.max(0, Number(activeAssignment.resume_score) || 0);
 
     setStage(firstUnansweredIndex === -1 && assignmentQuestions.length > 0 ? 'completed' : 'in_progress');
@@ -1219,6 +1228,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setCurrentQuestionIndex(firstUnansweredIndex === -1 ? 0 : firstUnansweredIndex);
     setSelectedOption(null);
     setAnswerResponse(null);
+    setFreeformAnswer('');
+    setAssignmentAnswerReviewStatus(null);
+    setAssignmentPendingReviews(resumedPendingReviews);
     setScore({
       correct: resumedCorrect,
       xp: resumedScore,
@@ -1306,6 +1318,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
       if (submissionResult.status === 'already_submitted') {
         console.info('[QuestView] Assignment was already submitted on retry. Treating as success.');
+      } else {
+        setAssignmentPendingReviews(submissionResult.pendingReviewCount ?? assignmentPendingReviews);
+        setScore((current) => ({
+          ...current,
+          correct: submissionResult.correct ?? current.correct,
+          xp: submissionResult.score ?? current.xp,
+        }));
       }
 
       setAssignmentSubmissionState('submitted');
@@ -1325,6 +1344,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     score.correct,
     questionScores,
     assignmentStartTime,
+    assignmentPendingReviews,
   ]);
 
   useEffect(() => {
@@ -1473,6 +1493,47 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
 
       try {
+        if (mode === 'assignment' && activeAssignment?.assignment_id && currentQuestion.question_type === 'short_answer') {
+          const grading = await GameService.submit_assignment_answer({
+            assignmentId: activeAssignment.assignment_id,
+            questionId: currentQuestion.id,
+            questionText: currentQuestion.question_text,
+            correctAnswer: currentQuestion.correct_answer || '',
+            studentAnswer: option,
+            isCorrect: false,
+            timeTakenMs: questionStartTime ? Date.now() - questionStartTime : 0,
+          });
+          const pendingReview = grading.pendingReview || grading.isCorrect === null;
+          const confirmedCorrect = grading.isCorrect === true;
+          setAssignmentAnswerReviewStatus(pendingReview ? 'under_review' : confirmedCorrect ? 'correct' : 'incorrect');
+          if (pendingReview) setAssignmentPendingReviews((current) => current + 1);
+          if (confirmedCorrect) {
+            setScore((current) => ({ ...current, correct: current.correct + 1, xp: current.xp + grading.pointsEarned }));
+            audioService.play('correct');
+          } else if (!pendingReview) {
+            audioService.play('wrong');
+          }
+          setQuestionStartTime(null);
+          const isLastQuestion = currentQuestionIndex >= teacherQuestions.length - 1;
+          const proceed = () => {
+            setNextAction(null);
+            setNextActionLabel('');
+            setAssignmentAnswerReviewStatus(null);
+            setFreeformAnswer('');
+            setSelectedOption(null);
+            if (isLastQuestion) {
+              audioService.play('tada');
+              setStage('completed');
+            } else {
+              setCurrentQuestionIndex((previous) => previous + 1);
+              setQuestionStartTime(Date.now());
+            }
+          };
+          setNextAction(() => proceed);
+          setNextActionLabel(isLastQuestion ? 'View results' : 'Next question');
+          return;
+        }
+
         const result = await GameService.submit_question_answer(
           currentQuestion.id,
           option,
@@ -2185,18 +2246,23 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             <p className="font-heading text-2xl text-white mt-1">
               {mode === 'assignment' ? Math.round(score.xp) : Math.round(calculateMissionScore(questionScores))}
             </p>
+            {mode === 'assignment' && (
+              <p className="mt-1 text-xs text-slate-400">{score.correct} confirmed correct{assignmentPendingReviews ? ` · ${assignmentPendingReviews} under review` : ''}</p>
+            )}
           </div>
           <div className="card-glass p-4 text-center">
             <p className="text-xs uppercase tracking-widest text-gray-400">Accuracy</p>
             <p className="font-heading text-2xl text-white mt-1">
               {mode === 'assignment'
-                ? (() => {
-                    const attempted = (
-                      (Number(activeAssignment?.resume_answered_count) || 0)
-                      + questionPerformances.length
-                    );
-                    return attempted > 0 ? `${Math.round((score.correct / attempted) * 100)}%` : '—';
-                  })()
+                ? assignmentPendingReviews > 0
+                  ? 'Pending review'
+                  : (() => {
+                      const attempted = (
+                        (Number(activeAssignment?.resume_answered_count) || 0)
+                        + questionPerformances.length
+                      );
+                      return attempted > 0 ? `${Math.round((score.correct / attempted) * 100)}%` : '—';
+                    })()
                 : questionPerformances.length
                   ? `${Math.round((questionPerformances.filter((item) => item.wasCorrect).length / questionPerformances.length) * 100)}%`
                   : '—'}
@@ -2229,34 +2295,88 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             {assignmentDetails.instructions}
           </div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {rawOptions.map((option, index) => {
-            const optionText = getOptionText(option);
-            const optionImageUrl = getOptionImageUrl(option);
-            return (
+        {mode === 'assignment' && activeTeacherQuestion?.question_type === 'short_answer' ? (
+          <div className="card-glass p-5 border border-cyan-500/30">
+            <label className="block text-left">
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-200">Your answer</span>
+              <textarea
+                value={freeformAnswer}
+                onChange={(event) => setFreeformAnswer(event.target.value)}
+                disabled={isSubmitting || assignmentAnswerReviewStatus !== null}
+                rows={4}
+                maxLength={2000}
+                className="mt-3 w-full rounded-xl border border-cyan-500/30 bg-slate-950/70 p-4 text-white outline-none transition focus:border-cyan-300 disabled:opacity-60"
+                placeholder="Type your answer here…"
+              />
+            </label>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-xs text-slate-400">Equivalent wording or notation may be accepted automatically.</p>
               <button
-                key={index}
-                disabled={!!answerResponse || isSubmitting}
-                onClick={() => handleAnswerSubmit(optionText)}
-                className={getOptionClasses(optionText, correctAnswer)}
+                type="button"
+                disabled={!freeformAnswer.trim() || isSubmitting || assignmentAnswerReviewStatus !== null}
+                onClick={() => { void handleAnswerSubmit(freeformAnswer.trim()); }}
+                className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <div className="flex flex-col items-start w-full">
-                  <div className="flex items-start">
-                    <span className="font-bold mr-2">{String.fromCharCode(65 + index)}.</span>
-                    <span>{optionText}</span>
-                  </div>
-                  {optionImageUrl && (
-                    <img
-                      src={optionImageUrl}
-                      alt={`Option ${String.fromCharCode(65 + index)}`}
-                      className="mt-2 max-h-24 rounded border border-gray-600 object-contain"
-                    />
-                  )}
-                </div>
+                {isSubmitting ? 'Saving…' : 'Submit answer'}
               </button>
-            );
-          })}
-        </div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {rawOptions.map((option, index) => {
+              const optionText = getOptionText(option);
+              const optionImageUrl = getOptionImageUrl(option);
+              return (
+                <button
+                  key={index}
+                  disabled={!!answerResponse || isSubmitting}
+                  onClick={() => handleAnswerSubmit(optionText)}
+                  className={getOptionClasses(optionText, correctAnswer)}
+                >
+                  <div className="flex flex-col items-start w-full">
+                    <div className="flex items-start">
+                      <span className="font-bold mr-2">{String.fromCharCode(65 + index)}.</span>
+                      <span>{optionText}</span>
+                    </div>
+                    {optionImageUrl && (
+                      <img
+                        src={optionImageUrl}
+                        alt={`Option ${String.fromCharCode(65 + index)}`}
+                        className="mt-2 max-h-24 rounded border border-gray-600 object-contain"
+                      />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {assignmentAnswerReviewStatus && (
+          <div ref={answerFeedbackRef} className={`mt-6 rounded-2xl border-2 p-6 text-center ${
+            assignmentAnswerReviewStatus === 'correct'
+              ? 'border-green-400/60 bg-green-500/10'
+              : assignmentAnswerReviewStatus === 'incorrect'
+                ? 'border-red-400/60 bg-red-500/10'
+                : 'border-amber-400/60 bg-amber-500/10'
+          }`}>
+            <div className="text-5xl mb-3">{assignmentAnswerReviewStatus === 'correct' ? '✓' : assignmentAnswerReviewStatus === 'incorrect' ? '✗' : '⏳'}</div>
+            <h3 className={`text-2xl font-bold ${assignmentAnswerReviewStatus === 'correct' ? 'text-green-300' : assignmentAnswerReviewStatus === 'incorrect' ? 'text-red-300' : 'text-amber-300'}`}>
+              {assignmentAnswerReviewStatus === 'correct' ? 'Correct' : assignmentAnswerReviewStatus === 'incorrect' ? 'Incorrect' : 'Under review'}
+            </h3>
+            <p className="mt-2 text-sm text-slate-200">
+              {assignmentAnswerReviewStatus === 'under_review'
+                ? 'Your answer has been saved. You can continue now; your confirmed score will update automatically after review.'
+                : assignmentAnswerReviewStatus === 'correct'
+                  ? 'Your answer matched the accepted marking scheme.'
+                  : 'This answer was marked incorrect by the confirmed marking rules.'}
+            </p>
+            {nextAction && (
+              <button onClick={nextAction} className="mt-5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-3 text-lg font-bold text-white transition hover:scale-105">
+                {nextActionLabel || 'Continue'} →
+              </button>
+            )}
+          </div>
+        )}
         {answerResponse && (
             <div ref={answerFeedbackRef} className={`mt-6 p-6 rounded-2xl text-center border-2 shadow-2xl ${
               answerResponse.correct && (answerResponse.deltas.xp > 0 || answerResponse.deltas.coins > 0 || (answerResponse.deltas.gemstones || 0) > 0)
@@ -2525,7 +2645,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       ? missionRunSummary?.score
       : Math.round(missionSummary?.missionScore ?? calculateMissionScore(questionScores));
     const accuracyPercent = mode === 'assignment'
-      ? Math.round((score.correct / Math.max(1, totalQuestions)) * 100)
+      ? assignmentPendingReviews > 0 ? null : Math.round((score.correct / Math.max(1, totalQuestions)) * 100)
       : isTrainingRun
       ? Math.min(100, Math.round((Math.min(score.correct, TRAINING_QUESTIONS.length) / Math.max(1, TRAINING_QUESTIONS.length)) * 100))
       : missionOutcome
@@ -2721,7 +2841,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             className="mx-auto mb-4 w-40 sm:w-52 object-contain drop-shadow-[0_0_16px_rgba(217,70,239,0.3)]"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
-          <p className="text-lg mb-6">
+          <p className="text-lg mb-3">
             You answered <span className="font-bold text-white">{displayedCorrectAnswers}</span>
             {typeof displayedTotalQuestions === 'number' ? (
               <>
@@ -2731,6 +2851,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               ' questions'
             )} correctly.
           </p>
+          {isAssignmentRun && assignmentPendingReviews > 0 && (
+            <div className="mb-6 rounded-xl border border-amber-400/40 bg-amber-500/10 p-4 text-left text-sm text-amber-100">
+              <p className="font-bold">{assignmentPendingReviews} answer{assignmentPendingReviews === 1 ? '' : 's'} under review</p>
+              <p className="mt-1 text-amber-100/80">This is your confirmed result for now. Your stored score will update automatically when review finishes.</p>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {typeof missionTotal === 'number' && (
               <div className="card-glass p-4 border border-cyan-500/30">
@@ -2910,6 +3036,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                   setLastCompletedAssignment(null);
                   setAssignmentSubmissionState('idle');
                   setAssignmentSubmissionError(null);
+                  setAssignmentAnswerReviewStatus(null);
+                  setAssignmentPendingReviews(0);
+                  setFreeformAnswer('');
                   hydrateAssignment({ showLoading: true });
                 } else {
                   setStage('subject_selection');

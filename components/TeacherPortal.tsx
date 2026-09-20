@@ -1082,26 +1082,22 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   }, [canUseTeacherFeature, view, assignments]);
 
   useEffect(() => {
-    if (!effectiveEntitlements) return;
+    if (!effectiveEntitlements || !teacher?.id) return;
+
+    // Assignment history is a plan capability. Core class/student visibility is
+    // loaded independently during teacher boot.
     if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {
-      setAvailableStudents([]);
       setAssignments([]);
       return;
     }
 
-    void GameService.get_students_for_assignment()
-      .then(setAvailableStudents)
-      .catch((error) => {
-        console.error('Error loading students:', error);
-        setAvailableStudents([]);
-      });
-    void GameService.get_teacher_assignments()
+    void GameService.get_teacher_assignments(teacher.id)
       .then(setAssignments)
       .catch((error) => {
         console.error('Error loading assignments:', error);
         setAssignments([]);
       });
-  }, [canUseTeacherFeature, effectiveEntitlements]);
+  }, [canUseTeacherFeature, effectiveEntitlements, teacher?.id]);
 
   // Correct answers for Cambridge tests
   const correctAnswers: Record<string, Record<number, CambridgeExpectedAnswer>> = {
@@ -3180,6 +3176,45 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       // cards hydrate independently; the global question bank is tab-only.
       setLoading(false);
 
+      // My Classes is core school membership data, not assignment data. Load the
+      // teacher's classes/students from one auth-scoped canonical workspace RPC so
+      // a paid-feature effect can never replace a valid roster with an empty list.
+      void supabase.rpc('rpc_get_my_teacher_class_roster')
+        .then(({ data, error }) => {
+          if (error) throw error;
+
+          const studentsById = new Map<string, StudentForAssignment>();
+          ((data || []) as any[]).forEach((row) => {
+            if (!row?.student_id) return;
+            studentsById.set(row.student_id, {
+              id: row.student_id,
+              username: row.student_username || row.student_display_name || 'Student',
+              display_name: row.student_display_name || row.student_username || 'Student',
+              grade: row.student_grade || null,
+              batch: row.class_code || null,
+              avatar_url: row.student_avatar_url || null,
+              school_id: row.school_id || null,
+              class_id: row.class_id || null,
+              class_code: row.class_code || null,
+              assignment_eligible: row.assignment_eligible !== false,
+              access_status: row.access_status || 'active',
+              banned_until: row.banned_until || null,
+            } as StudentForAssignment);
+          });
+
+          setAvailableStudents(Array.from(studentsById.values()));
+        })
+        .catch((error) => {
+          console.error('Error loading canonical teacher class roster:', error);
+          // Do not silently manufacture a zero. The assignment roster RPC is kept
+          // only as a compatibility fallback while older deployments roll off.
+          void GameService.get_students_for_assignment()
+            .then(setAvailableStudents)
+            .catch((fallbackError) => {
+              console.error('Canonical and fallback teacher roster loads failed:', fallbackError);
+            });
+        });
+
       void SchoolAdminService.getTeacherAllocatedClasses()
         .then((classes) => {
           setAllocatedClasses(classes);
@@ -3749,7 +3784,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         if (requestId !== reportLoadRequestRef.current) return;
         const rows = (((data as TeacherAssignmentReportRow[] | null) || [])).map((row) => ({
           ...row,
-          student_name: officialNames.get(row.student_id) || 'Student name unavailable',
+          student_name: officialNames.get(row.student_id) || row.student_name || 'Student name unavailable',
         }));
         setAssignmentReport(rows);
         setAssignments((current) => current.map((item) => item.id === assignment.id ? { ...item, completed_count: rows.length } : item));

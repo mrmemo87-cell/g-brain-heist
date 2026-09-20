@@ -1,0 +1,38 @@
+name: Validate short-answer grading integration
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: write
+jobs:
+  materialize-and-verify:
+    if: github.head_ref == 'feature/short-answer-background-grading'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/short-answer-background-grading
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Materialize integration
+        run: |
+          python3 scripts/patch_short_answer_assignment_flow.py
+          python3 scripts/fix_short_answer_typecheck.py
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run security:migrations
+      - run: npm test
+      - run: npm run build
+      - run: git diff --check
+      - name: Commit validated integration
+        run: |
+          rm -f .github/workflows/agent-short-answer-grading.yml scripts/patch_short_answer_assignment_flow.py scripts/fix_short_answer_typecheck.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "Finish short-answer background grading flow"
+          git push

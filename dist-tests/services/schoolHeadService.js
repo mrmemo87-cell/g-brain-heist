@@ -145,10 +145,14 @@ export async function getSchoolHeadSnapshot(schoolId, days = 30) {
     });
     if (refreshError)
         console.warn('Decision alerts could not be refreshed before loading the snapshot:', refreshError.message);
-    const { data, error } = await supabase.rpc('school_head_get_executive_snapshot', {
-        p_school_id: schoolId,
-        p_days: days,
-    });
+    const snapshotArgs = { p_school_id: schoolId, p_days: days };
+    let { data, error } = await supabase.rpc('school_head_get_executive_snapshot_v2', snapshotArgs);
+    // Keep frontend/backend deployment ordering safe. If the additive v2 RPC has not
+    // reached a given environment yet, the established executive snapshot still works.
+    if (error) {
+        console.warn('School Head grade performance v2 unavailable; using legacy snapshot:', error.message);
+        ({ data, error } = await supabase.rpc('school_head_get_executive_snapshot', snapshotArgs));
+    }
     if (error)
         throw new Error(error.message || 'Executive data could not be loaded.');
     const snapshot = normalizeSchoolHeadSnapshot(data);

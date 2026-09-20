@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import test from 'node:test';
+const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
+const questionBank = readFileSync('components/teacher/QuestionBank.tsx', 'utf8');
+test('manual question creation remains distinct from PDF batch creation', () => {
+    assert.match(portal, /const openMyPoolQuestionForm[\s\S]*setView\('create-question'\)/);
+    assert.match(portal, /const openQuestionBatchWorkspace[\s\S]*setView\('question-batch'\)/);
+    assert.match(portal, /onCreateQuestion=\{openMyPoolQuestionForm\}/);
+    assert.match(portal, /onCreateQuestionBatch=\{openQuestionBatchWorkspace\}/);
+    assert.match(questionBank, />Add Question<\/button>/);
+    assert.match(questionBank, />Add Question Batch<\/button>/);
+    assert.match(questionBank, />Upload question PDF<\/button>/);
+});
+test('geometry Use in Question stays subject-neutral and routes through an allocated subject', () => {
+    assert.doesNotMatch(portal, /openMyPoolQuestionForm\('Maths', asset\.topic \|\| 'Geometry'\)/);
+    assert.match(portal, /const allowedSubject = teacherAssignedSubjects\.includes\(subject\)/);
+    assert.match(portal, /openMyPoolQuestionForm\(allowedSubject, 'General'\)/);
+    assert.match(portal, /setSubject\(allowedSubject\)/);
+});

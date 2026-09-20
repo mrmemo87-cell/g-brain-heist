@@ -1,8 +1,21 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getTeacherAttemptListScoped, getTeacherMonitoringOverviewScoped, getTeacherWritingReport, getWritingMonitoringOverview, saveTeacherReportScoped, } from '../../lib/brains_heist/writingIntegrationService.js';
+import { getWritingAssessmentReviewContext, getTeacherAttemptListScoped, getTeacherMonitoringOverviewScoped, getTeacherWritingReport, getWritingMonitoringOverview, saveTeacherReportScoped, submitWritingAssessmentReview, } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { openProfessionalWritingReport } from '../../lib/brains_heist/writingReportDocument.js';
+const REVIEW_CRITERIA = [
+    { key: 'content', label: 'Content', description: 'Task coverage and idea development' },
+    { key: 'communicative_achievement', label: 'Communicative Achievement', description: 'Purpose, audience, register and genre control' },
+    { key: 'organisation', label: 'Organisation', description: 'Structure, cohesion and sequencing' },
+    { key: 'language', label: 'Language', description: 'Range, accuracy and clarity' },
+];
+const REVIEW_SCORE_OPTIONS = [0, 1, 2, 3, 4, 5];
+const EMPTY_REVIEW_SCORES = {
+    content: 0,
+    communicative_achievement: 0,
+    organisation: 0,
+    language: 0,
+};
 const SUPPORTED_GENRES = [
     'email',
     'article',
@@ -155,17 +168,32 @@ const extractCorrections = (attempt) => {
 const getRubricRows = (attempt) => {
     const subscores = (attempt.assessment?.['subscores'] ?? {});
     const notes = (attempt.assessment?.['band_justification'] ?? {});
-    const keys = [
-        ['Content', 'content'],
-        ['Communicative Achievement', 'communicative_achievement'],
-        ['Organization', 'organisation'],
-        ['Language', 'language'],
-    ];
-    return keys.map(([label, key]) => ({
-        label,
-        score: typeof subscores[key] === 'number' ? subscores[key] : null,
-        note: typeof notes[key] === 'string' ? notes[key] : '',
-    }));
+    const criteria = (attempt.assessment?.['criteria'] ?? {});
+    return REVIEW_CRITERIA.map(({ label, key }) => {
+        const criterion = criteria[key] && typeof criteria[key] === 'object' && !Array.isArray(criteria[key])
+            ? criteria[key]
+            : {};
+        const criterionScore = criterion['score'];
+        const evidence = Array.isArray(criterion['evidence'])
+            ? criterion['evidence'].flatMap((item) => {
+                if (!item || typeof item !== 'object' || Array.isArray(item))
+                    return [];
+                const quote = item['quote'];
+                return typeof quote === 'string' && quote.trim() ? [quote.trim()] : [];
+            }).slice(0, 2)
+            : [];
+        return {
+            key,
+            label,
+            score: typeof criterionScore === 'number'
+                ? criterionScore
+                : typeof subscores[key] === 'number' ? subscores[key] : null,
+            note: typeof criterion['justification'] === 'string'
+                ? criterion['justification']
+                : typeof notes[key] === 'string' ? notes[key] : '',
+            evidence,
+        };
+    });
 };
 const getIntegritySummary = (attempt) => {
     const signals = attempt.integrity_signals ?? {};
@@ -184,6 +212,27 @@ const getIntegritySummary = (attempt) => {
     };
 };
 const CollapsibleHeading = ({ eyebrow, title, description, collapsed, onToggle, actions }) => (_jsxs("header", { className: "writing-monitor__section-heading", children: [_jsx("button", { type: "button", className: "writing-monitor__collapse", onClick: onToggle, "aria-expanded": !collapsed, "aria-label": `${collapsed ? 'Expand' : 'Collapse'} ${title}`, children: _jsx("span", { "aria-hidden": "true", children: collapsed ? '＋' : '−' }) }), _jsxs("div", { children: [_jsx("span", { className: "writing-monitor__eyebrow", children: eyebrow }), _jsx("h2", { children: title }), _jsx("p", { children: description })] }), actions ? _jsx("div", { className: "writing-monitor__heading-actions", children: actions }) : null] }));
+const WritingAssessmentValidationPanel = ({ context, isLoading, error, rubricRows, scores, rationale, saveState, statusMessage, teacherConfirmed, finalizeConfirming, onScoreChange, onRationaleChange, onTeacherConfirmedChange, onSaveDraft, onRequestFinalize, onCancelFinalize, onConfirmFinalize, onRetry, }) => {
+    const finalReview = context?.final_review ?? null;
+    const isFinal = Boolean(finalReview);
+    const isSaving = saveState === 'saving-draft' || saveState === 'saving-final';
+    const totalScore = Object.values(scores).reduce((sum, score) => sum + score, 0);
+    const rationaleReady = rationale.trim().length >= 12 && rationale.trim().length <= 500;
+    const canPrepareFinal = Boolean(context) && !isFinal && !isSaving && teacherConfirmed && rationaleReady;
+    const statusLabel = isFinal
+        ? `Teacher validated · ${finalReview?.total_score ?? totalScore}/20`
+        : saveState === 'dirty'
+            ? 'Unsaved teacher changes'
+            : context?.latest_draft
+                ? 'Teacher draft saved'
+                : context ? 'Awaiting teacher validation' : 'Validation unavailable';
+    return (_jsxs("section", { className: "writing-monitor__validation", "aria-labelledby": "writing-validation-title", children: [_jsxs("header", { className: "writing-monitor__validation-header", children: [_jsxs("div", { children: [_jsx("span", { className: "writing-monitor__validation-eyebrow", children: "Human assessment authority" }), _jsx("h3", { id: "writing-validation-title", children: "Validate this writing assessment" }), _jsx("p", { children: "Use the AI evidence as a reference, then independently confirm every score against the student\u2019s response." })] }), _jsx("span", { className: `writing-monitor__validation-status${isFinal ? ' is-final' : context?.latest_draft ? ' is-draft' : ''}`, children: statusLabel })] }), isLoading ? (_jsxs("div", { className: "writing-monitor__validation-loading", role: "status", children: [_jsx("span", { "aria-hidden": "true" }), " Loading the secure teacher review\u2026"] })) : error ? (_jsxs("div", { className: "writing-monitor__validation-unavailable", role: "alert", children: [_jsxs("div", { children: [_jsx("strong", { children: "Validation workspace could not be loaded" }), _jsx("p", { children: error })] }), _jsx("button", { type: "button", className: "writing-monitor__secondary-button", onClick: onRetry, children: "Try again" })] })) : !context ? (_jsx("div", { className: "writing-monitor__validation-unavailable", children: _jsxs("div", { children: [_jsx("strong", { children: "No reviewable assessment is linked to this submission" }), _jsx("p", { children: "No Academic Profile evidence will be created from this submission until a persisted assessment is available." })] }) })) : (_jsx(_Fragment, { children: _jsxs("div", { className: "writing-monitor__validation-grid", children: [_jsxs("aside", { className: "writing-monitor__ai-evidence", "aria-label": "AI rubric evidence", children: [_jsxs("div", { className: "writing-monitor__validation-column-title", children: [_jsx("span", { "aria-hidden": "true", children: "AI" }), _jsxs("div", { children: [_jsx("strong", { children: "AI rubric evidence" }), _jsxs("small", { children: [context.assessment_status.replace(/_/g, ' '), " \u00B7 reference only \u00B7 ", context.automated_total_score, "/20"] })] })] }), _jsx("p", { className: "writing-monitor__ai-disclaimer", children: "These estimates are not teacher-approved and do not become authoritative by being displayed here." }), _jsx("div", { className: "writing-monitor__ai-criterion-list", children: REVIEW_CRITERIA.map((criterion) => {
+                                        const rubric = rubricRows.find((row) => row.key === criterion.key);
+                                        return (_jsxs("article", { children: [_jsxs("header", { children: [_jsx("strong", { children: criterion.label }), _jsxs("span", { children: [context.automated_scores[criterion.key], "/5 AI"] })] }), rubric?.note ? _jsx("p", { children: rubric.note }) : _jsx("p", { children: "No AI justification was saved for this criterion." }), rubric?.evidence.length ? (_jsxs("blockquote", { children: ["\u201C", rubric.evidence[0], "\u201D"] })) : null] }, criterion.key));
+                                    }) })] }), _jsxs("div", { className: "writing-monitor__teacher-validation", "aria-label": "Teacher validation form", children: [_jsxs("div", { className: "writing-monitor__validation-column-title", children: [_jsx("span", { "aria-hidden": "true", children: "\u2713" }), _jsxs("div", { children: [_jsx("strong", { children: "Teacher-confirmed judgement" }), _jsx("small", { children: isFinal ? 'Final record · locked' : 'Editable scores · integer bands from 0 to 5' })] })] }), _jsxs("fieldset", { disabled: isFinal || isSaving, children: [_jsx("legend", { children: "Criterion scores" }), _jsx("div", { className: "writing-monitor__score-editor", children: REVIEW_CRITERIA.map((criterion) => (_jsxs("label", { htmlFor: `writing-review-${criterion.key}`, children: [_jsxs("span", { children: [_jsx("strong", { children: criterion.label }), _jsx("small", { children: criterion.description })] }), _jsx("select", { id: `writing-review-${criterion.key}`, value: scores[criterion.key], onChange: (event) => {
+                                                            onScoreChange(criterion.key, Number(event.currentTarget.value));
+                                                        }, "aria-label": `${criterion.label} teacher score out of 5`, children: REVIEW_SCORE_OPTIONS.map((score) => _jsxs("option", { value: score, children: [score, " / 5"] }, score)) })] }, criterion.key))) })] }), _jsxs("div", { className: "writing-monitor__teacher-total", "aria-live": "polite", children: [_jsx("span", { children: "Teacher total" }), _jsxs("strong", { children: [totalScore, _jsx("small", { children: "/20" })] })] }), _jsxs("label", { className: "writing-monitor__rationale", htmlFor: "writing-review-rationale", children: [_jsxs("span", { children: [_jsx("strong", { children: "Professional rationale" }), _jsx("small", { children: "Required for final validation \u00B7 minimum 12 characters" })] }), _jsx("textarea", { id: "writing-review-rationale", value: rationale, maxLength: 500, disabled: isFinal || isSaving, onChange: (event) => onRationaleChange(event.currentTarget.value), placeholder: "Explain the evidence that supports your confirmed scores, including any change from the AI estimate." }), _jsxs("small", { children: [rationale.length, "/500"] })] }), isFinal ? (_jsxs("div", { className: "writing-monitor__final-lock", role: "status", children: [_jsx("span", { "aria-hidden": "true", children: "\u2713" }), _jsxs("div", { children: [_jsx("strong", { children: "Teacher validation finalized" }), _jsx("p", { children: "This immutable record now supplies the trusted writing evidence used by the student\u2019s Academic Profile." }), finalReview?.created_at ? _jsxs("small", { children: ["Finalized ", formatDate(finalReview.created_at)] }) : null] })] })) : (_jsxs(_Fragment, { children: [_jsxs("label", { className: "writing-monitor__human-confirmation", children: [_jsx("input", { type: "checkbox", checked: teacherConfirmed, disabled: isSaving, onChange: (event) => onTeacherConfirmedChange(event.currentTarget.checked) }), _jsxs("span", { children: [_jsx("strong", { children: "I personally checked the response and all four scores." }), _jsx("small", { children: "Checking this box confirms human review; it does not finalize the record by itself." })] })] }), _jsxs("div", { className: "writing-monitor__authority-warning", children: [_jsx("strong", { children: "Final means permanent." }), _jsx("span", { children: "Final validation creates the only authoritative writing evidence used by the Academic Profile. AI scores and saved drafts never do." })] }), _jsxs("div", { className: "writing-monitor__validation-actions", children: [_jsx("button", { type: "button", className: "writing-monitor__secondary-button", disabled: isSaving, onClick: onSaveDraft, children: saveState === 'saving-draft' ? 'Saving draft…' : 'Save draft' }), _jsx("button", { type: "button", className: "writing-monitor__primary-button", disabled: !canPrepareFinal, onClick: onRequestFinalize, children: "Finalize validation" })] }), !rationaleReady && teacherConfirmed ? (_jsx("small", { className: "writing-monitor__validation-hint", children: "Add a short evidence-based rationale before finalizing." })) : null, finalizeConfirming ? (_jsxs("div", { className: "writing-monitor__final-confirmation", role: "alert", children: [_jsxs("div", { children: [_jsx("strong", { children: "Final authority check" }), _jsxs("p", { children: ["You are about to lock ", totalScore, "/20 as the teacher-confirmed result and send it to the Academic Profile."] })] }), _jsxs("div", { children: [_jsx("button", { type: "button", className: "writing-monitor__secondary-button", disabled: isSaving, onClick: onCancelFinalize, children: "Cancel" }), _jsx("button", { type: "button", className: "writing-monitor__primary-button", disabled: isSaving, onClick: onConfirmFinalize, children: saveState === 'saving-final' ? 'Finalizing…' : 'Confirm & finalize' })] })] })) : null] })), statusMessage ? (_jsx("div", { className: `writing-monitor__review-message${saveState === 'final-saved' ? ' is-final' : ''}`, role: "status", "aria-live": "polite", children: statusMessage })) : null] })] }) }))] }));
+};
 export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0, 7), isLoading = false, errorMessage, filterQuery = '', }) => {
     const isTestRuntime = typeof process !== 'undefined' && process.env?.['NODE_ENV'] === 'test';
     const seededOverview = isTestRuntime ? getWritingMonitoringOverview(month) : null;
@@ -205,7 +254,20 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const [feedbackDraft, setFeedbackDraft] = useState('');
     const [feedbackStatus, setFeedbackStatus] = useState('');
+    const [reviewContext, setReviewContext] = useState(null);
+    const [reviewContextLoading, setReviewContextLoading] = useState(false);
+    const [reviewContextError, setReviewContextError] = useState('');
+    const [reviewScores, setReviewScores] = useState(EMPTY_REVIEW_SCORES);
+    const [reviewRationale, setReviewRationale] = useState('');
+    const [reviewSaveState, setReviewSaveState] = useState('idle');
+    const [reviewStatusMessage, setReviewStatusMessage] = useState('');
+    const [reviewTeacherConfirmed, setReviewTeacherConfirmed] = useState(false);
+    const [reviewFinalizeConfirming, setReviewFinalizeConfirming] = useState(false);
     const studentRequestRef = useRef(0);
+    const reviewRequestRef = useRef(0);
+    const reviewSaveRequestRef = useRef(0);
+    const activeAttemptKeyRef = useRef('');
+    const reviewAssessmentIdRef = useRef('');
     const filters = parseAdminDrilldownFilters(filterQuery);
     const allRows = useMemo(() => (overview?.student_rows ?? []).map((row) => ({ ...row })), [overview]);
     const filteredRows = useMemo(() => allRows.filter((row) => {
@@ -294,6 +356,9 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
     }, [attemptRows, availableGenres]);
     const genreAttempts = useMemo(() => attemptRows.filter((attempt) => (attempt.genre?.trim().toLowerCase() || 'other') === selectedGenre), [attemptRows, selectedGenre]);
     const activeAttempt = genreAttempts[attemptIndex] ?? null;
+    const activeAttemptKey = activeAttempt?.attempt_id?.trim() || activeAttempt?.row_id?.trim() || '';
+    activeAttemptKeyRef.current = activeAttemptKey;
+    reviewAssessmentIdRef.current = reviewContext?.assessment_id ?? '';
     const totalSubmissions = filteredRows.reduce((sum, row) => sum + getSubmissionCount(row), 0);
     const allTimeSubmissions = filteredRows.reduce((sum, row) => sum + getAllTimeSubmissionCount(row), 0);
     const attentionCount = filteredRows.filter((row) => getStatus(row).tone === 'attention').length;
@@ -317,6 +382,9 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
             return next;
         });
     };
+    const invalidatePendingReviewSave = useCallback(() => {
+        reviewSaveRequestRef.current = (reviewSaveRequestRef.current ?? 0) + 1;
+    }, []);
     const refreshOverview = useCallback(async () => {
         if (isTestRuntime)
             return;
@@ -359,16 +427,59 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
             return;
         setAttemptIndex(Math.max(0, genreAttempts.length - 1));
     }, [attemptIndex, genreAttempts.length]);
+    const loadAssessmentReviewContext = useCallback(async () => {
+        invalidatePendingReviewSave();
+        const requestId = (reviewRequestRef.current ?? 0) + 1;
+        reviewRequestRef.current = requestId;
+        setReviewContext(null);
+        setReviewContextError('');
+        setReviewStatusMessage('');
+        setReviewSaveState('idle');
+        setReviewTeacherConfirmed(false);
+        setReviewFinalizeConfirming(false);
+        setReviewRationale('');
+        setReviewScores(EMPTY_REVIEW_SCORES);
+        if (!activeAttemptKey || activeAttempt?.attempt_status !== 'submitted' || isTestRuntime) {
+            setReviewContextLoading(false);
+            return;
+        }
+        setReviewContextLoading(true);
+        const result = await getWritingAssessmentReviewContext(activeAttemptKey);
+        if (reviewRequestRef.current !== requestId)
+            return;
+        setReviewContextLoading(false);
+        if (!result.ok) {
+            console.warn('[WritingMonitoringView] Teacher review context unavailable', result.error);
+            setReviewContextError('Your secure review details are temporarily unavailable. No scores were changed.');
+            return;
+        }
+        if (!result.data)
+            return;
+        const savedReview = result.data.final_review ?? result.data.latest_draft;
+        setReviewContext(result.data);
+        setReviewScores(savedReview?.criterion_scores ?? result.data.automated_scores);
+        setReviewRationale(savedReview?.rationale ?? '');
+        setReviewTeacherConfirmed(Boolean(result.data.final_review));
+        setReviewSaveState(result.data.final_review ? 'final-saved' : result.data.latest_draft ? 'draft-saved' : 'idle');
+    }, [activeAttempt?.attempt_status, activeAttemptKey, invalidatePendingReviewSave, isTestRuntime]);
+    useEffect(() => {
+        void loadAssessmentReviewContext();
+    }, [loadAssessmentReviewContext]);
     useEffect(() => {
         if (!selectedGenre || genreAttempts.length < 2 || collapsed.has('reader'))
             return;
         const onKeyDown = (event) => {
+            const target = event.target instanceof HTMLElement ? event.target : null;
+            if (target?.closest('input, textarea, select, button, [contenteditable="true"]'))
+                return;
             if (event.key === 'ArrowRight' && attemptIndex < genreAttempts.length - 1) {
+                invalidatePendingReviewSave();
                 setFlipDirection('forward');
                 setAttemptIndex((index) => index + 1);
                 setFlipSequence((sequence) => sequence + 1);
             }
             if (event.key === 'ArrowLeft' && attemptIndex > 0) {
+                invalidatePendingReviewSave();
                 setFlipDirection('backward');
                 setAttemptIndex((index) => index - 1);
                 setFlipSequence((sequence) => sequence + 1);
@@ -376,8 +487,9 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
         };
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, [attemptIndex, collapsed, genreAttempts.length, selectedGenre]);
+    }, [attemptIndex, collapsed, genreAttempts.length, invalidatePendingReviewSave, selectedGenre]);
     const selectClass = (group) => {
+        invalidatePendingReviewSave();
         studentRequestRef.current = (studentRequestRef.current ?? 0) + 1;
         setSelectedClassKey(group.key);
         setSelectedStudentId('');
@@ -394,6 +506,7 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
         });
     };
     const selectStudent = async (row) => {
+        invalidatePendingReviewSave();
         const requestId = (studentRequestRef.current ?? 0) + 1;
         studentRequestRef.current = requestId;
         setSelectedStudentId(row.student_id);
@@ -439,6 +552,7 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
         setAttemptsLoading(false);
     };
     const selectGenre = (genre) => {
+        invalidatePendingReviewSave();
         setSelectedGenre(genre);
         setAttemptIndex(0);
         setFlipDirection('forward');
@@ -455,6 +569,7 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
             return;
         if (direction === 'backward' && attemptIndex <= 0)
             return;
+        invalidatePendingReviewSave();
         setFlipDirection(direction);
         setAttemptIndex((index) => index + (direction === 'forward' ? 1 : -1));
         setFlipSequence((sequence) => sequence + 1);
@@ -490,7 +605,7 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
             },
         });
         setFeedbackStatus(result.ok
-            ? status === 'final' ? 'Feedback finalized and saved.' : 'Draft saved securely.'
+            ? status === 'final' ? 'Feedback published and saved.' : 'Draft saved securely.'
             : result.error ?? 'Unable to save feedback.');
     };
     const copyFeedback = async () => {
@@ -503,6 +618,79 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
         catch {
             setFeedbackStatus('Copy failed. Select the text and copy manually.');
         }
+    };
+    const updateReviewScore = (key, score) => {
+        if (!Number.isInteger(score) || score < 0 || score > 5 || reviewContext?.final_review)
+            return;
+        setReviewScores((current) => ({ ...current, [key]: score }));
+        setReviewSaveState('dirty');
+        setReviewStatusMessage('');
+        setReviewFinalizeConfirming(false);
+    };
+    const updateReviewRationale = (value) => {
+        if (reviewContext?.final_review)
+            return;
+        setReviewRationale(value.slice(0, 500));
+        setReviewSaveState('dirty');
+        setReviewStatusMessage('');
+        setReviewFinalizeConfirming(false);
+    };
+    const saveAssessmentReview = async (isFinal) => {
+        if (!reviewContext || reviewContext.final_review)
+            return;
+        const normalizedRationale = reviewRationale.trim().slice(0, 500);
+        if (isFinal && (!reviewTeacherConfirmed
+            || normalizedRationale.length < 12
+            || normalizedRationale.length > 500)) {
+            setReviewStatusMessage('Confirm your human review and add an evidence-based rationale before finalizing.');
+            return;
+        }
+        const saveRequestId = (reviewSaveRequestRef.current ?? 0) + 1;
+        reviewSaveRequestRef.current = saveRequestId;
+        const savedAssessmentId = reviewContext.assessment_id;
+        const savedAttemptKey = activeAttemptKey;
+        setReviewSaveState(isFinal ? 'saving-final' : 'saving-draft');
+        setReviewStatusMessage(isFinal ? 'Creating the final teacher authority record…' : 'Saving the teacher review draft…');
+        const result = await submitWritingAssessmentReview({
+            assessment_id: reviewContext.assessment_id,
+            criterion_scores: reviewScores,
+            rationale: normalizedRationale,
+            is_final: isFinal,
+        });
+        if (reviewSaveRequestRef.current !== saveRequestId
+            || activeAttemptKeyRef.current !== savedAttemptKey
+            || reviewAssessmentIdRef.current !== savedAssessmentId)
+            return;
+        if (!result.ok || !result.data) {
+            console.warn('[WritingMonitoringView] Teacher assessment review save failed', result.error);
+            setReviewSaveState(reviewContext.latest_draft ? 'draft-saved' : 'dirty');
+            setReviewStatusMessage('The review could not be saved. No Academic Profile evidence was changed. Please try again.');
+            return;
+        }
+        const savedAt = new Date().toISOString();
+        const savedReview = {
+            review_id: result.data.review_id,
+            review_status: result.data.review_status,
+            criterion_scores: result.data.criterion_scores,
+            total_score: result.data.total_score,
+            rationale: normalizedRationale || null,
+            created_at: savedAt,
+        };
+        setReviewContext((current) => {
+            if (!current || current.assessment_id !== result.data?.assessment_id)
+                return current;
+            return isFinal
+                ? { ...current, final_review: savedReview }
+                : { ...current, latest_draft: savedReview };
+        });
+        setReviewScores(result.data.criterion_scores);
+        setReviewSaveState(isFinal ? 'final-saved' : 'draft-saved');
+        setReviewFinalizeConfirming(false);
+        setReviewStatusMessage(isFinal
+            ? 'Validation finalized. These teacher-confirmed scores now feed the student’s Academic Profile.'
+            : 'Draft saved. It remains editable and does not affect the Academic Profile.');
+        if (isFinal)
+            void refreshOverview();
     };
     if (isLoading) {
         return (_jsxs("div", { className: "writing-monitor writing-monitor--loading", "aria-label": "Loading writing monitor", children: [_jsx("div", { className: "writing-monitor__skeleton writing-monitor__skeleton--hero" }), _jsx("div", { className: "writing-monitor__skeleton-grid", children: [1, 2, 3, 4].map((item) => _jsx("div", { className: "writing-monitor__skeleton" }, item)) }), _jsx("div", { className: "writing-monitor__skeleton writing-monitor__skeleton--panel" })] }));
@@ -546,14 +734,20 @@ export const WritingMonitoringView = ({ month = new Date().toISOString().slice(0
                                         : null;
                                     return (_jsxs("button", { type: "button", className: `writing-monitor__genre-card${selectedGenre === genre ? ' is-selected' : ''}${count === 0 ? ' is-empty' : ''}`, onClick: () => selectGenre(genre), "aria-pressed": selectedGenre === genre, children: [_jsx("span", { className: "writing-monitor__genre-icon", "aria-hidden": "true", children: genreMeta?.icon ?? '📄' }), _jsxs("span", { children: [_jsx("strong", { children: toGenreLabel(genre) }), _jsx("small", { children: genreMeta?.description ?? 'Writing evidence and teacher feedback' })] }), _jsxs("span", { className: "writing-monitor__genre-count", children: [_jsx("strong", { children: count }), _jsx("small", { children: count === 1 ? 'submission' : 'submissions' })] }), _jsx("span", { className: "writing-monitor__genre-score", children: average == null ? 'No score yet' : `Average ${formatScoreLabel(average)}` })] }, genre));
                                 }) }))] })) : null] })) : null, selectedRow && selectedGenre ? (_jsxs("section", { className: "writing-monitor__section writing-monitor__section--reader", children: [_jsx(CollapsibleHeading, { eyebrow: "Step 4", title: `${toGenreLabel(selectedGenre)} submission book`, description: "Flip through the student\u2019s saved submissions in chronological evidence pages.", collapsed: collapsed.has('reader'), onToggle: () => toggleCollapsed('reader'), actions: genreAttempts.length > 0 ? (_jsxs("span", { className: "writing-monitor__page-count", children: ["Submission ", attemptIndex + 1, " of ", genreAttempts.length] })) : undefined }), !collapsed.has('reader') ? (genreAttempts.length === 0 ? (_jsxs("div", { className: "writing-monitor__empty writing-monitor__empty--genre", children: [_jsx("span", { "aria-hidden": "true", children: "\uD83D\uDCED" }), _jsxs("strong", { children: ["No ", toGenreLabel(selectedGenre), " submissions yet"] }), _jsx("p", { children: "This genre remains visible so the teacher can see the student\u2019s complete writing coverage." })] })) : activeAttempt ? (_jsxs(_Fragment, { children: [_jsxs("div", { className: "writing-monitor__book-controls writing-monitor__book-controls--top", children: [_jsxs("button", { type: "button", onClick: () => turnPage('backward'), disabled: attemptIndex === 0, children: [_jsx("span", { "aria-hidden": "true", children: "\u2190" }), " Previous submission"] }), _jsx("div", { className: "writing-monitor__book-dots", "aria-label": `Submission ${attemptIndex + 1} of ${genreAttempts.length}`, children: genreAttempts.map((attempt, index) => (_jsx("button", { type: "button", className: index === attemptIndex ? 'is-active' : '', onClick: () => {
+                                                invalidatePendingReviewSave();
                                                 setFlipDirection(index > attemptIndex ? 'forward' : 'backward');
                                                 setAttemptIndex(index);
                                                 setFlipSequence((sequence) => sequence + 1);
-                                            }, "aria-label": `Open submission ${index + 1}`, "aria-current": index === attemptIndex ? 'page' : undefined }, attempt.attempt_id || attempt.row_id))) }), _jsxs("button", { type: "button", onClick: () => turnPage('forward'), disabled: attemptIndex === genreAttempts.length - 1, children: ["Next submission ", _jsx("span", { "aria-hidden": "true", children: "\u2192" })] })] }), _jsx("article", { className: `writing-monitor__book is-turning-${flipDirection}`, children: _jsxs("div", { className: "writing-monitor__book-spread", children: [_jsxs("section", { className: "writing-monitor__book-page writing-monitor__book-page--submission", children: [_jsxs("header", { children: [_jsx("span", { children: toGenreLabel(activeAttempt.genre || selectedGenre) }), _jsx("strong", { children: formatDate(activeAttempt.created_at) })] }), _jsx("div", { className: "writing-monitor__book-page-number", children: "Writing evidence" }), _jsx("h3", { children: "The task" }), _jsx("p", { className: "writing-monitor__prompt", children: activeAttempt.prompt_text || 'Prompt text is not available for this submission.' }), _jsx("h3", { children: "Student submission" }), _jsx("div", { className: "writing-monitor__submission-text", children: activeAttempt.student_submission || 'No submission text was saved.' }), readerIntegrity ? _jsxs(_Fragment, { children: [_jsx("h3", { children: "Assessment integrity" }), _jsxs("div", { className: "writing-monitor__tags", children: [_jsx("span", { children: readerIntegrity.status }), _jsxs("span", { children: ["Time spent: ", readerIntegrity.elapsed] }), _jsxs("span", { children: ["Tab changes: ", readerIntegrity.tabChanges] }), _jsxs("span", { children: ["Paste events: ", readerIntegrity.pasteEvents] }), _jsxs("span", { children: ["Largest attempted paste: ", readerIntegrity.largestPaste, " characters"] })] })] }) : null, _jsx("footer", { children: "Brains Heist Writing Hub \u00B7 Evidence page" })] }), _jsxs("section", { className: "writing-monitor__book-page writing-monitor__book-page--feedback", children: [_jsxs("header", { children: [_jsx("span", { children: "Teacher review" }), _jsx("strong", { children: formatScoreLabel(extractAttemptScore(activeAttempt)) })] }), _jsx("div", { className: "writing-monitor__book-page-number", children: "Feedback & next steps" }), _jsx("h3", { children: "Feedback summary" }), _jsx("p", { className: "writing-monitor__feedback-copy", children: extractAttemptFeedbackText(activeAttempt) }), _jsx("h3", { children: "Rubric snapshot" }), _jsx("div", { className: "writing-monitor__rubric", children: readerRubric.map((row) => (_jsxs("div", { children: [_jsxs("span", { children: [_jsx("strong", { children: row.label }), _jsx("b", { children: row.score == null ? '—' : `${row.score}/5` })] }), _jsx("div", { children: _jsx("i", { style: { width: `${Math.max(0, Math.min(100, ((row.score ?? 0) / 5) * 100))}%` } }) }), row.note ? _jsx("small", { children: row.note }) : null] }, row.label))) }), _jsx("h3", { children: "Focus tags" }), _jsx("div", { className: "writing-monitor__tags", children: readerWeaknesses.length > 0
+                                            }, "aria-label": `Open submission ${index + 1}`, "aria-current": index === attemptIndex ? 'page' : undefined }, attempt.attempt_id || attempt.row_id))) }), _jsxs("button", { type: "button", onClick: () => turnPage('forward'), disabled: attemptIndex === genreAttempts.length - 1, children: ["Next submission ", _jsx("span", { "aria-hidden": "true", children: "\u2192" })] })] }), _jsx("article", { className: `writing-monitor__book is-turning-${flipDirection}`, children: _jsxs("div", { className: "writing-monitor__book-spread", children: [_jsxs("section", { className: "writing-monitor__book-page writing-monitor__book-page--submission", children: [_jsxs("header", { children: [_jsx("span", { children: toGenreLabel(activeAttempt.genre || selectedGenre) }), _jsx("strong", { children: formatDate(activeAttempt.created_at) })] }), _jsx("div", { className: "writing-monitor__book-page-number", children: "Writing evidence" }), _jsx("h3", { children: "The task" }), _jsx("p", { className: "writing-monitor__prompt", children: activeAttempt.prompt_text || 'Prompt text is not available for this submission.' }), _jsx("h3", { children: "Student submission" }), _jsx("div", { className: "writing-monitor__submission-text", children: activeAttempt.student_submission || 'No submission text was saved.' }), readerIntegrity ? _jsxs(_Fragment, { children: [_jsx("h3", { children: "Assessment integrity" }), _jsxs("div", { className: "writing-monitor__tags", children: [_jsx("span", { children: readerIntegrity.status }), _jsxs("span", { children: ["Time spent: ", readerIntegrity.elapsed] }), _jsxs("span", { children: ["Tab changes: ", readerIntegrity.tabChanges] }), _jsxs("span", { children: ["Paste events: ", readerIntegrity.pasteEvents] }), _jsxs("span", { children: ["Largest attempted paste: ", readerIntegrity.largestPaste, " characters"] })] })] }) : null, _jsx("footer", { children: "Brains Heist Writing Hub \u00B7 Evidence page" })] }), _jsxs("section", { className: "writing-monitor__book-page writing-monitor__book-page--feedback", children: [_jsxs("header", { children: [_jsx("span", { children: "AI assessment \u00B7 review reference" }), _jsx("strong", { children: formatScoreLabel(extractAttemptScore(activeAttempt)) })] }), _jsx("div", { className: "writing-monitor__book-page-number", children: "Automated feedback & next steps" }), _jsx("h3", { children: "AI feedback summary" }), _jsx("p", { className: "writing-monitor__feedback-copy", children: extractAttemptFeedbackText(activeAttempt) }), _jsx("h3", { children: "AI rubric snapshot" }), _jsx("div", { className: "writing-monitor__rubric", children: readerRubric.map((row) => (_jsxs("div", { children: [_jsxs("span", { children: [_jsx("strong", { children: row.label }), _jsx("b", { children: row.score == null ? '—' : `${row.score}/5` })] }), _jsx("div", { children: _jsx("i", { style: { width: `${Math.max(0, Math.min(100, ((row.score ?? 0) / 5) * 100))}%` } }) }), row.note ? _jsx("small", { children: row.note }) : null] }, row.label))) }), _jsx("h3", { children: "Focus tags" }), _jsx("div", { className: "writing-monitor__tags", children: readerWeaknesses.length > 0
                                                         ? readerWeaknesses.map((tag) => _jsx("span", { children: toTeacherWeaknessLabel(tag) }, tag))
-                                                        : _jsx("span", { className: "is-neutral", children: "No weakness tags saved for this submission" }) }), readerCorrections.length > 0 ? (_jsxs("details", { className: "writing-monitor__corrections", children: [_jsxs("summary", { children: ["Sentence-level corrections (", readerCorrections.length, ")"] }), _jsx("div", { children: readerCorrections.map((correction, index) => (_jsxs("p", { children: [_jsx("strong", { children: correction.type }), _jsx("del", { children: correction.wrong }), _jsx("span", { "aria-hidden": "true", children: "\u2192" }), _jsx("ins", { children: correction.correct }), correction.explanation ? _jsx("small", { children: correction.explanation }) : null] }, `${correction.type}-${index}`))) })] })) : null, _jsx("footer", { children: "Brains Heist Writing Hub \u00B7 Feedback page" })] })] }) }, `${activeAttempt.attempt_id || activeAttempt.row_id}-${flipSequence}`), _jsxs("div", { className: "writing-monitor__book-controls writing-monitor__book-controls--bottom", children: [_jsxs("button", { type: "button", onClick: () => turnPage('backward'), disabled: attemptIndex === 0, children: [_jsx("span", { "aria-hidden": "true", children: "\u2190" }), " Previous"] }), _jsx("span", { children: "Use the arrows or keyboard \u2190 \u2192 to flip through submissions." }), _jsxs("button", { type: "button", onClick: () => turnPage('forward'), disabled: attemptIndex === genreAttempts.length - 1, children: ["Next ", _jsx("span", { "aria-hidden": "true", children: "\u2192" })] })] })] })) : null) : null] })) : null, isFeedbackOpen && selectedRow ? (_jsx("div", { className: "writing-monitor__modal-backdrop", role: "presentation", onMouseDown: () => setIsFeedbackOpen(false), children: _jsxs("section", { className: "writing-monitor__feedback-modal", role: "dialog", "aria-modal": "true", "aria-labelledby": "writing-feedback-title", onMouseDown: (event) => event.stopPropagation(), children: [_jsxs("header", { children: [_jsxs("div", { children: [_jsx("span", { className: "writing-monitor__eyebrow", children: "Teacher feedback" }), _jsx("h2", { id: "writing-feedback-title", children: toDisplayLabel(selectedRow.student_name, selectedRow.student_id) }), _jsx("p", { children: "Edit the suggested praise, growth target, and next step in your own voice." })] }), _jsx("button", { type: "button", onClick: () => setIsFeedbackOpen(false), "aria-label": "Close feedback", children: "\u00D7" })] }), _jsx("label", { htmlFor: "writing-feedback-editor", children: "Feedback to student" }), _jsx("textarea", { id: "writing-feedback-editor", value: feedbackDraft, onChange: (event) => {
+                                                        : _jsx("span", { className: "is-neutral", children: "No weakness tags saved for this submission" }) }), readerCorrections.length > 0 ? (_jsxs("details", { className: "writing-monitor__corrections", children: [_jsxs("summary", { children: ["Sentence-level corrections (", readerCorrections.length, ")"] }), _jsx("div", { children: readerCorrections.map((correction, index) => (_jsxs("p", { children: [_jsx("strong", { children: correction.type }), _jsx("del", { children: correction.wrong }), _jsx("span", { "aria-hidden": "true", children: "\u2192" }), _jsx("ins", { children: correction.correct }), correction.explanation ? _jsx("small", { children: correction.explanation }) : null] }, `${correction.type}-${index}`))) })] })) : null, _jsx("footer", { children: "Brains Heist Writing Hub \u00B7 Feedback page" })] })] }) }, `${activeAttempt.attempt_id || activeAttempt.row_id}-${flipSequence}`), _jsx(WritingAssessmentValidationPanel, { context: reviewContext, isLoading: reviewContextLoading, error: reviewContextError, rubricRows: readerRubric, scores: reviewScores, rationale: reviewRationale, saveState: reviewSaveState, statusMessage: reviewStatusMessage, teacherConfirmed: reviewTeacherConfirmed, finalizeConfirming: reviewFinalizeConfirming, onScoreChange: updateReviewScore, onRationaleChange: updateReviewRationale, onTeacherConfirmedChange: (confirmed) => {
+                                    setReviewTeacherConfirmed(confirmed);
+                                    setReviewStatusMessage('');
+                                    if (!confirmed)
+                                        setReviewFinalizeConfirming(false);
+                                }, onSaveDraft: () => void saveAssessmentReview(false), onRequestFinalize: () => setReviewFinalizeConfirming(true), onCancelFinalize: () => setReviewFinalizeConfirming(false), onConfirmFinalize: () => void saveAssessmentReview(true), onRetry: () => void loadAssessmentReviewContext() }), _jsxs("div", { className: "writing-monitor__book-controls writing-monitor__book-controls--bottom", children: [_jsxs("button", { type: "button", onClick: () => turnPage('backward'), disabled: attemptIndex === 0, children: [_jsx("span", { "aria-hidden": "true", children: "\u2190" }), " Previous"] }), _jsx("span", { children: "Use the arrows or keyboard \u2190 \u2192 to flip through submissions." }), _jsxs("button", { type: "button", onClick: () => turnPage('forward'), disabled: attemptIndex === genreAttempts.length - 1, children: ["Next ", _jsx("span", { "aria-hidden": "true", children: "\u2192" })] })] })] })) : null) : null] })) : null, isFeedbackOpen && selectedRow ? (_jsx("div", { className: "writing-monitor__modal-backdrop", role: "presentation", onMouseDown: () => setIsFeedbackOpen(false), children: _jsxs("section", { className: "writing-monitor__feedback-modal", role: "dialog", "aria-modal": "true", "aria-labelledby": "writing-feedback-title", onMouseDown: (event) => event.stopPropagation(), children: [_jsxs("header", { children: [_jsxs("div", { children: [_jsx("span", { className: "writing-monitor__eyebrow", children: "Teacher feedback" }), _jsx("h2", { id: "writing-feedback-title", children: toDisplayLabel(selectedRow.student_name, selectedRow.student_id) }), _jsx("p", { children: "Edit the suggested praise, growth target, and next step in your own voice. Publishing feedback does not validate rubric scores." })] }), _jsx("button", { type: "button", onClick: () => setIsFeedbackOpen(false), "aria-label": "Close feedback", children: "\u00D7" })] }), _jsx("label", { htmlFor: "writing-feedback-editor", children: "Feedback to student" }), _jsx("textarea", { id: "writing-feedback-editor", value: feedbackDraft, onChange: (event) => {
                                 setFeedbackDraft(event.target.value);
                                 setFeedbackStatus('');
-                            } }), feedbackStatus ? _jsx("div", { className: "writing-monitor__feedback-status", "aria-live": "polite", children: feedbackStatus }) : null, _jsxs("footer", { children: [_jsx("button", { type: "button", className: "writing-monitor__secondary-button", onClick: () => void copyFeedback(), children: "Copy feedback" }), _jsx("button", { type: "button", className: "writing-monitor__secondary-button", onClick: () => void saveFeedback('draft'), children: "Save draft" }), _jsx("button", { type: "button", className: "writing-monitor__primary-button", onClick: () => void saveFeedback('final'), children: "Finalize feedback" })] })] }) })) : null] }));
+                            } }), feedbackStatus ? _jsx("div", { className: "writing-monitor__feedback-status", "aria-live": "polite", children: feedbackStatus }) : null, _jsxs("footer", { children: [_jsx("button", { type: "button", className: "writing-monitor__secondary-button", onClick: () => void copyFeedback(), children: "Copy feedback" }), _jsx("button", { type: "button", className: "writing-monitor__secondary-button", onClick: () => void saveFeedback('draft'), children: "Save draft" }), _jsx("button", { type: "button", className: "writing-monitor__primary-button", onClick: () => void saveFeedback('final'), children: "Publish feedback" })] })] }) })) : null] }));
 };
 export default WritingMonitoringView;
