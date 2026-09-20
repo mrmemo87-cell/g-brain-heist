@@ -17,6 +17,7 @@
     "src/features/lockdown/**/*.ts",
     "src/features/onboarding/**/*.ts",
     "src/lib/**/*.ts",
+    "supabase/functions/_shared/teacherQuestionOptionBalance.ts",
     "components/admissionReportPartialAttempt.ts",
     "services/rpcGateway.ts",
     "services/admissionService.ts",
