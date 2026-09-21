@@ -12,6 +12,7 @@ import {
   BattleQuestionOption,
 } from "../clanTerritoryTypes";
 import { ClanTerritoryMap } from "./ClanTerritoryMap";
+import { NeonMegacityV6StudentExperience } from "./NeonMegacityV6StudentExperience";
 import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
 import type { MapId } from "../mapCatalog";
 import { audioService } from "../../../../services/audioService";
@@ -604,6 +605,28 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           Scanning... the battlefield unlocks once the teacher starts the raid.
         </div>
       </div>
+    );
+  }
+
+  // City map: keep the approved V6 shader-lab interaction as the actual ACTIVE experience.
+  // The map never collapses into the legacy card picker/combat split: clicking a district
+  // immediately retargets the player, the map stays live, and questions resolve in the V6 side rail.
+  if (gameState.phase === "ACTIVE" && (gameState.mapId || "default") === "city" && !hasStickyDebrief) {
+    return (
+      <NeonMegacityV6StudentExperience
+        gameState={gameState}
+        player={hydratedPlayer}
+        clans={clansWithColors}
+        selectedZoneId={effectiveZoneId}
+        currentQuestion={currentQuestion}
+        shuffledAnswers={shuffledAnswers}
+        feedback={feedback}
+        onSelectZone={(zoneId) => {
+          applyLocalZoneOverride(zoneId);
+          onSelectZone(zoneId);
+        }}
+        onAnswer={handleAnswerClick}
+      />
     );
   }
 

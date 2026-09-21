@@ -6,47 +6,73 @@ const mapSource = readFileSync(
   'src/features/clanTerritory/components/NeonMegacityShaderMap.tsx',
   'utf8',
 );
+const studentSource = readFileSync(
+  'src/features/clanTerritory/components/ClanTerritoryStudentView.tsx',
+  'utf8',
+);
+const experienceSource = readFileSync(
+  'src/features/clanTerritory/components/NeonMegacityV6StudentExperience.tsx',
+  'utf8',
+);
 const shaderSource = readFileSync(
   'src/features/clanTerritory/components/neonMegacityShader.ts',
   'utf8',
 );
 
-test('Neon Megacity keeps SVG territories invisible and touch-safe', () => {
-  assert.match(mapSource, /data-territory-hit=\{territory\.zoneId\}/);
-  assert.match(mapSource, /handleTerritoryPointerDown/);
-  assert.match(mapSource, /handleTerritoryPointerUp/);
+test('V6 map uses the artwork itself as the direct district interaction surface', () => {
+  assert.match(mapSource, /data-v6-map-viewport/);
+  assert.match(mapSource, /territoryAtPoint/);
+  assert.match(mapSource, /const handlePointerDown =/);
+  assert.match(mapSource, /const handlePointerMove =/);
+  assert.match(mapSource, /const handlePointerUp =/);
   assert.match(mapSource, /Math\.hypot\(event\.clientX - start\.x, event\.clientY - start\.y\) > 20/);
-  assert.match(mapSource, /pointerEvents: onZoneSelect \? "all" : "none"/);
-  assert.match(mapSource, /touchAction: onZoneSelect \? "manipulation" : "auto"/);
-  assert.match(mapSource, /fill="rgba\(255,255,255,0\.001\)"/);
-  assert.match(mapSource, /stroke="rgba\(255,255,255,0\.001\)"/);
-  assert.match(mapSource, /strokeWidth=\{12\}/);
-  assert.doesNotMatch(mapSource, /mixBlendMode: "color"/);
-  assert.doesNotMatch(mapSource, /mixBlendMode: "screen"/);
+  assert.match(mapSource, /onZoneSelect\(territory\.zoneId\)/);
+  assert.doesNotMatch(mapSource, /data-v6-immersive-map/);
+  assert.doesNotMatch(mapSource, /immersiveOpen/);
+  assert.doesNotMatch(mapSource, /Deploy to district/);
+  assert.doesNotMatch(mapSource, /Stay in district/);
+  assert.doesNotMatch(mapSource, /Tactical Map/);
+  assert.doesNotMatch(mapSource, /<polygon/);
 });
 
-test('student zone selection opens the immersive V6 tactical surface instead of relying on card-grid UX', () => {
-  assert.match(mapSource, /const embeddedInteractive = embeddedMode && Boolean\(onZoneSelect\)/);
-  assert.match(mapSource, /if \(selectedZoneId === null\) setImmersiveOpen\(true\)/);
-  assert.match(mapSource, /data-v6-immersive-map/);
-  assert.match(mapSource, /BRAIN HEIST · NEON MEGACITY · TACTICAL MAP/);
-  assert.match(mapSource, /V6 pure clan-color lighting · tap a district to inspect it/);
-  assert.match(mapSource, /Deploy to district/);
-  assert.match(mapSource, /Live occupation/);
+test('City ACTIVE flow bypasses legacy card-picker and split combat screens', () => {
+  assert.match(studentSource, /NeonMegacityV6StudentExperience/);
+  assert.match(
+    studentSource,
+    /gameState\.phase === "ACTIVE" && \(gameState\.mapId \|\| "default"\) === "city" && !hasStickyDebrief/,
+  );
+  assert.match(studentSource, /selectedZoneId=\{effectiveZoneId\}/);
+  assert.match(studentSource, /currentQuestion=\{currentQuestion\}/);
+  assert.match(studentSource, /shuffledAnswers=\{shuffledAnswers\}/);
+  assert.match(studentSource, /onAnswer=\{handleAnswerClick\}/);
+  assert.match(studentSource, /applyLocalZoneOverride\(zoneId\)/);
+  assert.match(studentSource, /onSelectZone\(zoneId\)/);
 });
 
-test('combat map can reopen the full V6 tactical surface without painting polygons', () => {
-  assert.match(mapSource, /data-v6-open-tactical-map/);
-  assert.match(mapSource, />\s*Tactical Map\s*</);
-  assert.match(mapSource, /setImmersiveOpen\(true\)/);
-  assert.match(mapSource, /Clan colors live inside the city lighting — territory polygons stay invisible/);
+test('student experience keeps the persistent V6 Shader Lab surface and side rail', () => {
+  assert.match(experienceSource, /data-v6-student-experience/);
+  assert.match(experienceSource, /BRAIN HEIST · NEON MEGACITY · SHADER LAB · V6/);
+  assert.match(
+    experienceSource,
+    /True clan hue replacement · source artwork provides brightness\/texture, not faction color/,
+  );
+  assert.match(experienceSource, />SELECTED TERRITORY</);
+  assert.match(experienceSource, />BATTLE QUESTION</);
+  assert.match(experienceSource, />WHAT YOU SHOULD NOTICE</);
+  assert.match(experienceSource, />LIVE OCCUPATION</);
+  assert.match(experienceSource, />BATTLE FEED</);
+  assert.match(experienceSource, /Click any district\. On-map badges show occupation for every active district\./);
+  assert.match(experienceSource, /onZoneSelect=\{onSelectZone\}/);
+  assert.doesNotMatch(experienceSource, /Deploy to district/);
+  assert.doesNotMatch(experienceSource, /Stay in district/);
+  assert.doesNotMatch(experienceSource, /Tactical Map/);
 });
 
 test('V6 map keeps district occupation badges and native artwork geometry', () => {
   assert.match(mapSource, /data-v6-territory-badge=\{territory\.zoneId\}/);
   assert.match(mapSource, /aspectRatio: `\$\{NEON_MEGACITY_WIDTH\} \/ \$\{NEON_MEGACITY_HEIGHT\}`/);
   assert.match(mapSource, /object-fill/);
-  assert.match(mapSource, /aria-label="Neon Megacity V6 shader layer"/);
+  assert.match(mapSource, /aria-label="Neon Megacity V6 pure clan-color shader"/);
   assert.match(shaderSource, /export const RENDER_WIDTH = NEON_MEGACITY_WIDTH/);
   assert.match(shaderSource, /export const RENDER_HEIGHT = NEON_MEGACITY_HEIGHT/);
 });
