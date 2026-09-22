@@ -52,6 +52,15 @@ test('teacher question access follows the academic map while the school subject 
   assert.match(learningMigration, /scope\.academic_subject_id=q0\.academic_subject_id/i);
 });
 
+test('school subject learning preserves the verified question pool contract and operational year', () => {
+  assert.match(learningMigration, /academic_resolve_operational_year_id\(v_school,now\(\)\)/i);
+  assert.match(learningMigration, /eligible_grade_levels smallint\[\],[\s\S]*pool_scope text,[\s\S]*owner_school_id uuid/i);
+  assert.match(learningMigration, /q0\.pool_scope='global'[\s\S]*item\.school_id is null/i);
+  assert.match(learningMigration, /q0\.pool_scope='school'[\s\S]*q0\.owner_school_id=v_school[\s\S]*not q0\.is_public/i);
+  assert.match(learningMigration, /q0\.pool_scope='teacher'[\s\S]*q0\.teacher_id=v_teacher/i);
+  assert.match(learningMigration, /q\.eligible_grade_levels,q\.pool_scope,q\.owner_school_id/i);
+});
+
 test('unmapped subjects remain valid and create platform academic attention', () => {
   assert.match(identityMigration, /create table if not exists public\.school_subject_mapping_requests/i);
   assert.match(adminMigration, /school_subject_mapping_requests/i);
