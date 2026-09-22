@@ -400,6 +400,10 @@ begin
   order by page.created_at desc;
 end;
 $$;
+revoke all on function public.get_all_active_questions(text,text,uuid,integer,integer)
+  from public,anon,authenticated,service_role;
+grant execute on function public.get_all_active_questions(text,text,uuid,integer,integer)
+  to authenticated,service_role;
 
 create or replace function public.rpc_superadmin_subject_mapping_requests(
   p_status text default 'pending'
