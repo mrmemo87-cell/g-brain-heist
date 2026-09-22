@@ -434,7 +434,7 @@ const SubjectProvisioningPanel: React.FC = () => {
               <div className="max-w-2xl">
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-blue-700">Step 1 of 5</span>
                 <h4 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">What should your school call this subject?</h4>
-                <p className="mt-2 text-sm leading-6 text-slate-600">Students and teachers will see the school-facing name. Brain Heist keeps the academic mapping underneath for curriculum, questions and reporting.</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">Students and teachers will see the school-facing name. Brains Heist keeps the academic mapping underneath for curriculum, questions and reporting.</p>
 
                 <div className="mt-7 space-y-5">
                   <label className="block">
