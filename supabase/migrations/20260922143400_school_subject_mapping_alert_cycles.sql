@@ -18,7 +18,15 @@ set search_path=''
 as $$
 begin
   if new.status='pending' and old.status is distinct from 'pending' then
+    -- A new needs-mapping episode: keep the fresh requester/timestamp written by
+    -- the governed save RPC and rotate the email idempotency token.
     new.alert_cycle:=gen_random_uuid();
+  elsif new.status='pending' and old.status='pending' then
+    -- Ordinary edits to an already-unmapped subject are not a new request.
+    -- Preserve the original episode metadata and idempotency token.
+    new.alert_cycle:=old.alert_cycle;
+    new.requested_at:=old.requested_at;
+    new.requested_by:=old.requested_by;
   end if;
   return new;
 end;
