@@ -5,7 +5,7 @@ import test from 'node:test';
 const identityMigration = readFileSync('supabase/migrations/20260922143000_school_subject_identity.sql', 'utf8');
 const adminMigration = readFileSync('supabase/migrations/20260922143100_school_subject_admin_rpcs.sql', 'utf8');
 const learningMigration = readFileSync('supabase/migrations/20260922143200_school_subject_learning_catalog.sql', 'utf8');
-const alertMigration = readFileSync('supabase/migrations/20260922143400_school_subject_mapping_alert_cycles.sql', 'utf8');
+const reopenNotificationMigration = readFileSync('supabase/migrations/20260922143400_subject_mapping_reopen_notifications.sql', 'utf8');
 const service = readFileSync('services/schoolSubjectCatalogService.ts', 'utf8');
 const manager = readFileSync('components/school-admin/SchoolSubjectsManager.tsx', 'utf8');
 const subjectsTab = readFileSync('components/school-admin/tabs/SubjectsTab.tsx', 'utf8');
@@ -54,13 +54,12 @@ test('unmapped subjects remain valid and create platform academic attention', ()
   assert.match(manager, /You can still create and use this school subject/);
 });
 
-test('mapping attention is deduplicated per unmapped episode and re-alerts after a later remap gap', () => {
-  assert.match(alertMigration, /alert_cycle uuid not null default gen_random_uuid\(\)/i);
-  assert.match(alertMigration, /new\.status='pending' and old\.status is distinct from 'pending'/i);
-  assert.match(alertMigration, /new\.alert_cycle:=gen_random_uuid\(\)/i);
-  assert.match(alertMigration, /school_subject_mapping_requested/i);
-  assert.match(alertMigration, /new\.idempotency_key:='school-subject-mapping-request:'\|\|v_alert_cycle::text/i);
-  assert.match(alertMigration, /before insert on public\.transactional_email_outbox/i);
+test('mapping attention is silent for normal pending edits and re-alerts on a later reopen', () => {
+  assert.match(reopenNotificationMigration, /old\.status in \('resolved','dismissed'\) and new\.status='pending'/i);
+  assert.match(reopenNotificationMigration, /school_subject_mapping_requested/i);
+  assert.match(reopenNotificationMigration, /school-subject-mapping-reopened:/i);
+  assert.match(reopenNotificationMigration, /after update of status on public\.school_subject_mapping_requests/i);
+  assert.match(reopenNotificationMigration, /on conflict \(idempotency_key\) do nothing/i);
 });
 
 test('school subject deletion removes active operations but preserves historical work', () => {
