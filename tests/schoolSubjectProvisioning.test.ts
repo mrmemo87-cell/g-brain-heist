@@ -5,6 +5,7 @@ import test from 'node:test';
 const read = (path: string) => readFileSync(path, 'utf8');
 const provisioningMigration = read('supabase/migrations/20260922110000_school_subject_provisioning.sql');
 const teacherAliasMigration = read('supabase/migrations/20260922111000_school_subject_alias_teacher_allocation.sql');
+const atomicityMigration = read('supabase/migrations/20260922112000_subject_provisioning_atomicity.sql');
 const panel = read('components/school-admin/SubjectProvisioningPanel.tsx');
 const service = read('services/subjectProvisioningService.ts');
 const subjectsTab = read('components/school-admin/tabs/SubjectsTab.tsx');
@@ -19,12 +20,22 @@ test('school subject provisioning keeps a school label mapped to canonical acade
 });
 
 test('selective access is enforced by the existing student subject enrolment authority', () => {
-  assert.match(provisioningMigration, /p_access_mode not in \('all_grade', 'selected'\)/i);
-  assert.match(provisioningMigration, /student_subject_enrolments/i);
-  assert.match(provisioningMigration, /select_at_least_one_student/i);
-  assert.match(provisioningMigration, /selected_student_not_in_grade/i);
-  assert.match(provisioningMigration, /status = 'withdrawn'/i);
-  assert.match(provisioningMigration, /subject_requirement = excluded\.subject_requirement/i);
+  assert.match(atomicityMigration, /p_access_mode not in \('all_grade', 'selected'\)/i);
+  assert.match(atomicityMigration, /student_subject_enrolments/i);
+  assert.match(atomicityMigration, /select_at_least_one_student/i);
+  assert.match(atomicityMigration, /selected_student_not_in_grade/i);
+  assert.match(atomicityMigration, /status = 'withdrawn'/i);
+  assert.match(atomicityMigration, /subject_requirement = excluded\.subject_requirement/i);
+});
+
+test('provisioning validates the whole audience and staffing scope before writes', () => {
+  const audienceValidation = atomicityMigration.indexOf('-- Validate the full selective audience before any writes.');
+  const staffingValidation = atomicityMigration.indexOf('-- Validate staffing before any writes.');
+  const firstAliasWrite = atomicityMigration.indexOf('insert into public.academic_subject_aliases');
+  assert.ok(audienceValidation >= 0 && audienceValidation < firstAliasWrite);
+  assert.ok(staffingValidation >= 0 && staffingValidation < firstAliasWrite);
+  assert.match(atomicityMigration, /teacher_class_required/i);
+  assert.match(atomicityMigration, /raise exception using[\s\S]+teacher_allocation_failed/i);
 });
 
 test('student catalogue exposes school-facing subject label without changing canonical code or id', () => {
