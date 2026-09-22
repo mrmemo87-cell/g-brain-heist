@@ -19,6 +19,14 @@ test('school subjects are first-class school-owned identities', () => {
   assert.doesNotMatch(identityMigration, /unique \(school_id,academic_year_id,grade_level,academic_subject_id\)/i);
 });
 
+test('compatibility backfill leaves retired curriculum mappings untouched', () => {
+  assert.match(
+    identityMigration,
+    /update public\.school_curriculum_scope_mappings m[\s\S]*m\.status in \('planned','active'\)[\s\S]*fv\.status='published'/i,
+  );
+  assert.match(identityMigration, /Archived\/retired curriculum mappings are historical evidence/i);
+});
+
 test('academic mapping is explicit and optional instead of inferred from a label', () => {
   assert.match(identityMigration, /drop trigger if exists trg_academic_enrich_school_subject/i);
   assert.match(identityMigration, /Optional academic capability map/i);
