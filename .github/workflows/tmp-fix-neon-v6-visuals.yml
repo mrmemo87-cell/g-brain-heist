@@ -1,0 +1,36 @@
+name: Temporary Neon Megacity V6 visual fidelity patcher
+
+on:
+  push:
+    branches:
+      - fix/neon-megacity-v6-visual-fidelity
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/neon-megacity-v6-visual-fidelity
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Patch visual fidelity
+        run: node scripts/tmp_fix_neon_v6_visuals.mjs
+      - name: Commit patch
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No patch needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/clanTerritory/components/NeonMegacityShaderMap.tsx src/features/clanTerritory/components/neonMegacityShader.ts tests/neonMegacityMobileInteraction.test.ts
+          git commit -m "fix: restore V6 coloring capture pulse and map clarity"
+          git push origin HEAD:fix/neon-megacity-v6-visual-fidelity
