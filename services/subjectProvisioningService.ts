@@ -59,9 +59,10 @@ const messageForCode = (code?: string) => {
     case 'offering_scope_does_not_match_grade_subject': return 'That academic mapping is not available for the selected grade.';
     case 'select_at_least_one_student': return 'Select at least one student for this subject.';
     case 'selected_student_not_in_grade': return 'One or more selected students are no longer in this grade. Refresh the roster and try again.';
-    case 'teacher_not_available_in_school': return 'Choose an active teacher from this school.';
+    case 'teacher_class_required': return 'Choose at least one class for the teacher allocation.';
+    case 'teacher_not_available_in_school': return 'Choose an active teacher with teaching access in this school.';
     case 'class_not_in_selected_grade': return 'One of the selected classes no longer belongs to this grade.';
-    case 'teacher_allocation_failed': return 'The subject was prepared, but the teacher allocation could not be saved.';
+    case 'teacher_allocation_failed': return 'The subject was not published because the teacher allocation could not be saved.';
     default: return code ? code.replaceAll('_', ' ') : 'The subject could not be provisioned.';
   }
 };
