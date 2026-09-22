@@ -71,7 +71,7 @@ test('student experience keeps the persistent V6 Shader Lab surface and side rai
 test('V6 map keeps district occupation badges and native artwork geometry', () => {
   assert.match(mapSource, /data-v6-territory-badge=\{territory\.zoneId\}/);
   assert.match(mapSource, /aspectRatio: `\$\{NEON_MEGACITY_WIDTH\} \/ \$\{NEON_MEGACITY_HEIGHT\}`/);
-  assert.match(mapSource, /object-fill/);
+  assert.match(mapSource, /object-contain/);
   assert.match(mapSource, /aria-label="Neon Megacity V6 pure clan-color shader"/);
   assert.match(shaderSource, /export const RENDER_WIDTH = NEON_MEGACITY_WIDTH/);
   assert.match(shaderSource, /export const RENDER_HEIGHT = NEON_MEGACITY_HEIGHT/);
@@ -83,17 +83,15 @@ test('shader mask uses spaced IDs to survive browser texture color conversion', 
   assert.match(shaderSource, /texture\(uId,uv\)\.r\*255\.0\/24\.0/);
 });
 
-test('production shader stays visually locked to the approved V6 lighting model', () => {
-  assert.match(shaderSource, /chromaLight=smoothstep\(0\.10,0\.48,sat\)\*smoothstep\(0\.08,0\.54,lum\)/);
-  assert.match(shaderSource, /brightLight=smoothstep\(0\.28,0\.82,lum\)\*smoothstep\(0\.04,0\.22,sat\)/);
-  assert.match(shaderSource, /emissive=clamp\(chromaLight\*0\.90 \+ brightLight\*0\.42/);
-  assert.match(shaderSource, /materialMask=.*\*0\.26/);
-  assert.match(shaderSource, /hueReplace\(clanColor,clamp\(lum\*1\.16,0\.0,0\.96\)\)/);
-  assert.match(shaderSource, /lightStrength=emissive\*mix\(0\.60,0\.96/);
-  assert.match(shaderSource, /hueReplace\(clanColor,clamp\(lum\*0\.82,0\.0,0\.68\)\)/);
-  assert.match(shaderSource, /seamKeep=1\.0-border\*0\.76/);
-  assert.match(shaderSource, /emissive\*0\.42/);
-  assert.match(shaderSource, /emissive\*0\.24/);
-  assert.doesNotMatch(shaderSource, /sourceNeutral=/);
-  assert.doesNotMatch(shaderSource, /relit\+=clanColor/);
+test('production shader keeps V6 ownership color and capture feedback clearly visible', () => {
+  assert.match(shaderSource, /sharpenArt/);
+  assert.match(shaderSource, /whiteLike\*0\.18/);
+  assert.match(shaderSource, /networkStrength=clamp\(0\.38\+coverage\*0\.56/);
+  assert.match(shaderSource, /ownershipStrength=max\(networkStrength,captured\)/);
+  assert.match(shaderSource, /float age=uTime-uCaptureTime\[id\]/);
+  assert.match(shaderSource, /age<1\.65/);
+  assert.match(shaderSource, /aspectDistance/);
+  assert.match(mapSource, /previousInfluenceSignatureRef/);
+  assert.match(mapSource, /signature !== previousSignature/);
+  assert.doesNotMatch(mapSource, /previousLeaderRef/);
 });

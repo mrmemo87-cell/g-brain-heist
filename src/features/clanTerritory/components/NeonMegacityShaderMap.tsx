@@ -74,7 +74,7 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const startTimeRef = useRef<number>(performance.now() / 1000);
   const selectAtRef = useRef<number>(-999);
-  const previousLeaderRef = useRef<Record<ZoneId, ClanId | null>>({});
+  const previousInfluenceSignatureRef = useRef<Record<ZoneId, string>>({});
   const captureAtRef = useRef<Record<ZoneId, number>>({});
   const pointerStartRef = useRef<PointerStart | null>(null);
   const [hoveredZoneId, setHoveredZoneId] = useState<ZoneId | null>(null);
@@ -108,12 +108,15 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
   useEffect(() => {
     const elapsed = performance.now() / 1000 - startTimeRef.current;
     for (const territory of NEON_MEGACITY_TERRITORIES) {
-      const leader = zoneVisuals[territory.zoneId].entries[0]?.clanId ?? null;
-      const previousLeader = previousLeaderRef.current[territory.zoneId];
-      if (leader && leader !== previousLeader) {
+      const visual = zoneVisuals[territory.zoneId];
+      const signature = visual.entries
+        .map((entry) => `${entry.clanId}:${entry.influence}`)
+        .join('|');
+      const previousSignature = previousInfluenceSignatureRef.current[territory.zoneId];
+      if (previousSignature !== undefined && signature !== previousSignature && visual.rawTotal > 0) {
         captureAtRef.current[territory.zoneId] = elapsed;
       }
-      previousLeaderRef.current[territory.zoneId] = leader;
+      previousInfluenceSignatureRef.current[territory.zoneId] = signature;
     }
   }, [zoneVisuals]);
 
@@ -229,7 +232,7 @@ export const NeonMegacityShaderMap: React.FC<NeonMegacityShaderMapProps> = ({
         <img
           src={cityArtUrl}
           alt="Neon Megacity"
-          className="pointer-events-none absolute inset-0 h-full w-full select-none object-fill"
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
           draggable={false}
         />
         <canvas
