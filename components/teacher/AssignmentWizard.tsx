@@ -231,6 +231,38 @@ export default function AssignmentWizard({
     return term ? { year, term } : null;
   }, [academicSetup]);
 
+  const selectedTeachingGroup = useMemo(
+    () => teachingGroups.find((group) => group.id === assignmentGroupId) || null,
+    [assignmentGroupId, teachingGroups],
+  );
+  const subjectTeachingGroups = useMemo(
+    () => teachingGroups.filter((group) => normalizeSubject(group.schoolSubjectName) === normalizeSubject(assignmentSubject)),
+    [assignmentSubject, teachingGroups],
+  );
+  const hasTeachingGroups = teachingGroups.length > 0;
+
+  useEffect(() => {
+    if (!schoolId || !assignmentGroupId) {
+      setGroupRoster([]);
+      return;
+    }
+    let cancelled = false;
+    setGroupRosterLoading(true);
+    void fetchTeacherTeachingGroupRoster(schoolId, assignmentGroupId)
+      .then((rows) => {
+        if (cancelled) return;
+        setGroupRoster(rows);
+        setSelectedStudentIds(rows.map((row) => row.student_id));
+        setAssignmentMode('custom');
+        setAssignmentBatches([]);
+      })
+      .catch((error) => {
+        console.error('Failed to load teaching group roster', error);
+        if (!cancelled) setGroupRoster([]);
+      })
+      .finally(() => { if (!cancelled) setGroupRosterLoading(false); });
+    return () => { cancelled = true; };
+  }, [assignmentGroupId, schoolId, setAssignmentBatches, setAssignmentMode, setSelectedStudentIds]);
   const scheduledDateKey = assignmentAssignedAt ? assignmentAssignedAt.slice(0, 10) : '';
   const scheduledOutsideCurrentTerm = assignmentPublishStatus === 'scheduled' && Boolean(scheduleWindow) && Boolean(scheduledDateKey) && Boolean(
     scheduleWindow && (scheduledDateKey < scheduleWindow.term.startsOn || scheduledDateKey > scheduleWindow.term.endsOn)
@@ -278,12 +310,18 @@ export default function AssignmentWizard({
     });
   }, [assignmentSubject, questions]);
 
+  const assignmentResourceSubject = selectedTeachingGroup?.academicSubjectName || assignmentSubject;
   const subjectQuestions = useMemo(
-    () => uniqueQuestions.filter((question) => normalizeSubject(question.subject) === normalizeSubject(assignmentSubject)),
-    [assignmentSubject, uniqueQuestions],
+    () => uniqueQuestions.filter((question) => {
+      const normalized = normalizeSubject(question.subject);
+      return normalized === normalizeSubject(assignmentSubject)
+        || normalized === normalizeSubject(assignmentResourceSubject);
+    }),
+    [assignmentResourceSubject, assignmentSubject, uniqueQuestions],
   );
 
   const audienceGrades = useMemo(() => {
+    if (selectedTeachingGroup) return [Number(selectedTeachingGroup.gradeLevel)].filter((grade) => Number.isInteger(grade) && grade > 0);
     const grades = assignmentMode === 'batch'
       ? uniqueClasses
         .filter((item) => assignmentBatches.includes('All') || assignmentBatches.includes(item.class_code))
@@ -293,7 +331,7 @@ export default function AssignmentWizard({
         .map((student) => Number(student.grade));
 
     return [...new Set(grades.filter((grade) => Number.isInteger(grade) && grade > 0))];
-  }, [assignmentBatches, assignmentMode, assignableStudents, selectedStudentIds, uniqueClasses]);
+  }, [assignmentBatches, assignmentMode, assignableStudents, selectedStudentIds, selectedTeachingGroup, uniqueClasses]);
 
   const assignmentEligibleQuestions = useMemo(
     () => subjectQuestions.filter((question) => {
