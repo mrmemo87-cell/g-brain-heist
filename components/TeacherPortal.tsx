@@ -6,8 +6,10 @@ import * as GameService from '../services/gameService';
 import * as AuthService from '../services/authService';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import {
+  fetchTeacherTeachingGroupRoster,
   fetchTeacherTeachingGroups,
   type SchoolSubjectGroup,
+  type SubjectGroupRosterStudent,
 } from '../services/schoolSubjectGroupService';
 import { supabase } from '../services/supabaseClient';
 import { getAcademicReportingContext, type AcademicReportingYear } from '../services/academicReportingService';
@@ -219,6 +221,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Teacher class allocation state
   const [allocatedClasses, setAllocatedClasses] = useState<SchoolAdminService.TeacherAllocatedClass[]>([]);
   const [teachingGroups, setTeachingGroups] = useState<SchoolSubjectGroup[]>([]);
+  const [teachingGroupRosters, setTeachingGroupRosters] = useState<Record<string, SubjectGroupRosterStudent[]>>({});
   const [teacherHasClassAllocations, setTeacherHasClassAllocations] = useState(false);
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
@@ -3257,15 +3260,28 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         SchoolAdminService.getTeacherAllocatedClasses(),
         profile.school_id ? fetchTeacherTeachingGroups(profile.school_id) : Promise.resolve([] as SchoolSubjectGroup[]),
       ])
-        .then(([classes, groups]) => {
+        .then(async ([classes, groups]) => {
+          const rosterEntries = profile.school_id
+            ? await Promise.all(groups.map(async (group) => {
+                try {
+                  return [group.id, await fetchTeacherTeachingGroupRoster(profile.school_id!, group.id)] as const;
+                } catch (error) {
+                  console.warn(`Unable to load roster for teaching group ${group.name}:`, error);
+                  return [group.id, [] as SubjectGroupRosterStudent[]] as const;
+                }
+              }))
+            : [];
+
           setAllocatedClasses(classes);
           setTeachingGroups(groups);
+          setTeachingGroupRosters(Object.fromEntries(rosterEntries));
           setTeacherHasClassAllocations(groups.length > 0 || classes.length > 0);
         })
         .catch((error) => {
           console.error('Error loading teaching groups and legacy class allocations:', error);
           setAllocatedClasses([]);
           setTeachingGroups([]);
+          setTeachingGroupRosters({});
           setTeacherHasClassAllocations(false);
         });
 
@@ -5222,59 +5238,111 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   );
 
   const renderStudents = () => {
-    const classMap = new Map<string, { subjects: Set<string>; students: StudentForAssignment[] }>();
-    allocatedClasses
-      .filter((allocatedClass) => allocatedClass.is_active)
-      .forEach((allocatedClass) => {
-        const existing = classMap.get(allocatedClass.class_code) || { subjects: new Set<string>(), students: [] };
-        if (allocatedClass.subject) existing.subjects.add(allocatedClass.subject);
-        classMap.set(allocatedClass.class_code, existing);
+    const availableStudentById = new Map(availableStudents.map((student) => [student.id, student]));
+
+    const canonicalGroups = teachingGroups
+      .filter((group) => group.status === 'active')
+      .map((group) => {
+        const roster = teachingGroupRosters[group.id] || [];
+        const students = roster.map((member) => {
+          const existing = availableStudentById.get(member.student_id);
+          if (existing) return existing;
+
+          const name = member.student_name || 'Student';
+          return {
+            id: member.student_id,
+            username: name,
+            display_name: name,
+            grade: Number(group.gradeLevel) || 0,
+            batch: (member.class_code || null) as StudentForAssignment['batch'],
+            avatar_url: null,
+          } satisfies StudentForAssignment;
+        });
+
+        return {
+          key: group.id,
+          title: group.name,
+          groupType: group.groupType,
+          subjects: [group.schoolSubjectName],
+          students,
+          sourceType: 'teaching-group' as const,
+          sourceId: group.id,
+        };
+      })
+      .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: 'base', numeric: true }));
+
+    // Compatibility fallback for schools that have not materialized teaching
+    // groups yet. Once canonical groups exist, never collapse them back into
+    // registration classes because custom groups must remain distinct.
+    const legacyClassMap = new Map<string, { subjects: Set<string>; students: StudentForAssignment[] }>();
+    if (canonicalGroups.length === 0) {
+      allocatedClasses
+        .filter((allocatedClass) => allocatedClass.is_active)
+        .forEach((allocatedClass) => {
+          const existing = legacyClassMap.get(allocatedClass.class_code) || { subjects: new Set<string>(), students: [] };
+          if (allocatedClass.subject) existing.subjects.add(allocatedClass.subject);
+          legacyClassMap.set(allocatedClass.class_code, existing);
+        });
+
+      availableStudents.forEach((student) => {
+        const classCode = student.batch || 'Class not assigned';
+        const existing = legacyClassMap.get(classCode) || { subjects: new Set<string>(), students: [] };
+        const teacherSubjects = (student as StudentForAssignment & { teacher_subjects?: string[] }).teacher_subjects || [];
+        teacherSubjects.forEach((subjectName) => {
+          if (subjectName) existing.subjects.add(subjectName);
+        });
+        existing.students.push(student);
+        legacyClassMap.set(classCode, existing);
       });
-    availableStudents.forEach((student) => {
-      const classCode = student.batch || 'Class not assigned';
-      const existing = classMap.get(classCode) || { subjects: new Set<string>(), students: [] };
-      const teacherSubjects = (student as StudentForAssignment & { teacher_subjects?: string[] }).teacher_subjects || [];
-      teacherSubjects.forEach((subjectName) => {
-        if (subjectName) existing.subjects.add(subjectName);
-      });
-      existing.students.push(student);
-      classMap.set(classCode, existing);
-    });
-    const search = studentSearchTerm.trim().toLocaleLowerCase();
-    const classGroups = [...classMap.entries()]
+    }
+
+    const legacyGroups = [...legacyClassMap.entries()]
       .map(([classCode, value]) => ({
-        classCode,
+        key: `legacy:${classCode}`,
+        title: `Class ${classCode}`,
+        groupType: 'class' as const,
         subjects: [...value.subjects].sort(),
-        students: value.students.filter((student) => !search || [
+        students: value.students,
+        sourceType: 'legacy-class' as const,
+        sourceId: classCode,
+      }))
+      .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: 'base', numeric: true }));
+
+    const search = studentSearchTerm.trim().toLocaleLowerCase();
+    const rosterGroups = (canonicalGroups.length > 0 ? canonicalGroups : legacyGroups)
+      .map((group) => ({
+        ...group,
+        students: group.students.filter((student) => !search || [
           student.display_name,
           student.batch,
+          group.title,
+          ...group.subjects,
         ].join(' ').toLocaleLowerCase().includes(search)),
       }))
       .filter((group) => !search ||
         group.students.length > 0 ||
-        group.classCode.toLocaleLowerCase().includes(search) ||
-        group.subjects.some((subjectName) => subjectName.toLocaleLowerCase().includes(search)))
-      .sort((left, right) => left.classCode.localeCompare(right.classCode));
+        group.title.toLocaleLowerCase().includes(search) ||
+        group.subjects.some((subjectName) => subjectName.toLocaleLowerCase().includes(search)));
 
-    const printClassDocuments = (groups: typeof classGroups) => {
+    const printTeachingGroupDocuments = (groups: typeof rosterGroups) => {
       if (!groups.length) return;
       const today = new Date().toISOString().slice(0, 10);
       const bodyHtml = groups.map((group, groupIndex) => `
         <section class="${groupIndex > 0 ? 'document-page-break' : ''}">
-          <h2>Class ${escapeSchoolDocumentHtml(group.classCode)}</h2>
-          <p><strong>Subjects:</strong> ${escapeSchoolDocumentHtml(group.subjects.join(', ') || 'Not linked')}</p>
+          <h2>${escapeSchoolDocumentHtml(group.title)}</h2>
+          <p><strong>Subject:</strong> ${escapeSchoolDocumentHtml(group.subjects.join(', ') || 'Not linked')}</p>
           <table>
             <thead><tr><th style="width:8%">No.</th><th>Official student name</th><th style="width:14%">Grade</th><th style="width:35%">Teacher notes</th></tr></thead>
-            <tbody>${group.students.length ? group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student.display_name)}</td><td>${escapeSchoolDocumentHtml(student.grade || '—')}</td><td></td></tr>`).join('') : '<tr><td colspan="4">No students are currently enrolled in this class.</td></tr>'}</tbody>
+            <tbody>${group.students.length ? group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student.display_name)}</td><td>${escapeSchoolDocumentHtml(student.grade || '—')}</td><td></td></tr>`).join('') : '<tr><td colspan="4">No students are currently enrolled in this teaching group.</td></tr>'}</tbody>
           </table>
         </section>`).join('');
       try {
         openSchoolDocumentPreview({
           meta: {
             documentId: createSchoolDocumentId('roster'),
-            templateVersion: 'class-roster-v1',
-            title: 'Class Roster',
-            subtitle: groups.length === 1 ? `Class ${groups[0]?.classCode || ''}` : `${groups.length} allocated classes`,
+            templateVersion: 'teaching-group-roster-v1',
+            title: 'Teaching Group Roster',
+            subtitle: groups.length === 1 ? groups[0]?.title : `${groups.length} teaching groups`,
             schoolName: resolvedBranding.schoolName,
             schoolLogoUrl: resolvedBranding.schoolLogoUrl,
             audience: 'teacher',
@@ -5282,18 +5350,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             confidentiality: 'confidential',
             generatedAt: new Date().toISOString(),
             generatedBy: profile.full_name || profile.username || 'Teacher',
-            className: groups.length === 1 ? groups[0]?.classCode : undefined,
             schoolId: profile.school_id,
             sourceType: 'class_roster',
-            sourceId: groups.length === 1 ? groups[0]?.classCode : 'all-assigned-classes',
+            sourceId: groups.length === 1 ? groups[0]?.sourceId : 'all-teaching-groups',
           },
           bodyHtml,
           orientation: 'portrait',
           inkSaver: true,
-          fileName: schoolDocumentFileName(resolvedBranding.schoolName, 'Class_Roster', groups.length === 1 ? groups[0]?.classCode : 'All_Classes', today),
+          fileName: schoolDocumentFileName(resolvedBranding.schoolName, 'Teaching_Group_Roster', groups.length === 1 ? groups[0]?.title : 'All_Groups', today),
         });
       } catch (error) {
-        brainsAlert(error instanceof Error ? error.message : 'Unable to open the class document.', 'info');
+        brainsAlert(error instanceof Error ? error.message : 'Unable to open the teaching group document.', 'info');
       }
     };
 
@@ -5302,58 +5369,70 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         <div className="teacher-section-header">
           <div>
             <h2>🏫 My Classes</h2>
-            <p className="text-sm text-slate-500 mt-1">Every assigned class, subject, and student in one organised view.</p>
+            <p className="text-sm text-slate-500 mt-1">Each teaching group stays separate, including custom groups such as ESL.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="teacher-btn teacher-btn-secondary" onClick={() => printClassDocuments(classGroups)} disabled={!classGroups.length}>Print all rosters</button>
+            <button type="button" className="teacher-btn teacher-btn-secondary" onClick={() => printTeachingGroupDocuments(rosterGroups)} disabled={!rosterGroups.length}>Print all rosters</button>
           </div>
         </div>
 
         <div className="teacher-card p-4">
-          <label htmlFor="teacher-student-search" className="sr-only">Search classes and students</label>
+          <label htmlFor="teacher-student-search" className="sr-only">Search teaching groups and students</label>
           <input
             id="teacher-student-search"
             type="search"
             value={studentSearchTerm}
             onChange={(event) => setStudentSearchTerm(event.target.value)}
-            placeholder="Search by class, subject, or student…"
+            placeholder="Search by teaching group, subject, or student…"
             className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
           />
         </div>
 
-        {classGroups.length === 0 ? (
-          <div className="teacher-card p-10 text-center text-slate-500">No classes or students match this search.</div>
+        {rosterGroups.length === 0 ? (
+          <div className="teacher-card p-10 text-center text-slate-500">No teaching groups or students match this search.</div>
         ) : (
           <div className="grid gap-5 xl:grid-cols-2">
-            {classGroups.map((group) => (
-                <section key={group.classCode} className="teacher-card p-0 overflow-hidden">
-                  <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="font-bold text-slate-800">Class {group.classCode}</h3>
-                      <div className="flex items-center gap-2"><span className="text-sm text-slate-500">{group.students.length} student{group.students.length === 1 ? '' : 's'}</span><button type="button" className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100" onClick={() => printClassDocuments([group])}>Print</button></div>
+            {rosterGroups.map((group) => (
+              <section key={group.key} className="teacher-card p-0 overflow-hidden">
+                <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="font-bold text-slate-800">{group.title}</h3>
+                      {group.sourceType === 'teaching-group' && (
+                        <span className="mt-1 block text-xs font-medium text-slate-400">
+                          {group.groupType === 'custom' ? 'Custom teaching group' : group.groupType === 'whole_grade' ? 'Whole-grade teaching group' : 'Class teaching group'}
+                        </span>
+                      )}
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {group.subjects.length
-                        ? group.subjects.map((subjectName) => <span key={subjectName} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600">{subjectName}</span>)
-                        : <span className="text-xs text-slate-400">No subject linked</span>}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-slate-500">{group.students.length} student{group.students.length === 1 ? '' : 's'}</span>
+                      <button type="button" className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100" onClick={() => printTeachingGroupDocuments([group])}>Print</button>
                     </div>
                   </div>
-                  {group.students.length ? (
-                    <ul className="divide-y divide-slate-100">
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {group.subjects.length
+                      ? group.subjects.map((subjectName) => <span key={subjectName} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600">{subjectName}</span>)
+                      : <span className="text-xs text-slate-400">No subject linked</span>}
+                  </div>
+                </div>
+                {group.students.length ? (
+                  <ul className="divide-y divide-slate-100">
                     {group.students.map((student) => (
                       <li key={student.id} className="flex items-center gap-3 px-5 py-3">
                         <img src={student.avatar_url || '/default-avatar.png'} alt="" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
                         <div className="min-w-0">
                           <div className="font-semibold text-slate-800">{student.display_name}</div>
-                          <div className="truncate text-xs text-slate-500">Grade {student.grade || '—'}</div>
+                          <div className="truncate text-xs text-slate-500">
+                            Grade {student.grade || '—'}{student.batch ? ` · Registration class ${student.batch}` : ''}
+                          </div>
                         </div>
                       </li>
                     ))}
-                    </ul>
-                  ) : (
-                    <p className="px-5 py-6 text-sm text-slate-500">No students are currently enrolled in this assigned class.</p>
-                  )}
-                </section>
+                  </ul>
+                ) : (
+                  <p className="px-5 py-6 text-sm text-slate-500">No students are currently enrolled in this teaching group.</p>
+                )}
+              </section>
             ))}
           </div>
         )}
