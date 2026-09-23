@@ -2,6 +2,140 @@
 -- School subjects stay school-owned; teaching groups define who studies together;
 -- academic mappings only unlock governed academic resources.
 
+-- Transition existing registration-class allocations into first-class class
+-- teaching groups. This never merges by canonical academic subject: it uses the
+-- exact local school_subject_id, or an unambiguous exact local name/code match
+-- only for legacy rows that have not yet been linked.
+with exact_local as (
+  select
+    cta.id as allocation_id,
+    (array_agg(ss.id order by ss.id))[1] as school_subject_id
+  from public.class_teacher_assignments cta
+  join public.school_subjects ss
+    on ss.school_id=cta.school_id
+   and ss.is_active
+   and (
+     lower(trim(ss.name))=lower(trim(cta.subject))
+     or lower(trim(coalesce(ss.code,'')))=lower(trim(cta.subject))
+   )
+  where cta.active and cta.school_subject_id is null
+  group by cta.id
+  having count(*)=1
+)
+update public.class_teacher_assignments cta
+set school_subject_id=match.school_subject_id
+from exact_local match
+where cta.id=match.allocation_id
+  and cta.school_subject_id is null;
+
+with allocation_offerings as (
+  select distinct
+    cta.school_id,
+    cta.school_subject_id,
+    public.academic_resolve_operational_year_id(cta.school_id,now()) as academic_year_id,
+    c.grade_level::text as grade_level,
+    cta.created_by
+  from public.class_teacher_assignments cta
+  join public.classes c
+    on c.id=cta.class_id and c.school_id=cta.school_id and coalesce(c.is_active,true)
+  join public.school_subjects ss
+    on ss.id=cta.school_subject_id and ss.school_id=cta.school_id and ss.is_active
+  where cta.active and cta.school_subject_id is not null
+)
+insert into public.school_subject_offerings(
+  school_id,school_subject_id,academic_year_id,grade_level,curriculum_scope_id,
+  access_mode,delivery_mode,status,created_by
+)
+select
+  source.school_id,
+  source.school_subject_id,
+  source.academic_year_id,
+  source.grade_level,
+  (
+    select mapping.curriculum_scope_id
+    from public.school_curriculum_scope_mappings mapping
+    join public.school_subjects ss on ss.id=source.school_subject_id
+    where mapping.school_id=source.school_id
+      and mapping.academic_year_id=source.academic_year_id
+      and mapping.grade_level=source.grade_level
+      and mapping.academic_subject_id=ss.academic_subject_id
+      and mapping.status='active'
+    order by mapping.updated_at desc,mapping.id
+    limit 1
+  ),
+  'all_grade',
+  'by_class',
+  'active',
+  source.created_by
+from allocation_offerings source
+where source.academic_year_id is not null
+on conflict (school_subject_id,academic_year_id,grade_level) do nothing;
+
+insert into public.school_subject_groups(
+  school_id,school_subject_offering_id,name,group_type,registration_class_id,status,created_by
+)
+select
+  cta.school_id,
+  o.id,
+  concat(c.class_code,' · ',ss.name),
+  'class',
+  c.id,
+  'active',
+  cta.created_by
+from public.class_teacher_assignments cta
+join public.classes c
+  on c.id=cta.class_id and c.school_id=cta.school_id and coalesce(c.is_active,true)
+join public.school_subjects ss
+  on ss.id=cta.school_subject_id and ss.school_id=cta.school_id and ss.is_active
+join public.school_subject_offerings o
+  on o.school_id=cta.school_id
+ and o.school_subject_id=cta.school_subject_id
+ and o.academic_year_id=public.academic_resolve_operational_year_id(cta.school_id,now())
+ and o.grade_level=c.grade_level::text
+ and o.status='active'
+where cta.active
+  and cta.school_subject_id is not null
+  and o.delivery_mode='by_class'
+on conflict do nothing;
+
+insert into public.school_subject_group_teachers(
+  school_id,group_id,teacher_user_id,can_create,can_grade,active,created_by
+)
+select
+  cta.school_id,
+  g.id,
+  cta.teacher_user_id,
+  cta.can_create,
+  cta.can_grade,
+  true,
+  cta.created_by
+from public.class_teacher_assignments cta
+join public.classes c
+  on c.id=cta.class_id and c.school_id=cta.school_id and coalesce(c.is_active,true)
+join public.school_subject_offerings o
+  on o.school_id=cta.school_id
+ and o.school_subject_id=cta.school_subject_id
+ and o.academic_year_id=public.academic_resolve_operational_year_id(cta.school_id,now())
+ and o.grade_level=c.grade_level::text
+ and o.status='active'
+join public.school_subject_groups g
+  on g.school_id=cta.school_id
+ and g.school_subject_offering_id=o.id
+ and g.group_type='class'
+ and g.registration_class_id=c.id
+ and g.status='active'
+join public.school_members sm
+  on sm.school_id=cta.school_id
+ and sm.user_id=cta.teacher_user_id
+ and sm.status='active'
+ and (sm.can_teach or sm.role_in_school='teacher')
+where cta.active and cta.school_subject_id is not null
+on conflict (group_id,teacher_user_id) do update
+set active=true,
+    can_create=excluded.can_create,
+    can_grade=excluded.can_grade,
+    updated_at=now();
+
 -- Admin roster read for custom-group editing.
 create or replace function public.rpc_school_admin_subject_group_roster(
   p_school_id uuid,
