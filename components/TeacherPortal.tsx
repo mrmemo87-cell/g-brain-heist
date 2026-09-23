@@ -219,7 +219,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Teacher class allocation state
   const [allocatedClasses, setAllocatedClasses] = useState<SchoolAdminService.TeacherAllocatedClass[]>([]);
   const [teachingGroups, setTeachingGroups] = useState<SchoolSubjectGroup[]>([]);
-  const [teacherSubjectCatalog, setTeacherSubjectCatalog] = useState<GameService.StudentAcademicSubjectCatalog | null>(null);
   const [teacherHasClassAllocations, setTeacherHasClassAllocations] = useState(false);
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
@@ -696,12 +695,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const assignmentTopicLabel = useMemo(() => (
     assignmentTopicMode === 'general' ? 'General' : (assignmentTopicName.trim() || 'Custom Topic')
   ), [assignmentTopicMode, assignmentTopicName]);
-  const teacherSubjectResourceMap = useMemo(() => new Map(
-    (teacherSubjectCatalog?.subjects || []).map((item) => [
-      item.name,
-      item.canonicalName || item.name,
-    ]),
-  ), [teacherSubjectCatalog]);
+  const teacherSubjectResourceMap = useMemo(() => {
+    const map = new Map<string, string>();
+    teachingGroups.forEach((group) => {
+      map.set(group.schoolSubjectName, group.academicSubjectName || group.schoolSubjectName);
+    });
+    allocatedClasses.forEach((item) => {
+      if (!map.has(item.subject)) map.set(item.subject, item.academic_subject_name || item.subject);
+    });
+    return map;
+  }, [allocatedClasses, teachingGroups]);
 
   const assignmentResourceSubject = teacherSubjectResourceMap.get(assignmentSubject) || assignmentSubject;
   const assignmentQuestionPool = useMemo(() => (
@@ -3251,20 +3254,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
       void Promise.all([
         SchoolAdminService.getTeacherAllocatedClasses(),
-        GameService.fetchStudentAcademicSubjectCatalog(),
         profile.school_id ? fetchTeacherTeachingGroups(profile.school_id) : Promise.resolve([] as SchoolSubjectGroup[]),
       ])
-        .then(([classes, subjectCatalog, groups]) => {
+        .then(([classes, groups]) => {
           setAllocatedClasses(classes);
-          setTeacherSubjectCatalog(subjectCatalog);
           setTeachingGroups(groups);
           setTeacherHasClassAllocations(groups.length > 0 || classes.length > 0);
         })
         .catch((error) => {
-          console.error('Error loading teaching groups, legacy classes and subject resources:', error);
+          console.error('Error loading teaching groups and legacy class allocations:', error);
           setAllocatedClasses([]);
           setTeachingGroups([]);
-          setTeacherSubjectCatalog(null);
           setTeacherHasClassAllocations(false);
         });
 
