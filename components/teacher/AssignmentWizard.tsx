@@ -29,13 +29,13 @@ const canReceiveNewAssignment = (student: StudentForAssignment) =>
 
 interface AssignmentWizardProps {
   initialStep?: WizardStep;
-  lockedSubject?: Subject | null;
+  lockedSubject?: string | null;
   assignmentMode: AssignmentMode;
   setAssignmentMode: (mode: AssignmentMode) => void;
   assignmentBatches: string[];
   setAssignmentBatches: React.Dispatch<React.SetStateAction<string[]>>;
-  assignmentSubject: Subject;
-  setAssignmentSubject: (subject: Subject) => void;
+  assignmentSubject: string;
+  setAssignmentSubject: (subject: string) => void;
   assignmentTitle: string;
   setAssignmentTitle: (value: string) => void;
   assignmentDescription: string;
@@ -749,7 +749,7 @@ export default function AssignmentWizard({
                 {[...teacherAssignedSubjects].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })).map((subject) => {
                   const disabled = Boolean(lockedSubject && normalizeSubject(subject) !== normalizeSubject(lockedSubject));
                   return (
-                  <button key={subject} type="button" role="radio" aria-checked={assignmentSubject === subject} disabled={disabled} aria-disabled={disabled} className={`${assignmentSubject === subject ? 'aw-subject is-selected' : 'aw-subject'}${disabled ? ' is-disabled' : ''}`} onClick={() => { if (!disabled) { setAssignmentSubject(subject as Subject); setAssignmentBatches([]); setAssignmentGroupId?.(''); setSelectedStudentIds([]); } }}>
+                  <button key={subject} type="button" role="radio" aria-checked={assignmentSubject === subject} disabled={disabled} aria-disabled={disabled} className={`${assignmentSubject === subject ? 'aw-subject is-selected' : 'aw-subject'}${disabled ? ' is-disabled' : ''}`} onClick={() => { if (!disabled) { setAssignmentSubject(subject); setAssignmentBatches([]); setAssignmentGroupId?.(''); setSelectedStudentIds([]); } }}>
                     <span aria-hidden="true">{subject === 'Maths' ? '∑' : subject === 'Science' ? '⚗' : subject === 'English' ? 'Aa' : '◆'}</span>
                     <strong>{subject}</strong>
                     {disabled ? <small>Unavailable — {lockedSubject} questions selected</small> : null}
