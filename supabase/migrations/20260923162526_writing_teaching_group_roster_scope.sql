@@ -381,3 +381,8 @@ begin
 end;
 $function$
 ;
+
+revoke all on function public.rpc_bh_writing_teacher_monitoring_legacy_v1(text,integer,text)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_bh_writing_teacher_monitoring_legacy_v1(text,integer,text)
+to authenticated,service_role;
