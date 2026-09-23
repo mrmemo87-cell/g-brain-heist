@@ -3236,7 +3236,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               assignment_eligible: row.assignment_eligible !== false,
               access_status: row.access_status || 'active',
               banned_until: row.banned_until || null,
-            } as StudentForAssignment);
+              teacher_subjects: Array.isArray(row.subject_names) ? row.subject_names : [],
+            } as StudentForAssignment & { teacher_subjects?: string[] });
           });
 
           setAvailableStudents(Array.from(studentsById.values()));
@@ -4062,7 +4063,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Render Dashboard
   const renderDashboard = () => {
-    const myClasses = Array.from(new Set(allocatedClasses.map((cls) => cls.class_code)));
+    const myClasses = teachingGroups.length
+      ? teachingGroups.map((group) => group.name)
+      : Array.from(new Set(allocatedClasses.map((cls) => cls.class_code)));
     const activeAssignments = assignments.filter((a) => a.completed_count < a.student_count).length;
     const totalSubmissions = assignmentSuccess?.submission_count ?? 0;
     const hasAssignmentSuccess = totalSubmissions > 0;
@@ -5230,6 +5233,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     availableStudents.forEach((student) => {
       const classCode = student.batch || 'Class not assigned';
       const existing = classMap.get(classCode) || { subjects: new Set<string>(), students: [] };
+      const teacherSubjects = (student as StudentForAssignment & { teacher_subjects?: string[] }).teacher_subjects || [];
+      teacherSubjects.forEach((subjectName) => {
+        if (subjectName) existing.subjects.add(subjectName);
+      });
       existing.students.push(student);
       classMap.set(classCode, existing);
     });
