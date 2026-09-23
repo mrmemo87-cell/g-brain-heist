@@ -497,3 +497,13 @@ begin
 end;
 $function$
 ;
+
+revoke all on function public.rpc_student_academic_subjects(uuid)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_student_academic_subjects(uuid)
+to authenticated,service_role;
+
+revoke all on function public.rpc_student_learning_catalog(text,integer)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_student_learning_catalog(text,integer)
+to authenticated,service_role;
