@@ -5754,9 +5754,30 @@ export const get_teacher_assignments = async (teacherId?: string): Promise<Teach
     if (error) throw new Error(error.message || 'Failed to load assignments');
 
     const assignments = (data as TeacherAssignmentSummary[]) || [];
-    const { data: contextData, error: contextError } = await supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId });
+    const [{ data: contextData, error: contextError }, { data: groupContextData, error: groupContextError }] = await Promise.all([
+        supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId }),
+        supabase.rpc('rpc_teacher_assignment_group_context', { p_teacher_id: resolvedTeacherId }),
+    ]);
     if (contextError) throw new Error(contextError.message || 'Failed to load assignment category context');
-    return mergeAssignmentCategoryContext(assignments, (contextData as AssignmentCategoryContextRow[]) || []) as TeacherAssignmentSummary[];
+    if (groupContextError) throw new Error(groupContextError.message || 'Failed to load assignment teaching-group context');
+    const withCategory = mergeAssignmentCategoryContext(assignments, (contextData as AssignmentCategoryContextRow[]) || []) as TeacherAssignmentSummary[];
+    const groupContext = new Map(((groupContextData as Array<{
+        assignment_id: string;
+        school_id?: string | null;
+        school_subject_id?: string | null;
+        subject_group_id?: string | null;
+        subject_group_name?: string | null;
+    }>) || []).map((row) => [row.assignment_id, row]));
+    return withCategory.map((assignment) => {
+        const extra = groupContext.get(assignment.id);
+        return extra ? {
+            ...assignment,
+            school_id: extra.school_id ?? undefined,
+            school_subject_id: extra.school_subject_id ?? undefined,
+            subject_group_id: extra.subject_group_id ?? undefined,
+            subject_group_name: extra.subject_group_name ?? undefined,
+        } : assignment;
+    });
 };
 
 export const delete_teacher_assignment = async (assignmentId: string): Promise<void> => {
