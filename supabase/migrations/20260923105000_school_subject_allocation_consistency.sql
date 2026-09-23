@@ -7,10 +7,10 @@
 -- ---------------------------------------------------------------------------
 -- 1. Repair ambiguous compatibility links.
 --
--- Example pattern (generic): a legacy row still says "English" but was linked to
--- school subject "ESL"; both local subjects map to the same canonical academic
--- subject. Preserve both meanings:
---   * clone the currently-linked local subject allocation (ESL)
+-- Generic pattern: a legacy row's text label differs from the linked school
+-- subject, while both local subjects share the same canonical academic map.
+-- Preserve both meanings:
+--   * clone the currently-linked local subject allocation
 --   * restore the legacy row to the exact local subject matching its old label
 -- This keeps valid administrator intent without merging school subjects.
 -- ---------------------------------------------------------------------------
@@ -127,8 +127,8 @@ where cta.school_subject_id=ss.id
   and cta.active
   and cta.subject is distinct from ss.name;
 
--- Exact school subject is now the uniqueness boundary. English and ESL may both
--- exist for the same teacher/class; duplicate ESL rows may not.
+-- Exact school subject is now the uniqueness boundary. Multiple local subjects
+-- may share one academic map in the same class; duplicate local allocations may not.
 create unique index if not exists cta_unique_class_teacher_school_subject
   on public.class_teacher_assignments(class_id,teacher_user_id,school_subject_id)
   where school_subject_id is not null;
@@ -288,8 +288,8 @@ grant execute on function public.get_teacher_allocated_classes(uuid)
 
 -- ---------------------------------------------------------------------------
 -- 3. Assignment audiences respect the selected-student access of the exact
--- school subject. A teacher allocated to ESL may use English-mapped questions,
--- but an ESL assignment cannot spill into students who are not enrolled in ESL.
+-- school subject. A mapped subject may use shared canonical questions, but its
+-- assignment cannot spill into students who are not enrolled in that local subject.
 -- Legacy allocations without school_subject_id retain the previous fail-safe
 -- class-roster behavior during transition.
 -- ---------------------------------------------------------------------------
