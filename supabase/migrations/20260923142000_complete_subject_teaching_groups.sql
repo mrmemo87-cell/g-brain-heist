@@ -391,6 +391,147 @@ revoke all on function public.rpc_teacher_attach_assignment_group(uuid,uuid,uuid
 grant execute on function public.rpc_teacher_attach_assignment_group(uuid,uuid,uuid)
   to authenticated,service_role;
 
+-- Teacher assignment reads must recognize group allocations even when no
+-- registration-class allocation exists.
+create or replace function public.rpc_get_assignments_for_teacher(p_teacher_id uuid)
+returns table(
+  id uuid,teacher_id uuid,subject_id text,subject_name text,topic_name text,batch text,
+  difficulty text,title text,instructions text,assigned_at timestamptz,due_at timestamptz,
+  created_at timestamptz,updated_at timestamptz,question_count integer,completed_count integer,
+  student_count integer,assignment_mode text,description text,publish_status text,
+  close_submissions_after_due boolean,notify_students_by_email boolean,published_at timestamptz,
+  question_ids uuid[],student_ids uuid[]
+)
+language plpgsql
+stable
+security definer
+set search_path=''
+as $
+declare
+  v_teacher_user_id uuid;
+begin
+  if auth.uid() is null then raise exception 'Not authenticated'; end if;
+
+  select t.user_id into v_teacher_user_id
+  from public.teachers t
+  where t.id=p_teacher_id and t.user_id=auth.uid();
+  if v_teacher_user_id is null then raise exception 'Not authorized'; end if;
+
+  return query
+  select
+    a.id,a.teacher_id,a.subject_id,a.subject_name,a.topic_name,a.batch,a.difficulty,a.title,a.instructions,
+    a.assigned_at,a.due_at,a.created_at,a.updated_at,
+    (select count(*)::int from public.assignment_questions aq where aq.assignment_id=a.id),
+    (select count(*)::int from public.student_assignments sa where sa.assignment_id=a.id and sa.status='completed'),
+    (select count(*)::int from public.student_assignments sa where sa.assignment_id=a.id),
+    coalesce(a.assignment_mode,'batch'),a.description,a.publish_status,a.close_submissions_after_due,
+    a.notify_students_by_email,a.published_at,
+    (select coalesce(array_agg(aq.question_id order by aq.order_index),'{}'::uuid[]) from public.assignment_questions aq where aq.assignment_id=a.id),
+    (select coalesce(array_agg(sa.student_id),'{}'::uuid[]) from public.student_assignments sa where sa.assignment_id=a.id)
+  from public.assignments a
+  join public.school_academic_years y
+    on y.id=a.academic_year_id and y.school_id=a.school_id and y.status='current'
+  where a.teacher_id=p_teacher_id
+    and (
+      (
+        a.subject_group_id is not null
+        and exists(
+          select 1
+          from public.school_subject_group_teachers gt
+          join public.school_subject_groups g on g.id=gt.group_id and g.school_id=gt.school_id
+          where gt.group_id=a.subject_group_id
+            and gt.teacher_user_id=v_teacher_user_id
+            and gt.school_id=a.school_id
+            and gt.active
+            and g.status='active'
+        )
+      )
+      or
+      (
+        a.subject_group_id is null
+        and (
+          (
+            coalesce(a.assignment_mode,'batch')='batch'
+            and a.class_id is not null
+            and exists(
+              select 1
+              from public.class_teacher_assignments cta
+              join public.classes c on c.id=cta.class_id and c.school_id=cta.school_id and coalesce(c.is_active,true)
+              where cta.teacher_user_id=v_teacher_user_id
+                and cta.school_id=a.school_id
+                and cta.class_id=a.class_id
+                and cta.active
+                and private.teacher_assignment_subject_key(cta.subject)=private.teacher_assignment_subject_key(a.subject_name)
+            )
+          )
+          or
+          (
+            (
+              coalesce(a.assignment_mode,'batch')='custom'
+              or a.class_id is null
+              or upper(trim(coalesce(a.batch,'')))='ALL'
+            )
+            and exists(
+              select 1
+              from public.student_assignments sa
+              join public.class_students cs on cs.student_id=sa.student_id
+              join public.class_teacher_assignments cta
+                on cta.class_id=cs.class_id
+               and cta.teacher_user_id=v_teacher_user_id
+               and cta.school_id=a.school_id
+               and cta.active
+              join public.classes c
+                on c.id=cta.class_id and c.school_id=cta.school_id and coalesce(c.is_active,true)
+              where sa.assignment_id=a.id
+                and private.teacher_assignment_subject_key(cta.subject)=private.teacher_assignment_subject_key(a.subject_name)
+            )
+          )
+        )
+      )
+    )
+  order by a.assigned_at desc;
+end;
+$;
+revoke all on function public.rpc_get_assignments_for_teacher(uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_get_assignments_for_teacher(uuid)
+  to authenticated,service_role;
+
+create or replace function public.rpc_teacher_assignment_group_context(p_teacher_id uuid)
+returns table(
+  assignment_id uuid,
+  school_id uuid,
+  school_subject_id uuid,
+  subject_group_id uuid,
+  subject_group_name text
+)
+language plpgsql
+stable
+security definer
+set search_path=''
+as $
+declare
+  v_actor uuid:=auth.uid();
+begin
+  if v_actor is null or not exists(
+    select 1 from public.teachers t where t.id=p_teacher_id and t.user_id=v_actor
+  ) then
+    raise exception using errcode='42501',message='teacher_assignment_access_denied';
+  end if;
+
+  return query
+  select a.id,a.school_id,a.school_subject_id,a.subject_group_id,
+         coalesce(a.subject_group_name_snapshot,g.name)::text
+  from public.assignments a
+  left join public.school_subject_groups g on g.id=a.subject_group_id
+  where a.teacher_id=p_teacher_id;
+end;
+$;
+revoke all on function public.rpc_teacher_assignment_group_context(uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_teacher_assignment_group_context(uuid)
+  to authenticated,service_role;
+
 -- Question-bank authorization is allocation-driven and fail-closed.
 -- A teacher with no active group/class allocation receives no school governed pool.
 create or replace function public.get_all_active_questions(
