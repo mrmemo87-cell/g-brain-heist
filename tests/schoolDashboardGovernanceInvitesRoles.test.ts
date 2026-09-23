@@ -43,8 +43,8 @@ test('registration rules fail closed before student or teacher membership is cre
 
 test('teacher allocation keeps its full workflow and links skip code entry after validation', () => {
   assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
-  assert.match(teachers, /allocationClasses|selectedFilterGrade|admin-table-scroll/);
-  assert.match(teachers, /handleAllocateTeacher/);
+  assert.match(teachers, /allocationGroups|allocationSubjectId|admin-table-scroll/);
+  assert.match(teachers, /setSchoolSubjectGroupTeacher/);
   assert.match(invites, /searchParams\.set\('schoolInvite', school\.invite_code\)/);
   assert.match(invites, /Send invitation link/);
   assert.match(setup, /get\('schoolInvite'\)/);

@@ -26,13 +26,13 @@ test('Academic Setup is coverage-only and no longer mutates school subject acces
   assert.doesNotMatch(academicSetup, /Elective — selected students/);
 });
 
-test('teacher allocation uses exact school subject ids from the school catalogue', () => {
-  assert.match(teachersTab, /fetchSchoolSubjectCatalog/);
-  assert.match(teachersTab, /value={subject\.id}/);
-  assert.match(teachersTab, /allocation\.school_subject_id/);
-  assert.match(adminPortal, /allocateTeacherToSchoolSubject/);
-  assert.match(adminService, /p_school_subject_id: schoolSubjectId/);
-  assert.match(adminService, /school_subject_id: row\.school_subject_id \|\| null/);
+test('teacher allocation uses exact school-subject teaching groups', () => {
+  assert.match(teachersTab, /fetchSchoolSubjectGroups/);
+  assert.match(teachersTab, /allocationSubjectId/);
+  assert.match(teachersTab, /group\.schoolSubjectId/);
+  assert.match(teachersTab, /setSchoolSubjectGroupTeacher/);
+  assert.match(teachersTab, /Teaching group/);
+  assert.doesNotMatch(teachersTab, /allocateTeacherToSchoolSubject/);
 });
 
 test('teacher/admin reads show the same local school subject identity', () => {

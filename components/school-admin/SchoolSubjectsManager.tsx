@@ -14,12 +14,12 @@ import {
   type SchoolAcademicSetup,
 } from '../../services/schoolAcademicSetupService';
 import { useSchoolAdmin } from './SchoolAdminContext';
+import SubjectTeachingGroupsPanel from './SubjectTeachingGroupsPanel';
 
 const gradeLabel = (value: string | number) => `Grade ${value}`;
 const studentId = (student: any) => student?.user_id || student?.id;
 const studentName = (student: any) => student?.full_name || student?.username || student?.email || 'Student';
 const teacherName = (teacher: any) => teacher?.full_name || teacher?.username || teacher?.email || 'Teacher';
-const className = (item: any) => item?.class_name || item?.class_code || 'Class';
 const initials = (value: string) => value.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('') || 'S';
 const normalizeCode = (value: string) => value.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24);
 
@@ -62,9 +62,6 @@ const SchoolSubjectsManager: React.FC = () => {
   const [accessMode, setAccessMode] = useState<SchoolSubjectAccessMode>('all_grade');
   const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
   const [studentSearch, setStudentSearch] = useState('');
-  const [teacherUserId, setTeacherUserId] = useState('');
-  const [selectedClassIds, setSelectedClassIds] = useState<Set<string>>(new Set());
-  const [manageTeacherAllocation, setManageTeacherAllocation] = useState(false);
 
   const load = async () => {
     if (!school?.id) return;
@@ -130,10 +127,6 @@ const SchoolSubjectsManager: React.FC = () => {
       .some((value) => String(value || '').toLowerCase().includes(normalized)));
   }, [gradeStudents, studentSearch]);
 
-  const gradeClasses = useMemo(() => activeClasses
-    .filter((item: any) => gradeLevel && Number(item.grade_level) === Number(gradeLevel))
-    .sort((a: any, b: any) => className(a).localeCompare(className(b))), [activeClasses, gradeLevel]);
-
   const filteredSubjects = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return (catalog?.subjects || []).filter((subject) => {
@@ -157,9 +150,6 @@ const SchoolSubjectsManager: React.FC = () => {
     setAccessMode('all_grade');
     setSelectedStudentIds(new Set());
     setStudentSearch('');
-    setTeacherUserId('');
-    setSelectedClassIds(new Set());
-    setManageTeacherAllocation(false);
   };
 
   const openCreate = () => {
@@ -172,17 +162,11 @@ const SchoolSubjectsManager: React.FC = () => {
       setGradeLevel('');
       setAccessMode('all_grade');
       setSelectedStudentIds(new Set());
-      setTeacherUserId('');
-      setSelectedClassIds(new Set());
-      setManageTeacherAllocation(false);
       return;
     }
     setGradeLevel(offering.gradeLevel);
     setAccessMode(offering.accessMode);
     setSelectedStudentIds(new Set(offering.selectedStudentIds || []));
-    setTeacherUserId(offering.teacherUserIds?.[0] || '');
-    setSelectedClassIds(new Set(offering.classIds || []));
-    setManageTeacherAllocation(Boolean(offering.teacherUserIds?.length));
   };
 
   const openEdit = (subject: SchoolSubjectRecord) => {
@@ -203,15 +187,9 @@ const SchoolSubjectsManager: React.FC = () => {
     if (existing) {
       setAccessMode(existing.accessMode);
       setSelectedStudentIds(new Set(existing.selectedStudentIds || []));
-      setTeacherUserId(existing.teacherUserIds?.[0] || '');
-      setSelectedClassIds(new Set(existing.classIds || []));
-      setManageTeacherAllocation(Boolean(existing.teacherUserIds?.length));
     } else {
       setAccessMode('all_grade');
       setSelectedStudentIds(new Set());
-      setTeacherUserId('');
-      setSelectedClassIds(new Set());
-      setManageTeacherAllocation(false);
     }
   };
 
@@ -221,12 +199,6 @@ const SchoolSubjectsManager: React.FC = () => {
   };
 
   const toggleStudent = (id: string) => setSelectedStudentIds((current) => {
-    const next = new Set(current);
-    if (next.has(id)) next.delete(id); else next.add(id);
-    return next;
-  });
-
-  const toggleClass = (id: string) => setSelectedClassIds((current) => {
     const next = new Set(current);
     if (next.has(id)) next.delete(id); else next.add(id);
     return next;
@@ -242,11 +214,6 @@ const SchoolSubjectsManager: React.FC = () => {
       addToast('Select at least one student, or choose the whole grade.', 'info');
       return;
     }
-    if (manageTeacherAllocation && (!teacherUserId || selectedClassIds.size === 0)) {
-      addToast('Choose a teacher and at least one class, or switch teacher allocation off.', 'info');
-      return;
-    }
-
     setSaving(true);
     try {
       const result = await saveSchoolSubject({
@@ -260,9 +227,9 @@ const SchoolSubjectsManager: React.FC = () => {
         curriculumScopeId: academicSubjectId && gradeLevel ? selectedScope?.scopeId || null : null,
         accessMode,
         selectedStudentIds: accessMode === 'selected' && gradeLevel ? Array.from(selectedStudentIds) : [],
-        teacherUserId: manageTeacherAllocation ? teacherUserId : null,
-        classIds: manageTeacherAllocation ? Array.from(selectedClassIds) : [],
-        replaceTeacherAllocations: Boolean(editingSubjectId && gradeLevel),
+        teacherUserId: null,
+        classIds: [],
+        replaceTeacherAllocations: false,
       });
       const subjectLabel = result.name || name.trim();
       addToast(
@@ -523,9 +490,28 @@ const SchoolSubjectsManager: React.FC = () => {
 
                 {gradeLevel ? (
                   <section className="border-t border-slate-200 pt-6">
-                    <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">4</span><div><h4 className="text-sm font-bold text-slate-950">Teacher allocation</h4><p className="text-xs text-slate-500">Optional. You can also manage staffing from Teacher Allocation.</p></div></div>
-                    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-slate-200 p-4"><span><strong className="block text-sm text-slate-900">Allocate a teacher now</strong><span className="mt-1 block text-xs text-slate-500">Keep the allocation attached to this exact school subject.</span></span><input type="checkbox" checked={manageTeacherAllocation} onChange={(event) => { setManageTeacherAllocation(event.target.checked); if (!event.target.checked) { setTeacherUserId(''); setSelectedClassIds(new Set()); } }} className="h-5 w-5 accent-blue-700" /></label>
-                    {manageTeacherAllocation ? <div className="mt-4 space-y-4 rounded-2xl bg-slate-50 p-4"><label className="block"><span className="text-xs font-bold text-slate-700">Teacher</span><select value={teacherUserId} onChange={(event) => { setTeacherUserId(event.target.value); if (event.target.value && selectedClassIds.size === 0) setSelectedClassIds(new Set(gradeClasses.map((item: any) => item.id))); }} className="mt-2 h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900"><option value="">Choose teacher…</option>{teachers.map((teacher: any) => <option key={teacher.user_id} value={teacher.user_id}>{teacherName(teacher)}</option>)}</select></label><div><div className="flex items-center justify-between"><span className="text-xs font-bold text-slate-700">Classes</span><span className="text-[11px] font-semibold text-slate-500">{selectedClassIds.size} selected</span></div><div className="mt-2 grid gap-2 sm:grid-cols-2">{gradeClasses.length ? gradeClasses.map((item: any) => <label key={item.id} className={`flex cursor-pointer items-center gap-2 rounded-xl border p-3 ${selectedClassIds.has(item.id) ? 'border-blue-300 bg-white' : 'border-slate-200 bg-white'}`}><input type="checkbox" checked={selectedClassIds.has(item.id)} onChange={() => toggleClass(item.id)} className="h-4 w-4 accent-blue-700" /><span><strong className="block text-xs text-slate-900">{className(item)}</strong><span className="text-[10px] text-slate-500">{item.class_code || gradeLabel(gradeLevel)}</span></span></label>) : <p className="sm:col-span-2 text-xs text-slate-500">No active classes exist for this grade yet.</p>}</div></div></div> : null}
+                    <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">4</span><div><h4 className="text-sm font-bold text-slate-950">Teaching groups &amp; staffing</h4><p className="text-xs text-slate-500">Teaching groups decide who studies together. Registration classes remain unchanged.</p></div></div>
+                    {(() => {
+                      const currentSubject = editingSubjectId ? catalog.subjects.find((item) => item.id === editingSubjectId) : null;
+                      const currentOffering = currentSubject?.offerings.find((item) => String(item.gradeLevel) === String(gradeLevel));
+                      return currentOffering ? (
+                        <SubjectTeachingGroupsPanel
+                          schoolId={school.id}
+                          subjectName={name || currentSubject?.name || 'Subject'}
+                          offering={currentOffering}
+                          classes={classes}
+                          students={students}
+                          teachers={teachers}
+                          addToast={addToast}
+                          onChanged={load}
+                        />
+                      ) : (
+                        <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4 text-xs leading-5 text-blue-900">
+                          <strong className="block text-sm">Save the subject offering first</strong>
+                          After saving, reopen this subject to choose <strong>By registration class</strong>, <strong>Whole grade</strong>, or <strong>Custom teaching groups</strong>, then allocate teachers to the exact group they teach.
+                        </div>
+                      );
+                    })()}
                   </section>
                 ) : null}
               </div>

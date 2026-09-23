@@ -2,6 +2,7 @@ import { supabase } from './supabaseClient';
 import { userFacingError } from './userFacingError';
 
 export type SchoolSubjectAccessMode = 'all_grade' | 'selected';
+export type SchoolSubjectDeliveryMode = 'by_class' | 'whole_grade' | 'custom_groups';
 export type SchoolSubjectMappingStatus = 'mapped' | 'unmapped';
 
 export interface SchoolSubjectOffering {
@@ -10,6 +11,7 @@ export interface SchoolSubjectOffering {
   gradeLevel: string;
   curriculumScopeId: string | null;
   accessMode: SchoolSubjectAccessMode;
+  deliveryMode: SchoolSubjectDeliveryMode;
   status: 'active' | 'archived';
   selectedStudentIds: string[];
   teacherUserIds: string[];

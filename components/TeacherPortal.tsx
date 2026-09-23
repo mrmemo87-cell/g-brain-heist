@@ -5,6 +5,10 @@ import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, Questio
 import * as GameService from '../services/gameService';
 import * as AuthService from '../services/authService';
 import * as SchoolAdminService from '../services/schoolAdminService';
+import {
+  fetchTeacherTeachingGroups,
+  type SchoolSubjectGroup,
+} from '../services/schoolSubjectGroupService';
 import { supabase } from '../services/supabaseClient';
 import { getAcademicReportingContext, type AcademicReportingYear } from '../services/academicReportingService';
 import BackButton from './BackButton';
@@ -214,7 +218,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Teacher class allocation state
   const [allocatedClasses, setAllocatedClasses] = useState<SchoolAdminService.TeacherAllocatedClass[]>([]);
-  const [teacherSubjectCatalog, setTeacherSubjectCatalog] = useState<GameService.StudentAcademicSubjectCatalog | null>(null);
+  const [teachingGroups, setTeachingGroups] = useState<SchoolSubjectGroup[]>([]);
   const [teacherHasClassAllocations, setTeacherHasClassAllocations] = useState(false);
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
@@ -446,9 +450,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentSuccess, setAssignmentSuccess] = useState<GameService.TeacherAssignmentSuccessSummary | null>(null);
   const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
   const [assignmentBatches, setAssignmentBatches] = useState<string[]>([]);
+  const [assignmentGroupId, setAssignmentGroupId] = useState('');
   const questionBankSubjectRef = useRef(false);
-  const [assignmentSubject, setAssignmentSubject] = useState<Subject>('Maths');
-  const [assignmentLockedSubject, setAssignmentLockedSubject] = useState<Subject | null>(null);
+  const [assignmentSubject, setAssignmentSubject] = useState<string>('');
+  const [assignmentLockedSubject, setAssignmentLockedSubject] = useState<string | null>(null);
   const [assignmentTopicMode, setAssignmentTopicMode] = useState<'general' | 'custom'>('general');
   const [assignmentTopicName, setAssignmentTopicName] = useState('');
   const [assignmentTitle, setAssignmentTitle] = useState('');
@@ -690,12 +695,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const assignmentTopicLabel = useMemo(() => (
     assignmentTopicMode === 'general' ? 'General' : (assignmentTopicName.trim() || 'Custom Topic')
   ), [assignmentTopicMode, assignmentTopicName]);
-  const teacherSubjectResourceMap = useMemo(() => new Map(
-    (teacherSubjectCatalog?.subjects || []).map((item) => [
-      item.name,
-      item.canonicalName || item.name,
-    ]),
-  ), [teacherSubjectCatalog]);
+  const teacherSubjectResourceMap = useMemo(() => {
+    const map = new Map<string, string>();
+    teachingGroups.forEach((group) => {
+      map.set(group.schoolSubjectName, group.academicSubjectName || group.schoolSubjectName);
+    });
+    allocatedClasses.forEach((item) => {
+      if (!map.has(item.subject)) map.set(item.subject, item.academic_subject_name || item.subject);
+    });
+    return map;
+  }, [allocatedClasses, teachingGroups]);
 
   const assignmentResourceSubject = teacherSubjectResourceMap.get(assignmentSubject) || assignmentSubject;
   const assignmentQuestionPool = useMemo(() => (
@@ -752,27 +761,34 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return Array.from(batches).sort();
   }, [availableStudents]);
 
-  // Get the subjects this teacher is allocated to teach.
+  // Operational identity comes from teaching groups. Legacy class allocations
+  // remain a transition fallback until every school has migrated.
   const teacherAssignedSubjects = useMemo(() => {
     const subjects = new Set<string>();
-    allocatedClasses.forEach(cls => {
+    teachingGroups.forEach((group) => {
+      if (group.schoolSubjectName) subjects.add(group.schoolSubjectName);
+    });
+    allocatedClasses.forEach((cls) => {
       if (cls.subject) subjects.add(cls.subject);
     });
-    // Sort alphabetically
     return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-  }, [allocatedClasses]);
+  }, [allocatedClasses, teachingGroups]);
 
-  // Academic mappings unlock shared capabilities/resources without changing the
-  // local school subject identity used for allocations, assignments and reports.
+  // Academic mappings unlock resources/capabilities without changing the local
+  // subject identity used by groups, assignments, grades and reports.
   const teacherResourceSubjects = useMemo(() => {
     const subjects = new Set<string>();
+    teachingGroups.forEach((group) => {
+      subjects.add(group.schoolSubjectName);
+      if (group.academicSubjectName) subjects.add(group.academicSubjectName);
+    });
     teacherAssignedSubjects.forEach((schoolSubject) => {
       subjects.add(schoolSubject);
       const canonical = teacherSubjectResourceMap.get(schoolSubject);
       if (canonical) subjects.add(canonical);
     });
     return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-  }, [teacherAssignedSubjects, teacherSubjectResourceMap]);
+  }, [teacherAssignedSubjects, teacherSubjectResourceMap, teachingGroups]);
 
   // A class may appear more than once when a teacher has multiple subject
   // allocations. Keep the Cambridge class picker based on current allocations,
@@ -3238,17 +3254,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
       void Promise.all([
         SchoolAdminService.getTeacherAllocatedClasses(),
-        GameService.fetchStudentAcademicSubjectCatalog(),
+        profile.school_id ? fetchTeacherTeachingGroups(profile.school_id) : Promise.resolve([] as SchoolSubjectGroup[]),
       ])
-        .then(([classes, subjectCatalog]) => {
+        .then(([classes, groups]) => {
           setAllocatedClasses(classes);
-          setTeacherSubjectCatalog(subjectCatalog);
-          setTeacherHasClassAllocations(classes.length > 0);
+          setTeachingGroups(groups);
+          setTeacherHasClassAllocations(groups.length > 0 || classes.length > 0);
         })
         .catch((error) => {
-          console.error('Error loading allocated classes and subject resources:', error);
+          console.error('Error loading teaching groups and legacy class allocations:', error);
           setAllocatedClasses([]);
-          setTeacherSubjectCatalog(null);
+          setTeachingGroups([]);
           setTeacherHasClassAllocations(false);
         });
 
@@ -3569,6 +3585,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     localStorage.removeItem('brains_heist_teacher_assignment_draft_v2');
     questionBankSubjectRef.current = false;
     setAssignmentLockedSubject(null);
+    setAssignmentGroupId('');
+    setAssignmentSubject('');
     setAssignmentQuestionIds([]);
     setAssignmentTitle('');
     setAssignmentDescription('');
@@ -3619,7 +3637,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     resetAssignmentDraft();
     setEditingAssignment(assignment);
     setAssignmentLockedSubject(null);
-    setAssignmentSubject(assignment.subject_name as Subject);
+    setAssignmentSubject(assignment.subject_name);
     setAssignmentTitle(assignment.title || '');
     setAssignmentDescription(assignment.description || '');
     setAssignmentInstructions(assignment.instructions || '');
@@ -3627,6 +3645,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentDueAt(toLocalAssignmentDateTime(assignment.due_at));
     setAssignmentAssignedAt(toLocalAssignmentDateTime(assignment.assigned_at) || new Date().toISOString().slice(0, 16));
     setAssignmentDifficulty((assignment.difficulty || 'easy') as QuestionDifficulty);
+    setAssignmentGroupId(assignment.subject_group_id || '');
     setAssignmentMode(assignment.assignment_mode || 'batch');
     setAssignmentBatches(assignment.assignment_mode === 'custom' ? [] : assignment.batch ? [assignment.batch] : []);
     setSelectedStudentIds(assignment.student_ids || []);
@@ -3641,21 +3660,34 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   // Handle "Use Set" from the Blooket-style QuestionBank
-  const handleUseQuestionSet = useCallback((questionIds: string[], subject: Subject, topic: string) => {
+  const handleUseQuestionSet = useCallback((questionIds: string[], resourceSubject: Subject, topic: string) => {
     if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {
       showFeatureUnavailable('Assignments');
       return;
     }
-    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(subject)) {
-      brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
+    const matchingLocalSubjects = Array.from(new Set(teachingGroups
+      .filter((group) => (
+        group.schoolSubjectName === resourceSubject
+        || group.academicSubjectName === resourceSubject
+      ))
+      .map((group) => group.schoolSubjectName)));
+
+    if (profile.school_id && matchingLocalSubjects.length === 0) {
+      brainsAlert('This question set is outside the subjects currently allocated to you.', 'error');
       return;
     }
 
-    // Pre-select the questions and set subject/topic from the selected set
-    questionBankSubjectRef.current = true; // Prevent the subject-change useEffect from clearing these IDs
-    setAssignmentLockedSubject(subject);
+    const localSubject = matchingLocalSubjects.length === 1
+      ? matchingLocalSubjects[0]
+      : teacherAssignedSubjects.includes(resourceSubject)
+        ? resourceSubject
+        : matchingLocalSubjects[0] || resourceSubject;
+
+    questionBankSubjectRef.current = true;
     setAssignmentQuestionIds(questionIds);
-    setAssignmentSubject(subject);
+    setAssignmentSubject(localSubject);
+    setAssignmentLockedSubject(matchingLocalSubjects.length === 1 ? localSubject : null);
+    setAssignmentGroupId('');
     if (topic && topic !== 'General') {
       setAssignmentTopicMode('custom');
       setAssignmentTopicName(topic);
@@ -3665,7 +3697,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     }
     void loadQuestionsOnDemand();
     setView('create-assignment');
-  }, [canUseTeacherFeature, showFeatureUnavailable, teacherAssignedSubjects]);
+  }, [canUseTeacherFeature, profile.school_id, showFeatureUnavailable, teacherAssignedSubjects, teachingGroups]);
 
   const selectAllStudents = () => {
     setSelectedStudentIds(filteredStudents.map(s => s.id));
@@ -3683,10 +3715,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
     if (!assignmentTitle.trim()) return brainsAlert('Assignment title is required.', 'info');
-    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(assignmentSubject)) return brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
+    if (profile.school_id && !teacherAssignedSubjects.includes(assignmentSubject)) return brainsAlert('You can only create assignments for school subjects currently allocated to you.', 'error');
     if (assignmentTopicMode === 'custom' && !assignmentTopicName.trim()) return brainsAlert('Please enter a topic for this assignment.', 'info');
     if (!assignmentQuestionIds.length) return brainsAlert('Select at least one question to assign.', 'info');
-    if (assignmentMode === 'batch' && assignmentBatches.length === 0) return brainsAlert('Please select at least one class for this assignment.', 'info');
+    const selectedTeachingGroup = teachingGroups.find((group) => group.id === assignmentGroupId) || null;
+    if (teachingGroups.length > 0 && !selectedTeachingGroup) return brainsAlert('Please select a teaching group for this assignment.', 'info');
+    if (teachingGroups.length === 0 && assignmentMode === 'batch' && assignmentBatches.length === 0) return brainsAlert('Please select at least one class for this assignment.', 'info');
     if (assignmentMode === 'custom' && selectedStudentIds.length === 0) return brainsAlert('Please select at least one student for this assignment.', 'info');
     if (assignmentDueAt) {
       const dueDate = new Date(assignmentDueAt);
@@ -3706,6 +3740,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
       const basePayload = {
         subject: assignmentSubject,
+        school_id: profile.school_id || undefined,
+        school_subject_id: selectedTeachingGroup?.schoolSubjectId,
+        subject_group_id: selectedTeachingGroup?.id,
         topic_name: assignmentTopicLabel,
         question_ids: assignmentQuestionIds,
         assigned_at: assignedAt,
@@ -3722,7 +3759,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       } as const;
 
       if (editingAssignment) {
-        const batch = assignmentMode === 'batch' ? assignmentBatches.find((item) => item !== 'All') : undefined;
+        const batch = selectedTeachingGroup ? undefined : assignmentMode === 'batch' ? assignmentBatches.find((item) => item !== 'All') : undefined;
         const previousQuestionIds = editingAssignment.question_ids || [];
         const contentChanged = previousQuestionIds.length !== assignmentQuestionIds.length
           || previousQuestionIds.some((id) => !assignmentQuestionIds.includes(id));
@@ -3745,11 +3782,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         }
         await GameService.update_teacher_assignment(editingAssignment.id, {
           ...basePayload,
-          assignment_mode: assignmentMode,
+          assignment_mode: selectedTeachingGroup ? 'custom' : assignmentMode,
           batch: batch as AssignmentBatch | undefined,
-          student_ids: assignmentMode === 'custom' ? selectedStudentIds : undefined,
+          student_ids: selectedTeachingGroup || assignmentMode === 'custom' ? selectedStudentIds : undefined,
         });
         brainsAlert(publishStatus === 'draft' ? 'Assignment saved as a draft.' : publishStatus === 'scheduled' ? 'Assignment updated and scheduled.' : 'Assignment updated.', 'success');
+      } else if (selectedTeachingGroup) {
+        await GameService.create_assignment({
+          ...basePayload,
+          batch: undefined,
+          assignment_mode: 'custom',
+          student_ids: selectedStudentIds,
+        });
+        brainsAlert(publishStatus === 'draft' ? 'Teaching-group draft saved.' : publishStatus === 'scheduled' ? 'Teaching-group assignment scheduled.' : 'Teaching-group assignment published.', 'success');
       } else if (assignmentMode === 'batch') {
         const batchesToAssign = assignmentBatches.includes('All') ? availableBatches : assignmentBatches.filter((batch) => batch !== 'All');
         const errors: string[] = [];
@@ -5609,11 +5654,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           </button>
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center mt-6">
             <div className="text-4xl mb-4">🔒</div>
-            <h2 className="text-xl font-bold text-amber-800 mb-2">No Class Assignments</h2>
+            <h2 className="text-xl font-bold text-amber-800 mb-2">No teaching groups allocated</h2>
             <p className="text-amber-700 mb-4">
-              You need to be assigned to at least one class and subject by your school admin before you can create assignments.
+              Your school administrator must allocate you to at least one teaching group before you can create school assignments.
             </p>
-            <p className="text-sm text-amber-600">Please contact your school administrator to assign you to classes.</p>
+            <p className="text-sm text-amber-600">Teaching groups can follow a registration class, a whole grade, or a cross-class elective roster.</p>
           </div>
         </div>
       );
@@ -5670,6 +5715,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           setSelectedStudentIds={setSelectedStudentIds}
           allocatedClasses={allocatedClasses}
           teacherAssignedSubjects={teacherAssignedSubjects}
+          teachingGroups={teachingGroups}
+          assignmentGroupId={assignmentGroupId}
+          setAssignmentGroupId={setAssignmentGroupId}
           teacherId={teacher?.id}
           questions={questions}
           onSubmit={handleCreateAssignment}
@@ -8731,23 +8779,27 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               </h1>
 
               
-              {/* Display allocated classes. */}
-              {teacherHasClassAllocations && allocatedClasses.length > 0 && (
+              {/* Canonical teaching responsibilities. */}
+              {teacherHasClassAllocations && (
                 <div className="teacher-assigned-classes mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sky-700 font-semibold text-sm">📚 Your Allocated Classes ({allocatedClasses.length})</span>
+                    <span className="text-sky-700 font-semibold text-sm">📚 Your Teaching Groups ({teachingGroups.length || allocatedClasses.length})</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {allocatedClasses.slice(0, 6).map((cls, index) => (
-                      <div key={index} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs">
-                        <span className="font-semibold text-slate-700">{cls.class_code}</span>
-                        <span className="text-slate-400">•</span>
-                        <span className="text-slate-600">{cls.subject}</span>
-                      </div>
-                    ))}
-                    {allocatedClasses.length > 6 && (
+                    {(teachingGroups.length
+                      ? teachingGroups.map((group) => ({ key: group.id, label: group.name, subject: group.schoolSubjectName }))
+                      : allocatedClasses.map((cls) => ({ key: `${cls.class_id}:${cls.subject}`, label: cls.class_code, subject: cls.subject })))
+                      .slice(0, 6)
+                      .map((item) => (
+                        <div key={item.key} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs">
+                          <span className="font-semibold text-slate-700">{item.label}</span>
+                          <span className="text-slate-400">•</span>
+                          <span className="text-slate-600">{item.subject}</span>
+                        </div>
+                      ))}
+                    {(teachingGroups.length || allocatedClasses.length) > 6 && (
                       <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs text-slate-600">
-                        +{allocatedClasses.length - 6} more
+                        +{(teachingGroups.length || allocatedClasses.length) - 6} more
                       </span>
                     )}
                   </div>
@@ -8757,7 +8809,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               {!teacherHasClassAllocations && (
                 <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3">
                   <p className="text-sm text-amber-900">
-                    ⚠️ No classes assigned yet. Contact your school admin to assign you to classes.
+                    ⚠️ No teaching groups allocated yet. Contact your school admin to allocate your subject teaching responsibilities.
                   </p>
                 </div>
               )}
@@ -8839,7 +8891,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               onCreateQuestionBatch={openQuestionBatchWorkspace}
               onRenameTopic={(topicQuestions, nextTopic) => { void handleRenameTopic(topicQuestions, nextTopic); }}
               onDeleteTopic={(topicQuestions) => { void handleDeleteTopic(topicQuestions); }}
-              restrictedSubjects={profile.school_id && teacherResourceSubjects.length ? teacherResourceSubjects : undefined}
+              restrictedSubjects={profile.school_id ? teacherResourceSubjects : undefined}
               schoolName={resolvedBranding.schoolName}
               schoolLogoUrl={resolvedBranding.schoolLogoUrl}
               teacherName={profile.full_name || profile.username || 'Teacher'}
@@ -8851,7 +8903,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               <QuestionBatchWorkspace
                 defaultSubject={questionBatchDefaults.subject}
                 defaultTopic={questionBatchDefaults.topic}
-                restrictedSubjects={profile.school_id && teacherAssignedSubjects.length ? teacherAssignedSubjects : undefined}
+                restrictedSubjects={profile.school_id ? teacherResourceSubjects : undefined}
                 onBack={() => setView('question-bank')}
                 onSubmitted={() => loadQuestionsOnDemand()}
                 onOpenMyPool={() => setView('question-bank')}

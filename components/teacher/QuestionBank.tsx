@@ -67,10 +67,13 @@ export default function QuestionBank({
   const initialPoolResolvedRef = useRef(false);
 
   const permittedQuestions = useMemo(() => {
-    if (!restrictedSubjects?.length) return questions;
+    if (restrictedSubjects === undefined) return questions;
     const permitted = new Set(restrictedSubjects.map(normalizeSubject));
-    return questions.filter((question) => permitted.has(normalizeSubject(question.subject)));
-  }, [questions, restrictedSubjects]);
+    return questions.filter((question) => (
+      isMyPoolQuestion(question, teacher?.id)
+      || permitted.has(normalizeSubject(question.subject))
+    ));
+  }, [questions, restrictedSubjects, teacher?.id]);
 
   const pools = useMemo(() => ({
     'brains-heist': permittedQuestions.filter((question) => isBrainsHeistPoolQuestion(question, teacher?.id)),

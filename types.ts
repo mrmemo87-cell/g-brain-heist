@@ -1016,7 +1016,7 @@ export interface ClassStudent {
 
 // Request/Response types for teacher operations
 export interface CreateQuestionRequest {
-  subject: Subject;
+  subject: string;
   subject_id?: string;
   topic?: string;
   topic_name?: string;
@@ -1057,6 +1057,9 @@ export interface TeacherAssignmentSummary {
   academic_year_id?: string | null;
   academic_term_id?: string | null;
   class_id?: string | null;
+  school_subject_id?: string | null;
+  subject_group_id?: string | null;
+  subject_group_name?: string | null;
   publish_status?: 'draft' | 'scheduled' | 'published';
   close_submissions_after_due?: boolean;
   notify_students_by_email?: boolean;
@@ -1114,6 +1117,9 @@ export interface CreateAssignmentRequest {
   teacher_id: string;
   subject: Subject;
   subject_id?: string;
+  school_id?: string;
+  school_subject_id?: string;
+  subject_group_id?: string;
   topic_name: string;
   batch?: AssignmentBatch;
   question_ids: string[];

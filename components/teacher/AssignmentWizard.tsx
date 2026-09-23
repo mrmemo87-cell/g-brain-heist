@@ -3,6 +3,11 @@ import type { AssignmentCategory, QuestionDifficulty, QuestionType, StudentForAs
 import { fetchSchoolAcademicSetup, type SchoolAcademicSetup } from '../../services/schoolAcademicSetupService';
 import { ASSIGNMENT_CATEGORY_META, getAssignmentCategoryMeta } from '../../src/lib/assignmentCategory';
 import type { TeacherAllocatedClass } from '../../services/schoolAdminService';
+import {
+  fetchTeacherTeachingGroupRoster,
+  type SchoolSubjectGroup,
+  type SubjectGroupRosterStudent,
+} from '../../services/schoolSubjectGroupService';
 import { brainsAlert, brainsConfirm } from '../../src/utils/brainsAlert';
 import QuestionPreviewModal from './QuestionPreviewModal';
 import { isBrainsHeistPoolQuestion, isMyPoolQuestion } from './questionPool.js';
@@ -24,13 +29,13 @@ const canReceiveNewAssignment = (student: StudentForAssignment) =>
 
 interface AssignmentWizardProps {
   initialStep?: WizardStep;
-  lockedSubject?: Subject | null;
+  lockedSubject?: string | null;
   assignmentMode: AssignmentMode;
   setAssignmentMode: (mode: AssignmentMode) => void;
   assignmentBatches: string[];
   setAssignmentBatches: React.Dispatch<React.SetStateAction<string[]>>;
-  assignmentSubject: Subject;
-  setAssignmentSubject: (subject: Subject) => void;
+  assignmentSubject: string;
+  setAssignmentSubject: (subject: string) => void;
   assignmentTitle: string;
   setAssignmentTitle: (value: string) => void;
   assignmentDescription: string;
@@ -65,6 +70,9 @@ interface AssignmentWizardProps {
   setSelectedStudentIds: React.Dispatch<React.SetStateAction<string[]>>;
   allocatedClasses: TeacherAllocatedClass[];
   teacherAssignedSubjects: string[];
+  teachingGroups?: SchoolSubjectGroup[];
+  assignmentGroupId?: string;
+  setAssignmentGroupId?: (groupId: string) => void;
   teacherId?: string;
   questions: TeacherQuestion[];
   onSubmit: (event: React.FormEvent) => Promise<void>;
@@ -175,6 +183,9 @@ export default function AssignmentWizard({
   setSelectedStudentIds,
   allocatedClasses,
   teacherAssignedSubjects,
+  teachingGroups = [],
+  assignmentGroupId = '',
+  setAssignmentGroupId,
   teacherId,
   questions,
   onSubmit,
@@ -196,6 +207,8 @@ export default function AssignmentWizard({
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
   const [academicSetup, setAcademicSetup] = useState<SchoolAcademicSetup | null>(null);
   const [academicSetupLoading, setAcademicSetupLoading] = useState(false);
+  const [groupRoster, setGroupRoster] = useState<SubjectGroupRosterStudent[]>([]);
+  const [groupRosterLoading, setGroupRosterLoading] = useState(false);
   const wizardTopRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -218,6 +231,38 @@ export default function AssignmentWizard({
     return term ? { year, term } : null;
   }, [academicSetup]);
 
+  const selectedTeachingGroup = useMemo(
+    () => teachingGroups.find((group) => group.id === assignmentGroupId) || null,
+    [assignmentGroupId, teachingGroups],
+  );
+  const subjectTeachingGroups = useMemo(
+    () => teachingGroups.filter((group) => normalizeSubject(group.schoolSubjectName) === normalizeSubject(assignmentSubject)),
+    [assignmentSubject, teachingGroups],
+  );
+  const hasTeachingGroups = teachingGroups.length > 0;
+
+  useEffect(() => {
+    if (!schoolId || !assignmentGroupId) {
+      setGroupRoster([]);
+      return;
+    }
+    let cancelled = false;
+    setGroupRosterLoading(true);
+    void fetchTeacherTeachingGroupRoster(schoolId, assignmentGroupId)
+      .then((rows) => {
+        if (cancelled) return;
+        setGroupRoster(rows);
+        setSelectedStudentIds(rows.map((row) => row.student_id));
+        setAssignmentMode('custom');
+        setAssignmentBatches([]);
+      })
+      .catch((error) => {
+        console.error('Failed to load teaching group roster', error);
+        if (!cancelled) setGroupRoster([]);
+      })
+      .finally(() => { if (!cancelled) setGroupRosterLoading(false); });
+    return () => { cancelled = true; };
+  }, [assignmentGroupId, schoolId, setAssignmentBatches, setAssignmentMode, setSelectedStudentIds]);
   const scheduledDateKey = assignmentAssignedAt ? assignmentAssignedAt.slice(0, 10) : '';
   const scheduledOutsideCurrentTerm = assignmentPublishStatus === 'scheduled' && Boolean(scheduleWindow) && Boolean(scheduledDateKey) && Boolean(
     scheduleWindow && (scheduledDateKey < scheduleWindow.term.startsOn || scheduledDateKey > scheduleWindow.term.endsOn)
@@ -241,12 +286,16 @@ export default function AssignmentWizard({
   );
 
   useEffect(() => {
-    const allowed = new Set(assignableStudents.map((student) => student.id));
+    const allowed = new Set(
+      selectedTeachingGroup
+        ? groupRoster.map((student) => student.student_id)
+        : assignableStudents.map((student) => student.id),
+    );
     setSelectedStudentIds((current) => {
       const next = current.filter((id) => allowed.has(id));
       return next.length === current.length ? current : next;
     });
-  }, [assignableStudents, setSelectedStudentIds]);
+  }, [assignableStudents, groupRoster, selectedTeachingGroup, setSelectedStudentIds]);
 
   const uniqueQuestions = useMemo(() => {
     const ids = new Set<string>();
@@ -265,12 +314,18 @@ export default function AssignmentWizard({
     });
   }, [assignmentSubject, questions]);
 
+  const assignmentResourceSubject = selectedTeachingGroup?.academicSubjectName || assignmentSubject;
   const subjectQuestions = useMemo(
-    () => uniqueQuestions.filter((question) => normalizeSubject(question.subject) === normalizeSubject(assignmentSubject)),
-    [assignmentSubject, uniqueQuestions],
+    () => uniqueQuestions.filter((question) => {
+      const normalized = normalizeSubject(question.subject);
+      return normalized === normalizeSubject(assignmentSubject)
+        || normalized === normalizeSubject(assignmentResourceSubject);
+    }),
+    [assignmentResourceSubject, assignmentSubject, uniqueQuestions],
   );
 
   const audienceGrades = useMemo(() => {
+    if (selectedTeachingGroup) return [Number(selectedTeachingGroup.gradeLevel)].filter((grade) => Number.isInteger(grade) && grade > 0);
     const grades = assignmentMode === 'batch'
       ? uniqueClasses
         .filter((item) => assignmentBatches.includes('All') || assignmentBatches.includes(item.class_code))
@@ -280,7 +335,7 @@ export default function AssignmentWizard({
         .map((student) => Number(student.grade));
 
     return [...new Set(grades.filter((grade) => Number.isInteger(grade) && grade > 0))];
-  }, [assignmentBatches, assignmentMode, assignableStudents, selectedStudentIds, uniqueClasses]);
+  }, [assignmentBatches, assignmentMode, assignableStudents, selectedStudentIds, selectedTeachingGroup, uniqueClasses]);
 
   const assignmentEligibleQuestions = useMemo(
     () => subjectQuestions.filter((question) => {
@@ -372,10 +427,20 @@ export default function AssignmentWizard({
   );
 
   const audienceStudents = useMemo(() => {
+    if (selectedTeachingGroup) {
+      const byId = new Map(assignableStudents.map((student) => [student.id, student]));
+      return groupRoster.map((row) => byId.get(row.student_id) || ({
+        id: row.student_id,
+        username: row.student_name,
+        display_name: row.student_name,
+        grade: Number(selectedTeachingGroup.gradeLevel),
+        batch: row.class_code as StudentForAssignment['batch'],
+      }));
+    }
     if (assignmentMode === 'custom') return assignableStudents.filter((student) => selectedStudentIds.includes(student.id));
     const batches = new Set(selectedClasses.map((item) => item.class_code));
     return assignableStudents.filter((student) => student.batch && batches.has(student.batch));
-  }, [assignmentMode, assignableStudents, selectedClasses, selectedStudentIds]);
+  }, [assignmentMode, assignableStudents, groupRoster, selectedClasses, selectedStudentIds, selectedTeachingGroup]);
 
   const totalXp = selectedQuestions.reduce((total, question) => total + (question.points || 0), 0);
   const totalSeconds = selectedQuestions.reduce((total, question) => total + (question.time_limit || 60), 0);
@@ -425,8 +490,10 @@ export default function AssignmentWizard({
   const continueFrom = (currentStep: WizardStep) => {
     if (currentStep === 1 && !assignmentSubject) return brainsAlert('Please choose a subject.', 'info');
     if (currentStep === 2) {
-      if (assignmentMode === 'batch' && !assignmentBatches.length) return brainsAlert('Please select at least one class for this assignment.', 'info');
-      if (assignmentMode === 'custom' && !selectedStudentIds.length) return brainsAlert('Please select at least one student for this assignment.', 'info');
+      if (hasTeachingGroups && !assignmentGroupId) return brainsAlert('Please choose a teaching group for this assignment.', 'info');
+      if (hasTeachingGroups && !groupRosterLoading && groupRoster.length === 0) return brainsAlert('This teaching group currently has no eligible students.', 'info');
+      if (!hasTeachingGroups && assignmentMode === 'batch' && !assignmentBatches.length) return brainsAlert('Please select at least one class for this assignment.', 'info');
+      if (!hasTeachingGroups && assignmentMode === 'custom' && !selectedStudentIds.length) return brainsAlert('Please select at least one student for this assignment.', 'info');
     }
     if (currentStep === 3) {
       if (!assignmentQuestionIds.length) return brainsAlert('Select at least one question to assign.', 'info');
@@ -553,62 +620,123 @@ export default function AssignmentWizard({
 
           {step === 2 && (
             <div className="aw-step">
-              <div className="aw-choice-grid aw-choice-grid--two" role="radiogroup" aria-label="Assignment audience">
-                <button type="button" role="radio" aria-checked={assignmentMode === 'batch'} className={assignmentMode === 'batch' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('batch')}>
-                  <span>🏫</span><strong>Entire class</strong><small>Choose one or more allocated classes</small>
-                </button>
-                <button type="button" role="radio" aria-checked={assignmentMode === 'custom'} className={assignmentMode === 'custom' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('custom')}>
-                  <span>👤</span><strong>Individual students</strong><small>Build a custom student group</small>
-                </button>
-              </div>
-
-              {unavailableStudents.length > 0 ? (
-                <p className="aw-intro" role="status">
-                  {unavailableStudents.length} enrolled student{unavailableStudents.length === 1 ? ' is' : 's are'} currently unavailable for new assignments because of account access restrictions. They stay visible in class rosters and historical reports.
-                </p>
-              ) : null}
-
-              {assignmentMode === 'batch' ? (
-                <div className="aw-class-grid">
-                  {uniqueClasses.map((item) => {
-                    const enrolledCount = availableStudents.filter((student) => student.batch === item.class_code).length;
-                    const availableCount = assignableStudents.filter((student) => student.batch === item.class_code).length;
-                    const selected = assignmentBatches.includes('All') || assignmentBatches.includes(item.class_code);
-                    const audienceLabel = enrolledCount === 0
-                      ? 'No registered students yet'
-                      : availableCount === enrolledCount
-                        ? `${availableCount} student${availableCount === 1 ? '' : 's'}`
-                        : `${availableCount} available · ${enrolledCount} enrolled`;
-                    return (
-                      <button key={item.class_code} type="button" aria-pressed={selected} onClick={() => toggleBatch(item.class_code)} className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}>
-                        <span className="aw-class-icon" aria-hidden="true">🏫</span>
-                        <span className="aw-class-card__details"><strong>{item.class_code}</strong><small>{item.subject} · {audienceLabel}</small></span>
-                        <span className="aw-check">{selected ? '✓' : ''}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="aw-students">
-                  <div className="aw-toolbar aw-toolbar--simple">
-                    <label className="aw-search"><span>⌕</span><input value={studentSearch} onChange={(event) => setStudentSearch(event.target.value)} placeholder="Search students…" aria-label="Search students" /></label>
-                    <button type="button" onClick={() => setSelectedStudentIds(assignableStudents.map((student) => student.id))}>Select all</button>
-                    <button type="button" onClick={() => setSelectedStudentIds([])}>Clear</button>
-                  </div>
-                  <div className="aw-student-grid">
-                    {assignableStudents.filter((student) => [student.display_name, student.username, student.batch].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase())).map((student) => {
-                      const selected = selectedStudentIds.includes(student.id);
+              {hasTeachingGroups ? (
+                <>
+                  <p className="aw-intro">Choose the teaching group this assignment belongs to. Its roster comes from the school administrator’s subject setup.</p>
+                  <div className="aw-class-grid">
+                    {subjectTeachingGroups.map((group) => {
+                      const selected = group.id === assignmentGroupId;
                       return (
-                        <button key={student.id} type="button" aria-pressed={selected} onClick={() => toggleStudent(student.id)} className={selected ? 'aw-student-card is-selected' : 'aw-student-card'}>
-                          <img src={student.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(student.display_name)}`} alt="" />
-                          <span><strong>{student.display_name}</strong><small>{student.batch || 'No class'} · Grade {student.grade}</small></span>
+                        <button
+                          key={group.id}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => {
+                            setAssignmentGroupId?.(group.id);
+                            setAssignmentMode('custom');
+                            setAssignmentBatches([]);
+                            setReviewConfirmed(false);
+                          }}
+                          className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}
+                        >
+                          <span className="aw-class-icon" aria-hidden="true">{group.groupType === 'custom' ? '👥' : group.groupType === 'whole_grade' ? '🎓' : '🏫'}</span>
+                          <span className="aw-class-card__details">
+                            <strong>{group.name}</strong>
+                            <small>{group.schoolSubjectName}{group.academicSubjectName && group.academicSubjectName !== group.schoolSubjectName ? ` · resources: ${group.academicSubjectName}` : ''} · {group.studentCount} student{group.studentCount === 1 ? '' : 's'}</small>
+                          </span>
                           <span className="aw-check">{selected ? '✓' : ''}</span>
                         </button>
                       );
                     })}
-                    {!assignableStudents.length ? <div className="aw-empty">No students are currently available for a new assignment.</div> : null}
+                    {!subjectTeachingGroups.length ? <div className="aw-empty">No active teaching group is allocated to you for {assignmentSubject}. Ask the school administrator to create and allocate the teaching group first.</div> : null}
                   </div>
-                </div>
+
+                  {selectedTeachingGroup ? (
+                    <div className="aw-students">
+                      <div className="aw-toolbar aw-toolbar--simple">
+                        <div>
+                          <strong>{selectedTeachingGroup.name}</strong>
+                          <small className="block text-slate-500">{groupRosterLoading ? 'Loading roster…' : `${groupRoster.length} eligible student${groupRoster.length === 1 ? '' : 's'}`}</small>
+                        </div>
+                        <label className="aw-search"><span>⌕</span><input value={studentSearch} onChange={(event) => setStudentSearch(event.target.value)} placeholder="Search group roster…" aria-label="Search group roster" /></label>
+                      </div>
+                      <div className="aw-student-grid">
+                        {groupRoster
+                          .filter((student) => [student.student_name, student.class_code].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase()))
+                          .map((student) => {
+                            const selected = selectedStudentIds.includes(student.student_id);
+                            return (
+                              <button key={student.student_id} type="button" aria-pressed={selected} onClick={() => toggleStudent(student.student_id)} className={selected ? 'aw-student-card is-selected' : 'aw-student-card'}>
+                                <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(student.student_name)}`} alt="" />
+                                <span><strong>{student.student_name}</strong><small>{student.class_code} · Grade {selectedTeachingGroup.gradeLevel}</small></span>
+                                <span className="aw-check">{selected ? '✓' : ''}</span>
+                              </button>
+                            );
+                          })}
+                        {!groupRosterLoading && !groupRoster.length ? <div className="aw-empty">This teaching group has no eligible students yet.</div> : null}
+                      </div>
+                      <p className="aw-intro">All group students are selected by default. You can remove individual students for this assignment without changing the teaching-group roster.</p>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <div className="aw-choice-grid aw-choice-grid--two" role="radiogroup" aria-label="Assignment audience">
+                    <button type="button" role="radio" aria-checked={assignmentMode === 'batch'} className={assignmentMode === 'batch' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('batch')}>
+                      <span>🏫</span><strong>Entire class</strong><small>Choose one or more allocated classes</small>
+                    </button>
+                    <button type="button" role="radio" aria-checked={assignmentMode === 'custom'} className={assignmentMode === 'custom' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('custom')}>
+                      <span>👤</span><strong>Individual students</strong><small>Build a custom student group</small>
+                    </button>
+                  </div>
+                  {unavailableStudents.length > 0 ? (
+                    <p className="aw-intro" role="status">
+                      {unavailableStudents.length} enrolled student{unavailableStudents.length === 1 ? ' is' : 's are'} currently unavailable for new assignments because of account access restrictions. They stay visible in class rosters and historical reports.
+                    </p>
+                  ) : null}
+                  {assignmentMode === 'batch' ? (
+                    <div className="aw-class-grid">
+                      {uniqueClasses.map((item) => {
+                        const enrolledCount = availableStudents.filter((student) => student.batch === item.class_code).length;
+                        const availableCount = assignableStudents.filter((student) => student.batch === item.class_code).length;
+                        const selected = assignmentBatches.includes('All') || assignmentBatches.includes(item.class_code);
+                        const audienceLabel = enrolledCount === 0
+                          ? 'No registered students yet'
+                          : availableCount === enrolledCount
+                            ? `${availableCount} student${availableCount === 1 ? '' : 's'}`
+                            : `${availableCount} available · ${enrolledCount} enrolled`;
+                        return (
+                          <button key={item.class_code} type="button" aria-pressed={selected} onClick={() => toggleBatch(item.class_code)} className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}>
+                            <span className="aw-class-icon" aria-hidden="true">🏫</span>
+                            <span className="aw-class-card__details"><strong>{item.class_code}</strong><small>{item.subject} · {audienceLabel}</small></span>
+                            <span className="aw-check">{selected ? '✓' : ''}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="aw-students">
+                      <div className="aw-toolbar aw-toolbar--simple">
+                        <label className="aw-search"><span>⌕</span><input value={studentSearch} onChange={(event) => setStudentSearch(event.target.value)} placeholder="Search students…" aria-label="Search students" /></label>
+                        <button type="button" onClick={() => setSelectedStudentIds(assignableStudents.map((student) => student.id))}>Select all</button>
+                        <button type="button" onClick={() => setSelectedStudentIds([])}>Clear</button>
+                      </div>
+                      <div className="aw-student-grid">
+                        {assignableStudents.filter((student) => [student.display_name, student.username, student.batch].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase())).map((student) => {
+                          const selected = selectedStudentIds.includes(student.id);
+                          return (
+                            <button key={student.id} type="button" aria-pressed={selected} onClick={() => toggleStudent(student.id)} className={selected ? 'aw-student-card is-selected' : 'aw-student-card'}>
+                              <img src={student.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(student.display_name)}`} alt="" />
+                              <span><strong>{student.display_name}</strong><small>{student.batch || 'No class'} · Grade {student.grade}</small></span>
+                              <span className="aw-check">{selected ? '✓' : ''}</span>
+                            </button>
+                          );
+                        })}
+                        {!assignableStudents.length ? <div className="aw-empty">No students are currently available for a new assignment.</div> : null}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -620,12 +748,12 @@ export default function AssignmentWizard({
                   <strong>{lockedSubject} is fixed for this assignment.</strong>
                   <span>You already added {lockedSubject} questions from the Question Bank. Remove those questions and start a blank assignment to choose another subject.</span>
                 </div>
-              ) : <p className="aw-intro">Only subjects assigned to your classes are available.</p>}
+              ) : <p className="aw-intro">Only school subjects allocated to your active teaching groups are available.</p>}
               <div className="aw-subject-grid" role="radiogroup" aria-label="Choose subject">
                 {[...teacherAssignedSubjects].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })).map((subject) => {
                   const disabled = Boolean(lockedSubject && normalizeSubject(subject) !== normalizeSubject(lockedSubject));
                   return (
-                  <button key={subject} type="button" role="radio" aria-checked={assignmentSubject === subject} disabled={disabled} aria-disabled={disabled} className={`${assignmentSubject === subject ? 'aw-subject is-selected' : 'aw-subject'}${disabled ? ' is-disabled' : ''}`} onClick={() => { if (!disabled) { setAssignmentSubject(subject as Subject); setAssignmentBatches([]); } }}>
+                  <button key={subject} type="button" role="radio" aria-checked={assignmentSubject === subject} disabled={disabled} aria-disabled={disabled} className={`${assignmentSubject === subject ? 'aw-subject is-selected' : 'aw-subject'}${disabled ? ' is-disabled' : ''}`} onClick={() => { if (!disabled) { setAssignmentSubject(subject); setAssignmentBatches([]); setAssignmentGroupId?.(''); setSelectedStudentIds([]); } }}>
                     <span aria-hidden="true">{subject === 'Maths' ? '∑' : subject === 'Science' ? '⚗' : subject === 'English' ? 'Aa' : '◆'}</span>
                     <strong>{subject}</strong>
                     {disabled ? <small>Unavailable — {lockedSubject} questions selected</small> : null}
@@ -765,7 +893,7 @@ export default function AssignmentWizard({
               {[
                 ['Subject', assignmentSubject, 1],
                 ['Assignment type', getAssignmentCategoryMeta(assignmentCategory).label, 4],
-                ['Audience', assignmentMode === 'batch' ? selectedClasses.map((item) => item.class_code).join(', ') : `${audienceStudents.length} individual students`, 2],
+                ['Audience', selectedTeachingGroup ? `${selectedTeachingGroup.name} · ${selectedStudentIds.length} student${selectedStudentIds.length === 1 ? '' : 's'}` : assignmentMode === 'batch' ? selectedClasses.map((item) => item.class_code).join(', ') : `${audienceStudents.length} individual students`, 2],
                 ['Questions', `${selectedQuestions.length} across ${new Set(selectedQuestions.map((q) => q.topic_name || q.topic || 'General')).size} topics · ${averageDifficulty}`, 3],
                 ['Details', [assignmentDescription, assignmentInstructions].filter(Boolean).join(' · ') || 'No additional details', 4],
                 ['Due date', formatDueDate(assignmentDueAt), 5],

@@ -54,7 +54,9 @@ test('question-bank assignments resume at audience and keep their subject consis
   assert.match(wizard, /You already added \{lockedSubject\} questions from the Question Bank/);
   assert.match(wizard, /Unavailable — \{lockedSubject\} questions selected/);
   assert.match(portal, /initialStep=\{assignmentLockedSubject \? 2 : 1\}/);
-  assert.match(portal, /setAssignmentLockedSubject\(subject\)/);
+  assert.match(portal, /setAssignmentLockedSubject\(matchingLocalSubjects\.length === 1 \? localSubject : null\)/);
+  assert.match(portal, /setAssignmentSubject\(localSubject\)/);
+  assert.match(portal, /setAssignmentGroupId\(''\)/);
 });
 
 test('assignment due dates must be in the future in the UI and publish handler', () => {

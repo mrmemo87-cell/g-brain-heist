@@ -55,6 +55,11 @@ export const fetchTeacherTeachingGroups = (schoolId: string) =>
     p_school_id: schoolId,
   }, 'We could not load your teaching groups. Please try again.');
 
+export const fetchSchoolSubjectGroupRoster = (schoolId: string, groupId: string) =>
+  call<SubjectGroupRosterStudent[]>('rpc_school_admin_subject_group_roster', {
+    p_school_id: schoolId, p_group_id: groupId,
+  }, 'We could not load this teaching group’s roster. Please try again.');
+
 export const fetchTeacherTeachingGroupRoster = (schoolId: string, groupId: string) =>
   call<SubjectGroupRosterStudent[]>('rpc_teacher_teaching_group_roster', {
     p_school_id: schoolId, p_group_id: groupId,
@@ -93,3 +98,14 @@ export const setSchoolSubjectDelivery = (input: {
   p_school_id: input.schoolId, p_offering_id: input.offeringId,
   p_delivery_mode: input.deliveryMode, p_confirm_archive: input.confirmArchive,
 }, 'We could not change teaching delivery. Review the offering and confirm any group archival.');
+
+
+export const attachAssignmentToTeachingGroup = (input: {
+  assignmentId: string;
+  schoolId: string;
+  groupId: string;
+}) => call<void>('rpc_teacher_attach_assignment_group', {
+  p_assignment_id: input.assignmentId,
+  p_school_id: input.schoolId,
+  p_group_id: input.groupId,
+}, 'We could not attach this assignment to its teaching group.');

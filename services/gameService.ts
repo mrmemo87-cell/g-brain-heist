@@ -250,9 +250,9 @@ const SUBJECT_ID_LOOKUP: Record<Subject, string> = {
     ICT: 'ict',
 };
 
-const resolveSubjectIdentifier = (subject: Subject, provided?: string): string | undefined => {
+const resolveSubjectIdentifier = (subject: string, provided?: string): string | undefined => {
     if (provided) return provided;
-    return SUBJECT_ID_LOOKUP[subject] || subject.toLowerCase().replace(/\s+/g, '_');
+    return SUBJECT_ID_LOOKUP[subject as Subject] || subject.toLowerCase().replace(/\s+/g, '_');
 };
 
 const normalizeTopicName = (topic?: string | null, fallback?: string | null): string => {
@@ -5690,10 +5690,27 @@ export const create_assignment = async (
 
     if (error) throw new Error(error.message || 'Failed to create assignment');
 
-    const assignment = (Array.isArray(data) ? data[0] : data) as TeacherAssignmentSummary | undefined;
+    const assignment = (Array.isArray(data) ? data[0] : data) as (TeacherAssignmentSummary & { school_id?: string | null }) | undefined;
     if (!assignment) {
         throw new Error('Assignment could not be created');
     }
+
+    if (payload.subject_group_id) {
+        const schoolId = payload.school_id || assignment.school_id;
+        if (!schoolId) throw new Error('School context is required for a teaching-group assignment');
+        const { error: groupError } = await supabase.rpc('rpc_teacher_attach_assignment_group', {
+            p_assignment_id: assignment.id,
+            p_school_id: schoolId,
+            p_group_id: payload.subject_group_id,
+        });
+        if (groupError) {
+            // Do not leave a published audience detached from its teaching-group identity.
+            await rpcDeleteTeacherAssignment(assignment.id);
+            throw new Error(groupError.message || 'Failed to attach assignment to teaching group');
+        }
+        assignment.subject_group_id = payload.subject_group_id;
+    }
+
     return assignment;
 };
 
@@ -5737,9 +5754,30 @@ export const get_teacher_assignments = async (teacherId?: string): Promise<Teach
     if (error) throw new Error(error.message || 'Failed to load assignments');
 
     const assignments = (data as TeacherAssignmentSummary[]) || [];
-    const { data: contextData, error: contextError } = await supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId });
+    const [{ data: contextData, error: contextError }, { data: groupContextData, error: groupContextError }] = await Promise.all([
+        supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId }),
+        supabase.rpc('rpc_teacher_assignment_group_context', { p_teacher_id: resolvedTeacherId }),
+    ]);
     if (contextError) throw new Error(contextError.message || 'Failed to load assignment category context');
-    return mergeAssignmentCategoryContext(assignments, (contextData as AssignmentCategoryContextRow[]) || []) as TeacherAssignmentSummary[];
+    if (groupContextError) throw new Error(groupContextError.message || 'Failed to load assignment teaching-group context');
+    const withCategory = mergeAssignmentCategoryContext(assignments, (contextData as AssignmentCategoryContextRow[]) || []) as TeacherAssignmentSummary[];
+    const groupContext = new Map(((groupContextData as Array<{
+        assignment_id: string;
+        school_id?: string | null;
+        school_subject_id?: string | null;
+        subject_group_id?: string | null;
+        subject_group_name?: string | null;
+    }>) || []).map((row) => [row.assignment_id, row]));
+    return withCategory.map((assignment) => {
+        const extra = groupContext.get(assignment.id);
+        return extra ? {
+            ...assignment,
+            school_id: extra.school_id ?? undefined,
+            school_subject_id: extra.school_subject_id ?? undefined,
+            subject_group_id: extra.subject_group_id ?? undefined,
+            subject_group_name: extra.subject_group_name ?? undefined,
+        } : assignment;
+    });
 };
 
 export const delete_teacher_assignment = async (assignmentId: string): Promise<void> => {
@@ -5784,6 +5822,19 @@ export const update_teacher_assignment = async (
     if (error) throw new Error(error.message || 'Failed to update assignment');
     const assignment = (Array.isArray(data) ? data[0] : data) as TeacherAssignmentSummary | undefined;
     if (!assignment) throw new Error('Assignment could not be updated');
+
+    if (payload.subject_group_id && !assignment.subject_group_id) {
+        const schoolId = payload.school_id;
+        if (!schoolId) throw new Error('School context is required for a teaching-group assignment');
+        const { error: groupError } = await supabase.rpc('rpc_teacher_attach_assignment_group', {
+            p_assignment_id: assignment.id,
+            p_school_id: schoolId,
+            p_group_id: payload.subject_group_id,
+        });
+        if (groupError) throw new Error(groupError.message || 'Failed to attach assignment to teaching group');
+        assignment.subject_group_id = payload.subject_group_id;
+    }
+
     return assignment;
 };
 
