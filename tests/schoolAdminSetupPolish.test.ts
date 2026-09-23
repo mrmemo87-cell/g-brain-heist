@@ -23,7 +23,7 @@ test('new school overview excludes admin-only accounts and unused local labels f
   assert.match(dashboard, /No teaching staff have joined yet/);
 });
 
-test('academic setup guides a valid year, known systems, grade subjects, and default class creation', () => {
+test('academic setup guides year and curriculum coverage without duplicating class or subject management', () => {
   assert.match(academicSetup, /previous} — closed/);
   assert.match(academicSetup, /current} — available/);
   assert.match(academicSetup, /The end date must be later than the start date/);
@@ -32,10 +32,10 @@ test('academic setup guides a valid year, known systems, grade subjects, and def
     assert.match(academicSetup, new RegExp(system.replace(/[()]/g, '\\$&')));
   }
   assert.doesNotMatch(academicSetup, /Not published yet/);
-  assert.match(academicSetup, /ensureGradeClass/);
-  assert.match(academicSetup, /Save Grade \$\{activeGrade\} plan/);
-  assert.match(academicSetup, /This does not create student accounts/);
-  assert.match(academicSetup, /Find registered student/);
+  assert.match(academicSetup, /Curriculum coverage/);
+  assert.match(academicSetup, /School Subjects is the source of truth/);
+  assert.doesNotMatch(academicSetup, /ensureGradeClass|saveSubjectOfferings|setStudentElective/);
+  assert.match(academicSetup, /Nothing on this screen changes student access or teacher allocation/);
 });
 
 test('class and placement UX follows the academic plan and hides repair tooling by default', () => {
