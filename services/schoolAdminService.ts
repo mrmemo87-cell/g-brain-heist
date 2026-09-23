@@ -115,7 +115,10 @@ export interface ClassTeacherAllocation {
   school_id: string;
   class_id: string;
   teacher_user_id: string;
+  school_subject_id: string | null;
   subject: string;
+  academic_subject_id: string | null;
+  academic_subject_name: string | null;
   active: boolean;
   allocated_at: string | null;
   teacher_name: string;
@@ -998,7 +1001,10 @@ export async function listTeacherAllocations(schoolId: string): Promise<ClassTea
       school_id: row.school_id,
       class_id: row.class_id,
       teacher_user_id: row.teacher_user_id,
+      school_subject_id: row.school_subject_id || null,
       subject: row.subject,
+      academic_subject_id: row.academic_subject_id || null,
+      academic_subject_name: row.academic_subject_name || null,
       active: !!row.active,
       allocated_at: row.allocated_at ?? row.created_at ?? null,
       teacher_name: row.teacher_name || row.teacher_username || row.teacher_email || 'Unknown teacher',
@@ -1018,6 +1024,42 @@ export async function listTeacherAllocations(schoolId: string): Promise<ClassTea
   }
 }
 
+export async function allocateTeacherToSchoolSubject(
+  schoolId: string,
+  classId: string,
+  teacherUserId: string,
+  schoolSubjectId: string,
+  active: boolean
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('admin_allocate_teacher_to_school_subject', {
+      p_school_id: schoolId,
+      p_class_id: classId,
+      p_teacher_user_id: teacherUserId,
+      p_school_subject_id: schoolSubjectId,
+      p_active: active,
+    });
+
+    if (error) {
+      console.error('Error allocating teacher to school subject:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (data && data.success === false) {
+      return { success: false, error: data.error || 'Failed to allocate teacher' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception allocating teacher to school subject:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * @deprecated Use allocateTeacherToSchoolSubject so the allocation is keyed by
+ * the exact school-owned subject identity rather than a display label.
+ */
 export async function allocateTeacherToClassSubject(
   schoolId: string,
   classId: string,
