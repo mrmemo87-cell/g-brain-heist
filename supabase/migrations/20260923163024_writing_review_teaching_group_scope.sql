@@ -123,3 +123,13 @@ begin
 end;
 $function$
 ;
+
+revoke all on function public.rpc_bh_writing_canonical_assessment_entitlement_internal(text)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_bh_writing_canonical_assessment_entitlement_internal(text)
+to authenticated,service_role;
+
+revoke all on function public.rpc_bh_writing_submit_assessment_review_entitlement_internal(uuid,jsonb,text,boolean)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_bh_writing_submit_assessment_review_entitlement_internal(uuid,jsonb,text,boolean)
+to authenticated,service_role;
