@@ -773,3 +773,33 @@ begin
   );
 end;
 $function$;
+
+revoke all on function public.rpc_teacher_submit_question_batch(uuid,jsonb)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_teacher_submit_question_batch(uuid,jsonb)
+to authenticated,service_role;
+
+revoke all on function public.rpc_student_academic_confidence(uuid,uuid,uuid)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_student_academic_confidence(uuid,uuid,uuid)
+to authenticated,service_role;
+
+revoke all on function public.rpc_academic_progress_experience_context(uuid)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_academic_progress_experience_context(uuid)
+to authenticated,service_role;
+
+revoke all on function public.rpc_school_admin_set_teaching_staff_status(uuid,uuid,boolean)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_school_admin_set_teaching_staff_status(uuid,uuid,boolean)
+to authenticated,service_role;
+
+revoke all on function public.school_admin_transition_member_role(uuid,uuid,text,boolean,text)
+from public,anon,authenticated,service_role;
+grant execute on function public.school_admin_transition_member_role(uuid,uuid,text,boolean,text)
+to authenticated,service_role;
+
+revoke all on function public.remove_school_member(uuid,uuid)
+from public,anon,authenticated,service_role;
+grant execute on function public.remove_school_member(uuid,uuid)
+to authenticated,service_role;
