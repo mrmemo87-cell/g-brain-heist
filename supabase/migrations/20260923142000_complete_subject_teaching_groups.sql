@@ -406,7 +406,7 @@ language plpgsql
 stable
 security definer
 set search_path=''
-as $
+as $$
 declare
   v_teacher_user_id uuid;
 begin
@@ -491,7 +491,7 @@ begin
     )
   order by a.assigned_at desc;
 end;
-$;
+$$;
 revoke all on function public.rpc_get_assignments_for_teacher(uuid)
   from public,anon,authenticated,service_role;
 grant execute on function public.rpc_get_assignments_for_teacher(uuid)
@@ -509,7 +509,7 @@ language plpgsql
 stable
 security definer
 set search_path=''
-as $
+as $$
 declare
   v_actor uuid:=auth.uid();
 begin
@@ -526,7 +526,7 @@ begin
   left join public.school_subject_groups g on g.id=a.subject_group_id
   where a.teacher_id=p_teacher_id;
 end;
-$;
+$$;
 revoke all on function public.rpc_teacher_assignment_group_context(uuid)
   from public,anon,authenticated,service_role;
 grant execute on function public.rpc_teacher_assignment_group_context(uuid)
