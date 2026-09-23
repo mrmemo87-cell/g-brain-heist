@@ -130,10 +130,9 @@ const QuestionBatchWorkspace: React.FC<QuestionBatchWorkspaceProps> = ({
   const [sourceRightsAttested, setSourceRightsAttested] = useState(false);
 
   const availableSubjects = useMemo(() => {
-    if (!restrictedSubjects?.length) return SUBJECTS;
+    if (restrictedSubjects === undefined) return SUBJECTS;
     const allowed = new Set(restrictedSubjects.map(subjectKey));
-    const filtered = SUBJECTS.filter((subject) => allowed.has(subjectKey(subject)));
-    return filtered.length ? filtered : SUBJECTS;
+    return SUBJECTS.filter((subject) => allowed.has(subjectKey(subject)));
   }, [restrictedSubjects]);
   const createsQuestions = processingMode !== 'extract';
   const selectedGenerationSubject = generationSubject || availableSubjects[0] || '';
