@@ -8779,23 +8779,27 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               </h1>
 
               
-              {/* Display allocated classes. */}
-              {teacherHasClassAllocations && allocatedClasses.length > 0 && (
+              {/* Canonical teaching responsibilities. */}
+              {teacherHasClassAllocations && (
                 <div className="teacher-assigned-classes mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sky-700 font-semibold text-sm">📚 Your Allocated Classes ({allocatedClasses.length})</span>
+                    <span className="text-sky-700 font-semibold text-sm">📚 Your Teaching Groups ({teachingGroups.length || allocatedClasses.length})</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {allocatedClasses.slice(0, 6).map((cls, index) => (
-                      <div key={index} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs">
-                        <span className="font-semibold text-slate-700">{cls.class_code}</span>
-                        <span className="text-slate-400">•</span>
-                        <span className="text-slate-600">{cls.subject}</span>
-                      </div>
-                    ))}
-                    {allocatedClasses.length > 6 && (
+                    {(teachingGroups.length
+                      ? teachingGroups.map((group) => ({ key: group.id, label: group.name, subject: group.schoolSubjectName }))
+                      : allocatedClasses.map((cls) => ({ key: `${cls.class_id}:${cls.subject}`, label: cls.class_code, subject: cls.subject })))
+                      .slice(0, 6)
+                      .map((item) => (
+                        <div key={item.key} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs">
+                          <span className="font-semibold text-slate-700">{item.label}</span>
+                          <span className="text-slate-400">•</span>
+                          <span className="text-slate-600">{item.subject}</span>
+                        </div>
+                      ))}
+                    {(teachingGroups.length || allocatedClasses.length) > 6 && (
                       <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs text-slate-600">
-                        +{allocatedClasses.length - 6} more
+                        +{(teachingGroups.length || allocatedClasses.length) - 6} more
                       </span>
                     )}
                   </div>
@@ -8805,7 +8809,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               {!teacherHasClassAllocations && (
                 <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3">
                   <p className="text-sm text-amber-900">
-                    ⚠️ No classes assigned yet. Contact your school admin to assign you to classes.
+                    ⚠️ No teaching groups allocated yet. Contact your school admin to allocate your subject teaching responsibilities.
                   </p>
                 </div>
               )}
