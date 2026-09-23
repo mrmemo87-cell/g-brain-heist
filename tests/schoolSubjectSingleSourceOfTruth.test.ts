@@ -46,6 +46,9 @@ test('legacy canonical-label collisions are split without hardcoded subject name
   assert.match(migration, /insert into public\.class_teacher_assignments/);
   assert.match(migration, /set school_subject_id=r\.exact_subject_id/);
   assert.match(migration, /cta_unique_class_teacher_school_subject/);
+  assert.match(migration, /insert into public\.school_subject_offerings/);
+  assert.match(migration, /'all_grade'/);
+  assert.match(migration, /on conflict \(school_subject_id,academic_year_id,grade_level\) do nothing/);
   assert.doesNotMatch(migration, /Silk Road|Jess|\bESL\b|\bEnglish\b/);
 });
 
