@@ -3585,6 +3585,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     localStorage.removeItem('brains_heist_teacher_assignment_draft_v2');
     questionBankSubjectRef.current = false;
     setAssignmentLockedSubject(null);
+    setAssignmentGroupId('');
+    setAssignmentSubject('');
     setAssignmentQuestionIds([]);
     setAssignmentTitle('');
     setAssignmentDescription('');
@@ -3635,7 +3637,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     resetAssignmentDraft();
     setEditingAssignment(assignment);
     setAssignmentLockedSubject(null);
-    setAssignmentSubject(assignment.subject_name as Subject);
+    setAssignmentSubject(assignment.subject_name);
     setAssignmentTitle(assignment.title || '');
     setAssignmentDescription(assignment.description || '');
     setAssignmentInstructions(assignment.instructions || '');
@@ -3643,6 +3645,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentDueAt(toLocalAssignmentDateTime(assignment.due_at));
     setAssignmentAssignedAt(toLocalAssignmentDateTime(assignment.assigned_at) || new Date().toISOString().slice(0, 16));
     setAssignmentDifficulty((assignment.difficulty || 'easy') as QuestionDifficulty);
+    setAssignmentGroupId(assignment.subject_group_id || '');
     setAssignmentMode(assignment.assignment_mode || 'batch');
     setAssignmentBatches(assignment.assignment_mode === 'custom' ? [] : assignment.batch ? [assignment.batch] : []);
     setSelectedStudentIds(assignment.student_ids || []);
@@ -3657,21 +3660,34 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   // Handle "Use Set" from the Blooket-style QuestionBank
-  const handleUseQuestionSet = useCallback((questionIds: string[], subject: Subject, topic: string) => {
+  const handleUseQuestionSet = useCallback((questionIds: string[], resourceSubject: Subject, topic: string) => {
     if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {
       showFeatureUnavailable('Assignments');
       return;
     }
-    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(subject)) {
-      brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
+    const matchingLocalSubjects = Array.from(new Set(teachingGroups
+      .filter((group) => (
+        group.schoolSubjectName === resourceSubject
+        || group.academicSubjectName === resourceSubject
+      ))
+      .map((group) => group.schoolSubjectName)));
+
+    if (profile.school_id && matchingLocalSubjects.length === 0) {
+      brainsAlert('This question set is outside the subjects currently allocated to you.', 'error');
       return;
     }
 
-    // Pre-select the questions and set subject/topic from the selected set
-    questionBankSubjectRef.current = true; // Prevent the subject-change useEffect from clearing these IDs
-    setAssignmentLockedSubject(subject);
+    const localSubject = matchingLocalSubjects.length === 1
+      ? matchingLocalSubjects[0]
+      : teacherAssignedSubjects.includes(resourceSubject)
+        ? resourceSubject
+        : matchingLocalSubjects[0] || resourceSubject;
+
+    questionBankSubjectRef.current = true;
     setAssignmentQuestionIds(questionIds);
-    setAssignmentSubject(subject);
+    setAssignmentSubject(localSubject);
+    setAssignmentLockedSubject(matchingLocalSubjects.length === 1 ? localSubject : null);
+    setAssignmentGroupId('');
     if (topic && topic !== 'General') {
       setAssignmentTopicMode('custom');
       setAssignmentTopicName(topic);
@@ -3681,7 +3697,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     }
     void loadQuestionsOnDemand();
     setView('create-assignment');
-  }, [canUseTeacherFeature, showFeatureUnavailable, teacherAssignedSubjects]);
+  }, [canUseTeacherFeature, profile.school_id, showFeatureUnavailable, teacherAssignedSubjects, teachingGroups]);
 
   const selectAllStudents = () => {
     setSelectedStudentIds(filteredStudents.map(s => s.id));
@@ -3699,10 +3715,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
     if (!assignmentTitle.trim()) return brainsAlert('Assignment title is required.', 'info');
-    if (teacherAssignedSubjects.length > 0 && !teacherAssignedSubjects.includes(assignmentSubject)) return brainsAlert('You can only create assignments for subjects assigned to you by the school admin.', 'error');
+    if (profile.school_id && !teacherAssignedSubjects.includes(assignmentSubject)) return brainsAlert('You can only create assignments for school subjects currently allocated to you.', 'error');
     if (assignmentTopicMode === 'custom' && !assignmentTopicName.trim()) return brainsAlert('Please enter a topic for this assignment.', 'info');
     if (!assignmentQuestionIds.length) return brainsAlert('Select at least one question to assign.', 'info');
-    if (assignmentMode === 'batch' && assignmentBatches.length === 0) return brainsAlert('Please select at least one class for this assignment.', 'info');
+    const selectedTeachingGroup = teachingGroups.find((group) => group.id === assignmentGroupId) || null;
+    if (teachingGroups.length > 0 && !selectedTeachingGroup) return brainsAlert('Please select a teaching group for this assignment.', 'info');
+    if (teachingGroups.length === 0 && assignmentMode === 'batch' && assignmentBatches.length === 0) return brainsAlert('Please select at least one class for this assignment.', 'info');
     if (assignmentMode === 'custom' && selectedStudentIds.length === 0) return brainsAlert('Please select at least one student for this assignment.', 'info');
     if (assignmentDueAt) {
       const dueDate = new Date(assignmentDueAt);
@@ -3722,6 +3740,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
       const basePayload = {
         subject: assignmentSubject,
+        school_id: profile.school_id || undefined,
+        school_subject_id: selectedTeachingGroup?.schoolSubjectId,
+        subject_group_id: selectedTeachingGroup?.id,
         topic_name: assignmentTopicLabel,
         question_ids: assignmentQuestionIds,
         assigned_at: assignedAt,
@@ -3738,7 +3759,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       } as const;
 
       if (editingAssignment) {
-        const batch = assignmentMode === 'batch' ? assignmentBatches.find((item) => item !== 'All') : undefined;
+        const batch = selectedTeachingGroup ? undefined : assignmentMode === 'batch' ? assignmentBatches.find((item) => item !== 'All') : undefined;
         const previousQuestionIds = editingAssignment.question_ids || [];
         const contentChanged = previousQuestionIds.length !== assignmentQuestionIds.length
           || previousQuestionIds.some((id) => !assignmentQuestionIds.includes(id));
@@ -3761,11 +3782,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         }
         await GameService.update_teacher_assignment(editingAssignment.id, {
           ...basePayload,
-          assignment_mode: assignmentMode,
+          assignment_mode: selectedTeachingGroup ? 'custom' : assignmentMode,
           batch: batch as AssignmentBatch | undefined,
-          student_ids: assignmentMode === 'custom' ? selectedStudentIds : undefined,
+          student_ids: selectedTeachingGroup || assignmentMode === 'custom' ? selectedStudentIds : undefined,
         });
         brainsAlert(publishStatus === 'draft' ? 'Assignment saved as a draft.' : publishStatus === 'scheduled' ? 'Assignment updated and scheduled.' : 'Assignment updated.', 'success');
+      } else if (selectedTeachingGroup) {
+        await GameService.create_assignment({
+          ...basePayload,
+          batch: undefined,
+          assignment_mode: 'custom',
+          student_ids: selectedStudentIds,
+        });
+        brainsAlert(publishStatus === 'draft' ? 'Teaching-group draft saved.' : publishStatus === 'scheduled' ? 'Teaching-group assignment scheduled.' : 'Teaching-group assignment published.', 'success');
       } else if (assignmentMode === 'batch') {
         const batchesToAssign = assignmentBatches.includes('All') ? availableBatches : assignmentBatches.filter((batch) => batch !== 'All');
         const errors: string[] = [];
