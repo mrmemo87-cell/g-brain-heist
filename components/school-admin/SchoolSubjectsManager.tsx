@@ -460,7 +460,7 @@ const SchoolSubjectsManager: React.FC = () => {
           <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
             <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-white text-xl shadow-sm ring-1 ring-slate-200">◎</div>
             <h4 className="mt-4 text-sm font-bold text-slate-800">{catalog.subjects.length ? 'No subjects match this view' : 'Create your school’s first subject'}</h4>
-            <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-slate-500">{catalog.subjects.length ? 'Try a different search or mapping filter.' : 'Subject names belong to your school. Add English, ESL, Math Club, Chinese, or any other subject your school actually teaches.'}</p>
+            <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-slate-500">{catalog.subjects.length ? 'Try a different search or mapping filter.' : 'Subject names belong to your school. Add exactly the subjects your school teaches; academic mapping is optional and never changes the subject’s identity.'}</p>
             {!catalog.subjects.length ? <button type="button" onClick={openCreate} className="mt-5 rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white">Add first subject</button> : null}
           </div>
         )}
