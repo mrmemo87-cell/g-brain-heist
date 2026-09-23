@@ -17,8 +17,8 @@ test('teacher navigation uses the requested labels and order', () => {
   assert.match(portal, /<th>Subject<\/th>\s*<th>Title<\/th>\s*<th>Topic<\/th>/);
 });
 
-test('writing hub is limited to English teachers', () => {
-  assert.match(portal, /const teachesEnglish = teacherAssignedSubjects\.some/);
+test('writing hub follows the academic resource map of allocated school subjects', () => {
+  assert.match(portal, /const teachesEnglish = teacherResourceSubjects\.some/);
   assert.match(portal, /profile\.role === 'admin' \|\| teachesEnglish/);
   assert.doesNotMatch(portal, /profile\.role === 'teacher' && teachesEnglish/);
 });
