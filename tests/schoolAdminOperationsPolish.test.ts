@@ -50,8 +50,9 @@ test('bulk actions omit role changes and report already-active unban selections'
 
 test('teacher allocation combines school invitations with allocation management', () => {
   assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
-  assert.match(teachers, /Invite teachers, review current teaching coverage/);
-  assert.match(teachers, /current-allocations-title|allocate-teacher-panel|selectedFilterGrade/);
+  assert.match(teachers, /Allocate teachers to the exact teaching groups/);
+  assert.match(teachers, /current-allocations-title|allocate-teacher-panel|gradeFilter/);
+  assert.match(teachers, /fetchSchoolSubjectGroups/);
 });
 
 test('classes group teaching coverage by grade level and expose guarded class management', () => {
