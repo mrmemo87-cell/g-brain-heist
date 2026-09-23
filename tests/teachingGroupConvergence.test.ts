@@ -75,9 +75,12 @@ test('staff lifecycle and question creation respect active teaching groups', () 
   assert.match(gapClosure, /teacher_current_teaching_groups/i);
 });
 
-test('teacher workspace prefers teaching groups and carries subject identity to My Classes', () => {
-  assert.match(teacherPortal, /teachingGroups\.length/);
-  assert.match(teacherPortal, /group\.name/);
+test('teacher workspace renders exact teaching groups in My Classes', () => {
+  assert.match(teacherPortal, /fetchTeacherTeachingGroupRoster/);
+  assert.match(teacherPortal, /teachingGroupRosters/);
+  assert.match(teacherPortal, /canonicalGroups/);
+  assert.match(teacherPortal, /Custom teaching group/);
+  assert.match(teacherPortal, /Each teaching group stays separate/);
   assert.match(teacherPortal, /teacher_subjects/);
   assert.match(teacherPortal, /subject_names/);
 });
