@@ -293,3 +293,8 @@ using (
     where a.id=student_assignment_results.assignment_id
   )
 );
+
+revoke all on function public.rpc_academic_reporting_context(uuid)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_academic_reporting_context(uuid)
+to authenticated,service_role;
