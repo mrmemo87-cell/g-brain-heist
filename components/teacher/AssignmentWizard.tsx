@@ -616,62 +616,123 @@ export default function AssignmentWizard({
 
           {step === 2 && (
             <div className="aw-step">
-              <div className="aw-choice-grid aw-choice-grid--two" role="radiogroup" aria-label="Assignment audience">
-                <button type="button" role="radio" aria-checked={assignmentMode === 'batch'} className={assignmentMode === 'batch' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('batch')}>
-                  <span>🏫</span><strong>Entire class</strong><small>Choose one or more allocated classes</small>
-                </button>
-                <button type="button" role="radio" aria-checked={assignmentMode === 'custom'} className={assignmentMode === 'custom' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('custom')}>
-                  <span>👤</span><strong>Individual students</strong><small>Build a custom student group</small>
-                </button>
-              </div>
-
-              {unavailableStudents.length > 0 ? (
-                <p className="aw-intro" role="status">
-                  {unavailableStudents.length} enrolled student{unavailableStudents.length === 1 ? ' is' : 's are'} currently unavailable for new assignments because of account access restrictions. They stay visible in class rosters and historical reports.
-                </p>
-              ) : null}
-
-              {assignmentMode === 'batch' ? (
-                <div className="aw-class-grid">
-                  {uniqueClasses.map((item) => {
-                    const enrolledCount = availableStudents.filter((student) => student.batch === item.class_code).length;
-                    const availableCount = assignableStudents.filter((student) => student.batch === item.class_code).length;
-                    const selected = assignmentBatches.includes('All') || assignmentBatches.includes(item.class_code);
-                    const audienceLabel = enrolledCount === 0
-                      ? 'No registered students yet'
-                      : availableCount === enrolledCount
-                        ? `${availableCount} student${availableCount === 1 ? '' : 's'}`
-                        : `${availableCount} available · ${enrolledCount} enrolled`;
-                    return (
-                      <button key={item.class_code} type="button" aria-pressed={selected} onClick={() => toggleBatch(item.class_code)} className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}>
-                        <span className="aw-class-icon" aria-hidden="true">🏫</span>
-                        <span className="aw-class-card__details"><strong>{item.class_code}</strong><small>{item.subject} · {audienceLabel}</small></span>
-                        <span className="aw-check">{selected ? '✓' : ''}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="aw-students">
-                  <div className="aw-toolbar aw-toolbar--simple">
-                    <label className="aw-search"><span>⌕</span><input value={studentSearch} onChange={(event) => setStudentSearch(event.target.value)} placeholder="Search students…" aria-label="Search students" /></label>
-                    <button type="button" onClick={() => setSelectedStudentIds(assignableStudents.map((student) => student.id))}>Select all</button>
-                    <button type="button" onClick={() => setSelectedStudentIds([])}>Clear</button>
-                  </div>
-                  <div className="aw-student-grid">
-                    {assignableStudents.filter((student) => [student.display_name, student.username, student.batch].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase())).map((student) => {
-                      const selected = selectedStudentIds.includes(student.id);
+              {hasTeachingGroups ? (
+                <>
+                  <p className="aw-intro">Choose the teaching group this assignment belongs to. Its roster comes from the school administrator’s subject setup.</p>
+                  <div className="aw-class-grid">
+                    {subjectTeachingGroups.map((group) => {
+                      const selected = group.id === assignmentGroupId;
                       return (
-                        <button key={student.id} type="button" aria-pressed={selected} onClick={() => toggleStudent(student.id)} className={selected ? 'aw-student-card is-selected' : 'aw-student-card'}>
-                          <img src={student.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(student.display_name)}`} alt="" />
-                          <span><strong>{student.display_name}</strong><small>{student.batch || 'No class'} · Grade {student.grade}</small></span>
+                        <button
+                          key={group.id}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => {
+                            setAssignmentGroupId?.(group.id);
+                            setAssignmentMode('custom');
+                            setAssignmentBatches([]);
+                            setReviewConfirmed(false);
+                          }}
+                          className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}
+                        >
+                          <span className="aw-class-icon" aria-hidden="true">{group.groupType === 'custom' ? '👥' : group.groupType === 'whole_grade' ? '🎓' : '🏫'}</span>
+                          <span className="aw-class-card__details">
+                            <strong>{group.name}</strong>
+                            <small>{group.schoolSubjectName}{group.academicSubjectName && group.academicSubjectName !== group.schoolSubjectName ? ` · resources: ${group.academicSubjectName}` : ''} · {group.studentCount} student{group.studentCount === 1 ? '' : 's'}</small>
+                          </span>
                           <span className="aw-check">{selected ? '✓' : ''}</span>
                         </button>
                       );
                     })}
-                    {!assignableStudents.length ? <div className="aw-empty">No students are currently available for a new assignment.</div> : null}
+                    {!subjectTeachingGroups.length ? <div className="aw-empty">No active teaching group is allocated to you for {assignmentSubject}. Ask the school administrator to create and allocate the teaching group first.</div> : null}
                   </div>
-                </div>
+
+                  {selectedTeachingGroup ? (
+                    <div className="aw-students">
+                      <div className="aw-toolbar aw-toolbar--simple">
+                        <div>
+                          <strong>{selectedTeachingGroup.name}</strong>
+                          <small className="block text-slate-500">{groupRosterLoading ? 'Loading roster…' : `${groupRoster.length} eligible student${groupRoster.length === 1 ? '' : 's'}`}</small>
+                        </div>
+                        <label className="aw-search"><span>⌕</span><input value={studentSearch} onChange={(event) => setStudentSearch(event.target.value)} placeholder="Search group roster…" aria-label="Search group roster" /></label>
+                      </div>
+                      <div className="aw-student-grid">
+                        {groupRoster
+                          .filter((student) => [student.student_name, student.class_code].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase()))
+                          .map((student) => {
+                            const selected = selectedStudentIds.includes(student.student_id);
+                            return (
+                              <button key={student.student_id} type="button" aria-pressed={selected} onClick={() => toggleStudent(student.student_id)} className={selected ? 'aw-student-card is-selected' : 'aw-student-card'}>
+                                <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(student.student_name)}`} alt="" />
+                                <span><strong>{student.student_name}</strong><small>{student.class_code} · Grade {selectedTeachingGroup.gradeLevel}</small></span>
+                                <span className="aw-check">{selected ? '✓' : ''}</span>
+                              </button>
+                            );
+                          })}
+                        {!groupRosterLoading && !groupRoster.length ? <div className="aw-empty">This teaching group has no eligible students yet.</div> : null}
+                      </div>
+                      <p className="aw-intro">All group students are selected by default. You can remove individual students for this assignment without changing the teaching-group roster.</p>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <div className="aw-choice-grid aw-choice-grid--two" role="radiogroup" aria-label="Assignment audience">
+                    <button type="button" role="radio" aria-checked={assignmentMode === 'batch'} className={assignmentMode === 'batch' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('batch')}>
+                      <span>🏫</span><strong>Entire class</strong><small>Choose one or more allocated classes</small>
+                    </button>
+                    <button type="button" role="radio" aria-checked={assignmentMode === 'custom'} className={assignmentMode === 'custom' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('custom')}>
+                      <span>👤</span><strong>Individual students</strong><small>Build a custom student group</small>
+                    </button>
+                  </div>
+                  {unavailableStudents.length > 0 ? (
+                    <p className="aw-intro" role="status">
+                      {unavailableStudents.length} enrolled student{unavailableStudents.length === 1 ? ' is' : 's are'} currently unavailable for new assignments because of account access restrictions. They stay visible in class rosters and historical reports.
+                    </p>
+                  ) : null}
+                  {assignmentMode === 'batch' ? (
+                    <div className="aw-class-grid">
+                      {uniqueClasses.map((item) => {
+                        const enrolledCount = availableStudents.filter((student) => student.batch === item.class_code).length;
+                        const availableCount = assignableStudents.filter((student) => student.batch === item.class_code).length;
+                        const selected = assignmentBatches.includes('All') || assignmentBatches.includes(item.class_code);
+                        const audienceLabel = enrolledCount === 0
+                          ? 'No registered students yet'
+                          : availableCount === enrolledCount
+                            ? `${availableCount} student${availableCount === 1 ? '' : 's'}`
+                            : `${availableCount} available · ${enrolledCount} enrolled`;
+                        return (
+                          <button key={item.class_code} type="button" aria-pressed={selected} onClick={() => toggleBatch(item.class_code)} className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}>
+                            <span className="aw-class-icon" aria-hidden="true">🏫</span>
+                            <span className="aw-class-card__details"><strong>{item.class_code}</strong><small>{item.subject} · {audienceLabel}</small></span>
+                            <span className="aw-check">{selected ? '✓' : ''}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="aw-students">
+                      <div className="aw-toolbar aw-toolbar--simple">
+                        <label className="aw-search"><span>⌕</span><input value={studentSearch} onChange={(event) => setStudentSearch(event.target.value)} placeholder="Search students…" aria-label="Search students" /></label>
+                        <button type="button" onClick={() => setSelectedStudentIds(assignableStudents.map((student) => student.id))}>Select all</button>
+                        <button type="button" onClick={() => setSelectedStudentIds([])}>Clear</button>
+                      </div>
+                      <div className="aw-student-grid">
+                        {assignableStudents.filter((student) => [student.display_name, student.username, student.batch].join(' ').toLocaleLowerCase().includes(studentSearch.toLocaleLowerCase())).map((student) => {
+                          const selected = selectedStudentIds.includes(student.id);
+                          return (
+                            <button key={student.id} type="button" aria-pressed={selected} onClick={() => toggleStudent(student.id)} className={selected ? 'aw-student-card is-selected' : 'aw-student-card'}>
+                              <img src={student.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(student.display_name)}`} alt="" />
+                              <span><strong>{student.display_name}</strong><small>{student.batch || 'No class'} · Grade {student.grade}</small></span>
+                              <span className="aw-check">{selected ? '✓' : ''}</span>
+                            </button>
+                          );
+                        })}
+                        {!assignableStudents.length ? <div className="aw-empty">No students are currently available for a new assignment.</div> : null}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -828,7 +889,7 @@ export default function AssignmentWizard({
               {[
                 ['Subject', assignmentSubject, 1],
                 ['Assignment type', getAssignmentCategoryMeta(assignmentCategory).label, 4],
-                ['Audience', assignmentMode === 'batch' ? selectedClasses.map((item) => item.class_code).join(', ') : `${audienceStudents.length} individual students`, 2],
+                ['Audience', selectedTeachingGroup ? `${selectedTeachingGroup.name} · ${selectedStudentIds.length} student${selectedStudentIds.length === 1 ? '' : 's'}` : assignmentMode === 'batch' ? selectedClasses.map((item) => item.class_code).join(', ') : `${audienceStudents.length} individual students`, 2],
                 ['Questions', `${selectedQuestions.length} across ${new Set(selectedQuestions.map((q) => q.topic_name || q.topic || 'General')).size} topics · ${averageDifficulty}`, 3],
                 ['Details', [assignmentDescription, assignmentInstructions].filter(Boolean).join(' · ') || 'No additional details', 4],
                 ['Due date', formatDueDate(assignmentDueAt), 5],
