@@ -1117,6 +1117,7 @@ export interface CreateAssignmentRequest {
   teacher_id: string;
   subject: Subject;
   subject_id?: string;
+  school_id?: string;
   school_subject_id?: string;
   subject_group_id?: string;
   topic_name: string;
