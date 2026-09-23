@@ -1192,7 +1192,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     }
 
     setAllocationSaving(true);
-    const result = await SchoolAdminService.allocateTeacherToClassSubject(
+    const result = await SchoolAdminService.allocateTeacherToSchoolSubject(
       school.id,
       allocationClassId,
       allocationTeacherId,

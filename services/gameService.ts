@@ -2658,17 +2658,21 @@ export const activity_reaction_toggle = async (activity_id: string, emoji: strin
   }
 };
 
-interface StudentAcademicSubjectCatalog {
+export interface StudentAcademicSubjectCatalog {
     success: boolean;
     ready: boolean;
     code?: string;
     gradeLevel?: string;
     subjects: Array<{
         id: string;
+        schoolSubjectId?: string;
         code: string;
         name: string;
-        requirement: 'required' | 'elective';
-        scopeId: string;
+        canonicalName?: string | null;
+        academicSubjectId?: string | null;
+        mappingStatus?: 'mapped' | 'unmapped';
+        requirement: 'required' | 'elective' | 'teacher_allocation';
+        scopeId: string | null;
         approvedQuestionCount: number;
     }>;
 }
@@ -2702,7 +2706,7 @@ const academicCodeForSubject = (value: string): string => {
     return normalized.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 };
 
-const fetchStudentAcademicSubjectCatalog = async (): Promise<StudentAcademicSubjectCatalog> => {
+export const fetchStudentAcademicSubjectCatalog = async (): Promise<StudentAcademicSubjectCatalog> => {
     const { data, error } = await supabase.rpc('rpc_student_academic_subjects', { p_student_id: null });
     if (error) throw error;
     return (data || { success: true, ready: false, subjects: [] }) as StudentAcademicSubjectCatalog;

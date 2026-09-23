@@ -214,6 +214,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Teacher class allocation state
   const [allocatedClasses, setAllocatedClasses] = useState<SchoolAdminService.TeacherAllocatedClass[]>([]);
+  const [teacherSubjectCatalog, setTeacherSubjectCatalog] = useState<GameService.StudentAcademicSubjectCatalog | null>(null);
   const [teacherHasClassAllocations, setTeacherHasClassAllocations] = useState(false);
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
@@ -689,9 +690,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const assignmentTopicLabel = useMemo(() => (
     assignmentTopicMode === 'general' ? 'General' : (assignmentTopicName.trim() || 'Custom Topic')
   ), [assignmentTopicMode, assignmentTopicName]);
+  const teacherSubjectResourceMap = useMemo(() => new Map(
+    (teacherSubjectCatalog?.subjects || []).map((item) => [
+      item.name,
+      item.canonicalName || item.name,
+    ]),
+  ), [teacherSubjectCatalog]);
+
+  const assignmentResourceSubject = teacherSubjectResourceMap.get(assignmentSubject) || assignmentSubject;
   const assignmentQuestionPool = useMemo(() => (
-    questions.filter((q) => q.subject === assignmentSubject)
-  ), [questions, assignmentSubject]);
+    questions.filter((q) => q.subject === assignmentSubject || q.subject === assignmentResourceSubject)
+  ), [questions, assignmentSubject, assignmentResourceSubject]);
 
   const assignmentFilteredQuestionPool = useMemo(() => {
     const search = assignmentQuestionSearchTerm.trim().toLowerCase();
@@ -752,6 +761,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     // Sort alphabetically
     return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [allocatedClasses]);
+
+  // Academic mappings unlock shared capabilities/resources without changing the
+  // local school subject identity used for allocations, assignments and reports.
+  const teacherResourceSubjects = useMemo(() => {
+    const subjects = new Set<string>();
+    teacherAssignedSubjects.forEach((schoolSubject) => {
+      subjects.add(schoolSubject);
+      const canonical = teacherSubjectResourceMap.get(schoolSubject);
+      if (canonical) subjects.add(canonical);
+    });
+    return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+  }, [teacherAssignedSubjects, teacherSubjectResourceMap]);
 
   // A class may appear more than once when a teacher has multiple subject
   // allocations. Keep the Cambridge class picker based on current allocations,
@@ -1451,14 +1472,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Filter school visibility to teacher's assigned subjects (flexible matching)
   const teacherFilteredSchoolVisibility = useMemo(() => {
     if (schoolVisibility.length === 0) return [];
-    const lowerSubjects = teacherAssignedSubjects.map(s => s.toLowerCase());
+    const lowerSubjects = teacherResourceSubjects.map(s => s.toLowerCase());
     return schoolVisibility.filter(test => {
       const testSubj = (test.subject || '').toLowerCase();
       return lowerSubjects.some(s =>
         testSubj.includes(s) || s.includes(testSubj) || testSubj.includes(s.split(' ')[0])
       );
     });
-  }, [schoolVisibility, teacherAssignedSubjects]);
+  }, [schoolVisibility, teacherResourceSubjects]);
 
   const schoolVisSubjectOptions = useMemo(() =>
     Array.from(new Set(teacherFilteredSchoolVisibility.map(t => t.subject).filter(Boolean))).sort()
@@ -3215,14 +3236,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             });
         });
 
-      void SchoolAdminService.getTeacherAllocatedClasses()
-        .then((classes) => {
+      void Promise.all([
+        SchoolAdminService.getTeacherAllocatedClasses(),
+        GameService.fetchStudentAcademicSubjectCatalog(),
+      ])
+        .then(([classes, subjectCatalog]) => {
           setAllocatedClasses(classes);
+          setTeacherSubjectCatalog(subjectCatalog);
           setTeacherHasClassAllocations(classes.length > 0);
         })
         .catch((error) => {
-          console.error('Error loading allocated classes:', error);
+          console.error('Error loading allocated classes and subject resources:', error);
           setAllocatedClasses([]);
+          setTeacherSubjectCatalog(null);
           setTeacherHasClassAllocations(false);
         });
 
@@ -8414,7 +8440,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     );
   }
 
-  const teachesEnglish = teacherAssignedSubjects.some((subjectName) =>
+  const teachesEnglish = teacherResourceSubjects.some((subjectName) =>
     subjectName.trim().toLocaleLowerCase().includes('english'),
   );
   const canAccessWritingInsights =
@@ -8813,7 +8839,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               onCreateQuestionBatch={openQuestionBatchWorkspace}
               onRenameTopic={(topicQuestions, nextTopic) => { void handleRenameTopic(topicQuestions, nextTopic); }}
               onDeleteTopic={(topicQuestions) => { void handleDeleteTopic(topicQuestions); }}
-              restrictedSubjects={profile.school_id && teacherAssignedSubjects.length ? teacherAssignedSubjects : undefined}
+              restrictedSubjects={profile.school_id && teacherResourceSubjects.length ? teacherResourceSubjects : undefined}
               schoolName={resolvedBranding.schoolName}
               schoolLogoUrl={resolvedBranding.schoolLogoUrl}
               teacherName={profile.full_name || profile.username || 'Teacher'}
