@@ -133,6 +133,56 @@ create unique index if not exists cta_unique_class_teacher_school_subject
   on public.class_teacher_assignments(class_id,teacher_user_id,school_subject_id)
   where school_subject_id is not null;
 
+-- Legacy class allocations pre-date per-student subject access. If a repaired
+-- local subject has no first-class offering for that grade, preserve the old
+-- whole-class teaching semantics by materializing an all-grade offering. An
+-- already-configured selective/all-grade offering is never overwritten.
+with legacy_offerings as (
+  select distinct
+    cta.school_id,
+    cta.school_subject_id,
+    public.academic_resolve_operational_year_id(cta.school_id,now()) as academic_year_id,
+    c.grade_level::text as grade_level,
+    cta.created_by
+  from public.class_teacher_assignments cta
+  join public.classes c
+    on c.id=cta.class_id and c.school_id=cta.school_id
+  join public.school_subjects ss
+    on ss.id=cta.school_subject_id and ss.school_id=cta.school_id and ss.is_active
+  where cta.active
+    and cta.school_subject_id is not null
+    and coalesce(c.is_active,true)
+)
+insert into public.school_subject_offerings(
+  school_id,school_subject_id,academic_year_id,grade_level,
+  curriculum_scope_id,access_mode,status,created_by
+)
+select
+  legacy.school_id,
+  legacy.school_subject_id,
+  legacy.academic_year_id,
+  legacy.grade_level,
+  (
+    select mapping.curriculum_scope_id
+    from public.school_curriculum_scope_mappings mapping
+    join public.school_subjects subject
+      on subject.id=legacy.school_subject_id
+     and subject.school_id=legacy.school_id
+    where mapping.school_id=legacy.school_id
+      and mapping.academic_year_id=legacy.academic_year_id
+      and mapping.grade_level=legacy.grade_level
+      and mapping.academic_subject_id=subject.academic_subject_id
+      and mapping.status='active'
+    order by mapping.updated_at desc,mapping.id
+    limit 1
+  ),
+  'all_grade',
+  'active',
+  legacy.created_by
+from legacy_offerings legacy
+where legacy.academic_year_id is not null
+on conflict (school_subject_id,academic_year_id,grade_level) do nothing;
+
 -- ---------------------------------------------------------------------------
 -- 2. One current-allocation read model for School Admin.
 -- ---------------------------------------------------------------------------
