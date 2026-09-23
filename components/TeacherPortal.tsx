@@ -758,27 +758,34 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return Array.from(batches).sort();
   }, [availableStudents]);
 
-  // Get the subjects this teacher is allocated to teach.
+  // Operational identity comes from teaching groups. Legacy class allocations
+  // remain a transition fallback until every school has migrated.
   const teacherAssignedSubjects = useMemo(() => {
     const subjects = new Set<string>();
-    allocatedClasses.forEach(cls => {
+    teachingGroups.forEach((group) => {
+      if (group.schoolSubjectName) subjects.add(group.schoolSubjectName);
+    });
+    allocatedClasses.forEach((cls) => {
       if (cls.subject) subjects.add(cls.subject);
     });
-    // Sort alphabetically
     return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-  }, [allocatedClasses]);
+  }, [allocatedClasses, teachingGroups]);
 
-  // Academic mappings unlock shared capabilities/resources without changing the
-  // local school subject identity used for allocations, assignments and reports.
+  // Academic mappings unlock resources/capabilities without changing the local
+  // subject identity used by groups, assignments, grades and reports.
   const teacherResourceSubjects = useMemo(() => {
     const subjects = new Set<string>();
+    teachingGroups.forEach((group) => {
+      subjects.add(group.schoolSubjectName);
+      if (group.academicSubjectName) subjects.add(group.academicSubjectName);
+    });
     teacherAssignedSubjects.forEach((schoolSubject) => {
       subjects.add(schoolSubject);
       const canonical = teacherSubjectResourceMap.get(schoolSubject);
       if (canonical) subjects.add(canonical);
     });
     return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-  }, [teacherAssignedSubjects, teacherSubjectResourceMap]);
+  }, [teacherAssignedSubjects, teacherSubjectResourceMap, teachingGroups]);
 
   // A class may appear more than once when a teacher has multiple subject
   // allocations. Keep the Cambridge class picker based on current allocations,
