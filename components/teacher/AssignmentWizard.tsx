@@ -3,6 +3,11 @@ import type { AssignmentCategory, QuestionDifficulty, QuestionType, StudentForAs
 import { fetchSchoolAcademicSetup, type SchoolAcademicSetup } from '../../services/schoolAcademicSetupService';
 import { ASSIGNMENT_CATEGORY_META, getAssignmentCategoryMeta } from '../../src/lib/assignmentCategory';
 import type { TeacherAllocatedClass } from '../../services/schoolAdminService';
+import {
+  fetchTeacherTeachingGroupRoster,
+  type SchoolSubjectGroup,
+  type SubjectGroupRosterStudent,
+} from '../../services/schoolSubjectGroupService';
 import { brainsAlert, brainsConfirm } from '../../src/utils/brainsAlert';
 import QuestionPreviewModal from './QuestionPreviewModal';
 import { isBrainsHeistPoolQuestion, isMyPoolQuestion } from './questionPool.js';
@@ -65,6 +70,9 @@ interface AssignmentWizardProps {
   setSelectedStudentIds: React.Dispatch<React.SetStateAction<string[]>>;
   allocatedClasses: TeacherAllocatedClass[];
   teacherAssignedSubjects: string[];
+  teachingGroups?: SchoolSubjectGroup[];
+  assignmentGroupId?: string;
+  setAssignmentGroupId?: (groupId: string) => void;
   teacherId?: string;
   questions: TeacherQuestion[];
   onSubmit: (event: React.FormEvent) => Promise<void>;
@@ -175,6 +183,9 @@ export default function AssignmentWizard({
   setSelectedStudentIds,
   allocatedClasses,
   teacherAssignedSubjects,
+  teachingGroups = [],
+  assignmentGroupId = '',
+  setAssignmentGroupId,
   teacherId,
   questions,
   onSubmit,
@@ -196,6 +207,8 @@ export default function AssignmentWizard({
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
   const [academicSetup, setAcademicSetup] = useState<SchoolAcademicSetup | null>(null);
   const [academicSetupLoading, setAcademicSetupLoading] = useState(false);
+  const [groupRoster, setGroupRoster] = useState<SubjectGroupRosterStudent[]>([]);
+  const [groupRosterLoading, setGroupRosterLoading] = useState(false);
   const wizardTopRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
