@@ -24,6 +24,6 @@ test('teacher My Classes exposes roster printing only', () => {
   assert.doesNotMatch(source, /Attendance register/i);
   assert.doesNotMatch(source, /Class Attendance Register/i);
   assert.doesNotMatch(source, /printClassDocuments\([^\n]*'register'/);
-  assert.match(source, /const printClassDocuments = \(groups: typeof classGroups\) =>/);
-  assert.match(source, /title: 'Class Roster'/);
+  assert.match(source, /const printTeachingGroupDocuments = \(groups: typeof rosterGroups\) =>/);
+  assert.match(source, /title: 'Teaching Group Roster'/);
 });
