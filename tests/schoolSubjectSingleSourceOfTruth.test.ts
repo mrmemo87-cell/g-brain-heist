@@ -7,6 +7,8 @@ const academicSetup = readFileSync('components/school-admin/AcademicSetupPanel.t
 const teachersTab = readFileSync('components/school-admin/tabs/TeachersTab.tsx', 'utf8');
 const adminPortal = readFileSync('components/SchoolAdminPortal.tsx', 'utf8');
 const adminService = readFileSync('services/schoolAdminService.ts', 'utf8');
+const teacherPortal = readFileSync('components/TeacherPortal.tsx', 'utf8');
+const gameService = readFileSync('services/gameService.ts', 'utf8');
 const migration = readFileSync('supabase/migrations/20260923105000_school_subject_allocation_consistency.sql', 'utf8');
 
 test('school subjects remain school-owned and dynamically named', () => {
@@ -54,4 +56,14 @@ test('selected-student access constrains assignment audiences by school subject'
   assert.match(migration, /r\.access_mode='selected'/);
   assert.match(migration, /public\.school_subject_enrolments/);
   assert.match(migration, /enrolment\.school_subject_id=r\.school_subject_id/);
+});
+
+
+test('mapped academic resources are shared without merging local subject identity', () => {
+  assert.match(gameService, /canonicalName\?: string \| null/);
+  assert.match(gameService, /export const fetchStudentAcademicSubjectCatalog/);
+  assert.match(teacherPortal, /teacherSubjectResourceMap/);
+  assert.match(teacherPortal, /assignmentResourceSubject/);
+  assert.match(teacherPortal, /q\.subject === assignmentSubject \|\| q\.subject === assignmentResourceSubject/);
+  assert.match(teacherPortal, /teacherResourceSubjects/);
 });
