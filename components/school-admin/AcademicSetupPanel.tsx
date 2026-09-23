@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ensureGradeClass,
   fetchAcademicRosterReadiness,
   confirmAcademicRoster,
   fetchSchoolAcademicSetup,
@@ -8,14 +7,12 @@ import {
   saveAcademicTerm,
   saveAcademicYear,
   saveSchoolAcademicSystem,
-  saveSubjectOfferings,
-  seedCurrentStudentEnrolments,
-  setStudentElective,
   type AcademicFrameworkSetup,
   type AcademicRosterReadiness,
   type SchoolAcademicSetup,
   type SchoolAcademicSystem,
 } from '../../services/schoolAcademicSetupService';
+import { fetchSchoolSubjectCatalog, type SchoolSubjectCatalog } from '../../services/schoolSubjectCatalogService';
 import { useSchoolAdmin } from './SchoolAdminContext';
 
 const GRADES = Array.from({ length: 12 }, (_, index) => index + 1);
@@ -50,8 +47,7 @@ const addDays = (value: string, days: number) => {
   return toIsoDate(date);
 };
 
-type Requirement = 'required' | 'elective';
-type SectionId = 'year' | 'terms' | 'system' | 'grades' | 'electives' | 'roster' | 'next';
+type SectionId = 'year' | 'terms' | 'system' | 'grades' | 'roster' | 'next';
 
 type AcademicTermDraft = {
   id: string | null;
@@ -113,6 +109,7 @@ const AcademicSetupPanel: React.FC = () => {
   const { school, students, classes = [], addToast, loadAdminTools } = useSchoolAdmin();
   const seed = useMemo(academicYearSeed, []);
   const [setup, setSetup] = useState<SchoolAcademicSetup | null>(null);
+  const [subjectCatalog, setSubjectCatalog] = useState<SchoolSubjectCatalog | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingTermIndex, setSavingTermIndex] = useState<number | null>(null);
@@ -127,11 +124,6 @@ const AcademicSetupPanel: React.FC = () => {
   const [termErrors, setTermErrors] = useState<Record<number, string>>({});
   const [academicSystem, setAcademicSystem] = useState<SchoolAcademicSystem | null>(null);
   const [activeGrade, setActiveGrade] = useState(6);
-  const [requirements, setRequirements] = useState<Record<string, Requirement>>({});
-  const [electiveGrade, setElectiveGrade] = useState(6);
-  const [electiveSearch, setElectiveSearch] = useState('');
-  const [electiveStudentId, setElectiveStudentId] = useState('');
-  const [electiveSubjectId, setElectiveSubjectId] = useState('');
   const [rosterReadiness, setRosterReadiness] = useState<AcademicRosterReadiness | null>(null);
   const [rosterLoading, setRosterLoading] = useState(false);
 
@@ -139,11 +131,13 @@ const AcademicSetupPanel: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const [next, savedSystem] = await Promise.all([
+      const [next, savedSystem, nextSubjectCatalog] = await Promise.all([
         fetchSchoolAcademicSetup(school.id),
         fetchSchoolAcademicSystem(school.id),
+        fetchSchoolSubjectCatalog(school.id),
       ]);
       setSetup(next);
+      setSubjectCatalog(nextSubjectCatalog);
       setAcademicSystem(savedSystem);
       const currentYear = next.years.find((year) => year.status === 'current') || next.years[0];
       if (currentYear) {
@@ -167,19 +161,12 @@ const AcademicSetupPanel: React.FC = () => {
       } else {
         setTermDrafts([]);
       }
-      const existing: Record<string, Requirement> = {};
-      next.offerings.forEach((offering) => {
-        existing[`${offering.gradeLevel}:${offering.academicSubjectId}`] = offering.subjectRequirement;
-      });
-      setRequirements(existing);
-      const firstConfiguredGrade = next.offerings
+      const firstConfiguredGrade = nextSubjectCatalog.subjects
+        .flatMap((subject) => subject.offerings)
         .filter((offering) => !currentYear || offering.academicYearId === currentYear.id)
         .map((offering) => Number(offering.gradeLevel))
         .find(Number.isFinite);
-      if (firstConfiguredGrade) {
-        setActiveGrade(firstConfiguredGrade);
-        setElectiveGrade(firstConfiguredGrade);
-      }
+      if (firstConfiguredGrade) setActiveGrade(firstConfiguredGrade);
     } catch (loadError) {
       console.error('Failed to load school academic setup', loadError);
       setError(loadError instanceof Error ? loadError.message : 'Academic setup is unavailable.');
@@ -214,23 +201,23 @@ const AcademicSetupPanel: React.FC = () => {
       || available[0];
   }, [setup?.frameworks]);
   const selectedYear = setup?.years.find((year) => year.id === yearId);
-  const currentOfferings = useMemo(() => (setup?.offerings || []).filter((offering) => offering.academicYearId === yearId), [setup?.offerings, yearId]);
-  const configuredGrades = useMemo(() => Array.from(new Set(currentOfferings.map((offering) => Number(offering.gradeLevel)).filter(Number.isFinite))).sort((a, b) => a - b), [currentOfferings]);
-  const configuredSubjectNames = useMemo(() => new Set(currentOfferings.map((offering) => offering.subjectName)), [currentOfferings]);
+  const schoolSubjectOfferings = useMemo(() => (subjectCatalog?.subjects || []).flatMap((subject) => (
+    subject.offerings
+      .filter((offering) => !yearId || offering.academicYearId === yearId)
+      .map((offering) => ({ subject, offering }))
+  )), [subjectCatalog?.subjects, yearId]);
+  const configuredGrades = useMemo(() => Array.from(new Set(
+    schoolSubjectOfferings.map(({ offering }) => Number(offering.gradeLevel)).filter(Number.isFinite),
+  )).sort((a, b) => a - b), [schoolSubjectOfferings]);
+  const configuredSubjectNames = useMemo(() => new Set(schoolSubjectOfferings.map(({ subject }) => subject.name)), [schoolSubjectOfferings]);
   const subjectsForGrade = useMemo(() => (framework?.subjects || []).filter((subject) => subject.scopes.some((scope) => scope.gradeLevel === activeGrade)), [activeGrade, framework?.subjects]);
-  const selectedCount = subjectsForGrade.filter((subject) => requirements[`${activeGrade}:${subject.academicSubjectId}`]).length;
+  const schoolSubjectsForGrade = useMemo(() => schoolSubjectOfferings
+    .filter(({ offering }) => Number(offering.gradeLevel) === activeGrade)
+    .map(({ subject }) => subject)
+    .filter((subject, index, items) => items.findIndex((candidate) => candidate.id === subject.id) === index)
+    .sort((left, right) => left.name.localeCompare(right.name)), [activeGrade, schoolSubjectOfferings]);
+  const unmappedSubjectsForGrade = schoolSubjectsForGrade.filter((subject) => subject.mappingStatus === 'unmapped');
   const selectedSystemLabel = SCHOOL_SYSTEMS.find((system) => system.code === academicSystem)?.label || 'Not selected';
-  const electiveOfferings = currentOfferings.filter((offering) => offering.subjectRequirement === 'elective' && Number(offering.gradeLevel) === electiveGrade);
-  const electiveStudents = useMemo(() => {
-    const term = electiveSearch.trim().toLowerCase();
-    return (students || [])
-      .filter((student: { grade?: number | string | null }) => Number(student.grade) === electiveGrade)
-      .filter((student: { username: string; full_name?: string | null; email?: string }) => {
-        if (!term) return true;
-        return [student.full_name, student.username, student.email].some((value) => String(value || '').toLowerCase().includes(term));
-      })
-      .sort((left: { full_name?: string | null; username: string }, right: { full_name?: string | null; username: string }) => String(left.full_name || left.username).localeCompare(String(right.full_name || right.username)));
-  }, [electiveGrade, electiveSearch, students]);
 
   const toggleSection = (id: SectionId) => setOpenSection((current) => current === id ? null : id);
   const selectYear = (name: string) => {
@@ -385,59 +372,6 @@ const AcademicSetupPanel: React.FC = () => {
     }
   };
 
-  const toggleSubject = (subjectId: string) => {
-    const key = `${activeGrade}:${subjectId}`;
-    setRequirements((current) => {
-      const next = { ...current };
-      if (next[key]) delete next[key]; else next[key] = 'required';
-      return next;
-    });
-  };
-
-  const handleSaveGrade = async () => {
-    if (!yearId || !framework) return;
-    const offerings = subjectsForGrade.flatMap((subject) => {
-      const requirement = requirements[`${activeGrade}:${subject.academicSubjectId}`];
-      const scope = subject.scopes.find((item) => item.gradeLevel === activeGrade);
-      return requirement && scope ? [{ gradeLevel: String(activeGrade), academicSubjectId: subject.academicSubjectId, scopeId: scope.scopeId, subjectRequirement: requirement }] : [];
-    });
-    if (!offerings.length) {
-      addToast(`Choose at least one subject for Grade ${activeGrade}.`, 'info');
-      return;
-    }
-    setSaving(true);
-    try {
-      const saved = await saveSubjectOfferings({ schoolId: school.id, academicYearId: yearId, offerings });
-      const defaultClass = await ensureGradeClass({ schoolId: school.id, gradeLevel: activeGrade, existingClasses: classes });
-      const enrolled = await seedCurrentStudentEnrolments(school.id, yearId);
-      await loadAdminTools(school.id);
-      setElectiveGrade(activeGrade);
-      setOpenSection(null);
-      addToast(`Grade ${activeGrade} saved with ${saved} subjects${defaultClass.created ? ' and its default class' : ''}. ${enrolled} student enrolments added.`, 'success');
-      await load();
-    } catch (saveError) {
-      addToast(saveError instanceof Error ? saveError.message : 'Grade subject plan could not be saved.', 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleAddElective = async () => {
-    if (!yearId || !electiveStudentId || !electiveSubjectId) return;
-    setSaving(true);
-    try {
-      await setStudentElective({ schoolId: school.id, academicYearId: yearId, studentId: electiveStudentId, academicSubjectId: electiveSubjectId });
-      addToast('Student elective enrolment saved.', 'success');
-      setElectiveStudentId('');
-      setElectiveSubjectId('');
-      await load();
-    } catch (saveError) {
-      addToast(saveError instanceof Error ? saveError.message : 'Student elective could not be saved.', 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const rosterStudentLabel = (studentId: string) => {
     const student = (students || []).find((item: { user_id?: string; id?: string }) => item.user_id === studentId || item.id === studentId) as { full_name?: string | null; username?: string; email?: string } | undefined;
     return student?.full_name || student?.username || student?.email || `${studentId.slice(0, 8)}…`;
@@ -466,7 +400,6 @@ const AcademicSetupPanel: React.FC = () => {
   const yearSummary = selectedYear ? `${selectedYear.name} · ${formatShortDate(selectedYear.startsOn)}–${formatShortDate(selectedYear.endsOn)}` : 'Not configured';
   const termSummary = !yearId ? 'Save academic year first' : savedTerms.length ? `${savedTerms.length} reporting period${savedTerms.length === 1 ? '' : 's'} · ${savedTerms.map((term) => term.name).join(' · ')}` : 'Not configured';
   const gradeSummary = configuredGrades.length ? `${configuredGrades.length} grade levels · ${configuredSubjectNames.size} subjects` : 'No grade levels configured';
-  const electiveSummary = `${setup.electiveEnrolments.length} active student enrolment${setup.electiveEnrolments.length === 1 ? '' : 's'}`;
   const rosterConfirmed = Boolean(rosterReadiness?.ready && rosterReadiness.estimatedEnrolments === 0 && rosterReadiness.confirmedEnrolments === rosterReadiness.activeStudentMembers);
   const rosterSummary = rosterLoading
     ? 'Checking roster…'
@@ -536,32 +469,25 @@ const AcademicSetupPanel: React.FC = () => {
       <div className="admin-form-actions"><button type="button" className="admin-button-primary" disabled={saving || !academicSystem} onClick={handleSaveSystem}>{saving ? 'Saving…' : 'Save school system'}</button></div>
     </SetupSection>
 
-    <SetupSection id="grades" number={4} title="Grade levels and subjects" description="Define what each grade level teaches." summary={gradeSummary} open={openSection === 'grades'} onToggle={toggleSection}>
-      <div className="grade-plan-toolbar"><label className="admin-field"><span>Grade level</span><select value={activeGrade} onChange={(event) => setActiveGrade(Number(event.target.value))}>{GRADES.map((grade) => <option key={grade} value={grade}>Grade {grade}{configuredGrades.includes(grade) ? ' · configured' : ''}</option>)}</select></label><div className="grade-plan-status">{configuredGrades.includes(activeGrade) ? <span className="is-complete">Grade plan saved</span> : <span>Not configured yet</span>}</div></div>
+    <SetupSection id="grades" number={4} title="Curriculum coverage" description="Review the governed academic resources available to your school subjects." summary={gradeSummary} open={openSection === 'grades'} onToggle={toggleSection}>
+      <div className="admin-access-note"><strong>School Subjects is the source of truth</strong><span>Create subjects, choose grades, control student access and manage the school-facing academic map in the School Subjects tab. This section only shows the Brains Heist curriculum coverage available underneath those mappings.</span></div>
+      <div className="grade-plan-toolbar"><label className="admin-field"><span>Grade level</span><select value={activeGrade} onChange={(event) => setActiveGrade(Number(event.target.value))}>{GRADES.map((grade) => <option key={grade} value={grade}>Grade {grade}{configuredGrades.includes(grade) ? ' · in use' : ''}</option>)}</select></label><div className="grade-plan-status">{schoolSubjectsForGrade.length ? <span className="is-complete">{schoolSubjectsForGrade.length} school subject{schoolSubjectsForGrade.length === 1 ? '' : 's'}</span> : <span>No school subjects offered yet</span>}</div></div>
       {framework && subjectsForGrade.length ? <div className="subject-choice-grid">{subjectsForGrade.map((subject) => {
-        const key = `${activeGrade}:${subject.academicSubjectId}`;
-        const requirement = requirements[key];
         const scope = subject.scopes.find((item) => item.gradeLevel === activeGrade);
-        return <article key={subject.academicSubjectId} className={`subject-choice-card ${requirement ? 'is-selected' : ''}`}><label><input type="checkbox" checked={Boolean(requirement)} onChange={() => toggleSubject(subject.academicSubjectId)} /><span><strong>{subject.name}</strong><small>{scope?.approvedQuestionCount ?? 0} approved questions · {scope?.objectiveCount ?? 0} objectives</small></span></label>{requirement ? <label className="subject-requirement"><span>Student access</span><select value={requirement} onChange={(event) => setRequirements((current) => ({ ...current, [key]: event.target.value as Requirement }))}><option value="required">Required for whole grade</option><option value="elective">Elective — selected students</option></select></label> : null}</article>;
-      })}</div> : <div className="admin-empty-state"><h3>No published subjects for Grade {activeGrade}</h3><p>Choose another grade level or publish reviewed content before configuring this grade.</p></div>}
-      <div className="admin-form-actions"><button type="button" className="admin-button-primary" disabled={saving || !yearId || !framework || selectedCount === 0} onClick={handleSaveGrade}>{saving ? 'Saving…' : `Save Grade ${activeGrade} plan`}</button></div>
-      {!yearId ? <p className="admin-muted">Save the academic year before configuring grade levels.</p> : null}
+        const mappedSubjects = schoolSubjectsForGrade.filter((schoolSubject) => schoolSubject.academicSubjectId === subject.academicSubjectId);
+        return <article key={subject.academicSubjectId} className={`subject-choice-card ${mappedSubjects.length ? 'is-selected' : ''}`}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '.75rem' }}>
+            <span aria-hidden="true" style={{ width: '1.15rem', height: '1.15rem', marginTop: '.1rem', borderRadius: '999px', background: mappedSubjects.length ? '#2563eb' : '#e2e8f0', boxShadow: mappedSubjects.length ? 'inset 0 0 0 4px #dbeafe' : 'none' }} />
+            <span><strong>{subject.name}</strong><small>{scope?.approvedQuestionCount ?? 0} approved questions · {scope?.objectiveCount ?? 0} objectives</small></span>
+          </div>
+          <div className="subject-requirement"><span>{mappedSubjects.length ? 'Used by school subjects' : 'Academic resource'}</span><strong>{mappedSubjects.length ? mappedSubjects.map((item) => item.name).join(' · ') : 'Available to map from School Subjects'}</strong></div>
+        </article>;
+      })}</div> : <div className="admin-empty-state"><h3>No published curriculum for Grade {activeGrade}</h3><p>School subjects can still exist without an academic map. Governed questions and objectives become available when matching curriculum is published and mapped.</p></div>}
+      {unmappedSubjectsForGrade.length ? <div className="admin-inline-warning" role="status"><strong>Academic mapping needed</strong><span>{unmappedSubjectsForGrade.map((subject) => subject.name).join(', ')} {unmappedSubjectsForGrade.length === 1 ? 'is' : 'are'} valid school subject{unmappedSubjectsForGrade.length === 1 ? '' : 's'}, but governed curriculum and question resources are not mapped yet. A platform attention request is tracked from School Subjects.</span></div> : null}
+      <p className="admin-field-help">Nothing on this screen changes student access or teacher allocation. Manage those operational settings in School Subjects and Teacher Allocation.</p>
     </SetupSection>
 
-    <SetupSection id="electives" number={5} title="Elective enrolment" description="Give registered students access to elective subjects." summary={electiveSummary} open={openSection === 'electives'} onToggle={toggleSection}>
-      <div className="admin-access-note"><strong>Existing students only</strong><span>This does not create student accounts. Required subjects already reach every student in the grade level.</span></div>
-      <div className="elective-filter-grid">
-        <label className="admin-field"><span>Grade level</span><select value={configuredGrades.length ? electiveGrade : ''} disabled={!configuredGrades.length} onChange={(event) => { setElectiveGrade(Number(event.target.value)); setElectiveStudentId(''); setElectiveSubjectId(''); }}><option value="">No configured grade levels</option>{configuredGrades.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select></label>
-        <label className="admin-field admin-field-wide"><span>Find registered student</span><input type="search" value={electiveSearch} onChange={(event) => { setElectiveSearch(event.target.value); setElectiveStudentId(''); }} placeholder="Search by name, username or email" /></label>
-      </div>
-      <div className="admin-form-grid">
-        <label className="admin-field admin-field-wide"><span>Student</span><select value={electiveStudentId} onChange={(event) => setElectiveStudentId(event.target.value)}><option value="">{electiveStudents.length ? 'Choose matching student' : `No Grade ${electiveGrade} students match`}</option>{electiveStudents.map((student: { user_id: string; username: string; full_name?: string | null }) => <option key={student.user_id} value={student.user_id}>{student.full_name || student.username}</option>)}</select></label>
-        <label className="admin-field admin-field-wide"><span>Elective subject</span><select value={electiveSubjectId} onChange={(event) => setElectiveSubjectId(event.target.value)}><option value="">{electiveOfferings.length ? 'Choose elective' : 'No electives configured for this grade level'}</option>{electiveOfferings.map((offering) => <option key={`${offering.gradeLevel}:${offering.academicSubjectId}`} value={offering.academicSubjectId}>{offering.subjectName}</option>)}</select></label>
-      </div>
-      <div className="admin-form-actions"><button type="button" className="admin-button-primary" disabled={saving || !electiveStudentId || !electiveSubjectId} onClick={handleAddElective}>Add elective access</button></div>
-    </SetupSection>
-
-    <SetupSection id="roster" number={6} title="Confirm current-year roster" description="Verify current class placement before academic reporting treats it as confirmed." summary={rosterSummary} open={openSection === 'roster'} onToggle={toggleSection}>
+    <SetupSection id="roster" number={5} title="Confirm current-year roster" description="Verify current class placement before academic reporting treats it as confirmed." summary={rosterSummary} open={openSection === 'roster'} onToggle={toggleSection}>
       {rosterLoading ? <div className="admin-empty-state"><p>Checking current student placement…</p></div> : rosterReadiness ? <>
         <div className="admin-form-grid">
           <div className="admin-access-note"><strong>{rosterReadiness.placedStudents}/{rosterReadiness.activeStudentMembers} placed</strong><span>Active student memberships with a current class.</span></div>
@@ -581,8 +507,8 @@ const AcademicSetupPanel: React.FC = () => {
       </> : <div className="admin-empty-state"><h3>Roster check unavailable</h3><p>Reload Academic Setup before confirming student placement.</p></div>}
     </SetupSection>
 
-    <SetupSection id="next" number={7} title="Classes and teaching" description="Continue with student placement and teacher allocation." summary={`${classes.length} active class${classes.length === 1 ? '' : 'es'}`} open={openSection === 'next'} onToggle={toggleSection}>
-      <div className="admin-access-note"><strong>Next step</strong><span>Use Classes &amp; Registration for student placement, then allocate teachers to the subjects selected for each grade level. Return here to confirm the roster once placement is complete.</span></div>
+    <SetupSection id="next" number={6} title="Classes and teaching" description="Continue with student placement and teacher allocation." summary={`${classes.length} active class${classes.length === 1 ? '' : 'es'}`} open={openSection === 'next'} onToggle={toggleSection}>
+      <div className="admin-access-note"><strong>Next step</strong><span>Use School Subjects for the subjects each grade actually studies and their student access, Classes &amp; Registration for placement, and Teacher Allocation for the exact school subjects each teacher teaches. Return here to confirm the roster once placement is complete.</span></div>
     </SetupSection>
   </div>;
 };
