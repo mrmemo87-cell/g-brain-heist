@@ -42,7 +42,7 @@ test('teacher/admin reads show the same local school subject identity', () => {
 });
 
 test('legacy canonical-label collisions are split without hardcoded subject names', () => {
-  assert.match(migration, /linked\.academic_subject_id=exact\.academic_subject_id/);
+  assert.match(migration, /exact\.academic_subject_id=linked\.academic_subject_id/);
   assert.match(migration, /insert into public\.class_teacher_assignments/);
   assert.match(migration, /set school_subject_id=r\.exact_subject_id/);
   assert.match(migration, /cta_unique_class_teacher_school_subject/);

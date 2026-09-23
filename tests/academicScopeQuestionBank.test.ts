@@ -70,8 +70,9 @@ test('student and teacher interfaces use the governed contracts', () => {
   assert.match(teacher, /Classroom question/);
   assert.match(teacher, /never changes the official Academic Profile/);
   assert.match(teacher, /eligible_grade_levels/);
-  assert.match(setup, /Grade levels and subjects/);
-  assert.match(setup, /Elective enrolment/);
+  assert.match(setup, /Curriculum coverage/);
+  assert.match(setup, /School Subjects is the source of truth/);
+  assert.doesNotMatch(setup, /setStudentElective/);
 });
 
 test('verified authority is fail closed across catalogue and assignment evidence', () => {

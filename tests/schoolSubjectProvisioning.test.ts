@@ -6,8 +6,8 @@ const read = (path: string) => readFileSync(path, 'utf8');
 const provisioningMigration = read('supabase/migrations/20260922110000_school_subject_provisioning.sql');
 const teacherAliasMigration = read('supabase/migrations/20260922111000_school_subject_alias_teacher_allocation.sql');
 const atomicityMigration = read('supabase/migrations/20260922112000_subject_provisioning_atomicity.sql');
-const panel = read('components/school-admin/SubjectProvisioningPanel.tsx');
-const service = read('services/subjectProvisioningService.ts');
+const panel = read('components/school-admin/SchoolSubjectsManager.tsx');
+const service = read('services/schoolSubjectCatalogService.ts');
 const subjectsTab = read('components/school-admin/tabs/SubjectsTab.tsx');
 
 test('school subject provisioning keeps a school label mapped to canonical academic authority', () => {
@@ -53,15 +53,14 @@ test('teacher allocation resolves school aliases back to canonical subject permi
   assert.match(teacherAliasMigration, /'canonical_subject', v_subject/i);
 });
 
-test('Subject Studio gives school admins one workflow for mapping grade audience students and teachers', () => {
-  assert.match(panel, /Subject Studio/);
-  assert.match(panel, /School subject name/);
-  assert.match(panel, /Academic mapping/);
-  assert.match(panel, /Selected students/);
-  assert.match(panel, /Teacher allocation/);
-  assert.match(panel, /Publish subject/);
-  assert.match(panel, /provisionSchoolSubject/);
-  assert.match(service, /rpc_school_admin_provision_subject/);
-  assert.match(service, /rpc_school_admin_subject_provisioning_state/);
-  assert.match(subjectsTab, /SubjectProvisioningPanel/);
+test('School Subjects owns subject identity, optional mapping, access and staffing', () => {
+  assert.match(panel, /Subject name/);
+  assert.match(panel, /academic mapping is optional/i);
+  assert.match(panel, /selectedStudentIds/);
+  assert.match(panel, /teacherUserId/);
+  assert.match(panel, /saveSchoolSubject/);
+  assert.match(service, /rpc_school_admin_save_school_subject/);
+  assert.match(service, /rpc_school_admin_subject_catalog/);
+  assert.match(subjectsTab, /SchoolSubjectsManager/);
+  assert.doesNotMatch(subjectsTab, /SubjectProvisioningPanel/);
 });
