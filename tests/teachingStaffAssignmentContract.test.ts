@@ -36,8 +36,8 @@ test('Teacher Workspace for an administrator requires both registration and an a
 
 test('teacher allocation keeps invitation access and the operational allocation flow', () => {
   assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
-  assert.match(teachers, /selectedFilterGrade|setFilterSubject|No allocations match these filters/);
-  assert.match(teachers, /handleAllocateTeacher/);
+  assert.match(teachers, /gradeFilter|subjectFilter|No teaching groups match these filters/);
+  assert.match(teachers, /setSchoolSubjectGroupTeacher/);
 });
 
 test('student placement and executive programmes have professional setup states', () => {
