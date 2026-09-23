@@ -423,10 +423,20 @@ export default function AssignmentWizard({
   );
 
   const audienceStudents = useMemo(() => {
+    if (selectedTeachingGroup) {
+      const byId = new Map(assignableStudents.map((student) => [student.id, student]));
+      return groupRoster.map((row) => byId.get(row.student_id) || ({
+        id: row.student_id,
+        username: row.student_name,
+        display_name: row.student_name,
+        grade: Number(selectedTeachingGroup.gradeLevel),
+        batch: row.class_code as StudentForAssignment['batch'],
+      }));
+    }
     if (assignmentMode === 'custom') return assignableStudents.filter((student) => selectedStudentIds.includes(student.id));
     const batches = new Set(selectedClasses.map((item) => item.class_code));
     return assignableStudents.filter((student) => student.batch && batches.has(student.batch));
-  }, [assignmentMode, assignableStudents, selectedClasses, selectedStudentIds]);
+  }, [assignmentMode, assignableStudents, groupRoster, selectedClasses, selectedStudentIds, selectedTeachingGroup]);
 
   const totalXp = selectedQuestions.reduce((total, question) => total + (question.points || 0), 0);
   const totalSeconds = selectedQuestions.reduce((total, question) => total + (question.time_limit || 60), 0);
@@ -476,8 +486,10 @@ export default function AssignmentWizard({
   const continueFrom = (currentStep: WizardStep) => {
     if (currentStep === 1 && !assignmentSubject) return brainsAlert('Please choose a subject.', 'info');
     if (currentStep === 2) {
-      if (assignmentMode === 'batch' && !assignmentBatches.length) return brainsAlert('Please select at least one class for this assignment.', 'info');
-      if (assignmentMode === 'custom' && !selectedStudentIds.length) return brainsAlert('Please select at least one student for this assignment.', 'info');
+      if (hasTeachingGroups && !assignmentGroupId) return brainsAlert('Please choose a teaching group for this assignment.', 'info');
+      if (hasTeachingGroups && !groupRosterLoading && groupRoster.length === 0) return brainsAlert('This teaching group currently has no eligible students.', 'info');
+      if (!hasTeachingGroups && assignmentMode === 'batch' && !assignmentBatches.length) return brainsAlert('Please select at least one class for this assignment.', 'info');
+      if (!hasTeachingGroups && assignmentMode === 'custom' && !selectedStudentIds.length) return brainsAlert('Please select at least one student for this assignment.', 'info');
     }
     if (currentStep === 3) {
       if (!assignmentQuestionIds.length) return brainsAlert('Select at least one question to assign.', 'info');
@@ -671,12 +683,12 @@ export default function AssignmentWizard({
                   <strong>{lockedSubject} is fixed for this assignment.</strong>
                   <span>You already added {lockedSubject} questions from the Question Bank. Remove those questions and start a blank assignment to choose another subject.</span>
                 </div>
-              ) : <p className="aw-intro">Only subjects assigned to your classes are available.</p>}
+              ) : <p className="aw-intro">Only school subjects allocated to your active teaching groups are available.</p>}
               <div className="aw-subject-grid" role="radiogroup" aria-label="Choose subject">
                 {[...teacherAssignedSubjects].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })).map((subject) => {
                   const disabled = Boolean(lockedSubject && normalizeSubject(subject) !== normalizeSubject(lockedSubject));
                   return (
-                  <button key={subject} type="button" role="radio" aria-checked={assignmentSubject === subject} disabled={disabled} aria-disabled={disabled} className={`${assignmentSubject === subject ? 'aw-subject is-selected' : 'aw-subject'}${disabled ? ' is-disabled' : ''}`} onClick={() => { if (!disabled) { setAssignmentSubject(subject as Subject); setAssignmentBatches([]); } }}>
+                  <button key={subject} type="button" role="radio" aria-checked={assignmentSubject === subject} disabled={disabled} aria-disabled={disabled} className={`${assignmentSubject === subject ? 'aw-subject is-selected' : 'aw-subject'}${disabled ? ' is-disabled' : ''}`} onClick={() => { if (!disabled) { setAssignmentSubject(subject as Subject); setAssignmentBatches([]); setAssignmentGroupId?.(''); setSelectedStudentIds([]); } }}>
                     <span aria-hidden="true">{subject === 'Maths' ? '∑' : subject === 'Science' ? '⚗' : subject === 'English' ? 'Aa' : '◆'}</span>
                     <strong>{subject}</strong>
                     {disabled ? <small>Unavailable — {lockedSubject} questions selected</small> : null}
