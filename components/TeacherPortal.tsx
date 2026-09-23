@@ -5,6 +5,10 @@ import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, Questio
 import * as GameService from '../services/gameService';
 import * as AuthService from '../services/authService';
 import * as SchoolAdminService from '../services/schoolAdminService';
+import {
+  fetchTeacherTeachingGroups,
+  type SchoolSubjectGroup,
+} from '../services/schoolSubjectGroupService';
 import { supabase } from '../services/supabaseClient';
 import { getAcademicReportingContext, type AcademicReportingYear } from '../services/academicReportingService';
 import BackButton from './BackButton';
@@ -214,6 +218,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Teacher class allocation state
   const [allocatedClasses, setAllocatedClasses] = useState<SchoolAdminService.TeacherAllocatedClass[]>([]);
+  const [teachingGroups, setTeachingGroups] = useState<SchoolSubjectGroup[]>([]);
   const [teacherSubjectCatalog, setTeacherSubjectCatalog] = useState<GameService.StudentAcademicSubjectCatalog | null>(null);
   const [teacherHasClassAllocations, setTeacherHasClassAllocations] = useState(false);
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
@@ -446,9 +451,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentSuccess, setAssignmentSuccess] = useState<GameService.TeacherAssignmentSuccessSummary | null>(null);
   const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
   const [assignmentBatches, setAssignmentBatches] = useState<string[]>([]);
+  const [assignmentGroupId, setAssignmentGroupId] = useState('');
   const questionBankSubjectRef = useRef(false);
-  const [assignmentSubject, setAssignmentSubject] = useState<Subject>('Maths');
-  const [assignmentLockedSubject, setAssignmentLockedSubject] = useState<Subject | null>(null);
+  const [assignmentSubject, setAssignmentSubject] = useState<string>('');
+  const [assignmentLockedSubject, setAssignmentLockedSubject] = useState<string | null>(null);
   const [assignmentTopicMode, setAssignmentTopicMode] = useState<'general' | 'custom'>('general');
   const [assignmentTopicName, setAssignmentTopicName] = useState('');
   const [assignmentTitle, setAssignmentTitle] = useState('');
