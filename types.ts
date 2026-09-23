@@ -1016,7 +1016,7 @@ export interface ClassStudent {
 
 // Request/Response types for teacher operations
 export interface CreateQuestionRequest {
-  subject: Subject;
+  subject: string;
   subject_id?: string;
   topic?: string;
   topic_name?: string;
