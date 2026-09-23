@@ -5654,11 +5654,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           </button>
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center mt-6">
             <div className="text-4xl mb-4">🔒</div>
-            <h2 className="text-xl font-bold text-amber-800 mb-2">No Class Assignments</h2>
+            <h2 className="text-xl font-bold text-amber-800 mb-2">No teaching groups allocated</h2>
             <p className="text-amber-700 mb-4">
-              You need to be assigned to at least one class and subject by your school admin before you can create assignments.
+              Your school administrator must allocate you to at least one teaching group before you can create school assignments.
             </p>
-            <p className="text-sm text-amber-600">Please contact your school administrator to assign you to classes.</p>
+            <p className="text-sm text-amber-600">Teaching groups can follow a registration class, a whole grade, or a cross-class elective roster.</p>
           </div>
         </div>
       );
@@ -5715,6 +5715,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           setSelectedStudentIds={setSelectedStudentIds}
           allocatedClasses={allocatedClasses}
           teacherAssignedSubjects={teacherAssignedSubjects}
+          teachingGroups={teachingGroups}
+          assignmentGroupId={assignmentGroupId}
+          setAssignmentGroupId={setAssignmentGroupId}
           teacherId={teacher?.id}
           questions={questions}
           onSubmit={handleCreateAssignment}
@@ -8884,7 +8887,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               onCreateQuestionBatch={openQuestionBatchWorkspace}
               onRenameTopic={(topicQuestions, nextTopic) => { void handleRenameTopic(topicQuestions, nextTopic); }}
               onDeleteTopic={(topicQuestions) => { void handleDeleteTopic(topicQuestions); }}
-              restrictedSubjects={profile.school_id && teacherResourceSubjects.length ? teacherResourceSubjects : undefined}
+              restrictedSubjects={profile.school_id ? teacherResourceSubjects : undefined}
               schoolName={resolvedBranding.schoolName}
               schoolLogoUrl={resolvedBranding.schoolLogoUrl}
               teacherName={profile.full_name || profile.username || 'Teacher'}
@@ -8896,7 +8899,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               <QuestionBatchWorkspace
                 defaultSubject={questionBatchDefaults.subject}
                 defaultTopic={questionBatchDefaults.topic}
-                restrictedSubjects={profile.school_id && teacherAssignedSubjects.length ? teacherAssignedSubjects : undefined}
+                restrictedSubjects={profile.school_id ? teacherResourceSubjects : undefined}
                 onBack={() => setView('question-bank')}
                 onSubmitted={() => loadQuestionsOnDemand()}
                 onOpenMyPool={() => setView('question-bank')}
