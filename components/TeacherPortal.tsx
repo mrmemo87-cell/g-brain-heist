@@ -3252,15 +3252,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       void Promise.all([
         SchoolAdminService.getTeacherAllocatedClasses(),
         GameService.fetchStudentAcademicSubjectCatalog(),
+        profile.school_id ? fetchTeacherTeachingGroups(profile.school_id) : Promise.resolve([] as SchoolSubjectGroup[]),
       ])
-        .then(([classes, subjectCatalog]) => {
+        .then(([classes, subjectCatalog, groups]) => {
           setAllocatedClasses(classes);
           setTeacherSubjectCatalog(subjectCatalog);
-          setTeacherHasClassAllocations(classes.length > 0);
+          setTeachingGroups(groups);
+          setTeacherHasClassAllocations(groups.length > 0 || classes.length > 0);
         })
         .catch((error) => {
-          console.error('Error loading allocated classes and subject resources:', error);
+          console.error('Error loading teaching groups, legacy classes and subject resources:', error);
           setAllocatedClasses([]);
+          setTeachingGroups([]);
           setTeacherSubjectCatalog(null);
           setTeacherHasClassAllocations(false);
         });
