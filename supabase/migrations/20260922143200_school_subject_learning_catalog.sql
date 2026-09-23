@@ -37,7 +37,7 @@ begin
         select 1 from public.class_teacher_assignments cta
         where cta.teacher_user_id=v_caller and cta.school_id=v_school and cta.active
       ) then
-        v_year:=public.academic_resolve_year_id(v_school,now());
+        v_year:=public.academic_resolve_operational_year_id(v_school,now());
         return jsonb_build_object(
           'success',true,'ready',true,'academicYearId',v_year,'gradeLevel',null,
           'subjects',coalesce((
@@ -58,14 +58,24 @@ begin
                   from public.curriculum_item_objective_mappings im
                   join public.curriculum_assessment_items ai
                     on ai.id=im.assessment_item_id and ai.is_active
+                    and ai.source_type='question_bank'
                   join public.questions q
                     on q.id::text=ai.source_record_id
+                    and q.academic_subject_id=ss.academic_subject_id
+                    and q.is_active and q.verification_status='verified' and q.analytics_eligible
+                    and q.current_content_hash=q.verified_content_hash
+                    and ai.content_hash=q.verified_content_hash
+                    and (
+                      (q.pool_scope='global' and q.content_origin='brain_heist'
+                        and q.owner_school_id is null and q.is_public and ai.school_id is null)
+                      or (q.pool_scope='school' and q.content_origin='teacher'
+                        and q.owner_school_id=v_school and not q.is_public and ai.school_id=v_school)
+                    )
                   where im.curriculum_scope_id=offering.curriculum_scope_id
                     and im.academic_subject_id=ss.academic_subject_id
                     and im.status='approved' and im.mapping_role='primary'
                     and im.superseded_at is null
-                    and q.academic_subject_id=ss.academic_subject_id
-                    and q.is_active and q.verification_status='verified' and q.analytics_eligible
+                    and im.item_content_hash=ai.content_hash
                 )
               end
             ) order by ss.name)
@@ -139,13 +149,25 @@ begin
             from public.curriculum_item_objective_mappings im
             join public.curriculum_assessment_items ai
               on ai.id=im.assessment_item_id and ai.is_active
-            join public.questions q on q.id::text=ai.source_record_id
+              and ai.source_type='question_bank'
+            join public.questions q
+              on q.id::text=ai.source_record_id
+              and q.academic_subject_id=ss.academic_subject_id
+              and q.is_active and q.verification_status='verified' and q.analytics_eligible
+              and q.current_content_hash=q.verified_content_hash
+              and ai.content_hash=q.verified_content_hash
+              and v_grade~'^[0-9]+$' and v_grade::smallint=any(q.eligible_grade_levels)
+              and (
+                (q.pool_scope='global' and q.content_origin='brain_heist'
+                  and q.owner_school_id is null and q.is_public and ai.school_id is null)
+                or (q.pool_scope='school' and q.content_origin='teacher'
+                  and q.owner_school_id=v_school and not q.is_public and ai.school_id=v_school)
+              )
             where im.curriculum_scope_id=offering.curriculum_scope_id
               and im.academic_subject_id=ss.academic_subject_id
               and im.status='approved' and im.mapping_role='primary'
               and im.superseded_at is null
-              and q.academic_subject_id=ss.academic_subject_id
-              and q.is_active and q.verification_status='verified' and q.analytics_eligible
+              and im.item_content_hash=ai.content_hash
           )
         end
       ) order by ss.name)
@@ -179,7 +201,9 @@ grant execute on function public.rpc_student_academic_subjects(uuid)
 
 -- Question authorization follows the canonical map of the allocated school
 -- subject. The local label can be supplied as p_subject (e.g. ESL) and still
--- resolves to English resources without merging the two school subjects.
+-- resolves to canonical resources without merging the two school subjects.
+-- Preserve the existing question-pool contract: Global Verified and same-school
+-- School Verified questions are governed content; Teacher Pool stays private.
 create or replace function public.get_all_active_questions(
   p_subject text default null::text,
   p_difficulty text default null::text,
@@ -226,7 +250,9 @@ returns table(
   current_content_hash text,
   content_version text,
   content_revision integer,
-  eligible_grade_levels smallint[]
+  eligible_grade_levels smallint[],
+  pool_scope text,
+  owner_school_id uuid
 )
 language plpgsql
 stable
@@ -257,7 +283,7 @@ begin
   order by sm.joined_at desc nulls last,sm.id limit 1;
   if v_school is null then select u.school_id into v_school from public.users u where u.id=v_actor; end if;
   if v_school is not null then
-    v_year:=public.academic_resolve_year_id(v_school,now());
+    v_year:=public.academic_resolve_operational_year_id(v_school,now());
     select exists(
       select 1 from public.class_teacher_assignments cta
       join public.classes c on c.id=cta.class_id and c.school_id=cta.school_id
@@ -345,18 +371,29 @@ begin
       on item.source_type='question_bank' and item.source_record_id=q0.id::text
       and item.source_item_key='question' and item.is_active
       and item.content_hash=q0.verified_content_hash
+      and (
+        (q0.pool_scope='global' and item.school_id is null)
+        or (q0.pool_scope='school' and item.school_id=v_school)
+      )
     join public.curriculum_item_objective_mappings im
       on im.assessment_item_id=item.id
       and im.curriculum_scope_id=scope.curriculum_scope_id
       and im.academic_subject_id=q0.academic_subject_id
       and im.status='approved' and im.mapping_role='primary'
+      and im.superseded_at is null
       and im.item_content_hash=item.content_hash
     join public.curriculum_framework_versions fv
       on fv.id=im.framework_version_id and fv.status in ('published','retired')
       and fv.content_hash=im.curriculum_version_content_hash
-    where q0.is_active and q0.content_origin='brain_heist'
-      and q0.verification_status='verified' and q0.analytics_eligible and q0.is_public
+    where q0.is_active
+      and q0.verification_status='verified' and q0.analytics_eligible
       and q0.current_content_hash=q0.verified_content_hash
+      and (
+        (q0.pool_scope='global' and q0.content_origin='brain_heist'
+          and q0.owner_school_id is null and q0.is_public)
+        or (q0.pool_scope='school' and q0.content_origin='teacher'
+          and q0.owner_school_id=v_school and not q0.is_public)
+      )
       and (
         p_subject is null
         or lower(trim(scope.school_subject_name))=lower(trim(p_subject))
@@ -370,7 +407,8 @@ begin
     union
     select q0.id
     from public.questions q0
-    where q0.is_active and q0.content_origin='teacher' and q0.teacher_id=v_teacher
+    where q0.is_active and q0.pool_scope='teacher'
+      and q0.content_origin='teacher' and q0.teacher_id=v_teacher
       and (p_subject is null or lower(trim(q0.subject))=lower(trim(p_subject)))
       and (p_difficulty is null or q0.difficulty=p_difficulty)
   ),
@@ -387,12 +425,13 @@ begin
     q.question_text,q.image_url,q.image_alt_text,q.question_type,q.options,
     q.correct_answer,q.explanation,q.hints,q.time_limit,q.points,q.tags,q.grade_level,
     q.is_public,q.is_active,q.times_answered,q.times_correct,q.created_at,q.updated_at,
-    case when q.content_origin='brain_heist' then 'Brains Heist' else coalesce(u.username,'Teacher') end,
-    case when q.content_origin='brain_heist' then null else u.school_id end,
-    q.content_origin='teacher' and q.teacher_id=v_teacher,
+    case when q.pool_scope='global' then 'Brains Heist' else coalesce(u.username,'Teacher') end,
+    case when q.pool_scope='global' then null
+      when q.pool_scope='school' then q.owner_school_id else u.school_id end,
+    q.pool_scope='teacher' and q.teacher_id=v_teacher,
     q.content_origin,q.verification_status,q.analytics_eligible,q.verified_at,q.verified_by,
     q.verified_by_authority,q.verified_content_hash,q.current_content_hash,
-    q.content_version,q.content_revision,q.eligible_grade_levels
+    q.content_version,q.content_revision,q.eligible_grade_levels,q.pool_scope,q.owner_school_id
   from paged page
   join public.questions q on q.id=page.id
   left join public.teachers t on t.id=q.teacher_id

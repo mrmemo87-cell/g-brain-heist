@@ -19,6 +19,14 @@ test('school subjects are first-class school-owned identities', () => {
   assert.doesNotMatch(identityMigration, /unique \(school_id,academic_year_id,grade_level,academic_subject_id\)/i);
 });
 
+test('compatibility backfill leaves retired curriculum mappings untouched', () => {
+  assert.match(
+    identityMigration,
+    /update public\.school_curriculum_scope_mappings m[\s\S]*m\.status in \('planned','active'\)[\s\S]*fv\.status='published'/i,
+  );
+  assert.match(identityMigration, /Archived\/retired curriculum mappings are historical evidence/i);
+});
+
 test('academic mapping is explicit and optional instead of inferred from a label', () => {
   assert.match(identityMigration, /drop trigger if exists trg_academic_enrich_school_subject/i);
   assert.match(identityMigration, /Optional academic capability map/i);
@@ -42,6 +50,15 @@ test('teacher question access follows the academic map while the school subject 
   assert.match(learningMigration, /join public\.school_subject_offerings offering/i);
   assert.match(learningMigration, /lower\(trim\(scope\.school_subject_name\)\)=lower\(trim\(p_subject\)\)/i);
   assert.match(learningMigration, /scope\.academic_subject_id=q0\.academic_subject_id/i);
+});
+
+test('school subject learning preserves the verified question pool contract and operational year', () => {
+  assert.match(learningMigration, /academic_resolve_operational_year_id\(v_school,now\(\)\)/i);
+  assert.match(learningMigration, /eligible_grade_levels smallint\[\],[\s\S]*pool_scope text,[\s\S]*owner_school_id uuid/i);
+  assert.match(learningMigration, /q0\.pool_scope='global'[\s\S]*item\.school_id is null/i);
+  assert.match(learningMigration, /q0\.pool_scope='school'[\s\S]*q0\.owner_school_id=v_school[\s\S]*not q0\.is_public/i);
+  assert.match(learningMigration, /q0\.pool_scope='teacher'[\s\S]*q0\.teacher_id=v_teacher/i);
+  assert.match(learningMigration, /q\.eligible_grade_levels,q\.pool_scope,q\.owner_school_id/i);
 });
 
 test('unmapped subjects remain valid and create platform academic attention', () => {

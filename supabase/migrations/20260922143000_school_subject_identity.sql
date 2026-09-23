@@ -126,6 +126,9 @@ set academic_subject_id=coalesce(public.school_subjects.academic_subject_id,excl
     is_active=true,
     updated_at=now();
 
+-- Archived/retired curriculum mappings are historical evidence. Do not rewrite
+-- them during this compatibility link-up because the mapping validator correctly
+-- rejects writes against non-published curriculum versions.
 update public.school_curriculum_scope_mappings m
 set school_subject_id=s.id,
     display_name=coalesce(nullif(trim(m.display_name),''),s.name),
@@ -133,8 +136,15 @@ set school_subject_id=s.id,
 from public.school_subjects s
 join public.academic_subjects a on a.id=s.academic_subject_id
 where m.school_id=s.school_id
+  and m.status in ('planned','active')
   and m.academic_subject_id=a.id
   and m.school_subject_id is null
+  and exists(
+    select 1
+    from public.curriculum_scopes sc
+    join public.curriculum_framework_versions fv on fv.id=sc.framework_version_id
+    where sc.id=m.curriculum_scope_id and fv.status='published'
+  )
   and lower(trim(s.name))=lower(trim(coalesce(nullif(m.display_name,''),a.name)));
 
 insert into public.school_subject_offerings(
