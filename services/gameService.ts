@@ -5690,10 +5690,27 @@ export const create_assignment = async (
 
     if (error) throw new Error(error.message || 'Failed to create assignment');
 
-    const assignment = (Array.isArray(data) ? data[0] : data) as TeacherAssignmentSummary | undefined;
+    const assignment = (Array.isArray(data) ? data[0] : data) as (TeacherAssignmentSummary & { school_id?: string | null }) | undefined;
     if (!assignment) {
         throw new Error('Assignment could not be created');
     }
+
+    if (payload.subject_group_id) {
+        const schoolId = payload.school_id || assignment.school_id;
+        if (!schoolId) throw new Error('School context is required for a teaching-group assignment');
+        const { error: groupError } = await supabase.rpc('rpc_teacher_attach_assignment_group', {
+            p_assignment_id: assignment.id,
+            p_school_id: schoolId,
+            p_group_id: payload.subject_group_id,
+        });
+        if (groupError) {
+            // Do not leave a published audience detached from its teaching-group identity.
+            await rpcDeleteTeacherAssignment(assignment.id);
+            throw new Error(groupError.message || 'Failed to attach assignment to teaching group');
+        }
+        assignment.subject_group_id = payload.subject_group_id;
+    }
+
     return assignment;
 };
 
@@ -5784,6 +5801,19 @@ export const update_teacher_assignment = async (
     if (error) throw new Error(error.message || 'Failed to update assignment');
     const assignment = (Array.isArray(data) ? data[0] : data) as TeacherAssignmentSummary | undefined;
     if (!assignment) throw new Error('Assignment could not be updated');
+
+    if (payload.subject_group_id && !assignment.subject_group_id) {
+        const schoolId = payload.school_id;
+        if (!schoolId) throw new Error('School context is required for a teaching-group assignment');
+        const { error: groupError } = await supabase.rpc('rpc_teacher_attach_assignment_group', {
+            p_assignment_id: assignment.id,
+            p_school_id: schoolId,
+            p_group_id: payload.subject_group_id,
+        });
+        if (groupError) throw new Error(groupError.message || 'Failed to attach assignment to teaching group');
+        assignment.subject_group_id = payload.subject_group_id;
+    }
+
     return assignment;
 };
 
