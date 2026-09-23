@@ -286,12 +286,16 @@ export default function AssignmentWizard({
   );
 
   useEffect(() => {
-    const allowed = new Set(assignableStudents.map((student) => student.id));
+    const allowed = new Set(
+      selectedTeachingGroup
+        ? groupRoster.map((student) => student.student_id)
+        : assignableStudents.map((student) => student.id),
+    );
     setSelectedStudentIds((current) => {
       const next = current.filter((id) => allowed.has(id));
       return next.length === current.length ? current : next;
     });
-  }, [assignableStudents, setSelectedStudentIds]);
+  }, [assignableStudents, groupRoster, selectedTeachingGroup, setSelectedStudentIds]);
 
   const uniqueQuestions = useMemo(() => {
     const ids = new Set<string>();
