@@ -409,3 +409,8 @@ begin
 end;
 $function$
 ;
+
+revoke all on function public.rpc_student_academic_profile(uuid,text,timestamptz,timestamptz)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_student_academic_profile(uuid,text,timestamptz,timestamptz)
+to authenticated,service_role;
