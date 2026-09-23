@@ -250,9 +250,9 @@ const SUBJECT_ID_LOOKUP: Record<Subject, string> = {
     ICT: 'ict',
 };
 
-const resolveSubjectIdentifier = (subject: Subject, provided?: string): string | undefined => {
+const resolveSubjectIdentifier = (subject: string, provided?: string): string | undefined => {
     if (provided) return provided;
-    return SUBJECT_ID_LOOKUP[subject] || subject.toLowerCase().replace(/\s+/g, '_');
+    return SUBJECT_ID_LOOKUP[subject as Subject] || subject.toLowerCase().replace(/\s+/g, '_');
 };
 
 const normalizeTopicName = (topic?: string | null, fallback?: string | null): string => {
