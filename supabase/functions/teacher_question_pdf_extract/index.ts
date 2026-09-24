@@ -847,7 +847,7 @@ serve(async (request) => {
         source_file_size: bytes.length,
         detected_page_count: pageCount,
         extraction_model: chosenModel,
-        extraction_schema_version: 3,
+        extraction_schema_version: 4,
         processing_mode: processingMode,
         detected_document_type: extraction.detected_document_type,
         processing_request: processingRequest,
