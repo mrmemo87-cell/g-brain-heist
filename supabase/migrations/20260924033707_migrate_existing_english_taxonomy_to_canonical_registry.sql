@@ -1,5 +1,5 @@
 -- Canonicalise every legacy active English diagnostic taxonomy row using the
--- audited Brain Heist English Core Skill Registry v1 mapping.
+-- audited Brains Heist English Core Skill Registry v1 mapping.
 -- Historical rows remain append-only and are superseded rather than mutated.
 
 with legacy_map(old_primary,old_subskill,target_leaf_code) as (
