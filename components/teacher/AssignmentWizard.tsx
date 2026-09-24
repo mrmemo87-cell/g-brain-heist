@@ -10,14 +10,14 @@ import {
 } from '../../services/schoolSubjectGroupService';
 import { brainsAlert, brainsConfirm } from '../../src/utils/brainsAlert';
 import QuestionPreviewModal from './QuestionPreviewModal';
-import { isBrainsHeistPoolQuestion, isMyPoolQuestion } from './questionPool.js';
+import { isBrainsHeistPoolQuestion, isMyPoolQuestion, isSchoolPoolQuestion } from './questionPool.js';
 import './AssignmentWizard.css';
 
 type AssignmentMode = 'batch' | 'custom';
 type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
 type XpFilter = 'all' | 'low' | 'medium' | 'high';
 type QuestionSort = 'recommended' | 'xp-high' | 'xp-low' | 'time-short' | 'difficulty';
-type QuestionPool = 'all' | 'brains-heist' | 'mine';
+type QuestionPool = 'all' | 'brains-heist' | 'school' | 'mine';
 type AssignmentRosterStudent = StudentForAssignment & {
   assignment_eligible?: boolean;
   access_status?: 'active' | 'suspended' | 'banned' | string;
@@ -26,6 +26,15 @@ type AssignmentRosterStudent = StudentForAssignment & {
 
 const canReceiveNewAssignment = (student: StudentForAssignment) =>
   (student as AssignmentRosterStudent).assignment_eligible !== false;
+
+const isVerifiedProfileQuestion = (question: TeacherQuestion, teacherId?: string | null) =>
+  isBrainsHeistPoolQuestion(question, teacherId) || isSchoolPoolQuestion(question, teacherId);
+
+const getQuestionAuthorityLabel = (question: TeacherQuestion, teacherId?: string | null) => {
+  if (isSchoolPoolQuestion(question, teacherId)) return 'School Verified · Profile evidence';
+  if (isBrainsHeistPoolQuestion(question, teacherId)) return 'Brains Heist Verified · Profile evidence';
+  return 'My Pool · Classroom only';
+};
 
 interface AssignmentWizardProps {
   initialStep?: WizardStep;
@@ -340,11 +349,12 @@ export default function AssignmentWizard({
   const assignmentEligibleQuestions = useMemo(
     () => subjectQuestions.filter((question) => {
       const eligibleGrades = question.eligible_grade_levels || [];
-      const matchesAudienceGrades = !isBrainsHeistPoolQuestion(question, teacherId)
+      const matchesAudienceGrades = !isVerifiedProfileQuestion(question, teacherId)
         || audienceGrades.length === 0
         || audienceGrades.every((grade) => eligibleGrades.includes(grade));
       const matchesPool = questionPool === 'all'
         || (questionPool === 'mine' && isMyPoolQuestion(question, teacherId))
+        || (questionPool === 'school' && isSchoolPoolQuestion(question, teacherId))
         || (questionPool === 'brains-heist' && isBrainsHeistPoolQuestion(question, teacherId));
       return matchesAudienceGrades && matchesPool;
     }),
@@ -403,7 +413,7 @@ export default function AssignmentWizard({
     setAssignmentQuestionIds((current) => {
       const next = current.filter((id) => {
         const question = subjectQuestions.find((item) => item.id === id);
-        if (!question || !isBrainsHeistPoolQuestion(question, teacherId)) return true;
+        if (!question || !isVerifiedProfileQuestion(question, teacherId)) return true;
         const eligibleGrades = question.eligible_grade_levels || [];
         return audienceGrades.every((grade) => eligibleGrades.includes(grade));
       });
@@ -416,6 +426,14 @@ export default function AssignmentWizard({
     [assignmentQuestionIds, subjectQuestions],
   );
   const verifiedProfileQuestions = useMemo(
+    () => selectedQuestions.filter((question) => isVerifiedProfileQuestion(question, teacherId)),
+    [selectedQuestions, teacherId],
+  );
+  const schoolVerifiedQuestions = useMemo(
+    () => selectedQuestions.filter((question) => isSchoolPoolQuestion(question, teacherId)),
+    [selectedQuestions, teacherId],
+  );
+  const brainsHeistVerifiedQuestions = useMemo(
     () => selectedQuestions.filter((question) => isBrainsHeistPoolQuestion(question, teacherId)),
     [selectedQuestions, teacherId],
   );
@@ -771,6 +789,7 @@ export default function AssignmentWizard({
                 <select value={questionPool} onChange={(event) => setQuestionPool(event.target.value as QuestionPool)} aria-label="Choose question pool">
                   <option value="all">All pools</option>
                   <option value="brains-heist">Brains Heist Verified</option>
+                  {schoolId ? <option value="school">School Verified</option> : null}
                   <option value="mine">My Pool</option>
                 </select>
                 <select value={topicFilter} onChange={(event) => { setTopicFilter(event.target.value); setAssignmentTopicMode(event.target.value === 'all' ? 'general' : 'custom'); setAssignmentTopicName(event.target.value === 'all' ? '' : event.target.value); }} aria-label="Filter by topic">
@@ -810,7 +829,7 @@ export default function AssignmentWizard({
                             <p>{question.question_text}</p>
                           </button>
                           <div className="aw-badges">
-                            <span data-tone={isBrainsHeistPoolQuestion(question, teacherId) ? 'verified' : 'classroom'}>{isBrainsHeistPoolQuestion(question, teacherId) ? 'Verified profile evidence' : 'Classroom only'}</span>
+                            <span data-tone={isVerifiedProfileQuestion(question, teacherId) ? 'verified' : 'classroom'}>{getQuestionAuthorityLabel(question, teacherId)}</span>
                             <span data-tone={question.difficulty}>{question.difficulty}</span>
                             <span>{topic}</span>
                             <span>{formatQuestionType(question.question_type)}</span>
@@ -835,7 +854,7 @@ export default function AssignmentWizard({
                           <p>{question.question_text}</p>
                         </button>
                         <div className="aw-badges">
-                          <span data-tone={isBrainsHeistPoolQuestion(question, teacherId) ? 'verified' : 'classroom'}>{isBrainsHeistPoolQuestion(question, teacherId) ? 'Verified profile evidence' : 'Classroom only'}</span>
+                          <span data-tone={isVerifiedProfileQuestion(question, teacherId) ? 'verified' : 'classroom'}>{getQuestionAuthorityLabel(question, teacherId)}</span>
                           <span>{question.topic_name || question.topic || 'General'}</span>
                           <span>{formatQuestionType(question.question_type)}</span>
                         </div>
@@ -887,7 +906,7 @@ export default function AssignmentWizard({
               <div className="aw-profile-evidence" data-has-verified={verifiedProfileQuestions.length > 0} role="status">
                 <strong>{verifiedProfileQuestions.length > 0 ? `${verifiedProfileQuestions.length} verified profile question${verifiedProfileQuestions.length === 1 ? '' : 's'}` : 'Classroom results only'}</strong>
                 <span>{verifiedProfileQuestions.length > 0
-                  ? `Only the verified question${verifiedProfileQuestions.length === 1 ? '' : 's'} can contribute to official Academic Profile analytics.${classroomOnlyQuestions ? ` ${classroomOnlyQuestions} teacher question${classroomOnlyQuestions === 1 ? ' is' : 's are'} excluded.` : ''}`
+                  ? `Verified evidence can contribute to official Academic Profile analytics: ${brainsHeistVerifiedQuestions.length} Brains Heist Verified and ${schoolVerifiedQuestions.length} School Verified.${classroomOnlyQuestions ? ` ${classroomOnlyQuestions} My Pool question${classroomOnlyQuestions === 1 ? ' is' : 's are'} classroom-only.` : ''}`
                   : 'This assignment can be graded and reported in class, but it will not change official strengths, weak areas, skills, or progress.'}</span>
               </div>
               {[
