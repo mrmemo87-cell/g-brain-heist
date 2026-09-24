@@ -211,7 +211,7 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
         <span>Brains Heist · Targeted Practice</span>
         <h2>{context.recommendation.evidence_focus_name || context.recommendation.skill}</h2>
         <p>
-          For <strong>{context.student.name}</strong> only. Automatic selections are exact, grade-eligible verified matches to the governed Evidence Focus. Same-subskill and broader-skill questions stay unselected for deliberate teacher review.
+          For <strong>{context.student.name}</strong> only. Automatic selections are exact, grade-eligible verified matches to the governed Evidence Focus. Broader related questions stay unselected for teacher review; same-subskill alternatives are also review-only.
         </p>
       </div>
       <div>
