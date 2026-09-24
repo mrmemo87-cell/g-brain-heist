@@ -5317,6 +5317,29 @@ export const get_teacher_academic_skill_registry = async (
     };
 };
 
+export interface TeacherAcademicEvidenceFocus {
+    code: string;
+    name: string;
+    description: string;
+    sourceMethod?: 'verified_bank_backfill' | 'human_governed' | 'platform_seed';
+}
+
+export const get_teacher_academic_evidence_focuses = async (
+    subject: string,
+    gradeLevel: number,
+    atomicSubskillCode: string,
+): Promise<TeacherAcademicEvidenceFocus[]> => {
+    const { data, error } = await supabase.rpc('rpc_academic_evidence_focuses_for_subskill', {
+        p_subject_key: subject,
+        p_grade_level: gradeLevel,
+        p_atomic_subskill_code: atomicSubskillCode,
+        p_evidence_focus_code: evidenceFocusCode,
+    });
+    if (error) throw error;
+    const result = (data || {}) as { focuses?: TeacherAcademicEvidenceFocus[] };
+    return Array.isArray(result.focuses) ? result.focuses : [];
+};
+
 export interface TeacherManualQuestionGovernanceSubmissionResult {
     success: true;
     submissionId: string;
@@ -5327,12 +5350,15 @@ export interface TeacherManualQuestionGovernanceSubmissionResult {
     primarySkillName: string;
     atomicSubskillCode: string;
     atomicSubskillName: string;
+    evidenceFocusCode: string;
+    evidenceFocusName: string;
 }
 
 export const submit_manual_question_for_governance = async (
     questionId: string,
     primarySkillCode: string,
     atomicSubskillCode: string,
+    evidenceFocusCode: string,
 ): Promise<TeacherManualQuestionGovernanceSubmissionResult> => {
     const { data, error } = await supabase.rpc('rpc_teacher_submit_manual_question_for_governance', {
         p_question_id: questionId,
