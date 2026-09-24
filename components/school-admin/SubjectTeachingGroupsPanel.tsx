@@ -31,16 +31,16 @@ const className = (item: any) => item?.class_name || item?.class_code || 'Class'
 
 const deliveryCopy: Record<SubjectDeliveryMode, { title: string; description: string }> = {
   by_class: {
-    title: 'By registration class',
-    description: 'Separate teaching groups follow the school’s registration classes for this grade.',
+    title: 'Use registration classes',
+    description: 'Keep students in their normal school classes such as 8A, 8B and 8C.',
   },
   whole_grade: {
-    title: 'Whole grade',
-    description: 'One teaching group contains every eligible student in this grade.',
+    title: 'Teach the whole grade together',
+    description: 'Create one teaching group containing every eligible student in this grade.',
   },
   custom_groups: {
-    title: 'Custom teaching groups',
-    description: 'Create one or more groups using eligible students from any registration class in this grade.',
+    title: 'Mix students across classes',
+    description: 'Best for ESL, electives and interventions: combine selected students from 8A, 8B, 8C, etc. without moving their registration class.',
   },
 };
 
@@ -262,7 +262,7 @@ const SubjectTeachingGroupsPanel: React.FC<Props> = ({
       <div>
         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">Teaching delivery</p>
         <h5 className="mt-1 text-base font-bold text-slate-950">How is {subjectName} taught in Grade {offering.gradeLevel}?</h5>
-        <p className="mt-1 text-xs leading-5 text-slate-500">Registration classes and teaching groups are different. Electives can combine selected students from several classes without changing their registration class.</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500">A registration class is where the student belongs at school (for example 8A). A teaching group is only who learns this subject together (for example Grade 8 ESL). Creating an ESL group never moves students out of 8A, 8B or 8C.</p>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-3">
@@ -292,6 +292,9 @@ const SubjectTeachingGroupsPanel: React.FC<Props> = ({
           <p className="mt-1 text-xs text-slate-500">
             {groups.length} active group{groups.length === 1 ? '' : 's'} · {eligibleStudents.length} eligible student{eligibleStudents.length === 1 ? '' : 's'}
           </p>
+          {offering.deliveryMode === 'custom_groups' && offering.accessMode === 'selected' ? (
+            <p className="mt-2 text-[11px] font-medium text-blue-700">The first custom group automatically starts with the students already selected for this subject.</p>
+          ) : null}
           {offering.deliveryMode === 'custom_groups' ? (
             <input
               value={newGroupName}
