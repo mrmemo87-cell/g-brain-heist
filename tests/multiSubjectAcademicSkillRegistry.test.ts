@@ -10,7 +10,7 @@ const programmeScope = readFileSync('supabase/migrations/20260924045505_scope_re
 const edge = readFileSync('supabase/functions/teacher_question_pdf_extract/index.ts', 'utf8');
 const teacherService = readFileSync('services/teacherQuestionBatchService.ts', 'utf8');
 
-test('published v1 registries cover the supported Brain Heist subject domains', () => {
+test('published v1 registries cover the supported Brains Heist subject domains', () => {
   for (const code of [
     'bh-mathematics-core-v1',
     'bh-science-core-v1',
