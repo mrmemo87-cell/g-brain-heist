@@ -60,6 +60,19 @@ test('learner evidence preserves stable skill identity while recording precise f
   assert.match(migration, /v_skill_key := 'diagnostic:'/);
 });
 
+test('AI question batches receive a governed Evidence Focus before submission', () => {
+  const edge = readFileSync('supabase/functions/teacher_question_pdf_extract/index.ts', 'utf8');
+  const batchService = readFileSync('services/teacherQuestionBatchService.ts', 'utf8');
+  const workspace = readFileSync('components/teacher/QuestionBatchWorkspace.tsx', 'utf8');
+  assert.match(edge, /assignGovernedEvidenceFocuses/);
+  assert.match(edge, /rpc_academic_evidence_focuses_for_subskill/);
+  assert.match(edge, /governed_evidence_focus_assignment/);
+  assert.match(edge, /QUESTION_QUALITY_REVISION = 5/);
+  assert.match(batchService, /evidence_focus_code/);
+  assert.match(batchService, /Confirm the governed Evidence Focus/);
+  assert.match(workspace, /Governed intervention target/);
+});
+
 test('intervention matching prioritizes exact focus before related practice', () => {
   assert.match(migration, /p_evidence_focus_code text/);
   assert.match(migration, /taxonomy\.evidence_focus_code = p_evidence_focus_code/);
