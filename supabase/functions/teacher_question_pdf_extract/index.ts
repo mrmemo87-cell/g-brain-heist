@@ -14,7 +14,7 @@ const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_PAGES = 60;
 const MAX_QUESTIONS = 50;
 const MAX_GENERATED_QUESTIONS = 24;
-const QUESTION_QUALITY_REVISION = 4;
+const QUESTION_QUALITY_REVISION = 5;
 const SOURCE_DEPENDENCY_MARKERS = [
   "the material", "this material", "source material", "the source", "this source",
   "the worksheet", "this worksheet", "the lesson", "this lesson",
@@ -242,6 +242,13 @@ type CanonicalRegistryLeaf = {
   subskillDescription?: string;
 };
 
+type GovernedEvidenceFocus = {
+  code: string;
+  name: string;
+  description: string;
+  sourceMethod?: "verified_bank_backfill" | "human_governed" | "platform_seed";
+};
+
 const normalizeExtraction = (
   payload: Record<string, unknown>,
   processingMode: "extract" | "generate" | "both",
@@ -367,6 +374,9 @@ const normalizeExtraction = (
         assessment_process_definition: aoDefinition.definition,
         cognitive_process: cognitiveProcess,
         evidence_statement: String(rawTaxonomy.evidence_statement || `A correct response provides evidence for the skill assessed by question ${index + 1}.`).trim().slice(0, 500),
+        evidence_focus_code: "",
+        evidence_focus_name: "",
+        evidence_focus_description: "",
         secondary_skill_names: [...new Set((Array.isArray(rawTaxonomy.secondary_skill_names) ? rawTaxonomy.secondary_skill_names : [])
           .map((skill) => String(skill).trim()).filter(Boolean))].slice(0, 4),
         confidence_score: clamp(rawTaxonomy.confidence_score, 0, 1, 0),
@@ -433,6 +443,150 @@ const normalizeExtraction = (
     document_summary: String(payload.document_summary || "Questions extracted for teacher review.").trim().slice(0, 1000),
     questions: balancedQuestions,
   };
+};
+
+
+const evidenceFocusSelectionSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["assignments"],
+  properties: {
+    assignments: {
+      type: "array",
+      maxItems: MAX_QUESTIONS,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["source_index", "evidence_focus_code", "confidence", "reason"],
+        properties: {
+          source_index: { type: "integer", minimum: 1, maximum: MAX_QUESTIONS },
+          evidence_focus_code: { type: "string" },
+          confidence: { type: "number", minimum: 0, maximum: 1 },
+          reason: { type: "string" },
+        },
+      },
+    },
+  },
+};
+
+const assignGovernedEvidenceFocuses = async (
+  questions: ReturnType<typeof normalizeExtraction>["questions"],
+  subject: string,
+  gradeLevel: number,
+) => {
+  const candidates = questions.filter((question) => (
+    question.taxonomy_proposal.registry_match === true
+    && question.taxonomy_proposal.atomic_subskill_code
+  ));
+  if (!candidates.length) return questions;
+
+  const uniqueSubskills = [...new Set(candidates
+    .map((question) => question.taxonomy_proposal.atomic_subskill_code)
+    .filter(Boolean))];
+
+  const catalogue = new Map<string, GovernedEvidenceFocus[]>();
+  const loads = await Promise.all(uniqueSubskills.map(async (subskillCode) => {
+    const { data, error } = await admin.rpc("rpc_academic_evidence_focuses_for_subskill", {
+      p_subject_key: subject,
+      p_grade_level: gradeLevel,
+      p_atomic_subskill_code: subskillCode,
+    });
+    if (error) throw new Error(`Evidence Focus catalogue failed for ${subskillCode}: ${error.message}`);
+    const focuses = Array.isArray(data?.focuses) ? data.focuses as GovernedEvidenceFocus[] : [];
+    if (!focuses.length) throw new Error(`No governed Evidence Focus exists for ${subskillCode}.`);
+    return [subskillCode, focuses] as const;
+  }));
+  loads.forEach(([subskillCode, focuses]) => catalogue.set(subskillCode, focuses));
+
+  const selectionPayload = candidates.map((question) => ({
+    source_index: question.source_index,
+    question_text: question.question_text,
+    evidence_statement: question.taxonomy_proposal.evidence_statement,
+    atomic_subskill_code: question.taxonomy_proposal.atomic_subskill_code,
+    atomic_subskill_name: question.taxonomy_proposal.atomic_subskill_name,
+    allowed_focuses: (catalogue.get(question.taxonomy_proposal.atomic_subskill_code) || []).map((focus) => ({
+      code: focus.code,
+      name: focus.name,
+      description: focus.description,
+    })),
+  }));
+
+  const focusResponse = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "authorization": `Bearer ${OPENAI_API_KEY}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: QUESTION_MODEL,
+      store: false,
+      instructions: [
+        "You assign governed Evidence Focus codes to assessment questions.",
+        "For each question choose exactly one evidence_focus_code from that question's allowed_focuses.",
+        "Never invent, edit, combine or paraphrase a focus code.",
+        "Choose the narrowest reusable focus that matches what one correct response demonstrates.",
+        "Prefer a specific focus over Core demonstration when both genuinely fit.",
+        "Do not infer wider mastery than the evidence statement and question support.",
+        "Return one assignment for every supplied source_index.",
+      ].join("\n"),
+      input: [{
+        role: "user",
+        content: [{
+          type: "input_text",
+          text: JSON.stringify(selectionPayload),
+        }],
+      }],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "governed_evidence_focus_assignment",
+          strict: true,
+          schema: evidenceFocusSelectionSchema,
+        },
+      },
+      max_output_tokens: 6000,
+    }),
+  });
+
+  const focusBody = await focusResponse.json().catch(() => ({})) as Record<string, unknown>;
+  if (!focusResponse.ok) {
+    console.error("teacher_question_pdf_extract Evidence Focus provider error", {
+      status: focusResponse.status,
+      requestId: focusResponse.headers.get("x-request-id"),
+      error: focusBody.error || focusBody,
+    });
+    throw new Error("The governed Evidence Focus could not be assigned.");
+  }
+
+  const focusText = extractResponseText(focusBody);
+  if (!focusText) throw new Error("The governed Evidence Focus response was empty.");
+  const parsed = JSON.parse(focusText) as { assignments?: Array<{
+    source_index?: number;
+    evidence_focus_code?: string;
+    confidence?: number;
+    reason?: string;
+  }> };
+  const assignments = new Map((Array.isArray(parsed.assignments) ? parsed.assignments : [])
+    .map((assignment) => [Number(assignment.source_index), assignment] as const));
+
+  candidates.forEach((question) => {
+    const assignment = assignments.get(question.source_index);
+    const allowed = catalogue.get(question.taxonomy_proposal.atomic_subskill_code) || [];
+    const selected = allowed.find((focus) => focus.code === String(assignment?.evidence_focus_code || "").trim());
+    if (!selected) {
+      throw new Error(`No valid governed Evidence Focus was selected for question ${question.source_index}.`);
+    }
+    question.taxonomy_proposal.evidence_focus_code = selected.code;
+    question.taxonomy_proposal.evidence_focus_name = selected.name;
+    question.taxonomy_proposal.evidence_focus_description = selected.description;
+    if (Number(assignment?.confidence || 0) < 0.65) {
+      question.needs_human_attention = true;
+      question.attention_reason = question.attention_reason
+        || "The Evidence Focus match has low confidence. Confirm the precise intervention target during governance review.";
+    }
+  });
+
+  return questions;
 };
 
 serve(async (request) => {
@@ -702,7 +856,7 @@ serve(async (request) => {
       "If a student would need to see a source diagram, graph, image, map, table, or layout to answer, set visual_required and needs_human_attention true. Never silently recreate or guess the visual.",
       "Build diagnostic taxonomy for longitudinal reporting, not a unique label for every question.",
       academicSkillRegistry
-        ? "For this subject, taxonomy identity is governed by the supplied Brain Heist canonical registry. For every question choose exactly one listed skillCode/subskillCode pair and copy its skillName/subskillName exactly. Set registry_version to the supplied registry version and registry_match=true. Never invent, paraphrase, pluralize, narrow, or expand a canonical skill name/code. If no listed subskill genuinely fits, set registry_match=false, leave the canonical codes empty, use Needs professional classification for the names, and set needs_human_attention=true."
+        ? "For this subject, taxonomy identity is governed by the supplied Brain Heist canonical registry. For every question choose exactly one listed skillCode/subskillCode pair and copy its skillName/subskillName exactly. Set registry_version to the supplied registry version and registry_match=true. Never invent, paraphrase, pluralize, narrow, or expand a canonical skill name/code. If no listed subskill genuinely fits, set registry_match=false, leave the canonical codes empty, use Needs professional classification for the names, and set needs_human_attention=true. Do not invent an Evidence Focus here; the server assigns it in a second governed pass from the approved focus catalogue."
         : "primary_skill_name must be a stable, reusable curriculum/reporting skill. atomic_subskill_name must be a reusable diagnostic leaf that several related questions could share.",
       "Do not put example-specific vocabulary, names, exact answer tokens, one-off sentence contexts, or item wording into canonical skill identity. Keep item-specific detail in evidence_statement instead.",
       "For one coherent learning-material batch, normally reuse 1-3 primary skills and about 2-5 atomic subskills. Reuse the exact same labels across questions that assess the same skill. Create additional labels only when the source clearly spans genuinely distinct learning objectives.",
@@ -762,7 +916,7 @@ serve(async (request) => {
                 `Teacher blueprint: ${JSON.stringify(processingRequest)}.`,
                 `Preferred subject: ${preferredSubject}; preferred topic: ${preferredTopic}.`,
                 academicSkillRegistry
-                  ? `Canonical English registry: ${JSON.stringify({
+                  ? `Canonical subject registry: ${JSON.stringify({
                       registryVersion: academicSkillRegistry.registryVersion,
                       phase: academicSkillRegistry.phase,
                       cambridgeProgrammes: academicSkillRegistry.cambridgeProgrammes,
@@ -823,6 +977,16 @@ serve(async (request) => {
       academicSkillRegistry?.registryVersion || "",
       academicSkillRegistry?.skills || [],
     );
+    if (academicSkillRegistry && Number.isInteger(targetGrade) && targetGrade >= 1 && targetGrade <= 12) {
+      try {
+        await assignGovernedEvidenceFocuses(extraction.questions, preferredSubject, targetGrade);
+      } catch (focusError) {
+        console.error("teacher_question_pdf_extract Evidence Focus assignment error", focusError);
+        return jsonResponse(502, {
+          error: "The questions were drafted, but the governed Evidence Focus could not be assigned safely. Please try again.",
+        });
+      }
+    }
     if (extraction.detected_document_type === "unsupported") {
       return jsonResponse(422, {
         error: "This PDF does not appear to contain usable teaching or assessment material. Try a clearer subject chapter, worksheet or question paper.",
@@ -857,7 +1021,7 @@ serve(async (request) => {
         source_file_size: bytes.length,
         detected_page_count: pageCount,
         extraction_model: chosenModel,
-        extraction_schema_version: 5,
+        extraction_schema_version: 6,
         processing_mode: processingMode,
         detected_document_type: extraction.detected_document_type,
         processing_request: processingRequest,
