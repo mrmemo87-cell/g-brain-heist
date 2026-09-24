@@ -6,7 +6,7 @@ export const TEACHER_QUESTION_SOURCE_BUCKET = 'teacher-question-sources';
 export const MAX_TEACHER_QUESTION_PDF_BYTES = 20 * 1024 * 1024;
 export const MAX_TEACHER_QUESTION_BATCH_SIZE = 50;
 export const MAX_GENERATED_QUESTION_COUNT = 24;
-export const TEACHER_QUESTION_QUALITY_REVISION = 2;
+export const TEACHER_QUESTION_QUALITY_REVISION = 3;
 
 export type AssessmentProcessCode = 'AO1' | 'AO2' | 'AO3' | 'AO4';
 export type CognitiveProcess = 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate';
@@ -35,7 +35,11 @@ export interface TeacherQuestionPdfRequest {
 }
 
 export interface TeacherQuestionTaxonomyProposal {
+  registry_version?: string;
+  registry_match?: boolean;
+  primary_skill_code?: string;
   primary_skill_name: string;
+  atomic_subskill_code?: string;
   atomic_subskill_name: string;
   assessment_process_code: AssessmentProcessCode;
   assessment_process_name: string;
@@ -281,6 +285,13 @@ export const getQuestionCandidateIssues = (candidate: TeacherQuestionBatchCandid
   }
   if (candidate.taxonomy_proposal.primary_skill_name.trim().length < 3) issues.push('The primary skill needs review.');
   if (candidate.taxonomy_proposal.atomic_subskill_name.trim().length < 3) issues.push('The subskill needs review.');
+  if (candidate.subject === 'English'
+      && candidate.candidate_origin === 'ai_generated_from_source'
+      && (candidate.taxonomy_proposal.registry_match !== true
+        || !candidate.taxonomy_proposal.primary_skill_code
+        || !candidate.taxonomy_proposal.atomic_subskill_code)) {
+    issues.push('Choose a canonical English skill and subskill from the published Academic Skill Registry.');
+  }
   if (candidate.taxonomy_proposal.evidence_statement.trim().length < 20) issues.push('The evidence statement needs review.');
   if (candidate.candidate_origin === 'ai_generated_from_source') {
     if (hasStudentSourceDependency(candidate.question_text)) {
