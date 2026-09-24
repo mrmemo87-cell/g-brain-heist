@@ -313,6 +313,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [manualStrandCode, setManualStrandCode] = useState('');
   const [manualPrimarySkillCode, setManualPrimarySkillCode] = useState('');
   const [manualAtomicSubskillCode, setManualAtomicSubskillCode] = useState('');
+  const [manualEvidenceFocuses, setManualEvidenceFocuses] = useState<GameService.TeacherAcademicEvidenceFocus[]>([]);
+  const [manualEvidenceFocusCode, setManualEvidenceFocusCode] = useState('');
+  const [manualEvidenceFocusLoading, setManualEvidenceFocusLoading] = useState(false);
   const [submitForAcademicVerification, setSubmitForAcademicVerification] = useState(false);
   const [questionBatchDefaults, setQuestionBatchDefaults] = useState<{ subject?: Subject; topic?: string }>({});
 
@@ -361,6 +364,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     [manualAtomicSubskillCode, manualRegistryLeaves],
   );
 
+  const selectedManualEvidenceFocus = useMemo(
+    () => manualEvidenceFocuses.find((focus) => focus.code === manualEvidenceFocusCode) || null,
+    [manualEvidenceFocusCode, manualEvidenceFocuses],
+  );
+
   useEffect(() => {
     let cancelled = false;
     setManualRegistryLeaves([]);
@@ -372,6 +380,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setManualStrandCode('');
     setManualPrimarySkillCode('');
     setManualAtomicSubskillCode('');
+    setManualEvidenceFocuses([]);
+    setManualEvidenceFocusCode('');
+    setManualEvidenceFocusLoading(false);
     setSubmitForAcademicVerification(false);
 
     if (eligibleGradeLevels.length !== 1) return () => { cancelled = true; };
@@ -396,6 +407,45 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     return () => { cancelled = true; };
   }, [subject, eligibleGradeLevels]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setManualEvidenceFocuses([]);
+    setManualEvidenceFocusCode('');
+    setSubmitForAcademicVerification(false);
+
+    if (
+      eligibleGradeLevels.length !== 1
+      || !manualRegistrySupported
+      || !manualAtomicSubskillCode
+    ) {
+      setManualEvidenceFocusLoading(false);
+      return () => { cancelled = true; };
+    }
+
+    setManualEvidenceFocusLoading(true);
+    void GameService.get_teacher_academic_evidence_focuses(
+      subject,
+      eligibleGradeLevels[0],
+      manualAtomicSubskillCode,
+    )
+      .then((focuses) => {
+        if (cancelled) return;
+        setManualEvidenceFocuses(focuses);
+        if (focuses.length === 1) setManualEvidenceFocusCode(focuses[0].code);
+      })
+      .catch((focusError) => {
+        if (!cancelled) {
+          console.warn('Evidence Focus catalogue could not be loaded for manual question creation:', focusError);
+          setManualEvidenceFocuses([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setManualEvidenceFocusLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [subject, eligibleGradeLevels, manualRegistrySupported, manualAtomicSubskillCode]);
 
   useEffect(() => {
     setAvatarUrl(profile.avatar_url || '/BRAINS.svg');
@@ -3437,8 +3487,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         brainsAlert('A published canonical skill registry is not available for this subject yet. Save it to My Pool instead.', 'info');
         return;
       }
-      if (!manualStrandCode || !manualPrimarySkillCode || !manualAtomicSubskillCode) {
-        brainsAlert('Choose a canonical strand, skill and subskill before submitting for Academic Verification.', 'info');
+      if (!manualStrandCode || !manualPrimarySkillCode || !manualAtomicSubskillCode || !manualEvidenceFocusCode) {
+        brainsAlert('Choose a canonical strand, skill, subskill and Evidence Focus before submitting for Academic Verification.', 'info');
         return;
       }
     }
@@ -3519,8 +3569,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             savedQuestion.id,
             manualPrimarySkillCode,
             manualAtomicSubskillCode,
+            manualEvidenceFocusCode,
           );
-          brainsAlert(`Question saved and submitted for Academic Verification as ${submission.primarySkillName} → ${submission.atomicSubskillName}.`, 'success');
+          brainsAlert(`Question saved and submitted for Academic Verification as ${submission.primarySkillName} → ${submission.atomicSubskillName} → ${submission.evidenceFocusName}.`, 'success');
         } catch (submissionError) {
           console.error('Question saved but Academic Verification submission failed:', submissionError);
           brainsAlert('Question was saved safely to My Pool, but the Academic Verification submission failed: ' + (submissionError as Error).message, 'error');
@@ -3553,6 +3604,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setManualStrandCode('');
       setManualPrimarySkillCode('');
       setManualAtomicSubskillCode('');
+      setManualEvidenceFocuses([]);
+      setManualEvidenceFocusCode('');
       setSubmitForAcademicVerification(false);
       setEditingQuestion(null);
 
@@ -3639,6 +3692,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setManualStrandCode('');
     setManualPrimarySkillCode('');
     setManualAtomicSubskillCode('');
+    setManualEvidenceFocuses([]);
+    setManualEvidenceFocusCode('');
     setSubmitForAcademicVerification(false);
     const existingTopic = question.topic_name || question.topic || 'General';
     if (existingTopic !== 'General') {
@@ -3667,6 +3722,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setManualStrandCode('');
     setManualPrimarySkillCode('');
     setManualAtomicSubskillCode('');
+    setManualEvidenceFocuses([]);
+    setManualEvidenceFocusCode('');
     setSubmitForAcademicVerification(false);
     setView('create-question');
   };
@@ -5101,7 +5158,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
                 {!manualRegistryLoading && eligibleGradeLevels.length !== 1 && (
                   <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
-                    Select exactly one target grade above to unlock Strand → Skill → Subskill.
+                    Select exactly one target grade above to unlock Strand → Skill → Subskill → Evidence Focus.
                   </div>
                 )}
 
@@ -5154,6 +5211,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       value={manualAtomicSubskillCode}
                       onChange={(event) => {
                         setManualAtomicSubskillCode(event.target.value);
+                        setManualEvidenceFocuses([]);
+                        setManualEvidenceFocusCode('');
                         setSubmitForAcademicVerification(false);
                       }}
                       className="teacher-select"
@@ -5166,30 +5225,57 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       {selectedManualRegistryLeaf?.subskillDescription || 'Choose the reusable diagnostic competency measured by this question.'}
                     </span>
                   </label>
+
+                  <label className="teacher-form-group">
+                    <span className="teacher-label">4. Evidence Focus</span>
+                    <select
+                      value={manualEvidenceFocusCode}
+                      onChange={(event) => {
+                        setManualEvidenceFocusCode(event.target.value);
+                        setSubmitForAcademicVerification(false);
+                      }}
+                      className="teacher-select"
+                      disabled={!manualAtomicSubskillCode || manualEvidenceFocusLoading || !manualRegistrySupported}
+                    >
+                      <option value="">{manualEvidenceFocusLoading ? 'Loading evidence focuses…' : 'Choose evidence focus'}</option>
+                      {manualEvidenceFocuses.map((focus) => (
+                        <option key={focus.code} value={focus.code}>{focus.name}</option>
+                      ))}
+                    </select>
+                    <span className="mt-1 text-xs text-slate-500">
+                      {selectedManualEvidenceFocus?.description
+                        || (manualAtomicSubskillCode
+                          ? 'Choose the exact assessable behaviour this question measures. This is what Intervention will target.'
+                          : 'Choose a subskill first to load controlled Evidence Focus options.')}
+                    </span>
+                  </label>
                 </div>
 
                 {selectedManualRegistryLeaf && (
                   <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-700">Academic identity selected</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                      {selectedManualEvidenceFocus ? 'Intervention target selected' : 'Academic identity selected'}
+                    </span>
                     <p className="mt-1 text-sm font-semibold text-emerald-950">
                       {selectedManualRegistryLeaf.strandName} → {selectedManualRegistryLeaf.skillName} → {selectedManualRegistryLeaf.subskillName}
+                      {selectedManualEvidenceFocus ? ` → ${selectedManualEvidenceFocus.name}` : ''}
                     </p>
                   </div>
                 )}
 
-                <label className={`mt-4 flex items-start gap-3 rounded-xl border p-3 transition-colors ${submitForAcademicVerification ? 'border-cyan-300 bg-cyan-50' : 'border-slate-200 bg-slate-50'} ${!selectedManualRegistryLeaf ? 'cursor-not-allowed opacity-65' : 'cursor-pointer'}`}>
+                <label className={`mt-4 flex items-start gap-3 rounded-xl border p-3 transition-colors ${submitForAcademicVerification ? 'border-cyan-300 bg-cyan-50' : 'border-slate-200 bg-slate-50'} ${!selectedManualRegistryLeaf || !selectedManualEvidenceFocus ? 'cursor-not-allowed opacity-65' : 'cursor-pointer'}`}>
                   <input
                     id="submit-academic-verification"
                     type="checkbox"
                     checked={submitForAcademicVerification}
-                    disabled={!selectedManualRegistryLeaf || !manualRegistrySupported || manualRegistryLoading || eligibleGradeLevels.length !== 1}
+                    disabled={!selectedManualRegistryLeaf || !selectedManualEvidenceFocus || !manualRegistrySupported || manualRegistryLoading || manualEvidenceFocusLoading || eligibleGradeLevels.length !== 1}
                     onChange={(event) => setSubmitForAcademicVerification(event.target.checked)}
                     className="mt-1 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
                   />
                   <span>
                     <strong className="block text-sm text-slate-900">Submit for Academic Verification</strong>
                     <span className="mt-1 block text-xs leading-5 text-slate-600">
-                      This freezes the submitted snapshot for platform review. A superadmin must still confirm the school curriculum objective, assessment process and evidence statement before the question can affect Academic Profile or Intervention.
+                      This freezes the submitted snapshot for platform review. A superadmin must still confirm the school curriculum objective, assessment process, Evidence Focus and evidence statement before the question can affect Academic Profile or Intervention.
                     </span>
                   </span>
                 </label>
