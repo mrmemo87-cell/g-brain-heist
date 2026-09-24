@@ -307,22 +307,47 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [manualRegistryLeaves, setManualRegistryLeaves] = useState<GameService.TeacherAcademicSkillRegistryLeaf[]>([]);
   const [manualRegistryVersion, setManualRegistryVersion] = useState('');
   const [manualRegistryPhase, setManualRegistryPhase] = useState('');
+  const [manualRegistryProgrammes, setManualRegistryProgrammes] = useState<Array<{ code: string; name: string }>>([]);
   const [manualRegistrySupported, setManualRegistrySupported] = useState<boolean | null>(null);
   const [manualRegistryLoading, setManualRegistryLoading] = useState(false);
+  const [manualStrandCode, setManualStrandCode] = useState('');
   const [manualPrimarySkillCode, setManualPrimarySkillCode] = useState('');
   const [manualAtomicSubskillCode, setManualAtomicSubskillCode] = useState('');
   const [submitForAcademicVerification, setSubmitForAcademicVerification] = useState(false);
   const [questionBatchDefaults, setQuestionBatchDefaults] = useState<{ subject?: Subject; topic?: string }>({});
 
-  const manualRegistryPrimarySkills = useMemo(() => {
-    const seen = new Map<string, { code: string; name: string; strandName: string }>();
+  const manualRegistryStrands = useMemo(() => {
+    const seen = new Map<string, string>();
     manualRegistryLeaves.forEach((leaf) => {
-      if (!seen.has(leaf.skillCode)) {
-        seen.set(leaf.skillCode, { code: leaf.skillCode, name: leaf.skillName, strandName: leaf.strandName });
-      }
+      if (!seen.has(leaf.strandCode)) seen.set(leaf.strandCode, leaf.strandName);
     });
-    return [...seen.values()].sort((a, b) => a.strandName.localeCompare(b.strandName) || a.name.localeCompare(b.name));
+    return [...seen.entries()]
+      .map(([code, name]) => ({ code, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [manualRegistryLeaves]);
+
+  const manualRegistryPrimarySkills = useMemo(() => {
+    const seen = new Map<string, { code: string; name: string; strandName: string; strandCode: string; description?: string }>();
+    manualRegistryLeaves
+      .filter((leaf) => !manualStrandCode || leaf.strandCode === manualStrandCode)
+      .forEach((leaf) => {
+        if (!seen.has(leaf.skillCode)) {
+          seen.set(leaf.skillCode, {
+            code: leaf.skillCode,
+            name: leaf.skillName,
+            strandName: leaf.strandName,
+            strandCode: leaf.strandCode,
+            description: leaf.skillDescription,
+          });
+        }
+      });
+    return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [manualRegistryLeaves, manualStrandCode]);
+
+  const selectedManualRegistrySkill = useMemo(
+    () => manualRegistryPrimarySkills.find((skill) => skill.code === manualPrimarySkillCode) || null,
+    [manualPrimarySkillCode, manualRegistryPrimarySkills],
+  );
 
   const manualRegistrySubskills = useMemo(
     () => manualRegistryLeaves
@@ -341,8 +366,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setManualRegistryLeaves([]);
     setManualRegistryVersion('');
     setManualRegistryPhase('');
+    setManualRegistryProgrammes([]);
     setManualRegistrySupported(null);
     setManualRegistryLoading(false);
+    setManualStrandCode('');
+    setManualStrandCode('');
     setManualPrimarySkillCode('');
     setManualAtomicSubskillCode('');
     setSubmitForAcademicVerification(false);
@@ -357,6 +385,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setManualRegistryLeaves(registry.skills || []);
         setManualRegistryVersion(registry.registryVersion || '');
         setManualRegistryPhase(registry.phase || '');
+        setManualRegistryProgrammes(registry.cambridgeProgrammes || []);
       })
       .catch((registryError) => {
         if (!cancelled) {
@@ -839,6 +868,38 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     });
     return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [allocatedClasses, teachingGroups]);
+
+  const getAssignedGradesForQuestionSubject = useCallback((subjectName: string) => {
+    const normalizedSubject = subjectName.trim().toLowerCase();
+    const grades = new Set<number>();
+
+    teachingGroups.forEach((group) => {
+      if (group.status !== 'active' || group.schoolSubjectName.trim().toLowerCase() !== normalizedSubject) return;
+      const grade = Number.parseInt(group.gradeLevel, 10);
+      if (Number.isInteger(grade) && grade >= 1 && grade <= 12) grades.add(grade);
+    });
+
+    allocatedClasses.forEach((cls) => {
+      if (!cls.is_active || cls.subject.trim().toLowerCase() !== normalizedSubject) return;
+      if (Number.isInteger(cls.grade_level) && cls.grade_level! >= 1 && cls.grade_level! <= 12) {
+        grades.add(cls.grade_level!);
+      }
+    });
+
+    return [...grades].sort((a, b) => a - b);
+  }, [allocatedClasses, teachingGroups]);
+
+  const teacherQuestionAssignedGrades = useMemo(
+    () => getAssignedGradesForQuestionSubject(subject),
+    [getAssignedGradesForQuestionSubject, subject],
+  );
+
+  useEffect(() => {
+    if (view !== 'create-question' || editingQuestion || eligibleGradeLevels.length > 0) return;
+    if (teacherQuestionAssignedGrades.length === 1) {
+      setEligibleGradeLevels([teacherQuestionAssignedGrades[0]]);
+    }
+  }, [editingQuestion, eligibleGradeLevels.length, teacherQuestionAssignedGrades, view]);
 
   // Academic mappings unlock resources/capabilities without changing the local
   // subject identity used by groups, assignments, grades and reports.
@@ -3377,8 +3438,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         brainsAlert('A published canonical skill registry is not available for this subject yet. Save it to My Pool instead.', 'info');
         return;
       }
-      if (!manualPrimarySkillCode || !manualAtomicSubskillCode) {
-        brainsAlert('Choose both a canonical skill and subskill before submitting for Academic Verification.', 'info');
+      if (!manualStrandCode || !manualPrimarySkillCode || !manualAtomicSubskillCode) {
+        brainsAlert('Choose a canonical strand, skill and subskill before submitting for Academic Verification.', 'info');
         return;
       }
     }
@@ -3488,7 +3549,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setManualRegistryLeaves([]);
       setManualRegistryVersion('');
       setManualRegistryPhase('');
+      setManualRegistryProgrammes([]);
       setManualRegistrySupported(null);
+      setManualStrandCode('');
       setManualPrimarySkillCode('');
       setManualAtomicSubskillCode('');
       setSubmitForAcademicVerification(false);
@@ -3574,6 +3637,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setExplanation(question.explanation || '');
     setPoints(question.points);
     setEligibleGradeLevels(question.eligible_grade_levels || []);
+    setManualStrandCode('');
     setManualPrimarySkillCode('');
     setManualAtomicSubskillCode('');
     setSubmitForAcademicVerification(false);
@@ -3601,6 +3665,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setCustomTopicName('');
     }
     setEligibleGradeLevels([]);
+    setManualStrandCode('');
     setManualPrimarySkillCode('');
     setManualAtomicSubskillCode('');
     setSubmitForAcademicVerification(false);
@@ -4842,7 +4907,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               <label className="teacher-label">Subject</label>
               <select
                 value={subject}
-                onChange={(e) => setSubject(e.target.value as Subject)}
+                onChange={(e) => {
+                  const nextSubject = e.target.value as Subject;
+                  setSubject(nextSubject);
+                  const assignedGrades = getAssignedGradesForQuestionSubject(nextSubject);
+                  setEligibleGradeLevels(assignedGrades.length === 1 ? [assignedGrades[0]] : []);
+                }}
                 className="teacher-select"
                 required
               >
@@ -4927,65 +4997,195 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <p className="text-xs text-slate-500 mt-2">Choose one of your topics or create a new one. The topic is added to My Pool when this question is saved.</p>
           </div>
 
-          <fieldset className="teacher-form-group rounded-xl border border-amber-200 bg-amber-50/60 p-4">
-            <legend className="teacher-label px-2">Classroom question</legend>
-            <p className="mb-4 text-sm text-slate-700"><strong>By default this question stays in My Pool.</strong> It can be used in assignments and classroom reports without affecting the official Academic Profile. For any subject with a published Academic Skill Registry, you can optionally submit one exact-grade question for human Academic Verification using the canonical registry below.</p>
-            <div><span className="teacher-label">Suggested grade levels <span className="font-normal text-slate-500">(choose exactly one for Academic Verification)</span></span><div className="mt-2 flex flex-wrap gap-2">{Array.from({ length: 12 }, (_, index) => index + 1).map((grade) => <label key={grade} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${eligibleGradeLevels.includes(grade) ? 'border-cyan-500 bg-cyan-100 text-cyan-900' : 'border-slate-200 bg-white text-slate-600'}`}><input type="checkbox" checked={eligibleGradeLevels.includes(grade)} onChange={() => setEligibleGradeLevels((current) => current.includes(grade) ? current.filter((value) => value !== grade) : [...current, grade].sort((a, b) => a - b))} />Grade {grade}</label>)}</div></div>
+          <fieldset className="teacher-form-group rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+            <legend className="teacher-label px-2">Classroom question & academic alignment</legend>
 
-            <div className="mt-5 rounded-xl border border-cyan-200 bg-white p-4">
-              <div className="flex items-start gap-3">
-                <input
-                  id="submit-academic-verification"
-                  type="checkbox"
-                  checked={submitForAcademicVerification}
-                  disabled={!manualRegistrySupported || manualRegistryLoading || eligibleGradeLevels.length !== 1}
-                  onChange={(event) => setSubmitForAcademicVerification(event.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
-                />
-                <label htmlFor="submit-academic-verification" className="cursor-pointer">
-                  <strong className="block text-slate-800">Submit for Academic Verification</strong>
-                  <span className="text-xs text-slate-600">The question is frozen in review. A platform superadmin must still confirm the school curriculum objective, cognitive process and evidence statement before it can affect Academic Profile or Intervention data.</span>
-                </label>
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(360px,1.2fr)]">
+              <div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <strong className="block text-sm text-slate-900">Target grade</strong>
+                      <p className="mt-1 text-xs leading-5 text-slate-600">
+                        Choose one grade for Academic Verification. You can select multiple grades only when keeping the question classroom-only in My Pool.
+                      </p>
+                    </div>
+                    {teacherQuestionAssignedGrades.length === 1 && eligibleGradeLevels.length === 1 && eligibleGradeLevels[0] === teacherQuestionAssignedGrades[0] && (
+                      <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[11px] font-semibold text-cyan-800">
+                        Auto-selected from your teaching allocation
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {Array.from({ length: 12 }, (_, index) => index + 1).map((grade) => {
+                      const selected = eligibleGradeLevels.includes(grade);
+                      const assigned = teacherQuestionAssignedGrades.includes(grade);
+                      return (
+                        <label
+                          key={grade}
+                          className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${selected ? 'border-cyan-500 bg-cyan-100 text-cyan-950' : assigned ? 'border-cyan-200 bg-cyan-50/60 text-slate-700' : 'border-slate-200 bg-white text-slate-600'}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => setEligibleGradeLevels((current) => current.includes(grade)
+                              ? current.filter((value) => value !== grade)
+                              : [...current, grade].sort((a, b) => a - b))}
+                          />
+                          <span>Grade {grade}</span>
+                          {assigned && <span className="text-[10px] font-semibold uppercase tracking-wide text-cyan-700">Your class</span>}
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  {teacherQuestionAssignedGrades.length > 1 && (
+                    <p className="mt-3 text-xs text-slate-500">
+                      Your {subject} allocations cover Grades {teacherQuestionAssignedGrades.join(', ')}. Choose the grade this question is primarily designed to assess.
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <strong className="block text-sm text-amber-950">My Pool remains the default</strong>
+                  <p className="mt-1 text-xs leading-5 text-amber-900/80">
+                    Saving normally keeps this as a classroom question. It can be assigned and reported on, but it does not change the official Academic Profile until Academic Verification is approved.
+                  </p>
+                </div>
               </div>
 
-              {eligibleGradeLevels.length !== 1 ? (
-                <p className="mt-3 text-xs text-amber-700">Choose exactly one grade to load the canonical skill registry.</p>
-              ) : manualRegistryLoading ? (
-                <p className="mt-3 text-xs text-cyan-700">Loading the published Academic Skill Registry…</p>
-              ) : manualRegistrySupported && manualRegistryLeaves.length ? (
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-cyan-200 bg-white p-4 shadow-sm">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <strong className="text-sm text-slate-900">Academic Skill Registry</strong>
+                      {manualRegistrySupported && eligibleGradeLevels.length === 1 && !manualRegistryLoading && (
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">Ready</span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">
+                      Classify the question using the durable competency hierarchy used by Academic Profile and Intervention.
+                    </p>
+                  </div>
+                  {manualRegistryVersion && (
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">
+                      {manualRegistryVersion}
+                    </span>
+                  )}
+                </div>
+
+                {manualRegistryProgrammes.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {manualRegistryProgrammes.map((programme) => (
+                      <span key={programme.code} className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-medium text-indigo-800">
+                        Cambridge {programme.code} · {programme.name.replace(/^Cambridge\s+/i, '')}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {manualRegistryLoading && (
+                  <div className="mt-4 rounded-lg border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs text-cyan-800">
+                    Loading the published registry for {subject}…
+                  </div>
+                )}
+
+                {!manualRegistryLoading && eligibleGradeLevels.length !== 1 && (
+                  <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                    Select exactly one target grade above to unlock Strand → Skill → Subskill.
+                  </div>
+                )}
+
+                {!manualRegistryLoading && eligibleGradeLevels.length === 1 && manualRegistrySupported === false && (
+                  <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">
+                    This subject does not currently have a published canonical registry for this grade. You can still save the question safely to My Pool.
+                  </div>
+                )}
+
+                <div className="mt-4 grid gap-3">
                   <label className="teacher-form-group">
-                    <span className="teacher-label">Canonical skill</span>
+                    <span className="teacher-label">1. Strand</span>
+                    <select
+                      value={manualStrandCode}
+                      onChange={(event) => {
+                        setManualStrandCode(event.target.value);
+                        setManualPrimarySkillCode('');
+                        setManualAtomicSubskillCode('');
+                        setSubmitForAcademicVerification(false);
+                      }}
+                      className="teacher-select"
+                      disabled={eligibleGradeLevels.length !== 1 || manualRegistryLoading || !manualRegistrySupported}
+                    >
+                      <option value="">Choose strand</option>
+                      {manualRegistryStrands.map((strand) => <option key={strand.code} value={strand.code}>{strand.name}</option>)}
+                    </select>
+                  </label>
+
+                  <label className="teacher-form-group">
+                    <span className="teacher-label">2. Skill</span>
                     <select
                       value={manualPrimarySkillCode}
                       onChange={(event) => {
                         setManualPrimarySkillCode(event.target.value);
                         setManualAtomicSubskillCode('');
+                        setSubmitForAcademicVerification(false);
                       }}
                       className="teacher-select"
+                      disabled={!manualStrandCode || manualRegistryLoading || !manualRegistrySupported}
                     >
                       <option value="">Choose skill</option>
-                      {manualRegistryPrimarySkills.map((skill) => <option key={skill.code} value={skill.code}>{skill.strandName} · {skill.name}</option>)}
+                      {manualRegistryPrimarySkills.map((skill) => <option key={skill.code} value={skill.code}>{skill.name}</option>)}
                     </select>
-                    <span className="mt-1 text-xs text-slate-500">{manualRegistryVersion || 'Published registry'}{manualRegistryPhase ? ` · ${manualRegistryPhase.replace(/_/g, ' ')}` : ''}</span>
+                    {selectedManualRegistrySkill?.description && <span className="mt-1 text-xs text-slate-500">{selectedManualRegistrySkill.description}</span>}
                   </label>
+
                   <label className="teacher-form-group">
-                    <span className="teacher-label">Canonical subskill</span>
+                    <span className="teacher-label">3. Subskill</span>
                     <select
                       value={manualAtomicSubskillCode}
-                      onChange={(event) => setManualAtomicSubskillCode(event.target.value)}
+                      onChange={(event) => {
+                        setManualAtomicSubskillCode(event.target.value);
+                        setSubmitForAcademicVerification(false);
+                      }}
                       className="teacher-select"
-                      disabled={!manualPrimarySkillCode}
+                      disabled={!manualPrimarySkillCode || manualRegistryLoading || !manualRegistrySupported}
                     >
                       <option value="">Choose subskill</option>
                       {manualRegistrySubskills.map((leaf) => <option key={leaf.subskillCode} value={leaf.subskillCode}>{leaf.subskillName}</option>)}
                     </select>
-                    <span className="mt-1 text-xs text-slate-500">{selectedManualRegistryLeaf?.subskillDescription || 'Choose the reusable competency this question measures.'}</span>
+                    <span className="mt-1 text-xs text-slate-500">
+                      {selectedManualRegistryLeaf?.subskillDescription || 'Choose the reusable diagnostic competency measured by this question.'}
+                    </span>
                   </label>
                 </div>
-              ) : (
-                <p className="mt-3 text-xs text-slate-500">Academic verification is currently available only for subjects with a published canonical registry. This question can still be saved safely to My Pool.</p>
-              )}
+
+                {selectedManualRegistryLeaf && (
+                  <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-700">Academic identity selected</span>
+                    <p className="mt-1 text-sm font-semibold text-emerald-950">
+                      {selectedManualRegistryLeaf.strandName} → {selectedManualRegistryLeaf.skillName} → {selectedManualRegistryLeaf.subskillName}
+                    </p>
+                  </div>
+                )}
+
+                <label className={`mt-4 flex items-start gap-3 rounded-xl border p-3 transition-colors ${submitForAcademicVerification ? 'border-cyan-300 bg-cyan-50' : 'border-slate-200 bg-slate-50'} ${!selectedManualRegistryLeaf ? 'cursor-not-allowed opacity-65' : 'cursor-pointer'}`}>
+                  <input
+                    id="submit-academic-verification"
+                    type="checkbox"
+                    checked={submitForAcademicVerification}
+                    disabled={!selectedManualRegistryLeaf || !manualRegistrySupported || manualRegistryLoading || eligibleGradeLevels.length !== 1}
+                    onChange={(event) => setSubmitForAcademicVerification(event.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                  />
+                  <span>
+                    <strong className="block text-sm text-slate-900">Submit for Academic Verification</strong>
+                    <span className="mt-1 block text-xs leading-5 text-slate-600">
+                      This freezes the submitted snapshot for platform review. A superadmin must still confirm the school curriculum objective, assessment process and evidence statement before the question can affect Academic Profile or Intervention.
+                    </span>
+                  </span>
+                </label>
+              </div>
             </div>
           </fieldset>
 
