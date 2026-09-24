@@ -14,7 +14,7 @@ const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_PAGES = 60;
 const MAX_QUESTIONS = 50;
 const MAX_GENERATED_QUESTIONS = 24;
-const QUESTION_QUALITY_REVISION = 2;
+const QUESTION_QUALITY_REVISION = 3;
 const SOURCE_DEPENDENCY_MARKERS = [
   "the material", "this material", "source material", "the source", "this source",
   "the worksheet", "this worksheet", "the lesson", "this lesson",
@@ -185,12 +185,17 @@ const responseSchema = {
             type: "object",
             additionalProperties: false,
             required: [
-              "primary_skill_name", "atomic_subskill_name", "assessment_process_code",
+              "registry_version", "registry_match", "primary_skill_code", "primary_skill_name",
+              "atomic_subskill_code", "atomic_subskill_name", "assessment_process_code",
               "assessment_process_name", "assessment_process_definition", "cognitive_process",
               "evidence_statement", "secondary_skill_names", "confidence_score", "review_reason",
             ],
             properties: {
+              registry_version: { type: "string" },
+              registry_match: { type: "boolean" },
+              primary_skill_code: { type: "string" },
               primary_skill_name: { type: "string" },
+              atomic_subskill_code: { type: "string" },
               atomic_subskill_name: { type: "string" },
               assessment_process_code: { type: "string", enum: ["AO1", "AO2", "AO3", "AO4"] },
               assessment_process_name: { type: "string" },
@@ -226,12 +231,26 @@ const clamp = (value: unknown, minimum: number, maximum: number, fallback: numbe
   return Number.isFinite(numeric) ? Math.min(maximum, Math.max(minimum, numeric)) : fallback;
 };
 
+type CanonicalRegistryLeaf = {
+  strandCode: string;
+  strandName: string;
+  skillCode: string;
+  skillName: string;
+  skillDescription?: string;
+  subskillCode: string;
+  subskillName: string;
+  subskillDescription?: string;
+};
+
 const normalizeExtraction = (
   payload: Record<string, unknown>,
   processingMode: "extract" | "generate" | "both",
   generationSubject: string,
   targetGrade: number,
+  registryVersion = "",
+  registryLeaves: CanonicalRegistryLeaf[] = [],
 ) => {
+  const registryBySubskill = new Map(registryLeaves.map((leaf) => [leaf.subskillCode, leaf]));
   const rawQuestions = Array.isArray(payload.questions) ? payload.questions.slice(0, MAX_QUESTIONS) : [];
   const questions = rawQuestions.map((value, index) => {
     const raw = value && typeof value === "object" ? value as Record<string, unknown> : {};
@@ -258,6 +277,24 @@ const normalizeExtraction = (
       .map(Number)
       .filter((grade) => Number.isInteger(grade) && grade >= 1 && grade <= 12))].sort((a, b) => a - b);
     const visualRequired = raw.visual_required === true;
+    const proposedPrimarySkillCode = String(rawTaxonomy.primary_skill_code || "").trim();
+    const proposedAtomicSubskillCode = String(rawTaxonomy.atomic_subskill_code || "").trim();
+    const proposedRegistryVersion = String(rawTaxonomy.registry_version || "").trim();
+    const proposedRegistryMatch = rawTaxonomy.registry_match === true;
+    const canonicalLeaf = proposedAtomicSubskillCode
+      ? registryBySubskill.get(proposedAtomicSubskillCode)
+      : undefined;
+    const canonicalRegistryMatch = registryLeaves.length === 0
+      ? false
+      : Boolean(
+        proposedRegistryMatch
+        && proposedRegistryVersion === registryVersion
+        && canonicalLeaf
+        && canonicalLeaf.skillCode === proposedPrimarySkillCode
+        && String(rawTaxonomy.primary_skill_name || "").trim() === canonicalLeaf.skillName
+        && String(rawTaxonomy.atomic_subskill_name || "").trim() === canonicalLeaf.subskillName
+      );
+    const taxonomyRegistryNeedsAttention = registryLeaves.length > 0 && !canonicalRegistryMatch;
     const correctAnswer = String(raw.correct_answer || "").trim();
     const acceptedAnswers = [...new Map([correctAnswer, ...(Array.isArray(raw.accepted_answers) ? raw.accepted_answers : [])]
       .map((answer) => String(answer).trim())
@@ -292,6 +329,7 @@ const normalizeExtraction = (
       || hasSourceDependencyIssue
       || hasAnswerIssue
       || hasGroundingIssue
+      || taxonomyRegistryNeedsAttention
       || !questionText
       || eligibleGrades.length === 0;
 
@@ -314,8 +352,16 @@ const normalizeExtraction = (
       time_limit: Math.round(clamp(raw.time_limit, 10, 1800, 30)),
       points: Math.round(clamp(raw.points, 1, 30, raw.difficulty === "hard" ? 20 : raw.difficulty === "medium" ? 15 : 10)),
       taxonomy_proposal: {
-        primary_skill_name: String(rawTaxonomy.primary_skill_name || "Needs professional classification").trim().slice(0, 160),
-        atomic_subskill_name: String(rawTaxonomy.atomic_subskill_name || "Needs professional classification").trim().slice(0, 200),
+        registry_version: registryLeaves.length ? registryVersion : proposedRegistryVersion,
+        registry_match: registryLeaves.length ? canonicalRegistryMatch : proposedRegistryMatch,
+        primary_skill_code: canonicalRegistryMatch && canonicalLeaf ? canonicalLeaf.skillCode : proposedPrimarySkillCode,
+        primary_skill_name: canonicalRegistryMatch && canonicalLeaf
+          ? canonicalLeaf.skillName
+          : String(rawTaxonomy.primary_skill_name || "Needs professional classification").trim().slice(0, 160),
+        atomic_subskill_code: canonicalRegistryMatch && canonicalLeaf ? canonicalLeaf.subskillCode : proposedAtomicSubskillCode,
+        atomic_subskill_name: canonicalRegistryMatch && canonicalLeaf
+          ? canonicalLeaf.subskillName
+          : String(rawTaxonomy.atomic_subskill_name || "Needs professional classification").trim().slice(0, 200),
         assessment_process_code: ao,
         assessment_process_name: aoDefinition.name,
         assessment_process_definition: aoDefinition.definition,
@@ -332,6 +378,8 @@ const normalizeExtraction = (
         ? "This item depends on a diagram or image. Rewrite it as self-contained text or remove it before submission."
         : hasSourceDependencyIssue
           ? "This generated question assumes access to the teacher source. Rewrite it so the student can answer without seeing the PDF, worksheet, lesson or source activity."
+        : taxonomyRegistryNeedsAttention
+          ? "The English diagnostic taxonomy does not match the published Brain Heist skill registry. Choose a canonical skill/subskill before governance approval."
         : hasGroundingIssue
           ? "Confirm the generated question, answer and grounding against the cited source page."
         : hasAnswerIssue
@@ -539,8 +587,33 @@ serve(async (request) => {
     const learningPriorities = typeof body?.learningPriorities === "string"
       ? body.learningPriorities.trim().slice(0, 500)
       : "";
+    let academicSkillRegistry: {
+      registryVersion?: string;
+      phase?: string;
+      supported?: boolean;
+      skills?: CanonicalRegistryLeaf[];
+      rules?: string[];
+      cambridgeProgrammes?: Array<{ code: string; name: string }>;
+    } | null = null;
+
+    if (createsQuestions && preferredSubject === "English") {
+      const { data: registryData, error: registryError } = await admin.rpc(
+        "rpc_academic_skill_registry_for_generation",
+        { p_subject_key: "English", p_grade_level: targetGrade, p_phase: null },
+      );
+      if (registryError || !registryData?.supported || !Array.isArray(registryData.skills) || !registryData.skills.length) {
+        console.error("teacher_question_pdf_extract registry error", registryError?.message || registryData);
+        return jsonResponse(503, {
+          error: "The governed English skill registry could not be loaded. Question creation is paused rather than inventing new Academic Profile skills.",
+        });
+      }
+      academicSkillRegistry = registryData;
+    }
+
     const processingRequest = {
       quality_revision: QUESTION_QUALITY_REVISION,
+      taxonomy_registry_version: academicSkillRegistry?.registryVersion || null,
+      taxonomy_registry_phase: academicSkillRegistry?.phase || null,
       target_grade: createsQuestions ? targetGrade : null,
       requested_generated_question_count: requestedQuestionCount,
       allowed_question_types: allowedQuestionTypes,
@@ -617,8 +690,11 @@ serve(async (request) => {
       "For every question return accepted_answers. For multiple-choice and true/false use only [correct_answer]. For short answers put the canonical answer first, followed by at most 11 genuinely equivalent wording, abbreviation, symbol, or notation variants supported by the source. Never include partial, broader, or merely related answers.",
       "For multiple-choice questions, use 2-6 unique options and make correct_answer exactly equal to one option. True/false options must be True and False.",
       "If a student would need to see a source diagram, graph, image, map, table, or layout to answer, set visual_required and needs_human_attention true. Never silently recreate or guess the visual.",
-      "Build diagnostic taxonomy for longitudinal reporting, not a unique label for every question. primary_skill_name must be a stable, reusable curriculum/reporting skill. atomic_subskill_name must be a reusable diagnostic leaf that several related questions could share.",
-      "Do not put example-specific vocabulary, names, exact answer tokens, one-off sentence contexts, or item wording into primary_skill_name or atomic_subskill_name. Keep item-specific detail in evidence_statement instead.",
+      "Build diagnostic taxonomy for longitudinal reporting, not a unique label for every question.",
+      academicSkillRegistry
+        ? "For English, taxonomy identity is governed by the supplied Brain Heist canonical registry. For every question choose exactly one listed skillCode/subskillCode pair and copy its skillName/subskillName exactly. Set registry_version to the supplied registry version and registry_match=true. Never invent, paraphrase, pluralize, narrow, or expand a canonical skill name/code. If no listed subskill genuinely fits, set registry_match=false, leave the canonical codes empty, use Needs professional classification for the names, and set needs_human_attention=true."
+        : "primary_skill_name must be a stable, reusable curriculum/reporting skill. atomic_subskill_name must be a reusable diagnostic leaf that several related questions could share.",
+      "Do not put example-specific vocabulary, names, exact answer tokens, one-off sentence contexts, or item wording into canonical skill identity. Keep item-specific detail in evidence_statement instead.",
       "For one coherent learning-material batch, normally reuse 1-3 primary skills and about 2-5 atomic subskills. Reuse the exact same labels across questions that assess the same skill. Create additional labels only when the source clearly spans genuinely distinct learning objectives.",
       "When the source clearly identifies a Cambridge curriculum strand, sub-strand or learning objective, align the proposed skill names to that level of curriculum meaning. Never invent Cambridge codes or claim official Cambridge alignment. AO1-AO4 below describe assessment/cognitive process only; they are not the curriculum taxonomy.",
       "Avoid vague labels such as General Knowledge, Problem Solving, or Understanding, but also avoid over-atomising ordinary variants of the same transferable skill.",
@@ -675,6 +751,22 @@ serve(async (request) => {
                 `Processing mode: ${processingMode}.`,
                 `Teacher blueprint: ${JSON.stringify(processingRequest)}.`,
                 `Preferred subject: ${preferredSubject}; preferred topic: ${preferredTopic}.`,
+                academicSkillRegistry
+                  ? `Canonical English registry: ${JSON.stringify({
+                      registryVersion: academicSkillRegistry.registryVersion,
+                      phase: academicSkillRegistry.phase,
+                      cambridgeProgrammes: academicSkillRegistry.cambridgeProgrammes,
+                      rules: academicSkillRegistry.rules,
+                      skills: academicSkillRegistry.skills?.map((leaf) => ({
+                        strandCode: leaf.strandCode,
+                        strandName: leaf.strandName,
+                        skillCode: leaf.skillCode,
+                        skillName: leaf.skillName,
+                        subskillCode: leaf.subskillCode,
+                        subskillName: leaf.subskillName,
+                      })),
+                    })}.`
+                  : "No canonical registry is configured for this subject; taxonomy remains a proposal requiring human classification.",
                 "Follow the blueprint only where the PDF supports it. Return a transparent review draft, never a claim of verified curriculum alignment.",
               ].join("\n"),
             },
@@ -713,7 +805,14 @@ serve(async (request) => {
     const outputText = extractResponseText(aiBody);
     if (!outputText) return jsonResponse(422, { error: "No questions could be read from this PDF." });
     const parsed = JSON.parse(outputText) as Record<string, unknown>;
-    const extraction = normalizeExtraction(parsed, processingMode, preferredSubject, targetGrade);
+    const extraction = normalizeExtraction(
+      parsed,
+      processingMode,
+      preferredSubject,
+      targetGrade,
+      academicSkillRegistry?.registryVersion || "",
+      academicSkillRegistry?.skills || [],
+    );
     if (extraction.detected_document_type === "unsupported") {
       return jsonResponse(422, {
         error: "This PDF does not appear to contain usable teaching or assessment material. Try a clearer subject chapter, worksheet or question paper.",
