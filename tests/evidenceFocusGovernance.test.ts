@@ -3,13 +3,21 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const migration = readFileSync(
-  'supabase/migrations/20260924052000_add_governed_evidence_focus_layer.sql',
+  'supabase/migrations/20260924060417_add_governed_evidence_focus_layer.sql',
   'utf8',
 );
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
 const gameService = readFileSync('services/gameService.ts', 'utf8');
 const adminService = readFileSync('services/adminQuestionBankService.ts', 'utf8');
 const adminInspector = readFileSync('components/admin/tabs/QuestionBankInspectorTab.tsx', 'utf8');
+const focusTierMigration = readFileSync(
+  'supabase/migrations/20260924060747_fix_evidence_focus_intervention_tiers.sql',
+  'utf8',
+);
+const failClosedMigration = readFileSync(
+  'supabase/migrations/20260924090905_fail_closed_intervention_when_exact_focus_inventory_missing.sql',
+  'utf8',
+);
 
 test('Evidence Focus is a governed child layer beneath canonical subskills', () => {
   assert.match(migration, /create table if not exists public\.academic_skill_evidence_focuses/);
@@ -74,12 +82,15 @@ test('AI question batches receive a governed Evidence Focus before submission', 
 });
 
 test('intervention matching prioritizes exact focus before related practice', () => {
-  assert.match(migration, /p_evidence_focus_code text/);
-  assert.match(migration, /taxonomy\.evidence_focus_code = p_evidence_focus_code/);
-  assert.match(migration, /available_same_subskill_question_count/);
-  assert.match(migration, /available_broader_skill_question_count/);
-  assert.match(migration, /same_subskill_question_ids/);
-  assert.match(migration, /broader_skill_question_ids/);
+  assert.match(focusTierMigration, /p_evidence_focus_code text/);
+  assert.match(focusTierMigration, /taxonomy\.evidence_focus_code = p_evidence_focus_code/);
+  assert.match(focusTierMigration, /where match_tier = 1/);
+  assert.match(focusTierMigration, /available_same_subskill_question_count/);
+  assert.match(focusTierMigration, /available_broader_skill_question_count/);
+  assert.match(focusTierMigration, /same_subskill_question_ids/);
+  assert.match(focusTierMigration, /broader_skill_question_ids/);
+  assert.match(failClosedMigration, /available_exact_questions = 0 then 'teacher_support'/);
+  assert.match(failClosedMigration, /verified_global_and_school/);
 });
 
 test('every published subskill receives at least one controlled focus option', () => {
