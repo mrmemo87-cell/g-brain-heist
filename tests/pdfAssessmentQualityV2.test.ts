@@ -28,8 +28,8 @@ test('generated taxonomy favors reusable curriculum skills instead of one-off mi
   assert.match(service, /The diagnostic mapping is too fragmented/);
 });
 
-test('quality revision invalidates stale pre-v2 browser review snapshots without losing new edits', () => {
-  assert.match(edgeFunction, /QUESTION_QUALITY_REVISION = 2/);
+test('quality revision invalidates stale browser review snapshots without losing new edits', () => {
+  assert.match(edgeFunction, /QUESTION_QUALITY_REVISION = 5/);
   assert.match(edgeFunction, /quality_revision: QUESTION_QUALITY_REVISION/);
   assert.match(service, /qualityRevision: Number\(processingRequest\.quality_revision \|\| 1\)/);
   assert.match(workspace, /SavedQuestionReviewEnvelope/);
