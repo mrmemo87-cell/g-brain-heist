@@ -67,6 +67,28 @@ Official public references:
 
 Do not copy restricted Cambridge curriculum-framework wording into Brain Heist. Store exact external objectives only through an authorised, versioned curriculum import. Public crosswalks stay at the programme/strand/assessment-reference level unless licensed source material has been governed separately.
 
+## Evidence Focus layer
+
+Canonical Skill and Atomic Subskill remain the durable longitudinal identity. Evidence Focus is a governed child layer used for precise diagnosis and Intervention.
+
+Example:
+
+`Use of English → Verb aspect → Simple versus progressive aspect → Forming present continuous verbs`
+
+Rules:
+
+- Every active verified taxonomy row must have one governed Evidence Focus.
+- Evidence Focus codes belong to one exact canonical subskill and come from a controlled catalogue.
+- Manual teacher verification uses `Strand → Skill → Subskill → Evidence Focus`.
+- School governance re-validates the focus before approval.
+- Platform/global superadmin review resolves an existing focus or creates a human-governed focus from the reviewed evidence statement.
+- Existing verified questions were migrated append-only; historical taxonomy rows were not rewritten.
+- Learner observations store Evidence Focus in evidence metadata while the stable `skill_key` remains at canonical subskill level.
+- Intervention ranking is exact Evidence Focus first, same subskill/different focus second, broader same-skill practice third.
+- Only exact-focus questions are automatically selected for targeted practice.
+- Targeted practice remains rehearsal; later independent assessed evidence is required for improvement/mastery decisions.
+- Every published subskill has at least one controlled focus option. Unused subskills receive a conservative `Core demonstration` fallback until more precise governed focuses are established.
+
 ## Identity levels
 
 ### Strand
