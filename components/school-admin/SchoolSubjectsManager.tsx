@@ -68,12 +68,21 @@ const SchoolSubjectsManager: React.FC = () => {
     setLoading(true);
     setLoadError(null);
     try {
-      const [subjectCatalog, setup] = await Promise.all([
+      const [catalogResult, setupResult] = await Promise.allSettled([
         fetchSchoolSubjectCatalog(school.id),
         fetchSchoolAcademicSetup(school.id),
       ]);
-      setCatalog(subjectCatalog);
-      setAcademicSetup(setup);
+
+      if (catalogResult.status === 'rejected') throw catalogResult.reason;
+      setCatalog(catalogResult.value);
+
+      if (setupResult.status === 'fulfilled') {
+        setAcademicSetup(setupResult.value);
+      } else {
+        console.error('Failed to load school academic setup', setupResult.reason);
+        setAcademicSetup(null);
+        addToast('School subjects loaded. Academic resource mapping is temporarily unavailable; retry if you need to edit mappings.', 'info');
+      }
     } catch (error) {
       console.error('Failed to load school subjects workspace', error);
       setLoadError(error instanceof Error ? error.message : 'School subjects are unavailable.');
