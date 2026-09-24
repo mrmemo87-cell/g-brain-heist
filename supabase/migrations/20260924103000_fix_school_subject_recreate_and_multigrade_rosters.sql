@@ -404,4 +404,168 @@ revoke all on function public.rpc_school_admin_subject_catalog(uuid,boolean)
 grant execute on function public.rpc_school_admin_subject_catalog(uuid,boolean)
   to authenticated,service_role;
 
+
+-- Custom and whole-grade teaching groups may legitimately contain students whose
+-- current academic enrolment has a known grade but no registration class yet.
+-- Class-based groups remain strict: only students with a valid active class
+-- placement are returned with a non-null class_id.
+create or replace function private.subject_offering_eligible_students(p_offering_id uuid)
+returns table(student_id uuid,class_id uuid,class_code text)
+language sql stable security definer set search_path=''
+as $
+  select distinct u.id,c.id,c.class_code
+  from public.school_subject_offerings o
+  join public.school_subjects s
+    on s.id=o.school_subject_id and s.school_id=o.school_id and s.is_active
+  join public.school_academic_years y
+    on y.id=o.academic_year_id and y.school_id=o.school_id
+  join public.student_academic_enrolments ae
+    on ae.school_id=o.school_id
+   and ae.academic_year_id=o.academic_year_id
+   and ae.grade_level=o.grade_level
+   and ae.starts_on<=current_date
+   and (ae.ends_on is null or ae.ends_on>=current_date)
+  join public.school_members sm
+    on sm.school_id=o.school_id
+   and sm.user_id=ae.student_id
+   and sm.status='active'
+   and sm.role_in_school='student'
+  join public.users u
+    on u.id=sm.user_id
+   and not coalesce(u.is_banned,false)
+   and (u.banned_until is null or u.banned_until<=now())
+  left join public.classes c
+    on c.id=ae.class_id
+   and c.school_id=o.school_id
+   and c.grade_level=o.grade_level
+   and coalesce(c.is_active,true)
+  left join public.class_students cs
+    on cs.student_id=u.id
+   and cs.class_id=c.id
+  where o.id=p_offering_id
+    and o.status='active'
+    and o.academic_year_id=public.academic_resolve_operational_year_id(o.school_id,now())
+    and (
+      ae.class_id is null
+      or (c.id is not null and cs.student_id is not null)
+    )
+    and (
+      o.access_mode='all_grade'
+      or exists (
+        select 1
+        from public.school_subject_enrolments e
+        where e.school_id=o.school_id
+          and e.school_subject_id=o.school_subject_id
+          and e.academic_year_id=o.academic_year_id
+          and e.student_id=u.id
+          and e.status='active'
+          and e.starts_on<=current_date
+          and (e.ends_on is null or e.ends_on>=current_date)
+      )
+    );
+$;
+
+revoke all on function private.subject_offering_eligible_students(uuid)
+  from public,anon,authenticated,service_role;
+
+-- When a selected-access offering gets its first custom teaching group, reuse
+-- the already-selected subject roster instead of forcing the school admin to
+-- select the same students a second time. Additional custom groups remain
+-- explicitly school-managed.
+create or replace function public.rpc_school_admin_save_subject_group(
+  p_school_id uuid,
+  p_offering_id uuid,
+  p_name text,
+  p_group_type text,
+  p_registration_class_id uuid default null,
+  p_group_id uuid default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path=''
+as $
+declare
+  v_id uuid;
+  v_access_mode text;
+  v_seed_selected boolean := false;
+begin
+  if auth.uid() is null or not coalesce(public.can_administer_school(p_school_id),false) then
+    raise exception using errcode='42501',message='school_administrator_access_required';
+  end if;
+
+  select o.access_mode
+  into v_access_mode
+  from public.school_subject_offerings o
+  where o.id=p_offering_id
+    and o.school_id=p_school_id
+    and o.status='active'
+    and o.academic_year_id=public.academic_resolve_operational_year_id(p_school_id,now());
+
+  if v_access_mode is null then
+    raise exception 'current_subject_offering_required';
+  end if;
+
+  if p_group_id is null then
+    if p_group_type='custom'
+       and v_access_mode='selected'
+       and not exists (
+         select 1
+         from public.school_subject_groups g
+         where g.school_id=p_school_id
+           and g.school_subject_offering_id=p_offering_id
+           and g.status='active'
+           and g.group_type='custom'
+       ) then
+      v_seed_selected := true;
+    end if;
+
+    insert into public.school_subject_groups(
+      school_id,school_subject_offering_id,name,group_type,registration_class_id,created_by
+    )
+    values(
+      p_school_id,p_offering_id,p_name,p_group_type,p_registration_class_id,auth.uid()
+    )
+    returning id into v_id;
+
+    if v_seed_selected then
+      insert into public.school_subject_group_students(
+        school_id,group_id,student_id,status,starts_on,ends_on,created_by
+      )
+      select
+        p_school_id,
+        v_id,
+        r.student_id,
+        'active',
+        current_date,
+        null,
+        auth.uid()
+      from private.subject_offering_eligible_students(p_offering_id) r
+      on conflict do nothing;
+    end if;
+  else
+    update public.school_subject_groups
+    set name=p_name,
+        group_type=p_group_type,
+        registration_class_id=p_registration_class_id
+    where id=p_group_id
+      and school_id=p_school_id
+      and school_subject_offering_id=p_offering_id
+      and status='active'
+    returning id into v_id;
+
+    if v_id is null then
+      raise exception 'active_subject_group_not_found';
+    end if;
+  end if;
+
+  return v_id;
+end;
+$;
+
+revoke all on function public.rpc_school_admin_save_subject_group(uuid,uuid,text,text,uuid,uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_school_admin_save_subject_group(uuid,uuid,text,text,uuid,uuid)
+  to authenticated;
+
 notify pgrst,'reload schema';
