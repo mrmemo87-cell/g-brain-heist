@@ -223,28 +223,44 @@ const SchoolSubjectsManager: React.FC = () => {
       addToast('Select at least one student, or choose the whole grade.', 'info');
       return;
     }
+    const normalizedName = name.trim().toLowerCase();
+    const existingNamedSubject = !editingSubjectId
+      ? catalog?.subjects.find((subject) => subject.isActive && subject.name.trim().toLowerCase() === normalizedName) || null
+      : null;
+    const subjectForSave = existingNamedSubject
+      || (editingSubjectId ? catalog?.subjects.find((subject) => subject.id === editingSubjectId) || null : null);
+    const academicSubjectIdForSave = subjectForSave?.academicSubjectId || academicSubjectId || null;
+    const academicChoiceForSave = academicSubjectIdForSave
+      ? academicChoices.find((item) => item.id === academicSubjectIdForSave) || null
+      : null;
+    const scopeForSave = academicChoiceForSave?.scopes.find(
+      (scope) => Number(scope.gradeLevel) === Number(gradeLevel),
+    ) || null;
+
     setSaving(true);
     try {
       const result = await saveSchoolSubject({
         schoolId: school.id,
-        schoolSubjectId: editingSubjectId,
-        name,
-        code,
-        academicSubjectId: academicSubjectId || null,
+        schoolSubjectId: editingSubjectId || existingNamedSubject?.id || null,
+        name: existingNamedSubject?.name || name,
+        code: existingNamedSubject?.code ?? code,
+        academicSubjectId: academicSubjectIdForSave,
         academicYearId: gradeLevel ? currentYear?.id || null : null,
         gradeLevel: gradeLevel || null,
-        curriculumScopeId: academicSubjectId && gradeLevel ? selectedScope?.scopeId || null : null,
+        curriculumScopeId: academicSubjectIdForSave && gradeLevel ? scopeForSave?.scopeId || null : null,
         accessMode,
         selectedStudentIds: accessMode === 'selected' && gradeLevel ? Array.from(selectedStudentIds) : [],
         teacherUserId: null,
         classIds: [],
         replaceTeacherAllocations: false,
       });
-      const subjectLabel = result.name || name.trim();
+      const subjectLabel = result.name || existingNamedSubject?.name || name.trim();
       addToast(
-        academicSubjectId
-          ? `${subjectLabel} saved as an independent school subject.`
-          : `${subjectLabel} saved. Academic mapping attention has been requested automatically.`,
+        existingNamedSubject && gradeLevel
+          ? `${gradeLabel(gradeLevel)} added to ${subjectLabel}.`
+          : academicSubjectIdForSave
+            ? `${subjectLabel} saved as an independent school subject.`
+            : `${subjectLabel} saved. Academic mapping attention has been requested automatically.`,
         'success',
       );
       setEditorOpen(false);
