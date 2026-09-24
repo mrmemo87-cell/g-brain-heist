@@ -83,17 +83,17 @@ export interface AdminQuestionBankQuestion {
   teacher?: AdminQuestionTeacherProvenance | null;
   submission?: {
     itemId: string;
-    batchId: string;
+    batchId?: string | null;
     status: 'in_review' | 'approved_for_governance' | 'returned' | 'rejected';
     submittedAt: string;
     sourcePage?: number | null;
-    sourceFileName: string;
-    extractionModel: string;
+    sourceFileName?: string | null;
+    extractionModel?: string | null;
     extractionConfidence: number;
     needsHumanAttention: boolean;
     sourceDrift: boolean;
-    processingMode: 'extract' | 'generate' | 'both';
-    detectedDocumentType: 'question_paper' | 'learning_material' | 'mixed' | 'unsupported';
+    processingMode: 'extract' | 'generate' | 'both' | 'manual';
+    detectedDocumentType: 'question_paper' | 'learning_material' | 'mixed' | 'unsupported' | 'manual_teacher_entry';
     documentTypeConfidence?: number | null;
     sourceRightsAttested: boolean;
     processingRequest?: {
@@ -106,9 +106,9 @@ export interface AdminQuestionBankQuestion {
       learning_priorities?: string;
       visual_policy?: string;
     };
-    candidateOrigin: 'source_question' | 'ai_generated_from_source';
+    candidateOrigin: 'source_question' | 'ai_generated_from_source' | 'manual_teacher';
     sourceGroundingNote?: string | null;
-    sourceEvidenceKind: 'text' | 'visual' | 'mixed';
+    sourceEvidenceKind: 'text' | 'visual' | 'mixed' | 'manual';
     sourceVisualDescription?: string | null;
     groundingConfidence?: number | null;
     learningObjective?: string | null;
