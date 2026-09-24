@@ -545,11 +545,19 @@ const QuestionBankInspectorTab: React.FC = () => {
                 <section className="qb-inspector__answer"><span>Protected answer</span><h4>{selectedQuestion.correctAnswer}</h4>{selectedQuestion.explanation ? <p>{selectedQuestion.explanation}</p> : <em>No explanation recorded.</em>}</section>
                 {selectedQuestion.submission ? (
                   <section className="qb-inspector__submission">
-                    <span>{selectedQuestion.submission.candidateOrigin === 'ai_generated_from_source' ? 'AI-created from source · human review required' : 'Extracted source question · human review required'}</span>
+                    <span>{selectedQuestion.submission.candidateOrigin === 'manual_teacher'
+                      ? 'Manual teacher question · human review required'
+                      : selectedQuestion.submission.candidateOrigin === 'ai_generated_from_source'
+                        ? 'AI-created from source · human review required'
+                        : 'Extracted source question · human review required'}</span>
                     <div className="qb-inspector__source-audit">
                       <div><small>Processing mode</small><strong>{formatAuditLabel(selectedQuestion.submission.processingMode)}</strong></div>
                       <div><small>Document type</small><strong>{formatAuditLabel(selectedQuestion.submission.detectedDocumentType)}</strong></div>
-                      <div><small>Origin</small><strong>{selectedQuestion.submission.candidateOrigin === 'ai_generated_from_source' ? 'Created from source' : 'Present in source'}</strong></div>
+                      <div><small>Origin</small><strong>{selectedQuestion.submission.candidateOrigin === 'manual_teacher'
+                        ? 'Teacher authored'
+                        : selectedQuestion.submission.candidateOrigin === 'ai_generated_from_source'
+                          ? 'Created from source'
+                          : 'Present in source'}</strong></div>
                       {selectedQuestion.submission.candidateOrigin === 'ai_generated_from_source' ? <div className={selectedQuestion.submission.sourceRightsAttested ? 'is-confirmed' : 'is-warning'}><small>Source use</small><strong>{selectedQuestion.submission.sourceRightsAttested ? 'Rights confirmed' : 'Confirmation missing'}</strong></div> : null}
                     </div>
                     {selectedQuestion.submission.candidateOrigin === 'ai_generated_from_source' ? (
@@ -572,8 +580,14 @@ const QuestionBankInspectorTab: React.FC = () => {
                     </dl>
                     <p><strong>Evidence:</strong> {selectedQuestion.submission.taxonomyProposal.evidence_statement}</p>
                     <p><strong>Review note:</strong> {selectedQuestion.submission.taxonomyProposal.review_reason}</p>
-                    <small>Private source: {selectedQuestion.submission.sourceFileName}{selectedQuestion.submission.sourcePage ? ` · page ${selectedQuestion.submission.sourcePage}` : ''} · processed with {selectedQuestion.submission.extractionModel}{selectedQuestion.submission.sourceDrift ? ' · source snapshot drift detected' : ''}</small>
-                    <button type="button" className="qb-inspector__open-source" onClick={() => void openPrivateSource(selectedQuestion.submission!.itemId)} disabled={openingSourceItemId === selectedQuestion.submission.itemId}>{openingSourceItemId === selectedQuestion.submission.itemId ? 'Preparing secure source…' : 'Open private source PDF ↗'}</button>
+                    {selectedQuestion.submission.candidateOrigin === 'manual_teacher' ? (
+                      <small>Manual teacher submission · frozen question snapshot{selectedQuestion.submission.sourceDrift ? ' · snapshot drift detected' : ''}</small>
+                    ) : (
+                      <>
+                        <small>Private source: {selectedQuestion.submission.sourceFileName}{selectedQuestion.submission.sourcePage ? ` · page ${selectedQuestion.submission.sourcePage}` : ''} · processed with {selectedQuestion.submission.extractionModel}{selectedQuestion.submission.sourceDrift ? ' · source snapshot drift detected' : ''}</small>
+                        <button type="button" className="qb-inspector__open-source" onClick={() => void openPrivateSource(selectedQuestion.submission!.itemId)} disabled={openingSourceItemId === selectedQuestion.submission.itemId}>{openingSourceItemId === selectedQuestion.submission.itemId ? 'Preparing secure source…' : 'Open private source PDF ↗'}</button>
+                      </>
+                    )}
                   </section>
                 ) : null}
                 {selectedQuestion.pool === 'teacher' && selectedQuestion.verificationStatus === 'in_review' ? (
