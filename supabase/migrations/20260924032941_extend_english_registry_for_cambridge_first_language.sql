@@ -134,7 +134,7 @@ select v.id,n.id,'Cambridge International Education',p.programme_code,p.programm
     when 'use-of-english' then 'Integrated language control'
   end,
   null,'programme',
-  'Brain Heist canonical competency crosswalk at programme level. Exact Cambridge learning-objective wording is not copied into the registry.',
+  'Brains Heist canonical competency crosswalk at programme level. Exact Cambridge learning-objective wording is not copied into the registry.',
   p.source_url,p.source_version,'active'
 from v
 join public.academic_skill_registry_nodes n on n.registry_version_id=v.id and n.status='active'
