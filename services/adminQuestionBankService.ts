@@ -113,7 +113,11 @@ export interface AdminQuestionBankQuestion {
     groundingConfidence?: number | null;
     learningObjective?: string | null;
     taxonomyProposal: {
+      registry_version?: string;
+      registry_match?: boolean;
+      primary_skill_code?: string;
       primary_skill_name: string;
+      atomic_subskill_code?: string;
       atomic_subskill_name: string;
       assessment_process_code: AdminAssessmentProcessCode;
       assessment_process_name: string;
@@ -193,6 +197,26 @@ export interface AdminSchoolCurriculumOptionsResult {
   blockedReason?: string | null;
   sourceSnapshotCurrent?: boolean;
   options: AdminSchoolCurriculumOption[];
+}
+
+export interface AdminAcademicSkillRegistryLeaf {
+  strandCode: string;
+  strandName: string;
+  skillCode: string;
+  skillName: string;
+  skillDescription?: string;
+  subskillCode: string;
+  subskillName: string;
+  subskillDescription?: string;
+}
+
+export interface AdminAcademicSkillRegistryResult {
+  success: true;
+  supported: boolean;
+  registryVersion?: string;
+  phase?: 'primary' | 'lower_secondary' | 'upper_secondary';
+  cambridgeProgrammes?: Array<{ code: string; name: string }>;
+  skills: AdminAcademicSkillRegistryLeaf[];
 }
 
 export interface AdminSchoolQuestionGovernanceResult {
@@ -507,6 +531,13 @@ const schoolQuestionGovernanceError = (message?: string) => {
   if (value.includes('school_question_assessment_objective_cognition_mismatch')) {
     return new Error('The assessment objective and cognitive process do not match. Use AO1 remember/understand, AO2 apply, AO3 analyze, or AO4 evaluate.');
   }
+  if (value.includes('school_question_english_registry_match_required')
+      || value.includes('school_english_taxonomy_registry_match_required')) {
+    return new Error('Choose an approved English skill and atomic subskill from the published Academic Skill Registry.');
+  }
+  if (value.includes('school_english_taxonomy_registry_name_code_mismatch')) {
+    return new Error('The selected English skill names no longer match their registry codes. Reload the registry and choose the canonical pair again.');
+  }
   if (value.includes('school_approval_source_rights_attestation_required')) {
     return new Error('This AI-created question cannot be approved until source-generation rights are confirmed.');
   }
@@ -535,13 +566,37 @@ export async function loadSuperadminSchoolCurriculumOptions(
   return result;
 }
 
+export async function loadAcademicSkillRegistryForGovernance(
+  subject: string,
+  gradeLevel: string | number,
+): Promise<AdminAcademicSkillRegistryResult> {
+  const grade = Number(String(gradeLevel).replace(/\D/g, ''));
+  if (!Number.isInteger(grade) || grade < 1 || grade > 12) {
+    throw new Error('A valid grade is required before choosing a canonical skill.');
+  }
+  const { data, error } = await supabase.rpc('rpc_academic_skill_registry_for_generation', {
+    p_subject_key: subject,
+    p_grade_level: grade,
+    p_phase: null,
+  });
+  if (error) throw new Error(error.message || 'The Academic Skill Registry could not be loaded.');
+  const result = data as AdminAcademicSkillRegistryResult | null;
+  if (!result?.success) throw new Error('The Academic Skill Registry returned an invalid response.');
+  return {
+    ...result,
+    skills: Array.isArray(result.skills) ? result.skills : [],
+  };
+}
+
 export async function governSuperadminSchoolQuestion(input: {
   questionId: string;
   action: 'approve_school' | 'return_teacher' | 'retire_school';
   rationale: string;
   curriculum?: AdminSchoolCurriculumOption | null;
   taxonomy?: {
+    primarySkillCode?: string;
     primarySkillName: string;
+    atomicSubskillCode?: string;
     atomicSubskillName: string;
     assessmentProcessCode: AdminAssessmentProcessCode;
     cognitiveProcess: 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate';
