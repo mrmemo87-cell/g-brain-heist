@@ -26,12 +26,15 @@ test('ordinary teacher question creator exposes canonical skill and subskill dro
   assert.match(portal, /1\. Strand/);
   assert.match(portal, /2\. Skill/);
   assert.match(portal, /3\. Subskill/);
+  assert.match(portal, /4\. Evidence Focus/);
   assert.match(portal, /Academic Skill Registry/);
   assert.match(portal, /Academic identity selected/);
   assert.match(portal, /Submit for Academic Verification/);
   assert.match(portal, /Auto-selected from your teaching allocation/);
   assert.match(portal, /getAssignedGradesForQuestionSubject/);
   assert.match(service, /rpc_academic_skill_registry_for_generation/);
+  assert.match(service, /rpc_academic_evidence_focuses_for_subskill/);
+  assert.match(service, /p_evidence_focus_code/);
   assert.match(service, /rpc_teacher_submit_manual_question_for_governance/);
 });
 
@@ -45,4 +48,5 @@ test('manual governance provenance does not pretend a PDF exists', () => {
   assert.match(adminInspector, /Manual teacher question · human review required/);
   assert.match(adminInspector, /candidateOrigin === 'manual_teacher'/);
   assert.match(adminInspector, /Manual teacher submission · frozen question snapshot/);
+  assert.match(adminInspector, /Evidence Focus · governed intervention target/);
 });
