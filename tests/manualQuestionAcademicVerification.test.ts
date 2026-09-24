@@ -23,10 +23,14 @@ test('manual submissions join the same superadmin governance source as PDF batch
 });
 
 test('ordinary teacher question creator exposes canonical skill and subskill dropdowns for any published registry', () => {
-  assert.match(portal, /Canonical skill/);
-  assert.match(portal, /Canonical subskill/);
+  assert.match(portal, /1\. Strand/);
+  assert.match(portal, /2\. Skill/);
+  assert.match(portal, /3\. Subskill/);
+  assert.match(portal, /Academic Skill Registry/);
+  assert.match(portal, /Academic identity selected/);
   assert.match(portal, /Submit for Academic Verification/);
-  assert.match(portal, /any subject with a published Academic Skill Registry/i);
+  assert.match(portal, /Auto-selected from your teaching allocation/);
+  assert.match(portal, /getAssignedGradesForQuestionSubject/);
   assert.match(service, /rpc_academic_skill_registry_for_generation/);
   assert.match(service, /rpc_teacher_submit_manual_question_for_governance/);
 });
