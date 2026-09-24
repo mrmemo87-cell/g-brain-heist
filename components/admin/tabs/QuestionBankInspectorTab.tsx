@@ -2,8 +2,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   createSuperadminQuestionSourceReviewLink,
   governSuperadminSchoolQuestion,
+  loadAcademicSkillRegistryForGovernance,
   loadSuperadminQuestionBank,
   loadSuperadminSchoolCurriculumOptions,
+  type AdminAcademicSkillRegistryLeaf,
   type AdminAssessmentProcessCode,
   type AdminQuestionBankCatalog,
   type AdminQuestionBankQuestion,
@@ -100,8 +102,14 @@ const QuestionBankInspectorTab: React.FC = () => {
   const [savingGovernance, setSavingGovernance] = useState(false);
   const [selectedSchoolOptionId, setSelectedSchoolOptionId] = useState('');
   const [governanceRationale, setGovernanceRationale] = useState('');
+  const [primarySkillCode, setPrimarySkillCode] = useState('');
   const [primarySkillName, setPrimarySkillName] = useState('');
+  const [atomicSubskillCode, setAtomicSubskillCode] = useState('');
   const [atomicSubskillName, setAtomicSubskillName] = useState('');
+  const [registryLeaves, setRegistryLeaves] = useState<AdminAcademicSkillRegistryLeaf[]>([]);
+  const [registryVersion, setRegistryVersion] = useState('');
+  const [registryPhase, setRegistryPhase] = useState('');
+  const [loadingRegistry, setLoadingRegistry] = useState(false);
   const [assessmentProcessCode, setAssessmentProcessCode] = useState<AdminAssessmentProcessCode>('AO1');
   const [cognitiveProcess, setCognitiveProcess] = useState<'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate'>('understand');
   const [evidenceStatement, setEvidenceStatement] = useState('');
@@ -155,8 +163,14 @@ const QuestionBankInspectorTab: React.FC = () => {
     setSelectedSchoolOptionId('');
     setGovernanceRationale('');
     const proposal = selectedQuestion?.submission?.taxonomyProposal;
+    setPrimarySkillCode(proposal?.primary_skill_code || '');
     setPrimarySkillName(proposal?.primary_skill_name || '');
+    setAtomicSubskillCode(proposal?.atomic_subskill_code || '');
     setAtomicSubskillName(proposal?.atomic_subskill_name || '');
+    setRegistryLeaves([]);
+    setRegistryVersion('');
+    setRegistryPhase('');
+    setLoadingRegistry(false);
     setAssessmentProcessCode(proposal?.assessment_process_code || 'AO1');
     setCognitiveProcess(proposal?.cognitive_process || 'understand');
     setEvidenceStatement(proposal?.evidence_statement || '');
@@ -201,6 +215,93 @@ const QuestionBankInspectorTab: React.FC = () => {
   const selectedSchoolOption = useMemo(() => schoolOptions.find((option) =>
     `${option.schoolCurriculumMappingId}:${option.objectiveId}` === selectedSchoolOptionId
   ) || null, [schoolOptions, selectedSchoolOptionId]);
+
+  const registryPrimarySkills = useMemo(() => {
+    const seen = new Map<string, { code: string; name: string }>();
+    registryLeaves.forEach((leaf) => {
+      if (!seen.has(leaf.skillCode)) seen.set(leaf.skillCode, { code: leaf.skillCode, name: leaf.skillName });
+    });
+    return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [registryLeaves]);
+
+  const registrySubskills = useMemo(() => registryLeaves
+    .filter((leaf) => leaf.skillCode === primarySkillCode)
+    .sort((a, b) => a.subskillName.localeCompare(b.subskillName)), [primarySkillCode, registryLeaves]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!selectedQuestion || !selectedSchoolOption) {
+      setRegistryLeaves([]);
+      setRegistryVersion('');
+      setRegistryPhase('');
+      setLoadingRegistry(false);
+      return () => { cancelled = true; };
+    }
+
+    setLoadingRegistry(true);
+    void loadAcademicSkillRegistryForGovernance(
+      selectedSchoolOption.academicSubjectName,
+      selectedSchoolOption.gradeLevel,
+    ).then((registry) => {
+      if (cancelled) return;
+      if (!registry.supported || !registry.skills.length) {
+        setRegistryLeaves([]);
+        setRegistryVersion('');
+        setRegistryPhase('');
+        return;
+      }
+      setRegistryLeaves(registry.skills);
+      setRegistryVersion(registry.registryVersion || '');
+      setRegistryPhase(registry.phase || '');
+
+      const proposal = selectedQuestion.submission?.taxonomyProposal;
+      let matched = proposal?.atomic_subskill_code
+        ? registry.skills.find((leaf) => leaf.subskillCode === proposal.atomic_subskill_code
+          && (!proposal.primary_skill_code || leaf.skillCode === proposal.primary_skill_code))
+        : undefined;
+      if (!matched && proposal) {
+        matched = registry.skills.find((leaf) =>
+          leaf.skillName.toLocaleLowerCase() === proposal.primary_skill_name.trim().toLocaleLowerCase()
+          && leaf.subskillName.toLocaleLowerCase() === proposal.atomic_subskill_name.trim().toLocaleLowerCase());
+      }
+      if (matched) {
+        setPrimarySkillCode(matched.skillCode);
+        setPrimarySkillName(matched.skillName);
+        setAtomicSubskillCode(matched.subskillCode);
+        setAtomicSubskillName(matched.subskillName);
+      } else {
+        setPrimarySkillCode('');
+        setAtomicSubskillCode('');
+      }
+    }).catch((registryError) => {
+      if (!cancelled) {
+        setRegistryLeaves([]);
+        setRegistryVersion('');
+        setRegistryPhase('');
+        addToast(registryError instanceof Error ? registryError.message : 'The Academic Skill Registry could not be loaded.', 'error');
+      }
+    }).finally(() => { if (!cancelled) setLoadingRegistry(false); });
+
+    return () => { cancelled = true; };
+  }, [addToast, selectedQuestion, selectedSchoolOption]);
+
+  const chooseRegistryPrimarySkill = (code: string) => {
+    const firstLeaf = registryLeaves.find((leaf) => leaf.skillCode === code);
+    setPrimarySkillCode(code);
+    setPrimarySkillName(firstLeaf?.skillName || '');
+    setAtomicSubskillCode(firstLeaf?.subskillCode || '');
+    setAtomicSubskillName(firstLeaf?.subskillName || '');
+  };
+
+  const chooseRegistrySubskill = (code: string) => {
+    const leaf = registryLeaves.find((item) => item.subskillCode === code);
+    if (!leaf) return;
+    setPrimarySkillCode(leaf.skillCode);
+    setPrimarySkillName(leaf.skillName);
+    setAtomicSubskillCode(leaf.subskillCode);
+    setAtomicSubskillName(leaf.subskillName);
+  };
+
   const pageNumber = Math.floor(offset / PAGE_SIZE) + 1;
   const pageCount = Math.max(1, Math.ceil((catalog?.total || 0) / PAGE_SIZE));
 
@@ -277,6 +378,10 @@ const QuestionBankInspectorTab: React.FC = () => {
         addToast('Select the exact school curriculum objective first.', 'error');
         return;
       }
+      if (registryLeaves.length && (!primarySkillCode || !atomicSubskillCode)) {
+        addToast('Choose the canonical skill and atomic subskill from the published Academic Skill Registry.', 'error');
+        return;
+      }
       if (primarySkillName.trim().length < 3 || atomicSubskillName.trim().length < 3) {
         addToast('Confirm both the primary skill and one precise atomic subskill.', 'error');
         return;
@@ -295,7 +400,9 @@ const QuestionBankInspectorTab: React.FC = () => {
         rationale: governanceRationale,
         curriculum: action === 'approve_school' ? selectedSchoolOption : null,
         taxonomy: action === 'approve_school' ? {
+          primarySkillCode: primarySkillCode || undefined,
           primarySkillName: primarySkillName.trim(),
+          atomicSubskillCode: atomicSubskillCode || undefined,
           atomicSubskillName: atomicSubskillName.trim(),
           assessmentProcessCode,
           cognitiveProcess,
@@ -487,8 +594,17 @@ const QuestionBankInspectorTab: React.FC = () => {
                         <fieldset>
                           <legend><b>2</b> What this question actually measures</legend>
                           <div className="qb-inspector__gate-grid">
-                            <label><span>Primary skill</span><input value={primarySkillName} onChange={(event) => setPrimarySkillName(event.target.value)} maxLength={160} /></label>
-                            <label><span>Atomic subskill</span><input value={atomicSubskillName} onChange={(event) => setAtomicSubskillName(event.target.value)} maxLength={200} /></label>
+                            {registryLeaves.length ? (
+                              <>
+                                <label><span>Primary skill · canonical</span><select value={primarySkillCode} onChange={(event) => chooseRegistryPrimarySkill(event.target.value)} disabled={loadingRegistry}><option value="">Choose canonical skill</option>{registryPrimarySkills.map((skill) => <option key={skill.code} value={skill.code}>{skill.name}</option>)}</select><small>{registryVersion || 'Published registry'}{registryPhase ? ` · ${formatAuditLabel(registryPhase)}` : ''}</small></label>
+                                <label><span>Atomic subskill · canonical</span><select value={atomicSubskillCode} onChange={(event) => chooseRegistrySubskill(event.target.value)} disabled={loadingRegistry || !primarySkillCode}><option value="">Choose canonical subskill</option>{registrySubskills.map((leaf) => <option key={leaf.subskillCode} value={leaf.subskillCode}>{leaf.subskillName}</option>)}</select><small>{atomicSubskillCode || 'This stable code becomes the longitudinal Academic Profile identity.'}</small></label>
+                              </>
+                            ) : (
+                              <>
+                                <label><span>Primary skill</span><input value={primarySkillName} onChange={(event) => setPrimarySkillName(event.target.value)} maxLength={160} /></label>
+                                <label><span>Atomic subskill</span><input value={atomicSubskillName} onChange={(event) => setAtomicSubskillName(event.target.value)} maxLength={200} /></label>
+                              </>
+                            )}
                             <label><span>Assessment objective</span><select value={assessmentProcessCode} onChange={(event) => changeAssessmentProcess(event.target.value as AdminAssessmentProcessCode)}><option value="AO1">AO1 · knowledge &amp; understanding</option><option value="AO2">AO2 · application</option><option value="AO3">AO3 · analysis</option><option value="AO4">AO4 · evaluation</option></select></label>
                             <label><span>Cognitive process</span><select value={cognitiveProcess} onChange={(event) => setCognitiveProcess(event.target.value as typeof cognitiveProcess)}>{COGNITION_BY_AO[assessmentProcessCode].map((value) => <option key={value} value={value}>{formatAuditLabel(value)}</option>)}</select></label>
                             <label className="is-wide"><span>Observable evidence statement</span><textarea value={evidenceStatement} onChange={(event) => setEvidenceStatement(event.target.value)} minLength={30} maxLength={500} rows={3} /></label>
