@@ -342,6 +342,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setManualRegistryVersion('');
     setManualRegistryPhase('');
     setManualRegistrySupported(null);
+    setManualRegistryLoading(false);
     setManualPrimarySkillCode('');
     setManualAtomicSubskillCode('');
     setSubmitForAcademicVerification(false);
