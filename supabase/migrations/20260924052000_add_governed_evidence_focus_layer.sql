@@ -2710,6 +2710,9 @@ from public,anon,authenticated,service_role;
 grant execute on function public.rpc_academic_evidence_focuses_for_subskill(text,integer,text)
 to authenticated,service_role;
 
+revoke all on function public.rpc_teacher_submit_manual_question_for_governance(uuid,text,text)
+from public,anon,authenticated,service_role;
+
 revoke all on function public.rpc_teacher_submit_manual_question_for_governance(uuid,text,text,text)
 from public,anon,authenticated,service_role;
 grant execute on function public.rpc_teacher_submit_manual_question_for_governance(uuid,text,text,text)
