@@ -43,7 +43,7 @@ select e.registry_version_id,e.node_id,'Cambridge International Education',
     when split_part(e.node_code,'.',2)='use-of-english' then 'Integrated language control'
   end,
   null,'programme',
-  'Brain Heist canonical competency crosswalk at programme level; exact Cambridge objective wording is not reproduced.',
+  'Brains Heist canonical competency crosswalk at programme level; exact Cambridge objective wording is not reproduced.',
   e.source_url,e.source_version,'active'
 from eligible e
 where not exists (
