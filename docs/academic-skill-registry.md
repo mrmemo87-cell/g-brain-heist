@@ -19,7 +19,20 @@ Canonical identity belongs to Brain Heist. External curricula such as Cambridge 
 
 ## Version
 
-Current published English registry: `bh-english-core-v1`.
+Current published registries:
+
+| Domain | Registry |
+| --- | --- |
+| English / ESL | `bh-english-core-v1` |
+| Mathematics / Maths | `bh-mathematics-core-v1` |
+| Science / Biology / Chemistry / Physics | `bh-science-core-v1` |
+| Global Perspectives | `bh-global-perspectives-core-v1` |
+| Computing / Digital Literacy / ICT | `bh-digital-technology-core-v1` |
+| Geography / Humanities bridge | `bh-geography-core-v1` |
+| Modern Languages | `bh-modern-languages-core-v1` |
+| Travel & Tourism | `bh-travel-tourism-core-v1` |
+
+Subject aliases may share a registry while restricting allowed strands and Cambridge programmes. For example, Biology uses the Science registry but only Biology, Scientific Practice and Science in Context strands; Russian and Kyrgyz share Modern Languages but do not inherit the German IGCSE programme.
 
 The registry is versioned. Existing learner evidence must never silently change identity because a display label is edited. Changes to taxonomy meaning require a governed new version, alias/supersession strategy and migration review.
 
@@ -155,7 +168,7 @@ Batch Question Creation must follow these rules:
 
 ## Human governance
 
-For School Verified English questions:
+For any School Verified question whose subject has a published registry:
 - superadmin chooses the exact school curriculum objective separately,
 - skill and subskill are selected from the published registry,
 - the database verifies that the subskill is a child of the selected skill,
@@ -229,9 +242,12 @@ Do not expand the registry merely because an AI proposes a novel phrase.
 
 ## Subject expansion
 
-This v1 registry governs English/ESL only.
+The multi-subject v1 system now governs English/ESL, Mathematics, Science and its specialist aliases, Global Perspectives, Computing/Digital Literacy/ICT, Geography, Modern Languages and Travel & Tourism.
 
-Maths, Science and other subjects should receive their own canonical registries following the same architecture:
-external framework → Brain Heist stable competency → reusable diagnostic leaf → process → item evidence.
+All registries follow the same architecture:
 
-Do not reuse English taxonomy assumptions for other subjects.
+external framework → subject alias/programme scope → Brain Heist stable competency → reusable diagnostic leaf → assessment process → item evidence.
+
+The September 2026 multi-subject migration canonicalised all 816 previously verified active non-English taxonomy rows in these banks using append-only successors. Historical labels remain auditable through `supersedes_taxonomy_id`.
+
+Do not force one subject's ontology onto another. Shared registries are allowed only where the durable competency model is genuinely shared, such as Biology/Chemistry/Physics within Science or German/Russian/Kyrgyz within Modern Languages.
