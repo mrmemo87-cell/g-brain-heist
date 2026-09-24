@@ -5363,6 +5363,7 @@ export const submit_manual_question_for_governance = async (
         p_question_id: questionId,
         p_primary_skill_code: primarySkillCode,
         p_atomic_subskill_code: atomicSubskillCode,
+        p_evidence_focus_code: evidenceFocusCode,
     });
     if (error) throw error;
     return data as TeacherManualQuestionGovernanceSubmissionResult;
