@@ -202,4 +202,4 @@ to authenticated,service_role;
 comment on function private.enforce_school_english_taxonomy_registry() is
   'Fail-closed canonical taxonomy guard for future School Verified teacher-authored English evidence.';
 comment on function public.rpc_superadmin_govern_school_question(uuid,text,jsonb) is
-  'Atomic school-pool governance. English approvals must use the published Brain Heist canonical skill registry; stored batch codes may supply the governed selection.';
+  'Atomic school-pool governance. English approvals must use the published Brains Heist canonical skill registry; stored batch codes may supply the governed selection.';
