@@ -5333,7 +5333,6 @@ export const get_teacher_academic_evidence_focuses = async (
         p_subject_key: subject,
         p_grade_level: gradeLevel,
         p_atomic_subskill_code: atomicSubskillCode,
-        p_evidence_focus_code: evidenceFocusCode,
     });
     if (error) throw error;
     const result = (data || {}) as { focuses?: TeacherAcademicEvidenceFocus[] };
