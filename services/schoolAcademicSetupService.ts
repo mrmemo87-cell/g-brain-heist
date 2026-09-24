@@ -97,9 +97,16 @@ const assertSuccess = <T extends { success?: boolean; code?: string }>(value: T 
 };
 
 export async function fetchSchoolAcademicSetup(schoolId: string): Promise<SchoolAcademicSetup> {
-  const { data, error } = await supabase.rpc('rpc_school_admin_academic_setup', { p_school_id: schoolId });
-  if (error) throw userFacingError(error, 'We could not load the academic setup just now.');
-  return assertSuccess(data as SchoolAcademicSetup | null, 'academic_setup_unavailable');
+  const load = () => supabase.rpc('rpc_school_admin_academic_setup', { p_school_id: schoolId });
+  let response = await load();
+
+  if (response.error?.code === '57014') {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    response = await load();
+  }
+
+  if (response.error) throw userFacingError(response.error, 'We could not load the academic setup just now.');
+  return assertSuccess(response.data as SchoolAcademicSetup | null, 'academic_setup_unavailable');
 }
 
 export async function fetchSchoolAcademicSystem(schoolId: string): Promise<SchoolAcademicSystem | null> {
