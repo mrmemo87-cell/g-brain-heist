@@ -57,7 +57,7 @@ test('learner evidence preserves stable skill identity while recording precise f
   assert.match(migration, /'evidence_granularity', 'diagnostic_evidence_focus'/);
   assert.match(migration, /'evidence_focus_code'/);
   assert.match(migration, /'evidence_focus_name'/);
-  assert.match(migration, /v_skill_key := 'diagnostic:'/);
+  assert.match(migration, /v_skill_key := concat_ws\([\s\S]*'diagnostic'[\s\S]*primary_skill_code[\s\S]*atomic_subskill_code/);
 });
 
 test('AI question batches receive a governed Evidence Focus before submission', () => {
