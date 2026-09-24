@@ -69,10 +69,10 @@ test('legacy multi-subject taxonomy migration preserves history through superses
 });
 
 test('AI batch creation uses the canonical registry for every supported generated subject', () => {
-  assert.match(edge, /QUESTION_QUALITY_REVISION = 4/);
+  assert.match(edge, /QUESTION_QUALITY_REVISION = 5/);
   assert.match(edge, /rpc_academic_skill_registry_for_generation/);
   assert.match(edge, /For this subject, taxonomy identity is governed/i);
   assert.doesNotMatch(edge, /preferredSubject === "English"/);
-  assert.match(teacherService, /TEACHER_QUESTION_QUALITY_REVISION = 4/);
+  assert.match(teacherService, /TEACHER_QUESTION_QUALITY_REVISION = 5/);
   assert.doesNotMatch(teacherService, /candidate\.subject === 'English'/);
 });
