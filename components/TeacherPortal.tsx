@@ -304,7 +304,69 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [topicMode, setTopicMode] = useState<'general' | 'custom'>('general');
   const [customTopicName, setCustomTopicName] = useState('');
   const [eligibleGradeLevels, setEligibleGradeLevels] = useState<number[]>([]);
+  const [manualRegistryLeaves, setManualRegistryLeaves] = useState<GameService.TeacherAcademicSkillRegistryLeaf[]>([]);
+  const [manualRegistryVersion, setManualRegistryVersion] = useState('');
+  const [manualRegistryPhase, setManualRegistryPhase] = useState('');
+  const [manualRegistrySupported, setManualRegistrySupported] = useState<boolean | null>(null);
+  const [manualRegistryLoading, setManualRegistryLoading] = useState(false);
+  const [manualPrimarySkillCode, setManualPrimarySkillCode] = useState('');
+  const [manualAtomicSubskillCode, setManualAtomicSubskillCode] = useState('');
+  const [submitForAcademicVerification, setSubmitForAcademicVerification] = useState(false);
   const [questionBatchDefaults, setQuestionBatchDefaults] = useState<{ subject?: Subject; topic?: string }>({});
+
+  const manualRegistryPrimarySkills = useMemo(() => {
+    const seen = new Map<string, { code: string; name: string; strandName: string }>();
+    manualRegistryLeaves.forEach((leaf) => {
+      if (!seen.has(leaf.skillCode)) {
+        seen.set(leaf.skillCode, { code: leaf.skillCode, name: leaf.skillName, strandName: leaf.strandName });
+      }
+    });
+    return [...seen.values()].sort((a, b) => a.strandName.localeCompare(b.strandName) || a.name.localeCompare(b.name));
+  }, [manualRegistryLeaves]);
+
+  const manualRegistrySubskills = useMemo(
+    () => manualRegistryLeaves
+      .filter((leaf) => leaf.skillCode === manualPrimarySkillCode)
+      .sort((a, b) => a.subskillName.localeCompare(b.subskillName)),
+    [manualPrimarySkillCode, manualRegistryLeaves],
+  );
+
+  const selectedManualRegistryLeaf = useMemo(
+    () => manualRegistryLeaves.find((leaf) => leaf.subskillCode === manualAtomicSubskillCode) || null,
+    [manualAtomicSubskillCode, manualRegistryLeaves],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    setManualRegistryLeaves([]);
+    setManualRegistryVersion('');
+    setManualRegistryPhase('');
+    setManualRegistrySupported(null);
+    setManualPrimarySkillCode('');
+    setManualAtomicSubskillCode('');
+    setSubmitForAcademicVerification(false);
+
+    if (eligibleGradeLevels.length !== 1) return () => { cancelled = true; };
+
+    setManualRegistryLoading(true);
+    void GameService.get_teacher_academic_skill_registry(subject, eligibleGradeLevels[0])
+      .then((registry) => {
+        if (cancelled) return;
+        setManualRegistrySupported(registry.supported);
+        setManualRegistryLeaves(registry.skills || []);
+        setManualRegistryVersion(registry.registryVersion || '');
+        setManualRegistryPhase(registry.phase || '');
+      })
+      .catch((registryError) => {
+        if (!cancelled) {
+          console.warn('Academic Skill Registry could not be loaded for manual question creation:', registryError);
+          setManualRegistrySupported(false);
+        }
+      })
+      .finally(() => { if (!cancelled) setManualRegistryLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [subject, eligibleGradeLevels]);
 
   useEffect(() => {
     setAvatarUrl(profile.avatar_url || '/BRAINS.svg');
@@ -3305,6 +3367,20 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       brainsAlert('Please enter a topic name for your question.', 'info');
       return;
     }
+    if (submitForAcademicVerification) {
+      if (eligibleGradeLevels.length !== 1) {
+        brainsAlert('Academic verification requires exactly one grade so the school curriculum authority is unambiguous.', 'info');
+        return;
+      }
+      if (!manualRegistrySupported || !manualRegistryLeaves.length) {
+        brainsAlert('A published canonical skill registry is not available for this subject yet. Save it to My Pool instead.', 'info');
+        return;
+      }
+      if (!manualPrimarySkillCode || !manualAtomicSubskillCode) {
+        brainsAlert('Choose both a canonical skill and subskill before submitting for Academic Verification.', 'info');
+        return;
+      }
+    }
     try {
       setUploadingImage(true);
       
@@ -3365,18 +3441,31 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         grade_level: eligibleGradeLevels.join(','),
       };
 
+      let savedQuestion: TeacherQuestion;
       if (editingQuestion) {
         if (!teacher || editingQuestion.teacher_id !== teacher.id) {
           brainsAlert('Brains Heist Verified questions are protected and cannot be edited.', 'error');
           return;
         }
-        // Update existing question
-        await GameService.update_question(editingQuestion.id, questionData);
-        brainsAlert('Question updated successfully.', 'success');
+        savedQuestion = await GameService.update_question(editingQuestion.id, questionData);
       } else {
-        // Create new question
-        await GameService.create_question(questionData);
-        brainsAlert('Question created successfully.', 'success');
+        savedQuestion = await GameService.create_question(questionData);
+      }
+
+      if (submitForAcademicVerification) {
+        try {
+          const submission = await GameService.submit_manual_question_for_governance(
+            savedQuestion.id,
+            manualPrimarySkillCode,
+            manualAtomicSubskillCode,
+          );
+          brainsAlert(`Question saved and submitted for Academic Verification as ${submission.primarySkillName} → ${submission.atomicSubskillName}.`, 'success');
+        } catch (submissionError) {
+          console.error('Question saved but Academic Verification submission failed:', submissionError);
+          brainsAlert('Question was saved safely to My Pool, but the Academic Verification submission failed: ' + (submissionError as Error).message, 'error');
+        }
+      } else {
+        brainsAlert(editingQuestion ? 'Question updated successfully.' : 'Question created successfully.', 'success');
       }
 
       // Reset form
@@ -3395,6 +3484,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setTopicMode('general');
       setCustomTopicName('');
       setEligibleGradeLevels([]);
+      setManualRegistryLeaves([]);
+      setManualRegistryVersion('');
+      setManualRegistryPhase('');
+      setManualRegistrySupported(null);
+      setManualPrimarySkillCode('');
+      setManualAtomicSubskillCode('');
+      setSubmitForAcademicVerification(false);
       setEditingQuestion(null);
 
       // Reload the complete authorized library, not only the RPC's first page.
@@ -3477,6 +3573,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setExplanation(question.explanation || '');
     setPoints(question.points);
     setEligibleGradeLevels(question.eligible_grade_levels || []);
+    setManualPrimarySkillCode('');
+    setManualAtomicSubskillCode('');
+    setSubmitForAcademicVerification(false);
     const existingTopic = question.topic_name || question.topic || 'General';
     if (existingTopic !== 'General') {
       setTopicMode('custom');
@@ -3501,6 +3600,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setCustomTopicName('');
     }
     setEligibleGradeLevels([]);
+    setManualPrimarySkillCode('');
+    setManualAtomicSubskillCode('');
+    setSubmitForAcademicVerification(false);
     setView('create-question');
   };
 
@@ -4826,8 +4928,64 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
           <fieldset className="teacher-form-group rounded-xl border border-amber-200 bg-amber-50/60 p-4">
             <legend className="teacher-label px-2">Classroom question</legend>
-            <p className="mb-4 text-sm text-slate-700"><strong>This question stays in My Pool.</strong> It can be used in assignments and classroom reports, but it never changes the official Academic Profile. Only Brains Heist Verified Questions contribute to official strands, skills, strengths, weaknesses, or progress trends.</p>
-            <div><span className="teacher-label">Suggested grade levels <span className="font-normal text-slate-500">(optional, for organizing My Pool)</span></span><div className="mt-2 flex flex-wrap gap-2">{Array.from({ length: 12 }, (_, index) => index + 1).map((grade) => <label key={grade} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${eligibleGradeLevels.includes(grade) ? 'border-cyan-500 bg-cyan-100 text-cyan-900' : 'border-slate-200 bg-white text-slate-600'}`}><input type="checkbox" checked={eligibleGradeLevels.includes(grade)} onChange={() => setEligibleGradeLevels((current) => current.includes(grade) ? current.filter((value) => value !== grade) : [...current, grade].sort((a, b) => a - b))} />Grade {grade}</label>)}</div></div>
+            <p className="mb-4 text-sm text-slate-700"><strong>By default this question stays in My Pool.</strong> It can be used in assignments and classroom reports without affecting the official Academic Profile. For English/ESL, you can optionally submit one exact-grade question for human Academic Verification using the canonical registry below.</p>
+            <div><span className="teacher-label">Suggested grade levels <span className="font-normal text-slate-500">(choose exactly one for Academic Verification)</span></span><div className="mt-2 flex flex-wrap gap-2">{Array.from({ length: 12 }, (_, index) => index + 1).map((grade) => <label key={grade} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${eligibleGradeLevels.includes(grade) ? 'border-cyan-500 bg-cyan-100 text-cyan-900' : 'border-slate-200 bg-white text-slate-600'}`}><input type="checkbox" checked={eligibleGradeLevels.includes(grade)} onChange={() => setEligibleGradeLevels((current) => current.includes(grade) ? current.filter((value) => value !== grade) : [...current, grade].sort((a, b) => a - b))} />Grade {grade}</label>)}</div></div>
+
+            <div className="mt-5 rounded-xl border border-cyan-200 bg-white p-4">
+              <div className="flex items-start gap-3">
+                <input
+                  id="submit-academic-verification"
+                  type="checkbox"
+                  checked={submitForAcademicVerification}
+                  disabled={!manualRegistrySupported || manualRegistryLoading || eligibleGradeLevels.length !== 1}
+                  onChange={(event) => setSubmitForAcademicVerification(event.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                />
+                <label htmlFor="submit-academic-verification" className="cursor-pointer">
+                  <strong className="block text-slate-800">Submit for Academic Verification</strong>
+                  <span className="text-xs text-slate-600">The question is frozen in review. A platform superadmin must still confirm the school curriculum objective, cognitive process and evidence statement before it can affect Academic Profile or Intervention data.</span>
+                </label>
+              </div>
+
+              {eligibleGradeLevels.length !== 1 ? (
+                <p className="mt-3 text-xs text-amber-700">Choose exactly one grade to load the canonical skill registry.</p>
+              ) : manualRegistryLoading ? (
+                <p className="mt-3 text-xs text-cyan-700">Loading the published Academic Skill Registry…</p>
+              ) : manualRegistrySupported && manualRegistryLeaves.length ? (
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <label className="teacher-form-group">
+                    <span className="teacher-label">Canonical skill</span>
+                    <select
+                      value={manualPrimarySkillCode}
+                      onChange={(event) => {
+                        setManualPrimarySkillCode(event.target.value);
+                        setManualAtomicSubskillCode('');
+                      }}
+                      className="teacher-select"
+                    >
+                      <option value="">Choose skill</option>
+                      {manualRegistryPrimarySkills.map((skill) => <option key={skill.code} value={skill.code}>{skill.strandName} · {skill.name}</option>)}
+                    </select>
+                    <span className="mt-1 text-xs text-slate-500">{manualRegistryVersion || 'Published registry'}{manualRegistryPhase ? ` · ${manualRegistryPhase.replace(/_/g, ' ')}` : ''}</span>
+                  </label>
+                  <label className="teacher-form-group">
+                    <span className="teacher-label">Canonical subskill</span>
+                    <select
+                      value={manualAtomicSubskillCode}
+                      onChange={(event) => setManualAtomicSubskillCode(event.target.value)}
+                      className="teacher-select"
+                      disabled={!manualPrimarySkillCode}
+                    >
+                      <option value="">Choose subskill</option>
+                      {manualRegistrySubskills.map((leaf) => <option key={leaf.subskillCode} value={leaf.subskillCode}>{leaf.subskillName}</option>)}
+                    </select>
+                    <span className="mt-1 text-xs text-slate-500">{selectedManualRegistryLeaf?.subskillDescription || 'Choose the reusable competency this question measures.'}</span>
+                  </label>
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-slate-500">Academic verification is currently available only for subjects with a published canonical registry. This question can still be saved safely to My Pool.</p>
+              )}
+            </div>
           </fieldset>
 
           {/* Question Type */}
@@ -5172,7 +5330,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             type="submit"
             className="teacher-btn teacher-btn-primary w-full py-4 text-lg"
           >
-            {editingQuestion ? '💾 Save Changes' : '✨ Create Question'}
+            {submitForAcademicVerification
+              ? (editingQuestion ? '📤 Save & Submit for Verification' : '📤 Create & Submit for Verification')
+              : (editingQuestion ? '💾 Save Changes' : '✨ Create Question')}
           </button>
         </form>
       </div>
