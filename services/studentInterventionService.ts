@@ -16,7 +16,10 @@ export interface InterventionRecommendation {
   subject: string; topic?: string | null; skill: string; skill_key: string; status: string; trend: string; priority: string;
   evidence_items: number; focus_occurrences: number; last_observed_at: string; days_since_evidence: number; available_questions: number;
   available_exact_questions: number; available_related_questions: number;
+  available_same_subskill_questions?: number; available_broader_skill_questions?: number;
+  evidence_focus_code?: string | null; evidence_focus_name?: string | null;
   recommended_question_ids: string[]; exact_question_ids: string[]; related_question_ids: string[];
+  same_subskill_question_ids?: string[]; broader_skill_question_ids?: string[];
   recommended_type: InterventionType; rationale: string; suggested_goal: string; has_open_intervention: boolean;
   diagnostic_targets: string[]; evidence_examples: InterventionEvidenceExample[];
   evidence_authority: 'teacher_validated' | 'automated_history';
