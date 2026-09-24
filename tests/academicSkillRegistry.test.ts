@@ -30,10 +30,10 @@ test('English registry has a versioned five-strand Cambridge-aligned spine', () 
   assert.match(firstLanguageExtension, /eng\.writing\.argumentation/);
 });
 
-test('registry keeps Cambridge AO references separate from Brain Heist cognitive AOs', () => {
+test('registry keeps Cambridge AO references separate from Brains Heist cognitive AOs', () => {
   assert.match(registryMigration, /CIE0510-AO1/);
   assert.match(registryMigration, /CIE0510-AO4/);
-  assert.match(registryMigration, /must never be stored in the Brain Heist cognitive-process AO field/i);
+  assert.match(registryMigration, /must never be stored in the Brains Heist cognitive-process AO field/i);
 });
 
 test('school verified English taxonomy fails closed unless canonical codes match', () => {
@@ -52,7 +52,7 @@ test('batch generation selects taxonomy from the registry instead of inventing l
   assert.match(edge, /registry_match/);
   assert.match(edge, /primary_skill_code/);
   assert.match(edge, /atomic_subskill_code/);
-  assert.match(edge, /QUESTION_QUALITY_REVISION = 4/);
+  assert.match(edge, /QUESTION_QUALITY_REVISION = 5/);
 });
 
 test('teacher review preserves canonical taxonomy codes', () => {
