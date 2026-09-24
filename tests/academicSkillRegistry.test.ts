@@ -52,7 +52,7 @@ test('batch generation selects taxonomy from the registry instead of inventing l
   assert.match(edge, /registry_match/);
   assert.match(edge, /primary_skill_code/);
   assert.match(edge, /atomic_subskill_code/);
-  assert.match(edge, /QUESTION_QUALITY_REVISION = 3/);
+  assert.match(edge, /QUESTION_QUALITY_REVISION = 4/);
 });
 
 test('teacher review preserves canonical taxonomy codes', () => {
