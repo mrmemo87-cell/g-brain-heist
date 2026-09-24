@@ -33,15 +33,21 @@ English uses five top-level strands:
 4. Listening
 5. Speaking
 
-These align with the public strand structure of:
-- Cambridge Primary English as a Second Language 0057
-- Cambridge Lower Secondary English as a Second Language 0876
+The registry supports both Cambridge English pathways:
 
-The same Brain Heist identities continue into Upper Secondary, where crosswalks can point to Cambridge IGCSE English as an Additional Language 0472 or Cambridge IGCSE English as a Second Language 0510/0511 depending the learner pathway.
+- Cambridge Primary English as a Second Language 0057
+- Cambridge Primary English 0058
+- Cambridge Lower Secondary English as a Second Language 0876
+- Cambridge Lower Secondary English 0861
+
+The same Brain Heist identities continue into Upper Secondary, where crosswalks can point to Cambridge IGCSE English as an Additional Language 0472, Cambridge IGCSE First Language English 0500, or Cambridge IGCSE English as a Second Language 0510/0511 depending the learner pathway.
 
 Official public references:
 - https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-primary/curriculum/english-as-a-second-language/
 - https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-lower-secondary/curriculum/english-as-a-second-language/
+- https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-primary/curriculum/english/
+- https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-lower-secondary/curriculum/english/
+- https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-english-first-language-0500/
 - https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-english-as-an-additional-language-0472/
 - https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-english-second-language-oral-endorsement-0510/
 - https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-english-second-language-count-in-oral-0511/
@@ -199,12 +205,14 @@ Targeted practice may use exact subskill matches. Practice itself must not autom
 
 The registry contains:
 - 5 strands
-- 47 canonical skills
-- 144 canonical subskills
+- 52 canonical skills
+- 165 canonical subskills
 
 It is intentionally broader than Jess's Grade 7 ESL pilot so the same learner identity can continue through Primary, Lower Secondary and Upper Secondary rather than being recreated each year.
 
 Not every subskill applies to every phase. `applicable_phases` is part of governance.
+
+The September 2026 English-bank migration canonicalised every verified, analytics-eligible English question in the live bank. Historical taxonomy rows were preserved as superseded audit history. Teacher-only unverified drafts remain outside official Academic Profile evidence until they pass governance.
 
 ## Expansion policy
 
