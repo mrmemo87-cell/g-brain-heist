@@ -1,4 +1,4 @@
-# Brain Heist Academic Skill Registry
+# Brains Heist Academic Skill Registry
 
 ## Purpose
 
@@ -15,7 +15,7 @@ The registry is deliberately separate from:
 - an assessment/cognitive process,
 - a temporary AI-generated label.
 
-Canonical identity belongs to Brain Heist. External curricula such as Cambridge are crosswalks to that stable identity.
+Canonical identity belongs to Brains Heist. External curricula such as Cambridge are crosswalks to that stable identity.
 
 ## Version
 
@@ -53,7 +53,7 @@ The registry supports both Cambridge English pathways:
 - Cambridge Lower Secondary English as a Second Language 0876
 - Cambridge Lower Secondary English 0861
 
-The same Brain Heist identities continue into Upper Secondary, where crosswalks can point to Cambridge IGCSE English as an Additional Language 0472, Cambridge IGCSE First Language English 0500, or Cambridge IGCSE English as a Second Language 0510/0511 depending the learner pathway.
+The same Brains Heist identities continue into Upper Secondary, where crosswalks can point to Cambridge IGCSE English as an Additional Language 0472, Cambridge IGCSE First Language English 0500, or Cambridge IGCSE English as a Second Language 0510/0511 depending the learner pathway.
 
 Official public references:
 - https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-primary/curriculum/english-as-a-second-language/
@@ -65,7 +65,7 @@ Official public references:
 - https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-english-second-language-oral-endorsement-0510/
 - https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-english-second-language-count-in-oral-0511/
 
-Do not copy restricted Cambridge curriculum-framework wording into Brain Heist. Store exact external objectives only through an authorised, versioned curriculum import. Public crosswalks stay at the programme/strand/assessment-reference level unless licensed source material has been governed separately.
+Do not copy restricted Cambridge curriculum-framework wording into Brains Heist. Store exact external objectives only through an authorised, versioned curriculum import. Public crosswalks stay at the programme/strand/assessment-reference level unless licensed source material has been governed separately.
 
 ## Evidence Focus layer
 
@@ -148,7 +148,7 @@ The evidence statement does not become the learner's longitudinal identity.
 
 ## Assessment-process namespace
 
-Brain Heist currently uses:
+Brains Heist currently uses:
 - BH-AO1: knowledge/comprehension
 - BH-AO2: application/procedure
 - BH-AO3: analysis/interpretation
@@ -162,7 +162,7 @@ Cambridge IGCSE English as a Second Language uses its own AO namespace in the 20
 - Cambridge AO3: Listening
 - Cambridge AO4: Speaking
 
-These are different systems. Cambridge references are stored in `academic_skill_framework_crosswalks.external_reference_code`, for example `CIE0510-AO1`. They must never be written into Brain Heist's cognitive-process AO field.
+These are different systems. Cambridge references are stored in `academic_skill_framework_crosswalks.external_reference_code`, for example `CIE0510-AO1`. They must never be written into Brains Heist's cognitive-process AO field.
 
 ## Phase model
 
@@ -171,7 +171,7 @@ The v1 registry supports:
 - `lower_secondary`
 - `upper_secondary`
 
-The generation RPC currently defaults grades 1–6 to Primary, 7–9 to Lower Secondary and 10–12 to Upper Secondary. That default is a Brain Heist operational convenience, not a claim that every school's grade numbering is identical to Cambridge stages. A school's explicit programme/stage mapping should override the default when available.
+The generation RPC currently defaults grades 1–6 to Primary, 7–9 to Lower Secondary and 10–12 to Upper Secondary. That default is a Brains Heist operational convenience, not a claim that every school's grade numbering is identical to Cambridge stages. A school's explicit programme/stage mapping should override the default when available.
 
 ## AI rules
 
@@ -200,7 +200,7 @@ For any School Verified question whose subject has a published registry:
 
 The curriculum objective answers "where does this sit in the school's curriculum?"
 
-The Brain Heist registry answers "what transferable learner capability does this measure?"
+The Brains Heist registry answers "what transferable learner capability does this measure?"
 
 Both are retained.
 
@@ -268,7 +268,7 @@ The multi-subject v1 system now governs English/ESL, Mathematics, Science and it
 
 All registries follow the same architecture:
 
-external framework → subject alias/programme scope → Brain Heist stable competency → reusable diagnostic leaf → assessment process → item evidence.
+external framework → subject alias/programme scope → Brains Heist stable competency → reusable diagnostic leaf → assessment process → item evidence.
 
 The September 2026 multi-subject migration canonicalised all 816 previously verified active non-English taxonomy rows in these banks using append-only successors. Historical labels remain auditable through `supersedes_taxonomy_id`.
 
