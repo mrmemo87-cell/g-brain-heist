@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   createSuperadminQuestionSourceReviewLink,
   governSuperadminSchoolQuestion,
+  loadAcademicEvidenceFocusesForGovernance,
   loadAcademicSkillRegistryForGovernance,
   loadSuperadminQuestionBank,
   loadSuperadminSchoolCurriculumOptions,
+  type AdminAcademicEvidenceFocus,
   type AdminAcademicSkillRegistryLeaf,
   type AdminAssessmentProcessCode,
   type AdminQuestionBankCatalog,
@@ -106,6 +108,9 @@ const QuestionBankInspectorTab: React.FC = () => {
   const [primarySkillName, setPrimarySkillName] = useState('');
   const [atomicSubskillCode, setAtomicSubskillCode] = useState('');
   const [atomicSubskillName, setAtomicSubskillName] = useState('');
+  const [evidenceFocuses, setEvidenceFocuses] = useState<AdminAcademicEvidenceFocus[]>([]);
+  const [evidenceFocusCode, setEvidenceFocusCode] = useState('');
+  const [loadingEvidenceFocuses, setLoadingEvidenceFocuses] = useState(false);
   const [registryLeaves, setRegistryLeaves] = useState<AdminAcademicSkillRegistryLeaf[]>([]);
   const [registryVersion, setRegistryVersion] = useState('');
   const [registryPhase, setRegistryPhase] = useState('');
@@ -167,6 +172,9 @@ const QuestionBankInspectorTab: React.FC = () => {
     setPrimarySkillName(proposal?.primary_skill_name || '');
     setAtomicSubskillCode(proposal?.atomic_subskill_code || '');
     setAtomicSubskillName(proposal?.atomic_subskill_name || '');
+    setEvidenceFocuses([]);
+    setEvidenceFocusCode(proposal?.evidence_focus_code || '');
+    setLoadingEvidenceFocuses(false);
     setRegistryLeaves([]);
     setRegistryVersion('');
     setRegistryPhase('');
@@ -228,12 +236,20 @@ const QuestionBankInspectorTab: React.FC = () => {
     .filter((leaf) => leaf.skillCode === primarySkillCode)
     .sort((a, b) => a.subskillName.localeCompare(b.subskillName)), [primarySkillCode, registryLeaves]);
 
+  const selectedEvidenceFocus = useMemo(
+    () => evidenceFocuses.find((focus) => focus.code === evidenceFocusCode) || null,
+    [evidenceFocusCode, evidenceFocuses],
+  );
+
   useEffect(() => {
     let cancelled = false;
     if (!selectedQuestion || !selectedSchoolOption) {
       setRegistryLeaves([]);
       setRegistryVersion('');
       setRegistryPhase('');
+      setEvidenceFocuses([]);
+      setEvidenceFocusCode('');
+      setLoadingEvidenceFocuses(false);
       setLoadingRegistry(false);
       return () => { cancelled = true; };
     }
@@ -248,6 +264,8 @@ const QuestionBankInspectorTab: React.FC = () => {
         setRegistryLeaves([]);
         setRegistryVersion('');
         setRegistryPhase('');
+        setEvidenceFocuses([]);
+        setEvidenceFocusCode('');
         return;
       }
       setRegistryLeaves(registry.skills);
@@ -272,6 +290,7 @@ const QuestionBankInspectorTab: React.FC = () => {
       } else {
         setPrimarySkillCode('');
         setAtomicSubskillCode('');
+        setEvidenceFocusCode('');
       }
     }).catch((registryError) => {
       if (!cancelled) {
@@ -285,12 +304,51 @@ const QuestionBankInspectorTab: React.FC = () => {
     return () => { cancelled = true; };
   }, [addToast, selectedQuestion, selectedSchoolOption]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setEvidenceFocuses([]);
+    setLoadingEvidenceFocuses(false);
+
+    if (!selectedSchoolOption || !atomicSubskillCode || !registryLeaves.length) {
+      if (!atomicSubskillCode) setEvidenceFocusCode('');
+      return () => { cancelled = true; };
+    }
+
+    setLoadingEvidenceFocuses(true);
+    void loadAcademicEvidenceFocusesForGovernance(
+      selectedSchoolOption.academicSubjectName,
+      selectedSchoolOption.gradeLevel,
+      atomicSubskillCode,
+    ).then((focuses) => {
+      if (cancelled) return;
+      setEvidenceFocuses(focuses);
+      const proposedCode = selectedQuestion?.submission?.taxonomyProposal?.evidence_focus_code || '';
+      if (proposedCode && focuses.some((focus) => focus.code === proposedCode)) {
+        setEvidenceFocusCode(proposedCode);
+      } else if (!focuses.some((focus) => focus.code === evidenceFocusCode)) {
+        setEvidenceFocusCode(focuses.length === 1 ? focuses[0].code : '');
+      }
+    }).catch((focusError) => {
+      if (!cancelled) {
+        setEvidenceFocuses([]);
+        setEvidenceFocusCode('');
+        addToast(focusError instanceof Error ? focusError.message : 'The Evidence Focus catalogue could not be loaded.', 'error');
+      }
+    }).finally(() => {
+      if (!cancelled) setLoadingEvidenceFocuses(false);
+    });
+
+    return () => { cancelled = true; };
+  }, [addToast, atomicSubskillCode, evidenceFocusCode, registryLeaves.length, selectedQuestion, selectedSchoolOption]);
+
   const chooseRegistryPrimarySkill = (code: string) => {
     const firstLeaf = registryLeaves.find((leaf) => leaf.skillCode === code);
     setPrimarySkillCode(code);
     setPrimarySkillName(firstLeaf?.skillName || '');
     setAtomicSubskillCode(firstLeaf?.subskillCode || '');
     setAtomicSubskillName(firstLeaf?.subskillName || '');
+    setEvidenceFocuses([]);
+    setEvidenceFocusCode('');
   };
 
   const chooseRegistrySubskill = (code: string) => {
@@ -300,6 +358,8 @@ const QuestionBankInspectorTab: React.FC = () => {
     setPrimarySkillName(leaf.skillName);
     setAtomicSubskillCode(leaf.subskillCode);
     setAtomicSubskillName(leaf.subskillName);
+    setEvidenceFocuses([]);
+    setEvidenceFocusCode('');
   };
 
   const pageNumber = Math.floor(offset / PAGE_SIZE) + 1;
@@ -382,6 +442,10 @@ const QuestionBankInspectorTab: React.FC = () => {
         addToast('Choose the canonical skill and atomic subskill from the published Academic Skill Registry.', 'error');
         return;
       }
+      if (registryLeaves.length && !evidenceFocusCode) {
+        addToast('Choose the governed Evidence Focus for this exact subskill before approval.', 'error');
+        return;
+      }
       if (primarySkillName.trim().length < 3 || atomicSubskillName.trim().length < 3) {
         addToast('Confirm both the primary skill and one precise atomic subskill.', 'error');
         return;
@@ -404,6 +468,7 @@ const QuestionBankInspectorTab: React.FC = () => {
           primarySkillName: primarySkillName.trim(),
           atomicSubskillCode: atomicSubskillCode || undefined,
           atomicSubskillName: atomicSubskillName.trim(),
+          evidenceFocusCode,
           assessmentProcessCode,
           cognitiveProcess,
           evidenceStatement: evidenceStatement.trim(),
@@ -575,6 +640,7 @@ const QuestionBankInspectorTab: React.FC = () => {
                     </div>
                     <dl>
                       <div><dt>Atomic subskill</dt><dd>{selectedQuestion.submission.taxonomyProposal.atomic_subskill_name}</dd></div>
+                      {selectedQuestion.submission.taxonomyProposal.evidence_focus_name ? <div><dt>Evidence Focus</dt><dd>{selectedQuestion.submission.taxonomyProposal.evidence_focus_name}</dd></div> : null}
                       <div><dt>Assessment objective</dt><dd>{selectedQuestion.submission.taxonomyProposal.assessment_process_code} · {selectedQuestion.submission.taxonomyProposal.assessment_process_name}</dd></div>
                       <div><dt>Cognitive process</dt><dd>{selectedQuestion.submission.taxonomyProposal.cognitive_process}</dd></div>
                     </dl>
@@ -619,6 +685,20 @@ const QuestionBankInspectorTab: React.FC = () => {
                                 <label><span>Atomic subskill</span><input value={atomicSubskillName} onChange={(event) => setAtomicSubskillName(event.target.value)} maxLength={200} /></label>
                               </>
                             )}
+                            {registryLeaves.length ? (
+                              <label className="is-wide">
+                                <span>Evidence Focus · governed intervention target</span>
+                                <select
+                                  value={evidenceFocusCode}
+                                  onChange={(event) => setEvidenceFocusCode(event.target.value)}
+                                  disabled={loadingEvidenceFocuses || !atomicSubskillCode}
+                                >
+                                  <option value="">{loadingEvidenceFocuses ? 'Loading governed focuses…' : 'Choose Evidence Focus'}</option>
+                                  {evidenceFocuses.map((focus) => <option key={focus.code} value={focus.code}>{focus.name}</option>)}
+                                </select>
+                                <small>{selectedEvidenceFocus?.description || 'This controlled focus is the precise behaviour Intervention will remediate. It does not replace the stable canonical subskill.'}</small>
+                              </label>
+                            ) : null}
                             <label><span>Assessment objective</span><select value={assessmentProcessCode} onChange={(event) => changeAssessmentProcess(event.target.value as AdminAssessmentProcessCode)}><option value="AO1">AO1 · knowledge &amp; understanding</option><option value="AO2">AO2 · application</option><option value="AO3">AO3 · analysis</option><option value="AO4">AO4 · evaluation</option></select></label>
                             <label><span>Cognitive process</span><select value={cognitiveProcess} onChange={(event) => setCognitiveProcess(event.target.value as typeof cognitiveProcess)}>{COGNITION_BY_AO[assessmentProcessCode].map((value) => <option key={value} value={value}>{formatAuditLabel(value)}</option>)}</select></label>
                             <label className="is-wide"><span>Observable evidence statement</span><textarea value={evidenceStatement} onChange={(event) => setEvidenceStatement(event.target.value)} minLength={30} maxLength={500} rows={3} /></label>
@@ -627,7 +707,7 @@ const QuestionBankInspectorTab: React.FC = () => {
                         </fieldset>
                         <fieldset>
                           <legend><b>3</b> Decision record</legend>
-                          <label><span>Professional rationale · stored permanently</span><textarea value={governanceRationale} onChange={(event) => setGovernanceRationale(event.target.value)} minLength={20} maxLength={2000} rows={3} placeholder="Explain why the content, exact curriculum objective, skill, subskill and assessment objective are accurate." /></label>
+                          <label><span>Professional rationale · stored permanently</span><textarea value={governanceRationale} onChange={(event) => setGovernanceRationale(event.target.value)} minLength={20} maxLength={2000} rows={3} placeholder="Explain why the content, curriculum objective, skill, subskill, Evidence Focus and assessment objective are accurate." /></label>
                         </fieldset>
                         <div className="qb-inspector__gate-actions"><button type="button" className="is-return" onClick={() => void recordSchoolGovernance('return_teacher')} disabled={savingGovernance}>Return to teacher</button><button type="submit" className="is-approve" disabled={savingGovernance || !selectedSchoolOption}>{savingGovernance ? 'Recording decision…' : `Approve for ${selectedSchoolOption?.schoolName || 'school'} →`}</button></div>
                       </form>
