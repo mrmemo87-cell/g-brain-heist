@@ -2723,6 +2723,16 @@ from public,anon,authenticated,service_role;
 grant execute on function public.rpc_superadmin_govern_school_question(uuid,text,jsonb)
 to authenticated,service_role;
 
+revoke all on function public.rpc_teacher_student_intervention_intelligence(uuid,text)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_teacher_student_intervention_intelligence(uuid,text)
+to authenticated,service_role;
+
+revoke all on function public.rpc_superadmin_decide_question_taxonomy_review(uuid,text,text,jsonb)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_superadmin_decide_question_taxonomy_review(uuid,text,text,jsonb)
+to authenticated;
+
 do $audit$
 declare
   v_missing integer;
