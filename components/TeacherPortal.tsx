@@ -5106,7 +5106,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
                   <strong className="block text-sm text-amber-950">My Pool remains the default</strong>
                   <p className="mt-1 text-xs leading-5 text-amber-900/80">
-                    Saving normally keeps this as a classroom question. It can be assigned and reported on, but it does not change the official Academic Profile until Academic Verification is approved.
+                    Saving normally keeps this as a classroom question. By itself, it never changes the official Academic Profile. Only approved Academic Verification can make it official evidence.
                   </p>
                 </div>
               </div>
