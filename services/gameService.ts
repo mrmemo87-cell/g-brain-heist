@@ -5279,6 +5279,70 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
     return data as TeacherQuestion;
 };
 
+export interface TeacherAcademicSkillRegistryLeaf {
+    strandCode: string;
+    strandName: string;
+    skillCode: string;
+    skillName: string;
+    skillDescription?: string;
+    subskillCode: string;
+    subskillName: string;
+    subskillDescription?: string;
+}
+
+export interface TeacherAcademicSkillRegistryResult {
+    success: true;
+    supported: boolean;
+    reason?: string;
+    registryVersion?: string;
+    phase?: 'primary' | 'lower_secondary' | 'upper_secondary';
+    cambridgeProgrammes?: Array<{ code: string; name: string }>;
+    skills: TeacherAcademicSkillRegistryLeaf[];
+}
+
+export const get_teacher_academic_skill_registry = async (
+    subject: string,
+    gradeLevel: number
+): Promise<TeacherAcademicSkillRegistryResult> => {
+    const { data, error } = await supabase.rpc('rpc_academic_skill_registry_for_generation', {
+        p_subject_key: subject,
+        p_grade_level: gradeLevel,
+        p_phase: null,
+    });
+    if (error) throw error;
+    const result = (data || {}) as TeacherAcademicSkillRegistryResult;
+    return {
+        ...result,
+        skills: Array.isArray(result.skills) ? result.skills : [],
+    };
+};
+
+export interface TeacherManualQuestionGovernanceSubmissionResult {
+    success: true;
+    submissionId: string;
+    questionId: string;
+    verificationStatus: 'in_review';
+    registryVersion: string;
+    primarySkillCode: string;
+    primarySkillName: string;
+    atomicSubskillCode: string;
+    atomicSubskillName: string;
+}
+
+export const submit_manual_question_for_governance = async (
+    questionId: string,
+    primarySkillCode: string,
+    atomicSubskillCode: string,
+): Promise<TeacherManualQuestionGovernanceSubmissionResult> => {
+    const { data, error } = await supabase.rpc('rpc_teacher_submit_manual_question_for_governance', {
+        p_question_id: questionId,
+        p_primary_skill_code: primarySkillCode,
+        p_atomic_subskill_code: atomicSubskillCode,
+    });
+    if (error) throw error;
+    return data as TeacherManualQuestionGovernanceSubmissionResult;
+};
+
 /**
  * Get all questions created by the current teacher
  */
