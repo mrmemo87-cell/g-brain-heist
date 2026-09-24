@@ -531,12 +531,14 @@ const schoolQuestionGovernanceError = (message?: string) => {
   if (value.includes('school_question_assessment_objective_cognition_mismatch')) {
     return new Error('The assessment objective and cognitive process do not match. Use AO1 remember/understand, AO2 apply, AO3 analyze, or AO4 evaluate.');
   }
-  if (value.includes('school_question_english_registry_match_required')
+  if (value.includes('school_question_canonical_registry_match_required')
+      || value.includes('school_question_english_registry_match_required')
       || value.includes('school_english_taxonomy_registry_match_required')) {
-    return new Error('Choose an approved English skill and atomic subskill from the published Academic Skill Registry.');
+    return new Error('Choose an approved canonical skill and atomic subskill from the published Academic Skill Registry for this subject.');
   }
-  if (value.includes('school_english_taxonomy_registry_name_code_mismatch')) {
-    return new Error('The selected English skill names no longer match their registry codes. Reload the registry and choose the canonical pair again.');
+  if (value.includes('school_question_canonical_registry_name_code_mismatch')
+      || value.includes('school_english_taxonomy_registry_name_code_mismatch')) {
+    return new Error('The selected skill names no longer match their registry codes. Reload the registry and choose the canonical pair again.');
   }
   if (value.includes('school_approval_source_rights_attestation_required')) {
     return new Error('This AI-created question cannot be approved until source-generation rights are confirmed.');
