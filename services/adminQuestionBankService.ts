@@ -119,6 +119,9 @@ export interface AdminQuestionBankQuestion {
       primary_skill_name: string;
       atomic_subskill_code?: string;
       atomic_subskill_name: string;
+      evidence_focus_code?: string;
+      evidence_focus_name?: string;
+      evidence_focus_description?: string;
       assessment_process_code: AdminAssessmentProcessCode;
       assessment_process_name: string;
       assessment_process_definition: string;
@@ -217,6 +220,13 @@ export interface AdminAcademicSkillRegistryResult {
   phase?: 'primary' | 'lower_secondary' | 'upper_secondary';
   cambridgeProgrammes?: Array<{ code: string; name: string }>;
   skills: AdminAcademicSkillRegistryLeaf[];
+}
+
+export interface AdminAcademicEvidenceFocus {
+  code: string;
+  name: string;
+  description: string;
+  sourceMethod?: 'verified_bank_backfill' | 'human_governed' | 'platform_seed';
 }
 
 export interface AdminSchoolQuestionGovernanceResult {
@@ -540,6 +550,14 @@ const schoolQuestionGovernanceError = (message?: string) => {
       || value.includes('school_english_taxonomy_registry_name_code_mismatch')) {
     return new Error('The selected skill names no longer match their registry codes. Reload the registry and choose the canonical pair again.');
   }
+  if (value.includes('school_question_evidence_focus_registry_match_required')
+      || value.includes('verified_question_evidence_focus_registry_match_required')
+      || value.includes('verified_question_evidence_focus_required')) {
+    return new Error('Choose a governed Evidence Focus that belongs to the selected canonical subskill before approval.');
+  }
+  if (value.includes('verified_question_evidence_focus_name_code_mismatch')) {
+    return new Error('The Evidence Focus name no longer matches its governed code. Reload the catalogue and choose it again.');
+  }
   if (value.includes('school_approval_source_rights_attestation_required')) {
     return new Error('This AI-created question cannot be approved until source-generation rights are confirmed.');
   }
@@ -590,6 +608,25 @@ export async function loadAcademicSkillRegistryForGovernance(
   };
 }
 
+export async function loadAcademicEvidenceFocusesForGovernance(
+  subject: string,
+  gradeLevel: string | number,
+  atomicSubskillCode: string,
+): Promise<AdminAcademicEvidenceFocus[]> {
+  const grade = Number(String(gradeLevel).replace(/\D/g, ''));
+  if (!Number.isInteger(grade) || grade < 1 || grade > 12 || !atomicSubskillCode) {
+    return [];
+  }
+  const { data, error } = await supabase.rpc('rpc_academic_evidence_focuses_for_subskill', {
+    p_subject_key: subject,
+    p_grade_level: grade,
+    p_atomic_subskill_code: atomicSubskillCode,
+  });
+  if (error) throw new Error(error.message || 'The Evidence Focus catalogue could not be loaded.');
+  const result = data as { success?: boolean; focuses?: AdminAcademicEvidenceFocus[] } | null;
+  return result?.success && Array.isArray(result.focuses) ? result.focuses : [];
+}
+
 export async function governSuperadminSchoolQuestion(input: {
   questionId: string;
   action: 'approve_school' | 'return_teacher' | 'retire_school';
@@ -600,6 +637,7 @@ export async function governSuperadminSchoolQuestion(input: {
     primarySkillName: string;
     atomicSubskillCode?: string;
     atomicSubskillName: string;
+    evidenceFocusCode: string;
     assessmentProcessCode: AdminAssessmentProcessCode;
     cognitiveProcess: 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate';
     evidenceStatement: string;
