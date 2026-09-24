@@ -201,8 +201,12 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
           const classEnrollmentResult = await AuthService.enrollInApprovedSchoolClass(selectedClassId);
           if (!classEnrollmentResult.success) {
             console.error('Approved class enrollment failed after school setup:', classEnrollmentResult.error);
-            const placementResult = await AuthService.requestSchoolClassPlacement(String(grade), requestedClass);
-            if (!placementResult.success) console.error('Placement request failed:', placementResult.error);
+            setError(
+              classEnrollmentResult.error
+                || 'Your school was joined, but your selected registration class could not be saved. Please try again.',
+            );
+            setStep('student_details');
+            return;
           }
         } else if (finalRole === 'student' && grade) {
           const placementResult = await AuthService.requestSchoolClassPlacement(String(grade), requestedClass);
@@ -467,7 +471,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
         </label>
 
         {path === 'school' ? <label className="block">
-          <span className="text-sm font-medium text-gray-300 mb-2 block">Approved class</span>
+          <span className="text-sm font-medium text-gray-300 mb-2 block">Registration class</span>
           <select
             value={selectedClassId}
             onChange={(e) => {
@@ -477,7 +481,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             className="w-full bg-gray-800 border border-gray-600 rounded-lg p-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
             disabled={isLoading || classesLoading || !grade}
           >
-            <option value="">{classesLoading ? 'Loading approved classes…' : 'My class is not listed'}</option>
+            <option value="">{classesLoading ? 'Loading registration classes…' : 'Select your class'}</option>
             {approvedClasses.filter((item) => classMatchesConfiguredGrade(item, grade)).map((item) => (
               <option key={item.id} value={item.id}>{item.class_code}{item.class_name !== item.class_code ? ` · ${item.class_name}` : ''}</option>
             ))}
@@ -486,7 +490,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
             <p className="mt-1 text-xs text-gray-500">Select a grade first</p>
           )}
           {grade && !selectedClassId && <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3">
-            <p className="text-xs leading-relaxed text-amber-100">You can finish registration now. Your school administrator will see you in the Awaiting Placement queue.</p>
+            <p className="text-xs leading-relaxed text-amber-100">If your registration class is genuinely missing, you can finish now and your school administrator will place you later.</p>
             <input value={requestedClass} onChange={(event) => setRequestedClass(event.target.value)} placeholder="Optional: type your class name" className="mt-2 w-full rounded-lg border border-amber-300/30 bg-slate-900 p-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-300" />
           </div>}
         </label> : <label className="block">
