@@ -171,7 +171,7 @@ begin
     'evidence_statement','Provisional manual submission: superadmin must confirm the exact evidence statement before approval.',
     'secondary_skill_names','[]'::jsonb,
     'confidence_score',0.9,
-    'review_reason','Teacher selected a canonical Brain Heist skill and subskill. Curriculum objective, assessment process and evidence statement require human governance.'
+    'review_reason','Teacher selected a canonical Brains Heist skill and subskill. Curriculum objective, assessment process and evidence statement require human governance.'
   );
 
   insert into public.teacher_question_manual_submissions(
