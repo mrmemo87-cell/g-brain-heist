@@ -14,7 +14,7 @@ const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_PAGES = 60;
 const MAX_QUESTIONS = 50;
 const MAX_GENERATED_QUESTIONS = 24;
-const QUESTION_QUALITY_REVISION = 3;
+const QUESTION_QUALITY_REVISION = 4;
 const SOURCE_DEPENDENCY_MARKERS = [
   "the material", "this material", "source material", "the source", "this source",
   "the worksheet", "this worksheet", "the lesson", "this lesson",
@@ -379,7 +379,7 @@ const normalizeExtraction = (
         : hasSourceDependencyIssue
           ? "This generated question assumes access to the teacher source. Rewrite it so the student can answer without seeing the PDF, worksheet, lesson or source activity."
         : taxonomyRegistryNeedsAttention
-          ? "The English diagnostic taxonomy does not match the published Brain Heist skill registry. Choose a canonical skill/subskill before governance approval."
+          ? "The diagnostic taxonomy does not match the published Brain Heist skill registry for this subject. Choose a canonical skill/subskill before governance approval."
         : hasGroundingIssue
           ? "Confirm the generated question, answer and grounding against the cited source page."
         : hasAnswerIssue
@@ -596,15 +596,25 @@ serve(async (request) => {
       cambridgeProgrammes?: Array<{ code: string; name: string }>;
     } | null = null;
 
-    if (createsQuestions && preferredSubject === "English") {
+    if (createsQuestions) {
       const { data: registryData, error: registryError } = await admin.rpc(
         "rpc_academic_skill_registry_for_generation",
-        { p_subject_key: "English", p_grade_level: targetGrade, p_phase: null },
+        { p_subject_key: preferredSubject, p_grade_level: targetGrade, p_phase: null },
       );
-      if (registryError || !registryData?.supported || !Array.isArray(registryData.skills) || !registryData.skills.length) {
-        console.error("teacher_question_pdf_extract registry error", registryError?.message || registryData);
+      if (registryError) {
+        console.error("teacher_question_pdf_extract registry error", registryError.message);
         return jsonResponse(503, {
-          error: "The governed English skill registry could not be loaded. Question creation is paused rather than inventing new Academic Profile skills.",
+          error: "The governed Academic Skill Registry could not be loaded. Question creation is paused rather than inventing new Academic Profile skills.",
+        });
+      }
+      if (!registryData?.supported) {
+        return jsonResponse(400, {
+          error: "This subject does not yet have a published Academic Skill Registry. Save classroom questions manually or ask a platform administrator to publish the subject registry first.",
+        });
+      }
+      if (!Array.isArray(registryData.skills) || !registryData.skills.length) {
+        return jsonResponse(400, {
+          error: "This subject registry has no canonical skills for the selected grade/phase. Choose a suitable grade or use a curriculum pathway supported for this subject.",
         });
       }
       academicSkillRegistry = registryData;
@@ -692,7 +702,7 @@ serve(async (request) => {
       "If a student would need to see a source diagram, graph, image, map, table, or layout to answer, set visual_required and needs_human_attention true. Never silently recreate or guess the visual.",
       "Build diagnostic taxonomy for longitudinal reporting, not a unique label for every question.",
       academicSkillRegistry
-        ? "For English, taxonomy identity is governed by the supplied Brain Heist canonical registry. For every question choose exactly one listed skillCode/subskillCode pair and copy its skillName/subskillName exactly. Set registry_version to the supplied registry version and registry_match=true. Never invent, paraphrase, pluralize, narrow, or expand a canonical skill name/code. If no listed subskill genuinely fits, set registry_match=false, leave the canonical codes empty, use Needs professional classification for the names, and set needs_human_attention=true."
+        ? "For this subject, taxonomy identity is governed by the supplied Brain Heist canonical registry. For every question choose exactly one listed skillCode/subskillCode pair and copy its skillName/subskillName exactly. Set registry_version to the supplied registry version and registry_match=true. Never invent, paraphrase, pluralize, narrow, or expand a canonical skill name/code. If no listed subskill genuinely fits, set registry_match=false, leave the canonical codes empty, use Needs professional classification for the names, and set needs_human_attention=true."
         : "primary_skill_name must be a stable, reusable curriculum/reporting skill. atomic_subskill_name must be a reusable diagnostic leaf that several related questions could share.",
       "Do not put example-specific vocabulary, names, exact answer tokens, one-off sentence contexts, or item wording into canonical skill identity. Keep item-specific detail in evidence_statement instead.",
       "For one coherent learning-material batch, normally reuse 1-3 primary skills and about 2-5 atomic subskills. Reuse the exact same labels across questions that assess the same skill. Create additional labels only when the source clearly spans genuinely distinct learning objectives.",
@@ -847,7 +857,7 @@ serve(async (request) => {
         source_file_size: bytes.length,
         detected_page_count: pageCount,
         extraction_model: chosenModel,
-        extraction_schema_version: 4,
+        extraction_schema_version: 5,
         processing_mode: processingMode,
         detected_document_type: extraction.detected_document_type,
         processing_request: processingRequest,
