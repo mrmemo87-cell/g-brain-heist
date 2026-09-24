@@ -207,8 +207,29 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
 
   return <section className="intervention-targeted-workspace">
     <header className="intervention-targeted-banner">
-      <div><span>Brains Heist · Targeted Practice</span><h2>{context.recommendation.skill}</h2><p>For <strong>{context.student.name}</strong> only. Automatic selections are exact, grade-eligible Brains Heist Verified matches to the governed weak area. Broader related questions stay unselected for teacher review.</p></div>
-      <div><span>Confirmed focus</span><strong>{context.recommendation.diagnostic_targets.join(' · ') || context.recommendation.skill}</strong><small>{context.recommendation.available_exact_questions > 0 ? `${context.recommendation.available_exact_questions} exact verified question${context.recommendation.available_exact_questions === 1 ? '' : 's'} available.` : 'No exact verified question is currently available; choose a related question deliberately if it genuinely matches the confirmed need.'} Practice is rehearsal; independent assessed work remains the progress check.</small></div>
+      <div>
+        <span>Brains Heist · Targeted Practice</span>
+        <h2>{context.recommendation.evidence_focus_name || context.recommendation.skill}</h2>
+        <p>
+          For <strong>{context.student.name}</strong> only. Automatic selections are exact, grade-eligible verified matches to the governed Evidence Focus. Same-subskill and broader-skill questions stay unselected for deliberate teacher review.
+        </p>
+      </div>
+      <div>
+        <span>Confirmed intervention target</span>
+        <strong>{context.recommendation.evidence_focus_name || context.recommendation.diagnostic_targets.join(' · ') || context.recommendation.skill}</strong>
+        <small>
+          {context.recommendation.available_exact_questions > 0
+            ? `${context.recommendation.available_exact_questions} exact-focus verified question${context.recommendation.available_exact_questions === 1 ? '' : 's'} available.`
+            : 'No exact-focus verified question is currently available.'}
+          {context.recommendation.available_same_subskill_questions
+            ? ` ${context.recommendation.available_same_subskill_questions} same-subskill question${context.recommendation.available_same_subskill_questions === 1 ? '' : 's'} available for teacher review.`
+            : ''}
+          {context.recommendation.available_broader_skill_questions
+            ? ` ${context.recommendation.available_broader_skill_questions} broader-skill question${context.recommendation.available_broader_skill_questions === 1 ? '' : 's'} available.`
+            : ''}
+          {' '}Practice is rehearsal; independent assessed work remains the progress check.
+        </small>
+      </div>
     </header>
     <AssignmentWizard
       initialStep={3}
