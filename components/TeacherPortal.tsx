@@ -370,7 +370,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setManualRegistrySupported(null);
     setManualRegistryLoading(false);
     setManualStrandCode('');
-    setManualStrandCode('');
     setManualPrimarySkillCode('');
     setManualAtomicSubskillCode('');
     setSubmitForAcademicVerification(false);
@@ -5068,10 +5067,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       Classify the question using the durable competency hierarchy used by Academic Profile and Intervention.
                     </p>
                   </div>
-                  {manualRegistryVersion && (
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">
-                      {manualRegistryVersion}
-                    </span>
+                  {(manualRegistryVersion || manualRegistryPhase) && (
+                    <div className="flex flex-wrap justify-end gap-1.5">
+                      {manualRegistryPhase && (
+                        <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold capitalize text-slate-600">
+                          {manualRegistryPhase.replace(/_/g, ' ')}
+                        </span>
+                      )}
+                      {manualRegistryVersion && (
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">
+                          {manualRegistryVersion}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
 
