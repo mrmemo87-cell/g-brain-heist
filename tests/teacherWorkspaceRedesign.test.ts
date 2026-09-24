@@ -28,6 +28,11 @@ test('assignment wizard follows the subject-first light workflow', () => {
   assert.match(wizard, /\{ id: 2, short: 'Audience', question: 'Who is this for\?'/);
   assert.match(wizard, /question: 'Add Title and Description'/);
   assert.match(wizard, /Brains Heist Verified/);
+  assert.match(wizard, /School Verified/);
+  assert.match(wizard, /My Pool/);
+  assert.match(wizard, /isSchoolPoolQuestion/);
+  assert.match(wizard, /isVerifiedProfileQuestion/);
+  assert.match(wizard, /School Verified · Profile evidence/);
   assert.match(wizard, />Select all</);
   assert.match(wizard, /Available questions/);
   assert.match(wizard, /Selected questions/);
