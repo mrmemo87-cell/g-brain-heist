@@ -14,7 +14,7 @@ import {
   type SchoolAcademicSetup,
 } from '../../services/schoolAcademicSetupService';
 import { useSchoolAdmin } from './SchoolAdminContext';
-import SubjectTeachingGroupsPanel from './SubjectTeachingGroupsPanel';
+import SubjectTeachingGroupsPanel from './SubjectTeachingGroupsPanel';\nimport SubjectIcon from '../SubjectIcon';
 
 const gradeLabel = (value: string | number) => `Grade ${value}`;
 const studentId = (student: any) => student?.user_id || student?.id;
@@ -398,7 +398,7 @@ const SchoolSubjectsManager: React.FC = () => {
                 return (
                   <article key={subject.id} className="grid gap-4 px-5 py-5 transition hover:bg-slate-50/70 lg:grid-cols-[minmax(180px,1.4fr)_minmax(160px,1fr)_minmax(150px,1fr)_120px_160px] lg:items-center">
                     <div className="flex min-w-0 items-center gap-3">
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-950 text-xs font-bold text-white">{initials(subject.name)}</span>
+                      <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-slate-950/5 p-1">\n                        <SubjectIcon subject={subject.name} size={40} className="h-10 w-10 object-contain" fallback={<span className="grid h-10 w-10 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">{initials(subject.name)}</span>} />\n                      </span>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <h4 className="truncate text-[15px] font-bold text-slate-950">{subject.name}</h4>
