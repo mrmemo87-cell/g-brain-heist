@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Biology subject icon — detailed drawn DNA</title>
+  <desc id="desc">A clean animated SVG of a DNA double helix. The strands, base pairs, and hydrogen bond marks are drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blueGrad" x1="84" y1="24" x2="120" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4EE4FF"/>
+      <stop offset="100%" stop-color="#0077FF"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="172" y1="24" x2="136" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DFFF55"/>
+      <stop offset="100%" stop-color="#14B86E"/>
+    </linearGradient>
+    <style>
+      .strand {
+        fill: none;
+        stroke-linecap: round;
+        stroke-width: 14;
+        stroke-dasharray: 290;
+        stroke-dashoffset: 290;
+      }
+      .left  { stroke: url(#blueGrad);  animation: drawLeft 3.2s ease-in-out infinite; }
+      .right { stroke: url(#greenGrad); animation: drawRight 3.2s ease-in-out infinite; }
+
+      .halfL, .halfR, .bond {
+        fill: none;
+        stroke-linecap: round;
+        stroke-dasharray: 40;
+        stroke-dashoffset: 40;
+      }
+      .halfL { stroke: #35D0FF; stroke-width: 5.5; }
+      .halfR { stroke: #8AE339; stroke-width: 5.5; }
+      .bond  { stroke: #EAF7FF; stroke-width: 2.6; stroke-dasharray: 8; stroke-dashoffset: 8; opacity: 0.95; }
+
+      .g1 .halfL { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 0.45s; }
+      .g1 .halfR { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 0.53s; }
+      .g1 .bond  { animation: drawBond 3.2s ease-in-out infinite; animation-delay: 0.62s; }
+
+      .g2 .halfL { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 0.62s; }
+      .g2 .halfR { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 0.70s; }
+      .g2 .bond  { animation: drawBond 3.2s ease-in-out infinite; animation-delay: 0.79s; }
+
+      .g3 .halfL { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 0.79s; }
+      .g3 .halfR { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 0.87s; }
+      .g3 .bond  { animation: drawBond 3.2s ease-in-out infinite; animation-delay: 0.96s; }
+
+      .g4 .halfL { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 0.96s; }
+      .g4 .halfR { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 1.04s; }
+      .g4 .bond  { animation: drawBond 3.2s ease-in-out infinite; animation-delay: 1.13s; }
+
+      .g5 .halfL { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 1.13s; }
+      .g5 .halfR { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 1.21s; }
+      .g5 .bond  { animation: drawBond 3.2s ease-in-out infinite; animation-delay: 1.30s; }
+
+      .g6 .halfL { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 1.30s; }
+      .g6 .halfR { animation: drawSeg 3.2s ease-in-out infinite; animation-delay: 1.38s; }
+      .g6 .bond  { animation: drawBond 3.2s ease-in-out infinite; animation-delay: 1.47s; }
+
+      @keyframes drawLeft {
+        0%   { stroke-dashoffset: 290; opacity: 1; }
+        28%  { stroke-dashoffset: 0; opacity: 1; }
+        82%  { stroke-dashoffset: 0; opacity: 1; }
+        100% { stroke-dashoffset: -290; opacity: 0; }
+      }
+      @keyframes drawRight {
+        0%   { stroke-dashoffset: 290; opacity: 1; }
+        10%  { stroke-dashoffset: 290; opacity: 1; }
+        38%  { stroke-dashoffset: 0; opacity: 1; }
+        82%  { stroke-dashoffset: 0; opacity: 1; }
+        100% { stroke-dashoffset: -290; opacity: 0; }
+      }
+      @keyframes drawSeg {
+        0%, 16% { stroke-dashoffset: 40; opacity: 0; }
+        28%     { opacity: 1; }
+        42%, 82%{ stroke-dashoffset: 0; opacity: 1; }
+        100%    { stroke-dashoffset: -40; opacity: 0; }
+      }
+      @keyframes drawBond {
+        0%, 20% { stroke-dashoffset: 8; opacity: 0; }
+        32%     { opacity: 0.95; }
+        44%,82% { stroke-dashoffset: 0; opacity: 0.95; }
+        100%    { stroke-dashoffset: -8; opacity: 0; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .strand, .halfL, .halfR, .bond {
+          animation: none !important;
+          stroke-dashoffset: 0 !important;
+          opacity: 1 !important;
+        }
+      }
+    </style>
+  </defs>
+
+  <!-- Backbone strands -->
+  <path class="strand left"  d="M96 24 C 62 48, 62 102, 112 128 C 162 154, 162 208, 128 232"/>
+  <path class="strand right" d="M160 24 C 194 48, 194 102, 144 128 C 94 154, 94 208, 128 232"/>
+
+  <!-- Base pairs with simple hydrogen-bond hints (2 or 3) -->
+  <g class="pair g1">
+    <line class="halfL" x1="108" y1="42" x2="125" y2="42"/>
+    <line class="halfR" x1="131" y1="42" x2="148" y2="42"/>
+    <g class="bond">
+      <line x1="126.5" y1="39" x2="129.5" y2="39"/>
+      <line x1="126.5" y1="45" x2="129.5" y2="45"/>
+    </g>
+  </g>
+
+  <g class="pair g2">
+    <line class="halfL" x1="99" y1="76" x2="123" y2="76"/>
+    <line class="halfR" x1="133" y1="76" x2="157" y2="76"/>
+    <g class="bond">
+      <line x1="125" y1="72" x2="131" y2="72"/>
+      <line x1="125" y1="76" x2="131" y2="76"/>
+      <line x1="125" y1="80" x2="131" y2="80"/>
+    </g>
+  </g>
+
+  <g class="pair g3">
+    <line class="halfL" x1="95" y1="111" x2="122" y2="111"/>
+    <line class="halfR" x1="134" y1="111" x2="161" y2="111"/>
+    <g class="bond">
+      <line x1="124" y1="108" x2="132" y2="108"/>
+      <line x1="124" y1="114" x2="132" y2="114"/>
+    </g>
+  </g>
+
+  <g class="pair g4">
+    <line class="halfL" x1="95" y1="145" x2="122" y2="145"/>
+    <line class="halfR" x1="134" y1="145" x2="161" y2="145"/>
+    <g class="bond">
+      <line x1="124" y1="141" x2="132" y2="141"/>
+      <line x1="124" y1="145" x2="132" y2="145"/>
+      <line x1="124" y1="149" x2="132" y2="149"/>
+    </g>
+  </g>
+
+  <g class="pair g5">
+    <line class="halfL" x1="99" y1="180" x2="123" y2="180"/>
+    <line class="halfR" x1="133" y1="180" x2="157" y2="180"/>
+    <g class="bond">
+      <line x1="125" y1="177" x2="131" y2="177"/>
+      <line x1="125" y1="183" x2="131" y2="183"/>
+    </g>
+  </g>
+
+  <g class="pair g6">
+    <line class="halfL" x1="108" y1="214" x2="125" y2="214"/>
+    <line class="halfR" x1="131" y1="214" x2="148" y2="214"/>
+    <g class="bond">
+      <line x1="126.5" y1="210" x2="129.5" y2="210"/>
+      <line x1="126.5" y1="214" x2="129.5" y2="214"/>
+      <line x1="126.5" y1="218" x2="129.5" y2="218"/>
+    </g>
+  </g>
+</svg>

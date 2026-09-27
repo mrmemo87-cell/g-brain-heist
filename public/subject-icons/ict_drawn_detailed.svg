@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">ICT subject icon — drawn computer and circuit</title>
+  <desc id="desc">A clean animated SVG for ICT showing a computer monitor, code lines, and circuit connections being drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blue" x1="56" y1="44" x2="178" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4EE4FF"/>
+      <stop offset="100%" stop-color="#0077FF"/>
+    </linearGradient>
+    <linearGradient id="green" x1="180" y1="48" x2="204" y2="206" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DFFF55"/>
+      <stop offset="100%" stop-color="#14B86E"/>
+    </linearGradient>
+    <style>
+      .draw { fill:none; stroke-linecap:round; stroke-linejoin:round; }
+      .main { stroke:url(#blue); stroke-width:8; stroke-dasharray:520; stroke-dashoffset:520; animation:mainDraw 3.3s ease-in-out infinite; }
+      .detail { stroke:#35D0FF; stroke-width:5; stroke-dasharray:120; stroke-dashoffset:120; }
+      .d1{animation:detailDraw 3.3s ease-in-out infinite .45s}.d2{animation:detailDraw 3.3s ease-in-out infinite .62s}.d3{animation:detailDraw 3.3s ease-in-out infinite .79s}.d4{animation:detailDraw 3.3s ease-in-out infinite .96s}
+      .circuit { stroke:url(#green); stroke-width:4.5; stroke-dasharray:110; stroke-dashoffset:110; }
+      .c1{animation:detailDraw 3.3s ease-in-out infinite 1.08s}.c2{animation:detailDraw 3.3s ease-in-out infinite 1.22s}.c3{animation:detailDraw 3.3s ease-in-out infinite 1.36s}
+      .node { fill:none; stroke:#8AE339; stroke-width:4; stroke-dasharray:30; stroke-dashoffset:30; }
+      .n1{animation:nodeDraw 3.3s ease-in-out infinite 1.18s}.n2{animation:nodeDraw 3.3s ease-in-out infinite 1.32s}.n3{animation:nodeDraw 3.3s ease-in-out infinite 1.46s}
+      @keyframes mainDraw{0%{stroke-dashoffset:520;opacity:1}30%{stroke-dashoffset:0}83%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-520;opacity:0}}
+      @keyframes detailDraw{0%,16%{stroke-dashoffset:120;opacity:0}28%{opacity:1}44%,83%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-120;opacity:0}}
+      @keyframes nodeDraw{0%,18%{stroke-dashoffset:30;opacity:0}32%{opacity:1}46%,83%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-30;opacity:0}}
+      @media (prefers-reduced-motion:reduce){.main,.detail,.circuit,.node{animation:none!important;stroke-dashoffset:0!important;opacity:1!important}}
+    </style>
+  </defs>
+
+  <!-- monitor and stand -->
+  <path class="draw main" d="M52 48 H176 Q186 48 186 58 V146 Q186 156 176 156 H52 Q42 156 42 146 V58 Q42 48 52 48 Z M88 156 V178 M140 156 V178 M72 182 H156"/>
+
+  <!-- code-like lines on screen -->
+  <path class="draw detail d1" d="M70 82 L84 94 L70 106"/>
+  <line class="draw detail d2" x1="96" y1="106" x2="116" y2="80"/>
+  <path class="draw detail d3" d="M128 82 L142 94 L128 106"/>
+  <line class="draw detail d4" x1="70" y1="124" x2="150" y2="124"/>
+
+  <!-- circuit branches -->
+  <path class="draw circuit c1" d="M186 78 H210 V60"/>
+  <path class="draw circuit c2" d="M186 102 H218"/>
+  <path class="draw circuit c3" d="M186 126 H210 V146"/>
+
+  <circle class="node n1" cx="210" cy="56" r="7"/>
+  <circle class="node n2" cx="222" cy="102" r="7"/>
+  <circle class="node n3" cx="210" cy="150" r="7"/>
+</svg>

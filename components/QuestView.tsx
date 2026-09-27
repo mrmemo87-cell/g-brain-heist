@@ -22,6 +22,7 @@ import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import { CoinIcon, GemIcon, XPIcon } from './icons';
 import BackButton from './BackButton';
+import SubjectIcon from './SubjectIcon';
 import { createPortal } from 'react-dom';
 import { brainsAlert } from '../src/utils/brainsAlert';
 import {
@@ -2121,7 +2122,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                         }`}
                       >
                         <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Mission Zone</p>
-                        <h3 className="mt-1 text-base font-heading text-cyan-100">🧭 {zone}</h3>
+                        <h3 className="mt-1 flex items-center gap-2 text-base font-heading text-cyan-100"><SubjectIcon subject={zone} size={30} className="h-7 w-7 object-contain" fallback={<span aria-hidden="true">🧭</span>} />{zone}</h3>
                         <div className="mt-3 flex items-center justify-between text-xs">
                           <span className="rounded-full border border-cyan-400/30 bg-slate-950/60 px-2 py-1 text-cyan-100">
                             {missions.length} {missions.length === 1 ? 'Match' : 'Matches'}

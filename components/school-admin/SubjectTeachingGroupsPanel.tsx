@@ -31,15 +31,15 @@ const className = (item: any) => item?.class_name || item?.class_code || 'Class'
 
 const deliveryCopy: Record<SubjectDeliveryMode, { title: string; description: string }> = {
   by_class: {
-    title: 'Use registration classes',
+    title: 'By registration class',
     description: 'Keep students in their normal school classes such as 8A, 8B and 8C.',
   },
   whole_grade: {
-    title: 'Teach the whole grade together',
+    title: 'Whole grade',
     description: 'Create one teaching group containing every eligible student in this grade.',
   },
   custom_groups: {
-    title: 'Mix students across classes',
+    title: 'Custom teaching groups',
     description: 'Best for ESL, electives and interventions: combine selected students from 8A, 8B, 8C, etc. without moving their registration class.',
   },
 };

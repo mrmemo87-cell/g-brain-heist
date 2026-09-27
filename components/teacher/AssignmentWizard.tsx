@@ -10,6 +10,7 @@ import {
 } from '../../services/schoolSubjectGroupService';
 import { brainsAlert, brainsConfirm } from '../../src/utils/brainsAlert';
 import QuestionPreviewModal from './QuestionPreviewModal';
+import SubjectIcon from '../SubjectIcon';
 import { isBrainsHeistPoolQuestion, isMyPoolQuestion, isSchoolPoolQuestion } from './questionPool.js';
 import './AssignmentWizard.css';
 
@@ -772,7 +773,7 @@ export default function AssignmentWizard({
                   const disabled = Boolean(lockedSubject && normalizeSubject(subject) !== normalizeSubject(lockedSubject));
                   return (
                   <button key={subject} type="button" role="radio" aria-checked={assignmentSubject === subject} disabled={disabled} aria-disabled={disabled} className={`${assignmentSubject === subject ? 'aw-subject is-selected' : 'aw-subject'}${disabled ? ' is-disabled' : ''}`} onClick={() => { if (!disabled) { setAssignmentSubject(subject); setAssignmentBatches([]); setAssignmentGroupId?.(''); setSelectedStudentIds([]); } }}>
-                    <span aria-hidden="true">{subject === 'Maths' ? '∑' : subject === 'Science' ? '⚗' : subject === 'English' ? 'Aa' : '◆'}</span>
+                    <SubjectIcon subject={subject} size={44} className="h-11 w-11 object-contain" fallback={<span aria-hidden="true">{subject === 'Maths' ? '∑' : subject === 'Science' ? '⚗' : subject === 'English' ? 'Aa' : '◆'}</span>} />
                     <strong>{subject}</strong>
                     {disabled ? <small>Unavailable — {lockedSubject} questions selected</small> : null}
                   </button>

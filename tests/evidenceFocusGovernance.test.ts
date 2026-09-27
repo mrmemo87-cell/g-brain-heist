@@ -11,7 +11,7 @@ const gameService = readFileSync('services/gameService.ts', 'utf8');
 const adminService = readFileSync('services/adminQuestionBankService.ts', 'utf8');
 const adminInspector = readFileSync('components/admin/tabs/QuestionBankInspectorTab.tsx', 'utf8');
 const focusTierMigration = readFileSync(
-  'supabase/migrations/20260924060747_fix_evidence_focus_intervention_tiers.sql',
+  'supabase/migrations/20260924060747_fix_evidence_focus_intervention_tiers_live_history.sql',
   'utf8',
 );
 const failClosedMigration = readFileSync(
