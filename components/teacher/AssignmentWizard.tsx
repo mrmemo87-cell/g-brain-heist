@@ -9,7 +9,8 @@ import {
   type SubjectGroupRosterStudent,
 } from '../../services/schoolSubjectGroupService';
 import { brainsAlert, brainsConfirm } from '../../src/utils/brainsAlert';
-import QuestionPreviewModal from './QuestionPreviewModal';\nimport SubjectIcon from '../SubjectIcon';
+import QuestionPreviewModal from './QuestionPreviewModal';
+import SubjectIcon from '../SubjectIcon';
 import { isBrainsHeistPoolQuestion, isMyPoolQuestion, isSchoolPoolQuestion } from './questionPool.js';
 import './AssignmentWizard.css';
 
