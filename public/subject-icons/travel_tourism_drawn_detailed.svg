@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Travel &amp; Tourism subject icon</title>
+  <desc id="desc">A clean animated SVG showing a suitcase, travel route, location pin and airplane drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blue" x1="56" y1="46" x2="194" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4EE4FF"/>
+      <stop offset="100%" stop-color="#0077FF"/>
+    </linearGradient>
+    <linearGradient id="green" x1="172" y1="40" x2="104" y2="214" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DFFF55"/>
+      <stop offset="100%" stop-color="#14B86E"/>
+    </linearGradient>
+    <style>
+      .draw { fill:none; stroke-linecap:round; stroke-linejoin:round; }
+      .main { stroke:url(#blue); stroke-width:8; stroke-dasharray:430; stroke-dashoffset:430; animation: mainDraw 3.4s ease-in-out infinite; }
+      .route { stroke:url(#green); stroke-width:5.5; stroke-dasharray:220; stroke-dashoffset:220; animation: routeDraw 3.4s ease-in-out infinite; animation-delay:.55s; }
+      .detail { stroke:url(#blue); stroke-width:5; stroke-dasharray:90; stroke-dashoffset:90; animation: detailDraw 3.4s ease-in-out infinite; }
+      .d1 { animation-delay:.95s; }
+      .d2 { animation-delay:1.12s; }
+      .d3 { animation-delay:1.28s; }
+      .plane { stroke:url(#green); stroke-width:5.5; stroke-dasharray:180; stroke-dashoffset:180; animation: planeDraw 3.4s ease-in-out infinite; animation-delay:1.38s; }
+      .pin { stroke:url(#green); stroke-width:5.5; stroke-dasharray:130; stroke-dashoffset:130; animation: pinDraw 3.4s ease-in-out infinite; animation-delay:1.55s; }
+      .dot { fill:none; stroke:url(#green); stroke-width:5; stroke-dasharray:40; stroke-dashoffset:40; animation: dotDraw 3.4s ease-in-out infinite; animation-delay:1.72s; }
+
+      @keyframes mainDraw { 0%{stroke-dashoffset:430;opacity:1} 30%{stroke-dashoffset:0} 82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-430;opacity:0} }
+      @keyframes routeDraw { 0%,16%{stroke-dashoffset:220;opacity:0} 28%{opacity:1} 48%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-220;opacity:0} }
+      @keyframes detailDraw { 0%,20%{stroke-dashoffset:90;opacity:0} 34%{opacity:1} 52%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-90;opacity:0} }
+      @keyframes planeDraw { 0%,28%{stroke-dashoffset:180;opacity:0} 40%{opacity:1} 58%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-180;opacity:0} }
+      @keyframes pinDraw { 0%,34%{stroke-dashoffset:130;opacity:0} 46%{opacity:1} 62%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-130;opacity:0} }
+      @keyframes dotDraw { 0%,40%{stroke-dashoffset:40;opacity:0} 52%{opacity:1} 66%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-40;opacity:0} }
+
+      @media (prefers-reduced-motion: reduce) {
+        .main,.route,.detail,.plane,.pin,.dot { animation:none!important; stroke-dashoffset:0!important; opacity:1!important; }
+      }
+    </style>
+  </defs>
+
+  <!-- suitcase body and handle -->
+  <path class="draw main" d="M76 98 H174 Q184 98 184 108 V196 Q184 206 174 206 H76 Q66 206 66 196 V108 Q66 98 76 98 Z M98 98 V80 Q98 70 108 70 H142 Q152 70 152 80 V98"/>
+
+  <!-- suitcase straps / travel details -->
+  <path class="draw detail d1" d="M94 112 V192"/>
+  <path class="draw detail d2" d="M156 112 V192"/>
+  <path class="draw detail d3" d="M112 148 H138"/>
+
+  <!-- travel route -->
+  <path class="draw route" d="M54 62 C88 38, 126 42, 148 60 C168 76, 184 76, 202 64"/>
+
+  <!-- airplane -->
+  <path class="draw plane" d="M112 58 L140 48 L158 54 L138 65 L128 82 L121 80 L124 66 L108 69 Z"/>
+
+  <!-- destination pin -->
+  <path class="draw pin" d="M204 56 C218 56 228 66 228 80 C228 98 204 120 204 120 C204 120 180 98 180 80 C180 66 190 56 204 56 Z"/>
+  <circle class="draw dot" cx="204" cy="80" r="7"/>
+</svg>
