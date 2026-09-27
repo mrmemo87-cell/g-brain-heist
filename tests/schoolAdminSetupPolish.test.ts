@@ -82,6 +82,7 @@ test('the repository consistently uses the Brains Heist product name', () => {
   const matches: string[] = [];
   const historicalBrandingExceptions = new Set([
     'supabase/migrations/20260924043545_create_multisubject_cambridge_skill_registries_v1.sql',
+    'supabase/migrations/20260924045426_refine_multisubject_cambridge_crosswalk_scope.sql',
   ]);
 
   function scanDir(dir: string): void {
