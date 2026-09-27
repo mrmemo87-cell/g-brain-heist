@@ -21,7 +21,8 @@ import {
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import { CoinIcon, GemIcon, XPIcon } from './icons';
-import BackButton from './BackButton';\nimport SubjectIcon from './SubjectIcon';
+import BackButton from './BackButton';
+import SubjectIcon from './SubjectIcon';
 import { createPortal } from 'react-dom';
 import { brainsAlert } from '../src/utils/brainsAlert';
 import {
