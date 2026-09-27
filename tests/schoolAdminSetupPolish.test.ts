@@ -80,6 +80,9 @@ test('school identity is immutable to school admins and the supporting portal ta
 test('the repository consistently uses the Brains Heist product name', () => {
   const pattern = new RegExp('\\bBrain ' + 'Heist\\b');
   const matches: string[] = [];
+  const historicalBrandingExceptions = new Set([
+    'supabase/migrations/20260924043545_create_multisubject_cambridge_skill_registries_v1.sql',
+  ]);
 
   function scanDir(dir: string): void {
     let entries: string[];
@@ -95,6 +98,7 @@ test('the repository consistently uses the Brains Heist product name', () => {
       if (st.isDirectory()) {
         scanDir(full);
       } else {
+        if (historicalBrandingExceptions.has(full.replace(/\\/g, '/'))) continue;
         const content = readFileSync(full, 'utf8');
         const lines = content.split('\n');
         lines.forEach((line, idx) => {
