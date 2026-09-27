@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">English subject icon — drawn book and language marks</title>
+  <desc id="desc">A clean animated SVG for English. An open book, page lines, quotation marks, and a pen nib are drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blueGrad" x1="48" y1="52" x2="126" y2="212" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4EE4FF"/>
+      <stop offset="100%" stop-color="#0077FF"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="208" y1="52" x2="130" y2="212" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DFFF55"/>
+      <stop offset="100%" stop-color="#14B86E"/>
+    </linearGradient>
+    <style>
+      .drawBlue,.drawGreen,.detail,.quote,.pen {
+        fill:none;
+        stroke-linecap:round;
+        stroke-linejoin:round;
+      }
+      .drawBlue { stroke:url(#blueGrad); stroke-width:12; stroke-dasharray:260; stroke-dashoffset:260; animation:bookL 3.3s ease-in-out infinite; }
+      .drawGreen { stroke:url(#greenGrad); stroke-width:12; stroke-dasharray:260; stroke-dashoffset:260; animation:bookR 3.3s ease-in-out infinite; }
+      .detail { stroke:#DFF7FF; stroke-width:4.5; stroke-dasharray:60; stroke-dashoffset:60; }
+      .quote { stroke:#89E641; stroke-width:7; stroke-dasharray:70; stroke-dashoffset:70; }
+      .pen { stroke:#30C9FF; stroke-width:6; stroke-dasharray:120; stroke-dashoffset:120; }
+
+      .l1 { animation:detailDraw 3.3s ease-in-out infinite; animation-delay:.52s; }
+      .l2 { animation:detailDraw 3.3s ease-in-out infinite; animation-delay:.66s; }
+      .l3 { animation:detailDraw 3.3s ease-in-out infinite; animation-delay:.80s; }
+      .r1 { animation:detailDraw 3.3s ease-in-out infinite; animation-delay:.60s; }
+      .r2 { animation:detailDraw 3.3s ease-in-out infinite; animation-delay:.74s; }
+      .r3 { animation:detailDraw 3.3s ease-in-out infinite; animation-delay:.88s; }
+      .q1 { animation:quoteDraw 3.3s ease-in-out infinite; animation-delay:1.05s; }
+      .q2 { animation:quoteDraw 3.3s ease-in-out infinite; animation-delay:1.16s; }
+      .pen1 { animation:penDraw 3.3s ease-in-out infinite; animation-delay:1.28s; }
+
+      @keyframes bookL {
+        0%{stroke-dashoffset:260;opacity:1} 30%{stroke-dashoffset:0;opacity:1} 82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-260;opacity:0}
+      }
+      @keyframes bookR {
+        0%,8%{stroke-dashoffset:260;opacity:1} 38%{stroke-dashoffset:0;opacity:1} 82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-260;opacity:0}
+      }
+      @keyframes detailDraw {
+        0%,18%{stroke-dashoffset:60;opacity:0} 30%{opacity:1} 45%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-60;opacity:0}
+      }
+      @keyframes quoteDraw {
+        0%,22%{stroke-dashoffset:70;opacity:0} 34%{opacity:1} 52%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-70;opacity:0}
+      }
+      @keyframes penDraw {
+        0%,25%{stroke-dashoffset:120;opacity:0} 38%{opacity:1} 58%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-120;opacity:0}
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .drawBlue,.drawGreen,.detail,.quote,.pen{animation:none!important;stroke-dashoffset:0!important;opacity:1!important}
+      }
+    </style>
+  </defs>
+
+  <!-- Open book -->
+  <path class="drawBlue" d="M126 76 C106 62 84 58 58 62 C48 64 42 71 42 82 L42 183 C72 176 98 179 126 195 Z"/>
+  <path class="drawGreen" d="M130 76 C150 62 172 58 198 62 C208 64 214 71 214 82 L214 183 C184 176 158 179 130 195 Z"/>
+  <path class="detail l1" d="M58 92 C79 88 96 90 113 98"/>
+  <path class="detail l2" d="M58 116 C79 112 96 114 113 122"/>
+  <path class="detail l3" d="M58 140 C79 136 96 138 113 146"/>
+  <path class="detail r1" d="M198 92 C177 88 160 90 143 98"/>
+  <path class="detail r2" d="M198 116 C177 112 160 114 143 122"/>
+  <path class="detail r3" d="M198 140 C177 136 160 138 143 146"/>
+
+  <!-- Quotation marks: language/literature cue -->
+  <path class="quote q1" d="M82 42 C70 48 65 60 67 72 C73 68 80 68 86 71 C87 59 85 50 82 42 Z"/>
+  <path class="quote q2" d="M112 42 C100 48 95 60 97 72 C103 68 110 68 116 71 C117 59 115 50 112 42 Z"/>
+
+  <!-- Pen nib: writing cue -->
+  <path class="pen pen1" d="M167 36 L198 67 L177 88 L158 69 Z M177 88 L165 100 M171 54 L184 67 M158 69 L149 93 L165 100"/>
+</svg>

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">ESL subject icon — drawn speech and globe</title>
+  <desc id="desc">A simple animated SVG for ESL showing a speech bubble, globe lines, and language marks being drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blueGrad" x1="54" y1="48" x2="188" y2="208" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4EE4FF"/>
+      <stop offset="100%" stop-color="#0077FF"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="176" y1="44" x2="88" y2="208" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DFFF55"/>
+      <stop offset="100%" stop-color="#14B86E"/>
+    </linearGradient>
+    <style>
+      .drawBlue,.drawGreen,.detail {
+        fill:none; stroke-linecap:round; stroke-linejoin:round;
+      }
+      .drawBlue { stroke:url(#blueGrad); stroke-width:12; stroke-dasharray:420; stroke-dashoffset:420; animation:mainDraw 3.2s ease-in-out infinite; }
+      .drawGreen { stroke:url(#greenGrad); stroke-width:8; stroke-dasharray:260; stroke-dashoffset:260; animation:secondaryDraw 3.2s ease-in-out infinite; }
+      .detail { stroke:#DFF8FF; stroke-width:4.5; stroke-dasharray:90; stroke-dashoffset:90; }
+      .d1 { animation:detailDraw 3.2s ease-in-out infinite; animation-delay:.65s; }
+      .d2 { animation:detailDraw 3.2s ease-in-out infinite; animation-delay:.82s; }
+      .d3 { animation:detailDraw 3.2s ease-in-out infinite; animation-delay:.98s; }
+      .d4 { animation:detailDraw 3.2s ease-in-out infinite; animation-delay:1.14s; }
+      .d5 { animation:detailDraw 3.2s ease-in-out infinite; animation-delay:1.30s; }
+
+      @keyframes mainDraw {
+        0%{stroke-dashoffset:420;opacity:1} 30%{stroke-dashoffset:0;opacity:1} 82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-420;opacity:0}
+      }
+      @keyframes secondaryDraw {
+        0%,12%{stroke-dashoffset:260;opacity:1} 42%{stroke-dashoffset:0;opacity:1} 82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-260;opacity:0}
+      }
+      @keyframes detailDraw {
+        0%,18%{stroke-dashoffset:90;opacity:0} 34%{opacity:1} 48%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-90;opacity:0}
+      }
+      @media (prefers-reduced-motion: reduce){
+        .drawBlue,.drawGreen,.detail{animation:none!important;stroke-dashoffset:0!important;opacity:1!important}
+      }
+    </style>
+  </defs>
+
+  <!-- speech bubble -->
+  <path class="drawBlue" d="M52 70 Q52 48 76 48 H164 Q188 48 188 72 V126 Q188 150 164 150 H112 L82 176 L90 150 H76 Q52 150 52 126 Z"/>
+
+  <!-- small globe inside bubble -->
+  <circle class="drawGreen" cx="120" cy="98" r="34"/>
+  <path class="drawGreen" d="M86 98 H154 M120 64 C106 76 106 120 120 132 M120 64 C134 76 134 120 120 132"/>
+
+  <!-- language / conversation marks -->
+  <path class="detail d1" d="M69 82 H86"/>
+  <path class="detail d2" d="M70 98 H82"/>
+  <path class="detail d3" d="M158 82 H171"/>
+  <path class="detail d4" d="M158 98 H176"/>
+
+  <!-- second compact reply bubble -->
+  <path class="drawGreen" d="M136 166 Q136 154 149 154 H190 Q204 154 204 168 V194 Q204 208 190 208 H169 L151 222 L156 208 H149 Q136 208 136 194 Z"/>
+  <path class="detail d5" d="M154 177 H186 M154 189 H178"/>
+</svg>

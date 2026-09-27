@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Chemistry subject icon — drawn flask</title>
+  <desc id="desc">A clean animated SVG chemistry icon showing an Erlenmeyer flask, liquid level, molecule structure, and reaction bubbles drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blueGrad" x1="80" y1="24" x2="148" y2="230" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4EE4FF"/>
+      <stop offset="100%" stop-color="#0077FF"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="174" y1="70" x2="118" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DFFF55"/>
+      <stop offset="100%" stop-color="#14B86E"/>
+    </linearGradient>
+    <style>
+      .main {
+        fill: none;
+        stroke: url(#blueGrad);
+        stroke-width: 13;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 520;
+        stroke-dashoffset: 520;
+        animation: drawMain 3.4s ease-in-out infinite;
+      }
+      .liquid {
+        fill: none;
+        stroke: url(#greenGrad);
+        stroke-width: 9;
+        stroke-linecap: round;
+        stroke-dasharray: 170;
+        stroke-dashoffset: 170;
+        animation: drawLiquid 3.4s ease-in-out infinite;
+      }
+      .bond, .bubble, .neckmark {
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .bond {
+        stroke: #7ADDFD;
+        stroke-width: 5;
+        stroke-dasharray: 70;
+        stroke-dashoffset: 70;
+      }
+      .atomBlue { stroke: #35D0FF; }
+      .atomGreen { stroke: #8AE339; }
+      .atom {
+        fill: none;
+        stroke-width: 5;
+        stroke-dasharray: 40;
+        stroke-dashoffset: 40;
+      }
+      .bubble {
+        stroke: #A7F06A;
+        stroke-width: 4;
+        stroke-dasharray: 45;
+        stroke-dashoffset: 45;
+      }
+      .neckmark {
+        stroke: #8DDFFF;
+        stroke-width: 4;
+        stroke-dasharray: 30;
+        stroke-dashoffset: 30;
+      }
+
+      .m1 { animation: drawSeg 3.4s ease-in-out infinite; animation-delay: .72s; }
+      .m2 { animation: drawSeg 3.4s ease-in-out infinite; animation-delay: .84s; }
+      .m3 { animation: drawSeg 3.4s ease-in-out infinite; animation-delay: .96s; }
+      .a1 { animation: drawAtom 3.4s ease-in-out infinite; animation-delay: .78s; }
+      .a2 { animation: drawAtom 3.4s ease-in-out infinite; animation-delay: .90s; }
+      .a3 { animation: drawAtom 3.4s ease-in-out infinite; animation-delay: 1.02s; }
+      .a4 { animation: drawAtom 3.4s ease-in-out infinite; animation-delay: 1.14s; }
+
+      .b1 { animation: drawBubble 3.4s ease-in-out infinite; animation-delay: 1.12s; }
+      .b2 { animation: drawBubble 3.4s ease-in-out infinite; animation-delay: 1.26s; }
+      .b3 { animation: drawBubble 3.4s ease-in-out infinite; animation-delay: 1.40s; }
+      .n1 { animation: drawSeg 3.4s ease-in-out infinite; animation-delay: .58s; }
+      .n2 { animation: drawSeg 3.4s ease-in-out infinite; animation-delay: .66s; }
+
+      @keyframes drawMain {
+        0%   { stroke-dashoffset: 520; opacity: 1; }
+        30%  { stroke-dashoffset: 0; opacity: 1; }
+        84%  { stroke-dashoffset: 0; opacity: 1; }
+        100% { stroke-dashoffset: -520; opacity: 0; }
+      }
+      @keyframes drawLiquid {
+        0%,16% { stroke-dashoffset: 170; opacity: 0; }
+        34%    { stroke-dashoffset: 0; opacity: 1; }
+        84%    { stroke-dashoffset: 0; opacity: 1; }
+        100%   { stroke-dashoffset: -170; opacity: 0; }
+      }
+      @keyframes drawSeg {
+        0%,20% { stroke-dashoffset: 70; opacity: 0; }
+        34%    { opacity: 1; }
+        48%,84% { stroke-dashoffset: 0; opacity: 1; }
+        100%   { stroke-dashoffset: -70; opacity: 0; }
+      }
+      @keyframes drawAtom {
+        0%,22% { stroke-dashoffset: 40; opacity: 0; }
+        36%    { opacity: 1; }
+        50%,84% { stroke-dashoffset: 0; opacity: 1; }
+        100%   { stroke-dashoffset: -40; opacity: 0; }
+      }
+      @keyframes drawBubble {
+        0%,28% { stroke-dashoffset: 45; opacity: 0; }
+        42%    { opacity: 1; }
+        56%,84% { stroke-dashoffset: 0; opacity: 1; }
+        100%   { stroke-dashoffset: -45; opacity: 0; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .main,.liquid,.bond,.atom,.bubble,.neckmark {
+          animation: none !important;
+          stroke-dashoffset: 0 !important;
+          opacity: 1 !important;
+        }
+      }
+    </style>
+  </defs>
+
+  <!-- Erlenmeyer flask body -->
+  <path class="main" d="M103 28 H153 M116 28 V86 L66 190 C57 208 70 228 91 228 H165 C186 228 199 208 190 190 L140 86 V28"/>
+
+  <!-- Neck graduation marks -->
+  <line class="neckmark n1" x1="118" y1="58" x2="136" y2="58"/>
+  <line class="neckmark n2" x1="118" y1="72" x2="132" y2="72"/>
+
+  <!-- Liquid surface and inner liquid shape hint -->
+  <path class="liquid" d="M84 177 C106 169, 150 184, 174 176 M78 192 C101 184, 151 200, 180 190"/>
+
+  <!-- Molecular structure inside flask -->
+  <line class="bond m1" x1="103" y1="151" x2="128" y2="136"/>
+  <line class="bond m2" x1="128" y1="136" x2="151" y2="151"/>
+  <line class="bond m3" x1="128" y1="136" x2="128" y2="166"/>
+
+  <circle class="atom atomBlue a1" cx="98" cy="154" r="8"/>
+  <circle class="atom atomGreen a2" cx="128" cy="134" r="8"/>
+  <circle class="atom atomBlue a3" cx="156" cy="154" r="8"/>
+  <circle class="atom atomGreen a4" cx="128" cy="170" r="8"/>
+
+  <!-- Reaction bubbles -->
+  <circle class="bubble b1" cx="101" cy="119" r="7"/>
+  <circle class="bubble b2" cx="145" cy="107" r="5"/>
+  <circle class="bubble b3" cx="126" cy="96" r="4"/>
+</svg>

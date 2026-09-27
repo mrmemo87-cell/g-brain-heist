@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Global Perspectives subject icon</title>
+  <desc id="desc">A simple animated SVG showing an interconnected globe with multiple viewpoint nodes, all drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blue" x1="50" y1="40" x2="206" y2="216" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4EE4FF"/>
+      <stop offset="100%" stop-color="#0077FF"/>
+    </linearGradient>
+    <linearGradient id="green" x1="206" y1="40" x2="50" y2="216" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DFFF55"/>
+      <stop offset="100%" stop-color="#14B86E"/>
+    </linearGradient>
+    <style>
+      .draw { fill:none; stroke-linecap:round; stroke-linejoin:round; }
+      .main { stroke:url(#blue); stroke-width:8; stroke-dasharray:420; stroke-dashoffset:420; animation:drawMain 3.4s ease-in-out infinite; }
+      .grid { stroke:url(#green); stroke-width:4.2; stroke-dasharray:180; stroke-dashoffset:180; opacity:.95; }
+      .g1 { animation:drawSeg 3.4s ease-in-out infinite .55s; }
+      .g2 { animation:drawSeg 3.4s ease-in-out infinite .72s; }
+      .g3 { animation:drawSeg 3.4s ease-in-out infinite .89s; }
+      .link { stroke:#8BDFFF; stroke-width:3.2; stroke-dasharray:90; stroke-dashoffset:90; }
+      .l1 { animation:drawSeg 3.4s ease-in-out infinite 1.05s; }
+      .l2 { animation:drawSeg 3.4s ease-in-out infinite 1.18s; }
+      .l3 { animation:drawSeg 3.4s ease-in-out infinite 1.31s; }
+      .node { fill:none; stroke-width:5; stroke-dasharray:36; stroke-dashoffset:36; }
+      .n1 { stroke:#4EE4FF; animation:drawSeg 3.4s ease-in-out infinite 1.42s; }
+      .n2 { stroke:#9AE842; animation:drawSeg 3.4s ease-in-out infinite 1.54s; }
+      .n3 { stroke:#4EE4FF; animation:drawSeg 3.4s ease-in-out infinite 1.66s; }
+      .n4 { stroke:#9AE842; animation:drawSeg 3.4s ease-in-out infinite 1.78s; }
+      @keyframes drawMain {0%{stroke-dashoffset:420;opacity:1}28%{stroke-dashoffset:0}82%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-420;opacity:0}}
+      @keyframes drawSeg {0%,18%{stroke-dashoffset:180;opacity:0}32%{opacity:1}48%,82%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-180;opacity:0}}
+      @media (prefers-reduced-motion: reduce){.main,.grid,.link,.node{animation:none!important;stroke-dashoffset:0!important;opacity:1!important}}
+    </style>
+  </defs>
+
+  <!-- Globe -->
+  <circle class="draw main" cx="128" cy="128" r="70"/>
+  <path class="draw grid g1" d="M58 128 H198"/>
+  <path class="draw grid g2" d="M128 58 C96 84 96 172 128 198"/>
+  <path class="draw grid g2" d="M128 58 C160 84 160 172 128 198"/>
+  <path class="draw grid g3" d="M78 82 C105 102 151 102 178 82"/>
+  <path class="draw grid g3" d="M78 174 C105 154 151 154 178 174"/>
+
+  <!-- Perspective connections -->
+  <path class="draw link l1" d="M82 92 L112 116 L146 94"/>
+  <path class="draw link l2" d="M112 116 L146 148 L176 120"/>
+  <path class="draw link l3" d="M146 94 L176 120 L146 148"/>
+
+  <!-- Viewpoint nodes -->
+  <circle class="node n1" cx="82" cy="92" r="8"/>
+  <circle class="node n2" cx="146" cy="94" r="8"/>
+  <circle class="node n3" cx="176" cy="120" r="8"/>
+  <circle class="node n4" cx="146" cy="148" r="8"/>
+</svg>

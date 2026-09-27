@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Mathematics subject icon — drawn geometry</title>
+  <desc id="desc">A clean animated mathematics icon with a triangle, compass arc, equation marks, and coordinate axes, all drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blue" x1="40" y1="30" x2="210" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4EE4FF"/>
+      <stop offset="100%" stop-color="#0077FF"/>
+    </linearGradient>
+    <linearGradient id="green" x1="210" y1="35" x2="70" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DFFF55"/>
+      <stop offset="100%" stop-color="#14B86E"/>
+    </linearGradient>
+    <style>
+      .draw { fill:none; stroke-linecap:round; stroke-linejoin:round; }
+      .main { stroke:url(#blue); stroke-width:10; stroke-dasharray:520; stroke-dashoffset:520; animation:mainDraw 3.2s ease-in-out infinite; }
+      .accent { stroke:url(#green); stroke-width:7; stroke-dasharray:220; stroke-dashoffset:220; animation:accentDraw 3.2s ease-in-out infinite .55s; }
+      .detail { stroke:#EAF7FF; stroke-width:5; stroke-dasharray:120; stroke-dashoffset:120; animation:detailDraw 3.2s ease-in-out infinite 1.05s; }
+      .detail2 { stroke:#8AE339; stroke-width:5; stroke-dasharray:120; stroke-dashoffset:120; animation:detailDraw 3.2s ease-in-out infinite 1.3s; }
+      @keyframes mainDraw{0%{stroke-dashoffset:520;opacity:1}32%,82%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-520;opacity:0}}
+      @keyframes accentDraw{0%,12%{stroke-dashoffset:220;opacity:0}24%{opacity:1}46%,82%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-220;opacity:0}}
+      @keyframes detailDraw{0%,20%{stroke-dashoffset:120;opacity:0}32%{opacity:1}50%,82%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-120;opacity:0}}
+      @media (prefers-reduced-motion: reduce){.main,.accent,.detail,.detail2{animation:none!important;stroke-dashoffset:0!important;opacity:1!important}}
+    </style>
+  </defs>
+
+  <!-- coordinate axes -->
+  <path class="draw main" d="M54 194 L54 74 M54 194 L190 194"/>
+  <path class="draw detail" d="M49 82 L54 74 L59 82 M182 189 L190 194 L182 199"/>
+
+  <!-- right triangle -->
+  <path class="draw main" d="M78 170 L78 108 L150 170 Z"/>
+  <path class="draw detail" d="M78 158 L90 158 L90 170"/>
+
+  <!-- compass / arc -->
+  <path class="draw accent" d="M118 82 Q151 52 184 82"/>
+  <path class="draw accent" d="M151 62 L134 124 M151 62 L171 124"/>
+  <circle cx="151" cy="62" r="5" fill="#8AE339"/>
+
+  <!-- equation cue -->
+  <path class="draw detail2" d="M170 108 H194 M182 96 V120"/>
+  <path class="draw detail" d="M168 140 H196 M168 151 H196"/>
+</svg>

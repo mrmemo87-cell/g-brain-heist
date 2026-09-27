@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Physics subject icon — drawn atom and vector</title>
+  <desc id="desc">A clean animated SVG for Physics. Atomic orbit paths, nucleus, electron dots, and a small force vector are drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blue" x1="54" y1="44" x2="198" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#55E6FF"/>
+      <stop offset="100%" stop-color="#1478FF"/>
+    </linearGradient>
+    <linearGradient id="green" x1="188" y1="42" x2="88" y2="218" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E4FF59"/>
+      <stop offset="100%" stop-color="#17B86D"/>
+    </linearGradient>
+    <style>
+      .draw {
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .orbit1,.orbit2,.orbit3 { stroke-width: 5.5; stroke-dasharray: 360; stroke-dashoffset: 360; }
+      .orbit1 { stroke: url(#blue);  animation: drawOrbit1 3.2s ease-in-out infinite; }
+      .orbit2 { stroke: url(#green); animation: drawOrbit2 3.2s ease-in-out infinite; }
+      .orbit3 { stroke: #7FD9FF;    animation: drawOrbit3 3.2s ease-in-out infinite; }
+
+      .nucleus { stroke: #8BE43A; stroke-width: 6; stroke-dasharray: 80; stroke-dashoffset: 80; animation: drawNucleus 3.2s ease-in-out infinite; }
+      .electron { opacity: 0; animation: showElectron 3.2s ease-in-out infinite; }
+      .e1 { animation-delay: .55s; }
+      .e2 { animation-delay: .72s; }
+      .e3 { animation-delay: .89s; }
+
+      .vector,.arrow,.label {
+        stroke: #EAF7FF;
+        stroke-width: 4.5;
+        stroke-dasharray: 90;
+        stroke-dashoffset: 90;
+        animation: drawVector 3.2s ease-in-out infinite;
+      }
+      .arrow { animation-delay: .12s; }
+      .label { animation-delay: .22s; }
+
+      @keyframes drawOrbit1 {
+        0% {stroke-dashoffset:360;opacity:1}
+        28%,82% {stroke-dashoffset:0;opacity:1}
+        100% {stroke-dashoffset:-360;opacity:0}
+      }
+      @keyframes drawOrbit2 {
+        0%,8% {stroke-dashoffset:360;opacity:1}
+        36%,82% {stroke-dashoffset:0;opacity:1}
+        100% {stroke-dashoffset:-360;opacity:0}
+      }
+      @keyframes drawOrbit3 {
+        0%,16% {stroke-dashoffset:360;opacity:1}
+        44%,82% {stroke-dashoffset:0;opacity:1}
+        100% {stroke-dashoffset:-360;opacity:0}
+      }
+      @keyframes drawNucleus {
+        0%,22% {stroke-dashoffset:80;opacity:0}
+        36%,82% {stroke-dashoffset:0;opacity:1}
+        100% {stroke-dashoffset:-80;opacity:0}
+      }
+      @keyframes showElectron {
+        0%,28% {opacity:0;transform:scale(.5)}
+        38%,82% {opacity:1;transform:scale(1)}
+        100% {opacity:0;transform:scale(.5)}
+      }
+      @keyframes drawVector {
+        0%,46% {stroke-dashoffset:90;opacity:0}
+        60%,82% {stroke-dashoffset:0;opacity:1}
+        100% {stroke-dashoffset:-90;opacity:0}
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .orbit1,.orbit2,.orbit3,.nucleus,.vector,.arrow,.label { animation:none !important; stroke-dashoffset:0 !important; opacity:1 !important; }
+        .electron { animation:none !important; opacity:1 !important; transform:none !important; }
+      }
+    </style>
+  </defs>
+
+  <!-- Atom -->
+  <ellipse class="draw orbit1" cx="126" cy="126" rx="78" ry="34" transform="rotate(28 126 126)"/>
+  <ellipse class="draw orbit2" cx="126" cy="126" rx="78" ry="34" transform="rotate(-28 126 126)"/>
+  <ellipse class="draw orbit3" cx="126" cy="126" rx="76" ry="31" transform="rotate(90 126 126)"/>
+
+  <circle class="draw nucleus" cx="126" cy="126" r="18"/>
+
+  <circle class="electron e1" cx="188" cy="92" r="6" fill="#4FDFFF"/>
+  <circle class="electron e2" cx="69" cy="160" r="6" fill="#8BE43A"/>
+  <circle class="electron e3" cx="126" cy="50" r="6" fill="#7FD9FF"/>
+
+  <!-- Force/vector cue -->
+  <line class="draw vector" x1="72" y1="220" x2="143" y2="220"/>
+  <path class="draw arrow" d="M143 220 L131 212 M143 220 L131 228"/>
+  <path class="draw label" d="M82 207 L82 191 L94 191"/>
+</svg>

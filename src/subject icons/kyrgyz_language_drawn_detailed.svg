@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Kyrgyz Language subject icon</title>
+  <desc id="desc">A clean animated SVG for Kyrgyz Language, with a speech bubble, Cyrillic K letter, and language lines drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blue" x1="56" y1="48" x2="198" y2="206" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4EE4FF"/>
+      <stop offset="100%" stop-color="#0077FF"/>
+    </linearGradient>
+    <linearGradient id="green" x1="188" y1="54" x2="88" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DFFF55"/>
+      <stop offset="100%" stop-color="#14B86E"/>
+    </linearGradient>
+    <style>
+      .draw { fill:none; stroke-linecap:round; stroke-linejoin:round; }
+      .bubble { stroke:url(#blue); stroke-width:11; stroke-dasharray:520; stroke-dashoffset:520; animation: bubble 3.2s ease-in-out infinite; }
+      .letter { stroke:url(#green); stroke-width:12; stroke-dasharray:180; stroke-dashoffset:180; animation: letter 3.2s ease-in-out infinite; }
+      .line1,.line2,.accent { stroke:#35D0FF; stroke-width:5.5; stroke-dasharray:90; stroke-dashoffset:90; }
+      .line1 { animation: detail 3.2s ease-in-out infinite; animation-delay:.75s; }
+      .line2 { animation: detail 3.2s ease-in-out infinite; animation-delay:.95s; }
+      .accent { stroke:#8AE339; animation: detail 3.2s ease-in-out infinite; animation-delay:1.15s; }
+      @keyframes bubble {0%{stroke-dashoffset:520} 34%{stroke-dashoffset:0} 82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-520;opacity:0}}
+      @keyframes letter {0%,18%{stroke-dashoffset:180;opacity:0} 28%{opacity:1} 50%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-180;opacity:0}}
+      @keyframes detail {0%,18%{stroke-dashoffset:90;opacity:0} 32%{opacity:1} 48%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-90;opacity:0}}
+      @media (prefers-reduced-motion: reduce){.bubble,.letter,.line1,.line2,.accent{animation:none!important;stroke-dashoffset:0!important;opacity:1!important}}
+    </style>
+  </defs>
+  <path class="draw bubble" d="M55 58 C55 43 67 32 82 32 H174 C190 32 201 44 201 59 V147 C201 163 189 175 174 175 H120 L87 202 L92 175 H82 C67 175 55 163 55 148 Z"/>
+  <!-- Cyrillic К -->
+  <path class="draw letter" d="M102 78 V136 M103 107 L132 78 M103 107 L134 137"/>
+  <line class="draw line1" x1="144" y1="86" x2="175" y2="86"/>
+  <line class="draw line2" x1="144" y1="108" x2="184" y2="108"/>
+  <line class="draw accent" x1="144" y1="130" x2="169" y2="130"/>
+</svg>

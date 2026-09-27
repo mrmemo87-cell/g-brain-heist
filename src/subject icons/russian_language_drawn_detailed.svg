@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Russian Language subject icon</title>
+  <desc id="desc">A clean animated SVG for Russian Language. A Cyrillic letter and writing elements are drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blue" x1="40" y1="40" x2="210" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#53D8FF"/>
+      <stop offset="100%" stop-color="#3A7BFF"/>
+    </linearGradient>
+    <linearGradient id="red" x1="60" y1="40" x2="200" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF8A8A"/>
+      <stop offset="100%" stop-color="#E54848"/>
+    </linearGradient>
+    <style>
+      .draw { fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:420; stroke-dashoffset:420; }
+      .bubble { stroke:url(#blue); stroke-width:10; animation: draw1 3.1s ease-in-out infinite; }
+      .letter { stroke:url(#red); stroke-width:13; animation: draw2 3.1s ease-in-out infinite; }
+      .line1,.line2,.line3 { stroke:#6D8AFF; stroke-width:6; stroke-dasharray:120; stroke-dashoffset:120; }
+      .line1 { animation: lineA 3.1s ease-in-out infinite; }
+      .line2 { animation: lineB 3.1s ease-in-out infinite; }
+      .line3 { animation: lineC 3.1s ease-in-out infinite; }
+      .pen { stroke:#E54848; stroke-width:7; stroke-dasharray:150; stroke-dashoffset:150; animation: penDraw 3.1s ease-in-out infinite; }
+
+      @keyframes draw1 {
+        0%{stroke-dashoffset:420;opacity:1} 30%{stroke-dashoffset:0} 82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-420;opacity:0}
+      }
+      @keyframes draw2 {
+        0%,18%{stroke-dashoffset:420;opacity:0} 24%{opacity:1} 48%{stroke-dashoffset:0} 82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-420;opacity:0}
+      }
+      @keyframes lineA {
+        0%,35%{stroke-dashoffset:120;opacity:0} 42%{opacity:1} 56%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-120;opacity:0}
+      }
+      @keyframes lineB {
+        0%,43%{stroke-dashoffset:120;opacity:0} 50%{opacity:1} 64%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-120;opacity:0}
+      }
+      @keyframes lineC {
+        0%,51%{stroke-dashoffset:120;opacity:0} 58%{opacity:1} 72%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-120;opacity:0}
+      }
+      @keyframes penDraw {
+        0%,58%{stroke-dashoffset:150;opacity:0} 64%{opacity:1} 78%,82%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:-150;opacity:0}
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .draw,.line1,.line2,.line3,.pen { animation:none!important; stroke-dashoffset:0!important; opacity:1!important; }
+      }
+    </style>
+  </defs>
+
+  <!-- speech / language bubble -->
+  <path class="draw bubble" d="M52 58 Q52 40 72 40 H184 Q204 40 204 60 V136 Q204 154 184 154 H120 L88 178 L94 154 H72 Q52 154 52 136 Z"/>
+
+  <!-- Cyrillic Я -->
+  <path class="draw letter" d="M153 72 H125 Q108 72 108 88 Q108 104 125 104 H153 M153 72 V130 M150 104 L111 132"/>
+
+  <!-- writing / grammar lines -->
+  <line class="line1" x1="73" y1="91" x2="94" y2="91"/>
+  <line class="line2" x1="73" y1="112" x2="95" y2="112"/>
+  <line class="line3" x1="73" y1="133" x2="103" y2="133"/>
+
+  <!-- pen nib -->
+  <path class="pen" fill="none" d="M157 178 L191 212 L174 229 L140 195 Z M157 178 L176 183 L186 202 M140 195 L133 220 L158 212"/>
+</svg>

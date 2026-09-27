@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Geography subject icon — drawn globe</title>
+  <desc id="desc">A simple animated SVG for Geography showing a globe, latitude and longitude lines, a location pin, and a small mountain contour, all drawn in sequence.</desc>
+  <defs>
+    <linearGradient id="blue" x1="64" y1="36" x2="176" y2="212" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4EE4FF"/>
+      <stop offset="100%" stop-color="#0077FF"/>
+    </linearGradient>
+    <linearGradient id="green" x1="162" y1="52" x2="206" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DFFF55"/>
+      <stop offset="100%" stop-color="#14B86E"/>
+    </linearGradient>
+    <style>
+      .draw { fill:none; stroke-linecap:round; stroke-linejoin:round; }
+      .globe { stroke:url(#blue); stroke-width:13; stroke-dasharray:520; stroke-dashoffset:520; animation: globeDraw 3.4s ease-in-out infinite; }
+      .grid { stroke:#35D0FF; stroke-width:5; stroke-dasharray:180; stroke-dashoffset:180; opacity:.95; }
+      .lat1 { animation: detailDraw 3.4s ease-in-out infinite; animation-delay:.42s; }
+      .lat2 { animation: detailDraw 3.4s ease-in-out infinite; animation-delay:.58s; }
+      .lon1 { animation: detailDraw 3.4s ease-in-out infinite; animation-delay:.74s; }
+      .lon2 { animation: detailDraw 3.4s ease-in-out infinite; animation-delay:.90s; }
+      .pin { stroke:url(#green); stroke-width:9; stroke-dasharray:180; stroke-dashoffset:180; animation: detailDraw 3.4s ease-in-out infinite; animation-delay:1.05s; }
+      .pinDot { fill:none; stroke:#8AE339; stroke-width:6; stroke-dasharray:60; stroke-dashoffset:60; animation: detailDraw 3.4s ease-in-out infinite; animation-delay:1.18s; }
+      .mount { stroke:#EAF7FF; stroke-width:5; stroke-dasharray:140; stroke-dashoffset:140; animation: detailDraw 3.4s ease-in-out infinite; animation-delay:1.30s; }
+      .base { stroke:#8AE339; stroke-width:5; stroke-dasharray:100; stroke-dashoffset:100; animation: detailDraw 3.4s ease-in-out infinite; animation-delay:1.42s; }
+
+      @keyframes globeDraw {
+        0% { stroke-dashoffset:520; opacity:1; }
+        30% { stroke-dashoffset:0; opacity:1; }
+        82% { stroke-dashoffset:0; opacity:1; }
+        100% { stroke-dashoffset:-520; opacity:0; }
+      }
+      @keyframes detailDraw {
+        0%,15% { stroke-dashoffset:180; opacity:0; }
+        28% { opacity:1; }
+        45%,82% { stroke-dashoffset:0; opacity:1; }
+        100% { stroke-dashoffset:-180; opacity:0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .globe,.grid,.pin,.pinDot,.mount,.base { animation:none!important; stroke-dashoffset:0!important; opacity:1!important; }
+      }
+    </style>
+  </defs>
+
+  <!-- globe -->
+  <circle class="draw globe" cx="118" cy="126" r="78"/>
+  <path class="draw grid lat1" d="M52 100 C 86 88, 150 88, 184 100"/>
+  <path class="draw grid lat2" d="M52 152 C 86 164, 150 164, 184 152"/>
+  <path class="draw grid lon1" d="M96 52 C 78 88, 78 164, 96 200"/>
+  <path class="draw grid lon2" d="M140 52 C 158 88, 158 164, 140 200"/>
+
+  <!-- location pin -->
+  <path class="draw pin" d="M174 96 C 190 96, 202 108, 202 124 C 202 146, 174 174, 174 174 C 174 174, 146 146, 146 124 C 146 108, 158 96, 174 96 Z"/>
+  <circle class="draw pinDot" cx="174" cy="124" r="9"/>
+
+  <!-- terrain contour / mountain cue -->
+  <path class="draw mount" d="M42 214 L74 180 L96 202 L120 170 L152 214"/>
+  <path class="draw base" d="M42 214 H152"/>
+</svg>
