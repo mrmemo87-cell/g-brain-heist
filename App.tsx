@@ -1,12 +1,14 @@
+import { resolveAccountWorkspace as resolveWorkspace, type AccountWorkspace } from './src/lib/accountWorkspace';
 import { useLanguage } from './src/contexts/LanguageContext';
 import React, { Suspense, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, SchoolGrade, StudentAssignmentTask, XpStatus, DailyStreakRewardReceipt } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
-import WhoAreYou from './components/WhoAreYou';
+import LoginLaunchpad from './components/LoginLaunchpad';
+import type { AuthBootstrap } from './src/lib/authBootstrap';
+import { getAuthBootstrap } from './services/authBootstrapService';
 import SkeletonDashboard from './components/SkeletonDashboard';
-import RecognitionText from './components/RecognitionText';
 import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
@@ -20,22 +22,19 @@ import LevelUpModal from './components/LevelUpModal';
 import StreakRewardModal from './components/StreakRewardModal';
 import { ToastContainer } from './components/ToastNotification';
 import BackButton from './components/BackButton';
-import { isSuperadmin } from './services/adminService';
-import { getMySchoolCapabilities, isSchoolAdmin, type SchoolCapabilities } from './services/schoolAdminService';
+import { type SchoolCapabilities } from './services/schoolAdminService';
 import SchoolWorkspaceChooser from './components/SchoolWorkspaceChooser';
 import { audioService } from './services/audioService';
 import { aiHostService } from './services/aiHostService';
 import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
 import { notificationService, type Notification } from './services/notificationService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessage';
-import { isEmailVerified } from './services/emailVerification';
 import EmailVerificationGate from './components/EmailVerificationGate';
 import UpgradeModal from './components/UpgradeModal';
 import DashboardTourOverlay from './components/onboarding/DashboardTourOverlay';
 import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoolPlanDetails, type AccountTier } from './services/tierService';
 import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey, type StudentProgrammeKey } from './services/entitlementService';
 import { listMyPendingProgrammeAccessRequests, requestProgrammeAccess } from './services/programmeAccessRequestService';
-import { getGuardianChildren } from './services/guardianService';
 import { enrollInApprovedSchoolClass, listMySchoolClasses, type ApprovedSignupClass } from './services/authService';
 import { assignmentCategoryBadgeStyle, getAssignmentCategoryMeta } from './src/lib/assignmentCategory';
 import ProgramIdentityBanner from './src/components/ProgramIdentityBanner';
@@ -160,6 +159,7 @@ const StudentProgrammeCard: React.FC<StudentProgrammeCardProps> = ({
 };
 
 interface AppProps {
+  initialBootstrap: AuthBootstrap;
   onLogout: () => void;
 }
 
@@ -180,27 +180,32 @@ const DEFAULT_SESSION_STATUS: SessionStatus = {
 type NonCriticalLoadState = 'idle' | 'loading' | 'ready' | 'error' | 'cached';
 type NonCriticalKey = 'tasks' | 'caps' | 'news' | 'assignment' | 'sessionStatus';
 type AppView = 'workspace_chooser' | 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'commander' | 'cambridge' | 'school_admin' | 'school_head' | 'parent';
-type AccountWorkspace = Extract<AppView, 'school_head' | 'school_admin' | 'teacher' | 'parent'>;
-
 const resolveAccountWorkspace = (
-  profileRole: Profile['role'],
-  capabilities: SchoolCapabilities | null,
-  hasParentWorkspace: boolean,
+  profileRole: Profile['role'], capabilities: SchoolCapabilities | null, hasParentWorkspace: boolean,
 ): AppView => {
-  const available: AccountWorkspace[] = [];
-  if (capabilities?.is_owner) available.push('school_head');
-  if (capabilities?.can_administer) available.push('school_admin');
-  if ((profileRole === 'teacher' && !capabilities?.can_administer)
-    || Boolean(capabilities?.can_teach && capabilities.has_active_teacher_allocation)) available.push('teacher');
-  if (hasParentWorkspace) available.push('parent');
-
-  const requested = new URLSearchParams(window.location.search).get('view') as AccountWorkspace | null;
-  if (requested && available.includes(requested)) return requested;
+  let preferred: string | null = null;
   const schoolId = capabilities?.school_id;
-  const preferred = schoolId ? localStorage.getItem(`school_workspace:${schoolId}`) as AccountWorkspace | null : null;
-  if (preferred && available.includes(preferred)) return preferred;
-  if (available.length > 1) return 'workspace_chooser';
-  return available[0] ?? (profileRole === 'school_admin' ? 'school_admin' : 'teacher');
+  try { preferred = schoolId ? localStorage.getItem(`school_workspace:${schoolId}`) : null; }
+  catch { /* Storage restrictions must not block login. */ }
+  return resolveWorkspace(profileRole, capabilities, hasParentWorkspace,
+    new URLSearchParams(window.location.search).get('view'), preferred);
+};
+
+export const preloadAccountWorkspace = (bootstrap: AuthBootstrap): void => {
+  if (!bootstrap.profile || bootstrap.needs_setup || !bootstrap.email_verified || bootstrap.is_banned) return;
+  const role = bootstrap.profile.role;
+  const caps = bootstrap.capabilities;
+  const view = bootstrap.is_superadmin ? (bootstrap.has_parent_workspace ? 'workspace_chooser' : 'admin')
+    : role === 'teacher' || role === 'school_admin' || caps?.is_owner || caps?.can_administer
+      || (caps?.can_teach && caps.has_active_teacher_allocation)
+      ? resolveAccountWorkspace(role, caps, bootstrap.has_parent_workspace)
+      : bootstrap.has_parent_workspace ? (role === 'student' && bootstrap.profile.school_id ? 'workspace_chooser' : 'parent') : 'dashboard';
+  const loaders: Partial<Record<AppView, () => Promise<unknown>>> = {
+    teacher: () => import('./components/TeacherPortalShell'), school_admin: () => import('./components/SchoolAdminPortal'),
+    school_head: () => import('./components/SchoolHeadPortal'), parent: () => import('./components/guardian/ParentPortal'),
+    admin: () => import('./components/AdminPortal'),
+  };
+  void loaders[view]?.().catch(() => { /* Lazy retry owns visible chunk failures. */ });
 };
 
 const readCache = <T,>(key: string): T | null => {
@@ -238,7 +243,7 @@ const WritingHubRouteFallback: React.FC = () => (
   </div>
 );
 
-const App: React.FC<AppProps> = ({ onLogout }) => {
+const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
   const { t, language, direction } = useLanguage();
   const [profile, setProfile] = useState<Profile | null>(null);
   const handleCommanderBalance = useCallback((userId: string, coins: number) => {
@@ -303,14 +308,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [isPilotPlan, setIsPilotPlan] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeFeatureLabel, setUpgradeFeatureLabel] = useState<string | undefined>(undefined);
-  const [peekedRole, setPeekedRole] = useState<'student' | 'teacher' | 'admin' | null>(null);
-  const [peekedUser, setPeekedUser] = useState<{
-    username: string; level?: number; coins?: number;
-    gems?: number; streak?: number; clanName?: string;
-    avatarUrl?: string;
-  } | null>(null);
-  const [recognitionHold, setRecognitionHold] = useState(true);
-  const recognitionTimerRef = useRef<number | null>(null);
   const taskRealtimeRefreshTimerRef = useRef<number | null>(null);
   const [nonCriticalStatus, setNonCriticalStatus] = useState({
     tasks: 'idle' as NonCriticalLoadState,
@@ -439,9 +436,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const renderLazy = (node: React.ReactNode) => (
     <Suspense
       fallback={(
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="skeleton-bone h-8 w-48 rounded-xl bg-white/10" />
-        </div>
+        <LoginLaunchpad compact message="Opening your workspace…" />
       )}
     >
       {node}
@@ -967,7 +962,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     tutorialCheckedRef.current = tutorialChecked;
   }, [tutorialChecked]);
 
-  const startCriticalBoot = useCallback(async () => {
+  const startCriticalBoot = useCallback(async (refresh = false) => {
     const bootId = ++criticalBootIdRef.current;
     criticalAbortRef.current?.abort();
     const criticalController = new AbortController();
@@ -992,118 +987,35 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setAppMode('pending');
     setIsAdminMode(false);
     setHasParentWorkspace(false);
-    setPeekedRole(null);
-    setPeekedUser(null);
-    setRecognitionHold(true);
-    if (recognitionTimerRef.current) { clearTimeout(recognitionTimerRef.current); recognitionTimerRef.current = null; }
-
     try {
-      const { data, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError) {
-        throw sessionError;
+      // Main already verified this account; explicit retries obtain a fresh snapshot.
+      let bootstrap = initialBootstrap;
+      if (refresh) {
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) { setSessionMissing(true); return; }
+        bootstrap = await getAuthBootstrap(data.session);
       }
-
-      if (!data.session) {
-        setSessionMissing(true);
-        return;
+      if (criticalController.signal.aborted || criticalBootIdRef.current !== bootId) return;
+      if (bootstrap.is_banned) {
+        storeBanMessage(BAN_MESSAGE); await supabase.auth.signOut(); setSessionMissing(true); return;
       }
-
-      const guardianChildrenPromise = getGuardianChildren().catch(() => []);
-
-      // One minimal profile request decides the role and unlocks the dashboard.
-      // Expensive student game hydration and portal datasets load after paint.
-      let profileData: Profile | null = null;
-      try {
-        profileData = await GameService.whoamiFast();
-      } catch (fastBootError: any) {
-        // Preserve first-login/OAuth profile creation through the legacy path.
-        if (fastBootError?.code === 'PGRST116') {
-          const { session, profile: createdProfile } = await GameService.getCriticalBootData({
-            signal: criticalController.signal,
-            timeoutMs: 12000,
-            retryOnTimeout: 0,
-          });
-          if (!session) {
-            setSessionMissing(true);
-            return;
-          }
-          profileData = createdProfile;
-        } else {
-          throw fastBootError;
-        }
-      }
-
-      if (!profileData) {
-        throw new Error('Profile not loaded');
-      }
-
-      setPeekedRole(profileData.role === 'teacher' || profileData.role === 'admin' ? profileData.role : 'student');
-      if (profileData.username) {
-        setPeekedUser({
-          username: profileData.username,
-          level: profileData.level ?? undefined,
-          coins: profileData.coins ?? undefined,
-          gems: profileData.gemstones ?? undefined,
-          streak: profileData.streak ?? undefined,
-          clanName: profileData.clan_name ?? undefined,
-          avatarUrl: profileData.avatar_url ?? undefined,
-        });
-      }
-
-      setProfile(profileData);
-      const guardianChildren = await guardianChildrenPromise;
-      const hasParentAccess = guardianChildren.length > 0;
-      setHasParentWorkspace(hasParentAccess);
-
+      const profileData = bootstrap.profile;
+      if (!profileData || bootstrap.needs_setup || !bootstrap.email_verified) throw new Error('Account verification is incomplete. Please sign in again.');
+      setProfile(profileData); setEmailVerified(bootstrap.email_verified);
+      const hasParentAccess = bootstrap.has_parent_workspace;
+      const capabilities = bootstrap.capabilities;
+      setHasParentWorkspace(hasParentAccess); setSchoolCapabilities(capabilities);
+      setIsUserSchoolAdmin(Boolean(capabilities?.can_administer));
       const whoamiMs = performance.now() - bootStartRef.current;
       bootTimingsRef.current.whoami = whoamiMs;
-      logBootTiming('time to whoami resolved', whoamiMs);
-
-      // ── TEACHER: minimal remaining boot ──
-      if (profileData.role === 'teacher') {
-        // Fetch tier in parallel (non-blocking)
-        fetchEffectiveTier().then(tier => setAccountTier(tier)).catch(() => {});
-        // Detect pilot plan
-        fetchSchoolPlanDetails().then(d => setIsPilotPlan(d.plan === 'pilot' && d.is_active)).catch(() => {});
-        const capabilities = await getMySchoolCapabilities(profileData.school_id);
-        setSchoolCapabilities(capabilities);
-        setIsUserSchoolAdmin(Boolean(capabilities?.can_administer));
+      logBootTiming('time to bootstrap applied', whoamiMs);
+      if (!bootstrap.is_superadmin && (profileData.role === 'teacher' || profileData.role === 'school_admin'
+        || capabilities?.is_owner || capabilities?.can_administer
+        || (capabilities?.can_teach && capabilities.has_active_teacher_allocation))) {
         setView(resolveAccountWorkspace(profileData.role, capabilities, hasParentAccess));
-
-        setIsAdminMode(false);
-        setAppMode('player');
-        if (import.meta.env.DEV) {
-          console.info('[auth-flow] loading state transition', { target: 'criticalLoading', next: false, reason: 'teacher-boot:resolved' });
-        }
-        setCriticalLoading(false);
-        requestAnimationFrame(() => setIsInteractive(true));
-        return;
+        setAppMode('player'); setCriticalLoading(false);
+        requestAnimationFrame(() => setIsInteractive(true)); return;
       }
-
-      // ── SCHOOL ADMIN: formal account — go directly to portal ──
-      if (profileData.role === 'school_admin') {
-        fetchEffectiveTier().then(tier => setAccountTier(tier)).catch(() => {});
-        fetchSchoolPlanDetails().then(d => setIsPilotPlan(d.plan === 'pilot' && d.is_active)).catch(() => {});
-        const capabilities = await getMySchoolCapabilities(profileData.school_id);
-        setSchoolCapabilities(capabilities);
-        setIsUserSchoolAdmin(Boolean(capabilities?.can_administer));
-        setIsAdminMode(false);
-        setAppMode('player');
-        setView(resolveAccountWorkspace(profileData.role, capabilities, hasParentAccess));
-        if (import.meta.env.DEV) {
-          console.info('[auth-flow] loading state transition', { target: 'criticalLoading', next: false, reason: 'school-admin-boot:resolved' });
-        }
-        setCriticalLoading(false);
-        requestAnimationFrame(() => setIsInteractive(true));
-        return;
-      }
-
-      // ── STUDENT / ADMIN PATH (unchanged) ──
-      // Fetch payment tier (non-blocking, defaults to 'free')
-      fetchEffectiveTier().then(tier => setAccountTier(tier)).catch(() => {});
-      // Detect pilot plan
-      fetchSchoolPlanDetails().then(d => setIsPilotPlan(d.plan === 'pilot' && d.is_active)).catch(() => {});
 
       // Handle post-checkout redirect (Paddle / Stripe)
       const urlParams = new URLSearchParams(window.location.search);
@@ -1120,10 +1032,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       } else if (urlParams.get('upgrade') === 'cancelled') {
         window.history.replaceState({}, '', window.location.pathname);
       }
-
-      // Check email verification status
-      const verified = await isEmailVerified();
-      setEmailVerified(verified);
 
       // Legacy tutorial coexistence: the Phase 1A route gate owns active learner
       // FTUE, but this App-level predicate is a defensive suppression layer for
@@ -1144,12 +1052,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         setTutorialChecked(true);
       }
 
-      let isVerifiedAdmin = false;
-      try {
-        isVerifiedAdmin = await isSuperadmin();
-      } catch (adminError) {
-        console.warn('Failed to check superadmin status, continuing player boot.', adminError);
-      }
+      const isVerifiedAdmin = bootstrap.is_superadmin;
 
       if (isVerifiedAdmin) {
         console.info('[admin] Superadmin detected, entering admin mode');
@@ -1180,7 +1083,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       }
       console.error('Failed to load critical boot data:', error);
       setLoadError(classifyBootError(error));
-      addToast(`Failed to load: ${error?.message || 'Unknown error'}`, 'error', startCriticalBoot);
+      addToast(`Failed to load: ${error?.message || 'Unknown error'}`, 'error', () => void startCriticalBoot(true));
       if (import.meta.env.DEV) {
         console.info('[auth-flow] loading state transition', { target: 'criticalLoading', next: false, reason: 'critical-boot:error' });
       }
@@ -1191,7 +1094,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         console.info('[auth-flow] auth refresh end', { bootId, aborted: criticalController.signal.aborted });
       }
     }
-  }, [addToast, classifyBootError, logBootTiming, loadCachedData]);
+  }, [addToast, classifyBootError, logBootTiming, loadCachedData, initialBootstrap]);
 
   const runNonCriticalLoads = useCallback((targets?: NonCriticalKey[]) => {
     if (!profile) return;
@@ -1280,7 +1183,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         logBootTiming('time to non-critical resolved', nonCriticalMs);
       });
 
-      void isSchoolAdmin().then(setIsUserSchoolAdmin).catch(() => setIsUserSchoolAdmin(false));
     });
   }, [profile, scheduleAfterPaint, logBootTiming]);
 
@@ -1346,7 +1248,32 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [isPlayerMode, profile?.id, profile?.role]);
 
   useEffect(() => {
-    startCriticalBoot();
+    if (!isInteractive || !profile?.id) return;
+    return notificationService.connect(profile.id);
+  }, [isInteractive, profile?.id]);
+
+  useEffect(() => {
+    if (!isInteractive || !profile?.id) return;
+    let cancelled = false;
+    const userId = profile.id;
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      void fetchEffectiveTier().then(tier => { if (!cancelled) setAccountTier(tier); }).catch(() => {});
+      void fetchSchoolPlanDetails().then(d => { if (!cancelled) setIsPilotPlan(d.plan === 'pilot' && d.is_active); }).catch(() => {});
+      const snapshot = { ...profile };
+      void GameService.recordDailyStreakForProfile(snapshot).then(() => {
+        if (!cancelled) setProfile(current => current?.id === userId ? {
+          ...current, streak: snapshot.streak, coins: current.coins === profile.coins ? snapshot.coins : current.coins,
+          daily_streak_reward: snapshot.daily_streak_reward,
+        } : current);
+      }).catch(() => {});
+    }, 0);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+    // One daily reward attempt per mounted account, after its first paint.
+  }, [isInteractive, profile?.id]);
+
+  useEffect(() => {
+    void startCriticalBoot(false);
   }, [startCriticalBoot]);
 
   useEffect(() => {
@@ -1473,7 +1400,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setIsOnline(true);
       addToast('🌐 Connection restored', 'success');
       // Refresh data when coming back online
-      startCriticalBoot();
+      void startCriticalBoot(true);
     };
 
     const handleOffline = () => {
@@ -1876,17 +1803,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   };
 
-  // Start recognition hold timer once peekedUser arrives (minimum 4s of personalised text)
-  useEffect(() => {
-    if (peekedUser && recognitionHold) {
-      recognitionTimerRef.current = window.setTimeout(() => {
-        setRecognitionHold(false);
-      }, 4000);
-      return () => { if (recognitionTimerRef.current) clearTimeout(recognitionTimerRef.current); };
-    }
-  }, [peekedUser, recognitionHold]);
-
-
   if (sessionMissing) {
     return null;
   }
@@ -1919,7 +1835,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           <button 
             onClick={() => {
               setLoadError(null);
-              startCriticalBoot();
+              void startCriticalBoot(true);
             }}
             className="px-6 py-3 rounded-lg font-bold gradient-cyan hover:scale-105 transition-transform"
           >
@@ -1953,7 +1869,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           <button 
             onClick={() => {
               setLoadError(null);
-              startCriticalBoot();
+              void startCriticalBoot(true);
             }}
             className="px-6 py-3 rounded-lg font-bold gradient-cyan hover:scale-105 transition-transform"
           >
@@ -1979,7 +1895,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           <button 
             onClick={() => {
               setLoadError(null);
-              startCriticalBoot();
+              void startCriticalBoot(true);
             }}
             className="px-6 py-3 rounded-lg font-bold gradient-cyan hover:scale-105 transition-transform"
           >
@@ -2170,29 +2086,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   };
 
   const renderView = () => {
-    // Phase 1: No role known yet → "Who are you?" text animation
-    if (criticalLoading && !peekedRole && !profile) {
-      return <WhoAreYou />;
-    }
-
-    // Phase 2: Role known → show personalised recognition text
-    // Stays visible until BOTH profile is loaded AND minimum 4s elapsed.
-    // This kills perceived wait time — data loads in background, less skeleton later.
-    if (peekedRole && !loadError) {
-      if (peekedUser && (!profile || recognitionHold)) {
-        return <RecognitionText {...peekedUser} role={peekedRole} />;
-      }
-      if (criticalLoading && !profile) {
-        return <SkeletonDashboard role={peekedRole} />;
-      }
-    }
+    if (criticalLoading || !profile) return <LoginLaunchpad message="Opening your workspace…" />;
 
     // Block unverified users (except for IELTS-only users)
     if (emailVerified === false && profile && profile.school_name?.trim().toLowerCase() !== IELTS_ONLY_SCHOOL_NAME.toLowerCase()) {
       return <EmailVerificationGate />;
     }
 
-    if (isAdminMode) {
+    if (isAdminMode && view !== 'workspace_chooser' && view !== 'parent') {
       if (!profile) {
         return <SkeletonDashboard role="admin" />;
       }

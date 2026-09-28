@@ -41,7 +41,7 @@ test('App routes protected owners to the executive portal and keeps gameplay una
   assert.match(app, /schoolCapabilities\?\.is_owner && schoolCapabilities\.account_type === 'school_head'/);
   assert.match(app, /case 'school_head'/);
   assert.match(app, /allowedSchoolAdminViews\.push\('school_head'\)/);
-  assert.match(app, /capabilities\?\.is_owner.*available\.push\('school_head'\)/);
+  assert.match(read('src/lib/accountWorkspace.ts'), /capabilities\?\.is_owner.*available\.push\('school_head'\)/);
   assert.match(app, /resolveAccountWorkspace/);
 });
 

@@ -50,32 +50,15 @@ export interface Notification {
 class NotificationService {
   private listeners: ((notification: Notification) => void)[] = [];
   
-  constructor() {
-    this.setupRealtimeSubscription();
-  }
-
-  // Setup real-time subscription to notifications
-  private setupRealtimeSubscription() {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
-
-      supabase
-        .channel('notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            const notification = payload.new as Notification;
-            this.handleNewNotification(notification);
-          }
-        )
-        .subscribe();
-    });
+  // App connects after its authoritative bootstrap has rendered. No auth request
+  // during module import, and each account disconnects when its shell unmounts.
+  connect(userId: string): () => void {
+    const channel = supabase.channel(`notifications:${userId}`).on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+      payload => this.handleNewNotification(payload.new as Notification),
+    ).subscribe();
+    return () => { void supabase.removeChannel(channel); };
   }
 
   // Handle incoming notification

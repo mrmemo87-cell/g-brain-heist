@@ -1,0 +1,23 @@
+.login-launchpad{min-height:100svh;display:grid;place-items:center;padding:28px 20px;background:#090f1d;color:#f3f6ff;font-family:inherit;isolation:isolate}
+.login-launchpad--compact{min-height:60vh;border-radius:24px}
+.login-launchpad__card{width:min(100%,340px);text-align:center}
+.login-launchpad__brand{display:flex;justify-content:center;align-items:center;gap:10px;font-size:12px;font-weight:800;letter-spacing:.18em;color:#adbcd3}
+.login-launchpad__brand span{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:#c3f76b;color:#14200a;font-size:20px}
+.login-launchpad__mark{display:block;width:88px;height:88px;margin:30px auto 20px;stroke:#c3f76b;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:290;animation:launchpad-draw 2.5s ease-in-out infinite alternate}
+.login-launchpad h1{font-size:clamp(21px,5vw,27px);font-weight:750;letter-spacing:-.035em;margin:0 0 10px;color:#f3f6ff}
+.login-launchpad__status{font-size:14px;line-height:1.6;color:#a9b8cf;margin:0;min-height:45px}
+.login-launchpad__signal{height:3px;width:120px;background:#243045;border-radius:3px;margin:18px auto 26px;overflow:hidden}
+.login-launchpad__signal span{display:block;width:45%;height:100%;background:#c3f76b;animation:launchpad-signal 1.5s ease-in-out infinite alternate}
+.login-launchpad__activity{border:1px solid #2b374a;background:#111b2b;border-radius:22px;padding:18px}
+.login-launchpad__activity-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:10px;font-weight:800;letter-spacing:.13em;color:#a9b8cf}
+.login-launchpad__activity-heading span:last-child{color:#c3f76b;letter-spacing:0;font-size:12px;font-variant-numeric:tabular-nums}
+.login-launchpad__activity p{font-size:13px;color:#bbc7da;margin:12px 0 16px}
+.login-launchpad__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.login-launchpad__grid button{min-height:52px;aspect-ratio:1.35;border:1px solid #314058;border-radius:12px;background:#1a273a;color:#8392ab;font-size:25px;cursor:pointer;touch-action:manipulation;transition:background-color .1s,transform .1s}
+.login-launchpad__grid button.is-target{background:#c3f76b;color:#16220d;border-color:#c3f76b}
+.login-launchpad__grid button:active{transform:scale(.94)}
+.login-launchpad__grid button:focus-visible{outline:3px solid #7cdcff;outline-offset:3px}
+.login-launchpad__activity p.login-launchpad__hint{font-size:11px;margin:14px 0 0;color:#a9b8cf}
+@keyframes launchpad-draw{from{stroke-dashoffset:290}to{stroke-dashoffset:0}}
+@keyframes launchpad-signal{from{transform:translateX(-90%)}to{transform:translateX(220%)}}
+@media(prefers-reduced-motion:reduce){.login-launchpad *, .login-launchpad *::before{animation:none!important;transition:none!important}.login-launchpad__grid button:active{transform:none}}
