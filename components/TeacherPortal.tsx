@@ -14,6 +14,7 @@ import {
 import { supabase } from '../services/supabaseClient';
 import { getAcademicReportingContext, type AcademicReportingYear } from '../services/academicReportingService';
 import { fetchTeacherAssignmentDiagnosticIntelligence, type TeacherAssignmentDiagnosticIntelligence } from '../services/teacherDiagnosticService';
+import { fetchPrintableTeacherAssignment, openPrintableTeacherAssignment } from '../services/teacherAssignmentPrintService';
 import BackButton from './BackButton';
 import SettingsModal from './SettingsModal';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
@@ -588,6 +589,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [dashboardAssignmentReports, setDashboardAssignmentReports] = useState<Record<string, TeacherAssignmentReportRow[]>>({});
   const [dashboardReportsLoaded, setDashboardReportsLoaded] = useState(false);
   const [deletingAssignmentId, setDeletingAssignmentId] = useState<string | null>(null);
+  const [printingAssignmentId, setPrintingAssignmentId] = useState<string | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<TeacherAssignmentSummary | null>(null);
   const [assignmentPublishStatus, setAssignmentPublishStatus] = useState<'draft' | 'scheduled' | 'published'>('published');
   const [assignmentCategory, setAssignmentCategory] = useState<AssignmentCategory | null>(null);
@@ -5953,6 +5955,34 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     }
   };
 
+  const handlePrintAssignmentPaper = async (assignment: TeacherAssignmentSummary) => {
+    if (!teacher || assignment.teacher_id !== teacher.id || printingAssignmentId) {
+      if (!teacher || assignment.teacher_id !== teacher.id) brainsAlert('You can only print assignments that you created.', 'error');
+      return;
+    }
+
+    setPrintingAssignmentId(assignment.id);
+    try {
+      const packet = await fetchPrintableTeacherAssignment(assignment.id);
+      if (!packet.questions.length) {
+        brainsAlert('This assignment does not contain printable questions.', 'info');
+        return;
+      }
+      openPrintableTeacherAssignment({
+        packet,
+        schoolName: resolvedBranding.schoolName,
+        schoolLogoUrl: resolvedBranding.schoolLogoUrl,
+        schoolId: profile.school_id,
+        teacherName: profile.full_name || profile.username || 'Teacher',
+      });
+    } catch (error) {
+      console.error('Error preparing assignment paper:', error);
+      brainsAlert(error instanceof Error ? error.message : 'Unable to prepare the printable assignment.', 'error');
+    } finally {
+      setPrintingAssignmentId(null);
+    }
+  };
+
   const renderAssignments = () => (
     <div className="space-y-6">
       {/* Header with Title and Create Button */}
@@ -6189,8 +6219,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Completed</dt><dd>{assignment.completed_count}/{assignment.student_count}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'None'}</dd></div>
                               </dl>
-                              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                              <div className="mt-4 grid gap-2 sm:grid-cols-2">
                                 <button onClick={() => handleOpenReport(assignment)} className="teacher-btn teacher-btn-secondary w-full">View report</button>
+                                <button
+                                  type="button"
+                                  onClick={() => void handlePrintAssignmentPaper(assignment)}
+                                  disabled={printingAssignmentId !== null}
+                                  className="teacher-btn teacher-btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60"
+                                  aria-label={`Print ${assignment.title || assignment.topic_name} question paper`}
+                                >
+                                  {printingAssignmentId === assignment.id ? 'Preparing paper…' : '🖨️ Print paper'}
+                                </button>
                                 <button type="button" onClick={() => handleEditAssignment(assignment)} className="teacher-btn teacher-btn-secondary w-full" aria-label={`Edit ${assignment.title || assignment.topic_name}`}>Edit assignment</button>
                                 <button
                                   type="button"
@@ -6439,10 +6478,22 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       ) : (
         <div className="space-y-6">
           <div className="teacher-card">
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedReportAssignment.title || selectedReportAssignment.topic_name}</h2>
-            <p className="text-slate-600">
-              {selectedReportAssignment.subject_name} · Topic {selectedReportAssignment.topic_name} · Class {selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}
-            </p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedReportAssignment.title || selectedReportAssignment.topic_name}</h2>
+                <p className="text-slate-600">
+                  {selectedReportAssignment.subject_name} · Topic {selectedReportAssignment.topic_name} · Class {selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void handlePrintAssignmentPaper(selectedReportAssignment)}
+                disabled={printingAssignmentId !== null}
+                className="teacher-btn teacher-btn-primary disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {printingAssignmentId === selectedReportAssignment.id ? 'Preparing paper…' : '🖨️ Print assignment'}
+              </button>
+            </div>
             <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
               <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(selectedReportAssignment.assigned_at).toLocaleDateString()}</dd></div>
               <div><dt className="text-xs font-semibold uppercase text-slate-400">Class</dt><dd>{selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}</dd></div>
