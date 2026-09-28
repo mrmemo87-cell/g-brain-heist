@@ -357,10 +357,6 @@ export const loginWithGoogle = async (): Promise<void> => {
         provider: 'google',
         options: {
             redirectTo,
-            queryParams: {
-                access_type: 'offline',
-                prompt: 'consent',
-            },
         },
     });
 

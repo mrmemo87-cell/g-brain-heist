@@ -54,14 +54,14 @@ begin
     )
   );
 end;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.rpc_auth_bootstrap_v1()
  RETURNS jsonb
  LANGUAGE sql
  STABLE
  SET search_path TO ''
-AS $function$ select private.auth_bootstrap_v1(); $function$
+AS $function$ select private.auth_bootstrap_v1(); $function$;
 
 revoke all on function private.auth_bootstrap_v1() from public, anon;
 grant usage on schema private to authenticated;

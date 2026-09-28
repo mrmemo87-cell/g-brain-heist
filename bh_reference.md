@@ -18,6 +18,7 @@ Use these section IDs when giving work to another AI/model. Example:
 | `BH-CORE` | Product architecture and non-negotiable principles |
 | `BH-ENV` | Repository, Supabase, Vercel, stack |
 | `BH-ROLES` | Roles, school scoping, authorization |
+| `BH-AUTH-BOOTSTRAP` | Role-aware login, loading UX, session lifecycle |
 | `BH-PILOT` | Current Silk Road ESL pilot context |
 | `BH-QUESTION-AUTHORITY` | My Pool, School Verified, Brains Heist Verified |
 | `BH-ASSIGNMENTS` | Assignment creation, publishing, removal, pool behaviour |
@@ -1569,3 +1570,9 @@ See [the classroom reliability release record](docs/engineering/classroom-reliab
 - The request entitlement hook must classify irrelevant routes before doing database-backed checks, while preserving gated-route decisions.
 - Verified evidence result triggers, question snapshots, short-answer review, teacher/group/year scope and fail-closed access remain invariants.
 - Capacity is unverified until staged burst/soak tests pass. `load-tests/classroom.js` is staging-only. Never claim thousands of concurrent students from unit tests or a successful build.
+
+
+<a id="BH-AUTH-BOOTSTRAP"></a>
+# BH-AUTH-BOOTSTRAP — Role-aware login
+
+Read [the authentication performance reference](docs/performance/auth-bootstrap.md) before editing login. Main obtains one authoritative `rpc_auth_bootstrap_v1()` snapshot and passes it to App; do not restore the duplicate App boot, full guardian-child lookup, awaited streak, or four-second recognition hold. Keep capability resolution server-authoritative, preserve setup/email/ban gates, invalidate stale in-flight results on account switches, and keep routine resume checks from resetting active workspaces. The optional loading warm-up must never send requests, grant rewards or impose a minimum wait. Deploy migration `20260928163701_auth_bootstrap_v1` before its frontend.

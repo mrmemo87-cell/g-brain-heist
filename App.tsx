@@ -1249,6 +1249,11 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
 
   useEffect(() => {
     if (!isInteractive || !profile?.id) return;
+    return notificationService.connect(profile.id);
+  }, [isInteractive, profile?.id]);
+
+  useEffect(() => {
+    if (!isInteractive || !profile?.id) return;
     let cancelled = false;
     const userId = profile.id;
     const timer = window.setTimeout(() => {

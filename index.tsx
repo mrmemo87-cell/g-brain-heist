@@ -217,6 +217,7 @@ const Main: React.FC = () => {
   const [bootstrap, setBootstrap] = useState<AuthBootstrap | null>(null);
   const loginInFlightRef = useRef(false);
   const activeUserRef = useRef<string | null>(null);
+  const pendingBootstrapUserRef = useRef<string | null>(null);
   const [showEntryScreen, setShowEntryScreen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<'brains-heist' | 'ielts' | null>(null);
   const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
@@ -272,6 +273,7 @@ const Main: React.FC = () => {
         setBootstrap(null); setIsAuthenticated(false); setNeedsSetup(false); setNeedsEmailVerification(false);
         return;
       }
+      pendingBootstrapUserRef.current = session.user.id;
       const result = await getAuthBootstrap(session);
       if (sequence !== authSequenceRef.current) return;
       if (result.is_banned) {
@@ -296,7 +298,10 @@ const Main: React.FC = () => {
       setBootstrap(null);
       setInitError(error instanceof Error ? error.message : 'Unable to open your account. Please retry.');
     } finally {
-      if (sequence === authSequenceRef.current) setLoading(false, `${reason}:end`);
+      if (sequence === authSequenceRef.current) {
+        pendingBootstrapUserRef.current = null;
+        setLoading(false, `${reason}:end`);
+      }
     }
   }, [resolveCallbackRoute, setLoading]);
 
@@ -310,7 +315,7 @@ const Main: React.FC = () => {
       // Initial getSession owns startup; password login supplies its own session.
       if (event === 'INITIAL_SESSION' || loginInFlightRef.current && event === 'SIGNED_IN') return;
       if (!session) {
-        ++authSequenceRef.current; clearAuthBootstrap(); activeUserRef.current = null;
+        ++authSequenceRef.current; clearAuthBootstrap(); activeUserRef.current = null; pendingBootstrapUserRef.current = null;
         isAuthenticatedRef.current = false;
         setBootstrap(null); setPostSetupProfile(null); setIsAuthenticated(false);
         setNeedsSetup(false); setNeedsEmailVerification(false); setInitError(null);
@@ -324,6 +329,9 @@ const Main: React.FC = () => {
       // Leave Supabase's auth callback before any further Supabase call.
       window.setTimeout(() => {
         if (sequence !== authSequenceRef.current) return;
+        // The initial bootstrap may have resolved since this event was queued.
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')
+          && (activeUserRef.current === session.user.id || pendingBootstrapUserRef.current === session.user.id)) return;
         void checkAuthAndSetup({ reason: `auth-state:${event}`, globalLoader, session });
       }, 0);
     });
@@ -335,7 +343,7 @@ const Main: React.FC = () => {
       const sinceAuthRefreshMs = now - lastSuccessfulAuthRefreshAtRef.current;
       const isCallbackRoute = typeof window !== 'undefined' && isAuthCallbackPath(window.location.pathname);
 
-      if (authRefreshInFlightRef.current) {
+      if (authRefreshInFlightRef.current || pendingBootstrapUserRef.current) {
         logAuthFlow('resume refresh skipped; already in flight', { trigger });
         return;
       }

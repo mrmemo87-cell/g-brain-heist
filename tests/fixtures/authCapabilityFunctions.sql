@@ -8,7 +8,7 @@ AS $function$
     select 1 from public.superadmins s
     where s.user_id = auth.uid()
   );
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.school_admin_get_my_allocation_capabilities(p_school_id uuid DEFAULT NULL::uuid)
  RETURNS jsonb
@@ -27,7 +27,7 @@ begin
   end if;
   return v_payload;
 end;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.school_admin_get_my_capabilities(p_school_id uuid DEFAULT NULL::uuid)
  RETURNS jsonb
@@ -80,4 +80,4 @@ begin
     'can_view_governance', v_member.is_owner
   );
 end;
-$function$
+$function$;
