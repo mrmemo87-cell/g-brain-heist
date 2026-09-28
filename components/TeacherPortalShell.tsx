@@ -205,6 +205,27 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
     if (tool) {
       event.preventDefault();
       event.stopPropagation();
+
+      if (tool === 'interventions') {
+        const params = new URLSearchParams(window.location.search);
+        const studentId = button?.dataset.studentId || '';
+        const subject = button?.dataset.subject || '';
+        const focusCode = button?.dataset.focusCode || '';
+        if (studentId) {
+          params.set('student', studentId);
+          if (subject) params.set('subject', subject);
+          else params.delete('subject');
+          if (focusCode) params.set('focus', focusCode);
+          else params.delete('focus');
+        } else {
+          params.delete('student');
+          params.delete('subject');
+          params.delete('focus');
+        }
+        const query = params.toString();
+        window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+      }
+
       setTargetedPractice(null);
       setActiveTool(tool);
       return;
