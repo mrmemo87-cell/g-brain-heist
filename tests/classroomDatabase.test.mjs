@@ -7,7 +7,7 @@ const uid = (n) => `00000000-0000-0000-0000-${String(n).padStart(12, '0')}`;
 const student = uid(1), other = uid(2), teacher = uid(3), assignment = uid(4), question = uid(5), short = uid(6);
 const db = new PGlite();
 await db.exec(readFileSync('tests/fixtures/classroomSchema.sql', 'utf8'));
-await db.exec(readFileSync('supabase/migrations/20260928053301_classroom_reliability.sql', 'utf8'));
+await db.exec(readFileSync('supabase/migrations/20260928055401_classroom_reliability.sql', 'utf8'));
 await db.exec(`
  insert into users(id,username) values('${student}','Student'),('${other}','Other'),('${teacher}','Teacher');
  insert into teachers(id,user_id) values('${teacher}','${teacher}');
