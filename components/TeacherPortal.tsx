@@ -79,6 +79,7 @@ interface TeacherPortalProps {
   isSchoolAdmin?: boolean;
   onOpenSchoolAdmin?: () => void;
   initialView?: PortalView;
+  onAssignmentSummary?: (summary: GameService.TeacherAssignmentSuccessSummary | null) => void;
 }
 
 // Plan details state (fetched once)
@@ -185,7 +186,7 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
   return { grammar, punctuation };
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard' }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard', onAssignmentSummary }) => {
   const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
   const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
   const initialWritingSection: WritingHubSection =
@@ -586,8 +587,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [reportAcademicYearId, setReportAcademicYearId] = useState('');
   const [reportAssignments, setReportAssignments] = useState<TeacherAssignmentSummary[]>([]);
   const [reportAssignmentsLoading, setReportAssignmentsLoading] = useState(false);
-  const [dashboardAssignmentReports, setDashboardAssignmentReports] = useState<Record<string, TeacherAssignmentReportRow[]>>({});
-  const [dashboardReportsLoaded, setDashboardReportsLoaded] = useState(false);
   const [deletingAssignmentId, setDeletingAssignmentId] = useState<string | null>(null);
   const [printingAssignmentId, setPrintingAssignmentId] = useState<string | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<TeacherAssignmentSummary | null>(null);
@@ -1260,11 +1259,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     try {
       const summary = await GameService.get_teacher_assignment_success_summary();
       setAssignmentSuccess(summary);
+      onAssignmentSummary?.(summary);
     } catch (error) {
       console.error('Error loading assignment success:', error);
       setAssignmentSuccess(null);
+      onAssignmentSummary?.(null);
     }
-  }, []);
+  }, [onAssignmentSummary]);
 
   useEffect(() => {
     if (view === 'dashboard' && canUseTeacherFeature(FEATURE_KEYS.REPORTS)) {
@@ -1273,32 +1274,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setAssignmentSuccess(null);
     }
   }, [canUseTeacherFeature, view, loadAssignmentSuccess]);
-
-  useEffect(() => {
-    if (view !== 'dashboard' || assignments.length === 0 || !canUseTeacherFeature(FEATURE_KEYS.REPORTS)) {
-      setDashboardAssignmentReports({});
-      setDashboardReportsLoaded(false);
-      return;
-    }
-
-    let cancelled = false;
-    setDashboardReportsLoaded(false);
-    void GameService.get_all_assignment_reports(assignments.map((assignment) => assignment.id))
-      .then((reports) => {
-        if (!cancelled) {
-          setDashboardAssignmentReports(reports);
-          setDashboardReportsLoaded(true);
-        }
-      })
-      .catch((error) => {
-        console.error('Error loading dashboard assignment details:', error);
-        if (!cancelled) setDashboardAssignmentReports({});
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [canUseTeacherFeature, view, assignments]);
 
   useEffect(() => {
     if (!effectiveEntitlements || !teacher?.id) return;
@@ -4446,43 +4421,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     ];
 
     const alertItems: Array<{ tone: 'warning' | 'info'; text: string }> = [];
-    const studentNameById = new Map(
-      availableStudents.map((student) => [student.id, student.display_name || student.username])
-    );
-
-    if (dashboardReportsLoaded) assignments.forEach((assignment) => {
-      const assignmentLabel = assignment.title || assignment.topic_name || 'Untitled assignment';
-      const completedRows = dashboardAssignmentReports[assignment.id] || [];
-      const completedStudentIds = new Set(completedRows.map((row) => row.student_id));
-
-      completedRows
-        .filter((row) => Number(row.accuracy) < 65)
-        .forEach((row) => {
-          const studentName = studentNameById.get(row.student_id) || row.student_name || 'Student name unavailable';
-          alertItems.push({
-            tone: 'info',
-            text: `${studentName} needs help with “${assignmentLabel}” (${Math.round(Number(row.accuracy))}% accuracy).`,
-          });
-        });
-
-      if (assignment.completed_count >= assignment.student_count || assignment.assignment_mode === 'custom' || !assignment.batch) return;
-
-      availableStudents
-        .filter((student) => student.batch === assignment.batch && !completedStudentIds.has(student.id))
-        .forEach((student) => {
-          alertItems.push({
-            tone: 'warning',
-            text: `${student.display_name || student.username} has not completed “${assignmentLabel}”.`,
-          });
-        });
-    });
-
-    const visibleStudentAlerts = alertItems.slice(0, 8);
-    if (alertItems.length > visibleStudentAlerts.length) {
-      visibleStudentAlerts.push({
-        tone: 'warning',
-        text: `${alertItems.length - visibleStudentAlerts.length} more student follow-up${alertItems.length - visibleStudentAlerts.length === 1 ? '' : 's'} — open Reports for the full list.`,
+    for (const row of assignmentSuccess?.followups || []) {
+      alertItems.push({
+        tone: row.kind === 'missing' ? 'warning' : 'info',
+        text: row.kind === 'missing'
+          ? `${row.student_name} has not completed “${row.assignment_title}”.`
+          : `${row.student_name} needs help with “${row.assignment_title}” (${Math.round(Number(row.accuracy))}% accuracy).`,
       });
+    }
+    const visibleStudentAlerts = alertItems.slice(0, 8);
+    const remainingFollowups = (assignmentSuccess?.followup_count || 0) - visibleStudentAlerts.length;
+    if (remainingFollowups > 0) {
+      visibleStudentAlerts.push({ tone: 'warning', text: `${remainingFollowups} more student follow-ups — open Reports for the full list.` });
     }
 
     if (activeAssignments > 0 && alertItems.length === 0) {

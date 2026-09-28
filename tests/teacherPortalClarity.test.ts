@@ -24,9 +24,10 @@ test('teacher dashboard shortcuts navigate to their destinations', () => {
 });
 
 test('student alerts identify the learner, assignment, and reason for follow-up', () => {
-  assert.match(teacherPortal, /needs help with “\$\{assignmentLabel\}”/);
-  assert.match(teacherPortal, /has not completed “\$\{assignmentLabel\}”/);
-  assert.match(teacherPortal, /dashboardAssignmentReports/);
+  assert.match(teacherPortal, /needs help with “\$\{row.assignment_title\}”/);
+  assert.match(teacherPortal, /has not completed “\$\{row.assignment_title\}”/);
+  assert.match(teacherPortal, /assignmentSuccess\?\.followups/);
+  assert.doesNotMatch(teacherPortal, /get_all_assignment_reports/);
   assert.doesNotMatch(teacherPortal, /Current success rate is \$\{successRate\}%\. Consider intervention\./);
 });
 

@@ -1,3 +1,4 @@
+import { retryAssignmentOperation, isTransientAssignmentError } from './assignmentReliability';
 import {
     Profile,
     Task,
@@ -5929,6 +5930,10 @@ export const update_teacher_assignment = async (
 };
 
 export type TeacherAssignmentSuccessSummary = {
+    assignment_count: number;
+    active_assignment_count: number;
+    followup_count: number;
+    followups: Array<{ student_id: string; assignment_id: string; student_name: string; assignment_title: string; kind: 'missing' | 'low_accuracy'; accuracy: number | null }>;
     submission_count: number;
     answered_question_count: number;
     correct_answer_count: number;
@@ -5941,6 +5946,10 @@ export const get_teacher_assignment_success_summary = async (): Promise<TeacherA
 
     const row = (Array.isArray(data) ? data[0] : data) as Partial<TeacherAssignmentSuccessSummary> | null;
     return {
+        assignment_count: Number(row?.assignment_count || 0),
+        active_assignment_count: Number(row?.active_assignment_count || 0),
+        followup_count: Number(row?.followup_count || 0),
+        followups: Array.isArray(row?.followups) ? row.followups : [],
         submission_count: Number(row?.submission_count || 0),
         answered_question_count: Number(row?.answered_question_count || 0),
         correct_answer_count: Number(row?.correct_answer_count || 0),
@@ -6090,13 +6099,17 @@ export type AssignmentAnswerSubmissionResult = {
 };
 
 export const submit_assignment_result = async (payload: AssignmentResultInput): Promise<AssignmentSubmissionResult> => {
-    const { data, error } = await rpcSubmitAssignmentResult({
-        p_assignment_id: payload.assignmentId,
-        p_correct: payload.correct,
-        p_incorrect: payload.incorrect,
-        p_accuracy: payload.accuracy,
-        p_score: payload.score,
-        p_time_taken: payload.timeTakenSeconds,
+    const { data, error } = await retryAssignmentOperation(async () => {
+        const response = await rpcSubmitAssignmentResult({
+            p_assignment_id: payload.assignmentId,
+            p_correct: payload.correct,
+            p_incorrect: payload.incorrect,
+            p_accuracy: payload.accuracy,
+            p_score: payload.score,
+            p_time_taken: payload.timeTakenSeconds,
+        });
+        if (response.error && isTransientAssignmentError(response.error)) throw response.error;
+        return response;
     });
 
     if (error) {
@@ -6117,6 +6130,7 @@ export const submit_assignment_result = async (payload: AssignmentResultInput): 
     }
 
     const result = (data || {}) as Record<string, unknown>;
+    if (result['success'] !== true) throw new Error('The save was not confirmed. Please retry.');
     return {
         status: 'submitted',
         correct: Number.isFinite(Number(result['correct'])) ? Number(result['correct']) : undefined,
@@ -6194,14 +6208,18 @@ export const get_all_assignment_reports = async (
  * This enables detailed analysis for teachers.
  */
 export const submit_assignment_answer = async (payload: StudentAnswerInput): Promise<AssignmentAnswerSubmissionResult> => {
-    const { data, error } = await rpcSubmitAssignmentAnswer({
-        p_assignment_id: payload.assignmentId,
-        p_question_id: payload.questionId,
-        p_question_text: payload.questionText,
-        p_correct_answer: payload.correctAnswer,
-        p_student_answer: payload.studentAnswer,
-        p_is_correct: payload.isCorrect,
-        p_time_taken_ms: payload.timeTakenMs || 0,
+    const { data, error } = await retryAssignmentOperation(async () => {
+        const response = await rpcSubmitAssignmentAnswer({
+            p_assignment_id: payload.assignmentId,
+            p_question_id: payload.questionId,
+            p_question_text: payload.questionText,
+            p_correct_answer: payload.correctAnswer,
+            p_student_answer: payload.studentAnswer,
+            p_is_correct: payload.isCorrect,
+            p_time_taken_ms: payload.timeTakenMs || 0,
+        });
+        if (response.error && isTransientAssignmentError(response.error)) throw response.error;
+        return response;
     });
 
     if (error) {
@@ -6210,6 +6228,7 @@ export const submit_assignment_answer = async (payload: StudentAnswerInput): Pro
     }
 
     const result = (data || {}) as Record<string, unknown>;
+    if (result['success'] !== true) throw new Error('The save was not confirmed. Please retry.');
     const isCorrect = typeof result['is_correct'] === 'boolean' ? result['is_correct'] : null;
     const gradingStatus = result['grading_status'] === 'under_review'
         ? 'under_review'

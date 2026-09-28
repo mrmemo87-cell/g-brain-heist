@@ -19,6 +19,7 @@ import {
   Profile,
 } from '../types';
 import * as GameService from '../services/gameService';
+import { QuestionInputGuard, assignmentDraftStorage, readAssignmentDraft, writeAssignmentDraft, clearAssignmentDraft } from '../services/assignmentReliability';
 import { audioService } from '../services/audioService';
 import { CoinIcon, GemIcon, XPIcon } from './icons';
 import BackButton from './BackButton';
@@ -324,6 +325,19 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [topicSummary, setTopicSummary] = useState<TopicSummary | null>(null);
   const [particles, setParticles] = useState<Omit<RewardParticleProps, 'onComplete'>[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const inputGuardRef = useRef(new QuestionInputGuard());
+  const finalizationLockRef = useRef(false);
+  const [answerSaveError, setAnswerSaveError] = useState<string | null>(null);
+  const [draftStored, setDraftStored] = useState(false);
+  const [inputCoolingDown, setInputCoolingDown] = useState(false);
+  const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const advanceOnce = (action: () => void) => {
+    if (!inputGuardRef.current.advance()) return;
+    setInputCoolingDown(true);
+    cooldownTimerRef.current = setTimeout(() => setInputCoolingDown(false), 500);
+    action();
+  };
+  useEffect(() => () => { if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current); }, []);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [pendingAssignments, setPendingAssignments] = useState<StudentAssignmentTask[]>([]);
   const [preferredAssignmentId, setPreferredAssignmentId] = useState<string | null>(initialAssignment?.assignment_id ?? null);
@@ -338,6 +352,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [freeformAnswer, setFreeformAnswer] = useState('');
   const [assignmentAnswerReviewStatus, setAssignmentAnswerReviewStatus] = useState<AssignmentAnswerReviewStatus>(null);
   const [assignmentPendingReviews, setAssignmentPendingReviews] = useState(0);
+  const [assignmentAnsweredCount, setAssignmentAnsweredCount] = useState(0);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedMission, setSelectedMission] = useState<QuestMission | null>(null);
   const [launchMission, setLaunchMission] = useState<QuestMission | null>(null);
@@ -430,13 +445,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   }, []);
 
   useEffect(() => {
-    if (ftueTrainingEligible) {
+    if (ftueTrainingEligible || (stage !== 'subject_selection' && !openMissionId)) {
       setMissionsLoading(false);
       return undefined;
     }
     const cleanup = loadMissions();
     return cleanup;
-  }, [ftueTrainingEligible, loadMissions]);
+  }, [ftueTrainingEligible, stage, openMissionId, loadMissions]);
 
   useEffect(() => {
     const zones = Array.from(new Set(availableMissions.map((mission) => canonicalSubjectLabel(mission.subject, 'Training Zone'))));
@@ -936,6 +951,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     // Now we show the assignment regardless, as students should complete mandatory work even if late
 
     const normalizedQuestions = (assignment.questions || []).map(normalizeAssignmentQuestion);
+    if (currentProfile?.id) {
+      for (const questionId of assignment.answered_question_ids || []) {
+        clearAssignmentDraft(assignmentDraftStorage(), currentProfile.id, assignment.assignment_id, questionId);
+      }
+    }
 
     setActiveAssignment({ ...assignment, questions: normalizedQuestions });
     setIsAssignmentLate(isExpired);
@@ -1019,7 +1039,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           ...selectedAssignment,
           questions: (selectedAssignment.questions || []).map(normalizeAssignmentQuestion),
         });
-        await refreshAssignment?.();
       } else {
         console.log('[QuestView] No active assignment found, showing subject selection');
         setActiveAssignment(null);
@@ -1030,7 +1049,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           setMode('practice');
         }
         await loadSubjects();
-        await refreshAssignment?.();
       }
     } catch (error) {
       console.error('[QuestView] Error loading assignment:', error);
@@ -1179,6 +1197,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const handleDifficultySelect = (difficulty: SoloDifficulty) => {
     if (!selectedSubject) return;
     
+    inputGuardRef.current.reset();
     setMode('practice');
     setSelectedDifficulty(difficulty);
     setSelectedTopic(null);
@@ -1208,6 +1227,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const handleAssignmentBegin = () => {
     if (!activeAssignment) return;
+    inputGuardRef.current.reset();
+    setAnswerSaveError(null);
     setHasDeferredAssignments(false);
     const assignmentQuestions = teacherQuestions.length
       ? teacherQuestions
@@ -1232,6 +1253,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setFreeformAnswer('');
     setAssignmentAnswerReviewStatus(null);
     setAssignmentPendingReviews(resumedPendingReviews);
+    setAssignmentAnsweredCount(Number(activeAssignment.resume_answered_count) || 0);
     setScore({
       correct: resumedCorrect,
       xp: resumedScore,
@@ -1266,17 +1288,32 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialAssignment?.assignment_id]);
 
+  useEffect(() => {
+    if (mode !== 'assignment' || stage !== 'in_progress' || !activeAssignment || !currentProfile?.id) return;
+    const question = teacherQuestions[currentQuestionIndex];
+    if (!question) return;
+    const draft = readAssignmentDraft(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id, question.id);
+    if (draft) {
+      setSelectedOption(draft.answer);
+      setFreeformAnswer(draft.answer);
+      setDraftStored(true);
+      setAnswerSaveError('Your previous answer is ready to retry.');
+    }
+  }, [mode, stage, activeAssignment?.assignment_id, currentProfile?.id, currentQuestionIndex, teacherQuestions]);
+
   const finalizeAssignmentSubmission = useCallback(async () => {
     if (stage !== 'completed' || mode !== 'assignment' || !activeAssignment) {
       return;
     }
 
+    if (finalizationLockRef.current) return;
+    finalizationLockRef.current = true;
     const totalQuestions = teacherQuestions.length;
     const correctCount = score.correct;
     const incorrectCount = Math.max(0, totalQuestions - correctCount);
     const accuracyPercent = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
     // Canonical assignment submit score should be raw earned assignment points.
-    // In this flow, score.xp is the accumulated points_earned from submit_question_answer.
+    // score.xp holds assignment marks here; the server recomputes them from saved answers.
     const assignmentScoreRaw = Math.round(score.xp);
     const assignmentScore = Math.max(0, assignmentScoreRaw); // defensive fallback only (no semantic remap)
     const timeTakenSeconds = assignmentStartTime ? Math.max(0, Math.round((Date.now() - assignmentStartTime) / 1000)) : 0;
@@ -1301,22 +1338,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         });
       }
 
-      // Check for assignment achievements after submission
-      try {
-        const user = await GameService.whoami();
-        if (user?.id) {
-          const newAchievements = await GameService.check_assignment_achievements(user.id);
-          if (newAchievements.length > 0) {
-            // Show achievement notification for each new achievement
-            newAchievements.forEach(ach => {
-              console.log(`🏆 Assignment Achievement Earned: ${ach.achievement_name}`);
-            });
-          }
-        }
-      } catch (achievementError) {
-        console.warn('Failed to check assignment achievements:', achievementError);
-      }
-
       if (submissionResult.status === 'already_submitted') {
         console.info('[QuestView] Assignment was already submitted on retry. Treating as success.');
       } else {
@@ -1331,11 +1352,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       setAssignmentSubmissionState('submitted');
       setLastCompletedAssignment(activeAssignment);
       setActiveAssignment(null);
+      // Achievements are ancillary; they must not delay a confirmed submission.
+      void GameService.whoami().then((user) => user?.id
+        ? GameService.check_assignment_achievements(user.id) : undefined
+      ).catch((error) => console.warn('Failed to check assignment achievements:', error));
     } catch (error) {
       console.error('Failed to submit assignment result:', error);
       const message = error instanceof Error ? error.message : 'Submission failed. Please retry now.';
       setAssignmentSubmissionError(message);
       setAssignmentSubmissionState('failed');
+    } finally {
+      finalizationLockRef.current = false;
     }
   }, [
     stage,
@@ -1343,6 +1370,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     activeAssignment,
     teacherQuestions.length,
     score.correct,
+    score.xp,
     questionScores,
     assignmentStartTime,
     assignmentPendingReviews,
@@ -1356,9 +1384,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   }, [stage, mode, activeAssignment, assignmentSubmissionState, finalizeAssignmentSubmission]);
 
   const handleAnswerSubmit = async (option: string) => {
-    if (answerResponse || isSubmitting) return;
+    if (answerResponse || assignmentAnswerReviewStatus || isSubmitting || !inputGuardRef.current.claim()) return;
 
     setSelectedOption(option);
+    setAnswerSaveError(null);
     setIsSubmitting(true);
 
     const spawnParticles = (response: AnswerResponse) => {
@@ -1375,6 +1404,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       topicId: string,
       advanceFn: () => void
     ) => {
+      inputGuardRef.current.finish(true);
       setAnswerResponse(response);
 
       if (response.correct) {
@@ -1429,7 +1459,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         }
       };
 
-      setNextAction(() => proceed);
+      setNextAction(() => () => advanceOnce(proceed));
       setNextActionLabel(isLastQuestion ? 'View results' : 'Next question');
     };
 
@@ -1437,6 +1467,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       const currentQuestion = questions[currentQuestionIndex];
       if (!currentQuestion) {
         console.error('No question available for current index');
+        inputGuardRef.current.finish(false);
         setIsSubmitting(false);
         return;
       }
@@ -1472,6 +1503,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           );
         }
       } catch (error) {
+        inputGuardRef.current.finish(false);
         console.error('[Quest] CRITICAL ERROR submitting answer:', error);
         const errorMsg = error instanceof Error ? error.message : String(error);
         
@@ -1489,21 +1521,33 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       const currentQuestion = teacherQuestions[currentQuestionIndex];
       if (!currentQuestion) {
         console.error('No teacher question available for current index');
+        inputGuardRef.current.finish(false);
         setIsSubmitting(false);
         return;
       }
 
       try {
-        if (mode === 'assignment' && activeAssignment?.assignment_id && currentQuestion.question_type === 'short_answer') {
+        if (mode === 'assignment' && activeAssignment?.assignment_id) {
+          const previousDraft = currentProfile?.id
+            ? readAssignmentDraft(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id, currentQuestion.id)
+            : null;
+          const draft = previousDraft || { answer: option, timeTakenMs: questionStartTime ? Date.now() - questionStartTime : 0, savedAt: Date.now() };
+          setSelectedOption(draft.answer);
+          setDraftStored(Boolean(currentProfile?.id && writeAssignmentDraft(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id, currentQuestion.id, draft)));
           const grading = await GameService.submit_assignment_answer({
             assignmentId: activeAssignment.assignment_id,
             questionId: currentQuestion.id,
             questionText: currentQuestion.question_text,
             correctAnswer: currentQuestion.correct_answer || '',
-            studentAnswer: option,
+            studentAnswer: draft.answer,
             isCorrect: false,
-            timeTakenMs: questionStartTime ? Date.now() - questionStartTime : 0,
+            timeTakenMs: draft.timeTakenMs,
           });
+          inputGuardRef.current.finish(true);
+          if (currentProfile?.id) clearAssignmentDraft(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id, currentQuestion.id);
+          setDraftStored(false);
+          setAssignmentAnsweredCount((count) => count + 1);
+          setSoloStreak((streak) => grading.isCorrect === true ? streak + 1 : 0);
           const pendingReview = grading.pendingReview || grading.isCorrect === null;
           const confirmedCorrect = grading.isCorrect === true;
           setAssignmentAnswerReviewStatus(pendingReview ? 'under_review' : confirmedCorrect ? 'correct' : 'incorrect');
@@ -1515,7 +1559,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             audioService.play('wrong');
           }
           setQuestionStartTime(null);
-          const isLastQuestion = currentQuestionIndex >= teacherQuestions.length - 1;
+          const savedIds = new Set(activeAssignment.answered_question_ids || []);
+          savedIds.add(currentQuestion.id);
+          const nextIndex = teacherQuestions.findIndex((question, index) => index > currentQuestionIndex && !savedIds.has(question.id));
+          const isLastQuestion = nextIndex < 0;
           const proceed = () => {
             setNextAction(null);
             setNextActionLabel('');
@@ -1526,11 +1573,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               audioService.play('tada');
               setStage('completed');
             } else {
-              setCurrentQuestionIndex((previous) => previous + 1);
+              setCurrentQuestionIndex(nextIndex);
               setQuestionStartTime(Date.now());
             }
           };
-          setNextAction(() => proceed);
+          setNextAction(() => () => advanceOnce(proceed));
           setNextActionLabel(isLastQuestion ? 'View results' : 'Next question');
           return;
         }
@@ -1541,24 +1588,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           undefined,
           undefined
         );
-
-        // Track individual answers for assignment analysis
-        if (mode === 'assignment' && activeAssignment?.assignment_id) {
-          try {
-            await GameService.submit_assignment_answer({
-              assignmentId: activeAssignment.assignment_id,
-              questionId: currentQuestion.id,
-              questionText: currentQuestion.question_text,
-              correctAnswer: currentQuestion.correct_answer,
-              studentAnswer: option,
-              isCorrect: result.is_correct,
-              timeTakenMs: questionStartTime ? Date.now() - questionStartTime : 0,
-            });
-          } catch (trackingError) {
-            // Non-critical - continue even if tracking fails
-            console.warn('Failed to track assignment answer:', trackingError);
-          }
-        }
 
         const response: AnswerResponse = {
           correct: result.is_correct,
@@ -1589,8 +1618,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         }
       } catch (error) {
         console.error('Error submitting teacher answer:', error);
-        brainsAlert('Unable to submit answer. Please try again.', 'error');
-        setSelectedOption(null);
+        inputGuardRef.current.finish(false);
+        if (mode === 'assignment') {
+          setAnswerSaveError(error instanceof Error ? error.message : 'Could not save. Please retry.');
+        } else {
+          brainsAlert('Unable to submit answer. Please try again.', 'error');
+          setSelectedOption(null);
+        }
       } finally {
         setIsSubmitting(false);
       }
@@ -2179,6 +2213,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const getOptionClasses = (option: string, correctAnswer: string) => {
         const baseClass = 'p-4 rounded-2xl border text-left transition-colors duration-300 disabled:cursor-not-allowed text-white shadow-sm';
         if (!answerResponse) {
+            if (option === selectedOption) return `${baseClass} bg-cyan-500/20 border-cyan-300 ring-2 ring-cyan-300/40`;
             return `${baseClass} bg-slate-800/70 hover:bg-slate-700/80 border-cyan-500/40`;
         }
         const isCorrectChoice = option === correctAnswer;
@@ -2258,10 +2293,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 ? assignmentPendingReviews > 0
                   ? 'Pending review'
                   : (() => {
-                      const attempted = (
-                        (Number(activeAssignment?.resume_answered_count) || 0)
-                        + questionPerformances.length
-                      );
+                      const attempted = assignmentAnsweredCount;
                       return attempted > 0 ? `${Math.round((score.correct / attempted) * 100)}%` : '—';
                     })()
                 : questionPerformances.length
@@ -2303,7 +2335,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               <textarea
                 value={freeformAnswer}
                 onChange={(event) => setFreeformAnswer(event.target.value)}
-                disabled={isSubmitting || assignmentAnswerReviewStatus !== null}
+                disabled={isSubmitting || inputCoolingDown || !!answerSaveError || assignmentAnswerReviewStatus !== null}
                 rows={4}
                 maxLength={2000}
                 className="mt-3 w-full rounded-xl border border-cyan-500/30 bg-slate-950/70 p-4 text-white outline-none transition focus:border-cyan-300 disabled:opacity-60"
@@ -2314,7 +2346,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               <p className="text-xs text-slate-400">Equivalent wording or notation may be accepted automatically.</p>
               <button
                 type="button"
-                disabled={!freeformAnswer.trim() || isSubmitting || assignmentAnswerReviewStatus !== null}
+                disabled={!freeformAnswer.trim() || isSubmitting || inputCoolingDown || !!answerSaveError || assignmentAnswerReviewStatus !== null}
                 onClick={() => { void handleAnswerSubmit(freeformAnswer.trim()); }}
                 className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -2329,8 +2361,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               const optionImageUrl = getOptionImageUrl(option);
               return (
                 <button
-                  key={index}
-                  disabled={!!answerResponse || isSubmitting}
+                  key={`${activeTeacherQuestion?.id || question?.id}:${index}`}
+                  disabled={!!answerResponse || isSubmitting || inputCoolingDown || !!answerSaveError || assignmentAnswerReviewStatus !== null}
                   onClick={() => handleAnswerSubmit(optionText)}
                   className={getOptionClasses(optionText, correctAnswer)}
                 >
@@ -2352,6 +2384,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             })}
           </div>
         )}
+        {mode === 'assignment' && (isSubmitting || answerSaveError) && (
+          <div role="status" aria-live="polite" className="mt-4 rounded-xl border border-cyan-500/30 bg-slate-900/80 p-4 text-sm text-cyan-100">
+            {isSubmitting ? 'Saving your answer…' : <>
+              <p>{draftStored ? 'Your answer is saved on this device. Retry to send it.' : 'Your answer is still on this screen. Please retry before leaving.'}</p>
+              <p className="mt-1 text-xs text-slate-300">{answerSaveError}</p>
+              <button type="button" onClick={() => { if (selectedOption !== null) void handleAnswerSubmit(selectedOption); }} className="mt-3 rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white">Retry answer</button>
+              {answerSaveError?.includes('ANSWER_ALREADY_SAVED') && <button type="button" onClick={() => { void hydrateAssignment({ showLoading: true }); }} className="ml-3 mt-3 rounded-lg border border-cyan-500 px-4 py-2">Load saved progress</button>}
+            </>}
+          </div>
+        )}
         {assignmentAnswerReviewStatus && (
           <div ref={answerFeedbackRef} className={`mt-6 rounded-2xl border-2 p-6 text-center ${
             assignmentAnswerReviewStatus === 'correct'
@@ -2371,6 +2413,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                   ? 'Your answer matched the accepted marking scheme.'
                   : 'This answer was marked incorrect by the confirmed marking rules.'}
             </p>
+            {activeTeacherQuestion?.question_type !== 'short_answer' && assignmentAnswerReviewStatus === 'incorrect' && (
+              <p className="mt-2 text-sm text-slate-200">{activeTeacherQuestion?.explanation || `The correct answer is ${activeTeacherQuestion?.correct_answer || 'shown in your report'}.`}</p>
+            )}
             {nextAction && (
               <button onClick={nextAction} className="mt-5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-3 text-lg font-bold text-white transition hover:scale-105">
                 {nextActionLabel || 'Continue'} →
@@ -2951,7 +2996,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 <>
                   <p className="text-sm font-semibold uppercase tracking-wide">Finalizing submission…</p>
                   <p className="mt-2 text-sm text-amber-100/90">
-                    Do not leave this page. We are submitting your assignment now.
+                    Your answers are saved. We are finalizing your assignment now.
                   </p>
                 </>
               )}
@@ -2959,7 +3004,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 <>
                   <p className="text-sm font-semibold uppercase tracking-wide">Submission failed — retry required</p>
                   <p className="mt-2 text-sm text-red-100/90">
-                    Please do not leave this page. Your assignment is not submitted yet.
+                    Your saved answers are kept. Retry to finish submitting your assignment.
                   </p>
                   {assignmentSubmissionError && (
                     <p className="mt-2 rounded bg-black/20 px-3 py-2 text-xs text-red-100/90">

@@ -21,7 +21,8 @@ test('student assignment readers use protected v2 payloads', () => {
 });
 
 test('short answers bypass legacy exact-answer feedback in assignments', () => {
-  assert.match(quest, /currentQuestion\.question_type === 'short_answer'/);
+  assert.match(quest, /mode === 'assignment' && activeAssignment\?\.assignment_id/);
+  assert.ok(quest.indexOf('const grading = await GameService.submit_assignment_answer') < quest.indexOf('const result = await GameService.submit_question_answer'));
   assert.match(quest, /GameService\.submit_assignment_answer/);
   assert.match(quest, /Under review/);
   assert.match(quest, /Your answer has been saved\. You can continue now/);
