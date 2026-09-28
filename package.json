@@ -13,7 +13,7 @@
     "guard:school-admin-portal": "node scripts/check-school-admin-portal-integrity.mjs",
     "test:clean": "rm -rf dist-tests",
     "test:build": "tsc --project tsconfig.tests.json && node scripts/fix-test-esm-imports.mjs",
-    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js",
+    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js && npm run test:classroom:db",
     "load:leaderboard": "k6 run load-tests/leaderboard.js",
     "load:shop": "k6 run load-tests/shop.js",
     "load:pvp": "k6 run load-tests/pvp.js",
@@ -28,7 +28,9 @@
     "test:e2e:ielts": "playwright test e2e/ielts-pilot-smoke.spec.js",
     "playwright:install": "playwright install --with-deps chromium",
     "verify": "npm run guard:school-admin-portal && npm run questions:validate-verified-package && npm run questions:validate-taxonomy-review && npm run typecheck && npm run security:migrations && npm run build && npm test && git diff --check",
-    "prepr": "npm run verify"
+    "prepr": "npm run verify",
+    "test:classroom:db": "node --test tests/classroomDatabase.test.mjs",
+    "load:classroom": "k6 run load-tests/classroom.js"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -45,6 +47,7 @@
     "react-router-dom": "^7.10.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",

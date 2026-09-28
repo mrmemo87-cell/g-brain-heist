@@ -35,6 +35,7 @@ Use these section IDs when giving work to another AI/model. Example:
 | `BH-MIGRATIONS` | Key migration history |
 | `BH-UI` | Teacher/admin UX contracts |
 | `BH-TESTING` | Regression and smoke-test expectations |
+| `BH-CLASSROOM-RELIABILITY` | Authoritative answer persistence, replay, performance and capacity gates |
 | `BH-LIVE-STATE` | Last verified live counts/state |
 | `BH-KNOWN-GAPS` | Remaining incomplete / unverified work |
 | `BH-DO-NOT-BREAK` | Hard invariants for future edits |
@@ -1554,3 +1555,17 @@ Only independent later verified evidence can resolve the weakness
 ```
 
 That chain should remain intact across every future feature, UI redesign, migration, reporting enhancement, and AI-generation workflow.
+
+
+<a id="BH-CLASSROOM-RELIABILITY"></a>
+# BH-CLASSROOM-RELIABILITY — Assignment Persistence and Capacity
+
+See [the classroom reliability release record](docs/engineering/classroom-reliability-2026-09-28.md) for verified findings, tests, rollout order and unresolved capacity work.
+
+- Assignment questions must use `rpc_submit_assignment_answer_v2` as the authoritative save. Never swallow its errors or call the generic practice reward RPC first. Assignment marks are not Commander rewards.
+- Same-answer replay preserves the first saved answer and background review. Finalization replays the committed result. Both lock only this student’s assignment rows. Keep the backend idempotency migration deployed before enabling client retries.
+- Do not permit Next before acknowledgement. Keep immediate synchronous locks and the question transition guard. Recovery drafts must be user/assignment/question scoped and must never supply authoritative correctness.
+- Teacher dashboard follow-ups come from the current-scope summary; do not restore all-assignment detail fan-out or the shell’s duplicate RPC.
+- The request entitlement hook must classify irrelevant routes before doing database-backed checks, while preserving gated-route decisions.
+- Verified evidence result triggers, question snapshots, short-answer review, teacher/group/year scope and fail-closed access remain invariants.
+- Capacity is unverified until staged burst/soak tests pass. `load-tests/classroom.js` is staging-only. Never claim thousands of concurrent students from unit tests or a successful build.

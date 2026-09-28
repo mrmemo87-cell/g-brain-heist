@@ -2,7 +2,6 @@ import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { withPortalLocalization } from '../src/components/PortalLocalizationBoundary';
 import { createPortal } from 'react-dom';
 import TeacherPortal from './TeacherPortal';
-import { supabase } from '../services/supabaseClient';
 
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
 const TeacherInterventionIntelligencePage = React.lazy(() => import('./student-progress/TeacherInterventionIntelligencePage'));
@@ -31,24 +30,6 @@ const resolveAcademicTool = (button: HTMLButtonElement | null): AcademicTool | n
   if (/Academic Profiles/i.test(label)) return 'academic-profiles';
   if (/Interventions/i.test(label)) return 'interventions';
   return null;
-};
-
-const toDashboardMetricNumber = (value: unknown): number => {
-  const parsed = Number(value ?? 0);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const normalizeDashboardAssignmentMetrics = (value: unknown): TeacherDashboardAssignmentMetrics | null => {
-  const row = (Array.isArray(value) ? value[0] : value) as Record<string, unknown> | null;
-  if (!row || typeof row !== 'object') return null;
-
-  return {
-    assignment_count: toDashboardMetricNumber(row.assignment_count),
-    active_assignment_count: toDashboardMetricNumber(row.active_assignment_count),
-    submission_count: toDashboardMetricNumber(row.submission_count),
-    answered_question_count: toDashboardMetricNumber(row.answered_question_count),
-    correct_answer_count: toDashboardMetricNumber(row.correct_answer_count),
-  };
 };
 
 const setDashboardText = (element: Element | null, value: string) => {
@@ -112,27 +93,6 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
   const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
   const [dashboardAssignmentMetrics, setDashboardAssignmentMetrics] = useState<TeacherDashboardAssignmentMetrics | null>(null);
   const overlayActive = Boolean(activeTool || targetedPractice);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadDashboardAssignmentMetrics = async () => {
-      const { data, error } = await supabase.rpc('rpc_teacher_assignment_success_summary');
-      if (cancelled) return;
-
-      if (error) {
-        console.warn('[teacher-dashboard] Current-year assignment metrics unavailable:', error.message);
-        return;
-      }
-
-      setDashboardAssignmentMetrics(normalizeDashboardAssignmentMetrics(data));
-    };
-
-    void loadDashboardAssignmentMetrics();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     const shell = shellRef.current;
@@ -277,7 +237,7 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
           padding: 0;
         }
       `}</style>
-      <TeacherPortal {...props} />
+      <TeacherPortal {...props} onAssignmentSummary={setDashboardAssignmentMetrics} />
       {overlayActive && portalHost
         ? createPortal(
           <Suspense fallback={<div className="p-6 text-sm text-slate-500">Preparing Brains Heist workspace…</div>}>
