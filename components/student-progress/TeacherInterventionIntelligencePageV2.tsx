@@ -102,6 +102,7 @@ const aggregateRecommendations = (recommendations: InterventionRecommendation[])
 
 const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelligencePageProps> = ({ onBack, onCreateTargetedPractice }) => {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const requestedFocusCode = params.get('focus') || '';
   const [students, setStudents] = useState<TeacherAcademicProfileStudent[]>([]);
   const [context, setContext] = useState<AcademicProgressExperienceContext | null>(null);
   const [grade, setGrade] = useState('');
@@ -192,7 +193,14 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
     finally { setLoading(false); }
   };
 
-  const recommendations = useMemo(() => aggregateRecommendations(data?.recommendations || []), [data?.recommendations]);
+  const recommendations = useMemo(() => {
+    const rows = aggregateRecommendations(data?.recommendations || []);
+    if (!requestedFocusCode) return rows;
+    return [...rows].sort((a, b) => Number(b.evidence_focus_code === requestedFocusCode) - Number(a.evidence_focus_code === requestedFocusCode));
+  }, [data?.recommendations, requestedFocusCode]);
+  const requestedFocusRecommendation = requestedFocusCode
+    ? recommendations.find((item) => item.evidence_focus_code === requestedFocusCode) || null
+    : null;
   const actionable = recommendations.filter((item) => item.readiness !== 'collect_evidence');
   const watching = recommendations.filter((item) => item.readiness === 'collect_evidence');
   const readyCount = actionable.filter((item) => item.readiness === 'ready').length;
@@ -228,6 +236,7 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
     {loading && studentId && !data ? <div className="intervention-loading">Loading student support information…</div> : null}
 
     {data ? <>
+      {requestedFocusRecommendation ? <section className="intervention-alert" style={{ borderColor: '#a5b4fc', background: '#eef2ff', color: '#3730a3' }}><strong>Opened from Quick diagnostic:</strong> {requestedFocusRecommendation.evidence_focus_name || requestedFocusRecommendation.skill}. Review the evidence below, then create exact-focus practice only when the governed support workflow says it is ready.</section> : null}
       <section className="intervention-student intervention-student--command"><div><span>Student support cycle</span><h2>{data.student.name}</h2><p>Grade {data.student.grade || '—'} · Class {data.student.class_name || '—'}{subject !== 'all' ? ` · ${subject}` : ''}</p></div><div className="intervention-card-top"><span><b>{readyCount}</b> ready for practice</span><span><b>{watching.length}</b> still gathering evidence</span><span><b>{openPlans}</b> support plan{openPlans === 1 ? '' : 's'}</span></div></section>
 
       <section className="intervention-cycle" aria-label="Brains Heist support cycle"><span className="is-current">1 · Notice</span><span>2 · Verify</span><span>3 · Practise</span><span>4 · Watch</span><span>5 · Adapt</span></section>
