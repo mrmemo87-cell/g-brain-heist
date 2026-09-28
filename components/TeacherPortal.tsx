@@ -13,6 +13,7 @@ import {
 } from '../services/schoolSubjectGroupService';
 import { supabase } from '../services/supabaseClient';
 import { getAcademicReportingContext, type AcademicReportingYear } from '../services/academicReportingService';
+import { fetchTeacherAssignmentDiagnosticIntelligence, type TeacherAssignmentDiagnosticIntelligence } from '../services/teacherDiagnosticService';
 import BackButton from './BackButton';
 import SettingsModal from './SettingsModal';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
@@ -22,6 +23,7 @@ const DiagramBuilder = React.lazy(() => import('./geometry/DiagramBuilder'));
 const QuestionBank = React.lazy(() => import('./teacher/QuestionBank'));
 const QuestionBatchWorkspace = React.lazy(() => import('./teacher/QuestionBatchWorkspace'));
 const AssignmentWizard = React.lazy(() => import('./teacher/AssignmentWizard'));
+import DiagnosticIntelligencePanel, { DiagnosticStudentSkillMap } from './teacher/DiagnosticIntelligencePanel';
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
 import { brainsAlert, brainsConfirm } from '../src/utils/brainsAlert';
@@ -677,6 +679,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Assignment Analysis State
   const [questionAnalysis, setQuestionAnalysis] = useState<AssignmentQuestionAnalysis[]>([]);
   const [questionAnalysisLoading, setQuestionAnalysisLoading] = useState(false);
+  const [diagnosticIntelligence, setDiagnosticIntelligence] = useState<TeacherAssignmentDiagnosticIntelligence | null>(null);
+  const [diagnosticIntelligenceLoading, setDiagnosticIntelligenceLoading] = useState(false);
   const [studentAnswers, setStudentAnswers] = useState<StudentAssignmentAnswer[]>([]);
   const [selectedAnalysisStudent, setSelectedAnalysisStudent] = useState<TeacherAssignmentReportRow | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
@@ -4076,8 +4080,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setSelectedReportAssignment(assignment);
     setAssignmentReport([]);
     setQuestionAnalysis([]);
+    setDiagnosticIntelligence(null);
+    const shouldLoadDiagnosticIntelligence = assignment.topic_name?.trim().toLocaleLowerCase() === 'quick diagnostic';
     setReportLoading(true);
     setQuestionAnalysisLoading(true);
+    setDiagnosticIntelligenceLoading(shouldLoadDiagnosticIntelligence);
     setView('report-detail');
 
     const reportRequest = supabase.rpc('rpc_teacher_assignment_report', {
@@ -4088,6 +4095,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       p_assignment_id: assignment.id,
       p_teacher_id: teacherId,
     });
+    const diagnosticRequest = shouldLoadDiagnosticIntelligence
+      ? fetchTeacherAssignmentDiagnosticIntelligence(assignment.id, teacherId)
+      : Promise.resolve(null);
 
     const loadReportRows = async () => {
       try {
@@ -4111,6 +4121,21 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
     };
 
+    const loadDiagnosticIntelligence = async () => {
+      if (!shouldLoadDiagnosticIntelligence) return;
+      try {
+        const data = await diagnosticRequest;
+        if (requestId !== reportLoadRequestRef.current) return;
+        setDiagnosticIntelligence(data);
+      } catch (error) {
+        if (requestId !== reportLoadRequestRef.current) return;
+        console.warn('Diagnostic intelligence not available:', error);
+        setDiagnosticIntelligence(null);
+      } finally {
+        if (requestId === reportLoadRequestRef.current) setDiagnosticIntelligenceLoading(false);
+      }
+    };
+
     const loadQuestionAnalysis = async () => {
       try {
         const { data, error } = await analysisRequest;
@@ -4126,7 +4151,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
     };
 
-    await Promise.allSettled([loadReportRows(), loadQuestionAnalysis()]);
+    await Promise.allSettled([loadReportRows(), loadQuestionAnalysis(), loadDiagnosticIntelligence()]);
   };
 
   const handleViewStudentAnalysis = async (student: TeacherAssignmentReportRow) => {
@@ -6437,6 +6462,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center text-slate-500">No students have completed this assignment yet.</div>
           ) : (
             <>
+              {diagnosticIntelligence && diagnosticIntelligence.assignment.focusCount > 0 ? (
+                <DiagnosticIntelligencePanel
+                  data={diagnosticIntelligence}
+                  loading={diagnosticIntelligenceLoading}
+                  onReviewStudent={(studentId) => {
+                    const row = assignmentReport.find((item) => item.student_id === studentId);
+                    if (row) void handleViewStudentAnalysis(row);
+                  }}
+                />
+              ) : diagnosticIntelligenceLoading ? (
+                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm font-semibold text-cyan-800">Building the ESL diagnostic skill map…</div>
+              ) : null}
+
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
                 <div><h3 className="text-xl font-bold text-slate-800">Student Performance</h3><p className="mt-1 text-sm text-slate-500">Open a student to review every answer and the evidence behind their result.</p></div>
                 <button
@@ -6634,6 +6672,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               </div>
             </div>
           </div>
+
+          {diagnosticIntelligence && selectedAnalysisStudent ? (
+            <DiagnosticStudentSkillMap data={diagnosticIntelligence} studentId={selectedAnalysisStudent.student_id} />
+          ) : null}
 
           {/* Detailed Answers */}
           {studentAnswers.length === 0 ? (
