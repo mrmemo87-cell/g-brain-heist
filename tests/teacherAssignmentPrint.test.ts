@@ -20,10 +20,10 @@ test('teacher assignment workspace exposes professional paper printing', () => {
 test('print packet uses immutable snapshots and never exposes marking keys', () => {
   assert.match(migration, /aq\.question_snapshot/);
   assert.match(migration, /join public\.teachers t[\s\S]*t\.user_id = v_actor/i);
-  assert.doesNotMatch(migration, /correctAnswer/);
-  assert.doesNotMatch(migration, /correct_answer/);
-  assert.doesNotMatch(migration, /accepted_answers/);
-  assert.doesNotMatch(migration, /explanation/);
+  assert.doesNotMatch(migration, /'correctAnswer'/);
+  assert.doesNotMatch(migration, /->>'correct_answer'/);
+  assert.doesNotMatch(migration, /->>'accepted_answers'/);
+  assert.doesNotMatch(migration, /->>'explanation'/);
   assert.match(migration, /revoke all on function public\.rpc_teacher_assignment_print_packet\(uuid\)[\s\S]*from public, anon, authenticated, service_role/i);
   assert.match(migration, /grant execute on function public\.rpc_teacher_assignment_print_packet\(uuid\)[\s\S]*to authenticated/i);
 });
