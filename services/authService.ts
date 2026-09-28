@@ -1,3 +1,4 @@
+import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabaseClient';
 import { createTeacherProfile } from './rpcGateway';
 import { getAuthRedirectUrl, getEnvVar } from './env';
@@ -161,8 +162,7 @@ export const isEmailConfirmationRequiredError = (error: unknown): error is Email
     || (error instanceof Error && /email not confirmed|confirm your email/i.test(error.message))
 );
 
-export const login = async (email: string, password: string): Promise<{ success: boolean }> => {
-    console.log(`Attempting login for ${email}`);
+export const login = async (email: string, password: string): Promise<{ success: boolean; session: Session }> => {
 
     let data: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>['data'];
     let error: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>['error'];
@@ -198,41 +198,9 @@ export const login = async (email: string, password: string): Promise<{ success:
         throw new Error(toAuthSafeErrorMessage(error));
     }
     
-    if (data.user) {
-        try {
-            const { data: profile, error: profileError } = await supabase
-                .from('users')
-                .select('is_banned')
-                .eq('id', data.user.id)
-                .single();
+    // Main owns the authoritative ban/setup/capability check for every sign-in method.
+    if (data.user && data.session) return { success: true, session: data.session };
 
-            // If profile doesn't exist (PGRST116 = no rows), create it
-            if (profileError && profileError.code === 'PGRST116') {
-                console.log('Profile not found, creating profile for existing auth user...');
-                await createOAuthProfile();
-                console.log('Profile created successfully');
-            } else if (profileError) {
-                console.error('Profile lookup error during login:', profileError.message);
-                throw new Error('Unable to load user profile. Please try again later.');
-            } else if (isBannedFlag(profile?.is_banned)) {
-                await supabase.auth.signOut();
-                storeBanMessage(BAN_MESSAGE);
-                throw new Error(BAN_MESSAGE);
-            }
-        } catch (lookupError) {
-            if (lookupError instanceof Error && lookupError.message === BAN_MESSAGE) {
-                throw lookupError;
-            }
-            console.error('Login post-check failed:', lookupError);
-            throw lookupError instanceof Error
-                ? lookupError
-                : new Error('Login failed due to an unexpected error.');
-        }
-
-        console.log('Login successful:', data.user.email);
-        return { success: true };
-    }
-    
     throw new Error('Login failed');
 };
 

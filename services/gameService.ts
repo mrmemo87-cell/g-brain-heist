@@ -108,7 +108,7 @@ const formatLocalDateKey = (date: Date): string => {
 
 let pendingDailyStreakReward: DailyStreakRewardReceipt | null = null;
 
-const recordDailyStreakForProfile = async (profile: Profile): Promise<void> => {
+export const recordDailyStreakForProfile = async (profile: Profile): Promise<void> => {
   if ((profile.role ?? 'student') !== 'student') return;
 
   const { data, error } = await supabase.rpc('rpc_record_daily_streak');

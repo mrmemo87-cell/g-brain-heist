@@ -1,8 +1,12 @@
 import React, { Suspense, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 import BrainsLoader from './components/BrainsLoader';
-import WhoAreYou from './components/WhoAreYou';
-import App from './App';
+import LoginLaunchpad from './components/LoginLaunchpad';
+import type { Session } from '@supabase/supabase-js';
+import { sameBootstrapAuthority, type AuthBootstrap } from './src/lib/authBootstrap';
+import { getAuthBootstrap, clearAuthBootstrap } from './services/authBootstrapService';
+import { BAN_MESSAGE, storeBanMessage } from './services/banMessage';
+import App, { preloadAccountWorkspace } from './App';
 import LoginView from './components/LoginView';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConfigErrorScreen from './components/ConfigErrorScreen';
@@ -17,10 +21,8 @@ import { createBrowserRouter, Navigate, RouterProvider, useNavigate, useParams }
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazyRetry } from './src/utils/lazyRetry';
 import OnboardingRouteGate from './components/onboarding/OnboardingRouteGate';
-import { decideNeedsSetup } from './src/features/onboarding/setupStatus';
 import { getOnboardingState, readOnboardingResolution, fetchOnboardingProfile } from './src/features/onboarding/onboardingService';
 import { isActiveLearnerFtue } from './src/features/onboarding/ftueTakeover';
-import { ONBOARDING_PROFILE_SELECT } from './src/features/onboarding/profileSelect';
 import { buildSetupProfileFallback } from './src/features/onboarding/setupCompletion';
 import { isOnboardingDebugEnabled, logOnboardingDebug } from './src/features/onboarding/featureFlags';
 import type { Profile } from './types';
@@ -192,43 +194,6 @@ const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) 
 };
 
 
-const readSetupProfileSnapshot = async (userId: string): Promise<Partial<Profile> | null> => {
-  const { data, error } = await supabase
-    .from('users')
-    .select(ONBOARDING_PROFILE_SELECT)
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (error) {
-    console.warn('[ftue:setup-status] failed to read profile snapshot:', error.message);
-    return null;
-  }
-
-  return data as Partial<Profile> | null;
-};
-
-const resolveSetupDecision = async (status: AuthService.UserSetupStatus, email?: string | null) => {
-  const shouldReadProfileSnapshot = Boolean(status.authenticated && status.needs_setup && status.user_id);
-  const profileSnapshot = shouldReadProfileSnapshot ? await readSetupProfileSnapshot(status.user_id as string) : null;
-  const decision = decideNeedsSetup({ status, profileNeedsSetup: profileSnapshot?.needs_setup });
-
-  logOnboardingDebug('[ftue:setup-status]', {
-    user_id: status.user_id ?? null,
-    email: email ?? null,
-    profile_role: profileSnapshot?.role ?? status.role ?? null,
-    school_id: profileSnapshot?.school_id ?? status.school_id ?? null,
-    tutorial_completed: profileSnapshot?.tutorial_completed ?? null,
-    status_needs_setup: status.needs_setup,
-    profile_needs_setup: profileSnapshot?.needs_setup ?? null,
-    needsSetup: decision.needsSetup,
-    decisionReason: decision.reason,
-    statusReason: status.reason ?? null,
-    has_role: status.has_role ?? null,
-  });
-
-  return decision.needsSetup;
-};
-
 const MinimalFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="skeleton-bone h-6 w-40 rounded-xl bg-white/10" />
@@ -249,12 +214,13 @@ const Main: React.FC = () => {
   const [postSetupProfile, setPostSetupProfile] = useState<Partial<Profile> | null>(null);
   const [postSetupDebugSnapshot, setPostSetupDebugSnapshot] = useState<Record<string, unknown> | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const [bootstrap, setBootstrap] = useState<AuthBootstrap | null>(null);
+  const loginInFlightRef = useRef(false);
+  const activeUserRef = useRef<string | null>(null);
   const [showEntryScreen, setShowEntryScreen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<'brains-heist' | 'ielts' | null>(null);
   const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
   const [userEmail, setUserEmail] = useState<string | undefined>();
-  const MAX_RETRIES = 3;
   const authRefreshInFlightRef = useRef<Promise<void> | null>(null);
   const authSequenceRef = useRef(0);
   const isAuthenticatedRef = useRef(isAuthenticated);
@@ -292,113 +258,47 @@ const Main: React.FC = () => {
     }
   }, [logAuthFlow]);
 
-  // Check authentication and setup status with robust timeout handling
-  const checkAuthAndSetup = useCallback(async (options?: { reason?: string; globalLoader?: boolean }) => {
+  // One server-authoritative snapshot owns setup, verification and routing.
+  const checkAuthAndSetup = useCallback(async (options?: { reason?: string; globalLoader?: boolean; session?: Session }) => {
     const reason = options?.reason ?? 'manual';
     const sequence = ++authSequenceRef.current;
-    const shouldSetGlobalLoader = options?.globalLoader ?? true;
-
-    if (shouldSetGlobalLoader) {
-      setLoading(true, `${reason}:start`);
-    }
-
+    if (options?.globalLoader !== false) setLoading(true, `${reason}:start`);
+    setInitError(null);
     try {
-      logAuthFlow('auth refresh start', { reason, sequence, pathname: window.location.pathname });
-      setInitError(null);
-      
-      // Longer timeout for getSession - network can be slow
-      let session;
-      try {
-        const result = await withTimeout(supabase.auth.getSession(), 15000, 'supabase.auth.getSession');
-        session = result.data?.session;
-      } catch (sessionErr) {
-        console.warn('getSession timed out, checking if we have a cached session');
-        // Try to get session from local storage as fallback
-        const cachedSession = localStorage.getItem('sb-' + import.meta.env.VITE_SUPABASE_PROJECT_REF + '-auth-token');
-        if (cachedSession) {
-          try {
-            const parsed = JSON.parse(cachedSession);
-            session = parsed?.currentSession || parsed;
-            console.log('Using cached session');
-          } catch {
-            session = null;
-          }
-        }
-      }
-      
-      if (sequence !== authSequenceRef.current) {
-        logAuthFlow('auth refresh ignored stale result', { reason, sequence });
+      const session = options?.session ?? (await withTimeout(supabase.auth.getSession(), 15000, 'Session check')).data.session;
+      if (sequence !== authSequenceRef.current) return;
+      if (!session) {
+        clearAuthBootstrap(); activeUserRef.current = null;
+        setBootstrap(null); setIsAuthenticated(false); setNeedsSetup(false); setNeedsEmailVerification(false);
         return;
       }
-
-      setIsAuthenticated(!!session);
-      resolveCallbackRoute(!!session, reason);
-      
-      if (session) {
-        // Check email verification status first
-        try {
-          const verificationStatus = await AuthService.checkEmailVerification();
-          setUserEmail(verificationStatus.email);
-          
-          if (!verificationStatus.isVerified) {
-            console.log('Email not verified, showing verification screen');
-            setNeedsEmailVerification(true);
-            setNeedsSetup(false);
-          } else {
-            setNeedsEmailVerification(false);
-            
-            // Check if user needs to complete profile setup - use short timeout
-            try {
-              // New accounts can take a few extra seconds while profile bootstrap
-              // queries settle across regions; avoid noisy false timeout warnings.
-              const status = await withTimeout(AuthService.checkUserSetupStatus(), 6000, 'check_user_setup_status');
-              // Trust explicit public.users.needs_setup over role defaults. New
-              // profiles may already have role='student' from DB/auth defaults,
-              // but still must enter SetupWizard until needs_setup is cleared.
-              const actuallyNeedsSetup = await resolveSetupDecision(status, session.user.email);
-              setNeedsSetup(actuallyNeedsSetup);
-              if (actuallyNeedsSetup) setPostSetupProfile(null);
-              if (status.has_username) {
-                setSetupUsername(status.username);
-              }
-            } catch (setupErr) {
-              // If setup check fails but we have a valid session, DON'T assume needs setup
-              // Instead, let them proceed and the app will handle missing data gracefully
-              console.warn('Setup check failed, proceeding with session:', setupErr);
-              setNeedsSetup(false); // Changed: Don't force setup on timeout
-            }
-          }
-        } catch (verifyErr) {
-          console.error('Email verification check failed:', verifyErr);
-          // If check fails, proceed without blocking
-          setNeedsEmailVerification(false);
-        }
-      } else {
-        setNeedsSetup(false);
-        setNeedsEmailVerification(false);
+      const result = await getAuthBootstrap(session);
+      if (sequence !== authSequenceRef.current) return;
+      if (result.is_banned) {
+        storeBanMessage(BAN_MESSAGE); setBootstrap(null);
+        await AuthService.logout(); return;
       }
+      activeUserRef.current = result.user_id;
+      isAuthenticatedRef.current = true;
+      preloadAccountWorkspace(result);
+      setBootstrap(current => options?.globalLoader === false && current && sameBootstrapAuthority(current, result) ? current : result);
+      setIsAuthenticated(true);
+      setUserEmail(result.email ?? session.user.email);
+      setNeedsEmailVerification(!result.email_verified);
+      setNeedsSetup(result.email_verified && result.needs_setup);
+      setSetupUsername(result.profile?.username);
+      if (result.needs_setup) setPostSetupProfile(null);
+      resolveCallbackRoute(true, reason);
       lastSuccessfulAuthRefreshAtRef.current = Date.now();
-      setRetryCount(0); // Reset on success
-    } catch (err) {
-      console.error('Auth check failed:', err);
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      
-      // Auto-retry for timeout errors up to MAX_RETRIES
-      if (errorMsg.includes('timed out') && retryCount < MAX_RETRIES) {
-        setRetryCount(prev => prev + 1);
-        console.log(`Retrying auth check (${retryCount + 1}/${MAX_RETRIES})...`);
-        setTimeout(() => void checkAuthAndSetup({ reason: `${reason}:retry`, globalLoader: shouldSetGlobalLoader }), 1000);
-        return;
-      }
-      
-      setInitError(errorMsg);
+    } catch (error) {
+      if (sequence !== authSequenceRef.current) return;
+      // Never fall through to a guessed dashboard after a failed authority read.
+      setBootstrap(null);
+      setInitError(error instanceof Error ? error.message : 'Unable to open your account. Please retry.');
     } finally {
-      if (sequence === authSequenceRef.current) {
-        setLoading(false, `${reason}:end`);
-      }
-      logAuthFlow('auth refresh end', { reason, sequence });
+      if (sequence === authSequenceRef.current) setLoading(false, `${reason}:end`);
     }
-  }, [logAuthFlow, resolveCallbackRoute, retryCount, setLoading]);
+  }, [resolveCallbackRoute, setLoading]);
 
   useEffect(() => {
     void checkAuthAndSetup({ reason: 'initial', globalLoader: true });
@@ -407,25 +307,25 @@ const Main: React.FC = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       logAuthFlow('auth state change', { event, hasSession: Boolean(session) });
-      setIsAuthenticated(!!session);
-      resolveCallbackRoute(!!session, `auth-state:${event}`);
-
+      // Initial getSession owns startup; password login supplies its own session.
+      if (event === 'INITIAL_SESSION' || loginInFlightRef.current && event === 'SIGNED_IN') return;
       if (!session) {
-        setNeedsSetup(false);
-        setNeedsEmailVerification(false);
+        ++authSequenceRef.current; clearAuthBootstrap(); activeUserRef.current = null;
+        isAuthenticatedRef.current = false;
+        setBootstrap(null); setPostSetupProfile(null); setIsAuthenticated(false);
+        setNeedsSetup(false); setNeedsEmailVerification(false); setInitError(null);
         setLoading(false, `auth-state:${event}:signed-out`);
         return;
       }
-
-      const globalLoader = shouldUseGlobalAuthLoader(event, isAuthenticatedRef.current);
-
-      if (!globalLoader && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
-        logAuthFlow('auth refresh skipped; lightweight auth state event', { event });
-        setLoading(false, `auth-state:${event}:silent`);
-        return;
-      }
-
-      void checkAuthAndSetup({ reason: `auth-state:${event}`, globalLoader });
+      const sameAccount = activeUserRef.current === session.user.id;
+      if (sameAccount && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) return;
+      const globalLoader = !sameAccount || shouldUseGlobalAuthLoader(event, isAuthenticatedRef.current);
+      const sequence = authSequenceRef.current;
+      // Leave Supabase's auth callback before any further Supabase call.
+      window.setTimeout(() => {
+        if (sequence !== authSequenceRef.current) return;
+        void checkAuthAndSetup({ reason: `auth-state:${event}`, globalLoader, session });
+      }, 0);
     });
 
     const runResumeRefreshIfNeeded = async (trigger: string) => {
@@ -549,12 +449,16 @@ const Main: React.FC = () => {
   }, [checkAuthAndSetup, logAuthFlow, resolveCallbackRoute, setLoading]);
 
   const handleLogin = useCallback(async (email: string, pass: string) => {
-    await AuthService.login(email, pass);
-    // Force immediate state update and session check
-    await checkAuthAndSetup();
+    if (loginInFlightRef.current) return;
+    loginInFlightRef.current = true;
+    try {
+      const { session } = await AuthService.login(email, pass);
+      await checkAuthAndSetup({ reason: 'password-login', session });
+    } finally { loginInFlightRef.current = false; }
   }, [checkAuthAndSetup]);
 
   const handleLogout = useCallback(async () => {
+    ++authSequenceRef.current; clearAuthBootstrap(); setBootstrap(null); setInitError(null);
     await AuthService.logout();
     // Immediately set to false - the auth state change will confirm
     setIsAuthenticated(false);
@@ -614,11 +518,11 @@ const Main: React.FC = () => {
     logOnboardingDebug('[ftue:setup-complete:main-refresh]', snapshot);
     setPostSetupProfile(savedProfile);
     setPostSetupDebugSnapshot(isOnboardingDebugEnabled() ? snapshot : null);
-    setNeedsSetup(false);
-  }, []);
+    await checkAuthAndSetup({ reason: 'setup-complete' });
+  }, [checkAuthAndSetup]);
 
   if (isLoading) {
-    return <WhoAreYou />;
+    return <LoginLaunchpad />;
   }
 
   if (initError) {
@@ -704,6 +608,8 @@ const Main: React.FC = () => {
     );
   }
 
+  if (!bootstrap) return <LoginLaunchpad />;
+
   return (
     <>
       {isOnboardingDebugEnabled() && postSetupDebugSnapshot && (
@@ -714,8 +620,8 @@ const Main: React.FC = () => {
           </pre>
         </details>
       )}
-      <OnboardingRouteGate observeOnly={false} profile={postSetupProfile}>
-        <App onLogout={handleLogout} />
+      <OnboardingRouteGate observeOnly={false} profile={bootstrap?.profile ?? postSetupProfile}>
+        <App key={bootstrap?.user_id} onLogout={handleLogout} initialBootstrap={bootstrap!} />
       </OnboardingRouteGate>
     </>
   );

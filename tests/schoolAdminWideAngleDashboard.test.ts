@@ -72,7 +72,7 @@ test('school membership capabilities are canonical, audited and assignment-safe'
 test('dual-role staff can choose and switch workspaces without signing out', () => {
   assert.match(app, /workspace_chooser/);
   assert.match(app, /school_workspace:/);
-  assert.match(app, /getMySchoolCapabilities/);
+  assert.match(app, /const capabilities = bootstrap\.capabilities/);
   assert.match(app, /onOpenTeacherPortal/);
   assert.match(workspaceChooser, /School Administration/);
   assert.match(workspaceChooser, /Teacher Portal/);

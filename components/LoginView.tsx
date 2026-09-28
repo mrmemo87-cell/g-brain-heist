@@ -1,3 +1,4 @@
+import LoginLaunchpad from './LoginLaunchpad';
 import React, { useEffect, useState } from 'react';
 import * as AuthService from '../services/authService';
 import { consumeBanMessage } from '../services/banMessage';
@@ -251,6 +252,8 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             setAssistantLoading(false);
         }
     };
+
+    if (isLoading && mode === 'login') return <LoginLaunchpad message="Signing you in…" />;
 
     const authCard = (
         <AuthPortalCard
