@@ -46,7 +46,7 @@ React state alone is not an explicit application-level mutual-exclusion guarante
 
 ## Release order and rollback
 
-1. Apply `20260928053301_classroom_reliability.sql` to the existing project before releasing the frontend. API signatures remain compatible with older clients. Lock acquisition is bounded at three seconds during migration.
+1. Apply `20260928055401_classroom_reliability.sql` to the existing project before releasing the frontend. API signatures remain compatible with older clients. Lock acquisition is bounded at three seconds during migration.
 2. Recheck function definitions, EXECUTE grants, index validity and advisors; inspect a read-only query plan using the existing school data.
 3. Release the frontend after CI; verify the hosting deployment is ready before claiming it is live.
 4. Monitor answer/finalization errors, statement timeouts, p95/p99, database CPU/IO/locks and teacher-summary latency during a small supervised class.
@@ -69,3 +69,14 @@ Targets are release gates, not measured results:
 No staging project or test-user cohort was available in this task. The load harness was syntax-checked, not executed. Do not run it against production or create paid infrastructure without authorization. Passing a 30-student class does not prove 1,000-student capacity.
 
 Remaining performance work: profile `rpc_student_learning_catalog`, `rpc_quest_get_missions`, teacher roster and full result evidence-trigger plans under representative data; split the large teacher bundle; establish production latency/error alerts and size database compute/pooling using measured load. No compute-plan changes were made. “Always instant” is not a technically defensible guarantee; immediate UI response, durable saves and explicit measured service targets are the practical standard.
+
+
+## Applied database release
+
+Applied to the existing production project through the Supabase integration as migration `20260928055401_classroom_reliability`; the repository filename is aligned to that recorded version. PR #1491 merged as `335c4a962599fe094c6386b805b18dea84e727c4` after CI passed.
+
+Live checks: both answer/finalization functions have replay handling, fixed search paths and anonymous execution denied; the composite index is valid/ready and is selected by an EXPLAIN ANALYZE of the assignment/student lookup. Existing completed-result/answer replays and anonymous rejection passed inside a rolled-back transaction. A student catalog returned 16 assignments with short-answer keys redacted; Jess's summary returned the expected bounded follow-up payload. Security advisor findings were unchanged (900 existing findings across seven categories; none added by this repair). This is not a statement that the platform is free of pre-existing security debt; see the [Supabase database linter reference](https://supabase.com/docs/guides/database/database-linter).
+
+The measured lookup took 0.779 ms in that single database smoke query. It is not an end-to-end latency or concurrent-load result.
+
+Frontend deployment `dpl_Dhfojcar6yi48LiT3Q6XkQ3Rvh5X` reached **READY**, target production, at commit `335c4a962599fe094c6386b805b18dea84e727c4`; Vercel attached both `brainsheist.com` and `www.brainsheist.com`. A public HTTPS request redirected to www and returned HTTP 200. This verifies release delivery, not an authenticated classroom load test.
