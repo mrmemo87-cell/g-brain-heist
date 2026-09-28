@@ -71,7 +71,7 @@ begin
             select jsonb_agg(
               case
                 when jsonb_typeof(option_value) = 'string'
-                  then jsonb_build_object('text', trim(both '"' from option_value::text), 'imageUrl', null)
+                  then jsonb_build_object('text', (option_value #>> '{}'), 'imageUrl', null)
                 when jsonb_typeof(option_value) = 'object'
                   then jsonb_build_object(
                     'text', coalesce(option_value->>'text', ''),
