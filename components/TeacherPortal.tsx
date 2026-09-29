@@ -3940,9 +3940,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (profile.school_id && !teacherAssignedSubjects.includes(assignmentSubject)) return brainsAlert('You can only create assignments for school subjects currently allocated to you.', 'error');
     if (assignmentTopicMode === 'custom' && !assignmentTopicName.trim()) return brainsAlert('Please enter a topic for this assignment.', 'info');
     if (!assignmentQuestionIds.length) return brainsAlert('Select at least one question to assign.', 'info');
-    const selectedTeachingGroup = teachingGroups.find((group) => group.id === assignmentGroupId) || null;
-    if (teachingGroups.length > 0 && !selectedTeachingGroup) return brainsAlert('Please select a teaching group for this assignment.', 'info');
-    if (teachingGroups.length === 0 && assignmentMode === 'batch' && assignmentBatches.length === 0) return brainsAlert('Please select at least one class for this assignment.', 'info');
+    const normalizeAssignmentSubject = (value: string) => value.trim().toLocaleLowerCase().replace(/\s+/g, ' ');
+    const subjectTeachingGroups = teachingGroups.filter(
+      (group) => normalizeAssignmentSubject(group.schoolSubjectName) === normalizeAssignmentSubject(assignmentSubject),
+    );
+    const selectedTeachingGroup = subjectTeachingGroups.find((group) => group.id === assignmentGroupId) || null;
+    const selectedCustomTeachingGroup = selectedTeachingGroup?.groupType === 'custom' ? selectedTeachingGroup : null;
+    const classTeachingGroups = subjectTeachingGroups.filter((group) => group.groupType === 'class');
+    const classOnlyTeachingGroups = subjectTeachingGroups.length > 0 && classTeachingGroups.length === subjectTeachingGroups.length;
+    if (subjectTeachingGroups.length > 0 && !selectedCustomTeachingGroup && !(classOnlyTeachingGroups && assignmentBatches.length > 0)) {
+      return brainsAlert('Please select at least one teaching group or class for this assignment.', 'info');
+    }
+    if (subjectTeachingGroups.length === 0 && assignmentMode === 'batch' && assignmentBatches.length === 0) return brainsAlert('Please select at least one class for this assignment.', 'info');
     if (assignmentMode === 'custom' && selectedStudentIds.length === 0) return brainsAlert('Please select at least one student for this assignment.', 'info');
     if (assignmentDueAt) {
       const dueDate = new Date(assignmentDueAt);
@@ -3963,8 +3972,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       const basePayload = {
         subject: assignmentSubject,
         school_id: profile.school_id || undefined,
-        school_subject_id: selectedTeachingGroup?.schoolSubjectId,
-        subject_group_id: selectedTeachingGroup?.id,
+        school_subject_id: selectedCustomTeachingGroup?.schoolSubjectId,
+        subject_group_id: selectedCustomTeachingGroup?.id,
         topic_name: assignmentTopicLabel,
         question_ids: assignmentQuestionIds,
         assigned_at: assignedAt,
@@ -3981,7 +3990,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       } as const;
 
       if (editingAssignment) {
-        const batch = selectedTeachingGroup ? undefined : assignmentMode === 'batch' ? assignmentBatches.find((item) => item !== 'All') : undefined;
+        const batch = selectedCustomTeachingGroup ? undefined : assignmentMode === 'batch' ? assignmentBatches.find((item) => item !== 'All') : undefined;
         const previousQuestionIds = editingAssignment.question_ids || [];
         const contentChanged = previousQuestionIds.length !== assignmentQuestionIds.length
           || previousQuestionIds.some((id) => !assignmentQuestionIds.includes(id));
@@ -4004,14 +4013,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         }
         await GameService.update_teacher_assignment(editingAssignment.id, {
           ...basePayload,
-          assignment_mode: selectedTeachingGroup ? 'custom' : assignmentMode,
+          assignment_mode: selectedCustomTeachingGroup ? 'custom' : assignmentMode,
           batch: batch as AssignmentBatch | undefined,
-          student_ids: selectedTeachingGroup || assignmentMode === 'custom' ? selectedStudentIds : undefined,
+          student_ids: selectedCustomTeachingGroup || assignmentMode === 'custom' ? selectedStudentIds : undefined,
         });
         brainsAlert(publishStatus === 'draft' ? 'Assignment saved as a draft.' : publishStatus === 'scheduled' ? 'Assignment updated and scheduled.' : 'Assignment updated.', 'success');
-      } else if (selectedTeachingGroup) {
+      } else if (selectedCustomTeachingGroup) {
         await GameService.create_assignment({
           ...basePayload,
+          school_subject_id: selectedCustomTeachingGroup.schoolSubjectId,
+          subject_group_id: selectedCustomTeachingGroup.id,
           batch: undefined,
           assignment_mode: 'custom',
           student_ids: selectedStudentIds,
@@ -4021,11 +4032,31 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         const batchesToAssign = assignmentBatches.includes('All') ? availableBatches : assignmentBatches.filter((batch) => batch !== 'All');
         const errors: string[] = [];
         for (const batch of batchesToAssign) {
-          try { await GameService.create_assignment({ ...basePayload, batch: batch as AssignmentBatch, assignment_mode: 'batch' }); }
-          catch (err) { errors.push(`${batch}: ${(err as Error).message}`); }
+          try {
+            const allocatedClass = allocatedClasses.find((item) => item.class_code === batch);
+            const classGroup = allocatedClass
+              ? classTeachingGroups.find((group) => group.registrationClassId === allocatedClass.class_id)
+              : undefined;
+            await GameService.create_assignment({
+              ...basePayload,
+              school_subject_id: classGroup?.schoolSubjectId,
+              subject_group_id: classGroup?.id,
+              batch: batch as AssignmentBatch,
+              assignment_mode: 'batch',
+            });
+          } catch (err) {
+            errors.push(`${batch}: ${(err as Error).message}`);
+          }
         }
         if (errors.length) throw new Error(errors.join('\n'));
-        brainsAlert(publishStatus === 'draft' ? `Draft saved for ${batchesToAssign.length} class${batchesToAssign.length === 1 ? '' : 'es'}.` : publishStatus === 'scheduled' ? 'Assignment scheduled.' : 'Assignment published.', 'success');
+        brainsAlert(
+          publishStatus === 'draft'
+            ? `Draft saved for ${batchesToAssign.length} class${batchesToAssign.length === 1 ? '' : 'es'}.`
+            : publishStatus === 'scheduled'
+              ? `Assignment scheduled for ${batchesToAssign.length} class${batchesToAssign.length === 1 ? '' : 'es'}.`
+              : `Assignment published to ${batchesToAssign.length} class${batchesToAssign.length === 1 ? '' : 'es'}.`,
+          'success',
+        );
       } else {
         await GameService.create_assignment({ ...basePayload, batch: undefined, assignment_mode: 'custom', student_ids: selectedStudentIds });
         brainsAlert(publishStatus === 'draft' ? 'Draft saved.' : publishStatus === 'scheduled' ? 'Assignment scheduled.' : 'Assignment published.', 'success');
