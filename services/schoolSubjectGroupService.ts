@@ -84,6 +84,11 @@ export const setSchoolSubjectGroupStudents = (schoolId: string, groupId: string,
     p_school_id: schoolId, p_group_id: groupId, p_student_ids: studentIds,
   }, 'We could not save the roster. Check that every student is enrolled in this subject and grade.');
 
+export const setTeacherTeachingGroupStudents = (schoolId: string, groupId: string, studentIds: string[]) =>
+  call<void>('rpc_teacher_set_subject_group_students', {
+    p_school_id: schoolId, p_group_id: groupId, p_student_ids: studentIds,
+  }, 'We could not save this teaching-group roster. Check that the students are active in the same grade and that you are allocated to this group.');
+
 export const setSchoolSubjectGroupTeacher = (input: {
   schoolId: string; groupId: string; teacherUserId: string; active: boolean;
   canCreate: boolean; canGrade: boolean;
