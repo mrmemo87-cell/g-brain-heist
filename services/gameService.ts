@@ -5423,25 +5423,45 @@ export const get_all_questions = async (filters?: {
     limit?: number;
     offset?: number;
 }): Promise<(TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[]> => {
-    const { data, error } = await supabase.rpc('get_all_active_questions', {
-        p_subject: filters?.subject || null,
-        p_difficulty: filters?.difficulty || null,
-        p_teacher_id: filters?.teacherId || null,
-        p_limit: filters?.limit || 500,
-        p_offset: filters?.offset || 0
-    });
+    // Keep each browser-facing RPC comfortably below PostgREST's authenticated
+    // statement timeout. The governed catalogue joins curriculum mappings and can
+    // exceed the timeout when 500 rows plus metadata are requested in one shot.
+    const requestedLimit = Math.max(1, Math.min(filters?.limit ?? 500, 1000));
+    const requestedOffset = Math.max(filters?.offset ?? 0, 0);
+    const rpcChunkSize = 100;
+    const questions: (TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[] = [];
 
-    if (error) throw error;
-    const questions = (data || []) as (TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[];
-    if (!questions.length) return questions;
-    const { data: metadata, error: metadataError } = await supabase.rpc('rpc_question_curriculum_metadata', {
-        p_question_ids: questions.map((question) => question.id),
-    });
-    if (metadataError) {
-        console.warn('Question curriculum metadata could not be loaded:', metadataError);
-        return questions;
+    for (let loaded = 0; loaded < requestedLimit; loaded += rpcChunkSize) {
+        const chunkLimit = Math.min(rpcChunkSize, requestedLimit - loaded);
+        const { data, error } = await supabase.rpc('get_all_active_questions', {
+            p_subject: filters?.subject || null,
+            p_difficulty: filters?.difficulty || null,
+            p_teacher_id: filters?.teacherId || null,
+            p_limit: chunkLimit,
+            p_offset: requestedOffset + loaded,
+        });
+
+        if (error) throw error;
+        const chunk = (data || []) as (TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[];
+        questions.push(...chunk);
+        if (chunk.length < chunkLimit) break;
     }
-    const byQuestion = new Map((metadata || []).map((item: any) => [item.questionId, item]));
+
+    if (!questions.length) return questions;
+
+    const byQuestion = new Map<string, any>();
+    for (let start = 0; start < questions.length; start += rpcChunkSize) {
+        const questionChunk = questions.slice(start, start + rpcChunkSize);
+        const { data: metadata, error: metadataError } = await supabase.rpc('rpc_question_curriculum_metadata', {
+            p_question_ids: questionChunk.map((question) => question.id),
+        });
+        if (metadataError) {
+            console.warn('Question curriculum metadata could not be loaded:', metadataError);
+            continue;
+        }
+        (metadata || []).forEach((item: any) => byQuestion.set(item.questionId, item));
+    }
+
     return questions.map((question) => {
         const item: any = byQuestion.get(question.id);
         return item ? {
