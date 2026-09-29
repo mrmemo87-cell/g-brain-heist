@@ -1383,6 +1383,20 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     void finalizeAssignmentSubmission();
   }, [stage, mode, activeAssignment, assignmentSubmissionState, finalizeAssignmentSubmission]);
 
+  const handleExitQuest = useCallback(() => {
+    // Once an assignment is confirmed submitted, the parent dashboard still holds
+    // the pre-submit assignment snapshot until it is explicitly refreshed. Refresh
+    // in the background before/while leaving so completed work disappears and
+    // normal practice (or the next assignment) is immediately available.
+    if (mode === 'assignment' && assignmentSubmissionState === 'submitted') {
+      setPreferredAssignmentId(null);
+      void Promise.resolve(refreshAssignment?.()).catch((error) => {
+        console.warn('[QuestView] Assignment submitted but dashboard refresh failed:', error);
+      });
+    }
+    onComplete();
+  }, [assignmentSubmissionState, mode, onComplete, refreshAssignment]);
+
   const handleAnswerSubmit = async (option: string) => {
     if (answerResponse || assignmentAnswerReviewStatus || isSubmitting || !inputGuardRef.current.claim()) return;
 
@@ -2767,25 +2781,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         setStage('subject_selection');
         loadSubjects();
       } else if (mode === 'assignment' || assignmentContext) {
-        setMode('practice');
-        setSelectedSubject(null);
-        setSelectedTopic(null);
-        setQuestions([]);
-        setTeacherQuestions([]);
-        setCurrentQuestionIndex(0);
-        setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
-        setQuestionScores([]);
-        setQuestionPerformances([]);
-        setSoloStreak(0);
-        setMissionSummary(null);
-        setTopicSummary(null);
-        setQuestionStartTime(null);
-        setAssignmentStartTime(null);
-        loadSubjects();
+        // The student acknowledged the completed assignment. Leave the stale
+        // completion shell and refresh the parent assignment snapshot so the
+        // dashboard/practice catalogue reflects the canonical server state.
+        setPreferredAssignmentId(null);
         setLastCompletedAssignment(null);
-        setAssignmentSubmissionState('idle');
         setAssignmentSubmissionError(null);
-        hydrateAssignment({ showLoading: true });
+        handleExitQuest();
+        return;
       } else {
         setStage('subject_selection');
         setSelectedSubject(null);
@@ -3026,7 +3029,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 <>
                   <p className="text-sm font-semibold uppercase tracking-wide">Submission complete ✅</p>
                   <p className="mt-2 text-sm text-emerald-100/90">
-                    Your assignment has been submitted successfully. Select OK when you are ready to continue.
+                    Your assignment has been submitted successfully. Select OK to return to your refreshed dashboard and continue practicing.
                   </p>
                   <button
                     type="button"
@@ -3114,10 +3117,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               {isAssignmentFinalizing ? 'Finalizing…' : isAssignmentSubmissionFailed ? 'Resolve submission first' : '🎯 Next Quest'}
             </button>}
             <button
-              onClick={onComplete}
-              disabled={isAssignmentRun}
+              onClick={handleExitQuest}
+              disabled={isAssignmentRun && assignmentSubmissionState !== 'submitted'}
               className={`px-8 py-4 rounded-lg font-bold text-lg transition-all shadow-lg ${
-                isAssignmentRun
+                isAssignmentRun && assignmentSubmissionState !== 'submitted'
                   ? 'cursor-not-allowed bg-gray-700 text-gray-400 opacity-60'
                   : 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 hover:scale-105 active:scale-95'
               }`}
@@ -3213,7 +3216,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   return (
     <div className="mt-6">
-      <BackButton onClick={onComplete} />
+      <BackButton onClick={handleExitQuest} />
       {renderContent()}
     </div>
   );
