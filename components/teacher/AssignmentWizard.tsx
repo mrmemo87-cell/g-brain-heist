@@ -5,6 +5,7 @@ import { ASSIGNMENT_CATEGORY_META, getAssignmentCategoryMeta } from '../../src/l
 import type { TeacherAllocatedClass } from '../../services/schoolAdminService';
 import {
   fetchTeacherTeachingGroupRoster,
+  setTeacherTeachingGroupStudents,
   type SchoolSubjectGroup,
   type SubjectGroupRosterStudent,
 } from '../../services/schoolSubjectGroupService';
@@ -219,6 +220,8 @@ export default function AssignmentWizard({
   const [academicSetupLoading, setAcademicSetupLoading] = useState(false);
   const [groupRoster, setGroupRoster] = useState<SubjectGroupRosterStudent[]>([]);
   const [groupRosterLoading, setGroupRosterLoading] = useState(false);
+  const [groupRosterDraftIds, setGroupRosterDraftIds] = useState<string[]>([]);
+  const [groupRosterSaving, setGroupRosterSaving] = useState(false);
   const wizardTopRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -249,7 +252,8 @@ export default function AssignmentWizard({
     () => teachingGroups.filter((group) => normalizeSubject(group.schoolSubjectName) === normalizeSubject(assignmentSubject)),
     [assignmentSubject, teachingGroups],
   );
-  const hasTeachingGroups = teachingGroups.length > 0;
+  const hasTeachingGroups = subjectTeachingGroups.length > 0;
+  const classOnlyTeachingGroups = hasTeachingGroups && subjectTeachingGroups.every((group) => group.groupType === 'class');
 
   useEffect(() => {
     if (!schoolId || !assignmentGroupId) {
@@ -262,6 +266,7 @@ export default function AssignmentWizard({
       .then((rows) => {
         if (cancelled) return;
         setGroupRoster(rows);
+        setGroupRosterDraftIds(rows.map((row) => row.student_id));
         setSelectedStudentIds(rows.map((row) => row.student_id));
         setAssignmentMode('custom');
         setAssignmentBatches([]);
@@ -294,6 +299,34 @@ export default function AssignmentWizard({
     () => availableStudents.filter((student) => !canReceiveNewAssignment(student)),
     [availableStudents],
   );
+
+  const groupRosterCandidates = useMemo(() => {
+    if (!selectedTeachingGroup || selectedTeachingGroup.groupType !== 'custom') return [];
+    const grade = String(selectedTeachingGroup.gradeLevel || '').trim();
+    return assignableStudents.filter((student) => {
+      const explicitGrade = String(student.grade ?? '').trim();
+      const classLabel = String(student.class_code ?? student.batch ?? '').trim();
+      const classGrade = classLabel.match(/^(\d+)/)?.[1] ?? '';
+      return explicitGrade === grade || classGrade === grade;
+    });
+  }, [assignableStudents, selectedTeachingGroup]);
+
+  const saveTeachingGroupRoster = async () => {
+    if (!schoolId || !selectedTeachingGroup || selectedTeachingGroup.groupType !== 'custom') return;
+    setGroupRosterSaving(true);
+    try {
+      await setTeacherTeachingGroupStudents(schoolId, selectedTeachingGroup.id, groupRosterDraftIds);
+      const rows = await fetchTeacherTeachingGroupRoster(schoolId, selectedTeachingGroup.id);
+      setGroupRoster(rows);
+      setGroupRosterDraftIds(rows.map((row) => row.student_id));
+      setSelectedStudentIds(rows.map((row) => row.student_id));
+      brainsAlert('Teaching-group roster updated.', 'success');
+    } catch (error) {
+      brainsAlert(error instanceof Error ? error.message : 'Unable to update this teaching-group roster.', 'error');
+    } finally {
+      setGroupRosterSaving(false);
+    }
+  };
 
   useEffect(() => {
     const allowed = new Set(
@@ -509,8 +542,8 @@ export default function AssignmentWizard({
   const continueFrom = (currentStep: WizardStep) => {
     if (currentStep === 1 && !assignmentSubject) return brainsAlert('Please choose a subject.', 'info');
     if (currentStep === 2) {
-      if (hasTeachingGroups && !assignmentGroupId) return brainsAlert('Please choose a teaching group for this assignment.', 'info');
-      if (hasTeachingGroups && !groupRosterLoading && groupRoster.length === 0) return brainsAlert('This teaching group currently has no eligible students.', 'info');
+      if (hasTeachingGroups && !assignmentGroupId && !assignmentBatches.length) return brainsAlert('Please choose at least one teaching group or class for this assignment.', 'info');
+      if (assignmentGroupId && !groupRosterLoading && groupRoster.length === 0) return brainsAlert('This teaching group currently has no eligible students.', 'info');
       if (!hasTeachingGroups && assignmentMode === 'batch' && !assignmentBatches.length) return brainsAlert('Please select at least one class for this assignment.', 'info');
       if (!hasTeachingGroups && assignmentMode === 'custom' && !selectedStudentIds.length) return brainsAlert('Please select at least one student for this assignment.', 'info');
     }
@@ -641,19 +674,31 @@ export default function AssignmentWizard({
             <div className="aw-step">
               {hasTeachingGroups ? (
                 <>
-                  <p className="aw-intro">Choose the teaching group this assignment belongs to. Its roster comes from the school administrator’s subject setup.</p>
+                  <p className="aw-intro">{classOnlyTeachingGroups ? 'Choose one or more classes. One assignment will be created for each selected class in a single publish action.' : 'Choose the teaching group this assignment belongs to. Custom-group rosters can be updated here when new students join.'}</p>
                   <div className="aw-class-grid">
                     {subjectTeachingGroups.map((group) => {
-                      const selected = group.id === assignmentGroupId;
+                      const allocatedClass = group.registrationClassId
+                        ? allocatedClasses.find((item) => item.class_id === group.registrationClassId)
+                        : undefined;
+                      const classCode = allocatedClass?.class_code || group.name.split(' · ')[0];
+                      const selected = group.groupType === 'class'
+                        ? assignmentBatches.includes(classCode)
+                        : group.id === assignmentGroupId;
                       return (
                         <button
                           key={group.id}
                           type="button"
                           aria-pressed={selected}
                           onClick={() => {
-                            setAssignmentGroupId?.(group.id);
-                            setAssignmentMode('custom');
-                            setAssignmentBatches([]);
+                            if (group.groupType === 'class') {
+                              setAssignmentGroupId?.('');
+                              setAssignmentMode('batch');
+                              toggleBatch(classCode);
+                            } else {
+                              setAssignmentGroupId?.(group.id);
+                              setAssignmentMode('custom');
+                              setAssignmentBatches([]);
+                            }
                             setReviewConfirmed(false);
                           }}
                           className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}
@@ -669,6 +714,38 @@ export default function AssignmentWizard({
                     })}
                     {!subjectTeachingGroups.length ? <div className="aw-empty">No active teaching group is allocated to you for {assignmentSubject}. Ask the school administrator to create and allocate the teaching group first.</div> : null}
                   </div>
+
+                  {selectedTeachingGroup?.groupType === 'custom' ? (
+                    <div className="aw-students">
+                      <div className="aw-toolbar aw-toolbar--simple">
+                        <div>
+                          <strong>Manage ${selectedTeachingGroup.name} roster</strong>
+                          <small className="block text-slate-500">Add newly joined Grade {selectedTeachingGroup.gradeLevel} students here. Saving also activates their {selectedTeachingGroup.schoolSubjectName} enrolment for the current academic year.</small>
+                        </div>
+                        <button type="button" className="aw-secondary" disabled={groupRosterSaving} onClick={() => void saveTeachingGroupRoster()}>
+                          {groupRosterSaving ? 'Saving…' : 'Save group roster'}
+                        </button>
+                      </div>
+                      <div className="aw-student-grid">
+                        {groupRosterCandidates.map((student) => {
+                          const selected = groupRosterDraftIds.includes(student.id);
+                          return (
+                            <button
+                              key={student.id}
+                              type="button"
+                              aria-pressed={selected}
+                              onClick={() => setGroupRosterDraftIds((current) => current.includes(student.id) ? current.filter((id) => id !== student.id) : [...current, student.id])}
+                              className={selected ? 'aw-student-card is-selected' : 'aw-student-card'}
+                            >
+                              <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(student.display_name || student.username)}`} alt="" />
+                              <span><strong>{student.display_name || student.username}</strong><small>{student.class_code || student.batch || 'No class'} · Grade {selectedTeachingGroup.gradeLevel}</small></span>
+                              <span className="aw-check">{selected ? '✓' : ''}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
 
                   {selectedTeachingGroup ? (
                     <div className="aw-students">
