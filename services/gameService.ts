@@ -2707,10 +2707,27 @@ const academicCodeForSubject = (value: string): string => {
     return normalized.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 };
 
+let studentAcademicSubjectCatalogInFlight: Promise<StudentAcademicSubjectCatalog> | null = null;
+
 export const fetchStudentAcademicSubjectCatalog = async (): Promise<StudentAcademicSubjectCatalog> => {
-    const { data, error } = await supabase.rpc('rpc_student_academic_subjects', { p_student_id: null });
-    if (error) throw error;
-    return (data || { success: true, ready: false, subjects: [] }) as StudentAcademicSubjectCatalog;
+    if (studentAcademicSubjectCatalogInFlight) {
+        return studentAcademicSubjectCatalogInFlight;
+    }
+
+    const request = (async () => {
+        const { data, error } = await supabase.rpc('rpc_student_academic_subjects', { p_student_id: null });
+        if (error) throw error;
+        return (data || { success: true, ready: false, subjects: [] }) as StudentAcademicSubjectCatalog;
+    })();
+
+    studentAcademicSubjectCatalogInFlight = request;
+    try {
+        return await request;
+    } finally {
+        if (studentAcademicSubjectCatalogInFlight === request) {
+            studentAcademicSubjectCatalogInFlight = null;
+        }
+    }
 };
 
 const fetchStudentLearningCatalog = async (subject: string, limit: number): Promise<StudentLearningCatalog> => {
@@ -5607,16 +5624,34 @@ export const delete_question = async (questionId: string): Promise<void> => {
 /**
  * Get public questions (for students to browse)
  */
+let publicQuestionsInFlight: { key: string; request: Promise<TeacherQuestion[]> } | null = null;
+
 export const get_public_questions = async (subject?: string, difficulty?: string): Promise<TeacherQuestion[]> => {
-    const subjectCatalog = await fetchStudentAcademicSubjectCatalog();
-    const requestedSubjects = subject
-        ? subjectCatalog.subjects.filter((item) => academicCodeForSubject(item.name) === academicCodeForSubject(subject))
-        : subjectCatalog.subjects;
-    const catalogs = await Promise.all(
-        requestedSubjects.map((item) => fetchStudentLearningCatalog(item.code, 500)),
-    );
-    return catalogs.flatMap((catalog) => catalog.questions)
-        .filter((question) => !difficulty || question.difficulty === difficulty);
+    const key = `${academicCodeForSubject(subject ?? '')}:${difficulty ?? ''}`;
+    if (publicQuestionsInFlight?.key === key) {
+        return publicQuestionsInFlight.request;
+    }
+
+    const request = (async () => {
+        const subjectCatalog = await fetchStudentAcademicSubjectCatalog();
+        const requestedSubjects = subject
+            ? subjectCatalog.subjects.filter((item) => academicCodeForSubject(item.name) === academicCodeForSubject(subject))
+            : subjectCatalog.subjects;
+        const catalogs = await Promise.all(
+            requestedSubjects.map((item) => fetchStudentLearningCatalog(item.code, 500)),
+        );
+        return catalogs.flatMap((catalog) => catalog.questions)
+            .filter((question) => !difficulty || question.difficulty === difficulty);
+    })();
+
+    publicQuestionsInFlight = { key, request };
+    try {
+        return await request;
+    } finally {
+        if (publicQuestionsInFlight?.request === request) {
+            publicQuestionsInFlight = null;
+        }
+    }
 };
 
 /**
