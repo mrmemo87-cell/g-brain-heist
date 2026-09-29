@@ -719,7 +719,7 @@ export default function AssignmentWizard({
                     <div className="aw-students">
                       <div className="aw-toolbar aw-toolbar--simple">
                         <div>
-                          <strong>Manage ${selectedTeachingGroup.name} roster</strong>
+                          <strong>Manage {selectedTeachingGroup.name} roster</strong>
                           <small className="block text-slate-500">Add newly joined Grade {selectedTeachingGroup.gradeLevel} students here. Saving also activates their {selectedTeachingGroup.schoolSubjectName} enrolment for the current academic year.</small>
                         </div>
                         <button type="button" className="aw-secondary" disabled={groupRosterSaving} onClick={() => void saveTeachingGroupRoster()}>
