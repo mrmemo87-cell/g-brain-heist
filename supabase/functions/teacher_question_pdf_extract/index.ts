@@ -128,7 +128,7 @@ const AO_DEFINITIONS = {
 const SUBJECTS = [
   "Maths", "Science", "Biology", "Chemistry", "Physics", "English",
   "Russian Language", "Kyrgyz Language", "German Language", "Geography",
-  "Global Perspective", "Travel & Tourism", "ICT",
+  "Global Perspective", "Economics", "Travel & Tourism", "ICT",
 ] as const;
 
 const responseSchema = {
