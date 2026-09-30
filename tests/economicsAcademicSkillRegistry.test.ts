@@ -80,7 +80,9 @@ test('teacher content workflows accept Economics end to end', () => {
   assert.match(batchWorkspace, /'Economics'/);
   assert.match(extractor, /"Economics"/);
   assert.match(bulkImport, /economics: 'Economics'/);
-  assert.match(batchRpc, /'Global Perspective', 'Economics', 'Travel & Tourism'/);
+  assert.match(batchRpc, /academic_skill_registry_subject_aliases/);
+  assert.match(batchRpc, /subject_alias\.alias_normalized = lower\(trim\(v_subject\)\)/);
+  assert.doesNotMatch(batchRpc, /v_subject not in/);
 });
 
 test('teacher registry service exposes curriculum alignment metadata', () => {
