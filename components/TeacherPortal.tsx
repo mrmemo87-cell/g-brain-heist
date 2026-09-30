@@ -89,6 +89,12 @@ export type PortalView = 'dashboard' | 'students' | 'create-question' | 'questio
 type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
+const GRADE_7_ESL_QUICK_DIAGNOSTIC_ASSIGNMENT_IDS = new Set([
+  '45181713-11bc-49a4-8d58-bdbac91f62d6',
+  '062cddc7-6d48-412c-a2e2-992503c0a9f9',
+  'd81ca5f4-fc84-446e-9af7-751374fdd8c4',
+]);
+
 const TEACHER_VIEW_FEATURES: Partial<Record<PortalView, FeatureKey>> = {
   'create-question': FEATURE_KEYS.CUSTOM_QUESTIONS,
   'question-bank': FEATURE_KEYS.QUESTION_BANK,
@@ -676,6 +682,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentSubjectFilter, setAssignmentSubjectFilter] = useState<'all' | Subject>('all');
   const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<'all' | 'in-progress' | 'completed'>('all');
   const [assignmentClassFilter, setAssignmentClassFilter] = useState<string>('all');
+  const [grade7EslDiagnosticExpanded, setGrade7EslDiagnosticExpanded] = useState(false);
 
   // Assignment Analysis State
   const [questionAnalysis, setQuestionAnalysis] = useState<AssignmentQuestionAnalysis[]>([]);
@@ -1066,6 +1073,24 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return true;
     });
   }, [assignments, assignmentClassFilter, assignmentSearchTerm, assignmentSubjectFilter, assignmentStatusFilter]);
+
+  const grade7EslDiagnosticAssignments = useMemo(
+    () => filteredAssignments.filter((assignment) => GRADE_7_ESL_QUICK_DIAGNOSTIC_ASSIGNMENT_IDS.has(assignment.id)),
+    [filteredAssignments],
+  );
+  const grade7EslDiagnosticVisible = grade7EslDiagnosticAssignments.length > 0;
+  const assignmentWorkspaceShownCount = filteredAssignments.length
+    - grade7EslDiagnosticAssignments.length
+    + (grade7EslDiagnosticVisible ? 1 : 0);
+  const grade7EslDiagnosticTotals = useMemo(() => ({
+    students: grade7EslDiagnosticAssignments.reduce((total, assignment) => total + assignment.student_count, 0),
+    completed: grade7EslDiagnosticAssignments.reduce((total, assignment) => total + assignment.completed_count, 0),
+    questions: grade7EslDiagnosticAssignments.reduce((max, assignment) => Math.max(max, assignment.question_count), 0),
+  }), [grade7EslDiagnosticAssignments]);
+  const ordinaryWorkspaceAssignments = useMemo(
+    () => filteredAssignments.filter((assignment) => !GRADE_7_ESL_QUICK_DIAGNOSTIC_ASSIGNMENT_IDS.has(assignment.id)),
+    [filteredAssignments],
+  );
 
   const teacherOwnedTopics = useMemo(() => {
     if (!teacher) return [];
@@ -6122,7 +6147,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           {/* Results Summary */}
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
             <span className="text-sm text-slate-500">
-              Showing {filteredAssignments.length} of {assignments.length} assignments
+              Showing {assignmentWorkspaceShownCount} of {assignments.length} assignments
             </span>
             {(assignmentSearchTerm || assignmentSubjectFilter !== 'all' || assignmentStatusFilter !== 'all') && (
               <button
@@ -6165,10 +6190,76 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
           <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4">
             <div><span className="text-xs font-bold uppercase tracking-wider text-blue-600">{assignmentClassFilter === 'all' ? 'All assignments' : assignmentClassFilter === 'individual' ? 'Individual assignments' : `${assignmentClassFilter} assignments`}</span><h3 className="mt-1 text-lg font-bold text-slate-800">Assignment workspace</h3></div>
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{filteredAssignments.length} shown</span>
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{assignmentWorkspaceShownCount} shown</span>
           </header>
           <div className="grid gap-3 p-4 xl:grid-cols-2">
-            {filteredAssignments.map((assignment) => {
+            {grade7EslDiagnosticVisible ? (() => {
+              const completionPercent = grade7EslDiagnosticTotals.students > 0
+                ? Math.round((grade7EslDiagnosticTotals.completed / grade7EslDiagnosticTotals.students) * 100)
+                : 0;
+              const completed = grade7EslDiagnosticTotals.students > 0
+                && grade7EslDiagnosticTotals.completed >= grade7EslDiagnosticTotals.students;
+              const createdAt = grade7EslDiagnosticAssignments
+                .map((assignment) => new Date(assignment.assigned_at))
+                .sort((a, b) => a.getTime() - b.getTime())[0];
+              return (
+                <article className="rounded-xl border border-cyan-200 bg-white p-4 shadow-sm xl:col-span-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="text-xs font-bold text-cyan-700">ESL · Quick diagnostic</span>
+                      <h5 className="mt-1 text-lg font-bold text-slate-800">Quick Diagnostic</h5>
+                      <span className="mt-2 inline-flex items-center gap-1 rounded-lg bg-cyan-50 px-2.5 py-1 text-xs font-bold text-cyan-800">
+                        👥 Grade 7 ESL · {grade7EslDiagnosticTotals.students} students
+                      </span>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${completed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                      {completed ? 'Completed' : `${completionPercent}% complete`}
+                    </span>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100" aria-label={`${completionPercent}% completed`}>
+                    <span className={`block h-full rounded-full ${completed ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${completionPercent}%` }} />
+                  </div>
+                  <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                    <div><dt className="text-xs font-semibold uppercase text-slate-400">Group</dt><dd>Grade 7 ESL</dd></div>
+                    <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{createdAt ? createdAt.toLocaleDateString() : '—'}</dd></div>
+                    <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{grade7EslDiagnosticTotals.students}</dd></div>
+                    <div><dt className="text-xs font-semibold uppercase text-slate-400">Completed</dt><dd>{grade7EslDiagnosticTotals.completed}/{grade7EslDiagnosticTotals.students}</dd></div>
+                  </dl>
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setGrade7EslDiagnosticExpanded((current) => !current)}
+                      className="teacher-btn teacher-btn-secondary"
+                    >
+                      {grade7EslDiagnosticExpanded ? 'Hide class reports' : 'View class reports'}
+                    </button>
+                  </div>
+                  {grade7EslDiagnosticExpanded ? (
+                    <div className="mt-4 grid gap-2 md:grid-cols-3">
+                      {grade7EslDiagnosticAssignments
+                        .slice()
+                        .sort((a, b) => String(a.class_code_snapshot || '').localeCompare(String(b.class_code_snapshot || ''), undefined, { numeric: true }))
+                        .map((assignment) => (
+                          <div key={assignment.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <strong>{assignment.class_code_snapshot || assignment.batch || 'Class'}</strong>
+                              <span className="text-xs font-bold text-slate-500">{assignment.completed_count}/{assignment.student_count}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenReport(assignment)}
+                              className="mt-2 text-sm font-bold text-cyan-700 hover:text-cyan-800"
+                            >
+                              View report →
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })() : null}
+            {ordinaryWorkspaceAssignments.map((assignment) => {
                           const completed = assignment.student_count > 0 && assignment.completed_count >= assignment.student_count;
                           const completionPercent = assignment.student_count > 0
                             ? Math.round((assignment.completed_count / assignment.student_count) * 100)
