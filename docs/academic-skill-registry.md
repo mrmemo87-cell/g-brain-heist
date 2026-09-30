@@ -31,6 +31,7 @@ Current published registries:
 | Geography / Humanities bridge | `bh-geography-core-v1` |
 | Modern Languages | `bh-modern-languages-core-v1` |
 | Travel & Tourism | `bh-travel-tourism-core-v1` |
+| Economics | `bh-economics-core-v1` |
 
 Subject aliases may share a registry while restricting allowed strands and Cambridge programmes. For example, Biology uses the Science registry but only Biology, Scientific Practice and Science in Context strands; Russian and Kyrgyz share Modern Languages but do not inherit the German IGCSE programme.
 
@@ -264,7 +265,7 @@ Do not expand the registry merely because an AI proposes a novel phrase.
 
 ## Subject expansion
 
-The multi-subject v1 system now governs English/ESL, Mathematics, Science and its specialist aliases, Global Perspectives, Computing/Digital Literacy/ICT, Geography, Modern Languages and Travel & Tourism.
+The multi-subject v1 system now governs English/ESL, Mathematics, Science and its specialist aliases, Global Perspectives, Computing/Digital Literacy/ICT, Geography, Modern Languages, Travel & Tourism and Economics.
 
 All registries follow the same architecture:
 
@@ -273,3 +274,5 @@ external framework → subject alias/programme scope → Brains Heist stable com
 The September 2026 multi-subject migration canonicalised all 816 previously verified active non-English taxonomy rows in these banks using append-only successors. Historical labels remain auditable through `supersedes_taxonomy_id`.
 
 Do not force one subject's ontology onto another. Shared registries are allowed only where the durable competency model is genuinely shared, such as Biology/Chemistry/Physics within Science or German/Russian/Kyrgyz within Modern Languages.
+
+Economics uses `bh-economics-core-v1` for upper-secondary longitudinal evidence. Cambridge IGCSE Economics 0455 (2027–2029) is stored as a versioned external crosswalk. Economics deliberately separates content competencies from `econ.reasoning` so teachers can distinguish conceptual gaps from weaknesses in data use, causal analysis and evaluation. See `docs/economics/igcse-0455-teacher-intelligence.md`.

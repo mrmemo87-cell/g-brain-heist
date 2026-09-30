@@ -337,7 +337,7 @@ Examples:
 - German, Russian, Kyrgyz share the Modern Languages registry, but Russian/Kyrgyz must **not** inherit German IGCSE 0525.
 - Computing and Digital Literacy share Digital Technology infrastructure but are not interchangeable.
 
-## Current published registries — last verified 2026-09-24
+## Current published registries — repo release prepared 2026-09-30
 
 | Registry | Domain | Strands | Skills | Subskills |
 | --- | --- | ---: | ---: | ---: |
@@ -349,8 +349,9 @@ Examples:
 | `bh-geography-core-v1` | Geography / Humanities bridge | 6 | 23 | 36 |
 | `bh-modern-languages-core-v1` | Modern Languages | 7 | 20 | 31 |
 | `bh-travel-tourism-core-v1` | Travel & Tourism | 6 | 15 | 21 |
+| `bh-economics-core-v1` | Economics | 7 | 34 | 86 |
 
-Total active published subskills last verified: **460**.
+Total active published subskills after the Economics migration: **546**. Production remains at 460 until the Economics migration is applied.
 
 ## Registry generation RPC
 
@@ -364,6 +365,7 @@ Responsibilities:
 - apply allowed-strand restriction
 - return flattened strand/skill/subskill leaves
 - return permitted Cambridge programmes
+- return versioned external framework alignments and Evidence Focus counts
 - fail safely if subject/phase unsupported
 
 Operational phase convention:
@@ -413,6 +415,11 @@ Brain Heist canonical competency
 - Primary Global Perspectives 0838
 - Lower Secondary Global Perspectives 1129
 - IGCSE Global Perspectives 0457
+
+### Economics
+
+- IGCSE Economics 0455 (versioned 2027–2029 external crosswalk in the first Economics release)
+- Cambridge AO1/AO2/AO3 remain external assessment-objective references and must not replace Brain Heist BH-AO1..BH-AO4
 
 ### Digital / Computing
 

@@ -25,7 +25,7 @@ import './QuestionBatchWorkspace.css';
 const SUBJECTS: Subject[] = [
   'Maths', 'Science', 'Biology', 'Chemistry', 'Physics', 'English',
   'Russian Language', 'Kyrgyz Language', 'German Language', 'Geography',
-  'Global Perspective', 'Travel & Tourism', 'ICT',
+  'Global Perspective', 'Economics', 'Travel & Tourism', 'ICT',
 ];
 const GRADES = Array.from({ length: 12 }, (_, index) => index + 1);
 const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
