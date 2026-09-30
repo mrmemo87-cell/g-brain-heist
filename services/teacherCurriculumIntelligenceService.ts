@@ -1,6 +1,12 @@
 import * as GameService from './gameService';
 import { supabase } from './supabaseClient';
 import {
+  buildReteachRecommendations,
+  curriculumDimension,
+  type CurriculumHotspotEvidence,
+  type CurriculumReteachRecommendation,
+} from './teacherCurriculumActionService';
+import {
   fetchTeacherTeachingGroups,
   type SchoolSubjectGroup,
 } from './schoolSubjectGroupService';
@@ -25,12 +31,19 @@ interface CurriculumGroupEvidenceRpc {
   success: true;
   studentCount: number;
   evidence?: CurriculumSubskillEvidence[];
+  hotspots?: CurriculumHotspotEvidence[];
 }
 
 export interface TeacherCurriculumIntelligence {
   group: CurriculumTeachingGroup;
   registry: GameService.TeacherAcademicSkillRegistryResult;
   evidenceBySubskill: Record<string, CurriculumSubskillEvidence>;
+  hotspots: CurriculumHotspotEvidence[];
+  reteachNext: CurriculumReteachRecommendation[];
+  dimensions: {
+    content: { hotspotCount: number; impactedStudents: number; persistentStudents: number; recurringStudents: number; improvingStudents: number; resolvedStudents: number };
+    reasoning: { hotspotCount: number; impactedStudents: number; persistentStudents: number; recurringStudents: number; improvingStudents: number; resolvedStudents: number };
+  };
   summary: {
     studentCount: number;
     curriculumSubskills: number;
@@ -109,6 +122,12 @@ export const getTeacherCurriculumIntelligence = async (
       group,
       registry,
       evidenceBySubskill: {},
+      hotspots: [],
+      reteachNext: [],
+      dimensions: {
+        content: { hotspotCount: 0, impactedStudents: 0, persistentStudents: 0, recurringStudents: 0, improvingStudents: 0, resolvedStudents: 0 },
+        reasoning: { hotspotCount: 0, impactedStudents: 0, persistentStudents: 0, recurringStudents: 0, improvingStudents: 0, resolvedStudents: 0 },
+      },
       summary: {
         studentCount: groupEvidence.studentCount || 0,
         curriculumSubskills: 0,
@@ -157,6 +176,36 @@ export const getTeacherCurriculumIntelligence = async (
   });
 
   const evidence = [...evidenceBySubskill.values()];
+  const hotspots = (groupEvidence.hotspots || []).filter((hotspot) => allowedSubskills.has(hotspot.subskillCode));
+  const reteachNext = buildReteachRecommendations(registry.skills, hotspots);
+  const leavesByCode = new Map(registry.skills.map((leaf) => [leaf.subskillCode, leaf]));
+  const dimensionSummary = {
+    content: { hotspotCount: 0, impactedStudents: new Set<string>(), persistentStudents: 0, recurringStudents: 0, improvingStudents: 0, resolvedStudents: 0 },
+    reasoning: { hotspotCount: 0, impactedStudents: new Set<string>(), persistentStudents: 0, recurringStudents: 0, improvingStudents: 0, resolvedStudents: 0 },
+  };
+  hotspots.forEach((hotspot) => {
+    const leaf = leavesByCode.get(hotspot.subskillCode);
+    if (!leaf) return;
+    const dimension = curriculumDimension(leaf);
+    if (hotspot.impactedStudents > 0) dimensionSummary[dimension].hotspotCount += 1;
+    hotspot.students
+      .filter((student) => student.status !== 'resolved')
+      .forEach((student) => dimensionSummary[dimension].impactedStudents.add(student.studentId));
+    dimensionSummary[dimension].persistentStudents += hotspot.persistentStudents;
+    dimensionSummary[dimension].recurringStudents += hotspot.recurringStudents;
+    dimensionSummary[dimension].improvingStudents += hotspot.improvingStudents;
+    dimensionSummary[dimension].resolvedStudents += hotspot.resolvedStudents;
+  });
+  const dimensions = {
+    content: {
+      ...dimensionSummary.content,
+      impactedStudents: dimensionSummary.content.impactedStudents.size,
+    },
+    reasoning: {
+      ...dimensionSummary.reasoning,
+      impactedStudents: dimensionSummary.reasoning.impactedStudents.size,
+    },
+  };
   const studentCount = groupEvidence.studentCount || 0;
   const studentSubskillPairs = studentCount * registry.skills.length;
   const observedPairs = evidence.reduce((sum, item) => sum + item.studentsWithEvidence, 0);
@@ -173,6 +222,9 @@ export const getTeacherCurriculumIntelligence = async (
     group,
     registry,
     evidenceBySubskill: Object.fromEntries(evidenceBySubskill.entries()),
+    hotspots,
+    reteachNext,
+    dimensions,
     summary: {
       studentCount,
       curriculumSubskills: registry.skills.length,
