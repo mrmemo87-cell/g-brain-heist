@@ -2,7 +2,7 @@
 
 ## Scope
 
-Brain Heist Economics uses the platform's canonical Academic Skill Registry, evidence-focus layer, longitudinal learner evidence and intervention engine. It is not a separate exam-prep silo.
+Brains Heist Economics uses the platform's canonical Academic Skill Registry, evidence-focus layer, longitudinal learner evidence and intervention engine. It is not a separate exam-prep silo.
 
 The first governed release is:
 
@@ -12,7 +12,7 @@ The first governed release is:
 - External programme crosswalk: Cambridge IGCSE Economics 0455
 - Cambridge source version: examinations in 2027–2029
 
-Cambridge alignment is stored only as external metadata. Brain Heist owns the stable learner-skill identity. Do not copy restricted syllabus objective wording into the registry, AI prompts, analytics labels or reports.
+Cambridge alignment is stored only as external metadata. Brains Heist owns the stable learner-skill identity. Do not copy restricted syllabus objective wording into the registry, AI prompts, analytics labels or reports.
 
 ## Canonical model
 
@@ -51,7 +51,7 @@ The 2027–2029 Cambridge IGCSE Economics programme is represented through exter
 - AO2 Analysis
 - AO3 Evaluation
 
-The Cambridge AO namespace must remain separate from Brain Heist's internal BH-AO1..BH-AO4 assessment-process namespace.
+The Cambridge AO namespace must remain separate from Brains Heist's internal BH-AO1..BH-AO4 assessment-process namespace.
 
 Every crosswalk records provider, programme code, programme name, phase, public reference code, source URL and source version. Examination-year/version awareness is mandatory because the 2027–2029 syllabus and assessment structure differ from 2026.
 
@@ -95,7 +95,7 @@ Economics must reuse the existing Academic Profile rules:
 - repeated weaknesses require qualifying evidence over time
 - targeted intervention practice cannot itself prove mastery
 - improvement/mastery requires later independent verified evidence
-- provenance between School Verified and Brain Heist Verified evidence remains visible
+- provenance between School Verified and Brains Heist Verified evidence remains visible
 
 A strong Economics teacher report should therefore be able to distinguish:
 
@@ -192,4 +192,4 @@ Rules:
 - If the class has no qualified longitudinal hotspot, the product must say that evidence is insufficient rather than imply that no weakness exists.
 - The class snapshot remains a single teaching-group-scoped RPC to keep load time independent of per-student request count.
 
-For Cambridge IGCSE Economics 0455 (2027–2029), the action layer supports the current syllabus emphasis on economic terminology and concepts, data analysis and interpretation, analysis of relationships, evaluation, and application to real-world issues, while keeping Brain Heist internal evidence identities separate from external Cambridge metadata.
+For Cambridge IGCSE Economics 0455 (2027–2029), the action layer supports the current syllabus emphasis on economic terminology and concepts, data analysis and interpretation, analysis of relationships, evaluation, and application to real-world issues, while keeping Brains Heist internal evidence identities separate from external Cambridge metadata.
