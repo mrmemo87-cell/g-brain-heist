@@ -46,6 +46,20 @@ const toneClasses: Record<string, string> = {
   blue: 'border-blue-200 bg-blue-50 text-blue-800',
 };
 
+const reteachTone = (priority: 'urgent' | 'high' | 'watch') => ({
+  urgent: 'border-rose-200 bg-rose-50 text-rose-800',
+  high: 'border-amber-200 bg-amber-50 text-amber-800',
+  watch: 'border-sky-200 bg-sky-50 text-sky-800',
+}[priority]);
+
+const studentStatusLabel = (status: string) => ({
+  persistent: 'Persistent',
+  recurring: 'Recurring',
+  new_focus: 'New',
+  improving: 'Improving',
+  resolved: 'Resolved',
+}[status] || status.replace(/_/g, ' '));
+
 const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligencePageProps> = ({
   profile,
   onBack,
@@ -292,6 +306,132 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               </article>
             ))}
           </div>
+
+          <section className="space-y-4 rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950 p-5 text-white shadow-sm sm:p-6">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-3xl">
+                <span className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">Teaching radar</span>
+                <h2 className="mt-1 text-2xl font-black">What should I reteach next?</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-300">Brain Heist prioritises only governed longitudinal evidence. Persistent and recurring needs rise first; improving students stay visible, while resolved needs are celebrated rather than treated as current weakness.</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs leading-5 text-slate-300">
+                <strong className="block text-white">Decision rule</strong>
+                Targeted practice can support learning, but it does not prove mastery. A later independent assessment is still required.
+              </div>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              {([
+                ['content', 'Economics content', 'Concepts, mechanisms, diagrams and calculations', snapshot.dimensions.content],
+                ['reasoning', 'Exam & reasoning', 'Application, data use, causal chains, evaluation and judgement', snapshot.dimensions.reasoning],
+              ] as const).map(([key, title, description, dimension]) => (
+                <article key={key} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-300">{key === 'content' ? 'Dimension A' : 'Dimension B'}</span>
+                      <h3 className="mt-1 text-lg font-black">{title}</h3>
+                      <p className="mt-1 text-xs leading-5 text-slate-400">{description}</p>
+                    </div>
+                    <strong className="rounded-xl bg-white/10 px-3 py-2 text-xl">{dimension.hotspotCount}</strong>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                    <div className="rounded-xl bg-black/20 p-2"><span className="block text-slate-400">Students</span><strong className="mt-1 block text-base">{dimension.impactedStudents}</strong></div>
+                    <div className="rounded-xl bg-black/20 p-2"><span className="block text-slate-400">Persistent</span><strong className="mt-1 block text-base text-rose-300">{dimension.persistentStudents}</strong></div>
+                    <div className="rounded-xl bg-black/20 p-2"><span className="block text-slate-400">Recurring</span><strong className="mt-1 block text-base text-amber-300">{dimension.recurringStudents}</strong></div>
+                    <div className="rounded-xl bg-black/20 p-2"><span className="block text-slate-400">Improving</span><strong className="mt-1 block text-base text-emerald-300">{dimension.improvingStudents}</strong></div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            {snapshot.reteachNext.length ? (
+              <div className="grid gap-3 xl:grid-cols-2">
+                {snapshot.reteachNext.slice(0, 6).map((recommendation) => (
+                  <article key={recommendation.subskillCode} className="rounded-2xl border border-white/10 bg-white p-4 text-slate-900 shadow-lg shadow-black/10">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-full bg-slate-950 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-white">#{recommendation.rank} reteach next</span>
+                          <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${reteachTone(recommendation.priority)}`}>{recommendation.priority}</span>
+                          <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cyan-800">{recommendation.dimension === 'reasoning' ? 'Exam reasoning' : 'Content'}</span>
+                        </div>
+                        <h3 className="mt-3 text-lg font-black leading-tight text-slate-950">{recommendation.subskillName}</h3>
+                        <p className="mt-1 text-xs text-slate-500">{recommendation.strandName} · {recommendation.skillName}</p>
+                      </div>
+                      <div className="text-right">
+                        <strong className="block text-2xl font-black text-slate-950">{recommendation.impactedStudents}</strong>
+                        <span className="text-[11px] text-slate-500">students</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <span className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Why now</span>
+                      <p className="mt-1 text-xs leading-5 text-slate-700">{recommendation.whyNow}</p>
+                    </div>
+
+                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+                      <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-3">
+                        <span className="text-[10px] font-black uppercase tracking-[0.14em] text-rose-600">Likely misconception to test</span>
+                        <p className="mt-1 text-xs leading-5 text-slate-700">{recommendation.misconception}</p>
+                      </div>
+                      <div className="rounded-xl border border-cyan-100 bg-cyan-50/60 p-3">
+                        <span className="text-[10px] font-black uppercase tracking-[0.14em] text-cyan-700">Classroom move</span>
+                        <p className="mt-1 text-xs leading-5 text-slate-700">{recommendation.classroomMove}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3">
+                      <span className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Four-step reteach</span>
+                      <ol className="mt-2 grid gap-2 text-xs leading-5 text-slate-700 sm:grid-cols-2">
+                        {recommendation.teachSequence.map((step, index) => (
+                          <li key={step} className="flex gap-2 rounded-xl border border-slate-100 p-2">
+                            <strong className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-950 text-[10px] text-white">{index + 1}</strong>
+                            <span>{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+
+                    <div className="mt-3 grid gap-2 text-xs leading-5 md:grid-cols-2">
+                      <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3"><strong className="block text-emerald-800">Reassess independently</strong><span className="mt-1 block text-slate-700">{recommendation.reassessment}</span></div>
+                      <div className="rounded-xl border border-violet-100 bg-violet-50/60 p-3"><strong className="block text-violet-800">Examiner lens</strong><span className="mt-1 block text-slate-700">{recommendation.examinerLens}</span></div>
+                    </div>
+
+                    <details className="mt-3 rounded-xl border border-slate-200">
+                      <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-slate-700">Affected students ({recommendation.affectedStudents.length})</summary>
+                      <div className="flex flex-wrap gap-2 border-t border-slate-100 p-3">
+                        {recommendation.affectedStudents.map((student) => (
+                          <span key={student.studentId} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                            {student.studentName} · {studentStatusLabel(student.status)}
+                          </span>
+                        ))}
+                      </div>
+                    </details>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <strong className="text-base">No qualified class hotspot yet.</strong>
+                <p className="mt-1 text-sm leading-6 text-slate-300">That is not the same as “no weakness”. It means the current governed longitudinal evidence does not justify a class-level reteach priority yet. Continue assessing the curriculum normally and this radar will populate as qualified evidence accumulates.</p>
+              </div>
+            )}
+
+            {snapshot.hotspots.some((hotspot) => hotspot.improvingStudents > 0 || hotspot.resolvedStudents > 0) ? (
+              <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
+                <span className="text-xs font-black uppercase tracking-[0.16em] text-emerald-300">Movement worth noticing</span>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                  {snapshot.hotspots
+                    .filter((hotspot) => hotspot.improvingStudents > 0 || hotspot.resolvedStudents > 0)
+                    .slice(0, 8)
+                    .map((hotspot) => {
+                      const leaf = snapshot.registry.skills.find((item) => item.subskillCode === hotspot.subskillCode);
+                      return <span key={hotspot.subskillCode} className="rounded-full bg-white/10 px-3 py-1.5 text-slate-200">{leaf?.subskillName || hotspot.subskillCode} · {hotspot.improvingStudents} improving · {hotspot.resolvedStudents} resolved</span>;
+                    })}
+                </div>
+              </div>
+            ) : null}
+          </section>
 
           <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
             <div className="space-y-4">
