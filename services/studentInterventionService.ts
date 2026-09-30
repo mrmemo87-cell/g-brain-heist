@@ -119,6 +119,7 @@ const INTERVENTION_SUBJECT_IDS: Record<string, string> = {
   'German Language': 'german_language',
   Geography: 'geography',
   'Global Perspective': 'global_perspective',
+  Economics: 'economics',
   'Travel & Tourism': 'travel_tourism',
   ICT: 'ict',
 };
