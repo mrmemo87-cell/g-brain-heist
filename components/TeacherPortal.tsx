@@ -1000,7 +1000,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       if (item.is_active) rememberClass(item.class_code);
     });
     assignments.forEach((assignment) => {
-      if (assignment.assignment_mode !== 'custom') rememberClass(assignment.batch);
+      if (assignment.subject_group_name) {
+        rememberClass(assignment.subject_group_name);
+      } else if (assignment.assignment_mode !== 'custom') {
+        rememberClass(assignment.batch);
+      }
     });
 
     return [...labels.values()].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
@@ -1009,6 +1013,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const assignmentFolderCounts = useMemo(() => {
     const counts = new Map<string, number>();
     assignments.forEach((assignment) => {
+      const groupKey = assignment.subject_group_name?.trim().toLocaleLowerCase();
+      if (groupKey) {
+        counts.set(groupKey, (counts.get(groupKey) || 0) + 1);
+        return;
+      }
       if (assignment.assignment_mode === 'custom') {
         counts.set('individual', (counts.get('individual') || 0) + 1);
         return;
@@ -1028,11 +1037,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Filtered assignments based on class folder, search, subject, and status filters
   const filteredAssignments = useMemo(() => {
     return assignments.filter(a => {
+      const assignmentFolder = a.subject_group_name?.trim()
+        || (a.assignment_mode === 'custom' ? 'individual' : (a.batch || '').trim());
       if (assignmentClassFilter === 'individual') {
-        if (a.assignment_mode !== 'custom') return false;
+        if (assignmentFolder.toLocaleLowerCase() !== 'individual') return false;
       } else if (assignmentClassFilter !== 'all') {
-        if (a.assignment_mode === 'custom') return false;
-        if ((a.batch || '').trim().toLocaleLowerCase() !== assignmentClassFilter.trim().toLocaleLowerCase()) return false;
+        if (assignmentFolder.toLocaleLowerCase() !== assignmentClassFilter.trim().toLocaleLowerCase()) return false;
       }
       // Search filter
       if (assignmentSearchTerm.trim()) {
@@ -6184,7 +6194,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                                   <span className="text-xs font-bold text-blue-600">{assignment.subject_name} · {assignment.topic_name}</span>
                                   <h5 className="mt-1 text-lg font-bold text-slate-800">{assignment.title || assignment.topic_name}</h5>
                                   <span className="mt-2 inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">
-                                    {assignment.assignment_mode === 'custom' ? '👤 Individual' : `🏫 ${assignment.batch || 'Class'}`} · {assignment.student_count} student{assignment.student_count === 1 ? '' : 's'}
+                                    {assignment.subject_group_name ? `👥 ${assignment.subject_group_name}` : assignment.assignment_mode === 'custom' ? '👤 Individual' : `🏫 ${assignment.batch || 'Class'}`} · {assignment.student_count} student{assignment.student_count === 1 ? '' : 's'}
                                   </span>
                                 </div>
                                 <span className={`rounded-full px-3 py-1 text-xs font-bold ${completed ? 'bg-emerald-100 text-emerald-800' : duePast ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>{statusLabel}</span>
@@ -6193,7 +6203,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                                 <span className={`block h-full rounded-full ${completed ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${completionPercent}%` }} />
                               </div>
                               <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Class</dt><dd>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Group</dt><dd>{assignment.subject_group_name || (assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—')}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(assignment.assigned_at).toLocaleDateString()}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Questions</dt><dd>{assignment.question_count}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{assignment.student_count}</dd></div>
