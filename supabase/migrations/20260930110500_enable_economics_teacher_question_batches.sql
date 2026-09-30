@@ -1,6 +1,6 @@
--- Enable Economics in the governed teacher PDF question-batch workflow.
--- This preserves the current production function body and only extends its
--- allow-list with the new first-class Economics subject.
+-- Make the governed teacher PDF question-batch workflow registry-driven.
+-- Any active subject alias backed by a published canonical registry is allowed;
+-- teacher/school subject assignment checks still enforce actual scope.
 
 CREATE OR REPLACE FUNCTION public.rpc_teacher_submit_question_batch(p_extraction_id uuid, p_questions jsonb)
  RETURNS jsonb
@@ -105,10 +105,14 @@ begin
     v_confidence := coalesce((v_item ->> 'extraction_confidence')::numeric, -1);
 
     if v_source_index < 1 or v_source_index > 50
-       or v_subject not in (
-         'Maths', 'Science', 'Biology', 'Chemistry', 'Physics', 'English',
-         'Russian Language', 'Kyrgyz Language', 'German Language', 'Geography',
-         'Global Perspective', 'Economics', 'Travel & Tourism', 'ICT'
+       or not exists (
+         select 1
+         from public.academic_skill_registry_subject_aliases subject_alias
+         join public.academic_skill_registry_versions subject_registry
+           on subject_registry.id = subject_alias.registry_version_id
+          and subject_registry.status = 'published'
+         where subject_alias.alias_normalized = lower(trim(v_subject))
+           and subject_alias.status = 'active'
        )
        or length(v_topic) not between 1 and 160
        or v_difficulty not in ('easy', 'medium', 'hard')
