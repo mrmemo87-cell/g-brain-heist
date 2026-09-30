@@ -11,7 +11,7 @@ const extractor = readFileSync('supabase/functions/teacher_question_pdf_extract/
 const bulkImport = readFileSync('src/lib/teacherQuestionBulkImport.ts', 'utf8');
 const types = readFileSync('types.ts', 'utf8');
 
-test('Economics is a first-class governed Brain Heist subject', () => {
+test('Economics is a first-class governed Brains Heist subject', () => {
   assert.match(registry, /bh-economics-core-v1/);
   assert.match(registry, /subject_key.*economics|economics.*subject_key/s);
   assert.match(registry, /'economics','Economics'/);
