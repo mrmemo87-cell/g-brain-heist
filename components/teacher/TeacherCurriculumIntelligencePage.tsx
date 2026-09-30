@@ -230,12 +230,11 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
   const aoAlignments = alignments.filter((item) => item.alignmentLevel === 'assessment_objective');
 
   const toggleSkill = (code: string) => {
-    setExpandedSkills((current) => {
-      const next = new Set(current);
-      if (next.has(code)) next.delete(code);
-      else next.add(code);
-      return next;
-    });
+    setExpandedSkills((current) => (
+      current.has(code)
+        ? new Set([...current].filter((item) => item !== code))
+        : new Set([...current, code])
+    ));
   };
 
   if (loadingGroups) {
@@ -253,7 +252,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               {snapshot?.registry.registryVersion ? <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{snapshot.registry.registryVersion}</span> : null}
             </div>
             <h1 id="curriculum-intelligence-title" className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Know what is mapped, what has evidence, and what still needs assessment.</h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">This workspace separates curriculum coverage from attainment. “Not assessed” means Brain Heist does not yet have enough governed evidence; it does not mean a student is weak.</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">This workspace separates curriculum coverage from attainment. “Not assessed” means Brains Heist does not yet have enough governed evidence; it does not mean a student is weak.</p>
           </div>
 
           <label className="min-w-[280px] rounded-2xl border border-slate-200 bg-slate-50 p-3">
@@ -285,7 +284,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
       {!loadingSnapshot && snapshot && !snapshot.registry.supported ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-8">
           <h2 className="text-xl font-black text-slate-950">No governed registry for {selectedGroup?.subjectLabel}</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">This subject can still be taught and assigned, but Curriculum Intelligence stays unavailable until Brain Heist publishes a canonical skill registry for this subject.</p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">This subject can still be taught and assigned, but Curriculum Intelligence stays unavailable until Brains Heist publishes a canonical skill registry for this subject.</p>
         </div>
       ) : null}
 
@@ -312,7 +311,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               <div className="max-w-3xl">
                 <span className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">Teaching radar</span>
                 <h2 className="mt-1 text-2xl font-black">What should I reteach next?</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-300">Brain Heist prioritises only governed longitudinal evidence. Persistent and recurring needs rise first; improving students stay visible, while resolved needs are celebrated rather than treated as current weakness.</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">Brains Heist prioritises only governed longitudinal evidence. Persistent and recurring needs rise first; improving students stay visible, while resolved needs are celebrated rather than treated as current weakness.</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs leading-5 text-slate-300">
                 <strong className="block text-white">Decision rule</strong>
@@ -532,7 +531,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                   <div className="flex justify-between gap-4"><span className="text-slate-300">Low-data pairs</span><strong>{snapshot.summary.lowDataPairs}</strong></div>
                   <div className="flex justify-between gap-4"><span className="text-slate-300">Contradictory pairs</span><strong>{snapshot.summary.contradictoryPairs}</strong></div>
                 </div>
-                <p className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs leading-5 text-slate-300">These are evidence-quality signals, not attainment scores. Brain Heist will not call an unassessed curriculum area a weakness.</p>
+                <p className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs leading-5 text-slate-300">These are evidence-quality signals, not attainment scores. Brains Heist will not call an unassessed curriculum area a weakness.</p>
               </article>
 
               <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
