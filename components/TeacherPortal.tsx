@@ -3990,8 +3990,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       const basePayload = {
         subject: assignmentSubject,
         school_id: profile.school_id || undefined,
-        school_subject_id: selectedCustomTeachingGroup?.schoolSubjectId,
-        subject_group_id: selectedCustomTeachingGroup?.id,
+        school_subject_id: selectedTeachingGroup?.schoolSubjectId,
+        subject_group_id: selectedTeachingGroup?.id,
         topic_name: assignmentTopicLabel,
         question_ids: assignmentQuestionIds,
         assigned_at: assignedAt,
