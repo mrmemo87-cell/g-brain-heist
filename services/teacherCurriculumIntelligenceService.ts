@@ -1,14 +1,9 @@
 import * as GameService from './gameService';
+import { supabase } from './supabaseClient';
 import {
-  fetchTeacherTeachingGroupRoster,
   fetchTeacherTeachingGroups,
   type SchoolSubjectGroup,
-  type SubjectGroupRosterStudent,
 } from './schoolSubjectGroupService';
-import {
-  fetchStudentAcademicConfidence,
-  type StudentAcademicConfidence,
-} from './studentAcademicProfileService';
 
 export interface CurriculumTeachingGroup extends SchoolSubjectGroup {
   subjectLabel: string;
@@ -26,10 +21,15 @@ export interface CurriculumSubskillEvidence {
   averageConfidence: number | null;
 }
 
+interface CurriculumGroupEvidenceRpc {
+  success: true;
+  studentCount: number;
+  evidence?: CurriculumSubskillEvidence[];
+}
+
 export interface TeacherCurriculumIntelligence {
   group: CurriculumTeachingGroup;
   registry: GameService.TeacherAcademicSkillRegistryResult;
-  roster: SubjectGroupRosterStudent[];
   evidenceBySubskill: Record<string, CurriculumSubskillEvidence>;
   summary: {
     studentCount: number;
@@ -79,60 +79,38 @@ export const getTeacherCurriculumGroups = async (schoolId: string): Promise<Curr
     ));
 };
 
-const canonicalSubskillFromSkillKey = (skillKey?: string | null): string | null => {
-  const parts = String(skillKey || '').split(':').filter(Boolean);
-  return parts.length ? parts[parts.length - 1] : null;
-};
-
-const loadConfidencePool = async (
-  roster: SubjectGroupRosterStudent[],
-  academicYearId: string,
-  concurrency = 6,
-): Promise<Array<{ studentId: string; confidence: StudentAcademicConfidence | null }>> => {
-  const results: Array<{ studentId: string; confidence: StudentAcademicConfidence | null }> = new Array(roster.length);
-  let cursor = 0;
-
-  const worker = async () => {
-    while (cursor < roster.length) {
-      const index = cursor++;
-      const student = roster[index];
-      try {
-        const confidence = await fetchStudentAcademicConfidence(student.student_id, academicYearId);
-        results[index] = { studentId: student.student_id, confidence };
-      } catch (error) {
-        console.warn('Curriculum intelligence confidence unavailable for student', student.student_id, error);
-        results[index] = { studentId: student.student_id, confidence: null };
-      }
-    }
-  };
-
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, Math.max(1, roster.length)) }, () => worker()),
-  );
-  return results;
-};
-
 const percent = (part: number, whole: number): number | null => (
   whole > 0 ? Math.round((part / whole) * 1000) / 10 : null
 );
+
+const fetchGroupEvidence = async (
+  schoolId: string,
+  groupId: string,
+): Promise<CurriculumGroupEvidenceRpc> => {
+  const { data, error } = await supabase.rpc('rpc_teacher_curriculum_group_evidence', {
+    p_school_id: schoolId,
+    p_group_id: groupId,
+  });
+  if (error) throw error;
+  return (data || { success: true, studentCount: 0, evidence: [] }) as CurriculumGroupEvidenceRpc;
+};
 
 export const getTeacherCurriculumIntelligence = async (
   schoolId: string,
   group: CurriculumTeachingGroup,
 ): Promise<TeacherCurriculumIntelligence> => {
-  const [registry, roster] = await Promise.all([
+  const [registry, groupEvidence] = await Promise.all([
     GameService.get_teacher_academic_skill_registry(group.subjectLabel, group.gradeNumber),
-    fetchTeacherTeachingGroupRoster(schoolId, group.id),
+    fetchGroupEvidence(schoolId, group.id),
   ]);
 
   if (!registry.supported) {
     return {
       group,
       registry,
-      roster,
       evidenceBySubskill: {},
       summary: {
-        studentCount: roster.length,
+        studentCount: groupEvidence.studentCount || 0,
         curriculumSubskills: 0,
         studentSubskillPairs: 0,
         observedPairs: 0,
@@ -151,6 +129,7 @@ export const getTeacherCurriculumIntelligence = async (
 
   const allowedSubskills = new Set(registry.skills.map((leaf) => leaf.subskillCode));
   const evidenceBySubskill = new Map<string, CurriculumSubskillEvidence>();
+
   registry.skills.forEach((leaf) => {
     evidenceBySubskill.set(leaf.subskillCode, {
       subskillCode: leaf.subskillCode,
@@ -164,48 +143,22 @@ export const getTeacherCurriculumIntelligence = async (
     });
   });
 
-  const confidenceRows = await loadConfidencePool(roster, group.academicYearId);
-  const confidenceTotals = new Map<string, { total: number; count: number }>();
-  let profilesUnavailable = 0;
-
-  confidenceRows.forEach(({ confidence }) => {
-    if (!confidence) {
-      profilesUnavailable += 1;
-      return;
-    }
-
-    confidence.confidenceStates.forEach((state) => {
-      const subskillCode = canonicalSubskillFromSkillKey(state.skillKey);
-      if (!subskillCode || !allowedSubskills.has(subskillCode)) return;
-
-      const aggregate = evidenceBySubskill.get(subskillCode);
-      if (!aggregate) return;
-
-      aggregate.studentsWithEvidence += 1;
-      if (state.assessmentState === 'assessed') aggregate.assessedStudents += 1;
-      if (state.assessmentState === 'low_data') aggregate.lowDataStudents += 1;
-      if (state.assessmentState === 'stale') aggregate.staleStudents += 1;
-      if (state.assessmentState === 'contradictory') aggregate.contradictoryStudents += 1;
-      if (state.teacherReviewRequired) aggregate.teacherReviewStudents += 1;
-
-      if (typeof state.confidenceScore === 'number' && Number.isFinite(state.confidenceScore)) {
-        const total = confidenceTotals.get(subskillCode) || { total: 0, count: 0 };
-        total.total += state.confidenceScore;
-        total.count += 1;
-        confidenceTotals.set(subskillCode, total);
-      }
+  (groupEvidence.evidence || []).forEach((aggregate) => {
+    if (!allowedSubskills.has(aggregate.subskillCode)) return;
+    evidenceBySubskill.set(aggregate.subskillCode, {
+      ...aggregate,
+      averageConfidence:
+        typeof aggregate.averageConfidence === 'number'
+          ? aggregate.averageConfidence
+          : aggregate.averageConfidence == null
+            ? null
+            : Number(aggregate.averageConfidence),
     });
   });
 
-  confidenceTotals.forEach((value, code) => {
-    const aggregate = evidenceBySubskill.get(code);
-    if (aggregate && value.count > 0) {
-      aggregate.averageConfidence = Math.round((value.total / value.count) * 10) / 10;
-    }
-  });
-
   const evidence = [...evidenceBySubskill.values()];
-  const studentSubskillPairs = roster.length * registry.skills.length;
+  const studentCount = groupEvidence.studentCount || 0;
+  const studentSubskillPairs = studentCount * registry.skills.length;
   const observedPairs = evidence.reduce((sum, item) => sum + item.studentsWithEvidence, 0);
   const assessedPairs = evidence.reduce((sum, item) => sum + item.assessedStudents, 0);
   const lowDataPairs = evidence.reduce((sum, item) => sum + item.lowDataStudents, 0);
@@ -214,15 +167,14 @@ export const getTeacherCurriculumIntelligence = async (
   const teacherReviewPairs = evidence.reduce((sum, item) => sum + item.teacherReviewStudents, 0);
   const confidenceValues = evidence
     .map((item) => item.averageConfidence)
-    .filter((value): value is number => typeof value === 'number');
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
 
   return {
     group,
     registry,
-    roster,
     evidenceBySubskill: Object.fromEntries(evidenceBySubskill.entries()),
     summary: {
-      studentCount: roster.length,
+      studentCount,
       curriculumSubskills: registry.skills.length,
       studentSubskillPairs,
       observedPairs,
@@ -236,7 +188,7 @@ export const getTeacherCurriculumIntelligence = async (
       averageConfidence: confidenceValues.length
         ? Math.round((confidenceValues.reduce((sum, value) => sum + value, 0) / confidenceValues.length) * 10) / 10
         : null,
-      profilesUnavailable,
+      profilesUnavailable: 0,
     },
   };
 };
