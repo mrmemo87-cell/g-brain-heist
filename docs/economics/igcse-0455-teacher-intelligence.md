@@ -193,3 +193,46 @@ Rules:
 - The class snapshot remains a single teaching-group-scoped RPC to keep load time independent of per-student request count.
 
 For Cambridge IGCSE Economics 0455 (2027–2029), the action layer supports the current syllabus emphasis on economic terminology and concepts, data analysis and interpretation, analysis of relationships, evaluation, and application to real-world issues, while keeping Brains Heist internal evidence identities separate from external Cambridge metadata.
+
+## Paper Readiness — governed assessment evidence
+
+Paper Readiness is intentionally separate from curriculum mastery. A topic score does not automatically prove an assessment objective or paper-format skill.
+
+For Cambridge IGCSE Economics 0455 examinations in 2027–2029, the product models:
+
+- Paper 1: Multiple Choice, 1 hour, 40 marks, 30% of the qualification, AO1 + AO2.
+- Paper 2: Structured Questions, 2 hours, 80 marks, 70% of the qualification, AO1 + AO2 + AO3.
+- Paper 2 Section A: one compulsory 20-mark data-response question based on unseen information about a real economic situation.
+- Paper 2 Section B: answer three questions from a choice of four; each question is worth 20 marks.
+- Qualification AO weightings: AO1 43%, AO2 47%, AO3 10%.
+- Component AO weightings: Paper 1 = AO1 50%, AO2 50%, AO3 0%; Paper 2 = AO1 40%, AO2 45%, AO3 15%.
+
+### Assessment profile contract
+
+`verified_question_assessment_profiles` is external assessment metadata attached to a specific Brains Heist Verified question content hash. It does not change the canonical Academic Skill Registry identity.
+
+An active Cambridge 0455 profile records:
+
+- provider and programme code
+- source syllabus version
+- paper component
+- paper section when relevant
+- evidence mode (`mcq`, `data_response`, `structured_response`)
+- primary assessment objective
+- complete assessment-objective set
+- source reference and profile hash
+
+Profiles can be governed only for current, analytics-eligible, Brains Heist Verified Economics questions. The governance RPC is service-role only. Historical assignment snapshots remain immutable; readiness evidence only counts when the assignment question content hash matches the governed assessment profile.
+
+### Reporting policy
+
+Paper Readiness uses three evidence states: `not_assessed`, `low_data`, and `evidence_established`. The current v1 class reporting policy requires at least three distinct verified questions, two assignments, and sufficient roster participation before a paper-format signal is called established.
+
+Observed classroom accuracy is always displayed as evidence, never as:
+
+- a predicted Cambridge mark
+- a predicted grade
+- a grade boundary
+- a probability of examination success
+
+If no verified Economics questions have governed Cambridge paper/AO profiles, the teacher UI must show the dependency explicitly and remain unassessed.
