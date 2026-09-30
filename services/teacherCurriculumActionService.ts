@@ -83,7 +83,7 @@ const genericPlay: TeachingPlay = {
 
 const economicsPlaybook: Array<{ match: RegExp; play: TeachingPlay }> = [
   {
-    match: /demand.*shift|shift-vs-movement/,
+    match: /demand.*shift-vs-movement/,
     play: {
       misconception: 'Students confuse a movement along the demand curve with a shift of the whole curve.',
       teachSequence: [
@@ -98,7 +98,7 @@ const economicsPlaybook: Array<{ match: RegExp; play: TeachingPlay }> = [
     },
   },
   {
-    match: /supply.*shift|shift-vs-movement/,
+    match: /supply.*shift-vs-movement/,
     play: {
       misconception: 'Students treat changes in costs, productivity or indirect tax as movements along supply instead of shifts.',
       teachSequence: [
