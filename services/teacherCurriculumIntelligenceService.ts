@@ -1,6 +1,10 @@
 import * as GameService from './gameService';
 import { supabase } from './supabaseClient';
 import {
+  fetchEconomicsPaperReadiness,
+  type EconomicsPaperReadiness,
+} from './economicsPaperReadinessService';
+import {
   buildReteachRecommendations,
   curriculumDimension,
   type CurriculumHotspotEvidence,
@@ -40,6 +44,7 @@ export interface TeacherCurriculumIntelligence {
   evidenceBySubskill: Record<string, CurriculumSubskillEvidence>;
   hotspots: CurriculumHotspotEvidence[];
   reteachNext: CurriculumReteachRecommendation[];
+  paperReadiness: EconomicsPaperReadiness | null;
   dimensions: {
     content: { hotspotCount: number; impactedStudents: number; persistentStudents: number; recurringStudents: number; improvingStudents: number; resolvedStudents: number };
     reasoning: { hotspotCount: number; impactedStudents: number; persistentStudents: number; recurringStudents: number; improvingStudents: number; resolvedStudents: number };
@@ -112,9 +117,17 @@ export const getTeacherCurriculumIntelligence = async (
   schoolId: string,
   group: CurriculumTeachingGroup,
 ): Promise<TeacherCurriculumIntelligence> => {
-  const [registry, groupEvidence] = await Promise.all([
+  const paperReadinessPromise = /economics/i.test(group.subjectLabel)
+    ? fetchEconomicsPaperReadiness(schoolId, group.id).catch((error) => {
+      console.warn('Economics paper readiness unavailable', error);
+      return null;
+    })
+    : Promise.resolve(null);
+
+  const [registry, groupEvidence, paperReadiness] = await Promise.all([
     GameService.get_teacher_academic_skill_registry(group.subjectLabel, group.gradeNumber),
     fetchGroupEvidence(schoolId, group.id),
+    paperReadinessPromise,
   ]);
 
   if (!registry.supported) {
@@ -124,6 +137,7 @@ export const getTeacherCurriculumIntelligence = async (
       evidenceBySubskill: {},
       hotspots: [],
       reteachNext: [],
+      paperReadiness,
       dimensions: {
         content: { hotspotCount: 0, impactedStudents: 0, persistentStudents: 0, recurringStudents: 0, improvingStudents: 0, resolvedStudents: 0 },
         reasoning: { hotspotCount: 0, impactedStudents: 0, persistentStudents: 0, recurringStudents: 0, improvingStudents: 0, resolvedStudents: 0 },
@@ -224,6 +238,7 @@ export const getTeacherCurriculumIntelligence = async (
     evidenceBySubskill: Object.fromEntries(evidenceBySubskill.entries()),
     hotspots,
     reteachNext,
+    paperReadiness,
     dimensions,
     summary: {
       studentCount,
