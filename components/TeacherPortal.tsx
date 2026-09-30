@@ -50,6 +50,7 @@ const WritingMonitoringView = React.lazy(() => import('../src/pages/writing/Writ
 const WritingAnalyticsDashboard = React.lazy(() => import('../src/pages/writing/WritingAnalyticsDashboard'));
 const WritingExportCenter = React.lazy(() => import('../src/pages/writing/WritingExportCenter'));
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
+const TeacherCurriculumIntelligencePage = React.lazy(() => import('./teacher/TeacherCurriculumIntelligencePage'));
 const TeacherInterventionIntelligencePage = React.lazy(() => import('./student-progress/TeacherInterventionIntelligencePage'));
 const ClanTerritoryManager = React.lazy(() => import('../src/features/clanTerritory/ClanTerritoryManager'));
 import { normalizePart2CommunicativeAchievement, sanitizeCommunicativeAchievementText } from '../src/lib/writingCommunicativeAchievement';
@@ -85,8 +86,8 @@ interface TeacherPortalProps {
 // Plan details state (fetched once)
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 
-export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'question-batch' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'academic-profiles' | 'interventions' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
-type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
+export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'question-batch' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
+type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
 const TEACHER_VIEW_FEATURES: Partial<Record<PortalView, FeatureKey>> = {
@@ -101,6 +102,7 @@ const TEACHER_VIEW_FEATURES: Partial<Record<PortalView, FeatureKey>> = {
   'report-analysis': FEATURE_KEYS.REPORTS,
   'collective-report': FEATURE_KEYS.REPORTS,
   'academic-profiles': FEATURE_KEYS.REPORTS,
+  'curriculum-intelligence': FEATURE_KEYS.REPORTS,
   interventions: FEATURE_KEYS.REPORTS,
   'writing-hub': FEATURE_KEYS.WRITING_HUB,
   'writing-monitoring': FEATURE_KEYS.WRITING_HUB,
@@ -116,6 +118,7 @@ const TEACHER_SECTION_FEATURES: Partial<Record<TeacherNavSection, FeatureKey>> =
   assignments: FEATURE_KEYS.ASSIGNMENTS,
   reports: FEATURE_KEYS.REPORTS,
   'academic-profiles': FEATURE_KEYS.REPORTS,
+  'curriculum-intelligence': FEATURE_KEYS.REPORTS,
   interventions: FEATURE_KEYS.REPORTS,
   'writing-hub': FEATURE_KEYS.WRITING_HUB,
   cambridge: FEATURE_KEYS.CAMBRIDGE_TESTS,
@@ -1089,6 +1092,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (view === 'dashboard') return 'dashboard';
     if (view === 'students') return 'students';
     if (view === 'academic-profiles') return 'academic-profiles';
+    if (view === 'curriculum-intelligence') return 'curriculum-intelligence';
     if (view === 'interventions') return 'interventions';
     if (view === 'documents') return 'dashboard';
     if (view === 'join-school') return 'join-school';
@@ -1160,6 +1164,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         break;
       case 'academic-profiles':
         setView('academic-profiles');
+        break;
+      case 'curriculum-intelligence':
+        setView('curriculum-intelligence');
         break;
       case 'interventions':
         setView('interventions');
@@ -9127,6 +9134,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
     { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
     { id: 'academic-profiles', label: 'Academic Profiles', icon: '🎓', description: 'Progress, Strengths & Focus Areas', proOnly: true },
+    { id: 'curriculum-intelligence', label: 'Curriculum Intelligence', icon: '🧭', description: 'Curriculum Map & Evidence Readiness', proOnly: true },
     { id: 'interventions', label: 'Interventions', icon: '🎯', description: 'Targeted Support & Follow-up', proOnly: true },
     { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
     ...(canAccessWritingInsights && canUseWritingModule
@@ -9166,6 +9174,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       assignments: 'New Assignment',
       reports: 'Performance Reports',
       'academic-profiles': 'Performance Reports',
+      'curriculum-intelligence': 'Performance Reports',
       interventions: 'Performance Reports',
       'writing-hub': 'Performance Reports',
       cambridge: 'Cambridge Marking',
@@ -9542,6 +9551,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           {view === 'academic-profiles' && (
             <React.Suspense fallback={<div className="teacher-section-loading">Preparing Academic Profiles…</div>}>
               <TeacherAcademicProfilesPage onBack={() => setView('dashboard')} />
+            </React.Suspense>
+          )}
+          {view === 'curriculum-intelligence' && (
+            <React.Suspense fallback={<div className="teacher-section-loading">Preparing Curriculum Intelligence…</div>}>
+              <TeacherCurriculumIntelligencePage profile={profile} onBack={() => setView('dashboard')} />
             </React.Suspense>
           )}
           {view === 'interventions' && (
