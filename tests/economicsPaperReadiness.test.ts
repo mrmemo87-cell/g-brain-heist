@@ -80,9 +80,12 @@ test('curriculum intelligence loads paper readiness only for Economics and toler
 
 test('teacher UI distinguishes paper formats, AO evidence and missing evidence', () => {
   assert.match(page, /Paper Readiness/);
-  assert.match(page, /Paper 1 · Multiple Choice/);
-  assert.match(page, /Paper 2 · Section A/);
-  assert.match(page, /Paper 2 · Section B/);
+  assert.match(service, /Paper 1 · Multiple Choice/);
+  assert.match(service, /Paper 2 · Section A/);
+  assert.match(service, /Paper 2 · Section B/);
+  assert.match(page, /snapshot\.paperReadiness\.paper1/);
+  assert.match(page, /snapshot\.paperReadiness\.paper2SectionA/);
+  assert.match(page, /snapshot\.paperReadiness\.paper2SectionB/);
   assert.match(page, /Official weighting vs evidence collected/);
   assert.match(page, /AO evidence is question-profiled, never inferred from topic alone/);
   assert.match(page, /Evidence gaps/);
