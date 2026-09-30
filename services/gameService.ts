@@ -247,6 +247,7 @@ const SUBJECT_ID_LOOKUP: Record<Subject, string> = {
     'German Language': 'german_language',
     Geography: 'geography',
     'Global Perspective': 'global_perspective',
+    Economics: 'economics',
     'Travel & Tourism': 'travel_tourism',
     ICT: 'ict',
 };
@@ -5306,6 +5307,20 @@ export interface TeacherAcademicSkillRegistryLeaf {
     subskillCode: string;
     subskillName: string;
     subskillDescription?: string;
+    evidenceFocusCount?: number;
+}
+
+export interface TeacherAcademicFrameworkAlignment {
+    providerName: string;
+    programmeCode: string;
+    programmeName: string;
+    phase: 'primary' | 'lower_secondary' | 'upper_secondary';
+    externalStrand?: string | null;
+    externalReferenceCode?: string | null;
+    alignmentLevel: 'programme' | 'strand' | 'assessment_objective' | 'subject_content';
+    alignmentNote: string;
+    sourceUrl: string;
+    sourceVersion?: string | null;
 }
 
 export interface TeacherAcademicSkillRegistryResult {
@@ -5315,6 +5330,7 @@ export interface TeacherAcademicSkillRegistryResult {
     registryVersion?: string;
     phase?: 'primary' | 'lower_secondary' | 'upper_secondary';
     cambridgeProgrammes?: Array<{ code: string; name: string }>;
+    frameworkAlignments?: TeacherAcademicFrameworkAlignment[];
     skills: TeacherAcademicSkillRegistryLeaf[];
 }
 
@@ -5332,6 +5348,7 @@ export const get_teacher_academic_skill_registry = async (
     return {
         ...result,
         skills: Array.isArray(result.skills) ? result.skills : [],
+        frameworkAlignments: Array.isArray(result.frameworkAlignments) ? result.frameworkAlignments : [],
     };
 };
 
