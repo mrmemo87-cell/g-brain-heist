@@ -60,6 +60,12 @@ const studentStatusLabel = (status: string) => ({
   resolved: 'Resolved',
 }[status] || status.replace(/_/g, ' '));
 
+const paperEvidenceState = (state: 'not_assessed' | 'low_data' | 'evidence_established') => ({
+  not_assessed: { label: 'Not assessed', className: 'border-slate-200 bg-slate-50 text-slate-600' },
+  low_data: { label: 'Building evidence', className: 'border-amber-200 bg-amber-50 text-amber-800' },
+  evidence_established: { label: 'Evidence established', className: 'border-emerald-200 bg-emerald-50 text-emerald-800' },
+}[state]);
+
 const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligencePageProps> = ({
   profile,
   onBack,
@@ -431,6 +437,127 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               </div>
             ) : null}
           </section>
+
+          {snapshot.paperReadiness ? (
+            <section className="overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-sm">
+              <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-violet-950 p-5 text-white sm:p-6">
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                  <div className="max-w-3xl">
+                    <span className="text-xs font-black uppercase tracking-[0.18em] text-blue-300">Cambridge 0455 · 2027–2029</span>
+                    <h2 className="mt-1 text-2xl font-black">Paper Readiness</h2>
+                    <p className="mt-2 text-sm leading-6 text-blue-100/80">A governed view of the examination evidence this class has actually produced. Topic performance is never silently converted into AO or paper readiness.</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-xs leading-5 text-blue-100">
+                    <strong className="block text-white">Evidence only · no predicted grade</strong>
+                    Observed accuracy is classroom evidence from profiled Brains Heist Verified items. It is not an exam mark, forecast or grade boundary.
+                  </div>
+                </div>
+
+                <div className="mt-5 grid gap-3 md:grid-cols-2">
+                  <article className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div><span className="text-[11px] font-black uppercase tracking-wide text-blue-300">Paper 1</span><h3 className="mt-1 text-lg font-black">Multiple Choice</h3></div>
+                      <strong className="text-2xl">30%</strong>
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-blue-100/75">1 hour · 40 questions · 40 marks · all subject content · AO1 + AO2 · calculations and diagram analysis may be required.</p>
+                  </article>
+                  <article className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div><span className="text-[11px] font-black uppercase tracking-wide text-violet-300">Paper 2</span><h3 className="mt-1 text-lg font-black">Structured Questions</h3></div>
+                      <strong className="text-2xl">70%</strong>
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-blue-100/75">2 hours · 80 marks · Section A compulsory data response (20) · Section B answer 3 of 4 questions (60) · AO1 + AO2 + AO3.</p>
+                  </article>
+                </div>
+              </div>
+
+              <div className="space-y-5 p-5 sm:p-6">
+                <div>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <span className="text-xs font-black uppercase tracking-[0.15em] text-blue-700">Evidence by exam demand</span>
+                      <h3 className="mt-1 text-xl font-black text-slate-950">What has this class actually practised under governed evidence?</h3>
+                    </div>
+                    <span className="text-xs font-semibold text-slate-500">{snapshot.paperReadiness.profiledQuestionCount} verified Economics item{snapshot.paperReadiness.profiledQuestionCount === 1 ? '' : 's'} profiled</span>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 xl:grid-cols-3">
+                    {[snapshot.paperReadiness.paper1, snapshot.paperReadiness.paper2SectionA, snapshot.paperReadiness.paper2SectionB].map((paper) => {
+                      const state = paperEvidenceState(paper.state);
+                      return (
+                        <article key={paper.key} className="rounded-2xl border border-slate-200 p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div><h4 className="font-black text-slate-950">{paper.title}</h4><p className="mt-1 text-xs leading-5 text-slate-500">{paper.subtitle}</p></div>
+                            <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${state.className}`}>{state.label}</span>
+                          </div>
+                          <dl className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                            <div className="rounded-xl bg-slate-50 p-2"><dt className="text-slate-400">Students</dt><dd className="mt-1 text-base font-black text-slate-900">{paper.studentsWithEvidence}/{snapshot.paperReadiness.studentCount}</dd></div>
+                            <div className="rounded-xl bg-slate-50 p-2"><dt className="text-slate-400">Verified questions</dt><dd className="mt-1 text-base font-black text-slate-900">{paper.distinctQuestions}</dd></div>
+                            <div className="rounded-xl bg-slate-50 p-2"><dt className="text-slate-400">Assignments</dt><dd className="mt-1 text-base font-black text-slate-900">{paper.distinctAssignments}</dd></div>
+                            <div className="rounded-xl bg-slate-50 p-2"><dt className="text-slate-400">Responses</dt><dd className="mt-1 text-base font-black text-slate-900">{paper.gradedResponses}</dd></div>
+                          </dl>
+                          <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                            <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">Observed classroom accuracy</span>
+                            <strong className="mt-1 block text-xl font-black text-slate-950">{paper.observedAccuracy == null ? '—' : pct(paper.observedAccuracy)}</strong>
+                            <p className="mt-1 text-[11px] leading-4 text-slate-500">{paper.state === 'evidence_established' ? 'Enough evidence for a class reporting signal under the current policy.' : 'Do not interpret this as a stable readiness signal yet.'}</p>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+                  <article className="rounded-2xl border border-slate-200 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div><span className="text-xs font-black uppercase tracking-[0.14em] text-violet-700">Assessment objectives</span><h3 className="mt-1 text-lg font-black text-slate-950">Official weighting vs evidence collected</h3></div>
+                      <span className="rounded-full bg-violet-50 px-3 py-1 text-[11px] font-bold text-violet-800">AO evidence is question-profiled, never inferred from topic alone</span>
+                    </div>
+                    <div className="mt-4 overflow-x-auto">
+                      <table className="w-full min-w-[680px] text-left text-xs">
+                        <thead><tr className="border-b border-slate-200 text-slate-400"><th className="pb-2">AO</th><th className="pb-2">Qualification</th><th className="pb-2">Paper 1</th><th className="pb-2">Paper 2</th><th className="pb-2">Evidence responses</th><th className="pb-2">Questions</th><th className="pb-2">Observed accuracy</th></tr></thead>
+                        <tbody>
+                          {snapshot.paperReadiness.assessmentObjectives.map((ao) => (
+                            <tr key={ao.code} className="border-b border-slate-100 last:border-0">
+                              <td className="py-3"><strong className="text-slate-900">{ao.code}</strong><span className="ml-2 text-slate-500">{ao.name}</span></td>
+                              <td className="py-3 font-bold text-slate-700">{ao.officialQualificationWeight}%</td>
+                              <td className="py-3 text-slate-600">{ao.paper1Weight}%</td>
+                              <td className="py-3 text-slate-600">{ao.paper2Weight}%</td>
+                              <td className="py-3 font-bold text-slate-900">{ao.gradedResponses}</td>
+                              <td className="py-3 text-slate-700">{ao.distinctQuestions}</td>
+                              <td className="py-3 font-bold text-slate-900">{ao.observedAccuracy == null ? '—' : pct(ao.observedAccuracy)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </article>
+
+                  <aside className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                    <span className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Evidence gaps</span>
+                    <h3 className="mt-1 text-lg font-black text-amber-950">What should we assess next?</h3>
+                    {snapshot.paperReadiness.evidenceGaps.length ? (
+                      <ul className="mt-3 space-y-2 text-xs leading-5 text-amber-900">
+                        {snapshot.paperReadiness.evidenceGaps.slice(0, 7).map((gap) => <li key={gap} className="rounded-xl border border-amber-200 bg-white/70 p-2.5">{gap}</li>)}
+                      </ul>
+                    ) : (
+                      <p className="mt-3 text-xs leading-5 text-amber-900">No major evidence-format gap is currently visible. Continue broad independent assessment rather than over-practising one paper pattern.</p>
+                    )}
+                    <div className="mt-3 border-t border-amber-200 pt-3 text-[11px] leading-5 text-amber-800">
+                      Reporting policy: at least {snapshot.paperReadiness.reportingPolicy.minimumDistinctQuestions} distinct verified questions, {snapshot.paperReadiness.reportingPolicy.minimumDistinctAssignments} assignments and sufficient roster participation before a paper-format signal is called established.
+                    </div>
+                  </aside>
+                </div>
+
+                {snapshot.paperReadiness.profiledQuestionCount === 0 ? (
+                  <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-900">
+                    <strong className="block">The readiness framework is live; the verified Economics assessment bank is the next dependency.</strong>
+                    Production currently has no Brains Heist Verified Economics questions with Cambridge 0455 paper/AO profiles. Until those are governed and assigned, this view correctly remains unassessed rather than manufacturing a readiness score.
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
 
           <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
             <div className="space-y-4">
