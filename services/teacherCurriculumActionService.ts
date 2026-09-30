@@ -417,6 +417,18 @@ const recommendationPriority = (hotspot: CurriculumHotspotEvidence): ReteachPrio
   return 'watch';
 };
 
+const evidenceSpan = (hotspot: CurriculumHotspotEvidence): string | null => {
+  if (!hotspot.firstObservedAt || !hotspot.lastObservedAt) return null;
+  const start = new Date(hotspot.firstObservedAt).getTime();
+  const end = new Date(hotspot.lastObservedAt).getTime();
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return null;
+  const days = Math.max(0, Math.round((end - start) / 86_400_000));
+  if (days === 0) return 'within one day';
+  if (days < 14) return `across ${days} days`;
+  const weeks = Math.max(2, Math.round(days / 7));
+  return `across about ${weeks} weeks`;
+};
+
 const whyNow = (hotspot: CurriculumHotspotEvidence): string => {
   const parts: string[] = [];
   if (hotspot.persistentStudents) parts.push(`${hotspot.persistentStudents} persistent`);
@@ -424,7 +436,8 @@ const whyNow = (hotspot: CurriculumHotspotEvidence): string => {
   if (hotspot.newFocusStudents) parts.push(`${hotspot.newFocusStudents} new`);
   if (hotspot.improvingStudents) parts.push(`${hotspot.improvingStudents} improving`);
   const stateText = parts.length ? parts.join(' · ') : `${hotspot.impactedStudents} active`;
-  return `${stateText} student signal${hotspot.impactedStudents === 1 ? '' : 's'} across ${hotspot.evidenceItems} governed evidence item${hotspot.evidenceItems === 1 ? '' : 's'} and ${hotspot.focusOccurrences} focus occurrence${hotspot.focusOccurrences === 1 ? '' : 's'}.`;
+  const span = evidenceSpan(hotspot);
+  return `${stateText} student signal${hotspot.impactedStudents === 1 ? '' : 's'} across ${hotspot.evidenceItems} governed evidence item${hotspot.evidenceItems === 1 ? '' : 's'} and ${hotspot.focusOccurrences} focus occurrence${hotspot.focusOccurrences === 1 ? '' : 's'}${span ? ` ${span}` : ''}.`;
 };
 
 export const buildReteachRecommendations = (
