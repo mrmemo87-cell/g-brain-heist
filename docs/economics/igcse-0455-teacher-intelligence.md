@@ -172,3 +172,24 @@ Before deploying this release:
 8. Smoke-test teacher PDF extraction and batch submission with an Economics-assigned teacher.
 9. Confirm an unassigned teacher is still rejected by subject-scoping rules.
 10. Run typecheck, unit tests and build.
+
+## Class Hotspots and Reteach Next
+
+Curriculum Intelligence now has a class-level action layer built on governed longitudinal evidence.
+
+The teaching decision flow is:
+
+**Curriculum → evidence readiness → longitudinal hotspot → content/reasoning dimension → reteach action → independent reassessment.**
+
+Rules:
+
+- A class hotspot is derived from existing qualified student learning focus states, not from raw averages or one isolated low score.
+- `persistent` and `recurring` signals rank above `new_focus`; `improving` remains visible but reduces urgency; `resolved` is progress, not a current weakness.
+- The view separates **Economics content** from **exam/reasoning skill**. The Economics reasoning strand covers data use, diagrams, causal-chain development, contextual application, evaluation conditions, time horizon and justified judgement.
+- Teacher guidance is deterministic and curriculum-bound. It may suggest a misconception to test, a four-step reteach sequence, a classroom move, an independent reassessment pattern and an examiner lens.
+- Suggested misconceptions are hypotheses for the teacher to check, not diagnoses asserted as fact.
+- Targeted practice never proves mastery. Improvement/resolution requires later independent governed evidence.
+- If the class has no qualified longitudinal hotspot, the product must say that evidence is insufficient rather than imply that no weakness exists.
+- The class snapshot remains a single teaching-group-scoped RPC to keep load time independent of per-student request count.
+
+For Cambridge IGCSE Economics 0455 (2027–2029), the action layer supports the current syllabus emphasis on economic terminology and concepts, data analysis and interpretation, analysis of relationships, evaluation, and application to real-world issues, while keeping Brain Heist internal evidence identities separate from external Cambridge metadata.
