@@ -42,6 +42,11 @@ begin
 end;
 $function$;
 
+revoke all on function public.rpc_teacher_assignment_group_context(uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_teacher_assignment_group_context(uuid)
+  to authenticated,service_role;
+
 update public.assignments
 set display_group_label='Grade 7 ESL',
     updated_at=now()
