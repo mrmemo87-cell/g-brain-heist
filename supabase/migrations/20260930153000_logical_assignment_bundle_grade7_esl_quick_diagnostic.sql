@@ -220,6 +220,11 @@ begin
 end;
 $function$;
 
+revoke all on function public.rpc_get_assignments_for_teacher(uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_get_assignments_for_teacher(uuid)
+  to authenticated,service_role;
+
 create or replace function public.rpc_get_assignments_for_teacher_for_year(p_teacher_id uuid,p_academic_year_id uuid)
 returns table(
   id uuid,teacher_id uuid,subject_id text,subject_name text,topic_name text,batch text,
@@ -285,6 +290,11 @@ begin
 end;
 $function$;
 
+revoke all on function public.rpc_get_assignments_for_teacher_for_year(uuid,uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_get_assignments_for_teacher_for_year(uuid,uuid)
+  to authenticated,service_role;
+
 create or replace function public.rpc_teacher_assignment_category_context(p_teacher_id uuid)
 returns table(assignment_id uuid,assignment_category text,academic_year_id uuid,academic_term_id uuid,class_id uuid)
 language plpgsql stable security definer set search_path=''
@@ -307,6 +317,11 @@ begin
 end;
 $function$;
 
+revoke all on function public.rpc_teacher_assignment_category_context(uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_teacher_assignment_category_context(uuid)
+  to authenticated,service_role;
+
 create or replace function public.rpc_teacher_assignment_group_context(p_teacher_id uuid)
 returns table(assignment_id uuid,school_id uuid,school_subject_id uuid,subject_group_id uuid,subject_group_name text)
 language plpgsql stable security definer set search_path=''
@@ -328,6 +343,11 @@ begin
   where a.teacher_id=p_teacher_id;
 end;
 $function$;
+
+revoke all on function public.rpc_teacher_assignment_group_context(uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_teacher_assignment_group_context(uuid)
+  to authenticated,service_role;
 
 create or replace function public.rpc_teacher_assignment_report(p_assignment_id uuid,p_teacher_id uuid)
 returns table(
@@ -378,6 +398,11 @@ begin
 end;
 $function$;
 
+revoke all on function public.rpc_teacher_assignment_report(uuid,uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_teacher_assignment_report(uuid,uuid)
+  to authenticated,service_role;
+
 create or replace function public.rpc_get_assignment_student_answers(p_assignment_id uuid,p_teacher_id uuid,p_student_id uuid default null)
 returns table(
   student_id uuid,student_name text,student_batch text,question_id uuid,question_text text,
@@ -409,6 +434,11 @@ begin
   order by u.username,aq.order_index;
 end;
 $function$;
+
+revoke all on function public.rpc_get_assignment_student_answers(uuid,uuid,uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_get_assignment_student_answers(uuid,uuid,uuid)
+  to authenticated,service_role;
 
 create or replace function public.rpc_get_assignment_question_analysis(p_assignment_id uuid,p_teacher_id uuid)
 returns table(
@@ -452,6 +482,11 @@ begin
   order by aq.order_index;
 end;
 $function$;
+
+revoke all on function public.rpc_get_assignment_question_analysis(uuid,uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_get_assignment_question_analysis(uuid,uuid)
+  to authenticated,service_role;
 
 create or replace function public.rpc_teacher_assignment_diagnostic_intelligence(p_assignment_id uuid,p_teacher_id uuid)
 returns jsonb
@@ -609,6 +644,11 @@ begin
 end;
 $function$;
 
+revoke all on function public.rpc_teacher_assignment_diagnostic_intelligence(uuid,uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_teacher_assignment_diagnostic_intelligence(uuid,uuid)
+  to authenticated,service_role;
+
 create or replace function public.rpc_teacher_assignment_print_packet(p_assignment_id uuid)
 returns jsonb
 language plpgsql stable security definer set search_path=''
@@ -670,3 +710,8 @@ begin
   );
 end;
 $function$;
+
+revoke all on function public.rpc_teacher_assignment_print_packet(uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.rpc_teacher_assignment_print_packet(uuid)
+  to authenticated,service_role;
