@@ -11,6 +11,12 @@ import {
   schoolDocumentFileName,
 } from '../../src/lib/schoolDocument';
 
+interface QuestionBankCatalogQuery {
+  pool: PoolKey;
+  subject: string;
+  search: string;
+}
+
 interface QuestionBankProps {
   questions: TeacherQuestion[];
   teacher: Teacher | null;
@@ -27,6 +33,10 @@ interface QuestionBankProps {
   schoolLogoUrl?: string | null;
   teacherName?: string;
   schoolId?: string | null;
+  catalogHasMore?: boolean;
+  catalogLoading?: boolean;
+  onCatalogQueryChange?: (query: QuestionBankCatalogQuery) => void;
+  onCatalogLoadMore?: () => void;
 }
 
 type PoolKey = 'brains-heist' | 'school' | 'mine';
@@ -55,7 +65,8 @@ export default function QuestionBank({
   questions, teacher, onUseSet, onEditQuestion, onDeleteQuestion, onCreateQuestion, onCreateQuestionBatch,
   onRenameTopic, onDeleteTopic, useActionLabel = 'Add to a new assignment', restrictedSubjects,
   schoolName = 'Brains Heist', schoolLogoUrl, teacherName = 'Teacher',
-  schoolId,
+  schoolId, catalogHasMore = false, catalogLoading = false,
+  onCatalogQueryChange, onCatalogLoadMore,
 }: QuestionBankProps) {
   const [activePool, setActivePool] = useState<PoolKey>('brains-heist');
   const [searchTerm, setSearchTerm] = useState('');
@@ -102,12 +113,25 @@ export default function QuestionBank({
   }, [pools, questions.length]);
 
   const poolQuestions = pools[activePool];
-  const subjects = useMemo(
-    () => [...new Set(poolQuestions.map((question) => question.subject))]
-      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })),
-    [poolQuestions],
-  );
+  const subjects = useMemo(() => {
+    const available = new Set(poolQuestions.map((question) => question.subject));
+    (restrictedSubjects || []).forEach((subject) => available.add(subject as Subject));
+    return [...available].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+  }, [poolQuestions, restrictedSubjects]);
   const effectiveSubject = subjects.includes(subjectFilter as Subject) ? subjectFilter : subjects[0] || '';
+
+  useEffect(() => {
+    if (!onCatalogQueryChange || !effectiveSubject) return;
+    const timer = window.setTimeout(() => {
+      onCatalogQueryChange({
+        pool: activePool,
+        subject: effectiveSubject,
+        search: searchTerm.trim(),
+      });
+    }, searchTerm.trim() ? 250 : 0);
+    return () => window.clearTimeout(timer);
+  }, [activePool, effectiveSubject, onCatalogQueryChange, searchTerm]);
+
   const visibleQuestions = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
     return poolQuestions.filter((question) => {
@@ -183,13 +207,13 @@ export default function QuestionBank({
 
       <div className="qb-pool-switcher" aria-label="Question pools">
         <button type="button" className={activePool === 'brains-heist' ? 'qb-pool-card is-active' : 'qb-pool-card'} onClick={() => choosePool('brains-heist')} aria-pressed={activePool === 'brains-heist'}>
-          <span className="qb-pool-icon">BH</span><span><strong>Brains Heist Verified</strong><small>Global · official Academic Profile evidence</small></span><b>{pools['brains-heist'].length}</b>
+          <span className="qb-pool-icon">BH</span><span><strong>Brains Heist Verified</strong><small>Global · official Academic Profile evidence</small></span><b>{pools['brains-heist'].length}{catalogHasMore && activePool === 'brains-heist' ? '+' : ''}</b>
         </button>
         <button type="button" className={activePool === 'school' ? 'qb-pool-card is-active is-school' : 'qb-pool-card is-school'} onClick={() => choosePool('school')} aria-pressed={activePool === 'school'}>
-          <span className="qb-pool-icon qb-pool-icon--school">SC</span><span><strong>{schoolName} Verified</strong><small>This school only · official Academic Profile evidence</small></span><b>{pools.school.length}</b>
+          <span className="qb-pool-icon qb-pool-icon--school">SC</span><span><strong>{schoolName} Verified</strong><small>This school only · official Academic Profile evidence</small></span><b>{pools.school.length}{catalogHasMore && activePool === 'school' ? '+' : ''}</b>
         </button>
         <button type="button" className={activePool === 'mine' ? 'qb-pool-card is-active' : 'qb-pool-card'} onClick={() => choosePool('mine')} aria-pressed={activePool === 'mine'}>
-          <span className="qb-pool-icon qb-pool-icon--mine">MY</span><span><strong>My Pool</strong><small>Private classroom questions · governed</small></span><b>{pools.mine.length}</b>
+          <span className="qb-pool-icon qb-pool-icon--mine">MY</span><span><strong>My Pool</strong><small>Private classroom questions · governed</small></span><b>{pools.mine.length}{catalogHasMore && activePool === 'mine' ? '+' : ''}</b>
         </button>
       </div>
 
@@ -224,6 +248,19 @@ export default function QuestionBank({
       ) : (
         <div className="qb-empty"><h3>{activePool === 'mine' ? 'Create your first question' : 'No questions match these filters'}</h3><p>{activePool === 'mine' ? 'Add one question manually or upload a PDF to build a reviewed batch.' : 'Try another subject or a broader search.'}</p>{activePool === 'mine' ? <div className="flex flex-wrap justify-center gap-2">{onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion()}>Add Question</button> : null}{onCreateQuestionBatch ? <button type="button" onClick={() => onCreateQuestionBatch()}>Add Question Batch</button> : null}</div> : null}</div>
       )}
+
+      {onCatalogLoadMore && catalogHasMore ? (
+        <div className="flex justify-center py-5">
+          <button
+            type="button"
+            className="qb-primary-action"
+            onClick={onCatalogLoadMore}
+            disabled={catalogLoading}
+          >
+            {catalogLoading ? 'Loading more questions…' : 'Load more questions'}
+          </button>
+        </div>
+      ) : null}
 
       {selectedTopic ? (
         <div className="qb-modal" role="dialog" aria-modal="true" aria-labelledby="qb-topic-title" onMouseDown={(event) => event.target === event.currentTarget && setSelectedTopic(null)}>
