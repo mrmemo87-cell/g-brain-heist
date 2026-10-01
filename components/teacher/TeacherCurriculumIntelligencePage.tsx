@@ -320,6 +320,12 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-lg transition group-hover:bg-white/15" aria-hidden="true">→</span>
                 </span>
               </button>
+            ) : snapshot?.registry.supported ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">School evidence flow</span>
+                <strong className="mt-0.5 block text-sm text-slate-800">{experience?.subjectName || selectedGroup?.subjectLabel} assignments feed this view automatically</strong>
+                <span className="mt-1 block text-[11px] leading-4 text-slate-500">Assignments → Academic Profile → Curriculum Intelligence</span>
+              </div>
             ) : null}
           </div>
         </div>
@@ -622,8 +628,8 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-700">Programme alignment</span>
-                    <h2 className="mt-1 text-xl font-black text-slate-950">{snapshot.registry.cambridgeProgrammes?.[0]?.name || selectedGroup?.subjectLabel}</h2>
+                    <span className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-700">Programme & curriculum alignment</span>
+                    <h2 className="mt-1 text-xl font-black text-slate-950">{snapshot.registry.cambridgeProgrammes?.[0]?.name || `${experience?.subjectName || selectedGroup?.subjectLabel} curriculum`}</h2>
                     <p className="mt-1 text-sm text-slate-500">{humanizePhase(snapshot.registry.phase)} · {alignments[0]?.sourceVersion || 'Version not supplied'} · external framework metadata</p>
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs font-semibold">
