@@ -1028,7 +1028,8 @@ create or replace function public.rpc_student_question_catalog_page(
   p_cursor_created_at timestamptz default null,
   p_cursor_id uuid default null,
   p_search text default null,
-  p_topic text default null
+  p_topic text default null,
+  p_pool text default 'all'
 )
 returns jsonb
 language plpgsql
@@ -1044,6 +1045,7 @@ declare
   v_subject uuid;
   v_scope uuid;
   v_limit integer:=greatest(1,least(coalesce(p_page_size,40),100));
+  v_pool text:=lower(trim(coalesce(p_pool,'all')));
   v_items jsonb:='[]'::jsonb;
   v_has_more boolean:=false;
   v_next_created_at timestamptz;
@@ -1051,6 +1053,9 @@ declare
 begin
   if v_student is null then
     raise exception using errcode='42501',message='authentication_required';
+  end if;
+  if v_pool not in ('all','brains_heist','school') then
+    raise exception using errcode='22023',message='invalid_student_question_catalog_pool';
   end if;
 
   select u.school_id into v_school from public.users u where u.id=v_student;
@@ -1128,6 +1133,11 @@ begin
     where membership.academic_subject_id=v_subject
       and membership.grade_level=v_grade::smallint
       and (membership.school_id is null or membership.school_id=v_school)
+      and (
+        v_pool='all'
+        or (v_pool='brains_heist' and membership.pool_scope='global')
+        or (v_pool='school' and membership.pool_scope='school')
+      )
       and (p_difficulty is null or q.difficulty=p_difficulty)
       and (p_topic is null or lower(trim(coalesce(q.topic_name,q.topic,'')))=lower(trim(p_topic)))
       and (
@@ -1189,13 +1199,15 @@ begin
           and q.content_origin='brain_heist'
           and q.owner_school_id is null
           and q.is_public
-          and item.school_id is null)
+          and item.school_id is null
+          and v_pool in ('all','brains_heist'))
         or
         (q.pool_scope='school'
           and q.content_origin='teacher'
           and q.owner_school_id=v_school
           and not q.is_public
-          and item.school_id=v_school)
+          and item.school_id=v_school
+          and v_pool in ('all','school'))
       )
       and not exists(
         select 1
@@ -1309,10 +1321,10 @@ end;
 $function$;
 
 revoke all on function public.rpc_student_question_catalog_page(
-  text,text,integer,timestamptz,uuid,text,text
+  text,text,integer,timestamptz,uuid,text,text,text
 ) from public,anon,authenticated,service_role;
 grant execute on function public.rpc_student_question_catalog_page(
-  text,text,integer,timestamptz,uuid,text,text
+  text,text,integer,timestamptz,uuid,text,text,text
 ) to authenticated,service_role;
 
 -- ============================================================================
@@ -1445,7 +1457,7 @@ comment on function public.rpc_teacher_question_catalog_page(
   'Keyset-paged governed teacher question catalogue. Uses teacher allocation + grade and accepts either legacy curriculum authority or registry-native verified taxonomy authority.';
 
 comment on function public.rpc_student_question_catalog_page(
-  text,text,integer,timestamptz,uuid,text,text
+  text,text,integer,timestamptz,uuid,text,text,text
 ) is
   'Keyset-paged student question catalogue. Uses current school subject/grade access and either legacy curriculum authority or registry-native verified taxonomy authority.';
 
