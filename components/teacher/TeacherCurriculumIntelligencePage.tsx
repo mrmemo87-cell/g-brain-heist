@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { Profile } from '../../types';
 import * as GameService from '../../services/gameService';
+import EconomicsDiagnosticLauncher from './EconomicsDiagnosticLauncher';
 import {
   getTeacherCurriculumGroups,
   getTeacherCurriculumIntelligence,
@@ -83,6 +84,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
   const [selectedLeaf, setSelectedLeaf] = useState<GameService.TeacherAcademicSkillRegistryLeaf | null>(null);
   const [focuses, setFocuses] = useState<GameService.TeacherAcademicEvidenceFocus[]>([]);
   const [focusLoading, setFocusLoading] = useState(false);
+  const [diagnosticLauncherOpen, setDiagnosticLauncherOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -234,6 +236,13 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
   const alignments = snapshot?.registry.frameworkAlignments || [];
   const contentAlignments = alignments.filter((item) => item.alignmentLevel === 'subject_content');
   const aoAlignments = alignments.filter((item) => item.alignmentLevel === 'assessment_objective');
+  const canLaunchEconomicsDiagnostic = Boolean(
+    profile.school_id
+    && selectedGroup
+    && /economics/i.test(selectedGroup.subjectLabel)
+    && snapshot?.registry.supported
+    && (snapshot.paperReadiness?.profiledQuestionCount || 0) > 0
+  );
 
   const toggleSkill = (code: string) => {
     setExpandedSkills((current) => (
@@ -261,20 +270,40 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">This workspace separates curriculum coverage from attainment. “Not assessed” means Brains Heist does not yet have enough governed evidence; it does not mean a student is weak.</p>
           </div>
 
-          <label className="min-w-[280px] rounded-2xl border border-slate-200 bg-slate-50 p-3">
-            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Teaching group</span>
-            <select
-              value={selectedGroupId}
-              onChange={(event) => setSelectedGroupId(event.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-cyan-500"
-            >
-              {groups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.subjectLabel} · Grade {group.gradeNumber} · {group.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="min-w-[280px] space-y-2">
+            <label className="block rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Teaching group</span>
+              <select
+                value={selectedGroupId}
+                onChange={(event) => {
+                  setSelectedGroupId(event.target.value);
+                  setDiagnosticLauncherOpen(false);
+                }}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-cyan-500"
+              >
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.subjectLabel} · Grade {group.gradeNumber} · {group.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {canLaunchEconomicsDiagnostic ? (
+              <button
+                type="button"
+                onClick={() => setDiagnosticLauncherOpen(true)}
+                className="group w-full rounded-2xl bg-gradient-to-r from-slate-950 via-blue-950 to-cyan-950 px-4 py-3 text-left text-white shadow-lg shadow-cyan-950/10 transition hover:-translate-y-0.5 hover:shadow-xl"
+              >
+                <span className="flex items-center justify-between gap-3">
+                  <span>
+                    <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-cyan-300">Governed assessment</span>
+                    <strong className="mt-0.5 block text-sm">Create Economics Diagnostic</strong>
+                  </span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-lg transition group-hover:bg-white/15" aria-hidden="true">→</span>
+                </span>
+              </button>
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -447,9 +476,20 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                     <h2 className="mt-1 text-2xl font-black">Paper Readiness</h2>
                     <p className="mt-2 text-sm leading-6 text-blue-100/80">A governed view of the examination evidence this class has actually produced. Topic performance is never silently converted into AO or paper readiness.</p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-xs leading-5 text-blue-100">
-                    <strong className="block text-white">Evidence only · no predicted grade</strong>
-                    Observed accuracy is classroom evidence from profiled Brains Heist Verified items. It is not an exam mark, forecast or grade boundary.
+                  <div className="flex flex-col gap-2">
+                    <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-xs leading-5 text-blue-100">
+                      <strong className="block text-white">Evidence only · no predicted grade</strong>
+                      Observed accuracy is classroom evidence from profiled Brains Heist Verified items. It is not an exam mark, forecast or grade boundary.
+                    </div>
+                    {canLaunchEconomicsDiagnostic ? (
+                      <button
+                        type="button"
+                        onClick={() => setDiagnosticLauncherOpen(true)}
+                        className="rounded-2xl border border-cyan-300/25 bg-cyan-300/15 px-4 py-3 text-left text-xs font-black text-cyan-50 transition hover:bg-cyan-300/20"
+                      >
+                        + Create independent Paper 1 diagnostic
+                      </button>
+                    ) : null}
                   </div>
                 </div>
 
@@ -698,6 +738,16 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
             </aside>
           </section>
         </>
+      ) : null}
+
+      {profile.school_id && selectedGroup ? (
+        <EconomicsDiagnosticLauncher
+          open={diagnosticLauncherOpen}
+          schoolId={profile.school_id}
+          groupId={selectedGroup.id}
+          groupName={selectedGroup.name}
+          onClose={() => setDiagnosticLauncherOpen(false)}
+        />
       ) : null}
     </section>
   );
