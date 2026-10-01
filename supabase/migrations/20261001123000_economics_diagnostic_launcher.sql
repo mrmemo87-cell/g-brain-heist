@@ -10,15 +10,15 @@ with economics as (
   where code='economics' and is_active
 )
 insert into public.academic_subject_aliases(
-  academic_subject_id,school_id,alias,alias_key
+  academic_subject_id,school_id,alias
 )
-select economics.id,null,seed.alias,seed.alias_key
+select economics.id,null,seed.alias
 from economics
 cross join (values
-  ('Economics','economics'),
-  ('Economic Studies','economic-studies'),
-  ('IGCSE Economics','igcse-economics')
-) as seed(alias,alias_key)
+  ('Economics'),
+  ('Economic Studies'),
+  ('IGCSE Economics')
+) as seed(alias)
 on conflict(alias_key) where school_id is null
 do update set
   academic_subject_id=excluded.academic_subject_id,
