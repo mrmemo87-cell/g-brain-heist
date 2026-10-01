@@ -43,7 +43,7 @@ create or replace function public.rpc_import_registry_verified_mcq_package(
 returns jsonb
 language plpgsql
 security invoker
-set search_path to 'public','pg_temp'
+set search_path = public, pg_temp
 as $function$
 declare
   v_schema_version integer;
@@ -358,21 +358,23 @@ begin
       v_taxonomy_count:=v_taxonomy_count+1;
     end loop;
 
-    -- Validate the primary taxonomy can provide the required publication metadata.
-    select skill.*,subskill.id as subskill_id_dummy
-    into v_primary_skill
-    from public.academic_skill_registry_nodes skill
-    join public.academic_skill_registry_nodes subskill
-      on subskill.registry_version_id=skill.registry_version_id
-     and subskill.parent_id=skill.id
-     and subskill.code=trim(v_primary_taxonomy->>'atomicSubskillCode')
-     and subskill.node_type='subskill'
-     and subskill.status='active'
-    where skill.registry_version_id=v_registry.id
-      and skill.code=trim(v_primary_taxonomy->>'primarySkillCode')
-      and skill.node_type='skill'
-      and skill.status='active';
-    if not found then
+    -- The first taxonomy is the publication-facing canonical taxonomy.
+    select * into v_primary_skill
+    from public.academic_skill_registry_nodes
+    where registry_version_id=v_registry.id
+      and code=trim(v_primary_taxonomy->>'primarySkillCode')
+      and node_type='skill'
+      and status='active';
+
+    select * into v_primary_subskill
+    from public.academic_skill_registry_nodes
+    where registry_version_id=v_registry.id
+      and code=trim(v_primary_taxonomy->>'atomicSubskillCode')
+      and parent_id=v_primary_skill.id
+      and node_type='subskill'
+      and status='active';
+
+    if v_primary_skill.id is null or v_primary_subskill.id is null then
       raise exception using errcode='23503',
         message='primary_registry_taxonomy_invalid:'||v_external_id;
     end if;
@@ -453,17 +455,12 @@ begin
     from jsonb_array_elements_text(v_question->'eligibleGrades') g;
     v_primary_taxonomy:=v_question->'taxonomies'->0;
 
-    select skill.*,strand.id as parent_id
-    into v_primary_skill
-    from public.academic_skill_registry_nodes skill
-    join public.academic_skill_registry_nodes strand
-      on strand.id=skill.parent_id
-     and strand.node_type='strand'
-     and strand.status='active'
-    where skill.registry_version_id=v_registry.id
-      and skill.code=trim(v_primary_taxonomy->>'primarySkillCode')
-      and skill.node_type='skill'
-      and skill.status='active';
+    select * into v_primary_skill
+    from public.academic_skill_registry_nodes
+    where registry_version_id=v_registry.id
+      and code=trim(v_primary_taxonomy->>'primarySkillCode')
+      and node_type='skill'
+      and status='active';
 
     select * into v_primary_subskill
     from public.academic_skill_registry_nodes
