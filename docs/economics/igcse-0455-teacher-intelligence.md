@@ -255,3 +255,20 @@ Design:
 Secondary reasoning evidence is deliberately sparse. It is attached only when the MCQ genuinely tests a transferable reasoning behaviour such as calculation, diagram interpretation, contextual application, causal-chain development or conditional evaluation. A topic question does not automatically become reasoning evidence.
 
 The package is published through `rpc_import_registry_verified_mcq_package(jsonb, boolean)`, a service-role-only, security-invoker importer. The complete release is validated before any question is inserted; taxonomy, duplicate, option, grade, AO or assessment-profile errors abort the transaction.
+
+
+## Teacher Diagnostic Launcher
+
+Curriculum Intelligence includes a governed Economics Diagnostic Launcher for current Economics teaching groups.
+
+The launcher is intentionally assessment-first rather than question-bank-first. Teachers choose the amount of evidence they need and see the measurement design before publishing:
+
+- **Paper 1 Quick Check** — 10 questions, approximately 12 minutes, 5 AO1 + 5 AO2, all six content areas.
+- **Paper 1 Diagnostic** — 20 questions, approximately 25 minutes, 10 AO1 + 10 AO2, recommended default.
+- **Full Paper 1 Readiness Check** — 40 questions, approximately 55 minutes, 20 AO1 + 20 AO2.
+
+Every preset is built only from current Brains Heist Verified, hash-bound, grade-eligible questions with approved canonical registry taxonomy. The preview shows external AO balance, Cambridge content-area coverage and difficulty distribution without exposing answer keys.
+
+Creation is atomic and reuses the established assignment authority. The launcher attaches the assignment to the selected teaching group, targets the current authorized roster, forces deferred verified-evidence guards before returning, and never registers the assignment as targeted intervention practice.
+
+The resulting student work is **independent assessment evidence**. Completion can contribute to longitudinal Curriculum Intelligence and Paper Readiness; it does not create a predicted Cambridge grade.
