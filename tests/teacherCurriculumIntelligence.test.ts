@@ -27,7 +27,7 @@ test('curriculum intelligence is teaching-group scoped and remembers the teacher
 test('curriculum intelligence consumes the canonical registry and external framework metadata', () => {
   assert.match(service, /get_teacher_academic_skill_registry/);
   assert.match(page, /frameworkAlignments/);
-  assert.match(page, /Programme alignment/);
+  assert.match(page, /Programme & curriculum alignment/);
   assert.match(page, /Strand → skill → subskill/);
   assert.match(page, /Evidence Focus catalogue/);
 });
