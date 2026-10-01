@@ -501,7 +501,18 @@ const subjectGenericPlays: Partial<Record<CurriculumSubjectExperienceKey, Teachi
     reassessment: 'Use a fresh industry scenario requiring application, evidence and a justified operational or strategic decision.',
     examinerLens: 'Look for correct industry knowledge, application to the scenario, analysis of impacts and a justified recommendation where required.',
   },
-  economics: genericPlay,
+  economics: {
+    misconception: 'Students may know the economic vocabulary but not yet connect the concept to a complete causal chain or apply it to the context.',
+    teachSequence: [
+      'Re-establish the core definition and the economic variable that changes.',
+      'Model one complete cause → mechanism → outcome chain.',
+      'Contrast a correct example with a tempting but incomplete explanation.',
+      'Move from guided practice to a fresh economic context without prompts.',
+    ],
+    classroomMove: 'Use a mini-whiteboard hinge question, then ask pairs to repair one incomplete economic explanation before whole-class feedback.',
+    reassessment: 'Use 3–5 fresh questions: one recall check, one application item and one independent explanation using a new context.',
+    examinerLens: 'Look for precise economics, developed causal reasoning and context-specific application rather than generic assertions.',
+  },
 };
 
 const subjectPlaybooks: Partial<Record<CurriculumSubjectExperienceKey, Array<{ match: RegExp; play: TeachingPlay }>>> = {
