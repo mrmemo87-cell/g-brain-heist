@@ -207,6 +207,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [writingHubFilterQuery, setWritingHubFilterQuery] = useState('');
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
+  const [questionCatalogHasMore, setQuestionCatalogHasMore] = useState(false);
+  const [questionCatalogLoading, setQuestionCatalogLoading] = useState(false);
+  const questionCatalogCursorRef = useRef<{ createdAt: string; id: string } | null>(null);
+  const questionCatalogRequestRef = useRef(0);
+  const questionCatalogQueryRef = useRef<{
+    subject?: string;
+    difficulty?: string;
+    search?: string;
+    topic?: string;
+    pool?: 'all' | 'brains_heist' | 'school' | 'mine';
+  }>({ pool: 'all' });
+  const selectedQuestionIdsRef = useRef<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const initCalledRef = useRef(false);
   const questionsLoadRef = useRef<Promise<void> | null>(null);
@@ -610,6 +622,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentDescription, setAssignmentDescription] = useState('');
   const [assignmentInstructions, setAssignmentInstructions] = useState('');
   const [assignmentQuestionIds, setAssignmentQuestionIds] = useState<string[]>([]);
+  useEffect(() => {
+    selectedQuestionIdsRef.current = new Set(assignmentQuestionIds);
+  }, [assignmentQuestionIds]);
   const [assignmentDueAt, setAssignmentDueAt] = useState('');
   const [assignmentAssignedAt, setAssignmentAssignedAt] = useState(() => new Date().toISOString().slice(0, 16));
   const [assignmentDifficulty, setAssignmentDifficulty] = useState<QuestionDifficulty>('easy');
@@ -3348,31 +3363,103 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     link.click();
   };
 
-  const loadQuestionsOnDemand = () => {
-    if (questionsLoadRef.current) return questionsLoadRef.current;
+  const loadQuestionsOnDemand = (
+    queryOverride?: {
+      subject?: string;
+      difficulty?: string;
+      search?: string;
+      topic?: string;
+      pool?: 'all' | 'brains_heist' | 'school' | 'mine';
+    },
+    append = false,
+  ) => {
+    const nextQuery = append
+      ? questionCatalogQueryRef.current
+      : { ...questionCatalogQueryRef.current, ...(queryOverride || {}) };
 
-    const request = (async () => {
-      const pageSize = 500;
-      const unique = new Map<string, TeacherQuestion>();
-      for (let offset = 0; ; offset += pageSize) {
-        const page = await GameService.get_all_questions({ limit: pageSize, offset });
-        page.forEach((question) => unique.set(question.id, question));
-        if (page.length < pageSize) break;
-      }
-      return [...unique.values()];
-    })()
-      .then(setQuestions)
+    if (!append) {
+      questionCatalogQueryRef.current = nextQuery;
+      questionCatalogCursorRef.current = null;
+    }
+
+    const requestId = ++questionCatalogRequestRef.current;
+    setQuestionCatalogLoading(true);
+
+    const request = GameService.get_question_catalog_page({
+      ...nextQuery,
+      teacherId: teacher?.id,
+      pageSize: 60,
+      cursor: append ? questionCatalogCursorRef.current : null,
+    })
+      .then((page) => {
+        if (requestId !== questionCatalogRequestRef.current) return;
+
+        questionCatalogCursorRef.current = page.nextCursor;
+        setQuestionCatalogHasMore(page.hasMore);
+        setQuestions((current) => {
+          const merged = new Map<string, TeacherQuestion>();
+          if (append) {
+            current.forEach((question) => merged.set(question.id, question));
+          } else {
+            current
+              .filter((question) => selectedQuestionIdsRef.current.has(question.id))
+              .forEach((question) => merged.set(question.id, question));
+          }
+          page.items.forEach((question) => merged.set(question.id, question));
+          return [...merged.values()];
+        });
+      })
       .catch((error) => {
-        console.error('Error loading global question bank:', error);
-        brainsAlert('The question bank could not be refreshed. Your currently loaded questions have been kept; please try again.', 'error');
+        if (requestId !== questionCatalogRequestRef.current) return;
+        console.error('Error loading governed question catalog:', error);
+        brainsAlert('The question bank could not be refreshed. Your currently selected questions have been kept; please try again.', 'error');
       })
       .finally(() => {
-        questionsLoadRef.current = null;
+        if (requestId === questionCatalogRequestRef.current) {
+          setQuestionCatalogLoading(false);
+          questionsLoadRef.current = null;
+        }
       });
 
     questionsLoadRef.current = request;
     return request;
   };
+
+  const hydrateSelectedQuestions = async (questionIds: string[]) => {
+    if (!questionIds.length) return;
+    const missing = questionIds.filter((id) => !questions.some((question) => question.id === id));
+    if (!missing.length) return;
+    try {
+      const rows = await GameService.get_questions_by_ids(missing);
+      setQuestions((current) => {
+        const merged = new Map(current.map((question) => [question.id, question]));
+        rows.forEach((question) => merged.set(question.id, question));
+        return [...merged.values()];
+      });
+    } catch (error) {
+      console.error('Unable to hydrate selected assignment questions:', error);
+    }
+  };
+
+  const handleQuestionBankCatalogQuery = useCallback((query: {
+    pool: 'brains-heist' | 'school' | 'mine';
+    subject: string;
+    search: string;
+  }) => {
+    const pool = query.pool === 'brains-heist' ? 'brains_heist' : query.pool;
+    void loadQuestionsOnDemand({
+      pool,
+      subject: query.subject,
+      search: query.search,
+      difficulty: undefined,
+      topic: undefined,
+    });
+  }, [teacher?.id]);
+
+  const loadMoreQuestionCatalog = useCallback(() => {
+    if (questionCatalogLoading || !questionCatalogHasMore) return;
+    void loadQuestionsOnDemand(undefined, true);
+  }, [questionCatalogHasMore, questionCatalogLoading, teacher?.id]);
 
   const loadTeacherData = async () => {
     try {
@@ -3635,8 +3722,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     try {
       await GameService.delete_question(questionId);
-      const allQuestions = await GameService.get_all_questions();
-      setQuestions(allQuestions);
+      await loadQuestionsOnDemand();
       brainsAlert('Question deleted successfully.', 'success');
     } catch (error) {
       console.error('Error deleting question:', error);
@@ -3854,7 +3940,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
     resetAssignmentDraft();
-    void loadQuestionsOnDemand();
+    void loadQuestionsOnDemand({ subject: assignment.subject_name, pool: 'all', search: '' });
+    void hydrateSelectedQuestions(assignment.question_ids || []);
     setView('create-assignment');
   }, [canUseTeacherFeature, resetAssignmentDraft, showFeatureUnavailable]);
 
@@ -3935,7 +4022,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setAssignmentTopicMode('general');
       setAssignmentTopicName('');
     }
-    void loadQuestionsOnDemand();
+    void loadQuestionsOnDemand({ subject: localSubject, pool: 'all', search: '' });
+    void hydrateSelectedQuestions(questionIds);
     setView('create-assignment');
   }, [canUseTeacherFeature, profile.school_id, showFeatureUnavailable, teacherAssignedSubjects, teachingGroups]);
 
@@ -4338,7 +4426,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     try {
       const result = await GameService.bulk_create_teacher_questions(bulkImportPreview.questions);
       setUploadProgress({ current: result.submitted, total: result.submitted });
-      setQuestions(await GameService.get_all_questions());
+      await loadQuestionsOnDemand();
       setBulkImportPreview(null);
       setBulkImportSource('');
       setBulkPasteText('');
@@ -9531,6 +9619,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               schoolLogoUrl={resolvedBranding.schoolLogoUrl}
               teacherName={profile.full_name || profile.username || 'Teacher'}
               schoolId={profile.school_id}
+              catalogHasMore={questionCatalogHasMore}
+              catalogLoading={questionCatalogLoading}
+              onCatalogQueryChange={handleQuestionBankCatalogQuery}
+              onCatalogLoadMore={loadMoreQuestionCatalog}
             />
           )}
           {(view === 'question-batch' || view === 'csv-upload') && (
