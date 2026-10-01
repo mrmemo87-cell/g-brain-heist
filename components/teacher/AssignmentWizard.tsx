@@ -85,6 +85,16 @@ interface AssignmentWizardProps {
   setAssignmentGroupId?: (groupId: string) => void;
   teacherId?: string;
   questions: TeacherQuestion[];
+  questionCatalogHasMore?: boolean;
+  questionCatalogLoading?: boolean;
+  onQuestionCatalogQueryChange?: (query: {
+    subject: string;
+    search: string;
+    difficulty?: string;
+    topic?: string;
+    pool: 'all' | 'brains_heist' | 'school' | 'mine';
+  }) => void;
+  onQuestionCatalogLoadMore?: () => void;
   onSubmit: (event: React.FormEvent) => Promise<void>;
   onSaveDraft: () => Promise<void>;
   onCancel: () => void;
@@ -198,6 +208,10 @@ export default function AssignmentWizard({
   setAssignmentGroupId,
   teacherId,
   questions,
+  questionCatalogHasMore = false,
+  questionCatalogLoading = false,
+  onQuestionCatalogQueryChange,
+  onQuestionCatalogLoadMore,
   onSubmit,
   onSaveDraft,
   onCancel,
@@ -377,6 +391,25 @@ export default function AssignmentWizard({
     const timer = window.setTimeout(() => setDebouncedQuestionSearch(questionSearch.trim().toLocaleLowerCase()), 180);
     return () => window.clearTimeout(timer);
   }, [questionSearch]);
+
+  useEffect(() => {
+    if (!onQuestionCatalogQueryChange || !assignmentResourceSubject) return;
+    const pool = questionPool === 'brains-heist' ? 'brains_heist' : questionPool;
+    onQuestionCatalogQueryChange({
+      subject: assignmentResourceSubject,
+      search: debouncedQuestionSearch,
+      difficulty: difficultyFilter === 'all' ? undefined : difficultyFilter,
+      topic: topicFilter === 'all' ? undefined : topicFilter,
+      pool,
+    });
+  }, [
+    assignmentResourceSubject,
+    debouncedQuestionSearch,
+    difficultyFilter,
+    onQuestionCatalogQueryChange,
+    questionPool,
+    topicFilter,
+  ]);
 
   const filteredQuestions = useMemo(() => {
     const matches = assignmentEligibleQuestions.filter((question) => {
@@ -854,6 +887,18 @@ export default function AssignmentWizard({
                     })}
                     {!filteredQuestions.some((question) => !assignmentQuestionIds.includes(question.id)) && <div className="aw-empty">No available questions match these filters.</div>}
                   </div>
+                  {onQuestionCatalogLoadMore && questionCatalogHasMore ? (
+                    <div className="flex justify-center border-t border-slate-200 p-3">
+                      <button
+                        type="button"
+                        className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                        onClick={onQuestionCatalogLoadMore}
+                        disabled={questionCatalogLoading}
+                      >
+                        {questionCatalogLoading ? 'Loading more questions…' : 'Load more questions'}
+                      </button>
+                    </div>
+                  ) : null}
                 </section>
                 <section className="aw-question-pane aw-question-pane--selected" aria-labelledby="selected-question-heading">
                   <header>
