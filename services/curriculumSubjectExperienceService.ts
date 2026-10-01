@@ -69,7 +69,7 @@ const profiles: Record<CurriculumSubjectExperienceKey, CurriculumSubjectExperien
     noHotspotTitle: 'No qualified English hotspot yet.',
     noHotspotDescription: 'That does not mean the class has no language needs. It means current governed evidence is not strong enough to justify a class-level teaching priority yet.',
     searchPlaceholder: 'Search reading, writing, grammar, vocabulary…',
-    reasoningStrandPatterns: [/^eng.(reading|writing|listening|speaking)$/],
+    reasoningStrandPatterns: [/^eng[.](reading|writing|listening|speaking)$/],
   },
   mathematics: {
     key: 'mathematics',
@@ -98,7 +98,7 @@ const profiles: Record<CurriculumSubjectExperienceKey, CurriculumSubjectExperien
     noHotspotTitle: 'No qualified Mathematics hotspot yet.',
     noHotspotDescription: 'The class may still need support, but the current governed evidence does not yet justify a shared reteach priority.',
     searchPlaceholder: 'Search algebra, number, geometry, probability…',
-    reasoningStrandPatterns: [/^math.mathematical-practice$/],
+    reasoningStrandPatterns: [/^math[.]mathematical-practice$/],
   },
   science: {
     key: 'science',
@@ -127,7 +127,7 @@ const profiles: Record<CurriculumSubjectExperienceKey, CurriculumSubjectExperien
     noHotspotTitle: 'No qualified Science hotspot yet.',
     noHotspotDescription: 'No class-level priority is justified by current governed evidence yet; continue normal assessment before drawing conclusions.',
     searchPlaceholder: 'Search biology, chemistry, physics, investigation…',
-    reasoningStrandPatterns: [/^science.(scientific-practice|context)$/],
+    reasoningStrandPatterns: [/^science[.](scientific-practice|context)$/],
   },
   'global-perspectives': {
     key: 'global-perspectives',
@@ -156,7 +156,7 @@ const profiles: Record<CurriculumSubjectExperienceKey, CurriculumSubjectExperien
     noHotspotTitle: 'No qualified Global Perspectives hotspot yet.',
     noHotspotDescription: 'Current governed evidence does not yet justify a shared thinking-skill priority for the class.',
     searchPlaceholder: 'Search research, sources, evaluation, reflection…',
-    reasoningStrandPatterns: [/^gp.(evaluation|communication|reflection|collaboration)$/],
+    reasoningStrandPatterns: [/^gp[.](evaluation|communication|reflection|collaboration)$/],
   },
   'digital-technology': {
     key: 'digital-technology',
@@ -185,7 +185,7 @@ const profiles: Record<CurriculumSubjectExperienceKey, CurriculumSubjectExperien
     noHotspotTitle: 'No qualified Digital Technology hotspot yet.',
     noHotspotDescription: 'The current governed evidence does not yet justify a class-level technical or computational priority.',
     searchPlaceholder: 'Search programming, data, networks, security…',
-    reasoningStrandPatterns: [/^digital.(computational-thinking|programming)$/],
+    reasoningStrandPatterns: [/^digital[.](computational-thinking|programming)$/],
   },
   geography: {
     key: 'geography',
@@ -214,7 +214,7 @@ const profiles: Record<CurriculumSubjectExperienceKey, CurriculumSubjectExperien
     noHotspotTitle: 'No qualified Geography hotspot yet.',
     noHotspotDescription: 'Current governed evidence does not yet justify a shared geographical teaching priority.',
     searchPlaceholder: 'Search physical, human, maps, fieldwork…',
-    reasoningStrandPatterns: [/^geo.(enquiry|skills)$/],
+    reasoningStrandPatterns: [/^geo[.](enquiry|skills)$/],
   },
   'modern-languages': {
     key: 'modern-languages',
@@ -243,7 +243,7 @@ const profiles: Record<CurriculumSubjectExperienceKey, CurriculumSubjectExperien
     noHotspotTitle: 'No qualified language hotspot yet.',
     noHotspotDescription: 'Current governed evidence does not yet justify a shared class priority in language knowledge or communication.',
     searchPlaceholder: 'Search grammar, vocabulary, listening, speaking…',
-    reasoningStrandPatterns: [/^mfl.(listening|reading|speaking|writing)$/],
+    reasoningStrandPatterns: [/^mfl[.](listening|reading|speaking|writing)$/],
   },
   'travel-tourism': {
     key: 'travel-tourism',
@@ -272,7 +272,7 @@ const profiles: Record<CurriculumSubjectExperienceKey, CurriculumSubjectExperien
     noHotspotTitle: 'No qualified Travel & Tourism hotspot yet.',
     noHotspotDescription: 'Current governed evidence does not yet justify a shared class priority.',
     searchPlaceholder: 'Search customers, destinations, marketing, sustainability…',
-    reasoningStrandPatterns: [/^travel.(research-analysis|impacts-sustainability)$/],
+    reasoningStrandPatterns: [/^travel[.](research-analysis|impacts-sustainability)$/],
   },
   economics: {
     key: 'economics',
@@ -301,7 +301,7 @@ const profiles: Record<CurriculumSubjectExperienceKey, CurriculumSubjectExperien
     noHotspotTitle: 'No qualified Economics hotspot yet.',
     noHotspotDescription: 'That does not mean there is no weakness; current governed evidence does not yet justify a class-level reteach priority.',
     searchPlaceholder: 'Search demand, inflation, PED, evaluation…',
-    reasoningStrandPatterns: [/^econ.reasoning$/],
+    reasoningStrandPatterns: [/^econ[.]reasoning$/],
   },
   generic: {
     key: 'generic',
