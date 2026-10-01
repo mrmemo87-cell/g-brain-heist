@@ -5287,6 +5287,16 @@ export const get_question_catalog_page = async (filters?: {
 export const get_questions_by_ids = async (questionIds: string[]): Promise<TeacherQuestion[]> =>
     fetchTeacherQuestionsByIds(questionIds);
 
+export const get_student_question_catalog_page = async (filters: {
+    subjectCode: string;
+    difficulty?: string;
+    pageSize?: number;
+    cursor?: QuestionCatalogCursor | null;
+    search?: string;
+    topic?: string;
+    pool?: 'all' | 'brains_heist' | 'school';
+}) => fetchStudentQuestionCatalogPage(filters);
+
 /**
  * Compatibility helper for non-interactive code that still needs a bounded list.
  * Interactive question-bank surfaces must use get_question_catalog_page().
