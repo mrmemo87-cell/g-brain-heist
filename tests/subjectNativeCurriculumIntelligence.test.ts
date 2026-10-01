@@ -59,6 +59,20 @@ test('subject profiles give teachers subject-specific dimensions and language', 
   assert.match(page, /experience\?\.searchPlaceholder/);
 });
 
+test('shared registries specialise to the school-facing subject label', () => {
+  assert.match(experience, /displayName === 'Biology'/);
+  assert.match(experience, /Biology knowledge/);
+  assert.match(experience, /displayName === 'Chemistry'/);
+  assert.match(experience, /Chemistry knowledge/);
+  assert.match(experience, /displayName === 'Physics'/);
+  assert.match(experience, /Physics knowledge/);
+  assert.match(experience, /modern-languages/);
+  assert.match(experience, /\$\{displayName\} language knowledge/);
+  assert.match(experience, /English \/ ESL/);
+  assert.match(experience, /Computer Science/);
+  assert.match(experience, /ICT/);
+});
+
 test('reasoning dimensions use subject-specific registry strands', () => {
   for (const strand of [
     'eng[.](reading|writing|listening|speaking)',
