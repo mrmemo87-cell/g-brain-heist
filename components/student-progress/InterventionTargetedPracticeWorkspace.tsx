@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { QuestionDifficulty, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
 import * as GameService from '../../services/gameService';
 import {
@@ -55,8 +55,22 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
   const [teacherId, setTeacherId] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [catalogHasMore, setCatalogHasMore] = useState(false);
+  const catalogCursorRef = useRef<{ createdAt: string; id: string } | null>(null);
+  const catalogQueryRef = useRef<{
+    subject: string;
+    search?: string;
+    difficulty?: string;
+    topic?: string;
+    pool: 'all' | 'brains_heist' | 'school' | 'mine';
+  }>({ subject, pool: 'all' });
+  const selectedQuestionIdsRef = useRef<Set<string>>(new Set());
   const [loadError, setLoadError] = useState<string | null>(null);
   const [assignmentQuestionIds, setAssignmentQuestionIds] = useState<string[]>([]);
+  useEffect(() => {
+    selectedQuestionIdsRef.current = new Set(assignmentQuestionIds);
+  }, [assignmentQuestionIds]);
   const [assignmentTitle, setAssignmentTitle] = useState(`${context.recommendation.skill} · Targeted Practice`);
   const [assignmentDescription, setAssignmentDescription] = useState(`Focused practice for ${context.student.name}, based on reviewed intervention evidence in ${context.recommendation.skill}.`);
   const [assignmentInstructions, setAssignmentInstructions] = useState(`Work carefully through this short practice. Focus on ${context.recommendation.diagnostic_targets.join(', ') || context.recommendation.skill}. This practice helps rehearse the skill; Brains Heist will still use later assessed work to judge independent improvement.`);
@@ -83,24 +97,101 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
     avatar_url: null,
   }), [context.student.class_name, context.student.id, context.student.name, studentGrade]);
 
+  const loadCatalogPage = useCallback(async (
+    query: {
+      subject: string;
+      search?: string;
+      difficulty?: string;
+      topic?: string;
+      pool: 'all' | 'brains_heist' | 'school' | 'mine';
+    },
+    append = false,
+  ) => {
+    if (!append) {
+      catalogQueryRef.current = query;
+      catalogCursorRef.current = null;
+    }
+    setCatalogLoading(true);
+    try {
+      const page = await GameService.get_question_catalog_page({
+        ...query,
+        pageSize: 60,
+        cursor: append ? catalogCursorRef.current : null,
+      });
+      catalogCursorRef.current = page.nextCursor;
+      setCatalogHasMore(page.hasMore);
+      setQuestions((current) => {
+        const merged = new Map<string, TeacherQuestion>();
+        if (append) {
+          current.forEach((question) => merged.set(question.id, question));
+        } else {
+          current
+            .filter((question) => selectedQuestionIdsRef.current.has(question.id))
+            .forEach((question) => merged.set(question.id, question));
+        }
+        page.items.forEach((question) => merged.set(question.id, question));
+        return [...merged.values()];
+      });
+    } finally {
+      setCatalogLoading(false);
+    }
+  }, []);
+
+  const handleCatalogQuery = useCallback((query: {
+    subject: string;
+    search: string;
+    difficulty?: string;
+    topic?: string;
+    pool: 'all' | 'brains_heist' | 'school' | 'mine';
+  }) => {
+    void loadCatalogPage(query);
+  }, [loadCatalogPage]);
+
+  const handleCatalogLoadMore = useCallback(() => {
+    if (!catalogHasMore || catalogLoading || !catalogCursorRef.current) return;
+    void loadCatalogPage(catalogQueryRef.current, true);
+  }, [catalogHasMore, catalogLoading, loadCatalogPage]);
+
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      setLoading(true); setLoadError(null);
+      setLoading(true);
+      setLoadError(null);
       try {
         const entitlements = await getEntitlements(true);
-        if (!entitlements.canUse(FEATURE_KEYS.ASSIGNMENTS)) throw new Error('Assignments are not included in this school plan.');
-        const [teacher, allQuestions] = await Promise.all([GameService.get_teacher_profile(), GameService.get_all_questions()]);
+        if (!entitlements.canUse(FEATURE_KEYS.ASSIGNMENTS)) {
+          throw new Error('Assignments are not included in this school plan.');
+        }
+
+        const exactIds = (context.recommendation.exact_question_ids || []).slice(0, 200);
+        const [teacher, exactQuestions, firstPage] = await Promise.all([
+          GameService.get_teacher_profile(),
+          GameService.get_questions_by_ids(exactIds),
+          GameService.get_question_catalog_page({
+            subject,
+            pool: 'all',
+            pageSize: 60,
+          }),
+        ]);
+
         if (!teacher) throw new Error('Teacher profile could not be loaded.');
         if (cancelled) return;
+
         setTeacherId(teacher.id);
-        const subjectQuestions = allQuestions.filter((question) => normalize(question.subject) === normalize(subject));
+        catalogQueryRef.current = { subject, pool: 'all' };
+        catalogCursorRef.current = firstPage.nextCursor;
+        setCatalogHasMore(firstPage.hasMore);
+
+        const merged = new Map<string, TeacherQuestion>();
+        firstPage.items.forEach((question) => merged.set(question.id, question));
+        exactQuestions.forEach((question) => merged.set(question.id, question));
+        const subjectQuestions = [...merged.values()].filter(
+          (question) => normalize(question.subject) === normalize(subject),
+        );
         setQuestions(subjectQuestions);
-        // Automatic intervention practice must be a precise remediation set. Only
-        // exact governed atomic-subskill matches are preselected. Broader primary-
-        // skill matches remain visible in the bank for deliberate teacher choice.
+
         const byId = new Map(subjectQuestions.map((question) => [question.id, question]));
-        const governedExact = (context.recommendation.exact_question_ids || [])
+        const governedExact = exactIds
           .map((questionId) => byId.get(questionId))
           .filter((question): question is TeacherQuestion => Boolean(question))
           .filter((question) => isOfficialVerifiedQuestion(question, studentGrade))
@@ -108,7 +199,9 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
           .slice(0, 6);
         setAssignmentQuestionIds(governedExact);
       } catch (error) {
-        if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Targeted practice could not be prepared.');
+        if (!cancelled) {
+          setLoadError(error instanceof Error ? error.message : 'Targeted practice could not be prepared.');
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -116,6 +209,7 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
     void load();
     return () => { cancelled = true; };
   }, [context, studentGrade, subject]);
+
 
   const save = async (publishStatus: 'draft' | 'scheduled' | 'published', event?: React.FormEvent) => {
     event?.preventDefault();
@@ -279,6 +373,10 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
       teacherAssignedSubjects={[subject]}
       teacherId={teacherId}
       questions={questions}
+      questionCatalogHasMore={catalogHasMore}
+      questionCatalogLoading={catalogLoading}
+      onQuestionCatalogQueryChange={handleCatalogQuery}
+      onQuestionCatalogLoadMore={handleCatalogLoadMore}
       onSubmit={(event) => save(assignmentPublishStatus === 'scheduled' ? 'scheduled' : 'published', event)}
       onSaveDraft={() => save('draft')}
       onCancel={onBack}
