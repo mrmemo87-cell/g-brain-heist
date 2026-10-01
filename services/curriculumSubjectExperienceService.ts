@@ -358,6 +358,105 @@ const subjectMatchers: Array<[RegExp, CurriculumSubjectExperienceKey]> = [
   [/(travel|tourism)/i, 'travel-tourism'],
 ];
 
+const cleanSubjectLabel = (subjectLabel?: string | null): string => (
+  String(subjectLabel || '').trim()
+);
+
+const displayNameFor = (
+  key: CurriculumSubjectExperienceKey,
+  subjectLabel?: string | null,
+): string => {
+  const label = cleanSubjectLabel(subjectLabel);
+  if (!label) return profiles[key].subjectName;
+
+  if (key === 'science') {
+    if (/biology/i.test(label)) return 'Biology';
+    if (/chemistry/i.test(label)) return 'Chemistry';
+    if (/physics/i.test(label)) return 'Physics';
+    return 'Science';
+  }
+  if (key === 'modern-languages') {
+    if (!/^(modern languages?|mfl)$/i.test(label)) return label;
+    return 'Modern Languages';
+  }
+  if (key === 'digital-technology') {
+    if (/\bict\b/i.test(label)) return 'ICT';
+    if (/computer science/i.test(label)) return 'Computer Science';
+    if (/computing/i.test(label)) return 'Computing';
+    return 'Digital Technology';
+  }
+  if (key === 'english') {
+    if (/\besl\b|english as (a )?(second|additional) language/i.test(label)) return 'English / ESL';
+    return 'English';
+  }
+  if (key === 'mathematics') return /maths/i.test(label) ? 'Maths' : 'Mathematics';
+  if (key === 'travel-tourism') return 'Travel & Tourism';
+  if (key === 'global-perspectives') return 'Global Perspectives';
+  if (key === 'economics') return 'Economics';
+  if (key === 'geography') return 'Geography';
+  return label;
+};
+
+const specialiseExperience = (
+  base: CurriculumSubjectExperience,
+  displayName: string,
+): CurriculumSubjectExperience => {
+  let contentDimension = base.contentDimension;
+  let headline = base.headline;
+  let intro = base.intro;
+
+  if (base.key === 'science' && displayName === 'Biology') {
+    contentDimension = {
+      title: 'Biology knowledge',
+      description: 'Cells, organisms, genetics, ecology, physiology and biological processes.',
+    };
+    headline = 'See what students understand in Biology and where scientific evidence or explanation breaks down.';
+    intro = 'Separate biological knowledge from investigation, data and evidence reasoning so the next Biology lesson targets the real need.';
+  } else if (base.key === 'science' && displayName === 'Chemistry') {
+    contentDimension = {
+      title: 'Chemistry knowledge',
+      description: 'Particles, bonding, reactions, energetics, rates, quantitative chemistry and chemical systems.',
+    };
+    headline = 'See which Chemistry ideas are secure and where practical, data or explanatory reasoning needs strengthening.';
+    intro = 'Separate chemical knowledge from investigation and evidence reasoning so misconceptions are not confused with practical-skill gaps.';
+  } else if (base.key === 'science' && displayName === 'Physics') {
+    contentDimension = {
+      title: 'Physics knowledge',
+      description: 'Forces, energy, waves, electricity, matter, motion and physical relationships.',
+    };
+    headline = 'See which Physics relationships are secure and where mathematical or scientific reasoning breaks down.';
+    intro = 'Separate physical knowledge from practical, data and evidence reasoning so the next teaching move is precise.';
+  } else if (base.key === 'modern-languages' && displayName !== 'Modern Languages') {
+    contentDimension = {
+      title: `${displayName} language knowledge`,
+      description: 'Grammar, vocabulary, structures and cultural understanding.',
+    };
+    headline = `See whether students need more ${displayName} language knowledge or more support using it to communicate.`;
+    intro = `Separate ${displayName} grammar and vocabulary from listening, reading, speaking and writing performance.`;
+  } else if (base.key === 'digital-technology' && displayName !== 'Digital Technology') {
+    contentDimension = {
+      title: `${displayName} knowledge`,
+      description: base.contentDimension.description,
+    };
+    headline = `See what students know in ${displayName} and how well they can apply computational thinking to real tasks.`;
+  }
+
+  return {
+    ...base,
+    subjectName: displayName,
+    eyebrow: `${displayName} curriculum intelligence`,
+    headline,
+    intro,
+    contentDimension,
+    radarTitle: base.key === 'modern-languages'
+      ? `What should I teach next in ${displayName}?`
+      : `What should I reteach next in ${displayName}?`,
+    navigatorTitle: `${displayName} curriculum map`,
+    selectedLeafPrompt: `Select a ${displayName} subskill to inspect evidence readiness and its governed Evidence Focus.`,
+    noHotspotTitle: `No qualified ${displayName} hotspot yet.`,
+  };
+};
+
 export const resolveCurriculumSubjectExperience = (
   subjectLabel?: string | null,
   registryVersion?: string | null,
@@ -366,12 +465,8 @@ export const resolveCurriculumSubjectExperience = (
   const subjectMatch = subjectMatchers.find(([pattern]) => pattern.test(subjectLabel || ''));
   const key = registryMatch?.[1] || subjectMatch?.[1] || 'generic';
   const base = profiles[key];
-  if (key !== 'generic' || !subjectLabel?.trim()) return base;
-  return {
-    ...base,
-    subjectName: subjectLabel.trim(),
-    eyebrow: `${subjectLabel.trim()} curriculum intelligence`,
-  };
+  const displayName = displayNameFor(key, subjectLabel);
+  return specialiseExperience(base, displayName);
 };
 
 export const curriculumDimensionForSubject = (
