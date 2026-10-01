@@ -1596,3 +1596,23 @@ The Academic Profile evidence architecture has an additive registry-native lane:
 The lane uses canonical Academic Skill Registry skill/subskill/Evidence Focus IDs directly and does **not** require external Cambridge labels to become permanent learner identities. Existing curriculum-framework item evidence remains supported in parallel.
 
 Economics is a first-class `academic_subjects` record (`code='economics'`), allowing teaching groups and future assignments to carry confirmed academic context.
+
+
+## Economics verified assessment bank
+
+Registry-governed Brains Heist Verified MCQ releases use:
+- `public.rpc_import_registry_verified_mcq_package(jsonb, boolean)`
+- `public.registry_verified_question_import_releases`
+- canonical `verified_question_registry_taxonomy`
+- external `verified_question_assessment_profiles`
+
+The first production release is:
+- package: `economics-0455-paper1-readiness-v1`
+- version: `1.0.0`
+- 40 original MCQs
+- exactly 20 external Cambridge AO1-primary and 20 AO2-primary profiles
+- 59 total canonical registry taxonomy mappings
+- all six public Cambridge 0455 content areas represented
+- Grade 10–11 eligible
+
+Bank questions are original Brains Heist content. Cambridge programme, paper and AO labels are alignment metadata only; no Cambridge specimen or past-paper question text is stored as Brains Heist authored content.
