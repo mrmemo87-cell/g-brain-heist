@@ -276,3 +276,25 @@ The September 2026 multi-subject migration canonicalised all 816 previously veri
 Do not force one subject's ontology onto another. Shared registries are allowed only where the durable competency model is genuinely shared, such as Biology/Chemistry/Physics within Science or German/Russian/Kyrgyz within Modern Languages.
 
 Economics uses `bh-economics-core-v1` for upper-secondary longitudinal evidence. Cambridge IGCSE Economics 0455 (2027–2029) is stored as a versioned external crosswalk. Economics deliberately separates content competencies from `econ.reasoning` so teachers can distinguish conceptual gaps from weaknesses in data use, causal analysis and evaluation. See `docs/economics/igcse-0455-teacher-intelligence.md`.
+
+## Registry-native verified assessment evidence
+
+Brains Heist supports an additive registry-native evidence lane for verified question-bank work.
+
+The canonical chain is:
+
+**verified question content hash → governed registry taxonomy → immutable assignment snapshot → append-only registry item evidence → longitudinal observation → confidence/focus state**
+
+`verified_question_registry_taxonomy` binds a current verified question hash to:
+- a published registry version
+- one canonical skill
+- one atomic canonical subskill
+- one governed Evidence Focus
+- one internal Brains Heist assessment process (`BH-AO1`–`BH-AO4`)
+- a cognitive process and evidence statement
+
+This taxonomy is not a Cambridge syllabus identity. External programme/paper/AO metadata remains separate in crosswalks and assessment profiles.
+
+`student_learning_registry_item_evidence` is append-only. It only materializes from analytics-eligible verified assignment snapshots whose content hash still matches the current immutable verified question. Targeted intervention practice may be recorded in the ledger, but it is explicitly non-independent and does not qualify as mastery evidence.
+
+The registry-native lane runs alongside the mature curriculum-framework evidence lane. Existing subjects and historical evidence are not migrated or rewritten merely because registry-native evidence becomes available.
