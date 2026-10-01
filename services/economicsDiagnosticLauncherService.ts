@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { userFacingError } from './errorService';
+import { userFacingError } from './userFacingError';
 
 export type DiagnosticPublishStatus = 'draft' | 'scheduled' | 'published';
 
@@ -110,7 +110,7 @@ export const fetchEconomicsDiagnosticLauncher = async (
   });
 
   if (error) {
-    throw new Error(userFacingError(error, 'Economics diagnostic options could not be loaded.'));
+    throw userFacingError(error, 'Economics diagnostic options could not be loaded.');
   }
 
   return data as EconomicsDiagnosticLauncher;
@@ -133,7 +133,7 @@ export const createEconomicsDiagnostic = async (
   });
 
   if (error) {
-    throw new Error(userFacingError(error, 'The diagnostic could not be created.'));
+    throw userFacingError(error, 'The diagnostic could not be created.');
   }
 
   return data as CreateEconomicsDiagnosticResult;
