@@ -24,6 +24,21 @@ do update set
   academic_subject_id=excluded.academic_subject_id,
   alias=excluded.alias;
 
+-- Existing registry-native Economics questions were published before the
+-- academic-subject alias existed. Repair only their academic context; verified
+-- question content, answer keys and content hashes remain unchanged.
+with economics as (
+  select id
+  from public.academic_subjects
+  where code='economics' and is_active
+)
+update public.questions question
+set academic_subject_id=economics.id,
+    updated_at=now()
+from economics
+where question.academic_subject_id is null
+  and public.academic_normalize_subject_key(question.subject)='economics';
+
 -- ---------------------------------------------------------------------------
 -- 2. Registry-native questions are valid governed curriculum evidence
 --    alongside the existing framework-objective mapping lane.
