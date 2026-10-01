@@ -132,6 +132,9 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
         page.items.forEach((question) => merged.set(question.id, question));
         return [...merged.values()];
       });
+    } catch (error) {
+      console.error('Unable to load targeted-practice question page:', error);
+      brainsAlert('More questions could not be loaded. Please try again.', 'error');
     } finally {
       setCatalogLoading(false);
     }
