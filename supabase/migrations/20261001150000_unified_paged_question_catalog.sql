@@ -1489,3 +1489,197 @@ begin
   end if;
 end;
 $migration$;
+
+
+-- ============================================================================
+-- Student progress summary: counts only, never hydrates the bank
+-- ============================================================================
+
+create or replace function public.rpc_student_question_progress_summary()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path=''
+as $function$
+declare
+  v_student uuid:=auth.uid();
+  v_school uuid;
+  v_year uuid;
+  v_grade text;
+begin
+  if v_student is null then
+    raise exception using errcode='42501',message='authentication_required';
+  end if;
+
+  select u.school_id into v_school from public.users u where u.id=v_student;
+  if v_school is null then
+    return jsonb_build_object('success',true,'ready',false,'subjects','[]'::jsonb);
+  end if;
+
+  select enrolment.academic_year_id,enrolment.grade_level
+  into v_year,v_grade
+  from public.student_academic_enrolments enrolment
+  join public.school_academic_years academic_year
+    on academic_year.id=enrolment.academic_year_id
+   and academic_year.status='current'
+  where enrolment.student_id=v_student
+    and enrolment.school_id=v_school
+    and current_date between enrolment.starts_on and coalesce(enrolment.ends_on,current_date)
+  order by enrolment.starts_on desc,enrolment.created_at desc
+  limit 1;
+
+  if v_year is null or v_grade is null or v_grade !~ '^[0-9]+$' then
+    return jsonb_build_object('success',true,'ready',false,'subjects','[]'::jsonb);
+  end if;
+
+  return jsonb_build_object(
+    'success',true,
+    'ready',true,
+    'academicYearId',v_year,
+    'gradeLevel',v_grade,
+    'subjects',coalesce((
+      with enrolled_subjects as materialized (
+        select
+          subject.id academic_subject_id,
+          subject.code,
+          school_subject.name,
+          offering.curriculum_scope_id
+        from public.school_subject_offerings offering
+        join public.school_subjects school_subject
+          on school_subject.id=offering.school_subject_id
+         and school_subject.school_id=v_school
+         and school_subject.is_active
+        join public.academic_subjects subject
+          on subject.id=school_subject.academic_subject_id
+         and subject.is_active
+        where offering.school_id=v_school
+          and offering.academic_year_id=v_year
+          and offering.grade_level=v_grade
+          and offering.status='active'
+          and (
+            offering.access_mode='all_grade'
+            or exists(
+              select 1
+              from public.school_subject_enrolments subject_enrolment
+              where subject_enrolment.student_id=v_student
+                and subject_enrolment.school_subject_id=school_subject.id
+                and subject_enrolment.academic_year_id=v_year
+                and subject_enrolment.status='active'
+                and current_date>=subject_enrolment.starts_on
+                and (subject_enrolment.ends_on is null or current_date<=subject_enrolment.ends_on)
+            )
+          )
+      ),
+      attempted as materialized (
+        select distinct attempt.question_id
+        from public.question_attempts attempt
+        where attempt.student_id=v_student
+      ),
+      completed as (
+        select
+          enrolled.academic_subject_id,
+          q.difficulty,
+          count(distinct q.id)::integer completed_count
+        from enrolled_subjects enrolled
+        join attempted attempt on true
+        join public.questions q
+          on q.id=attempt.question_id
+         and q.academic_subject_id=enrolled.academic_subject_id
+         and q.is_active
+         and q.verification_status='verified'
+         and q.analytics_eligible
+         and q.current_content_hash=q.verified_content_hash
+         and v_grade::smallint=any(q.eligible_grade_levels)
+        where
+          exists(
+            select 1
+            from private.registry_question_catalog_membership membership
+            where membership.question_id=q.id
+              and membership.question_content_hash=q.verified_content_hash
+              and membership.academic_subject_id=enrolled.academic_subject_id
+              and membership.grade_level=v_grade::smallint
+              and (membership.school_id is null or membership.school_id=v_school)
+          )
+          or (
+            enrolled.curriculum_scope_id is not null
+            and exists(
+              select 1
+              from public.curriculum_assessment_items item
+              join public.curriculum_item_objective_mappings mapping
+                on mapping.assessment_item_id=item.id
+               and mapping.curriculum_scope_id=enrolled.curriculum_scope_id
+               and mapping.academic_subject_id=enrolled.academic_subject_id
+               and mapping.status='approved'
+               and mapping.mapping_role='primary'
+               and mapping.superseded_at is null
+               and mapping.item_content_hash=item.content_hash
+              join public.curriculum_framework_versions framework
+                on framework.id=mapping.framework_version_id
+               and framework.status in ('published','retired')
+               and framework.content_hash=mapping.curriculum_version_content_hash
+              where item.source_type='question_bank'
+                and item.source_record_id=q.id::text
+                and item.source_item_key='question'
+                and item.is_active
+                and item.content_hash=q.verified_content_hash
+            )
+          )
+        group by enrolled.academic_subject_id,q.difficulty
+      )
+      select jsonb_agg(
+        jsonb_build_object(
+          'id','subj_'||replace(enrolled.code,'-','_'),
+          'code',enrolled.code,
+          'name',enrolled.name,
+          'answeredCount',
+            coalesce(sum(completed.completed_count),0),
+          'totalAvailable',
+            private.governed_question_count_for_context(
+              v_school,v_year,v_grade,enrolled.academic_subject_id,
+              enrolled.curriculum_scope_id,null
+            ),
+          'difficulties',jsonb_build_object(
+            'easy',jsonb_build_object(
+              'total',private.governed_question_count_for_context(
+                v_school,v_year,v_grade,enrolled.academic_subject_id,
+                enrolled.curriculum_scope_id,'easy'
+              ),
+              'completed',coalesce(max(completed.completed_count)
+                filter(where completed.difficulty='easy'),0)
+            ),
+            'medium',jsonb_build_object(
+              'total',private.governed_question_count_for_context(
+                v_school,v_year,v_grade,enrolled.academic_subject_id,
+                enrolled.curriculum_scope_id,'medium'
+              ),
+              'completed',coalesce(max(completed.completed_count)
+                filter(where completed.difficulty in ('medium','med')),0)
+            ),
+            'hard',jsonb_build_object(
+              'total',private.governed_question_count_for_context(
+                v_school,v_year,v_grade,enrolled.academic_subject_id,
+                enrolled.curriculum_scope_id,'hard'
+              ),
+              'completed',coalesce(max(completed.completed_count)
+                filter(where completed.difficulty='hard'),0)
+            )
+          )
+        )
+        order by enrolled.name
+      )
+      from enrolled_subjects enrolled
+      left join completed on completed.academic_subject_id=enrolled.academic_subject_id
+      group by enrolled.academic_subject_id,enrolled.code,enrolled.name,enrolled.curriculum_scope_id
+    ),'[]'::jsonb)
+  );
+end;
+$function$;
+
+revoke all on function public.rpc_student_question_progress_summary()
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_student_question_progress_summary()
+to authenticated,service_role;
+
+comment on function public.rpc_student_question_progress_summary() is
+  'Current-student governed question progress summary. Counts catalogue membership and the student own attempted IDs without loading question-bank payloads.';
