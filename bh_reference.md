@@ -1583,3 +1583,16 @@ See [the classroom reliability release record](docs/engineering/classroom-reliab
 # BH-AUTH-BOOTSTRAP — Role-aware login
 
 Read [the authentication performance reference](docs/performance/auth-bootstrap.md) before editing login. Main obtains one authoritative `rpc_auth_bootstrap_v1()` snapshot and passes it to App; do not restore the duplicate App boot, full guardian-child lookup, awaited streak, or four-second recognition hold. Keep capability resolution server-authoritative, preserve setup/email/ban gates, invalidate stale in-flight results on account switches, and keep routine resume checks from resetting active workspaces. The optional loading warm-up must never send requests, grant rewards or impose a minimum wait. Deploy migration `20260928163701_auth_bootstrap_v1` before its frontend.
+
+## Registry-native verified question evidence
+
+The Academic Profile evidence architecture has an additive registry-native lane:
+- `public.verified_question_registry_taxonomy`
+- `public.student_learning_registry_item_evidence`
+- `private.materialize_verified_assignment_registry_evidence(...)`
+- `private.ingest_verified_assignment_registry_evidence(...)`
+- observation source type: `registry_verified_assignment`
+
+The lane uses canonical Academic Skill Registry skill/subskill/Evidence Focus IDs directly and does **not** require external Cambridge labels to become permanent learner identities. Existing curriculum-framework item evidence remains supported in parallel.
+
+Economics is a first-class `academic_subjects` record (`code='economics'`), allowing teaching groups and future assignments to carry confirmed academic context.
