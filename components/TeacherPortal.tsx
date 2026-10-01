@@ -3828,7 +3828,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
     await Promise.all(owned.map((question) => GameService.update_question(question.id, { topic: nextTopic, topic_name: nextTopic })));
-    setQuestions(await GameService.get_all_questions());
+    await loadQuestionsOnDemand();
     brainsAlert(`Topic renamed to “${nextTopic}”.`, 'success');
   };
 
@@ -3847,7 +3847,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     });
     if (!confirmed) return;
     await Promise.all(owned.map((question) => GameService.delete_question(question.id)));
-    setQuestions(await GameService.get_all_questions());
+    await loadQuestionsOnDemand();
     brainsAlert('Topic deleted from My Pool.', 'success');
   };
 
@@ -3940,8 +3940,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
     resetAssignmentDraft();
-    void loadQuestionsOnDemand({ subject: assignment.subject_name, pool: 'all', search: '' });
-    void hydrateSelectedQuestions(assignment.question_ids || []);
     setView('create-assignment');
   }, [canUseTeacherFeature, resetAssignmentDraft, showFeatureUnavailable]);
 
@@ -3982,7 +3980,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentNotifyByEmail(Boolean(assignment.notify_students_by_email));
     if (assignment.topic_name && assignment.topic_name !== 'General') { setAssignmentTopicMode('custom'); setAssignmentTopicName(assignment.topic_name); }
     else { setAssignmentTopicMode('general'); setAssignmentTopicName(''); }
-    void loadQuestionsOnDemand();
+    void loadQuestionsOnDemand({ subject: assignment.subject_name, pool: 'all', search: '' });
+    void hydrateSelectedQuestions(assignment.question_ids || []);
     setView('create-assignment');
   };
 
