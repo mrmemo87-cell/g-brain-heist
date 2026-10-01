@@ -311,6 +311,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [questions, setQuestions] = useState<Question[]>([]);
   const [teacherQuestions, setTeacherQuestions] = useState<TeacherQuestion[]>([]);
   const [publicQuestions, setPublicQuestions] = useState<TeacherQuestion[]>([]);
+  const [publicCatalogHasMore, setPublicCatalogHasMore] = useState(false);
+  const [publicCatalogLoadingMore, setPublicCatalogLoadingMore] = useState(false);
+  const publicCatalogCursorRef = useRef<{ createdAt: string; id: string } | null>(null);
+  const publicCatalogQueryRef = useRef<{
+    subject: string;
+    search?: string;
+    topic?: string;
+    pool: 'all' | 'brains_heist' | 'school';
+  } | null>(null);
   const [questionBankLoading, setQuestionBankLoading] = useState(false);
   const [questionBankError, setQuestionBankError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -724,7 +733,76 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     };
   };
 
-  // Load subjects and go directly to selection (unified flow)
+  const loadStudentQuestionBankPage = useCallback(async (
+    query: {
+      subject: string;
+      search?: string;
+      topic?: string;
+      pool: 'all' | 'brains_heist' | 'school';
+    },
+    append = false,
+  ) => {
+    if (!append) {
+      publicCatalogQueryRef.current = query;
+      publicCatalogCursorRef.current = null;
+      setQuestionBankLoading(true);
+      setQuestionBankError(null);
+    } else {
+      setPublicCatalogLoadingMore(true);
+    }
+
+    try {
+      const page = await GameService.get_student_question_catalog_page({
+        subjectCode: query.subject,
+        search: query.search,
+        topic: query.topic,
+        pool: query.pool,
+        pageSize: 60,
+        cursor: append ? publicCatalogCursorRef.current : null,
+      });
+      const normalized = page.items.map(normalizeAssignmentQuestion);
+      publicCatalogCursorRef.current = page.nextCursor;
+      setPublicCatalogHasMore(page.hasMore);
+      setPublicQuestions((current) => {
+        if (!append) return normalized;
+        const merged = new Map(current.map((question) => [question.id, question]));
+        normalized.forEach((question) => merged.set(question.id, question));
+        return [...merged.values()];
+      });
+    } catch (error) {
+      console.warn('[QuestView] Failed to load paged question bank:', error);
+      setQuestionBankError('Unable to load the question bank right now.');
+      if (!append) {
+        setPublicQuestions([]);
+        setPublicCatalogHasMore(false);
+        publicCatalogCursorRef.current = null;
+      }
+    } finally {
+      if (append) setPublicCatalogLoadingMore(false);
+      else setQuestionBankLoading(false);
+    }
+  }, []);
+
+  const handleStudentQuestionBankQuery = useCallback((query: {
+    pool: 'brains-heist' | 'school' | 'mine';
+    subject: string;
+    search: string;
+  }) => {
+    if (query.pool === 'mine') return;
+    void loadStudentQuestionBankPage({
+      subject: query.subject,
+      search: query.search || undefined,
+      pool: query.pool === 'brains-heist' ? 'brains_heist' : 'school',
+    });
+  }, [loadStudentQuestionBankPage]);
+
+  const loadMoreStudentQuestionBank = useCallback(() => {
+    if (!publicCatalogHasMore || publicCatalogLoadingMore || !publicCatalogQueryRef.current || !publicCatalogCursorRef.current) return;
+    void loadStudentQuestionBankPage(publicCatalogQueryRef.current, true);
+  }, [loadStudentQuestionBankPage, publicCatalogHasMore, publicCatalogLoadingMore]);
+
+  // Load subjects and progress only. Question payloads are fetched after the
+  // student chooses a subject/pool in the paged Question Bank.
   const loadSubjects = async () => {
     if (ftueTrainingEligible) {
       setStage('ftue_training');
@@ -742,12 +820,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setQuestionBankError(null);
     
     try {
-      const publicQuestionsPromise = GameService.get_public_questions().catch((error) => {
-        console.warn('[QuestView] Failed to load public question bank:', error);
-        setQuestionBankError('Unable to load the question bank right now.');
-        return [] as TeacherQuestion[];
-      });
-
       // Load regular practice subjects
       const data = await GameService.mcq_subjects_list();
       setSubjects(data);
@@ -801,17 +873,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       });
       
       setSubjectProgress(realProgress);
-
-      // Load public questions so students can browse the bank like teachers
-      const publicQuestionsResult = await publicQuestionsPromise;
-      const normalizedPublicQuestions = (publicQuestionsResult || []).map(normalizeAssignmentQuestion);
-      setPublicQuestions(normalizedPublicQuestions);
+      setPublicQuestions([]);
+      setPublicCatalogHasMore(false);
+      publicCatalogCursorRef.current = null;
+      publicCatalogQueryRef.current = null;
       setQuestionBankError(null);
       setStage('subject_selection');
     } catch (error) {
       console.error('Error loading subjects:', error);
       setPublicQuestions([]);
-      setQuestionBankError('Unable to load subjects or question bank.');
+      setQuestionBankError('Unable to load subjects right now.');
       setStage('subject_selection');
     } finally {
       setQuestionBankLoading(false);
@@ -1958,18 +2029,18 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 <div className="card-glass p-3 border border-cyan-400/30 text-center">
                   <p className="text-xs uppercase tracking-widest text-slate-400">Subjects</p>
                   <p className="font-heading text-xl text-white">
-                    {new Set(publicQuestions.map((question) => normalizeQuestionBankSubject(question.subject))).size || '—'}
+                    {subjects.length || '—'}
                   </p>
                 </div>
                 <div className="card-glass p-3 border border-indigo-400/30 text-center">
-                  <p className="text-xs uppercase tracking-widest text-slate-400">Topics</p>
+                  <p className="text-xs uppercase tracking-widest text-slate-400">Loaded topics</p>
                   <p className="font-heading text-xl text-white">
                     {new Set(publicQuestions.map((question) => question.topic_name || question.topic || 'General')).size || '—'}
                   </p>
                 </div>
                 <div className="card-glass p-3 border border-fuchsia-400/30 text-center">
                   <p className="text-xs uppercase tracking-widest text-slate-400">Questions</p>
-                  <p className="font-heading text-xl text-white">{publicQuestions.length || '—'}</p>
+                  <p className="font-heading text-xl text-white">{subjectProgress.reduce((sum, item) => sum + item.easy.total + item.medium.total + item.hard.total, 0) || '—'}</p>
                 </div>
               </div>
             </div>
@@ -1985,7 +2056,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 <p className="text-red-300 font-semibold mb-2">We hit a snag loading the question bank.</p>
                 <p className="text-gray-300 text-sm">{questionBankError}</p>
               </div>
-            ) : publicQuestions.length === 0 ? (
+            ) : subjects.length === 0 ? (
               <div className="card-glass p-6 text-center border border-cyan-500/30">
                 <p className="text-white font-heading text-xl mb-2">Your academic question set is not ready yet.</p>
                 <p className="text-gray-300 text-sm">Your school needs a current academic year, grade enrolment and subject plan. Elective subjects also require your individual enrolment.</p>
@@ -1996,9 +2067,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 teacher={null}
                 onUseSet={handleUseQuestionSet}
                 useActionLabel="Start Quest"
+                restrictedSubjects={subjects.map((subject) => subject.name as Subject)}
                 schoolName={currentProfile?.school_name || 'Your School'}
                 schoolLogoUrl={currentProfile?.school_logo_url}
                 schoolId={currentProfile?.school_id}
+                catalogHasMore={publicCatalogHasMore}
+                catalogLoading={publicCatalogLoadingMore}
+                onCatalogQueryChange={handleStudentQuestionBankQuery}
+                onCatalogLoadMore={loadMoreStudentQuestionBank}
               />
             )}
           </div>
