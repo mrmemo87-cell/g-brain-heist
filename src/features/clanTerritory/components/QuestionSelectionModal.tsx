@@ -43,7 +43,11 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
 }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedQuestions, setSelectedQuestions] = useState<Map<string, Question>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<{ createdAt: string; id: string } | null>(null);
   const [poolFilter, setPoolFilter] = useState<QuestionPoolFilter>("all");
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [topicFilter, setTopicFilter] = useState("all");
@@ -53,39 +57,83 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
 
   useEffect(() => {
     let cancelled = false;
-    const fetchQuestions = async () => {
-      try {
-        setLoading(true);
-        const available = await (async () => {
-            const pageSize = 500;
-            const unique = new Map<string, Question>();
-            for (let offset = 0; ; offset += pageSize) {
-              const page = await GameService.get_all_questions({ limit: pageSize, offset });
-              (page as Question[]).forEach((question) => unique.set(question.id, question));
-              if (page.length < pageSize) break;
-            }
-            return [...unique.values()];
-          })();
-        if (cancelled) return;
-        const permitted = restrictedSubjects?.length
-          ? new Set(restrictedSubjects.map(normalizeClanWarSubject))
-          : null;
-        setQuestions((available as Question[]).filter((question) =>
-          !permitted || permitted.has(normalizeClanWarSubject(question.subject || "")),
-        ));
-      } catch (error) {
-        console.error("Failed to load Clan Wars questions:", error);
-        if (!cancelled) {
-          setQuestions([]);
-          brainsAlert("We could not load the question pools. Please close this window and try again.", "error");
+    const timer = window.setTimeout(() => {
+      const fetchQuestions = async () => {
+        try {
+          setLoading(true);
+          const selectedSubjectLabel = subjectFilter === "all"
+            ? null
+            : restrictedSubjects?.find((subject) => normalizeClanWarSubject(subject) === subjectFilter)
+              || questions.find((question) => normalizeClanWarSubject(question.subject) === subjectFilter)?.subject
+              || null;
+          const page = await GameService.get_question_catalog_page({
+            subject: selectedSubjectLabel || undefined,
+            search: search.trim() || undefined,
+            topic: topicFilter === "all" ? undefined : topicFilter,
+            pool: poolFilter === "brains-heist" ? "brains_heist" : poolFilter,
+            pageSize: 60,
+          });
+          if (cancelled) return;
+          const permitted = restrictedSubjects?.length
+            ? new Set(restrictedSubjects.map(normalizeClanWarSubject))
+            : null;
+          setQuestions((page.items as Question[]).filter((question) =>
+            !permitted || permitted.has(normalizeClanWarSubject(question.subject || "")),
+          ));
+          setHasMore(page.hasMore);
+          setNextCursor(page.nextCursor);
+        } catch (error) {
+          console.error("Failed to load Clan Wars questions:", error);
+          if (!cancelled) {
+            setQuestions([]);
+            setHasMore(false);
+            setNextCursor(null);
+            brainsAlert("We could not load the question pools. Please close this window and try again.", "error");
+          }
+        } finally {
+          if (!cancelled) setLoading(false);
         }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      };
+      void fetchQuestions();
+    }, search.trim() ? 250 : 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
     };
-    void fetchQuestions();
-    return () => { cancelled = true; };
-  }, [restrictedSubjectKey]);
+  }, [poolFilter, restrictedSubjectKey, search, subjectFilter, topicFilter]);
+
+  const loadMore = async () => {
+    if (!hasMore || !nextCursor || loadingMore) return;
+    try {
+      setLoadingMore(true);
+      const selectedSubjectLabel = subjectFilter === "all"
+        ? null
+        : restrictedSubjects?.find((subject) => normalizeClanWarSubject(subject) === subjectFilter)
+          || questions.find((question) => normalizeClanWarSubject(question.subject) === subjectFilter)?.subject
+          || null;
+      const page = await GameService.get_question_catalog_page({
+        subject: selectedSubjectLabel || undefined,
+        search: search.trim() || undefined,
+        topic: topicFilter === "all" ? undefined : topicFilter,
+        pool: poolFilter === "brains-heist" ? "brains_heist" : poolFilter,
+        pageSize: 60,
+        cursor: nextCursor,
+      });
+      setQuestions((current) => {
+        const merged = new Map(current.map((question) => [question.id, question]));
+        (page.items as Question[]).forEach((question) => merged.set(question.id, question));
+        return [...merged.values()];
+      });
+      setHasMore(page.hasMore);
+      setNextCursor(page.nextCursor);
+    } catch (error) {
+      console.error("Failed to load more Clan Wars questions:", error);
+      brainsAlert("More questions could not be loaded. Please try again.", "error");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const poolQuestions = useMemo(
     () => questions.filter((question) => questionBelongsToPool(question, poolFilter)),
@@ -130,16 +178,28 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
   }, [topicFilter, topics]);
 
   const toggleQuestion = (id: string) => {
+    const question = questions.find((item) => item.id === id) || selectedQuestions.get(id);
     setSelectedIds((current) => {
       const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+        setSelectedQuestions((selected) => {
+          const updated = new Map(selected);
+          updated.delete(id);
+          return updated;
+        });
+      } else {
+        next.add(id);
+        if (question) {
+          setSelectedQuestions((selected) => new Map(selected).set(id, question));
+        }
+      }
       return next;
     });
   };
 
   const handleConfirm = () => {
-    const selected = questions.filter((question) => selectedIds.has(question.id));
+    const selected = [...selectedQuestions.values()].filter((question) => selectedIds.has(question.id));
     if (!selected.length) {
       brainsAlert("Select at least one question before starting the battle.", "info");
       return;
@@ -164,7 +224,7 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
 
         <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-5 py-3 text-xs text-slate-400">
           <span>Showing <strong className="text-white">{filteredQuestions.length}</strong> questions · <strong className="text-cyan-300">{selectedIds.size}</strong> selected</span>
-          <div className="flex gap-2"><button type="button" onClick={() => setSelectedIds((current) => new Set([...current, ...filteredQuestions.map((question) => question.id)]))} disabled={!filteredQuestions.length} className="rounded-lg bg-blue-600 px-3 py-2 font-bold text-white disabled:opacity-40">Select all shown</button><button type="button" onClick={() => setSelectedIds(new Set())} disabled={!selectedIds.size} className="rounded-lg border border-slate-700 px-3 py-2 font-bold text-slate-300 disabled:opacity-40">Clear</button></div>
+          <div className="flex gap-2"><button type="button" onClick={() => { setSelectedIds((current) => new Set([...current, ...filteredQuestions.map((question) => question.id)])); setSelectedQuestions((current) => { const next = new Map(current); filteredQuestions.forEach((question) => next.set(question.id, question)); return next; }); }} disabled={!filteredQuestions.length> className="rounded-lg bg-blue-600 px-3 py-2 font-bold text-white disabled:opacity-40">Select all shown</button><button type="button" onClick={() => { setSelectedIds(new Set()); setSelectedQuestions(new Map()); }} disabled={!selectedIds.size> className="rounded-lg border border-slate-700 px-3 py-2 font-bold text-slate-300 disabled:opacity-40">Clear</button></div>
         </div>
 
         <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain p-4 sm:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
@@ -179,6 +239,7 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
               })}
             </div>
           ) : <div className="grid min-h-60 place-items-center text-center"><div><p className="text-lg font-bold text-white">No questions match these filters</p><p className="mt-1 text-sm text-slate-400">Try All available pools or a broader subject and topic.</p></div></div>}
+          {hasMore ? <div className="mt-5 flex justify-center"><button type="button" onClick={() => void loadMore()} disabled={loadingMore} className="rounded-xl border border-slate-700 bg-slate-900 px-5 py-3 text-sm font-black text-white hover:border-cyan-400 disabled:opacity-50">{loadingMore ? "Loading more questions…" : "Load more questions"}</button></div> : null}
         </div>
 
         <footer className="shrink-0 flex gap-3 border-t border-slate-800 bg-slate-900/75 p-4 sm:p-6"><button type="button" onClick={onCancel} className="rounded-xl border border-slate-700 px-5 py-3 font-bold text-slate-300 hover:bg-slate-800">Cancel</button><button type="button" onClick={handleConfirm} disabled={!selectedIds.size} className="flex-1 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 font-black text-white shadow-lg shadow-blue-950/30 disabled:cursor-not-allowed disabled:opacity-40">Use {selectedIds.size} question{selectedIds.size === 1 ? "" : "s"} in battle</button></footer>
