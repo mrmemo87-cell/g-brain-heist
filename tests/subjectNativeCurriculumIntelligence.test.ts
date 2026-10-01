@@ -61,15 +61,15 @@ test('subject profiles give teachers subject-specific dimensions and language', 
 
 test('reasoning dimensions use subject-specific registry strands', () => {
   for (const strand of [
-    'eng\\.(reading|writing|listening|speaking)',
-    'math\\.mathematical-practice',
-    'science\\.(scientific-practice|context)',
-    'gp\\.(evaluation|communication|reflection|collaboration)',
-    'digital\\.(computational-thinking|programming)',
-    'geo\\.(enquiry|skills)',
-    'mfl\\.(listening|reading|speaking|writing)',
-    'travel\\.(research-analysis|impacts-sustainability)',
-    'econ\\.reasoning',
+    'eng[.](reading|writing|listening|speaking)',
+    'math[.]mathematical-practice',
+    'science[.](scientific-practice|context)',
+    'gp[.](evaluation|communication|reflection|collaboration)',
+    'digital[.](computational-thinking|programming)',
+    'geo[.](enquiry|skills)',
+    'mfl[.](listening|reading|speaking|writing)',
+    'travel[.](research-analysis|impacts-sustainability)',
+    'econ[.]reasoning',
   ]) {
     assert.ok(experience.includes(strand), 'missing reasoning strand pattern: ' + strand);
   }
