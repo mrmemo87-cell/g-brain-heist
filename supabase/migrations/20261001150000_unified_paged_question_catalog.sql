@@ -2092,3 +2092,68 @@ revoke all on function public.rpc_student_academic_subjects_for_year(uuid,uuid)
 from public,anon,authenticated,service_role;
 grant execute on function public.rpc_student_academic_subjects_for_year(uuid,uuid)
 to authenticated,service_role;
+
+
+-- ============================================================================
+-- Compatibility student/teacher learning catalogue delegates to paged authority
+-- ============================================================================
+
+create or replace function public.rpc_student_learning_catalog(
+  p_subject_code text default null,
+  p_limit integer default 20
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path=''
+as $function$
+declare
+  v_actor uuid:=auth.uid();
+  v_teacher uuid;
+  v_page jsonb;
+  v_limit integer:=greatest(1,least(coalesce(p_limit,20),100));
+begin
+  if v_actor is null then
+    raise exception using errcode='42501',message='authentication_required';
+  end if;
+
+  select t.id into v_teacher from public.teachers t where t.user_id=v_actor;
+
+  if v_teacher is not null then
+    v_page:=public.rpc_teacher_question_catalog_page(
+      p_subject_code,null,v_teacher,v_limit,null,null,null,null,'all'
+    );
+    return jsonb_build_object(
+      'success',coalesce((v_page->>'success')::boolean,true),
+      'ready',true,
+      'academicYearId',null,
+      'gradeLevel',null,
+      'scopeId',null,
+      'questions',coalesce(v_page->'items','[]'::jsonb)
+    );
+  end if;
+
+  v_page:=public.rpc_student_question_catalog_page(
+    p_subject_code,null,v_limit,null,null,null,null,'all'
+  );
+
+  return jsonb_build_object(
+    'success',coalesce((v_page->>'success')::boolean,true),
+    'ready',coalesce((v_page->>'ready')::boolean,true),
+    'code',v_page->>'code',
+    'academicYearId',v_page->'academicYearId',
+    'gradeLevel',v_page->'gradeLevel',
+    'scopeId',v_page->'scopeId',
+    'questions',coalesce(v_page->'items','[]'::jsonb)
+  );
+end;
+$function$;
+
+revoke all on function public.rpc_student_learning_catalog(text,integer)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_student_learning_catalog(text,integer)
+to authenticated,service_role;
+
+comment on function public.rpc_student_learning_catalog(text,integer) is
+  'Compatibility wrapper over the unified paged governed question catalogue. New interactive clients use cursor RPCs directly.';
