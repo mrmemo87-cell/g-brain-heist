@@ -1591,7 +1591,7 @@ begin
       completed as (
         select
           enrolled.academic_subject_id,
-          q.difficulty,
+          case when q.difficulty='med' then 'medium' else q.difficulty end difficulty,
           count(distinct q.id)::integer completed_count
         from enrolled_subjects enrolled
         join attempted attempt on true
@@ -1637,52 +1637,78 @@ begin
                 and item.content_hash=q.verified_content_hash
             )
           )
-        group by enrolled.academic_subject_id,q.difficulty
+        group by enrolled.academic_subject_id,
+          case when q.difficulty='med' then 'medium' else q.difficulty end
+      ),
+      completed_pivot as (
+        select
+          academic_subject_id,
+          coalesce(sum(completed_count),0)::integer answered_count,
+          coalesce(sum(completed_count) filter(where difficulty='easy'),0)::integer easy_completed,
+          coalesce(sum(completed_count) filter(where difficulty='medium'),0)::integer medium_completed,
+          coalesce(sum(completed_count) filter(where difficulty='hard'),0)::integer hard_completed
+        from completed
+        group by academic_subject_id
+      ),
+      subject_summary as (
+        select
+          enrolled.academic_subject_id,
+          enrolled.code,
+          enrolled.name,
+          enrolled.curriculum_scope_id,
+          coalesce(completed_pivot.answered_count,0)::integer answered_count,
+          coalesce(completed_pivot.easy_completed,0)::integer easy_completed,
+          coalesce(completed_pivot.medium_completed,0)::integer medium_completed,
+          coalesce(completed_pivot.hard_completed,0)::integer hard_completed,
+          private.governed_question_count_for_context(
+            v_school,v_year,v_grade,enrolled.academic_subject_id,
+            enrolled.curriculum_scope_id,null
+          ) total_available,
+          private.governed_question_count_for_context(
+            v_school,v_year,v_grade,enrolled.academic_subject_id,
+            enrolled.curriculum_scope_id,'easy'
+          ) easy_total,
+          private.governed_question_count_for_context(
+            v_school,v_year,v_grade,enrolled.academic_subject_id,
+            enrolled.curriculum_scope_id,'medium'
+          )
+          + private.governed_question_count_for_context(
+            v_school,v_year,v_grade,enrolled.academic_subject_id,
+            enrolled.curriculum_scope_id,'med'
+          ) medium_total,
+          private.governed_question_count_for_context(
+            v_school,v_year,v_grade,enrolled.academic_subject_id,
+            enrolled.curriculum_scope_id,'hard'
+          ) hard_total
+        from enrolled_subjects enrolled
+        left join completed_pivot
+          on completed_pivot.academic_subject_id=enrolled.academic_subject_id
       )
       select jsonb_agg(
         jsonb_build_object(
-          'id','subj_'||replace(enrolled.code,'-','_'),
-          'code',enrolled.code,
-          'name',enrolled.name,
-          'answeredCount',
-            coalesce(sum(completed.completed_count),0),
-          'totalAvailable',
-            private.governed_question_count_for_context(
-              v_school,v_year,v_grade,enrolled.academic_subject_id,
-              enrolled.curriculum_scope_id,null
-            ),
+          'id','subj_'||replace(summary.code,'-','_'),
+          'code',summary.code,
+          'name',summary.name,
+          'answeredCount',summary.answered_count,
+          'totalAvailable',summary.total_available,
           'difficulties',jsonb_build_object(
             'easy',jsonb_build_object(
-              'total',private.governed_question_count_for_context(
-                v_school,v_year,v_grade,enrolled.academic_subject_id,
-                enrolled.curriculum_scope_id,'easy'
-              ),
-              'completed',coalesce(max(completed.completed_count)
-                filter(where completed.difficulty='easy'),0)
+              'total',summary.easy_total,
+              'completed',summary.easy_completed
             ),
             'medium',jsonb_build_object(
-              'total',private.governed_question_count_for_context(
-                v_school,v_year,v_grade,enrolled.academic_subject_id,
-                enrolled.curriculum_scope_id,'medium'
-              ),
-              'completed',coalesce(max(completed.completed_count)
-                filter(where completed.difficulty in ('medium','med')),0)
+              'total',summary.medium_total,
+              'completed',summary.medium_completed
             ),
             'hard',jsonb_build_object(
-              'total',private.governed_question_count_for_context(
-                v_school,v_year,v_grade,enrolled.academic_subject_id,
-                enrolled.curriculum_scope_id,'hard'
-              ),
-              'completed',coalesce(max(completed.completed_count)
-                filter(where completed.difficulty='hard'),0)
+              'total',summary.hard_total,
+              'completed',summary.hard_completed
             )
           )
         )
-        order by enrolled.name
+        order by summary.name
       )
-      from enrolled_subjects enrolled
-      left join completed on completed.academic_subject_id=enrolled.academic_subject_id
-      group by enrolled.academic_subject_id,enrolled.code,enrolled.name,enrolled.curriculum_scope_id
+      from subject_summary summary
     ),'[]'::jsonb)
   );
 end;
