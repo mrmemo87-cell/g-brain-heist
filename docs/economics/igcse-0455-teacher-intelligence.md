@@ -236,3 +236,22 @@ Observed classroom accuracy is always displayed as evidence, never as:
 - a probability of examination success
 
 If no verified Economics questions have governed Cambridge paper/AO profiles, the teacher UI must show the dependency explicitly and remain unassessed.
+
+
+## Brains Heist Verified Paper 1 Readiness Bank v1
+
+The first governed Economics assessment release is `economics-0455-paper1-readiness-v1`.
+
+Design:
+- 40 original multiple-choice questions
+- Grade 10–11 eligible
+- all six public Cambridge 0455 content areas represented
+- exactly 20 AO1-primary and 20 AO2-primary question profiles
+- 40 content taxonomies plus 19 selective secondary reasoning taxonomies
+- every taxonomy resolves to `bh-economics-core-v1` skill → atomic subskill → governed Evidence Focus
+- every question is hash-bound, globally Brains Heist Verified, analytics-eligible and immutable after publication
+- no Cambridge specimen or past-paper question text is copied into the release
+
+Secondary reasoning evidence is deliberately sparse. It is attached only when the MCQ genuinely tests a transferable reasoning behaviour such as calculation, diagram interpretation, contextual application, causal-chain development or conditional evaluation. A topic question does not automatically become reasoning evidence.
+
+The package is published through `rpc_import_registry_verified_mcq_package(jsonb, boolean)`, a service-role-only, security-invoker importer. The complete release is validated before any question is inserted; taxonomy, duplicate, option, grade, AO or assessment-profile errors abort the transaction.
