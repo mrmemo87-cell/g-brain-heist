@@ -3456,6 +3456,21 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     });
   }, [teacher?.id]);
 
+  const handleAssignmentQuestionCatalogQuery = useCallback((query: {
+    subject: string;
+    search: string;
+    difficulty?: string;
+    topic?: string;
+    pool: 'all' | 'brains_heist' | 'school' | 'mine';
+  }) => {
+    void loadQuestionsOnDemand(query);
+  }, [teacher?.id]);
+
+  useEffect(() => {
+    if (view !== 'create-assignment' || !assignmentQuestionIds.length) return;
+    void hydrateSelectedQuestions(assignmentQuestionIds);
+  }, [assignmentQuestionIds, view]);
+
   const loadMoreQuestionCatalog = useCallback(() => {
     if (questionCatalogLoading || !questionCatalogHasMore) return;
     void loadQuestionsOnDemand(undefined, true);
@@ -6411,6 +6426,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           setAssignmentGroupId={setAssignmentGroupId}
           teacherId={teacher?.id}
           questions={questions}
+          questionCatalogHasMore={questionCatalogHasMore}
+          questionCatalogLoading={questionCatalogLoading}
+          onQuestionCatalogQueryChange={handleAssignmentQuestionCatalogQuery}
+          onQuestionCatalogLoadMore={loadMoreQuestionCatalog}
           onSubmit={handleCreateAssignment}
           onSaveDraft={handleSaveAssignmentDraft}
           onCancel={() => { resetAssignmentDraft(); setView('assignments'); }}
