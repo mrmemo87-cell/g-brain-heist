@@ -14,6 +14,10 @@ import {
   fetchTeacherTeachingGroups,
   type SchoolSubjectGroup,
 } from './schoolSubjectGroupService';
+import {
+  resolveCurriculumSubjectExperience,
+  type CurriculumSubjectExperience,
+} from './curriculumSubjectExperienceService';
 
 export interface CurriculumTeachingGroup extends SchoolSubjectGroup {
   subjectLabel: string;
@@ -41,6 +45,7 @@ interface CurriculumGroupEvidenceRpc {
 export interface TeacherCurriculumIntelligence {
   group: CurriculumTeachingGroup;
   registry: GameService.TeacherAcademicSkillRegistryResult;
+  experience: CurriculumSubjectExperience;
   evidenceBySubskill: Record<string, CurriculumSubskillEvidence>;
   hotspots: CurriculumHotspotEvidence[];
   reteachNext: CurriculumReteachRecommendation[];
@@ -130,10 +135,13 @@ export const getTeacherCurriculumIntelligence = async (
     paperReadinessPromise,
   ]);
 
+  const experience = resolveCurriculumSubjectExperience(group.subjectLabel, registry.registryVersion);
+
   if (!registry.supported) {
     return {
       group,
       registry,
+      experience,
       evidenceBySubskill: {},
       hotspots: [],
       reteachNext: [],
@@ -191,7 +199,7 @@ export const getTeacherCurriculumIntelligence = async (
 
   const evidence = [...evidenceBySubskill.values()];
   const hotspots = (groupEvidence.hotspots || []).filter((hotspot) => allowedSubskills.has(hotspot.subskillCode));
-  const reteachNext = buildReteachRecommendations(registry.skills, hotspots);
+  const reteachNext = buildReteachRecommendations(registry.skills, hotspots, experience.key);
   const leavesByCode = new Map(registry.skills.map((leaf) => [leaf.subskillCode, leaf]));
   const dimensionSummary = {
     content: { hotspotCount: 0, impactedStudents: new Set<string>(), persistentStudents: 0, recurringStudents: 0, improvingStudents: 0, resolvedStudents: 0 },
@@ -200,7 +208,7 @@ export const getTeacherCurriculumIntelligence = async (
   hotspots.forEach((hotspot) => {
     const leaf = leavesByCode.get(hotspot.subskillCode);
     if (!leaf) return;
-    const dimension = curriculumDimension(leaf);
+    const dimension = curriculumDimension(leaf, experience.key);
     if (hotspot.impactedStudents > 0) dimensionSummary[dimension].hotspotCount += 1;
     hotspot.students
       .filter((student) => student.status !== 'resolved')
@@ -235,6 +243,7 @@ export const getTeacherCurriculumIntelligence = async (
   return {
     group,
     registry,
+    experience,
     evidenceBySubskill: Object.fromEntries(evidenceBySubskill.entries()),
     hotspots,
     reteachNext,
