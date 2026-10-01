@@ -66,6 +66,15 @@ import {
 } from '../src/features/raids/raidTypes.js';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService.js';
 import { supabase } from './supabaseClient.js';
+import {
+    fetchStudentQuestionCatalogPage,
+    fetchStudentQuestionProgressSummary,
+    fetchTeacherQuestionCatalogPage,
+    fetchTeacherQuestionsByIds,
+    type QuestionCatalogCursor,
+    type QuestionCatalogPage,
+    type QuestionCatalogPool,
+} from './questionCatalogService.js';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from './cosmeticService.js';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage.js';
 import { notificationService } from './notificationService.js';
@@ -2732,12 +2741,15 @@ export const fetchStudentAcademicSubjectCatalog = async (): Promise<StudentAcade
 };
 
 const fetchStudentLearningCatalog = async (subject: string, limit: number): Promise<StudentLearningCatalog> => {
-    const { data, error } = await supabase.rpc('rpc_student_learning_catalog', {
-        p_subject_code: academicCodeForSubject(subject),
-        p_limit: limit,
+    const page = await fetchStudentQuestionCatalogPage({
+        subjectCode: academicCodeForSubject(subject),
+        pageSize: Math.max(1, Math.min(limit, 100)),
     });
-    if (error) throw error;
-    return (data || { success: true, ready: false, questions: [] }) as StudentLearningCatalog;
+    return {
+        success: page.success,
+        ready: page.ready !== false,
+        questions: page.items,
+    } as StudentLearningCatalog;
 };
 
 export const mcq_subjects_list = async (): Promise<SubjectData[]> => {
@@ -2779,100 +2791,16 @@ export const mcq_questions_get = async (subject_id: string, limit: number = 5): 
  */
 export const get_student_subject_progress = async (): Promise<{ id: string; name: string; answeredCount: number; totalAvailable: number }[]> => {
     try {
-        const user = await getCurrentUser();
-        
-        // Get all subjects
-        const subjects = await mcq_subjects_list();
-        
-        // Get DISTINCT question_ids answered by THIS student (not duplicate attempts)
-        // This prevents counting the same question multiple times
-        let attemptCounts: any[] = [];
-        try {
-            const { data, error: attemptError } = await supabase
-                .from('question_attempts')
-                .select('question_id')
-                .eq('student_id', user.id);
-            
-            if (attemptError) {
-                console.error('Error fetching student attempts:', attemptError);
-            } else {
-                attemptCounts = data || [];
-            }
-        } catch (err) {
-            console.warn('Failed to fetch attempt counts:', err);
-        }
-        
-        const questionData = (await get_public_questions()).map(({ id, subject }) => ({ id, subject }));
-        
-        // Build a map of question_id -> subject
-        const questionSubjectMap: Record<string, string> = {};
-        const totalBySubject: Record<string, number> = {};
-        for (const q of questionData) {
-            if (q.id && q.subject) {
-                questionSubjectMap[q.id] = q.subject;
-                totalBySubject[q.subject] = (totalBySubject[q.subject] || 0) + 1;
-            }
-        }
-        
-        // Build answer counts by subject using UNIQUE question_ids only
-        // Use a Set to track which questions have been answered per subject
-        const answeredQuestionsPerSubject: Record<string, Set<string>> = {};
-        for (const attempt of attemptCounts) {
-            const subject = questionSubjectMap[attempt.question_id];
-            if (subject) {
-                if (!answeredQuestionsPerSubject[subject]) {
-                    answeredQuestionsPerSubject[subject] = new Set();
-                }
-                answeredQuestionsPerSubject[subject].add(attempt.question_id);
-            }
-        }
-        
-        // Convert Sets to counts
-        const answeredBySubject: Record<string, number> = {};
-        for (const [subject, questionSet] of Object.entries(answeredQuestionsPerSubject)) {
-            answeredBySubject[subject] = questionSet.size;
-        }
-        
-        // Map to result with subject names (case-insensitive matching for robustness)
-        return subjects.map(s => {
-            // Try exact match first, then case-insensitive
-            let answered = answeredBySubject[s.name] || 0;
-            let total = totalBySubject[s.name] || 0;
-            
-            // If no match, try case-insensitive
-            if (answered === 0 && total === 0) {
-                const lowerName = s.name.toLowerCase();
-                for (const [subject, count] of Object.entries(answeredBySubject)) {
-                    if (subject.toLowerCase() === lowerName) {
-                        answered = count;
-                        break;
-                    }
-                }
-                for (const [subject, count] of Object.entries(totalBySubject)) {
-                    if (subject.toLowerCase() === lowerName) {
-                        total = count;
-                        break;
-                    }
-                }
-            }
-            
-            return {
-                id: s.id,
-                name: s.name,
-                answeredCount: answered,
-                totalAvailable: total,
-            };
-        });
+        const summary = await fetchStudentQuestionProgressSummary();
+        return summary.subjects.map((item) => ({
+            id: item.id,
+            name: item.name,
+            answeredCount: Number(item.answeredCount || 0),
+            totalAvailable: Number(item.totalAvailable || 0),
+        }));
     } catch (error) {
         console.error('get_student_subject_progress failed:', error);
-        // Return empty progress as fallback
-        const subjects = await mcq_subjects_list();
-        return subjects.map(s => ({
-            id: s.id,
-            name: s.name,
-            answeredCount: 0,
-            totalAvailable: 0,
-        }));
+        return [];
     }
 };
 
@@ -2890,137 +2818,32 @@ export interface SubjectProgressWithDifficulty {
     difficulties: DifficultyBreakdown;
 }
 
-/**
- * Get student subject progress with difficulty breakdown
- * Returns progress per subject, split by easy/medium/hard
- */
 export const get_student_subject_progress_with_difficulty = async (): Promise<SubjectProgressWithDifficulty[]> => {
     try {
-        const user = await getCurrentUser();
-        console.log('[Progress] Fetching progress for user:', user.id);
-        
-        // Get all subjects
-        const subjects = await mcq_subjects_list();
-        
-        // Get student's answered question IDs - using RLS to filter by student_id
-        let attemptCounts: { question_id: string }[] = [];
-        try {
-            // Note: RLS policy filters by auth.uid() = student_id automatically
-            // We don't need to manually filter, but we do for explicit clarity
-            const { data, error: attemptError } = await supabase
-                .from('question_attempts')
-                .select('question_id')
-                .eq('student_id', user.id);
-            
-            if (attemptError) {
-                console.error('[Progress] Error fetching student attempts:', attemptError);
-            } else {
-                attemptCounts = data || [];
-                console.log(`[Progress] Found ${attemptCounts.length} question attempts for user`);
-            }
-        } catch (err) {
-            console.warn('[Progress] Failed to fetch attempt counts:', err);
-        }
-        
-        // Build set of answered question IDs
-        const answeredQuestionIds = new Set(attemptCounts.map(a => a.question_id));
-        
-        const questionData = (await get_public_questions()).map(({ id, subject, difficulty }) => ({ id, subject, difficulty }));
-        
-        // Normalize difficulty values (db uses 'med' but UI uses 'medium')
-        const normalizeDifficulty = (d: string | null): 'easy' | 'medium' | 'hard' => {
-            if (!d) return 'easy'; // Default to easy if no difficulty set
-            const lower = d.toLowerCase();
-            if (lower === 'easy') return 'easy';
-            if (lower === 'med' || lower === 'medium') return 'medium';
-            if (lower === 'hard') return 'hard';
-            return 'easy'; // Default fallback
-        };
-        
-        // Build progress per subject with difficulty breakdown
-        const subjectProgress: Record<string, {
-            total: number;
-            answered: number;
+        const summary = await fetchStudentQuestionProgressSummary();
+        return summary.subjects.map((item) => ({
+            id: item.id,
+            name: item.name,
+            answeredCount: Number(item.answeredCount || 0),
+            totalAvailable: Number(item.totalAvailable || 0),
             difficulties: {
-                easy: { total: number; completed: number };
-                medium: { total: number; completed: number };
-                hard: { total: number; completed: number };
-            };
-        }> = {};
-        
-        for (const q of questionData) {
-            if (!q.subject) continue;
-            
-            const subjectKey = q.subject;
-            const difficulty = normalizeDifficulty(q.difficulty);
-            const isAnswered = answeredQuestionIds.has(q.id);
-            
-            if (!subjectProgress[subjectKey]) {
-                subjectProgress[subjectKey] = {
-                    total: 0,
-                    answered: 0,
-                    difficulties: {
-                        easy: { total: 0, completed: 0 },
-                        medium: { total: 0, completed: 0 },
-                        hard: { total: 0, completed: 0 }
-                    }
-                };
-            }
-            
-            subjectProgress[subjectKey].total++;
-            subjectProgress[subjectKey].difficulties[difficulty].total++;
-            
-            if (isAnswered) {
-                subjectProgress[subjectKey].answered++;
-                subjectProgress[subjectKey].difficulties[difficulty].completed++;
-            }
-        }
-        
-        // Map subjects to results with case-insensitive matching
-        return subjects.map(s => {
-            // Try exact match first
-            let progress = subjectProgress[s.name];
-            
-            // If no match, try case-insensitive
-            if (!progress) {
-                const lowerName = s.name.toLowerCase();
-                for (const [subject, prog] of Object.entries(subjectProgress)) {
-                    if (subject.toLowerCase() === lowerName) {
-                        progress = prog;
-                        break;
-                    }
-                }
-            }
-            
-            const defaultDifficulties = {
-                easy: { total: 0, completed: 0 },
-                medium: { total: 0, completed: 0 },
-                hard: { total: 0, completed: 0 }
-            };
-            
-            return {
-                id: s.id,
-                name: s.name,
-                answeredCount: progress?.answered || 0,
-                totalAvailable: progress?.total || 0,
-                difficulties: progress?.difficulties || defaultDifficulties
-            };
-        });
+                easy: {
+                    total: Number(item.difficulties?.easy?.total || 0),
+                    completed: Number(item.difficulties?.easy?.completed || 0),
+                },
+                medium: {
+                    total: Number(item.difficulties?.medium?.total || 0),
+                    completed: Number(item.difficulties?.medium?.completed || 0),
+                },
+                hard: {
+                    total: Number(item.difficulties?.hard?.total || 0),
+                    completed: Number(item.difficulties?.hard?.completed || 0),
+                },
+            },
+        }));
     } catch (error) {
         console.error('get_student_subject_progress_with_difficulty failed:', error);
-        // Return empty progress as fallback
-        const subjects = await mcq_subjects_list();
-        return subjects.map(s => ({
-            id: s.id,
-            name: s.name,
-            answeredCount: 0,
-            totalAvailable: 0,
-            difficulties: {
-                easy: { total: 0, completed: 0 },
-                medium: { total: 0, completed: 0 },
-                hard: { total: 0, completed: 0 }
-            }
-        }));
+        return [];
     }
 };
 
@@ -5450,6 +5273,24 @@ export const get_my_questions = async (): Promise<TeacherQuestion[]> => {
  * exact-curriculum Global Verified, same-school Verified, and the caller's
  * own private Teacher Pool questions.
  */
+export const get_question_catalog_page = async (filters?: {
+    subject?: string;
+    difficulty?: string;
+    teacherId?: string;
+    pageSize?: number;
+    cursor?: QuestionCatalogCursor | null;
+    search?: string;
+    topic?: string;
+    pool?: QuestionCatalogPool;
+}): Promise<QuestionCatalogPage> => fetchTeacherQuestionCatalogPage(filters);
+
+export const get_questions_by_ids = async (questionIds: string[]): Promise<TeacherQuestion[]> =>
+    fetchTeacherQuestionsByIds(questionIds);
+
+/**
+ * Compatibility helper for non-interactive code that still needs a bounded list.
+ * Interactive question-bank surfaces must use get_question_catalog_page().
+ */
 export const get_all_questions = async (filters?: {
     subject?: string;
     difficulty?: string;
@@ -5457,57 +5298,36 @@ export const get_all_questions = async (filters?: {
     limit?: number;
     offset?: number;
 }): Promise<(TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[]> => {
-    // Keep each browser-facing RPC comfortably below PostgREST's authenticated
-    // statement timeout. The governed catalogue joins curriculum mappings and can
-    // exceed the timeout when 500 rows plus metadata are requested in one shot.
-    const requestedLimit = Math.max(1, Math.min(filters?.limit ?? 500, 1000));
+    const requestedLimit = Math.max(1, Math.min(filters?.limit ?? 100, 1000));
     const requestedOffset = Math.max(filters?.offset ?? 0, 0);
-    const rpcChunkSize = 100;
-    const questions: (TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[] = [];
+    const pageSize = Math.min(100, Math.max(40, requestedLimit));
+    const questions: TeacherQuestion[] = [];
+    let cursor: QuestionCatalogCursor | null = null;
+    let skipped = 0;
 
-    for (let loaded = 0; loaded < requestedLimit; loaded += rpcChunkSize) {
-        const chunkLimit = Math.min(rpcChunkSize, requestedLimit - loaded);
-        const { data, error } = await supabase.rpc('get_all_active_questions', {
-            p_subject: filters?.subject || null,
-            p_difficulty: filters?.difficulty || null,
-            p_teacher_id: filters?.teacherId || null,
-            p_limit: chunkLimit,
-            p_offset: requestedOffset + loaded,
+    while (questions.length < requestedLimit) {
+        const page = await fetchTeacherQuestionCatalogPage({
+            subject: filters?.subject,
+            difficulty: filters?.difficulty,
+            teacherId: filters?.teacherId,
+            pageSize,
+            cursor,
         });
 
-        if (error) throw error;
-        const chunk = (data || []) as (TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[];
-        questions.push(...chunk);
-        if (chunk.length < chunkLimit) break;
-    }
-
-    if (!questions.length) return questions;
-
-    const byQuestion = new Map<string, any>();
-    for (let start = 0; start < questions.length; start += rpcChunkSize) {
-        const questionChunk = questions.slice(start, start + rpcChunkSize);
-        const { data: metadata, error: metadataError } = await supabase.rpc('rpc_question_curriculum_metadata', {
-            p_question_ids: questionChunk.map((question) => question.id),
-        });
-        if (metadataError) {
-            console.warn('Question curriculum metadata could not be loaded:', metadataError);
-            continue;
+        for (const question of page.items) {
+            if (skipped < requestedOffset) {
+                skipped += 1;
+                continue;
+            }
+            questions.push(question);
+            if (questions.length >= requestedLimit) break;
         }
-        (metadata || []).forEach((item: any) => byQuestion.set(item.questionId, item));
+
+        if (!page.hasMore || !page.nextCursor) break;
+        cursor = page.nextCursor;
     }
 
-    return questions.map((question) => {
-        const item: any = byQuestion.get(question.id);
-        return item ? {
-            ...question,
-            curriculum_strand: item.strand,
-            curriculum_skill: item.skill,
-            curriculum_subskill: item.subskill,
-            curriculum_objective: item.objective,
-            eligible_grade_levels: item.eligibleGradeLevels || [],
-            curriculum_review_status: item.reviewStatus,
-        } : question;
-    });
+    return questions as (TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[];
 };
 
 /**
@@ -5645,29 +5465,34 @@ let publicQuestionsInFlight: { key: string; request: Promise<TeacherQuestion[]> 
 
 export const get_public_questions = async (subject?: string, difficulty?: string): Promise<TeacherQuestion[]> => {
     const key = `${academicCodeForSubject(subject ?? '')}:${difficulty ?? ''}`;
-    if (publicQuestionsInFlight?.key === key) {
-        return publicQuestionsInFlight.request;
-    }
+    if (publicQuestionsInFlight?.key === key) return publicQuestionsInFlight.request;
 
     const request = (async () => {
+        if (subject) {
+            const page = await fetchStudentQuestionCatalogPage({
+                subjectCode: academicCodeForSubject(subject),
+                difficulty,
+                pageSize: 100,
+            });
+            return page.items;
+        }
+
         const subjectCatalog = await fetchStudentAcademicSubjectCatalog();
-        const requestedSubjects = subject
-            ? subjectCatalog.subjects.filter((item) => academicCodeForSubject(item.name) === academicCodeForSubject(subject))
-            : subjectCatalog.subjects;
-        const catalogs = await Promise.all(
-            requestedSubjects.map((item) => fetchStudentLearningCatalog(item.code, 500)),
-        );
-        return catalogs.flatMap((catalog) => catalog.questions)
-            .filter((question) => !difficulty || question.difficulty === difficulty);
+        const pages = await Promise.all(subjectCatalog.subjects.map((item) =>
+            fetchStudentQuestionCatalogPage({
+                subjectCode: academicCodeForSubject(item.code || item.name),
+                difficulty,
+                pageSize: 40,
+            }),
+        ));
+        return pages.flatMap((page) => page.items);
     })();
 
     publicQuestionsInFlight = { key, request };
     try {
         return await request;
     } finally {
-        if (publicQuestionsInFlight?.request === request) {
-            publicQuestionsInFlight = null;
-        }
+        if (publicQuestionsInFlight?.request === request) publicQuestionsInFlight = null;
     }
 };
 
@@ -5677,33 +5502,15 @@ export const get_public_questions = async (subject?: string, difficulty?: string
  */
 export const get_subject_question_progress = async (subject: string): Promise<{ answeredCount: number; totalCount: number }> => {
     try {
-        const user = await getCurrentUser();
-        const questions = await get_public_questions(subject);
-        const questionIds = questions.map(q => q.id);
-        const totalCount = questionIds.length;
-        
-        if (totalCount === 0) {
-            return { answeredCount: 0, totalCount: 0 };
-        }
-        
-        // Get student's attempts for these questions
-        const { data: attempts, error: attemptsError } = await supabase
-            .from('question_attempts')
-            .select('question_id')
-            .eq('student_id', user.id)
-            .in('question_id', questionIds);
-        
-        if (attemptsError) {
-            console.error('Error fetching attempts for progress:', attemptsError);
-            return { answeredCount: 0, totalCount };
-        }
-        
-        // Count unique question_ids answered
-        const uniqueAnswered = new Set((attempts || []).map(a => a.question_id));
-        
-        return { 
-            answeredCount: uniqueAnswered.size, 
-            totalCount 
+        const summary = await fetchStudentQuestionProgressSummary();
+        const key = academicCodeForSubject(subject);
+        const row = summary.subjects.find((item) =>
+            academicCodeForSubject(item.code || item.name) === key
+            || academicCodeForSubject(item.name) === key
+        );
+        return {
+            answeredCount: Number(row?.answeredCount || 0),
+            totalCount: Number(row?.totalAvailable || 0),
         };
     } catch (error) {
         console.error('get_subject_question_progress failed:', error);
