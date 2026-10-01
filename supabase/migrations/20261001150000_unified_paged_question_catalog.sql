@@ -1346,22 +1346,42 @@ security definer
 set search_path=''
 as $function$
 declare
+  v_requested integer:=greatest(1,least(coalesce(p_limit,500),1000));
+  v_skip integer:=greatest(coalesce(p_offset,0),0);
+  v_cursor_created_at timestamptz:=null;
+  v_cursor_id uuid:=null;
   v_page jsonb;
+  v_item jsonb;
+  v_items jsonb:='[]'::jsonb;
+  v_taken integer:=0;
 begin
-  -- Offset compatibility is intentionally capped. New code must use the cursor RPC.
-  if greatest(coalesce(p_offset,0),0)>5000 then
-    raise exception using errcode='22023',message='question_catalog_offset_too_large_use_cursor_pagination';
-  end if;
+  -- Compatibility only. Browser surfaces use rpc_teacher_question_catalog_page
+  -- directly, so total bank size never dictates initial payload.
+  loop
+    exit when v_taken>=v_requested;
 
-  -- Compatibility pages up to 100 rows; advance cursor internally only as needed.
-  -- This keeps old callers correct without allowing giant single responses.
-  if greatest(1,least(coalesce(p_limit,500),1000))>100 then
-    p_limit:=100;
-  end if;
+    v_page:=public.rpc_teacher_question_catalog_page(
+      p_subject,p_difficulty,p_teacher_id,100,
+      v_cursor_created_at,v_cursor_id,null,null,'all'
+    );
 
-  v_page:=public.rpc_teacher_question_catalog_page(
-    p_subject,p_difficulty,p_teacher_id,p_limit,null,null,null,null,'all'
-  );
+    for v_item in
+      select value from jsonb_array_elements(coalesce(v_page->'items','[]'::jsonb))
+    loop
+      if v_skip>0 then
+        v_skip:=v_skip-1;
+      elsif v_taken<v_requested then
+        v_items:=v_items||jsonb_build_array(v_item);
+        v_taken:=v_taken+1;
+      end if;
+    end loop;
+
+    exit when coalesce((v_page->>'hasMore')::boolean,false) is false;
+    exit when v_page->'nextCursor' is null;
+
+    v_cursor_created_at:=(v_page->'nextCursor'->>'createdAt')::timestamptz;
+    v_cursor_id:=(v_page->'nextCursor'->>'id')::uuid;
+  end loop;
 
   return query
   select
@@ -1410,7 +1430,7 @@ begin
       else '{}'::smallint[] end,
     item->>'pool_scope',
     nullif(item->>'owner_school_id','')::uuid
-  from jsonb_array_elements(coalesce(v_page->'items','[]'::jsonb)) item;
+  from jsonb_array_elements(v_items) item;
 end;
 $function$;
 
