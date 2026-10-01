@@ -298,3 +298,27 @@ This taxonomy is not a Cambridge syllabus identity. External programme/paper/AO 
 `student_learning_registry_item_evidence` is append-only. It only materializes from analytics-eligible verified assignment snapshots whose content hash still matches the current immutable verified question. Targeted intervention practice may be recorded in the ledger, but it is explicitly non-independent and does not qualify as mastery evidence.
 
 The registry-native lane runs alongside the mature curriculum-framework evidence lane. Existing subjects and historical evidence are not migrated or rewritten merely because registry-native evidence becomes available.
+
+
+## Subject-native teacher experience
+
+The canonical registry remains generic infrastructure, but Curriculum Intelligence presents each published registry in subject-appropriate school language.
+
+The UI resolves a subject experience from the selected teaching group's registry/version and adapts:
+- the two teaching dimensions
+- curriculum search language
+- Teaching Radar wording
+- reteach guidance
+- reassessment guidance
+- assessment lens
+
+This is presentation and teaching guidance only; canonical skill/subskill/Evidence Focus identities remain unchanged.
+
+Reasoning/application dimensions are derived from the real registry strand design. Examples:
+- `math.mathematical-practice`
+- `science.scientific-practice`
+- `geo.skills` / `geo.enquiry`
+- `econ.reasoning`
+- receptive/productive communication strands for English and Modern Languages
+
+The system must preserve one evidence architecture across subjects rather than create subject-specific Academic Profile silos.

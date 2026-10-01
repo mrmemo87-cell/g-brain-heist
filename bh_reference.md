@@ -1616,3 +1616,47 @@ The first production release is:
 - Grade 10–11 eligible
 
 Bank questions are original Brains Heist content. Cambridge programme, paper and AO labels are alignment metadata only; no Cambridge specimen or past-paper question text is stored as Brains Heist authored content.
+
+
+## Subject-native Curriculum Intelligence
+
+Curriculum Intelligence is one governed engine with subject-native teacher experiences.
+
+Supported published registry families currently receive dedicated teacher language:
+- English / ESL
+- Mathematics
+- Science / Biology / Chemistry / Physics
+- Global Perspectives
+- Digital Technology / ICT / Computing
+- Geography
+- Modern Languages
+- Travel & Tourism
+- Economics
+
+The selected teaching group must drive the experience. Do **not** auto-prefer Economics or any other subject. The page may remember the teacher's last selected teaching group locally.
+
+The subject experience controls:
+- headline and teacher-facing explanation
+- knowledge vs reasoning/application dimension labels
+- reasoning-strand classification
+- Teaching Radar wording
+- subject-appropriate misconception/barrier language
+- subject-specific classroom move and reteach sequence
+- independent reassessment language
+- assessment/marking lens
+- curriculum navigator title and search language
+
+Examples:
+- Mathematics → Mathematical knowledge & methods / Thinking & working mathematically
+- Science → Scientific knowledge / Scientific practice & reasoning
+- English → Language knowledge / Communication & comprehension
+- Geography → Geographical knowledge / Geographical skills & enquiry
+- Global Perspectives → Research & analysis / Evaluation & communication
+
+Economics keeps its Paper Readiness and governed diagnostic launcher as an additional extension. Those Economics-only features must remain conditional and must not leak into other subjects.
+
+For subjects without a dedicated diagnostic launcher, the normal school evidence flow remains:
+
+**Assignments → Academic Profile → Curriculum Intelligence**
+
+Subject-native UI does not create a separate evidence path.

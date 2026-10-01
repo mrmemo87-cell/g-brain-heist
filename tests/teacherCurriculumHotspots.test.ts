@@ -5,6 +5,7 @@ import test from 'node:test';
 const page = readFileSync('components/teacher/TeacherCurriculumIntelligencePage.tsx', 'utf8');
 const service = readFileSync('services/teacherCurriculumIntelligenceService.ts', 'utf8');
 const actions = readFileSync('services/teacherCurriculumActionService.ts', 'utf8');
+const subjectExperience = readFileSync('services/curriculumSubjectExperienceService.ts', 'utf8');
 const migration = readFileSync('supabase/migrations/20260930174500_add_curriculum_class_hotspots.sql', 'utf8');
 
 test('class hotspots stay inside the single curriculum intelligence RPC', () => {
@@ -23,11 +24,15 @@ test('hotspots use longitudinal governed focus states and preserve progress stat
   assert.match(migration, /private\.subject_group_roster\(p_group_id\)/);
 });
 
-test('reteach priority separates economics content from exam reasoning', () => {
+test('reteach dimensions are subject-native rather than Economics-only', () => {
   assert.match(actions, /CurriculumTeachingDimension = 'content' \| 'reasoning'/);
-  assert.match(actions, /leaf\.strandCode === 'econ\.reasoning'/);
-  assert.match(page, /Economics content/);
-  assert.match(page, /Exam & reasoning/);
+  assert.match(actions, /curriculumDimensionForSubject/);
+  assert.match(subjectExperience, /Economics content/);
+  assert.match(subjectExperience, /Thinking & working mathematically/);
+  assert.match(subjectExperience, /Scientific practice & reasoning/);
+  assert.match(subjectExperience, /Communication & comprehension/);
+  assert.match(page, /experience\?\.contentDimension\.title/);
+  assert.match(page, /experience\?\.reasoningDimension\.title/);
 });
 
 test('teacher actions are deterministic and evidence-grounded', () => {
@@ -36,10 +41,10 @@ test('teacher actions are deterministic and evidence-grounded', () => {
   assert.match(actions, /recurringStudents \* 6/);
   assert.match(actions, /whyNow/);
   assert.match(page, /Why now/);
-  assert.match(page, /Likely misconception to test/);
-  assert.match(page, /Four-step reteach/);
-  assert.match(page, /Reassess independently/);
-  assert.match(page, /Examiner lens/);
+  assert.match(page, /experience\?\.barrierLabel/);
+  assert.match(page, /experience\?\.reteachLabel/);
+  assert.match(page, /experience\?\.reassessmentLabel/);
+  assert.match(page, /experience\?\.assessmentLensLabel/);
 });
 
 test('economics playbook covers priority syllabus and reasoning patterns', () => {

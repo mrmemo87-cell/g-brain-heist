@@ -14,17 +14,20 @@ test('teacher portal exposes Curriculum Intelligence as a governed reporting wor
   assert.match(portal, /'curriculum-intelligence': FEATURE_KEYS\.REPORTS/);
 });
 
-test('curriculum intelligence is teaching-group scoped and defaults to Economics when available', () => {
+test('curriculum intelligence is teaching-group scoped and remembers the teacher\'s own subject choice', () => {
   assert.match(service, /fetchTeacherTeachingGroups/);
   assert.match(service, /rpc_teacher_curriculum_group_evidence/);
-  assert.match(page, /\/economics\/i\.test\(group\.subjectLabel\)/);
+  assert.match(page, /curriculumGroupStorageKey/);
+  assert.match(page, /window\.localStorage\.getItem/);
+  assert.match(page, /window\.localStorage\.setItem/);
+  assert.doesNotMatch(page, /const economics = rows\.find/);
   assert.match(page, /Teaching group/);
 });
 
 test('curriculum intelligence consumes the canonical registry and external framework metadata', () => {
   assert.match(service, /get_teacher_academic_skill_registry/);
   assert.match(page, /frameworkAlignments/);
-  assert.match(page, /Programme alignment/);
+  assert.match(page, /Programme & curriculum alignment/);
   assert.match(page, /Strand → skill → subskill/);
   assert.match(page, /Evidence Focus catalogue/);
 });

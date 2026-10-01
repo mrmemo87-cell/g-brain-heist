@@ -67,6 +67,8 @@ const paperEvidenceState = (state: 'not_assessed' | 'low_data' | 'evidence_estab
   evidence_established: { label: 'Evidence established', className: 'border-emerald-200 bg-emerald-50 text-emerald-800' },
 }[state]);
 
+const curriculumGroupStorageKey = (profileId: string) => `bh:curriculum-intelligence:selected-group:${profileId}`;
+
 const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligencePageProps> = ({
   profile,
   onBack,
@@ -100,8 +102,14 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
         const rows = await getTeacherCurriculumGroups(profile.school_id);
         if (!active) return;
         setGroups(rows);
-        const economics = rows.find((group) => /economics/i.test(group.subjectLabel));
-        setSelectedGroupId((economics || rows[0])?.id || '');
+        let rememberedGroupId = '';
+        try {
+          rememberedGroupId = window.localStorage.getItem(curriculumGroupStorageKey(profile.id)) || '';
+        } catch {
+          rememberedGroupId = '';
+        }
+        const rememberedGroup = rows.find((group) => group.id === rememberedGroupId);
+        setSelectedGroupId((rememberedGroup || rows[0])?.id || '');
       } catch (loadError) {
         console.error('Curriculum Intelligence groups failed to load', loadError);
         if (active) setError('We could not load your curriculum groups. Refresh and try again.');
@@ -139,7 +147,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
         console.error('Curriculum Intelligence snapshot failed to load', loadError);
         if (active) {
           setSnapshot(null);
-          setError('This curriculum map is not available yet. If Economics was just deployed, apply the merged database migration first.');
+          setError('This curriculum map is not available for this teaching group yet. Refresh and try again, or contact your school administrator if the subject was recently configured.');
         }
       } finally {
         if (active) setLoadingSnapshot(false);
@@ -236,6 +244,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
   const alignments = snapshot?.registry.frameworkAlignments || [];
   const contentAlignments = alignments.filter((item) => item.alignmentLevel === 'subject_content');
   const aoAlignments = alignments.filter((item) => item.alignmentLevel === 'assessment_objective');
+  const experience = snapshot?.experience;
   const canLaunchEconomicsDiagnostic = Boolean(
     profile.school_id
     && selectedGroup
@@ -263,11 +272,11 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
           <div className="max-w-3xl">
             <button type="button" onClick={onBack} className="mb-3 text-sm font-semibold text-slate-500 hover:text-slate-900">← Teacher dashboard</button>
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-cyan-700">Curriculum Intelligence</span>
+              <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-cyan-700">{experience?.eyebrow || 'Curriculum Intelligence'}</span>
               {snapshot?.registry.registryVersion ? <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{snapshot.registry.registryVersion}</span> : null}
             </div>
-            <h1 id="curriculum-intelligence-title" className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Know what is mapped, what has evidence, and what still needs assessment.</h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">This workspace separates curriculum coverage from attainment. “Not assessed” means Brains Heist does not yet have enough governed evidence; it does not mean a student is weak.</p>
+            <h1 id="curriculum-intelligence-title" className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">{experience?.headline || 'Know what is mapped, what has evidence, and what still needs assessment.'}</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{experience?.intro || 'This workspace separates curriculum coverage from attainment.'} “Not assessed” means Brains Heist does not yet have enough governed evidence; it does not mean a student is weak.</p>
           </div>
 
           <div className="min-w-[280px] space-y-2">
@@ -276,8 +285,17 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               <select
                 value={selectedGroupId}
                 onChange={(event) => {
-                  setSelectedGroupId(event.target.value);
+                  const nextGroupId = event.target.value;
+                  setSelectedGroupId(nextGroupId);
                   setDiagnosticLauncherOpen(false);
+                  setQuery('');
+                  setStrandCode('all');
+                  setEvidenceFilter('all');
+                  try {
+                    window.localStorage.setItem(curriculumGroupStorageKey(profile.id), nextGroupId);
+                  } catch {
+                    // Selection still works if browser storage is unavailable.
+                  }
                 }}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-cyan-500"
               >
@@ -302,6 +320,12 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-lg transition group-hover:bg-white/15" aria-hidden="true">→</span>
                 </span>
               </button>
+            ) : snapshot?.registry.supported ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">School evidence flow</span>
+                <strong className="mt-0.5 block text-sm text-slate-800">{experience?.subjectName || selectedGroup?.subjectLabel} assignments feed this view automatically</strong>
+                <span className="mt-1 block text-[11px] leading-4 text-slate-500">Assignments → Academic Profile → Curriculum Intelligence</span>
+              </div>
             ) : null}
           </div>
         </div>
@@ -345,8 +369,8 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
             <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl">
                 <span className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">Teaching radar</span>
-                <h2 className="mt-1 text-2xl font-black">What should I reteach next?</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-300">Brains Heist prioritises only governed longitudinal evidence. Persistent and recurring needs rise first; improving students stay visible, while resolved needs are celebrated rather than treated as current weakness.</p>
+                <h2 className="mt-1 text-2xl font-black">{experience?.radarTitle || 'What should I teach next?'}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{experience?.radarDescription || 'Brains Heist prioritises only governed longitudinal evidence.'} Resolved needs are celebrated rather than treated as current weakness.</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs leading-5 text-slate-300">
                 <strong className="block text-white">Decision rule</strong>
@@ -356,8 +380,8 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
 
             <div className="grid gap-3 lg:grid-cols-2">
               {([
-                ['content', 'Economics content', 'Concepts, mechanisms, diagrams and calculations', snapshot.dimensions.content],
-                ['reasoning', 'Exam & reasoning', 'Application, data use, causal chains, evaluation and judgement', snapshot.dimensions.reasoning],
+                ['content', experience?.contentDimension.title || 'Subject knowledge', experience?.contentDimension.description || 'Core subject knowledge and methods.', snapshot.dimensions.content],
+                ['reasoning', experience?.reasoningDimension.title || 'Application & reasoning', experience?.reasoningDimension.description || 'Applying knowledge, reasoning and communicating independently.', snapshot.dimensions.reasoning],
               ] as const).map(([key, title, description, dimension]) => (
                 <article key={key} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                   <div className="flex items-start justify-between gap-4">
@@ -387,7 +411,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="rounded-full bg-slate-950 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-white">#{recommendation.rank} reteach next</span>
                           <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${reteachTone(recommendation.priority)}`}>{recommendation.priority}</span>
-                          <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cyan-800">{recommendation.dimension === 'reasoning' ? 'Exam reasoning' : 'Content'}</span>
+                          <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cyan-800">{recommendation.dimension === 'reasoning' ? (experience?.reasoningDimension.title || 'Reasoning') : (experience?.contentDimension.title || 'Knowledge')}</span>
                         </div>
                         <h3 className="mt-3 text-lg font-black leading-tight text-slate-950">{recommendation.subskillName}</h3>
                         <p className="mt-1 text-xs text-slate-500">{recommendation.strandName} · {recommendation.skillName}</p>
@@ -405,17 +429,17 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
 
                     <div className="mt-3 grid gap-3 md:grid-cols-2">
                       <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-3">
-                        <span className="text-[10px] font-black uppercase tracking-[0.14em] text-rose-600">Likely misconception to test</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.14em] text-rose-600">{experience?.barrierLabel || 'Likely learning barrier to test'}</span>
                         <p className="mt-1 text-xs leading-5 text-slate-700">{recommendation.misconception}</p>
                       </div>
                       <div className="rounded-xl border border-cyan-100 bg-cyan-50/60 p-3">
-                        <span className="text-[10px] font-black uppercase tracking-[0.14em] text-cyan-700">Classroom move</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.14em] text-cyan-700">{experience?.classroomMoveLabel || 'Classroom move'}</span>
                         <p className="mt-1 text-xs leading-5 text-slate-700">{recommendation.classroomMove}</p>
                       </div>
                     </div>
 
                     <div className="mt-3">
-                      <span className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Four-step reteach</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">{experience?.reteachLabel || 'Four-step reteach'}</span>
                       <ol className="mt-2 grid gap-2 text-xs leading-5 text-slate-700 sm:grid-cols-2">
                         {recommendation.teachSequence.map((step, index) => (
                           <li key={step} className="flex gap-2 rounded-xl border border-slate-100 p-2">
@@ -427,8 +451,8 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                     </div>
 
                     <div className="mt-3 grid gap-2 text-xs leading-5 md:grid-cols-2">
-                      <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3"><strong className="block text-emerald-800">Reassess independently</strong><span className="mt-1 block text-slate-700">{recommendation.reassessment}</span></div>
-                      <div className="rounded-xl border border-violet-100 bg-violet-50/60 p-3"><strong className="block text-violet-800">Examiner lens</strong><span className="mt-1 block text-slate-700">{recommendation.examinerLens}</span></div>
+                      <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3"><strong className="block text-emerald-800">{experience?.reassessmentLabel || 'Reassess independently'}</strong><span className="mt-1 block text-slate-700">{recommendation.reassessment}</span></div>
+                      <div className="rounded-xl border border-violet-100 bg-violet-50/60 p-3"><strong className="block text-violet-800">{experience?.assessmentLensLabel || 'Assessment lens'}</strong><span className="mt-1 block text-slate-700">{recommendation.examinerLens}</span></div>
                     </div>
 
                     <details className="mt-3 rounded-xl border border-slate-200">
@@ -446,8 +470,8 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               </div>
             ) : (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <strong className="text-base">No qualified class hotspot yet.</strong>
-                <p className="mt-1 text-sm leading-6 text-slate-300">That is not the same as “no weakness”. It means the current governed longitudinal evidence does not justify a class-level reteach priority yet. Continue assessing the curriculum normally and this radar will populate as qualified evidence accumulates.</p>
+                <strong className="text-base">{experience?.noHotspotTitle || 'No qualified class hotspot yet.'}</strong>
+                <p className="mt-1 text-sm leading-6 text-slate-300">{experience?.noHotspotDescription || 'Current governed evidence does not yet justify a class-level teaching priority.'} Continue normal assessment and this radar will populate as qualified evidence accumulates.</p>
               </div>
             )}
 
@@ -604,8 +628,8 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-700">Programme alignment</span>
-                    <h2 className="mt-1 text-xl font-black text-slate-950">{snapshot.registry.cambridgeProgrammes?.[0]?.name || selectedGroup?.subjectLabel}</h2>
+                    <span className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-700">Programme & curriculum alignment</span>
+                    <h2 className="mt-1 text-xl font-black text-slate-950">{snapshot.registry.cambridgeProgrammes?.[0]?.name || `${experience?.subjectName || selectedGroup?.subjectLabel} curriculum`}</h2>
                     <p className="mt-1 text-sm text-slate-500">{humanizePhase(snapshot.registry.phase)} · {alignments[0]?.sourceVersion || 'Version not supplied'} · external framework metadata</p>
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs font-semibold">
@@ -628,10 +652,11 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                 <div className="mb-4 flex flex-col gap-3">
                   <div>
                     <span className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-700">Curriculum navigator</span>
-                    <h2 className="mt-1 text-xl font-black text-slate-950">Strand → skill → subskill</h2>
+                    <h2 className="mt-1 text-xl font-black text-slate-950">{experience?.navigatorTitle || 'Curriculum map'}</h2>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">{experience?.navigatorDescription || 'Strand → skill → subskill'}</p>
                   </div>
                   <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_220px_190px]">
-                    <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search concepts, skills or codes…" className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-cyan-500" />
+                    <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={experience?.searchPlaceholder || 'Search concepts, skills or codes…'} className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-cyan-500" />
                     <select value={strandCode} onChange={(event) => setStrandCode(event.target.value)} className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700">
                       <option value="all">All strands</option>
                       {strands.map((strand) => <option key={strand.code} value={strand.code}>{strand.name}</option>)}
@@ -702,7 +727,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               </article>
 
               <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                <span className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-700">Selected subskill</span>
+                <span className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-700">Selected {experience?.subjectName || 'curriculum'} subskill</span>
                 {selectedLeaf ? (
                   <>
                     <h3 className="mt-2 text-lg font-black text-slate-950">{selectedLeaf.subskillName}</h3>
@@ -728,7 +753,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                     </div>
                   </>
                 ) : (
-                  <p className="mt-2 text-sm leading-6 text-slate-500">Select a curriculum subskill to inspect its evidence readiness and governed Evidence Focus catalogue.</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">{experience?.selectedLeafPrompt || 'Select a curriculum subskill to inspect its evidence readiness and governed Evidence Focus catalogue.'}</p>
                 )}
               </article>
 
