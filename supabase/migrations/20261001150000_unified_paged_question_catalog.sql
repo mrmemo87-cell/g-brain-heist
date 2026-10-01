@@ -1683,3 +1683,400 @@ to authenticated,service_role;
 
 comment on function public.rpc_student_question_progress_summary() is
   'Current-student governed question progress summary. Counts catalogue membership and the student own attempted IDs without loading question-bank payloads.';
+
+
+-- ============================================================================
+-- Subject catalog counts use the same governed authority as question loading
+-- ============================================================================
+
+create or replace function public.rpc_student_academic_subjects(
+  p_student_id uuid default null
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path=''
+as $function$
+declare
+  v_caller uuid:=auth.uid();
+  v_student uuid:=coalesce(p_student_id,auth.uid());
+  v_school uuid;
+  v_year uuid;
+  v_grade text;
+  v_teacher uuid;
+begin
+  if v_caller is null then
+    raise exception using errcode='42501',message='authentication_required';
+  end if;
+
+  -- Teacher self-view: expose allocated school subjects. A legacy curriculum
+  -- scope is optional because registry-native governed banks do not require one.
+  if v_student=v_caller then
+    select t.id into v_teacher from public.teachers t where t.user_id=v_caller;
+    if v_teacher is not null then
+      select sm.school_id into v_school
+      from public.school_members sm
+      where sm.user_id=v_caller and sm.status='active'
+      order by sm.joined_at desc nulls last,sm.id
+      limit 1;
+      if v_school is null then
+        select u.school_id into v_school from public.users u where u.id=v_caller;
+      end if;
+
+      if v_school is not null and (
+        exists(select 1 from private.teacher_current_teaching_groups(v_caller,v_school))
+        or exists(
+          select 1 from public.class_teacher_assignments cta
+          where cta.teacher_user_id=v_caller
+            and cta.school_id=v_school
+            and cta.active
+        )
+      ) then
+        v_year:=public.academic_resolve_operational_year_id(v_school,now());
+
+        return jsonb_build_object(
+          'success',true,
+          'ready',true,
+          'academicYearId',v_year,
+          'gradeLevel',null,
+          'subjects',coalesce((
+            select jsonb_agg(
+              jsonb_build_object(
+                'id',ss.id,
+                'schoolSubjectId',ss.id,
+                'code',coalesce(nullif(ss.code,''),public.academic_normalize_subject_key(ss.name)),
+                'name',ss.name,
+                'canonicalName',academic.name,
+                'academicSubjectId',ss.academic_subject_id,
+                'mappingStatus',case when ss.academic_subject_id is null then 'unmapped' else 'mapped' end,
+                'requirement','teacher_allocation',
+                'scopeId',offering.curriculum_scope_id,
+                'approvedQuestionCount',case
+                  when ss.academic_subject_id is null or offering.grade_level is null then 0
+                  else private.governed_question_count_for_context(
+                    v_school,
+                    v_year,
+                    offering.grade_level,
+                    ss.academic_subject_id,
+                    offering.curriculum_scope_id,
+                    null
+                  )
+                end
+              )
+              order by ss.name
+            )
+            from (
+              select distinct g.school_subject_id
+              from private.teacher_current_teaching_groups(v_caller,v_school) g
+
+              union
+
+              select distinct cta.school_subject_id
+              from public.class_teacher_assignments cta
+              where cta.teacher_user_id=v_caller
+                and cta.school_id=v_school
+                and cta.active
+                and cta.school_subject_id is not null
+                and not exists(
+                  select 1 from private.teacher_current_teaching_groups(v_caller,v_school)
+                )
+            ) allocated
+            join public.school_subjects ss
+              on ss.id=allocated.school_subject_id
+             and ss.is_active
+            left join public.academic_subjects academic
+              on academic.id=ss.academic_subject_id
+             and academic.is_active
+            left join lateral (
+              select so.curriculum_scope_id,so.grade_level
+              from public.school_subject_offerings so
+              where so.school_subject_id=ss.id
+                and so.status='active'
+                and (v_year is null or so.academic_year_id=v_year)
+              order by so.updated_at desc,so.id
+              limit 1
+            ) offering on true
+          ),'[]'::jsonb)
+        );
+      end if;
+    end if;
+  end if;
+
+  select u.school_id into v_school from public.users u where u.id=v_student;
+  if v_school is null then
+    return jsonb_build_object(
+      'success',true,'ready',false,'code','school_required','subjects','[]'::jsonb
+    );
+  end if;
+
+  if v_caller<>v_student and not(
+    public.can_administer_school(v_school)
+    or public.is_school_owner(v_school)
+    or exists(
+      select 1
+      from private.teacher_current_teaching_roster(v_caller,v_school) r
+      where r.student_id=v_student
+    )
+    or (
+      not exists(select 1 from private.teacher_current_teaching_groups(v_caller,v_school))
+      and exists(
+        select 1
+        from public.class_students cs
+        join public.class_teacher_assignments cta
+          on cta.class_id=cs.class_id
+         and cta.active
+        where cs.student_id=v_student
+          and cta.teacher_user_id=v_caller
+          and cta.school_id=v_school
+      )
+    )
+  ) then
+    raise exception using errcode='42501',message='student_academic_subject_access_denied';
+  end if;
+
+  select ae.academic_year_id,ae.grade_level
+  into v_year,v_grade
+  from public.student_academic_enrolments ae
+  join public.school_academic_years y
+    on y.id=ae.academic_year_id
+   and y.status='current'
+  where ae.student_id=v_student
+    and ae.school_id=v_school
+    and current_date between ae.starts_on and coalesce(ae.ends_on,current_date)
+  order by ae.starts_on desc,ae.created_at desc
+  limit 1;
+
+  if v_year is null or v_grade is null then
+    return jsonb_build_object(
+      'success',true,'ready',false,'code','current_grade_enrolment_required','subjects','[]'::jsonb
+    );
+  end if;
+
+  return jsonb_build_object(
+    'success',true,
+    'ready',true,
+    'academicYearId',v_year,
+    'gradeLevel',v_grade,
+    'subjects',coalesce((
+      select jsonb_agg(
+        jsonb_build_object(
+          'id',ss.id,
+          'schoolSubjectId',ss.id,
+          'code',coalesce(nullif(ss.code,''),public.academic_normalize_subject_key(ss.name)),
+          'name',ss.name,
+          'canonicalName',academic.name,
+          'academicSubjectId',ss.academic_subject_id,
+          'mappingStatus',case when ss.academic_subject_id is null then 'unmapped' else 'mapped' end,
+          'requirement',offering.access_mode,
+          'scopeId',offering.curriculum_scope_id,
+          'approvedQuestionCount',case
+            when ss.academic_subject_id is null then 0
+            else private.governed_question_count_for_context(
+              v_school,
+              v_year,
+              v_grade,
+              ss.academic_subject_id,
+              offering.curriculum_scope_id,
+              null
+            )
+          end
+        )
+        order by ss.name
+      )
+      from public.school_subject_offerings offering
+      join public.school_subjects ss
+        on ss.id=offering.school_subject_id
+       and ss.school_id=v_school
+       and ss.is_active
+      left join public.academic_subjects academic
+        on academic.id=ss.academic_subject_id
+       and academic.is_active
+      where offering.school_id=v_school
+        and offering.academic_year_id=v_year
+        and offering.grade_level=v_grade
+        and offering.status='active'
+        and (
+          offering.access_mode='all_grade'
+          or exists(
+            select 1
+            from public.school_subject_enrolments e
+            where e.student_id=v_student
+              and e.school_subject_id=ss.id
+              and e.academic_year_id=v_year
+              and e.status='active'
+              and current_date>=e.starts_on
+              and (e.ends_on is null or current_date<=e.ends_on)
+          )
+        )
+    ),'[]'::jsonb)
+  );
+end;
+$function$;
+
+revoke all on function public.rpc_student_academic_subjects(uuid)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_student_academic_subjects(uuid)
+to authenticated,service_role;
+
+create or replace function public.rpc_student_academic_subjects_for_year(
+  p_student_id uuid,
+  p_academic_year_id uuid
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path=''
+as $function$
+declare
+  v_caller uuid:=auth.uid();
+  v_student uuid:=coalesce(p_student_id,auth.uid());
+  v_school uuid;
+  v_operational_year uuid;
+  v_is_admin boolean:=false;
+  v_is_current_teacher boolean:=false;
+  v_is_historical_teacher boolean:=false;
+  v_grade text;
+begin
+  if v_caller is null then
+    raise exception using errcode='42501',message='authentication_required';
+  end if;
+
+  select u.school_id into v_school from public.users u where u.id=v_student;
+  if v_school is null then
+    return jsonb_build_object('success',true,'ready',false,'code','school_required','subjects','[]'::jsonb);
+  end if;
+
+  v_is_admin:=public.can_administer_school(v_school) or public.is_school_owner(v_school);
+  if v_caller=v_student or v_is_admin then
+    return private.student_academic_subjects_for_year_legacy_group_transition(
+      v_student,p_academic_year_id
+    );
+  end if;
+
+  v_operational_year:=public.academic_resolve_operational_year_id(v_school,now());
+  v_is_current_teacher:=p_academic_year_id=v_operational_year and exists(
+    select 1
+    from private.teacher_current_teaching_roster(v_caller,v_school) r
+    where r.student_id=v_student
+  );
+  v_is_historical_teacher:=p_academic_year_id is distinct from v_operational_year and exists(
+    select 1
+    from private.teacher_historical_teaching_roster(
+      v_caller,v_school,p_academic_year_id
+    ) r
+    where r.student_id=v_student
+  );
+
+  if v_is_current_teacher then
+    select max(r.grade_level)
+    into v_grade
+    from private.teacher_current_teaching_roster(v_caller,v_school) r
+    where r.student_id=v_student;
+
+    return jsonb_build_object(
+      'success',true,
+      'ready',true,
+      'academicYearId',p_academic_year_id,
+      'gradeLevel',v_grade,
+      'subjects',coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'id',r.school_subject_id,
+            'schoolSubjectId',r.school_subject_id,
+            'code',coalesce(r.academic_subject_code,public.academic_normalize_subject_key(r.school_subject_name)),
+            'name',r.school_subject_name,
+            'canonicalName',r.academic_subject_name,
+            'academicSubjectId',r.academic_subject_id,
+            'mappingStatus',case when r.academic_subject_id is null then 'unmapped' else 'mapped' end,
+            'requirement','teacher_allocation',
+            'scopeId',offering.curriculum_scope_id,
+            'approvedQuestionCount',case
+              when r.academic_subject_id is null then 0
+              else private.governed_question_count_for_context(
+                v_school,
+                p_academic_year_id,
+                v_grade,
+                r.academic_subject_id,
+                offering.curriculum_scope_id,
+                null
+              )
+            end
+          )
+          order by r.school_subject_name
+        )
+        from (
+          select distinct
+            school_subject_id,school_subject_name,academic_subject_id,
+            academic_subject_name,academic_subject_code
+          from private.teacher_current_teaching_roster(v_caller,v_school)
+          where student_id=v_student
+        ) r
+        left join lateral (
+          select so.curriculum_scope_id
+          from public.school_subject_offerings so
+          where so.school_id=v_school
+            and so.school_subject_id=r.school_subject_id
+            and so.academic_year_id=p_academic_year_id
+            and so.grade_level=v_grade
+            and so.status='active'
+          order by so.updated_at desc,so.id
+          limit 1
+        ) offering on true
+      ),'[]'::jsonb)
+    );
+  end if;
+
+  if v_is_historical_teacher then
+    select max(r.grade_level)
+    into v_grade
+    from private.teacher_historical_teaching_roster(
+      v_caller,v_school,p_academic_year_id
+    ) r
+    where r.student_id=v_student;
+
+    return jsonb_build_object(
+      'success',true,
+      'ready',true,
+      'academicYearId',p_academic_year_id,
+      'gradeLevel',v_grade,
+      'subjects',coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'id',r.school_subject_id,
+            'schoolSubjectId',r.school_subject_id,
+            'code',coalesce(r.academic_subject_code,public.academic_normalize_subject_key(r.school_subject_name)),
+            'name',r.school_subject_name,
+            'canonicalName',r.academic_subject_name,
+            'academicSubjectId',r.academic_subject_id,
+            'mappingStatus',case when r.academic_subject_id is null then 'unmapped' else 'mapped' end,
+            'requirement','historical_teacher_allocation',
+            'scopeId',null,
+            'approvedQuestionCount',0
+          )
+          order by r.school_subject_name
+        )
+        from (
+          select distinct
+            school_subject_id,school_subject_name,academic_subject_id,
+            academic_subject_name,academic_subject_code
+          from private.teacher_historical_teaching_roster(
+            v_caller,v_school,p_academic_year_id
+          )
+          where student_id=v_student
+        ) r
+      ),'[]'::jsonb)
+    );
+  end if;
+
+  return private.student_academic_subjects_for_year_legacy_group_transition(
+    v_student,p_academic_year_id
+  );
+end;
+$function$;
+
+revoke all on function public.rpc_student_academic_subjects_for_year(uuid,uuid)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_student_academic_subjects_for_year(uuid,uuid)
+to authenticated,service_role;
