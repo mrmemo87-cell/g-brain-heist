@@ -34,6 +34,7 @@ export interface StudentQuestionCatalogFilters {
   cursor?: QuestionCatalogCursor | null;
   search?: string | null;
   topic?: string | null;
+  pool?: 'all' | 'brains_heist' | 'school';
 }
 
 export interface StudentQuestionProgressSummary {
@@ -116,6 +117,7 @@ export const fetchStudentQuestionCatalogPage = async (
     p_cursor_id: filters.cursor?.id || null,
     p_search: filters.search?.trim() || null,
     p_topic: filters.topic?.trim() || null,
+    p_pool: filters.pool || 'all',
   });
   if (error) throw error;
   const payload = (data || {}) as Partial<QuestionCatalogPage> & { ready?: boolean };
