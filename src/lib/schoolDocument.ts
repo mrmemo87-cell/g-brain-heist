@@ -216,7 +216,7 @@ const previewScript = `
       window.print();
     });
     document.getElementById('document-ink')?.addEventListener('click', () => body.classList.toggle('ink-saver'));
-    document.getElementById('document-close')?.addEventListener('click', () => window.close());
+    document.getElementById('document-close')?.addEventListener('click', () => {\n      if (window.history.length > 1) window.history.back();\n      else window.close();\n    });
     document.getElementById('document-paper')?.addEventListener('change', (event) => { body.dataset.paper = event.target.value; syncPage(); });
     document.getElementById('document-orientation')?.addEventListener('change', (event) => { body.dataset.orientation = event.target.value; syncPage(); });
     syncPage();
@@ -239,7 +239,7 @@ export const renderSchoolDocumentHtml = ({ meta, bodyHtml, orientation = 'portra
       <div class="school-document__toolbar-actions">
         <label><span class="sr-only">Paper size</span><select id="document-paper" aria-label="Paper size"><option value="A4"${paper === 'A4' ? ' selected' : ''}>A4</option><option value="Letter"${paper === 'Letter' ? ' selected' : ''}>Letter</option></select></label>
         <label><span class="sr-only">Orientation</span><select id="document-orientation" aria-label="Orientation"><option value="portrait"${orientation === 'portrait' ? ' selected' : ''}>Portrait</option><option value="landscape"${orientation === 'landscape' ? ' selected' : ''}>Landscape</option></select></label>
-        <button id="document-ink" type="button">Ink saver</button><button id="document-print" class="primary" type="button">Print / Save PDF</button><button id="document-close" type="button">Close</button>
+        <button id="document-ink" type="button">Ink saver</button><button id="document-print" class="primary" type="button">Print / Save PDF</button><button id="document-close" type="button">Back</button>
       </div>
     </nav>
     <main class="school-document" data-status="${meta.status}">
@@ -301,12 +301,25 @@ export const registerSchoolDocumentRecord = async (options: SchoolDocumentOption
 };
 
 export const openSchoolDocumentPreview = (options: SchoolDocumentOptions) => {
+  const html = renderSchoolDocumentHtml(options);
   const preview = window.open('', '_blank');
-  if (!preview) throw new Error('The document preview was blocked. Allow pop-ups for Brains Heist and try again.');
-  preview.opener = null;
-  preview.document.open();
-  preview.document.write(renderSchoolDocumentHtml(options));
-  preview.document.close();
+
+  if (preview) {
+    preview.opener = null;
+    preview.document.open();
+    preview.document.write(html);
+    preview.document.close();
+    void registerSchoolDocumentRecord(options);
+    return preview;
+  }
+
+  // Mobile Safari and embedded browsers commonly block script-created tabs.
+  // Fall back to same-tab rendering while preserving the exact same document HTML/CSS
+  // so printed/PDF output stays identical. The Back control uses history.back().
+  window.history.pushState({ schoolDocumentPreview: true }, '', window.location.href);
+  window.document.open();
+  window.document.write(html);
+  window.document.close();
   void registerSchoolDocumentRecord(options);
-  return preview;
+  return window;
 };
