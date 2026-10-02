@@ -55,9 +55,6 @@ const responseLines = (count = 3) => Array.from({ length: count }, () => (
 const questionHtml = (question: PrintableAssignmentQuestion) => {
   const options = Array.isArray(question.options) ? question.options.filter((option) => option?.text) : [];
   const isShortAnswer = question.questionType === 'short_answer' || options.length === 0;
-  const pointsLabel = question.points && question.points > 0
-    ? `<span style="white-space:nowrap;border:1px solid #dce3ed;border-radius:999px;padding:1mm 2.5mm;font-size:8px;font-weight:800;color:#5d6b82">${question.points} pt${question.points === 1 ? '' : 's'}</span>`
-    : '';
   const image = question.imageUrl
     ? `<img src="${escapeSchoolDocumentHtml(question.imageUrl)}" alt="${escapeSchoolDocumentHtml(question.imageAltText || `Question ${question.orderIndex} visual`)}" style="display:block;max-width:100%;max-height:75mm;margin:3mm auto;object-fit:contain">`
     : '';
@@ -65,7 +62,6 @@ const questionHtml = (question: PrintableAssignmentQuestion) => {
   return `<section class="document-card" style="margin-bottom:3mm">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4mm">
       <strong style="font-size:11px;line-height:1.45">${question.orderIndex}. ${escapeSchoolDocumentHtml(question.questionText)}</strong>
-      ${pointsLabel}
     </div>
     ${image}
     ${isShortAnswer
@@ -95,7 +91,6 @@ export function openPrintableTeacherAssignment(input: {
 }) {
   const { packet, schoolName, schoolLogoUrl, schoolId, teacherName } = input;
   const { assignment, questions } = packet;
-  const totalPoints = questions.reduce((sum, question) => sum + Math.max(0, Number(question.points || 0)), 0);
   const totalSeconds = questions.reduce((sum, question) => sum + Math.max(0, Number(question.timeLimit || 0)), 0);
   const estimatedMinutes = totalSeconds > 0 ? Math.max(1, Math.ceil(totalSeconds / 60)) : null;
   const dueLabel = assignment.dueAt ? new Date(assignment.dueAt).toLocaleString() : 'No deadline';
@@ -110,7 +105,6 @@ export function openPrintableTeacherAssignment(input: {
       <div class="document-card"><strong>Questions</strong><p>${questions.length}</p></div>
       <div class="document-card"><strong>Due</strong><p>${escapeSchoolDocumentHtml(dueLabel)}</p></div>
       ${estimatedMinutes ? `<div class="document-card"><strong>Suggested time</strong><p>About ${estimatedMinutes} minutes</p></div>` : ''}
-      ${totalPoints > 0 ? `<div class="document-card"><strong>Total points</strong><p>${totalPoints}</p></div>` : ''}
     </div>
 
     <div class="document-callout">
