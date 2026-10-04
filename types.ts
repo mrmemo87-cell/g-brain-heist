@@ -936,6 +936,15 @@ export interface TeacherQuestion {
   curriculum_skill?: string | null;
   curriculum_subskill?: string | null;
   curriculum_objective?: string | null;
+  registry_mappings?: {
+    registryCode: string;
+    strand: string | null;
+    skill: string;
+    subskill: string;
+    evidenceFocus: string;
+    evidenceStatement: string;
+    assessmentProcess: string;
+  }[];
   eligible_grade_levels?: number[];
   curriculum_review_status?: 'draft' | 'in_review' | 'approved' | 'rejected';
   content_origin?: QuestionContentOrigin;

@@ -5439,6 +5439,7 @@ export const get_my_questions = async (): Promise<TeacherQuestion[]> => {
             curriculum_skill: item.skill,
             curriculum_subskill: item.subskill,
             curriculum_objective: item.objective,
+            registry_mappings: item.registryMappings || [],
             eligible_grade_levels: item.eligibleGradeLevels || [],
             curriculum_review_status: item.reviewStatus,
         };
@@ -5504,6 +5505,7 @@ export const get_all_questions = async (filters?: {
             curriculum_skill: item.skill,
             curriculum_subskill: item.subskill,
             curriculum_objective: item.objective,
+            registry_mappings: item.registryMappings || [],
             eligible_grade_levels: item.eligibleGradeLevels || [],
             curriculum_review_status: item.reviewStatus,
         } : question;
@@ -5523,6 +5525,30 @@ export const get_question = async (questionId: string): Promise<TeacherQuestion>
     if (error) throw error;
 
     return data as TeacherQuestion;
+};
+
+/** Load only the governed intervention candidates, independent of catalogue size. */
+export const get_teacher_questions_by_ids = async (questionIds: string[]): Promise<TeacherQuestion[]> => {
+    const uniqueIds = [...new Set(questionIds)];
+    const questions: TeacherQuestion[] = [];
+    for (let start = 0; start < uniqueIds.length; start += 100) {
+        const ids = uniqueIds.slice(start, start + 100);
+        const { data, error } = await supabase.rpc('rpc_teacher_questions_by_ids', { p_question_ids: ids, p_limit: ids.length });
+        if (error) throw error;
+        const chunk = (data || []) as TeacherQuestion[];
+        if (!chunk.length) continue;
+        const { data: metadata, error: metadataError } = await supabase.rpc('rpc_question_curriculum_metadata', { p_question_ids: chunk.map((q) => q.id) });
+        if (metadataError) throw metadataError;
+        const byId = new Map((metadata || []).map((item: any) => [item.questionId, item]));
+        questions.push(...chunk.map((question) => {
+            const item: any = byId.get(question.id);
+            return item ? { ...question, curriculum_strand: item.strand, curriculum_skill: item.skill,
+                curriculum_subskill: item.subskill, curriculum_objective: item.objective,
+                registry_mappings: item.registryMappings || [], eligible_grade_levels: item.eligibleGradeLevels || [],
+                curriculum_review_status: item.reviewStatus } : question;
+        }));
+    }
+    return questions;
 };
 
 /**

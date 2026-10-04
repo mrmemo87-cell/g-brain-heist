@@ -18,6 +18,12 @@
 .question-preview__section li.is-correct{border-color:#86efac;background:#f0fdf4}.question-preview__section li.is-correct>span{background:#dcfce7;color:#166534}.question-preview__section li strong{color:#166534;font-size:.75rem}
 .question-preview__answer{padding:14px 16px;border-left:4px solid #22c55e;border-radius:10px;background:#f0fdf4}.question-preview__answer strong{display:block;margin-top:5px;color:#14532d}
 .question-preview__tags{display:flex;flex-wrap:wrap;gap:7px;margin:0 28px 22px}.question-preview__tags span{padding:5px 9px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:.75rem;font-weight:700}
+.question-preview__mapping{margin-bottom:12px;padding:14px;border:1px solid #c7d2fe;border-radius:12px;background:#f8fafc}
+.question-preview__mapping dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
+.question-preview__mapping dt{font-size:.72rem;color:#64748b;font-weight:700}
+.question-preview__mapping dd{margin:3px 0 0;color:#0f172a;font-weight:700;overflow-wrap:anywhere}
+.question-preview__mapping p,.question-preview__tracking-note{font-size:.85rem;line-height:1.5;color:#475569;margin:12px 0 0}
+@media(max-width:600px){.question-preview__mapping dl{grid-template-columns:1fr}}
 .question-preview__card>footer{display:flex;justify-content:flex-end;gap:10px;padding:18px 28px;border-top:1px solid #e7edf5;background:#f8fafc}
 .question-preview__card>footer button{padding:10px 16px;border-radius:10px;font-weight:800;cursor:pointer}.question-preview__card>footer .is-secondary{border:1px solid #cbd5e1;background:#fff;color:#334155}.question-preview__card>footer .is-primary{border:0;background:linear-gradient(135deg,#0284c7,#4f46e5);color:#fff}
 @media(max-width:600px){.question-preview{padding:10px}.question-preview__card>header,.question-preview__meta{padding:18px}.question-preview__meta{grid-template-columns:repeat(2,minmax(0,1fr))}.question-preview__prompt,.question-preview__section,.question-preview__answer{margin-right:18px;margin-left:18px}.question-preview__card>footer{padding:14px 18px}}

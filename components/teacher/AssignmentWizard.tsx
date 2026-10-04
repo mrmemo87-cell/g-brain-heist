@@ -10,6 +10,7 @@ import {
 } from '../../services/schoolSubjectGroupService';
 import { brainsAlert, brainsConfirm } from '../../src/utils/brainsAlert';
 import QuestionPreviewModal from './QuestionPreviewModal';
+import { questionAssessmentSearchText } from './questionAssessment';
 import SubjectIcon from '../SubjectIcon';
 import { isBrainsHeistPoolQuestion, isMyPoolQuestion, isSchoolPoolQuestion } from './questionPool.js';
 import './AssignmentWizard.css';
@@ -384,6 +385,7 @@ export default function AssignmentWizard({
       const haystack = [
         question.question_text,
         question.correct_answer,
+        questionAssessmentSearchText(question),
         topic,
         ...(question.tags || []),
         question.difficulty,

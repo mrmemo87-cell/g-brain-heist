@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Subject, Teacher, TeacherQuestion } from '../../types';
 import QuestionPreviewModal from './QuestionPreviewModal';
+import { questionAssessmentSearchText } from './questionAssessment';
 import { isBrainsHeistPoolQuestion, isMyPoolQuestion, isSchoolPoolQuestion } from './questionPool.js';
 import './QuestionBank.css';
 import { brainsAlert } from '../../src/utils/brainsAlert';
@@ -112,7 +113,7 @@ export default function QuestionBank({
     const search = searchTerm.trim().toLowerCase();
     return poolQuestions.filter((question) => {
       if (!effectiveSubject || question.subject !== effectiveSubject) return false;
-      return !search || [question.question_text, question.correct_answer, question.subject, getTopic(question), ...(question.tags || [])].join(' ').toLowerCase().includes(search);
+      return !search || [question.question_text, question.correct_answer, question.subject, getTopic(question), questionAssessmentSearchText(question), ...(question.tags || [])].join(' ').toLowerCase().includes(search);
     });
   }, [effectiveSubject, poolQuestions, searchTerm]);
   const topicGroups = useMemo(() => makeTopicGroups(visibleQuestions), [visibleQuestions]);
