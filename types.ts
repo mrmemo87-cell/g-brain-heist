@@ -1247,6 +1247,8 @@ export interface MyAssignmentAnswer {
 }
 
 export interface QuestionAttemptResult {
+  coins_earned?: number;
+  reward_capped?: boolean;
   is_correct: boolean;
   points_earned: number;
   correct_answer: string;
