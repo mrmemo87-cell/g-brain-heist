@@ -28,7 +28,9 @@ test('question bank filters and deduplicates slash variants in the UI', () => {
 test('assignment topic options only come from questions eligible for the selected audience and pool', () => {
   assert.match(wizard, /const assignmentEligibleQuestions = useMemo/);
   assert.match(wizard, /return matchesAudienceGrades && matchesPool/);
-  assert.match(wizard, /new Set\(assignmentEligibleQuestions\.map/);
+  assert.match(wizard, /fetchQuestionFacets\('', 'teacher', audienceGrades\)/);
+  assert.match(wizard, /questionFacets\.filter/);
+  assert.match(wizard, /item\.pool === questionPool/);
   assert.match(wizard, /const matches = assignmentEligibleQuestions\.filter/);
   assert.match(wizard, /if \(topicFilter !== 'all' && !topics\.includes\(topicFilter\)\) setTopicFilter\('all'\)/);
 });

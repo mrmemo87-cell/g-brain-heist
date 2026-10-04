@@ -742,12 +742,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setQuestionBankError(null);
     
     try {
-      const publicQuestionsPromise = GameService.get_public_questions().catch((error) => {
-        console.warn('[QuestView] Failed to load public question bank:', error);
-        setQuestionBankError('Unable to load the question bank right now.');
-        return [] as TeacherQuestion[];
-      });
-
       // Load regular practice subjects
       const data = await GameService.mcq_subjects_list();
       setSubjects(data);
@@ -802,10 +796,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       
       setSubjectProgress(realProgress);
 
-      // Load public questions so students can browse the bank like teachers
-      const publicQuestionsResult = await publicQuestionsPromise;
-      const normalizedPublicQuestions = (publicQuestionsResult || []).map(normalizeAssignmentQuestion);
-      setPublicQuestions(normalizedPublicQuestions);
+      // The question browser loads compact topic counts, then bounded pages on demand.
+      setPublicQuestions([]);
       setQuestionBankError(null);
       setStage('subject_selection');
     } catch (error) {
@@ -1143,9 +1135,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
   };
 
-  const handleUseQuestionSet = (questionIds: string[], subject: Subject, topic: string) => {
+  const handleUseQuestionSet = (questionIds: string[], subject: Subject, topic: string, loadedQuestions?: TeacherQuestion[]) => {
     const matchedSubject = subjects.find((s) => s.name === subject) || { id: subject, name: subject, difficulty: 1 };
-    const selectedQuestions = publicQuestions.filter((question) => questionIds.includes(question.id));
+    const selectedQuestions = (loadedQuestions || publicQuestions).filter((question) => questionIds.includes(question.id));
 
     if (selectedQuestions.length === 0) {
       brainsAlert('No questions available for this set yet.', 'info');
@@ -1955,18 +1947,18 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 <div className="card-glass p-3 border border-cyan-400/30 text-center">
                   <p className="text-xs uppercase tracking-widest text-slate-400">Subjects</p>
                   <p className="font-heading text-xl text-white">
-                    {new Set(publicQuestions.map((question) => normalizeQuestionBankSubject(question.subject))).size || '—'}
+                    {subjects.length || '—'}
                   </p>
                 </div>
                 <div className="card-glass p-3 border border-indigo-400/30 text-center">
                   <p className="text-xs uppercase tracking-widest text-slate-400">Topics</p>
                   <p className="font-heading text-xl text-white">
-                    {new Set(publicQuestions.map((question) => question.topic_name || question.topic || 'General')).size || '—'}
+                    {'Browse below'}
                   </p>
                 </div>
                 <div className="card-glass p-3 border border-fuchsia-400/30 text-center">
                   <p className="text-xs uppercase tracking-widest text-slate-400">Questions</p>
-                  <p className="font-heading text-xl text-white">{publicQuestions.length || '—'}</p>
+                  <p className="font-heading text-xl text-white">{subjectProgress.reduce((sum, subject) => sum + subject.easy.total + subject.medium.total + subject.hard.total, 0) || '—'}</p>
                 </div>
               </div>
             </div>
@@ -1982,14 +1974,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 <p className="text-red-300 font-semibold mb-2">We hit a snag loading the question bank.</p>
                 <p className="text-gray-300 text-sm">{questionBankError}</p>
               </div>
-            ) : publicQuestions.length === 0 ? (
-              <div className="card-glass p-6 text-center border border-cyan-500/30">
-                <p className="text-white font-heading text-xl mb-2">Your academic question set is not ready yet.</p>
-                <p className="text-gray-300 text-sm">Your school needs a current academic year, grade enrolment and subject plan. Elective subjects also require your individual enrolment.</p>
-              </div>
             ) : (
               <QuestionBank
                 questions={publicQuestions}
+                remote
+                audience="student"
                 teacher={null}
                 onUseSet={handleUseQuestionSet}
                 useActionLabel="Start Quest"

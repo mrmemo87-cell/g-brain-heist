@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { TeacherAssignmentSummary, TeacherAssignmentReportRow, Subject, StudentForAssignment, AssignmentCategory } from '../types';
-import { fetchSchoolAcademicSetup, type SchoolAcademicSetup } from '../services/schoolAcademicSetupService';
+import { fetchSchoolReportCalendar, type SchoolReportCalendar } from '../services/schoolAcademicSetupService';
 import { assignmentCategoryBadgeStyle, getAssignmentCategoryMeta } from '../src/lib/assignmentCategory';
 import * as GameService from '../services/gameService';
 import { brainsAlert } from '../src/utils/brainsAlert';
@@ -83,7 +83,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   const [subjectFilter, setSubjectFilter] = useState<'all' | Subject>('all');
   const [batchFilter, setBatchFilter] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<'all' | AssignmentCategory>('all');
-  const [academicSetup, setAcademicSetup] = useState<SchoolAcademicSetup | null>(null);
+  const [academicSetup, setAcademicSetup] = useState<SchoolReportCalendar | null>(null);
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState('');
   const [selectedTermId, setSelectedTermId] = useState('');
   const [periodMode, setPeriodMode] = useState<'term' | 'custom'>('term');
@@ -129,7 +129,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   useEffect(() => {
     if (!school.id) return;
     let cancelled = false;
-    void fetchSchoolAcademicSetup(school.id).then((setup) => {
+    void fetchSchoolReportCalendar(school.id).then((setup) => {
       if (cancelled) return;
       setAcademicSetup(setup);
       const today = localDateKey();

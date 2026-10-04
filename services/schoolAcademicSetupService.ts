@@ -109,6 +109,13 @@ export async function fetchSchoolAcademicSetup(schoolId: string): Promise<School
   return assertSuccess(response.data as SchoolAcademicSetup | null, 'academic_setup_unavailable');
 }
 
+export type SchoolReportCalendar = Pick<SchoolAcademicSetup, 'success' | 'schoolId' | 'years' | 'terms'>;
+export async function fetchSchoolReportCalendar(schoolId: string): Promise<SchoolReportCalendar> {
+  const { data, error } = await supabase.rpc('rpc_school_report_calendar', { p_school_id: schoolId });
+  if (error) throw userFacingError(error, 'We could not load the school calendar just now.');
+  return assertSuccess(data as SchoolReportCalendar | null, 'school_calendar_unavailable');
+}
+
 export async function fetchSchoolAcademicSystem(schoolId: string): Promise<SchoolAcademicSystem | null> {
   const { data, error } = await supabase.rpc('rpc_school_admin_academic_system', {
     p_school_id: schoolId,

@@ -610,10 +610,13 @@ export const fetchPlayerLastAttempt = async (userId: string): Promise<string | n
   return data?.created_at ?? null;
 };
 
-export const fetchQuestionBank = async () => {
-  const { data, error } = await supabase
+export const fetchQuestionBank = async (afterId?: string) => {
+  let query = supabase
     .from('questions')
-    .select('id, grade, difficulty, is_active, question_text, lang');
+    .select('id, grade, difficulty, is_active, question_text, lang')
+    .order('id', { ascending: true }).limit(100);
+  if (afterId) query = query.gt('id', afterId);
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(error.message || 'Failed to load question bank');
@@ -641,24 +644,9 @@ export const updateQuestionActiveState = async (questionId: number | string, act
 };
 
 export const fetchQuestionCountsByGrade = async () => {
-  const questions = await fetchQuestionBank();
-  const counts = new Map<Grade, { total: number; active: number; difficulty: Record<string, number> }>();
-
-  questions.forEach((question: any) => {
-    const grade = Number(question.grade) as Grade;
-    if (!counts.has(grade)) {
-      counts.set(grade, { total: 0, active: 0, difficulty: {} });
-    }
-    const entry = counts.get(grade)!;
-    entry.total += 1;
-    if (question.active) {
-      entry.active += 1;
-    }
-    const key = question.difficulty ?? 'unknown';
-    entry.difficulty[key] = (entry.difficulty[key] ?? 0) + 1;
-  });
-
-  return Array.from(counts.entries()).map(([grade, value]) => ({ grade, ...value }));
+  const { data, error } = await supabase.rpc('rpc_superadmin_question_counts');
+  if (error) throw error;
+  return (data || []) as Array<{ grade: Grade; total: number; active: number; difficulty: Record<string, number> }>;
 };
 
 export const fetchAdminOverviewStats = async (): Promise<AdminOverviewStats> => {

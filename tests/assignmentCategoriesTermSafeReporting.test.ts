@@ -58,7 +58,8 @@ test('student assignment cards expose a readable category badge', () => {
 });
 
 test('collective report requires one class and defaults to school academic calendar scope', () => {
-  assert.match(report, /fetchSchoolAcademicSetup/);
+  assert.match(report, /fetchSchoolReportCalendar/);
+  assert.doesNotMatch(report, /fetchSchoolAcademicSetup/);
   assert.match(report, /status === 'current'/);
   assert.match(report, /selectedAcademicYearId/);
   assert.match(report, /selectedTermId/);

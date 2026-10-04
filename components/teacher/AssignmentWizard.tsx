@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { AssignmentCategory, QuestionDifficulty, QuestionType, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
-import { fetchSchoolAcademicSetup, type SchoolAcademicSetup } from '../../services/schoolAcademicSetupService';
+import { fetchSchoolReportCalendar, type SchoolReportCalendar } from '../../services/schoolAcademicSetupService';
 import { ASSIGNMENT_CATEGORY_META, getAssignmentCategoryMeta } from '../../src/lib/assignmentCategory';
 import type { TeacherAllocatedClass } from '../../services/schoolAdminService';
 import {
@@ -11,6 +11,9 @@ import {
 import { brainsAlert, brainsConfirm } from '../../src/utils/brainsAlert';
 import QuestionPreviewModal from './QuestionPreviewModal';
 import { questionAssessmentSearchText } from './questionAssessment';
+import { fetchQuestionFacets, type QuestionFacet } from '../../services/questionBrowserService';
+import { get_teacher_questions_by_ids } from '../../services/gameService';
+import { useQuestionBrowser } from '../../src/hooks/useQuestionBrowser';
 import SubjectIcon from '../SubjectIcon';
 import { isBrainsHeistPoolQuestion, isMyPoolQuestion, isSchoolPoolQuestion } from './questionPool.js';
 import './AssignmentWizard.css';
@@ -86,6 +89,7 @@ interface AssignmentWizardProps {
   setAssignmentGroupId?: (groupId: string) => void;
   teacherId?: string;
   questions: TeacherQuestion[];
+  onQuestionsLoaded?: (questions: TeacherQuestion[]) => void;
   onSubmit: (event: React.FormEvent) => Promise<void>;
   onSaveDraft: () => Promise<void>;
   onCancel: () => void;
@@ -199,6 +203,7 @@ export default function AssignmentWizard({
   setAssignmentGroupId,
   teacherId,
   questions,
+  onQuestionsLoaded,
   onSubmit,
   onSaveDraft,
   onCancel,
@@ -216,17 +221,18 @@ export default function AssignmentWizard({
   const [previewQuestion, setPreviewQuestion] = useState<TeacherQuestion | null>(null);
   const [customDueDate, setCustomDueDate] = useState(false);
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
-  const [academicSetup, setAcademicSetup] = useState<SchoolAcademicSetup | null>(null);
+  const [academicSetup, setAcademicSetup] = useState<SchoolReportCalendar | null>(null);
   const [academicSetupLoading, setAcademicSetupLoading] = useState(false);
   const [groupRoster, setGroupRoster] = useState<SubjectGroupRosterStudent[]>([]);
   const [groupRosterLoading, setGroupRosterLoading] = useState(false);
   const wizardTopRef = useRef<HTMLDivElement>(null);
+  const [questionFacets, setQuestionFacets] = useState<QuestionFacet[]>([]);
 
   useEffect(() => {
     if (!schoolId) { setAcademicSetup(null); return; }
     let cancelled = false;
     setAcademicSetupLoading(true);
-    void fetchSchoolAcademicSetup(schoolId)
+    void fetchSchoolReportCalendar(schoolId)
       .then((setup) => { if (!cancelled) setAcademicSetup(setup); })
       .catch((error) => { console.error('Failed to load academic calendar for assignment scheduling', error); if (!cancelled) setAcademicSetup(null); })
       .finally(() => { if (!cancelled) setAcademicSetupLoading(false); });
@@ -349,6 +355,32 @@ export default function AssignmentWizard({
     return [...new Set(grades.filter((grade) => Number.isInteger(grade) && grade > 0))];
   }, [assignmentBatches, assignmentMode, assignableStudents, selectedStudentIds, selectedTeachingGroup, uniqueClasses]);
 
+  const browser = useQuestionBrowser({ subject: assignmentSubject,
+    pool: questionPool === 'all' ? undefined : questionPool,
+    topic: topicFilter === 'all' ? undefined : topicFilter,
+    difficulty: difficultyFilter === 'all' ? undefined : difficultyFilter,
+    type: typeFilter === 'all' ? undefined : typeFilter,
+    xp: xpFilter === 'all' ? undefined : xpFilter,
+    search: questionSearch || undefined, grades: audienceGrades.length ? audienceGrades : undefined }, step === 3);
+  useEffect(() => {
+    if (browser.questions.length) onQuestionsLoaded?.(browser.questions);
+  }, [browser.questions, onQuestionsLoaded]);
+  useEffect(() => {
+    let cancelled = false;
+    void fetchQuestionFacets('', 'teacher', audienceGrades).then((rows) => { if (!cancelled) setQuestionFacets(rows); })
+      .catch((error) => console.error('Question filter options could not be loaded', error));
+    return () => { cancelled = true; };
+  }, [audienceGrades.join(',')]);
+  const missingSelectedIds = assignmentQuestionIds.filter((id) => !questions.some((q) => q.id === id)).join(',');
+  useEffect(() => {
+    if (!missingSelectedIds) return;
+    let cancelled = false;
+    void get_teacher_questions_by_ids(missingSelectedIds.split(',')).then((loaded) => {
+      if (!cancelled) onQuestionsLoaded?.(loaded);
+    }).catch((error) => console.error('Selected questions could not be loaded', error));
+    return () => { cancelled = true; };
+  }, [missingSelectedIds, onQuestionsLoaded]);
+
   const assignmentEligibleQuestions = useMemo(
     () => subjectQuestions.filter((question) => {
       const eligibleGrades = question.eligible_grade_levels || [];
@@ -365,9 +397,11 @@ export default function AssignmentWizard({
   );
 
   const topics = useMemo(
-    () => [...new Set(assignmentEligibleQuestions.map((question) => question.topic_name || question.topic || 'General'))]
+    () => [...new Set(questionFacets.filter((item) => (questionPool === 'all' || item.pool === questionPool)
+      && (normalizeSubject(item.subject) === normalizeSubject(assignmentSubject)
+        || normalizeSubject(item.subject) === normalizeSubject(assignmentResourceSubject))).map((item) => item.topic))]
       .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })),
-    [assignmentEligibleQuestions],
+    [questionFacets, questionPool, assignmentSubject, assignmentResourceSubject],
   );
 
   useEffect(() => {
@@ -381,6 +415,7 @@ export default function AssignmentWizard({
 
   const filteredQuestions = useMemo(() => {
     const matches = assignmentEligibleQuestions.filter((question) => {
+      if (!browser.questions.some((item) => item.id === question.id)) return false;
       const topic = question.topic_name || question.topic || 'General';
       const haystack = [
         question.question_text,
@@ -410,7 +445,7 @@ export default function AssignmentWizard({
       if (sort === 'difficulty') return difficultyScore[a.difficulty] - difficultyScore[b.difficulty];
       return Number(assignmentQuestionIds.includes(b.id)) - Number(assignmentQuestionIds.includes(a.id));
     });
-  }, [assignmentEligibleQuestions, assignmentQuestionIds, debouncedQuestionSearch, difficultyFilter, sort, topicFilter, typeFilter, xpFilter]);
+  }, [browser.questions, assignmentEligibleQuestions, assignmentQuestionIds, debouncedQuestionSearch, difficultyFilter, sort, topicFilter, typeFilter, xpFilter]);
 
   useEffect(() => {
     if (!audienceGrades.length) return;
@@ -825,8 +860,10 @@ export default function AssignmentWizard({
                 </select>
               </div>
               <div className="aw-question-actions">
+                {browser.loading ? <span role="status">Loading questions…</span> : null}
+                {browser.error ? <span role="alert">{browser.error}<button type="button" onClick={browser.retry}>Retry</button></span> : null}
                 <span>{filteredQuestions.length} unique question{filteredQuestions.length === 1 ? '' : 's'}</span>
-                <button type="button" onClick={() => setAssignmentQuestionIds((current) => [...new Set([...current, ...filteredQuestions.map((question) => question.id)])])}>Select all</button>
+                <button type="button" onClick={() => setAssignmentQuestionIds((current) => [...new Set([...current, ...filteredQuestions.map((question) => question.id)])])}>Select all shown</button>
                 <button type="button" onClick={() => setAssignmentQuestionIds([])}>Clear</button>
               </div>
               <div className="aw-question-transfer">
@@ -855,6 +892,7 @@ export default function AssignmentWizard({
                       );
                     })}
                     {!filteredQuestions.some((question) => !assignmentQuestionIds.includes(question.id)) && <div className="aw-empty">No available questions match these filters.</div>}
+                    {browser.hasMore ? <button type="button" disabled={browser.loading} onClick={() => { void browser.loadMore(); }}>Load more questions</button> : null}
                   </div>
                 </section>
                 <section className="aw-question-pane aw-question-pane--selected" aria-labelledby="selected-question-heading">
