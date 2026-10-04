@@ -32,10 +32,10 @@ const evidenceLabel = (
   studentCount: number,
 ): { label: string; tone: string } => {
   if (!evidence || evidence.studentsWithEvidence === 0) return { label: 'Not assessed', tone: 'slate' };
-  if (evidence.teacherReviewStudents > 0 || evidence.contradictoryStudents > 0) return { label: 'Review evidence', tone: 'amber' };
-  if (evidence.assessedStudents > 0) return { label: 'Assessed evidence', tone: 'emerald' };
-  if (evidence.lowDataStudents > 0) return { label: 'Low-data evidence', tone: 'violet' };
-  if (evidence.staleStudents > 0) return { label: 'Evidence is stale', tone: 'orange' };
+  if (evidence.teacherReviewStudents > 0 || evidence.contradictoryStudents > 0) return { label: 'Needs review', tone: 'amber' };
+  if (evidence.assessedStudents > 0) return { label: 'Decision-ready', tone: 'emerald' };
+  if (evidence.lowDataStudents > 0) return { label: 'Building evidence', tone: 'violet' };
+  if (evidence.staleStudents > 0) return { label: 'Evidence is outdated', tone: 'orange' };
   if (studentCount > 0) return { label: 'Evidence recorded', tone: 'blue' };
   return { label: 'No students', tone: 'slate' };
 };
@@ -176,7 +176,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
         );
         if (active) setFocuses(rows);
       } catch (focusError) {
-        console.warn('Evidence Focus catalogue unavailable', focusError);
+        console.warn('Curriculum skill detail unavailable', focusError);
         if (active) setFocuses([]);
       } finally {
         if (active) setFocusLoading(false);
@@ -313,7 +313,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
     if (snapshot.summary.observedPairs === 0) {
       return {
         title: 'No class evidence has been recorded yet.',
-        body: 'There is nothing to reteach from this page yet because Brains Heist has not observed governed curriculum evidence for this class.',
+        body: 'There is no class-wide teaching priority yet because Brains Heist has not observed enough curriculum evidence for this class.',
         next: 'Continue normal teaching and assessment. This view will populate automatically.',
       };
     }
@@ -541,8 +541,8 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
             ) : (
               <div className="ap-support-empty">
                 <span className="ap-icon-disc"><ProfileIcon name="target" /></span>
-                <strong>{experience?.noHotspotTitle || 'No confirmed class pattern yet'}</strong>
-                <p>{experience?.noHotspotDescription || 'Current evidence does not yet justify a class-wide teaching priority.'} Keep assessing normally; recurring needs will appear here automatically.</p>
+                <strong>No confirmed class pattern yet</strong>
+                <p>There may still be individual learning needs, but the current evidence is not strong enough to recommend a class-wide focus. Keep assessing normally; repeated patterns will appear here automatically.</p>
               </div>
             )}
           </ProfileSection>
