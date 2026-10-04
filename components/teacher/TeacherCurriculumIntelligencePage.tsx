@@ -348,7 +348,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
     && selectedGroup
     && /(english|esl)/i.test(selectedGroup.subjectLabel)
     && snapshot?.registry.supported
-    && snapshot.registry.code === 'bh-english-core-v1'
+    && snapshot.registry.registryVersion === 'bh-english-core-v1'
   );
 
   const toggleSkill = (code: string) => {
