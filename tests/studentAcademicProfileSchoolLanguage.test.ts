@@ -7,13 +7,13 @@ const read = (relative: string) => fs.readFileSync(relative, 'utf8');
 test('Student Academic Profile uses school language and source-specific evidence', () => {
   const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
   assert.match(source, /What should we work on\?/);
-  assert.match(source, /How is the student moving over time\?/);
-  assert.match(source, /sap-source-badge/);
+  assert.match(source, /Assessment results and progress/);
+  assert.match(source, /sap-assessment-detail/);
   assert.match(source, /isAcademicAssignmentSource\(item\.source_type\)/);
   assert.match(read('services/studentAcademicProfileService.ts'), /source === 'registry_verified_assignment'/);
   assert.match(source, /item\.source_type === 'writing_attempt'/);
   assert.match(source, /corrections/);
-  assert.match(source, /From the student's work/);
+  assert.match(source, /assessment_items/);
   assert.match(source, /SubjectTrendChart/);
   assert.match(source, /How this profile works/);
   assert.match(source, /Technical reporting terminology/);
