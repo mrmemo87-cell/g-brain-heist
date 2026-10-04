@@ -40,11 +40,11 @@ test('teacher actions are deterministic and evidence-grounded', () => {
   assert.match(actions, /persistentStudents \* 10/);
   assert.match(actions, /recurringStudents \* 6/);
   assert.match(actions, /whyNow/);
-  assert.match(page, /Why now/);
-  assert.match(page, /experience\?\.barrierLabel/);
-  assert.match(page, /experience\?\.reteachLabel/);
-  assert.match(page, /experience\?\.reassessmentLabel/);
-  assert.match(page, /experience\?\.assessmentLensLabel/);
+  assert.match(page, /Why this is showing/);
+  assert.match(page, /Suggested classroom move/);
+  assert.match(page, /recommendation\.classroomMove/);
+  assert.match(page, /recommendation\.teachSequence/);
+  assert.match(page, /recommendation\.reassessment/);
 });
 
 test('economics playbook covers priority syllabus and reasoning patterns', () => {
@@ -61,8 +61,8 @@ test('economics playbook covers priority syllabus and reasoning patterns', () =>
 
 test('targeted practice is never presented as proof of mastery', () => {
   assert.match(migration, /targetedPracticeDoesNotProveMastery/);
-  assert.match(page, /Targeted practice can support learning, but it does not prove mastery/);
-  assert.match(page, /later independent assessment is still required/);
+  assert.match(page, /do not prove mastery/);
+  assert.match(page, /later independent assessment/);
 });
 
 test('hotspot RPC keeps exact teaching-group authorization and safe grants', () => {
