@@ -9,7 +9,8 @@ test('Student Academic Profile uses school language and source-specific evidence
   assert.match(source, /What should we work on\?/);
   assert.match(source, /How is the student moving over time\?/);
   assert.match(source, /sap-source-badge/);
-  assert.match(source, /item\.source_type === 'assignment_result'/);
+  assert.match(source, /isAcademicAssignmentSource\(item\.source_type\)/);
+  assert.match(read('services/studentAcademicProfileService.ts'), /source === 'registry_verified_assignment'/);
   assert.match(source, /item\.source_type === 'writing_attempt'/);
   assert.match(source, /corrections/);
   assert.match(source, /From the student's work/);
@@ -68,7 +69,8 @@ test('academic subject options are deduplicated case-insensitively', () => {
   const profile = read('components/student-progress/StudentAcademicProfileV2.tsx');
   assert.match(picker, /normalizeAcademicSubjectOptions/);
   assert.match(picker, /toLocaleLowerCase\(\)/);
-  assert.match(profile, /normalizeAcademicSubjectOptions\(values\)/);
+  assert.match(profile, /normalizeAcademicSubjectOptions\(values\.map/);
+  assert.match(profile, /academicProfileSubjectName\(name, profile\?\.scope\.subject_aliases\)/);
 });
 
 test('Individual report has explicit React and portal imports', () => {
