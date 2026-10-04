@@ -212,7 +212,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const initCalledRef = useRef(false);
-  const questionsLoadRef = useRef<Promise<void> | null>(null);
+  const [questionBankRevision, setQuestionBankRevision] = useState(0);
+  const mergeLoadedQuestions = useCallback((loaded: TeacherQuestion[]) => {
+    setQuestions((current) => [...new Map([...current, ...loaded].map((q) => [q.id, q])).values()]);
+  }, []);
   const reportLoadRequestRef = useRef(0);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
@@ -3351,30 +3354,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     link.click();
   };
 
-  const loadQuestionsOnDemand = () => {
-    if (questionsLoadRef.current) return questionsLoadRef.current;
-
-    const request = (async () => {
-      const pageSize = 500;
-      const unique = new Map<string, TeacherQuestion>();
-      for (let offset = 0; ; offset += pageSize) {
-        const page = await GameService.get_all_questions({ limit: pageSize, offset });
-        page.forEach((question) => unique.set(question.id, question));
-        if (page.length < pageSize) break;
-      }
-      return [...unique.values()];
-    })()
-      .then(setQuestions)
-      .catch((error) => {
-        console.error('Error loading global question bank:', error);
-        brainsAlert('The question bank could not be refreshed. Your currently loaded questions have been kept; please try again.', 'error');
-      })
-      .finally(() => {
-        questionsLoadRef.current = null;
-      });
-
-    questionsLoadRef.current = request;
-    return request;
+  const loadQuestionsOnDemand = async () => {
+    // Browsers load their own bounded pages. Refresh facets after a mutation.
+    setQuestionBankRevision((value) => value + 1);
   };
 
   const loadTeacherData = async () => {
@@ -3611,7 +3593,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setSubmitForAcademicVerification(false);
       setEditingQuestion(null);
 
-      // Reload the complete authorized library, not only the RPC's first page.
+      // Refresh the bank after saving without preloading its content.
       await loadQuestionsOnDemand();
 
       setView('question-bank');
@@ -3638,8 +3620,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     try {
       await GameService.delete_question(questionId);
-      const allQuestions = await GameService.get_all_questions();
-      setQuestions(allQuestions);
+      setQuestions((current) => current.filter((q) => q.id !== questionId));
+      await loadQuestionsOnDemand();
       brainsAlert('Question deleted successfully.', 'success');
     } catch (error) {
       console.error('Error deleting question:', error);
@@ -3745,7 +3727,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
     await Promise.all(owned.map((question) => GameService.update_question(question.id, { topic: nextTopic, topic_name: nextTopic })));
-    setQuestions(await GameService.get_all_questions());
+    await loadQuestionsOnDemand();
     brainsAlert(`Topic renamed to “${nextTopic}”.`, 'success');
   };
 
@@ -3764,7 +3746,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     });
     if (!confirmed) return;
     await Promise.all(owned.map((question) => GameService.delete_question(question.id)));
-    setQuestions(await GameService.get_all_questions());
+    await loadQuestionsOnDemand();
     brainsAlert('Topic deleted from My Pool.', 'success');
   };
 
@@ -4341,7 +4323,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     try {
       const result = await GameService.bulk_create_teacher_questions(bulkImportPreview.questions);
       setUploadProgress({ current: result.submitted, total: result.submitted });
-      setQuestions(await GameService.get_all_questions());
+      await loadQuestionsOnDemand();
       setBulkImportPreview(null);
       setBulkImportSource('');
       setBulkPasteText('');
@@ -6327,6 +6309,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           setAssignmentGroupId={setAssignmentGroupId}
           teacherId={teacher?.id}
           questions={questions}
+          onQuestionsLoaded={mergeLoadedQuestions}
           onSubmit={handleCreateAssignment}
           onSaveDraft={handleSaveAssignmentDraft}
           onCancel={() => { resetAssignmentDraft(); setView('assignments'); }}
@@ -9523,6 +9506,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           {view === 'question-bank' && (
             <QuestionBank
               questions={questions}
+              remote
+              revision={questionBankRevision}
+              onQuestionsLoaded={mergeLoadedQuestions}
               teacher={teacher}
               onUseSet={handleUseQuestionSet}
               onEditQuestion={handleEditQuestion}

@@ -101,6 +101,7 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
   });
   const [questionCounts, setQuestionCounts] = useState<Array<{ grade: Grade; total: number; active: number; difficulty: Record<string, number> }>>([]);
   const [questionBank, setQuestionBank] = useState<QuestionRow[]>([]);
+  const [questionHasMore, setQuestionHasMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<PlayerSearchResult[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerSearchResult | null>(null);
@@ -166,6 +167,17 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
     }
   };
 
+  const loadMoreQuestions = async () => {
+    if (questionLoading || !questionBank.length) return;
+    setQuestionLoading(true);
+    try {
+      const rows = await fetchQuestionBank(String(questionBank[questionBank.length - 1].id));
+      setQuestionBank((current) => [...current, ...rows.map((row) => ({ ...row, grade: Number(row.grade) as Grade, lang: row.lang ?? 'ru' }))]);
+      setQuestionHasMore(rows.length === 100);
+    } catch (error: any) { addToast(error?.message || 'More questions could not be loaded', 'error'); }
+    finally { setQuestionLoading(false); }
+  };
+
   const refreshQuestions = async () => {
     setQuestionLoading(true);
     try {
@@ -174,6 +186,7 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
         fetchQuestionBank(),
       ]);
       setQuestionCounts(counts);
+      setQuestionHasMore(bank.length === 100);
       setQuestionBank((bank as any[]).map((row) => ({
         id: row.id,
         grade: Number(row.grade) as Grade,
@@ -591,6 +604,7 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
             ))}
           </tbody>
         </table>
+        {questionHasMore ? <button type="button" disabled={questionLoading} onClick={() => { void loadMoreQuestions(); }} className="mt-4 rounded-lg border border-cyan-500 px-3 py-2 text-cyan-300">Load more questions</button> : null}
       </div>
     </div>
   );

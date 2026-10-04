@@ -320,9 +320,9 @@ export const registerSchoolDocumentRecord = async (options: SchoolDocumentOption
   }
 };
 
-export const openSchoolDocumentPreview = (options: SchoolDocumentOptions) => {
+export const openSchoolDocumentPreview = (options: SchoolDocumentOptions, reservedWindow?: Window | null) => {
   const html = renderSchoolDocumentHtml(options);
-  const preview = window.open('', '_blank');
+  const preview = reservedWindow && !reservedWindow.closed ? reservedWindow : window.open('', '_blank');
 
   if (preview) {
     preview.opener = null;

@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import * as GameService from "../../../../services/gameService";
+import { fetchQuestionFacets, type QuestionFacet } from "../../../../services/questionBrowserService";
+import { useQuestionBrowser } from "../../../hooks/useQuestionBrowser";
 import { brainsAlert } from "../../../utils/brainsAlert";
-import { normalizeClanWarSubject, questionBelongsToPool, type QuestionPoolFilter } from "../questionPoolFilters";
+import { normalizeClanWarSubject, type QuestionPoolFilter } from "../questionPoolFilters";
 
 interface Question {
   id: string;
@@ -41,9 +42,10 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
   onCancel,
   restrictedSubjects,
 }) => {
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [facets, setFacets] = useState<QuestionFacet[]>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<Map<string, Question>>(new Map());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
+
   const [poolFilter, setPoolFilter] = useState<QuestionPoolFilter>("all");
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [topicFilter, setTopicFilter] = useState("all");
@@ -51,83 +53,36 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
   const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
   const restrictedSubjectKey = restrictedSubjects?.map(normalizeClanWarSubject).sort().join("|") || "";
 
+  const browser = useQuestionBrowser({
+    pool: poolFilter === 'all' ? undefined : poolFilter === 'brains-heist' ? 'verified' : poolFilter,
+    subject: subjectFilter === 'all' ? undefined : subjectFilter,
+    subjects: restrictedSubjects?.length ? restrictedSubjects : undefined,
+    topic: topicFilter === 'all' ? undefined : topicFilter,
+    search: search || undefined, metadata: false,
+  });
+  const loading = browser.loading;
+  const filteredQuestions = browser.questions as Question[];
   useEffect(() => {
     let cancelled = false;
-    const fetchQuestions = async () => {
-      try {
-        setLoading(true);
-        const available = await (async () => {
-            const pageSize = 500;
-            const unique = new Map<string, Question>();
-            for (let offset = 0; ; offset += pageSize) {
-              const page = await GameService.get_all_questions({ limit: pageSize, offset });
-              (page as Question[]).forEach((question) => unique.set(question.id, question));
-              if (page.length < pageSize) break;
-            }
-            return [...unique.values()];
-          })();
-        if (cancelled) return;
-        const permitted = restrictedSubjects?.length
-          ? new Set(restrictedSubjects.map(normalizeClanWarSubject))
-          : null;
-        setQuestions((available as Question[]).filter((question) =>
-          !permitted || permitted.has(normalizeClanWarSubject(question.subject || "")),
-        ));
-      } catch (error) {
-        console.error("Failed to load Clan Wars questions:", error);
-        if (!cancelled) {
-          setQuestions([]);
-          brainsAlert("We could not load the question pools. Please close this window and try again.", "error");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    void fetchQuestions();
+    void fetchQuestionFacets().then((rows) => { if (!cancelled) setFacets(rows); })
+      .catch((error) => console.error('Failed to load question filter options', error));
     return () => { cancelled = true; };
-  }, [restrictedSubjectKey]);
-
-  const poolQuestions = useMemo(
-    () => questions.filter((question) => questionBelongsToPool(question, poolFilter)),
-    [poolFilter, questions],
-  );
-
-  const subjects = useMemo(() => {
-    const labelsByKey = new Map<string, string>();
-    restrictedSubjects?.filter(Boolean).forEach((subject) =>
-      labelsByKey.set(normalizeClanWarSubject(subject), subject.trim()),
-    );
-    poolQuestions.forEach((question) => {
-      const key = normalizeClanWarSubject(question.subject || "");
-      if (key && !labelsByKey.has(key)) labelsByKey.set(key, question.subject);
-    });
-    return [...labelsByKey].map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [poolQuestions, restrictedSubjectKey]);
-  const topics = useMemo(
-    () => [...new Set(poolQuestions
-      .filter((question) => subjectFilter === "all" || normalizeClanWarSubject(question.subject) === subjectFilter)
-      .map(questionTopic))]
-      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base", numeric: true })),
-    [poolQuestions, subjectFilter],
-  );
-  const filteredQuestions = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase();
-    return poolQuestions.filter((question) => {
-      if (subjectFilter !== "all" && normalizeClanWarSubject(question.subject) !== subjectFilter) return false;
-      if (topicFilter !== "all" && questionTopic(question) !== topicFilter) return false;
-      return !query || [question.question_text, question.subject, questionTopic(question), question.difficulty]
-        .join(" ").toLocaleLowerCase().includes(query);
-    });
-  }, [poolQuestions, search, subjectFilter, topicFilter]);
-
+  }, []);
+  const availableFacets = facets.filter((item) => (!restrictedSubjects?.length
+    || restrictedSubjects.some((subject) => normalizeClanWarSubject(subject) === normalizeClanWarSubject(item.subject)))
+    && (poolFilter === 'all' || (poolFilter === 'mine' ? item.pool === 'mine' : item.pool !== 'mine')));
+  const subjects = [...new Set(availableFacets.map((item) => item.subject))]
+    .sort((a, b) => a.localeCompare(b)).map((subject) => ({ value: subject, label: subject }));
+  const topics = [...new Set(availableFacets.filter((item) => subjectFilter === 'all' || item.subject === subjectFilter)
+    .map((item) => item.topic))].sort((a, b) => a.localeCompare(b));
   useEffect(() => {
-    if (subjectFilter !== "all" && !subjects.some((subject) => subject.value === subjectFilter)) setSubjectFilter("all");
-  }, [subjectFilter, subjects]);
-
-  useEffect(() => {
-    if (topicFilter !== "all" && !topics.includes(topicFilter)) setTopicFilter("all");
-  }, [topicFilter, topics]);
+    // Store selected records independently so filtering/paging never drops selections.
+    setSelectedQuestions((current) => {
+      const next = new Map(current);
+      filteredQuestions.forEach((question) => { if (selectedIds.has(question.id)) next.set(question.id, question); });
+      return next;
+    });
+  }, [browser.questions, selectedIds]);
 
   const toggleQuestion = (id: string) => {
     setSelectedIds((current) => {
@@ -139,7 +94,7 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
   };
 
   const handleConfirm = () => {
-    const selected = questions.filter((question) => selectedIds.has(question.id));
+    const selected = [...new Map([...selectedQuestions.values(), ...filteredQuestions].map((q) => [q.id, q])).values()].filter((question) => selectedIds.has(question.id));
     if (!selected.length) {
       brainsAlert("Select at least one question before starting the battle.", "info");
       return;
@@ -156,8 +111,8 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
         </header>
 
         <div className="shrink-0 grid gap-3 border-b border-slate-800 bg-slate-900/65 p-4 sm:grid-cols-2 lg:grid-cols-5 sm:p-6">
-          <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Question pool</span><select value={poolFilter} onChange={(event) => setPoolFilter(event.target.value as QuestionPoolFilter)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All available pools</option><option value="brains-heist">Brains Heist Pool</option><option value="mine">My Pool</option></select></label>
-          <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Subject</span><select value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All subjects</option>{subjects.map((subject) => <option key={subject.value} value={subject.value}>{subject.label}</option>)}</select></label>
+          <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Question pool</span><select value={poolFilter} onChange={(event) => { setPoolFilter(event.target.value as QuestionPoolFilter); setSubjectFilter("all"); setTopicFilter("all"); }} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All available pools</option><option value="brains-heist">Brains Heist Pool</option><option value="mine">My Pool</option></select></label>
+          <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Subject</span><select value={subjectFilter} onChange={(event) => { setSubjectFilter(event.target.value); setTopicFilter("all"); }} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All subjects</option>{subjects.map((subject) => <option key={subject.value} value={subject.value}>{subject.label}</option>)}</select></label>
           <label className="grid gap-1 text-xs font-bold text-slate-400"><span>Topic</span><select value={topicFilter} onChange={(event) => setTopicFilter(event.target.value)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white"><option value="all">All topics</option>{topics.map((topic) => <option key={topic} value={topic}>{topic}</option>)}</select></label>
           <label className="grid gap-1 text-xs font-bold text-slate-400 lg:col-span-2"><span>Search questions</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by question, topic, or difficulty…" className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text-white placeholder:text-slate-600" /></label>
         </div>
@@ -168,7 +123,8 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
         </div>
 
         <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain p-4 sm:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
-          {loading ? <div className="grid min-h-60 place-items-center text-slate-400"><span>Loading your question pools…</span></div> : filteredQuestions.length ? (
+          {browser.error ? <div role="alert" className="p-4">{browser.error}<button type="button" onClick={browser.retry} className="ml-3 rounded-lg border px-3 py-2">Retry</button></div> : null}
+          {loading && !filteredQuestions.length ? <div className="grid min-h-60 place-items-center text-slate-400"><span>Loading your question pools…</span></div> : filteredQuestions.length ? (
             <div className="grid gap-3 md:grid-cols-2">
               {filteredQuestions.map((question) => {
                 const selected = selectedIds.has(question.id);
@@ -179,6 +135,7 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
               })}
             </div>
           ) : <div className="grid min-h-60 place-items-center text-center"><div><p className="text-lg font-bold text-white">No questions match these filters</p><p className="mt-1 text-sm text-slate-400">Try All available pools or a broader subject and topic.</p></div></div>}
+          {browser.hasMore ? <button type="button" disabled={loading} onClick={() => { void browser.loadMore(); }} className="mt-5 w-full rounded-xl border border-cyan-500/40 px-4 py-3 font-bold text-cyan-200">{loading ? "Loading…" : "Load more questions"}</button> : null}
         </div>
 
         <footer className="shrink-0 flex gap-3 border-t border-slate-800 bg-slate-900/75 p-4 sm:p-6"><button type="button" onClick={onCancel} className="rounded-xl border border-slate-700 px-5 py-3 font-bold text-slate-300 hover:bg-slate-800">Cancel</button><button type="button" onClick={handleConfirm} disabled={!selectedIds.size} className="flex-1 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 font-black text-white shadow-lg shadow-blue-950/30 disabled:cursor-not-allowed disabled:opacity-40">Use {selectedIds.size} question{selectedIds.size === 1 ? "" : "s"} in battle</button></footer>
