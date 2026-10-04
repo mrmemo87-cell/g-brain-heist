@@ -63,6 +63,29 @@ export default function QuestionPreviewModal({ question, onClose, onEdit }: Ques
           </section>
         ) : null}
         {question.tags?.length ? <div className="question-preview__tags">{question.tags.map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
+        <section className="question-preview__section question-preview__tracking">
+          <h3>What this question assesses</h3>
+          {question.registry_mappings?.length ? question.registry_mappings.map((mapping, index) => (
+            <div className="question-preview__mapping" key={`${mapping.registryCode}-${mapping.subskill}-${mapping.evidenceFocus}-${index}`}>
+              <dl>
+                {mapping.strand ? <div><dt>Strand</dt><dd>{mapping.strand}</dd></div> : null}
+                <div><dt>Skill</dt><dd>{mapping.skill}</dd></div>
+                <div><dt>Subskill</dt><dd>{mapping.subskill}</dd></div>
+                <div><dt>Evidence focus</dt><dd>{mapping.evidenceFocus}</dd></div>
+              </dl>
+              <p>{mapping.evidenceStatement}</p>
+            </div>
+          )) : question.curriculum_skill || question.curriculum_subskill ? (
+            <div className="question-preview__mapping"><dl>
+              {question.curriculum_strand ? <div><dt>Strand</dt><dd>{question.curriculum_strand}</dd></div> : null}
+              {question.curriculum_skill ? <div><dt>Skill</dt><dd>{question.curriculum_skill}</dd></div> : null}
+              {question.curriculum_subskill ? <div><dt>Subskill</dt><dd>{question.curriculum_subskill}</dd></div> : null}
+            </dl>{question.curriculum_objective ? <p>{question.curriculum_objective}</p> : null}</div>
+          ) : <p>Detailed assessment mapping is not available for this question.</p>}
+          <p className="question-preview__tracking-note">{question.analytics_eligible && question.verification_status === 'verified'
+            ? 'Verified assessment answers can contribute to Academic Profiles. Repeated independent evidence builds confidence; targeted practice supports learning and requires independent reassessment.'
+            : 'This question is not eligible to contribute to verified Academic Profile evidence.'}</p>
+        </section>
         <footer>
           <button type="button" className="is-secondary" onClick={onClose}>Close preview</button>
           {onEdit ? <button type="button" className="is-primary" onClick={onEdit}>Edit question</button> : null}

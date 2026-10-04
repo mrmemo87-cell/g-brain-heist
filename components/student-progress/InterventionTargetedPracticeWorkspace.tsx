@@ -32,10 +32,11 @@ const isOfficialVerifiedQuestion = (question: TeacherQuestion, grade: number) =>
     && grade > 0
     && Boolean(question.eligible_grade_levels?.length)
     && question.eligible_grade_levels!.includes(grade);
-  return question.content_origin === 'brain_heist'
+  const governedPool = (question.pool_scope === 'global' && question.content_origin === 'brain_heist' && question.is_public === true)
+    || (question.pool_scope === 'school' && question.content_origin === 'teacher' && question.is_public === false && Boolean(question.owner_school_id));
+  return governedPool
     && question.verification_status === 'verified'
     && question.analytics_eligible === true
-    && question.is_public === true
     && question.is_active === true
     && Boolean(question.verified_content_hash)
     && question.current_content_hash === question.verified_content_hash
@@ -90,7 +91,11 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
       try {
         const entitlements = await getEntitlements(true);
         if (!entitlements.canUse(FEATURE_KEYS.ASSIGNMENTS)) throw new Error('Assignments are not included in this school plan.');
-        const [teacher, allQuestions] = await Promise.all([GameService.get_teacher_profile(), GameService.get_all_questions()]);
+        const candidateIds = [...new Set([
+          ...(context.recommendation.exact_question_ids || []),
+          ...(context.recommendation.related_question_ids || []),
+        ])];
+        const [teacher, allQuestions] = await Promise.all([GameService.get_teacher_profile(), GameService.get_teacher_questions_by_ids(candidateIds)]);
         if (!teacher) throw new Error('Teacher profile could not be loaded.');
         if (cancelled) return;
         setTeacherId(teacher.id);
