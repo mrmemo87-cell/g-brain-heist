@@ -15,6 +15,8 @@ as $$
     select source_type, coalesce(source_id::text,source_key) instance, academic_year_id,
       (array_agg(id order by observed_at desc,created_at desc,id desc))[1] latest_id,
       sum(evidence_count)::integer items,
+      string_agg(distinct coalesce(nullif(evidence->>'evidence_focus_code',''),p_skill_key),'|'
+        order by coalesce(nullif(evidence->>'evidence_focus_code',''),p_skill_key)) focus_signature,
       case when count(evidence_percentage)=count(*) and sum(evidence_count)>0
         then round(sum(evidence_percentage * evidence_count)/sum(evidence_count),2) end percentage
     from eligible group by source_type,coalesce(source_id::text,source_key),academic_year_id
@@ -22,6 +24,7 @@ as $$
   select (jsonb_populate_record(null::public.student_learning_observations,
     to_jsonb(o) || jsonb_build_object(
       'evidence_count',g.items,'evidence_percentage',g.percentage,
+      'evidence',o.evidence || jsonb_build_object('assessment_focus_signature',g.focus_signature),
       'observation_type',case when g.percentage is null then o.observation_type
         when g.percentage<60 then 'focus' when g.percentage>=80 then 'strength' else 'developing' end
     ))).*
@@ -145,7 +148,8 @@ begin
   from scoped;
 
   with recent as (
-    select o.observation_type, o.observed_at
+    select o.observation_type, o.observed_at, o.source_type,
+      coalesce(nullif(o.evidence->>'assessment_focus_signature',''),nullif(o.evidence->>'evidence_focus_code',''),p_skill_key) focus_signature
     from private.academic_assignment_assessment_observations(p_student_id,p_skill_key,p_as_of) o
     where o.student_id = p_student_id and o.skill_key = p_skill_key
       and o.observed_at <= p_as_of
@@ -158,7 +162,11 @@ begin
   select count(*) filter (where observation_type = 'focus')::integer as focus_count,
     count(*) filter (where observation_type = 'developing')::integer as developing_count,
     count(*) filter (where observation_type = 'strength')::integer as strength_count
-   , count(distinct (observed_at at time zone 'UTC')::date)::integer as assessment_dates
+   , count(distinct (observed_at at time zone 'UTC')::date)::integer as assessment_dates,
+    exists(select 1 from recent a join recent b
+      on a.source_type=b.source_type and a.focus_signature=b.focus_signature
+      and (a.observed_at at time zone 'UTC')::date <> (b.observed_at at time zone 'UTC')::date
+      where a.observation_type='focus' and b.observation_type='strength') as comparable_conflict
   into v_recent from recent;
 
   select max(o.observed_at) into v_last_focus
@@ -245,7 +253,7 @@ begin
   v_assessment := case
     when v_metrics.qualified = 0 then 'not_assessed'
     when v_age > (v_policy.thresholds->>'stale_after_days')::integer then 'stale'
-    when v_recent.assessment_dates > 1 and coalesce(v_recent.focus_count, 0) > 0 and coalesce(v_recent.strength_count, 0) > 0
+    when v_recent.comparable_conflict and v_recent.assessment_dates > 1 and coalesce(v_recent.focus_count, 0) > 0 and coalesce(v_recent.strength_count, 0) > 0
       then 'contradictory'
     when not v_decision then 'low_data'
     else 'assessed'

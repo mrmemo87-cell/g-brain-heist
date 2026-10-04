@@ -62,5 +62,6 @@ test('database pools qualified assignment observations but preserves raw audit r
     const raw = await db.query<{n: number}>('select count(*)::int n from student_learning_observations');
     assert.equal(raw.rows[0].n, 4);
     assert.match(migration, /v_recent.assessment_dates > 1/);
+    assert.match(migration, /a.source_type=b.source_type and a.focus_signature=b.focus_signature/);
   } finally { await db.close(); }
 });
