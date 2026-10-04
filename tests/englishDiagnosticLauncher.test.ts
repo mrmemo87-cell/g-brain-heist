@@ -92,7 +92,7 @@ test('English teacher UI exposes fresh balanced diagnostics from Curriculum Inte
   assert.match(page, /EnglishDiagnosticLauncher/);
   assert.match(page, /canLaunchEnglishDiagnostic/);
   assert.match(page, /\/\(english\|esl\)\/i\.test\(selectedGroup\.subjectLabel\)/);
-  assert.match(page, /snapshot\.registry\.code === 'bh-english-core-v1'/);
+  assert.match(page, /snapshot\.registry\.registryVersion === 'bh-english-core-v1'/);
   assert.match(page, /Create English Diagnostic/);
 });
 
