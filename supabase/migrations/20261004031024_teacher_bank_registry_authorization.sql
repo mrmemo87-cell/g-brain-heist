@@ -169,3 +169,6 @@ begin
 end;
 $function$
 ;
+
+revoke all on function public.get_all_active_questions(text,text,uuid,integer,integer) from public,anon;
+grant execute on function public.get_all_active_questions(text,text,uuid,integer,integer) to authenticated,service_role;
