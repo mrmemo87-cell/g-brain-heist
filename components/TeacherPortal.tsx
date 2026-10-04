@@ -72,6 +72,8 @@ import {
   type TeacherQuestionImportPreview,
 } from '../src/lib/teacherQuestionBulkImport';
 
+import { ProfileIcon } from './student-progress/AcademicProfilePremium';
+
 interface TeacherPortalProps {
   profile: Profile;
   onComplete: () => void;
@@ -80,6 +82,7 @@ interface TeacherPortalProps {
   isSchoolAdmin?: boolean;
   onOpenSchoolAdmin?: () => void;
   initialView?: PortalView;
+  academicProfilePresentation?: boolean;
   onAssignmentSummary?: (summary: GameService.TeacherAssignmentSuccessSummary | null) => void;
 }
 
@@ -189,7 +192,7 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
   return { grammar, punctuation };
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard', onAssignmentSummary }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard', onAssignmentSummary, academicProfilePresentation = false }) => {
   const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
   const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
   const initialWritingSection: WritingHubSection =
@@ -9208,6 +9211,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         <div className="teacher-topbar-inner mx-auto flex w-full max-w-[1600px] items-center justify-between px-3 py-2 sm:px-4 lg:px-6">
           {/* Left: Logo + Brand */}
           <div className="teacher-topbar-brand flex min-w-0 items-center gap-2 lg:gap-3">
+            {academicProfilePresentation ? <div className="ap-workspace-brand"><SchoolBrand brand={schoolBrand} showName={false} imageClassName="ap-workspace-logo"/><div><strong>{schoolBrand.name}</strong><span>Teacher Workspace</span></div></div> : <>
             <img
               src="/logo.png"
               alt="Brains Heist"
@@ -9244,6 +9248,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 {planBadge.countdown && <span className="plan-badge__countdown">{planBadge.countdown}</span>}
               </div>
             )}
+            </>}
           </div>
 
           {/* Right: Actions */}
@@ -9258,7 +9263,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               aria-label="Open notifications"
               title="Notifications"
             >
-              🔔
+              {academicProfilePresentation ? <ProfileIcon name="bell"/> : '🔔'}
               {unreadCount > 0 && (
                 <span className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
                   {unreadCount > 9 ? '9+' : unreadCount}
@@ -9272,7 +9277,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               aria-label="Open help and guide"
               title="Guide & Help"
             >
-              ❓
+              {academicProfilePresentation ? <ProfileIcon name="info"/> : '❓'}
             </button>
             <button
               type="button"
@@ -9280,7 +9285,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-xl text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-cyan-500/60 hover:text-white"
               aria-label="Open quick menu"
             >
-              ☰
+              {academicProfilePresentation ? <ProfileIcon name="menu"/> : '☰'}
             </button>
             <button
               type="button"
@@ -9493,7 +9498,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       onFocus={(event) => desktopSidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })}
                       onBlur={() => setNavTooltip(null)}
                     >
-                      <span className="teacher-nav-icon">{tab.icon}</span>
+                      <span className="teacher-nav-icon">{academicProfilePresentation ? <ProfileIcon name={tab.id === 'dashboard' ? 'home' : tab.id === 'questions' ? 'book' : tab.id === 'students' ? 'support' : tab.id === 'interventions' ? 'target' : tab.id === 'reports' ? 'result' : tab.id === 'clan-wars' ? 'shield' : 'document'}/> : tab.icon}</span>
                       <div className="teacher-nav-text">
                         <span className="teacher-nav-label">
                           {tab.label}

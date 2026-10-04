@@ -2,6 +2,7 @@ import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { withPortalLocalization } from '../src/components/PortalLocalizationBoundary';
 import { createPortal } from 'react-dom';
 import TeacherPortal from './TeacherPortal';
+import './student-progress/AcademicProfileWorkspace.css';
 
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
 const TeacherInterventionIntelligencePage = React.lazy(() => import('./student-progress/TeacherInterventionIntelligencePage'));
@@ -237,7 +238,7 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
           padding: 0;
         }
       `}</style>
-      <TeacherPortal {...props} onAssignmentSummary={setDashboardAssignmentMetrics} />
+      <TeacherPortal {...props} academicProfilePresentation={activeTool === 'academic-profiles' && !targetedPractice} onAssignmentSummary={setDashboardAssignmentMetrics} />
       {overlayActive && portalHost
         ? createPortal(
           <Suspense fallback={<div className="p-6 text-sm text-slate-500">Preparing Brains Heist workspace…</div>}>

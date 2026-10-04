@@ -19,15 +19,17 @@ test('Student Academic Profile uses school language and source-specific evidence
   assert.match(source, /Technical reporting terminology/);
 });
 
-test('secondary academic profile sections use one closed-by-default disclosure system', () => {
+test('academic profile exposes its primary dashboard while keeping methodology expandable', () => {
   const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
-  const disclosures = source.match(/<ProfileDisclosure/g) || [];
-  assert.equal(disclosures.length, 7);
-  assert.match(source, /Evidence to confirm/);
-  assert.match(source, /sap-profile-disclosure/);
+  assert.equal((source.match(/<ProfileStat /g) || []).length, 4);
+  assert.equal((source.match(/<ProfileDisclosure /g) || []).length, 1);
+  for (const title of ['Learning trends', 'Assessment results', 'Priority support', 'Evidence to confirm', 'Detailed evidence', 'Assessment record']) {
+    assert.ok(source.includes(`<ProfileSection title="${title}"`), `${title} must be a visible dashboard section`);
+  }
+  assert.match(source, /className="ap-snapshot" aria-label="Teacher snapshot"/);
+  assert.match(source, /ProfilePreview/);
   assert.match(source, /className="when-closed">Open/);
   assert.match(source, /className="when-open">Close/);
-  assert.doesNotMatch(source, /<details[^>]*\sopen(?:\s|>)/);
 });
 
 test('English combines assignment and Writing Hub evidence in one colour-coded trend chart', () => {

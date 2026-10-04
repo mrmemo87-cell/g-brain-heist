@@ -27,7 +27,7 @@ test('academic profile returns one report-safe contract for subjects, assignment
 test('teacher and student profile UI contains the longitudinal academic sections', () => {
   assert.match(profile, /Subject picture/i);
   assert.match(profile, /What should we work on/i);
-  assert.match(profile, /Progress and strengths/i);
+  assert.match(profile, /Progress (?:and|&) strengths/i);
   assert.match(profile, /Assignment results/i);
   assert.match(profile, /Learning trends/i);
   assert.match(profile, /Generate individual report/i);
