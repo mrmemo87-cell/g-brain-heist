@@ -1,3 +1,4 @@
+import { academicProfileSubjectName, isAcademicAssignmentSource } from '../../services/studentAcademicProfileService';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   fetchStudentAcademicConfidence,
@@ -94,7 +95,7 @@ const getCorrections = (item?: TimelineItem | null): Correction[] => {
 
 const sourceMeta = (item: TimelineItem) => {
   const evidence = objectValue(item.evidence);
-  if (item.source_type === 'assignment_result') {
+  if (isAcademicAssignmentSource(item.source_type)) {
     return { label: 'Assignment', detail: textValue(evidence.assignment_title) || 'School assignment', tone: 'assignment' };
   }
   if (item.source_type === 'writing_attempt' || item.source_type === 'writing_assessment_review') {
@@ -146,7 +147,7 @@ const buildTrendEvents = (items: TimelineItem[], subject: string, sourceType?: T
     strengthCount: number;
   }>();
   items.filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject)
-    && (!sourceType || item.source_type === sourceType)).forEach((item) => {
+    && (!sourceType || (sourceType === 'assignment_result' ? isAcademicAssignmentSource(item.source_type) : item.source_type === sourceType))).forEach((item) => {
     const meta = sourceMeta(item);
     const comparableKey = `${normalizeSubject(item.subject)}|${item.skill.toLowerCase()}|${String(item.subskill || '').toLowerCase()}`;
     const key = `${item.source_type}:${item.source_id || item.observed_at}:${comparableKey}`;
@@ -381,14 +382,14 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
     profile?.timeline.forEach((entry) => values.push(entry.subject));
     profile?.scope.allowed_subjects.forEach((entry) => values.push(entry));
     availableSubjects.forEach((entry) => values.push(entry));
-    return normalizeAcademicSubjectOptions(values);
+    return normalizeAcademicSubjectOptions(values.map((name) => academicProfileSubjectName(name, profile?.scope.subject_aliases)));
   }, [availableSubjects, profile]);
 
   useEffect(() => {
     if (subject === 'all') return;
-    const canonical = allSubjects.find((name) => normalizeSubject(name) === normalizeSubject(subject));
+    const canonical = allSubjects.find((name) => normalizeSubject(name) === normalizeSubject(academicProfileSubjectName(subject, profile?.scope.subject_aliases)));
     if (canonical && canonical !== subject) setSubject(canonical);
-  }, [allSubjects, subject]);
+  }, [allSubjects, subject, profile?.scope.subject_aliases]);
 
   const currentFocus = useMemo(() => profile?.focus_areas.filter((item) => isActiveSupportStatus(item.status)) ?? [], [profile]);
   const evidenceToConfirm = useMemo(() => profile?.focus_areas.filter((item) => isEvidenceToConfirmStatus(item.status)) ?? [], [profile]);
@@ -412,7 +413,7 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
 
   const trendSubjects = useMemo<TrendChart[]>(() => {
     if (!profile) return [];
-    const subjects = subject === 'all' ? allSubjects : [subject];
+    const subjects = subject === 'all' ? allSubjects : [academicProfileSubjectName(subject, profile.scope.subject_aliases)];
     return subjects.flatMap((name) => {
       const subjectExists = profile.subjects.some((row) => normalizeSubject(row.subject) === normalizeSubject(name));
       if (normalizeSubject(name) === 'english') {
@@ -440,8 +441,8 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
       const current = latest.get(item.skillKey);
       if (!current || String(item.computedAt || '') > String(current.computedAt || '')) latest.set(item.skillKey, item);
     });
-    return [...latest.values()].filter((item) => subject === 'all' || normalizeSubject(item.subject) === normalizeSubject(subject));
-  }, [confidence, subject]);
+    return [...latest.values()].filter((item) => subject === 'all' || normalizeSubject(academicProfileSubjectName(item.subject, profile?.scope.subject_aliases)) === normalizeSubject(academicProfileSubjectName(subject, profile?.scope.subject_aliases)));
+  }, [confidence, subject, profile?.scope.subject_aliases]);
 
   if (loading) return <section className="sap-shell sap-state"><div className="sap-loader"/><strong>Preparing student progress…</strong><span>Combining assignments, writing and progress over time.</span></section>;
   if (error || !profile) return <section className="sap-shell sap-state sap-state--error"><strong>Student progress unavailable</strong><span>{error || 'No progress data was returned.'}</span>{onClose ? <button type="button" onClick={onClose}>Back</button> : null}</section>;
@@ -486,6 +487,8 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
       <label>To<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
       <span className="sap-scope-note">{profile.scope.viewer === 'teacher' ? 'Showing the subjects you teach this student.' : 'Showing authorised school learning evidence.'}</span>
     </div>
+
+    {(profile.scope.writing_pending_reviews || 0) > 0 ? <div className="aps-scope-note" role="status"><strong>{profile.scope.writing_pending_reviews} Writing Hub submission{profile.scope.writing_pending_reviews === 1 ? '' : 's'} awaiting teacher review.</strong> Finalized reviews appear as writing evidence here. Writing scores stay separate from the assignment average.</div> : null}
 
     <div className="sap-kpis">
       <article><span>Completed assignment average</span><strong className={`sap-score sap-score--${scoreBand(profile.summary.assignment_average)}`}>{profile.summary.assignment_average === null ? '—' : `${profile.summary.assignment_average}%`}</strong><small>Based on {profile.summary.completed_assignments} completed assignment{profile.summary.completed_assignments === 1 ? '' : 's'}</small></article>

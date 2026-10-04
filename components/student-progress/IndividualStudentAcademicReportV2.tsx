@@ -1,3 +1,4 @@
+import { isAcademicAssignmentSource } from '../../services/studentAcademicProfileService';
 import React, { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { StudentAcademicProfile } from '../../services/studentAcademicProfileService';
@@ -34,7 +35,7 @@ const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDa
 const formatSectionNumber = (value: number | null) => value == null ? '' : String(value).padStart(2, '0');
 const normalizeSubject = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^maths$/, 'mathematics');
 const sourceLabel = (item: TimelineItem) => {
-  if (item.source_type === 'assignment_result') return 'Assignment';
+  if (isAcademicAssignmentSource(item.source_type)) return 'Assignment';
   if (item.source_type === 'writing_attempt' || item.source_type === 'writing_assessment_review') {
     const genre = typeof item.evidence?.genre === 'string' ? item.evidence.genre.trim() : '';
     return genre ? genre.charAt(0).toUpperCase() + genre.slice(1) : 'Writing task';
@@ -44,7 +45,7 @@ const sourceLabel = (item: TimelineItem) => {
   return 'School evidence';
 };
 const sourceDetail = (item: TimelineItem) => {
-  if (item.source_type === 'assignment_result' && typeof item.evidence?.assignment_title === 'string' && item.evidence.assignment_title.trim()) return item.evidence.assignment_title.trim();
+  if (isAcademicAssignmentSource(item.source_type) && typeof item.evidence?.assignment_title === 'string' && item.evidence.assignment_title.trim()) return item.evidence.assignment_title.trim();
   if (item.source_type === 'writing_attempt' || item.source_type === 'writing_assessment_review') return 'Writing Hub';
   return sourceLabel(item);
 };
@@ -60,7 +61,7 @@ const trendPositionLabel = (score: number) => score >= 80 ? 'Strong evidence' : 
 const buildPrintTrendEvents = (items: TimelineItem[], subject: string, sourceType?: TimelineItem['source_type']): PrintTrendEvent[] => {
   const groups = new Map<string, { values: number[]; comparableKey: string; observedAt: string; source: string; detail: string; label: string }>();
   items.filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject)
-    && (!sourceType || item.source_type === sourceType)).forEach((item) => {
+    && (!sourceType || (sourceType === 'assignment_result' ? isAcademicAssignmentSource(item.source_type) : item.source_type === sourceType))).forEach((item) => {
     const comparableKey = `${normalizeSubject(item.subject)}|${item.skill.toLowerCase()}|${String(item.subskill || '').toLowerCase()}`;
     const key = `${item.source_type}:${item.source_id || item.observed_at}:${comparableKey}`;
     const group = groups.get(key) || {
@@ -193,6 +194,7 @@ const IndividualStudentAcademicReportV2: React.FC<IndividualStudentAcademicRepor
 
           <section className="sap-print-title"><span>Student Progress</span><h1>{safeText(title) || 'Student Progress Report'}</h1><p>{term ? `${term} · ` : ''}{profile.scope.subject || 'All authorised subjects'}</p></section>
           <section className="sap-print-student-grid"><div><span>Student</span><strong>{profile.student.name}</strong></div><div><span>Class</span><strong>{profile.student.class_name || '—'}</strong></div><div><span>Grade</span><strong>{profile.student.grade || '—'}</strong></div><div><span>Prepared by</span><strong>{teacherName || 'Authorised school staff'}</strong></div></section>
+          {(profile.scope.writing_pending_reviews || 0) > 0 ? <p>{profile.scope.writing_pending_reviews} Writing Hub submission{profile.scope.writing_pending_reviews === 1 ? '' : 's'} awaiting teacher review; excluded from official attainment until finalized.</p> : null}
           <section className="sap-print-trust-summary"><span>Teacher snapshot</span><p>{snapshotText}</p></section>
           <section className="sap-print-summary"><div><span>Completed assignment average</span><strong>{profile.summary.assignment_average == null ? '—' : `${profile.summary.assignment_average}%`}</strong><small>{profile.summary.completed_assignments} completed</small></div><div><span>Needs support</span><strong>{currentFocus.length}</strong><small>{profile.summary.persistent_focus_count} long-running</small></div><div><span>Making progress</span><strong>{profile.summary.improving_count}</strong><small>Moving in the right direction</small></div><div><span>Now secure</span><strong>{profile.summary.resolved_count}</strong><small>Previous needs resolved</small></div><div><span>Established strengths</span><strong>{profile.summary.strength_count}</strong><small>{positiveEvidenceToConfirm.length ? `${positiveEvidenceToConfirm.length} positive signal${positiveEvidenceToConfirm.length === 1 ? '' : 's'} awaiting more evidence` : 'Longitudinally supported strengths'}</small></div></section>
 

@@ -19,12 +19,12 @@ export type LearningObservationType = 'focus' | 'developing' | 'strength';
 
 export interface StudentAcademicProfile {
   student: { id: string; name: string; username?: string | null; grade?: string | number | null; class_name?: string | null; school_id?: string | null };
-  scope: { subject?: string | null; date_from?: string | null; date_to?: string | null; viewer: 'student' | 'teacher' | 'school_admin' | 'school_head'; allowed_subjects: string[]; academic_year_id?: string | null; academic_year_name?: string | null; academic_year_status?: string | null; archived?: boolean };
+  scope: { subject?: string | null; date_from?: string | null; date_to?: string | null; viewer: 'student' | 'teacher' | 'school_admin' | 'school_head'; allowed_subjects: string[]; subject_aliases?: Record<string, string>; writing_pending_reviews?: number; academic_year_id?: string | null; academic_year_name?: string | null; academic_year_status?: string | null; archived?: boolean };
   summary: { subjects_tracked: number; completed_assignments: number; assignment_average: number | null; persistent_focus_count: number; recurring_focus_count: number; improving_count: number; resolved_count: number; strength_count: number };
   subjects: Array<{ subject: string; assignment_average: number | null; completed_assignments: number; persistent_focus_count: number; improving_count: number; resolved_count: number; strength_count: number; latest_evidence_at?: string | null }>;
   assignments: Array<{ assignment_id: string; title: string; subject: string; topic?: string | null; class_name?: string | null; assigned_at?: string | null; due_at?: string | null; completed_at: string; score: number; accuracy: number; correct: number; incorrect: number; time_taken_seconds?: number | null }>;
   focus_areas: Array<{ subject: string; topic?: string | null; skill: string; subskill?: string | null; skill_key: string; status: LearningStatus; trend: LearningTrend; priority: LearningPriority; first_observed_at: string; last_observed_at: string; focus_occurrences: number; developing_occurrences: number; strength_occurrences: number; latest_evidence_percentage?: number | null; evidence_items: number; evidence_occurrences: number }>;
-  timeline: Array<{ id: string; subject: string; topic?: string | null; skill: string; subskill?: string | null; observation_type: LearningObservationType; source_type: 'assignment_result' | 'writing_attempt' | 'writing_assessment_review' | 'teacher_observation' | 'import' | 'cambridge_attempt'; source_id?: string | null; observed_at: string; evidence_percentage?: number | null; evidence_count: number; evidence_quality?: 'provisional' | 'standard' | 'strong' | null; contributes_to_focus_state?: boolean; evidence?: Record<string, unknown> }>;
+  timeline: Array<{ id: string; subject: string; topic?: string | null; skill: string; subskill?: string | null; observation_type: LearningObservationType; source_type: 'assignment_result' | 'registry_verified_assignment' | 'writing_attempt' | 'writing_assessment_review' | 'teacher_observation' | 'import' | 'cambridge_attempt'; source_id?: string | null; observed_at: string; evidence_percentage?: number | null; evidence_count: number; evidence_quality?: 'provisional' | 'standard' | 'strong' | null; contributes_to_focus_state?: boolean; evidence?: Record<string, unknown> }>;
 }
 
 export interface StudentAcademicProfileQuery { studentId?: string | null; subject?: string | null; academicYearId?: string | null; dateFrom?: string | null; dateTo?: string | null }
@@ -202,3 +202,10 @@ export const formatLearningStatus = (status: LearningStatus): string => {
     case 'consistent_strength': return 'Established strength';
   }
 };
+
+/** Governed school labels supplied by the authorized profile RPC. */
+export const academicProfileSubjectName = (value: string, aliases?: Record<string, string>): string =>
+  aliases?.[value.trim().toLowerCase()] || value;
+
+export const isAcademicAssignmentSource = (source: string): boolean =>
+  source === 'assignment_result' || source === 'registry_verified_assignment';
