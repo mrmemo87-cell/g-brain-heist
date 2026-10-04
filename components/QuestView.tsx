@@ -1432,10 +1432,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       // Check if this is a duplicate answer (no rewards given)
       const isDuplicate = response.correct && !hasRewards;
       
-      if (isDuplicate) {
-        // Show prominent duplicate warning
-        response.explanation = 'Try a different subject or difficulty to earn more rewards.';
-      }
+      // Keep the server's explanation: a zero payout can mean a cap, not a repeat.
 
       onGrantReward(response.deltas, response.finalProfileValues);
       
@@ -1607,7 +1604,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           correct: result.is_correct,
           deltas: {
             xp: result.points_earned,
-            coins: result.is_correct ? Math.floor(result.points_earned / 2) : 0,
+            coins: result.coins_earned ?? (result.is_correct ? Math.floor(result.points_earned / 2) : 0),
             gemstones: 0,
           },
           finalProfileValues: result.final_profile_values,

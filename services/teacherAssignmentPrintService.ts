@@ -1,3 +1,4 @@
+import { economicsDisplayOptions } from './economicsOptionPresentation';
 import {
   createSchoolDocumentId,
   escapeSchoolDocumentHtml,
@@ -53,7 +54,7 @@ const responseLines = (count = 3) => Array.from({ length: count }, () => (
 )).join('');
 
 const questionHtml = (question: PrintableAssignmentQuestion) => {
-  const options = Array.isArray(question.options) ? question.options.filter((option) => option?.text) : [];
+  const options = Array.isArray(question.options) ? economicsDisplayOptions(question.questionId, question.options.filter((option) => option?.text)) : [];
   const isShortAnswer = question.questionType === 'short_answer' || options.length === 0;
   const image = question.imageUrl
     ? `<img src="${escapeSchoolDocumentHtml(question.imageUrl)}" alt="${escapeSchoolDocumentHtml(question.imageAltText || `Question ${question.orderIndex} visual`)}" style="display:block;max-width:100%;max-height:75mm;margin:3mm auto;object-fit:contain">`

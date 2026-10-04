@@ -1,3 +1,4 @@
+import { economicsDisplayOptions, questionGameXp } from './economicsOptionPresentation';
 import { retryAssignmentOperation, isTransientAssignmentError } from './assignmentReliability';
 import {
     Profile,
@@ -346,7 +347,7 @@ const normalizeTeacherQuestionPayload = (question: TeacherQuestion): TeacherQues
     return {
         ...question,
         topic_name: normalizeTopicName(question.topic_name ?? undefined, question.topic ?? undefined),
-        options: coerceQuestionOptions((question as any).options, question.question_type),
+        options: economicsDisplayOptions(question.id, coerceQuestionOptions((question as any).options, question.question_type)),
         time_limit: resolvedTimeLimit,
         points: resolvedPoints,
     };
@@ -2759,10 +2760,10 @@ export const mcq_questions_get = async (subject_id: string, limit: number = 5): 
     return catalog.questions.map(q => ({
         id: q.id,
         body: q.question_text,
-        options: q.options || [],
+        options: economicsDisplayOptions(q.id, q.options || []),
         correct_answer: q.correct_answer, // Include correct answer for validation
-        reward_xp: q.points || 20,
-        reward_coins: Math.floor((q.points || 20) * 1.5),
+        reward_xp: questionGameXp(q),
+        reward_coins: Math.floor(questionGameXp(q) * 1.5),
         explanation: q.explanation,
         image_url: q.image_url || null, // Include question image
         image_alt_text: q.image_alt_text || null,
@@ -5478,7 +5479,7 @@ export const get_all_questions = async (filters?: {
 
         if (error) throw error;
         const chunk = (data || []) as (TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[];
-        questions.push(...chunk);
+        questions.push(...chunk.map(normalizeTeacherQuestionPayload));
         if (chunk.length < chunkLimit) break;
     }
 
@@ -5548,7 +5549,7 @@ export const get_teacher_questions_by_ids = async (questionIds: string[]): Promi
                 curriculum_review_status: item.reviewStatus } : question;
         }));
     }
-    return questions;
+    return questions.map(normalizeTeacherQuestionPayload);
 };
 
 /**
@@ -5684,7 +5685,8 @@ export const get_public_questions = async (subject?: string, difficulty?: string
             requestedSubjects.map((item) => fetchStudentLearningCatalog(item.code, 500)),
         );
         return catalogs.flatMap((catalog) => catalog.questions)
-            .filter((question) => !difficulty || question.difficulty === difficulty);
+            .filter((question) => !difficulty || question.difficulty === difficulty)
+            .map(normalizeTeacherQuestionPayload);
     })();
 
     publicQuestionsInFlight = { key, request };
@@ -6468,6 +6470,10 @@ export const mcq_answer_submit = async (question: Question, choice: string): Pro
             : `Incorrect. ${question.explanation || 'The correct answer was: ' + correctAnswer}`,
     };
 
+    if (payload?.reward_capped && !isDuplicate) {
+        response.explanation = 'Correct! Your daily or weekly reward limit reduced this payout. ' + response.explanation;
+    }
+
     if (isDuplicate) {
         response.explanation = '✓ Correct! But you already earned rewards for this question. Try new questions to earn more!';
     }
@@ -6763,7 +6769,7 @@ const normalizeQuestRunState = (payload: unknown): QuestRunStateRaw => {
 
     return {
         ...state,
-        route: normalizedRoute,
+        route: normalizedRoute.map(node => ({ ...node, options: Array.isArray(node.options) ? economicsDisplayOptions(node.question_id, node.options) : node.options })),
     };
 };
 
