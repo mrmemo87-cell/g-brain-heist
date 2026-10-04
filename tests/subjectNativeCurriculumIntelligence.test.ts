@@ -53,10 +53,11 @@ test('subject profiles give teachers subject-specific dimensions and language', 
   }
 
   assert.match(page, /experience\?\.headline/);
-  assert.match(page, /experience\?\.intro/);
-  assert.match(page, /experience\?\.radarTitle/);
+  assert.match(page, /experience\?\.contentDimension\.title/);
+  assert.match(page, /experience\?\.reasoningDimension\.title/);
   assert.match(page, /experience\?\.navigatorTitle/);
   assert.match(page, /experience\?\.searchPlaceholder/);
+  assert.match(page, /experience\?\.selectedLeafPrompt/);
 });
 
 test('shared registries specialise to the school-facing subject label', () => {

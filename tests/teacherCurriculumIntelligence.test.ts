@@ -24,12 +24,14 @@ test('curriculum intelligence is teaching-group scoped and remembers the teacher
   assert.match(page, /Teaching group/);
 });
 
-test('curriculum intelligence consumes the canonical registry and external framework metadata', () => {
+test('curriculum intelligence consumes the canonical registry while progressively disclosing technical detail', () => {
   assert.match(service, /get_teacher_academic_skill_registry/);
   assert.match(page, /frameworkAlignments/);
   assert.match(page, /Programme & curriculum alignment/);
-  assert.match(page, /Strand → skill → subskill/);
-  assert.match(page, /Evidence Focus catalogue/);
+  assert.match(page, /Curriculum overview/);
+  assert.match(page, /Explore full curriculum/);
+  assert.match(page, /About this evidence/);
+  assert.match(page, /Registry code/);
 });
 
 test('class intelligence treats confidence as evidence readiness rather than attainment', () => {
@@ -37,8 +39,23 @@ test('class intelligence treats confidence as evidence readiness rather than att
   assert.match(migration, /assessment_state in \('not_assessed','low_data'\)/);
   assert.match(migration, /assessment_state='contradictory'/);
   assert.match(page, /These are evidence-quality signals, not attainment scores/);
-  assert.match(page, /does not yet have enough governed evidence; it does not mean a student is weak/);
+  assert.match(page, /never means a student is weak/);
+  assert.match(page, /Decision-ready/);
+  assert.match(page, /Building evidence/);
   assert.doesNotMatch(service, /mastery|weakness/i);
+});
+
+
+test('curriculum intelligence follows the teacher-first Academic Profile hierarchy', () => {
+  assert.match(page, /AcademicProfilePremium/);
+  assert.match(page, /className="ap-overview"/);
+  assert.equal((page.match(/<ProfileStat/g) || []).length, 4);
+  for (const title of ['Class snapshot', 'What needs attention?', 'Class learning picture', 'Skills to check next', 'Curriculum overview', 'About this evidence']) {
+    assert.ok(page.includes(title), `missing teacher-facing section: ${title}`);
+  }
+  assert.match(page, /Students needing action/);
+  assert.match(page, /Check again/);
+  assert.doesNotMatch(page, /Dimension A|Dimension B|Governed atomic subskills|higher-readiness pairs/);
 });
 
 test('class evidence is aggregated in one database call instead of per-student RPCs', () => {
