@@ -1,0 +1,49 @@
+/* A route-scoped treatment of the existing workspace, restored automatically on exit. */
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] {
+  --teacher-primary: #0755ab;
+  --teacher-accent: #0755ab;
+  --teacher-text: #102344;
+  --teacher-gradient-primary: #0755ab;
+  --teacher-gradient-header: #fff;
+  background: #f4f8fc;
+  color: #102344;
+}
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-portal { background: #f4f8fc; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-topbar { background: #fff !important; box-shadow: none; border-color: #e2ebf4; padding-top: env(safe-area-inset-top,0px) !important; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-topbar-inner { min-height: 60px; max-width: none; padding: 8px 24px; }
+.ap-workspace-brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.ap-workspace-brand > span { display: flex; align-items: center; }
+.ap-workspace-logo { width: 40px; height: 40px; object-fit: contain; }
+.ap-workspace-brand > div { display: flex; flex-direction: column; min-width: 0; }
+.ap-workspace-brand strong { color: #073b73; font-size: 19px; line-height: 1.2; font-weight: 700; }
+.ap-workspace-brand > div > span { color: #627493; font-size: 13px; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-topbar-inner > div:last-child > button { background: #f7faff; color: #315179; border-color: #dfe8f2; border-radius: 8px; box-shadow: none; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-portal-container { max-width: none; padding: 0 0 80px; overflow: visible; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-header { display: none; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-workspace-shell { grid-template-columns: 160px minmax(0,1fr); gap: 0; align-items: stretch; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-workspace-shell.is-sidebar-collapsed { grid-template-columns: 76px minmax(0,1fr); }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-sidebar { background: #19334f; top: var(--teacher-top-nav-height,60px); min-height: calc(100dvh - var(--teacher-top-nav-height,60px)); max-height: calc(100dvh - var(--teacher-top-nav-height,60px)); scrollbar-color: #58708c #19334f; scrollbar-gutter: auto; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-nav-container--sidebar { background: #19334f; border: 0; padding: 8px 0; margin: 0; border-radius: 0; box-shadow: none; backdrop-filter: none; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-nav-grid--sidebar { gap: 2px; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-sidebar-toggle { background: transparent; border: 0; color: #bfccdd; margin: 0 8px 6px; font-size: 11px; box-shadow: none; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-nav-btn { border: 0; border-radius: 0; padding: 12px 14px; min-height: 46px; background: transparent; color: #bfccdd; box-shadow: none; gap: 10px; transform: none; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-nav-btn.active { background: #074783; color: #fff; border-left: 3px solid #62b5ef; padding-left: 11px; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-nav-btn:hover { background: #26476b; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-nav-icon { background: transparent; box-shadow: none; width: 20px; height: 20px; min-width: 20px; font-size: 17px; color: inherit; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-nav-text { min-width: 0; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-nav-label { font-size: 12px; font-weight: 500; line-height: 1.4; color: inherit; white-space: normal; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-nav-desc { display: none; }
+.teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-main-panel { background: #f4f8fc; padding: 20px 24px; border: 0; border-radius: 0; box-shadow: none; }
+.teacher-academic-tool-host .sap-premium { padding: 0; }
+@media (max-width: 1024px) {
+  .teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-workspace-shell { display: block; }
+}
+@media (max-width: 767px) {
+  .teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-workspace-shell { display: block; }
+  .teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-main-panel { padding: 16px 12px; }
+  .teacher-academic-tool-shell[data-active-academic-tool="academic-profiles"] .teacher-topbar-inner { padding: 8px 12px; }
+  .ap-workspace-brand { gap: 8px; }
+  .ap-workspace-logo { width: 32px; height: 32px; }
+  .ap-workspace-brand strong { font-size: 14px; overflow-wrap: anywhere; }
+  .ap-workspace-brand > div > span { font-size: 11px; }
+}

@@ -5,7 +5,6 @@ import {
   fetchStudentAcademicConfidence,
   fetchStudentAcademicProfile,
   fetchStudentAcademicSubjects,
-  formatLearningStatus,
   type StudentAcademicConfidence,
   type StudentAcademicProfile as StudentAcademicProfileData,
 } from '../../services/studentAcademicProfileService';
@@ -15,7 +14,11 @@ import {
   type AcademicProgressViewerRole,
 } from '../../services/academicProgressExperienceService';
 import IndividualStudentAcademicReport from './IndividualStudentAcademicReportV2';
-import { AcademicProgressHeader, normalizeAcademicSubjectOptions } from './AcademicProgressSuite';
+import { normalizeAcademicSubjectOptions } from './AcademicProgressSuite';
+import { SchoolBrand } from '../../src/components/SchoolBrand';
+import { createSchoolBrand } from '../../src/lib/schoolBranding';
+import { academicProgressBackDestination } from '../../services/academicProgressExperienceService';
+import { AssignmentResultTimeline, ProfileIcon, ProfilePreview, ProfileSection, ProfileStat } from './AcademicProfilePremium';
 import {
   calendarDayKey,
   comparableTrendSegments,
@@ -28,8 +31,7 @@ import {
 } from './academicReportingSemantics';
 import './StudentAcademicProfile.css';
 import './StudentAcademicConfidence.css';
-import './StudentAcademicProfileV2.css';
-import './StudentAcademicProfileV2Enhancements.css';
+import './AcademicProfilePremium.css';
 
 interface StudentAcademicProfileProps {
   studentId?: string | null;
@@ -198,19 +200,19 @@ const ProfileDisclosure: React.FC<{
   meta?: string;
   children: React.ReactNode;
 }> = ({ tone, eyebrow, title, description, meta, children }) => (
-  <details className={`sap-panel sap-collapsible-panel sap-profile-disclosure sap-profile-disclosure--${tone}`}>
-    <summary className="sap-collapsible-summary">
-      <div className="sap-disclosure-title">
+  <details className={`ap-section ap-method ap-method--${tone}`}>
+    <summary className="ap-method-summary">
+      <div className="ap-method-title">
         <span>{eyebrow}</span>
         <h2>{title}</h2>
         <p>{description}</p>
       </div>
-      <div className="sap-disclosure-controls">
+      <div className="ap-method-controls">
         {meta ? <small>{meta}</small> : null}
-        <b className="sap-collapse-action"><span className="when-closed">Open</span><span className="when-open">Close</span></b>
+        <b className="ap-method-action"><span className="when-closed">Open</span><span className="when-open">Close</span></b>
       </div>
     </summary>
-    <div className="sap-collapsible-content">{children}</div>
+    <div className="ap-method-body">{children}</div>
   </details>
 );
 
@@ -263,13 +265,13 @@ const SubjectTrendChart: React.FC<{ subject: string; series: TrendSeries[] }> = 
   const firstEvent = allEvents[0]?.event || null;
   const lastEvent = allEvents[allEvents.length - 1]?.event || null;
 
-  if (allEvents.length && !comparableTrendSegments(allEvents.map(({ event }) => event)).length) return <article className="sap-trend-card">
+  if (allEvents.length && !comparableTrendSegments(allEvents.map(({ event }) => event)).length) return <article className="ap-skill-trend-card">
     <header><div><span className="sap-trend-eyebrow">Assessment results</span><h3>{subject}</h3></div><strong>Starting point · no progress comparison yet</strong></header>
     <p className="sap-baseline-note">These are different skills assessed in the selected period. Further comparable assessment dates are needed to show progress.</p>
-    <div className="sap-table-wrap"><table className="sap-table"><thead><tr><th>Skill</th><th>Result</th><th>Assessment</th><th>Date</th></tr></thead><tbody>{allEvents.map(({ event, series: source }) => <tr key={event.key}><td><strong>{event.label}</strong></td><td>{event.result}</td><td>{source.label} · {event.detail}</td><td>{formatDate(event.observedAt)}</td></tr>)}</tbody></table></div>
+    <div className="ap-table-wrap"><table className="ap-table"><thead><tr><th>Skill</th><th>Result</th><th>Assessment</th><th>Date</th></tr></thead><tbody>{allEvents.map(({ event, series: source }) => <tr key={event.key}><td><strong>{event.label}</strong></td><td>{event.result}</td><td>{source.label} · {event.detail}</td><td>{formatDate(event.observedAt)}</td></tr>)}</tbody></table></div>
   </article>;
 
-  return <article className="sap-trend-card">
+  return <article className="ap-skill-trend-card">
     <header>
       <div><span className="sap-trend-eyebrow">Subject trend</span><h3>{subject}</h3></div>
       <strong>{trendText}</strong>
@@ -349,6 +351,7 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [showReport, setShowReport] = useState(false);
+  const [dateFilterError, setDateFilterError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -459,8 +462,8 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
     return [...latest.values()].filter((item) => subject === 'all' || normalizeSubject(academicProfileSubjectName(item.subject, profile?.scope.subject_aliases)) === normalizeSubject(academicProfileSubjectName(subject, profile?.scope.subject_aliases)));
   }, [confidence, subject, profile?.scope.subject_aliases]);
 
-  if (loading) return <section className="sap-shell sap-state"><div className="sap-loader"/><strong>Preparing student progress…</strong><span>Combining assignments, writing and progress over time.</span></section>;
-  if (error || !profile) return <section className="sap-shell sap-state sap-state--error"><strong>Student progress unavailable</strong><span>{error || 'No progress data was returned.'}</span>{onClose ? <button type="button" onClick={onClose}>Back</button> : null}</section>;
+  if (loading) return <section className="sap-shell sap-premium sap-state"><div className="sap-loader"/><strong>Preparing student progress…</strong><span>Combining assignments, writing and progress over time.</span></section>;
+  if (error || !profile) return <section className="sap-shell sap-premium sap-state sap-state--error"><strong>Student progress unavailable</strong><span>{error || 'No progress data was returned.'}</span>{onClose ? <button type="button" onClick={onClose}>Back</button> : null}</section>;
 
   const viewerRole = (context?.viewer.role || profile.scope.viewer || mode) as AcademicProgressViewerRole;
   const resolvedContext: AcademicProgressExperienceContext = context || {
@@ -476,85 +479,83 @@ const StudentAcademicProfileV2: React.FC<StudentAcademicProfileProps> = ({
   const supportCount = currentFocus.length;
   const formatStatus = (item: FocusItem) => focusStatusLabel(item.status, latestForFocusItem(item)?.observation_type, item.first_observed_at, item.last_observed_at);
   const teacherEvidence = assessmentSnapshot(profile, assessmentEvidence);
-  const snapshotText = teacherEvidence.text;
 
 
-  return <section className="sap-shell sap-school-language">
-    <AcademicProgressHeader
-      context={resolvedContext}
-      eyebrow="Student Academic Profile"
-      title={profile.student.name}
-      subtitle={[profile.student.grade ? `Grade ${profile.student.grade}` : null, profile.student.class_name ? `Class ${profile.student.class_name}` : null, 'A clear record of results, support needs and progress'].filter(Boolean).join(' · ')}
-      onBack={onClose}
-      backLabel={backLabel}
-      actions={canGenerateReport && !archivedYear ? <button type="button" className="aps-primary-button" onClick={() => setShowReport(true)}>Generate individual report</button> : null}
-    />
+  const confirmItems = [...reviewItems, ...evidenceToConfirm.filter(item => latestForFocusItem(item)?.observation_type !== 'strength'), ...positiveEvidenceToConfirm];
+  const evidenceStage = !assessmentEvidence.length ? 'No assessed evidence' : teacherEvidence.baseline ? 'Starting point' : 'Across assessment dates';
+  const stageDetail = teacherEvidence.baseline ? 'Progress and consistent strengths need further assessment dates.' : 'Progress depends on comparable skills and evidence over time.';
+  const scopeKey = `${studentId}:${academicYearId}:${subject}:${dateFrom}:${dateTo}`;
+  const additionalTrendSubjects = trendSubjects.filter(entry => entry.series.some(series => series.tone === 'writing' || comparableTrendSegments(series.events).length > 0) || !profile.assignments.length);
+  const schoolBrand = createSchoolBrand({ schoolId: resolvedContext.school.id, schoolName: resolvedContext.school.name, schoolLogoUrl: resolvedContext.school.logo_url });
+  const resultTone = (item: TimelineItem) => item.evidence_percentage == null ? 'neutral' : Number(item.evidence_percentage) >= 80 ? 'positive' : Number(item.evidence_percentage) < 60 ? 'followup' : 'developing';
+  const goBack = () => { if (onClose) onClose(); else window.location.assign(academicProgressBackDestination(viewerRole).href); };
 
-    {profileYearLabel ? <div className="aps-scope-note"><strong>{profileYearLabel}</strong> · {archivedYear ? 'Archived · read only. Historical evidence and placement are frozen to this school year.' : 'Current academic year · live evidence.'}</div> : null}
+  return <section className="sap-shell sap-school-language sap-premium">
+    <div className="ap-standalone-brand"><SchoolBrand brand={schoolBrand} imageClassName="ap-school-logo"/><span>{viewerRole === 'teacher' ? 'Teacher Workspace' : 'Academic Workspace'}</span></div>
+    <header className="ap-identity">
+      <div><h1>Student Academic Profile</h1><div className="ap-student"><span className="ap-avatar" aria-hidden="true">{profile.student.name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(name => Array.from(name)[0]).join('').toLocaleUpperCase()}</span><div><h2>{profile.student.name}</h2><p>{[profile.student.grade ? `Grade ${profile.student.grade}` : null, profile.student.class_name ? `Class ${profile.student.class_name}` : null, 'A clear record of results, support needs and progress'].filter(Boolean).join(' · ')}</p></div></div></div>
+      <div className="ap-actions"><button type="button" className="ap-button" onClick={goBack}><ProfileIcon name="back"/>{backLabel || 'Back to student selection'}</button>{canGenerateReport && !archivedYear ? <button type="button" className="ap-button ap-button--primary" onClick={() => setShowReport(true)}><ProfileIcon name="document"/>Generate individual report</button> : null}</div>
+    </header>
 
-    <div className="sap-filterbar" aria-label="Progress record filters">
-      <label>Subject<select value={subject} onChange={(event) => setSubject(event.target.value)}><option value="all">All subjects</option>{allSubjects.map((name) => <option key={name.toLocaleLowerCase()} value={name}>{name}</option>)}</select></label>
-      <label>From<input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label>
-      <label>To<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
-      <span className="sap-scope-note">{profile.scope.viewer === 'teacher' ? 'Showing the subjects you teach this student.' : 'Showing authorised school learning evidence.'}</span>
+    <div className="ap-filterbar" role="group" aria-label="Progress record filters">
+      <div className="ap-year-context"><span>Academic year</span><div><ProfileIcon name="calendar"/><span><strong>{profileYearLabel || 'Selected academic year'}</strong> · {archivedYear ? 'Archived · read only' : 'Current academic year · live evidence.'}</span></div></div>
+      <label>Subject<div className="ap-input-icon"><ProfileIcon name="document"/><select aria-label="Subject" value={subject} onChange={event => setSubject(event.target.value)}><option value="all">All subjects</option>{allSubjects.map(name => <option key={name.toLocaleLowerCase()} value={name}>{name}</option>)}</select></div></label>
+      <label>From<input type="date" value={dateFrom} max={dateTo || undefined} onChange={event => { const value = event.target.value; if (value && dateTo && value > dateTo) { setDateFilterError('The From date must be on or before the To date.'); return; } setDateFilterError(''); setDateFrom(value); }}/></label>
+      <label>To<input type="date" value={dateTo} min={dateFrom || undefined} onChange={event => { const value = event.target.value; if (value && dateFrom && value < dateFrom) { setDateFilterError('The To date must be on or after the From date.'); return; } setDateFilterError(''); setDateTo(value); }}/></label>
+      <p className="ap-scope-note"><ProfileIcon name="info"/>{profile.scope.viewer === 'teacher' ? 'Showing the subjects you teach this student.' : 'Showing authorised school learning evidence.'}</p>
+    </div>
+    {dateFilterError ? <p className="ap-notice ap-notice--warning" role="alert">{dateFilterError} The previous valid date range is still applied.</p> : null}
+    {archivedYear ? <p className="ap-notice">Historical evidence and placement are frozen to this school year.</p> : null}
+
+    <div className="ap-overview" aria-label="Academic profile overview">
+      <ProfileStat label="Completed assignment average" icon="result" value={profile.summary.assignment_average === null ? '—' : `${Math.round(profile.summary.assignment_average)}%`} detail={profile.assignments.length === 1 ? `${profile.assignments[0].correct}/${profile.assignments[0].correct + profile.assignments[0].incorrect} correct · ${formatDate(profile.assignments[0].completed_at)}` : profile.summary.completed_assignments ? `Based on ${profile.summary.completed_assignments} completed assignments` : 'No completed assignment results in this period.'}/>
+      <ProfileStat label="Evidence stage" icon="target" value={<span className="ap-stage">{evidenceStage}</span>} detail={stageDetail}/>
+      <ProfileStat label="Priority support" icon="support" tone={supportCount ? 'amber' : 'neutral'} value={`${supportCount} active area${supportCount === 1 ? '' : 's'}`} detail={supportCount ? 'Confirmed areas to address with the latest supporting evidence.' : 'No confirmed support pattern yet.'}/>
+      <ProfileStat label="Evidence to confirm" icon="document" value={`${confirmItems.length} item${confirmItems.length === 1 ? '' : 's'}`} detail={`${positiveEvidenceToConfirm.length} positive initial result${positiveEvidenceToConfirm.length === 1 ? '' : 's'} · ${confirmItems.length - positiveEvidenceToConfirm.length} follow-up / review item${confirmItems.length - positiveEvidenceToConfirm.length === 1 ? '' : 's'}`}/>
     </div>
 
-    {(profile.scope.writing_pending_reviews || 0) > 0 ? <div className="aps-scope-note" role="status"><strong>{profile.scope.writing_pending_reviews} Writing Hub submission{profile.scope.writing_pending_reviews === 1 ? '' : 's'} awaiting teacher review.</strong> Finalized reviews appear as writing evidence here. Writing scores stay separate from the assignment average.</div> : null}
+    <section className="ap-snapshot" aria-label="Teacher snapshot"><span className="ap-icon-disc"><ProfileIcon name="document"/></span><h2>Teacher snapshot</h2><div>
+      <p>{profile.summary.completed_assignments ? `${profile.summary.completed_assignments} completed assignment${profile.summary.completed_assignments === 1 ? '' : 's'}; average ${profile.summary.assignment_average == null ? 'not available' : `${Math.round(profile.summary.assignment_average)}%`}.` : 'No completed assignment results in this period.'}{teacherEvidence.priorities.length ? <><strong> Check next: </strong>{teacherEvidence.priorities.map(item => <span className="ap-evidence-chip ap-evidence-chip--followup" key={item.id}>{item.subskill || item.skill} ({assessmentResultLabel(item)})</span>)}</> : null}</p>
+      {teacherEvidence.positive.length ? <p><strong>Positive initial results: </strong>{teacherEvidence.positive.map(item => <span className="ap-evidence-chip ap-evidence-chip--positive" key={item.id}>{item.subskill || item.skill} ({assessmentResultLabel(item)})</span>)}</p> : null}
+      <p>{teacherEvidence.baseline ? assessmentEvidence.length ? 'This is a starting point. Further assessment dates are needed to establish progress or consistent strengths.' : 'Complete an assessment to begin building this student’s learning record.' : 'Progress and consistent strengths use qualified, comparable evidence across separate assessment dates.'}</p>
+    </div></section>
+    {(profile.scope.writing_pending_reviews || 0) > 0 ? <p className="ap-notice" role="status"><ProfileIcon name="clock"/>{profile.scope.writing_pending_reviews} Writing Hub submission{profile.scope.writing_pending_reviews === 1 ? '' : 's'} awaiting teacher review. Finalized reviews appear as writing evidence here. Writing scores stay separate from the assignment average.</p> : null}
 
-    <div className="sap-kpis">
-      <article><span>Completed assignment average</span><strong className={`sap-score sap-score--${scoreBand(profile.summary.assignment_average)}`}>{profile.summary.assignment_average === null ? '—' : `${Math.round(profile.summary.assignment_average)}%`}</strong><small>{profile.assignments.length === 1 ? `${profile.assignments[0].correct}/${profile.assignments[0].correct + profile.assignments[0].incorrect} correct · ${formatDate(profile.assignments[0].completed_at)}` : `Based on ${profile.summary.completed_assignments} completed assignments`}</small></article>
-      {!teacherEvidence.baseline ? <><article><span>Confirmed support areas</span><strong>{supportCount}</strong><small>{profile.summary.persistent_focus_count} long-running</small></article>
-      <article><span>Making progress</span><strong className="sap-positive">{profile.summary.improving_count}</strong><small>Established movement over time</small></article>
-      <article><span>Now secure</span><strong className="sap-positive">{profile.summary.resolved_count}</strong><small>Previous needs resolved</small></article>
-      <article><span>Established strengths</span><strong className="sap-positive">{profile.summary.strength_count}</strong><small>{positiveEvidenceToConfirm.length ? `${positiveEvidenceToConfirm.length} positive signal${positiveEvidenceToConfirm.length === 1 ? '' : 's'} awaiting more evidence` : 'Longitudinally supported strengths'}</small></article></> : <article><span>Evidence stage</span><strong>{assessmentEvidence.length ? 'Starting point' : 'No assessed evidence'}</strong><small>Progress and consistent strengths need further assessment dates</small></article>}
-    </div>
+    <ProfileSection title="Learning trends" icon="trend" subtitle="Assessment results and progress" className="ap-learning-trends">
+      {profile.assignments.length ? <AssignmentResultTimeline assignments={profile.assignments}/> : <p className="ap-empty">No completed assignment results in this period.</p>}
+      {additionalTrendSubjects.length ? <div className="ap-skill-trends"><h3>Comparable skill evidence · assignment and writing sources remain distinct</h3>{additionalTrendSubjects.map(entry => <SubjectTrendChart key={entry.subject} subject={entry.subject} series={entry.series}/>)}</div> : null}
+    </ProfileSection>
 
-    <section className="sap-trust-summary" aria-label="Teacher snapshot"><span>Teacher snapshot</span><p>{snapshotText}</p></section>
+    {profile.subjects.length > 1 ? <ProfileSection title="Subject picture" icon="document" subtitle="Results and learning needs for the selected period."><div className="ap-subject-grid">{profile.subjects.map(entry => <article key={entry.subject}><h3>{entry.subject}</h3><strong>{entry.assignment_average === null ? 'Not assessed' : `${entry.assignment_average}%`}</strong><p>{entry.completed_assignments} completed assignments · {currentFocus.filter(item => normalizeSubject(item.subject) === normalizeSubject(entry.subject)).length} confirmed support areas</p></article>)}</div></ProfileSection> : null}
 
-    {profile.subjects.length > 1 ? <section className="sap-panel sap-overview-panel">
-      <div className="sap-panel-heading sap-heading-simple"><div><span>Main overview</span><h2>Subject picture</h2></div><p>Results and current learning needs for the selected period.</p></div>
-      <div className="sap-subject-grid">{profile.subjects.map((entry) => {
-        const subjectFocus = currentFocus.filter((item) => normalizeSubject(item.subject) === normalizeSubject(entry.subject)).length;
-        const subjectConfirm = [...evidenceToConfirm, ...reviewItems].filter((item) => normalizeSubject(item.subject) === normalizeSubject(entry.subject)).length;
-        return <article key={entry.subject} className="sap-subject-card"><div><h3>{entry.subject}</h3><span>{entry.completed_assignments} completed</span></div><strong className={`sap-score sap-score--${scoreBand(entry.assignment_average)}`}>{entry.assignment_average === null ? 'Not assessed' : `${entry.assignment_average}%`}</strong><dl>{!teacherEvidence.baseline ? <><div><dt>Confirmed support areas</dt><dd>{subjectFocus}</dd></div><div><dt>Evidence to confirm</dt><dd>{subjectConfirm}</dd></div><div><dt>Improving</dt><dd>{entry.improving_count}</dd></div><div><dt>Secure</dt><dd>{entry.resolved_count}</dd></div><div><dt>Established strengths</dt><dd>{entry.strength_count}</dd></div></> : <div><dt>Skills to reassess</dt><dd>{subjectConfirm}</dd></div>}</dl><small>Latest evidence {formatDate(entry.latest_evidence_at)}</small></article>;
-      })}{!profile.subjects.length ? <div className="sap-empty">No subject evidence is available in the selected period.</div> : null}</div>
-    </section> : null}
+    <div className="ap-evidence-dashboard">
+      <ProfileSection title="Assessment results" icon="document" className="ap-results-panel"><ProfilePreview key={scopeKey} count={assessmentEvidence.length} limit={8} label="assessment results">{limit => <div className="ap-table-wrap" tabIndex={0} role="region" aria-label="Assessment results table"><table className="ap-table"><thead><tr><th>Skill</th><th>Result</th><th>Assessment</th><th>Date</th></tr></thead><tbody>{assessmentEvidence.slice(0, limit).map(item => <tr key={item.id}><td>{item.subskill || item.skill}{subject === 'all' ? <small>{item.subject}</small> : null}</td><td><span className={`ap-result ap-result--${resultTone(item)}`}>{assessmentResultLabel(item)}</span></td><td>{sourceMeta(item).tone === 'assignment' ? sourceMeta(item).detail : `${sourceMeta(item).label} · ${sourceMeta(item).detail}`}</td><td>{formatDate(item.observed_at)}</td></tr>)}</tbody></table>{!assessmentEvidence.length ? <p className="ap-empty">No assessed skill results in this period.</p> : null}</div>}</ProfilePreview></ProfileSection>
 
-    <ProfileDisclosure tone="trend" eyebrow="Learning trends" title="Assessment results and progress" description="Skill results are grouped by assessment. Progress compares the same skill and evidence focus across separate dates; Writing Hub remains a separate source." meta={`${trendSubjects.length} subject${trendSubjects.length === 1 ? '' : 's'}`}>
-      <div className="sap-trend-grid">{trendSubjects.map((entry) => <SubjectTrendChart key={entry.subject} subject={entry.subject} series={entry.series}/>)}</div>
-    </ProfileDisclosure>
-
-    <ProfileDisclosure tone="support" eyebrow="Priority support" title="What should we work on?" description="Current learning needs with the latest supporting evidence, kept separate from the detailed activity log." meta={`${currentFocus.length} active area${currentFocus.length === 1 ? '' : 's'}`}>
-      <div className="sap-focus-list sap-focus-list--clear">{currentFocus.map((item) => {
-        const key = `${normalizeSubject(item.subject)}|${item.skill.toLowerCase()}|${String(item.subskill || '').toLowerCase()}`;
-        const evidence = latestTimelineForFocus.get(key);
+      <ProfileSection title="Priority support" icon="support" className="ap-support-panel">{!currentFocus.length ? <div className="ap-support-empty"><span className="ap-icon-disc"><ProfileIcon name="support"/></span><strong>0 active areas</strong><p>No confirmed support pattern yet. Use the suggested checks in the teacher snapshot to plan the next assessment.</p></div> : <ProfilePreview key={scopeKey} count={currentFocus.length} limit={3} label="support areas">{limit => <div className="ap-focus-list">{currentFocus.slice(0, limit).map(item => {
+        const evidence = latestForFocusItem(item);
         const correction = getCorrections(evidence)[0];
-        return <article key={item.skill_key}><div className="sap-focus-main"><span className={`sap-status sap-status--${statusBand(String(item.status))}`}>{formatStatus(item)}</span><h3>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</h3><p>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</p>{evidence ? <small className="sap-focus-explain">{evidenceExplanation(evidence)}</small> : null}{correction && (correction.original || correction.better_version) ? <div className="sap-example"><span>Example</span><del>{correction.original || 'Original'}</del><b aria-hidden="true">→</b><ins>{correction.better_version || 'Correction'}</ins></div> : null}</div><dl><div><dt>First seen</dt><dd>{formatDate(item.first_observed_at)}</dd></div><div><dt>Latest</dt><dd>{formatDate(item.last_observed_at)}</dd></div><div><dt>Assessments</dt><dd>{item.evidence_items}</dd></div><div><dt>Questions / rubric items</dt><dd>{item.evidence_occurrences}</dd></div><div><dt>Latest result</dt><dd>{latestForFocusItem(item) ? assessmentResultLabel(latestForFocusItem(item)!) : '—'}</dd></div></dl></article>;
-      })}{!currentFocus.length ? <div className="sap-empty">No confirmed support pattern yet. Use the suggested checks in the teacher snapshot to plan the next assessment.</div> : null}</div>
-    </ProfileDisclosure>
+        return <article key={item.skill_key}><span className={`ap-evidence-chip ap-evidence-chip--${statusBand(item.status)}`}>{formatStatus(item)}</span><h3>{item.subskill || item.skill}</h3><p>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</p>{evidence ? <p>{evidenceExplanation(evidence)}</p> : null}{correction ? <p><del>{correction.original}</del> → {correction.better_version}</p> : null}<dl><div><dt>First seen</dt><dd>{formatDate(item.first_observed_at)}</dd></div><div><dt>Latest</dt><dd>{formatDate(item.last_observed_at)}</dd></div><div><dt>Evidence items</dt><dd>{item.evidence_items}</dd></div><div><dt>Questions / rubric items</dt><dd>{item.evidence_occurrences}</dd></div><div><dt>Latest result</dt><dd>{evidence ? assessmentResultLabel(evidence) : '—'}</dd></div></dl></article>;
+      })}</div>}</ProfilePreview>}<span className="ap-sr-only">What should we work on?</span></ProfileSection>
 
-    <ProfileDisclosure tone="progress" eyebrow="Evidence to confirm" title="Initial results to check again" description="Low-data signals stay separate from support needs and established strengths until enough qualified evidence exists." meta={`${evidenceToConfirm.length + reviewItems.length} item${evidenceToConfirm.length + reviewItems.length === 1 ? '' : 's'}`}>
-      <div className="sap-table-wrap"><table className="sap-table"><thead><tr><th>Skill</th><th>Latest assessment result</th><th>Assessments</th><th>Interpretation</th></tr></thead><tbody>{evidenceToConfirm.map((item) => {
+      <ProfileSection title="Evidence to confirm" icon="document" className="ap-confirm-panel"><ProfilePreview key={scopeKey} count={confirmItems.length} limit={5} label="evidence to confirm">{limit => <div className="ap-table-wrap" tabIndex={0} role="region" aria-label="Evidence to confirm table"><table className="ap-table"><thead><tr><th>Skill</th><th>Latest result</th><th title="Evidence items">Items</th><th>Interpretation</th></tr></thead><tbody>{confirmItems.slice(0, limit).map(item => {
         const latest = latestForFocusItem(item);
-        return <tr key={item.skill_key}><td><strong>{item.subskill || item.skill}</strong><small className="sap-cell-subject">{item.subject}</small></td><td>{latest ? assessmentResultLabel(latest) : '—'}</td><td>{item.evidence_items}</td><td>{latest?.observation_type === 'strength' ? 'Positive initial result' : latest?.observation_type === 'focus' ? 'Suggested follow-up' : 'Developing result'} · needs further assessment</td></tr>;
-      })}{reviewItems.map((item) => <tr key={item.skill_key}><td>{item.subskill || item.skill}</td><td>{latestForFocusItem(item) ? assessmentResultLabel(latestForFocusItem(item)!) : '—'}</td><td>{item.evidence_items}</td><td>Teacher review needed across separate assessment dates</td></tr>)}</tbody></table>{!evidenceToConfirm.length && !reviewItems.length ? <div className="sap-empty">No evidence is currently waiting for confirmation or teacher review.</div> : null}</div>
-    </ProfileDisclosure>
+        const review = isTeacherReviewStatus(item.status);
+        const tone = review ? 'developing' : latest ? resultTone(latest) : 'neutral';
+        return <tr key={item.skill_key}><td>{item.subskill || item.skill}{subject === 'all' ? <small>{item.subject}</small> : null}</td><td><span className={`ap-result ap-result--${tone}`}>{latest ? assessmentResultLabel(latest) : '—'}</span></td><td>{item.evidence_items}</td><td><span className={`ap-evidence-chip ap-evidence-chip--${tone}`}>{review ? 'Teacher review needed' : latest?.observation_type === 'strength' ? 'Positive initial result' : latest?.observation_type === 'focus' ? 'Suggested follow-up' : 'Developing result'}<span className="ap-chip-note">Needs further assessment</span></span></td></tr>;
+      })}</tbody></table>{!confirmItems.length ? <p className="ap-empty">No evidence is currently waiting for confirmation or teacher review.</p> : null}</div>}</ProfilePreview></ProfileSection>
+    </div>
 
-    <ProfileDisclosure tone="progress" eyebrow="Positive movement" title="Progress and strengths" description="A concise view of areas that are improving, secure or consistently strong." meta={`${improving.length + resolved.length + strengths.length} established positive signal${improving.length + resolved.length + strengths.length === 1 ? '' : 's'}`}>
-      <div className="sap-progress-columns"><div><h3>Making progress</h3>{improving.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</strong><span>{item.subject}</span></p>)}{!improving.length ? <small>No improving areas yet.</small> : null}</div><div><h3>Now secure</h3>{resolved.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}{!resolved.length ? <small>No resolved areas yet.</small> : null}</div><div><h3>Established strengths</h3>{strengths.slice(0, 6).map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}{!strengths.length ? <small>No established strengths yet.</small> : null}</div></div>
-    </ProfileDisclosure>
+    <div className="ap-record-dashboard">
+      <ProfileSection title="Progress & strengths" icon="result"><div className="ap-progress-grid">{[{title:'Making progress',icon:'trend' as const,items:improving,empty:'No improving areas yet.'},{title:'Now secure',icon:'shield' as const,items:resolved,empty:'No resolved areas yet.'},{title:'Established strengths',icon:'strength' as const,items:strengths,empty:'No established strengths yet.'}].map(group => <div key={group.title}><ProfileIcon name={group.icon}/><div><h3>{group.title}</h3><ProfilePreview key={scopeKey} count={group.items.length} limit={3} label={group.title}>{limit => <>{group.items.slice(0,limit).map(item => <p key={item.skill_key}><strong>{item.subskill || item.skill}</strong><small>{item.subject}</small></p>)}{!group.items.length ? <p>{group.empty}</p> : null}</>}</ProfilePreview></div></div>)}</div></ProfileSection>
 
-    <ProfileDisclosure tone="evidence" eyebrow="Detailed evidence" title="Evidence activity" description="Open an assessment, then a skill, to review its question evidence or writing feedback." meta={`${new Set(assessmentEvidence.map(assessmentKey)).size} assessment${new Set(assessmentEvidence.map(assessmentKey)).size === 1 ? '' : 's'}`}>
-      <div className="sap-evidence-list">{[...new Set(assessmentEvidence.map(assessmentKey))].map((key) => {
-        const rows = assessmentEvidence.filter((item) => assessmentKey(item) === key);
+      <ProfileSection title="Detailed evidence" icon="document"><ProfilePreview key={scopeKey} count={new Set(assessmentEvidence.map(assessmentKey)).size} limit={3} label="detailed assessments">{limit => <div className="ap-evidence-list">{[...new Set(assessmentEvidence.map(assessmentKey))].slice(0,limit).map(key => {
+        const rows = assessmentEvidence.filter(item => assessmentKey(item) === key);
         const first = rows[0];
-        return <details key={key} className="sap-assessment-detail"><summary><strong>{sourceMeta(first).detail}</strong><span>{first.subject} · {formatDate(first.observed_at)} · {rows.length} skills</span></summary><div className="sap-assessment-skills">{rows.map((item) => <details key={item.id} className="sap-mini-disclosure"><summary>{item.subskill || item.skill} · {assessmentResultLabel(item)}</summary><div>{(Array.isArray(item.evidence?.assessment_items) ? item.evidence.assessment_items as TimelineItem[] : [item]).map((question) => <p key={question.id}><strong>{textValue(question.evidence?.evidence_focus_name) || question.subskill || question.skill}</strong> · {assessmentResultLabel(question)}<br/>{textValue(question.evidence?.evidence_statement) || evidenceExplanation(question)}{getCorrections(question).map((correction, index) => <span key={index}> {correction.original} → {correction.better_version}</span>)}</p>)}</div></details>)}</div></details>;
-      })}{!assessmentEvidence.length ? <div className="sap-empty">No learning evidence is available in this period.</div> : null}</div>
-    </ProfileDisclosure>
+        return <details key={key} className="sap-assessment-detail ap-assessment-detail"><summary><strong>{sourceMeta(first).detail}</strong><span>{first.subject} · {formatDate(first.observed_at)} · {rows.length} skill result{rows.length === 1 ? '' : 's'}</span></summary><div>{rows.map(item => <details key={item.id} className="ap-skill-detail"><summary>{item.subskill || item.skill} · {assessmentResultLabel(item)}</summary><div>{(Array.isArray(item.evidence?.assessment_items) ? item.evidence.assessment_items as TimelineItem[] : [item]).map(question => <p key={question.id}><strong>{textValue(question.evidence?.evidence_focus_name) || question.subskill || question.skill}</strong> · {assessmentResultLabel(question)}<br/>{textValue(question.evidence?.evidence_statement) || evidenceExplanation(question)}{getCorrections(question).map((correction,index) => <span key={index}> {correction.original} → {correction.better_version}</span>)}</p>)}</div></details>)}</div></details>;
+      })}{!assessmentEvidence.length ? <p className="ap-empty">No learning evidence is available in this period.</p> : null}</div>}</ProfilePreview></ProfileSection>
 
-    <ProfileDisclosure tone="results" eyebrow="Assessment record" title="Assignment results" description="Official completed assignment outcomes used for the assignment average. Skill-level evidence may contain additional qualified diagnostic records." meta={`${profile.assignments.length} completed`}>
-      <div className="sap-table-wrap"><table className="sap-table"><thead><tr><th>Date</th><th>Subject</th><th>Assignment</th><th>Topic</th><th>Correct</th><th>Result</th></tr></thead><tbody>{profile.assignments.map((item) => <tr key={`${item.assignment_id}:${item.completed_at}`}><td>{formatDate(item.completed_at)}</td><td>{item.subject}</td><td><strong>{item.title}</strong></td><td>{item.topic || '—'}</td><td>{item.correct}/{item.correct + item.incorrect}</td><td><span className={`sap-score-chip sap-score-chip--${scoreBand(item.accuracy)}`}>{item.accuracy}%</span></td></tr>)}</tbody></table>{!profile.assignments.length ? <div className="sap-empty">No completed assignments in this period.</div> : null}</div>
-    </ProfileDisclosure>
+      <ProfileSection title="Assessment record" icon="clock"><ProfilePreview key={scopeKey} count={profile.assignments.length} limit={5} label="assignment records">{limit => <div className="ap-table-wrap" tabIndex={0} role="region" aria-label="Official assignment record"><table className="ap-table"><thead><tr><th>Date</th><th>Subject</th><th>Assessment</th><th>Result</th><th>Percentage</th></tr></thead><tbody>{profile.assignments.slice(0,limit).map(item => <tr key={`${item.assignment_id}:${item.completed_at}`}><td>{formatDate(item.completed_at)}</td><td>{item.subject}</td><td>{item.title}{item.topic ? <small>{item.topic}</small> : null}</td><td>{item.correct}/{item.correct + item.incorrect}</td><td><strong>{item.accuracy}%</strong></td></tr>)}</tbody></table>{!profile.assignments.length ? <p className="ap-empty">No completed assignments in this period.</p> : null}</div>}</ProfilePreview>{assessmentEvidence.some(item => sourceMeta(item).tone === 'writing') ? <p className="ap-record-note">Writing Hub rubric results are available in Detailed evidence and the source-specific skill results above. They are excluded from the assignment average.</p> : null}</ProfileSection>
+    </div>
 
     <ProfileDisclosure tone="method" eyebrow="Reporting method" title="How this profile works" description="Definitions, confidence and governed reporting terminology." meta="Reference">
       <div className="sap-glossary"><div><strong>New focus</strong><span>A recent assessed need. It is visible early, but is not called persistent yet.</span></div><div><strong>Recurring</strong><span>The same need has appeared more than once.</span></div><div><strong>Persistent</strong><span>A repeated need supported by enough evidence over time.</span></div><div><strong>Improving</strong><span>Later assessed work is moving in the right direction.</span></div><div><strong>Resolved</strong><span>Later evidence shows the previous need is now secure.</span></div><div><strong>Evidence to confirm</strong><span>Promising, developing or potential support evidence that is not yet strong enough for a longitudinal conclusion.</span></div><div><strong>Established strength</strong><span>A strength supported by enough qualified evidence over time, not just one high result.</span></div><div><strong>Teacher review needed</strong><span>Qualified evidence points in different directions, so the system withholds a simple conclusion.</span></div><div><strong>Confidence</strong><span>How complete, recent and consistent the evidence is. It is not a mark.</span></div></div>
