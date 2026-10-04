@@ -1,3 +1,4 @@
+import { aggregateAssessmentEvidence, assessmentResultLabel, assessmentSnapshot } from './academicAssessmentEvidence';
 import { isAcademicAssignmentSource } from '../../services/studentAcademicProfileService';
 import React, { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -6,7 +7,6 @@ import { formatLearningStatus } from '../../services/studentAcademicProfileServi
 import { createSchoolBrand } from '../../src/lib/schoolBranding';
 import { normalizeAcademicSubjectOptions } from './AcademicProgressSuite';
 import {
-  buildAcademicSnapshot,
   comparableTrendSegments,
   evidenceConfirmationLabel,
   focusStatusLabel,
@@ -28,7 +28,7 @@ interface IndividualStudentAcademicReportProps {
 }
 
 type TimelineItem = StudentAcademicProfile['timeline'][number];
-type PrintTrendEvent = { key: string; observedAt: string; score: number; comparableKey: string; source: string; detail: string; label: string };
+type PrintTrendEvent = { key: string; observedAt: string; score: number; comparableKey: string; source: string; detail: string; label: string; result: string };
 
 const safeText = (value: unknown) => String(value ?? '').trim();
 const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
@@ -59,13 +59,15 @@ const observationSignal = (item: TimelineItem) => {
 };
 const trendPositionLabel = (score: number) => score >= 80 ? 'Strong evidence' : score >= 60 ? 'Developing evidence' : 'Needs support';
 const buildPrintTrendEvents = (items: TimelineItem[], subject: string, sourceType?: TimelineItem['source_type']): PrintTrendEvent[] => {
-  const groups = new Map<string, { values: number[]; comparableKey: string; observedAt: string; source: string; detail: string; label: string }>();
+  const groups = new Map<string, { values: number[]; comparableKey: string; observedAt: string; source: string; detail: string; label: string; result: string }>();
   items.filter((item) => normalizeSubject(item.subject) === normalizeSubject(subject)
+    && item.evidence_percentage != null
     && (!sourceType || (sourceType === 'assignment_result' ? isAcademicAssignmentSource(item.source_type) : item.source_type === sourceType))).forEach((item) => {
-    const comparableKey = `${normalizeSubject(item.subject)}|${item.skill.toLowerCase()}|${String(item.subskill || '').toLowerCase()}`;
+    const comparableKey = `${item.source_type}|${normalizeSubject(item.subject)}|${item.skill.toLowerCase()}|${String(item.subskill || '').toLowerCase()}|${String(item.evidence?.focus_signature || '')}`;
     const key = `${item.source_type}:${item.source_id || item.observed_at}:${comparableKey}`;
     const group = groups.get(key) || {
       values: [],
+      result: assessmentResultLabel(item),
       comparableKey,
       observedAt: item.observed_at,
       source: sourceLabel(item),
@@ -84,6 +86,7 @@ const buildPrintTrendEvents = (items: TimelineItem[], subject: string, sourceTyp
     source: group.source,
     detail: group.detail,
     label: group.label,
+    result: group.result,
   })).sort((a, b) => a.observedAt.localeCompare(b.observedAt));
 };
 
@@ -96,10 +99,15 @@ const PrintSubjectTrendChart: React.FC<{ subject: string; events: PrintTrendEven
   const bottom = 28;
   const usableWidth = width - left - right;
   const usableHeight = height - top - bottom;
-  const xAt = (index: number) => events.length <= 1 ? left + usableWidth / 2 : left + (index / (events.length - 1)) * usableWidth;
+  const times = events.map((event) => Date.parse(event.observedAt));
+  const minimum = Math.min(...times);
+  const maximum = Math.max(...times);
+  const xAt = (index: number) => maximum <= minimum ? left + usableWidth / 2 : left + ((times[index] - minimum) / (maximum - minimum)) * usableWidth;
   const yAt = (value: number) => top + ((100 - value) / 100) * usableHeight;
   const trendText = summarizeComparableTrend(events.map((event) => ({ observedAt: event.observedAt, score: event.score, comparableKey: event.comparableKey })));
   const indexFor = (event: PrintTrendEvent) => Math.max(0, events.findIndex((row) => row.key === event.key));
+
+  if (events.length && !comparableTrendSegments(events).length) return <article className="sap-print-trend-card"><header><h3>{subject}</h3><strong>Starting point · no progress comparison yet</strong></header><table><thead><tr><th>Skill</th><th>Result</th><th>Assessment date</th></tr></thead><tbody>{events.map((event) => <tr key={event.key}><td>{event.label}</td><td>{event.result}</td><td>{formatDate(event.observedAt)}</td></tr>)}</tbody></table><p>Further comparable assessment dates are needed to establish progress or consistent strengths.</p></article>;
 
   return <article className="sap-print-trend-card">
     <header><div><h3>{subject}</h3><span>Subject trend for this reporting period</span></div><strong>{trendText}</strong></header>
@@ -109,7 +117,7 @@ const PrintSubjectTrendChart: React.FC<{ subject: string; events: PrintTrendEven
       {events.map((event, index) => <g key={event.key}><circle cx={xAt(index)} cy={yAt(event.score)} r="7" className="sap-print-trend-point"/><text x={xAt(index)} y={yAt(event.score) + 3} className="sap-print-trend-point-number">{index + 1}</text></g>)}
       {events.length ? <><text x={left} y={height - 6} className="sap-print-trend-date">{formatDate(events[0].observedAt)}</text><text x={width - right} y={height - 6} textAnchor="end" className="sap-print-trend-date">{formatDate(events[events.length - 1].observedAt)}</text></> : null}
     </svg>
-    <ol className="sap-print-trend-point-list">{events.map((event, index) => <li key={event.key}><b>{index + 1}</b><span><strong>{formatDate(event.observedAt)} · {event.source} · {event.detail}</strong><small>{event.label} · {trendPositionLabel(event.score)}</small></span></li>)}</ol>
+    <ol className="sap-print-trend-point-list">{events.map((event, index) => <li key={event.key}><b>{index + 1}</b><span><strong>{formatDate(event.observedAt)} · {event.source} · {event.detail}</strong><small>{event.label} · {event.result}</small></span></li>)}</ol>
   </article>;
 };
 
@@ -126,22 +134,18 @@ const IndividualStudentAcademicReportV2: React.FC<IndividualStudentAcademicRepor
   const brand = useMemo(() => createSchoolBrand({ schoolId: profile.student.school_id, schoolName, schoolLogoUrl }), [profile.student.school_id, schoolName, schoolLogoUrl]);
   const reportId = useMemo(() => `APR-${new Date().getFullYear()}-${profile.student.id.slice(0, 8).toUpperCase()}`, [profile.student.id]);
   const generatedAt = useMemo(() => new Date().toLocaleString(), []);
+  const assessmentEvidence = useMemo(() => aggregateAssessmentEvidence(profile.timeline), [profile.timeline]);
+  const teacherEvidence = assessmentSnapshot(profile, assessmentEvidence);
   const currentFocus = profile.focus_areas.filter((item) => isActiveSupportStatus(item.status));
   const evidenceToConfirm = profile.focus_areas.filter((item) => isEvidenceToConfirmStatus(item.status));
   const reviewItems = profile.focus_areas.filter((item) => isTeacherReviewStatus(item.status));
-  const latestForFocusItem = (focus: StudentAcademicProfile['focus_areas'][number]) => profile.timeline
+  const latestForFocusItem = (focus: StudentAcademicProfile['focus_areas'][number]) => assessmentEvidence
     .filter((item) => normalizeSubject(item.subject) === normalizeSubject(focus.subject)
       && item.skill.toLowerCase() === focus.skill.toLowerCase()
       && String(item.subskill || '').toLowerCase() === String(focus.subskill || '').toLowerCase())
     .sort((a, b) => b.observed_at.localeCompare(a.observed_at))[0] || null;
   const positiveEvidenceToConfirm = evidenceToConfirm.filter((item) => latestForFocusItem(item)?.observation_type === 'strength');
-  const snapshotText = buildAcademicSnapshot({
-    studentName: profile.student.name,
-    completedAssignments: profile.summary.completed_assignments,
-    supportLabels: currentFocus.map((item) => item.subskill ? `${item.skill} — ${item.subskill}` : item.skill),
-    positiveEvidenceLabels: positiveEvidenceToConfirm.map((item) => item.subskill ? `${item.skill} — ${item.subskill}` : item.skill),
-    teacherReviewCount: reviewItems.length,
-  });
+  const snapshotText = teacherEvidence.text;
   const strengths = profile.focus_areas.filter((item) => ['emerging_strength', 'consistent_strength'].includes(String(item.status)));
   const improving = profile.focus_areas.filter((item) => item.status === 'improving');
   const resolved = profile.focus_areas.filter((item) => item.status === 'resolved');
@@ -150,15 +154,15 @@ const IndividualStudentAcademicReportV2: React.FC<IndividualStudentAcademicRepor
       if (normalizeSubject(subject) === 'english') {
         return [
           { subject: `${subject} — Writing Hub`, events: [
-            ...buildPrintTrendEvents(profile.timeline, subject, 'writing_assessment_review'),
-            ...buildPrintTrendEvents(profile.timeline, subject, 'writing_attempt'),
+            ...buildPrintTrendEvents(assessmentEvidence, subject, 'writing_assessment_review'),
+            ...buildPrintTrendEvents(assessmentEvidence, subject, 'writing_attempt'),
           ].sort((a, b) => a.observedAt.localeCompare(b.observedAt)) },
-          { subject: `${subject} — Assignments`, events: buildPrintTrendEvents(profile.timeline, subject, 'assignment_result') },
+          { subject: `${subject} — Assignments`, events: buildPrintTrendEvents(assessmentEvidence, subject, 'assignment_result') },
         ];
       }
-      const events = buildPrintTrendEvents(profile.timeline, subject);
+      const events = buildPrintTrendEvents(assessmentEvidence, subject);
       return events.length > 0 ? [{ subject, events }] : [];
-    }), [profile.timeline]);
+    }).filter((entry) => entry.events.length > 0), [profile.timeline, assessmentEvidence]);
   const sectionNumbers = useMemo(() => {
     let next = 1;
     const take = () => next++;
@@ -196,17 +200,17 @@ const IndividualStudentAcademicReportV2: React.FC<IndividualStudentAcademicRepor
           <section className="sap-print-student-grid"><div><span>Student</span><strong>{profile.student.name}</strong></div><div><span>Class</span><strong>{profile.student.class_name || '—'}</strong></div><div><span>Grade</span><strong>{profile.student.grade || '—'}</strong></div><div><span>Prepared by</span><strong>{teacherName || 'Authorised school staff'}</strong></div></section>
           {(profile.scope.writing_pending_reviews || 0) > 0 ? <p>{profile.scope.writing_pending_reviews} Writing Hub submission{profile.scope.writing_pending_reviews === 1 ? '' : 's'} awaiting teacher review; excluded from official attainment until finalized.</p> : null}
           <section className="sap-print-trust-summary"><span>Teacher snapshot</span><p>{snapshotText}</p></section>
-          <section className="sap-print-summary"><div><span>Completed assignment average</span><strong>{profile.summary.assignment_average == null ? '—' : `${profile.summary.assignment_average}%`}</strong><small>{profile.summary.completed_assignments} completed</small></div><div><span>Needs support</span><strong>{currentFocus.length}</strong><small>{profile.summary.persistent_focus_count} long-running</small></div><div><span>Making progress</span><strong>{profile.summary.improving_count}</strong><small>Moving in the right direction</small></div><div><span>Now secure</span><strong>{profile.summary.resolved_count}</strong><small>Previous needs resolved</small></div><div><span>Established strengths</span><strong>{profile.summary.strength_count}</strong><small>{positiveEvidenceToConfirm.length ? `${positiveEvidenceToConfirm.length} positive signal${positiveEvidenceToConfirm.length === 1 ? '' : 's'} awaiting more evidence` : 'Longitudinally supported strengths'}</small></div></section>
+          <section className="sap-print-summary"><div><span>Completed assignment average</span><strong>{profile.summary.assignment_average == null ? '—' : `${Math.round(profile.summary.assignment_average)}%`}</strong><small>{profile.assignments.length === 1 ? `${profile.assignments[0].correct}/${profile.assignments[0].correct + profile.assignments[0].incorrect} correct · ${formatDate(profile.assignments[0].completed_at)}` : `${profile.summary.completed_assignments} completed`}</small></div>{!teacherEvidence.baseline ? <><div><span>Confirmed support areas</span><strong>{currentFocus.length}</strong><small>{profile.summary.persistent_focus_count} long-running</small></div><div><span>Making progress</span><strong>{profile.summary.improving_count}</strong><small>Moving in the right direction</small></div><div><span>Now secure</span><strong>{profile.summary.resolved_count}</strong><small>Previous needs resolved</small></div><div><span>Established strengths</span><strong>{profile.summary.strength_count}</strong><small>{positiveEvidenceToConfirm.length ? `${positiveEvidenceToConfirm.length} positive signal${positiveEvidenceToConfirm.length === 1 ? '' : 's'} awaiting more evidence` : 'Longitudinally supported strengths'}</small></div></> : <div><span>Evidence stage</span><strong>{assessmentEvidence.length ? 'Starting point' : 'No assessed evidence'}</strong><small>Further assessment dates needed</small></div>}</section>
 
           <section className="sap-print-section"><div className="sap-print-section-heading"><span>{sectionNumbers.overview}</span><div><h2>Subject overview</h2><p>A simple view of results and longer-term progress.</p></div></div><table><thead><tr><th>Subject</th><th>Average</th><th>Completed</th><th>Long-running support</th><th>Improving</th><th>Now secure</th><th>Established strengths</th></tr></thead><tbody>{profile.subjects.map((entry) => <tr key={entry.subject}><td><strong>{entry.subject}</strong></td><td>{entry.assignment_average == null ? '—' : `${entry.assignment_average}%`}</td><td>{entry.completed_assignments}</td><td>{entry.persistent_focus_count}</td><td>{entry.improving_count}</td><td>{entry.resolved_count}</td><td>{entry.strength_count}</td></tr>)}</tbody></table></section>
 
-          {includeFocus ? <section className="sap-print-section"><div className="sap-print-section-heading"><span>{sectionNumbers.focus}</span><div><h2>Needs support</h2><p>Current learning needs seen in assessed work.</p></div></div>{currentFocus.length ? <div className="sap-print-focus-grid">{currentFocus.map((item) => <article key={item.skill_key}><strong>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</strong><span>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</span><p>{focusStatusLabel(item.status, latestForFocusItem(item)?.observation_type, item.first_observed_at, item.last_observed_at)} · {item.evidence_items} assessment record{item.evidence_items === 1 ? '' : 's'} · {item.evidence_occurrences} assessed item{item.evidence_occurrences === 1 ? '' : 's'} · first seen {formatDate(item.first_observed_at)} · latest {formatDate(item.last_observed_at)}</p></article>)}</div> : <p className="sap-print-empty">No current support needs are identified in this period.</p>}</section> : null}
+          {includeFocus ? <section className="sap-print-section"><div className="sap-print-section-heading"><span>{sectionNumbers.focus}</span><div><h2>Needs support</h2><p>Current learning needs seen in assessed work.</p></div></div>{currentFocus.length ? <div className="sap-print-focus-grid">{currentFocus.map((item) => <article key={item.skill_key}><strong>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</strong><span>{item.subject}{item.topic ? ` · ${item.topic}` : ''}</span><p>{focusStatusLabel(item.status, latestForFocusItem(item)?.observation_type, item.first_observed_at, item.last_observed_at)} · {item.evidence_items} assessment{item.evidence_items === 1 ? '' : 's'} · {item.evidence_occurrences} question / rubric item{item.evidence_occurrences === 1 ? '' : 's'} · first seen {formatDate(item.first_observed_at)} · latest {formatDate(item.last_observed_at)}</p></article>)}</div> : <p className="sap-print-empty">No confirmed support pattern yet. Use the suggested checks in the teacher snapshot to plan the next assessment.</p>}</section> : null}
 
-          {includeStrengths ? <section className="sap-print-section"><div className="sap-print-section-heading"><span>{sectionNumbers.strengths}</span><div><h2>Strengths, progress and evidence to confirm</h2><p>Established positive conclusions stay separate from low-data evidence that still needs confirmation.</p></div></div><div className="sap-print-three"><div><h3>Making progress</h3>{improving.map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}</div><div><h3>Now secure</h3>{resolved.map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}</div><div><h3>Established strengths</h3>{strengths.map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}</div></div>{evidenceToConfirm.length || reviewItems.length ? <div className="sap-print-focus-grid"><h3>Evidence to confirm</h3>{evidenceToConfirm.map((item) => <article key={`confirm:${item.skill_key}`}><strong>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</strong><span>{item.subject}</span><p>{evidenceConfirmationLabel(latestForFocusItem(item)?.observation_type)} · latest {item.latest_evidence_percentage == null ? '—' : `${item.latest_evidence_percentage}%`} · {item.evidence_items} assessment record{item.evidence_items === 1 ? '' : 's'}</p></article>)}{reviewItems.map((item) => <article key={`review:${item.skill_key}`}><strong>{item.skill}</strong><span>{item.subject}</span><p>Teacher review needed · qualified evidence points in different directions.</p></article>)}</div> : null}</section> : null}
+          {includeStrengths ? <section className="sap-print-section"><div className="sap-print-section-heading"><span>{sectionNumbers.strengths}</span><div><h2>Strengths, progress and evidence to confirm</h2><p>Established positive conclusions stay separate from low-data evidence that still needs confirmation.</p></div></div><div className="sap-print-three"><div><h3>Making progress</h3>{improving.map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}</div><div><h3>Now secure</h3>{resolved.map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}</div><div><h3>Established strengths</h3>{strengths.map((item) => <p key={item.skill_key}><strong>{item.skill}</strong><span>{item.subject}</span></p>)}</div></div>{evidenceToConfirm.length || reviewItems.length ? <div className="sap-print-focus-grid"><h3>Evidence to confirm</h3>{evidenceToConfirm.map((item) => <article key={`confirm:${item.skill_key}`}><strong>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</strong><span>{item.subject}</span><p>{evidenceConfirmationLabel(latestForFocusItem(item)?.observation_type)} · latest {latestForFocusItem(item) ? assessmentResultLabel(latestForFocusItem(item)!) : '—'} · {item.evidence_items} assessment{item.evidence_items === 1 ? '' : 's'}</p></article>)}{reviewItems.map((item) => <article key={`review:${item.skill_key}`}><strong>{item.skill}</strong><span>{item.subject}</span><p>Teacher review needed · qualified evidence points in different directions.</p></article>)}</div> : null}</section> : null}
 
           {includeAssignments ? <section className="sap-print-section sap-print-page"><div className="sap-print-section-heading"><span>{sectionNumbers.assignments}</span><div><h2>Official completed assignment outcomes</h2><p>These outcomes are the denominator for the completed-assignment average.</p></div></div><table><thead><tr><th>Date</th><th>Subject</th><th>Assignment</th><th>Topic</th><th>Correct</th><th>Result</th></tr></thead><tbody>{profile.assignments.map((item) => <tr key={`${item.assignment_id}:${item.completed_at}`}><td>{formatDate(item.completed_at)}</td><td>{item.subject}</td><td><strong>{item.title}</strong></td><td>{item.topic || '—'}</td><td>{item.correct}/{item.correct + item.incorrect}</td><td><strong>{item.accuracy}%</strong></td></tr>)}</tbody></table></section> : null}
 
-          {includeTimeline ? <section className="sap-print-section"><div className="sap-print-section-heading"><span>{sectionNumbers.timeline}</span><div><h2>Learning timeline and subject trends</h2><p>Trend lines only connect the same skill across separate assessment dates. Same-day and cross-skill evidence remains visible without being labelled progress.</p></div></div><div className="sap-print-trend-grid">{printTrendSubjects.map((entry) => <PrintSubjectTrendChart key={entry.subject} subject={entry.subject} events={entry.events}/>)}</div><div className="sap-print-timeline">{profile.timeline.slice(0, 80).map((item) => <p key={item.id}><time>{formatDate(item.observed_at)}</time><strong>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</strong><span>{sourceLabel(item)} · {item.subject} · {observationDisplayLabel(item.observation_type).toLowerCase()}{item.evidence_percentage == null ? '' : ` · ${item.evidence_percentage}%`}</span></p>)}</div></section> : null}
+          {includeTimeline ? <section className="sap-print-section"><div className="sap-print-section-heading"><span>{sectionNumbers.timeline}</span><div><h2>Learning timeline and subject trends</h2><p>Trend lines only connect the same skill across separate assessment dates. Same-day and cross-skill evidence remains visible without being labelled progress.</p></div></div><div className="sap-print-trend-grid">{printTrendSubjects.map((entry) => <PrintSubjectTrendChart key={entry.subject} subject={entry.subject} events={entry.events}/>)}</div><div className="sap-print-timeline">{assessmentEvidence.slice(0, 80).map((item) => <p key={item.id}><time>{formatDate(item.observed_at)}</time><strong>{item.subskill ? `${item.skill} — ${item.subskill}` : item.skill}</strong><span>{sourceLabel(item)} · {item.subject} · {observationDisplayLabel(item.observation_type).toLowerCase()} · {assessmentResultLabel(item)}</span></p>)}</div></section> : null}
 
           {teacherComment.trim() ? <section className="sap-print-section"><div className="sap-print-section-heading"><span>{sectionNumbers.comment}</span><div><h2>Teacher comment</h2><p>Additional school context.</p></div></div><blockquote>{teacherComment.trim()}</blockquote></section> : null}
           <footer className="sap-print-footer"><span>{brand.name} · Confidential academic record</span><span>{reportId} · Generated securely through Brains Heist</span></footer>

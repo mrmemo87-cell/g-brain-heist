@@ -203,3 +203,19 @@
   .sap-trust-summary { padding: 15px 16px; }
   .sap-confirm-grid { grid-template-columns: 1fr; }
 }
+/* Assessment evidence is compact and readable before question detail is expanded. */
+.sap-baseline-note { padding: 0 20px; color: #58677f; line-height: 1.6; }
+.sap-assessment-detail { border: 1px solid #dce4ee; border-radius: 16px; background: #fff; }
+.sap-assessment-detail > summary { cursor: pointer; padding: 18px 20px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }
+.sap-assessment-detail > summary span { color: #58677f; font-size: 13px; }
+.sap-assessment-skills { padding: 0 20px 16px; }
+.sap-assessment-skills p { line-height: 1.65; padding: 12px 0; border-bottom: 1px solid #e8edf4; }
+.sap-cell-subject { display: block; color: #64748b; margin-top: 4px; }
+.sap-shell, .sap-profile-disclosure, .sap-disclosure-body, .sap-trend-grid, .sap-trend-card, .sap-table-wrap { min-width: 0; }
+@media (max-width: 640px) { .sap-shell { overflow-x: clip; } }
+.sap-table-wrap { max-width: 100%; overflow-x: auto; }
+.sap-table-wrap { box-sizing: border-box; }
+.sap-profile-disclosure:not([open]) > .sap-collapsible-content { display: none; }
+@media (max-width: 640px) { .sap-trend-card .sap-table { min-width: 540px; } }
+.sap-kpis:has(> article:nth-child(2):last-child) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 640px) { .sap-kpis:has(> article:nth-child(2):last-child) { grid-template-columns: 1fr; } }
