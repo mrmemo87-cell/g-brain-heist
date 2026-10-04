@@ -890,6 +890,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               </div>
 
               <p className="ap-notice"><ProfileIcon name="info" /> These are evidence-quality signals, not attainment scores. “Not assessed” or “building evidence” never means a student is weak.</p>
+              <p className="ap-notice"><ProfileIcon name="shield" /> Suggested teaching actions support learning; they do not prove mastery. Confirm improvement with a later independent assessment.</p>
 
               <div className="rounded-lg border border-slate-200 p-4">
                 <span className="text-xs font-semibold text-blue-700">Programme & curriculum alignment</span>
