@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { QuestionDifficulty, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
 import * as GameService from '../../services/gameService';
+import { isReservedReassessmentQuestion } from '../../services/economicsQuestionPurpose';
 import {
   createInterventionPracticeAssignment,
   createLearningIntervention,
@@ -99,7 +100,8 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
         if (!teacher) throw new Error('Teacher profile could not be loaded.');
         if (cancelled) return;
         setTeacherId(teacher.id);
-        const subjectQuestions = allQuestions.filter((question) => normalize(question.subject) === normalize(subject));
+        const subjectQuestions = allQuestions.filter((question) => normalize(question.subject) === normalize(subject)
+          && !isReservedReassessmentQuestion(question));
         setQuestions(subjectQuestions);
         // Automatic intervention practice must be a precise remediation set. Only
         // exact governed atomic-subskill matches are preselected. Broader primary-
@@ -232,7 +234,7 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
           {context.recommendation.available_broader_skill_questions
             ? ` ${context.recommendation.available_broader_skill_questions} broader-skill question${context.recommendation.available_broader_skill_questions === 1 ? '' : 's'} available.`
             : ''}
-          {' '}Practice is rehearsal; independent assessed work remains the progress check.
+          {' '}Reassessment candidates are held out of this practice workspace. Use them later in an independent quiz; previously answered items will not count as fresh evidence.
         </small>
       </div>
     </header>

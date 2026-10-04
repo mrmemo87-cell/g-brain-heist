@@ -1,5 +1,6 @@
 import React from 'react';
 import type { TeacherQuestion } from '../../types';
+import { questionPurposeLabel } from '../../services/economicsQuestionPurpose';
 import './QuestionPreviewModal.css';
 
 interface QuestionPreviewModalProps {
@@ -13,6 +14,7 @@ const textForOption = (option: TeacherQuestion['options'][number]) =>
 
 export default function QuestionPreviewModal({ question, onClose, onEdit }: QuestionPreviewModalProps) {
   const topic = question.topic_name || question.topic || 'General';
+  const purpose = questionPurposeLabel(question);
   const type = question.question_type.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 
   return (
@@ -32,6 +34,7 @@ export default function QuestionPreviewModal({ question, onClose, onEdit }: Ques
           <div><dt>Difficulty</dt><dd>{question.difficulty}</dd></div>
           <div><dt>Points</dt><dd>{question.points || 0}</dd></div>
           <div><dt>Time</dt><dd>{question.time_limit || 60} sec</dd></div>
+          {purpose ? <div><dt>Suggested use</dt><dd>{purpose}</dd></div> : null}
         </dl>
         <section className="question-preview__prompt">
           <span>Question prompt</span>
@@ -62,7 +65,10 @@ export default function QuestionPreviewModal({ question, onClose, onEdit }: Ques
             <p>{question.explanation}</p>
           </section>
         ) : null}
-        {question.tags?.length ? <div className="question-preview__tags">{question.tags.map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
+        {purpose ? <section className="question-preview__section"><h3>{purpose}</h3><p>{purpose === 'Reassessment candidate'
+          ? 'Keep this item for a later independent quiz. If the student has already answered it, the result is recorded as repetition rather than fresh evidence.'
+          : 'Use this item to rehearse the skill. Create it through Targeted Practice so the answers remain separate from independent assessment evidence.'}</p></section> : null}
+        {question.tags?.length ? <div className="question-preview__tags">{question.tags.filter(tag => !tag.startsWith('purpose:') && !tag.startsWith('subskill:')).map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
         <section className="question-preview__section question-preview__tracking">
           <h3>What this question assesses</h3>
           {question.registry_mappings?.length ? question.registry_mappings.map((mapping, index) => (
@@ -83,7 +89,7 @@ export default function QuestionPreviewModal({ question, onClose, onEdit }: Ques
             </dl>{question.curriculum_objective ? <p>{question.curriculum_objective}</p> : null}</div>
           ) : <p>Detailed assessment mapping is not available for this question.</p>}
           <p className="question-preview__tracking-note">{question.analytics_eligible && question.verification_status === 'verified'
-            ? 'Verified assessment answers can contribute to Academic Profiles. Repeated independent evidence builds confidence; targeted practice supports learning and requires independent reassessment.'
+            ? 'Fresh verified assessment answers can contribute to Academic Profiles. Evidence from different items and occasions builds confidence; targeted practice and repeated items require fresh independent reassessment.'
             : 'This question is not eligible to contribute to verified Academic Profile evidence.'}</p>
         </section>
         <footer>
