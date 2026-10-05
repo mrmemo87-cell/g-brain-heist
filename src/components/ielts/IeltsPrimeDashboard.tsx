@@ -48,14 +48,13 @@ const progressPercent = (progress: IeltsSkillProgress) => {
   return Math.min(100, Math.round((progress.completedTaskCount / progress.totalAvailableTasks) * 100));
 };
 
-const formatBand = (band: number | null) => band === null || band === undefined ? null : Number.isInteger(band) ? `${band}.0` : band.toFixed(1);
 
-const IeltsPrimeBandRing: React.FC<{ band: number | null }> = ({ band }) => {
+const IeltsPrimeScreenerRing: React.FC<{ scorePercent: number | null }> = ({ scorePercent }) => {
   const circleRef = useRef<SVGCircleElement | null>(null);
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
-  const clampedBand = band === null ? 0 : Math.max(0, Math.min(9, band));
-  const offset = circumference - (clampedBand / 9) * circumference;
+  const clampedScore = scorePercent === null ? 0 : Math.max(0, Math.min(100, scorePercent));
+  const offset = circumference - (clampedScore / 100) * circumference;
 
   useEffect(() => {
     const circle = circleRef.current;
@@ -76,9 +75,9 @@ const IeltsPrimeBandRing: React.FC<{ band: number | null }> = ({ band }) => {
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', textAlign: 'center' }}>
         <div>
-          <div style={{ color: '#c4b5fd', fontSize: '.68rem', fontWeight: 950, letterSpacing: '.14em', textTransform: 'uppercase' }}>{band === null ? 'Prime' : 'Band'}</div>
-          <div style={{ color: '#fff', fontSize: band === null ? '1.25rem' : '2.35rem', fontWeight: 950, letterSpacing: '-.05em' }}>{band === null ? 'Path ready' : formatBand(band)}</div>
-          <div style={{ color: '#bae6fd', fontSize: '.75rem', fontWeight: 800 }}>{band === null ? 'baseline pending' : 'out of 9'}</div>
+          <div style={{ color: '#c4b5fd', fontSize: '.68rem', fontWeight: 950, letterSpacing: '.14em', textTransform: 'uppercase' }}>{scorePercent === null ? 'Screener' : 'Practice'}</div>
+          <div style={{ color: '#fff', fontSize: scorePercent === null ? '1.1rem' : '2.35rem', fontWeight: 950, letterSpacing: '-.05em' }}>{scorePercent === null ? 'Complete' : `${Math.round(scorePercent)}%`}</div>
+          <div style={{ color: '#bae6fd', fontSize: '.75rem', fontWeight: 800 }}>{scorePercent === null ? 'score unavailable' : 'Listening screener'}</div>
         </div>
       </div>
     </div>
@@ -119,7 +118,7 @@ const IeltsPrimeDashboard: React.FC<Props> = ({ summary, lapsedPrime, taskTotal,
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(0deg,rgba(255,255,255,.06) 1px,transparent 1px)', backgroundSize: '44px 44px', opacity: .34 }} aria-hidden="true" />
           <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'minmax(0,1.55fr) minmax(220px,.65fr)', gap: 'clamp(1.1rem,4vw,2rem)', alignItems: 'center' }} className="ielts-prime-hero-grid">
             <div>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '.45rem', background: activePrime ? 'rgba(34,197,94,.16)' : 'rgba(251,191,36,.16)', border: '1px solid rgba(255,255,255,.24)', borderRadius: 999, padding: '.42rem .78rem', fontWeight: 950, color: activePrime ? '#bbf7d0' : '#fde68a' }}>✦ {activePrime ? 'IELTS Prime Active' : lapsedPrime ? 'Prime access needs renewal' : 'Diagnostic complete'}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '.45rem', background: activePrime ? 'rgba(34,197,94,.16)' : 'rgba(251,191,36,.16)', border: '1px solid rgba(255,255,255,.24)', borderRadius: 999, padding: '.42rem .78rem', fontWeight: 950, color: activePrime ? '#bbf7d0' : '#fde68a' }}>✦ {activePrime ? 'IELTS Prime Active' : lapsedPrime ? 'Prime access needs renewal' : 'Listening screener complete'}</span>
               <h1 style={{ margin: '.85rem 0 .4rem', fontSize: 'clamp(2.15rem,6vw,4.25rem)', lineHeight: .94, letterSpacing: '-.07em' }}>Welcome back, {summary.displayName || 'IELTS learner'}</h1>
               <p style={{ margin: 0, color: '#dbeafe', fontSize: 'clamp(.98rem,2vw,1.12rem)', lineHeight: 1.65, maxWidth: 620 }}>{activePrime ? 'Continue your premium IELTS practice dashboard.' : 'You’re closer than you think. Your result shows where to focus next.'}</p>
               <div style={{ marginTop: '1.15rem', display: 'flex', gap: '.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -128,7 +127,7 @@ const IeltsPrimeDashboard: React.FC<Props> = ({ summary, lapsedPrime, taskTotal,
                 <span style={{ color: '#bfdbfe', fontWeight: 800 }}>{skillName(recommendedSkill)} focus</span>
               </div>
             </div>
-            <div><IeltsPrimeBandRing band={summary.diagnostic.estimatedBand} /><p style={{ margin: '.25rem auto 0', maxWidth: 230, color: '#e0e7ff', textAlign: 'center', lineHeight: 1.45, fontWeight: 750 }}>{summary.diagnostic.estimatedBand === null ? 'Band path ready when your baseline syncs.' : 'Starting point detected — not your limit.'}</p></div>
+            <div><IeltsPrimeScreenerRing scorePercent={summary.diagnostic.practiceScorePercent} /><p style={{ margin: '.25rem auto 0', maxWidth: 250, color: '#e0e7ff', textAlign: 'center', lineHeight: 1.45, fontWeight: 750 }}>This score belongs to one Listening screener. Verified readiness stays separate until enough evidence exists.</p></div>
           </div>
         </section>
 
@@ -142,11 +141,11 @@ const IeltsPrimeDashboard: React.FC<Props> = ({ summary, lapsedPrime, taskTotal,
 
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '1rem' }}>
           {[
-            ['✅', 'Diagnostic complete', `Completed ${formatDate(summary.diagnostic.completedAt)}`], ['📈', 'Tasks completed', `${completedTotal} / ${taskTotal} tasks completed`], ['🎯', 'Current focus skill', `${skillName(recommendedSkill)} — based on your diagnostic`], ['🕒', 'Recent activity', summary.recentActivity ? `Last practice: ${formatDate(summary.recentActivity)}` : 'Last practice: Not available yet'],
+            ['✓', 'Listening screener complete', `Completed ${formatDate(summary.diagnostic.completedAt)}`], ['↗', 'Tasks completed', `${completedTotal} / ${taskTotal} tasks completed`], ['→', 'Suggested next track', `${skillName(recommendedSkill)} — based on your available practice path`], ['◷', 'Recent activity', summary.recentActivity ? `Last practice: ${formatDate(summary.recentActivity)}` : 'Last practice: Not available yet'],
           ].map(([icon, title, text], index) => <div data-prime-stat key={title} style={glassCard}><div style={{ display: 'flex', gap: '.72rem', alignItems: 'flex-start' }}><span style={{ display: 'grid', placeItems: 'center', width: 38, height: 38, borderRadius: 14, background: index === 1 ? '#eef2ff' : '#f0f9ff' }}>{icon}</span><div><b style={{ color: '#0f172a' }}>{title}</b><p style={{ margin: '.28rem 0 0', color: '#475569', lineHeight: 1.45 }}>{text}</p></div></div>{index === 1 && <div style={{ height: 9, marginTop: '.8rem', borderRadius: 999, background: '#e2e8f0', overflow: 'hidden' }}><div data-prime-progress style={{ width: `${taskPercent}%`, height: '100%', borderRadius: 999, background: 'linear-gradient(90deg,#0ea5e9,#7c3aed)' }} /></div>}</div>)}
         </section>
 
-        <section style={{ ...glassCard, display: 'flex', gap: '.65rem', flexWrap: 'wrap', alignItems: 'center' }}><b style={{ marginRight: '.25rem' }}>Your Prime plan includes</b>{['Guided practice','Skill-by-skill progress','Writing support','Speaking review','Band path dashboard'].map((item) => <span key={item} style={{ padding: '.45rem .7rem', borderRadius: 999, background: '#f5f3ff', color: '#5b21b6', fontWeight: 850, fontSize: '.84rem' }}>{item}</span>)}</section>
+        <section style={{ ...glassCard, display: 'flex', gap: '.65rem', flexWrap: 'wrap', alignItems: 'center' }}><b style={{ marginRight: '.25rem' }}>Your Prime plan includes</b>{['Guided practice','Skill-by-skill progress','Writing support','Speaking review','Readiness path dashboard'].map((item) => <span key={item} style={{ padding: '.45rem .7rem', borderRadius: 999, background: '#f5f3ff', color: '#5b21b6', fontWeight: 850, fontSize: '.84rem' }}>{item}</span>)}</section>
 
         <section style={glassCard}>
           <h2 style={{ margin: '0 0 .25rem', fontSize: 'clamp(1.45rem,3vw,2rem)', letterSpacing: '-.04em' }}>Skill tracks</h2>
