@@ -134,11 +134,12 @@ test('Curriculum Intelligence no longer behaves as an Economics-first workspace'
   assert.match(page, /curriculumGroupStorageKey/);
 });
 
-test('Economics-specific extensions remain conditional', () => {
+test('Economics paper readiness stays conditional while diagnostic creation is subject-agnostic', () => {
   assert.match(service, /\/economics\/i\.test\(group\.subjectLabel\)/);
-  assert.match(page, /canLaunchEconomicsDiagnostic/);
   assert.match(page, /snapshot\.paperReadiness/);
-  assert.match(page, /EconomicsDiagnosticLauncher/);
+  assert.match(page, /canPrepareDiagnostic/);
+  assert.match(page, /onCreateDiagnostic\?\.\(selectedGroup\.id\)/);
+  assert.doesNotMatch(page, /EconomicsDiagnosticLauncher|canLaunchEconomicsDiagnostic/);
 });
 
 test('unknown subjects still receive a safe intentional generic experience', () => {

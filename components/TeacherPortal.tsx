@@ -15,6 +15,7 @@ import { supabase } from '../services/supabaseClient';
 import { getAcademicReportingContext, type AcademicReportingYear } from '../services/academicReportingService';
 import { fetchTeacherAssignmentDiagnosticIntelligence, type TeacherAssignmentDiagnosticIntelligence } from '../services/teacherDiagnosticService';
 import { fetchPrintableTeacherAssignment, openPrintableTeacherAssignment } from '../services/teacherAssignmentPrintService';
+import type { PreparedDiagnostic } from '../services/diagnosticComposerService';
 import BackButton from './BackButton';
 import SettingsModal from './SettingsModal';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
@@ -24,6 +25,7 @@ const DiagramBuilder = React.lazy(() => import('./geometry/DiagramBuilder'));
 const QuestionBank = React.lazy(() => import('./teacher/QuestionBank'));
 const QuestionBatchWorkspace = React.lazy(() => import('./teacher/QuestionBatchWorkspace'));
 const AssignmentWizard = React.lazy(() => import('./teacher/AssignmentWizard'));
+const DiagnosticComposer = React.lazy(() => import('./teacher/DiagnosticComposer'));
 import DiagnosticIntelligencePanel, { DiagnosticStudentSkillMap } from './teacher/DiagnosticIntelligencePanel';
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
@@ -610,6 +612,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const questionBankSubjectRef = useRef(false);
   const [assignmentSubject, setAssignmentSubject] = useState<string>('');
   const [assignmentLockedSubject, setAssignmentLockedSubject] = useState<string | null>(null);
+  const [preparedDiagnostic, setPreparedDiagnostic] = useState<PreparedDiagnostic | null>(null);
+  const [diagnosticComposerOpen, setDiagnosticComposerOpen] = useState(false);
+  const [diagnosticInitialGroupId, setDiagnosticInitialGroupId] = useState<string | null>(null);
   const [assignmentTopicMode, setAssignmentTopicMode] = useState<'general' | 'custom'>('general');
   const [assignmentTopicName, setAssignmentTopicName] = useState('');
   const [assignmentTitle, setAssignmentTitle] = useState('');
@@ -3810,6 +3815,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     localStorage.removeItem('brains_heist_teacher_assignment_draft_v2');
     questionBankSubjectRef.current = false;
     setAssignmentLockedSubject(null);
+    setPreparedDiagnostic(null);
     setAssignmentGroupId('');
     setAssignmentSubject('');
     setAssignmentQuestionIds([]);
@@ -3842,6 +3848,57 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     void loadQuestionsOnDemand();
     setView('create-assignment');
   }, [canUseTeacherFeature, resetAssignmentDraft, showFeatureUnavailable]);
+
+  const openDiagnosticComposer = useCallback((groupId?: string | null) => {
+    if (!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)) {
+      showFeatureUnavailable('Assignments');
+      return;
+    }
+    if (!profile.school_id || teachingGroups.length === 0) {
+      brainsAlert('A school teaching group is required before you can prepare a diagnostic.', 'info');
+      return;
+    }
+    setDiagnosticInitialGroupId(groupId || null);
+    setDiagnosticComposerOpen(true);
+  }, [canUseTeacherFeature, profile.school_id, showFeatureUnavailable, teachingGroups.length]);
+
+  const handlePreparedDiagnostic = useCallback((diagnostic: PreparedDiagnostic) => {
+    resetAssignmentDraft();
+
+    const due = new Date();
+    due.setDate(due.getDate() + 7);
+    due.setHours(23, 59, 0, 0);
+    const offset = due.getTimezoneOffset();
+    const dueValue = new Date(due.getTime() - offset * 60_000).toISOString().slice(0, 16);
+
+    const now = new Date();
+    const nowOffset = now.getTimezoneOffset();
+    const assignedValue = new Date(now.getTime() - nowOffset * 60_000).toISOString().slice(0, 16);
+
+    setPreparedDiagnostic(diagnostic);
+    setAssignmentLockedSubject(diagnostic.schoolSubjectName);
+    setAssignmentSubject(diagnostic.schoolSubjectName);
+    setAssignmentGroupId(diagnostic.groupId);
+    setAssignmentMode('custom');
+    setAssignmentBatches([]);
+    setSelectedStudentIds([]);
+    setAssignmentQuestionIds(diagnostic.questionIds);
+    setAssignmentTitle(diagnostic.defaultTitle);
+    setAssignmentDescription(diagnostic.defaultDescription);
+    setAssignmentInstructions(diagnostic.defaultInstructions);
+    setAssignmentTopicMode('custom');
+    setAssignmentTopicName(diagnostic.topicName);
+    setAssignmentCategory('quiz');
+    setAssignmentDifficulty('medium');
+    setAssignmentAssignedAt(assignedValue);
+    setAssignmentDueAt(dueValue);
+    setAssignmentPublishStatus('published');
+    setAssignmentCloseAfterDue(true);
+    setAssignmentNotifyByEmail(false);
+    setDiagnosticComposerOpen(false);
+    void loadQuestionsOnDemand();
+    setView('create-assignment');
+  }, [resetAssignmentDraft]);
 
   const toLocalAssignmentDateTime = (value?: string | null) => {
     if (!value) return '';
@@ -3949,9 +4006,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     );
     const selectedTeachingGroup = subjectTeachingGroups.find((group) => group.id === assignmentGroupId) || null;
     const selectedCustomTeachingGroup = selectedTeachingGroup?.groupType === 'custom' ? selectedTeachingGroup : null;
+    const selectedExactTeachingGroup = preparedDiagnostic ? selectedTeachingGroup : selectedCustomTeachingGroup;
     const classTeachingGroups = subjectTeachingGroups.filter((group) => group.groupType === 'class');
     const classOnlyTeachingGroups = subjectTeachingGroups.length > 0 && classTeachingGroups.length === subjectTeachingGroups.length;
-    if (subjectTeachingGroups.length > 0 && !selectedCustomTeachingGroup && !(classOnlyTeachingGroups && assignmentBatches.length > 0)) {
+    if (preparedDiagnostic && (!selectedTeachingGroup || selectedTeachingGroup.id !== preparedDiagnostic.groupId)) {
+      return brainsAlert('This diagnostic is locked to the teaching group it was prepared for. Return to the diagnostic composer to choose another group.', 'error');
+    }
+    if (subjectTeachingGroups.length > 0 && !selectedExactTeachingGroup && !(classOnlyTeachingGroups && assignmentBatches.length > 0)) {
       return brainsAlert('Please select at least one teaching group or class for this assignment.', 'info');
     }
     if (subjectTeachingGroups.length === 0 && assignmentMode === 'batch' && assignmentBatches.length === 0) return brainsAlert('Please select at least one class for this assignment.', 'info');
@@ -4021,16 +4082,23 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           student_ids: selectedCustomTeachingGroup || assignmentMode === 'custom' ? selectedStudentIds : undefined,
         });
         brainsAlert(publishStatus === 'draft' ? 'Assignment saved as a draft.' : publishStatus === 'scheduled' ? 'Assignment updated and scheduled.' : 'Assignment updated.', 'success');
-      } else if (selectedCustomTeachingGroup) {
+      } else if (selectedExactTeachingGroup) {
         await GameService.create_assignment({
           ...basePayload,
-          school_subject_id: selectedCustomTeachingGroup.schoolSubjectId,
-          subject_group_id: selectedCustomTeachingGroup.id,
+          school_subject_id: selectedExactTeachingGroup.schoolSubjectId,
+          subject_group_id: selectedExactTeachingGroup.id,
           batch: undefined,
           assignment_mode: 'custom',
           student_ids: selectedStudentIds,
         });
-        brainsAlert(publishStatus === 'draft' ? 'Teaching-group draft saved.' : publishStatus === 'scheduled' ? 'Teaching-group assignment scheduled.' : 'Teaching-group assignment published.', 'success');
+        brainsAlert(
+          publishStatus === 'draft'
+            ? 'Teaching-group draft saved.'
+            : publishStatus === 'scheduled'
+              ? 'Teaching-group assignment scheduled.'
+              : 'Teaching-group assignment published.',
+          'success',
+        );
       } else if (assignmentMode === 'batch') {
         const batchesToAssign = assignmentBatches.includes('All') ? availableBatches : assignmentBatches.filter((batch) => batch !== 'All');
         const errors: string[] = [];
@@ -5971,14 +6039,27 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     <div className="space-y-6">
       {/* Header with Title and Create Button */}
       <div className="teacher-section-header">
-        <h2>🗂️ Assignments</h2>
-        <button
-          onClick={openBlankAssignmentForm}
-          className={`teacher-btn teacher-btn-primary ${!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
-          disabled={!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
-        >
-          ➕ New Assignment
-        </button>
+        <div>
+          <h2>🗂️ Assignments</h2>
+          <p className="mt-1 text-sm text-slate-500">Create normal assignments or prepare a governed diagnostic, then review everything in the same Assignment Wizard.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => openDiagnosticComposer()}
+            className={`teacher-btn border border-cyan-200 bg-cyan-50 text-cyan-800 hover:bg-cyan-100 ${!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
+          >
+            ✦ Create Diagnostic
+          </button>
+          <button
+            onClick={openBlankAssignmentForm}
+            className={`teacher-btn teacher-btn-primary ${!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
+          >
+            ➕ New Assignment
+          </button>
+        </div>
       </div>
 
       {assignments.length > 0 && (
@@ -6262,8 +6343,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         )}
       >
         <AssignmentWizard
-          initialStep={assignmentLockedSubject ? 2 : 1}
+          initialStep={preparedDiagnostic ? 3 : assignmentLockedSubject ? 2 : 1}
           lockedSubject={assignmentLockedSubject}
+          preparedDiagnostic={preparedDiagnostic}
           assignmentMode={assignmentMode}
           setAssignmentMode={setAssignmentMode}
           assignmentBatches={assignmentBatches}
@@ -6508,7 +6590,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   }}
                 />
               ) : diagnosticIntelligenceLoading ? (
-                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm font-semibold text-cyan-800">Building the ESL diagnostic skill map…</div>
+                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm font-semibold text-cyan-800">Building the diagnostic skill map…</div>
               ) : null}
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
@@ -9386,6 +9468,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         onClose={() => setShowNotifications(false)}
         userRole="teacher"
       />
+      {profile.school_id ? (
+        <React.Suspense fallback={null}>
+          <DiagnosticComposer
+            open={diagnosticComposerOpen}
+            schoolId={profile.school_id}
+            teachingGroups={teachingGroups}
+            initialGroupId={diagnosticInitialGroupId}
+            onClose={() => setDiagnosticComposerOpen(false)}
+            onPrepared={handlePreparedDiagnostic}
+          />
+        </React.Suspense>
+      ) : null}
 
       <div className="teacher-portal-container">
         {/* Professional Header */}
@@ -9546,7 +9640,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           )}
           {view === 'curriculum-intelligence' && (
             <React.Suspense fallback={<div className="teacher-section-loading">Preparing Curriculum Intelligence…</div>}>
-              <TeacherCurriculumIntelligencePage profile={profile} onBack={() => setView('dashboard')} />
+              <TeacherCurriculumIntelligencePage
+                profile={profile}
+                onBack={() => setView('dashboard')}
+                onCreateDiagnostic={(groupId) => openDiagnosticComposer(groupId)}
+              />
             </React.Suspense>
           )}
           {view === 'interventions' && (

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { Profile } from '../../types';
 import * as GameService from '../../services/gameService';
-import EconomicsDiagnosticLauncher from './EconomicsDiagnosticLauncher';
 import { ProfileIcon, ProfileSection, ProfileStat } from '../student-progress/AcademicProfilePremium';
 import '../student-progress/AcademicProfilePremium.css';
 import {
@@ -15,6 +14,7 @@ import {
 interface TeacherCurriculumIntelligencePageProps {
   profile: Profile;
   onBack: () => void;
+  onCreateDiagnostic?: (groupId: string) => void;
 }
 
 type EvidenceFilter = 'all' | 'assessed' | 'low_data' | 'review' | 'not_assessed';
@@ -74,6 +74,7 @@ const curriculumGroupStorageKey = (profileId: string) => `bh:curriculum-intellig
 const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligencePageProps> = ({
   profile,
   onBack,
+  onCreateDiagnostic,
 }) => {
   const [groups, setGroups] = useState<CurriculumTeachingGroup[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState('');
@@ -88,7 +89,6 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
   const [selectedLeaf, setSelectedLeaf] = useState<GameService.TeacherAcademicSkillRegistryLeaf | null>(null);
   const [focuses, setFocuses] = useState<GameService.TeacherAcademicEvidenceFocus[]>([]);
   const [focusLoading, setFocusLoading] = useState(false);
-  const [diagnosticLauncherOpen, setDiagnosticLauncherOpen] = useState(false);
   const [curriculumExplorerOpen, setCurriculumExplorerOpen] = useState(false);
 
   useEffect(() => {
@@ -335,12 +335,10 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
   const contentAlignments = alignments.filter((item) => item.alignmentLevel === 'subject_content');
   const aoAlignments = alignments.filter((item) => item.alignmentLevel === 'assessment_objective');
   const experience = snapshot?.experience;
-  const canLaunchEconomicsDiagnostic = Boolean(
+  const canPrepareDiagnostic = Boolean(
     profile.school_id
     && selectedGroup
-    && /economics/i.test(selectedGroup.subjectLabel)
-    && snapshot?.registry.supported
-    && (snapshot.paperReadiness?.profiledQuestionCount || 0) > 0
+    && onCreateDiagnostic
   );
 
   const toggleSkill = (code: string) => {
@@ -381,7 +379,6 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                 onChange={(event) => {
                   const nextGroupId = event.target.value;
                   setSelectedGroupId(nextGroupId);
-                  setDiagnosticLauncherOpen(false);
                   setQuery('');
                   setStrandCode('all');
                   setEvidenceFilter('all');
@@ -401,14 +398,15 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                 ))}
               </select>
             </label>
-            {canLaunchEconomicsDiagnostic ? (
+            {canPrepareDiagnostic && selectedGroup ? (
               <button
                 type="button"
-                onClick={() => setDiagnosticLauncherOpen(true)}
+                onClick={() => onCreateDiagnostic?.(selectedGroup.id)}
                 className="w-full rounded-lg bg-slate-950 px-4 py-3 text-left text-white transition hover:bg-slate-800"
               >
                 <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-300">Governed assessment</span>
-                <strong className="mt-0.5 block text-sm">Create Economics Diagnostic →</strong>
+                <strong className="mt-0.5 block text-sm">Create Diagnostic →</strong>
+                <span className="mt-1 block text-[11px] leading-4 text-slate-300">Brains Heist will check this group’s verified question pool first.</span>
               </button>
             ) : snapshot?.registry.supported ? (
               <p className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-xs leading-5 text-slate-500">
@@ -620,13 +618,13 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                       <strong className="block text-white">Evidence only · no predicted grade</strong>
                       Observed accuracy is classroom evidence from profiled Brains Heist Verified items. It is not an exam mark, forecast or grade boundary.
                     </div>
-                    {canLaunchEconomicsDiagnostic ? (
+                    {canPrepareDiagnostic && selectedGroup ? (
                       <button
                         type="button"
-                        onClick={() => setDiagnosticLauncherOpen(true)}
+                        onClick={() => onCreateDiagnostic?.(selectedGroup.id)}
                         className="rounded-2xl border border-cyan-300/25 bg-cyan-300/15 px-4 py-3 text-left text-xs font-black text-cyan-50 transition hover:bg-cyan-300/20"
                       >
-                        + Create independent Paper 1 diagnostic
+                        + Prepare governed diagnostic
                       </button>
                     ) : null}
                   </div>
@@ -920,15 +918,6 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
         </>
       ) : null}
 
-      {profile.school_id && selectedGroup ? (
-        <EconomicsDiagnosticLauncher
-          open={diagnosticLauncherOpen}
-          schoolId={profile.school_id}
-          groupId={selectedGroup.id}
-          groupName={selectedGroup.name}
-          onClose={() => setDiagnosticLauncherOpen(false)}
-        />
-      ) : null}
     </section>
   );
 };

@@ -98,7 +98,7 @@ const DiagnosticIntelligencePanel: React.FC<{
       <div className="bg-gradient-to-br from-slate-950 via-indigo-950 to-cyan-950 p-5 text-white sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
-            <span className="text-xs font-bold uppercase tracking-[.2em] text-cyan-300">Brains Heist · ESL Diagnostic Intelligence</span>
+            <span className="text-xs font-bold uppercase tracking-[.2em] text-cyan-300">Brains Heist · {data.assignment.subjectName} Diagnostic Intelligence</span>
             <h3 className="mt-2 text-2xl font-black tracking-tight">What should I teach next?</h3>
             <p className="mt-2 text-sm leading-6 text-slate-300">The diagnostic is translated into governed Evidence Focuses so the teacher can see class-wide priorities and individual signals immediately.</p>
           </div>
