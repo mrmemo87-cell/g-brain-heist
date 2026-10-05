@@ -401,7 +401,7 @@ export const fetchRecentAttempts = async (): Promise<IELTSRecentAttempts> => {
       .limit(5),
     supabase
       .from('ielts_listening_attempts')
-      .select('id, set_id, started_at, completed_at, raw_score, total_questions, percent, est_band')
+      .select('id, set_id, started_at, completed_at, raw_score, total_questions, percent')
       .eq('user_id', userId)
       .order('started_at', { ascending: false })
       .limit(5),
