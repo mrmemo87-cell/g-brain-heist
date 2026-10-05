@@ -133,6 +133,11 @@ test('IELTS AI review edge function enforces reviewer roles and draft-only seman
   assert.match(edge, /if \(!transcript\) \{[\s\S]*Transcript unavailable for this draft/i, 'speaking AI flow must handle missing transcript with a confidence caveat');
   assert.match(edge, /band_estimate[\s\S]*task_response[\s\S]*coherence[\s\S]*lexical_resource[\s\S]*grammar/i, 'writing AI schema keys must be requested');
   assert.match(edge, /band_estimate[\s\S]*fluency[\s\S]*lexical_resource[\s\S]*grammar[\s\S]*pronunciation_note/i, 'speaking AI schema keys must be requested');
+  assert.match(edge, /Set band_estimate to null/i, 'transcript-only speaking AI must not invent a complete band');
+  assert.match(edge, /Do NOT score pronunciation from transcript text/i, 'transcript-only speaking AI must not score pronunciation');
+  assert.match(edge, /human reviewer must listen to the audio/i, 'Speaking finalization must require human audio review');
+  assert.match(edge, /task-specific draft[\s\S]*not an official IELTS score[\s\S]*must not be presented as a complete Writing readiness band/i, 'Writing AI must remain task-specific and provisional');
+  assert.doesNotMatch(edge, /You are an IELTS (?:Writing|Speaking) reviewer/i, 'AI prompt must not present the model as an IELTS examiner/reviewer authority');
 });
 
 
