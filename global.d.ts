@@ -107,6 +107,8 @@ declare module 'react' {
   export type DetailedHTMLProps<E, T> = React.DetailedHTMLProps<E, T>;
 
   export function createContext<T>(defaultValue: T): Context<T>;
+  export function createElement(...args: unknown[]): ReactElement;
+  export function act(callback: () => void | Promise<void>): Promise<void>;
   export function useContext<T>(context: Context<T>): T;
   export function useState<S>(initialState: S | (() => S)): [S, (value: React.SetStateAction<S>) => void];
   export function useReducer<R extends (state: any, action: any) => any, I>(
@@ -117,6 +119,7 @@ declare module 'react' {
   export function useLayoutEffect(effect: () => void | (() => void), deps?: readonly unknown[]): void;
   export function useMemo<T>(factory: () => T, deps: readonly unknown[]): T;
   export function useCallback<T extends (...args: any[]) => any>(callback: T, deps: readonly unknown[]): T;
+  export function useRef<T>(initialValue: T): MutableRefObject<T>;
   export function useRef<T>(initialValue: T | null): MutableRefObject<T | null>;
   export function useTransition(): [boolean, (callback: () => void) => void];
   export function useId(): string;
@@ -165,6 +168,7 @@ declare module 'react-dom/client' {
 
 
 declare namespace JSX {
+  interface IntrinsicAttributes extends React.Attributes {}
   interface IntrinsicElements {
     [elemName: string]: React.HTMLAttributes<unknown>;
   }

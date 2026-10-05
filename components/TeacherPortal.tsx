@@ -16,6 +16,7 @@ import { getAcademicReportingContext, type AcademicReportingYear } from '../serv
 import { fetchTeacherAssignmentDiagnosticIntelligence, type TeacherAssignmentDiagnosticIntelligence } from '../services/teacherDiagnosticService';
 import { fetchPrintableTeacherAssignment, openPrintableTeacherAssignment } from '../services/teacherAssignmentPrintService';
 import type { PreparedDiagnostic } from '../services/diagnosticComposerService';
+import { useAssignmentQuestionSelection } from '../src/hooks/useAssignmentQuestionSelection';
 import BackButton from './BackButton';
 import SettingsModal from './SettingsModal';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
@@ -609,8 +610,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
   const [assignmentBatches, setAssignmentBatches] = useState<string[]>([]);
   const [assignmentGroupId, setAssignmentGroupId] = useState('');
-  const questionBankSubjectRef = useRef(false);
-  const [assignmentSubject, setAssignmentSubject] = useState<string>('');
+  const { assignmentSubject, setAssignmentSubject, assignmentQuestionIds,
+    setAssignmentQuestionIds, chooseAssignmentSubject } = useAssignmentQuestionSelection();
   const [assignmentLockedSubject, setAssignmentLockedSubject] = useState<string | null>(null);
   const [preparedDiagnostic, setPreparedDiagnostic] = useState<PreparedDiagnostic | null>(null);
   const [diagnosticComposerOpen, setDiagnosticComposerOpen] = useState(false);
@@ -620,7 +621,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentTitle, setAssignmentTitle] = useState('');
   const [assignmentDescription, setAssignmentDescription] = useState('');
   const [assignmentInstructions, setAssignmentInstructions] = useState('');
-  const [assignmentQuestionIds, setAssignmentQuestionIds] = useState<string[]>([]);
   const [assignmentDueAt, setAssignmentDueAt] = useState('');
   const [assignmentAssignedAt, setAssignmentAssignedAt] = useState(() => new Date().toISOString().slice(0, 16));
   const [assignmentDifficulty, setAssignmentDifficulty] = useState<QuestionDifficulty>('easy');
@@ -1233,7 +1233,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setSubject(teacherAssignedSubjects[0] as Subject);
       }
       if (!teacherAssignedSubjects.includes(assignmentSubject)) {
-        setAssignmentSubject(teacherAssignedSubjects[0] as Subject);
+        chooseAssignmentSubject(teacherAssignedSubjects[0] as Subject);
       }
     }
   }, [teacherAssignedSubjects]);
@@ -1265,15 +1265,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     loadVisibilityTests();
   }, [showVisibilityManager]);
-
-  useEffect(() => {
-    // Don't clear questions when subject was set from the Question Bank "Host" flow
-    if (questionBankSubjectRef.current) {
-      questionBankSubjectRef.current = false;
-      return;
-    }
-    setAssignmentQuestionIds([]);
-  }, [assignmentSubject]);
 
   const loadAssignments = async () => {
     try {
@@ -3813,7 +3804,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const resetAssignmentDraft = useCallback(() => {
     localStorage.removeItem('brains_heist_teacher_assignment_draft_v2');
-    questionBankSubjectRef.current = false;
     setAssignmentLockedSubject(null);
     setPreparedDiagnostic(null);
     setAssignmentGroupId('');
@@ -3965,7 +3955,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         ? resourceSubject
         : matchingLocalSubjects[0] || resourceSubject;
 
-    questionBankSubjectRef.current = true;
     setAssignmentQuestionIds(questionIds);
     setAssignmentSubject(localSubject);
     setAssignmentLockedSubject(matchingLocalSubjects.length === 1 ? localSubject : null);
@@ -6351,7 +6340,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           assignmentBatches={assignmentBatches}
           setAssignmentBatches={setAssignmentBatches}
           assignmentSubject={assignmentSubject}
-          setAssignmentSubject={setAssignmentSubject}
+          setAssignmentSubject={chooseAssignmentSubject}
           assignmentTitle={assignmentTitle}
           setAssignmentTitle={setAssignmentTitle}
           assignmentDescription={assignmentDescription}
