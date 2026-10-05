@@ -13,7 +13,7 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import type { IELTSReadingQuestion } from '../../../types';
-import { estimateIeltsBandFromPercent, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
+import { toRawScoreResult } from '../../lib/ieltsPracticeScoring';
 
 interface Answer {
   questionId: number;
@@ -91,7 +91,6 @@ const ReadingPractice: React.FC = () => {
         rawScore: attemptScore.correct,
         totalQuestions: attemptScore.total,
         percent: attemptScore.percentage,
-        estBand: estimateIeltsBandFromPercent(attemptScore.percentage),
       });
       let progress: IeltsPracticeAssignmentProgress | null = null;
       let itemCompletionError: string | null = null;
@@ -302,7 +301,6 @@ const ReadingPractice: React.FC = () => {
 
   if (showResults) {
     const results = calculateResults();
-    const bandScore = results.bandScore;
     const totalQuestions = questions?.length ?? 0;
     const isPartialAssignedSubmission = assignmentContext.isAssignedPractice && answeredCountAtSubmit > 0 && answeredCountAtSubmit < totalQuestions;
     const assignmentSubmissionNotice = assignmentContext.isAssignedPractice
@@ -371,14 +369,17 @@ const ReadingPractice: React.FC = () => {
             <div style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', color: '#3b82f6' }}>{results.percentage}% Correct</div>
             
             {isMeaningfulSubmission && !isPartialAssignedSubmission ? <div style={{
-              marginTop: '1.5rem',
-              padding: 'clamp(0.75rem, 2vw, 1rem)',
-              background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-              borderRadius: '0.5rem',
+              marginTop: '1.25rem',
+              padding: '0.85rem 1rem',
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              borderRadius: '0.65rem',
+              color: '#475569',
+              fontSize: '0.85rem',
+              lineHeight: 1.5,
               display: 'inline-block'
             }}>
-              <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#92400e', marginBottom: '0.25rem' }}>Estimated Band Score</div>
-              <div style={{ fontSize: 'clamp(1.75rem, 6vw, 2.5rem)', fontWeight: 'bold', color: '#b45309' }}>{bandScore}</div>
+              Practice result only — this score is not a verified IELTS readiness band.
             </div> : <div style={{ marginTop: '1rem', color: '#92400e', fontWeight: 700 }}>
               {answeredCountAtSubmit === 0
                 ? 'Submitted with no answers recorded.'
@@ -405,7 +406,7 @@ const ReadingPractice: React.FC = () => {
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
                 <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span>
-                <span>Estimated readiness is shown above when available.</span>
+                <span>This page shows practice performance only. Verified IELTS readiness is calculated separately when sufficient evidence exists.</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                 <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span>

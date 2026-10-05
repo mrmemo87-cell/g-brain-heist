@@ -50,11 +50,11 @@ test('next action avoids fake completion phrasing', () => {
   assert.match(page, /View your latest results and feedback\./);
 });
 
-test('light theme and band readiness section are present', () => {
+test('light theme and verified readiness section are present', () => {
   assert.match(page, /background:\s*'#f8fafc'/);
   assert.match(page, /Readiness overview/);
   assert.match(page, /Overall/);
-  assert.match(page, /Not enough data yet/);
+  assert.match(page, /Verified four-skill readiness is not available yet/);
 });
 
 test('status labels are humanized and no raw in_progress token appears in UI copy', () => {

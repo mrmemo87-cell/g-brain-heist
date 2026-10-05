@@ -10,10 +10,10 @@ interface IeltsMissionCardProps {
 }
 
 const SCORE_SOURCE_LABELS: Record<'reading' | 'listening' | 'writing' | 'speaking', string> = {
-  reading: 'Latest result',
-  listening: 'Latest result',
-  writing: 'Latest reviewed feedback',
-  speaking: 'Latest reviewed feedback',
+  reading: 'Verified readiness pending',
+  listening: 'Verified readiness pending',
+  writing: 'Verified readiness pending',
+  speaking: 'Verified readiness pending',
 };
 
 const confidenceLabel = (level: string | null) => {
@@ -85,7 +85,7 @@ const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
         <div>
           <p style={{ margin: 0, fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#0891b2' }}>
-            IELTS MISSION
+            IELTS READINESS
           </p>
           <h2 style={{ margin: '0.3rem 0 0', fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
             Readiness Overview
@@ -155,7 +155,7 @@ const IeltsMissionCard: React.FC<IeltsMissionCardProps> = ({ journey, animate = 
       </div>
 
       <p style={{ margin: '0 0 0.65rem', fontSize: '0.72rem', color: '#64748b' }}>
-        Based on your latest completed results and finalized feedback.
+        Readiness appears only when verified evidence meets the required skill coverage. Practice scores and reviewed feedback stay separate.
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.35rem', marginBottom: '1.1rem' }}>
         {(Object.keys(SCORE_SOURCE_LABELS) as Array<keyof typeof SCORE_SOURCE_LABELS>).map((skill) => (

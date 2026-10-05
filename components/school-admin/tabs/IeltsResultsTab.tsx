@@ -70,7 +70,7 @@ const IeltsResultsTab: React.FC = () => {
     { label: 'Assigned practice', value: formatNumber(summary?.assigned_practice_count), detail: 'Practice assignments given to students.' },
     { label: 'Completed practice', value: formatNumber(summary?.completed_practice_count), detail: 'Assigned practice marked completed.' },
     { label: 'Exam submissions', value: formatNumber(summary?.exam_submission_count), detail: 'Secure Exam Mode submissions.' },
-    { label: 'Average estimated readiness', value: formatEstimate(summary?.average_estimated_overall), detail: 'Practice-derived readiness estimate; not a certified band score.' },
+    { label: 'Average verified readiness', value: formatEstimate(summary?.average_estimated_overall), detail: 'Shown only when qualifying evidence supports verified readiness; otherwise left blank.' },
   ];
 
   return (
@@ -79,7 +79,7 @@ const IeltsResultsTab: React.FC = () => {
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">IELTS Academy</p>
         <h3 className="mt-2 text-2xl font-bold text-white">IELTS Results</h3>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-amber-50/80">
-          Review practice completion, controlled-exam submissions, and estimated readiness for this school.
+          Review practice completion, controlled-exam submissions, and verified readiness evidence for this school.
         </p>
       </div>
 
@@ -149,7 +149,7 @@ const IeltsResultsTab: React.FC = () => {
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h4 className="text-lg font-semibold text-white">Student Results</h4>
-            <p className="text-sm text-gray-400">Estimated readiness is a school-safe planning signal; not a certified band score.</p>
+            <p className="text-sm text-gray-400">Readiness values appear only when the evidence meets Brains Heist verification and coverage rules. Practice results are not promoted into readiness.</p>
           </div>
           {loading && <span className="text-sm text-amber-200">Loading results…</span>}
         </div>
@@ -168,11 +168,11 @@ const IeltsResultsTab: React.FC = () => {
                   <th className="px-3 py-3">Student</th>
                   <th className="px-3 py-3">Class</th>
                   <th className="px-3 py-3">Practice</th>
-                  <th className="px-3 py-3">Reading</th>
-                  <th className="px-3 py-3">Listening</th>
-                  <th className="px-3 py-3">Writing</th>
-                  <th className="px-3 py-3">Speaking</th>
-                  <th className="px-3 py-3">Estimated readiness</th>
+                  <th className="px-3 py-3">Reading readiness</th>
+                  <th className="px-3 py-3">Listening readiness</th>
+                  <th className="px-3 py-3">Writing readiness</th>
+                  <th className="px-3 py-3">Speaking readiness</th>
+                  <th className="px-3 py-3">Four-skill readiness</th>
                   <th className="px-3 py-3">Last activity</th>
                 </tr>
               </thead>

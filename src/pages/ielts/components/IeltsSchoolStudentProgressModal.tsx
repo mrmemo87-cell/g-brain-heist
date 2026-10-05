@@ -19,13 +19,6 @@ const skillLabels: Record<string, string> = {
   speaking: 'Speaking',
 };
 
-const skillSources: Record<string, string> = {
-  reading: 'Latest objective result',
-  listening: 'Latest objective result',
-  writing: 'Latest finalized feedback',
-  speaking: 'Latest finalized feedback',
-};
-
 const formatDate = (value?: string | null, fallback = 'Not available') => {
   if (!value) return fallback;
   const parsed = new Date(value);
@@ -54,7 +47,7 @@ const ReadinessGauge: React.FC<{ label: string; band: number | null; target: num
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'center' }}>
         <div>
           <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 900, color: '#0f172a' }}>{label}</p>
-          <p style={{ margin: '0.15rem 0 0', fontSize: '0.68rem', color: '#64748b' }}>{source ?? 'Readiness estimate'}</p>
+          <p style={{ margin: '0.15rem 0 0', fontSize: '0.68rem', color: '#64748b' }}>{source ?? 'Verified evidence pending'}</p>
         </div>
         <strong style={{ fontSize: '1rem', color }}>{band == null ? '—' : `${band.toFixed(1)} / 9.0`}</strong>
       </div>
@@ -62,7 +55,7 @@ const ReadinessGauge: React.FC<{ label: string; band: number | null; target: num
         <div style={{ width: `${percent}%`, height: '100%', borderRadius: '9999px', background: `linear-gradient(90deg, ${color}, #7c3aed)` }} />
       </div>
       <p style={{ margin: '0.45rem 0 0', fontSize: '0.7rem', color: gap ? (gap.includes('below') ? '#b45309' : '#059669') : '#94a3b8', fontWeight: 700 }}>
-        {band == null ? 'Not enough data yet' : gap ?? 'Target band not set'}
+        {band == null ? 'Verified readiness pending' : gap ?? 'Target band not set'}
       </p>
     </div>
   );
@@ -139,9 +132,9 @@ const IeltsSchoolStudentProgressModal: React.FC<IeltsSchoolStudentProgressModalP
           {state === 'ready' && snapshot && (
             <>
               <section>
-                <h3 style={{ margin: '0 0 0.7rem', fontSize: '0.9rem', fontWeight: 950 }}>Readiness Gauges</h3>
+                <h3 style={{ margin: '0 0 0.7rem', fontSize: '0.9rem', fontWeight: 950 }}>Verified Readiness</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.7rem' }}>
-                  {readinessSkills.map((skill) => <ReadinessGauge key={skill} label={skillLabels[skill]} band={readinessValue(snapshot, skill)} target={snapshot.readiness.target_band} source={skillSources[skill] ?? 'Combined estimate'} />)}
+                  {readinessSkills.map((skill) => <ReadinessGauge key={skill} label={skillLabels[skill]} band={readinessValue(snapshot, skill)} target={snapshot.readiness.target_band} source={snapshot.readiness.sources?.[skillLabels[skill]] ?? 'Verified evidence pending'} />)}
                 </div>
               </section>
 
@@ -168,7 +161,7 @@ const IeltsSchoolStudentProgressModal: React.FC<IeltsSchoolStudentProgressModalP
                       <div key={`${item.skill}-${item.occurred_at}-${index}`} data-testid="ielts-progress-activity" style={{ display: 'flex', justifyContent: 'space-between', gap: '0.65rem', borderTop: index === 0 ? 'none' : '1px solid #f1f5f9', paddingTop: index === 0 ? 0 : '0.45rem', flexWrap: 'wrap' }}>
                         <span style={{ color: '#334155', fontSize: '0.8rem', fontWeight: 800 }}>{skillLabels[item.skill] ?? humanizeIeltsSnapshotStatus(item.skill)} — {item.title ?? 'IELTS practice'}</span>
                         <span style={{ color: item.status.toLowerCase().includes('pending') ? '#b45309' : '#059669', fontSize: '0.78rem', fontWeight: 800, display: 'inline-flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                          <span>{humanizeIeltsSnapshotStatus(item.status)}{item.band != null ? ` · Band ${item.band.toFixed(1)}` : item.score ? ` · ${item.score}` : ''}</span>
+                          <span>{humanizeIeltsSnapshotStatus(item.status)}{item.band != null ? ` · Reviewed task band ${item.band.toFixed(1)}` : item.score ? ` · ${item.score}` : ''}</span>
                           {item.route && <a href={item.route} style={{ color: '#0e7490', textDecoration: 'none', fontWeight: 900 }}>View</a>}
                         </span>
                       </div>

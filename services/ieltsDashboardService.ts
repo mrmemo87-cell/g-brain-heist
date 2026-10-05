@@ -9,7 +9,7 @@ export interface IeltsDiagnosticSummary {
   completed: boolean;
   taskId: string;
   skill: IeltsSkill;
-  estimatedBand: number | null;
+  practiceScorePercent: number | null;
   completedAt: string | null;
 }
 
@@ -116,15 +116,6 @@ const chooseContinueLearningRoute = (skillProgress: Record<IeltsSkill, IeltsSkil
   return '/ielts';
 };
 
-const toNumber = (value: unknown): number | null => {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string' && value.trim() !== '') {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  return null;
-};
-
 export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummary> {
   const { data: auth } = await supabase.auth.getUser();
   const user = auth.user;
@@ -148,7 +139,7 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
       tier: 'free',
       isPrimeActive: false,
       subscription: emptySubscription,
-      diagnostic: { completed: false, taskId: 'trial-test-2', skill: 'listening', estimatedBand: null, completedAt: null },
+      diagnostic: { completed: false, taskId: 'trial-test-2', skill: 'listening', practiceScorePercent: null, completedAt: null },
       completedTasks: emptyCompleted,
       tasks: { reading: [], listening: [], writing: [], speaking: [] },
       recentActivity: null,
@@ -163,7 +154,7 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
     };
   }
 
-  const [tier, subscription, reading, listening, writing, speaking, completedTasks, ieltsUser, diagnosticEvent] = await Promise.all([
+  const [tier, subscription, reading, listening, writing, speaking, completedTasks, ieltsUser] = await Promise.all([
     getUserTier(),
     getIeltsPrimeSubscriptionStatus(),
     fetchActiveReadingSets().catch(() => []),
@@ -172,27 +163,19 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
     fetchActiveSpeakingTasks().catch(() => []),
     fetchUserCompletedTasks().catch(() => emptyCompleted),
     supabase.from('ielts_users').select('username, target_band, tier, updated_at').eq('id', user.id).maybeSingle(),
-    supabase
-      .from('ielts_funnel_events')
-      .select('created_at, metadata')
-      .eq('user_id', user.id)
-      .eq('event_name', 'diagnostic_completed')
-      .contains('metadata', { task_id: 'trial-test-2' })
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
   ]);
 
-  const metadata = (diagnosticEvent.data?.metadata || {}) as Record<string, unknown>;
-  const estimatedBand = toNumber(metadata['estimated_band']);
-  const diagnosticCompleted = Boolean(diagnosticEvent.data);
+  // The previous public screener was retired under the Diagnostic Bible.
+  // Historical funnel events remain analytics history, not current diagnostic truth.
+  const practiceScorePercent = null;
+  const diagnosticCompleted = false;
   const typedIeltsUser = ieltsUser.data as { username?: string | null; target_band?: number | null; updated_at?: string | null } | null;
   const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'] || typedIeltsUser?.username || user.email?.split('@')[0] || null;
   const isPrimeActive = isIeltsPrime({ tier }) || subscription.status === 'active';
   const taskLists = { reading, listening, writing, speaking };
   const skillProgress = buildDashboardSkillProgress(taskLists, completedTasks);
   const completedCounts = Object.values(skillProgress).reduce((sum, progress) => sum + progress.completedTaskCount, 0);
-  const weakestSkill = diagnosticCompleted ? 'listening' : null;
+  const weakestSkill: IeltsSkill | null = null;
   const continueLearningRoute = chooseContinueLearningRoute(skillProgress, weakestSkill);
 
   return {
@@ -207,12 +190,12 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
       completed: diagnosticCompleted,
       taskId: 'trial-test-2',
       skill: 'listening',
-      estimatedBand,
-      completedAt: diagnosticEvent.data?.created_at || null,
+      practiceScorePercent,
+      completedAt: null,
     },
     completedTasks,
     tasks: taskLists,
-    recentActivity: diagnosticEvent.data?.created_at || (completedCounts > 0 ? 'Practice activity available' : null),
+    recentActivity: completedCounts > 0 ? 'Practice activity available' : null,
     weakestSkill,
     skillProgress,
     continueLearningRoute,

@@ -17,7 +17,7 @@ const SECTION_AUDIO = {
 
 // Trial Test 1 - All 4 Sections hardcoded
 const TRIAL_TEST_DATA = {
-  title: "IELTS Listening Trial Test 1",
+  title: "IELTS Listening Practice Test 1",
   description: "Complete all 4 sections to receive your score and feedback",
   totalQuestions: 40,
   sections: [
@@ -404,25 +404,6 @@ const TrialListeningTest: React.FC = () => {
     return { correct, total: totalQuestions, percentage: Math.round((correct / totalQuestions) * 100), results };
   };
 
-  const getBandScore = (percentage: number) => {
-    if (percentage >= 90) return 9;
-    if (percentage >= 80) return 8;
-    if (percentage >= 70) return 7;
-    if (percentage >= 60) return 6;
-    if (percentage >= 50) return 5;
-    if (percentage >= 40) return 4;
-    if (percentage >= 30) return 3;
-    return 2;
-  };
-
-  const getFeedback = (bandScore: number) => {
-    if (bandScore >= 8) return { level: 'Excellent', message: 'Outstanding performance! You demonstrate near-native listening comprehension.' };
-    if (bandScore >= 7) return { level: 'Very Good', message: 'Strong listening skills. You can understand complex ideas with good accuracy.' };
-    if (bandScore >= 6) return { level: 'Good', message: 'Competent listener. You handle most situations well but may miss some details.' };
-    if (bandScore >= 5) return { level: 'Moderate', message: 'Adequate skills for basic communication. Focus on improving vocabulary and speed.' };
-    return { level: 'Developing', message: 'Keep practicing! Work on basic listening skills and common vocabulary.' };
-  };
-
   const handleSubmit = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setShowResults(true);
@@ -449,7 +430,7 @@ const TrialListeningTest: React.FC = () => {
               IELTS Listening Trial Test
             </h1>
             <p style={{ color: '#94a3b8', fontSize: 'clamp(0.875rem, 2.5vw, 1rem)' }}>
-              Test your listening skills with this free practice test
+              Practise IELTS-style Listening across this longer set. Results are practice-only, not an official or verified readiness score.
             </p>
           </div>
 
@@ -516,7 +497,7 @@ const TrialListeningTest: React.FC = () => {
           }}>
             <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>✨ What You'll Receive</h3>
             <div style={{ fontSize: '0.875rem', textAlign: 'left' }}>
-              <p style={{ marginBottom: '0.5rem' }}>✓ Your estimated band score</p>
+              <p style={{ marginBottom: '0.5rem' }}>✓ Your practice score and answer review</p>
               <p style={{ marginBottom: '0.5rem' }}>✓ Correct answers revealed</p>
               <p>✓ Brief performance feedback</p>
             </div>
@@ -574,8 +555,6 @@ const TrialListeningTest: React.FC = () => {
   // Results Screen
   if (showResults) {
     const { correct, total, percentage, results } = calculateScore();
-    const bandScore = getBandScore(percentage);
-    const feedback = getFeedback(bandScore);
 
     return (
       <div style={{ 
@@ -601,17 +580,18 @@ const TrialListeningTest: React.FC = () => {
               Time: {formatTime(timeElapsed)}
             </p>
 
-            {/* Band Score */}
             <div style={{
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              background: '#eff6ff',
+              border: '1px solid #bfdbfe',
               borderRadius: '1rem',
-              padding: '1.5rem',
+              padding: '1rem',
               margin: '1.5rem 0',
-              color: 'white'
+              color: '#1e3a8a'
             }}>
-              <div style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>Estimated Band Score</div>
-              <div style={{ fontSize: '4rem', fontWeight: 'bold' }}>{bandScore}.0</div>
-              <div style={{ fontSize: '1rem', color: '#93c5fd' }}>{feedback.level}</div>
+              <strong>Practice result</strong>
+              <p style={{ margin: '0.35rem 0 0', fontSize: '0.875rem', lineHeight: 1.55 }}>
+                Your raw score is shown below. Brains Heist does not convert this legacy practice test into a verified IELTS readiness band.
+              </p>
             </div>
 
             {/* Score Breakdown */}
@@ -634,10 +614,6 @@ const TrialListeningTest: React.FC = () => {
                 <div style={{ fontSize: '0.7rem', color: '#1d4ed8' }}>Score</div>
               </div>
             </div>
-
-            <p style={{ color: '#475569', fontSize: '0.875rem', lineHeight: 1.6 }}>
-              {feedback.message}
-            </p>
           </div>
 
           {/* Answers Review */}

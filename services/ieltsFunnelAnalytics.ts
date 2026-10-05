@@ -29,6 +29,7 @@ export interface IeltsFunnelEventMetadata {
   content_id?: string | number;
   task_id?: string | number;
   estimated_band?: number | string | null;
+  score_percent?: number | null;
   plan?: string | null;
   user_type?: IeltsFunnelUserType;
   checkout_surface?: string;
@@ -56,7 +57,7 @@ declare global {
 }
 
 const allowedMetadataKeys = new Set<keyof IeltsFunnelEventMetadata>([
-  'skill', 'content_id', 'task_id', 'estimated_band', 'plan', 'user_type',
+  'skill', 'content_id', 'task_id', 'estimated_band', 'score_percent', 'plan', 'user_type',
   'checkout_surface', 'error_code', 'price_id', 'product_id', 'subscription_id', 'interval',
   'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'landing_page', 'referrer', 'event_id',
 ]);
@@ -258,7 +259,6 @@ export interface PendingDiagnosticResult {
   task_id: 'trial-test-2';
   skill: 'listening';
   percentage: number;
-  bandScore: number;
   completedAt: string;
   event_id: string;
 }
@@ -304,15 +304,34 @@ export const consumeRestoredDiagnosticResult = (): PendingDiagnosticResult | nul
 export const persistPendingDiagnosticAfterAuth = async (): Promise<boolean> => {
   const pending = readPendingDiagnosticResult();
   if (!pending) return false;
+
+  const { data: auth } = await supabase.auth.getUser();
+  let userType: IeltsFunnelUserType | undefined;
+  if (auth.user) {
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('school_id')
+      .eq('id', auth.user.id)
+      .maybeSingle();
+    if (!profileError) {
+      userType = profile?.school_id ? 'school' : 'independent';
+    }
+  }
+
   const recorded = await recordDiagnosticCompleted({
     skill: pending.skill,
     task_id: pending.task_id,
-    estimated_band: pending.bandScore,
-    user_type: 'independent',
+    score_percent: pending.percentage,
+    user_type: userType,
     event_id: pending.event_id,
   });
   if (!recorded) return false;
-  trackIeltsFunnelEvent('diagnostic_saved_after_auth', { skill: pending.skill, task_id: pending.task_id, estimated_band: pending.bandScore, user_type: 'independent' });
+  trackIeltsFunnelEvent('diagnostic_saved_after_auth', {
+    skill: pending.skill,
+    task_id: pending.task_id,
+    score_percent: pending.percentage,
+    user_type: userType,
+  });
   saveRestoredDiagnosticResult(pending);
   clearPendingDiagnosticResult();
   window.localStorage.setItem('ielts_diagnostic_submitted_recently', String(Date.now()));

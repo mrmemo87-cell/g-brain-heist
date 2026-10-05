@@ -281,12 +281,12 @@ const IeltsSession: React.FC = () => {
     const summaryText = analytics.summaryText;
 
     const printIeltsReport = (includeEvidence: boolean) => {
-      const bandCards = [
-        ['Reading', session.band_reading],
-        ['Listening', session.band_listening],
-        ['Writing', session.band_writing],
-        ['Overall', session.band_overall],
-      ].map(([label, value]) => `<div class="document-card"><strong>${label}</strong><p>${escapeSchoolDocumentHtml(value ?? 'Not available')}</p></div>`).join('');
+      const practiceCards = [
+        ['Reading practice', readingAnalytics ? `${readingAnalytics.correct}/${readingAnalytics.total} correct` : 'Not available'],
+        ['Listening practice', listeningAnalytics ? `${listeningAnalytics.correct}/${listeningAnalytics.total} correct` : 'Not available'],
+        ['Writing feedback', writingFeedback ? 'Practice feedback available' : 'Not available'],
+        ['Verified readiness', 'Not calculated from this legacy session'],
+      ].map(([label, value]) => `<div class="document-card"><strong>${label}</strong><p>${escapeSchoolDocumentHtml(value)}</p></div>`).join('');
       const renderBreakdown = (title: string, report: typeof readingAnalytics | typeof listeningAnalytics) => report ? `<section class="document-appendix"><h2>${title} answer evidence</h2><p>${report.correct}/${report.total} correct</p><table><thead><tr><th>Question</th><th>Response</th><th>Result</th><th>Expected answer</th><th>Explanation</th></tr></thead><tbody>${report.breakdown.map((row) => `<tr><td>${escapeSchoolDocumentHtml(row.questionId)}</td><td>${escapeSchoolDocumentHtml(row.studentAnswer ?? '—')}</td><td>${row.isCorrect ? 'Correct' : 'Needs review'}</td><td>${escapeSchoolDocumentHtml(row.correctAnswer ?? '—')}</td><td>${escapeSchoolDocumentHtml(row.explanation ?? '—')}</td></tr>`).join('')}</tbody></table></section>` : '';
       const strengths = writingFeedback?.strengths?.length ? `<ul>${writingFeedback.strengths.map((item) => `<li>${escapeSchoolDocumentHtml(item)}</li>`).join('')}</ul>` : '<p>No reviewed writing strengths are available yet.</p>';
       const priorities = writingFeedback?.weaknesses?.length ? `<ul>${writingFeedback.weaknesses.map((item) => `<li>${escapeSchoolDocumentHtml(item)}</li>`).join('')}</ul>` : '<p>No reviewed writing priorities are available yet.</p>';
@@ -295,7 +295,7 @@ const IeltsSession: React.FC = () => {
           meta: {
             documentId: createSchoolDocumentId('ielts'),
             templateVersion: includeEvidence ? 'ielts-session-evidence-v1' : 'ielts-session-summary-v1',
-            title: 'IELTS Session Report',
+            title: 'IELTS Practice Session',
             subtitle: `${getModuleLabel(session)} · Reference ${session.reference_code}`,
             schoolName,
             schoolLogoUrl,
@@ -307,7 +307,7 @@ const IeltsSession: React.FC = () => {
             sourceType: 'ielts_session',
             sourceId: session.id,
           },
-          bodyHtml: `<h2>Band profile</h2><div class="document-grid">${bandCards}</div>${summaryText ? `<h2>Session summary</h2><p>${escapeSchoolDocumentHtml(summaryText)}</p>` : ''}${writingFeedback ? `<h2>Writing development</h2><div class="document-grid"><div class="document-card"><strong>Strengths</strong>${strengths}</div><div class="document-card"><strong>Priorities</strong>${priorities}</div></div>` : ''}<div class="document-callout"><strong>Important context</strong><p>This is a Brains Heist practice report and is not an official IELTS Test Report Form or an endorsement by IELTS organisations.</p></div>${includeEvidence ? `${renderBreakdown('Reading', readingAnalytics)}${renderBreakdown('Listening', listeningAnalytics)}` : '<p>Detailed answer evidence remains available to authorised school staff.</p>'}`,
+          bodyHtml: `<h2>Practice evidence</h2><div class="document-grid">${practiceCards}</div>${summaryText ? `<h2>Session summary</h2><p>${escapeSchoolDocumentHtml(summaryText)}</p>` : ''}${writingFeedback ? `<h2>Writing development</h2><div class="document-grid"><div class="document-card"><strong>Strengths</strong>${strengths}</div><div class="document-card"><strong>Priorities</strong>${priorities}</div></div>` : ''}<div class="document-callout"><strong>Important context</strong><p>This is a legacy Brains Heist practice report. It is not an official IELTS result, not a verified Brains Heist IELTS readiness estimate, and does not replace the reviewed four-skill baseline.</p></div>${includeEvidence ? `${renderBreakdown('Reading', readingAnalytics)}${renderBreakdown('Listening', listeningAnalytics)}` : '<p>Detailed answer evidence remains available to authorised school staff.</p>'}`,
           orientation: includeEvidence ? 'landscape' : 'portrait',
           fileName: schoolDocumentFileName(schoolName, 'IELTS', session.reference_code, includeEvidence ? 'Evidence' : 'Report'),
         });
@@ -317,7 +317,7 @@ const IeltsSession: React.FC = () => {
     };
 
     return (
-      <div className="space-y-8">
+      <div className="space-y-8"><div className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-900"><strong>Practice-only session.</strong> Historical AI-generated session results are shown as practice evidence only. They do not create a verified IELTS readiness band.</div>
         <header className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="mb-4 flex items-center gap-3"><img src={schoolLogoUrl} alt={`${schoolName} logo`} className="h-12 w-12 rounded-lg object-contain" /><div><strong className="text-slate-900">{schoolName}</strong><p className="text-sm uppercase tracking-[0.3em] text-slate-400">IELTS Session Report</p></div></div>
           <h1 className="text-3xl font-semibold text-slate-900">Reference: {session.reference_code}</h1>
@@ -329,14 +329,14 @@ const IeltsSession: React.FC = () => {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: 'Reading', value: session.band_reading },
-            { label: 'Listening', value: session.band_listening },
-            { label: 'Writing', value: session.band_writing },
-            { label: 'Overall', value: session.band_overall },
-          ].map((band) => (
-            <div key={band.label} className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-              <p className="text-sm text-slate-500">{band.label}</p>
-              <p className="text-3xl font-semibold text-slate-900">{band.value ?? '—'}</p>
+            { label: 'Reading practice', value: readingAnalytics ? `${readingAnalytics.correct}/${readingAnalytics.total}` : '—' },
+            { label: 'Listening practice', value: listeningAnalytics ? `${listeningAnalytics.correct}/${listeningAnalytics.total}` : '—' },
+            { label: 'Writing feedback', value: writingFeedback ? 'Available' : '—' },
+            { label: 'Verified readiness', value: 'Pending' },
+          ].map((item) => (
+            <div key={item.label} className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
+              <p className="text-sm text-slate-500">{item.label}</p>
+              <p className="text-2xl font-semibold text-slate-900">{item.value}</p>
             </div>
           ))}
         </div>

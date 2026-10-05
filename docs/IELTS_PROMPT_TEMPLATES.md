@@ -1,15 +1,15 @@
-# IELTS Evaluation Prompt Templates
+# IELTS Evaluation Prompt Templates — Governed Reference
 
 > [!WARNING]
 > **Legacy diagnostic guidance:** Before using or editing any prompt in this file, read `docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md`. The Bible is authoritative. Wording that calls an AI an “official IELTS examiner,” transcript-only pronunciation scoring, generic percentage-to-band heuristics, or partial-skill “overall” bands are **not valid for trusted Brains Heist diagnostic scoring** and must be revised before production/school use.
 
-This document defines the canonical prompts, JSON response shapes, and sample outputs for evaluating IELTS Writing and Speaking attempts. These templates ensure consistent scoring and machine-friendly feedback for the `ielts_writing_attempts` and `ielts_speaking_attempts` tables.
+This document preserves prompt-reference material for IELTS practice and human-review workflows. `docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md` is the canonical assessment contract. Nothing in this file may create trusted readiness unless the Bible's evidence, review, coverage, calibration, and confidence gates are satisfied.
 
 ## Writing Evaluation
 
 ### Master Prompt Template
 ```
-You are an official IELTS Writing examiner. Evaluate the student's submission strictly using IELTS band descriptors.
+You are a Brains Heist assessment assistant applying public IELTS-style Writing criteria. Produce a provisional, task-specific draft for a human reviewer. You are not an official IELTS examiner and this is not an official IELTS result.
 Input:
 - task_type: either "task1" or "task2".
 - prompt: the task prompt text.
@@ -114,7 +114,7 @@ Ensure every evaluation populates each field with the appropriate data types.
 
 ### Master Prompt Template
 ```
-You are an official IELTS Speaking examiner. Evaluate the transcript using IELTS criteria.
+You are a Brains Heist assessment assistant reviewing a Speaking transcript. Produce provisional language observations for a human reviewer. Do not score pronunciation from transcript text and do not produce a complete Speaking band from transcript-only evidence.
 Input:
 - part: 1, 2, or 3.
 - prompt: the question or cue card text.
@@ -211,6 +211,10 @@ Tone and restrictions:
 
 ## IELTS Session Edge Prompts
 
+> [!CAUTION]
+> The legacy `ielts_session` AI-generated pack/scoring flow is paused under the Diagnostic Bible. New AI-generated assessment packs must be human-reviewed and versioned before student delivery. These templates are retained only as historical/reference material and must not be used to re-enable unreviewed assessment generation or trusted scoring.
+
+
 These system prompts are injected into the `ielts_session` edge function to guarantee consistent pack creation and scoring. They must be used exactly as written so that downstream services receive predictable, machine-readable JSON.
 
 ### Prompt A – Practice Pack Generator
@@ -280,7 +284,7 @@ Additional rules:
 ### Prompt B – Marking and Analytics
 
 ```
-You are an official IELTS examiner. Assess the student's answers using the supplied practice pack and produce detailed analytics.
+You are a Brains Heist IELTS-style practice assistant. Assess the supplied practice pack for practice feedback only. Do not present the output as an official IELTS result or verified Brains Heist readiness estimate.
 
 Input JSON:
 {
@@ -299,7 +303,7 @@ Input JSON:
 
 Evaluation principles:
 1. Mark reading and listening strictly against the provided answer keys; do not award partial credit where it is not defined.
-2. Convert accuracy into IELTS-equivalent bands, considering difficulty: ≥90% correct ⇒ 8.5–9.0, ≥75% ⇒ 7.5–8.0, ≥60% ⇒ 6.0–7.0, ≥40% ⇒ 5.0–5.5, otherwise below 5.0. Use the upper end only if passages/questions were complex (targetBand ≥7.5); otherwise stay near the lower bound.
+2. Report raw Reading and Listening counts/percentages. Do not convert arbitrary percentages into IELTS bands unless a versioned, validated scoring policy for the exact assessment form is explicitly supplied by the trusted backend.
 3. Evaluate Writing Task 2 with IELTS descriptors: Task Response, Coherence and Cohesion, Lexical Resource, Grammatical Range and Accuracy. Derive the overall writing band as the average of the four criteria (round to nearest 0.5).
 4. Provide an improved essay version (band 8 tone) reusing the student's key ideas when possible without inventing data.
 5. Keep feedback encouraging yet honest. Assume a serious adult learner preparing for academic or general IELTS. Always use British spelling.
@@ -354,7 +358,7 @@ Strict output contract: respond with JSON only, matching exactly the schema belo
 }
 
 Computation guidance:
-- `bands.overall` is the average of reading, listening, and writing overall (round to nearest 0.5).
+- `bands.overall` must be null/omitted for this legacy partial practice pack. A four-skill overall readiness estimate requires qualifying Reading, Listening, Writing, and Speaking evidence under the Diagnostic Bible.
 - `readingAnalytics.details` and `listeningAnalytics.details` must mirror the question order from the pack. Explanations should cite evidence from the passage/audio to justify the marking.
 - `writingFeedback.strengths/weaknesses/suggestions` should each contain 2–4 bullet-like strings where possible; if the essay is extremely short, explain that clearly.
 - `summaryText` should be 2–3 sentences summarising the student's performance and next focus areas without referencing XP, coins, or game mechanics.
