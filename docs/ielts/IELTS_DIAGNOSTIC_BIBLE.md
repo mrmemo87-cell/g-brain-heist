@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.0.0  
+**Version:** 1.1.0  
 **Effective date:** 2026-10-05  
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -648,6 +648,197 @@ Avoid:
 
 ---
 
+## 15A. School UX, language, and visual coherence
+
+Academic validity and technical correctness are not enough. The IELTS experience must also feel **simple, professional, calm, school-appropriate, unmistakably Brains Heist, and visually coherent from beginning to end**.
+
+### 15A.1 Complexity stays behind the interface
+
+The underlying system may be sophisticated. The user experience must not feel sophisticated in a burdensome way.
+
+Students and teachers should see:
+- the next action;
+- the information needed for that action;
+- a short explanation when something matters;
+- deeper evidence only when they choose to inspect it.
+
+Use progressive disclosure. Do not dump scoring-policy details, taxonomy codes, database terminology, confidence formulas, internal statuses, or implementation language into ordinary school-facing screens.
+
+A teacher should not need to understand the architecture to use the diagnostic correctly.
+
+A student should not need instructions from a developer to know what to do next.
+
+### 15A.2 School-appropriate language
+
+Every student-, teacher-, parent-, and school-admin-facing surface must use clear, age-appropriate, professional educational language.
+
+Do not expose:
+- SQL/RPC/RLS terminology;
+- raw exception messages;
+- UUIDs or database field names;
+- internal model/prompt terminology;
+- developer shorthand;
+- marketing language that exaggerates assessment certainty.
+
+Role-specific wording should be deliberate:
+- **students:** reassuring, concise, motivating, never childish or patronising;
+- **teachers:** professional, actionable, evidence-led, quick to scan;
+- **school leaders/admins:** concise operational language with appropriate evidence and limitations;
+- **parents/guardians where applicable:** plain-language explanations without unnecessary technical jargon.
+
+Error states must explain:
+1. what happened in plain language;
+2. whether work is safe;
+3. what the user should do next.
+
+Never show a raw technical error when a school-appropriate message can be provided.
+
+### 15A.3 Brains Heist creative standard
+
+The experience must have the creative care Brains Heist deserves without turning a serious school assessment into a game screen.
+
+The design should feel:
+- distinctive rather than generic;
+- modern rather than corporate-grey;
+- premium rather than decorative;
+- energetic where helpful;
+- calm during focused assessment;
+- rewarding after completion;
+- consistent across student, teacher, and admin surfaces.
+
+Creative treatment must support comprehension. Decoration must never compete with instructions, answers, timing, accessibility, or result interpretation.
+
+### 15A.4 One visual language
+
+IELTS diagnostic surfaces must use a unified design system.
+
+Maintain consistency in:
+- typography;
+- spacing;
+- border radius;
+- card hierarchy;
+- buttons and interaction states;
+- status treatments;
+- progress indicators;
+- colour meaning;
+- charts;
+- empty states;
+- loading states;
+- confirmation patterns;
+- result cards;
+- evidence/detail panels.
+
+Do not create isolated “one-off” visual styles for individual diagnostic screens when an established Brains Heist component/pattern can be reused or extended.
+
+### 15A.5 SVGs and icons
+
+Icons and SVG illustrations must be treated as part of the product language, not filler.
+
+Requirements:
+- use a coherent icon family/style across the flow;
+- prefer clean SVG/icon assets that scale sharply on school devices;
+- align stroke weight, visual density, corner style, and sizing;
+- use icons to improve recognition, navigation, status, and hierarchy;
+- do not mix random icon packs/styles on the same experience;
+- do not rely on emoji as the primary professional UI language when a proper icon exists;
+- decorative SVGs must not distract from assessment tasks;
+- meaningful icons need accessible labels or supporting text;
+- colour must not be the only way an icon communicates state.
+
+The same concept should use the same or clearly related icon wherever practical.
+
+### 15A.6 Visual hierarchy and cognitive load
+
+Every page should make the most important thing obvious within seconds.
+
+Prefer:
+- one primary action per decision point;
+- short labels;
+- clear sectioning;
+- comfortable whitespace;
+- scannable evidence summaries;
+- expandable detail;
+- concise teacher cards;
+- focused student task screens.
+
+Avoid:
+- crowded dashboards;
+- unnecessary counters;
+- competing CTAs;
+- unexplained badges;
+- excessive tabs;
+- decorative statistics;
+- long walls of text;
+- exposing every available control merely because the backend supports it.
+
+If a feature makes the interface feel more complicated without improving the next decision, redesign or hide it behind a secondary detail layer.
+
+### 15A.7 Motion and delight
+
+Animation is allowed and encouraged when it:
+- communicates progress;
+- confirms completion;
+- directs attention;
+- makes transitions feel intentional;
+- strengthens the Brains Heist identity.
+
+Animation must not:
+- distract during timed assessment;
+- delay interaction;
+- obscure content;
+- make results feel like a casino/reward mechanic;
+- create unnecessary cognitive load.
+
+Respect reduced-motion preferences.
+
+### 15A.8 Responsive school reality
+
+Design for the real devices schools use, not only a designer's desktop.
+
+Every important flow must remain usable on:
+- school laptops;
+- Chromebooks where applicable;
+- tablets;
+- student phones when permitted;
+- common desktop browsers.
+
+Long labels, translated text, smaller screens, browser zoom, keyboard navigation, and touch input must not break the layout.
+
+### 15A.9 Visual accessibility is part of quality
+
+Professional polish includes accessibility.
+
+Required:
+- sufficient contrast;
+- visible focus states;
+- readable type sizes;
+- adequate touch targets;
+- text labels for important controls;
+- no colour-only status communication;
+- keyboard support where relevant;
+- sensible screen-reader semantics;
+- reduced-motion support.
+
+Accessibility fixes must preserve assessment validity and be documented when an accommodation changes delivery conditions.
+
+### 15A.10 UX acceptance rule
+
+No IELTS diagnostic feature is complete merely because it works technically.
+
+Before acceptance, ask:
+- Can a student understand the next step without help?
+- Can a teacher interpret the result without training in our internal terminology?
+- Does the interface hide irrelevant complexity?
+- Does it look and feel like the same Brains Heist product as the surrounding flow?
+- Are icons/SVGs purposeful, coherent, and accessible?
+- Does the screen feel appropriate in a real school?
+- Is the visual creativity helping comprehension rather than showing off?
+- Would we be comfortable projecting this screen in front of students, teachers, parents, or a school head?
+
+If the answer to any of these is no, the feature is not finished.
+
+---
+
 ## 16. Current known legacy issues
 
 The following current/legacy behaviours are **not** canonical and must not be preserved merely because they already exist.
@@ -826,6 +1017,15 @@ No Grade 9–10 school baseline should be called “ready” until every require
 - [ ] No service secret is exposed to the browser.
 
 ### UX/reliability
+- [ ] Student-facing language is clear, age-appropriate, and school-appropriate.
+- [ ] Teacher/admin language is professional, actionable, and free of developer jargon.
+- [ ] Raw technical errors are replaced by safe, useful user-facing messages.
+- [ ] Progressive disclosure keeps advanced evidence available without making the default view feel complicated.
+- [ ] Typography, spacing, cards, controls, status treatments, and result surfaces follow one coherent Brains Heist visual system.
+- [ ] SVGs/icons use a consistent visual language and are purposeful/accessibility-safe.
+- [ ] No important state relies on colour alone.
+- [ ] Motion is purposeful, assessment-safe, and respects reduced-motion preferences.
+- [ ] Core flows remain visually coherent at mobile, tablet, laptop, and desktop sizes.
 - [ ] Mobile browser pass.
 - [ ] Desktop browser pass.
 - [ ] Audio interruption pass.
@@ -984,7 +1184,7 @@ Do not make opportunistic Bible edits in the same spirit as a quick bug fix.
 
 Before changing scoring/format/criteria, re-check the latest official material.
 
-Current reference set reviewed for Bible v1.0.0:
+Current reference set reviewed for Bible v1.1.0:
 
 - IELTS — **IELTS scoring in detail: band scores explained**  
   https://www.ielts.org/take-a-test/your-results/ielts-scoring-in-detail
