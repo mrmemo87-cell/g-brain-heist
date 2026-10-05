@@ -110,11 +110,14 @@ test('IELTS review frontend maps queue/detail/submit RPCs and exposes student re
   assert.match(review, /Audio unavailable\./i, 'speaking review must show a clear fallback when audio cannot be loaded');
   assert.match(review, /Strengths[\s\S]*Improvements[\s\S]*Next steps[\s\S]*Private notes/i, 'review feedback fields must be present');
   assert.match(review, /AI check/i, 'review page must expose AI check button');
-  assert.match(review, /AI suggestion — review before finalizing\./i, 'AI draft warning copy must be shown');
-  assert.match(review, /AI feedback can make mistakes\. Review before finalizing\./i, 'reviewer safety copy must be present');
-  assert.match(review, /Transcript may contain errors\. Check audio if unsure\./i, 'speaking transcript caveat must be present');
+  assert.match(review, /Assistant suggestion — verify before finalizing\./i, 'automated draft warning copy must be shown');
+  assert.match(review, /Automated feedback can make mistakes\. Verify the evidence before finalizing\./i, 'reviewer safety copy must be present');
+  assert.match(review, /Listen to the audio before finalizing Speaking criteria, especially pronunciation\./i, 'speaking audio-review requirement must be present');
   assert.match(review, /Finalize review/i, 'finalization flow must still expose explicit finalize action');
-  assert.match(result, /Reviewed band[\s\S]*Rubric breakdown[\s\S]*Teacher feedback/i, 'student result must show finalized review fields');
+  assert.match(review, /Task-level reviewed band/i, 'productive-skill review must label the score as task-level');
+  assert.match(review, /Reviewer record/i, 'private print copy must be a reviewer record');
+  assert.doesNotMatch(review, /Examiner record|Private examiner notes|Confidential examiner copy/i, 'school review language must not present reviewers as IELTS examiners');
+  assert.match(result, /Reviewed task band[\s\S]*Rubric breakdown[\s\S]*Teacher feedback/i, 'student result must show finalized task-level review fields');
   assert.match(routes, /path:\s*'\/ielts\/reviews',[\s\S]*?<IeltsReviewAdminGuard>[\s\S]*?<IeltsReviewQueue \/>[\s\S]*?<\/IeltsReviewAdminGuard>/i, 'queue route must be school-admin guarded');
   assert.match(routes, /path:\s*'\/ielts\/reviews\/:skill\/:attemptId',[\s\S]*?<IeltsReviewAdminGuard>[\s\S]*?<IeltsSubmissionReview \/>[\s\S]*?<\/IeltsReviewAdminGuard>/i, 'review detail route must be school-admin guarded');
   assert.match(routes, /path:\s*'\/ielts\/review-result\/:skill\/:attemptId'/i, 'student result route must be registered');
