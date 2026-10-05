@@ -124,11 +124,9 @@ test('teacher launcher presents professional preset, evidence and publishing con
   assert.match(launcher, /aria-modal="true"/);
 });
 
-test('Curriculum Intelligence exposes the launcher only when governed Economics Paper 1 content exists', () => {
-  assert.match(page, /EconomicsDiagnosticLauncher/);
-  assert.match(page, /canLaunchEconomicsDiagnostic/);
-  assert.match(page, /\/economics\/i\.test\(selectedGroup\.subjectLabel\)/);
-  assert.match(page, /profiledQuestionCount/);
-  assert.match(page, /Create Economics Diagnostic/);
-  assert.match(page, /Create independent Paper 1 diagnostic/);
+test('Curriculum Intelligence routes Economics through the shared diagnostic composer', () => {
+  assert.match(page, /onCreateDiagnostic\?: \(groupId: string\) => void/);
+  assert.match(page, /onCreateDiagnostic\?\.\(selectedGroup\.id\)/);
+  assert.match(page, /Create Diagnostic/);
+  assert.doesNotMatch(page, /EconomicsDiagnosticLauncher|canLaunchEconomicsDiagnostic/);
 });
