@@ -18,7 +18,7 @@ create function public.can_manage_ielts_exam(uuid) returns boolean language sql 
 const legacy=readFileSync('supabase/migrations/20260515120000_ielts_exam_mode_backend.sql','utf8');
 await db.exec(legacy.slice(legacy.indexOf('create table if not exists public.ielts_exam_events'),legacy.indexOf('-- -----------------------------------------------------------------------------\n-- Scale indexes')));
 await db.exec(legacy.slice(legacy.indexOf('create or replace function public.rpc_ielts_submit_attempt('),legacy.indexOf('create or replace function public.rpc_ielts_exam_monitoring(')));
-await db.exec(readFileSync('supabase/migrations/20261005161136_ielts_governed_evidence_foundation.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261005163109_ielts_governed_evidence_foundation.sql','utf8'));
 await db.exec(`insert into users values('${student}'),('${teacher}'),('${outsider}'); insert into schools values('${school}'); insert into classes values('${cls}');
 insert into class_teacher_assignments values('${cls}','${school}','${teacher}',true);
 insert into academic_skill_registry_versions values('${registry}','published');

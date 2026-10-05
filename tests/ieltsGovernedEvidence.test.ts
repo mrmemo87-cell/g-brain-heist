@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { getIeltsScreenerAudio } from '../services/ieltsDiagnosticEvidenceService';
-const migration = readFileSync('supabase/migrations/20261005161136_ielts_governed_evidence_foundation.sql', 'utf8');
+const migration = readFileSync('supabase/migrations/20261005163109_ielts_governed_evidence_foundation.sql', 'utf8');
 test('audio only accepts screener HTTPS media, never executable or insecure URLs', () => {
   assert.equal(getIeltsScreenerAudio({ assessment_mode: 'screener', audio_url: 'https://example.com/audio.mp3' }), 'https://example.com/audio.mp3');
   for (const audio_url of ['javascript:alert(1)', 'data:text/html,hi', 'http://example.com/audio.mp3', 'invalid']) assert.equal(getIeltsScreenerAudio({ assessment_mode: 'screener', audio_url }), null);
