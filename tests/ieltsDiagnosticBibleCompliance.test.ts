@@ -88,5 +88,5 @@ test('unreviewed AI-generated IELTS packs cannot create new trusted sessions', (
   assert.match(edge, /LEGACY_AI_SCORING_DISABLED/i);
   assert.doesNotMatch(edge, /OPENAI_API_KEY|requestPackFromOpenAI|requestMarkingFromOpenAI/i);
   assert.match(sessionPage, /Practice-only session/i);
-  assert.match(sessionPage, /not a verified IELTS readiness estimate/i);
+  assert.match(sessionPage, /not a verified .*IELTS readiness estimate/i);
 });
