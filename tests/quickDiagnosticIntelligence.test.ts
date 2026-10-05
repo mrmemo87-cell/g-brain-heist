@@ -12,7 +12,7 @@ test('quick diagnostic report exposes governed evidence focus intelligence', () 
   assert.match(portal, /fetchTeacherAssignmentDiagnosticIntelligence/);
   assert.match(portal, /DiagnosticIntelligencePanel/);
   assert.match(portal, /DiagnosticStudentSkillMap/);
-  assert.match(panel, /Brains Heist · ESL Diagnostic Intelligence/);
+  assert.match(panel, /Brains Heist · \{data\.assignment\.subjectName\} Diagnostic Intelligence/);
   assert.match(panel, /What should I teach next\?/);
   assert.match(panel, /Class focus map/);
   assert.match(panel, /Screening rule:/);
