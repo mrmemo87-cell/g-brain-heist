@@ -163,7 +163,7 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
     };
   }
 
-  const [tier, subscription, reading, listening, writing, speaking, completedTasks, ieltsUser, diagnosticEvent] = await Promise.all([
+  const [tier, subscription, reading, listening, writing, speaking, completedTasks, ieltsUser] = await Promise.all([
     getUserTier(),
     getIeltsPrimeSubscriptionStatus(),
     fetchActiveReadingSets().catch(() => []),
@@ -172,20 +172,12 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
     fetchActiveSpeakingTasks().catch(() => []),
     fetchUserCompletedTasks().catch(() => emptyCompleted),
     supabase.from('ielts_users').select('username, target_band, tier, updated_at').eq('id', user.id).maybeSingle(),
-    supabase
-      .from('ielts_funnel_events')
-      .select('created_at, metadata')
-      .eq('user_id', user.id)
-      .eq('event_name', 'diagnostic_completed')
-      .contains('metadata', { task_id: 'trial-test-2' })
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
   ]);
 
-  const metadata = (diagnosticEvent.data?.metadata || {}) as Record<string, unknown>;
-  const practiceScorePercent = toNumber(metadata['score_percent']);
-  const diagnosticCompleted = Boolean(diagnosticEvent.data);
+  // The previous public screener was retired under the Diagnostic Bible.
+  // Historical funnel events remain analytics history, not current diagnostic truth.
+  const practiceScorePercent = null;
+  const diagnosticCompleted = false;
   const typedIeltsUser = ieltsUser.data as { username?: string | null; target_band?: number | null; updated_at?: string | null } | null;
   const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'] || typedIeltsUser?.username || user.email?.split('@')[0] || null;
   const isPrimeActive = isIeltsPrime({ tier }) || subscription.status === 'active';
@@ -208,11 +200,11 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
       taskId: 'trial-test-2',
       skill: 'listening',
       practiceScorePercent,
-      completedAt: diagnosticEvent.data?.created_at || null,
+      completedAt: null,
     },
     completedTasks,
     tasks: taskLists,
-    recentActivity: diagnosticEvent.data?.created_at || (completedCounts > 0 ? 'Practice activity available' : null),
+    recentActivity: completedCounts > 0 ? 'Practice activity available' : null,
     weakestSkill,
     skillProgress,
     continueLearningRoute,
