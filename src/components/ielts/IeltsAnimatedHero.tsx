@@ -19,12 +19,12 @@ const skillNodes = [
   { label: 'Speaking', value: 'fluency + confidence', x: 106, y: 238, color: '#10b981' },
 ];
 
-export const IeltsBandRing: React.FC = () => {
+export const IeltsScreenerRing: React.FC = () => {
   const ringRef = useRef<SVGCircleElement>(null);
   const glowRef = useRef<SVGCircleElement>(null);
   const orbitRef = useRef<SVGGElement>(null);
   const circumference = 2 * Math.PI * 94;
-  const targetOffset = circumference * (1 - 6.5 / 9);
+  const targetOffset = circumference * 0.18;
 
   useEffect(() => {
     const reduced = useReducedMotion();
@@ -64,9 +64,9 @@ export const IeltsBandRing: React.FC = () => {
       <circle ref={glowRef} cx="160" cy="160" r="94" fill="none" stroke="url(#ieltsRing)" strokeWidth="16" strokeLinecap="round" transform="rotate(-90 160 160)" opacity="0.28" filter="url(#ieltsGlow)" />
       <circle ref={ringRef} cx="160" cy="160" r="94" fill="none" stroke="url(#ieltsRing)" strokeWidth="11" strokeLinecap="round" transform="rotate(-90 160 160)" />
       <g ref={orbitRef}><circle cx="254" cy="160" r="7" fill="#22d3ee" /><circle cx="66" cy="160" r="4" fill="#7c3aed" opacity="0.8" /></g>
-      <text x="160" y="146" textAnchor="middle" fill="#0f172a" fontSize="18" fontWeight="900">Band Check</text>
-      <text x="160" y="174" textAnchor="middle" fill="#2563eb" fontSize="34" fontWeight="950">6.5</text>
-      <text x="160" y="198" textAnchor="middle" fill="#64748b" fontSize="12" fontWeight="800">demo estimate</text>
+      <text x="160" y="146" textAnchor="middle" fill="#0f172a" fontSize="18" fontWeight="900">Listening Check</text>
+      <text x="160" y="174" textAnchor="middle" fill="#2563eb" fontSize="34" fontWeight="950">10 Qs</text>
+      <text x="160" y="198" textAnchor="middle" fill="#64748b" fontSize="12" fontWeight="800">focused screener</text>
     </svg>
   );
 };
@@ -107,17 +107,17 @@ const IeltsAnimatedHero: React.FC<IeltsAnimatedHeroProps> = ({ onStartDiagnostic
     <section ref={rootRef} style={{ padding: compact ? '2rem 0 1rem' : 'clamp(2.5rem,7vw,5rem) 0 clamp(2rem,5vw,4rem)' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,320px),1fr))', gap: 'clamp(1.25rem,4vw,3rem)', alignItems: 'center' }}>
         <div>
-          <p data-ielts-hero-reveal style={{ display: 'inline-flex', margin: '0 0 1rem', color: '#0f766e', background: '#ccfbf1', border: '1px solid #99f6e4', borderRadius: 999, padding: '.45rem .75rem', fontSize: '.74rem', fontWeight: 950, letterSpacing: '.14em', textTransform: 'uppercase' }}>Free IELTS Diagnostic</p>
-          <h1 data-ielts-hero-reveal style={{ margin: 0, fontSize: 'clamp(2.55rem, 8vw, 5.6rem)', lineHeight: 0.94, fontWeight: 950, letterSpacing: '-0.06em', color: '#0f172a' }}>What’s Your Real IELTS Band Score?</h1>
-          <h2 data-ielts-hero-reveal style={{ margin: '1rem 0 0', color: '#1e3a8a', fontSize: 'clamp(1.45rem,4vw,2.5rem)', lineHeight: 1.04, letterSpacing: '-0.045em' }}>Find your IELTS band gap before you study harder.</h2>
-          <p data-ielts-hero-reveal style={{ margin: '1rem 0 0', color: '#475569', fontSize: 'clamp(1rem,2vw,1.18rem)', lineHeight: 1.7, maxWidth: 690 }}>Take a focused diagnostic, get an estimated band snapshot, and see what to practise next. Brains Heist reveals the gap and turns it into a practice path.</p>
+          <p data-ielts-hero-reveal style={{ display: 'inline-flex', margin: '0 0 1rem', color: '#0f766e', background: '#ccfbf1', border: '1px solid #99f6e4', borderRadius: 999, padding: '.45rem .75rem', fontSize: '.74rem', fontWeight: 950, letterSpacing: '.14em', textTransform: 'uppercase' }}>Free IELTS Listening Screener</p>
+          <h1 data-ielts-hero-reveal style={{ margin: 0, fontSize: 'clamp(2.55rem, 8vw, 5.6rem)', lineHeight: 0.94, fontWeight: 950, letterSpacing: '-0.06em', color: '#0f172a' }}>Discover your IELTS Listening starting point</h1>
+          <h2 data-ielts-hero-reveal style={{ margin: '1rem 0 0', color: '#1e3a8a', fontSize: 'clamp(1.45rem,4vw,2.5rem)', lineHeight: 1.04, letterSpacing: '-0.045em' }}>See what you hear well — and what to practise next.</h2>
+          <p data-ielts-hero-reveal style={{ margin: '1rem 0 0', color: '#475569', fontSize: 'clamp(1rem,2vw,1.18rem)', lineHeight: 1.7, maxWidth: 690 }}>Start with a focused 10-question Listening screener. You’ll get a practice score, a clear snapshot of this task, and a sensible next step. This is not a full four-skill IELTS baseline or an official IELTS result.</p>
           <div data-ielts-hero-reveal style={{ display: 'flex', gap: '.8rem', flexWrap: 'wrap', alignItems: 'center', marginTop: '1.5rem' }}>
-            <button ref={ctaRef} type="button" onClick={onStartDiagnostic} style={{ background: 'linear-gradient(135deg,#0ea5e9,#2563eb 54%,#7c3aed)', color: '#fff', border: 0, borderRadius: 999, padding: '1rem 1.35rem', fontWeight: 950, cursor: 'pointer', fontSize: '1rem' }}>Start Free Diagnostic →</button>
+            <button ref={ctaRef} type="button" onClick={onStartDiagnostic} style={{ background: 'linear-gradient(135deg,#0ea5e9,#2563eb 54%,#7c3aed)', color: '#fff', border: 0, borderRadius: 999, padding: '1rem 1.35rem', fontWeight: 950, cursor: 'pointer', fontSize: '1rem' }}>Start Listening Screener →</button>
             <span style={{ color: '#64748b', fontSize: '.9rem', fontWeight: 700 }}>{authenticated ? 'Your result unlocks the next step.' : 'No payment required · Your result unlocks the next step'}</span>
           </div>
         </div>
         <div data-ielts-hero-reveal style={{ display: 'grid', gap: '1rem' }}>
-          <IeltsBandRing />
+          <IeltsScreenerRing />
           {!compact && <IeltsSkillConstellation />}
         </div>
       </div>
