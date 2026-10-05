@@ -5,10 +5,12 @@ import test from 'node:test';
 import { bandGapLabel, humanizeIeltsSnapshotStatus, rpcIeltsSchoolStudentSnapshot } from '../services/ieltsSchoolStudentSnapshotService.js';
 
 const migrationPath = path.join(process.cwd(), 'supabase/migrations/20260530120000_ielts_school_student_snapshot.sql');
+const alignmentMigrationPath = path.join(process.cwd(), 'supabase/migrations/20261005111500_ielts_diagnostic_bible_alignment.sql');
 const dashboardPath = path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDashboard.tsx');
 const modalPath = path.join(process.cwd(), 'src/pages/ielts/components/IeltsSchoolStudentProgressModal.tsx');
 
 const migration = fs.readFileSync(migrationPath, 'utf8');
+const alignmentMigration = fs.readFileSync(alignmentMigrationPath, 'utf8');
 const dashboard = fs.readFileSync(dashboardPath, 'utf8');
 const modal = fs.readFileSync(modalPath, 'utf8');
 
@@ -82,7 +84,7 @@ test('modal supports outside click, Escape, close button, loading, and error sta
 });
 
 test('modal renders readiness gauges and assignment progress rows', () => {
-  assert.match(modal, /Readiness Gauges/);
+  assert.match(modal, /Verified Readiness/);
   assert.match(modal, /data-testid=\{`ielts-progress-gauge-/);
   assert.match(modal, /Assignment Progress/);
   assert.match(modal, /data-testid="ielts-progress-assignment-row"/);
@@ -98,4 +100,17 @@ test('review pending is separated from feedback ready and raw enum statuses are 
   assert.equal(bandGapLabel(6.5, 7.5), '1.0 below target');
   assert.match(modal, /item\.feedback_status === 'feedback_ready' \? 'Feedback ready'/);
   assert.match(modal, /item\.feedback_status === 'awaiting_feedback' \? 'Review pending'/);
+});
+
+
+test('Bible alignment wrapper suppresses snapshot readiness until verified evidence exists', () => {
+  assert.match(alignmentMigration, /create or replace function public\.rpc_ielts_school_student_snapshot\(p_student_id uuid\)/i);
+  assert.match(alignmentMigration, /'status_label', 'Verified readiness pending'/i);
+  assert.match(alignmentMigration, /'overall_band', null/i);
+  assert.match(alignmentMigration, /'reading_band', null/i);
+  assert.match(alignmentMigration, /'listening_band', null/i);
+  assert.match(alignmentMigration, /'writing_band', null/i);
+  assert.match(alignmentMigration, /'speaking_band', null/i);
+  assert.match(modal, /Reviewed task band/i, 'reviewed Writing/Speaking evidence should be labeled as task-level evidence');
+  assert.match(modal, /Verified evidence pending/i, 'empty readiness gauges should explain why they are blank');
 });
