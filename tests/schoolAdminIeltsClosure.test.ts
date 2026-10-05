@@ -78,6 +78,6 @@ test('existing school-scoped IELTS security contracts remain the data boundary',
   const resultSecurity = read('tests/ieltsResultsService.test.ts');
   const reviewSecurity = read('tests/ieltsTeacherReviewWorkflow.test.ts');
   assert.match(journeySecurity, /students and cross-school users cannot fetch other student snapshots|deny cross-scope callers/i);
-  assert.match(resultSecurity, /school results RPC uses readiness helper without legacy admin or protected answer data/i);
+  assert.match(resultSecurity, /school results fail closed on legacy readiness until governed evidence exists/i);
   assert.match(reviewSecurity, /school-scoped and admin-only/i);
 });
