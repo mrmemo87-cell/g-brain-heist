@@ -58,7 +58,7 @@ await db.exec(`
     select id,id,'english.skill.'||((i-601)/10)::text from generate_series(601,720) i
     join questions q on q.id=md5(i::text)::uuid;
 `);
-await db.exec(readFileSync('supabase/migrations/20261005083025_diagnostic_micro_skill_breadth.sql', 'utf8'));
+await db.exec(readFileSync('supabase/migrations/20261005083909_diagnostic_micro_skill_breadth.sql', 'utf8'));
 const balanceMigration = readFileSync('supabase/migrations/20261004214000_english_dynamic_diagnostics_and_option_balance.sql', 'utf8');
 await db.exec(balanceMigration.slice(
   balanceMigration.indexOf('create or replace function private.balance_assignment_question_options()'),
