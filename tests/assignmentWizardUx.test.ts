@@ -55,10 +55,21 @@ test('question-bank assignments resume at audience and keep their subject consis
   assert.match(wizard, /lockedSubject = null/);
   assert.match(wizard, /You already added \{lockedSubject\} questions from the Question Bank/);
   assert.match(wizard, /Unavailable — \{lockedSubject\} questions selected/);
-  assert.match(portal, /initialStep=\{assignmentLockedSubject \? 2 : 1\}/);
+  assert.match(portal, /initialStep=\{preparedDiagnostic \? 3 : assignmentLockedSubject \? 2 : 1\}/);
   assert.match(portal, /setAssignmentLockedSubject\(matchingLocalSubjects\.length === 1 \? localSubject : null\)/);
   assert.match(portal, /setAssignmentSubject\(localSubject\)/);
   assert.match(portal, /setAssignmentGroupId\(''\)/);
+});
+
+test('prepared diagnostics enter the same wizard at Questions with subject and teaching group locked', () => {
+  assert.match(wizard, /preparedDiagnostic = null/);
+  assert.match(wizard, /const diagnosticMode = Boolean\(preparedDiagnostic\)/);
+  assert.match(wizard, /Prepared diagnostic/);
+  assert.match(wizard, /setQuestionPool\('brains-heist'\)/);
+  assert.match(wizard, /setTypeFilter\('multiple_choice'\)/);
+  assert.match(portal, /setAssignmentQuestionIds\(diagnostic\.questionIds\)/);
+  assert.match(portal, /setAssignmentGroupId\(diagnostic\.groupId\)/);
+  assert.match(portal, /setAssignmentCategory\('quiz'\)/);
 });
 
 test('assignment due dates must be in the future in the UI and publish handler', () => {
