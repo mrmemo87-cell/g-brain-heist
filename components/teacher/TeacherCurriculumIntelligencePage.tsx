@@ -406,7 +406,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               >
                 <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-300">Governed assessment</span>
                 <strong className="mt-0.5 block text-sm">Create Diagnostic →</strong>
-                <span className="mt-1 block text-[11px] leading-4 text-slate-300">Brain Heist will check this group’s verified question pool first.</span>
+                <span className="mt-1 block text-[11px] leading-4 text-slate-300">Brains Heist will check this group’s verified question pool first.</span>
               </button>
             ) : snapshot?.registry.supported ? (
               <p className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-xs leading-5 text-slate-500">
