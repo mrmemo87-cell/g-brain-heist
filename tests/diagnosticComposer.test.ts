@@ -119,7 +119,7 @@ test('prepared diagnostics lock academic context while leaving teacher review an
   assert.match(wizard, /Teacher-edited from prepared form/);
   assert.match(wizard, /title, instructions, due date, scheduling and publishing/);
   assert.match(wizard, /Publish assignment/);
-  assert.match(wizard, /Save draft/);
+  assert.match(wizard, /Save as draft/);
 });
 
 test('the same composer is available from Assignments and Curriculum Intelligence', () => {
