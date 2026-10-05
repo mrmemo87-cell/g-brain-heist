@@ -76,7 +76,7 @@ serve(async (req) => {
       if (error || !attempt) throw new Error("Writing attempt not found");
       await assertSameSchool(String(attempt.user_id));
 
-      const prompt = `You are an IELTS Writing reviewer. Return strict JSON only with keys: band_estimate, task_response, coherence, lexical_resource, grammar, strengths, priority_fixes, suggested_feedback, confidence_note.\n\nTask:\n${attempt.ielts_writing_tasks?.prompt ?? ""}\n\nStudent writing:\n${attempt.answer_text ?? ""}\n\nRubric focus: task response, coherence/cohesion, lexical resource, grammatical range/accuracy.\nThis is a DRAFT for human reviewer, not final grade.`;
+      const prompt = `You are a Brains Heist assessment assistant applying public IELTS-style Writing criteria. Return strict JSON only with keys: band_estimate, task_response, coherence, lexical_resource, grammar, strengths, priority_fixes, suggested_feedback, confidence_note.\n\nTask:\n${attempt.ielts_writing_tasks?.prompt ?? ""}\n\nStudent writing:\n${attempt.answer_text ?? ""}\n\nRubric focus: task response, coherence/cohesion, lexical resource, grammatical range/accuracy.\nThe band_estimate is a provisional TASK-SPECIFIC draft for this submission only. It is not an official IELTS score and must not be presented as a complete Writing readiness band. A human reviewer must finalize feedback.`;
       const draft = await completeJson(openAiKey, prompt);
       return new Response(JSON.stringify({ skill, attemptId, draft, finalized: false, storage_status: "not_persisted" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -94,7 +94,7 @@ serve(async (req) => {
       transcript = "Transcript unavailable for this draft. Please verify directly with audio.";
     }
 
-    const speakingPrompt = `You are an IELTS Speaking reviewer. Return strict JSON only with keys: band_estimate, fluency, lexical_resource, grammar, pronunciation_note, strengths, priority_fixes, suggested_feedback, transcript, confidence_note.\n\nPrompt:\n${speakingAttempt.ielts_speaking_tasks?.prompt ?? ""}\n\nTranscript:\n${transcript}\n\nRubric focus: fluency/coherence, lexical resource, grammar, pronunciation.\nThis is a DRAFT for human reviewer, not final grade.`;
+    const speakingPrompt = `You are a Brains Heist assessment assistant reviewing a TRANSCRIPT only. Return strict JSON only with keys: band_estimate, fluency, lexical_resource, grammar, pronunciation_note, strengths, priority_fixes, suggested_feedback, transcript, confidence_note.\n\nPrompt:\n${speakingAttempt.ielts_speaking_tasks?.prompt ?? ""}\n\nTranscript:\n${transcript}\n\nRules:\n- This is a DRAFT for a human reviewer, not a final grade or official IELTS result.\n- Set band_estimate to null. A transcript alone cannot support a complete Speaking band.\n- Set fluency to null unless the supplied text contains explicit timing/pause evidence; ordinary transcript wording is not sufficient to score fluency reliably.\n- You may give provisional lexical_resource and grammar observations from the transcript.\n- Do NOT score pronunciation from transcript text. pronunciation_note must state that human audio review is required.\n- Do not infer stress, rhythm, intonation, connected speech, intelligibility, or pronunciation quality without audio evidence.\n- confidence_note must clearly state the limitations of transcript-only review.\nA human reviewer must listen to the audio and finalize all Speaking criteria.`;
     const speakingDraft = await completeJson(openAiKey, speakingPrompt);
     const mergedDraft = { ...speakingDraft, transcript };
     return new Response(JSON.stringify({ skill, attemptId, draft: mergedDraft, finalized: false, storage_status: "not_persisted" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -119,7 +119,7 @@ const completeJson = async (openAiKey: string, prompt: string): Promise<Record<s
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: "You produce concise rubric-aligned IELTS draft feedback JSON for human reviewers." },
+        { role: "system", content: "You produce concise, provisional Brains Heist IELTS-style draft feedback for human reviewers. Never claim to be an official IELTS examiner and never infer evidence that is not present." },
         { role: "user", content: prompt },
       ],
       temperature: 0.2,
