@@ -2,21 +2,18 @@ export interface RawScoreInput {
   rawScore?: number | null;
   totalQuestions?: number | null;
   percent?: number | null;
-  estBand?: number | null;
 }
 
 export interface NormalizedRawScore {
   raw_score: number;
   total_questions: number;
   percent: number;
-  est_band: number;
 }
 
 export interface RawScoreResult {
   correct: number;
   total: number;
   percentage: number;
-  bandScore: number;
 }
 
 const isFiniteNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
@@ -71,16 +68,6 @@ export const doesAnswerMatchCorrectAnswer = (studentAnswer: unknown, correctAnsw
     .some((answer) => answer === normalizedStudentAnswer);
 };
 
-export const estimateIeltsBandFromPercent = (percentage: number): number => {
-  const normalizedPercentage = isFiniteNumber(percentage) ? percentage : 0;
-  if (normalizedPercentage >= 90) return 8.5;
-  if (normalizedPercentage >= 80) return 7.5;
-  if (normalizedPercentage >= 70) return 6.5;
-  if (normalizedPercentage >= 60) return 5.5;
-  if (normalizedPercentage >= 50) return 5.0;
-  return 4.5;
-};
-
 export const normalizeIeltsRawScore = (input: RawScoreInput): NormalizedRawScore | null => {
   if (!isFiniteNumber(input.rawScore)) {
     return null;
@@ -95,27 +82,23 @@ export const normalizeIeltsRawScore = (input: RawScoreInput): NormalizedRawScore
   const boundedRawScore = Math.min(rawScore, totalQuestions);
   const derivedPercent = roundToTwoDecimals((boundedRawScore / totalQuestions) * 100);
   const percent = isFiniteNumber(input.percent) ? roundToTwoDecimals(Math.min(100, Math.max(0, input.percent))) : derivedPercent;
-  const estBand = isFiniteNumber(input.estBand) ? roundToHalfBand(Math.min(9, Math.max(0, input.estBand))) : estimateIeltsBandFromPercent(percent);
-
   return {
     raw_score: boundedRawScore,
     total_questions: totalQuestions,
     percent,
-    est_band: estBand,
   };
 };
 
 export const toRawScoreResult = (rawScore: number, totalQuestions: number): RawScoreResult => {
   const normalized = normalizeIeltsRawScore({ rawScore, totalQuestions });
   if (!normalized) {
-    return { correct: 0, total: 0, percentage: 0, bandScore: estimateIeltsBandFromPercent(0) };
+    return { correct: 0, total: 0, percentage: 0 };
   }
 
   return {
     correct: normalized.raw_score,
     total: normalized.total_questions,
     percentage: normalized.percent,
-    bandScore: normalized.est_band,
   };
 };
 
