@@ -69,13 +69,13 @@ test('IELTS writing submissions are inserted as pending review attempts', () => 
   assert.match(writingPractice, /buildWritingAttemptPayload\([\s\S]*user_id:[\s\S]*task_id:[\s\S]*answer_text:[\s\S]*word_count:/i, 'WritingPractice must submit attempts through the pending-aware payload builder');
 });
 
-test('IELTS finalized reviews update readiness-compatible productive skill bands', () => {
+test('IELTS finalized reviews preserve task-level productive skill bands without making readiness claims', () => {
   const sql = migration();
 
-  assert.match(sql, /alter table if exists public\.ielts_writing_attempts add column if not exists band_overall numeric/i, 'writing attempts must have readiness-compatible overall band column');
-  assert.match(sql, /alter table if exists public\.ielts_speaking_attempts add column if not exists band_overall numeric/i, 'speaking attempts must have readiness-compatible overall band column');
-  assert.match(sql, /if p_skill = 'writing' and p_finalize[\s\S]*update public\.ielts_writing_attempts[\s\S]*band_overall = v_review\.overall_band/i, 'finalized writing reviews must update readiness source band');
-  assert.match(sql, /elsif p_skill = 'speaking' and p_finalize[\s\S]*update public\.ielts_speaking_attempts[\s\S]*band_overall = v_review\.overall_band/i, 'finalized speaking reviews must update readiness source band');
+  assert.match(sql, /alter table if exists public\.ielts_writing_attempts add column if not exists band_overall numeric/i, 'writing attempts must preserve a task-level reviewed band column');
+  assert.match(sql, /alter table if exists public\.ielts_speaking_attempts add column if not exists band_overall numeric/i, 'speaking attempts must preserve a task-level reviewed band column');
+  assert.match(sql, /if p_skill = 'writing' and p_finalize[\s\S]*update public\.ielts_writing_attempts[\s\S]*band_overall = v_review\.overall_band/i, 'finalized writing reviews must update the reviewed task band');
+  assert.match(sql, /elsif p_skill = 'speaking' and p_finalize[\s\S]*update public\.ielts_speaking_attempts[\s\S]*band_overall = v_review\.overall_band/i, 'finalized speaking reviews must update the reviewed task band');
   assert.match(sql, /grant execute on function public\.ielts_latest_skill_readiness\(uuid\) to authenticated/i, 'readiness helper remains callable after review finalization');
 });
 
