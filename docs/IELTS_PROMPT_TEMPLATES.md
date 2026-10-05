@@ -1,5 +1,8 @@
 # IELTS Evaluation Prompt Templates
 
+> [!WARNING]
+> **Legacy diagnostic guidance:** Before using or editing any prompt in this file, read `docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md`. The Bible is authoritative. Wording that calls an AI an “official IELTS examiner,” transcript-only pronunciation scoring, generic percentage-to-band heuristics, or partial-skill “overall” bands are **not valid for trusted Brains Heist diagnostic scoring** and must be revised before production/school use.
+
 This document defines the canonical prompts, JSON response shapes, and sample outputs for evaluating IELTS Writing and Speaking attempts. These templates ensure consistent scoring and machine-friendly feedback for the `ielts_writing_attempts` and `ielts_speaking_attempts` tables.
 
 ## Writing Evaluation

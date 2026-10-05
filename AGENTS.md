@@ -29,6 +29,19 @@
 - Verify project identity before applying migrations, schema changes, RLS changes, RPC changes, or production data mutations.
 - Preserve fail-closed authorization and existing RLS boundaries unless the task explicitly requires a reviewed change.
 
+## Mandatory IELTS diagnostic gate
+
+Before making **any** change that can affect IELTS diagnostics, screeners, baseline assessments, band/readiness estimates, question/audio content, scoring, taxonomy, strengths/weaknesses, recommendations, school IELTS results, Writing/Speaking evaluation prompts, diagnostic analytics, or related database/RPC behavior:
+
+1. Read the complete canonical contract at `docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md`.
+2. Treat that Bible as authoritative when legacy IELTS code, prompts, marketing copy, or older documentation conflicts with it.
+3. Inspect the current target-branch implementation before editing; do not preserve a known-invalid legacy behavior merely because it already exists.
+4. Never silently weaken an assessment-validity, evidence, security, provenance, confidence, or school-launch gate.
+5. Never change the Bible just to make an implementation easier to pass. A genuine contract change must be explicit, justified, source-backed where applicable, and version-bumped.
+6. For diagnostic-affecting work, report the Bible version used, scoring/assessment impact, validation performed, and remaining limitations.
+
+This gate applies in particular to files/routes/tables/services matching or affecting `ielts_*`, `/ielts/*`, diagnostic funnels, readiness engines, productive-skill review, and school IELTS reporting.
+
 ## Implementation discipline
 
 - Inspect the live repository before modifying architecture or making framework assumptions.
