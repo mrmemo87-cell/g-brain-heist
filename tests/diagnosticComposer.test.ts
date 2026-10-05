@@ -94,6 +94,9 @@ test('teacher portal hands prepared diagnostics into the normal Assignment Wizar
   assert.match(portal, /setAssignmentSubject\(diagnostic\.schoolSubjectName\)/);
   assert.match(portal, /setAssignmentCategory\('quiz'\)/);
   assert.match(portal, /setAssignmentTopicName\(diagnostic\.topicName\)/);
+  assert.match(portal, /const selectedExactTeachingGroup = preparedDiagnostic \? selectedTeachingGroup : selectedCustomTeachingGroup/);
+  assert.match(portal, /selectedTeachingGroup\.id !== preparedDiagnostic\.groupId/);
+  assert.match(portal, /subject_group_id: selectedExactTeachingGroup\.id/);
   assert.match(portal, /initialStep=\{preparedDiagnostic \? 3/);
   assert.match(portal, /preparedDiagnostic=\{preparedDiagnostic\}/);
   assert.match(portal, /onSubmit=\{handleCreateAssignment\}/);
