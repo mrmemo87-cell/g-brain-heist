@@ -1,5 +1,8 @@
 # IELTS Prep Center Functional Specification
 
+> [!IMPORTANT]
+> **Diagnostic governance:** This is a historical functional/architecture specification. For any diagnostic, screener, readiness, band-estimation, scoring, content-provenance, confidence, or school-pilot decision, `docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md` is the canonical contract and overrides conflicting guidance here.
+
 ## 1. Scope Overview
 The IELTS Prep Center is a self-contained academic module within Brains Heist that shares only authentication and the `profiles.id` identity with the broader app. It excludes all game mechanics (XP, coins, items, hacks, PvP, leaderboards, streaks, etc.) and is visually separated via a dedicated layout with muted academic styling.
 
