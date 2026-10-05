@@ -395,7 +395,7 @@ export const fetchRecentAttempts = async (): Promise<IELTSRecentAttempts> => {
   const [reading, listening, writing, speaking, mock] = await Promise.all([
     supabase
       .from('ielts_reading_attempts')
-      .select('id, set_id, started_at, completed_at, raw_score, total_questions, percent, est_band')
+      .select('id, set_id, started_at, completed_at, raw_score, total_questions, percent')
       .eq('user_id', userId)
       .order('started_at', { ascending: false })
       .limit(5),
@@ -407,13 +407,13 @@ export const fetchRecentAttempts = async (): Promise<IELTSRecentAttempts> => {
       .limit(5),
     supabase
       .from('ielts_writing_attempts')
-      .select('id, task_id, submitted_at, band_overall, feedback')
+      .select('id, task_id, submitted_at, band_overall, feedback, review_status')
       .eq('user_id', userId)
       .order('submitted_at', { ascending: false })
       .limit(5),
     supabase
       .from('ielts_speaking_attempts')
-      .select('id, task_id, submitted_at, band_overall, band_fluency, band_pronunciation')
+      .select('id, task_id, submitted_at, band_overall, band_fluency, band_pronunciation, review_status')
       .eq('user_id', userId)
       .order('submitted_at', { ascending: false })
       .limit(5),
