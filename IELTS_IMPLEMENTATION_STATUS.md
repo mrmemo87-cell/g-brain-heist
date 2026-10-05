@@ -1,5 +1,9 @@
 # IELTS System - Professional Implementation Guide
 
+> [!IMPORTANT]
+> **Historical document:** IELTS diagnostic, scoring, readiness, AI-evaluation, and school-pilot guidance in this file is superseded by `docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md`. Do not implement or restore band/readiness logic from this document when it conflicts with the Bible.
+
+
 ## ✅ COMPLETED - Database Setup
 
 ### All Migrations Run Successfully:
