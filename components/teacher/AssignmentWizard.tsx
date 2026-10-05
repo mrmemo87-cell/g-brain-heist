@@ -733,9 +733,11 @@ export default function AssignmentWizard({
                         ? allocatedClasses.find((item) => item.class_id === group.registrationClassId)
                         : undefined;
                       const classCode = allocatedClass?.class_code || group.name.split(' · ')[0];
-                      const selected = group.groupType === 'class'
-                        ? assignmentBatches.includes(classCode)
-                        : group.id === assignmentGroupId;
+                      const selected = diagnosticMode
+                        ? group.id === assignmentGroupId
+                        : group.groupType === 'class'
+                          ? assignmentBatches.includes(classCode)
+                          : group.id === assignmentGroupId;
                       return (
                         <button
                           key={group.id}
