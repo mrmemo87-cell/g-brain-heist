@@ -76,7 +76,7 @@ test('IELTS results service defaults optional filters safely', async () => {
   }]);
 });
 
-test('IELTS Results tab uses scoped results RPC and Estimated readiness wording', () => {
+test('IELTS Results tab uses scoped results RPC and verified readiness wording', () => {
   const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsResultsTab.tsx'), 'utf8');
 
   assert.match(tab, /rpcIeltsSchoolResults/, 'Results tab must load rows through the scoped results service');
@@ -87,7 +87,8 @@ test('IELTS Results tab uses scoped results RPC and Estimated readiness wording'
   assert.match(tab, /Assigned practice/, 'Results tab must show assigned practice summary');
   assert.match(tab, /Completed practice/, 'Results tab must show completed practice summary');
   assert.match(tab, /Exam submissions/, 'Results tab must show exam submissions summary');
-  assert.match(tab, /Estimated readiness/, 'Results tab must use Estimated readiness wording');
+  assert.match(tab, /Average verified readiness/, 'Results tab must label the summary as verified readiness');
+  assert.match(tab, /Four-skill readiness/, 'Results tab must distinguish four-skill readiness from practice results');
   assert.match(tab, /selectedClassId/, 'Results tab should expose a simple class filter');
   assert.match(tab, /selectedStudentId/, 'Results tab should expose a simple student filter');
   assert.doesNotMatch(tab, /official\s+IELTS\s+score/i, 'Results tab must not label readiness with certified-score wording');
@@ -116,15 +117,18 @@ test('IELTS results service and SQL avoid protected data and legacy admin paths'
   assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'results RPC must not use legacy IELTS admin permissions');
 });
 
-test('IELTS school results RPC uses readiness helper without legacy admin or protected answer data', () => {
+test('IELTS school results fail closed on legacy readiness until governed evidence exists', () => {
   const migration = fs.readFileSync(
-    path.join(process.cwd(), 'supabase/migrations/20260518130000_ielts_readiness_engine_foundation.sql'),
+    path.join(process.cwd(), 'supabase/migrations/20261005111500_ielts_diagnostic_bible_alignment.sql'),
     'utf8',
   );
 
-  assert.match(migration, /left join lateral public\.ielts_latest_skill_readiness\(target\.student_id\) readiness on true/i, 'school results must use the shared readiness helper');
-  assert.match(migration, /latest_reading_estimate = r\.reading[\s\S]*latest_writing_estimate = r\.writing/i, 'school results must hydrate skill estimate fields from readiness rows');
-  assert.match(migration, /cross join lateral \(values \(base\.latest_reading_estimate\), \(base\.latest_listening_estimate\), \(base\.latest_writing_estimate\), \(base\.latest_speaking_estimate\)\) v\(value\)[\s\S]*where value is not null/i, 'school results overall must average available skills only');
-  assert.doesNotMatch(migration, /answer_key/i, 'school results readiness foundation must not expose protected answer data');
-  assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'school results must not depend on legacy IELTS admin permissions');
+  assert.match(migration, /create or replace function public\.rpc_ielts_school_results/i, 'Bible alignment must replace the public school results wrapper');
+  assert.match(migration, /'\{latest_reading_estimate\}', 'null'::jsonb/i, 'reading readiness must be suppressed until verified');
+  assert.match(migration, /'\{latest_listening_estimate\}', 'null'::jsonb/i, 'listening readiness must be suppressed until verified');
+  assert.match(migration, /'\{latest_writing_estimate\}', 'null'::jsonb/i, 'writing readiness must be suppressed until verified');
+  assert.match(migration, /'\{latest_speaking_estimate\}', 'null'::jsonb/i, 'speaking readiness must be suppressed until verified');
+  assert.match(migration, /'\{latest_overall_estimate\}', 'null'::jsonb/i, 'overall readiness must be suppressed until all governed evidence exists');
+  assert.match(migration, /'\{summary,average_estimated_overall\}'[\s\S]*'null'::jsonb/i, 'school summary must not average partial or legacy estimates');
+  assert.doesNotMatch(migration, /answer_key/i, 'Bible alignment must not expose protected answer data');
 });
