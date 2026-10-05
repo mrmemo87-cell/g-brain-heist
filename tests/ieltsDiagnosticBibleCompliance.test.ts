@@ -14,23 +14,23 @@ test('IELTS Diagnostic Bible is wired into the repository agent contract', () =>
   assert.match(agents, /Before making \*\*any\*\* change that can affect IELTS diagnostics/i);
 });
 
-test('public Listening screener does not claim a real IELTS band', () => {
+test('unverified public Listening screener content is retired from delivery', () => {
   const hero = read('src/components/ielts/IeltsAnimatedHero.tsx');
   const screener = read('src/pages/ielts/TrialListeningTask2.tsx');
   const dashboard = read('services/ieltsDashboardService.ts');
 
-  assert.match(hero, /Free IELTS Listening Screener/i);
-  assert.match(hero, /10-question Listening screener/i);
-  assert.doesNotMatch(hero, /What.?s Your Real IELTS Band Score|demo estimate/i);
+  assert.match(hero, /Reviewed Listening Screener/i);
+  assert.match(hero, /being prepared/i);
+  assert.doesNotMatch(hero, /What.?s Your Real IELTS Band Score|demo estimate|Start Listening Screener/i);
 
-  assert.match(screener, /Practice score:/i);
-  assert.match(screener, /development area/i);
-  assert.match(screener, /score_percent/i);
-  assert.doesNotMatch(screener, /getBandScore|bandScore|estimated_band|retakeBlocked|userType\s*=\s*'independent'/i);
+  assert.match(screener, /better Listening screener is being prepared/i);
+  assert.match(screener, /reviewed Brains Heist content/i);
+  assert.doesNotMatch(screener, /travelling to France|92\.4 percent|186 miles per hour|ielts-listening-sample-task-2-form-completion|getBandScore|bandScore|estimated_band/i);
 
-  assert.match(dashboard, /practiceScorePercent/i);
+  assert.match(dashboard, /const diagnosticCompleted = false/i);
+  assert.match(dashboard, /const practiceScorePercent = null/i);
   assert.match(dashboard, /const weakestSkill: IeltsSkill \| null = null/i);
-  assert.doesNotMatch(dashboard, /diagnosticCompleted\s*\?\s*'listening'|estimatedBand/i);
+  assert.doesNotMatch(dashboard, /diagnosticCompleted\s*\?\s*'listening'|estimatedBand|diagnosticEvent/i);
 });
 
 test('ordinary Reading and Listening practice never manufacture readiness bands', () => {
@@ -46,7 +46,15 @@ test('ordinary Reading and Listening practice never manufacture readiness bands'
 
   assert.match(reading, /Practice result only — this score is not a verified IELTS readiness band/i);
   assert.match(listening, /Practice result only — this score is not a verified IELTS readiness band/i);
+  const objectiveResult = read('src/pages/ielts/IeltsObjectiveResult.tsx');
+  const legacyHub = read('components/ielts/IELTSApp.tsx');
+
+  assert.doesNotMatch(objectiveResult, /est_band|Estimated readiness band|Unlock your Band|<strong>Weakness:<\/strong>/i);
+  assert.match(objectiveResult, /Practice result:/i);
+  assert.doesNotMatch(legacyHub, /latestMockBand|Latest mock band/i);
+  assert.match(legacyHub, /Reviewed task band/i);
 });
+
 
 test('school readiness fails closed until governed diagnostic evidence exists', () => {
   const migration = read('supabase/migrations/20261005111500_ielts_diagnostic_bible_alignment.sql');
