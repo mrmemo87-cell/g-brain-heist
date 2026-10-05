@@ -444,11 +444,6 @@ const IeltsHome: React.FC = () => {
   // GSAP is already installed in this project and powers the IELTS hero components.
 
   const startDiagnostic = () => {
-    trackIeltsFunnelEvent('start_free_assessment_click', {
-      skill: 'listening',
-      task_id: 'trial-test-2',
-      user_type: hasSchoolMembership ? 'school' : 'independent',
-    });
     openTask('/ielts/trial-test-2', false);
   };
 
@@ -575,7 +570,7 @@ const IeltsHome: React.FC = () => {
       { skill: 'speaking' as const, label: 'Speaking', benefit: 'Practise fluent answers with clear response patterns.', progress: summary.skillProgress.speaking, overviewRoute: '/ielts/speaking' },
     ];
     if (!summary.diagnostic.completed) {
-      return <div style={shell}><main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}><IeltsAnimatedHero onStartDiagnostic={startDiagnostic} compact authenticated />{hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate={navigate} />}<section style={whiteCard}><h2 style={{ margin: '0 0 .5rem', color: '#0f172a' }}>Your Listening screener is ready.</h2><p style={{ margin: 0, color: '#475569', lineHeight: 1.65 }}>Start the free 10-question Listening screener for a practice score, task-specific feedback, and a sensible next practice step. It is not a full IELTS baseline.</p></section></main></div>;
+      return <div style={shell}><main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}><IeltsAnimatedHero onStartDiagnostic={startDiagnostic} compact authenticated />{hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate={navigate} />}<section style={whiteCard}><h2 style={{ margin: '0 0 .5rem', color: '#0f172a' }}>Reviewed Listening screener is being prepared.</h2><p style={{ margin: 0, color: '#475569', lineHeight: 1.65 }}>The previous short screener has been retired while we prepare reviewed Brains Heist content. Your assignments, practice, and IELTS journey remain available.</p></section></main></div>;
     }
     if (activePrime) {
       return (
@@ -601,11 +596,11 @@ const IeltsHome: React.FC = () => {
   const practiceCatalogRestricted = isAuthenticated
     && (extraPracticeAccessError || extraPracticeEnabled === false);
   const practiceCatalogResolving = isAuthenticated && extraPracticeEnabled === null;
-  const getItems = ['Practice score', 'Task-specific strengths', 'Development areas', 'Answer review', 'Next practice step'];
+  const getItems = ['Reviewed original content', 'Clear practice score', 'Task-specific evidence', 'Development areas', 'Next practice step'];
   const steps = [
-    { title: 'Take the free screener', text: 'Complete a focused 10-question Listening check without paying first.', icon: '01' },
-    { title: 'See your task snapshot', text: 'Review your practice score and what this one Listening task suggests.', icon: '02' },
-    { title: 'Follow your next practice step', text: 'Move into broader practice so Brains Heist can build stronger evidence over time.', icon: '03' },
+    { title: 'Start with reviewed content', text: 'The new Listening screener will launch only after its content and scoring are reviewed.', icon: '01' },
+    { title: 'See a clear task snapshot', text: 'Review a practice score and the evidence that supports each task-specific observation.', icon: '02' },
+    { title: 'Build evidence over time', text: 'Move into broader practice and reviewed feedback before Brains Heist shows readiness conclusions.', icon: '03' },
     { title: 'Upgrade when ready', text: 'Prime tools appear after your result, not before.', icon: '04' },
   ];
   const skills = [
@@ -663,7 +658,7 @@ const IeltsHome: React.FC = () => {
         </section>
 
         <section style={{ textAlign: 'center', padding: '1.7rem 1rem 2.2rem' }}>
-          <button type="button" onClick={startDiagnostic} style={{ background: 'linear-gradient(135deg,#0ea5e9,#2563eb,#7c3aed)', color: '#fff', border: 'none', borderRadius: '9999px', padding: '1rem 1.45rem', fontWeight: 950, cursor: 'pointer', fontSize: '1rem' }}>Start Free IELTS Diagnostic →</button>
+          <button type="button" onClick={startDiagnostic} style={{ background: 'linear-gradient(135deg,#0ea5e9,#2563eb,#7c3aed)', color: '#fff', border: 'none', borderRadius: '9999px', padding: '1rem 1.45rem', fontWeight: 950, cursor: 'pointer', fontSize: '1rem' }}>View Listening Screener Update →</button>
         </section>
 
         {practiceCatalogRestricted ? (
