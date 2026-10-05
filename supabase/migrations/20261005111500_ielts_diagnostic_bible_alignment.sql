@@ -173,3 +173,51 @@ comment on function public.rpc_ielts_school_results(uuid,uuid,uuid,integer) is
 
 revoke all on function public.rpc_ielts_school_results(uuid,uuid,uuid,integer) from public, anon;
 grant execute on function public.rpc_ielts_school_results(uuid,uuid,uuid,integer) to authenticated;
+
+
+create or replace function public.rpc_ielts_school_student_snapshot(p_student_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_school_id uuid := (select u.school_id from public.users u where u.id = p_student_id);
+  v_result jsonb;
+begin
+  if not private.actor_can_access_school_programme(v_school_id, 'ielts', false) then
+    raise exception 'IELTS is not included in this school agreement' using errcode='42501';
+  end if;
+
+  v_result := public.rpc_ielts_school_student_snapshot_entitlement_internal(p_student_id);
+
+  v_result := jsonb_set(
+    v_result,
+    '{readiness}',
+    jsonb_build_object(
+      'status_label', 'Verified readiness pending',
+      'target_band', coalesce(v_result #> '{readiness,target_band}', 'null'::jsonb),
+      'overall_band', null,
+      'reading_band', null,
+      'listening_band', null,
+      'writing_band', null,
+      'speaking_band', null,
+      'sources', jsonb_build_object(
+        'Reading', null,
+        'Listening', null,
+        'Writing', null,
+        'Speaking', null
+      )
+    ),
+    true
+  );
+
+  return v_result;
+end;
+$;
+
+comment on function public.rpc_ielts_school_student_snapshot(uuid) is
+  'Bible v1.1.0 school snapshot. Assignment/activity evidence remains visible, but legacy practice-derived readiness is suppressed until governed diagnostic evidence exists.';
+
+revoke all on function public.rpc_ielts_school_student_snapshot(uuid) from public, anon;
+grant execute on function public.rpc_ielts_school_student_snapshot(uuid) to authenticated;
