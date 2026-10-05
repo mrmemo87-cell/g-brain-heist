@@ -180,7 +180,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_school_id uuid := (select u.school_id from public.users u where u.id = p_student_id);
   v_result jsonb;
@@ -214,7 +214,7 @@ begin
 
   return v_result;
 end;
-$;
+$$;
 
 comment on function public.rpc_ielts_school_student_snapshot(uuid) is
   'Bible v1.1.0 school snapshot. Assignment/activity evidence remains visible, but legacy practice-derived readiness is suppressed until governed diagnostic evidence exists.';
