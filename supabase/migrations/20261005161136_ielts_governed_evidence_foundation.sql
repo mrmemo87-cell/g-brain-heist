@@ -301,7 +301,7 @@ declare e private.ielts_diagnostic_attempt_evidence%rowtype; item jsonb; answer 
   state text; correct boolean; outcomes jsonb:='[]'; total int:=0; earned int:=0; answered int:=0;
   incident_count int; construct_count int; answered_constructs int; warnings jsonb;
 begin
-  select * into e from private.ielts_diagnostic_attempt_evidence where attempt_id=new.attempt_id;
+  select * into e from private.ielts_diagnostic_attempt_evidence where attempt_id=new.attempt_id or (tg_op='UPDATE' and attempt_id=old.attempt_id);
   if e.attempt_id is null then return new; end if;
   if new.student_id<>e.student_id then raise exception 'diagnostic_submission_owner_mismatch'; end if;
   if tg_op<>'INSERT' then raise exception 'diagnostic_submission_is_immutable'; end if;

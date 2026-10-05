@@ -32,10 +32,11 @@ for(let n=1;n<=8;n++) {
  const node=uid(100+n%3);
  await db.query("insert into academic_skill_registry_nodes values($1,$2,'subskill','active',$3) on conflict do nothing",[node,registry,`construct-${n%3}`]);
  const options=['Alpha','Beta','Gamma','Delta']; const prompt=`Synthetic item ${n}`;
- questions.push({id:`q${n}`,prompt,type:'multiple_choice',options});
+ questions.push({id:`q${n}`,prompt,type:n===8?'short_answer':'multiple_choice',options:n===8?[]:options});
  await db.query(`insert into private.ielts_diagnostic_items(version_id,item_key,task_key,skill,order_index,response_type,prompt,options,accepted_answers,taxonomy_node_id)
  values($1,$2,$3,'reading',$4,'multiple_choice',$5,$6,$7,$8)`,[version,`q${n}`,`task-${n%2}`,n,prompt,JSON.stringify(options),JSON.stringify([options[(n-1)%4]]),node]);
 }
+await db.query("update private.ielts_diagnostic_items set response_type='short_answer',options='[]',max_words=1 where version_id=$1 and item_key='q8'",[version]);
 await db.query('update ielts_exam_forms set reading_payload=$1 where id=$2',[JSON.stringify({title:'Synthetic screener',assessment_mode:'screener',instructions:'Test fixture only',questions}),form]);
 const publish=()=>db.query("update private.ielts_diagnostic_versions set state='published' where id=$1",[version]);
 const actor=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
@@ -71,7 +72,7 @@ test('publication requires review, provenance, taxonomy and safe delivery; immut
 test('existing submission path scores on server, ignores browser bands, distinguishes missing and invalid, preserves replay',async()=>{
  await actor(outsider); await assert.rejects(submit({}),/forbidden/);
  await actor(student);
- const payload={reading:{q1:'Alpha',q2:'wrong',q3:'',q4:{forged:true},q5:'Alpha',q6:'Beta',q7:'Gamma',q8:'Delta'},estimated_band:9,raw_score:999};
+ const payload={reading:{q1:'Alpha',q2:'wrong',q3:'',q4:{forged:true},q5:'Alpha',q6:'Beta',q7:'Gamma',q8:' dELTa '},estimated_band:9,raw_score:999};
  const first=(await submit(payload)).rows[0].result;
  const second=(await submit({reading:{q2:'Beta'}})).rows[0].result;
  assert.equal(first.submission_id,second.submission_id); assert.equal(second.idempotent_replay,true);
