@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { SchoolSubjectGroup } from '../../services/schoolSubjectGroupService';
 import {
   composeDiagnostic,
@@ -26,7 +26,7 @@ const reasonCopy = (reason?: string | null) => {
   return 'Brains Heist does not yet have enough current, governed, grade-eligible questions to build a trustworthy diagnostic for this group.';
 };
 
-const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
+const DiagnosticComposerDialog: React.FC<DiagnosticComposerProps> = ({
   open,
   schoolId,
   teachingGroups,
@@ -37,9 +37,15 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
   const [groupId, setGroupId] = useState('');
   const [capabilities, setCapabilities] = useState<DiagnosticComposerCapabilities | null>(null);
   const [questionCount, setQuestionCount] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [preparing, setPreparing] = useState(false);
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [retryVersion, setRetryVersion] = useState(0);
+  const prepareRequest = useRef(0);
+  const prepareInFlight = useRef(false);
+
+  useEffect(() => () => { prepareRequest.current += 1; }, []);
 
   const sortedGroups = useMemo(
     () => [...teachingGroups].sort((a, b) => (
@@ -55,10 +61,8 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
     const preferred = initialGroupId && sortedGroups.some((group) => group.id === initialGroupId)
       ? initialGroupId
       : sortedGroups[0]?.id || '';
-    setGroupId(preferred);
-    setCapabilities(null);
-    setQuestionCount(null);
-    setError('');
+    // Roster refreshes must not reset the teacher's current group choice.
+    setGroupId((current) => sortedGroups.some((group) => group.id === current) ? current : preferred);
   }, [initialGroupId, open, sortedGroups]);
 
   useEffect(() => {
@@ -68,6 +72,7 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
     setCapabilities(null);
     setQuestionCount(null);
     setError('');
+    setLoadError('');
 
     fetchDiagnosticComposerCapabilities(schoolId, groupId)
       .then((result) => {
@@ -78,7 +83,7 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
       })
       .catch((reason) => {
         if (!active) return;
-        setError(reason instanceof Error ? reason.message : 'Diagnostic options could not be loaded.');
+        setLoadError(reason instanceof Error ? reason.message : 'Diagnostic options could not be loaded.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -87,7 +92,7 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
     return () => {
       active = false;
     };
-  }, [groupId, open, schoolId]);
+  }, [groupId, open, schoolId, retryVersion]);
 
   useEffect(() => {
     if (!open) return;
@@ -101,19 +106,27 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
   if (!open) return null;
 
   const selectedGroup = sortedGroups.find((group) => group.id === groupId) || null;
-  const selectedDepth = capabilities?.depths.find((depth) => depth.questionCount === questionCount) || null;
+  const currentCapabilities = capabilities?.group.id === groupId ? capabilities : null;
+  const selectedDepth = currentCapabilities?.depths.find((depth) => depth.questionCount === questionCount) || null;
+  const checkingPool = loading || (!currentCapabilities && !loadError);
 
   const handlePrepare = async () => {
-    if (!questionCount || !capabilities?.ready || !groupId) return;
+    if (prepareInFlight.current || checkingPool || !questionCount || !currentCapabilities?.ready || !selectedDepth?.available || !groupId) return;
+    prepareInFlight.current = true;
+    const request = ++prepareRequest.current;
     setPreparing(true);
     setError('');
     try {
       const diagnostic = await composeDiagnostic(schoolId, groupId, questionCount);
+      if (request !== prepareRequest.current) return;
       onPrepared(diagnostic);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'The diagnostic could not be prepared.');
+      if (request === prepareRequest.current) setError(reason instanceof Error ? reason.message : 'The diagnostic could not be prepared.');
     } finally {
-      setPreparing(false);
+      if (request === prepareRequest.current) {
+        prepareInFlight.current = false;
+        setPreparing(false);
+      }
     }
   };
 
@@ -158,7 +171,15 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
               <h3 className="mt-1 text-xl font-black text-slate-950">Who is this diagnostic for?</h3>
               <select
                 value={groupId}
-                onChange={(event) => setGroupId(event.target.value)}
+                disabled={preparing}
+                onChange={(event: { target: { value: string } }) => {
+                  setGroupId(event.target.value);
+                  setCapabilities(null);
+                  setQuestionCount(null);
+                  setLoading(true);
+                  setLoadError('');
+                  setError('');
+                }}
                 className="mt-4 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-900 outline-none focus:border-cyan-500"
                 aria-label="Choose teaching group"
               >
@@ -174,20 +195,29 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
               <span className="text-xs font-black uppercase tracking-[0.15em] text-violet-700">2 · Evidence depth</span>
               <h3 className="mt-1 text-xl font-black text-slate-950">How much evidence do you need?</h3>
 
-              {loading ? (
-                <div className="py-10 text-center">
+              {sortedGroups.length === 0 ? (
+                <p className="mt-4 text-sm text-slate-600">No teaching groups are available. Ask your school administrator to check your teaching allocation.</p>
+              ) : loadError ? (
+                <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-5" role="alert">
+                  <strong className="text-sm text-rose-900">Could not check diagnostic availability</strong>
+                  <p className="mt-2 text-sm leading-6 text-rose-800">{loadError}</p>
+                  <button type="button" onClick={() => { setLoadError(''); setLoading(true); setRetryVersion((value) => value + 1); }} className="mt-3 rounded-lg border border-rose-300 px-3 py-2 text-sm font-bold text-rose-900">Retry availability check</button>
+                </div>
+              ) : checkingPool ? (
+                <div className="py-10 text-center" role="status" aria-live="polite">
                   <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-slate-200 border-t-cyan-600" />
                   <p className="mt-3 text-sm font-semibold text-slate-500">Checking the governed question pool…</p>
                 </div>
-              ) : capabilities?.ready ? (
+              ) : currentCapabilities?.ready ? (
                 <>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    {capabilities.depths.map((depth) => {
+                    {currentCapabilities.depths.map((depth) => {
                       const selected = depth.questionCount === questionCount;
                       return (
                         <button
                           key={depth.questionCount}
                           type="button"
+                          disabled={preparing || !depth.available}
                           onClick={() => setQuestionCount(depth.questionCount)}
                           aria-pressed={selected}
                           className={`relative rounded-2xl border p-4 text-left transition ${selected ? 'border-cyan-500 bg-cyan-50 ring-2 ring-cyan-100' : 'border-slate-200 bg-slate-50 hover:border-slate-300'}`}
@@ -210,22 +240,22 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     <div className="rounded-2xl bg-slate-50 p-4">
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Eligible pool</span>
-                      <strong className="mt-1 block text-2xl text-slate-950">{capabilities.pool?.eligibleQuestions || 0}</strong>
+                      <strong className="mt-1 block text-2xl text-slate-950">{currentCapabilities.pool?.eligibleQuestions || 0}</strong>
                     </div>
                     <div className="rounded-2xl bg-slate-50 p-4">
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Skills represented</span>
-                      <strong className="mt-1 block text-2xl text-slate-950">{capabilities.pool?.distinctSkills || 0}</strong>
+                      <strong className="mt-1 block text-2xl text-slate-950">{currentCapabilities.pool?.distinctSkills || 0}</strong>
                     </div>
                     <div className="rounded-2xl bg-slate-50 p-4">
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Not used recently</span>
-                      <strong className="mt-1 block text-2xl text-slate-950">{capabilities.pool?.notRecentlyUsed || 0}</strong>
+                      <strong className="mt-1 block text-2xl text-slate-950">{currentCapabilities.pool?.notRecentlyUsed || 0}</strong>
                     </div>
                   </div>
                 </>
               ) : (
                 <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-5">
                   <strong className="text-sm text-amber-900">Diagnostic not ready for this teaching group</strong>
-                  <p className="mt-2 text-sm leading-6 text-amber-800">{reasonCopy(capabilities?.reason)}</p>
+                  <p className="mt-2 text-sm leading-6 text-amber-800">{reasonCopy(currentCapabilities?.reason)}</p>
                 </div>
               )}
             </section>
@@ -264,7 +294,7 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
             <button
               type="button"
               onClick={() => void handlePrepare()}
-              disabled={preparing || loading || !capabilities?.ready || !questionCount}
+              disabled={preparing || checkingPool || !!loadError || !currentCapabilities?.ready || !selectedDepth?.available}
               className="w-full rounded-2xl bg-slate-950 px-5 py-4 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {preparing ? 'Preparing governed form…' : 'Prepare in Assignment Wizard →'}
@@ -275,5 +305,11 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
     </div>
   );
 };
+
+// A new opening starts a fresh request lifecycle; a response from a closed
+// dialog can never reopen the wizard or overwrite another prepared form.
+const DiagnosticComposer: React.FC<DiagnosticComposerProps> = (props) => props.open
+  ? <DiagnosticComposerDialog key={`${props.schoolId}:${props.initialGroupId || ''}`} {...props} />
+  : null;
 
 export default DiagnosticComposer;
