@@ -20,6 +20,9 @@ const reasonCopy = (reason?: string | null) => {
   if (reason === 'academic_context_incomplete') {
     return 'This teaching group is missing academic subject, grade, or academic-year context. Ask the school administrator to complete the group setup.';
   }
+  if (reason === 'governed_pool_too_narrow') {
+    return 'There are enough questions by count, but not enough distinct mapped skills or difficulty levels to call the result a trustworthy diagnostic yet.';
+  }
   return 'Brains Heist does not yet have enough current, governed, grade-eligible questions to build a trustworthy diagnostic for this group.';
 };
 
@@ -235,7 +238,7 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
               <div className="mt-4 space-y-3 text-xs leading-5 text-slate-700">
                 <p><strong className="text-slate-950">✓ Verified only.</strong> Current Brains Heist governed questions for the exact subject and grade.</p>
                 <p><strong className="text-slate-950">✓ Fresh form.</strong> Questions used by this teaching group in the last 90 days are deprioritized where alternatives exist.</p>
-                <p><strong className="text-slate-950">✓ Broad coverage.</strong> Different curriculum skills are sampled before repeating the same skill where possible.</p>
+                <p><strong className="text-slate-950">✓ Broad coverage.</strong> Each available depth must pass minimum skill and difficulty diversity before Brain Heist offers it.</p>
                 <p><strong className="text-slate-950">✓ Balanced answer positions.</strong> A/B/C/D ordering is materialized safely in the assignment snapshot without changing canonical content.</p>
                 <p><strong className="text-slate-950">✓ Teacher remains in control.</strong> The next screen is the normal Assignment Wizard, not an automatic publish action.</p>
               </div>
