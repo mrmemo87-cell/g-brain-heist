@@ -776,7 +776,6 @@ export interface IELTSReadingAttempt {
   raw_score: number | null;
   total_questions: number | null;
   percent: number | null;
-  est_band: number | null;
 }
 
 export interface IELTSListeningAttempt {
@@ -796,6 +795,7 @@ export interface IELTSWritingAttempt {
   submitted_at: string;
   band_overall: number | null;
   feedback: Record<string, any> | null;
+  review_status?: string | null;
 }
 
 export interface IELTSSpeakingAttempt {
@@ -807,6 +807,7 @@ export interface IELTSSpeakingAttempt {
   band_overall: number | null;
   band_fluency: number | null;
   band_pronunciation: number | null;
+  review_status?: string | null;
 }
 
 export interface IELTSMockTestAttempt {
