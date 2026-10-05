@@ -238,7 +238,7 @@ const DiagnosticComposer: React.FC<DiagnosticComposerProps> = ({
               <div className="mt-4 space-y-3 text-xs leading-5 text-slate-700">
                 <p><strong className="text-slate-950">✓ Verified only.</strong> Current Brains Heist governed questions for the exact subject and grade.</p>
                 <p><strong className="text-slate-950">✓ Fresh form.</strong> Questions used by this teaching group in the last 90 days are deprioritized where alternatives exist.</p>
-                <p><strong className="text-slate-950">✓ Broad coverage.</strong> Each available depth must pass minimum skill and difficulty diversity before Brain Heist offers it.</p>
+                <p><strong className="text-slate-950">✓ Broad coverage.</strong> Each available depth must pass minimum skill and difficulty diversity before Brains Heist offers it.</p>
                 <p><strong className="text-slate-950">✓ Balanced answer positions.</strong> A/B/C/D ordering is materialized safely in the assignment snapshot without changing canonical content.</p>
                 <p><strong className="text-slate-950">✓ Teacher remains in control.</strong> The next screen is the normal Assignment Wizard, not an automatic publish action.</p>
               </div>
