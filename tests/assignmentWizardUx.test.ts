@@ -53,7 +53,7 @@ test('assignment title and final review are required before publish', () => {
 test('question-bank assignments resume at audience and keep their subject consistent', () => {
   assert.match(wizard, /initialStep = 1/);
   assert.match(wizard, /lockedSubject = null/);
-  assert.match(wizard, /You already added \{lockedSubject\} questions from the Question Bank/);
+  assert.match(wizard, /You already added \$\{lockedSubject\} questions from the Question Bank/);
   assert.match(wizard, /Unavailable — \{lockedSubject\} questions selected/);
   assert.match(portal, /initialStep=\{preparedDiagnostic \? 3 : assignmentLockedSubject \? 2 : 1\}/);
   assert.match(portal, /setAssignmentLockedSubject\(matchingLocalSubjects\.length === 1 \? localSubject : null\)/);
