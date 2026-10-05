@@ -47,6 +47,7 @@ export interface DiagnosticComposerCapabilities {
     fourOptionMcqOnly: boolean;
     recentQuestionsDeprioritized: boolean;
     skillDiversityPrioritized: boolean;
+    minimumSkillAndDifficultyDiversityEnforced: boolean;
     balancedAnswerPositionsOnAssignmentSnapshot: boolean;
     canonicalQuestionContentUnchanged: boolean;
   };
