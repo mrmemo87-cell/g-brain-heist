@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.1";
-import OpenAI from "https://esm.sh/openai@4.52.3";
 
 type JsonValue = Record<string, unknown> | null;
 
@@ -27,15 +26,12 @@ type RequestPayload = CreatePackPayload | FinalisePayload | ReferencePayload;
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-const openAiKey = Deno.env.get("OPENAI_API_KEY");
 
-if (!supabaseUrl || !serviceKey || !openAiKey) {
+if (!supabaseUrl || !serviceKey) {
   throw new Error("Missing required environment variables.");
 }
 
 const supabase = createClient(supabaseUrl, serviceKey);
-const openai = new OpenAI({ apiKey: openAiKey });
-
 const jsonHeaders = { "content-type": "application/json" };
 
 const jsonResponse = (status: number, data: JsonValue) =>
@@ -100,72 +96,6 @@ function ensureReferencePayload(payload: RequestPayload): payload is ReferencePa
   if (payload.mode !== "get-by-reference") return false;
   if (!payload.referenceCode || typeof payload.referenceCode !== "string") return false;
   return true;
-}
-
-async function requestPackFromOpenAI(module: string, targetBand: number | null) {
-  const targetText = targetBand ? `Target band: ${targetBand}.` : "No target band provided.";
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    response_format: { type: "json_object" },
-    temperature: 0.3,
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are an IELTS preparation assistant. Generate realistic IELTS reading, listening, and writing practice content. Do not mention games, XP, coins, hacks, or Brains Heist. Respond with strict JSON only.",
-      },
-      {
-        role: "user",
-        content:
-          `Create a ${module} IELTS practice pack with 6-8 reading questions and 6-8 listening questions using the exact JSON schema provided earlier. ${targetText}`,
-      },
-    ],
-  });
-  const content = completion.choices?.[0]?.message?.content;
-  if (!content) {
-    throw new Error("OpenAI returned no content");
-  }
-  return JSON.parse(content);
-}
-
-async function requestMarkingFromOpenAI(payload: {
-  reading_block: unknown;
-  listening_block: unknown;
-  writing_task: unknown;
-  readingAnswers: Record<string, string>;
-  listeningAnswers: Record<string, string>;
-  writingAnswer: string;
-  targetBand: number | null;
-}) {
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    response_format: { type: "json_object" },
-    temperature: 0.2,
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a Brains Heist IELTS-style practice assistant. Any feedback is provisional practice support only, never an official IELTS result or verified readiness estimate. Respond with strict JSON only.",
-      },
-      {
-        role: "user",
-        content: `Assess the IELTS session below and respond with the required JSON schema.\nSession materials: ${JSON.stringify({
-          reading: payload.reading_block,
-          listening: payload.listening_block,
-          writing: payload.writing_task,
-        })}\nStudent submissions: ${JSON.stringify({
-          readingAnswers: payload.readingAnswers,
-          listeningAnswers: payload.listeningAnswers,
-          writingAnswer: payload.writingAnswer,
-        })}\n${payload.targetBand ? `Target band: ${payload.targetBand}.` : "No target band specified."}`,
-      },
-    ],
-  });
-  const content = completion.choices?.[0]?.message?.content;
-  if (!content) {
-    throw new Error("OpenAI returned no content");
-  }
-  return JSON.parse(content);
 }
 
 serve(async (req) => {
