@@ -58,6 +58,13 @@ test('ordinary Reading and Listening practice never manufacture readiness bands'
 
 test('school readiness fails closed until governed diagnostic evidence exists', () => {
   const migration = read('supabase/migrations/20261005111500_ielts_diagnostic_bible_alignment.sql');
+
+  assert.match(
+    migration,
+    /create or replace function public\.rpc_ielts_school_student_snapshot\(p_student_id uuid\)[\s\S]*as \$\$[\s\S]*end;\s*\$\$;/i,
+    'school snapshot wrapper must use a valid PL/pgSQL dollar-quoted body',
+  );
+  assert.doesNotMatch(migration, /\nas \$(?!\$)\n|\n\$(?!\$);\n/, 'migration must not contain single-dollar function delimiters');
   const schoolResults = read('components/school-admin/tabs/IeltsResultsTab.tsx');
   const journey = read('src/pages/ielts/IeltsJourneyDashboard.tsx');
 
