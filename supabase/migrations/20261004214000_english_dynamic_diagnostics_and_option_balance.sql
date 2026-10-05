@@ -342,9 +342,12 @@ begin
   from pool;
 
   v_recommended:=case
-    when v_pool_size>=30 then 30
-    when v_pool_size>=20 then 20
-    when v_pool_size>=10 then 10
+    when v_pool_size>=30 and v_skill_count>=4
+      and jsonb_array_length(v_difficulty)>=2 then 30
+    when v_pool_size>=20 and v_skill_count>=3
+      and jsonb_array_length(v_difficulty)>=2 then 20
+    when v_pool_size>=10 and v_skill_count>=2
+      and jsonb_array_length(v_difficulty)>=2 then 10
     else 0
   end;
 
@@ -368,12 +371,24 @@ begin
   ),'[]'::jsonb)
   into v_depths
   from depths depth
-  where v_pool_size>=depth.question_count;
+  where
+    (depth.question_count=10
+      and v_pool_size>=10 and v_skill_count>=2 and jsonb_array_length(v_difficulty)>=2)
+    or (depth.question_count=20
+      and v_pool_size>=20 and v_skill_count>=3 and jsonb_array_length(v_difficulty)>=2)
+    or (depth.question_count=30
+      and v_pool_size>=30 and v_skill_count>=4 and jsonb_array_length(v_difficulty)>=2)
+    or (depth.question_count=40
+      and v_pool_size>=40 and v_skill_count>=5 and jsonb_array_length(v_difficulty)>=3);
 
   return jsonb_build_object(
     'success',true,
-    'ready',v_pool_size>=10,
-    'reason',case when v_pool_size>=10 then null else 'governed_pool_too_small' end,
+    'ready',v_recommended>0,
+    'reason',case
+      when v_recommended>0 then null
+      when v_pool_size<10 then 'governed_pool_too_small'
+      else 'governed_pool_too_narrow'
+    end,
     'group',jsonb_build_object(
       'id',v_group.group_id,
       'name',v_group.group_name,
@@ -401,6 +416,7 @@ begin
       'fourOptionMcqOnly',true,
       'recentQuestionsDeprioritized',true,
       'skillDiversityPrioritized',true,
+      'minimumSkillAndDifficultyDiversityEnforced',true,
       'balancedAnswerPositionsOnAssignmentSnapshot',true,
       'canonicalQuestionContentUnchanged',true
     )
@@ -436,6 +452,11 @@ declare
   v_skill_count integer;
   v_difficulty jsonb;
   v_student_count integer:=0;
+  v_pool_size integer:=0;
+  v_pool_skills integer:=0;
+  v_pool_difficulties integer:=0;
+  v_required_skills integer:=0;
+  v_required_difficulties integer:=0;
 begin
   if v_actor is null then
     raise exception using errcode='42501',message='authentication_required';
@@ -462,6 +483,31 @@ begin
 
   if v_student_count=0 then
     raise exception using errcode='22023',message='teaching_group_has_no_assignable_students';
+  end if;
+
+  select
+    count(*)::integer,
+    count(distinct pool.skill_key)::integer,
+    count(distinct pool.difficulty)::integer
+  into v_pool_size,v_pool_skills,v_pool_difficulties
+  from private.teacher_diagnostic_candidate_pool(v_actor,p_school_id,p_group_id) pool;
+
+  v_required_skills:=case p_question_count
+    when 10 then 2 when 20 then 3 when 30 then 4 else 5 end;
+  v_required_difficulties:=case when p_question_count=40 then 3 else 2 end;
+
+  if v_pool_size<p_question_count then
+    raise exception using errcode='23514',
+      message='diagnostic_pool_insufficient',
+      detail='requested='||p_question_count::text||'; available='||v_pool_size::text;
+  end if;
+
+  if v_pool_skills<v_required_skills or v_pool_difficulties<v_required_difficulties then
+    raise exception using errcode='23514',
+      message='diagnostic_pool_not_diverse_enough',
+      detail='requested='||p_question_count::text||
+        '; skills='||v_pool_skills::text||
+        '; difficulties='||v_pool_difficulties::text;
   end if;
 
   v_seed:=extensions.gen_random_uuid()::text;
@@ -491,6 +537,15 @@ begin
     ),'[]'::jsonb)
   into v_recent_repeats,v_skill_count,v_difficulty
   from selected;
+
+  if v_skill_count<v_required_skills
+     or jsonb_array_length(v_difficulty)<v_required_difficulties then
+    raise exception using errcode='23514',
+      message='diagnostic_form_not_diverse_enough',
+      detail='requested='||p_question_count::text||
+        '; selected_skills='||v_skill_count::text||
+        '; selected_difficulties='||jsonb_array_length(v_difficulty)::text;
+  end if;
 
   return jsonb_build_object(
     'success',true,
