@@ -479,7 +479,13 @@ export default function AssignmentWizard({
   }, [audienceGrades, setAssignmentQuestionIds, subjectQuestions, teacherId]);
 
   const selectedQuestions = useMemo(
-    () => subjectQuestions.filter((question) => assignmentQuestionIds.includes(question.id)),
+    () => {
+      const questionsById = new Map(subjectQuestions.map((question) => [question.id, question]));
+      return assignmentQuestionIds.flatMap((id) => {
+        const question = questionsById.get(id);
+        return question ? [question] : [];
+      });
+    },
     [assignmentQuestionIds, subjectQuestions],
   );
   const verifiedProfileQuestions = useMemo(
@@ -697,6 +703,7 @@ export default function AssignmentWizard({
               </div>
               <h2 className="mt-2 text-lg font-black text-slate-950">{preparedDiagnostic.schoolSubjectName} · Grade {preparedDiagnostic.gradeLevel} · {preparedDiagnostic.groupName}</h2>
               <p className="mt-1 text-sm leading-6 text-slate-600">Brains Heist prepared {preparedDiagnostic.questionCount} governed questions across {preparedDiagnostic.distinctSkills} skill areas. Review the exact questions below, then use the normal assignment steps for title, instructions, due date, scheduling and publishing.</p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-cyan-800">Answer choices are balanced across A–D when you save. Bank previews show the original option order; open the saved assignment or print preview to see the final order students receive.</p>
             </div>
             <div className="shrink-0 rounded-xl border border-slate-200 bg-white px-4 py-3 text-right">
               <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Current selection</span>
@@ -1066,7 +1073,7 @@ export default function AssignmentWizard({
         </footer>
       </form>
 
-      {previewQuestion ? <QuestionPreviewModal question={previewQuestion} onClose={() => setPreviewQuestion(null)} /> : null}
+      {previewQuestion ? <QuestionPreviewModal question={previewQuestion} onClose={() => setPreviewQuestion(null)} optionOrderNote={diagnosticMode ? 'Bank preview · Answer letters shown here use the original option order. When you save this diagnostic, choices are balanced across A–D. The saved assignment and print preview show the final order students receive.' : undefined} /> : null}
     </div>
   );
 }
