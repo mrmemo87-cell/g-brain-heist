@@ -19,6 +19,7 @@ export interface PrintableAssignmentQuestion {
   questionText: string;
   questionType: string;
   options: PrintableAssignmentOption[];
+  optionOrderPolicy?: 'assignment-balanced-v1' | null;
   imageUrl?: string | null;
   imageAltText?: string | null;
   timeLimit?: number | null;
@@ -54,7 +55,7 @@ const responseLines = (count = 3) => Array.from({ length: count }, () => (
 )).join('');
 
 const questionHtml = (question: PrintableAssignmentQuestion) => {
-  const options = Array.isArray(question.options) ? economicsDisplayOptions(question.questionId, question.options.filter((option) => option?.text)) : [];
+  const options = Array.isArray(question.options) ? economicsDisplayOptions(question.questionId, question.options.filter((option) => option?.text), question.optionOrderPolicy) : [];
   const isShortAnswer = question.questionType === 'short_answer' || options.length === 0;
   const image = question.imageUrl
     ? `<img src="${escapeSchoolDocumentHtml(question.imageUrl)}" alt="${escapeSchoolDocumentHtml(question.imageAltText || `Question ${question.orderIndex} visual`)}" style="display:block;max-width:100%;max-height:75mm;margin:3mm auto;object-fit:contain">`

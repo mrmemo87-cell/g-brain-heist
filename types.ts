@@ -901,6 +901,7 @@ export interface QuestionOption {
 }
 
 export interface TeacherQuestion {
+  option_order_policy?: 'assignment-balanced-v1' | null;
   id: string;
   teacher_id: string | null;
   /** Ownership resolved by get_all_active_questions for the signed-in teacher. */

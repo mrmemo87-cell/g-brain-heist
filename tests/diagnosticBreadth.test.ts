@@ -59,10 +59,10 @@ await db.exec(`
     join questions q on q.id=md5(i::text)::uuid;
 `);
 await db.exec(readFileSync('supabase/migrations/20261005083909_diagnostic_micro_skill_breadth.sql', 'utf8'));
-const balanceMigration = readFileSync('supabase/migrations/20261004214000_english_dynamic_diagnostics_and_option_balance.sql', 'utf8');
+const balanceMigration = readFileSync('supabase/migrations/20261005084947_assignment_snapshot_option_order_policy.sql', 'utf8');
 await db.exec(balanceMigration.slice(
   balanceMigration.indexOf('create or replace function private.balance_assignment_question_options()'),
-  balanceMigration.indexOf('-- 2. Shared governed diagnostic pool'),
+  balanceMigration.indexOf('CREATE OR REPLACE FUNCTION public.rpc_teacher_assignment_print_packet'),
 ));
 const pool = () => db.query<{ question_id: string; skill_key: string; recently_used: boolean }>(
   'select * from private.teacher_diagnostic_candidate_pool($1,$2,$3)', [actor, school, group],
@@ -165,9 +165,9 @@ test('saved snapshots balance A–D and preserve the correct answer, source orde
       from (select * from questions where jsonb_typeof(options)='array'
         and current_content_hash=verified_content_hash and is_mapped
         and options='["right","wrong1","wrong2","wrong3"]'::jsonb order by id limit $2) q`, [assignmentId, count]);
-    const saved = (await db.query<{ options: string[]; answer: string; hash: string; source: string[]; source_answer: string }>(`
+    const saved = (await db.query<{ options: string[]; answer: string; hash: string; policy: string; source: string[]; source_answer: string }>(`
       select aq.question_snapshot->'options' options,aq.question_snapshot->>'correct_answer' answer,
-        aq.question_snapshot->>'current_content_hash' hash,q.options source,q.correct_answer source_answer
+        aq.question_snapshot->>'current_content_hash' hash,aq.question_snapshot->>'option_order_policy' policy,q.options source,q.correct_answer source_answer
       from assignment_questions aq join questions q on q.id=aq.question_id
       where aq.assignment_id=$1 order by aq.order_index`, [assignmentId])).rows;
     assert.equal(saved.length, count);
@@ -175,6 +175,7 @@ test('saved snapshots balance A–D and preserve the correct answer, source orde
     for (const item of saved) {
       assert.equal(item.answer, item.source_answer);
       assert.equal(item.hash, 'current');
+      assert.equal(item.policy, 'assignment-balanced-v1');
       assert.deepEqual(item.source, ['right', 'wrong1', 'wrong2', 'wrong3']);
       assert.deepEqual([...item.options].sort(), [...item.source].sort());
       positions[item.options.indexOf(item.answer)] += 1;

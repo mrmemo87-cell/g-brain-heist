@@ -4,7 +4,9 @@ type TextOption = string | { text: string };
 const presentationPlans: Record<string, { fingerprint: number; order: number[] }> = plans;
 
 /** Display-only ordering. Canonical content, hashes, answer text and snapshots stay intact. */
-export function economicsDisplayOptions<T extends TextOption>(questionId: string, options: T[]): T[] {
+export function economicsDisplayOptions<T extends TextOption>(questionId: string, options: T[], optionOrderPolicy?: string | null): T[] {
+  // An assignment owns its saved order, even when that order matches the bank.
+  if (optionOrderPolicy === 'assignment-balanced-v1') return options;
   const plan = presentationPlans[questionId];
   if (!plan || options.length !== 4) return options;
   let fingerprint = 0x811c9dc5;
