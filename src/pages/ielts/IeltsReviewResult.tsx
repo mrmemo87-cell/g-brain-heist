@@ -26,14 +26,15 @@ const IeltsReviewResult: React.FC = () => {
         {data ? (
           <>
             {data.review_status !== 'finalized' ? (
-              <div style={{ background: '#fef3c7', color: '#92400e', padding: '1rem', borderRadius: '0.75rem', marginBottom: '1rem' }}>Review not finalized yet. Premium feedback unlocks after final teacher finalization.</div>
+              <div style={{ background: '#fef3c7', color: '#92400e', padding: '1rem', borderRadius: '0.75rem', marginBottom: '1rem' }}>Your teacher review is still in progress. Feedback will appear after it is finalized.</div>
             ) : null}
             {data.review_status !== 'finalized' ? null : (
               <>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
               <div style={{ background: '#eff6ff', borderRadius: '0.75rem', padding: '1rem' }}>
-                <div style={{ color: '#475569', fontSize: '0.85rem' }}>Reviewed band</div>
+                <div style={{ color: '#475569', fontSize: '0.85rem' }}>Reviewed task band</div>
                 <strong style={{ color: '#1d4ed8', fontSize: '2rem' }}>{data.overall_band ?? '—'}</strong>
+                <div style={{ marginTop: '0.35rem', color: '#64748b', fontSize: '0.72rem', lineHeight: 1.45 }}>This score belongs to this submitted task only. It is not a complete IELTS skill or overall readiness band.</div>
               </div>
               <div style={{ background: '#f8fafc', borderRadius: '0.75rem', padding: '1rem' }}>
                 <div style={{ color: '#475569', fontSize: '0.85rem' }}>Reviewed timestamp</div>
