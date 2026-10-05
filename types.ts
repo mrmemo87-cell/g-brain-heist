@@ -786,7 +786,6 @@ export interface IELTSListeningAttempt {
   raw_score: number | null;
   total_questions: number | null;
   percent: number | null;
-  est_band: number | null;
 }
 
 export interface IELTSWritingAttempt {
