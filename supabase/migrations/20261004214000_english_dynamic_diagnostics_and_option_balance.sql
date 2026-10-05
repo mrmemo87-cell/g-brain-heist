@@ -302,18 +302,19 @@ begin
 
   if v_group.academic_subject_id is null
      or v_group.academic_year_id is null
-     or v_group.grade_level !~ '^[0-9]+
+     or v_group.grade_level !~ '^[0-9]+$' then
     return jsonb_build_object(
       'success',true,
       'ready',false,
       'reason','academic_context_incomplete',
       'group',jsonb_build_object(
-        'id',v_group.group_id,'name',v_group.group_name,
+        'id',v_group.group_id,
+        'name',v_group.group_name,
         'gradeLevel',v_group.grade_level,
+        'studentCount',v_student_count,
         'schoolSubjectName',v_group.school_subject_name,
         'academicSubjectName',v_group.academic_subject_name,
-        'academicSubjectCode',v_group.academic_subject_code,
-        'studentCount',v_student_count
+        'academicSubjectCode',v_group.academic_subject_code
       ),
       'depths','[]'::jsonb
     );
@@ -361,7 +362,7 @@ begin
       'estimatedMinutes',depth.estimated_minutes,
       'description',depth.description,
       'recommended',depth.question_count=v_recommended,
-      'available',v_pool_size>=depth.question_count
+      'available',true
     )
     order by depth.sort_order
   ),'[]'::jsonb)
@@ -461,232 +462,6 @@ begin
 
   if v_student_count=0 then
     raise exception using errcode='22023',message='teaching_group_has_no_assignable_students';
-  end if;
-
-  v_seed:=extensions.gen_random_uuid()::text;
-  v_question_ids:=private.select_teacher_diagnostic_questions(
-    v_actor,p_school_id,p_group_id,p_question_count,v_seed
-  );
-  v_count:=cardinality(v_question_ids);
-
-  with selected as (
-    select pool.*
-    from private.teacher_diagnostic_candidate_pool(v_actor,p_school_id,p_group_id) pool
-    where pool.question_id=any(v_question_ids)
-  )
-  select
-    count(*) filter(where recently_used)::integer,
-    count(distinct skill_key)::integer,
-    coalesce((
-      select jsonb_agg(
-        jsonb_build_object('level',difficulty,'count',question_count)
-        order by case difficulty when 'easy' then 1 when 'medium' then 2 when 'hard' then 3 else 4 end,difficulty
-      )
-      from (
-        select difficulty,count(*)::integer question_count
-        from selected
-        group by difficulty
-      ) d
-    ),'[]'::jsonb)
-  into v_recent_repeats,v_skill_count,v_difficulty
-  from selected;
-
-  return jsonb_build_object(
-    'success',true,
-    'groupId',v_group.group_id,
-    'groupName',v_group.group_name,
-    'gradeLevel',v_group.grade_level,
-    'studentCount',v_student_count,
-    'schoolSubjectId',v_group.school_subject_id,
-    'schoolSubjectName',v_group.school_subject_name,
-    'academicSubjectId',v_group.academic_subject_id,
-    'academicSubjectCode',v_group.academic_subject_code,
-    'academicSubjectName',v_group.academic_subject_name,
-    'questionIds',to_jsonb(v_question_ids),
-    'questionCount',v_count,
-    'distinctSkills',v_skill_count,
-    'recentRepeatCount',v_recent_repeats,
-    'difficultyBreakdown',v_difficulty,
-    'defaultTitle',v_group.school_subject_name||' Diagnostic · '||v_group.group_name,
-    'defaultDescription','Independent diagnostic prepared from the Brains Heist Verified question bank for this exact teaching group.',
-    'defaultInstructions','Complete this independently. Read every option carefully and answer every question. Your teacher will use the results alongside other evidence to plan what to teach next.',
-    'assignmentCategory','quiz',
-    'topicName','Quick diagnostic',
-    'quality',jsonb_build_object(
-      'freshForm',true,
-      'recentLookbackDays',90,
-      'verifiedOnly',true,
-      'curriculumMappedOnly',true,
-      'balancedAnswerPositionsOnSave',true,
-      'canonicalContentUnchanged',true
-    )
-  );
-end;
-$$;
-
-revoke all on function public.rpc_teacher_compose_diagnostic(uuid,uuid,integer)
-from public,anon,authenticated,service_role;
-grant execute on function public.rpc_teacher_compose_diagnostic(uuid,uuid,integer)
-to authenticated,service_role;
-
-comment on function public.rpc_teacher_diagnostic_composer(uuid,uuid) is
-  'Teacher-authorized capability preview for a universal governed diagnostic composer; returns no answer keys.';
-
-comment on function public.rpc_teacher_compose_diagnostic(uuid,uuid,integer) is
-  'Teacher-authorized fresh diagnostic form preparation for the existing Assignment Wizard; returns governed question IDs and quality metadata but does not create an assignment.';
-
-comment on function private.balance_assignment_question_options() is
-  'Deterministically reorders MCQ options only inside newly materialized immutable assignment snapshots; canonical verified question content and hashes are unchanged.';
- then
-    return jsonb_build_object(
-      'success',true,
-      'ready',false,
-      'reason','academic_context_incomplete',
-      'group',jsonb_build_object(
-        'id',v_group.group_id,'name',v_group.group_name,
-        'gradeLevel',v_group.grade_level,
-        'schoolSubjectName',v_group.school_subject_name,
-        'academicSubjectName',v_group.academic_subject_name,
-        'academicSubjectCode',v_group.academic_subject_code,
-        'studentCount',v_student_count
-      ),
-      'depths','[]'::jsonb
-    );
-  end if;
-
-  with pool as (
-    select * from private.teacher_diagnostic_candidate_pool(v_actor,p_school_id,p_group_id)
-  )
-  select
-    count(*)::integer,
-    count(*) filter(where not recently_used)::integer,
-    count(distinct skill_key)::integer,
-    coalesce((
-      select jsonb_agg(
-        jsonb_build_object('level',difficulty,'count',question_count)
-        order by case difficulty when 'easy' then 1 when 'medium' then 2 when 'hard' then 3 else 4 end,difficulty
-      )
-      from (
-        select difficulty,count(*)::integer question_count
-        from pool
-        group by difficulty
-      ) d
-    ),'[]'::jsonb)
-  into v_pool_size,v_recent_available,v_skill_count,v_difficulty
-  from pool;
-
-  v_recommended:=case
-    when v_pool_size>=30 then 30
-    when v_pool_size>=20 then 20
-    when v_pool_size>=10 then 10
-    else 0
-  end;
-
-  with depths(question_count,short_name,name,estimated_minutes,description,sort_order) as (values
-    (10,'Quick Check','Quick Diagnostic',10,'A compact baseline when you need a fast check before planning.',10),
-    (20,'Focused','Focused Diagnostic',20,'A broader snapshot with stronger skill coverage while staying classroom-friendly.',20),
-    (30,'Recommended','Diagnostic',30,'The recommended balance of breadth, depth and completion time for most classes.',30),
-    (40,'Deep','Deep Diagnostic',40,'Maximum evidence depth when the governed bank is large enough for the group.',40)
-  )
-  select coalesce(jsonb_agg(
-    jsonb_build_object(
-      'questionCount',depth.question_count,
-      'shortName',depth.short_name,
-      'name',depth.name,
-      'estimatedMinutes',depth.estimated_minutes,
-      'description',depth.description,
-      'recommended',depth.question_count=v_recommended,
-      'available',v_pool_size>=depth.question_count
-    )
-    order by depth.sort_order
-  ),'[]'::jsonb)
-  into v_depths
-  from depths depth
-  where v_pool_size>=depth.question_count;
-
-  return jsonb_build_object(
-    'success',true,
-    'ready',v_pool_size>=10,
-    'reason',case when v_pool_size>=10 then null else 'governed_pool_too_small' end,
-    'group',jsonb_build_object(
-      'id',v_group.group_id,
-      'name',v_group.group_name,
-      'gradeLevel',v_group.grade_level,
-      'studentCount',v_student_count,
-      'schoolSubjectId',v_group.school_subject_id,
-      'schoolSubjectName',v_group.school_subject_name,
-      'academicSubjectId',v_group.academic_subject_id,
-      'academicSubjectCode',v_group.academic_subject_code,
-      'academicSubjectName',v_group.academic_subject_name,
-      'academicYearId',v_group.academic_year_id
-    ),
-    'pool',jsonb_build_object(
-      'eligibleQuestions',v_pool_size,
-      'notRecentlyUsed',v_recent_available,
-      'distinctSkills',v_skill_count,
-      'difficultyBreakdown',v_difficulty,
-      'recentLookbackDays',90
-    ),
-    'depths',v_depths,
-    'qualityContract',jsonb_build_object(
-      'brainsHeistVerifiedOnly',true,
-      'gradeEligibleOnly',true,
-      'curriculumMappedOnly',true,
-      'fourOptionMcqOnly',true,
-      'recentQuestionsDeprioritized',true,
-      'skillDiversityPrioritized',true,
-      'balancedAnswerPositionsOnAssignmentSnapshot',true,
-      'canonicalQuestionContentUnchanged',true
-    )
-  );
-end;
-$$;
-
-revoke all on function public.rpc_teacher_diagnostic_composer(uuid,uuid)
-from public,anon,authenticated,service_role;
-grant execute on function public.rpc_teacher_diagnostic_composer(uuid,uuid)
-to authenticated,service_role;
-
--- ---------------------------------------------------------------------------
--- 4. Prepare a fresh form for the existing Assignment Wizard
--- ---------------------------------------------------------------------------
-create or replace function public.rpc_teacher_compose_diagnostic(
-  p_school_id uuid,
-  p_group_id uuid,
-  p_question_count integer
-)
-returns jsonb
-language plpgsql
-security definer
-set search_path=''
-as $$
-declare
-  v_actor uuid:=(select auth.uid());
-  v_group record;
-  v_question_ids uuid[];
-  v_seed text;
-  v_count integer;
-  v_recent_repeats integer;
-  v_skill_count integer;
-  v_difficulty jsonb;
-begin
-  if v_actor is null then
-    raise exception using errcode='42501',message='authentication_required';
-  end if;
-
-  select *
-  into v_group
-  from private.teacher_current_teaching_groups(v_actor,p_school_id) group_row
-  where group_row.group_id=p_group_id
-    and group_row.can_create
-  limit 1;
-
-  if not found then
-    raise exception using errcode='42501',message='teaching_group_create_access_required';
-  end if;
-
-  if p_question_count not in (10,20,30,40) then
-    raise exception using errcode='22023',message='unsupported_diagnostic_question_count';
   end if;
 
   v_seed:=extensions.gen_random_uuid()::text;
