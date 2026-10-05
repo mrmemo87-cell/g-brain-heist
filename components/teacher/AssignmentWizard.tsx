@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { AssignmentCategory, QuestionDifficulty, QuestionType, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
+import type { PreparedDiagnostic } from '../../services/diagnosticComposerService';
 import { fetchSchoolReportCalendar, type SchoolReportCalendar } from '../../services/schoolAcademicSetupService';
 import { ASSIGNMENT_CATEGORY_META, getAssignmentCategoryMeta } from '../../src/lib/assignmentCategory';
 import type { TeacherAllocatedClass } from '../../services/schoolAdminService';
@@ -44,6 +45,7 @@ const getQuestionAuthorityLabel = (question: TeacherQuestion, teacherId?: string
 interface AssignmentWizardProps {
   initialStep?: WizardStep;
   lockedSubject?: string | null;
+  preparedDiagnostic?: PreparedDiagnostic | null;
   assignmentMode: AssignmentMode;
   setAssignmentMode: (mode: AssignmentMode) => void;
   assignmentBatches: string[];
@@ -158,6 +160,7 @@ const localDateKey = (date = new Date()) => {
 export default function AssignmentWizard({
   initialStep = 1,
   lockedSubject = null,
+  preparedDiagnostic = null,
   assignmentMode,
   setAssignmentMode,
   assignmentBatches,
@@ -252,12 +255,27 @@ export default function AssignmentWizard({
     () => teachingGroups.find((group) => group.id === assignmentGroupId) || null,
     [assignmentGroupId, teachingGroups],
   );
+  const diagnosticMode = Boolean(preparedDiagnostic);
   const subjectTeachingGroups = useMemo(
     () => teachingGroups.filter((group) => normalizeSubject(group.schoolSubjectName) === normalizeSubject(assignmentSubject)),
     [assignmentSubject, teachingGroups],
   );
   const hasTeachingGroups = subjectTeachingGroups.length > 0;
   const classOnlyTeachingGroups = hasTeachingGroups && subjectTeachingGroups.every((group) => group.groupType === 'class');
+
+  useEffect(() => {
+    if (preparedDiagnostic) {
+      setQuestionPool('brains-heist');
+      setTypeFilter('multiple_choice');
+      setSort('recommended');
+      setAssignmentTopicMode('custom');
+      setAssignmentTopicName(preparedDiagnostic.topicName);
+      setAssignmentGroupId?.(preparedDiagnostic.groupId);
+      setAssignmentSubject(preparedDiagnostic.schoolSubjectName);
+      setAssignmentMode('custom');
+      setAssignmentBatches([]);
+    }
+  }, [preparedDiagnostic, setAssignmentBatches, setAssignmentGroupId, setAssignmentMode, setAssignmentSubject, setAssignmentTopicMode, setAssignmentTopicName]);
 
   useEffect(() => {
     if (!schoolId || !assignmentGroupId) {
@@ -668,6 +686,28 @@ export default function AssignmentWizard({
         </section>
       </div>
 
+      {preparedDiagnostic ? (
+        <section className="mb-4 rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 via-white to-blue-50 p-4 shadow-sm" aria-label="Prepared diagnostic context">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-slate-950 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white">Prepared diagnostic</span>
+                <span className="rounded-full border border-cyan-200 bg-white px-2.5 py-1 text-[10px] font-bold text-cyan-800">Verified MCQ only</span>
+                <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 text-[10px] font-bold text-emerald-800">Balanced on save</span>
+              </div>
+              <h2 className="mt-2 text-lg font-black text-slate-950">{preparedDiagnostic.schoolSubjectName} · Grade {preparedDiagnostic.gradeLevel} · {preparedDiagnostic.groupName}</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600">Brains Heist prepared {preparedDiagnostic.questionCount} governed questions across {preparedDiagnostic.distinctSkills} skill areas. Review the exact questions below, then use the normal assignment steps for title, instructions, due date, scheduling and publishing.</p>
+            </div>
+            <div className="shrink-0 rounded-xl border border-slate-200 bg-white px-4 py-3 text-right">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Current selection</span>
+              <strong className="text-xl text-slate-950">{assignmentQuestionIds.length}</strong>
+              <span className="ml-1 text-xs text-slate-500">questions</span>
+              {assignmentQuestionIds.length !== preparedDiagnostic.questionCount ? <span className="mt-1 block text-[11px] font-semibold text-amber-700">Teacher-edited from prepared form</span> : null}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <form onSubmit={handleSubmit} className="aw-layout">
         <section className="aw-card" aria-labelledby={`wizard-step-${step}`}>
           <div className="aw-card__heading">
@@ -679,7 +719,14 @@ export default function AssignmentWizard({
             <div className="aw-step">
               {hasTeachingGroups ? (
                 <>
-                  <p className="aw-intro">{classOnlyTeachingGroups ? 'Choose one or more classes. One assignment will be created for each selected class in a single publish action.' : 'Choose the teaching group this assignment belongs to. Its roster is managed from School Admin.'}</p>
+                  {preparedDiagnostic ? (
+                    <div className="aw-subject-lock" role="status">
+                      <strong>{preparedDiagnostic.groupName} is locked to this diagnostic.</strong>
+                      <span>The question set was composed for Grade {preparedDiagnostic.gradeLevel} and this exact teaching-group roster. Return to the diagnostic composer to choose another group.</span>
+                    </div>
+                  ) : (
+                    <p className="aw-intro">{classOnlyTeachingGroups ? 'Choose one or more classes. One assignment will be created for each selected class in a single publish action.' : 'Choose the teaching group this assignment belongs to. Its roster is managed from School Admin.'}</p>
+                  )}
                   <div className="aw-class-grid">
                     {subjectTeachingGroups.map((group) => {
                       const allocatedClass = group.registrationClassId
@@ -694,7 +741,10 @@ export default function AssignmentWizard({
                           key={group.id}
                           type="button"
                           aria-pressed={selected}
+                          disabled={diagnosticMode}
+                          aria-disabled={diagnosticMode}
                           onClick={() => {
+                            if (diagnosticMode) return;
                             if (group.groupType === 'class') {
                               setAssignmentGroupId?.('');
                               setAssignmentMode('batch');
@@ -706,7 +756,7 @@ export default function AssignmentWizard({
                             }
                             setReviewConfirmed(false);
                           }}
-                          className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}
+                          className={`${selected ? 'aw-class-card is-selected' : 'aw-class-card'}${diagnosticMode ? ' is-disabled' : ''}`}
                         >
                           <span className="aw-class-icon" aria-hidden="true">{group.groupType === 'custom' ? '👥' : group.groupType === 'whole_grade' ? '🎓' : '🏫'}</span>
                           <span className="aw-class-card__details">
@@ -735,7 +785,7 @@ export default function AssignmentWizard({
                           .map((student) => {
                             const selected = selectedStudentIds.includes(student.student_id);
                             return (
-                              <button key={student.student_id} type="button" aria-pressed={selected} onClick={() => toggleStudent(student.student_id)} className={selected ? 'aw-student-card is-selected' : 'aw-student-card'}>
+                              <button key={student.student_id} type="button" aria-pressed={selected} disabled={diagnosticMode} aria-disabled={diagnosticMode} onClick={() => { if (!diagnosticMode) toggleStudent(student.student_id); }} className={`${selected ? 'aw-student-card is-selected' : 'aw-student-card'}${diagnosticMode ? ' is-disabled' : ''}`}>
                                 <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(student.student_name)}`} alt="" />
                                 <span><strong>{student.student_name}</strong><small>{student.class_code} · Grade {selectedTeachingGroup.gradeLevel}</small></span>
                                 <span className="aw-check">{selected ? '✓' : ''}</span>
@@ -814,8 +864,8 @@ export default function AssignmentWizard({
             <div className="aw-step">
               {lockedSubject ? (
                 <div className="aw-subject-lock" role="status">
-                  <strong>{lockedSubject} is fixed for this assignment.</strong>
-                  <span>You already added {lockedSubject} questions from the Question Bank. Remove those questions and start a blank assignment to choose another subject.</span>
+                  <strong>{preparedDiagnostic ? `${lockedSubject} is locked to this prepared diagnostic.` : `${lockedSubject} is fixed for this assignment.`}</strong>
+                  <span>{preparedDiagnostic ? 'The diagnostic was composed against this subject and grade. Start a different diagnostic if you need another subject.' : `You already added ${lockedSubject} questions from the Question Bank. Remove those questions and start a blank assignment to choose another subject.`}</span>
                 </div>
               ) : <p className="aw-intro">Only school subjects allocated to your active teaching groups are available.</p>}
               <div className="aw-subject-grid" role="radiogroup" aria-label="Choose subject">
@@ -837,19 +887,19 @@ export default function AssignmentWizard({
             <div className="aw-step aw-questions">
               <div className="aw-toolbar">
                 <label className="aw-search aw-search--wide"><span>⌕</span><input value={questionSearch} onChange={(event) => setQuestionSearch(event.target.value)} placeholder="Search question, answer, topic, tags…" aria-label="Search question bank" /></label>
-                <select value={questionPool} onChange={(event) => setQuestionPool(event.target.value as QuestionPool)} aria-label="Choose question pool">
+                <select value={questionPool} disabled={diagnosticMode} onChange={(event) => setQuestionPool(event.target.value as QuestionPool)} aria-label="Choose question pool">
                   <option value="all">All pools</option>
                   <option value="brains-heist">Brains Heist Verified</option>
                   {schoolId ? <option value="school">School Verified</option> : null}
                   <option value="mine">My Pool</option>
                 </select>
-                <select value={topicFilter} onChange={(event) => { setTopicFilter(event.target.value); setAssignmentTopicMode(event.target.value === 'all' ? 'general' : 'custom'); setAssignmentTopicName(event.target.value === 'all' ? '' : event.target.value); }} aria-label="Filter by topic">
+                <select value={topicFilter} onChange={(event) => { setTopicFilter(event.target.value); if (!diagnosticMode) { setAssignmentTopicMode(event.target.value === 'all' ? 'general' : 'custom'); setAssignmentTopicName(event.target.value === 'all' ? '' : event.target.value); } }} aria-label="Filter by topic">
                   <option value="all">All topics</option>{topics.map((topic) => <option key={topic} value={topic}>{topic}</option>)}
                 </select>
                 <select value={difficultyFilter} onChange={(event) => setDifficultyFilter(event.target.value as 'all' | QuestionDifficulty)} aria-label="Filter by difficulty">
                   <option value="all">All difficulties</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
                 </select>
-                <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as 'all' | QuestionType)} aria-label="Filter by question type">
+                <select value={typeFilter} disabled={diagnosticMode} onChange={(event) => setTypeFilter(event.target.value as 'all' | QuestionType)} aria-label="Filter by question type">
                   <option value="all">All types</option><option value="multiple_choice">Multiple choice</option><option value="true_false">True / false</option><option value="short_answer">Short answer</option>
                 </select>
                 <select value={xpFilter} onChange={(event) => setXpFilter(event.target.value as XpFilter)} aria-label="Filter by XP">
