@@ -6590,7 +6590,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   }}
                 />
               ) : diagnosticIntelligenceLoading ? (
-                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm font-semibold text-cyan-800">Building the ESL diagnostic skill map…</div>
+                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm font-semibold text-cyan-800">Building the diagnostic skill map…</div>
               ) : null}
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
