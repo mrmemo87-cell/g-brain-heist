@@ -142,9 +142,10 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
     );
   }, [attempts]);
 
-  const latestMockBand = useMemo(() => {
-    return attempts.mock.find((attempt) => attempt.overall_band_est !== null)?.overall_band_est ?? null;
-  }, [attempts.mock]);
+  const completedMockCount = useMemo(
+    () => attempts.mock.filter((attempt) => Boolean(attempt.completed_at)).length,
+    [attempts.mock],
+  );
 
   const addToStudyPlan = (sectionLabel: string, title: string) => {
     setStudyPlan((current) => {
@@ -186,7 +187,7 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
                 <h3>{set.title}</h3>
                 <p className="ielts-card__support">{set.description || 'Academic reading practice aligned with IELTS question types.'}</p>
               </div>
-              <span className="ielts-tag">Band {formatBandRange(set.est_band_min, set.est_band_max)}</span>
+              <span className="ielts-tag">Target difficulty {formatBandRange(set.est_band_min, set.est_band_max)}</span>
             </header>
             <dl className="ielts-card__meta">
               <div>
@@ -232,7 +233,7 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
                 <h3>{set.title}</h3>
                 <p className="ielts-card__support">{set.description || 'Exam-style audio recordings with structured questions.'}</p>
               </div>
-              <span className="ielts-tag">Band {formatBandRange(set.est_band_min, set.est_band_max)}</span>
+              <span className="ielts-tag">Target difficulty {formatBandRange(set.est_band_min, set.est_band_max)}</span>
             </header>
             <dl className="ielts-card__meta">
               <div>
@@ -373,8 +374,8 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
                 <dd>Reading, listening, writing, speaking</dd>
               </div>
               <div>
-                <dt>Recent score</dt>
-                <dd>{latestMockBand ? `Band ${latestMockBand.toFixed(1)}` : 'Not attempted yet'}</dd>
+                <dt>Completed mocks</dt>
+                <dd>{completedMockCount}</dd>
               </div>
             </dl>
             <button
@@ -435,7 +436,7 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
                 {attempts.writing.map((attempt) => (
                   <li key={attempt.id}>
                     <span>{new Date(attempt.submitted_at).toLocaleDateString()}</span>
-                    <span>{attempt.band_overall ? `Band ${attempt.band_overall.toFixed(1)}` : 'Awaiting feedback'}</span>
+                    <span>{attempt.review_status === 'finalized' && attempt.band_overall ? `Reviewed task band ${attempt.band_overall.toFixed(1)}` : 'Awaiting reviewed feedback'}</span>
                   </li>
                 ))}
               </ul>
@@ -448,7 +449,7 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
                 {attempts.speaking.map((attempt) => (
                   <li key={attempt.id}>
                     <span>{new Date(attempt.submitted_at).toLocaleDateString()}</span>
-                    <span>{attempt.band_overall ? `Band ${attempt.band_overall.toFixed(1)}` : 'Pending review'}</span>
+                    <span>{attempt.review_status === 'finalized' && attempt.band_overall ? `Reviewed task band ${attempt.band_overall.toFixed(1)}` : 'Awaiting reviewed feedback'}</span>
                   </li>
                 ))}
               </ul>
@@ -513,9 +514,9 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
                 <span className="ielts-metric__hint">Track each submission in the progress journal</span>
               </article>
               <article className="ielts-metric">
-                <h3>Latest mock band</h3>
-                <p className="ielts-metric__value">{latestMockBand ? latestMockBand.toFixed(1) : '—'}</p>
-                <span className="ielts-metric__hint">Use full mocks monthly to benchmark your readiness</span>
+                <h3>Completed mock practice</h3>
+                <p className="ielts-metric__value">{completedMockCount}</p>
+                <span className="ielts-metric__hint">Mock practice remains separate from verified readiness until the evidence gates are met</span>
               </article>
             </section>
             <section className="ielts-dashboard__next-steps">
