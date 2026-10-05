@@ -116,6 +116,30 @@ const formatDateOnly = (value?: string | null) => {
 
 const formatBand = (value?: number | null) => (value ? value.toFixed(1) : '—');
 
+const normalizeAttemptSkill = (attempt: any): string =>
+  String(attempt?.skill ?? attempt?.attempt_type ?? '').toLowerCase();
+
+const formatAttemptEvidence = (attempt: any): string => {
+  const skill = normalizeAttemptSkill(attempt);
+  if (skill === 'reading' || skill === 'listening') {
+    const raw = Number(attempt?.raw_score);
+    const total = Number(attempt?.total_questions);
+    if (Number.isFinite(raw) && Number.isFinite(total) && total > 0) {
+      return `Practice ${raw}/${total} correct`;
+    }
+    const percent = Number(attempt?.percent);
+    if (Number.isFinite(percent)) return `Practice ${percent.toFixed(0)}%`;
+    return 'Practice evidence';
+  }
+  if (skill === 'writing' || skill === 'speaking') {
+    const reviewed = attempt?.review_status === 'finalized' || Boolean(attempt?.graded_at) || Boolean(attempt?.reviewed_at);
+    const band = Number(attempt?.band_overall);
+    if (reviewed && Number.isFinite(band) && band > 0) return `Reviewed task band ${band.toFixed(1)}`;
+    return 'Awaiting reviewed feedback';
+  }
+  return 'Practice evidence';
+};
+
 const formatDuration = (seconds?: number | null) => {
   if (!seconds) return '—';
   const minutes = Math.floor(seconds / 60);
@@ -923,22 +947,22 @@ const IeltsAdminDashboard: React.FC = () => {
       ...userCaseData.reading.map((attempt) => ({
         type: 'Reading Attempt',
         date: attempt.submitted_at,
-        detail: `Band ${formatBand(attempt.band_overall)} • Set ${attempt.set_id ?? '—'}`,
+        detail: `${formatAttemptEvidence({ ...attempt, skill: 'reading' })} • Set ${attempt.set_id ?? '—'}`,
       })),
       ...userCaseData.listening.map((attempt) => ({
         type: 'Listening Attempt',
         date: attempt.submitted_at,
-        detail: `Band ${formatBand(attempt.band_overall)} • Set ${attempt.set_id ?? '—'}`,
+        detail: `${formatAttemptEvidence({ ...attempt, skill: 'listening' })} • Set ${attempt.set_id ?? '—'}`,
       })),
       ...userCaseData.writing.map((attempt) => ({
         type: 'Writing Attempt',
         date: attempt.submitted_at,
-        detail: `Band ${formatBand(attempt.band_overall)} • Task ${attempt.task_id ?? '—'}`,
+        detail: `${formatAttemptEvidence({ ...attempt, skill: 'writing' })} • Task ${attempt.task_id ?? '—'}`,
       })),
       ...userCaseData.speaking.map((attempt) => ({
         type: 'Speaking Attempt',
         date: attempt.submitted_at,
-        detail: `Band ${formatBand(attempt.band_overall)} • Task ${attempt.task_id ?? '—'}`,
+        detail: `${formatAttemptEvidence({ ...attempt, skill: 'speaking' })} • Task ${attempt.task_id ?? '—'}`,
       })),
     ];
 
@@ -976,16 +1000,30 @@ const IeltsAdminDashboard: React.FC = () => {
       { label: 'Speaking', attempts: userCaseData.speaking },
     ];
 
-    const buildMetrics = (attempts: any[], days: number) => {
+    const buildMetrics = (attempts: any[], days: number, skillLabel: string) => {
       const cutoff = now - days * 24 * 60 * 60 * 1000;
       const filtered = attempts.filter((attempt) => {
-        const date = new Date(attempt.submitted_at ?? attempt.created_at ?? 0).getTime();
+        const date = new Date(attempt.submitted_at ?? attempt.completed_at ?? attempt.created_at ?? 0).getTime();
         return date >= cutoff;
       });
-      const bands = filtered.map((attempt) => Number(attempt.band_overall)).filter((value) => !Number.isNaN(value));
-      const average = bands.length ? bands.reduce((sum, value) => sum + value, 0) / bands.length : null;
-      const variance = bands.length
-        ? bands.reduce((sum, value) => sum + Math.pow(value - (average ?? 0), 2), 0) / bands.length
+      const objectiveSkill = skillLabel === 'Reading' || skillLabel === 'Listening';
+      const values = objectiveSkill
+        ? filtered
+            .map((attempt) => {
+              const percent = Number(attempt.percent);
+              if (Number.isFinite(percent)) return percent;
+              const raw = Number(attempt.raw_score);
+              const total = Number(attempt.total_questions);
+              return Number.isFinite(raw) && Number.isFinite(total) && total > 0 ? (raw / total) * 100 : Number.NaN;
+            })
+            .filter((value) => Number.isFinite(value))
+        : filtered
+            .filter((attempt) => attempt.review_status === 'finalized' || attempt.graded_at || attempt.reviewed_at)
+            .map((attempt) => Number(attempt.band_overall))
+            .filter((value) => Number.isFinite(value) && value > 0);
+      const average = values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+      const variance = values.length
+        ? values.reduce((sum, value) => sum + Math.pow(value - (average ?? 0), 2), 0) / values.length
         : null;
       const stdDev = variance != null ? Math.sqrt(variance) : null;
       const consistency = stdDev != null && average ? Math.max(0, 100 - (stdDev / average) * 100) : null;
@@ -993,7 +1031,9 @@ const IeltsAdminDashboard: React.FC = () => {
         count: filtered.length,
         average,
         consistency,
-        bands,
+        values,
+        valueLabel: objectiveSkill ? 'Avg practice accuracy' : 'Avg reviewed task band',
+        valueSuffix: objectiveSkill ? '%' : '',
       };
     };
 
@@ -1001,7 +1041,7 @@ const IeltsAdminDashboard: React.FC = () => {
       label: skill.label,
       timeframes: timeframes.map((days) => ({
         days,
-        metrics: buildMetrics(skill.attempts, days),
+        metrics: buildMetrics(skill.attempts, days, skill.label),
       })),
     }));
   }, [userCaseData]);
@@ -1212,7 +1252,7 @@ const IeltsAdminDashboard: React.FC = () => {
                             {userDisplay.secondary && <span className="text-xs text-slate-500">{userDisplay.secondary}</span>}
                           </div>
                           <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
-                          <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
+                          <span className="text-slate-400">{formatAttemptEvidence(attempt)}</span>
                           <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
                         </div>
                       );
@@ -1415,7 +1455,7 @@ const IeltsAdminDashboard: React.FC = () => {
                           {userDisplay.secondary && <span className="text-xs text-slate-500">{userDisplay.secondary}</span>}
                         </div>
                         <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
-                        <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
+                        <span className="text-slate-400">{formatAttemptEvidence(attempt)}</span>
                         <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-400">
@@ -2028,10 +2068,10 @@ const IeltsAdminDashboard: React.FC = () => {
                                   <p className="text-xs uppercase text-slate-400">Last {frame.days} days</p>
                                   <p className="text-xs text-slate-400">{frame.metrics.count} attempts</p>
                                 </div>
-                                <p className="mt-2 text-lg font-semibold">Avg band {formatBand(frame.metrics.average)}</p>
+                                <p className="mt-2 text-lg font-semibold">{frame.metrics.valueLabel} {frame.metrics.average == null ? '—' : `${formatBand(frame.metrics.average)}${frame.metrics.valueSuffix}`}</p>
                                 <p className="text-xs text-slate-400">Consistency {frame.metrics.consistency ? `${frame.metrics.consistency.toFixed(0)}%` : '—'}</p>
                                 <div className="mt-2">
-                                  <Sparkline values={frame.metrics.bands} />
+                                  <Sparkline values={frame.metrics.values} />
                                 </div>
                               </div>
                             ))}
@@ -2061,7 +2101,7 @@ const IeltsAdminDashboard: React.FC = () => {
                           <pre className="mt-2 whitespace-pre-wrap text-xs text-slate-200">{attempt.answer_text ?? 'No answer captured.'}</pre>
                         </div>
                         <div className="mt-3 grid gap-2 text-xs text-slate-400">
-                          <span>Band: {formatBand(attempt.band_overall)}</span>
+                          <span>Reviewed task band: {formatBand(attempt.band_overall)}</span>
                           <span>Graded at: {formatDate(attempt.graded_at)}</span>
                           {attempt.criteria && (
                             <pre className="rounded-lg bg-slate-900 p-2 text-xs text-slate-300">
@@ -2110,7 +2150,7 @@ const IeltsAdminDashboard: React.FC = () => {
                           )}
                           <p className="mt-2 text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
                           <div className="mt-3 grid gap-1 text-xs text-slate-400">
-                            <span>Band: {formatBand(attempt.band_overall)}</span>
+                            <span>Reviewed task band: {formatBand(attempt.band_overall)}</span>
                             <span>Fluency: {formatBand(attempt.band_fluency)}</span>
                             <span>Pronunciation: {formatBand(attempt.band_pronunciation)}</span>
                             <span>Lexical: {formatBand(attempt.band_lexical)}</span>
@@ -2486,11 +2526,12 @@ const IeltsAdminDashboard: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
           <div className="w-full max-w-2xl rounded-2xl bg-slate-900 p-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">{gradeModal.type === 'writing' ? 'Grade writing' : 'Grade speaking'} attempt</h3>
+              <h3 className="text-lg font-semibold">{gradeModal.type === 'writing' ? 'Review writing' : 'Review speaking'} attempt</h3>
               <button className="text-slate-400" onClick={() => setGradeModal(null)}>Close</button>
             </div>
+            <p className="mt-2 text-xs leading-5 text-slate-400">This rating belongs to this submitted task only. It does not create a complete IELTS Writing, Speaking, or overall readiness band.</p>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <label className="text-sm">Overall band
+              <label className="text-sm">Task-level reviewed band
                 <input
                   className="mt-1 w-full rounded-lg bg-slate-800 p-2"
                   value={gradeForm.bandOverall}
