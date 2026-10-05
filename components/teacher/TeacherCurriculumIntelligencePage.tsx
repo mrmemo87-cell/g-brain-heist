@@ -618,13 +618,13 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                       <strong className="block text-white">Evidence only · no predicted grade</strong>
                       Observed accuracy is classroom evidence from profiled Brains Heist Verified items. It is not an exam mark, forecast or grade boundary.
                     </div>
-                    {canLaunchEconomicsDiagnostic ? (
+                    {canPrepareDiagnostic && selectedGroup ? (
                       <button
                         type="button"
-                        onClick={() => setDiagnosticLauncherOpen(true)}
+                        onClick={() => onCreateDiagnostic?.(selectedGroup.id)}
                         className="rounded-2xl border border-cyan-300/25 bg-cyan-300/15 px-4 py-3 text-left text-xs font-black text-cyan-50 transition hover:bg-cyan-300/20"
                       >
-                        + Create independent Paper 1 diagnostic
+                        + Prepare governed diagnostic
                       </button>
                     ) : null}
                   </div>
