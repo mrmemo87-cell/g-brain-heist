@@ -347,7 +347,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
                           </td>
                           <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.82rem' }}>{student.class_name ?? 'No class'}</td>
                           <td style={{ padding: '0.75rem', color: '#334155', fontSize: '0.82rem', fontWeight: 800 }}>{student.completed_practice_total} / {student.assigned_practice_total} completed</td>
-                          <td style={{ padding: '0.75rem', color: '#334155', fontSize: '0.82rem', fontWeight: 800 }}>{student.latest_overall_estimate == null ? 'Not enough data' : `${student.latest_overall_estimate.toFixed(1)} / 9.0`}</td>
+                          <td style={{ padding: '0.75rem', color: '#334155', fontSize: '0.82rem', fontWeight: 800 }}>{student.latest_overall_estimate == null ? 'Verified readiness pending' : `${student.latest_overall_estimate.toFixed(1)} / 9.0`}</td>
                           <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.82rem' }}>{formatDate(student.last_activity_at, 'No activity yet')}</td>
                         </tr>
                       ))}
@@ -361,7 +361,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
 
         {loadState === 'ready' && journey && mode === 'student' && (
           <>
-            {/* Readiness overview — Overall band estimate and skill breakdown. Not enough data yet shown when estimates are null. */}
+            {/* Readiness overview — verified estimates only; practice results remain separate. */}
             <section data-anim="card" aria-labelledby="readiness-heading">
               <p id="readiness-heading" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem', fontWeight: 800, color: '#0891b2', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 Readiness overview
@@ -410,7 +410,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
               )}
               {!journey.current_estimates?.overall && (
                 <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                  Not enough data yet — complete more practice to unlock your Overall band estimate.
+                  Verified four-skill readiness is not available yet. Practice scores and teacher-reviewed feedback remain visible separately while Brains Heist builds qualifying evidence.
                 </p>
               )}
             </section>
@@ -419,7 +419,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
             <div data-anim="card">
               <IeltsNextActionCard
                 weakSkill={journey.weak_skill}
-                nextRecommendation={journey.next_recommendation ?? (actionable ? `Open "${actionable.title}" to continue.` : 'Keep up your practice to build your band estimates.')}
+                nextRecommendation={journey.next_recommendation ?? (actionable ? `Open "${actionable.title}" to continue.` : 'Keep practising while Brains Heist builds verified readiness evidence.')}
                 hasActionable={!!actionable}
                 onOpen={() => navigate('/ielts/practice/assigned')}
                 animate={false}
