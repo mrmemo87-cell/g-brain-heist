@@ -7,12 +7,13 @@ interface QuestionPreviewModalProps {
   question: TeacherQuestion;
   onClose: () => void;
   onEdit?: () => void;
+  optionOrderNote?: string;
 }
 
 const textForOption = (option: TeacherQuestion['options'][number]) =>
   typeof option === 'string' ? option : option.text;
 
-export default function QuestionPreviewModal({ question, onClose, onEdit }: QuestionPreviewModalProps) {
+export default function QuestionPreviewModal({ question, onClose, onEdit, optionOrderNote }: QuestionPreviewModalProps) {
   const topic = question.topic_name || question.topic || 'General';
   const purpose = questionPurposeLabel(question);
   const type = question.question_type.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -44,6 +45,7 @@ export default function QuestionPreviewModal({ question, onClose, onEdit }: Ques
         {question.options?.length ? (
           <section className="question-preview__section">
             <h3>Answer choices</h3>
+            {optionOrderNote ? <p className="question-preview__tracking-note">{optionOrderNote}</p> : null}
             <ol>
               {question.options.map((option, index) => (
                 <li key={`${textForOption(option)}-${index}`} className={textForOption(option) === question.correct_answer ? 'is-correct' : ''}>

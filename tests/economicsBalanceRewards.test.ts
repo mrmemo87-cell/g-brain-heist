@@ -51,3 +51,12 @@ test('one assessment mark previews standard gameplay rewards without changing ma
   assert.equal(questionGameXp({points:1,difficulty:'hard'}), 1);
   assert.equal(questionGameXp({points:25}), 25);
 });
+
+test('assignment snapshots keep their saved order even if it equals the canonical Economics bank', () => {
+  const q = original.find((item: any) => JSON.stringify(economicsDisplayOptions(id(item.externalId), item.options)) !== JSON.stringify(item.options));
+  assert.ok(q, 'Fixture must have a bank display-order plan');
+  assert.equal(economicsDisplayOptions(id(q.externalId), q.options, 'assignment-balanced-v1'), q.options);
+  const printed = q.options.map((text: string) => ({ text }));
+  assert.equal(economicsDisplayOptions(id(q.externalId), printed, 'assignment-balanced-v1'), printed);
+  assert.notDeepEqual(economicsDisplayOptions(id(q.externalId), q.options), q.options);
+});

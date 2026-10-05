@@ -348,7 +348,7 @@ const normalizeTeacherQuestionPayload = (question: TeacherQuestion): TeacherQues
     return {
         ...question,
         topic_name: normalizeTopicName(question.topic_name ?? undefined, question.topic ?? undefined),
-        options: economicsDisplayOptions(question.id, coerceQuestionOptions((question as any).options, question.question_type)),
+        options: economicsDisplayOptions(question.id, coerceQuestionOptions((question as any).options, question.question_type), question.option_order_policy),
         time_limit: resolvedTimeLimit,
         points: resolvedPoints,
     };
