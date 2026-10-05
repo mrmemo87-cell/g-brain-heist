@@ -202,11 +202,11 @@ const FRAGMENT_MESSAGES: Record<string, TranslationPair> = {
   'How to Raid': { ar: 'كيفية تنفيذ غارة', ru: 'Как провести рейд' },
 
   // IELTS public landing / marketing interface (not assessment content)
-  'Free IELTS Diagnostic': { ar: 'تشخيص IELTS مجاني', ru: 'Бесплатная диагностика IELTS' },
-  'What’s Your Real IELTS Band Score?': { ar: 'ما درجتك الحقيقية في IELTS؟', ru: 'Какой у вас реальный балл IELTS?' },
-  'Find your IELTS band gap before you study harder.': { ar: 'اكتشف فجوة درجتك في IELTS قبل أن تزيد ساعات الدراسة.', ru: 'Определите разрыв до нужного балла IELTS, прежде чем заниматься ещё больше.' },
-  'Take a focused diagnostic, get an estimated band snapshot, and see what to practise next. Brains Heist reveals the gap and turns it into a practice path.': { ar: 'أجرِ تشخيصاً مركزاً، واحصل على تقدير لمستواك، واعرف ما الذي ينبغي أن تتدرب عليه تالياً. يكشف Brains Heist الفجوة ويحولها إلى مسار تدريب.', ru: 'Пройдите точную диагностику, получите ориентировочную оценку и узнайте, что тренировать дальше. Brains Heist показывает разрыв и превращает его в план практики.' },
-  'Start Free Diagnostic →': { ar: 'ابدأ التشخيص المجاني ←', ru: 'Начать бесплатную диагностику →' },
+  'Free IELTS Listening Screener': { ar: 'فحص تمهيدي مجاني لاستماع IELTS', ru: 'Бесплатный скрининг IELTS Listening' },
+  'Discover your IELTS Listening starting point': { ar: 'اكتشف نقطة البداية في استماع IELTS', ru: 'Определите свою стартовую точку в IELTS Listening' },
+  'See what you hear well — and what to practise next.': { ar: 'اكتشف ما تفهمه جيداً وما الذي تحتاج إلى التدرب عليه تالياً.', ru: 'Узнайте, что вы хорошо понимаете на слух и что стоит тренировать дальше.' },
+  'Start with a focused 10-question Listening screener. You’ll get a practice score, a clear snapshot of this task, and a sensible next step. This is not a full four-skill IELTS baseline or an official IELTS result.': { ar: 'ابدأ بفحص استماع مركز من 10 أسئلة. ستحصل على نتيجة تدريبية وصورة واضحة لهذا النشاط وخطوة تالية مناسبة. هذا ليس تقييماً كاملاً لمهارات IELTS الأربع ولا نتيجة IELTS رسمية.', ru: 'Начните с короткого скрининга Listening из 10 вопросов. Вы получите тренировочный результат, понятный снимок этой задачи и следующий шаг. Это не полная четырёхкомпонентная диагностика IELTS и не официальный результат IELTS.' },
+  'Start Listening Screener →': { ar: 'ابدأ فحص الاستماع ←', ru: 'Начать скрининг Listening →' },
   'Your result unlocks the next step.': { ar: 'نتيجتك تفتح الخطوة التالية.', ru: 'Ваш результат откроет следующий шаг.' },
   'No payment required · Your result unlocks the next step': { ar: 'لا يتطلب دفعاً · نتيجتك تفتح الخطوة التالية', ru: 'Оплата не требуется · результат откроет следующий шаг' },
   'Band Check': { ar: 'فحص الدرجة', ru: 'Проверка балла' },
