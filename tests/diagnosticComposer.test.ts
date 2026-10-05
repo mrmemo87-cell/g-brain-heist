@@ -34,6 +34,12 @@ test('composer is subject-agnostic and capability-based', () => {
   assert.doesNotMatch(migration, /academic_subject_code.*english/i);
   assert.doesNotMatch(migration, /academic_subject_code.*economics/i);
   assert.match(migration, /v_pool_size>=10/);
+  assert.match(migration, /v_skill_count>=2/);
+  assert.match(migration, /v_skill_count>=4/);
+  assert.match(migration, /jsonb_array_length\(v_difficulty\)>=3/);
+  assert.match(migration, /governed_pool_too_narrow/);
+  assert.match(migration, /diagnostic_pool_not_diverse_enough/);
+  assert.match(migration, /diagnostic_form_not_diverse_enough/);
   assert.match(migration, /\(10,'Quick Check','Quick Diagnostic'/);
   assert.match(migration, /\(20,'Focused','Focused Diagnostic'/);
   assert.match(migration, /\(30,'Recommended','Diagnostic'/);
