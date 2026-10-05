@@ -145,7 +145,7 @@ async function requestMarkingFromOpenAI(payload: {
       {
         role: "system",
         content:
-          "You are an IELTS examiner. Provide accurate scoring and constructive feedback. Respond with strict JSON only and never mention XP, coins, hacks, raids, or Brains Heist.",
+          "You are a Brains Heist IELTS-style practice assistant. Any feedback is provisional practice support only, never an official IELTS result or verified readiness estimate. Respond with strict JSON only.",
       },
       {
         role: "user",
@@ -189,94 +189,17 @@ serve(async (req) => {
 
   try {
     if (ensureCreatePackPayload(payload)) {
-      const referenceCode = generateReferenceCode();
-      const aiPack = await requestPackFromOpenAI(payload.module, payload.targetBand ?? null);
-      const reading = aiPack?.reading;
-      const listening = aiPack?.listening;
-      const writing = aiPack?.writing;
-      if (!reading || !listening || !writing) {
-        return jsonResponse(500, { error: "AI response missing required sections" });
-      }
-
-      const { data, error } = await supabase
-        .from("ielts_sessions")
-        .insert({
-          student_id: user.id,
-          module: payload.module,
-          target_band: payload.targetBand ?? null,
-          reference_code: referenceCode,
-          reading_block: reading,
-          listening_block: listening,
-          writing_task: writing,
-        })
-        .select("id, reference_code, reading_block, listening_block, writing_task")
-        .single();
-
-      if (error) {
-        console.error("Database insert error", error);
-        return jsonResponse(500, { error: "Failed to create session" });
-      }
-
-      return jsonResponse(200, {
-        sessionId: data.id,
-        referenceCode: data.reference_code,
-        reading: data.reading_block,
-        listening: data.listening_block,
-        writing: data.writing_task,
+      return jsonResponse(409, {
+        error: "New AI-generated IELTS practice packs are paused while Brains Heist moves to reviewed, versioned content under the IELTS Diagnostic Bible.",
+        code: "REVIEWED_CONTENT_REQUIRED",
       });
     }
 
     if (ensureFinalisePayload(payload)) {
-      const { data: session, error } = await supabase
-        .from("ielts_sessions")
-        .select("*")
-        .eq("id", payload.sessionId)
-        .eq("student_id", user.id)
-        .single();
-
-      if (error || !session) {
-        return jsonResponse(404, { error: "Session not found" });
-      }
-
-      const evaluation = await requestMarkingFromOpenAI({
-        reading_block: session.reading_block,
-        listening_block: session.listening_block,
-        writing_task: session.writing_task,
-        readingAnswers: payload.readingAnswers,
-        listeningAnswers: payload.listeningAnswers,
-        writingAnswer: payload.writingAnswer,
-        targetBand: session.target_band,
+      return jsonResponse(409, {
+        error: "This legacy AI-generated practice session cannot produce a new scored IELTS result. Existing work remains available for reference.",
+        code: "LEGACY_AI_SCORING_DISABLED",
       });
-
-      const bandReading = evaluation?.bands?.reading ?? null;
-      const bandListening = evaluation?.bands?.listening ?? null;
-      const bandWriting = evaluation?.bands?.writing?.overall ?? evaluation?.bands?.writing ?? null;
-      const bandOverall = evaluation?.bands?.overall ?? null;
-
-      const { data: updated, error: updateError } = await supabase
-        .from("ielts_sessions")
-        .update({
-          completed_at: new Date().toISOString(),
-          reading_answers: payload.readingAnswers,
-          listening_answers: payload.listeningAnswers,
-          writing_answer: payload.writingAnswer,
-          analytics: evaluation,
-          band_reading: bandReading,
-          band_listening: bandListening,
-          band_writing: bandWriting,
-          band_overall: bandOverall,
-        })
-        .eq("id", payload.sessionId)
-        .eq("student_id", user.id)
-        .select("*")
-        .single();
-
-      if (updateError) {
-        console.error("Database update error", updateError);
-        return jsonResponse(500, { error: "Failed to finalise session" });
-      }
-
-      return jsonResponse(200, updated as JsonValue);
     }
 
     if (ensureReferencePayload(payload)) {
