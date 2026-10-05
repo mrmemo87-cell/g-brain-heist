@@ -9,7 +9,7 @@ export interface IeltsDiagnosticSummary {
   completed: boolean;
   taskId: string;
   skill: IeltsSkill;
-  estimatedBand: number | null;
+  practiceScorePercent: number | null;
   completedAt: string | null;
 }
 
@@ -148,7 +148,7 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
       tier: 'free',
       isPrimeActive: false,
       subscription: emptySubscription,
-      diagnostic: { completed: false, taskId: 'trial-test-2', skill: 'listening', estimatedBand: null, completedAt: null },
+      diagnostic: { completed: false, taskId: 'trial-test-2', skill: 'listening', practiceScorePercent: null, completedAt: null },
       completedTasks: emptyCompleted,
       tasks: { reading: [], listening: [], writing: [], speaking: [] },
       recentActivity: null,
@@ -184,7 +184,7 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
   ]);
 
   const metadata = (diagnosticEvent.data?.metadata || {}) as Record<string, unknown>;
-  const estimatedBand = toNumber(metadata['estimated_band']);
+  const practiceScorePercent = toNumber(metadata['score_percent']);
   const diagnosticCompleted = Boolean(diagnosticEvent.data);
   const typedIeltsUser = ieltsUser.data as { username?: string | null; target_band?: number | null; updated_at?: string | null } | null;
   const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'] || typedIeltsUser?.username || user.email?.split('@')[0] || null;
@@ -192,7 +192,7 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
   const taskLists = { reading, listening, writing, speaking };
   const skillProgress = buildDashboardSkillProgress(taskLists, completedTasks);
   const completedCounts = Object.values(skillProgress).reduce((sum, progress) => sum + progress.completedTaskCount, 0);
-  const weakestSkill = diagnosticCompleted ? 'listening' : null;
+  const weakestSkill: IeltsSkill | null = null;
   const continueLearningRoute = chooseContinueLearningRoute(skillProgress, weakestSkill);
 
   return {
@@ -207,7 +207,7 @@ export async function fetchIeltsDashboardSummary(): Promise<IeltsDashboardSummar
       completed: diagnosticCompleted,
       taskId: 'trial-test-2',
       skill: 'listening',
-      estimatedBand,
+      practiceScorePercent,
       completedAt: diagnosticEvent.data?.created_at || null,
     },
     completedTasks,
