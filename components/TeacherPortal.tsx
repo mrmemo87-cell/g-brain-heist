@@ -4006,9 +4006,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     );
     const selectedTeachingGroup = subjectTeachingGroups.find((group) => group.id === assignmentGroupId) || null;
     const selectedCustomTeachingGroup = selectedTeachingGroup?.groupType === 'custom' ? selectedTeachingGroup : null;
+    const selectedExactTeachingGroup = preparedDiagnostic ? selectedTeachingGroup : selectedCustomTeachingGroup;
     const classTeachingGroups = subjectTeachingGroups.filter((group) => group.groupType === 'class');
     const classOnlyTeachingGroups = subjectTeachingGroups.length > 0 && classTeachingGroups.length === subjectTeachingGroups.length;
-    if (subjectTeachingGroups.length > 0 && !selectedCustomTeachingGroup && !(classOnlyTeachingGroups && assignmentBatches.length > 0)) {
+    if (preparedDiagnostic && (!selectedTeachingGroup || selectedTeachingGroup.id !== preparedDiagnostic.groupId)) {
+      return brainsAlert('This diagnostic is locked to the teaching group it was prepared for. Return to the diagnostic composer to choose another group.', 'error');
+    }
+    if (subjectTeachingGroups.length > 0 && !selectedExactTeachingGroup && !(classOnlyTeachingGroups && assignmentBatches.length > 0)) {
       return brainsAlert('Please select at least one teaching group or class for this assignment.', 'info');
     }
     if (subjectTeachingGroups.length === 0 && assignmentMode === 'batch' && assignmentBatches.length === 0) return brainsAlert('Please select at least one class for this assignment.', 'info');
@@ -4078,16 +4082,23 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           student_ids: selectedCustomTeachingGroup || assignmentMode === 'custom' ? selectedStudentIds : undefined,
         });
         brainsAlert(publishStatus === 'draft' ? 'Assignment saved as a draft.' : publishStatus === 'scheduled' ? 'Assignment updated and scheduled.' : 'Assignment updated.', 'success');
-      } else if (selectedCustomTeachingGroup) {
+      } else if (selectedExactTeachingGroup) {
         await GameService.create_assignment({
           ...basePayload,
-          school_subject_id: selectedCustomTeachingGroup.schoolSubjectId,
-          subject_group_id: selectedCustomTeachingGroup.id,
+          school_subject_id: selectedExactTeachingGroup.schoolSubjectId,
+          subject_group_id: selectedExactTeachingGroup.id,
           batch: undefined,
           assignment_mode: 'custom',
           student_ids: selectedStudentIds,
         });
-        brainsAlert(publishStatus === 'draft' ? 'Teaching-group draft saved.' : publishStatus === 'scheduled' ? 'Teaching-group assignment scheduled.' : 'Teaching-group assignment published.', 'success');
+        brainsAlert(
+          publishStatus === 'draft'
+            ? 'Teaching-group draft saved.'
+            : publishStatus === 'scheduled'
+              ? 'Teaching-group assignment scheduled.'
+              : 'Teaching-group assignment published.',
+          'success',
+        );
       } else if (assignmentMode === 'batch') {
         const batchesToAssign = assignmentBatches.includes('All') ? availableBatches : assignmentBatches.filter((batch) => batch !== 'All');
         const errors: string[] = [];
