@@ -195,7 +195,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
   const locked = detail?.review_status === 'finalized';
   const title = skill === 'writing' ? 'Writing Review' : 'Speaking Review';
 
-  const printReview = (copy: 'student' | 'examiner') => {
+  const printReview = (copy: 'student' | 'reviewer') => {
     if (!detail) return;
     const isStudentCopy = copy === 'student';
     if (isStudentCopy && !locked) return;
@@ -215,9 +215,9 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
          <p class="document-callout">The audio remains in the secure school system. This printed record does not embed or expose a recording link.</p>
          <div class="document-card" style="white-space:pre-wrap">${escapeSchoolDocumentHtml(detail.transcript || 'No transcript available.')}</div>`;
     const bodyHtml = `
-      ${isStudentCopy ? '<p class="document-callout"><strong>Final school feedback copy.</strong> This is a Brains Heist practice report and is not an official IELTS Test Report Form or an endorsement by IELTS.</p>' : `<p class="document-callout document-callout--private"><strong>Confidential examiner copy.</strong> Contains assessment evidence and private working notes. Do not distribute to students or families.</p>`}
+      ${isStudentCopy ? '<p class="document-callout"><strong>Final school feedback copy.</strong> This is a Brains Heist practice report and is not an official IELTS Test Report Form or an endorsement by IELTS.</p>' : `<p class="document-callout document-callout--private"><strong>Confidential reviewer copy.</strong> Contains assessment evidence and private working notes. Do not distribute to students or families.</p>`}
       <div class="document-grid">
-        <div class="document-card"><strong>Overall practice band</strong><span style="font-size:28px;font-weight:900">${escapeSchoolDocumentHtml(overallBand ?? '—')}</span></div>
+        <div class="document-card"><strong>Reviewed task band</strong><span style="font-size:28px;font-weight:900">${escapeSchoolDocumentHtml(overallBand ?? '—')}</span></div>
         <div class="document-card"><strong>Review status</strong>${escapeSchoolDocumentHtml(locked ? 'Finalized' : 'Draft / in review')}</div>
       </div>
       <h2>Rubric profile</h2>
@@ -228,7 +228,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
         <div class="document-card"><strong>Next steps</strong><div style="white-space:pre-wrap">${escapeSchoolDocumentHtml(nextSteps || 'No next steps recorded.')}</div></div>
         <div class="document-card"><strong>Teacher feedback</strong><div style="white-space:pre-wrap">${escapeSchoolDocumentHtml(teacherFeedback || 'No additional feedback recorded.')}</div></div>
       </div>
-      ${isStudentCopy ? '' : `<h2>Private examiner notes</h2><div class="document-card" style="white-space:pre-wrap">${escapeSchoolDocumentHtml(privateNotes || 'No private notes recorded.')}</div>${evidence}`}
+      ${isStudentCopy ? '' : `<h2>Private reviewer notes</h2><div class="document-card" style="white-space:pre-wrap">${escapeSchoolDocumentHtml(privateNotes || 'No private notes recorded.')}</div>${evidence}`}
       <div class="document-signatures"><div class="document-signature">Reviewer signature / date</div><div class="document-signature">Quality assurance / date</div></div>
     `;
 
@@ -236,7 +236,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
       meta: {
         documentId,
         templateVersion: 'ielts-productive-review-v1',
-        title: `${title} — ${isStudentCopy ? 'Student feedback' : 'Examiner record'}`,
+        title: `${title} — ${isStudentCopy ? 'Student feedback' : 'Reviewer record'}`,
         subtitle: detail.task_title || 'IELTS practice productive-skill review',
         schoolName,
         schoolLogoUrl,
@@ -254,7 +254,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
         sourceId: attemptId,
       },
       bodyHtml,
-      fileName: schoolDocumentFileName(schoolName, detail.student_name, title, isStudentCopy ? 'Student_Copy' : 'Examiner_Record'),
+      fileName: schoolDocumentFileName(schoolName, detail.student_name, title, isStudentCopy ? 'Student_Copy' : 'Reviewer_Record'),
     });
   };
 
@@ -314,9 +314,9 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
                     </select>
                   </label>
                 ))}
-                <label style={{ color: '#334155', fontSize: '0.9rem', fontWeight: 700 }}>Overall band
+                <label style={{ color: '#334155', fontSize: '0.9rem', fontWeight: 700 }}>Task-level reviewed band
                   <select disabled={locked} value={overallBand ?? ''} onChange={(e) => setOverallBand(e.target.value ? Number(e.target.value) : null)} style={{ width: '100%', marginTop: '0.25rem', padding: '0.55rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem' }}>
-                    <option value="">Select overall band</option>
+                    <option value="">Select task band</option>
                     {bandOptions.map((band) => <option key={band} value={band}>{band}</option>)}
                   </select>
                 </label>
@@ -324,9 +324,9 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
 
               <h2 style={{ color: '#0f172a' }}>Feedback</h2>
               <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '0.75rem' }}>
-                <div style={{ fontWeight: 700, color: '#1e3a8a' }}>AI suggestion — review before finalizing.</div>
-                <div style={{ color: '#1e40af', fontSize: '0.85rem', marginTop: '0.3rem' }}>AI feedback can make mistakes. Review before finalizing.</div>
-                {skill === 'speaking' ? <div style={{ color: '#1e40af', fontSize: '0.85rem', marginTop: '0.2rem' }}>Transcript may contain errors. Check audio if unsure.</div> : null}
+                <div style={{ fontWeight: 700, color: '#1e3a8a' }}>Assistant suggestion — verify before finalizing.</div>
+                <div style={{ color: '#1e40af', fontSize: '0.85rem', marginTop: '0.3rem' }}>Automated feedback can make mistakes. Verify the evidence before finalizing.</div>
+                {skill === 'speaking' ? <div style={{ color: '#1e40af', fontSize: '0.85rem', marginTop: '0.2rem' }}>Transcript may contain errors. Listen to the audio before finalizing Speaking criteria, especially pronunciation.</div> : null}
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem', flexWrap: 'wrap' }}>
                   <button disabled={locked || aiCheckMutation.isPending} onClick={() => aiCheckMutation.mutate()} style={{ border: '1px solid #93c5fd', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.45rem', padding: '0.45rem 0.7rem', cursor: 'pointer' }}>
                     {aiCheckMutation.isPending ? 'Running AI check…' : 'AI check'}
@@ -369,7 +369,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
               <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '1rem', paddingTop: '1rem' }}>
                 <div style={{ color: '#334155', fontWeight: 700, marginBottom: '0.55rem' }}>Print-ready documents</div>
                 <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-                  <button type="button" onClick={() => printReview('examiner')} style={{ flex: 1, minWidth: '10rem', padding: '0.7rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>Examiner record</button>
+                  <button type="button" onClick={() => printReview('reviewer')} style={{ flex: 1, minWidth: '10rem', padding: '0.7rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>Reviewer record</button>
                   <button type="button" disabled={!locked} title={locked ? 'Print the finalized student feedback copy' : 'Finalize the review before releasing a student copy'} onClick={() => printReview('student')} style={{ flex: 1, minWidth: '10rem', padding: '0.7rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: locked ? '#eff6ff' : '#f1f5f9', color: locked ? '#1d4ed8' : '#94a3b8', cursor: locked ? 'pointer' : 'not-allowed' }}>Student feedback copy</button>
                 </div>
               </div>
