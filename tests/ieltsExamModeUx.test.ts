@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   canStartIeltsExamAttempt,
   formatIeltsCountdown,
+  getIeltsAttemptTimeMessage,
   getIeltsAttemptOperationalLabel,
   getIeltsStudentExamSyncMessage,
   resolveIeltsStudentExamSyncState,
@@ -54,6 +55,32 @@ test('IELTS waiting countdown renders locally understandable durations', () => {
   assert.equal(formatIeltsCountdown(65), '1:05');
   assert.equal(formatIeltsCountdown(3661), '1:01:01');
   assert.equal(formatIeltsCountdown(90061), '1d 1h 1m');
+});
+
+test('pre-start availability never becomes the student attempt timer', () => {
+  assert.equal(getIeltsAttemptTimeMessage(false, 31536000), 'Ready when you are.');
+  assert.equal(getIeltsAttemptTimeMessage(true, 343), 'Time remaining: 5:43.');
+  assert.equal(getIeltsAttemptTimeMessage(true, 0), 'Time remaining: 0:00.');
+});
+
+test('Exam Mode answer and helper text retain accessible contrast on light surfaces', () => {
+  const css = readFileSync('src/styles/ielts-exam.css', 'utf8');
+  const luminance = (hex: string) => {
+    const rgb = hex.match(/\w{2}/g)!.map((c) => parseInt(c, 16) / 255)
+      .map((c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+    return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
+  };
+  // Include disabled values and placeholders: neither should fade into white.
+  for (const selector of ['.text-slate-500', ':is(input, textarea)', '::placeholder', ':disabled']) {
+    const rule = css.split('}').find((part) => part.split('{')[0].includes(selector));
+    const color = rule?.match(/\bcolor:\s*#([\da-f]{6})/i)?.[1];
+    assert.ok(color, `${selector} requires an explicit foreground`);
+    assert.ok(1.05 / (luminance(color) + 0.05) >= 4.5, `${selector} must meet normal-text contrast on white`);
+  }
+  const page = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
+  assert.match(page, /import '\.\.\/\.\.\/styles\/ielts-exam.css'/);
+  assert.match(page, /document.body.classList.remove\('ielts-exam-mode'\)/, 'exam theme must not leak into other routes');
+  assert.match(css, /body\.ielts-exam-mode \[data-global-language-control="true"\]/);
 });
 
 test('IELTS monitor labels emphasize not started, active, submitted and connection issue', () => {

@@ -1,0 +1,44 @@
+/* Exam Mode has a quiet light surface, independent of the game/theme shell. */
+body.ielts-exam-mode {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.ielts-exam-frame {
+  color-scheme: light;
+  background: #f8fafc;
+  color: #0f172a;
+  padding-top: calc(72px + env(safe-area-inset-top));
+}
+
+.ielts-exam-frame .text-slate-500 {
+  color: #475569;
+}
+
+.ielts-exam-frame :is(input, textarea) {
+  color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
+  background-color: #ffffff;
+  caret-color: #0f172a;
+}
+
+.ielts-exam-frame :is(input, textarea)::placeholder {
+  color: #475569;
+  -webkit-text-fill-color: #475569;
+  opacity: 1;
+}
+
+.ielts-exam-frame :is(input, textarea):disabled {
+  color: #475569;
+  -webkit-text-fill-color: #475569;
+  opacity: 1;
+}
+
+/* Keep the shared language control in reserved space, away from answers/results. */
+body.ielts-exam-mode [data-global-language-control="true"] {
+  top: calc(12px + env(safe-area-inset-top)) !important;
+  right: max(12px, env(safe-area-inset-right));
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+}

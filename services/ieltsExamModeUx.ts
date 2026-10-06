@@ -95,6 +95,13 @@ export const formatIeltsCountdown = (seconds: number): string => {
   return `${minutes}:${String(secs).padStart(2, '0')}`;
 };
 
+/** The event's availability window is never the student's attempt allowance. */
+export const getIeltsAttemptTimeMessage = (hasAttempt: boolean, remainingSeconds: number): string => (
+  hasAttempt
+    ? `Time remaining: ${formatIeltsCountdown(remainingSeconds)}.`
+    : 'Ready when you are.'
+);
+
 export const getIeltsAttemptOperationalLabel = (status?: string | null, hasConnectionIssue = false): string => {
   if (hasConnectionIssue) return 'Possible connection issue';
   const normalized = (status ?? '').toLowerCase();
