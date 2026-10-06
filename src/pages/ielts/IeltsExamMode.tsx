@@ -108,8 +108,11 @@ const readLocalDraft = (attemptId: string): AnswersBySection | null => {
 };
 
 const writeLocalDraft = (attemptId: string | null, answers: AnswersBySection) => {
-  if (!attemptId || typeof window === 'undefined') return;
-  window.localStorage.setItem(makeLocalDraftKey(attemptId), JSON.stringify(answers));
+  if (!attemptId || typeof window === 'undefined') return false;
+  try {
+    window.localStorage.setItem(makeLocalDraftKey(attemptId), JSON.stringify(answers));
+    return true;
+  } catch { return false; }
 };
 
 const stateTitleFor = (whoami: IeltsExamWhoamiResponse | null): string => {
@@ -134,9 +137,10 @@ const IeltsExamMode: React.FC = () => {
   const [lockToken, setLockToken] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<IeltsExamSection>('reading');
   const [answers, setAnswers] = useState<AnswersBySection>(() => emptyAnswers());
-  const [draftVersions, setDraftVersions] = useState<Record<string, number>>({});
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [saveMessage, setSaveMessage] = useState('No changes yet');
+  const [offline, setOffline] = useState(() => !navigator.onLine);
+  const [localDraftSaved, setLocalDraftSaved] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
   const [isStarting, setIsStarting] = useState(false);
@@ -200,6 +204,8 @@ const IeltsExamMode: React.FC = () => {
   const attemptRef = useRef<IeltsStartAttemptResponse | null>(attempt);
   const lockTokenRef = useRef<string | null>(lockToken);
   const saveInFlightRef = useRef(false);
+  const dirtySectionsRef = useRef(new Set<string>());
+  const draftVersionsRef = useRef<Record<string, number>>({});
   const incidentInFlightRef = useRef(false);
   const syncStateRef = useRef<IeltsStudentExamSyncState>('active');
 
@@ -239,8 +245,10 @@ const IeltsExamMode: React.FC = () => {
         }
       }
     }
+    answersRef.current = nextAnswers;
+    dirtySectionsRef.current = new Set(Object.keys(nextAnswers));
     setAnswers(nextAnswers);
-    setDraftVersions(Object.fromEntries((response.drafts ?? []).map((draft) => [draft.section, draft.draft_version ?? 0])));
+    draftVersionsRef.current = Object.fromEntries((response.drafts ?? []).map((draft) => [draft.section, draft.draft_version ?? 0]));
   }, []);
 
   const applyWhoamiState = useCallback((response: IeltsExamWhoamiResponse, options: { hydrateDrafts: boolean } = { hydrateDrafts: false }) => {
@@ -291,12 +299,14 @@ const IeltsExamMode: React.FC = () => {
   }, [hydrateAnswers, syncServerClock]);
 
   const refreshLiveState = useCallback(async () => {
-    if (!examEventId) return;
+    if (!examEventId || !navigator.onLine) return;
     try {
       const response = await rpcIeltsExamWhoami(examEventId);
       applyWhoamiState(response);
     } catch (refreshError) {
-      setWarning(refreshError instanceof Error ? `Could not refresh exam status: ${refreshError.message}` : 'Could not refresh exam status.');
+      // Autosave owns connectivity feedback, avoiding a second interruption banner.
+      setSaveState('error');
+      setSaveMessage('Connection interrupted. Keep this page open; saving will retry automatically.');
     }
   }, [applyWhoamiState, examEventId]);
 
@@ -379,7 +389,7 @@ const IeltsExamMode: React.FC = () => {
   }, [serverOffsetMs, whoami?.ends_at]);
 
   useEffect(() => {
-    writeLocalDraft(attempt?.attempt_id ?? whoami?.attempt_id ?? null, answers);
+    setLocalDraftSaved(writeLocalDraft(attempt?.attempt_id ?? whoami?.attempt_id ?? null, answers));
   }, [answers, attempt?.attempt_id, whoami?.attempt_id]);
 
   const startOrResume = useCallback(async () => {
@@ -422,9 +432,10 @@ const IeltsExamMode: React.FC = () => {
       setSaveMessage(syncMessage ?? 'Autosave paused because the exam is not active.');
       return false;
     }
-    if (saveInFlightRef.current) return false;
+    if (saveInFlightRef.current || !navigator.onLine) return false;
 
-    const nextVersion = (draftVersions[section] ?? 0) + 1;
+    const payload = answersRef.current[section] ?? {};
+    const nextVersion = (draftVersionsRef.current[section] ?? 0) + 1;
     saveInFlightRef.current = true;
     setSaveState('saving');
     setSaveMessage(`Saving ${section}…`);
@@ -433,14 +444,16 @@ const IeltsExamMode: React.FC = () => {
         attemptId: currentAttempt.attempt_id,
         lockToken: currentLockToken,
         section,
-        payload: answersRef.current[section] ?? {},
+        payload,
         draftVersion: nextVersion,
         clientSavedAt: new Date(Date.now() + serverOffsetMs).toISOString(),
       });
       syncServerClock(response.server_now);
-      setDraftVersions((prev) => ({ ...prev, [section]: Math.max(prev[section] ?? 0, response.draft_version ?? nextVersion) }));
-      setSaveState('saved');
-      setSaveMessage(`Saved ${section} (${reason})`);
+      draftVersionsRef.current[section] = Math.max(draftVersionsRef.current[section] ?? 0, response.draft_version ?? nextVersion);
+      if (answersRef.current[section] === payload) dirtySectionsRef.current.delete(section);
+      const pending = dirtySectionsRef.current.size > 0;
+      setSaveState(pending ? 'idle' : 'saved');
+      setSaveMessage(pending ? 'Saving your latest changes…' : 'All answers saved.');
       return true;
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : 'Autosave failed.';
@@ -456,15 +469,37 @@ const IeltsExamMode: React.FC = () => {
     } finally {
       saveInFlightRef.current = false;
     }
-  }, [draftVersions, refreshLiveState, serverOffsetMs, submission, syncServerClock]);
+  }, [refreshLiveState, serverOffsetMs, submission, syncServerClock]);
+
+  const savePendingSections = useCallback(async () => {
+    const sections = dirtySectionsRef.current.size ? [...dirtySectionsRef.current] : [activeSectionRef.current];
+    for (const section of sections) {
+      if (!await autosaveSection(section, 'auto')) break;
+    }
+  }, [autosaveSection]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setNowTick(Date.now());
-      void autosaveSection(activeSectionRef.current, 'auto');
-    }, 8000);
-    return () => window.clearInterval(timer);
-  }, [autosaveSection]);
+    const onOffline = () => {
+      setOffline(true);
+      setWarning(null);
+      setLocalDraftSaved(writeLocalDraft(attemptRef.current?.attempt_id ?? null, answersRef.current));
+    };
+    const onOnline = () => {
+      setOffline(false);
+      setSaveState('saving');
+      setSaveMessage('Back online. Saving your answers…');
+      void savePendingSections();
+      void refreshLiveState();
+    };
+    window.addEventListener('offline', onOffline);
+    window.addEventListener('online', onOnline);
+    const timer = window.setInterval(() => { void savePendingSections(); }, 8000);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('offline', onOffline);
+      window.removeEventListener('online', onOnline);
+    };
+  }, [refreshLiveState, savePendingSections]);
 
   const logIncident = useCallback(async (incidentType: string, severity: 'info' | 'warning', payload: Record<string, unknown>) => {
     const currentAttempt = attemptRef.current;
@@ -475,7 +510,7 @@ const IeltsExamMode: React.FC = () => {
     if (now - (recentIncidentRef.current[dedupeKey] ?? 0) < 2000 || incidentInFlightRef.current) return;
     recentIncidentRef.current[dedupeKey] = now;
     incidentInFlightRef.current = true;
-    if (severity === 'warning' && !incidentType.startsWith('screener_audio_')) setWarning('An assessment interruption was recorded. Your saved answers are available. Continue when you are ready.');
+    // Record interruptions for audit without adding redundant student alerts.
     try {
       await rpcIeltsLogIncident({
         attemptId: currentAttempt.attempt_id,
@@ -550,13 +585,11 @@ const IeltsExamMode: React.FC = () => {
 
   const handleAnswerChange = (section: string, questionId: string, value: string) => {
     if (!shouldIeltsAutosaveRun(syncStateRef.current)) return;
-    setAnswers((prev) => ({
-      ...prev,
-      [section]: {
-        ...(prev[section] ?? {}),
-        [questionId]: value,
-      },
-    }));
+    const next = { ...answersRef.current, [section]: { ...answersRef.current[section], [questionId]: value } };
+    answersRef.current = next;
+    dirtySectionsRef.current.add(section);
+    setLocalDraftSaved(writeLocalDraft(attemptRef.current?.attempt_id ?? whoami?.attempt_id ?? null, next));
+    setAnswers(next);
     setSaveState('idle');
     setSaveMessage('Unsaved changes');
   };
@@ -772,8 +805,9 @@ const IeltsExamMode: React.FC = () => {
 
         <main className="mx-auto max-w-6xl px-4 py-6">
           {error && <Banner tone="error" message={error} />}
-          {warning && <Banner tone="warning" message={warning} onDismiss={() => setWarning(null)} />}
-          {saveState === 'error' && shouldIeltsAutosaveRun(syncState) && <Banner tone="error" message="Autosave failed. Keep this page open; we will retry on the next autosave." />}
+          {offline && <Banner tone="warning" message={localDraftSaved ? "You’re offline. Answers are saved on this device. Keep this page open; we’ll send them when you reconnect." : "You’re offline and this browser could not save your latest answers. Keep this page open and reconnect to save."} />}
+          {!offline && warning && <Banner tone="warning" message={warning} onDismiss={() => setWarning(null)} />}
+          {!offline && saveState === 'error' && shouldIeltsAutosaveRun(syncState) && <Banner tone="warning" message={saveMessage} />}
           {syncState !== 'active' && teacherActionMessage && <Banner tone="warning" message={teacherActionMessage} />}
 
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
@@ -790,9 +824,9 @@ const IeltsExamMode: React.FC = () => {
                 </button>
               ))}
             </div>
-            <div className="text-sm text-slate-600">
-              <span className={`mr-2 inline-flex h-2 w-2 rounded-full ${saveState === 'saving' ? 'bg-amber-500' : saveState === 'error' ? 'bg-red-500' : 'bg-emerald-500'}`} />
-              {saveMessage}
+            <div className="text-sm text-slate-600" role="status" aria-live="polite">
+              <span className={`mr-2 inline-flex h-2 w-2 rounded-full ${offline || saveState === 'idle' || saveState === 'saving' ? 'bg-amber-500' : saveState === 'error' ? 'bg-red-500' : 'bg-emerald-500'}`} />
+              {offline ? (localDraftSaved ? 'Saved on this device · waiting for connection' : 'Waiting for connection · keep this page open') : saveMessage}
             </div>
           </div>
 
@@ -978,7 +1012,7 @@ const StateCard: React.FC<{
 );
 
 const Banner: React.FC<{ tone: 'warning' | 'error'; message: string; onDismiss?: () => void }> = ({ tone, message, onDismiss }) => (
-  <div className={`mb-4 rounded-xl border px-4 py-3 text-sm ${tone === 'error' ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
+  <div role={tone === 'error' ? 'alert' : 'status'} className={`mb-4 rounded-xl border px-4 py-3 text-sm ${tone === 'error' ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
     <div className="flex items-start justify-between gap-3">
       <span>{message}</span>
       {onDismiss && <button type="button" className="font-semibold" onClick={onDismiss}>Dismiss</button>}
