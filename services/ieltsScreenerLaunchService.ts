@@ -38,7 +38,7 @@ export async function fetchIeltsScreenerCatalog(): Promise<IeltsScreenerEntry[]>
 }
 
 export async function launchIeltsScreener(entry: IeltsScreenerEntry): Promise<string> {
-  if (entry.assignment_id) return `/ielts/exam/${entry.exam_event_id}`;
+  if (entry.assignment_id && entry.status !== 'completed') return `/ielts/exam/${entry.exam_event_id}`;
   const { data, error } = await supabase.rpc('rpc_ielts_screener_self_assign', { p_code: entry.code });
   if (error || !data || !uuid.test(data.exam_event_id) || data.exam_event_id !== entry.exam_event_id) {
     throw new Error('The screener could not open. Please check your connection and try again.');
