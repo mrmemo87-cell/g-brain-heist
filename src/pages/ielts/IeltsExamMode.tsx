@@ -529,6 +529,7 @@ const IeltsExamMode: React.FC = () => {
   };
 
   const activePayload = getPayloadForSection(formPayload, activeSection);
+  const isScreener = isObject(activePayload) && activePayload.assessment_mode === 'screener';
   const activeQuestions = useMemo(() => extractIeltsQuestions(activePayload, activeSection), [activePayload, activeSection]);
   const status = submission?.status ?? whoami?.attempt_status ?? attempt?.status ?? whoami?.status;
   const eventStatus = whoami?.event_status ?? (!whoami?.attempt_id ? whoami?.status : null);
@@ -692,8 +693,8 @@ const IeltsExamMode: React.FC = () => {
         <header className="border-b border-slate-200 bg-white px-4 py-4 shadow-sm">
           <div className="mx-auto flex max-w-6xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Controlled IELTS Exam Mode · {isPaused ? 'Paused by teacher' : 'Exam is live'}</p>
-              <h1 className="text-2xl font-semibold text-slate-950">IELTS Exam</h1>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{isScreener ? `${activeSection === 'listening' ? 'Listening' : 'Reading'} screener` : 'Controlled IELTS Exam Mode'} · {isPaused ? 'Paused by teacher' : 'Exam is live'}</p>
+              <h1 className="text-2xl font-semibold text-slate-950">{isScreener ? `${activeSection === 'listening' ? 'Listening' : 'Reading'} starting-point check` : 'IELTS Exam'}</h1>
               <p className="text-sm text-slate-500">{isPaused ? 'Editing is disabled while the teacher has paused the exam.' : 'Use only this exam window. Your work autosaves every 8 seconds.'}</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-right">
@@ -805,14 +806,14 @@ const IeltsExamMode: React.FC = () => {
 
           <footer className="sticky bottom-0 mt-6 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <p className="text-sm text-slate-600">Before submitting, your current section is saved and the same idempotency key is reused if you click again.</p>
+              <p className="text-sm text-slate-600">Check your answers before submitting. If the connection drops, keep this page open and retry.</p>
               <button
                 type="button"
                 disabled={isSubmitting || saveState === 'saving' || !shouldIeltsAutosaveRun(syncState)}
                 onClick={() => void handleSubmit()}
                 className="rounded-xl bg-blue-700 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-400"
               >
-                {isSubmitting ? 'Submitting…' : 'Submit IELTS Exam'}
+                {isSubmitting ? 'Submitting…' : isScreener ? 'Submit screener' : 'Submit IELTS Exam'}
               </button>
             </div>
           </footer>

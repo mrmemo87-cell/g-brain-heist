@@ -30,3 +30,11 @@ test('Listening delivery keeps measured pauses and scoped audio review in the ca
     assert.ok(exam.includes(`${event}={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}`));
   }
 });
+
+test('screener delivery uses narrow assessment labels and plain-language submission copy', () => {
+  const exam = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
+  assert.ok(exam.includes("activeSection === 'listening' ? 'Listening' : 'Reading'"));
+  assert.ok(exam.includes('starting-point check'));
+  assert.match(exam, /isScreener \? 'Submit screener' : 'Submit IELTS Exam'/);
+  assert.doesNotMatch(exam, /same idempotency key is reused/);
+});
