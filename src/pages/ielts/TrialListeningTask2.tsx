@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchIeltsScreenerCatalog, launchIeltsScreener, type IeltsScreenerEntry } from '../../../services/ieltsScreenerLaunchService';
 
 const CheckIcon: React.FC = () => (
   <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -16,6 +17,30 @@ const ShieldIcon: React.FC = () => (
 
 const TrialListeningTask2: React.FC = () => {
   const navigate = useNavigate();
+  const [entries, setEntries] = useState<IeltsScreenerEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [opening, setOpening] = useState(false);
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError('');
+    fetchIeltsScreenerCatalog().then((value) => { if (active) setEntries(value); })
+      .catch((reason) => { if (active) setError(reason instanceof Error ? reason.message : 'Please try again.'); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [retry]);
+  const entry = entries[0];
+  const canOpen = entry && ['ready', 'in_progress', 'completed', 'expired'].includes(entry.status);
+  const open = async () => {
+    if (!entry || !canOpen || opening) return;
+    setOpening(true);
+    setError('');
+    try { navigate(await launchIeltsScreener(entry)); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : 'Please try again.'); }
+    finally { setOpening(false); }
+  };
 
   return (
     <main
@@ -76,11 +101,11 @@ const TrialListeningTask2: React.FC = () => {
             letterSpacing: '-.045em',
           }}
         >
-          A better Listening screener is being prepared.
+          Listening Readiness Screener
         </h1>
         <p style={{ margin: '1rem 0 0', color: '#475569', lineHeight: 1.7, fontSize: '1rem' }}>
-          We are replacing the previous short screener with reviewed Brains Heist content built for a clearer, more reliable IELTS starting point.
-          Until that version is approved, the old screener will not be used to estimate readiness.
+          A short starting-point check using reviewed Brains Heist content. Listen to three recordings and answer 12 questions.
+          Your result shows raw performance and evidence coverage. This screener does not give an IELTS band.
         </p>
 
         <div
@@ -95,9 +120,9 @@ const TrialListeningTask2: React.FC = () => {
           }}
         >
           {[
-            'Reviewed, original assessment content',
-            'Clear practice results without false band claims',
-            'Evidence that can support a broader four-skill baseline later',
+            'Use headphones and find a quiet place',
+            '30 seconds to read each group; 15 seconds to finish your answers',
+            'Pause or replay the audio when you need to',
           ].map((item) => (
             <div key={item} style={{ display: 'flex', gap: '.65rem', alignItems: 'flex-start', color: '#334155', lineHeight: 1.5 }}>
               <span style={{ color: '#0891b2', display: 'inline-flex', marginTop: 1 }}><CheckIcon /></span>
@@ -106,9 +131,23 @@ const TrialListeningTask2: React.FC = () => {
           ))}
         </div>
 
-        <p style={{ margin: '1.2rem 0 0', color: '#64748b', fontSize: '.9rem', lineHeight: 1.6 }}>
-          Existing classroom assignments and IELTS practice remain available from your dashboard.
-        </p>
+        <div aria-live="polite" style={{ margin: '1.2rem 0 0', color: '#475569', fontSize: '.95rem', lineHeight: 1.6 }}>
+          {loading ? 'Checking your screener…' : error ? <p role="alert">{error}</p>
+            : !entry ? 'The reviewed screener is awaiting its final delivery checks. Please check back here.'
+            : entry.status === 'completed' ? 'Your completed screener and saved result are ready to view.'
+            : entry.status === 'in_progress' ? 'Your screener is in progress. Resume your saved attempt.'
+            : entry.status === 'expired' ? 'Your attempt time has ended. Open it to finish saving your responses.'
+            : entry.status === 'scheduled' ? 'Your screener is scheduled. Check back when it opens.'
+            : entry.status === 'paused' ? 'The screener is temporarily paused. Your saved work is safe.'
+            : entry.status === 'ready' ? `Allow ${entry.duration_minutes} minutes. Your answers save as you work.`
+            : 'This screener is currently unavailable. Your saved work is safe.'}
+        </div>
+
+        {canOpen && <button type="button" disabled={opening || loading} onClick={() => void open()}
+          className="mt-5 w-full rounded-full bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-700 px-5 py-4 font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600 disabled:opacity-60">
+          {opening ? 'Opening…' : entry.status === 'completed' ? 'View screener result' : entry.status === 'in_progress' ? 'Resume screener' : entry.status === 'expired' ? 'Open saved attempt' : 'Start Listening screener'}
+        </button>}
+        {!loading && <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold text-blue-700 underline focus-visible:outline focus-visible:outline-2">Check availability again</button>}
 
         <button
           type="button"

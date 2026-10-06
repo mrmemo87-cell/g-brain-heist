@@ -6,6 +6,7 @@ import { requestProgrammeAccess } from '../services/programmeAccessRequestServic
 interface SchoolProgrammeRouteGuardProps {
   programme: StudentProgrammeKey;
   children: React.ReactElement;
+  lockedFallback?: React.ReactElement;
 }
 
 type GuardState =
@@ -20,7 +21,7 @@ const programmeLabels: Record<StudentProgrammeKey, string> = {
   writing: 'Writing Hub',
 };
 
-const SchoolProgrammeRouteGuard: React.FC<SchoolProgrammeRouteGuardProps> = ({ programme, children }) => {
+const SchoolProgrammeRouteGuard: React.FC<SchoolProgrammeRouteGuardProps> = ({ programme, children, lockedFallback }) => {
   const [state, setState] = useState<GuardState>({ status: 'loading' });
   const [requestState, setRequestState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
@@ -57,6 +58,7 @@ const SchoolProgrammeRouteGuard: React.FC<SchoolProgrammeRouteGuardProps> = ({ p
   }, [programme]);
 
   if (state.status === 'allowed') return children;
+  if (state.status === 'locked' && lockedFallback) return lockedFallback;
   if (state.status === 'loading') {
     return <div className="mx-auto mt-12 max-w-xl rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-700">Checking programme access…</div>;
   }

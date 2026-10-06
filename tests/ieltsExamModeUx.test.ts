@@ -81,9 +81,10 @@ test('IELTS student autosave only runs while the live sync state is active', () 
   assert.equal(shouldIeltsAutosaveRun('not_in_progress'), false);
 });
 
-test('IELTS Exam Mode UI surfaces start-exam backend errors instead of silently resetting', () => {
+test('IELTS Exam Mode UI surfaces safe start errors instead of silently resetting', () => {
   const source = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
-  assert.match(source, /Start exam failed:/, 'start failure must include backend reason prefix');
+  assert.match(source, /Your assessment could not open\. Check your connection and try again\./, 'start failure must provide a useful recovery action');
+  assert.doesNotMatch(source, /setError\(`Start exam failed: \$\{backendReason\}/, 'raw backend errors must stay out of student copy');
   assert.match(source, /alert=\{error\}/, 'start card must render the captured failure message');
   assert.match(source, /if \(isStarting \|\| !whoami\?\.assignment_id\) return;/, 'start action must be retry-safe against double clicks');
   assert.match(source, /canStartIeltsExamAttempt\(\{[\s\S]*allowed: whoami\?\.allowed,[\s\S]*eventStatus,/, 'student start UI must consume live-state eligibility');

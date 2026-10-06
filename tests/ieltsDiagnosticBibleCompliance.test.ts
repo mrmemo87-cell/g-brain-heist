@@ -20,10 +20,11 @@ test('unverified public Listening screener content is retired from delivery', ()
   const dashboard = read('services/ieltsDashboardService.ts');
 
   assert.match(hero, /Reviewed Listening Screener/i);
-  assert.match(hero, /being prepared/i);
-  assert.doesNotMatch(hero, /What.?s Your Real IELTS Band Score|demo estimate|Start Listening Screener/i);
+  assert.match(hero, /check availability/i);
+  assert.doesNotMatch(hero, /What.?s Your Real IELTS Band Score|demo estimate/i);
 
-  assert.match(screener, /better Listening screener is being prepared/i);
+  assert.match(screener, /fetchIeltsScreenerCatalog/i);
+  assert.match(screener, /launchIeltsScreener/i);
   assert.match(screener, /reviewed Brains Heist content/i);
   assert.doesNotMatch(screener, /travelling to France|92\.4 percent|186 miles per hour|ielts-listening-sample-task-2-form-completion|getBandScore|bandScore|estimated_band/i);
 

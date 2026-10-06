@@ -145,7 +145,7 @@ const IeltsExamMode: React.FC = () => {
   const [teacherActionMessage, setTeacherActionMessage] = useState<string | null>(null);
 
   const screenerAudioRef = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => { if (syncState !== 'active') screenerAudioRef.current?.pause(); }, [syncState]);
+  useEffect(() => { if (submission || syncState !== 'active') screenerAudioRef.current?.pause(); }, [submission, syncState]);
   const answersRef = useRef(answers);
   const activeSectionRef = useRef<IeltsExamSection>(activeSection);
   const attemptRef = useRef<IeltsStartAttemptResponse | null>(attempt);
@@ -191,6 +191,7 @@ const IeltsExamMode: React.FC = () => {
       }
     }
     setAnswers(nextAnswers);
+    setDraftVersions(Object.fromEntries((response.drafts ?? []).map((draft) => [draft.section, draft.draft_version ?? 0])));
   }, []);
 
   const applyWhoamiState = useCallback((response: IeltsExamWhoamiResponse, options: { hydrateDrafts: boolean } = { hydrateDrafts: false }) => {
@@ -348,7 +349,7 @@ const IeltsExamMode: React.FC = () => {
       setSaveMessage(whoami.attempt_id ? 'Resumed from server attempt.' : 'Exam started.');
     } catch (startError) {
       const backendReason = startError instanceof Error ? startError.message : 'Failed to start IELTS exam.';
-      setError(`Start exam failed: ${backendReason}`);
+      setError(/expired/i.test(backendReason) ? 'Your time has ended. Check again to load your saved result.' : 'Your assessment could not open. Check your connection and try again.');
     } finally {
       setIsStarting(false);
     }
@@ -400,7 +401,7 @@ const IeltsExamMode: React.FC = () => {
         setSaveMessage(getIeltsStudentExamSyncMessage(syncStateRef.current) ?? 'Autosave stopped because the exam state changed.');
       } else {
         setSaveState('error');
-        setSaveMessage(message);
+        setSaveMessage('Your latest changes could not save. Keep this page open; we will retry.');
       }
       return false;
     } finally {
@@ -444,6 +445,7 @@ const IeltsExamMode: React.FC = () => {
   useEffect(() => {
     const onVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
+        screenerAudioRef.current?.pause();
         void autosaveSection(activeSectionRef.current, 'tab hidden');
         void logIncident('tab_hidden', 'warning', { visibility_state: document.visibilityState });
       }
@@ -505,6 +507,7 @@ const IeltsExamMode: React.FC = () => {
     const currentAttempt = attemptRef.current;
     const currentLockToken = lockTokenRef.current;
     if (!currentAttempt?.attempt_id || !currentLockToken || isSubmitting || submission || !shouldIeltsAutosaveRun(syncStateRef.current)) return;
+    screenerAudioRef.current?.pause();
     setIsSubmitting(true);
     setError(null);
     try {
@@ -522,7 +525,7 @@ const IeltsExamMode: React.FC = () => {
         window.sessionStorage.removeItem(`ielts_exam_lock_${currentAttempt.attempt_id}`);
       }
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Failed to submit IELTS exam.');
+      setError('Your submission could not be confirmed. Keep this page open, check your connection and submit again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -650,6 +653,7 @@ const IeltsExamMode: React.FC = () => {
           <p className="mt-3 text-sm">{diagnosticResult.confidence.items_answered} of {diagnosticResult.confidence.items_possible} items answered · {diagnosticResult.confidence.constructs_with_responses} of {diagnosticResult.confidence.constructs_sampled} sampled skills have responses.</p>
           {diagnosticResult.integrity_state === 'review_required' && <p className="mt-3 text-sm text-amber-800">Your teacher should review the assessment conditions before interpreting this result.</p>}
           <p className="mt-4 font-medium">{diagnosticResult.next_step}</p>
+          <a href="/ielts/listening-screener" className="mt-5 inline-flex rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white">Back to Listening screener</a>
           <details className="mt-4 text-sm"><summary className="cursor-pointer font-semibold">What this result can tell us</summary><ul className="mt-2 list-disc space-y-2 pl-5">{diagnosticResult.warnings.map((message) => <li key={message}>{message}</li>)}</ul></details>
         </section>}
       </ExamFrame>
