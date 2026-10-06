@@ -1,6 +1,6 @@
 # IELTS evidence foundation — implementation decision
 
-Bible: **v1.1.0**, unchanged. Audited main: `dab82cb24e03e7d9a24cb474c7711b0594b01606`.
+Bible: **v1.2.0** (audio requirements added on 2026-10-06). Audited main: `dab82cb24e03e7d9a24cb474c7711b0594b01606`.
 
 | Component | Decision | Evidence and implementation |
 |---|---|---|
@@ -31,6 +31,18 @@ This is a **foundation**, not school-launch approval. No content is published or
 
 The private schema models productive task responses and append-only superseding runs; delivery/publication for these remains blocked pending implemented review policies. Corrections require an additional reviewed scoring-run path; no mutable correction shortcut is exposed.
 
-Human content/taxonomy/audio review, audio generation/rights confirmation, real mobile/desktop audio and interruption testing, class-load testing, and school pilot signoff remain required. The current original Listening package is AI-authored **draft only**. Audio generation was blocked by the connected workspace's credit balance. Do not mark it reviewed or substitute browser speech synthesis as assessment audio.
+Human editorial/key/taxonomy review, audio transcript fidelity and provider-rights confirmation, real mobile/desktop interruption testing, class-load testing, and school pilot signoff remain required. The current original Listening package is AI-authored **draft only**. On 2026-10-06, the owner approved audio v2 production (voices and timed pauses) and selected it for the screener. That approval is scoped; it does not certify the outstanding academic gates. Do not substitute browser speech synthesis as assessment audio.
 
 Production migration applied as `20261005163109_ielts_governed_evidence_foundation.sql`; repository filename matches the Supabase migration ledger. Post-apply verification: six private RLS tables; no published diagnostics; authenticated/anonymous key access denied; legacy band/readiness helpers remain inaccessible; readiness evidence remains empty. Security advisor notices for policy-free private tables and the authenticated, explicitly authorized SECURITY DEFINER read wrapper are intentional boundaries, not grants to raw data.
+
+
+## Selected Listening audio — v2
+
+- Exact delivered SHA-256: `f9c48bc1233e40bd7c4cb29cb8c277234be36ddf9bdc6ef50eac4e6887ef3f65`.
+- Durable object: existing Supabase `ielts-audio` bucket, `governed/listening-screener-a/audio-v2/f9c48bc1233e40bd7c4cb29cb8c277234be36ddf9bdc6ef50eac4e6887ef3f65.mp3`. The existing bucket is public; this selected replayable screener recording is not a secure unseen baseline/reassessment asset. No transcript or answer key is stored with the public object.
+- 392.002 seconds of decoded audio; MP3, mono, 44.1 kHz, 192 kbps. Instructions: Miriam; passages: Paula, James, Marlene. Runway narration at normal speed, with separately assembled silence and volume normalization.
+- Three 30-second reading intervals, 15 seconds after each passage, and a 2-second final tail. Encoded-file silence detection and a hosted-file hash round-trip were verified; HTTP byte-range playback returns 206.
+- Definition `bh-listening-screener-a`, form code `BH-LS-A-1`, diagnostic version 1 references this audio. Twelve items remain in draft with private keys, unapproved taxonomy and no student assignments. The draft event has no school/scheduled delivery; the academic owner must choose those before activation.
+- The private audio provenance record retains source task IDs, script hashes, settings, assembly choices and the owner's exact scoped approval. No expiring Runway URL is used for delivery.
+- The one-time authenticated transfer accepted only the exact approved SHA-256/size at a fixed new path, denied anonymous requests, and used no overwrite. It was retired after upload; its deployed replacement requires JWT and contains no storage access. No storage policy or bucket visibility was changed.
+- Publication and activation rejection were verified in a rolled-back transaction. Existing bands/readiness remain fail-closed. Actual school-device listening/interruption tests remain outstanding.

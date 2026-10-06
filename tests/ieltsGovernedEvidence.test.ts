@@ -16,3 +16,17 @@ test('foundation never introduces readiness conversion or duplicate attempt infr
   assert.match(migration, /'readiness_available',false/);
   assert.match(migration, /'persistent_weakness_available',false/);
 });
+
+
+test('Listening delivery keeps measured pauses and scoped audio review in the canonical contract', () => {
+  const bible = readFileSync('docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md', 'utf8');
+  assert.match(bible, /Measured reading and response intervals/);
+  assert.match(bible, /Clear instruction\/passage separation/);
+  assert.match(bible, /Approval of sound, pacing or pauses does not silently approve the answer key/);
+  assert.match(bible, /not official IELTS timing rules/);
+  const exam = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
+  assert.match(exam, /controls=\{syncState === 'active'\}/);
+  for (const event of ['onPlay', 'onPlaying']) {
+    assert.ok(exam.includes(`${event}={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}`));
+  }
+});

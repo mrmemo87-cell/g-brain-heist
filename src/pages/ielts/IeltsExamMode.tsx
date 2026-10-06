@@ -745,7 +745,9 @@ const IeltsExamMode: React.FC = () => {
 
             {getIeltsScreenerAudio(activePayload) && <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
               <label htmlFor="screener-audio" className="mb-2 block text-sm font-semibold">Listening audio</label>
-              <audio ref={screenerAudioRef} id="screener-audio" key={getIeltsScreenerAudio(activePayload)} controls preload="metadata" className="w-full" src={getIeltsScreenerAudio(activePayload)!}
+              <audio ref={screenerAudioRef} id="screener-audio" key={getIeltsScreenerAudio(activePayload)} controls={syncState === 'active'} preload="metadata" className="w-full" src={getIeltsScreenerAudio(activePayload)!}
+                onPlay={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}
+                onPlaying={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}
                 onError={() => { setWarning('The audio could not load. Your answers are safe. Tell your teacher before continuing.'); void logIncident('screener_audio_load_failure', 'warning', { section: activeSection }); }}
                 onWaiting={() => { setWarning('The audio is buffering. If it interrupts your listening, tell your teacher.'); void logIncident('screener_audio_buffering', 'warning', { section: activeSection }); }}
               >Your browser cannot play this audio. Please ask your teacher for help.</audio>
