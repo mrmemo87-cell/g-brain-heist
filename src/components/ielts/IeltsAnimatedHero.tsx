@@ -108,12 +108,12 @@ const IeltsAnimatedHero: React.FC<IeltsAnimatedHeroProps> = ({ onStartDiagnostic
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,320px),1fr))', gap: 'clamp(1.25rem,4vw,3rem)', alignItems: 'center' }}>
         <div>
           <p data-ielts-hero-reveal style={{ display: 'inline-flex', margin: '0 0 1rem', color: '#0f766e', background: '#ccfbf1', border: '1px solid #99f6e4', borderRadius: 999, padding: '.45rem .75rem', fontSize: '.74rem', fontWeight: 950, letterSpacing: '.14em', textTransform: 'uppercase' }}>Reviewed Listening Screener</p>
-          <h1 data-ielts-hero-reveal style={{ margin: 0, fontSize: 'clamp(2.55rem, 8vw, 5.6rem)', lineHeight: 0.94, fontWeight: 950, letterSpacing: '-0.06em', color: '#0f172a' }}>Your next IELTS Listening screener is being prepared</h1>
-          <h2 data-ielts-hero-reveal style={{ margin: '1rem 0 0', color: '#1e3a8a', fontSize: 'clamp(1.45rem,4vw,2.5rem)', lineHeight: 1.04, letterSpacing: '-0.045em' }}>Reviewed content first. Clear evidence second.</h2>
-          <p data-ielts-hero-reveal style={{ margin: '1rem 0 0', color: '#475569', fontSize: 'clamp(1rem,2vw,1.18rem)', lineHeight: 1.7, maxWidth: 690 }}>We have retired the previous short screener while a reviewed Brains Heist version is prepared. Your dashboard, assignments, and practice remain available in the meantime.</p>
+          <h1 data-ielts-hero-reveal style={{ margin: 0, fontSize: 'clamp(2.55rem, 8vw, 5.6rem)', lineHeight: 0.94, fontWeight: 950, letterSpacing: '-0.06em', color: '#0f172a' }}>Discover your Listening starting point</h1>
+          <h2 data-ielts-hero-reveal style={{ margin: '1rem 0 0', color: '#1e3a8a', fontSize: 'clamp(1.45rem,4vw,2.5rem)', lineHeight: 1.04, letterSpacing: '-0.045em' }}>Listen. Respond. Find your next step.</h2>
+          <p data-ielts-hero-reveal style={{ margin: '1rem 0 0', color: '#475569', fontSize: 'clamp(1rem,2vw,1.18rem)', lineHeight: 1.7, maxWidth: 690 }}>Explore the reviewed Listening screener: 12 questions across three recordings, with time to read and learner-controlled replay. Your result shows performance and evidence coverage without an unsupported IELTS band.</p>
           <div data-ielts-hero-reveal style={{ display: 'flex', gap: '.8rem', flexWrap: 'wrap', alignItems: 'center', marginTop: '1.5rem' }}>
-            <button ref={ctaRef} type="button" onClick={onStartDiagnostic} style={{ background: 'linear-gradient(135deg,#0ea5e9,#2563eb 54%,#7c3aed)', color: '#fff', border: 0, borderRadius: 999, padding: '1rem 1.35rem', fontWeight: 950, cursor: 'pointer', fontSize: '1rem' }}>View Screener Update →</button>
-            <span style={{ color: '#64748b', fontSize: '.9rem', fontWeight: 700 }}>{authenticated ? 'No unreviewed screener will be used for readiness.' : 'No payment required · Reviewed screener coming next'}</span>
+            <button ref={ctaRef} type="button" onClick={onStartDiagnostic} style={{ background: 'linear-gradient(135deg,#0ea5e9,#2563eb 54%,#7c3aed)', color: '#fff', border: 0, borderRadius: 999, padding: '1rem 1.35rem', fontWeight: 950, cursor: 'pointer', fontSize: '1rem' }}>Open Listening Screener →</button>
+            <span style={{ color: '#64748b', fontSize: '.9rem', fontWeight: 700 }}>{authenticated ? 'Start, resume or view your saved result.' : 'No payment required · Sign in to check availability'}</span>
           </div>
         </div>
         <div data-ielts-hero-reveal style={{ display: 'grid', gap: '1rem' }}>

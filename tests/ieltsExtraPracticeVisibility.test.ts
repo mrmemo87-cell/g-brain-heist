@@ -26,7 +26,8 @@ test('direct student extra practice route access blocked when disabled', () => {
 
   assert.match(routes, /path: '\/ielts\/trial-test'[\s\S]*?<IeltsExtraPracticeGuard>/i, '/ielts/trial-test should be wrapped by IeltsExtraPracticeGuard');
   assert.match(freeDiagnosticRoute, /<TrialListeningTask2 \/>/i, '/ielts/trial-test-2 should render the free diagnostic directly');
-  assert.doesNotMatch(freeDiagnosticRoute, /<ProtectedRoute|<IeltsExtraPracticeGuard/i, '/ielts/trial-test-2 should not require login or extra-practice route guards');
+  assert.match(freeDiagnosticRoute, /<ProtectedRoute/i, 'governed screener attempts require authentication');
+  assert.doesNotMatch(freeDiagnosticRoute, /<IeltsExtraPracticeGuard|withSchoolIeltsAccess/i, 'free screener access is scoped by its server release rather than the paid practice agreement');
 
   for (const route of ['/ielts/reading/:setId', '/ielts/listening/:setId', '/ielts/writing/:taskId', '/ielts/speaking/:taskId']) {
     assert.match(routes, new RegExp(`path: '${route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'[\\s\\S]*?<IeltsPracticeRouteGuard>`, 'i'), `${route} should use assignment-aware route guard`);

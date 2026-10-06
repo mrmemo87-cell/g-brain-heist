@@ -444,7 +444,7 @@ const IeltsHome: React.FC = () => {
   // GSAP is already installed in this project and powers the IELTS hero components.
 
   const startDiagnostic = () => {
-    openTask('/ielts/trial-test-2', false);
+    openTask('/ielts/listening-screener', false);
   };
 
   const shouldShowDashboardLoading = !authResolved || (isAuthenticated && !isIeltsAdminLandingRole && (
@@ -570,7 +570,7 @@ const IeltsHome: React.FC = () => {
       { skill: 'speaking' as const, label: 'Speaking', benefit: 'Practise fluent answers with clear response patterns.', progress: summary.skillProgress.speaking, overviewRoute: '/ielts/speaking' },
     ];
     if (!summary.diagnostic.completed) {
-      return <div style={shell}><main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}><IeltsAnimatedHero onStartDiagnostic={startDiagnostic} compact authenticated />{hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate={navigate} />}<section style={whiteCard}><h2 style={{ margin: '0 0 .5rem', color: '#0f172a' }}>Reviewed Listening screener is being prepared.</h2><p style={{ margin: 0, color: '#475569', lineHeight: 1.65 }}>The previous short screener has been retired while we prepare reviewed Brains Heist content. Your assignments, practice, and IELTS journey remain available.</p></section></main></div>;
+      return <div style={shell}><main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}><IeltsAnimatedHero onStartDiagnostic={startDiagnostic} compact authenticated />{hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate={navigate} />}<section style={whiteCard}><h2 style={{ margin: '0 0 .5rem', color: '#0f172a' }}>Your Listening starting point.</h2><p style={{ margin: 0, color: '#475569', lineHeight: 1.65 }}>Check screener availability, resume your saved attempt or view your completed result. Your assignments, practice and IELTS journey remain available.</p></section></main></div>;
     }
     if (activePrime) {
       return (
@@ -598,7 +598,7 @@ const IeltsHome: React.FC = () => {
   const practiceCatalogResolving = isAuthenticated && extraPracticeEnabled === null;
   const getItems = ['Reviewed original content', 'Clear practice score', 'Task-specific evidence', 'Development areas', 'Next practice step'];
   const steps = [
-    { title: 'Start with reviewed content', text: 'The new Listening screener will launch only after its content and scoring are reviewed.', icon: '01' },
+    { title: 'Start with reviewed content', text: 'Original, reviewed content and server-scored results help you identify what to practise next.', icon: '01' },
     { title: 'See a clear task snapshot', text: 'Review a practice score and the evidence that supports each task-specific observation.', icon: '02' },
     { title: 'Build evidence over time', text: 'Move into broader practice and reviewed feedback before Brains Heist shows readiness conclusions.', icon: '03' },
     { title: 'Upgrade when ready', text: 'Prime tools appear after your result, not before.', icon: '04' },

@@ -70,8 +70,8 @@ const PresentationPage = lazyRetry(() => import('./src/pages/PresentationPage'),
 
 const queryClient = new QueryClient();
 
-const withSchoolIeltsAccess = (element: React.ReactElement): React.ReactElement => (
-  <SchoolProgrammeRouteGuard programme="ielts">{element}</SchoolProgrammeRouteGuard>
+const withSchoolIeltsAccess = (element: React.ReactElement, lockedFallback?: React.ReactElement): React.ReactElement => (
+  <SchoolProgrammeRouteGuard programme="ielts" lockedFallback={lockedFallback}>{element}</SchoolProgrammeRouteGuard>
 );
 
 const IeltsPracticeRouteGuard: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -709,7 +709,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts',
-    element: withSchoolIeltsAccess(<IeltsHome />),
+    element: withSchoolIeltsAccess(<IeltsHome />, <ProtectedRoute element={<TrialListeningTask2 />} />),
   },
   {
     path: '/ielts/practice/assigned',
@@ -748,7 +748,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/trial-test-2',
-    element: withSchoolIeltsAccess(<Suspense fallback={<BrainsLoader message="Loading free diagnostic..." />}><TrialListeningTask2 /></Suspense>),
+    element: <ProtectedRoute element={<TrialListeningTask2 />} />,
+  },
+  {
+    path: '/ielts/listening-screener',
+    element: <ProtectedRoute element={<TrialListeningTask2 />} />,
   },
   {
     path: '/ielts/apply-prime',
@@ -812,7 +816,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/ielts/exam/:examEventId',
-    element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsExamMode />} />),
+    element: <ProtectedRoute element={<IeltsExamMode />} />,
   },
   {
     path: '/ielts/reading/:setId',

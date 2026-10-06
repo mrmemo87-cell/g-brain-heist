@@ -147,4 +147,124 @@ test('Listening audio publication gates and short-answer boundaries are enforced
  }
 });
 
+
+test('self-service release reuses real Exam Mode with immutable school context, safe expiry and fail-closed public gates', async () => {
+ await db.exec(`alter table users add column school_id uuid; alter table users add column is_banned boolean default false;
+ create schema extensions;
+ -- Synthetic lock generator only: production retains extensions.gen_random_bytes.
+ create function extensions.gen_random_bytes(integer) returns bytea language sql as $$ select decode(repeat('ab',$1),'hex') $$;
+ create function auth.role() returns text language sql as $$ select 'authenticated'::text $$;
+ create function public.school_has_module_access(uuid,text) returns boolean language sql as $$ select false $$;
+ create function private.ielts_exam_event_school(uuid) returns uuid language sql as $$ select school_id from public.ielts_exam_events where id=$1 $$;
+ create function private.ielts_exam_assignment_school(uuid) returns uuid language sql as $$ select school_id from public.ielts_exam_assignments where id=$1 $$;
+ create function private.ielts_exam_attempt_school(uuid) returns uuid language sql as $$ select a.school_id from public.ielts_exam_assignments a join public.ielts_exam_attempts t on t.assignment_id=a.id where t.id=$1 $$;
+ alter function public.rpc_ielts_submit_attempt(uuid,text,jsonb,text) rename to rpc_ielts_submit_attempt_entitlement_internal;
+ `);
+ const launchLegacy=readFileSync('supabase/migrations/20260804152000_ielts_exam_live_launch_safety.sql','utf8');
+ const guardStart=launchLegacy.indexOf('create or replace function public.ielts_exam_guard_live_status_transition()');
+ const guardEnd=launchLegacy.indexOf('\n$$;',guardStart)+4;
+ await db.exec(launchLegacy.slice(guardStart,guardEnd));
+ await db.exec(`create trigger test_live_guard before insert or update on public.ielts_exam_events for each row execute function public.ielts_exam_guard_live_status_transition();`);
+ const logStart=legacy.indexOf('create or replace function public.rpc_ielts_log_incident(');
+ await db.exec(legacy.slice(logStart,legacy.indexOf('\n$$;',logStart)+4).replace('public.rpc_ielts_log_incident(','public.rpc_ielts_log_incident_entitlement_internal('));
+ await db.exec(readFileSync('supabase/migrations/20261006091705_ielts_screener_discovery_and_self_start.sql','utf8'));
+ await db.exec(`create trigger enforce_ielts_module_row before insert or update or delete on public.ielts_exam_assignments for each row execute function private.enforce_ielts_module_row();`);
+ const selfEvent=uid(301),selfForm=uid(302),selfDef=uid(303),selfVersion=uid(304),independent=uid(305),schoolStudent=uid(306),other=uid(307);
+ await db.query('insert into users(id,school_id) values($1,null),($2,$3),($4,null)',[independent,schoolStudent,school,other]);
+ await db.query("insert into ielts_exam_events(id,title,status,starts_at,ends_at,duration_minutes) values($1,'Synthetic only','draft',now()-interval '1 hour',now()-interval '30 minutes',15)",[selfEvent]);
+ await db.query("insert into ielts_exam_forms(id,exam_event_id,form_code,is_active) values($1,$2,'self-test-only',false)",[selfForm,selfEvent]);
+ await db.query("insert into private.ielts_diagnostic_definitions(id,code,title) values($1,'self-test-only','Synthetic self-service fixture')",[selfDef]);
+ await db.query("insert into private.ielts_diagnostic_versions(id,definition_id,version,exam_form_id,mode,test_type,skills,taxonomy_version_id,scoring_policy_version) values($1,$2,1,$3,'screener','shared',array['listening'],$4,'ielts-objective-screener-v1')",[selfVersion,selfDef,selfForm,registry]);
+ const questions=[];
+ for(let n=1;n<=12;n++) {
+   const options=['Alpha','Beta','Gamma','Delta']; const prompt=`Synthetic self-service item ${n}`;
+   questions.push({id:`t${n}`,prompt,type:'multiple_choice',options});
+   await db.query("insert into private.ielts_diagnostic_items(version_id,item_key,task_key,skill,order_index,response_type,prompt,options,accepted_answers,taxonomy_node_id) values($1,$2,$3,'listening',$4,'multiple_choice',$5,$6,$7,$8)",[selfVersion,`t${n}`,`recording-${Math.ceil(n/4)}`,n,prompt,JSON.stringify(options),JSON.stringify(['Alpha']),uid(100+n%3)]);
+ }
+ const sha='a'.repeat(64),url='https://example.com/synthetic-self-test-only.mp3';
+ await db.query('update ielts_exam_forms set listening_payload=$1 where id=$2',[JSON.stringify({assessment_mode:'screener',title:'Synthetic self-service',audio_url:url,questions}),selfForm]);
+ await db.query(`update private.ielts_diagnostic_versions set reviewed_by=$1,reviewed_at=now(),
+   provenance=$2,audio_provenance=$3,review_record=$4 where id=$5`,[teacher,
+   JSON.stringify({author:'Synthetic fixture',rights_basis:'Synthetic test only',rights_holder:'Brains Heist LLC',content_version:'1'}),
+   JSON.stringify({human_reviewed:true,rights_basis:'Synthetic fixture only',rights_holder:'Brains Heist LLC',sha256:sha,url}),
+   JSON.stringify({human_editorial:true,answer_key:true,taxonomy:true,difficulty:true,delivery:true,audio_fidelity:true,reviewed_audio_sha256:sha,notes:'Synthetic fixture, never a production review'}),selfVersion]);
+ await db.query("update private.ielts_diagnostic_versions set review_record=review_record||jsonb_build_object('reviewed_content_hash',encode(sha256(convert_to((private.ielts_diagnostic_snapshot(id)-'version')::text,'UTF8')),'hex')) where id=$1",[selfVersion]);
+ const hash=(await db.query("select review_record->>'reviewed_content_hash' h from private.ielts_diagnostic_versions where id=$1",[selfVersion])).rows[0].h;
+ await assert.rejects(db.query('select private.publish_ielts_screener($1,$2,$3)',[selfVersion,'wrong',sha]),/reviewed_version_mismatch/);
+ await actor(independent);
+ assert.deepEqual((await db.query('select rpc_ielts_screener_catalog() result')).rows[0].result,[]);
+ await assert.rejects(db.query("select rpc_ielts_screener_self_assign('self-test-only')"),/screener_unavailable/);
+ const published=(await db.query('select private.publish_ielts_screener($1,$2,$3) h',[selfVersion,hash,sha])).rows[0].h;
+ // Broad activation cannot use a human content review as device evidence.
+ await assert.rejects(db.query("select private.activate_ielts_screener_release($1,'public','{}',$2,'{}')",[selfVersion,teacher]),/screener_controlled_validation_required/);
+ await db.query("select private.activate_ielts_screener_release($1,'pilot',$2,$3,'{}')",[selfVersion,[independent,schoolStudent],teacher]);
+ assert.equal((await db.query('select rpc_ielts_screener_catalog() result')).rows[0].result[0].status,'ready');
+ const launch=()=>db.query("select rpc_ielts_screener_self_assign('self-test-only') result");
+ const one=(await launch()).rows[0].result,two=(await launch()).rows[0].result;
+ assert.equal(one.assignment_id,two.assignment_id);
+ const who=(await db.query('select rpc_ielts_exam_whoami($1) result',[selfEvent])).rows[0].result;
+ assert.equal(who.allowed,true); assert.equal(who.assignment_id,one.assignment_id);
+ assert.doesNotMatch(JSON.stringify(who),/accepted_answers|answer_key|review_record|published_snapshot/);
+ const begin=(await db.query('select rpc_ielts_start_attempt($1) result',[one.assignment_id])).rows[0].result;
+ const resume=(await db.query('select rpc_ielts_start_attempt($1) result',[one.assignment_id])).rows[0].result;
+ assert.equal(begin.attempt_id,resume.attempt_id); assert.equal(begin.ends_at,resume.ends_at);
+ assert.equal((await db.query('select school_id from private.ielts_diagnostic_attempt_evidence where attempt_id=$1',[begin.attempt_id])).rows[0].school_id,null);
+ const save=(v,payload)=>db.query("select rpc_ielts_autosave_attempt($1,$2,'listening',$3,$4,now()) result",[begin.attempt_id,begin.lock_token,JSON.stringify(payload),v]);
+ await save(2,{t1:'Alpha'}); await save(1,{t1:'Beta'}); await save(2,{t1:'Gamma'});
+ assert.equal((await db.query('select payload from ielts_exam_drafts where attempt_id=$1',[begin.attempt_id])).rows[0].payload.t1,'Alpha');
+ const restored=(await db.query('select rpc_ielts_exam_whoami($1) result',[selfEvent])).rows[0].result;
+ assert.equal(restored.drafts[0].payload.t1,'Alpha'); assert.equal(restored.drafts[0].draft_version,2);
+ await db.query("update ielts_exam_events set status='paused' where id=$1",[selfEvent]);
+ await assert.rejects(save(3,{t1:'Beta'}),/exam_paused/);
+ await assert.rejects(db.query('select rpc_ielts_start_attempt($1)',[one.assignment_id]),/exam_not_startable/);
+ await db.query("select private.activate_ielts_screener_release($1,'pilot',$2,$3,'{}')",[selfVersion,[independent,schoolStudent],teacher]);
+ await actor(other);
+ await assert.rejects(db.query('select rpc_ielts_start_attempt($1)',[one.assignment_id]),/school agreement|forbidden/);
+ await assert.rejects(db.query('select rpc_ielts_diagnostic_result($1)',[begin.attempt_id]),/not_authorized/);
+ assert.deepEqual((await db.query('select rpc_ielts_screener_catalog() result')).rows[0].result,[]);
+ await actor(schoolStudent);
+ const schoolLaunch=(await launch()).rows[0].result;
+ const schoolAttempt=(await db.query('select rpc_ielts_start_attempt($1) result',[schoolLaunch.assignment_id])).rows[0].result;
+ assert.equal((await db.query('select school_id from private.ielts_diagnostic_attempt_evidence where attempt_id=$1',[schoolAttempt.attempt_id])).rows[0].school_id,school);
+ await assert.rejects(db.query('update ielts_exam_assignments set school_id=null where id=$1',[schoolLaunch.assignment_id]),/identity_immutable/);
+ await actor(independent);
+ const final=await db.query("select rpc_ielts_submit_attempt($1,$2,$3,'synthetic-self-submit') result",[begin.attempt_id,begin.lock_token,JSON.stringify({listening:{t1:'Alpha'},estimated_band:9})]);
+ const replay=await db.query("select rpc_ielts_submit_attempt($1,$2,'{}','synthetic-self-submit') result",[begin.attempt_id,begin.lock_token]);
+ assert.equal(final.rows[0].result.submission_id,replay.rows[0].result.submission_id);
+ const result=(await db.query('select rpc_ielts_diagnostic_result($1) result',[begin.attempt_id])).rows[0].result;
+ assert.equal(result.raw_score,1); assert.equal(result.marks_possible,12); assert.equal(result.confidence.level,'low');
+ assert.equal(result.readiness_available,false); assert.equal(result.persistent_weakness_available,false);
+ assert.doesNotMatch(JSON.stringify(result),/answer_key|accepted_answers|Alpha|transcript|band_estimate/);
+ assert.equal((await db.query('select rpc_ielts_screener_catalog() result')).rows[0].result[0].status,'completed');
+ await actor(schoolStudent);
+ await db.query("select rpc_ielts_autosave_attempt($1,$2,'listening',$3,1,now())",[schoolAttempt.attempt_id,schoolAttempt.lock_token,JSON.stringify({t1:'Alpha'})]);
+ await db.query("update ielts_exam_attempts set ends_at=now()-interval '1 second' where id=$1",[schoolAttempt.attempt_id]);
+ // Late browser answers are ignored and only the saved response is scored.
+ await db.query("select rpc_ielts_submit_attempt($1,$2,$3,'expired-self-submit')",[schoolAttempt.attempt_id,schoolAttempt.lock_token,JSON.stringify({listening:{t1:'Beta',t2:'Alpha'}})]);
+ assert.equal((await db.query('select rpc_ielts_diagnostic_result($1) result',[schoolAttempt.attempt_id])).rows[0].result.raw_score,1);
+ for(const table of ['ielts_screener_releases','ielts_diagnostic_versions','ielts_diagnostic_items','ielts_diagnostic_scoring_runs'])
+   assert.equal((await db.query("select has_table_privilege('authenticated',$1,'select') ok",[`private.${table}`])).rows[0].ok,false);
+ for(const table of ['ielts_exam_attempts','ielts_exam_assignments','ielts_exam_submissions'])
+   assert.equal((await db.query("select has_table_privilege('authenticated',$1,'insert') ok",[`public.${table}`])).rows[0].ok,false);
+ for(const rpc of ['public.rpc_ielts_screener_catalog()','public.rpc_ielts_screener_self_assign(text)','private.publish_ielts_screener(uuid,text,text)','private.activate_ielts_screener_release(uuid,text,uuid[],uuid,jsonb)']) {
+   assert.equal((await db.query("select has_function_privilege('anon',$1,'execute') ok",[rpc])).rows[0].ok,false);
+ }
+ assert.equal((await db.query("select has_function_privilege('authenticated','private.activate_ielts_screener_release(uuid,text,uuid[],uuid,jsonb)','execute') ok")).rows[0].ok,false);
+ // Only synthetic validated data can pass the public release gate in this test.
+ const checks=['authenticated_entitlement','start_resume','audio_loading','reading_intervals','response_intervals','pause_replay','autosave','refresh_resume','network_interruption','background_interruption','submission','idempotency','server_scoring','protected_content','result_safety','completed_persistence','mobile_browser','desktop_browser','automated_checks'];
+ const validation={content_hash:published,audio_sha256:sha,tested_at:new Date().toISOString(),evidence_reference:'Synthetic test fixture only',...Object.fromEntries(checks.map(k=>[k,true]))};
+ const mismatch={...validation,audio_sha256:'b'.repeat(64)};
+ await assert.rejects(db.query("select private.activate_ielts_screener_release($1,'public','{}',$2,$3)",[selfVersion,teacher,JSON.stringify(mismatch)]),/screener_controlled_validation_required/);
+ await db.query("select private.activate_ielts_screener_release($1,'public','{}',$2,$3)",[selfVersion,teacher,JSON.stringify(validation)]);
+ await actor(other);
+ assert.equal((await db.query('select rpc_ielts_screener_catalog() result')).rows[0].result[0].status,'ready');
+ const expiryLaunch=(await launch()).rows[0].result;
+ const expiryAttempt=(await db.query('select rpc_ielts_start_attempt($1) result',[expiryLaunch.assignment_id])).rows[0].result;
+ await db.query("update ielts_exam_attempts set ends_at=now()-interval '1 second' where id=$1",[expiryAttempt.attempt_id]);
+ assert.equal((await db.query('select rpc_ielts_exam_whoami($1) result',[selfEvent])).rows[0].result.status,'auto_submitted');
+ assert.equal((await db.query('select rpc_ielts_diagnostic_result($1) result',[expiryAttempt.attempt_id])).rows[0].result.raw_score,0);
+ await db.query('update users set is_banned=true where id=$1',[other]);
+ await assert.rejects(launch(),/screener_unavailable/);
+});
+
 test.after(()=>db.close());
