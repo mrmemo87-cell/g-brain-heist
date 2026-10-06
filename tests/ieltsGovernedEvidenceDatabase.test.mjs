@@ -97,4 +97,54 @@ test('result projection is self or exact-class scoped; private keys and scores r
  await db.query('update class_teacher_assignments set active=false');
  await assert.rejects(db.query('select rpc_ielts_diagnostic_result($1)',[attempt]),/not_authorized/);
 });
+
+test('Listening audio publication gates and short-answer boundaries are enforced by the real scorer', async () => {
+ const form2=uid(201), def2=uid(202), version2=uid(203);
+ await db.query("insert into ielts_exam_forms(id,exam_event_id,form_code,is_active) values($1,$2,'listening-fixture',false)",[form2,event]);
+ await db.query("insert into private.ielts_diagnostic_definitions(id,code,title) values($1,'listening-fixture','Synthetic Listening fixture')",[def2]);
+ await db.query(`insert into private.ielts_diagnostic_versions(id,definition_id,version,exam_form_id,mode,test_type,skills,taxonomy_version_id,scoring_policy_version)
+ values($1,$2,1,$3,'screener','shared',array['listening'],$4,'ielts-objective-screener-v1')`,[version2,def2,form2,registry]);
+ const qs=[];
+ for(let n=1;n<=12;n++) {
+  const short=[2,6,11].includes(n), options=short?[]:['First','Second','Third','Fourth'];
+  qs.push({id:`s${n}`,prompt:`Synthetic Listening item ${n}${n===6?' — write digits only':''}`,type:short?'short_answer':'multiple_choice',options});
+  const keys=n===2?['09:40','9:40','9.40']:n===6?['27']:n===11?['bicycles']:['First'];
+  await db.query(`insert into private.ielts_diagnostic_items(version_id,item_key,task_key,skill,order_index,response_type,prompt,options,accepted_answers,max_words,taxonomy_node_id)
+  values($1,$2,$3,'listening',$4,$5,$6,$7,$8,$9,$10)`,[version2,`s${n}`,`recording-${Math.ceil(n/4)}`,n,short?'short_answer':'multiple_choice',qs[n-1].prompt,JSON.stringify(options),JSON.stringify(keys),short?1:null,uid(100+n%3)]);
+ }
+ const url='https://example.com/synthetic-only.mp3';
+ await db.query('update ielts_exam_forms set listening_payload=$1 where id=$2',[JSON.stringify({assessment_mode:'screener',title:'Synthetic test',audio_url:url,questions:qs}),form2]);
+ await db.query(`update private.ielts_diagnostic_versions set reviewed_by=$1,reviewed_at=now(),provenance='{"author":"Test fixture","rights_basis":"Synthetic test only","content_version":"1"}',review_record='{"human_editorial":true,"answer_key":true,"taxonomy":true,"difficulty":true,"delivery":true,"notes":"Synthetic test fixture, never a production review."}' where id=$2`,[teacher,version2]);
+ await db.query("update private.ielts_diagnostic_versions set review_record=review_record||jsonb_build_object('reviewed_content_hash',encode(sha256(convert_to((private.ielts_diagnostic_snapshot(id)-'version')::text,'UTF8')),'hex')) where id=$1",[version2]);
+ const publish2=()=>db.query("update private.ielts_diagnostic_versions set state='published' where id=$1",[version2]);
+ await assert.rejects(publish2(),/diagnostic_reviewed_audio_required/);
+ await db.query('update private.ielts_diagnostic_versions set audio_provenance=$1 where id=$2',[JSON.stringify({human_reviewed:true,rights_basis:'Synthetic fixture only',sha256:'a'.repeat(64),url:'https://example.com/different.mp3'}),version2]);
+ await assert.rejects(publish2(),/diagnostic_audio_mismatch/);
+ await db.query("update private.ielts_diagnostic_versions set audio_provenance=jsonb_set(audio_provenance,'{url}',to_jsonb($1::text)) where id=$2",[url,version2]);
+ await db.query("update academic_skill_registry_versions set status='draft' where id=$1",[registry]);
+ await assert.rejects(publish2(),/diagnostic_reviewed_taxonomy_required/);
+ await db.query("update academic_skill_registry_versions set status='published' where id=$1",[registry]);
+ await publish2();
+ await db.query('update ielts_exam_forms set is_active=true where id=$1',[form2]);
+ const cases=[
+  {responses:{s2:' 9.40 ',s6:'27',s11:' BICYCLES '},score:3,states:['answered','answered','answered']},
+  {responses:{s2:'9:30',s6:'twenty seven',s11:'the bicycles'},score:0,states:['answered','answered','answered']},
+  {responses:{s2:' ',s6:null,s11:{forged:true}},score:0,states:['unanswered','unanswered','invalid']},
+ ];
+ for(let i=0;i<cases.length;i++) {
+  const user=uid(210+i), ass=uid(220+i), att=uid(230+i);
+  await db.query('insert into users values($1)',[user]);
+  await db.query('insert into ielts_exam_assignments(id,exam_event_id,student_id,school_id,class_id,form_id) values($1,$2,$3,$4,$5,$6)',[ass,event,user,school,cls,form2]);
+  await db.query("insert into ielts_exam_attempts(id,assignment_id,exam_event_id,student_id,form_id,status,started_at,ends_at,lock_token) values($1,$2,$3,$4,$5,'in_progress',now(),now()+interval '1 hour','fixture-lock')",[att,ass,event,user,form2]);
+  await actor(user);
+  const payload={listening:cases[i].responses,raw_score:999,estimated_band:9};
+  const first=(await db.query("select rpc_ielts_submit_attempt($1,'fixture-lock',$2,$3) result",[att,JSON.stringify(payload),`fixture-submit-${i}`])).rows[0].result;
+  const replay=(await db.query("select rpc_ielts_submit_attempt($1,'fixture-lock','{}',$2) result",[att,`fixture-submit-${i}`])).rows[0].result;
+  assert.equal(first.submission_id,replay.submission_id);
+  const run=(await db.query('select * from private.ielts_diagnostic_scoring_runs where attempt_id=$1',[att])).rows[0];
+  assert.equal(run.raw_score,cases[i].score); assert.equal(run.marks_possible,12); assert.equal(run.confidence.level,'low');
+  for(let j=0;j<3;j++) assert.equal(run.outcomes.find(x=>x.item_key===['s2','s6','s11'][j]).response_state,cases[i].states[j]);
+ }
+});
+
 test.after(()=>db.close());
