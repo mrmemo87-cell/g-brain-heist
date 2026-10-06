@@ -48,7 +48,7 @@ begin
   if jsonb_typeof(new.payload)<>'object' then raise exception 'diagnostic_response_payload_invalid'; end if;
   for item in select value from jsonb_array_elements(e.form_snapshot->'items') loop
     answer:=new.payload #> array[item->>'skill',item->>'item_key'];
-    state:=case when answer is null or answer='null'::jsonb or answer='"'::jsonb then 'unanswered'
+    state:=case when answer is null or answer='null'::jsonb or answer='""'::jsonb then 'unanswered'
       when jsonb_typeof(answer)<>'string' or length(answer#>>'{}')>2000 then 'invalid' else 'answered' end;
     normalized:=lower(trim(regexp_replace(coalesce(answer#>>'{}',''),'\\s+',' ','g')));
     if normalized='' and state='answered' then state:='unanswered'; end if;
