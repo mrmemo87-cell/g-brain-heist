@@ -147,7 +147,13 @@ const IeltsExamMode: React.FC = () => {
   const [teacherActionMessage, setTeacherActionMessage] = useState<string | null>(null);
 
   const screenerAudioRef = useRef<HTMLAudioElement | null>(null);
+  const audioBufferTimerRef = useRef<number | null>(null);
+  const audioBufferStartedAtRef = useRef<number | null>(null);
+  const recentIncidentRef = useRef<Record<string, number>>({});
   useEffect(() => { if (submission || syncState !== 'active') screenerAudioRef.current?.pause(); }, [submission, syncState]);
+  useEffect(() => () => {
+    if (audioBufferTimerRef.current !== null) window.clearTimeout(audioBufferTimerRef.current);
+  }, []);
   const answersRef = useRef(answers);
   const activeSectionRef = useRef<IeltsExamSection>(activeSection);
   const attemptRef = useRef<IeltsStartAttemptResponse | null>(attempt);
@@ -422,9 +428,13 @@ const IeltsExamMode: React.FC = () => {
   const logIncident = useCallback(async (incidentType: string, severity: 'info' | 'warning', payload: Record<string, unknown>) => {
     const currentAttempt = attemptRef.current;
     const currentLockToken = lockTokenRef.current;
-    if (!currentAttempt?.attempt_id || !currentLockToken || incidentInFlightRef.current) return;
+    if (!currentAttempt?.attempt_id || !currentLockToken) return;
+    const now = Date.now();
+    const dedupeKey = incidentType === 'window_blur' || incidentType === 'tab_hidden' ? 'backgrounding' : incidentType;
+    if (now - (recentIncidentRef.current[dedupeKey] ?? 0) < 2000 || incidentInFlightRef.current) return;
+    recentIncidentRef.current[dedupeKey] = now;
     incidentInFlightRef.current = true;
-    setWarning('Exam integrity event logged. Please stay in the exam window.');
+    if (severity === 'warning') setWarning('A delivery interruption was recorded. Your answers are safe.');
     try {
       await rpcIeltsLogIncident({
         attemptId: currentAttempt.attempt_id,
@@ -453,8 +463,9 @@ const IeltsExamMode: React.FC = () => {
       }
     };
     const onWindowBlur = () => {
+      screenerAudioRef.current?.pause();
       void autosaveSection(activeSectionRef.current, 'window blur');
-      void logIncident('window_blur', 'warning', {});
+      void logIncident('window_blur', 'info', { audio_paused: true });
     };
     const onPaste = (event: ClipboardEvent) => {
       void logIncident('paste_attempt', 'warning', { target: (event.target as HTMLElement | null)?.tagName ?? 'unknown' });
@@ -759,8 +770,41 @@ const IeltsExamMode: React.FC = () => {
               <audio ref={screenerAudioRef} id="screener-audio" key={getIeltsScreenerAudio(activePayload)} controls={syncState === 'active'} preload="metadata" className="w-full" src={getIeltsScreenerAudio(activePayload)!}
                 onPlay={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}
                 onPlaying={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}
-                onError={() => { setWarning('The audio could not load. Your answers are safe. Tell your teacher before continuing.'); void logIncident('screener_audio_load_failure', 'warning', { section: activeSection }); }}
-                onWaiting={() => { setWarning('The audio is buffering. If it interrupts your listening, tell your teacher.'); void logIncident('screener_audio_buffering', 'warning', { section: activeSection }); }}
+                onError={() => {
+                  if (audioBufferTimerRef.current !== null) window.clearTimeout(audioBufferTimerRef.current);
+                  audioBufferTimerRef.current = null;
+                  audioBufferStartedAtRef.current = null;
+                  setWarning('The audio could not load. Your answers are safe. Tell your teacher before continuing.');
+                  void logIncident('screener_audio_load_failure', 'warning', { section: activeSection });
+                }}
+                onWaiting={(event) => {
+                  if (event.currentTarget.paused || event.currentTarget.ended || event.currentTarget.currentTime <= 0) return;
+                  if (audioBufferTimerRef.current !== null) return;
+                  audioBufferStartedAtRef.current = Date.now();
+                  audioBufferTimerRef.current = window.setTimeout(() => {
+                    audioBufferTimerRef.current = null;
+                    const audio = screenerAudioRef.current;
+                    if (!audio || audio.paused || audio.ended || audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+                      audioBufferStartedAtRef.current = null;
+                      return;
+                    }
+                    const interruptedMs = Math.max(1500, Date.now() - (audioBufferStartedAtRef.current ?? Date.now()));
+                    setWarning('The audio was interrupted by buffering. Your answers are safe. Tell your teacher if listening was affected.');
+                    void logIncident('screener_audio_interruption', 'warning', { section: activeSection, interrupted_ms: interruptedMs });
+                    audioBufferStartedAtRef.current = null;
+                  }, 1500);
+                }}
+                onPlaying={() => {
+                  if (audioBufferTimerRef.current !== null) window.clearTimeout(audioBufferTimerRef.current);
+                  audioBufferTimerRef.current = null;
+                  audioBufferStartedAtRef.current = null;
+                  if (syncStateRef.current !== 'active') screenerAudioRef.current?.pause();
+                }}
+                onCanPlay={() => {
+                  if (audioBufferTimerRef.current !== null) window.clearTimeout(audioBufferTimerRef.current);
+                  audioBufferTimerRef.current = null;
+                  audioBufferStartedAtRef.current = null;
+                }}
               >Your browser cannot play this audio. Please ask your teacher for help.</audio>
             </div>}
             <div className="space-y-5">
