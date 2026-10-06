@@ -256,6 +256,17 @@ test('self-service release reuses real Exam Mode with immutable school context, 
  const mismatch={...validation,audio_sha256:'b'.repeat(64)};
  await assert.rejects(db.query("select private.activate_ielts_screener_release($1,'public','{}',$2,$3)",[selfVersion,teacher,JSON.stringify(mismatch)]),/screener_controlled_validation_required/);
  await db.query("select private.activate_ielts_screener_release($1,'public','{}',$2,$3)",[selfVersion,teacher,JSON.stringify(validation)]);
+ // Public access uses the canonical programme decision, while own completed results remain readable.
+ await db.exec(`create function private.actor_has_programme_access(text,boolean) returns boolean language sql as $$
+   select coalesce(current_setting('test.programme_eligible',true),'true')='true' $$;`);
+ await db.exec(readFileSync('supabase/migrations/20261006180000_ielts_public_screener_eligibility.sql','utf8'));
+ await actor(other);
+ await db.query("select set_config('test.programme_eligible','false',false)");
+ assert.deepEqual((await db.query('select rpc_ielts_screener_catalog() result')).rows[0].result,[]);
+ await assert.rejects(launch(),/screener_unavailable/);
+ await actor(independent);
+ assert.equal((await db.query('select rpc_ielts_diagnostic_result($1) result',[begin.attempt_id])).rows[0].result.raw_score,1);
+ await db.query("select set_config('test.programme_eligible','true',false)");
  await actor(other);
  assert.equal((await db.query('select rpc_ielts_screener_catalog() result')).rows[0].result[0].status,'ready');
  const expiryLaunch=(await launch()).rows[0].result;

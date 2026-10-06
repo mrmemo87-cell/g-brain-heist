@@ -134,7 +134,7 @@ const TrialListeningTask2: React.FC = () => {
         <div aria-live="polite" style={{ margin: '1.2rem 0 0', color: '#475569', fontSize: '.95rem', lineHeight: 1.6 }}>
           {loading ? 'Checking your screener…' : error ? <p role="alert">{error}</p>
             : !entry ? 'The reviewed screener is awaiting its final delivery checks. Please check back here.'
-            : entry.status === 'completed' ? 'Your completed screener is saved. Start again to create a separate validation attempt.'
+            : entry.status === 'completed' ? 'Your result is saved. Repeat for practice with the same questions; a repeat does not measure improvement.'
             : entry.status === 'in_progress' ? 'Your screener is in progress. Resume your saved attempt.'
             : entry.status === 'expired' ? 'Your attempt time has ended. Open it to finish saving your responses.'
             : entry.status === 'scheduled' ? 'Your screener is scheduled. Check back when it opens.'
