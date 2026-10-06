@@ -1,5 +1,6 @@
 import { fetchIeltsDiagnosticResult, getIeltsScreenerAudio, type IeltsDiagnosticResult } from '../../../services/ieltsDiagnosticEvidenceService';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import '../../styles/ielts-exam.css';
 import { useParams } from 'react-router-dom';
 import {
   createExamIdempotencyKey,
@@ -23,6 +24,7 @@ import {
 } from '../../../services/ieltsExamPayloadParser';
 import {
   canStartIeltsExamAttempt,
+  getIeltsAttemptTimeMessage,
   formatIeltsCountdown,
   getIeltsStudentExamSyncMessage,
   isIeltsTeacherSubmittedStatus,
@@ -532,7 +534,10 @@ const IeltsExamMode: React.FC = () => {
   };
 
   const activePayload = getPayloadForSection(formPayload, activeSection);
-  const isScreener = isObject(activePayload) && activePayload.assessment_mode === 'screener';
+  const isScreener = availableSections.some((section) => {
+    const payload = getPayloadForSection(formPayload, section.id);
+    return isObject(payload) && payload.assessment_mode === 'screener';
+  });
   const activeQuestions = useMemo(() => extractIeltsQuestions(activePayload, activeSection), [activePayload, activeSection]);
   const status = submission?.status ?? whoami?.attempt_status ?? attempt?.status ?? whoami?.status;
   const eventStatus = whoami?.event_status ?? (!whoami?.attempt_id ? whoami?.status : null);
@@ -664,11 +669,12 @@ const IeltsExamMode: React.FC = () => {
     return (
       <ExamFrame>
         <StateCard
-          title={stateTitleFor(whoami)}
-          body={`Exam is live. Time available: ${formatRemaining(remainingSeconds)}.`}
-          secondaryText={`Local window: ${formatLocalDateTime(whoami.starts_at)} to ${formatLocalDateTime(whoami.ends_at)}`}
+          eyebrow={isScreener ? 'Listening readiness screener' : 'IELTS Exam Mode'}
+          title={isScreener ? (whoami.attempt_id ? 'Continue your Listening screener.' : 'Your Listening screener is ready.') : stateTitleFor(whoami)}
+          body={getIeltsAttemptTimeMessage(Boolean(whoami.attempt_id), remainingSeconds)}
+          secondaryText={whoami.attempt_id ? 'Your saved answers will reopen. The timer continues from your existing attempt.' : 'The timer starts when you begin. Your answers save automatically.'}
           alert={error}
-          actionLabel={whoami.attempt_id ? 'Resume exam' : 'Start exam'}
+          actionLabel={isScreener ? (whoami.attempt_id ? 'Resume screener' : 'Start screener') : (whoami.attempt_id ? 'Resume exam' : 'Start exam')}
           onAction={() => void startOrResume()}
           busy={isStarting}
         />
@@ -787,7 +793,7 @@ const IeltsExamMode: React.FC = () => {
                   ) : question.type === 'essay' || activeSection === 'writing' ? (
                     <textarea
                       id={`${activeSection}-${question.id}`}
-                      className="mt-3 min-h-48 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      className="mt-3 min-h-48 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm leading-6 text-slate-900 placeholder:text-slate-600 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                       value={answers[activeSection]?.[question.id] ?? ''}
                       disabled={!shouldIeltsAutosaveRun(syncState)}
                       onChange={(event) => handleAnswerChange(activeSection, question.id, event.target.value)}
@@ -796,7 +802,7 @@ const IeltsExamMode: React.FC = () => {
                   ) : (
                     <input
                       id={`${activeSection}-${question.id}`}
-                      className="mt-3 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      className="mt-3 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 placeholder:text-slate-600 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                       value={answers[activeSection]?.[question.id] ?? ''}
                       disabled={!shouldIeltsAutosaveRun(syncState)}
                       onChange={(event) => handleAnswerChange(activeSection, question.id, event.target.value)}
@@ -827,11 +833,13 @@ const IeltsExamMode: React.FC = () => {
   );
 };
 
-const ExamFrame: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-    {children}
-  </div>
-);
+const ExamFrame: React.FC<React.PropsWithChildren> = ({ children }) => {
+  useEffect(() => {
+    document.body.classList.add('ielts-exam-mode');
+    return () => document.body.classList.remove('ielts-exam-mode');
+  }, []);
+  return <div className="ielts-exam-frame min-h-screen bg-slate-50 font-sans text-slate-900">{children}</div>;
+};
 
 const StateCard: React.FC<{
   title: string;
