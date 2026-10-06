@@ -134,7 +134,7 @@ const TrialListeningTask2: React.FC = () => {
         <div aria-live="polite" style={{ margin: '1.2rem 0 0', color: '#475569', fontSize: '.95rem', lineHeight: 1.6 }}>
           {loading ? 'Checking your screener…' : error ? <p role="alert">{error}</p>
             : !entry ? 'The reviewed screener is awaiting its final delivery checks. Please check back here.'
-            : entry.status === 'completed' ? 'Your completed screener and saved result are ready to view.'
+            : entry.status === 'completed' ? 'Your completed screener is saved. Start again to create a separate validation attempt.'
             : entry.status === 'in_progress' ? 'Your screener is in progress. Resume your saved attempt.'
             : entry.status === 'expired' ? 'Your attempt time has ended. Open it to finish saving your responses.'
             : entry.status === 'scheduled' ? 'Your screener is scheduled. Check back when it opens.'
@@ -145,7 +145,7 @@ const TrialListeningTask2: React.FC = () => {
 
         {canOpen && <button type="button" disabled={opening || loading} onClick={() => void open()}
           className="mt-5 w-full rounded-full bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-700 px-5 py-4 font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600 disabled:opacity-60">
-          {opening ? 'Opening…' : entry.status === 'completed' ? 'View screener result' : entry.status === 'in_progress' ? 'Resume screener' : entry.status === 'expired' ? 'Open saved attempt' : 'Start Listening screener'}
+          {opening ? 'Opening…' : entry.status === 'completed' ? 'Start new screener attempt' : entry.status === 'in_progress' ? 'Resume screener' : entry.status === 'expired' ? 'Open saved attempt' : 'Start Listening screener'}
         </button>}
         {!loading && <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold text-blue-700 underline focus-visible:outline focus-visible:outline-2">Check availability again</button>}
 
