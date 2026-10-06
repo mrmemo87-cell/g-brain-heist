@@ -1,3 +1,4 @@
+import { fetchIeltsDiagnosticResult, getIeltsScreenerAudio, type IeltsDiagnosticResult } from '../../../services/ieltsDiagnosticEvidenceService';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
@@ -122,6 +123,9 @@ const IeltsExamMode: React.FC = () => {
   const { examEventId } = useParams<{ examEventId: string }>();
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [error, setError] = useState<string | null>(null);
+  const [diagnosticResult, setDiagnosticResult] = useState<IeltsDiagnosticResult | null>(null);
+  const [diagnosticError, setDiagnosticError] = useState('');
+  const [resultRetry, setResultRetry] = useState(0);
   const [whoami, setWhoami] = useState<IeltsExamWhoamiResponse | null>(null);
   const [attempt, setAttempt] = useState<IeltsStartAttemptResponse | null>(null);
   const [lockToken, setLockToken] = useState<string | null>(null);
@@ -140,6 +144,8 @@ const IeltsExamMode: React.FC = () => {
   const [syncState, setSyncState] = useState<IeltsStudentExamSyncState>('active');
   const [teacherActionMessage, setTeacherActionMessage] = useState<string | null>(null);
 
+  const screenerAudioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => { if (syncState !== 'active') screenerAudioRef.current?.pause(); }, [syncState]);
   const answersRef = useRef(answers);
   const activeSectionRef = useRef<IeltsExamSection>(activeSection);
   const attemptRef = useRef<IeltsStartAttemptResponse | null>(attempt);
@@ -284,9 +290,24 @@ const IeltsExamMode: React.FC = () => {
     };
   }, [refreshLiveState]);
 
+  const resultAttemptId = submission?.attempt_id ?? whoami?.attempt_id ?? attempt?.attempt_id;
+  const resultSubmitted = Boolean(submission) || ['submitted', 'auto_submitted'].includes(whoami?.status ?? '');
+  useEffect(() => {
+    if (!resultAttemptId || !resultSubmitted) return;
+    let active = true;
+    setDiagnosticError('');
+    setDiagnosticResult(null);
+    fetchIeltsDiagnosticResult(resultAttemptId).then((value) => { if (active) setDiagnosticResult(value); })
+      .catch((reason) => { if (active) setDiagnosticError(reason instanceof Error ? reason.message : 'Your answers are saved. Please retry loading the result.'); });
+    return () => { active = false; };
+  }, [resultAttemptId, resultSubmitted, resultRetry]);
+
   const formPayload = whoami?.form_public_payload ?? null;
   const availableSections = useMemo(() => (
-    SECTIONS.filter((section) => getPayloadForSection(formPayload, section.id) !== null && getPayloadForSection(formPayload, section.id) !== undefined)
+    SECTIONS.filter((section) => {
+      const payload = getPayloadForSection(formPayload, section.id);
+      return payload !== null && payload !== undefined && (!isObject(payload) || Object.keys(payload).length > 0);
+    })
   ), [formPayload]);
 
   useEffect(() => {
@@ -614,11 +635,22 @@ const IeltsExamMode: React.FC = () => {
   if (isSubmitted) {
     return (
       <ExamFrame>
-        <StateCard
-          title="IELTS exam submitted"
+        {!diagnosticResult && <StateCard
+          title="IELTS assessment submitted"
           body={submission?.submission_id === 'teacher-action' || teacherActionMessage === 'Your exam has been submitted by your teacher.' ? 'Your exam has been submitted by your teacher.' : 'Your answers have been received and locked for grading.'}
-          secondaryText={`Submission status: ${submission?.status ?? status}. Answer inputs and the submit button are locked.`}
-        />
+          secondaryText="Your answers are saved. Your teacher can help you with the next step."
+        />}
+        {diagnosticError && <div className="mx-auto max-w-2xl p-5" role="alert"><p>{diagnosticError}</p><button type="button" className="mt-3 rounded-xl bg-slate-900 px-5 py-3 text-white" onClick={() => setResultRetry((n) => n + 1)}>Load result again</button></div>}
+        {diagnosticResult && <section aria-label="Screener result" className="mx-auto my-8 max-w-2xl rounded-2xl border border-cyan-200 bg-white p-6 text-slate-900 shadow-sm">
+          <h2 className="text-xl font-bold">Your starting point</h2>
+          <p className="mt-3 text-3xl font-bold">{diagnosticResult.raw_score} / {diagnosticResult.marks_possible}</p>
+          <p className="mt-2 text-sm text-slate-600">Screener score · Confidence: low</p>
+          <p className="mt-3 text-sm">This short check samples part of your learning. It does not give an IELTS band.</p>
+          <p className="mt-3 text-sm">{diagnosticResult.confidence.items_answered} of {diagnosticResult.confidence.items_possible} items answered · {diagnosticResult.confidence.constructs_with_responses} of {diagnosticResult.confidence.constructs_sampled} sampled skills have responses.</p>
+          {diagnosticResult.integrity_state === 'review_required' && <p className="mt-3 text-sm text-amber-800">Your teacher should review the assessment conditions before interpreting this result.</p>}
+          <p className="mt-4 font-medium">{diagnosticResult.next_step}</p>
+          <details className="mt-4 text-sm"><summary className="cursor-pointer font-semibold">What this result can tell us</summary><ul className="mt-2 list-disc space-y-2 pl-5">{diagnosticResult.warnings.map((message) => <li key={message}>{message}</li>)}</ul></details>
+        </section>}
       </ExamFrame>
     );
   }
@@ -711,6 +743,15 @@ const IeltsExamMode: React.FC = () => {
               {getIeltsSectionInstructions(activePayload, activeSection) && <p className="mt-2 text-sm leading-6 text-slate-600">{getIeltsSectionInstructions(activePayload, activeSection)}</p>}
             </div>
 
+            {getIeltsScreenerAudio(activePayload) && <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <label htmlFor="screener-audio" className="mb-2 block text-sm font-semibold">Listening audio</label>
+              <audio ref={screenerAudioRef} id="screener-audio" key={getIeltsScreenerAudio(activePayload)} controls={syncState === 'active'} preload="metadata" className="w-full" src={getIeltsScreenerAudio(activePayload)!}
+                onPlay={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}
+                onPlaying={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}
+                onError={() => { setWarning('The audio could not load. Your answers are safe. Tell your teacher before continuing.'); void logIncident('screener_audio_load_failure', 'warning', { section: activeSection }); }}
+                onWaiting={() => { setWarning('The audio is buffering. If it interrupts your listening, tell your teacher.'); void logIncident('screener_audio_buffering', 'warning', { section: activeSection }); }}
+              >Your browser cannot play this audio. Please ask your teacher for help.</audio>
+            </div>}
             <div className="space-y-5">
               {activeQuestions.length === 0 && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">

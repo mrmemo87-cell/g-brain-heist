@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.1.0  
-**Effective date:** 2026-10-05  
+**Version:** 1.2.0\
+**Effective date:** 2026-10-06\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -311,6 +311,22 @@ AI-generated items or audio:
 - require taxonomy review;
 - require a difficulty/quality check;
 - must not auto-publish.
+
+
+### 6.1 Listening audio production and acceptance
+
+Spoken directions are not a substitute for delivery behaviour. A recording that says to read questions must actually provide reading time before the passage begins.
+
+Required for every published Listening audio version:
+- **Measured reading and response intervals.** Insert real silence during audio assembly, or use an explicit player-controlled pause that waits for the learner. Do not rely on punctuation, line breaks, or a speech-generator pause tag to produce a required duration. State the interval or resume action clearly. Measure the final encoded file, not only the script.
+- **Clear instruction/passage separation.** Use a distinct instruction voice or a reliably distinguishable, reviewed delivery style. Choose natural passage voices appropriate to the speakers and contexts; maintain consistent character voices within each passage. Do not use exaggerated emphasis that reveals an answer.
+- **Calm, professional sound.** Use intelligible pronunciation, natural pace, consistent perceived volume and adequate headroom without clipping. Background music and decorative effects must not mask speech or add irrelevant listening difficulty. Do not accelerate audio just to shorten delivery.
+- **Content fidelity.** Verify the complete rendered recording against the versioned transcript and answer key, including names, numbers, corrections, qualifications and word-limit instructions. Generation success is not a listening review.
+- **Versioned production record.** Preserve the source script version/hash, provider, voice identities, generation settings and source asset/task references, editing/assembly decisions, measured cue timings, duration, format, exact delivered-file SHA-256, rights basis and durable delivery location. No expiring generation/download URL may be the permanent assessment source. Never overwrite an approved audio object; changes require a new audio version and review of the affected form.
+- **Explicit review scope.** Record the actual reviewer, date, exact file hash and what they checked. Approval of sound, pacing or pauses does not silently approve the answer key, taxonomy, licensing, difficulty, calibration or school launch. Preserve each outstanding gate separately.
+- **Reliable player behaviour.** No automatic passage playback on page load or teacher resume. Teacher pause, submission and void states must stop playback and prevent restart while inactive. Test loading, seeking/replay under the form's rules, buffering, backgrounding, interruption and resume on the pilot browsers/devices. Keep answers safe and give a clear next action when audio fails.
+
+For the initial Brains Heist Listening Screener A audio v2, the owner-approved production design is **30 seconds to read each four-question group**, **15 seconds after each passage to finish responses**, distinct instruction and passage voices, and learner-controlled pause/replay. These are Brains Heist screener delivery conditions, **not official IELTS timing rules** and not universal baseline/benchmark defaults. Record them with the form and attempt delivery metadata; changes require review for their effect on comparability.
 
 ---
 
@@ -1177,6 +1193,13 @@ A Bible change must:
 - identify which implementation components must be reviewed because of the change.
 
 Do not make opportunistic Bible edits in the same spirit as a quick bug fix.
+
+
+### 22.1 Revision record — v1.2.0 (2026-10-06)
+
+Owner-requested audio production requirements follow direct review of Screener A: the first generated track spoke reading instructions without sufficient silence and used indistinguishable instruction/passage delivery. Section 6.1 makes measured pauses, clear voice separation, artifact provenance and scoped review mandatory. This strengthens the existing content and delivery gates; no scoring, band, official IELTS format or review requirement is weakened. The 30/15-second design is an internal screener decision, not a claim about official test timing.
+
+Affected implementation: Listening audio generation/assembly, asset hosting and version records, Exam Mode playback, content publication review, attempt delivery metadata, and audio/browser regression checks. Existing published forms must be assessed against these requirements without rewriting historical evidence. External scoring references below remain unchanged from v1.1.0.
 
 ---
 
