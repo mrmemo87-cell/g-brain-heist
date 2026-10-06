@@ -459,7 +459,7 @@ const IeltsExamMode: React.FC = () => {
       if (document.visibilityState === 'hidden') {
         screenerAudioRef.current?.pause();
         void autosaveSection(activeSectionRef.current, 'tab hidden');
-        void logIncident('tab_hidden', 'warning', { visibility_state: document.visibilityState });
+        void logIncident('tab_hidden', 'info', { visibility_state: document.visibilityState, audio_paused: true });
       }
     };
     const onWindowBlur = () => {
