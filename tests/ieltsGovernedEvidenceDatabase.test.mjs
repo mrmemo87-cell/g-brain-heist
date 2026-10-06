@@ -167,7 +167,7 @@ test('self-service release reuses real Exam Mode with immutable school context, 
  await db.exec(`create trigger test_live_guard before insert or update on public.ielts_exam_events for each row execute function public.ielts_exam_guard_live_status_transition();`);
  const logStart=legacy.indexOf('create or replace function public.rpc_ielts_log_incident(');
  await db.exec(legacy.slice(logStart,legacy.indexOf('\n$$;',logStart)+4).replace('public.rpc_ielts_log_incident(','public.rpc_ielts_log_incident_entitlement_internal('));
- await db.exec(readFileSync('supabase/migrations/20261006091705_ielts_screener_discovery_and_self_start.sql','utf8'));
+ await db.exec(readFileSync('supabase/migrations/20261006093106_ielts_screener_discovery_and_self_start.sql','utf8'));
  await db.exec(`create trigger enforce_ielts_module_row before insert or update or delete on public.ielts_exam_assignments for each row execute function private.enforce_ielts_module_row();`);
  const selfEvent=uid(301),selfForm=uid(302),selfDef=uid(303),selfVersion=uid(304),independent=uid(305),schoolStudent=uid(306),other=uid(307);
  await db.query('insert into users(id,school_id) values($1,null),($2,$3),($4,null)',[independent,schoolStudent,school,other]);
