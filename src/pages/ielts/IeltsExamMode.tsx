@@ -1,3 +1,4 @@
+import { getIeltsReadingPassages, restoreReadingPassage, saveReadingPassage } from '../../../services/ieltsReadingDelivery';
 import { makeIeltsAudioCheckpointKey, saveIeltsAudioCheckpoint, restoreIeltsAudioCheckpoint } from '../../../services/ieltsAudioCheckpoint';
 import { fetchIeltsDiagnosticResult, getIeltsScreenerAudio, type IeltsDiagnosticResult } from '../../../services/ieltsDiagnosticEvidenceService';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -628,6 +629,17 @@ const IeltsExamMode: React.FC = () => {
     return isObject(payload) && payload.assessment_mode === 'screener';
   });
   const activeQuestions = useMemo(() => extractIeltsQuestions(activePayload, activeSection), [activePayload, activeSection]);
+  const readingPassages = useMemo(() => activeSection === 'reading' ? getIeltsReadingPassages(activePayload) : [], [activePayload, activeSection]);
+  const [selectedPassage, setSelectedPassage] = useState('');
+  const readingAttemptId = attempt?.attempt_id ?? whoami?.attempt_id;
+  useEffect(() => {
+    if (readingAttemptId && readingPassages.length) {
+      setSelectedPassage(restoreReadingPassage(readingAttemptId, readingPassages.map((passage) => passage.id)));
+    }
+  }, [readingAttemptId, readingPassages]);
+  const currentReadingPassage = readingPassages.find((passage) => passage.id === selectedPassage) ?? readingPassages[0];
+  const displayedQuestions = currentReadingPassage ? activeQuestions.filter((question) => question.passageId === currentReadingPassage.id) : activeQuestions;
+
   const status = submission?.status ?? whoami?.attempt_status ?? attempt?.status ?? whoami?.status;
   const eventStatus = whoami?.event_status ?? (!whoami?.attempt_id ? whoami?.status : null);
   const isSubmitted = Boolean(submission) || isIeltsTeacherSubmittedStatus(status);
@@ -747,7 +759,7 @@ const IeltsExamMode: React.FC = () => {
           <p className="mt-3 text-sm">{diagnosticResult.confidence.items_answered} of {diagnosticResult.confidence.items_possible} items answered · {diagnosticResult.confidence.constructs_with_responses} of {diagnosticResult.confidence.constructs_sampled} sampled skills have responses.</p>
           {diagnosticResult.integrity_state === 'review_required' && <p className="mt-3 text-sm text-amber-800">Your teacher should review the assessment conditions before interpreting this result.</p>}
           <p className="mt-4 font-medium">{diagnosticResult.next_step}</p>
-          <a href="/ielts/listening-screener" className="mt-5 inline-flex rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white">Back to Listening screener</a>
+          <a href="/ielts" className="mt-5 inline-flex rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white">Back to IELTS</a>
           <details className="mt-4 text-sm"><summary className="cursor-pointer font-semibold">What this result can tell us</summary><ul className="mt-2 list-disc space-y-2 pl-5">{diagnosticResult.warnings.map((message) => <li key={message}>{message}</li>)}</ul></details>
         </section>}
       </ExamFrame>
@@ -902,16 +914,36 @@ const IeltsExamMode: React.FC = () => {
                     : 'Audio pauses when you leave this window. Press Play to listen; the assessment timer keeps running.'}
               </p>
             </div>}
-            <div className="space-y-5">
+            {currentReadingPassage && <div className="mb-6">
+              <nav aria-label="Reading passages" className="mb-5 flex flex-wrap gap-3">
+                {readingPassages.map((passage, index) => <button type="button" key={passage.id}
+                  aria-pressed={currentReadingPassage.id === passage.id}
+                  onClick={() => {
+                    setSelectedPassage(passage.id);
+                    if (readingAttemptId) saveReadingPassage(readingAttemptId, passage.id);
+                  }}
+                  className={`min-h-11 rounded-xl border px-4 py-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${currentReadingPassage.id === passage.id ? 'border-teal-700 bg-teal-700 text-white' : 'border-slate-300 bg-white text-slate-800'}`}>
+                  Passage {index + 1} · {activeQuestions.filter((question) => question.passageId === passage.id && Boolean(answers.reading?.[question.id])).length}/{activeQuestions.filter((question) => question.passageId === passage.id).length} answered
+                </button>)}
+              </nav>
+              <article aria-labelledby="reading-passage-title" className="rounded-2xl border border-teal-200 bg-teal-50/40 p-5 sm:p-7">
+                <h3 id="reading-passage-title" className="mb-5 text-xl font-bold text-slate-950">{currentReadingPassage.title}</h3>
+                <div className="max-w-3xl space-y-5">
+                  {currentReadingPassage.paragraphs.map((paragraph) => <p key={paragraph.label} className="text-base leading-8 text-slate-900"><span className="mr-3 font-bold text-teal-800">{paragraph.label}</span>{paragraph.text}</p>)}
+                </div>
+              </article>
+              <a href="#reading-questions" className="mt-3 inline-flex min-h-11 items-center font-semibold text-teal-800 underline">Go to this passage’s questions</a>
+            </div>}
+            <div id="reading-questions" className="space-y-5">
               {activeQuestions.length === 0 && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
                   No active questions are available for this section yet. Please wait while your teacher checks the form setup.
                 </div>
               )}
-              {activeQuestions.map((question, index) => (
+              {displayedQuestions.map((question) => (
                 <article key={question.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <label htmlFor={`${activeSection}-${question.id}`} className="block text-sm font-semibold text-slate-900">
-                    {index + 1}. {question.prompt}
+                    {activeQuestions.findIndex((item) => item.id === question.id) + 1}. {question.prompt}
                   </label>
                   {question.options && question.options.length > 0 ? (
                     <div className="mt-3 space-y-2">

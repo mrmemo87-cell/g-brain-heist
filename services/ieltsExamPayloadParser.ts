@@ -5,6 +5,7 @@ export type RenderableExamQuestion = {
   prompt: string;
   type?: string;
   options?: string[];
+  passageId?: string;
 };
 
 export type NormalizedExamSectionPayload = {
@@ -73,6 +74,7 @@ const makeQuestion = (item: unknown, section: string, index: number, prefix?: st
     prompt: prefix ? `${prefix}: ${prompt}` : prompt,
     type: textFromKeys(row, ['type', 'question_type', 'answer_type'], section === 'writing' ? 'essay' : 'text'),
     options: optionsFrom(row),
+    ...(typeof row['passage_id'] === 'string' ? { passageId: row['passage_id'] } : {}),
   };
 };
 

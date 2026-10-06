@@ -755,6 +755,10 @@ const router = createBrowserRouter([
     element: <ProtectedRoute element={<TrialListeningTask2 />} />,
   },
   {
+    path: '/ielts/reading-screener',
+    element: <ProtectedRoute element={<TrialListeningTask2 skill="reading" />} />,
+  },
+  {
     path: '/ielts/apply-prime',
     element: withSchoolIeltsAccess(<IeltsPrime />),
   },
