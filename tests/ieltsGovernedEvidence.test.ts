@@ -27,7 +27,8 @@ test('Listening delivery keeps measured pauses and scoped audio review in the ca
   const exam = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
   assert.match(exam, /controls=\{syncState === 'active'\}/);
   for (const event of ['onPlay', 'onPlaying']) {
-    assert.ok(exam.includes(`${event}={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}`));
+    const handler = exam.match(new RegExp(event + '=\\{\\(event\\) => \\{([\\s\\S]*?)\\}\\}'))?.[1] ?? '';
+    assert.match(handler, /if \(syncStateRef\.current !== 'active' \|\| document\.hidden\) event\.currentTarget\.pause\(\)/);
   }
 });
 

@@ -6,7 +6,8 @@ const examMode = fs.readFileSync(new URL('../src/pages/ielts/IeltsExamMode.tsx',
 const migration = fs.readFileSync(new URL('../supabase/migrations/20261006132000_ielts_screener_delivery_hardening.sql', import.meta.url), 'utf8');
 
 test('Listening screener pauses on backgrounding and treats blur as non-blocking evidence', () => {
-  assert.match(examMode, /onWindowBlur[\s\S]*screenerAudioRef\.current\?\.pause\(\)/);
+  assert.match(examMode, /onWindowBlur[\s\S]*pauseScreenerAudio\(\)/);
+  assert.match(examMode, /const pauseScreenerAudio[\s\S]*checkpointAudio\(audio\)[\s\S]*audio\.pause\(\)/);
   assert.match(examMode, /logIncident\('window_blur', 'info'/);
   assert.match(examMode, /dedupeKey = incidentType === 'window_blur' \|\| incidentType === 'tab_hidden' \? 'backgrounding'/);
 });

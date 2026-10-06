@@ -1,3 +1,4 @@
+import { makeIeltsAudioCheckpointKey, saveIeltsAudioCheckpoint, restoreIeltsAudioCheckpoint } from '../../../services/ieltsAudioCheckpoint';
 import { fetchIeltsDiagnosticResult, getIeltsScreenerAudio, type IeltsDiagnosticResult } from '../../../services/ieltsDiagnosticEvidenceService';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '../../styles/ielts-exam.css';
@@ -147,6 +148,46 @@ const IeltsExamMode: React.FC = () => {
   const [teacherActionMessage, setTeacherActionMessage] = useState<string | null>(null);
 
   const screenerAudioRef = useRef<HTMLAudioElement | null>(null);
+  const audioCheckpointRestoredRef = useRef(false);
+  const [audioResumePosition, setAudioResumePosition] = useState(0);
+  const [audioIsPlaying, setAudioIsPlaying] = useState(false);
+  const [audioCheckpointUnavailable, setAudioCheckpointUnavailable] = useState(false);
+  const audioSource = getIeltsScreenerAudio(getPayloadForSection(whoami?.form_public_payload, activeSection));
+  const audioAttemptId = attempt?.attempt_id ?? whoami?.attempt_id;
+  const audioCheckpointKey = audioAttemptId && audioSource ? makeIeltsAudioCheckpointKey(audioAttemptId, audioSource) : null;
+
+  const checkpointAudio = useCallback((audio: HTMLAudioElement | null) => {
+    if (!audio || !audioCheckpointKey || !audioCheckpointRestoredRef.current) return;
+    const saved = saveIeltsAudioCheckpoint(audioCheckpointKey, audio.currentTime);
+    if (!saved) setAudioCheckpointUnavailable(true);
+  }, [audioCheckpointKey]);
+
+  const attachScreenerAudio = useCallback((audio: HTMLAudioElement | null) => {
+    const previous = screenerAudioRef.current;
+    if (previous && previous !== audio) {
+      checkpointAudio(previous);
+      previous.pause();
+    }
+    screenerAudioRef.current = audio;
+    audioCheckpointRestoredRef.current = false;
+  }, [checkpointAudio]);
+
+  const restoreAudioPosition = useCallback((audio: HTMLAudioElement) => {
+    if (!audioCheckpointKey || audioCheckpointRestoredRef.current) return;
+    if (restoreIeltsAudioCheckpoint(audio, audioCheckpointKey)) {
+      audioCheckpointRestoredRef.current = true;
+      setAudioResumePosition(audio.currentTime);
+    }
+  }, [audioCheckpointKey]);
+
+  const pauseScreenerAudio = useCallback(() => {
+    const audio = screenerAudioRef.current;
+    checkpointAudio(audio);
+    if (audio) {
+      audio.pause();
+      setAudioResumePosition(audio.currentTime);
+    }
+  }, [checkpointAudio]);
   const audioBufferTimerRef = useRef<number | null>(null);
   const audioBufferStartedAtRef = useRef<number | null>(null);
   const recentIncidentRef = useRef<Record<string, number>>({});
@@ -434,7 +475,7 @@ const IeltsExamMode: React.FC = () => {
     if (now - (recentIncidentRef.current[dedupeKey] ?? 0) < 2000 || incidentInFlightRef.current) return;
     recentIncidentRef.current[dedupeKey] = now;
     incidentInFlightRef.current = true;
-    if (severity === 'warning') setWarning('A delivery interruption was recorded. Your answers are safe.');
+    if (severity === 'warning' && !incidentType.startsWith('screener_audio_')) setWarning('An assessment interruption was recorded. Your saved answers are available. Continue when you are ready.');
     try {
       await rpcIeltsLogIncident({
         attemptId: currentAttempt.attempt_id,
@@ -457,13 +498,13 @@ const IeltsExamMode: React.FC = () => {
   useEffect(() => {
     const onVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        screenerAudioRef.current?.pause();
+        pauseScreenerAudio();
         void autosaveSection(activeSectionRef.current, 'tab hidden');
         void logIncident('tab_hidden', 'info', { visibility_state: document.visibilityState, audio_paused: true });
       }
     };
     const onWindowBlur = () => {
-      screenerAudioRef.current?.pause();
+      pauseScreenerAudio();
       void autosaveSection(activeSectionRef.current, 'window blur');
       void logIncident('window_blur', 'info', { audio_paused: true });
     };
@@ -477,6 +518,7 @@ const IeltsExamMode: React.FC = () => {
       void logIncident('context_menu', 'info', { x: event.clientX, y: event.clientY });
     };
     const onBeforeUnload = () => {
+      pauseScreenerAudio();
       void logIncident('navigation_away', 'warning', {});
     };
 
@@ -486,6 +528,7 @@ const IeltsExamMode: React.FC = () => {
     document.addEventListener('copy', onCopy);
     document.addEventListener('contextmenu', onContextMenu);
     window.addEventListener('beforeunload', onBeforeUnload);
+    window.addEventListener('pagehide', pauseScreenerAudio);
 
     return () => {
       document.removeEventListener('visibilitychange', onVisibilityChange);
@@ -494,11 +537,13 @@ const IeltsExamMode: React.FC = () => {
       document.removeEventListener('copy', onCopy);
       document.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('pagehide', pauseScreenerAudio);
     };
-  }, [autosaveSection, logIncident]);
+  }, [autosaveSection, logIncident, pauseScreenerAudio]);
 
   const handleSectionChange = async (section: IeltsExamSection) => {
     if (section === activeSection || !shouldIeltsAutosaveRun(syncStateRef.current)) return;
+    pauseScreenerAudio();
     await autosaveSection(activeSection, 'section change');
     setActiveSection(section);
   };
@@ -520,7 +565,7 @@ const IeltsExamMode: React.FC = () => {
     const currentAttempt = attemptRef.current;
     const currentLockToken = lockTokenRef.current;
     if (!currentAttempt?.attempt_id || !currentLockToken || isSubmitting || submission || !shouldIeltsAutosaveRun(syncStateRef.current)) return;
-    screenerAudioRef.current?.pause();
+    pauseScreenerAudio();
     setIsSubmitting(true);
     setError(null);
     try {
@@ -767,8 +812,17 @@ const IeltsExamMode: React.FC = () => {
 
             {getIeltsScreenerAudio(activePayload) && <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
               <label htmlFor="screener-audio" className="mb-2 block text-sm font-semibold">Listening audio</label>
-              <audio ref={screenerAudioRef} id="screener-audio" key={getIeltsScreenerAudio(activePayload)} controls={syncState === 'active'} preload="metadata" className="w-full" src={getIeltsScreenerAudio(activePayload)!}
-                onPlay={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}
+              <audio ref={attachScreenerAudio} id="screener-audio" key={audioCheckpointKey ?? audioSource} controls={syncState === 'active'} preload="metadata" className="w-full" src={getIeltsScreenerAudio(activePayload)!}
+                onLoadedMetadata={(event) => restoreAudioPosition(event.currentTarget)}
+                onTimeUpdate={(event) => checkpointAudio(event.currentTarget)}
+                onSeeked={(event) => checkpointAudio(event.currentTarget)}
+                onPause={(event) => {
+                  checkpointAudio(event.currentTarget);
+                  setAudioResumePosition(event.currentTarget.currentTime);
+                  setAudioIsPlaying(false);
+                }}
+                onEnded={(event) => checkpointAudio(event.currentTarget)}
+                onPlay={(event) => { if (syncStateRef.current !== 'active' || document.hidden) event.currentTarget.pause(); }}
                 onError={() => {
                   if (audioBufferTimerRef.current !== null) window.clearTimeout(audioBufferTimerRef.current);
                   audioBufferTimerRef.current = null;
@@ -793,13 +847,26 @@ const IeltsExamMode: React.FC = () => {
                     audioBufferStartedAtRef.current = null;
                   }, 1500);
                 }}
-                onPlaying={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}
-                onCanPlay={() => {
+                onPlaying={(event) => {
+                  if (syncStateRef.current !== 'active' || document.hidden) event.currentTarget.pause();
+                  else setAudioIsPlaying(true);
+                }}
+                onCanPlay={(event) => {
+                  restoreAudioPosition(event.currentTarget);
                   if (audioBufferTimerRef.current !== null) window.clearTimeout(audioBufferTimerRef.current);
                   audioBufferTimerRef.current = null;
                   audioBufferStartedAtRef.current = null;
                 }}
               >Your browser cannot play this audio. Please ask your teacher for help.</audio>
+              <p className="mt-2 text-sm text-slate-600" role="status">
+                {audioCheckpointUnavailable
+                  ? 'This browser could not save your audio position. Before refreshing, note the playback time and use the audio controls to return to it.'
+                  : audioIsPlaying
+                    ? 'Listening audio is playing. Your position is saved in this browser.'
+                    : audioResumePosition > 0
+                    ? `Audio paused at ${formatRemaining(audioResumePosition)}. Press Play to continue. The assessment timer keeps running.`
+                    : 'Audio pauses when you leave this window. Press Play to listen; the assessment timer keeps running.'}
+              </p>
             </div>}
             <div className="space-y-5">
               {activeQuestions.length === 0 && (
