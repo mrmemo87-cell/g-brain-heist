@@ -8,7 +8,7 @@ returns boolean language sql stable security definer set search_path='' as $$
       and i.severity='warning'
       and i.incident_type in (
         'screener_audio_load_failure','screener_audio_interruption',
-        'network_disconnect','tab_hidden','paste_attempt','copy_attempt','suspicious_jump'
+        'network_disconnect','paste_attempt','copy_attempt','suspicious_jump'
       )
   );
 $$;
@@ -69,7 +69,7 @@ begin
 
   select count(*) into incident_count from public.ielts_exam_incidents i
     where i.attempt_id=e.attempt_id and i.severity='warning'
-      and i.incident_type in ('screener_audio_load_failure','screener_audio_interruption','network_disconnect','tab_hidden','paste_attempt','copy_attempt','suspicious_jump');
+      and i.incident_type in ('screener_audio_load_failure','screener_audio_interruption','network_disconnect','paste_attempt','copy_attempt','suspicious_jump');
   select count(distinct x->>'construct'),count(distinct x->>'construct') filter(where x->>'response_state'='answered')
     into construct_count,answered_constructs from jsonb_array_elements(outcomes) x;
   warnings:=jsonb_build_array('Short screener: this is not a complete IELTS skill assessment.',
@@ -117,9 +117,15 @@ begin
   select * into r from private.ielts_diagnostic_scoring_runs where attempt_id=p_attempt_id order by run_version desc limit 1;
   if r.id is null then return null; end if;
   return jsonb_build_object('label','Screener result','mode',e.form_snapshot#>>'{version,mode}',
-    'raw_score',r.raw_score,'marks_possible',r.marks_possible,'confidence',r.confidence,'warnings',r.warnings,
+    'raw_score',r.raw_score,'marks_possible',r.marks_possible,
+    'confidence',case when private.ielts_screener_integrity_incident(p_attempt_id) then r.confidence
+      else jsonb_set(r.confidence,'{incident_count}','0'::jsonb,true) end,
+    'warnings',case when private.ielts_screener_integrity_incident(p_attempt_id) then r.warnings
+      else r.warnings - 'Delivery interruptions need review.' end,
     'integrity_state',case when a.status='void' or private.ielts_screener_integrity_incident(p_attempt_id)
-      then 'review_required' else r.integrity_state end,
+      then 'review_required'
+      when r.integrity_state='review_required' then 'unreviewed'
+      else r.integrity_state end,
     'outcomes',r.outcomes,'next_step','Review the sampled items with your teacher, then gather evidence in the remaining skills.',
     'readiness_available',false,'persistent_weakness_available',false);
 end;
