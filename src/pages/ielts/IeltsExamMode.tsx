@@ -793,12 +793,7 @@ const IeltsExamMode: React.FC = () => {
                     audioBufferStartedAtRef.current = null;
                   }, 1500);
                 }}
-                onPlaying={() => {
-                  if (audioBufferTimerRef.current !== null) window.clearTimeout(audioBufferTimerRef.current);
-                  audioBufferTimerRef.current = null;
-                  audioBufferStartedAtRef.current = null;
-                  if (syncStateRef.current !== 'active') screenerAudioRef.current?.pause();
-                }}
+                onPlaying={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}
                 onCanPlay={() => {
                   if (audioBufferTimerRef.current !== null) window.clearTimeout(audioBufferTimerRef.current);
                   audioBufferTimerRef.current = null;
