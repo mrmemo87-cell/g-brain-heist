@@ -129,7 +129,9 @@ begin
     'outcomes',r.outcomes,'next_step','Review the sampled items with your teacher, then gather evidence in the remaining skills.',
     'readiness_available',false,'persistent_weakness_available',false);
 end;
-$$;
+$;
+revoke all on function public.rpc_ielts_diagnostic_result(uuid) from public,anon,authenticated,service_role;
+grant execute on function public.rpc_ielts_diagnostic_result(uuid) to authenticated;
 
 -- Backfill only submissions that already have a server-verified governed scoring run.
 update public.ielts_exam_submissions s
