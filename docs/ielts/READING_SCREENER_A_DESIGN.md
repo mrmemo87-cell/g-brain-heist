@@ -1,13 +1,13 @@
 # Reading Screener A — review draft and implementation boundary
 
-Contract: IELTS Diagnostic Bible **v1.2.0**. Audited main: `ac9fbdfb83d852a6605e3d7dcd4707a39fb5abb3`. Date: 2026-10-06. This is an original AI-assisted **unpublished** content/review draft, not approved assessment content or a launch.
+Contract: IELTS Diagnostic Bible **v1.2.0**. Audited main: `ac9fbdfb83d852a6605e3d7dcd4707a39fb5abb3`. Date: 2026-10-06. This is an original AI-assisted **unpublished** content draft. The five academic/content scopes were approved by Brains Heist LLC on 2026-10-06; delivery acceptance and launch remain pending.
 
 ## Proposed scope
 
 - Academic-oriented Reading only, form proposal `BH-RS-A-1`, definition proposal `bh-reading-screener-a`, draft `0.1.0`.
 - Two original educational case-study passages: 325 and 424 body words; scenarios are invented, not assertions about real projects.
 - Twelve one-mark items: nine four-option MCQs plus three genuine TRUE/FALSE/NOT GIVEN items. MCQ keys are balanced 3/2/2/2; TFNG choices stay in their standard order.
-- Proposed 20-minute delivery window, subject to human review and pilot completion-time evidence. It is not official IELTS timing.
+- Human-approved 20-minute delivery design, still subject to pilot completion-time evidence. It is not official IELTS timing.
 - Eight sampled constructs: explicit detail (2), paraphrase recognition (2), main idea (1), agreement/contradiction/missing information (3), paragraph purpose (1), vocabulary in context (1), reference tracking (1), supported inference (1).
 - Raw performance and low-confidence item observations only. No band conversion, overall readiness, mastery, persistent weakness, reading-speed or same-form improvement claim.
 
@@ -17,7 +17,7 @@ The reviewer packet contains the passages, student instructions, all items, keys
 
 The eight proposed atomic mappings exist as active subskills in published `bh-english-core-v1`: `eng.reading.explicit-information.locate-detail`, `eng.reading.main-ideas.summary`, `eng.reading.main-ideas.gist`, `eng.reading.argument-evaluation.claims-evidence`, `eng.reading.purpose-viewpoint.purpose-audience`, `eng.reading.vocabulary-context.context-clues`, `eng.reading.connections.reference`, `eng.reading.inference.unstated-meaning`.
 
-Production catalogue presence was checked read-only. This does not approve the mappings for these items. TFNG is proposed as claims/evidence rather than inventing a published IELTS atom. Item-level human mapping review remains required; any reviewed mapping change invalidates its old approval hash. Correct detail answers do not establish scanning speed or strategy use.
+Production catalogue presence was checked read-only. Brains Heist LLC subsequently approved the draft taxonomy mapping and interpretation limits for this exact content version. TFNG uses the approved claims/evidence mapping rather than inventing a published IELTS atom; any reviewed mapping change invalidates its old approval hash. Correct detail answers do not establish scanning speed or strategy use.
 
 ## Required implementation before controlled delivery
 
@@ -42,6 +42,22 @@ Draft JSON SHA-256: `7d8eacb33ea97b95b82cdebb23d59008e59a5e0e3d89c0f53d243354188
 
 ## Outstanding gates and impact
 
-Human editorial, answer-key, mapping, difficulty, timing, rights and delivery approvals are **pending**. This document marks none passed. After the Reading contracts/UI are implemented, test authenticated phone/MacBook delivery, passage navigation, refresh, network loss/reconnect, backgrounding, session expiry, sign-in transitions, repeated click/duplicate submit, unanswered items, server scoring, completed persistence, protected content and cross-school denial. School class-scale claims additionally require simultaneous-load evidence. Listening device checks do not automatically validate Reading.
+Human editorial, answer-key, taxonomy/interpretation, difficulty/20-minute timing and originality/rights scopes are **approved** for draft 0.1.0 / BH-RS-A-1. Delivery design/accessibility approval and authenticated Reading tests remain **pending**. Content approval does not mark device, calibration or launch gates passed. After the Reading contracts/UI are implemented, test authenticated phone/MacBook delivery, passage navigation, refresh, network loss/reconnect, backgrounding, session expiry, sign-in transitions, repeated click/duplicate submit, unanswered items, server scoring, completed persistence, protected content and cross-school denial. School class-scale claims additionally require simultaneous-load evidence. Listening device checks do not automatically validate Reading.
 
 Assessment/scoring impact today: **none in production**. Migration/data impact: **none**. Backward compatibility: Listening content, audio, published release and existing history unchanged. This content-preparation slice does not require an application build; structural draft and document verification do not replace future executable database/security tests or human acceptance.
+
+## Scoped owner approval — 2026-10-06
+
+Reviewer: **Brains Heist LLC**. Date supplied: **Tuesday, October 6, 2026**. Draft reviewed: **0.1.0 / BH-RS-A-1**. Source: explicit owner review in the conversation. No content edits were requested. Approval binds the exact draft digest above; the original review packet/source remain immutable historical artifacts. The approval addendum is stored separately.
+
+| Evaluation dimension | Status | Reviewer notes |
+|---|---|---|
+| Editorial quality and clear instructions | APPROVE | Clear, clean active voice. Passage structures are logically segmented from A to E. |
+| Answer key and distractor ambiguity | APPROVE | Item 10 (tentative) and Item 11 (them) have highly defensible context clues. Distractors are well-constructed. |
+| Taxonomy mapping and interpretation limits | APPROVE | Paragraph C in Passage 2 explicitly reinforces interpretation limits (“resisted turning a plausible explanation into a firm conclusion”). |
+| Difficulty and proposed 20-minute timing | APPROVE | 12 items spanning literal, lexical, and inferential reading are highly appropriate for a 20-minute block. |
+| Originality / rights attribution | APPROVE | Fictional scenarios (“Bellmere”, “Mariton”) clearly marked as proprietary creative mock-ups. |
+| Delivery design and accessibility | PENDING | Not included in the submitted approvals. |
+| Authenticated Reading device/reliability checks | PENDING | Reading interface and controlled delivery still need implementation and actual checks. |
+
+The organisation is the supplied reviewer attribution; no individual reviewer account, browser test, calibration study, production approval hash or publication authorisation is invented by this record. At private import, preserve the supplied attribution and bind the exact imported content, mappings and delivery to a separately computed production snapshot hash. Any change must be re-reviewed for its affected scope.
