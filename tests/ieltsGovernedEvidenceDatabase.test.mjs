@@ -279,3 +279,64 @@ test('self-service release reuses real Exam Mode with immutable school context, 
 });
 
 test.after(()=>db.close());
+
+test('Reading controlled pilot freezes reviewed passages and TFNG keys without claiming public delivery acceptance', async () => {
+ await db.exec(readFileSync('supabase/migrations/20261006190000_ielts_reading_controlled_pilot.sql','utf8'));
+ const e=uid(501),f=uid(502),d=uid(503),v=uid(504),pilot=uid(305),denied=uid(306);
+ await actor(pilot);
+ await db.query("insert into ielts_exam_events(id,title,status,starts_at,ends_at,duration_minutes) values($1,'Synthetic Reading','draft',now()-interval '1 hour',now()+interval '1 hour',20)",[e]);
+ await db.query("insert into ielts_exam_forms(id,exam_event_id,form_code,is_active) values($1,$2,'reading-only-test',false)",[f,e]);
+ await db.query("insert into private.ielts_diagnostic_definitions(id,code,title) values($1,'reading-only-test','Synthetic Reading')",[d]);
+ await db.query("insert into private.ielts_diagnostic_versions(id,definition_id,version,exam_form_id,mode,test_type,skills,taxonomy_version_id,scoring_policy_version) values($1,$2,1,$3,'screener','academic',array['reading'],$4,'ielts-objective-screener-v1')",[v,d,f,registry]);
+ const questions=[];
+ for(let n=1;n<=12;n++) {
+  const tfng=n<=3,opts=tfng?['TRUE','FALSE','NOT GIVEN']:['Alpha','Beta','Gamma','Delta'];
+  const key=tfng?opts[n-1]:'Alpha',task=n<=6?'one':'two',type=tfng?'true_false_not_given':'multiple_choice';
+  questions.push({id:`r${n}`,prompt:`Synthetic reading ${n}`,type,options:opts,passage_id:task});
+  await db.query("insert into private.ielts_diagnostic_items(version_id,item_key,task_key,skill,order_index,response_type,prompt,options,accepted_answers,taxonomy_node_id) values($1,$2,$3,'reading',$4,$5,$6,$7,$8,$9)",[v,`r${n}`,task,n,type,`Synthetic reading ${n}`,JSON.stringify(opts),JSON.stringify([key]),uid(100+n%3)]);
+ }
+ const payload={title:'Synthetic Reading',assessment_mode:'screener',instructions:'Synthetic only',passages:[{id:'one',title:'One',paragraphs:[{label:'A',text:'Original synthetic text one.'}]},{id:'two',title:'Two',paragraphs:[{label:'A',text:'Original synthetic text two.'}]}],questions};
+ await db.query('update ielts_exam_forms set reading_payload=$1 where id=$2',[JSON.stringify(payload),f]);
+ await db.query("update private.ielts_diagnostic_versions set reviewed_by=$1,reviewed_at=now(),provenance=$2,review_record=$3 where id=$4",[teacher,JSON.stringify({author:'Synthetic only',rights_basis:'Synthetic fixture only',rights_holder:'Brains Heist LLC',content_version:'1'}),JSON.stringify({human_editorial:true,answer_key:true,taxonomy:true,difficulty:true,delivery:false,controlled_pilot:true,notes:'Synthetic academic review; no device acceptance.'}),v]);
+ const hash=async()=>{
+  const h=(await db.query("select encode(sha256(convert_to((private.ielts_diagnostic_snapshot($1)-'version')::text,'UTF8')),'hex') h",[v])).rows[0].h;
+  await db.query("update private.ielts_diagnostic_versions set review_record=review_record||jsonb_build_object('reviewed_content_hash',$1::text) where id=$2",[h,v]);return h;
+ };
+ await hash();
+ await assert.rejects(db.query("update private.ielts_diagnostic_versions set state='published' where id=$1",[v]),/human_review/);
+ const invalid=structuredClone(payload);invalid.passages[0].paragraphs[0].accepted_answers=['hidden'];
+ await db.query('update ielts_exam_forms set reading_payload=$1 where id=$2',[JSON.stringify(invalid),f]);
+ await assert.rejects(db.query('select private.prepare_ielts_reading_pilot($1,$2)',[v,await hash()]),/reading_paragraph_invalid/);
+ const missing=structuredClone(payload);missing.questions[0].passage_id='missing';
+ await db.query('update ielts_exam_forms set reading_payload=$1 where id=$2',[JSON.stringify(missing),f]);
+ await assert.rejects(db.query('select private.prepare_ielts_reading_pilot($1,$2)',[v,await hash()]),/reading_passage_reference_invalid/);
+ await db.query('update ielts_exam_forms set reading_payload=$1 where id=$2',[JSON.stringify(payload),f]);
+ const h=await hash();
+ await db.query('select private.prepare_ielts_reading_pilot($1,$2)',[v,h]);
+ const versionRow=(await db.query('select state,published_at,review_record from private.ielts_diagnostic_versions where id=$1',[v])).rows[0];
+ assert.equal(versionRow.state,'in_review');assert.equal(versionRow.published_at,null);assert.equal(versionRow.review_record.delivery,false);
+ await assert.rejects(db.query("update private.ielts_diagnostic_items set prompt='mutated' where version_id=$1",[v]),/immutable/);
+ await assert.rejects(db.query("update ielts_exam_forms set reading_payload='{}' where id=$1",[f]),/immutable/);
+ await assert.rejects(db.query("select private.activate_ielts_screener_release($1,'public','{}',$2,'{}')",[v,teacher]),/published_self_service|reading_public/);
+ await db.query("select private.activate_ielts_screener_release($1,'pilot',$2,$3,'{}')",[v,[pilot],teacher]);
+ await actor(denied);
+ await assert.rejects(db.query("select rpc_ielts_screener_self_assign('reading-only-test')"),/screener_unavailable/);
+ assert.equal((await db.query('select rpc_ielts_screener_catalog() result')).rows[0].result.some(x=>x.code==='reading-only-test'),false);
+ await actor(pilot);
+ const assigned=(await db.query("select rpc_ielts_screener_self_assign('reading-only-test') result")).rows[0].result;
+ const start=(await db.query('select rpc_ielts_start_attempt($1) result',[assigned.assignment_id])).rows[0].result;
+ const resume=(await db.query('select rpc_ielts_start_attempt($1) result',[assigned.assignment_id])).rows[0].result;
+ assert.equal(start.attempt_id,resume.attempt_id);assert.equal(start.ends_at,resume.ends_at);
+ const who=(await db.query('select rpc_ielts_exam_whoami($1) result',[e])).rows[0].result;
+ assert.equal(who.form_public_payload.reading_payload.passages.length,2);
+ assert.doesNotMatch(JSON.stringify(who),/accepted_answers|review_record/);
+ const answers={reading:{r1:'TRUE',r2:'FALSE',r3:'NOT GIVEN',r4:'Alpha',r5:'wrong',r6:''}};
+ await db.query("select rpc_ielts_submit_attempt($1,$2,$3,'reading-fixture')",[start.attempt_id,start.lock_token,JSON.stringify(answers)]);
+ await db.query("select rpc_ielts_submit_attempt($1,$2,'{}','reading-fixture')",[start.attempt_id,start.lock_token]);
+ const result=(await db.query('select rpc_ielts_diagnostic_result($1) result',[start.attempt_id])).rows[0].result;
+ assert.equal(result.raw_score,4);assert.equal(result.marks_possible,12);assert.equal(result.confidence.level,'low');
+ assert.equal((await db.query('select count(*)::int n from ielts_exam_submissions where attempt_id=$1',[start.attempt_id])).rows[0].n,1);
+ assert.equal(result.outcomes.find(x=>x.item_key==='r6').response_state,'unanswered');
+ assert.equal(result.readiness_available,false);
+ assert.equal((await db.query("select has_function_privilege('authenticated','private.prepare_ielts_reading_pilot(uuid,text)','execute') ok")).rows[0].ok,false);
+});

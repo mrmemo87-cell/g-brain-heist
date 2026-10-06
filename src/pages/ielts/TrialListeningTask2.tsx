@@ -15,7 +15,8 @@ const ShieldIcon: React.FC = () => (
   </svg>
 );
 
-const TrialListeningTask2: React.FC = () => {
+const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' }> = ({ skill = 'listening' }) => {
+  const reading = skill === 'reading';
   const navigate = useNavigate();
   const [entries, setEntries] = useState<IeltsScreenerEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +32,7 @@ const TrialListeningTask2: React.FC = () => {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [retry]);
-  const entry = entries[0];
+  const entry = entries.find((item) => item.code === `bh-${skill}-screener-a`);
   const canOpen = entry && ['ready', 'in_progress', 'completed', 'expired'].includes(entry.status);
   const open = async () => {
     if (!entry || !canOpen || opening) return;
@@ -101,10 +102,10 @@ const TrialListeningTask2: React.FC = () => {
             letterSpacing: '-.045em',
           }}
         >
-          Listening Readiness Screener
+          {reading ? 'Reading Readiness Screener' : 'Listening Readiness Screener'}
         </h1>
         <p style={{ margin: '1rem 0 0', color: '#475569', lineHeight: 1.7, fontSize: '1rem' }}>
-          A short starting-point check using reviewed Brains Heist content. Listen to three recordings and answer 12 questions.
+          A short starting-point check using reviewed Brains Heist content. {reading ? 'Read two passages and answer 12 questions.' : 'Listen to three recordings and answer 12 questions.'}
           Your result shows raw performance and evidence coverage. This screener does not give an IELTS band.
         </p>
 
@@ -119,11 +120,11 @@ const TrialListeningTask2: React.FC = () => {
             border: '1px solid #e2e8f0',
           }}
         >
-          {[
+          {(reading ? ['Read both passages; use only the information provided', 'Choose one answer for each question', 'You can return to either passage before submitting'] : [
             'Use headphones and find a quiet place',
             '30 seconds to read each group; 15 seconds to finish your answers',
             'Pause or replay the audio when you need to',
-          ].map((item) => (
+          ]).map((item) => (
             <div key={item} style={{ display: 'flex', gap: '.65rem', alignItems: 'flex-start', color: '#334155', lineHeight: 1.5 }}>
               <span style={{ color: '#0891b2', display: 'inline-flex', marginTop: 1 }}><CheckIcon /></span>
               <span>{item}</span>
@@ -145,8 +146,9 @@ const TrialListeningTask2: React.FC = () => {
 
         {canOpen && <button type="button" disabled={opening || loading} onClick={() => void open()}
           className="mt-5 w-full rounded-full bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-700 px-5 py-4 font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600 disabled:opacity-60">
-          {opening ? 'Opening…' : entry.status === 'completed' ? 'Start new screener attempt' : entry.status === 'in_progress' ? 'Resume screener' : entry.status === 'expired' ? 'Open saved attempt' : 'Start Listening screener'}
+          {opening ? 'Opening…' : entry.status === 'completed' ? 'Start new screener attempt' : entry.status === 'in_progress' ? 'Resume screener' : entry.status === 'expired' ? 'Open saved attempt' : reading ? 'Start Reading screener' : 'Start Listening screener'}
         </button>}
+        {!reading && entries.some((item) => item.code === 'bh-reading-screener-a') && <button type="button" onClick={() => navigate('/ielts/reading-screener')} className="mt-4 min-h-11 w-full rounded-xl border border-teal-300 bg-teal-50 px-4 py-3 font-semibold text-teal-900 focus-visible:outline focus-visible:outline-2">Open Reading screener</button>}
         {!loading && <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold text-blue-700 underline focus-visible:outline focus-visible:outline-2">Check availability again</button>}
 
         <button
