@@ -769,7 +769,6 @@ const IeltsExamMode: React.FC = () => {
               <label htmlFor="screener-audio" className="mb-2 block text-sm font-semibold">Listening audio</label>
               <audio ref={screenerAudioRef} id="screener-audio" key={getIeltsScreenerAudio(activePayload)} controls={syncState === 'active'} preload="metadata" className="w-full" src={getIeltsScreenerAudio(activePayload)!}
                 onPlay={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}
-                onPlaying={(event) => { if (syncStateRef.current !== 'active') event.currentTarget.pause(); }}
                 onError={() => {
                   if (audioBufferTimerRef.current !== null) window.clearTimeout(audioBufferTimerRef.current);
                   audioBufferTimerRef.current = null;
