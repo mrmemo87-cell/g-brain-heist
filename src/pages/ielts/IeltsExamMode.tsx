@@ -1,6 +1,7 @@
 import { IeltsWritingEditor } from '../../components/ielts/IeltsWritingEditor';
 import { IeltsWritingResult } from '../../components/ielts/IeltsWritingResult';
 import { fetchWritingScreenerResult } from '../../../services/ieltsWritingScreenerService';
+import { loadIeltsSavedScreenerResult } from '../../../services/ieltsScreenerResultLoader';
 import type { WritingScreenerResult } from '../../../services/ieltsWritingScreener';
 import { getIeltsReadingPassages, restoreReadingPassage, saveReadingPassage } from '../../../services/ieltsReadingDelivery';
 import { makeIeltsAudioCheckpointKey, saveIeltsAudioCheckpoint, restoreIeltsAudioCheckpoint } from '../../../services/ieltsAudioCheckpoint';
@@ -33,7 +34,7 @@ import {
   getIeltsAttemptTimeMessage,
   formatIeltsCountdown,
   getIeltsStudentExamSyncMessage,
-  isIeltsTeacherSubmittedStatus,
+  isIeltsSubmittedAttemptStatus,
   isIeltsVoidedAttemptStatus,
   resolveIeltsExamLifecycleMeta,
   resolveIeltsStudentExamSyncState,
@@ -282,9 +283,9 @@ const IeltsExamMode: React.FC = () => {
       setSaveMessage('Exam resumed by teacher. Autosave is active.');
     }
 
-    if (isIeltsTeacherSubmittedStatus(attemptStatus)) {
-      setSubmission({
-        submission_id: 'teacher-action',
+    if (isIeltsSubmittedAttemptStatus(attemptStatus)) {
+      setSubmission((current) => current?.attempt_id === response.attempt_id ? current : {
+        submission_id: 'server-sync',
         attempt_id: response.attempt_id ?? 'unknown',
         status: attemptStatus ?? 'submitted',
         submitted_at: response.server_now ?? response.ends_at ?? '',
@@ -335,7 +336,7 @@ const IeltsExamMode: React.FC = () => {
   }, [loadWhoami]);
 
   useEffect(() => {
-    if (loadState !== 'ready' || syncState === 'teacher_submitted' || syncState === 'voided') return undefined;
+    if (loadState !== 'ready' || syncState === 'submitted' || syncState === 'voided') return undefined;
     const timer = window.setInterval(() => {
       void refreshLiveState();
     }, 10000);
@@ -366,15 +367,14 @@ const IeltsExamMode: React.FC = () => {
     setDiagnosticError('');
     setDiagnosticResult(null);
     setWritingResult(null);
-    if (isWritingScreener) {
-      fetchWritingScreenerResult(resultAttemptId).then((value) => { if (active) setWritingResult(value); })
-        .catch(() => { if (active) setDiagnosticError('Your essay is saved. The feedback could not load. Please try again.'); });
-      return () => { active = false; };
-    }
-    fetchIeltsDiagnosticResult(resultAttemptId).then((value) => { if (active) setDiagnosticResult(value); })
+    loadIeltsSavedScreenerResult(resultAttemptId, fetchWritingScreenerResult, fetchIeltsDiagnosticResult).then((value) => {
+      if (!active) return;
+      if (value?.kind === 'writing') setWritingResult(value.result);
+      else if (value?.kind === 'objective') setDiagnosticResult(value.result);
+    })
       .catch((reason) => { if (active) setDiagnosticError(reason instanceof Error ? reason.message : 'Your answers are saved. Please retry loading the result.'); });
     return () => { active = false; };
-  }, [resultAttemptId, resultSubmitted, resultRetry, isWritingScreener]);
+  }, [resultAttemptId, resultSubmitted, resultRetry]);
 
   const formPayload = whoami?.form_public_payload ?? null;
   const availableSections = useMemo(() => (
@@ -655,7 +655,7 @@ const IeltsExamMode: React.FC = () => {
 
   const status = submission?.status ?? whoami?.attempt_status ?? attempt?.status ?? whoami?.status;
   const eventStatus = whoami?.event_status ?? (!whoami?.attempt_id ? whoami?.status : null);
-  const isSubmitted = Boolean(submission) || isIeltsTeacherSubmittedStatus(status);
+  const isSubmitted = Boolean(submission) || isIeltsSubmittedAttemptStatus(status);
   const serverNowMs = nowTick + serverOffsetMs;
   const startsAtMs = toMillis(whoami?.starts_at);
   const endsAtMs = toMillis(whoami?.ends_at);
@@ -761,7 +761,7 @@ const IeltsExamMode: React.FC = () => {
         {writingResult && <IeltsWritingResult result={writingResult} onRefresh={() => setResultRetry(n => n + 1)} />}
         {!diagnosticResult && !writingResult && <StateCard
           title="IELTS assessment submitted"
-          body={submission?.submission_id === 'teacher-action' || teacherActionMessage === 'Your exam has been submitted by your teacher.' ? 'Your exam has been submitted by your teacher.' : 'Your answers have been received and locked for grading.'}
+          body="Your answers have been received and locked for review."
           secondaryText="Your answers are saved. Your teacher can help you with the next step."
         />}
         {diagnosticError && <div className="mx-auto max-w-2xl p-5" role="alert"><p>{diagnosticError}</p><button type="button" className="mt-3 rounded-xl bg-slate-900 px-5 py-3 text-white" onClick={() => setResultRetry((n) => n + 1)}>Load result again</button></div>}

@@ -112,7 +112,7 @@ export const getIeltsAttemptOperationalLabel = (status?: string | null, hasConne
   return normalized.replace(/_/g, ' ');
 };
 
-export type IeltsStudentExamSyncState = 'active' | 'paused' | 'teacher_submitted' | 'voided' | 'ended' | 'not_in_progress';
+export type IeltsStudentExamSyncState = 'active' | 'paused' | 'submitted' | 'voided' | 'ended' | 'not_in_progress';
 
 const normalizeExamStatus = (status?: string | null): string => (status ?? '').toLowerCase().trim();
 
@@ -160,7 +160,7 @@ export const isIeltsTerminalAttemptStatus = (status?: string | null): boolean =>
   ['submitted', 'auto_submitted', 'force_submitted', 'void', 'voided', 'locked', 'not_in_progress'].includes(normalizeExamStatus(status))
 );
 
-export const isIeltsTeacherSubmittedStatus = (status?: string | null): boolean => (
+export const isIeltsSubmittedAttemptStatus = (status?: string | null): boolean => (
   ['submitted', 'auto_submitted', 'force_submitted'].includes(normalizeExamStatus(status))
 );
 
@@ -174,7 +174,7 @@ export const resolveIeltsStudentExamSyncState = (
   reason?: string | null,
 ): IeltsStudentExamSyncState => {
   if (isIeltsVoidedAttemptStatus(attemptStatus, reason)) return 'voided';
-  if (isIeltsTeacherSubmittedStatus(attemptStatus)) return 'teacher_submitted';
+  if (isIeltsSubmittedAttemptStatus(attemptStatus)) return 'submitted';
   if (normalizeExamStatus(attemptStatus) === 'not_in_progress' || normalizeExamStatus(attemptStatus) === 'locked') return 'not_in_progress';
   if (isIeltsExamEventPaused(eventStatus, reason)) return 'paused';
   if (['ended', 'closed', 'complete', 'completed'].includes(normalizeExamStatus(eventStatus))) return 'ended';
@@ -182,7 +182,7 @@ export const resolveIeltsStudentExamSyncState = (
 };
 
 export const getIeltsStudentExamSyncMessage = (state: IeltsStudentExamSyncState): string | null => {
-  if (state === 'teacher_submitted') return 'Your exam has been submitted by your teacher.';
+  if (state === 'submitted') return 'Your assessment has been submitted. Your answers are saved.';
   if (state === 'voided') return 'This attempt was voided by the teacher.';
   if (state === 'paused') return 'This exam is paused by the teacher.';
   if (state === 'not_in_progress') return 'Your exam is no longer in progress.';

@@ -94,8 +94,10 @@ test('IELTS monitor labels emphasize not started, active, submitted and connecti
 test('IELTS student live sync maps teacher pause, force submit and void states', () => {
   assert.equal(resolveIeltsStudentExamSyncState('in_progress', 'paused', 'ok'), 'paused');
   assert.equal(getIeltsStudentExamSyncMessage('paused'), 'This exam is paused by the teacher.');
-  assert.equal(resolveIeltsStudentExamSyncState('auto_submitted', 'live', 'ok'), 'teacher_submitted');
-  assert.equal(getIeltsStudentExamSyncMessage('teacher_submitted'), 'Your exam has been submitted by your teacher.');
+  for (const status of ['submitted', 'auto_submitted', 'force_submitted']) {
+    assert.equal(resolveIeltsStudentExamSyncState(status, 'live', 'ok'), 'submitted');
+  }
+  assert.equal(getIeltsStudentExamSyncMessage('submitted'), 'Your assessment has been submitted. Your answers are saved.');
   assert.equal(resolveIeltsStudentExamSyncState('void', 'live', 'assignment_void'), 'voided');
   assert.equal(getIeltsStudentExamSyncMessage('voided'), 'This attempt was voided by the teacher.');
 });
@@ -103,7 +105,7 @@ test('IELTS student live sync maps teacher pause, force submit and void states',
 test('IELTS student autosave only runs while the live sync state is active', () => {
   assert.equal(shouldIeltsAutosaveRun('active'), true);
   assert.equal(shouldIeltsAutosaveRun('paused'), false);
-  assert.equal(shouldIeltsAutosaveRun('teacher_submitted'), false);
+  assert.equal(shouldIeltsAutosaveRun('submitted'), false);
   assert.equal(shouldIeltsAutosaveRun('voided'), false);
   assert.equal(shouldIeltsAutosaveRun('not_in_progress'), false);
 });
@@ -128,7 +130,8 @@ test('IELTS Exam Mode student page polls live status, ticks countdown, and locks
   assert.match(source, /syncStateRef\.current === 'paused'\) return;/, 'countdown display must pause while teacher has paused the event');
   assert.match(source, /shouldIeltsAutosaveRun\(syncStateRef\.current\)/, 'autosave must be gated by live sync state');
   assert.match(source, /attempt_not_in_progress\|assignment_void\|exam_paused/, 'teacher state changes must suppress scary autosave errors');
-  assert.match(source, /Your exam has been submitted by your teacher\./, 'force submit must show teacher-submitted state');
+  assert.match(source, /Your answers have been received and locked for review\./, 'submitted state must not invent a submitting actor');
+  assert.doesNotMatch(source, /Your exam has been submitted by your teacher/, 'attempt status alone does not identify the submitter');
   assert.match(source, /This attempt was voided by the teacher\./, 'void must show teacher-voided state');
   assert.match(source, /This exam is paused by the teacher\./, 'pause must show teacher-paused state');
 });
