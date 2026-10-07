@@ -83,7 +83,9 @@ export default function QuestionPreviewModal({ question, onClose, onEdit, option
               </dl>
               <p>{mapping.evidenceStatement}</p>
             </div>
-          )) : question.curriculum_skill || question.curriculum_subskill ? (
+          )) : question.analytics_eligible && question.verification_status === 'verified' ? (
+            <p>Canonical assessment mapping is unavailable in this view. Legacy topic or curriculum labels are not used as the question&apos;s diagnostic identity.</p>
+          ) : question.curriculum_skill || question.curriculum_subskill ? (
             <div className="question-preview__mapping"><dl>
               {question.curriculum_strand ? <div><dt>Strand</dt><dd>{question.curriculum_strand}</dd></div> : null}
               {question.curriculum_skill ? <div><dt>Skill</dt><dd>{question.curriculum_skill}</dd></div> : null}
