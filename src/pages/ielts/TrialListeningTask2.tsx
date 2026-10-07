@@ -15,7 +15,8 @@ const ShieldIcon: React.FC = () => (
   </svg>
 );
 
-const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' }> = ({ skill = 'listening' }) => {
+const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing' }> = ({ skill = 'listening' }) => {
+  const writing = skill === 'writing';
   const reading = skill === 'reading';
   const navigate = useNavigate();
   const [entries, setEntries] = useState<IeltsScreenerEntry[]>([]);
@@ -102,11 +103,11 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' }> = ({ sk
             letterSpacing: '-.045em',
           }}
         >
-          {reading ? 'Reading Readiness Screener' : 'Listening Readiness Screener'}
+          {writing ? 'Writing Starting-Point Check' : reading ? 'Reading Readiness Screener' : 'Listening Readiness Screener'}
         </h1>
         <p style={{ margin: '1rem 0 0', color: '#475569', lineHeight: 1.7, fontSize: '1rem' }}>
-          A short starting-point check using reviewed Brains Heist content. {reading ? 'Read two passages and answer 12 questions.' : 'Listen to three recordings and answer 12 questions.'}
-          Your result shows raw performance and evidence coverage. This screener does not give an IELTS band.
+          A short starting-point check using reviewed Brains Heist content. {writing ? 'Write one Academic Task 2 essay in 40 minutes.' : reading ? 'Read two passages and answer 12 questions.' : 'Listen to three recordings and answer 12 questions.'}
+          {writing ? 'Your essay is saved for teacher feedback across the four IELTS criteria.' : 'Your result shows raw performance and evidence coverage.'} This screener does not give an IELTS band.
         </p>
 
         <div
@@ -120,7 +121,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' }> = ({ sk
             border: '1px solid #e2e8f0',
           }}
         >
-          {(reading ? ['Read both passages; use only the information provided', 'Choose one answer for each question', 'You can return to either passage before submitting'] : [
+          {(writing ? ['Write at least 250 words in connected paragraphs', 'Support your ideas with relevant reasons and examples', 'Write independently; leave time to plan and check your essay'] : reading ? ['Read both passages; use only the information provided', 'Choose one answer for each question', 'You can return to either passage before submitting'] : [
             'Use headphones and find a quiet place',
             '30 seconds to read each group; 15 seconds to finish your answers',
             'Pause or replay the audio when you need to',
@@ -134,8 +135,8 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' }> = ({ sk
 
         <div aria-live="polite" style={{ margin: '1.2rem 0 0', color: '#475569', fontSize: '.95rem', lineHeight: 1.6 }}>
           {loading ? 'Checking your screener…' : error ? <p role="alert">{error}</p>
-            : !entry ? 'The reviewed screener is awaiting its final delivery checks. Please check back here.'
-            : entry.status === 'completed' ? 'Your result is saved. Repeat for practice with the same questions; a repeat does not measure improvement.'
+            : !entry ? writing ? 'The Writing screener is being reviewed. It will appear here when it is ready for you.' : 'The reviewed screener is awaiting its final delivery checks. Please check back here.'
+            : entry.status === 'completed' ? writing ? 'Your essay is saved. Check for teacher feedback, or repeat the same prompt for practice; a repeat does not measure improvement.' : 'Your result is saved. Repeat for practice with the same questions; a repeat does not measure improvement.'
             : entry.status === 'in_progress' ? 'Your screener is in progress. Resume your saved attempt.'
             : entry.status === 'expired' ? 'Your attempt time has ended. Open it to finish saving your responses.'
             : entry.status === 'scheduled' ? 'Your screener is scheduled. Check back when it opens.'
@@ -147,7 +148,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' }> = ({ sk
         {entry?.status === 'completed' && <button type="button" onClick={() => navigate(`/ielts/exam/${entry.exam_event_id}`)} className="mt-5 min-h-11 w-full rounded-xl bg-slate-900 px-5 py-3 font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">View saved result</button>}
         {canOpen && <button type="button" disabled={opening || loading} onClick={() => void open()}
           className={entry.status === 'completed' ? 'mt-3 min-h-11 w-full rounded-xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 focus-visible:outline focus-visible:outline-2 disabled:opacity-60' : 'mt-5 w-full rounded-full bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-700 px-5 py-4 font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600 disabled:opacity-60'}>
-          {opening ? 'Opening…' : entry.status === 'completed' ? 'Repeat for practice' : entry.status === 'in_progress' ? 'Resume screener' : entry.status === 'expired' ? 'Open saved attempt' : reading ? 'Start Reading screener' : 'Start Listening screener'}
+          {opening ? 'Opening…' : entry.status === 'completed' ? 'Repeat for practice' : entry.status === 'in_progress' ? 'Resume screener' : entry.status === 'expired' ? 'Open saved attempt' : writing ? 'Start Writing screener' : reading ? 'Start Reading screener' : 'Start Listening screener'}
         </button>}
         {!loading && (error || !entry || !canOpen) && <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold text-blue-700 underline focus-visible:outline focus-visible:outline-2">Check availability again</button>}
 

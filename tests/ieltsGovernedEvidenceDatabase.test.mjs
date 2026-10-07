@@ -391,3 +391,116 @@ test('Reading publication requires exact delivery evidence and preserves pilot h
  assert.equal((await db.query('select delivery_metadata from private.ielts_diagnostic_attempt_evidence where attempt_id=$1',[start.attempt_id])).rows[0].delivery_metadata.content_hash,after.content_hash);
  for(const role of ['anon','authenticated']) assert.equal((await db.query("select has_function_privilege($1,'private.publish_ielts_reading_release(uuid,text,uuid,jsonb)','execute') ok",[role])).rows[0].ok,false);
 });
+
+const writingVersion=uid(701),writingForm=uid(702),writingEvent=uid(703),writingDef=uid(704),writingStudent=uid(705);
+let writingStart;
+const writingMappings=Object.fromEntries(['task_response','coherence_cohesion','lexical_resource','grammar_range_accuracy'].map((k,i)=>[k,[`writing-fixture-${i}`]]));
+test('Writing draft cannot launch; reviewed Task 2 policy freezes exact task and rubric without objective scoring',async()=>{
+ await db.exec(`alter table users add column username text; alter table classes add column school_id uuid; alter table classes add column subject text;
+ alter table class_teacher_assignments add column subject text;
+ create table class_students(class_id uuid,student_id uuid);
+ create table school_members(user_id uuid,school_id uuid,status text,role_in_school text);
+ create function public.is_superadmin(uuid) returns boolean language sql as $$ select false $$;
+ create function private.teacher_current_teaching_groups(uuid,uuid) returns table(id uuid) language sql as $$ select null::uuid where false $$;
+ create function private.teacher_current_teaching_roster(uuid,uuid) returns table(student_id uuid,academic_subject_code text,school_subject_name text) language sql as $$ select null::uuid,null::text,null::text where false $$;
+ update classes set school_id='${school}',subject='English' where id='${cls}'; update class_teacher_assignments set active=true,subject='English';
+ insert into users(id,school_id,username) values('${writingStudent}','${school}','Synthetic Writing learner');
+ insert into class_students values('${cls}','${writingStudent}');
+ insert into ielts_exam_events(id,title,status,starts_at,ends_at,duration_minutes) values('${writingEvent}','Synthetic Writing','draft',now(),now()+interval '1 year',40);
+ insert into ielts_exam_forms(id,exam_event_id,form_code,is_active) values('${writingForm}','${writingEvent}','writing-fixture',false);
+ insert into private.ielts_diagnostic_definitions(id,code,title) values('${writingDef}','writing-fixture','Synthetic Writing');`);
+ await db.exec(readFileSync('supabase/migrations/20261007041943_ielts_writing_screener_foundation.sql','utf8'));
+ for(let i=0;i<4;i++) await db.query("insert into academic_skill_registry_nodes values($1,$2,'subskill','active',$3)",[uid(710+i),registry,`writing-fixture-${i}`]);
+ await db.query("insert into private.ielts_diagnostic_versions(id,definition_id,version,exam_form_id,mode,test_type,skills,taxonomy_version_id,scoring_policy_version,provenance) values($1,$2,1,$3,'screener','academic',array['writing'],$4,'ielts-writing-task2-snapshot-v1',$5)",[writingVersion,writingDef,writingForm,registry,JSON.stringify({author:'Synthetic only',rights_holder:'Brains Heist LLC',rights_basis:'Test fixture only',content_version:'1',criterion_mappings:writingMappings})]);
+ await db.query("insert into private.ielts_diagnostic_items(version_id,item_key,task_key,skill,order_index,response_type,prompt,taxonomy_node_id) values($1,'essay','task2','writing',1,'writing','Synthetic Task 2 prompt',$2)",[writingVersion,uid(710)]);
+ const payload={assessment_mode:'screener',title:'Synthetic Writing',instructions:'Write 250 words; fixture only.',task_type:'academic_task2',minimum_words:250,rubric_version:'bh-ielts-task2-observations-v1',questions:[{id:'essay',prompt:'Synthetic Task 2 prompt',type:'essay'}]};
+ await db.query('update ielts_exam_forms set writing_payload=$1 where id=$2',[JSON.stringify(payload),writingForm]);
+ const publishWriting=()=>db.query("update private.ielts_diagnostic_versions set state='published' where id=$1",[writingVersion]);
+ await assert.rejects(publishWriting(),/writing_human_review_required/);
+ await assert.rejects(db.query("select private.activate_ielts_screener_release($1,'pilot',$2,$3,'{}')",[writingVersion,[writingStudent],teacher]),/published_self_service/);
+ await db.query("update private.ielts_diagnostic_versions set reviewed_by=$1,reviewed_at=now(),review_record=$2 where id=$3",[teacher,JSON.stringify({human_editorial:true,rubric:true,taxonomy:true,difficulty:true,delivery:true,notes:'Synthetic review only, never real content approval.'}),writingVersion]);
+ const hash=async()=>db.query("update private.ielts_diagnostic_versions set review_record=review_record||jsonb_build_object('reviewed_content_hash',private.ielts_writing_review_hash(id)) where id=$1",[writingVersion]);
+ await hash();
+ const leak={...payload,answer_key:'leak'};await db.query('update ielts_exam_forms set writing_payload=$1 where id=$2',[JSON.stringify(leak),writingForm]);await hash();await assert.rejects(publishWriting(),/writing_delivery_payload_invalid/);
+ await db.query('update ielts_exam_forms set writing_payload=$1 where id=$2',[JSON.stringify(payload),writingForm]);await hash();
+ await db.query("update private.ielts_diagnostic_versions set provenance=jsonb_set(provenance,'{criterion_mappings,lexical_resource}','[\"unknown\"]') where id=$1",[writingVersion]);
+ await assert.rejects(publishWriting(),/does_not_match_content/);await hash();await assert.rejects(publishWriting(),/mapping_invalid/);
+ await db.query("update private.ielts_diagnostic_versions set provenance=jsonb_set(provenance,'{criterion_mappings}',$1) where id=$2",[JSON.stringify(writingMappings),writingVersion]);await hash();await publishWriting();
+ await assert.rejects(db.query("update private.ielts_diagnostic_versions set provenance='{}' where id=$1",[writingVersion]),/immutable/);
+ await assert.rejects(db.query("select private.activate_ielts_screener_release($1,'public','{}',$2,'{}')",[writingVersion,teacher]),/writing_delivery_evidence/);
+ await db.query("select private.activate_ielts_screener_release($1,'pilot',$2,$3,'{}')",[writingVersion,[writingStudent],teacher]);await actor(writingStudent);
+ const assigned=(await db.query("select rpc_ielts_screener_self_assign('writing-fixture') result")).rows[0].result;
+ writingStart=(await db.query('select rpc_ielts_start_attempt($1) result',[assigned.assignment_id])).rows[0].result;
+ const resumed=(await db.query('select rpc_ielts_start_attempt($1) result',[assigned.assignment_id])).rows[0].result;
+ assert.equal(writingStart.attempt_id,resumed.attempt_id);assert.equal(writingStart.ends_at,resumed.ends_at);
+ const essay='Clear opinion 😊. '+Array.from({length:300},(_,i)=>`word${i}`).join(' ')+'\n\nRelevant example.';
+ const save=(ver,text)=>db.query("select rpc_ielts_autosave_attempt($1,$2,'writing',$3,$4,now())",[writingStart.attempt_id,writingStart.lock_token,JSON.stringify({essay:text}),ver]);
+ await save(2,essay);await save(1,'stale');
+ const who=(await db.query('select rpc_ielts_exam_whoami($1) result',[writingEvent])).rows[0].result;
+ assert.equal(who.drafts[0].payload.essay,essay);
+ const submit=()=>db.query('select rpc_ielts_submit_attempt($1,$2,$3,$4) result',[writingStart.attempt_id,writingStart.lock_token,JSON.stringify({writing:{essay},estimated_band:9,raw_score:99}),'writing-fixture-submit']);
+ const first=(await submit()).rows[0].result;const second=(await submit()).rows[0].result;assert.equal(first.submission_id,second.submission_id);
+ const result=(await db.query('select rpc_ielts_writing_screener_result($1) result',[writingStart.attempt_id])).rows[0].result;
+ assert.equal(result.response_text,essay);assert.equal(result.review_status,'pending');assert.equal(result.word_count,305);assert.equal(result.confidence,'low');assert.equal(result.readiness_available,false);
+ assert.equal((await db.query('select count(*)::int n from private.ielts_diagnostic_scoring_runs where attempt_id=$1',[writingStart.attempt_id])).rows[0].n,0);
+ assert.doesNotMatch(JSON.stringify(result),/estimated_band|raw_score|marks_possible/);
+ await assert.rejects(db.query("update private.ielts_writing_screener_submissions set response_text='changed' where attempt_id=$1",[writingStart.attempt_id]),/immutable/);
+ for(const table of ['ielts_writing_screener_submissions','ielts_writing_screener_reviews']) assert.equal((await db.query("select has_table_privilege('authenticated',$1,'select') ok",[`private.${table}`])).rows[0].ok,false);
+});
+
+test('Writing teacher observations require exact original evidence, scoped access and append-only idempotent reviews',async()=>{
+ await actor(outsider);await assert.rejects(db.query('select rpc_ielts_writing_screener_result($1)',[writingStart.attempt_id]),/not_authorized/);
+ await actor(writingStudent);const original=(await db.query('select rpc_ielts_writing_screener_result($1) r',[writingStart.attempt_id])).rows[0].r;
+ const obs=Object.fromEntries(Object.keys(writingMappings).map(k=>[k,{status:'developing',comment:'A synthetic task-specific observation with an example.',evidence:[{quote:'Relevant example.',start_char:Array.from(original.response_text.slice(0,original.response_text.indexOf('Relevant example.'))).length,end_char:Array.from(original.response_text).length}]}]));
+ const review=(id=uid(720),previous=null,observations=obs,hash=original.response_sha256)=>db.query('select rpc_ielts_submit_writing_screener_review($1,$2,$3,$4,$5,$6,$7) r',[writingStart.attempt_id,id,previous,hash,JSON.stringify(observations),'Practise developing one relevant example.','']);
+ await assert.rejects(review(),/not_authorized/);await actor(teacher);
+ const bad=structuredClone(obs);bad.task_response.evidence[0].quote='Invented words.';await assert.rejects(review(uid(721),null,bad),/does_not_match_original/);
+ await assert.rejects(review(uid(721),null,obs,'a'.repeat(64)),/source_mismatch/);
+ const judged=(await review()).rows[0].r;assert.equal(judged.review_status,'teacher_reviewed');assert.equal(judged.confidence,'low');assert.equal(judged.readiness_available,false);
+ await review();assert.equal((await db.query('select count(*)::int n from private.ielts_writing_screener_reviews where attempt_id=$1',[writingStart.attempt_id])).rows[0].n,1);
+ await assert.rejects(review(uid(722),null),/changed_reload/);await review(uid(722),uid(720));
+ assert.equal((await db.query('select count(*)::int n from private.ielts_writing_screener_reviews where attempt_id=$1',[writingStart.attempt_id])).rows[0].n,2);
+ await assert.rejects(db.query("update private.ielts_writing_screener_reviews set next_step='changed'"),/immutable/);
+ await db.query('update class_teacher_assignments set active=false');await assert.rejects(review(uid(723),uid(722)),/not_authorized/);
+ await actor(writingStudent);assert.equal((await db.query('select rpc_ielts_writing_screener_result($1) r',[writingStart.attempt_id])).rows[0].r.review_id,uid(722));
+ for(const fn of ['rpc_ielts_writing_screener_result(uuid)','rpc_ielts_writing_screener_review_queue()','rpc_ielts_submit_writing_screener_review(uuid,uuid,uuid,text,jsonb,text,text)']) assert.equal((await db.query("select has_function_privilege('anon',$1,'execute') ok",[`public.${fn}`])).rows[0].ok,false);
+});
+
+test('Writing repeat is practice; expiry uses only the latest server draft and keeps blank evidence separate',async()=>{
+ await actor(writingStudent);
+ const launch=async()=> (await db.query("select rpc_ielts_screener_self_assign('writing-fixture') result")).rows[0].result;
+ const begin=async()=> (await db.query('select rpc_ielts_start_attempt($1) result',[(await launch()).assignment_id])).rows[0].result;
+ const repeated=await begin();
+ await db.query("select rpc_ielts_submit_attempt($1,$2,$3,'repeat-writing')",[repeated.attempt_id,repeated.lock_token,JSON.stringify({writing:{essay:'Practice essay.'}})]);
+ assert.equal((await db.query('select rpc_ielts_writing_screener_result($1) r',[repeated.attempt_id])).rows[0].r.evidence_kind,'same_prompt_practice');
+ const expired=await begin();
+ await db.query("select rpc_ielts_autosave_attempt($1,$2,'writing',$3,1,now())",[expired.attempt_id,expired.lock_token,JSON.stringify({essay:'Last server-saved essay.'})]);
+ await db.query("update ielts_exam_attempts set ends_at=now()-interval '1 minute' where id=$1",[expired.attempt_id]);
+ await db.query("select rpc_ielts_submit_attempt($1,$2,$3,'expired-writing')",[expired.attempt_id,expired.lock_token,JSON.stringify({writing:{essay:'Forged late changes.'}})]);
+ assert.equal((await db.query('select rpc_ielts_writing_screener_result($1) r',[expired.attempt_id])).rows[0].r.response_text,'Last server-saved essay.');
+ const blank=await begin();await db.query("select rpc_ielts_submit_attempt($1,$2,'{}','blank-writing')",[blank.attempt_id,blank.lock_token]);
+ const result=(await db.query('select rpc_ielts_writing_screener_result($1) r',[blank.attempt_id])).rows[0].r;
+ assert.equal(result.response_state,'unanswered');assert.equal(result.word_count,0);assert.equal(result.review_status,'pending');assert.equal(result.readiness_available,false);
+});
+
+test('Coached Writing revision is separate, idempotent and cannot rewrite the assessed essay',async()=>{
+ await actor(teacher);await assert.rejects(db.query("select rpc_ielts_save_writing_screener_revision($1,$2,$3,'Coached practice essay.')",[writingStart.attempt_id,uid(740),uid(722)]),/not_authorized/);
+ await actor(writingStudent);
+ const before=(await db.query('select response_sha256 from private.ielts_writing_screener_submissions where attempt_id=$1',[writingStart.attempt_id])).rows[0].response_sha256;
+ const revise=()=>db.query("select rpc_ielts_save_writing_screener_revision($1,$2,$3,'Coached practice essay.') r",[writingStart.attempt_id,uid(740),uid(722)]);
+ await revise();const result=(await revise()).rows[0].r;
+ assert.equal(result.practice_revision.response_text,'Coached practice essay.');assert.equal(result.response_sha256,before);
+ assert.equal((await db.query('select count(*)::int n from private.ielts_writing_screener_revisions where attempt_id=$1',[writingStart.attempt_id])).rows[0].n,1);
+ await assert.rejects(db.query("select rpc_ielts_save_writing_screener_revision($1,$2,$3,'Changed payload.')",[writingStart.attempt_id,uid(740),uid(722)]),/idempotency_conflict/);
+ await assert.rejects(db.query("update private.ielts_writing_screener_revisions set response_text='rewrite'"),/immutable/);
+});
+
+test('Production Writing content seed is draft-only and records no fabricated review or student access',async()=>{
+ await db.exec(`alter table academic_skill_registry_versions add column code text; update academic_skill_registry_versions set code='bh-english-core-v1' where id='${registry}';`);
+ await db.query("insert into academic_skill_registry_nodes values($1,$2,'subskill','active','eng.writing.content-development.task-relevance')",[uid(750),registry]);
+ await db.exec(readFileSync('supabase/migrations/20261007043955_ielts_writing_screener_a_draft.sql','utf8'));
+ const v=(await db.query("select v.*,f.is_active,e.status event_status from private.ielts_diagnostic_versions v join private.ielts_diagnostic_definitions d on d.id=v.definition_id join ielts_exam_forms f on f.id=v.exam_form_id join ielts_exam_events e on e.id=f.exam_event_id where d.code='bh-writing-screener-a'")).rows[0];
+ assert.equal(v.state,'draft');assert.equal(v.is_active,false);assert.equal(v.event_status,'draft');assert.equal(v.reviewed_by,null);assert.equal(v.published_snapshot,null);
+ assert.equal((await db.query('select count(*)::int n from private.ielts_screener_releases where version_id=$1',[v.id])).rows[0].n,0);
+ await actor(writingStudent);assert.equal((await db.query('select rpc_ielts_screener_catalog() r')).rows[0].r.some(x=>x.code==='bh-writing-screener-a'),false);
+});

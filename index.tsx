@@ -58,6 +58,8 @@ const IeltsFunnelAnalytics = lazyRetry(() => import('./src/pages/ielts/IeltsFunn
 const IeltsExamMode = lazyRetry(() => import('./src/pages/ielts/IeltsExamMode'), 'IeltsExamMode');
 const IeltsExamMonitor = lazyRetry(() => import('./src/pages/ielts/IeltsExamMonitor'), 'IeltsExamMonitor');
 const IeltsExamManager = lazyRetry(() => import('./src/pages/ielts/IeltsExamManager'), 'IeltsExamManager');
+const IeltsWritingDraftPreview = lazyRetry(() => import('./src/pages/ielts/IeltsWritingDraftPreview'), 'IeltsWritingDraftPreview');
+const IeltsWritingScreenerReview = lazyRetry(() => import('./src/pages/ielts/IeltsWritingScreenerReview'), 'IeltsWritingScreenerReview');
 const IeltsReviewQueue = lazyRetry(() => import('./src/pages/ielts/IeltsReviewQueue'), 'IeltsReviewQueue');
 const IeltsSubmissionReview = lazyRetry(() => import('./src/pages/ielts/IeltsSubmissionReview'), 'IeltsSubmissionReview');
 const IeltsReviewResult = lazyRetry(() => import('./src/pages/ielts/IeltsReviewResult'), 'IeltsReviewResult');
@@ -753,6 +755,22 @@ const router = createBrowserRouter([
   {
     path: '/ielts/listening-screener',
     element: <ProtectedRoute element={<TrialListeningTask2 />} />,
+  },
+  {
+    path: '/ielts/writing-screener',
+    element: <ProtectedRoute element={<TrialListeningTask2 skill="writing" />} />,
+  },
+  {
+    path: '/ielts/writing-screener/preview',
+    element: <ProtectedRoute element={<IeltsReviewAdminGuard><IeltsWritingDraftPreview /></IeltsReviewAdminGuard>} />,
+  },
+  {
+    path: '/ielts/writing-screener/reviews',
+    element: <ProtectedRoute element={<IeltsWritingScreenerReview />} />,
+  },
+  {
+    path: '/ielts/writing-screener/reviews/:attemptId',
+    element: <ProtectedRoute element={<IeltsWritingScreenerReview />} />,
   },
   {
     path: '/ielts/reading-screener',

@@ -38,6 +38,7 @@ const IeltsReviewQueue: React.FC<IeltsReviewQueueProps> = ({ embedded = false, o
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
           <div>
             <h1 style={{ margin: 0, color: '#0f172a', fontSize: '2rem' }}>IELTS Review Queue</h1>
+            {!embedded && <a href="/ielts/writing-screener/reviews" className="mt-3 inline-block min-h-11 font-semibold text-blue-800 underline">Review Writing screener essays</a>}
             <p style={{ margin: '0.35rem 0 0', color: '#64748b' }}>Human teacher review for writing and speaking submissions.</p>
             <p style={{ margin: '0.35rem 0 0', color: '#475569', fontSize: '0.875rem' }}>Pending writing submissions are shown first.</p>
           </div>

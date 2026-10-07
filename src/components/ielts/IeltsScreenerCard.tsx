@@ -1,13 +1,13 @@
 import React from 'react';
 import type { IeltsScreenerEntry } from '../../../services/ieltsScreenerLaunchService';
 
-type Skill = 'listening' | 'reading';
+type Skill = 'listening' | 'reading' | 'writing';
 type CardProps = { skill: Skill; entry?: IeltsScreenerEntry; onNavigate: (route: string) => void };
 const cardStyle = { background: '#fff', border: '1px solid #cbd5e1', borderRadius: '1.25rem', padding: 'clamp(1.2rem,3vw,1.6rem)', display: 'flex', flexDirection: 'column', gap: '.8rem', minWidth: 0 } as const;
 const actionClass = 'min-h-11 rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700';
 
 export const IeltsScreenerCard: React.FC<CardProps> = ({ skill, entry, onNavigate }) => {
-  const title = skill === 'reading' ? 'Reading' : 'Listening';
+  const title = skill === 'reading' ? 'Reading' : skill === 'writing' ? 'Writing' : 'Listening';
   const discoveryRoute = `/ielts/${skill}-screener`;
   const completed = entry?.status === 'completed';
   const resume = entry?.status === 'in_progress';
@@ -23,20 +23,20 @@ export const IeltsScreenerCard: React.FC<CardProps> = ({ skill, entry, onNavigat
       <h3 className="m-0 text-2xl font-bold text-slate-950">{title}</h3>
       <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">{status}</span>
     </div>
-    <p className="m-0 leading-7 text-slate-600">{skill === 'reading'
+    <p className="m-0 leading-7 text-slate-600">{skill === 'writing' ? 'One essay · Academic Task 2 · Minimum 250 words' : skill === 'reading'
       ? 'Two passages · 12 questions · Academic Reading'
       : 'Three recordings · 12 questions · Pause and replay available'}</p>
     {entry && <p className="m-0 text-sm font-semibold text-slate-700">{entry.duration_minutes} minutes</p>}
     <p className="m-0 text-sm leading-6 text-slate-600">{completed ? 'Your answers and result are saved.'
       : resume ? 'Continue your saved attempt with its remaining time.'
       : expired ? 'Open your attempt to finish saving and see its result.'
-      : 'A short starting-point check with a raw score and low confidence.'}</p>
+      : skill === 'writing' ? 'A task-specific snapshot with teacher feedback and low confidence.' : 'A short starting-point check with a raw score and low confidence.'}</p>
     <button type="button" className={`mt-auto ${actionClass}`}
       onClick={() => onNavigate(completed || resume || expired ? savedRoute : discoveryRoute)}>{action}</button>
     {completed && <div className="border-t border-slate-200 pt-3">
       <button type="button" className="min-h-11 font-semibold text-blue-800 underline focus-visible:outline focus-visible:outline-2"
         onClick={() => onNavigate(discoveryRoute)}>Repeat for practice</button>
-      <p className="m-0 text-sm leading-6 text-slate-600">Repeats use the same questions and do not measure improvement.</p>
+      <p className="m-0 text-sm leading-6 text-slate-600">Repeats use the same task and do not measure improvement.</p>
     </div>}
   </article>;
 };
