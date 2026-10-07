@@ -340,3 +340,54 @@ test('Reading controlled pilot freezes reviewed passages and TFNG keys without c
  assert.equal(result.readiness_available,false);
  assert.equal((await db.query("select has_function_privilege('authenticated','private.prepare_ielts_reading_pilot(uuid,text)','execute') ok")).rows[0].ok,false);
 });
+
+test('Reading publication requires exact delivery evidence and preserves pilot history and canonical eligibility', async () => {
+ await db.exec(readFileSync('supabase/migrations/20261007013025_ielts_reading_public_release.sql','utf8'));
+ const v=uid(504),e=uid(501),pilot=uid(305),newLearner=uid(306);
+ const before=(await db.query('select * from private.ielts_diagnostic_versions where id=$1',[v])).rows[0];
+ const evidenceBefore=(await db.query('select * from private.ielts_diagnostic_attempt_evidence where version_id=$1',[v])).rows;
+ const checks=['authenticated_entitlement','start_resume','autosave','refresh_resume','network_interruption',
+   'background_interruption','submission','idempotency','server_scoring','protected_content','result_safety',
+   'completed_persistence','mobile_browser','desktop_browser','automated_checks','delivery_acceptance'];
+ // These are synthetic records for exercising gates, never production acceptance.
+ const validation={content_hash:before.content_hash,tested_at:new Date().toISOString(),
+   evidence_reference:'Synthetic fixture only',...Object.fromEntries(checks.map(k=>[k,true]))};
+ const publish=(record=validation,hash=before.content_hash,owner=teacher)=>db.query(
+   'select private.publish_ielts_reading_release($1,$2,$3,$4) event',[v,hash,owner,JSON.stringify(record)]);
+ await assert.rejects(publish(validation,'wrong'),/reviewed_pilot_required/);
+ await assert.rejects(publish(validation,before.content_hash,outsider),/reviewed_pilot_required/);
+ await assert.rejects(publish({...validation,content_hash:'wrong'}),/delivery_evidence_required/);
+ await assert.rejects(publish({...validation,tested_at:'2999-01-01T00:00:00Z'}),/delivery_evidence_future/);
+ for(const key of checks) await assert.rejects(publish({...validation,[key]:false}),new RegExp(`reading_validation_failed:${key}`));
+ assert.equal((await db.query('select state from private.ielts_diagnostic_versions where id=$1',[v])).rows[0].state,'in_review');
+ await assert.rejects(db.query("update private.ielts_diagnostic_versions set state='published',provenance=provenance||'{\"author\":\"changed\"}' where id=$1",[v]),/immutable/);
+ assert.equal((await publish()).rows[0].event,e);
+ const after=(await db.query('select * from private.ielts_diagnostic_versions where id=$1',[v])).rows[0];
+ assert.equal(after.state,'published');assert.notEqual(after.content_hash,before.content_hash);
+ assert.equal(after.review_record.reviewed_content_hash,before.review_record.reviewed_content_hash);
+ assert.deepEqual(after.published_snapshot.items,before.published_snapshot.items);
+ assert.deepEqual({...after.published_snapshot,version:null},{...before.published_snapshot,version:null});
+ assert.deepEqual((await db.query('select * from private.ielts_diagnostic_attempt_evidence where version_id=$1',[v])).rows,evidenceBefore);
+ await assert.rejects(db.query("update private.ielts_diagnostic_versions set review_record='{}' where id=$1",[v]),/immutable/);
+ await assert.rejects(db.query("update private.ielts_diagnostic_items set prompt='changed' where version_id=$1",[v]),/immutable/);
+ await assert.rejects(db.query("update private.ielts_screener_releases set published_content_hash=$1 where version_id=$2",[before.content_hash,v]),/reviewed_version_required|identity_immutable/);
+ await actor(pilot);
+ const saved=(await db.query('select rpc_ielts_screener_catalog() result')).rows[0].result.find(x=>x.code==='reading-only-test');
+ assert.equal(saved.status,'completed');assert.equal(saved.exam_event_id,e);
+ assert.equal((await db.query('select rpc_ielts_diagnostic_result($1) result',[evidenceBefore[0].attempt_id])).rows[0].result.raw_score,4);
+ await actor(newLearner);
+ await db.query("select set_config('test.programme_eligible','false',false)");
+ assert.equal((await db.query('select rpc_ielts_screener_catalog() result')).rows[0].result.some(x=>x.code==='reading-only-test'),false);
+ await assert.rejects(db.query("select rpc_ielts_screener_self_assign('reading-only-test')"),/screener_unavailable/);
+ await db.query("select set_config('test.programme_eligible','true',false)");
+ const catalog=(await db.query('select rpc_ielts_screener_catalog() result')).rows[0].result;
+ assert.equal(catalog.find(x=>x.code==='reading-only-test').status,'ready');
+ assert.equal(catalog.some(x=>x.code==='self-test-only'),true); // Listening remains available.
+ const assigned=(await db.query("select rpc_ielts_screener_self_assign('reading-only-test') result")).rows[0].result;
+ const start=(await db.query('select rpc_ielts_start_attempt($1) result',[assigned.assignment_id])).rows[0].result;
+ const who=(await db.query('select rpc_ielts_exam_whoami($1) result',[e])).rows[0].result;
+ assert.equal(who.form_public_payload.reading_payload.passages.length,2);
+ assert.doesNotMatch(JSON.stringify(who),/accepted_answers|review_record|published_snapshot/);
+ assert.equal((await db.query('select delivery_metadata from private.ielts_diagnostic_attempt_evidence where attempt_id=$1',[start.attempt_id])).rows[0].delivery_metadata.content_hash,after.content_hash);
+ for(const role of ['anon','authenticated']) assert.equal((await db.query("select has_function_privilege($1,'private.publish_ielts_reading_release(uuid,text,uuid,jsonb)','execute') ok",[role])).rows[0].ok,false);
+});
