@@ -27,3 +27,6 @@ verify_jwt = true
 
 [functions.commander_pvp]
 verify_jwt = true
+
+[functions.ielts_writing_teacher_ai]
+verify_jwt = true

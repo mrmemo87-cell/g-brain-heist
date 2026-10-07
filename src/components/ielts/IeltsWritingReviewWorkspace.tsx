@@ -9,6 +9,8 @@ type Props = {
   selected: WritingEvidenceSpan | null; onSelect: (span: WritingEvidenceSpan | null) => void;
   nextStep: string; onNextStep: (value: string) => void; delivery: string; onDelivery: (value: string) => void;
   saving: boolean; saved: boolean; onSave: () => void;
+  aiBusy?: boolean; aiApplied?: boolean; aiConfirmed?: boolean; onAi?: () => void;
+  onAiConfirm?: (value: boolean) => void; onAiRemove?: () => void; onAiReplace?: () => void;
 };
 const choices: { status: WritingObservationStatus; label: string; hint: string }[] = [
   { status: 'observed', label: 'Demonstrated', hint: 'Working well in this essay' },
@@ -16,7 +18,8 @@ const choices: { status: WritingObservationStatus; label: string; hint: string }
   { status: 'insufficient_evidence', label: 'More evidence needed', hint: 'This essay does not show enough' },
 ];
 export const IeltsWritingReviewWorkspace: React.FC<Props> = (props) => {
-  const { result, observations, activeCriterion, selected, saving, saved } = props;
+  const { result, observations, activeCriterion, selected, saved } = props;
+  const saving = props.saving || !!props.aiBusy;
   const index = IELTS_WRITING_CRITERIA.findIndex(item => item.key === activeCriterion);
   const criterion = IELTS_WRITING_CRITERIA[index];
   const observation = observations[activeCriterion];
@@ -38,6 +41,14 @@ export const IeltsWritingReviewWorkspace: React.FC<Props> = (props) => {
       </div>
     </section>
     <div className="wr-feedback">
+      {props.onAi && <section className={`wr-card wr-ai ${props.aiBusy ? 'wr-ai-working' : ''}`} aria-labelledby="ai-help-heading" aria-busy={!!props.aiBusy}>
+        <div className="wr-card-heading"><div><p className="wr-eyebrow">A little help, your judgement</p><h2 id="ai-help-heading">AI writing assistant</h2></div><svg className="wr-ai-spark" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3 2.3 6.7L21 12l-6.7 2.3L12 21l-2.3-6.7L3 12l6.7-2.3zM20 2v4M18 4h4"/></svg></div>
+        <p className="wr-help">Draft clear feedback, essay excerpts and one practical next step. Fill gaps first, then check and edit before sharing. You can restore your earlier notes.</p>
+        {!props.aiApplied && <button type="button" className="wr-ai-button" disabled={saving || saved} onClick={props.onAi}>{props.aiBusy ? <><span className="wr-ai-spinner" aria-hidden="true"/>Preparing your feedback…</> : 'Draft feedback with AI'}</button>}
+        <p className="wr-ai-status" role="status" aria-live="polite">{props.aiBusy ? 'Reading the essay and preparing simple, useful feedback. This may take a moment.' : props.aiApplied ? (saved ? 'Feedback checked and shared by you.' : 'AI draft added · Teacher review required. Check all four observations, excerpts and the next step.') : 'The draft stays private until you share it with the student.'}</p>
+        {props.onAiReplace && !saved && <div className="wr-ai-existing"><p className="wr-help">Your existing notes were kept. Prefer the complete AI draft? This replaces every feedback field.</p><button type="button" className="wr-secondary" disabled={saving} onClick={props.onAiReplace}>Use AI draft in every field</button></div>}
+        {props.aiApplied && !saved && <button type="button" className="wr-text-button" disabled={saving} onClick={props.onAiRemove}>Restore notes from before AI</button>}
+      </section>}
       <section className="wr-card" aria-labelledby="feedback-heading">
         <div className="wr-card-heading"><div><p className="wr-eyebrow">Notice & explain</p><h2 id="feedback-heading">Your feedback</h2></div><span className="wr-pill">{readiness.completed} of 4 ready</span></div>
         <nav className="wr-criteria" aria-label="Writing feedback criteria">{IELTS_WRITING_CRITERIA.map(({ key, label }, i) => <button key={key} type="button" disabled={saving} aria-current={key === activeCriterion ? 'step' : undefined} onClick={() => props.onCriterion(key)}><span className={`wr-step ${isWritingObservationComplete(observations[key]) ? 'wr-step-complete' : ''}`}>{isWritingObservationComplete(observations[key]) ? '✓' : i + 1}</span><span>{label}{isWritingObservationComplete(observations[key]) && <small>Ready</small>}</span></button>)}</nav>
@@ -55,7 +66,9 @@ export const IeltsWritingReviewWorkspace: React.FC<Props> = (props) => {
       <section className="wr-card wr-next" aria-labelledby="next-heading"><p className="wr-eyebrow">Guide the next step</p><h2 id="next-heading">Make practice feel achievable</h2>
         <fieldset disabled={saving}><legend className="sr-only">Next step and assessment conditions</legend><label className="wr-label" htmlFor="review-next-step">One practical next step</label><textarea id="review-next-step" value={props.nextStep} maxLength={2000} placeholder="Choose one focused action the student can try in their next essay." className="wr-note" onChange={(event: { target: HTMLTextAreaElement }) => props.onNextStep(event.target.value)} />
           <details className="wr-task" open={result.incident_count > 0 || undefined}><summary>Assessment conditions{result.incident_count > 0 ? ` · ${result.incident_count} interruption${result.incident_count === 1 ? '' : 's'} · Note required` : ' · Optional'}</summary><label className="wr-label" htmlFor="review-delivery">Explain any effect on this essay</label><textarea id="review-delivery" value={props.delivery} maxLength={2000} className="wr-note" onChange={(event: { target: HTMLTextAreaElement }) => props.onDelivery(event.target.value)} /></details>
-          <div className="wr-share"><p>{saved ? 'Feedback shared. The original essay is preserved.' : readiness.message ?? 'Ready to share. The student will see your four observations and next step.'}</p><button type="button" className="wr-primary" disabled={saving || saved} onClick={props.onSave}>{saving ? 'Sharing…' : saved ? 'Feedback shared ✓' : 'Share feedback with student'}</button></div>
+          <div className="wr-share">
+            {props.aiApplied && !saved && <label className="wr-ai-confirm"><input type="checkbox" checked={!!props.aiConfirmed} onChange={(event: { target: HTMLInputElement }) => props.onAiConfirm?.(event.target.checked)} /><span>I have checked the AI draft, its excerpts and the next step. This feedback is ready for my student.</span></label>}
+            <p>{saved ? 'Feedback shared. The original essay is preserved.' : readiness.message ?? (props.aiApplied && !props.aiConfirmed ? 'Check the draft and confirm above before sharing.' : 'Ready to share. The student will see your four observations and next step.')}</p><button type="button" className="wr-primary" disabled={saving || saved || (!!props.aiApplied && !props.aiConfirmed)} onClick={props.onSave}>{props.aiBusy ? 'Preparing AI draft…' : saving ? 'Sharing…' : saved ? 'Feedback shared ✓' : 'Share feedback with student'}</button></div>
           <p className="wr-help">Feedback refers to this essay only. One Task 2 essay does not establish a full Writing band. Corrections preserve earlier reviews.</p>
           {saved && <p role="status" className="wr-success">Your feedback is now available to the student.</p>}
         </fieldset>

@@ -16,12 +16,13 @@ export async function fetchWritingScreenerReviewQueue(): Promise<WritingScreener
 }
 export async function submitWritingScreenerReview(input: {
   attemptId: string; reviewId: string; expectedReviewId: string | null; responseHash: string;
-  observations: WritingObservations; nextStep: string; deliveryComment: string;
+  observations: WritingObservations; nextStep: string; deliveryComment: string; aiDraftId?: string; teacherConfirmed?: boolean;
 }) {
-  const { data, error } = await supabase.rpc('rpc_ielts_submit_writing_screener_review', {
+  const { data, error } = await supabase.rpc(input.aiDraftId ? 'rpc_ielts_submit_ai_assisted_writing_review' : 'rpc_ielts_submit_writing_screener_review', {
     p_attempt_id: input.attemptId, p_review_id: input.reviewId, p_expected_review_id: input.expectedReviewId,
     p_response_sha256: input.responseHash, p_criterion_observations: input.observations,
     p_next_step: input.nextStep, p_delivery_comment: input.deliveryComment,
+    ...(input.aiDraftId ? { p_ai_draft_id: input.aiDraftId, p_teacher_confirmed: input.teacherConfirmed === true } : {}),
   });
   if (error) throw new Error('The review could not be confirmed. Check that every observation refers to the original essay, or reload if another reviewer has saved changes.');
   return parseWritingScreenerResult(data);

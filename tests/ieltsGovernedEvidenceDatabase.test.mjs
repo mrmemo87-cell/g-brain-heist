@@ -495,6 +495,39 @@ test('Coached Writing revision is separate, idempotent and cannot rewrite the as
  await assert.rejects(db.query("update private.ielts_writing_screener_revisions set response_text='rewrite'"),/immutable/);
 });
 
+test('AI Writing drafts remain private, validate evidence, rate-limit generation and require an authorized teacher confirmation',async()=>{
+ await db.exec('update class_teacher_assignments set active=true');
+ await db.exec(readFileSync('supabase/migrations/20261007085919_ielts_writing_ai_teacher_drafts.sql','utf8'));
+ const claim=(model='fixture-model')=>db.query('select rpc_ielts_claim_writing_ai_draft($1,$2,$3) r',[writingStart.attempt_id,'bh-ielts-task2-simple-feedback-v1',model]);
+ await actor(writingStudent);await assert.rejects(claim(),/not_authorized/);
+ await actor(outsider);await assert.rejects(claim(),/not_authorized/);
+ await actor(teacher);const first=(await claim()).rows[0].r;
+ assert.equal(first.claimed,true);assert.equal(first.context.prompt,'Synthetic Task 2 prompt');
+ await assert.rejects(claim(),/ai_already_working/);
+ const quote='Relevant example.';const start=Array.from(first.context.response_text.slice(0,first.context.response_text.indexOf(quote))).length;
+ const fields={observations:Object.fromEntries(Object.keys(writingMappings).map(k=>[k,{status:'developing',comment:'Add a clear example to explain your reason.',evidence:[{quote,start_char:start,end_char:start+quote.length}]}])),next_step:'Add one example. Check that it supports your reason.',delivery_comment:''};
+ const bad=structuredClone(fields);bad.observations.task_response.evidence[0].quote='Invented quote.';
+ await assert.rejects(db.query('select rpc_ielts_finish_writing_ai_draft($1,$2,$3)',[first.draft_id,JSON.stringify(bad),'fixture-provider']),/ai_quote_invalid/);
+ await db.query('select rpc_ielts_finish_writing_ai_draft($1,$2,$3)',[first.draft_id,JSON.stringify(fields),'fixture-provider']);
+ const cached=(await claim()).rows[0].r;assert.equal(cached.claimed,false);assert.equal(cached.draft_id,first.draft_id);
+ assert.equal(cached.fields.observations.task_response.comment,fields.observations.task_response.comment);
+ assert.equal((await db.query('select rpc_ielts_writing_screener_result($1) r',[writingStart.attempt_id])).rows[0].r.review_id,uid(722));
+ const confirm=(yes=true,hash=first.response_sha256)=>db.query('select rpc_ielts_submit_ai_assisted_writing_review($1,$2,$3,$4,$5,$6,$7,$8,$9) r',[writingStart.attempt_id,uid(760),uid(722),hash,JSON.stringify(fields.observations),fields.next_step,'',first.draft_id,yes]);
+ await assert.rejects(confirm(false),/confirmation_required/);await assert.rejects(confirm(true,'b'.repeat(64)),/confirmation_required/);
+ await actor(writingStudent);await assert.rejects(confirm(),/confirmation_required/);
+ await actor(teacher);await confirm();await confirm();
+ assert.equal((await db.query('select count(*)::int n from private.ielts_writing_ai_review_links where review_id=$1',[uid(760)])).rows[0].n,1);
+ await assert.rejects(db.query("update private.ielts_writing_ai_drafts set fields='{}' where id=$1",[first.draft_id]),/immutable/);
+ await assert.rejects(db.query('delete from private.ielts_writing_ai_review_links'),/immutable/);
+ await db.exec('update class_teacher_assignments set active=false');await assert.rejects(claim(),/not_authorized/);await db.exec('update class_teacher_assignments set active=true');
+ for(let n=0;n<5;n++){const pending=(await claim(`fixture-${n}`)).rows[0].r;await db.query('select rpc_ielts_finish_writing_ai_draft($1,null,null)',[pending.draft_id]);}
+ await assert.rejects(claim('fixture-limit'),/ai_rate_limit/);
+ for(const role of ['anon','authenticated']) {
+  assert.equal((await db.query("select has_function_privilege($1,'public.rpc_ielts_finish_writing_ai_draft(uuid,jsonb,text)','execute') ok",[role])).rows[0].ok,false);
+  assert.equal((await db.query("select has_table_privilege($1,'private.ielts_writing_ai_drafts','select') ok",[role])).rows[0].ok,false);
+ }
+ assert.equal((await db.query("select has_function_privilege('service_role','public.rpc_ielts_finish_writing_ai_draft(uuid,jsonb,text)','execute') ok")).rows[0].ok,true);
+});
 test('Production Writing content seed is draft-only and records no fabricated review or student access',async()=>{
  await db.exec(`alter table academic_skill_registry_versions add column code text; update academic_skill_registry_versions set code='bh-english-core-v1' where id='${registry}';`);
  await db.query("insert into academic_skill_registry_nodes values($1,$2,'subskill','active','eng.writing.content-development.task-relevance')",[uid(750),registry]);

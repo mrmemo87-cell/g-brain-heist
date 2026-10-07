@@ -5,6 +5,7 @@ import { IELTS_WRITING_CRITERIA, type WritingScreenerResult, type WritingEvidenc
 import { IeltsWritingResult } from '../../components/ielts/IeltsWritingResult';
 import { IeltsWritingReviewWorkspace } from '../../components/ielts/IeltsWritingReviewWorkspace';
 import { getWritingReviewReadiness } from '../../../services/ieltsWritingReviewUx';
+import { generateWritingAiReview, mergeWritingAiDraft, type WritingAiDraft } from '../../../services/ieltsWritingAiReview';
 import '../../styles/ielts-writing-review.css';
 const emptyObservations = (): WritingObservations => Object.fromEntries(IELTS_WRITING_CRITERIA.map(({ key }) => [key, { status: 'insufficient_evidence', comment: '', evidence: [] }])) as WritingObservations;
 const IeltsWritingScreenerReview: React.FC = () => {
@@ -21,6 +22,12 @@ const IeltsWritingScreenerReview: React.FC = () => {
   const [saving, setSaving] = useState(false); const reviewId = useRef<string | null>(null);
   const saveLock = useRef(false); const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false); const [aiDraftId, setAiDraftId] = useState<string | undefined>();
+  const [aiConfirmed, setAiConfirmed] = useState(false);
+  const [completeAiDraft, setCompleteAiDraft] = useState<WritingAiDraft | null>(null);
+  const aiRequest = useRef<AbortController | null>(null);
+  const beforeAi = useRef<{ observations: WritingObservations; nextStep: string; delivery: string; dirty: boolean } | null>(null);
+  useEffect(() => () => { aiRequest.current?.abort(); aiRequest.current = null; }, []);
   useEffect(() => {
     if (!dirty) return;
     const protectDraft = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
@@ -28,6 +35,7 @@ const IeltsWritingScreenerReview: React.FC = () => {
     return () => window.removeEventListener('beforeunload', protectDraft);
   }, [dirty]);
   useEffect(() => {
+    aiRequest.current?.abort(); aiRequest.current = null; setAiBusy(false); setAiDraftId(undefined); setAiConfirmed(false); setCompleteAiDraft(null); beforeAi.current = null;
     let active = true; setLoading(true); setResult(null); setError(''); setSaved(false); setDirty(false); setSelected(null); setActiveCriterion('task_response');
     const load = async () => {
       try {
@@ -44,12 +52,40 @@ const IeltsWritingScreenerReview: React.FC = () => {
   }, [attemptId, retry]);
   const edit = (key: WritingCriterion, patch: Partial<WritingObservations[WritingCriterion]>) => {
     setObservations(previous => ({ ...previous, [key]: { ...previous[key], ...patch } }));
-    reviewId.current = null; setSaved(false); setDirty(true);
+    reviewId.current = null; setSaved(false); setDirty(true); setAiConfirmed(false);
+  };
+  const draftWithAi = async () => {
+    if (!result?.can_review || aiRequest.current || saving || aiDraftId) return;
+    const controller = new AbortController(); aiRequest.current = controller; setAiBusy(true); setError('');
+    const timeout = window.setTimeout(() => controller.abort(), 70000);
+    try {
+      const draft = await generateWritingAiReview(result, controller.signal);
+      if (aiRequest.current !== controller || controller.signal.aborted) return;
+      beforeAi.current = { observations, nextStep, delivery, dirty };
+      const merged = mergeWritingAiDraft(observations, nextStep, delivery, draft);
+      setObservations(merged.observations); setNextStep(merged.nextStep); setDelivery(merged.delivery);
+      setAiDraftId(draft.draft_id); setAiConfirmed(false); setDirty(true); setSaved(false); reviewId.current = null; setSelected(null); setActiveCriterion('task_response');
+      setCompleteAiDraft(IELTS_WRITING_CRITERIA.some(({ key }) => observations[key].comment.trim() || observations[key].evidence.length) || nextStep.trim() || delivery.trim() ? draft : null);
+    } catch (reason) {
+      if (aiRequest.current === controller) setError(reason instanceof Error && !controller.signal.aborted ? reason.message : 'AI help took too long. Your notes are unchanged. Try again, or continue your review.');
+    } finally { window.clearTimeout(timeout); if (aiRequest.current === controller) { aiRequest.current = null; setAiBusy(false); } }
+  };
+  const removeAiDraft = () => {
+    if (!beforeAi.current || saving) return;
+    const previous = beforeAi.current;
+    setObservations(previous.observations); setNextStep(previous.nextStep); setDelivery(previous.delivery); setDirty(previous.dirty);
+    setAiDraftId(undefined); setAiConfirmed(false); setCompleteAiDraft(null); setSaved(false); reviewId.current = null; beforeAi.current = null;
+  };
+  const useCompleteAiDraft = () => {
+    if (!completeAiDraft || saving) return;
+    setObservations(completeAiDraft.fields.observations); setNextStep(completeAiDraft.fields.next_step); setDelivery(completeAiDraft.fields.delivery_comment);
+    setCompleteAiDraft(null); setAiConfirmed(false); setDirty(true); setSaved(false); reviewId.current = null;
   };
   const save = async () => {
-    if (!result?.can_review || saveLock.current) return;
+    if (!result?.can_review || saveLock.current || aiBusy) return;
     saveLock.current = true; setSaving(true); setError('');
     try {
+      if (aiDraftId && !aiConfirmed) { setError('Check the AI draft and confirm it below before sharing.'); return; }
       const readiness = getWritingReviewReadiness(observations, nextStep, delivery, result.incident_count);
       if (readiness.message) {
         if (readiness.incompleteCriterion) setActiveCriterion(readiness.incompleteCriterion);
@@ -57,7 +93,7 @@ const IeltsWritingScreenerReview: React.FC = () => {
       }
       reviewId.current ??= crypto.randomUUID();
       const value = await submitWritingScreenerReview({ attemptId: result.attempt_id, reviewId: reviewId.current,
-        expectedReviewId: result.review_id, responseHash: result.response_sha256, observations, nextStep, deliveryComment: delivery });
+        expectedReviewId: result.review_id, responseHash: result.response_sha256, observations, nextStep, deliveryComment: delivery, aiDraftId, teacherConfirmed: aiConfirmed });
       setResult(value); setSaved(true); setDirty(false);
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'The review could not save. Please try again.'); }
     finally { setSaving(false); saveLock.current = false; }
@@ -78,9 +114,11 @@ const IeltsWritingScreenerReview: React.FC = () => {
     </section> : !result ? <div className="wr-card wr-empty"><h2>No essay available</h2><p>This submission could not be opened. Return to the review desk to choose an available essay.</p></div> : !result.can_review ? <IeltsWritingResult result={result} /> : <IeltsWritingReviewWorkspace
       result={result} observations={observations} activeCriterion={activeCriterion} onCriterion={setActiveCriterion}
       selected={selected} onSelect={setSelected} onEdit={edit} nextStep={nextStep}
-      onNextStep={(value: string) => { setNextStep(value); reviewId.current = null; setSaved(false); setDirty(true); }}
-      delivery={delivery} onDelivery={(value: string) => { setDelivery(value); reviewId.current = null; setSaved(false); setDirty(true); }}
+      onNextStep={(value: string) => { setNextStep(value); reviewId.current = null; setSaved(false); setDirty(true); setAiConfirmed(false); }}
+      delivery={delivery} onDelivery={(value: string) => { setDelivery(value); reviewId.current = null; setSaved(false); setDirty(true); setAiConfirmed(false); }}
       saving={saving} saved={saved} onSave={() => void save()}
+      aiBusy={aiBusy} aiApplied={!!aiDraftId} aiConfirmed={aiConfirmed} onAi={() => void draftWithAi()} onAiConfirm={setAiConfirmed} onAiRemove={removeAiDraft}
+      onAiReplace={completeAiDraft ? useCompleteAiDraft : undefined}
     />}
   </div></main>;
 };
