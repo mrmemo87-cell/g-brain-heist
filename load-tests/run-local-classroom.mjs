@@ -2,6 +2,7 @@
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {randomUUID,randomBytes,createHash} from 'node:crypto';
+import {request} from 'node:http';
 import os from 'node:os';
 const info=JSON.parse(readFileSync(process.argv[2],'utf8'));
 const base=(info.API_URL||'').replace(/\/$/,'');
@@ -41,13 +42,23 @@ insert into classes(id,school_id,class_code,is_active) values(${quote(klass)},${
 insert into teachers(id,user_id,verified) values(${quote(teacherId)},${quote(teacher.id)},true);
 insert into class_teacher_assignments(id,school_id,class_id,teacher_user_id,subject,active) values(gen_random_uuid(),${quote(school)},${quote(klass)},${quote(teacher.id)},'ESL',true);\n`;
 for(const [i,u] of [teacher,...students].entries()){
- seed+=`insert into users(id,email,username,role,school_id,needs_setup,tutorial_completed,is_banned) values(${quote(u.id)},${quote(u.email)},'Synthetic-${i}',${quote(i===0?'teacher':'student')},${quote(school)},false,true,false);\n`;
+ seed+=`insert into users(id,email,username,role,school_id,needs_setup,tutorial_completed,is_banned) values(${quote(u.id)},${quote(u.email)},'Synthetic-${nonce}-${i}',${quote(i===0?'teacher':'student')},${quote(school)},false,true,false);\n`;
  seed+=`insert into school_members values(gen_random_uuid(),${quote(u.id)},${quote(school)},'active',${quote(i===0?'teacher':'student')},false,${i===0},now());\n`;
  if(i>0)seed+=`insert into class_students values(${quote(klass)},${quote(u.id)},now());\n`;
 }
 sql(seed);
 const rpcFiles=['20260928055401_classroom_reliability.sql','20260928163701_auth_bootstrap_v1.sql','20261007153922_classroom_scoped_reads.sql'];
 const report={scope:'Local Supabase classroom RPC benchmark; focused schema, no production capacity certification',versions:{node:process.version,source:process.env.CLASSROOM_SOURCE_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),rpcSha256:Object.fromEntries(rpcFiles.map(f=>[f,createHash('sha256').update(readFileSync('supabase/migrations/'+f)).digest('hex')]))},host:{platform:os.platform(),cpuModel:os.cpus()[0].model,cpuCount:os.cpus().length,memoryBytes:os.totalmem()},limitations:['Focused classroom schema; unrelated tables, production analytics/reward triggers and billing pre-request hook omitted','Synthetic data: 500 students, one teacher, 16 questions per fresh assignment','Real Supabase Auth users and password-issued sessions; signup/login provisioning is outside the measured load','Loopback HTTP; no WAN/CDN/TLS latency, browser rendering or hosted connection limits','Load generator and database share the test host; results do not certify hosted production capacity'],stages:[]};
+report.initialDatabaseRows=JSON.parse(sql("select json_build_object('users',(select count(*) from users),'assignments',(select count(*) from assignments),'answers',(select count(*) from student_assignment_answers),'results',(select count(*) from student_assignment_results));"));
+// A synchronous k6 child can leave a Node fetch keep-alive socket idle for two
+// minutes while preventing its close event from being processed. Reconcile over
+// a fresh HTTP connection, with a timeout, instead of reusing that socket.
+function teacherSummary(){return new Promise((resolve,reject)=>{
+ const req=request(base+'/rest/v1/rpc/rpc_teacher_assignment_success_summary',{method:'POST',agent:false,headers:{apikey:info.ANON_KEY,Authorization:'Bearer '+teacher.token,'Content-Type':'application/json'}},res=>{
+  let text='';res.setEncoding('utf8');res.on('data',chunk=>{text+=chunk;});res.on('error',reject);res.on('end',()=>{try{resolve({status:res.statusCode,data:JSON.parse(text)});}catch(error){reject(error);}});
+ });
+ req.on('error',reject);req.setTimeout(20000,()=>req.destroy(Error('Teacher reconciliation timeout')));req.end('{}');
+});}
 let cumulative=0;
 for(const count of [30,100,500]){
  const assignment=randomUUID();const questions=[];let expectedCorrect=0;
@@ -68,10 +79,11 @@ for(const count of [30,100,500]){
  const run=spawnSync(k6,['run','--summary-export',`${output}/summary-${count}.json`,'load-tests/classroom.js'],{stdio:'inherit',env:{...process.env,SUPABASE_URL:base,SUPABASE_ANON_KEY:info.ANON_KEY,LOCAL_CLASSROOM_TEST:'1',CLASSROOM_FIXTURE:fixture,STUDENTS:String(count)},timeout:12*60*1000});
  const actual=JSON.parse(sql(`select json_build_object('answers',(select count(*) from student_assignment_answers where assignment_id=${quote(assignment)}),'results',(select count(*) from student_assignment_results where assignment_id=${quote(assignment)}),'completed',(select count(*) from student_assignments where assignment_id=${quote(assignment)} and status='completed'),'wrong_results',(select count(*) from student_assignment_results where assignment_id=${quote(assignment)} and (score<>${expectedCorrect*10} or correct<>${expectedCorrect} or incorrect<>${16-expectedCorrect} or pending_review_count<>0)),'duplicate_answers',(select count(*) from (select student_id,question_id from student_assignment_answers where assignment_id=${quote(assignment)} group by student_id,question_id having count(*)<>1) d));`));
  cumulative+=count;
- const teacherResult=await fetch(base+'/rest/v1/rpc/rpc_teacher_assignment_success_summary',{method:'POST',headers:{apikey:info.ANON_KEY,Authorization:'Bearer '+teacher.token,'Content-Type':'application/json'},body:'{}'});
- const summary=await teacherResult.json();
- const verified=actual.answers===count*16&&actual.results===count&&actual.completed===count&&actual.wrong_results===0&&actual.duplicate_answers===0&&teacherResult.status===200&&summary.submission_count===cumulative;
- const stage={students:count,started,finished:new Date().toISOString(),k6ExitCode:run.status,database:actual,teacherSubmissionCount:summary.submission_count,expectedTeacherSubmissions:cumulative,passed:run.status===0&&verified};
+ let teacherResult,reconciliationError;
+ try{teacherResult=await teacherSummary();}catch(error){reconciliationError=error.message;}
+ const summary=teacherResult?.data||{};
+ const verified=actual.answers===count*16&&actual.results===count&&actual.completed===count&&actual.wrong_results===0&&actual.duplicate_answers===0&&teacherResult?.status===200&&summary.submission_count===cumulative;
+ const stage={students:count,started,finished:new Date().toISOString(),k6ExitCode:run.status,database:actual,teacherSubmissionCount:summary.submission_count,expectedTeacherSubmissions:cumulative,reconciliationError,passed:run.status===0&&verified};
  report.stages.push(stage);writeFileSync(`${output}/report.json`,JSON.stringify(report,null,2));
  console.log(JSON.stringify(stage));
  if(!stage.passed){console.error('Stage failed: escalation stopped.');process.exitCode=1;break;}
