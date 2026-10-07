@@ -44,6 +44,15 @@ This gate applies in particular to files/routes/tables/services matching or affe
 
 ## Implementation discipline
 
+### Default pre-publication student pilot
+
+- Owner instruction recorded 2026-10-07: use Gulzada's existing student account for pre-publication tests by default, including IELTS screeners.
+- Canonical student user ID: `b30e9c28-96f1-4d34-83e9-9b28b4926f42`. Revalidate account identity, active status and programme eligibility before each pilot; never infer authorization from a display name alone.
+- Use a named-user pilot release and the normal student experience. Do not promote this account to teacher/admin, bypass entitlement checks, reset its saved results, or expose unreleased content to other students.
+- Preserve every prior attempt. When a fresh test is needed, use the governed new-attempt path and retain practice/retake labels.
+- This standing account preference authorizes using the account for pilots; it does not assert human content/taxonomy approval, device acceptance, calibration or public-release readiness.
+- Record actual test evidence for each exact version. Open wider access only after its applicable release gates pass.
+
 - Inspect the live repository before modifying architecture or making framework assumptions.
 - Prefer additive, minimal-diff changes and preserve existing working behavior unless the task explicitly calls for replacement.
 - Do not claim implementation is complete until the relevant repository changes are present and the available validation steps have been run or explicitly reported as unavailable.

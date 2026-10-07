@@ -2,6 +2,12 @@
 
 Draft **0.1.0 / BH-WS-A-1**. Bible **1.2.0**. Original AI-assisted Brains Heist content. **Not approved or released.**
 
+## Owner decision recorded 2026-10-07
+
+Sobbi approved the displayed original task, 40-minute/250-word delivery proposal and four-criterion qualitative feedback approach for Gulzada's private pilot. This is not public-release approval or a device-test pass. The approval question did not display the proposed micro-skill mappings, so their human review remains outstanding; do not assert the production `taxonomy` approval flag from this narrower response. Originality/rights review also remains outstanding. The draft remains inactive until the required human content review is complete.
+
+Gulzada's existing student account is the standing default for future pre-publication tests (see `AGENTS.md`). The student pilot entry is `/ielts/writing-screener`; `/ielts/writing-screener/preview` is a staff content-review page, not a student test link.
+
 ## Student task
 
 Some people believe that schools should give students more time to explore subjects they choose themselves. Others believe that schools should spend that time teaching a common set of subjects to every student.
