@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { IeltsScreenerCard } from '../src/components/ielts/IeltsScreenerHub';
+import { IeltsScreenerCard } from '../src/components/ielts/IeltsScreenerCard';
 import type { IeltsScreenerEntry } from '../services/ieltsScreenerLaunchService';
 
 const entry: IeltsScreenerEntry = { title: 'Reading Screener A', code: 'bh-reading-screener-a',
