@@ -23,7 +23,7 @@ test('locked Learn programmes use one school-admin message and a real request ac
 });
 
 test('Tasks lists every pending teacher assignment with collapsible details and an exact route action', () => {
-  assert.match(gameService, /\(\) => get_student_pending_assignments\(\)/);
+  assert.match(gameService, /\(\) => get_student_assignment_summaries\(\)/);
   assert.match(app, /setPendingAssignments\(assignmentData\)/);
   assert.match(app, /pendingAssignments\.map\(\(assignment\)/);
   assert.match(app, /<details key=\{assignment\.assignment_id\}/);

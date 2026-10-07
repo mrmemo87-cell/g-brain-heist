@@ -1311,94 +1311,18 @@ const getTotalDefensePower = (profile: Profile, inventory: InventoryItem[]): num
   return total;
 };
 
-const getActiveCosmeticFrame = async (userId: string): Promise<'neon' | null> => {
-  const { data, error } = await supabase
-    .from('inventory')
-    .select('item_id, kind, state')
-    .eq('user_id', userId)
-    .eq('state', 'active');
-
-  if (error) {
-    console.warn('Failed to load active cosmetics:', error.message);
-    return null;
-  }
-
-  const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
-  const hasNeonFrame = activeCosmetics.some(item => item.item_id === 'item_cosmetic_frame');
-  
-  const frameValue = hasNeonFrame ? 'neon' : null;
-
-  // Sync to users table for better visibility across queries
-  try {
-    await supabase
-      .from('users')
-      .update({ active_cosmetic_frame: frameValue })
-      .eq('id', userId);
-  } catch (syncError) {
-    console.warn('Failed to sync cosmetic frame to users table:', syncError);
-  }
-
-  return frameValue;
-};
-
-const getActiveCosmeticTheme = async (userId: string): Promise<'flicker' | null> => {
-  const { data, error } = await supabase
-    .from('inventory')
-    .select('item_id, kind, state')
-    .eq('user_id', userId)
-    .eq('state', 'active');
-
-  if (error) {
-    console.warn('Failed to load active cosmetics:', error.message);
-    return null;
-  }
-
-  const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
-  const hasFlickerTheme = activeCosmetics.some(item => item.item_id === 'item_cosmetic_theme');
-  
-  const themeValue = hasFlickerTheme ? 'flicker' : null;
-
-  // Sync to users table for better visibility across queries
-  try {
-    await supabase
-      .from('users')
-      .update({ active_cosmetic_theme: themeValue })
-      .eq('id', userId);
-  } catch (syncError) {
-    console.warn('Failed to sync cosmetic theme to users table:', syncError);
-  }
-
-  return themeValue;
-};
-
-const getActiveCosmeticEffect = async (userId: string): Promise<'glitch' | null> => {
-  const { data, error } = await supabase
-    .from('inventory')
-    .select('item_id, kind, state')
-    .eq('user_id', userId)
-    .eq('state', 'active');
-
-  if (error) {
-    console.warn('Failed to load active cosmetics:', error.message);
-    return null;
-  }
-
-  const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
-  const hasGlitchEffect = activeCosmetics.some(item => item.item_id === 'item_cosmetic_glitch');
-  
-  const effectValue = hasGlitchEffect ? 'glitch' : null;
-
-  // Sync to users table for better visibility across queries
-  try {
-    await supabase
-      .from('users')
-      .update({ active_cosmetic_effect: effectValue })
-      .eq('id', userId);
-  } catch (syncError) {
-    console.warn('Failed to sync cosmetic effect to users table:', syncError);
-  }
-
-  return effectValue;
+// Reading a profile must not emit users UPDATE events. Activation/deactivation
+// already synchronizes these fields on the server/mutation path.
+const getActiveCosmetics = async (userId: string) => {
+  const { data, error } = await supabase.from('inventory')
+    .select('item_id').eq('user_id', userId).eq('state', 'active').eq('kind', 'cosmetic');
+  if (error) throw error;
+  const ids = new Set((data || []).map(item => item.item_id));
+  return {
+    active_cosmetic_frame: ids.has('item_cosmetic_frame') ? 'neon' as const : null,
+    active_cosmetic_theme: ids.has('item_cosmetic_theme') ? 'flicker' as const : null,
+    active_cosmetic_effect: ids.has('item_cosmetic_glitch') ? 'glitch' as const : null,
+  };
 };
 
 // Clean up expired items from inventory
@@ -1539,6 +1463,28 @@ export const whoamiFast = async (): Promise<Profile> => {
   // Presence must never delay the dashboard.
   void supabase.rpc('rpc_touch_last_seen').then(() => {}, () => {});
   return profile as Profile;
+};
+
+/** Routine dashboard/realtime refresh: no streak claim, clan hydration or cosmetic writes. */
+export const refresh_player_snapshot = async (current: Profile, regenerateAp = false): Promise<Profile> => {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || sessionData.session?.user.id !== current.id) throw new Error('Account changed.');
+  const lastApUpdate = Date.parse(current.last_ap_update || '');
+  if (regenerateAp && current.role === 'student' && current.ap_now < current.ap_max
+      && (!Number.isFinite(lastApUpdate) || Date.now() - lastApUpdate >= 10 * 60_000)) {
+    const { error } = await regenerateUserAp(current.id);
+    if (error) throw error; // Keep AP awards server-authoritative; retry on the next refresh.
+  }
+  const { data, error } = await supabase.from('users').select('*').eq('id', current.id).single();
+  if (error || !data) throw error || new Error('Profile unavailable.');
+  const profile = { ...current, ...data } as Profile;
+  profile.is_banned = isBannedFlag(profile.is_banned);
+  if (profile.is_banned) { storeBanMessage(BAN_MESSAGE); await supabase.auth.signOut(); throw new Error(BAN_MESSAGE); }
+  profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
+  if (profile.xp !== current.xp || profile.level !== current.level) {
+    profile.xp_status = await fetchMyXpStatus(supabase, { xp: profile.xp, level: profile.level });
+  }
+  return profile;
 };
 
 export const whoami = async (): Promise<Profile> => {
@@ -1857,26 +1803,12 @@ export const whoami = async (): Promise<Profile> => {
       profile.defense_power_effective = (profile.defense_power_effective ?? profile.defense_power) + activeShieldDefense;
   
     try {
-      profile.active_cosmetic_frame = await getActiveCosmeticFrame(profile.id);
+      Object.assign(profile, await getActiveCosmetics(profile.id));
     } catch (cosmeticError) {
-      console.warn('Failed to attach cosmetic frame to profile:', cosmeticError);
-      profile.active_cosmetic_frame = null;
+      // Preserve the persisted values if the optional inventory read fails.
+      console.warn('Failed to attach active cosmetics to profile:', cosmeticError);
     }
-  
-    try {
-      profile.active_cosmetic_theme = await getActiveCosmeticTheme(profile.id);
-    } catch (cosmeticError) {
-      console.warn('Failed to attach cosmetic theme to profile:', cosmeticError);
-      profile.active_cosmetic_theme = null;
-    }
-  
-    try {
-      profile.active_cosmetic_effect = await getActiveCosmeticEffect(profile.id);
-    } catch (cosmeticError) {
-      console.warn('Failed to attach cosmetic effect to profile:', cosmeticError);
-      profile.active_cosmetic_effect = null;
-    }
-  
+
     // Fetch school info for display (name and logo)
     if (profile.school_id) {
       try {
@@ -1987,7 +1919,7 @@ export const kickOffNonCriticalBootLoads = ({
     promises.push(
       runNonCritical(
         'assignment',
-        () => get_student_pending_assignments(),
+        () => get_student_assignment_summaries(),
         timeouts.assignment,
         signal,
         onAssignment,
@@ -2802,8 +2734,8 @@ export interface SubjectProgressWithDifficulty {
  * Get student subject progress with difficulty breakdown
  * Returns progress per subject, split by easy/medium/hard
  */
-export const get_student_subject_progress_with_difficulty = async (): Promise<SubjectProgressWithDifficulty[]> => {
-    const [subjects, summary] = await Promise.all([mcq_subjects_list(), fetchStudentQuestionSummary()]);
+export const get_student_subject_progress_with_difficulty = async (knownSubjects?: Awaited<ReturnType<typeof mcq_subjects_list>>): Promise<SubjectProgressWithDifficulty[]> => {
+    const [subjects, summary] = await Promise.all([knownSubjects ? Promise.resolve(knownSubjects) : mcq_subjects_list(), fetchStudentQuestionSummary()]);
     return subjects.map((subject) => {
         const rows = summary.filter((row) => academicCodeForSubject(row.subject) === academicCodeForSubject(subject.name));
         const difficulties = { easy: { total: 0, completed: 0 }, medium: { total: 0, completed: 0 }, hard: { total: 0, completed: 0 } };
@@ -5618,10 +5550,11 @@ const mergeAssignmentCategoryContext = <T extends { assignment_id?: string; id?:
     });
 };
 
-const enrichStudentAssignmentsWithCategoryContext = async <T extends StudentAssignmentTask>(assignments: T[]): Promise<T[]> => {
+const enrichStudentAssignmentsWithCategoryContext = async <T extends StudentAssignmentTask>(assignments: T[], signal?: AbortSignal): Promise<T[]> => {
     const ids = assignments.map((assignment) => assignment.assignment_id).filter(Boolean);
     if (!ids.length) return assignments;
-    const { data, error } = await supabase.rpc('rpc_my_assignment_category_context', { p_assignment_ids: ids });
+    const request = supabase.rpc('rpc_my_assignment_category_context', { p_assignment_ids: ids });
+    const { data, error } = await (signal ? request.abortSignal(signal) : request);
     if (error) throw new Error(error.message || 'Failed to load assignment category context');
     return mergeAssignmentCategoryContext(assignments, (data as AssignmentCategoryContextRow[]) || []) as T[];
 };
@@ -5847,9 +5780,25 @@ export const brains_master_toggle_badge = async (show: boolean): Promise<void> =
     await updateProfile(user.id, { brains_master_show_badge: show });
 };
 
-export const get_student_pending_assignments = async (): Promise<StudentAssignmentTask[]> => {
+export const get_student_assignment_summaries = async (signal?: AbortSignal): Promise<StudentAssignmentTask[]> => {
+    const request = supabase.rpc('rpc_get_student_assignment_summaries', {});
+    const { data, error } = await (signal ? request.abortSignal(signal) : request);
+    if (error) throw new Error(error.message || 'Failed to load assignments');
+    return enrichStudentAssignmentsWithCategoryContext((data || []) as StudentAssignmentTask[], signal);
+};
+
+export const get_student_assignment_detail = async (assignmentId: string, signal?: AbortSignal): Promise<StudentAssignmentTask> => {
+    const request = supabase.rpc('rpc_get_student_assignment_detail', { p_assignment_id: assignmentId });
+    const { data, error } = await (signal ? request.abortSignal(signal) : request);
+    if (error) throw new Error(error.message || 'Failed to load assignment');
+    const row = (data as StudentAssignmentTask[] | null)?.[0];
+    if (!row) throw new Error('Assignment is no longer available.');
+    return { ...row, questions: (row.questions || []).map(normalizeTeacherQuestionPayload) };
+};
+
+export const get_student_pending_assignments = async (signal?: AbortSignal): Promise<StudentAssignmentTask[]> => {
     console.log('[gameService] Calling rpc_get_student_pending_assignments...');
-    const { data, error } = await rpcGetStudentPendingAssignments();
+    const { data, error } = await rpcGetStudentPendingAssignments(undefined, signal);
 
     if (error) {
         console.error('[gameService] Error from rpc_get_student_pending_assignments:', error);
@@ -5870,7 +5819,7 @@ export const get_student_pending_assignments = async (): Promise<StudentAssignme
             questions: normalizedQuestions,
         };
     });
-    return enrichStudentAssignmentsWithCategoryContext(normalizedAssignments);
+    return enrichStudentAssignmentsWithCategoryContext(normalizedAssignments, signal);
 };
 
 export type AssignmentSubmissionResult = {

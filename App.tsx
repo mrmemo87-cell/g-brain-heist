@@ -328,6 +328,8 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
   const criticalAbortRef = useRef<AbortController | null>(null);
   const criticalBootIdRef = useRef(0);
   const nonCriticalAbortRef = useRef<AbortController | null>(null);
+  const liveProfileRef = useRef(profile);
+  liveProfileRef.current = profile;
   const profileRefreshInFlightRef = useRef<Promise<void> | null>(null);
   const runNonCriticalLoadsRef = useRef<(targets?: NonCriticalKey[]) => void>(() => {});
   const isCambridgeView = view === 'cambridge';
@@ -698,7 +700,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
     }
 
     try {
-      const assignments = await GameService.get_student_pending_assignments();
+      const assignments = await GameService.get_student_assignment_summaries();
       setPendingAssignments(assignments);
       setActiveAssignment(assignments.find((assignment) => !assignment.is_closed) ?? null);
     } catch (error) {
@@ -1383,16 +1385,16 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
   useEffect(() => {
     // Only refresh profile for students who need AP regeneration
     // Teachers and admins don't need this
-    if (!isPlayerMode || !profile || profile.role !== 'student') return;
+    if (!isPlayerMode || profile?.role !== 'student' || view !== 'dashboard') return;
     
     const intervalId = setInterval(() => {
-      if (navigator.onLine && profile) {
-        refreshProfile();
+      if (navigator.onLine && document.visibilityState === 'visible') {
+        void refreshProfile(true);
       }
     }, 60000); // 60 seconds
 
     return () => clearInterval(intervalId);
-  }, [profile, isPlayerMode]);
+  }, [profile?.id, profile?.role, isPlayerMode, view]);
 
   // Network status detection
   useEffect(() => {
@@ -1419,7 +1421,24 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
 
   // Real-time subscription for activity feed
   useEffect(() => {
-    if (!isPlayerMode || !profile || !isInteractive || isTeacherRole || isSchoolAdminRole) return;
+    if (!isPlayerMode || !profile?.id || !isInteractive || isTeacherRole || isSchoolAdminRole || view !== 'dashboard') return;
+    let disposed = false;
+    let feedTimer: ReturnType<typeof setTimeout> | null = null;
+    let feedInFlight = false;
+    const scheduleFeedRefresh = () => {
+      if (feedTimer || feedInFlight || disposed) return;
+      feedTimer = setTimeout(async () => {
+        feedTimer = null;
+        if (document.visibilityState !== 'visible') return;
+        feedInFlight = true;
+        try {
+          const feed = await GameService.news_feed();
+          if (!disposed) setNews(feed);
+        } catch (error) {
+          console.warn('Activity feed refresh failed:', error);
+        } finally { feedInFlight = false; }
+      }, 5000);
+    };
     
     const activityChannel = supabase
       .channel('activities')
@@ -1442,15 +1461,17 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
           }
           
           // Refresh feed
-          GameService.news_feed().then(setNews);
+          scheduleFeedRefresh();
         }
       )
       .subscribe();
     
     return () => {
+      disposed = true;
+      if (feedTimer) clearTimeout(feedTimer);
       supabase.removeChannel(activityChannel);
     };
-  }, [profile, isInteractive, isPlayerMode, isSchoolAdminRole]);
+  }, [profile?.id, isInteractive, isPlayerMode, isTeacherRole, isSchoolAdminRole, view, addToast]);
 
   // Real-time subscription for profile updates
   useEffect(() => {
@@ -1470,11 +1491,13 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
       lastUpdateTime = now;
 
       try {
-        const hydratedProfile = await GameService.whoami();
+        const current = liveProfileRef.current;
+        if (!current) return;
+        const hydratedProfile = await GameService.refresh_player_snapshot(current);
         if (!isSubscribed) return;
 
         const resolvedLevel = levelHint ?? hydratedProfile.level ?? null;
-        setProfile(hydratedProfile);
+        setProfile(latest => latest?.id === hydratedProfile.id ? { ...latest, ...hydratedProfile } : latest);
         if (resolvedLevel !== null) {
           setPreviousLevel(resolvedLevel);
           lastRewardedLevelRef.current = resolvedLevel;
@@ -1502,7 +1525,8 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
         },
         (payload) => {
           const newProfile = payload.new as Profile;
-          const oldProfile = (payload.old as Profile) || null;
+          // RLS/DEFAULT replica identity may provide only the old primary key.
+          const oldProfile = liveProfileRef.current;
 
           // Skip if only last_seen or last_ap_update changed (avoid infinite loops)
           const significantChange = 
@@ -1597,7 +1621,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
   };
 
   // Lightweight profile refresh (no loading screen)
-  const refreshProfile = async () => {
+  const refreshProfile = async (background = false) => {
     if (!isPlayerMode || isSchoolAdminRole) return;
     if (profileRefreshInFlightRef.current) {
       if (import.meta.env.DEV) {
@@ -1611,9 +1635,14 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
         if (import.meta.env.DEV) {
           console.info('[auth-flow] profile fetch start');
         }
-        const profileData = await GameService.whoami();
-        setProfile(profileData);
-        await refreshAssignment(profileData);
+        const current = liveProfileRef.current;
+        if (!current) return;
+        const profileData = background
+          ? await GameService.refresh_player_snapshot(current, true)
+          : await GameService.whoami();
+        if (liveProfileRef.current?.id !== profileData.id) return;
+        setProfile(latest => latest?.id === profileData.id ? { ...latest, ...profileData } : latest);
+        if (!background) await refreshAssignment(profileData);
       } catch (error) {
         console.error('Failed to refresh profile:', error);
       } finally {
@@ -1971,7 +2000,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                 <div className="border-t border-slate-700/70 p-4">
                   <dl className="grid gap-3 text-xs text-slate-300 sm:grid-cols-2">
                     <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Topic")}</dt><dd className="mt-1">{assignment.topic_name || t("General")}</dd></div>
-                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Questions")}</dt><dd className="mt-1">{assignment.questions.length}</dd></div>
+                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Questions")}</dt><dd className="mt-1">{assignment.question_count ?? assignment.questions.length}</dd></div>
                     <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Given")}</dt><dd className="mt-1">{new Date(assignment.assigned_at).toLocaleString()}</dd></div>
                     <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Class")}</dt><dd className="mt-1">{assignment.batch || t("Selected students")}</dd></div>
                   </dl>
