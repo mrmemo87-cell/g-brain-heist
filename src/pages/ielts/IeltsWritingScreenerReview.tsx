@@ -1,12 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchWritingScreenerReviewQueue, fetchWritingScreenerResult, submitWritingScreenerReview, type WritingScreenerQueueEntry } from '../../../services/ieltsWritingScreenerService';
-import { IELTS_WRITING_CRITERIA, type WritingScreenerResult, type WritingEvidenceSpan, type WritingObservations, type WritingCriterion, type WritingObservationStatus } from '../../../services/ieltsWritingScreener';
+import { IELTS_WRITING_CRITERIA, type WritingScreenerResult, type WritingEvidenceSpan, type WritingObservations, type WritingCriterion } from '../../../services/ieltsWritingScreener';
 import { IeltsWritingResult } from '../../components/ielts/IeltsWritingResult';
+import { IeltsWritingReviewWorkspace } from '../../components/ielts/IeltsWritingReviewWorkspace';
+import { getWritingReviewReadiness } from '../../../services/ieltsWritingReviewUx';
+import '../../styles/ielts-writing-review.css';
 const emptyObservations = (): WritingObservations => Object.fromEntries(IELTS_WRITING_CRITERIA.map(({ key }) => [key, { status: 'insufficient_evidence', comment: '', evidence: [] }])) as WritingObservations;
 const IeltsWritingScreenerReview: React.FC = () => {
   const { attemptId } = useParams<{ attemptId?: string }>();
   const navigate = useNavigate();
+  const [activeCriterion, setActiveCriterion] = useState<WritingCriterion>('task_response');
+  const [queueFilter, setQueueFilter] = useState<'pending' | 'all'>('pending');
   const [queue, setQueue] = useState<WritingScreenerQueueEntry[]>([]);
   const [result, setResult] = useState<WritingScreenerResult | null>(null);
   const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [retry, setRetry] = useState(0);
@@ -15,8 +20,15 @@ const IeltsWritingScreenerReview: React.FC = () => {
   const [selected, setSelected] = useState<WritingEvidenceSpan | null>(null);
   const [saving, setSaving] = useState(false); const reviewId = useRef<string | null>(null);
   const saveLock = useRef(false); const [saved, setSaved] = useState(false);
+  const [dirty, setDirty] = useState(false);
   useEffect(() => {
-    let active = true; setLoading(true); setError(''); setSaved(false); setSelected(null);
+    if (!dirty) return;
+    const protectDraft = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', protectDraft);
+    return () => window.removeEventListener('beforeunload', protectDraft);
+  }, [dirty]);
+  useEffect(() => {
+    let active = true; setLoading(true); setResult(null); setError(''); setSaved(false); setDirty(false); setSelected(null); setActiveCriterion('task_response');
     const load = async () => {
       try {
         if (attemptId) {
@@ -32,36 +44,44 @@ const IeltsWritingScreenerReview: React.FC = () => {
   }, [attemptId, retry]);
   const edit = (key: WritingCriterion, patch: Partial<WritingObservations[WritingCriterion]>) => {
     setObservations(previous => ({ ...previous, [key]: { ...previous[key], ...patch } }));
-    reviewId.current = null; setSaved(false);
+    reviewId.current = null; setSaved(false); setDirty(true);
   };
   const save = async () => {
     if (!result?.can_review || saveLock.current) return;
     saveLock.current = true; setSaving(true); setError('');
     try {
-      if (nextStep.trim().length < 10 || IELTS_WRITING_CRITERIA.some(({ key }) => observations[key].comment.trim().length < 20 || (observations[key].status !== 'insufficient_evidence' && !observations[key].evidence.length))) {
-        setError('Add a clear observation for each criterion, an exact excerpt for each demonstrated or development observation, and a next practice step.'); return;
+      const readiness = getWritingReviewReadiness(observations, nextStep, delivery, result.incident_count);
+      if (readiness.message) {
+        if (readiness.incompleteCriterion) setActiveCriterion(readiness.incompleteCriterion);
+        setError(readiness.message); return;
       }
       reviewId.current ??= crypto.randomUUID();
       const value = await submitWritingScreenerReview({ attemptId: result.attempt_id, reviewId: reviewId.current,
         expectedReviewId: result.review_id, responseHash: result.response_sha256, observations, nextStep, deliveryComment: delivery });
-      setResult(value); setSaved(true);
+      setResult(value); setSaved(true); setDirty(false);
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'The review could not save. Please try again.'); }
     finally { setSaving(false); saveLock.current = false; }
   };
-  return <main className="min-h-screen bg-slate-50 p-4 text-slate-900 sm:p-8"><div className="mx-auto max-w-6xl space-y-5">
-    <header className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-xs font-bold uppercase tracking-widest text-blue-800">Brains Heist · Teacher review</p><h1 className="mt-3 text-2xl font-bold">Writing screener essays</h1><p className="mt-3 leading-7 text-slate-700">Review one Task 2 essay using four criteria. Give evidence and a practical next step. Confidence remains low; no full Writing band is produced.</p><a href="/ielts" className="mt-3 inline-block min-h-11 font-semibold text-blue-800 underline">Back to IELTS</a></header>
-    {error && <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-5"><p>{error}</p><button type="button" onClick={() => setRetry(n => n + 1)} className="mt-3 min-h-11 font-semibold underline">Reload</button></div>}
-    {loading ? <p role="status">Loading essays…</p> : !attemptId ? <section className="space-y-3">
-      {!queue.length && <p className="rounded-xl border border-slate-200 bg-white p-5">No submitted Writing screener essays are available to you yet.</p>}
-      {queue.map(row => <article key={row.attempt_id} className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5"><div><h2 className="font-bold">{row.student_name ?? 'Student essay'}</h2><p className="mt-2 text-sm text-slate-600">{row.word_count} words · {row.review_status === 'pending' ? 'Awaiting review' : 'Teacher reviewed'} · {new Date(row.submitted_at).toLocaleDateString()}</p>{row.evidence_kind === 'same_prompt_practice' && <p className="mt-2 text-sm">Same-prompt practice</p>}</div><button type="button" onClick={() => navigate(`/ielts/writing-screener/reviews/${row.attempt_id}`)} className="min-h-11 rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white">Open essay</button></article>)}
-    </section> : !result ? <p>No submitted essay is available.</p> : !result.can_review ? <IeltsWritingResult result={result} /> : <>
-      <section className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-bold">Original submission</h2><p className="mt-4 whitespace-pre-line leading-8">{result.prompt}</p><label htmlFor="review-original" className="mt-5 block font-semibold">Select an excerpt to use as evidence</label><textarea id="review-original" readOnly value={result.response_text} className="mt-3 min-h-80 w-full rounded-xl border border-slate-300 p-4 text-base leading-8" onSelect={(event: { currentTarget: HTMLTextAreaElement }) => {
-        const field = event.currentTarget; const start = field.selectionStart; const end = field.selectionEnd;
-        setSelected(end > start ? { quote: field.value.slice(start, end), start_char: Array.from(field.value.slice(0, start)).length, end_char: Array.from(field.value.slice(0, end)).length } : null);
-      }} /><p className="mt-3 text-sm text-slate-600">{result.word_count} words · {result.evidence_kind === 'same_prompt_practice' ? 'Same-prompt practice' : 'First sitting'} · {result.incident_count} recorded interruptions</p></section>
-      <fieldset disabled={saving} className="space-y-5"><legend className="sr-only">Teacher observations</legend>{IELTS_WRITING_CRITERIA.map(({ key, label, focus }) => <article key={key} className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-lg font-bold">{label}</h2><p className="mt-2 text-sm leading-7 text-slate-600">{focus}</p><label className="mt-4 block text-sm font-semibold">Observation<select value={observations[key].status} onChange={(event: { target: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement }) => edit(key, { status: event.target.value as WritingObservationStatus })} className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white p-3"><option value="insufficient_evidence">More evidence needed</option><option value="observed">Demonstrated in this essay</option><option value="developing">Develop in practice</option></select></label><label className="mt-4 block text-sm font-semibold">Explain your observation<textarea value={observations[key].comment} onChange={(event: { target: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement }) => edit(key, { comment: event.target.value })} className="mt-2 min-h-28 w-full rounded-xl border border-slate-300 p-3 text-base leading-7" /></label><button type="button" disabled={!selected} onClick={() => selected && edit(key, { evidence: [selected] })} className="mt-3 min-h-11 font-semibold text-blue-800 underline disabled:text-slate-500">Use selected excerpt</button>{observations[key].evidence.map(span => <blockquote key={span.start_char} className="mt-3 whitespace-pre-wrap border-l-2 border-blue-300 pl-3 text-sm leading-7">“{span.quote}”</blockquote>)}</article>)}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6"><label className="block font-semibold">Next practice step<textarea value={nextStep} onChange={(event: { target: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement }) => { setNextStep(event.target.value); reviewId.current = null; setSaved(false); }} className="mt-3 min-h-28 w-full rounded-xl border border-slate-300 p-3 text-base leading-7" /></label><label className="mt-5 block font-semibold">Assessment conditions{result.incident_count > 0 ? ' (required: consider the recorded interruptions)' : ' (optional)'}<textarea value={delivery} onChange={(event: { target: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement }) => { setDelivery(event.target.value); reviewId.current = null; setSaved(false); }} className="mt-3 min-h-24 w-full rounded-xl border border-slate-300 p-3 text-base leading-7" /></label><p className="mt-4 text-sm leading-7 text-slate-600">Saving makes this feedback visible to the student. Later corrections preserve this review in history.</p><button type="button" disabled={saving || saved} onClick={() => void save()} className="mt-4 min-h-11 rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white disabled:bg-slate-400">{saving ? 'Saving…' : saved ? 'Feedback saved' : 'Save teacher feedback'}</button>{saved && <p role="status" className="mt-3 text-sm text-teal-800">Feedback saved. The original essay remains unchanged.</p>}</section></fieldset>
-    </>}
+  const pendingCount = queue.filter(row => row.review_status === 'pending').length;
+  const visibleQueue = queueFilter === 'pending' ? queue.filter(row => row.review_status === 'pending') : queue;
+  return <main className="writing-review"><div className="wr-shell">
+    <header className="wr-header">
+      <a href={attemptId ? '/ielts/writing-screener/reviews' : '/ielts'} className="wr-back">← {attemptId ? 'All essays' : 'Back to IELTS'}</a>
+      <div className="wr-header-content"><div><p className="wr-eyebrow">Brains Heist · Writing review</p><h1>{attemptId ? 'Turn an essay into a next step.' : 'A clearer next step for every writer.'}</h1><p className="wr-intro">{attemptId ? 'Read the original. Notice what matters. Share feedback the student can use.' : 'Review an essay, support your observations and give one focused practice step.'}</p></div><div className="wr-header-icon"><svg aria-hidden="true" viewBox="0 0 48 48" fill="none"><path d="M12 10h17l7 7v23H12zM29 10v8h7M18 25h12M18 31h9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/><path d="m30 29 8-8 4 4-8 8-6 2z" fill="#dbeafe" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round"/></svg></div></div>
+      {attemptId && result && <div className="wr-header-footer"><span className="wr-pill">{dirty ? 'Changes not shared' : result.review_status === 'pending' ? 'Awaiting your feedback' : 'Feedback shared'}</span><span>Submitted {new Date(result.submitted_at).toLocaleDateString()}</span><span>One Task 2 essay · Confidence: low</span></div>}
+    </header>
+    {error && <div role="alert" className="wr-alert"><strong>{error}</strong>{!result && <button type="button" onClick={() => setRetry(n => n + 1)} className="wr-secondary">Try again</button>}</div>}
+    {loading ? <div className="wr-card wr-empty" role="status"><p>Opening your Writing workspace…</p></div> : !attemptId ? <section aria-labelledby="queue-heading">
+      <div className="wr-queue-toolbar"><h2 id="queue-heading">Your review desk</h2><div className="wr-filters"><button type="button" aria-pressed={queueFilter === 'pending'} onClick={() => setQueueFilter('pending')}>Awaiting review · {pendingCount}</button><button type="button" aria-pressed={queueFilter === 'all'} onClick={() => setQueueFilter('all')}>All essays</button></div></div>
+      {!visibleQueue.length && <div className="wr-card wr-empty"><h3>{queueFilter === 'pending' && queue.length ? 'You’re up to date.' : 'No essays here yet.'}</h3><p>{queueFilter === 'pending' && queue.length ? 'Open All essays to revisit feedback you have shared.' : 'Submitted Writing essays will appear here when they are available for you to review.'}</p></div>}
+      <div className="wr-queue-list">{visibleQueue.map(row => <article key={row.attempt_id} className="wr-card wr-queue-row"><div className="wr-avatar" aria-hidden="true">{(row.student_name ?? 'Student').slice(0, 1).toUpperCase()}</div><div className="wr-queue-copy"><h3>{row.student_name ?? 'Student essay'}</h3><p>{row.word_count} words · {new Date(row.submitted_at).toLocaleDateString()}</p><span className="wr-pill">{row.review_status === 'pending' ? 'Awaiting review' : 'Feedback shared'}</span>{row.evidence_kind === 'same_prompt_practice' && <span className="wr-practice">Same-prompt practice</span>}</div><button type="button" onClick={() => navigate(`/ielts/writing-screener/reviews/${row.attempt_id}`)} className="wr-primary">{row.review_status === 'pending' ? 'Review essay →' : 'Open feedback →'}</button></article>)}</div>
+    </section> : !result ? <div className="wr-card wr-empty"><h2>No essay available</h2><p>This submission could not be opened. Return to the review desk to choose an available essay.</p></div> : !result.can_review ? <IeltsWritingResult result={result} /> : <IeltsWritingReviewWorkspace
+      result={result} observations={observations} activeCriterion={activeCriterion} onCriterion={setActiveCriterion}
+      selected={selected} onSelect={setSelected} onEdit={edit} nextStep={nextStep}
+      onNextStep={(value: string) => { setNextStep(value); reviewId.current = null; setSaved(false); setDirty(true); }}
+      delivery={delivery} onDelivery={(value: string) => { setDelivery(value); reviewId.current = null; setSaved(false); setDirty(true); }}
+      saving={saving} saved={saved} onSave={() => void save()}
+    />}
   </div></main>;
 };
 export default IeltsWritingScreenerReview;

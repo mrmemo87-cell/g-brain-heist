@@ -1,0 +1,88 @@
+/* A scoped light workspace: the game shell must not recolour review evidence. */
+body:has(.writing-review) { background:#f3f6fb; color-scheme:light; }
+.writing-review { --wr-ink:#17243b; --wr-muted:#475569; --wr-blue:#174fa4; min-height:100vh; padding:72px 20px 64px; background:radial-gradient(ellipse at 95% 0, #e8edff, transparent 40%),#f3f6fb; color:var(--wr-ink); color-scheme:light; }
+body:has(.writing-review) [data-global-language-control="true"] { top:calc(12px + env(safe-area-inset-top))!important; right:12px!important; left:auto!important; bottom:auto!important; transform:none!important; }
+.writing-review * { box-sizing:border-box; }
+.writing-review :is(h1,h2,h3,h4,legend,label,p,blockquote) { color:var(--wr-ink); -webkit-text-fill-color:currentColor; background-clip:border-box; }
+.writing-review :is(h1,h2,h3,h4) { background-image:none; color:#17243b!important; -webkit-text-fill-color:#17243b!important; font-family:inherit; }
+.writing-review h1 { margin:12px 0; max-width:720px; font-size:clamp(1.85rem,3.3vw,2.65rem); font-weight:800; letter-spacing:-.045em; line-height:1.13; }
+.writing-review h2 { margin:0; font-size:1.22rem; font-weight:800; letter-spacing:-.025em; }
+.writing-review h3 { margin:0; font-size:1.02rem; font-weight:750; }
+.writing-review :is(button,a,input,textarea,summary):focus-visible { outline:3px solid #2271d0; outline-offset:3px; }
+.writing-review :is(textarea,input) { color:#17243b!important; -webkit-text-fill-color:#17243b!important; background:#fff!important; caret-color:#17243b; }
+.writing-review textarea::placeholder { color:#58677e!important; -webkit-text-fill-color:#58677e!important; opacity:1; }
+.writing-review textarea { display:block; width:100%; min-width:0; border:1px solid #b8c6d8; border-radius:12px; font:inherit; padding:14px; font-size:1rem; line-height:1.65; }
+.writing-review button { cursor:pointer; font:inherit; font-weight:700; min-height:44px; }
+.writing-review button:disabled { cursor:default; opacity:.6; }
+.writing-review ::selection { color:#17243b; background:#bfdbfe; }
+.wr-shell { max-width:1280px; margin:auto; }
+.wr-header { padding:26px 32px; border:1px solid #d9e2ef; border-radius:24px; background:linear-gradient(110deg,#fff 65%,#eef3ff); box-shadow:0 8px 28px #1e3a5f08; margin-bottom:24px; position:relative; overflow:hidden; }
+.wr-header::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#2563eb,#745be8,#22a6a0); }
+.wr-back,.wr-text-button { display:inline-flex; align-items:center; min-height:44px; color:#174fa4!important; -webkit-text-fill-color:#174fa4; text-decoration:none; font-size:.88rem!important; font-weight:700; background:none; border:0; padding:0 4px; }
+.wr-header-content { display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.writing-review .wr-eyebrow { margin:6px 0 8px; color:#174fa4; font-size:.7rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+.writing-review .wr-intro { color:#475569; margin:12px 0 8px; max-width:660px; font-size:1rem; line-height:1.7; }
+.wr-header-icon { width:86px; height:86px; flex-shrink:0; border:1px solid #c8d9f5; border-radius:24px; background:#e5edff; color:#225bb6; transform:rotate(-5deg); display:grid; place-items:center; }
+.wr-header-icon svg { width:52px; height:52px; }
+.wr-header-footer { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; border-top:1px solid #e1e8f2; padding-top:18px; margin-top:18px; font-size:.82rem; color:#475569; }
+.wr-pill { display:inline-flex; align-items:center; min-height:28px; padding:5px 10px; border:1px solid #d4e2f5; border-radius:999px; background:#eef4ff; color:#174fa4; font-size:.72rem; font-weight:750; white-space:normal; }
+.wr-card { min-width:0; padding:24px; border:1px solid #d9e2ef; border-radius:20px; background:#fff; box-shadow:0 4px 16px #183a6405; }
+.wr-card-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.wr-workspace { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:24px; align-items:start; }
+.wr-essay { position:sticky; top:24px; }
+.wr-meta { display:flex; flex-wrap:wrap; gap:10px 20px; margin:16px 0; color:#475569; font-size:.82rem; }
+.wr-task { margin:18px 0; padding:12px 14px; border:1px solid #dce5f0; border-radius:12px; background:#f7f9fd; }
+.wr-task summary { min-height:36px; padding:7px 0; cursor:pointer; font-size:.85rem; font-weight:750; color:#25405e; }
+.wr-task p { margin:12px 0 4px; white-space:pre-line; line-height:1.75; font-size:.9rem; }
+.writing-review .wr-help { color:#475569; display:block; font-size:.82rem; line-height:1.65; margin:10px 0; }
+.writing-review .wr-original { min-height:360px; height:min(52vh,560px); resize:vertical; line-height:1.9; background:#fcfdff!important; }
+.wr-selection { margin-top:16px; border:1px dashed #c9d5e5; background:#f7f9fc; border-radius:12px; padding:14px; font-size:.82rem; }
+.wr-selection p { margin:7px 0 0; line-height:1.65; overflow-wrap:anywhere; }
+.wr-selection button { margin-top:12px; }
+.wr-selection-ready { background:#edf8f6; border:1px solid #b6dcd5; }
+.wr-selection-ready strong { color:#176155; }
+.wr-feedback { display:grid; gap:20px; min-width:0; }
+.wr-criteria { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:20px 0 24px; }
+.wr-criteria button { display:flex; align-items:center; gap:9px; text-align:left; padding:10px; border:1px solid #dbe4ef; background:#f7f9fc; border-radius:12px; color:#334155; font-size:.76rem; line-height:1.4; }
+.wr-criteria button[aria-current='step'] { border-color:#2563eb; background:#edf3ff; color:#174fa4; box-shadow:0 0 0 1px #2563eb; }
+.wr-step { display:grid; place-items:center; width:26px; height:26px; flex-shrink:0; border:1px solid #c3d0e1; border-radius:8px; background:white; font-size:.75rem; }
+.wr-step-complete { background:#e5f6ef; color:#17624a; border-color:#aad3c1; }
+.wr-criteria small { display:block; color:#17624a; margin-top:3px; font-size:.65rem; }
+.wr-observation,.wr-next fieldset { min-width:0; padding:0; border:0; margin:0; }
+.wr-observation>legend { font-size:1.04rem; font-weight:800; }
+.wr-choice { padding:0; margin:20px 0; border:0; display:grid; gap:8px; }
+.wr-choice legend { font-size:.85rem; font-weight:750; margin-bottom:10px; }
+.wr-choice label { display:flex; align-items:center; gap:12px; min-height:60px; padding:12px; border:1px solid #d6dfeb; border-radius:12px; cursor:pointer; }
+.wr-choice label.wr-choice-selected { border-color:#3166b5; background:#f0f5ff; }
+.wr-choice input { min-height:18px; width:18px; height:18px; padding:0; margin:0; accent-color:#174fa4; flex-shrink:0; }
+.wr-choice strong { font-size:.85rem; }
+.wr-choice small { display:block; margin-top:4px; font-size:.75rem; color:#475569; }
+.wr-label { display:block; margin:18px 0 9px; font-size:.88rem; font-weight:750; }
+.writing-review .wr-note { min-height:130px; resize:vertical; }
+.wr-evidence { border-top:1px solid #e1e7f0; padding-top:16px; margin-top:18px; }
+.wr-evidence blockquote { white-space:pre-wrap; overflow-wrap:anywhere; border-left:3px solid #80a7e4; padding:12px 14px; background:#f3f7ff; border-radius:0 10px 10px 0; margin:14px 0 0; font-size:.87rem; line-height:1.8; }
+.wr-secondary { padding:9px 13px; color:#174fa4; background:#eef4ff; border:1px solid #b9cfee; border-radius:10px; font-size:.8rem!important; }
+.wr-primary { display:inline-flex; align-items:center; justify-content:center; padding:12px 18px; border:1px solid #174fa4; border-radius:12px; background:#174fa4; color:white!important; -webkit-text-fill-color:#fff!important; font-size:.88rem!important; box-shadow:0 3px 8px #174fa418; }
+.wr-primary:hover:not(:disabled) { background:#103e87; }
+.wr-criterion-actions { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:18px; }
+.wr-next { border-top:3px solid #259c8a; }
+.wr-share { margin-top:22px; border-top:1px solid #e1e8f2; padding-top:16px; }
+.wr-share p { font-size:.85rem; line-height:1.7; margin:0 0 14px; }
+.wr-share .wr-primary { width:100%; }
+.writing-review .wr-success { color:#17624a; font-weight:750; font-size:.85rem; }
+.wr-alert { display:flex; gap:16px; align-items:center; justify-content:space-between; padding:18px 20px; margin-bottom:20px; border:1px solid #e5c28c; background:#fff7e9; border-radius:14px; color:#703e08; font-size:.9rem; line-height:1.7; }
+.wr-queue-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin:28px 0 18px; }
+.wr-filters { display:flex; gap:4px; border:1px solid #cbd7e7; background:white; padding:4px; border-radius:12px; }
+.wr-filters button { border:0; border-radius:9px; padding:9px 14px; background:white; color:#475569; font-size:.82rem; }
+.wr-filters button[aria-pressed='true'] { background:#edf3ff; color:#174fa4; }
+.wr-queue-list { display:grid; gap:14px; }
+.wr-queue-row { display:flex; align-items:center; gap:18px; }
+.wr-avatar { width:48px; height:48px; display:grid; place-items:center; flex-shrink:0; background:#edf0ff; color:#4653a3; border:1px solid #d8defb; border-radius:15px; font-size:1.1rem; font-weight:800; }
+.wr-queue-copy { flex:1; min-width:0; }
+.wr-queue-copy h3 { overflow-wrap:anywhere; }
+.wr-queue-copy p { font-size:.82rem; margin:8px 0; color:#475569; }
+.wr-practice { font-size:.72rem; margin-left:10px; color:#475569; }
+.wr-empty { padding:48px 24px; text-align:center; }
+.wr-empty p { color:#475569; font-size:.95rem; line-height:1.8; }
+@media(max-width:900px) { .wr-workspace { grid-template-columns:1fr; } .wr-essay { position:static; } .writing-review .wr-original { height:400px; } }
+@media(max-width:540px) { .writing-review { padding:72px 12px 36px; } .wr-header { padding:18px; border-radius:18px; } .wr-header-icon { display:none; } .wr-card { padding:18px; border-radius:16px; } .wr-workspace { gap:18px; } .wr-header-footer { gap:10px; } .wr-queue-row { flex-wrap:wrap; gap:12px; } .wr-queue-row>.wr-primary { width:100%; } .wr-filters { width:100%; } .wr-filters button { flex:1; } .wr-criteria button { font-size:.73rem; } .wr-alert { flex-wrap:wrap; } }
