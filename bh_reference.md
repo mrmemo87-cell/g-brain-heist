@@ -324,6 +324,18 @@ Question-specific detail goes below this in **Evidence Focus** and the evidence 
 - `public.academic_skill_registry_subject_aliases`
 - `public.academic_skill_framework_crosswalks`
 
+## Verified-question diagnostic authority
+
+For any active School Verified or Brains Heist Verified question with `analytics_eligible=true`, the canonical diagnostic identity is the current hash-bound approved row in `public.verified_question_registry_taxonomy`.
+
+Authoritative chain:
+
+`Registry → Strand → Skill → Atomic Subskill → Evidence Focus`
+
+Legacy `questions.curriculum_*` fields, topic names, tags and imported/AI labels are not diagnostic authority and must never be used as a fallback identity for verified evidence. `verified_question_diagnostic_taxonomy` is retained as append-only historical/compatibility governance; approved current legacy writes are mirrored into registry-native taxonomy.
+
+Verified evidence fails closed when the current registry mapping is absent.
+
 ## Subject alias design
 
 A shared registry may serve related subjects, but aliases can restrict:
@@ -461,6 +473,16 @@ Never silently merge those namespaces.
 
 <a id="BH-TAXONOMY"></a>
 # BH-TAXONOMY — Verified Diagnostic Taxonomy Lifecycle
+
+## Registry-native source of truth
+
+Current verified-question diagnostic authority is:
+
+`public.verified_question_registry_taxonomy`
+
+It is bound to the current verified question content hash and references the published registry, canonical Skill node, Atomic Subskill node and governed Evidence Focus.
+
+The older `public.verified_question_diagnostic_taxonomy` remains append-only history and compatibility input. It must not be used by UI or Academic Profile code as a fallback when registry-native metadata is absent. Current approved legacy governance rows are bridged to registry-native taxonomy.
 
 ## Main table
 
@@ -1112,6 +1134,19 @@ The exact repository migration file is the reproducible source; inspect it befor
 - `20260924045426_refine_multisubject_cambridge_crosswalk_scope.sql`
 - `20260924045505_scope_registry_programmes_by_subject_alias.sql`
 
+## Registry-native verified-question convergence — 2026-10-07
+
+- `20261007071002_canonical_registry_backfill_and_aliases.sql`
+  - makes registry validation subject-alias-aware,
+  - enforces alias-specific strand restrictions,
+  - backfills governed legacy verified mappings into `verified_question_registry_taxonomy`,
+  - converts legacy AO1–AO4 to BH-AO1–BH-AO4 without changing skill identity.
+- `20261007071032_canonical_registry_fail_closed_invariant.sql`
+  - mirrors future approved legacy-governance writes into registry-native taxonomy,
+  - adds a deferred fail-closed invariant so current verified analytics questions cannot persist without a valid registry-native mapping.
+
+Production audit after application: **2,201 / 2,201 active verified analytics questions had a valid current registry mapping; missing = 0.**
+
 ## Evidence Focus
 
 - `20260924052000_add_governed_evidence_focus_layer.sql`
@@ -1396,6 +1431,9 @@ Do not solve catalogue quality by deleting historical focus identities already r
 16. **Never create a tiny permanent canonical subskill for every misconception; use Evidence Focus.**
 17. **Never change stable `skill_key` identity merely because Evidence Focus becomes more precise.**
 18. **Never claim production completion until live DB + tests + deployment are verified.**
+19. **Never use topic names or legacy `questions.curriculum_*` fields as fallback Skill/Subskill identity for a verified analytics question.**
+20. **Never allow a current verified analytics question to persist without a current approved hash-bound `verified_question_registry_taxonomy` mapping.**
+21. **Never compare shared-registry subjects by raw registry subject key alone; resolve the governed subject alias and enforce its allowed strands.**
 
 ---
 
