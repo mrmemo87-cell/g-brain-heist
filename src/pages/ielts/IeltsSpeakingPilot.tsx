@@ -132,6 +132,9 @@ export default function IeltsSpeakingPilot() {
     [consent, setConsent] = useState(false),
     [approval, setApproval] = useState(false),
     [reviewNotes, setReviewNotes] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState<string | undefined>(),
+    [studentSearch, setStudentSearch] = useState(""),
+    [appliedSearch, setAppliedSearch] = useState("");
   const [feedback, setFeedback] = useState<SpeakingFeedback>(
       emptySpeakingFeedback,
     ),
@@ -166,7 +169,10 @@ export default function IeltsSpeakingPilot() {
     setRecordActive(false);
     reviewId.current = null;
     beforeAi.current = null;
-    (sessionId ? speakingSession(sessionId) : speakingHome())
+    (sessionId
+      ? speakingSession(sessionId)
+      : speakingHome(selectedStudent, appliedSearch)
+    )
       .then((value) => {
         if (!alive) return;
         if (sessionId) {
@@ -190,9 +196,10 @@ export default function IeltsSpeakingPilot() {
       request.current?.abort();
       request.current = null;
     };
-  }, [sessionId, retry]);
+  }, [sessionId, retry, selectedStudent, appliedSearch]);
   useEffect(() => {
-    if (session?.status !== "in_progress" || !session.preparation_started_at) return;
+    if (session?.status !== "in_progress" || !session.preparation_started_at)
+      return;
     const t = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(t);
   }, [session?.status, session?.preparation_started_at]);
@@ -366,11 +373,17 @@ export default function IeltsSpeakingPilot() {
           <>
             <section className="sp-card sp-intro">
               <span className="sp-pill">
-                {home.approved ? "Named-user pilot" : "Content review · draft"}
+                {home.published
+                  ? "Reviewed Speaking interview"
+                  : home.approved
+                    ? "Named-user pilot"
+                    : "Content review · draft"}
               </span>
               <h2>
                 {home.can_teacher
-                  ? `Your first interview with ${home.student_name}`
+                  ? home.student_name
+                    ? `Interview with ${home.student_name}`
+                    : "Choose your student"
                   : "Your Speaking starting point"}
               </h2>
               <p>
@@ -378,6 +391,62 @@ export default function IeltsSpeakingPilot() {
                   ? "Conduct the interview in person. This device records both speakers. The student can open the topic card from their account."
                   : "Your teacher will guide the interview and record your answers. Your feedback will appear here after review."}
               </p>
+              {home.can_teacher && home.published && (
+                <fieldset disabled={busy}>
+                  <legend>Choose an eligible student</legend>
+                  <label>
+                    Find a student by name
+                    <input
+                      value={studentSearch}
+                      onChange={(e) => setStudentSearch(e.target.value)}
+                    />
+                  </label>
+                  <button
+                    className="sp-secondary"
+                    type="button"
+                    onClick={() => {
+                      setConsent(false);
+                      startId.current = null;
+                      setAppliedSearch(studentSearch.trim());
+                      setSelectedStudent(undefined);
+                      setRetry((n) => n + 1);
+                    }}
+                  >
+                    Find students
+                  </button>
+                  <label>
+                    Student · up to 50 matches
+                    <select
+                      value={home.student_id ?? ""}
+                      onChange={(e) => {
+                        setConsent(false);
+                        startId.current = null;
+                        setSelectedStudent(e.target.value || undefined);
+                      }}
+                    >
+                      {!home.student_id && (
+                        <option value="">No matching students</option>
+                      )}
+                      {home.student_id &&
+                        !home.students?.some(
+                          (s) => s.id === home.student_id,
+                        ) && (
+                          <option value={home.student_id}>
+                            {home.student_name}
+                          </option>
+                        )}
+                      {home.students?.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {!home.students?.length && (
+                    <p>No matching eligible students. Try another name.</p>
+                  )}
+                </fieldset>
+              )}
               <div className="sp-three">
                 {[
                   "1 · Familiar topics",
@@ -397,7 +466,7 @@ export default function IeltsSpeakingPilot() {
                   </div>
                 ))}
               </div>
-              {home.can_teacher && home.approved && (
+              {home.can_teacher && home.approved && home.student_id && (
                 <>
                   <label className="sp-check">
                     <input
@@ -415,8 +484,12 @@ export default function IeltsSpeakingPilot() {
                       void act(async () => {
                         startId.current ??= crypto.randomUUID();
                         const id = await speakingRpc<string>(
-                          "rpc_ielts_start_speaking_pilot",
-                          { p_session_id: startId.current, p_consent: true },
+                          "rpc_ielts_start_speaking_interview",
+                          {
+                            p_student_id: home.student_id,
+                            p_session_id: startId.current,
+                            p_consent: true,
+                          },
                         );
                         navigate(`/ielts/speaking-pilot/${id}`);
                       })
@@ -572,7 +645,7 @@ export default function IeltsSpeakingPilot() {
           </>
         ) : (
           <section className="sp-card">
-            <h2>Speaking pilot is not available for this account yet.</h2>
+            <h2>Speaking is not available for this account.</h2>
             <p>
               Continue with your available IELTS practice from the dashboard.
             </p>

@@ -10,6 +10,8 @@ export interface SpeakingHome {
   can_teacher?: boolean;
   can_approve?: boolean;
   approved?: boolean;
+  published?: boolean;
+  students?: { id: string; name: string }[];
   content_hash?: string;
   package?: SpeakingPackage;
   student_name?: string;
@@ -33,8 +35,11 @@ export async function speakingRpc<T>(
     );
   return data as T;
 }
-export const speakingHome = () =>
-  speakingRpc<SpeakingHome>("rpc_ielts_speaking_home");
+export const speakingHome = (studentId?: string, search = "") =>
+  speakingRpc<SpeakingHome>("rpc_ielts_speaking_workspace", {
+    p_student_id: studentId ?? null,
+    p_search: search,
+  });
 export const speakingSession = (id: string) =>
   speakingRpc<SpeakingSession & { source_hash: string; can_record: boolean }>(
     "rpc_ielts_speaking_session",

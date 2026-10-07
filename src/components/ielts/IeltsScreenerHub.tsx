@@ -38,7 +38,7 @@ const IeltsScreenerHub: React.FC = () => {
         <IeltsScreenerCard skill="listening" entry={listening} onNavigate={navigate} />
         {writing && <IeltsScreenerCard skill="writing" entry={writing} onNavigate={navigate} />}
         {reading && <IeltsScreenerCard skill="reading" entry={reading} onNavigate={navigate} />}
-        {speaking?.available && <article className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-950"><p className="text-xs font-bold uppercase tracking-widest text-blue-800">Speaking · Named-user pilot</p><h3 className="text-xl font-bold">Your Speaking starting point</h3><p className="leading-7 text-slate-600">A guided conversation with your teacher. Record, review and choose your next practice step.</p><button type="button" className="mt-3 min-h-12 rounded-xl bg-blue-800 px-5 py-3 font-semibold text-white" onClick={() => navigate('/ielts/speaking-pilot')}>{speaking.can_teacher ? 'Open interview workspace →' : 'Open Speaking pilot →'}</button></article>}
+        {speaking?.available && <article className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-950"><p className="text-xs font-bold uppercase tracking-widest text-blue-800">Speaking · Teacher-led interview</p><h3 className="text-xl font-bold">Your Speaking starting point</h3><p className="leading-7 text-slate-600">A guided conversation with your teacher. Record, review and choose your next practice step.</p><button type="button" className="mt-3 min-h-12 rounded-xl bg-blue-800 px-5 py-3 font-semibold text-white" onClick={() => navigate('/ielts/speaking-pilot')}>{speaking.can_teacher ? 'Open interview workspace →' : 'Open Speaking interview →'}</button></article>}
       </div>}
   </section>;
 };
