@@ -30,3 +30,5 @@ verify_jwt = true
 
 [functions.ielts_writing_teacher_ai]
 verify_jwt = true
+[functions.ielts_speaking_pilot]
+verify_jwt = true
