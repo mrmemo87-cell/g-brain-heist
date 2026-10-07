@@ -6,6 +6,7 @@ import { anchorWritingQuote, countWritingWords, parseWritingScreenerResult, writ
 import { IeltsWritingEditor } from '../src/components/ielts/IeltsWritingEditor';
 import { IeltsWritingResult } from '../src/components/ielts/IeltsWritingResult';
 import { WRITING_SCREENER_A_DRAFT } from '../services/ieltsWritingScreenerDraft';
+import { loadIeltsSavedScreenerResult } from '../services/ieltsScreenerResultLoader';
 const fixture: WritingScreenerResult = {
   attempt_id:'fixture', student_id:'fixture',submitted_at:'2026-10-07T00:00:00Z',prompt:'Synthetic task',response_text:'A clear opinion 😊. A relevant example.',
   response_sha256:'a'.repeat(64),response_state:'answered',word_count:7,evidence_kind:'first_sitting',review_status:'pending',review_id:null,criterion_observations:{},next_step:null,delivery_comment:null,reviewed_at:null,confidence:'low',incident_count:0,can_review:false,readiness_available:false,persistent_weakness_available:false,
@@ -16,6 +17,23 @@ test('Writing quotes use exact Unicode code-point anchors and reject approximate
  assert.equal(writingEvidenceMatches(fixture.response_text,{...span,start_char:span.start_char+1}),false);
  assert.equal(anchorWritingQuote(fixture.response_text,'relevant examples'),null);
  assert.equal(countWritingWords(' \n '),0);assert.equal(countWritingWords('one\n two\tthree'),3);
+});
+test('A completed Writing attempt loads its saved essay without a public form payload', async () => {
+ const calls: string[] = [];
+ const saved = await loadIeltsSavedScreenerResult('saved-attempt', async id => {
+   calls.push(id); return fixture;
+ }, async () => { throw new Error('Writing must not be loaded as an objective score'); });
+ assert.deepEqual(calls, ['saved-attempt']);
+ assert.deepEqual(saved, {kind:'writing',result:fixture});
+ const html=renderToStaticMarkup(React.createElement(IeltsWritingResult,{result:saved!.result as WritingScreenerResult}));
+ assert.match(html,/Your essay is saved/);assert.match(html,/Awaiting teacher review/);
+ assert.doesNotMatch(html,/submitted by your teacher/);
+});
+test('Saved result recovery retains objective results and does not hide Writing access failures', async () => {
+ const objective = {raw_score:8,marks_possible:12} as never;
+ assert.deepEqual(await loadIeltsSavedScreenerResult('listening',async()=>null,async()=>objective),{kind:'objective',result:objective});
+ assert.equal(await loadIeltsSavedScreenerResult('legacy',async()=>null,async()=>null),null);
+ await assert.rejects(loadIeltsSavedScreenerResult('denied',async()=>{throw new Error('Access failed');},async()=>{throw new Error('Must not fall back');}),/Access failed/);
 });
 test('Writing editor has no hard upper word target, coaching or submit barrier below 250',()=>{
  const html=renderToStaticMarkup(React.createElement(IeltsWritingEditor,{prompt:WRITING_SCREENER_A_DRAFT.prompt,value:'Short draft.',onChange:()=>{}}));

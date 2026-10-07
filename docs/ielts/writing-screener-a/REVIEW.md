@@ -1,10 +1,12 @@
 # Academic Writing Screener A — review package
 
-Draft **0.1.0 / BH-WS-A-1**. Bible **1.2.0**. Original AI-assisted Brains Heist content. **Not approved or released.**
+Content **0.1.0 / BH-WS-A-1**. Bible **1.2.0**. Original AI-assisted Brains Heist content. **Human approved; Gulzada-only pilot. Public release closed.**
 
 ## Owner decision recorded 2026-10-07
 
-Sobbi approved the displayed original task, 40-minute/250-word delivery proposal and four-criterion qualitative feedback approach for Gulzada's private pilot. This is not public-release approval or a device-test pass. The approval question did not display the proposed micro-skill mappings, so their human review remains outstanding; do not assert the production `taxonomy` approval flag from this narrower response. Originality/rights review also remains outstanding. The draft remains inactive until the required human content review is complete.
+Sobbi approved the displayed original task, 40-minute/250-word delivery proposal and four-criterion qualitative feedback approach. He subsequently explicitly approved the displayed micro-skill mappings and Brains Heist LLC ownership, and requested immediate private testing with Gulzada. The exact version was frozen and a named-user pilot activated on 2026-10-07. This is not public-release approval or a device-test pass. Delivery approval covers task instructions and the controlled-pilot design; actual Writing delivery acceptance remains pending.
+
+Reviewed content/rubric hash: `4f17d6c6716e16012c3558ceb0707bdcec8351a4f37d0ddefd0c0c6682392df6`. Frozen version hash: `bad9dc88ce47562c64b292eefacd7621696c68b8a792854531eed977789deca0`. The production review and release records retain the actual reviewer, scope and pending acceptance. Published content is immutable; UI corrections do not alter the task or historical essay.
 
 Gulzada's existing student account is the standing default for future pre-publication tests (see `AGENTS.md`). The student pilot entry is `/ielts/writing-screener`; `/ielts/writing-screener/preview` is a staff content-review page, not a student test link.
 
