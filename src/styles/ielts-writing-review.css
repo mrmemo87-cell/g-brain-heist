@@ -69,6 +69,16 @@ body:has(.writing-review) [data-global-language-control="true"] { top:calc(12px 
 .wr-share { margin-top:22px; border-top:1px solid #e1e8f2; padding-top:16px; }
 .wr-share p { font-size:.85rem; line-height:1.7; margin:0 0 14px; }
 .wr-share .wr-primary { width:100%; }
+.wr-ai { background:linear-gradient(135deg,#f5f3ff,#eff6ff 65%,#fff); border-color:#c4c9f2; }
+.wr-ai-spark { width:32px; height:32px; flex-shrink:0; color:#5340a8; }
+.wr-ai-button { display:inline-flex; justify-content:center; align-items:center; gap:10px; min-height:48px; padding:12px 18px; margin-top:12px; border:1px solid #5340a8; border-radius:12px; background:#5340a8; color:#fff!important; -webkit-text-fill-color:#fff!important; font-weight:700; }
+.wr-ai-button:hover:not(:disabled) { background:#413080; }
+.wr-ai-status { margin-top:12px; font-size:.85rem; line-height:1.7; }
+.wr-ai-spinner { width:18px; height:18px; border:2px solid #ffffff70; border-top-color:#fff; border-radius:50%; animation:wr-ai-spin 1s linear infinite; }
+.wr-ai-confirm { display:flex; align-items:flex-start; gap:12px; padding:14px; margin-bottom:16px; border:1px solid #c4c9f2; background:#f5f3ff; border-radius:12px; font-size:.86rem; line-height:1.7; cursor:pointer; }
+.wr-ai-confirm input { width:20px; height:20px; flex-shrink:0; margin-top:3px; accent-color:#5340a8; }
+@keyframes wr-ai-spin { to { transform:rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) { .wr-ai-spinner { animation:none; } }
 .writing-review .wr-success { color:#17624a; font-weight:750; font-size:.85rem; }
 .wr-alert { display:flex; gap:16px; align-items:center; justify-content:space-between; padding:18px 20px; margin-bottom:20px; border:1px solid #e5c28c; background:#fff7e9; border-radius:14px; color:#703e08; font-size:.9rem; line-height:1.7; }
 .wr-queue-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin:28px 0 18px; }
