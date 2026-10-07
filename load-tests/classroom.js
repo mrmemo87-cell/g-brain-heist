@@ -14,11 +14,18 @@ const base = (__ENV.SUPABASE_URL || '').replace(/\/$/,'');
 const local = __ENV.LOCAL_CLASSROOM_TEST === '1' && /^http:\/\/(127\.0\.0\.1|localhost):54321$/.test(base);
 if ((!local && !/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(base)) || base.includes('sozodkxwhubespiedgxm')) throw new Error('A staging Supabase URL is required; production is blocked.');
 const count = Number(__ENV.STUDENTS || 30);
-const fixtures = new SharedArray('classroom',()=>[JSON.parse(open(__ENV.CLASSROOM_FIXTURE))]);
-if (!Number.isInteger(count) || count<1 || fixtures[0].students.length<count) throw new Error('Provide one distinct student per VU.');
-if (new Set(fixtures[0].students.map(s=>s.token)).size !== fixtures[0].students.length) throw new Error('Student credentials must be unique.');
-if (!fixtures[0].teacher?.token || fixtures[0].students.some(s=>!s.studentId || !s.assignmentId || !s.questions?.length)) throw new Error('Complete student identities, fresh assignments and a teacher token are required.');
-if (new Set(fixtures[0].students.map(s=>s.studentId)).size !== fixtures[0].students.length) throw new Error('Student identities must be unique, even when tokens differ.');
+// Share students as separate elements. A singleton containing the whole cohort
+// copies every student's questions and JWT into each VU on every array access.
+const students = new SharedArray('classroom students',()=>JSON.parse(open(__ENV.CLASSROOM_FIXTURE)).students);
+const configuration = new SharedArray('classroom configuration',()=>{
+ const f=JSON.parse(open(__ENV.CLASSROOM_FIXTURE));
+ if(new Set(f.students.map(s=>s.token)).size!==f.students.length)throw new Error('Student credentials must be unique.');
+ if(!f.teacher?.token || f.students.some(s=>!s.token || !s.studentId || !s.assignmentId || !s.questions?.length))throw new Error('Complete student identities, fresh assignments and a teacher token are required.');
+ if(new Set(f.students.map(s=>s.studentId)).size!==f.students.length)throw new Error('Student identities must be unique, even when tokens differ.');
+ return[{teacherToken:f.teacher.token,studentCount:f.students.length}];
+});
+if(!Number.isInteger(count)||count<1||configuration[0].studentCount<count)throw new Error('Provide one distinct student per VU.');
+const teacherToken=configuration[0].teacherToken;
 const errors = new Rate('classroom_errors');
 const completed = new Counter('classroom_students_completed');
 export function setup(){completed.add(0);}
@@ -32,7 +39,7 @@ const params=(token,operation)=>({headers:{apikey:__ENV.SUPABASE_ANON_KEY,Author
 const rpc=(name,body,token,operation)=>http.post(`${base}/rest/v1/rpc/${name}`,JSON.stringify(body),params(token,operation));
 function requireSuccess(response,name){const ok=check(response,{[name]:r=>r.status===200});errors.add(!ok);if(!ok)rejectRun(`${name} failed (HTTP ${response.status})`);return response.json();}
 export function student(){
- const f=fixtures[0].students[exec.scenario.iterationInTest];
+ const f=students[exec.scenario.iterationInTest];
  const identity=requireSuccess(http.get(`${base}/auth/v1/user`,params(f.token,'auth')),'authenticated user');
  if(identity.id!==f.studentId)rejectRun('Fixture identity mismatch');
  const bootstrap=requireSuccess(rpc('rpc_auth_bootstrap_v1',{},f.token,'bootstrap'),'bootstrap');
@@ -60,4 +67,4 @@ export function student(){
  if(f.expectedScore!==undefined && (first.score!==f.expectedScore || first.correct!==f.expectedCorrect))rejectRun('Server grading differs from the known fixture outcome');
  completed.add(1);
 }
-export function teacher(){requireSuccess(rpc('rpc_teacher_assignment_success_summary',{},fixtures[0].teacher.token,'summary'),'teacher summary');sleep(5);}
+export function teacher(){requireSuccess(rpc('rpc_teacher_assignment_success_summary',{},teacherToken,'summary'),'teacher summary');sleep(5);}
