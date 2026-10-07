@@ -11,7 +11,8 @@ import { check, fail, sleep } from 'k6';
 import { SharedArray } from 'k6/data';
 import { Counter, Rate } from 'k6/metrics';
 const base = (__ENV.SUPABASE_URL || '').replace(/\/$/,'');
-if (!/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(base) || base.includes('sozodkxwhubespiedgxm')) throw new Error('A staging Supabase URL is required; production is blocked.');
+const local = __ENV.LOCAL_CLASSROOM_TEST === '1' && /^http:\/\/(127\.0\.0\.1|localhost):54321$/.test(base);
+if ((!local && !/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(base)) || base.includes('sozodkxwhubespiedgxm')) throw new Error('A staging Supabase URL is required; production is blocked.');
 const count = Number(__ENV.STUDENTS || 30);
 const fixtures = new SharedArray('classroom',()=>[JSON.parse(open(__ENV.CLASSROOM_FIXTURE))]);
 if (!Number.isInteger(count) || count<1 || fixtures[0].students.length<count) throw new Error('Provide one distinct student per VU.');
@@ -23,6 +24,7 @@ const completed = new Counter('classroom_students_completed');
 export function setup(){completed.add(0);}
 function rejectRun(message){errors.add(true);fail(message);}
 export const options = {
+ summaryTrendStats:['avg','med','p(95)','p(99)','max'],
  scenarios:{students:{executor:'per-vu-iterations',vus:count,iterations:1,maxDuration:'10m',exec:'student'},teacher:{executor:'constant-vus',vus:1,duration:'2m',exec:'teacher'}},
  thresholds:{http_req_failed:['rate<0.001'],classroom_errors:['rate==0'],classroom_students_completed:[`count==${count}`],checks:['rate==1'],'http_req_duration{operation:answer}':['p(95)<500','p(99)<1500'],'http_req_duration{operation:catalog}':['p(95)<1500'],'http_req_duration{operation:detail}':['p(95)<1500'],'http_req_duration{operation:summary}':['p(95)<1500']},
 };
@@ -55,6 +57,7 @@ export function student(){
  const replay=requireSuccess(rpc('rpc_submit_assignment_result_v2',payload,f.token,'finalize'),'finalize replay');
  const finalized=first.success===true&&replay.success===true&&first.score===replay.score&&first.correct===replay.correct&&replay.already_submitted===true;
  errors.add(!finalized);if(!finalized)rejectRun('Finalization failed or replay changed the result');
+ if(f.expectedScore!==undefined && (first.score!==f.expectedScore || first.correct!==f.expectedCorrect))rejectRun('Server grading differs from the known fixture outcome');
  completed.add(1);
 }
 export function teacher(){requireSuccess(rpc('rpc_teacher_assignment_success_summary',{},fixtures[0].teacher.token,'summary'),'teacher summary');sleep(5);}
