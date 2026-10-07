@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchIeltsScreenerCatalog, type IeltsScreenerEntry } from '../../../services/ieltsScreenerLaunchService';
 
 import { IeltsScreenerCard } from './IeltsScreenerCard';
+import { speakingHome, type SpeakingHome } from '../../../services/ieltsSpeakingPilotService';
 
 const IeltsScreenerHub: React.FC = () => {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ const IeltsScreenerHub: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
+  const [speaking, setSpeaking] = useState<SpeakingHome | null>(null);
+  useEffect(() => { let alive = true; speakingHome().then(value => { if (alive) setSpeaking(value); }).catch(() => { if (alive) setSpeaking(null); }); return () => { alive = false; }; }, [retry]);
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -35,6 +38,7 @@ const IeltsScreenerHub: React.FC = () => {
         <IeltsScreenerCard skill="listening" entry={listening} onNavigate={navigate} />
         {writing && <IeltsScreenerCard skill="writing" entry={writing} onNavigate={navigate} />}
         {reading && <IeltsScreenerCard skill="reading" entry={reading} onNavigate={navigate} />}
+        {speaking?.available && <article className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-950"><p className="text-xs font-bold uppercase tracking-widest text-blue-800">Speaking · Named-user pilot</p><h3 className="text-xl font-bold">Your Speaking starting point</h3><p className="leading-7 text-slate-600">A guided conversation with your teacher. Record, review and choose your next practice step.</p><button type="button" className="mt-3 min-h-12 rounded-xl bg-blue-800 px-5 py-3 font-semibold text-white" onClick={() => navigate('/ielts/speaking-pilot')}>{speaking.can_teacher ? 'Open interview workspace →' : 'Open Speaking pilot →'}</button></article>}
       </div>}
   </section>;
 };
