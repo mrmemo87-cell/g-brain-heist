@@ -4,11 +4,12 @@ import {spawnSync} from 'node:child_process';
 import {randomUUID,randomBytes,createHash} from 'node:crypto';
 import {request} from 'node:http';
 import os from 'node:os';
+import {resolve} from 'node:path';
 const info=JSON.parse(readFileSync(process.argv[2],'utf8'));
 const base=(info.API_URL||'').replace(/\/$/,'');
 if(!/^http:\/\/(127\.0\.0\.1|localhost):54321$/.test(base))throw Error('Only the disposable loopback Supabase stack is accepted');
 if(!info.ANON_KEY||!info.SERVICE_ROLE_KEY)throw Error('Local Auth keys missing');
-const output=process.argv[3];mkdirSync(output,{recursive:true,mode:0o700});
+const output=resolve(process.argv[3]);mkdirSync(output,{recursive:true,mode:0o700});
 const k6=process.argv[4];
 const quote=v=>"'"+String(v).replaceAll("'","''")+"'";
 function sql(query){
@@ -29,13 +30,26 @@ async function account(i){
  if(session.user?.id!==u.id||!session.access_token)throw Error('Real Auth identity mismatch during setup');
  return {id:u.id,email,token:session.access_token};
 }
-const teacher=await account('teacher');
-const students=[];
+let teacher,students,school,year,klass,teacherId;
+if(process.env.LOCAL_CLASSROOM_REUSE_FIXTURE){
+ const saved=JSON.parse(readFileSync(process.env.LOCAL_CLASSROOM_REUSE_FIXTURE,'utf8'));
+ teacher={token:saved.teacher.token};
+ const identity=await fetch(base+'/auth/v1/user',{headers:{apikey:info.ANON_KEY,Authorization:'Bearer '+teacher.token},signal:AbortSignal.timeout(20000)});
+ if(!identity.ok)throw Error('Reused teacher session invalid');teacher.id=(await identity.json()).id;
+ students=saved.students.map(s=>({id:s.studentId,token:s.token}));
+ if(students.length!==500||new Set(students.map(s=>s.id)).size!==500)throw Error('Reuse requires 500 distinct synthetic students');
+ const context=JSON.parse(sql(`select json_build_object('teacherId',t.id,'school',a.school_id,'year',a.academic_year_id,'klass',a.class_id) from teachers t join assignments a on a.teacher_id=t.id where t.user_id=${quote(teacher.id)} order by a.assigned_at desc limit 1;`));
+ ({teacherId,school,year,klass}=context);
+ if(![teacherId,school,year,klass].every(v=>/^[0-9a-f-]{36}$/.test(v)))throw Error('Invalid local reuse context');
+ console.log('Reusing 500 existing synthetic password-issued sessions; each stage gets a fresh assignment');
+}else{
+teacher=await account('teacher');
+students=[];
 for(let start=0;start<500;start+=5){
  students.push(...await Promise.all(Array.from({length:Math.min(5,500-start)},(_,n)=>account(start+n))));
  if(start%100===0)console.log(`Prepared ${Math.min(start+5,500)}/500 synthetic Auth users`);
 }
-const school=randomUUID(),year=randomUUID(),klass=randomUUID(),teacherId=randomUUID();
+school=randomUUID();year=randomUUID();klass=randomUUID();teacherId=randomUUID();
 let seed=`insert into schools values(${quote(school)},'Synthetic load school',null);
 insert into school_academic_years(id,school_id,name,status) values(${quote(year)},${quote(school)},'Synthetic current year','current');
 insert into classes(id,school_id,class_code,is_active) values(${quote(klass)},${quote(school)},'LOAD',true);
@@ -47,6 +61,7 @@ for(const [i,u] of [teacher,...students].entries()){
  if(i>0)seed+=`insert into class_students values(${quote(klass)},${quote(u.id)},now());\n`;
 }
 sql(seed);
+}
 const rpcFiles=['20260928055401_classroom_reliability.sql','20260928163701_auth_bootstrap_v1.sql','20261007153922_classroom_scoped_reads.sql'];
 const report={scope:'Local Supabase classroom RPC benchmark; focused schema, no production capacity certification',versions:{node:process.version,source:process.env.CLASSROOM_SOURCE_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),rpcSha256:Object.fromEntries(rpcFiles.map(f=>[f,createHash('sha256').update(readFileSync('supabase/migrations/'+f)).digest('hex')]))},host:{platform:os.platform(),cpuModel:os.cpus()[0].model,cpuCount:os.cpus().length,memoryBytes:os.totalmem()},limitations:['Focused classroom schema; unrelated tables, production analytics/reward triggers and billing pre-request hook omitted','Synthetic data: 500 students, one teacher, 16 questions per fresh assignment','Real Supabase Auth users and password-issued sessions; signup/login provisioning is outside the measured load','Loopback HTTP; no WAN/CDN/TLS latency, browser rendering or hosted connection limits','Load generator and database share the test host; results do not certify hosted production capacity'],stages:[]};
 report.initialDatabaseRows=JSON.parse(sql("select json_build_object('users',(select count(*) from users),'assignments',(select count(*) from assignments),'answers',(select count(*) from student_assignment_answers),'results',(select count(*) from student_assignment_results));"));
@@ -59,7 +74,11 @@ function teacherSummary(){return new Promise((resolve,reject)=>{
  });
  req.on('error',reject);req.setTimeout(20000,()=>req.destroy(Error('Teacher reconciliation timeout')));req.end('{}');
 });}
-let cumulative=0;
+const baseline=await teacherSummary();
+if(baseline.status!==200||!Number.isInteger(baseline.data.submission_count))throw Error('Teacher baseline unavailable');
+let cumulative=baseline.data.submission_count;report.initialTeacherSubmissions=cumulative;report.reusedSyntheticSessions=!!process.env.LOCAL_CLASSROOM_REUSE_FIXTURE;
+report.versions.harnessSha256=createHash('sha256').update(readFileSync('load-tests/classroom.js')).digest('hex');
+report.versions.runnerSha256=createHash('sha256').update(readFileSync('load-tests/run-local-classroom.mjs')).digest('hex');
 for(const count of [30,100,500]){
  const assignment=randomUUID();const questions=[];let expectedCorrect=0;
  let setup=`insert into assignments(id,teacher_id,school_id,academic_year_id,class_id,subject_name,title,assignment_mode,publish_status,assigned_at,close_submissions_after_due) values(${quote(assignment)},${quote(teacherId)},${quote(school)},${quote(year)},${quote(klass)},'ESL','Synthetic load ${count}','batch','published',now(),false);\n`;
@@ -77,7 +96,7 @@ for(const count of [30,100,500]){
  console.log(`Starting ${count} concurrent students + one teacher`);
  const started=new Date().toISOString();
  const run=spawnSync(k6,['run','--summary-export',`${output}/summary-${count}.json`,'load-tests/classroom.js'],{stdio:'inherit',env:{...process.env,SUPABASE_URL:base,SUPABASE_ANON_KEY:info.ANON_KEY,LOCAL_CLASSROOM_TEST:'1',CLASSROOM_FIXTURE:fixture,STUDENTS:String(count)},timeout:12*60*1000});
- const actual=JSON.parse(sql(`select json_build_object('answers',(select count(*) from student_assignment_answers where assignment_id=${quote(assignment)}),'results',(select count(*) from student_assignment_results where assignment_id=${quote(assignment)}),'completed',(select count(*) from student_assignments where assignment_id=${quote(assignment)} and status='completed'),'wrong_results',(select count(*) from student_assignment_results where assignment_id=${quote(assignment)} and (score<>${expectedCorrect*10} or correct<>${expectedCorrect} or incorrect<>${16-expectedCorrect} or pending_review_count<>0)),'duplicate_answers',(select count(*) from (select student_id,question_id from student_assignment_answers where assignment_id=${quote(assignment)} group by student_id,question_id having count(*)<>1) d));`));
+ const actual=JSON.parse(sql(`select json_build_object('answers',(select count(*) from student_assignment_answers where assignment_id=${quote(assignment)}),'results',(select count(*) from student_assignment_results where assignment_id=${quote(assignment)}),'completed',(select count(*) from student_assignments where assignment_id=${quote(assignment)} and status='completed'),'wrong_results',(select count(*) from student_assignment_results where assignment_id=${quote(assignment)} and (score IS DISTINCT FROM ${expectedCorrect*10} or correct IS DISTINCT FROM ${expectedCorrect} or incorrect IS DISTINCT FROM ${16-expectedCorrect} or pending_review_count IS DISTINCT FROM 0)),'duplicate_answers',(select count(*) from (select student_id,question_id from student_assignment_answers where assignment_id=${quote(assignment)} group by student_id,question_id having count(*)<>1) d));`));
  cumulative+=count;
  let teacherResult,reconciliationError;
  try{teacherResult=await teacherSummary();}catch(error){reconciliationError=error.message;}

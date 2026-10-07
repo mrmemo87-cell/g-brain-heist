@@ -44,6 +44,8 @@ jobs:
           PY
           umask 077
           supabase start --workdir "$RUNNER_TEMP/brains-classroom" --exclude realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/classroom-start-private.log" 2>&1
+          bash load-tests/configure-local-classroom-gateway.sh
+          python3 load-tests/configure-local-classroom-auth.py
           supabase status --workdir "$RUNNER_TEMP/brains-classroom" -o json > "$RUNNER_TEMP/classroom-local-keys.json"
       - name: Load focused classroom schema and current RPCs
         run: |

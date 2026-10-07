@@ -3,6 +3,13 @@
 This benchmark runs **30 → 100 → 500 authenticated students**, plus one teacher,
 against a disposable local Supabase instance. It does not call production.
 
+The local gateway is configured for 8,192 connection slots before the stages.
+The stock 512-slot configuration exhausted its sockets in the first 500-user
+attempt. PostgreSQL keeps its existing 100-connection limit, and PostgREST's
+pool remains at 10. Auth's database pool is bounded to 20 connections. Gateway tuning is local test infrastructure, not a change to
+the hosted production service. Students are stored as individual SharedArray
+elements so each virtual user copies only its own fixture.
+
 Each stage has a fresh shared classroom assignment with 16 questions, including
 one deterministically graded short answer. Five hundred distinct students are
 provisioned with the real Supabase Auth admin API and sign in using passwords.
@@ -44,7 +51,9 @@ GitHub runner-minute limits apply; this does not change any subscription.
 The same scripts can run on a Docker-capable workstation: initialize a separate
 Supabase project outside the application folder, start its Auth/API/Postgres
 services, save `supabase status -o json` to a private file, generate the focused
-schema with `node load-tests/prepare-local-classroom.mjs`, apply that schema to
+schema, and run `bash load-tests/configure-local-classroom-gateway.sh` before the
+load, followed by `python3 load-tests/configure-local-classroom-auth.py`.
+Generate the schema with `node load-tests/prepare-local-classroom.mjs`, apply that schema to
 the disposable `supabase_db_brains-classroom-local` container, and invoke
 `node load-tests/run-local-classroom.mjs <private-status-json> <results-dir> <k6-path>`.
 The workflow provides the complete commands. Never upload the status JSON or
@@ -67,6 +76,6 @@ pipeline, entitlement enforcement, or production query plans under historic data
 
 The load generator shares the host with the services. Loopback HTTP excludes
 WAN latency, TLS, CDN behavior and hosted resource limits. It opens no browsers
-and does not test realtime subscriptions, Rendering, Writing Hub, clan battles,
+and does not test realtime subscriptions, rendering, Writing Hub, clan battles,
 signup storms or mixed-feature traffic. A passing result supports classroom RPC
 concurrency on the recorded test host; it is not a hosted capacity guarantee.
