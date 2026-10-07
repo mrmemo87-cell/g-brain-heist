@@ -932,7 +932,6 @@ const IeltsExamMode: React.FC = () => {
                   {currentReadingPassage.paragraphs.map((paragraph) => <p key={paragraph.label} className="text-base leading-8 text-slate-900"><span className="mr-3 font-bold text-teal-800">{paragraph.label}</span>{paragraph.text}</p>)}
                 </div>
               </article>
-              <a href="#reading-questions" className="mt-3 inline-flex min-h-11 items-center font-semibold text-teal-800 underline">Go to this passage’s questions</a>
             </div>}
             <div id="reading-questions" className="space-y-5">
               {activeQuestions.length === 0 && (
@@ -947,7 +946,7 @@ const IeltsExamMode: React.FC = () => {
                   </label>
                   {question.options && question.options.length > 0 ? (
                     <div className="mt-3 space-y-2">
-                      {question.options.map((option) => (
+                      {question.options.map((option, optionIndex) => (
                         <label key={option} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
                           <input
                             type="radio"
@@ -957,7 +956,7 @@ const IeltsExamMode: React.FC = () => {
                             disabled={!shouldIeltsAutosaveRun(syncState)}
                             onChange={(event) => handleAnswerChange(activeSection, question.id, event.target.value)}
                           />
-                          <span>{option}</span>
+                          <span>{question.options?.length === 4 && <span className="mr-2 font-semibold">{String.fromCharCode(65 + optionIndex)}.</span>}{option}</span>
                         </label>
                       ))}
                     </div>
