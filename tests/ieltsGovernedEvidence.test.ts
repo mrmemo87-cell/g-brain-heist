@@ -34,7 +34,7 @@ test('Listening delivery keeps measured pauses and scoped audio review in the ca
 
 test('screener delivery uses narrow assessment labels and plain-language submission copy', () => {
   const exam = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
-  assert.ok(exam.includes("activeSection === 'listening' ? 'Listening' : 'Reading'"));
+  assert.ok(exam.includes("SECTIONS.find(section => section.id === activeSection)?.label"));
   assert.ok(exam.includes('starting-point check'));
   assert.match(exam, /isScreener \? 'Submit screener' : 'Submit IELTS Exam'/);
   assert.doesNotMatch(exam, /same idempotency key is reused/);

@@ -1,3 +1,7 @@
+import { IeltsWritingEditor } from '../../components/ielts/IeltsWritingEditor';
+import { IeltsWritingResult } from '../../components/ielts/IeltsWritingResult';
+import { fetchWritingScreenerResult } from '../../../services/ieltsWritingScreenerService';
+import type { WritingScreenerResult } from '../../../services/ieltsWritingScreener';
 import { getIeltsReadingPassages, restoreReadingPassage, saveReadingPassage } from '../../../services/ieltsReadingDelivery';
 import { makeIeltsAudioCheckpointKey, saveIeltsAudioCheckpoint, restoreIeltsAudioCheckpoint } from '../../../services/ieltsAudioCheckpoint';
 import { fetchIeltsDiagnosticResult, getIeltsScreenerAudio, type IeltsDiagnosticResult } from '../../../services/ieltsDiagnosticEvidenceService';
@@ -130,6 +134,7 @@ const IeltsExamMode: React.FC = () => {
   const { examEventId } = useParams<{ examEventId: string }>();
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [error, setError] = useState<string | null>(null);
+  const [writingResult, setWritingResult] = useState<WritingScreenerResult | null>(null);
   const [diagnosticResult, setDiagnosticResult] = useState<IeltsDiagnosticResult | null>(null);
   const [diagnosticError, setDiagnosticError] = useState('');
   const [resultRetry, setResultRetry] = useState(0);
@@ -351,6 +356,8 @@ const IeltsExamMode: React.FC = () => {
     };
   }, [refreshLiveState]);
 
+  const writingPayload = getPayloadForSection(whoami?.form_public_payload, 'writing');
+  const isWritingScreener = isObject(writingPayload) && writingPayload.task_type === 'academic_task2' && writingPayload.assessment_mode === 'screener';
   const resultAttemptId = submission?.attempt_id ?? whoami?.attempt_id ?? attempt?.attempt_id;
   const resultSubmitted = Boolean(submission) || ['submitted', 'auto_submitted'].includes(whoami?.status ?? '');
   useEffect(() => {
@@ -358,10 +365,16 @@ const IeltsExamMode: React.FC = () => {
     let active = true;
     setDiagnosticError('');
     setDiagnosticResult(null);
+    setWritingResult(null);
+    if (isWritingScreener) {
+      fetchWritingScreenerResult(resultAttemptId).then((value) => { if (active) setWritingResult(value); })
+        .catch(() => { if (active) setDiagnosticError('Your essay is saved. The feedback could not load. Please try again.'); });
+      return () => { active = false; };
+    }
     fetchIeltsDiagnosticResult(resultAttemptId).then((value) => { if (active) setDiagnosticResult(value); })
       .catch((reason) => { if (active) setDiagnosticError(reason instanceof Error ? reason.message : 'Your answers are saved. Please retry loading the result.'); });
     return () => { active = false; };
-  }, [resultAttemptId, resultSubmitted, resultRetry]);
+  }, [resultAttemptId, resultSubmitted, resultRetry, isWritingScreener]);
 
   const formPayload = whoami?.form_public_payload ?? null;
   const availableSections = useMemo(() => (
@@ -745,7 +758,8 @@ const IeltsExamMode: React.FC = () => {
   if (isSubmitted) {
     return (
       <ExamFrame>
-        {!diagnosticResult && <StateCard
+        {writingResult && <IeltsWritingResult result={writingResult} onRefresh={() => setResultRetry(n => n + 1)} />}
+        {!diagnosticResult && !writingResult && <StateCard
           title="IELTS assessment submitted"
           body={submission?.submission_id === 'teacher-action' || teacherActionMessage === 'Your exam has been submitted by your teacher.' ? 'Your exam has been submitted by your teacher.' : 'Your answers have been received and locked for grading.'}
           secondaryText="Your answers are saved. Your teacher can help you with the next step."
@@ -770,8 +784,8 @@ const IeltsExamMode: React.FC = () => {
     return (
       <ExamFrame>
         <StateCard
-          eyebrow={isScreener ? 'Listening readiness screener' : 'IELTS Exam Mode'}
-          title={isScreener ? (whoami.attempt_id ? 'Continue your Listening screener.' : 'Your Listening screener is ready.') : stateTitleFor(whoami)}
+          eyebrow={isScreener ? `${availableSections[0]?.label ?? 'IELTS'} screener` : 'IELTS Exam Mode'}
+          title={isScreener ? (whoami.attempt_id ? `Continue your ${availableSections[0]?.label ?? 'IELTS'} screener.` : `Your ${availableSections[0]?.label ?? 'IELTS'} screener is ready.`) : stateTitleFor(whoami)}
           body={getIeltsAttemptTimeMessage(Boolean(whoami.attempt_id), remainingSeconds)}
           secondaryText={whoami.attempt_id ? 'Your saved answers will reopen. The timer continues from your existing attempt.' : 'The timer starts when you begin. Your answers save automatically.'}
           alert={error}
@@ -804,8 +818,8 @@ const IeltsExamMode: React.FC = () => {
         <header className="border-b border-slate-200 bg-white px-4 py-4 shadow-sm">
           <div className="mx-auto flex max-w-6xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{isScreener ? `${activeSection === 'listening' ? 'Listening' : 'Reading'} screener` : 'Controlled IELTS Exam Mode'} · {isPaused ? 'Paused by teacher' : 'Exam is live'}</p>
-              <h1 className="text-2xl font-semibold text-slate-950">{isScreener ? `${activeSection === 'listening' ? 'Listening' : 'Reading'} starting-point check` : 'IELTS Exam'}</h1>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{isScreener ? `${SECTIONS.find(section => section.id === activeSection)?.label ?? 'IELTS'} screener` : 'Controlled IELTS Exam Mode'} · {isPaused ? 'Paused by teacher' : 'Exam is live'}</p>
+              <h1 className="text-2xl font-semibold text-slate-950">{isScreener ? `${SECTIONS.find(section => section.id === activeSection)?.label ?? 'IELTS'} starting-point check` : 'IELTS Exam'}</h1>
               <p className="text-sm text-slate-500">{isPaused ? 'Editing is disabled while the teacher has paused the exam.' : 'Use only this exam window. Your work autosaves every 8 seconds.'}</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-right">
@@ -824,7 +838,7 @@ const IeltsExamMode: React.FC = () => {
 
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
             <div className="flex flex-wrap gap-2">
-              {availableSections.map((section) => (
+              {!isWritingScreener && availableSections.map((section) => (
                 <button
                   key={section.id}
                   type="button"
@@ -933,7 +947,10 @@ const IeltsExamMode: React.FC = () => {
                 </div>
               </article>
             </div>}
-            <div id="reading-questions" className="space-y-5">
+            {isWritingScreener && activeSection === 'writing' && activeQuestions[0] && <IeltsWritingEditor
+              prompt={activeQuestions[0].prompt} value={answers.writing?.[activeQuestions[0].id] ?? ''}
+              disabled={!shouldIeltsAutosaveRun(syncState)} onChange={value => handleAnswerChange('writing', activeQuestions[0].id, value)} />}
+            {!(isWritingScreener && activeSection === 'writing') && <div id="reading-questions" className="space-y-5">
               {activeQuestions.length === 0 && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
                   No active questions are available for this section yet. Please wait while your teacher checks the form setup.
@@ -981,7 +998,7 @@ const IeltsExamMode: React.FC = () => {
                   )}
                 </article>
               ))}
-            </div>
+            </div>}
           </section>
 
           <footer className="sticky bottom-0 mt-6 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur">
