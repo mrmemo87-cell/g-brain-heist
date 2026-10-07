@@ -363,7 +363,7 @@ test("teacher confirmation, evidence validation, AI provenance, review concurren
   assert.equal(
     (
       await db.query(
-      "select has_function_privilege('authenticated','public.rpc_ielts_finish_speaking_ai(uuid,jsonb,text,text)','execute') ok",
+        "select has_function_privilege('authenticated','public.rpc_ielts_finish_speaking_ai(uuid,jsonb,text,text)','execute') ok",
       )
     ).rows[0].ok,
     false,
@@ -375,6 +375,159 @@ test("teacher confirmation, evidence validation, AI provenance, review concurren
       )
     ).rows[0].ok,
     false,
+  );
+});
+
+test("publication opens eligible accounts, preserves pilot evidence and enforces student/reviewer scope", async () => {
+  await db.query("update users set is_banned=false where id=$1", [teacher]);
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/20261007125521_ielts_speaking_eligible_release.sql",
+      "utf8",
+    ),
+  );
+  await actor(other);
+  const home = (await db.query("select rpc_ielts_speaking_workspace() h"))
+    .rows[0].h;
+  assert.equal(home.available, true);
+  assert.equal(home.published, true);
+  assert.equal(home.student_id, other);
+  assert.equal(home.package, null);
+  assert.equal(home.sessions.length, 0);
+  assert.equal(home.students.length, 0);
+  await assert.rejects(
+    db.query("select rpc_ielts_speaking_workspace($1)", [student]),
+    /not_authorized/,
+  );
+  await assert.rejects(
+    db.query("select rpc_ielts_start_speaking_interview($1,$2,true)", [
+      other,
+      id(80),
+    ]),
+    /not_authorized/,
+  );
+  await actor(teacher);
+  const teacherHome = (
+    await db.query("select rpc_ielts_speaking_workspace($1) h", [other])
+  ).rows[0].h;
+  assert.equal(teacherHome.student_id, other);
+  assert.equal(teacherHome.students.length, 2);
+  await assert.rejects(
+    db.query("select rpc_ielts_start_speaking_interview($1,$2,false)", [
+      other,
+      id(80),
+    ]),
+    /consent/,
+  );
+  const started = (
+    await db.query("select rpc_ielts_start_speaking_interview($1,$2,true) id", [
+      other,
+      id(80),
+    ])
+  ).rows[0].id;
+  assert.equal(started, id(80));
+  assert.equal(
+    (
+      await db.query(
+        "select rpc_ielts_start_speaking_interview($1,$2,true) id",
+        [other, id(81)],
+      )
+    ).rows[0].id,
+    started,
+  );
+  await assert.rejects(
+    db.query("select rpc_ielts_start_speaking_interview($1,$2,true)", [
+      student,
+      id(80),
+    ]),
+    /conflict/,
+  );
+  await actor(other);
+  assert.equal(
+    (await db.query("select rpc_ielts_speaking_home() h")).rows[0].h.sessions[0]
+      .id,
+    started,
+  );
+  await assert.rejects(
+    db.query("select rpc_ielts_speaking_session($1)", [session]),
+    /not_authorized/,
+  );
+  await actor(student);
+  const original = (await db.query("select rpc_ielts_speaking_home() h"))
+    .rows[0].h;
+  assert.equal(original.sessions.length, 1);
+  assert.equal(original.sessions[0].reviewed, true);
+  await db.query("update users set is_banned=true where id=$1", [other]);
+  await actor(other);
+  assert.equal(
+    (await db.query("select rpc_ielts_speaking_home() h")).rows[0].h.available,
+    false,
+  );
+  await assert.rejects(
+    db.query("select rpc_ielts_speaking_session($1)", [started]),
+    /not_authorized/,
+  );
+  assert.equal(
+    (
+      await db.query(
+        "select has_function_privilege('anon','rpc_ielts_speaking_workspace(uuid,text)','execute') ok",
+      )
+    ).rows[0].ok,
+    false,
+  );
+  await assert.rejects(
+    db.exec(
+      "update private.ielts_speaking_releases set acceptance_note='changed'",
+    ),
+    /immutable/,
+  );
+  // Real policy exercised with separate school administrator, other-school and independent fixtures.
+  await db.exec(`insert into users values('${id(90)}','Local administrator','school_admin','${school}',false),('${id(91)}','Other school learner','student','${id(92)}',false),('${id(93)}','Independent learner','student',null,false),('${id(94)}','Unallocated teacher','teacher','${school}',false);
+    insert into school_members values('${id(90)}','${school}','active','school_admin'),('${id(91)}','${id(92)}','active','student');
+    create or replace function public.school_has_module_access(uuid,text) returns boolean language sql as $$select $1 in ('${school}'::uuid,'${id(92)}'::uuid)$$;
+    create or replace function private.actor_can_access_school_programme(uuid,text,boolean) returns boolean language sql as $$select auth.uid() in ('${teacher}'::uuid,'${id(90)}'::uuid) and $1='${school}'::uuid$$;`);
+  await actor(id(90));
+  const scoped = (await db.query("select rpc_ielts_speaking_workspace() h"))
+    .rows[0].h;
+  assert.deepEqual(
+    scoped.students.map((s) => s.id),
+    [student],
+  );
+  await assert.rejects(
+    db.query("select rpc_ielts_speaking_workspace($1)", [id(91)]),
+    /not_authorized/,
+  );
+  await assert.rejects(
+    db.query("select rpc_ielts_start_speaking_interview($1,$2,true)", [
+      id(91),
+      id(95),
+    ]),
+    /not_authorized/,
+  );
+  const empty = (
+    await db.query(
+      "select rpc_ielts_speaking_workspace(null,'no matching name') h",
+    )
+  ).rows[0].h;
+  assert.equal(empty.available, true);
+  assert.deepEqual(empty.students, []);
+  await actor(id(94));
+  assert.equal(
+    (await db.query("select rpc_ielts_speaking_workspace(null,'no match') h"))
+      .rows[0].h.available,
+    false,
+  );
+  await actor(id(93));
+  assert.equal(
+    (await db.query("select rpc_ielts_speaking_home() h")).rows[0].h.available,
+    true,
+  );
+  await assert.rejects(
+    db.query("select rpc_ielts_start_speaking_interview($1,$2,true)", [
+      id(93),
+      id(95),
+    ]),
+    /not_authorized/,
   );
   await db.close();
 });
