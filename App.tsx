@@ -3,6 +3,7 @@ import { useLanguage } from './src/contexts/LanguageContext';
 import React, { Suspense, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, SchoolGrade, StudentAssignmentTask, XpStatus, DailyStreakRewardReceipt } from './types';
 import * as GameService from './services/gameService';
+import { hasSignificantProfileChange } from './services/profileRealtime';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
 import LoginLaunchpad from './components/LoginLaunchpad';
@@ -1529,16 +1530,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
           const oldProfile = liveProfileRef.current;
 
           // Skip if only last_seen or last_ap_update changed (avoid infinite loops)
-          const significantChange = 
-            newProfile.xp !== oldProfile?.xp ||
-            newProfile.coins !== oldProfile?.coins ||
-            newProfile.level !== oldProfile?.level ||
-            newProfile.gemstones !== oldProfile?.gemstones ||
-            newProfile.ap_now !== oldProfile?.ap_now ||
-            newProfile.is_banned !== oldProfile?.is_banned ||
-            newProfile.banned_until !== oldProfile?.banned_until ||
-            newProfile.required_changes !== oldProfile?.required_changes ||
-            newProfile.streak !== oldProfile?.streak;
+          const significantChange = hasSignificantProfileChange(oldProfile, newProfile);
           
           if (!significantChange) {
             return; // Silent skip for non-significant updates

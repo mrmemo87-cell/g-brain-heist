@@ -5,7 +5,7 @@
 - Assignment lists fetch compact metadata/counts, without question snapshots or per-question resume aggregates. Opening an assignment fetches only its authorized detail. Existing v2 RPCs remain available for previous deployments and rollback.
 - Failed/timed-out assignment discovery presents a retry state rather than treating the failure as an empty assignment list and downloading the practice catalog. HTTP reads are aborted on timeout, replacement or unmount; stale detail replies cannot replace the current run.
 - Dashboard polling pauses while students are in other views or the browser is hidden. Routine profile polling uses a local authenticated session and a profile read, with server AP regeneration only when the known profile indicates regeneration can be due. It does not re-claim streak rewards, hydrate clan metadata, load cosmetics, or reload assignment lists. Explicit refreshes retain full hydration.
-- Realtime profile comparisons use the current local profile; old-row payloads under RLS can contain only a primary key.
+- Realtime profile comparisons use the current local profile; old-row payloads under RLS can contain only a primary key. Nested JSON restrictions compare by value; account authority, locks, placement and cosmetic updates remain significant, while omitted fields in partial payloads do not clear local state.
 - Activity feeds subscribe only on the dashboard; bursts coalesce for five seconds and cannot start overlapping feed reads. Errors are handled and late responses after leaving the dashboard are ignored.
 - Full profile hydration now loads all active cosmetics in one query and performs no cosmetic users-table writes. Existing activation/deactivation mutation paths still maintain persisted cosmetic fields.
 - Practice progress reuses its already-loaded subject catalog.
@@ -14,7 +14,7 @@ Answer-save, finalization, server grading, review, immutable snapshots and their
 
 ## Validation
 
-`npm run verify` passed: portal guard, content/taxonomy validators, TypeScript checks, migration security guard, production build and regression suite. 1,851 checks executed successfully, two pre-existing skips. The new checks exercise cancellation/timeout, rendered assignment-error retry and resume, stale detail replies after unmount, assigned-student authorization, future/closed/completed availability, resume scoring and short-answer key redaction.
+`npm run verify` passed: portal guard, content/taxonomy validators, TypeScript checks, migration security guard, production build and regression suite. 1,854 checks executed successfully, two pre-existing skips. The new checks exercise cancellation/timeout, rendered assignment-error retry and resume, stale detail replies after unmount, assigned-student authorization, future/closed/completed availability, resume scoring and short-answer key redaction.
 
 Important scope: repository TypeScript configuration includes .ts files; production compilation and the rendered DOM tests exercise the changed TSX student flow. The DOM tests use mocked services and do not certify device/browser behavior under real network load.
 

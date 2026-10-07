@@ -1481,7 +1481,7 @@ export const refresh_player_snapshot = async (current: Profile, regenerateAp = f
   profile.is_banned = isBannedFlag(profile.is_banned);
   if (profile.is_banned) { storeBanMessage(BAN_MESSAGE); await supabase.auth.signOut(); throw new Error(BAN_MESSAGE); }
   profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
-  if (profile.xp !== current.xp || profile.level !== current.level) {
+  if (profile.xp_status?.xp !== profile.xp || profile.xp_status?.level !== profile.level) {
     profile.xp_status = await fetchMyXpStatus(supabase, { xp: profile.xp, level: profile.level });
   }
   return profile;
