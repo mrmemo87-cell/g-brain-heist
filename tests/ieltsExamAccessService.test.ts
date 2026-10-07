@@ -127,7 +127,7 @@ test('IELTS Exam Mode access preserves manageable-exam fallback when capability 
   const result = await checkIeltsExamModeAdminAccess(client as never);
 
   assert.deepEqual(result, { allowed: true, reason: 'manageable_exam_scope' });
-  assert.deepEqual(calls, ['school_admin_get_my_allocation_capabilities', 'rpc_ielts_list_manageable_exams']);
+  assert.deepEqual(calls, ['school_admin_get_my_allocation_capabilities', 'rpc_ielts_programme_access', 'rpc_ielts_list_manageable_exams']);
 });
 
 test('IELTS Exam Mode guard hides previously authorized content during every recheck', () => {
@@ -245,4 +245,17 @@ test('Phase 0 IELTS Exam Mode SQL keeps managers school-scoped and teachers moni
     /public\.can_assign_ielts_exam_class\(p_exam_event_id uuid, p_class_id uuid\)[\s\S]*public\.can_manage_ielts_exam\(p_exam_event_id\)/i,
     'class assignment writes must require exam manager permissions',
   );
+});
+
+
+test('IELTS programme lead can open exam management before an exam exists', async () => {
+  const calls: string[] = [];
+  const client = authenticatedAccessClient(async (name) => {
+    calls.push(name);
+    return {data: name === 'rpc_ielts_programme_access'
+      ? {schools:[{id:'school-1',can_manage:true}]}
+      : {success:true, school_id:'school-1', role:'teacher', is_owner:false, can_administer:false, can_teach:true}, error:null};
+  });
+  assert.deepEqual(await checkIeltsExamModeAdminAccess(client as never), {allowed:true,reason:'programme_lead'});
+  assert.deepEqual(calls, ['school_admin_get_my_allocation_capabilities','rpc_ielts_programme_access']);
 });

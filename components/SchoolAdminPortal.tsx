@@ -77,6 +77,7 @@ type AdminTab = MainAdminTab | IeltsSubTab;
 type IeltsToolNavItem = { id: IeltsSubTab; icon: SchoolAdminNavIconName; label: string; hint: string };
 
 const IeltsJourneyDashboard = React.lazy(() => import('../src/pages/ielts/IeltsJourneyDashboard'));
+const IeltsProgrammeWorkspace = React.lazy(() => import('../src/pages/ielts/IeltsProgrammeWorkspace'));
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
 const TeacherInterventionIntelligencePage = React.lazy(() => import('./student-progress/TeacherInterventionIntelligencePage'));
 const GuardianManagementPage = React.lazy(() => import('./guardian/GuardianManagementPage'));
@@ -115,6 +116,7 @@ const getInitialSchoolAdminSidebarCollapsed = () => {
 };
 
 const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
+  { id: 'ielts-overview', icon: 'student-progress', label: 'Programme Home', hint: 'Team & next steps' },
   { id: 'ielts-exams', icon: 'exams', label: 'Exams', hint: 'Secure mock exams' },
   { id: 'ielts-practice', icon: 'assignments', label: 'Assignment Overview', hint: 'Assign & monitor' },
   { id: 'ielts-reviews', icon: 'reviews', label: 'Reviews', hint: 'Writing & speaking' },
@@ -1990,6 +1992,11 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
             tabIndex={0}
             className="rounded-2xl ring-1 ring-teal-500/10"
           >
+            {activeIeltsSubTab === 'ielts-overview' && (
+              <React.Suspense fallback={<div role="status" className="p-6 text-slate-600">Opening IELTS programme…</div>}>
+                <IeltsProgrammeWorkspace embedded schoolId={school?.id} />
+              </React.Suspense>
+            )}
             {activeIeltsSubTab === 'ielts-exams' && (
               activeIeltsMonitorExamId ? (
                 <IeltsExamModeAdminGuard>

@@ -100,7 +100,7 @@ interface IeltsPracticeTabProps {
 }
 
 const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews }) => {
-  const { classes = [], students = [], studentAssignments = {}, school, addToast } = useSchoolAdmin();
+  const { classes = [], students = [], studentCount = students.length, studentAssignments = {}, school, addToast } = useSchoolAdmin();
   const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<AssignmentStatusFilter>('active');
   const [assignments, setAssignments] = useState<IeltsPracticeAssignmentSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -136,11 +136,12 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews }) =>
 
   const selectedClassStudentCount = useMemo(() => {
     if (!classId) return null;
+    if (typeof selectedClass?.student_count === 'number') return selectedClass.student_count;
     return students.filter((student: any) => {
       const studentId = student.user_id ?? student.id;
       return student.class_id === classId || student.classId === classId || studentAssignments[studentId] === classId;
     }).length;
-  }, [classId, students, studentAssignments]);
+  }, [classId, students, studentAssignments, selectedClass]);
 
   const hasSelectedContent = items.some((item) => item.contentId.trim());
 
@@ -509,7 +510,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews }) =>
           <p className="text-gray-400">
             Assigning to {selectedClass?.class_name ?? 'a class'} will create student rows for matching school roster members.
           </p>
-          <p className="mt-2 text-xs text-gray-500">{students.length} students are currently available for assignment.</p>
+          <p className="mt-2 text-xs text-gray-500">{studentCount} students are currently available for assignment.</p>
           {classId && selectedClassStudentCount === 0 && (
             <p className="mt-2 rounded-lg border border-amber-400/40 bg-amber-500/10 p-2 text-xs font-semibold text-amber-100">No students in this class. Add students before creating the assignment.</p>
           )}

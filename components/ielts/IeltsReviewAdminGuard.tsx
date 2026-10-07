@@ -3,6 +3,7 @@ import { supabase } from '../../services/supabaseClient';
 import AccessDenied from './AccessDenied';
 import { canAccessIeltsReviewQueue } from '../../services/ieltsReviewAccess';
 import { resolveMySchoolCapabilities } from '../../services/schoolAdminService';
+import { programmeAccess } from '../../services/ieltsProgrammeService';
 
 type GuardState = 'loading' | 'allowed' | 'denied' | 'error';
 
@@ -44,6 +45,12 @@ const IeltsReviewAdminGuard: React.FC<{ children: React.ReactNode }> = ({ childr
         && canAccessIeltsReviewQueue({ ...typedProfile, can_administer_school: canAdministerSchool })
       );
       if (allowed) {
+        setState('allowed');
+        return;
+      }
+      const programme = await programmeAccess();
+      if (requestId !== requestIdRef.current) return;
+      if (programme.schools.some(s => s.can_manage)) {
         setState('allowed');
         return;
       }

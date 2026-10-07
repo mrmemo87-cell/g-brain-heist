@@ -101,10 +101,11 @@ const uniqueStudents = (students: IeltsExamAdminStudent[]) => {
 
 interface IeltsExamManagerProps {
   embedded?: boolean;
+  schoolIdOverride?: string;
   onOpenMonitor?: (examEventId: string) => void;
 }
 
-const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, onOpenMonitor }) => {
+const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, onOpenMonitor, schoolIdOverride }) => {
   const [exams, setExams] = useState<IeltsManageableExam[]>([]);
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
   const [detail, setDetail] = useState<IeltsExamAdminDetail | null>(null);
@@ -153,7 +154,8 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
     setBusy((current) => current === 'idle' ? 'loading' : current);
     setError(null);
     try {
-      const rows = await rpcIeltsListManageableExams();
+      const available = await rpcIeltsListManageableExams();
+      const rows = schoolIdOverride ? available.filter(e => e.school_id === schoolIdOverride) : available;
       setExams(rows);
       const nextId = preferredExamId ?? selectedExamId ?? rows[0]?.id ?? null;
       setSelectedExamId(nextId);
@@ -169,7 +171,7 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
     } finally {
       setBusy('idle');
     }
-  }, [applyExamDetail, selectedExamId]);
+  }, [applyExamDetail, selectedExamId, schoolIdOverride]);
 
   useEffect(() => {
     void loadExams();
@@ -261,6 +263,7 @@ const IeltsExamManager: React.FC<IeltsExamManagerProps> = ({ embedded = false, o
     setMessage(null);
     try {
       const created = await rpcIeltsCreateExamEvent({
+        schoolId: schoolIdOverride,
         title,
         description,
         startsAt: toIsoFromLocal(startsAt),
