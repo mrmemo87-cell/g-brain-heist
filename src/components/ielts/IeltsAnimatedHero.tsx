@@ -65,7 +65,7 @@ export const IeltsScreenerRing: React.FC = () => {
       <circle ref={ringRef} cx="160" cy="160" r="94" fill="none" stroke="url(#ieltsRing)" strokeWidth="11" strokeLinecap="round" transform="rotate(-90 160 160)" />
       <g ref={orbitRef}><circle cx="254" cy="160" r="7" fill="#22d3ee" /><circle cx="66" cy="160" r="4" fill="#7c3aed" opacity="0.8" /></g>
       <text x="160" y="146" textAnchor="middle" fill="#0f172a" fontSize="18" fontWeight="900">Listening Check</text>
-      <text x="160" y="174" textAnchor="middle" fill="#2563eb" fontSize="34" fontWeight="950">10 Qs</text>
+      <text x="160" y="174" textAnchor="middle" fill="#2563eb" fontSize="34" fontWeight="950">12 Qs</text>
       <text x="160" y="198" textAnchor="middle" fill="#64748b" fontSize="12" fontWeight="800">focused screener</text>
     </svg>
   );

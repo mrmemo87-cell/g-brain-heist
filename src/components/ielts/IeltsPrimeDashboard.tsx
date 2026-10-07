@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { gsap } from 'gsap';
 import type { IeltsDashboardSummary, IeltsSkill, IeltsSkillProgress } from '../../../services/ieltsDashboardService';
 import IeltsSchoolLearnerLinks from './IeltsSchoolLearnerLinks';
+import IeltsScreenerHub from './IeltsScreenerHub';
 
 type SkillCardModel = {
   skill: IeltsSkill;
@@ -131,6 +132,7 @@ const IeltsPrimeDashboard: React.FC<Props> = ({ summary, lapsedPrime, taskTotal,
           </div>
         </section>
 
+        <IeltsScreenerHub />
         {showSchoolLinks && <IeltsSchoolLearnerLinks onNavigate={onNavigate} />}
 
         <section style={{ ...glassCard, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '.75rem' }}>
