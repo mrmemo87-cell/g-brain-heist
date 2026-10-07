@@ -20,6 +20,7 @@ import {
 } from '../types';
 import * as GameService from '../services/gameService';
 import { QuestionInputGuard, assignmentDraftStorage, readAssignmentDraft, writeAssignmentDraft, clearAssignmentDraft } from '../services/assignmentReliability';
+import { boundedRead } from '../services/boundedRead';
 import { audioService } from '../services/audioService';
 import { CoinIcon, GemIcon, XPIcon } from './icons';
 import BackButton from './BackButton';
@@ -168,7 +169,7 @@ const getOptionImageUrl = (option: string | QuestionOption): string | undefined 
   return resolveQuestionImageUrl(option.image_url);
 };
 
-type QuestStage = 'loading' | 'subject_selection' | 'unified_subject_play' | 'mission_preview' | 'mission_board' | 'in_progress' | 'completed' | 'assignment_blocked' | 'ftue_training';
+type QuestStage = 'loading' | 'subject_selection' | 'unified_subject_play' | 'mission_preview' | 'mission_board' | 'in_progress' | 'completed' | 'assignment_blocked' | 'assignment_unavailable' | 'ftue_training';
 type QuestMode = 'practice' | 'teacher' | 'assignment' | 'ftue_training';
 type AssignmentAnswerReviewStatus = 'correct' | 'incorrect' | 'under_review' | null;
 
@@ -283,7 +284,7 @@ interface QuestViewProps {
   onGrantReward: (deltas: { xp: number; coins: number; gemstones?: number }, finalValues?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus }) => void;
   viewerRole?: UserRole;
   /**
-   * Optional pre-fetched assignment supplied by the parent so we can avoid double loading.
+   * Optional assignment summary supplied by the parent to select the intended assignment.
    */
   initialAssignment?: StudentAssignmentTask | null;
   /**
@@ -376,6 +377,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [trainingCorrectCount, setTrainingCorrectCount] = useState(0);
   const [completionFinalProfile, setCompletionFinalProfile] = useState<{ xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus } | null>(null);
   const trainingStartedRef = useRef(false);
+  const assignmentLoadRef = useRef<AbortController | null>(null);
+  const [assignmentLoadError, setAssignmentLoadError] = useState<string | null>(null);
+  useEffect(() => () => { assignmentLoadRef.current?.abort(); }, []);
   const firstMissionCompletionTrackedRef = useRef(false);
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
   const missionZonesRef = useRef<HTMLDivElement>(null);
@@ -750,7 +754,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       // Add timeout to prevent infinite loading if the query hangs
       let studentProgress: Awaited<ReturnType<typeof GameService.get_student_subject_progress_with_difficulty>> = [];
       try {
-        const progressPromise = GameService.get_student_subject_progress_with_difficulty();
+        const progressPromise = GameService.get_student_subject_progress_with_difficulty(data);
         const timeoutPromise = new Promise<never>((_, reject) => 
           setTimeout(() => reject(new Error('Progress fetch timeout')), 10000)
         );
@@ -986,6 +990,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       return;
     }
 
+    assignmentLoadRef.current?.abort();
+    const controller = new AbortController();
+    assignmentLoadRef.current = controller;
+    setAssignmentLoadError(null);
     const { showLoading = false } = options;
     if (showLoading) {
       setStage('loading');
@@ -993,20 +1001,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     try {
       console.log('[QuestView] Checking for active assignment...');
 
-      // Add timeout to prevent infinite loading
-      const assignmentPromise = GameService.get_student_pending_assignments();
-      let timeoutId: ReturnType<typeof setTimeout> | null = null;
-      const timeoutPromise = new Promise<null>((resolve) => {
-        timeoutId = setTimeout(() => {
-          console.warn('[QuestView] Assignment fetch timed out after 15s');
-          resolve(null);
-        }, 15000);
-      });
-
-      const assignment = await Promise.race([assignmentPromise, timeoutPromise]);
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
+      const assignment = await boundedRead(
+        signal => GameService.get_student_assignment_summaries(signal),
+        15000, controller.signal,
+      );
+      if (controller.signal.aborted || assignmentLoadRef.current !== controller) return;
       if (trainingStartedRef.current) {
         console.log('[QuestView] Ignoring assignment hydration result because FTUE training started');
         return;
@@ -1027,9 +1026,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
       if (selectedAssignment) {
         setPreferredAssignmentId(selectedAssignment.assignment_id);
-        applyAssignmentState({
-          ...selectedAssignment,
-          questions: (selectedAssignment.questions || []).map(normalizeAssignmentQuestion),
+        const detail = await boundedRead(
+          signal => GameService.get_student_assignment_detail(selectedAssignment.assignment_id, signal),
+          15000, controller.signal,
+        );
+        if (controller.signal.aborted || assignmentLoadRef.current !== controller || trainingStartedRef.current) return;
+        applyAssignmentState({ ...selectedAssignment, ...detail,
+          questions: detail.questions.map(normalizeAssignmentQuestion),
         });
       } else {
         console.log('[QuestView] No active assignment found, showing subject selection');
@@ -1047,18 +1050,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       if (trainingStartedRef.current) {
         return;
       }
-      // Ensure we exit loading state on error
-      await loadSubjects();
+      if (controller.signal.aborted || assignmentLoadRef.current !== controller) return;
+      setAssignmentLoadError('Your assignment could not be loaded. Retry to continue with your saved progress.');
+      setStage('assignment_unavailable');
     }
   };
 
   const handleSelectAssignment = (assignment: StudentAssignmentTask) => {
     setPreferredAssignmentId(assignment.assignment_id);
     setHasDeferredAssignments(false);
-    applyAssignmentState({
-      ...assignment,
-      questions: (assignment.questions || []).map(normalizeAssignmentQuestion),
-    });
+    void hydrateAssignment({ showLoading: true, preferredId: assignment.assignment_id });
   };
 
   const handleDeferAssignment = async () => {
@@ -2558,7 +2559,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                         <p className="text-xs text-slate-400">{assignment.subject_name} · {assignment.topic_name}</p>
                       </div>
                       <div className="text-xs text-slate-300 text-right">
-                        <p>{assignment.questions?.length || 0} questions</p>
+                        <p>{assignment.question_count ?? assignment.questions?.length ?? 0} questions</p>
                         <p>Due {assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'anytime'}</p>
                       </div>
                     </div>
@@ -3195,6 +3196,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       case 'ftue_training': return renderFtueTraining();
       case 'in_progress': return renderInProgress();
       case 'completed': return renderCompleted();
+      case 'assignment_unavailable': return (
+        <div role="alert" className="rounded-xl border border-amber-500/40 bg-slate-900 p-6 text-center">
+          <h2 className="text-xl font-semibold">Assignment temporarily unavailable</h2>
+          <p className="mt-3 text-slate-300">{assignmentLoadError}</p>
+          <button type="button" className="mt-5 rounded-lg bg-cyan-600 px-5 py-3 font-semibold" onClick={() => { void hydrateAssignment({ showLoading: true }); }}>Retry assignment</button>
+        </div>
+      );
       case 'assignment_blocked': return renderAssignmentBlocker();
       default: return null;
     }

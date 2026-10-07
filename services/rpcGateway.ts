@@ -128,8 +128,9 @@ export const getStudentActiveAssignment = (client?: RpcClient): RpcResult<unknow
   return execute('rpc_get_student_active_assignment_v2', {}, client);
 };
 
-export const getStudentPendingAssignments = (client?: RpcClient): RpcResult<unknown> => {
-  return execute('rpc_get_student_pending_assignments_v2', {}, client);
+export const getStudentPendingAssignments = (client?: RpcClient, signal?: AbortSignal): RpcResult<unknown> => {
+  const request = withClient(client).rpc('rpc_get_student_pending_assignments_v2', {});
+  return (signal ? request.abortSignal(signal) : request) as unknown as RpcResult<unknown>;
 };
 
 export const submitAssignmentResult = (

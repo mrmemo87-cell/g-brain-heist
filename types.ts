@@ -1079,6 +1079,8 @@ export interface TeacherAssignmentSummary {
 }
 
 export interface StudentAssignmentTask {
+  /** Lists omit snapshots; fetch detail before starting/resuming an assignment. */
+  question_count?: number;
   assignment_id: string;
   subject_id?: string | null;
   subject_name: string;
