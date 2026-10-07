@@ -189,6 +189,40 @@ Batch Question Creation must follow these rules:
 9. A coherent batch should normally reuse a small number of canonical skills/subskills.
 10. The database remains the final fail-closed authority; prompt compliance is not trusted by itself.
 
+## Canonical verified-question mapping invariant
+
+For every active School Verified or Brains Heist Verified question that is eligible for Academic Profile evidence, the authoritative diagnostic identity is the **current, hash-bound, approved registry-native mapping**:
+
+`Registry → Strand → Skill → Atomic Subskill → Evidence Focus`
+
+The source of truth is `public.verified_question_registry_taxonomy`, resolved against the published Academic Skill Registry. The mapping must match the question's current verified content hash.
+
+The following are **not** authoritative diagnostic identity and must never be used as a fallback for verified evidence:
+
+- topic or lesson title,
+- `questions.curriculum_strand`,
+- `questions.curriculum_skill`,
+- `questions.curriculum_subskill`,
+- tags,
+- imported display labels,
+- AI-generated free-text labels.
+
+`public.verified_question_diagnostic_taxonomy` remains historical/compatibility governance data. Approved current legacy rows are bridged into the registry-native mapping; historical rows remain append-only for audit.
+
+Verification must fail closed. A question must not remain both `verification_status='verified'` and `analytics_eligible=true` for its current verified hash unless a valid registry-native mapping exists. Shared-registry subject aliases such as Biology → Science, Maths → Mathematics, ICT → Digital Technology, and supported Modern Languages must resolve through `academic_skill_registry_subject_aliases` and obey any `allowed_strand_codes`.
+
+### Rules for AI agents
+
+When creating, importing, verifying, repairing or reviewing a question:
+
+1. Resolve the governed subject alias and published registry first.
+2. Select existing stable Skill, Subskill and Evidence Focus codes from that registry.
+3. Never repair a missing mapping by copying the topic into Skill/Subskill fields.
+4. Never invent a replacement canonical code or free-text taxonomy.
+5. If no legitimate canonical match exists, stop official verification and require human governance.
+6. Treat legacy curriculum fields as curriculum/display metadata only.
+7. A verified-question UI must show the registry-native mapping. If that mapping is unavailable in the response, show an explicit “canonical mapping unavailable” state instead of substituting legacy labels.
+
 ## Human governance
 
 For any School Verified question whose subject has a published registry:
