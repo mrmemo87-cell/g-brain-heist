@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { IELTS_WRITING_CRITERIA, type WritingObservations, type WritingScreenerResult } from '../services/ieltsWritingScreener';
 import { getWritingReviewReadiness } from '../services/ieltsWritingReviewUx';
 import { IeltsWritingReviewWorkspace } from '../src/components/ielts/IeltsWritingReviewWorkspace';
+import { IeltsWritingResult } from '../src/components/ielts/IeltsWritingResult';
 
 const observations = () => Object.fromEntries(IELTS_WRITING_CRITERIA.map(({key}) => [key, {status:'observed',comment:'A clear and specific observation.',evidence:[{quote:'An original essay.',start_char:0,end_char:18}]}])) as WritingObservations;
 const result = {response_text:'An original essay.',prompt:'An original task.',word_count:3,evidence_kind:'first_sitting',incident_count:0} as WritingScreenerResult;
@@ -38,4 +39,31 @@ test('Review foregrounds meet contrast on white and the split workspace stacks o
   assert.match(css,/color:#17243b!important; -webkit-text-fill-color:#17243b!important/);
   assert.match(css,/@media\(max-width:900px\).*grid-template-columns:1fr/s);
   assert.match(css,/:focus-visible/);assert.match(css,/color-scheme:light/);
+});
+test('Required excerpts explain readiness; missing-evidence observations do not demand a quote', () => {
+  const notes = observations();
+  notes.task_response.evidence = [];
+  const props = { result, observations: notes, activeCriterion: 'task_response' as const, selected: null, nextStep: '', delivery: '', saving: false, saved: false,
+    onCriterion:()=>{},onEdit:()=>{},onSelect:()=>{},onNextStep:()=>{},onDelivery:()=>{},onSave:()=>{} };
+  const required = renderToStaticMarkup(React.createElement(IeltsWritingReviewWorkspace, props));
+  assert.match(required, /Supporting excerpt · Required/);
+  assert.match(required, /Still needed: an attached excerpt/);
+  notes.task_response.status = 'insufficient_evidence';
+  const optional = renderToStaticMarkup(React.createElement(IeltsWritingReviewWorkspace, props));
+  assert.match(optional, /Supporting excerpt · Optional/);
+  assert.match(optional, /This criterion is ready/);
+  assert.doesNotMatch(optional, /Still needed: an attached excerpt/);
+});
+test('Student feedback explicitly attributes teacher notes and separates original essay quotes', () => {
+  const html = renderToStaticMarkup(React.createElement(IeltsWritingResult, { result: {
+    ...result, review_status: 'teacher_reviewed', can_review: true, criterion_observations: observations(),
+    next_step: 'Practise a focused example.', delivery_comment: 'Consider the recorded interruption.',
+  }}));
+  assert.equal((html.match(/Teacher feedback/g) || []).length, 4);
+  assert.equal((html.match(/From your essay/g) || []).length, 4);
+  assert.match(html, /Teacher’s recommended practice/);
+  assert.match(html, /Teacher’s note on assessment conditions/);
+  assert.match(html, /bg-rose-50/);
+  assert.match(html, /color:#9f1239/);
+  assert.match(html, /Confidence: low/);
 });
