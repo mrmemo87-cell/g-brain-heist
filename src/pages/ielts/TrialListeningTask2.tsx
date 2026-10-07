@@ -144,12 +144,12 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' }> = ({ sk
             : 'This screener is currently unavailable. Your saved work is safe.'}
         </div>
 
+        {entry?.status === 'completed' && <button type="button" onClick={() => navigate(`/ielts/exam/${entry.exam_event_id}`)} className="mt-5 min-h-11 w-full rounded-xl bg-slate-900 px-5 py-3 font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">View saved result</button>}
         {canOpen && <button type="button" disabled={opening || loading} onClick={() => void open()}
-          className="mt-5 w-full rounded-full bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-700 px-5 py-4 font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600 disabled:opacity-60">
+          className={entry.status === 'completed' ? 'mt-3 min-h-11 w-full rounded-xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 focus-visible:outline focus-visible:outline-2 disabled:opacity-60' : 'mt-5 w-full rounded-full bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-700 px-5 py-4 font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600 disabled:opacity-60'}>
           {opening ? 'Opening…' : entry.status === 'completed' ? 'Repeat for practice' : entry.status === 'in_progress' ? 'Resume screener' : entry.status === 'expired' ? 'Open saved attempt' : reading ? 'Start Reading screener' : 'Start Listening screener'}
         </button>}
-        {!reading && entries.some((item) => item.code === 'bh-reading-screener-a') && <button type="button" onClick={() => navigate('/ielts/reading-screener')} className="mt-4 min-h-11 w-full rounded-xl border border-teal-300 bg-teal-50 px-4 py-3 font-semibold text-teal-900 focus-visible:outline focus-visible:outline-2">Open Reading screener</button>}
-        {!loading && <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold text-blue-700 underline focus-visible:outline focus-visible:outline-2">Check availability again</button>}
+        {!loading && (error || !entry || !canOpen) && <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold text-blue-700 underline focus-visible:outline focus-visible:outline-2">Check availability again</button>}
 
         <button
           type="button"

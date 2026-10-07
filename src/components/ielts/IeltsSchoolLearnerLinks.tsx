@@ -6,7 +6,7 @@ interface IeltsSchoolLearnerLinksProps {
 
 const IeltsSchoolLearnerLinks: React.FC<IeltsSchoolLearnerLinksProps> = ({ onNavigate }) => (
   <nav
-    aria-label="School IELTS tools"
+    aria-label="IELTS study tools"
     style={{
       display: 'flex',
       alignItems: 'center',
@@ -19,8 +19,7 @@ const IeltsSchoolLearnerLinks: React.FC<IeltsSchoolLearnerLinksProps> = ({ onNav
       boxShadow: '0 14px 36px rgba(15,23,42,0.07)',
     }}
   >
-    <span style={{ color: '#475569', fontWeight: 900, marginRight: '.15rem' }}>School IELTS</span>
-    <button type="button" onClick={() => onNavigate('/ielts/listening-screener')} style={{ minHeight: 44, border: '1px solid #bae6fd', borderRadius: 999, background: '#ecfeff', color: '#075985', padding: '.65rem .9rem', fontWeight: 900, cursor: 'pointer' }}>Listening Screener</button>
+    <span style={{ color: '#475569', fontWeight: 900, marginRight: '.15rem' }}>Your study tools</span>
     <button type="button" onClick={() => onNavigate('/ielts/practice/assigned')} style={{ minHeight: 42, border: '1px solid #c4b5fd', borderRadius: 999, background: '#f5f3ff', color: '#5b21b6', padding: '.65rem .9rem', fontWeight: 900, cursor: 'pointer' }}>📌 Assigned Practice</button>
     <button type="button" onClick={() => onNavigate('/ielts/journey')} style={{ minHeight: 42, border: '1px solid #bae6fd', borderRadius: 999, background: '#f0f9ff', color: '#075985', padding: '.65rem .9rem', fontWeight: 900, cursor: 'pointer' }}>🧭 My IELTS Journey</button>
   </nav>
