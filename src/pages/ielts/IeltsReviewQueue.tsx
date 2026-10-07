@@ -17,8 +17,9 @@ const IeltsReviewQueue: React.FC<IeltsReviewQueueProps> = ({ embedded = false, o
   const [reviewStatus, setReviewStatus] = useState('pending');
   const [classId, setClassId] = useState('');
   const [studentId, setStudentId] = useState('');
+  const schoolId = new URLSearchParams(window.location.search).get('school');
 
-  const filters = useMemo(() => ({ skill, reviewStatus, classId: classId || null, studentId: studentId || null }), [skill, reviewStatus, classId, studentId]);
+  const filters = useMemo(() => ({ schoolId, skill, reviewStatus, classId: classId || null, studentId: studentId || null }), [schoolId, skill, reviewStatus, classId, studentId]);
   const { data: rows = [], isLoading, error, refetch } = useQuery({
     queryKey: ['ielts-review-queue', filters],
     queryFn: () => rpcIeltsReviewQueue(filters),

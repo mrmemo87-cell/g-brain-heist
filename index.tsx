@@ -41,6 +41,8 @@ const IELTSLoginView = lazyRetry(() => import('./components/ielts/IELTSLoginView
 const PasswordResetPage = lazyRetry(() => import('./components/PasswordResetPage'), 'PasswordResetPage');
 const AuthCallback = lazyRetry(() => import('./src/pages/auth/callback'), 'AuthCallback');
 const IeltsHome = lazyRetry(() => import('./src/pages/ielts/IeltsHome'), 'IeltsHome');
+const IeltsProgrammeWorkspace = lazyRetry(() => import('./src/pages/ielts/IeltsProgrammeWorkspace'), 'IeltsProgrammeWorkspace');
+const IeltsGovernedScreenerResult = lazyRetry(() => import('./src/pages/ielts/IeltsGovernedScreenerResult'), 'IeltsGovernedScreenerResult');
 const IeltsAssignedPractice = lazyRetry(() => import('./src/pages/ielts/IeltsAssignedPractice'), 'IeltsAssignedPractice');
 const IeltsJourneyDashboard = lazyRetry(() => import('./src/pages/ielts/IeltsJourneyDashboard'), 'IeltsJourneyDashboard');
 const IeltsSession = lazyRetry(() => import('./src/pages/ielts/IeltsSession'), 'IeltsSession');
@@ -718,6 +720,8 @@ const router = createBrowserRouter([
     path: '/ielts/practice/assigned',
     element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsAssignedPractice />} />),
   },
+  { path: '/ielts/programme', element: <ProtectedRoute element={<SchoolAdminIeltsRoute ieltsTab="ielts-overview"><IeltsProgrammeWorkspace /></SchoolAdminIeltsRoute>} /> },
+  { path: '/ielts/screener-result/:attemptId', element: <ProtectedRoute element={<IeltsGovernedScreenerResult />} /> },
   {
     path: '/ielts/journey',
     element: withSchoolIeltsAccess(<ProtectedRoute element={<SchoolAdminIeltsRoute ieltsTab="ielts-student-progress"><IeltsJourneyDashboard /></SchoolAdminIeltsRoute>} />),

@@ -16,6 +16,7 @@ export const SCHOOL_ADMIN_TABS = [
 ] as const;
 
 export const SCHOOL_ADMIN_IELTS_TABS = [
+  'ielts-overview',
   'ielts-exams',
   'ielts-practice',
   'ielts-reviews',
@@ -37,7 +38,7 @@ export interface SchoolAdminNavigationState {
 
 const DEFAULT_STATE: SchoolAdminNavigationState = {
   adminTab: 'dashboard',
-  ieltsTab: 'ielts-exams',
+  ieltsTab: 'ielts-overview',
   review: null,
   monitorExamId: null,
 };

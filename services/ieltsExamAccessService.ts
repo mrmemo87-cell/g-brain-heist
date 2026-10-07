@@ -13,6 +13,7 @@ export type IeltsExamModeAccessReason =
   | 'platform_admin_role'
   | 'school_admin_capability'
   | 'manageable_exam_scope'
+  | 'programme_lead'
   | 'verification_error'
   | 'denied';
 
@@ -122,6 +123,14 @@ export const checkIeltsExamModeAdminAccess = async (
     // access available when the capability RPC is unavailable.
   }
 
+  try {
+    const { data: programme, error: programmeError } = await client.rpc('rpc_ielts_programme_access');
+    if (!programmeError && Array.isArray(programme?.schools) && programme.schools.some((s: { can_manage?: boolean }) => s.can_manage === true)) {
+      return { allowed: true, reason: 'programme_lead' };
+    }
+  } catch {
+    // Existing exam scope is still checked if the programme lookup is unavailable.
+  }
   try {
     const manageableExams = await rpcIeltsListManageableExams(client);
     if (manageableExams.length === 0 && (profileError || !capabilityResolved)) {

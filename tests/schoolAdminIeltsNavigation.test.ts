@@ -24,7 +24,7 @@ test('school admin IELTS location state restores a validated tab and review deta
 
 test('school admin IELTS location state rejects arbitrary tabs, return URLs, and review values', () => {
   const state = parseSchoolAdminNavigation('?adminTab=https://evil.example&ieltsTab=javascript:alert(1)&reviewSkill=admin&reviewAttempt=x&returnTo=https://evil.example');
-  assert.deepEqual(state, { adminTab: 'dashboard', ieltsTab: 'ielts-exams', review: null, monitorExamId: null });
+  assert.deepEqual(state, { adminTab: 'dashboard', ieltsTab: 'ielts-overview', review: null, monitorExamId: null });
 });
 
 test('building navigation URLs preserves unrelated safe query state and clears stale IELTS detail', () => {

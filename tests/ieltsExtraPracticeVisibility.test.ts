@@ -41,7 +41,7 @@ test('school administrators use the persistent IELTS shell and its single settin
   assert.match(home, /isIeltsAdminLandingRole = isPlatformAdmin \|\| canAdministerSchool/);
   assert.match(home, /resolveMySchoolCapabilities\(\)/, 'school administration decisions must use active membership capabilities');
   assert.doesNotMatch(home, /normalizedRole === 'school_admin'/, 'legacy profile role must not grant school administration access');
-  assert.match(home, /navigate\(schoolAdminIeltsUrl\('ielts-exams'\), \{ replace: true \}\)/, 'school administrators should enter IELTS through the persistent school shell');
+  assert.match(home, /navigate\(schoolAdminIeltsUrl\('ielts-overview'\), \{ replace: true \}\)/, 'school administrators should enter IELTS through the persistent school shell');
   assert.match(settingsTab, /Extra Practice Access/);
   assert.match(settingsTab, /updateIeltsExtraPracticeAccess\(checked\)/, 'the school setting must be written through the typed authoritative RPC');
   assert.match(settingsTab, /type="checkbox"[\s\S]*role="switch"[\s\S]*aria-label="Allow students to use Extra Practice"[\s\S]*checked=\{extraPracticeEnabled === true\}/);
@@ -52,18 +52,13 @@ test('school administrators use the persistent IELTS shell and its single settin
 });
 
 
-test('IELTS admin control center labels Student Progress clearly', () => {
+test('IELTS staff home retires the generic control centre in favour of the shared programme workspace', () => {
   const home = read('src/pages/ielts/IeltsHome.tsx');
-  const adminBranch = home.slice(home.indexOf('if (isIeltsAdminLandingRole) {'), home.indexOf('// GSAP entrance animation for student view'));
-  const studentBranch = home.slice(home.indexOf('// GSAP entrance animation for student view'));
-
-  assert.match(adminBranch, /label: 'Student Progress'/, 'admin control center should include Student Progress card');
-  assert.match(adminBranch, /desc: 'View each student’s IELTS readiness, assignments, results, and pending reviews\.'/,
-    'Student Progress card should describe readiness, assignments, results, and pending reviews');
-  assert.match(adminBranch, /route: '\/ielts\/journey'/, 'Student Progress card should route to IELTS journey dashboard');
-  assert.doesNotMatch(adminBranch, /label: 'Results'[^\n]*route: '\/ielts\/journey'/, 'ambiguous Results journey card should be replaced');
-  assert.doesNotMatch(adminBranch, /label: 'Student Journey'[^\n]*route: '\/ielts\/journey'/, 'duplicate Student Journey admin card should be replaced');
-  assert.doesNotMatch(studentBranch, /Student Progress/, 'student IELTS home should not show the admin Student Progress link');
+  const programme = read('src/pages/ielts/IeltsProgrammeWorkspace.tsx');
+  assert.match(home, /return <IeltsProgrammeWorkspace \/>/);
+  assert.doesNotMatch(home, /Control Center|const adminCards/);
+  assert.match(programme, /Student progress/);
+  assert.match(programme, /Programme team/);
 });
 
 test('IELTS Home renders the review queue card only behind the shared access decision', () => {

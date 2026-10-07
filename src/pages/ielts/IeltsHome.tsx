@@ -1,3 +1,4 @@
+import IeltsProgrammeWorkspace from './IeltsProgrammeWorkspace';
 import IeltsScreenerHub from '../../components/ielts/IeltsScreenerHub';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -58,7 +59,7 @@ const IeltsHome: React.FC = () => {
   const [dashboardLoaded, setDashboardLoaded] = useState(false);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
-  const isIeltsAdminLandingRole = isPlatformAdmin || canAdministerSchool;
+  const isIeltsAdminLandingRole = isPlatformAdmin || canAdministerSchool || normalizeIeltsRole(userRole) === 'teacher';
   const shouldUseSchoolAdminShell = profileContextLoaded
     && canAdministerSchool
     && !isPlatformAdmin
@@ -254,7 +255,7 @@ const IeltsHome: React.FC = () => {
 
   useEffect(() => {
     if (!shouldUseSchoolAdminShell) return;
-    navigate(schoolAdminIeltsUrl('ielts-exams'), { replace: true });
+    navigate(schoolAdminIeltsUrl('ielts-overview'), { replace: true });
   }, [navigate, shouldUseSchoolAdminShell]);
 
 
@@ -479,71 +480,8 @@ const IeltsHome: React.FC = () => {
     );
   }
 
-  if (isIeltsAdminLandingRole) {
-    const adminCards = [
-      { label: 'Practice Content', desc: 'Manage reading, listening, writing, and speaking tasks.', route: '/ielts/admin', icon: '📋', color: '#0891b2' },
-      { label: 'Review Queue', desc: 'Finalize writing & speaking reviews awaiting scoring.', route: '/ielts/reviews', icon: '✍️', color: '#7c3aed' },
-      { label: 'Student Progress', desc: 'View each student’s IELTS readiness, assignments, results, and pending reviews.', route: '/ielts/journey', icon: '📊', color: '#059669' },
-      { label: 'Exam Manager', desc: 'Create and monitor secure IELTS exam sessions.', route: '/ielts/exams/manage', icon: '🔒', color: '#ea580c' },
-      { label: 'Assigned Practice', desc: 'Monitor assignment coverage and completion health.', route: '/ielts/practice/assigned', icon: '📌', color: '#b45309' },
-      { label: 'Launch Funnel', desc: 'Review privacy-safe public IELTS funnel conversion analytics.', route: '/ielts/funnel', icon: '📈', color: '#4f46e5' },
-    ];
-
-    return (
-      <div style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', padding: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-          {/* Header */}
-          <div style={{ marginBottom: '1.75rem' }}>
-            <p style={{ margin: '0 0 0.4rem', fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#0891b2' }}>
-              IELTS OPERATIONS
-            </p>
-            <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
-              Control Center
-            </h1>
-            <p style={{ margin: '0.5rem 0 0', color: '#64748b', fontSize: '0.875rem' }}>
-              Admin tools for school IELTS operations. Student prep center is available on student accounts.
-            </p>
-          </div>
-
-          {/* Admin cards grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem' }}>
-            {adminCards.map((card) => (
-              <button
-                key={card.label}
-                type="button"
-                onClick={() => navigate(card.route)}
-                style={{
-                  textAlign: 'left',
-                  background: '#ffffff',
-                  border: `1px solid ${card.color}22`,
-                  borderRadius: '0.9rem',
-                  padding: '1.1rem',
-                  cursor: 'pointer',
-                  transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget;
-                  el.style.borderColor = `${card.color}55`;
-                  el.style.boxShadow = `0 2px 12px ${card.color}22`;
-                  el.style.background = `${card.color}08`;
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget;
-                  el.style.borderColor = `${card.color}22`;
-                  el.style.boxShadow = 'none';
-                  el.style.background = '#ffffff';
-                }}
-              >
-                <span style={{ fontSize: '1.5rem' }}>{card.icon}</span>
-                <div style={{ marginTop: '0.55rem', fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>{card.label}</div>
-                <div style={{ marginTop: '0.25rem', fontSize: '0.8rem', color: '#64748b', lineHeight: 1.45 }}>{card.desc}</div>
-              </button>
-            ))}
-          </div>
-
-        </div>
-      </div>
-    );
+  if (isIeltsAdminLandingRole || (profileContextLoaded && normalizeIeltsRole(userRole) === 'teacher')) {
+    return <IeltsProgrammeWorkspace />;
   }
 
 
