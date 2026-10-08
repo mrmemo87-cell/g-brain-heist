@@ -537,3 +537,21 @@ test('Production Writing content seed is draft-only and records no fabricated re
  assert.equal((await db.query('select count(*)::int n from private.ielts_screener_releases where version_id=$1',[v.id])).rows[0].n,0);
  await actor(writingStudent);assert.equal((await db.query('select rpc_ielts_screener_catalog() r')).rows[0].r.some(x=>x.code==='bh-writing-screener-a'),false);
 });
+
+test('Writing public release requires every delivery check and retains pilot originals and reviews',async()=>{
+ const before=(await db.query('select * from private.ielts_writing_screener_submissions order by attempt_id')).rows;
+ const reviews=(await db.query('select * from private.ielts_writing_screener_reviews order by id')).rows;
+ const hash=(await db.query('select content_hash from private.ielts_diagnostic_versions where id=$1',[writingVersion])).rows[0].content_hash;
+ const checks=['authenticated_entitlement','start_resume','autosave','refresh_resume','network_interruption','background_interruption','submission','idempotency','immutable_original','protected_content','result_safety','teacher_review','review_scope','completed_persistence','mobile_browser','desktop_browser','automated_checks','delivery_acceptance'];
+ const validation={content_hash:hash,tested_at:new Date().toISOString(),evidence_reference:'Synthetic release guard fixture only; never production acceptance',...Object.fromEntries(checks.map(k=>[k,true]))};
+ const publish=record=>db.query("select private.activate_ielts_screener_release($1,'public','{}',$2,$3)",[writingVersion,teacher,JSON.stringify(record)]);
+ for(const k of checks)await assert.rejects(publish({...validation,[k]:false}),new RegExp('writing_validation_failed:'+k));
+ await publish(validation);
+ assert.deepEqual((await db.query('select * from private.ielts_writing_screener_submissions order by attempt_id')).rows,before);
+ assert.deepEqual((await db.query('select * from private.ielts_writing_screener_reviews order by id')).rows,reviews);
+ await actor(uid(306));await db.query("select set_config('test.programme_eligible','false',false)");
+ assert.equal((await db.query('select rpc_ielts_screener_catalog() r')).rows[0].r.some(x=>x.code==='writing-fixture'),false);
+ await assert.rejects(db.query("select rpc_ielts_screener_self_assign('writing-fixture')"),/screener_unavailable/);
+ await db.query("select set_config('test.programme_eligible','true',false)");
+ assert.equal((await db.query('select rpc_ielts_screener_catalog() r')).rows[0].r.find(x=>x.code==='writing-fixture').status,'ready');
+});
