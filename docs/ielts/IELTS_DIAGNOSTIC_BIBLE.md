@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.2.0\
-**Effective date:** 2026-10-06\
+**Version:** 1.3.0\
+**Effective date:** 2026-10-08\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -609,6 +609,49 @@ Minimum test cases include:
 
 Audio behaviour must be explicitly cross-browser tested for the browsers used in the pilot.
 
+### 13.1 Concurrent-use architecture and capacity claims
+
+**Owner requirement (2026-10-08):** IELTS must be designed for large numbers of students using it simultaneously. The initial capacity acceptance target is **500 concurrent active IELTS students**, with architecture that can be tested and scaled beyond that number. This is a Brains Heist engineering target, not an established capacity or an official IELTS requirement.
+
+Assignment improvements do not automatically establish IELTS capacity. Verify each IELTS path and its shared infrastructure independently. Registered accounts, open idle tabs and concurrent active attempts are different measures. Never promise unlimited scale, failure-free operation, or support for 500/1,000 users without recorded evidence for that workload and environment.
+
+Every IELTS implementation must:
+- Separate lightweight discovery/status lists from the selected form's task payload. Scope reads to the authorized user, attempt and school; paginate reports and avoid downloading all attempts, responses or recordings on ordinary navigation.
+- Keep answer persistence small and indexed. Record responses durably before acknowledging them; make retries and duplicate submissions idempotent. Preserve the distinction between locally pending work and server-saved work. Limit and jitter retries so recovery does not create a request storm.
+- Preserve answer/finalization consistency under concurrent requests. Measure lock scope and duration; do not remove correctness locks without a tested replacement. Avoid shared form/question counter updates and unrelated reward, analytics or email work in the answer-save transaction.
+- Deliver versioned audio through suitable storage/cache/CDN paths with the required access controls, rather than proxying every playback through database/scoring functions. Test simultaneous cold audio starts, buffering, expired delivery URLs, interrupted uploads and resume. Signed URLs, caching and previews must not expose protected content or answer keys.
+- Persist Writing/Speaking submissions and recordings before acknowledging receipt. Run heavy AI/transcription/evaluation work through durable background jobs with explicit bounded worker/provider concurrency, idempotency, retry limits and failure recovery. Show queued/processing/failed states honestly; receipt is not a completed score or human review.
+- Budget database connections across Auth, Data API, background workers and other app features. Use indexed query patterns, bounded batches/pools and controlled background-job overlap. Autoscaling frontend/API workers must not imply unlimited database or AI capacity.
+- Keep browser state and subscriptions bounded. Avoid per-keystroke network saves, repeated full-form refetches, unnecessary polling and one subscription per item. Verify representative low-powered school devices as well as server load.
+
+Performance work must preserve every evidence, scoring, authorization, review and publication rule in this Bible. Overload must never discard acknowledged answers, silently award zero for processing failures, duplicate scores/rewards, bypass school boundaries, or present provisional output as final.
+
+### 13.2 Required IELTS staged concurrency tests
+
+Before claiming capacity for the target audience, test **30 → 100 → 500 concurrent active students**, with distinct authenticated identities and fresh governed attempts. Stop escalation on failure. Tests above 500, including 1,000, require the same evidence before making that larger claim.
+
+Use a faithful isolated hosted staging environment where possible: actual IELTS RPCs, schema, indexes, constraints, triggers, entitlement checks, background jobs and representative historic data, with recorded resource/connection/provider limits. A focused local API benchmark is useful diagnostic evidence but cannot certify production, browsers, audio or omitted services. Do not load production, send real emails, or incur new paid infrastructure/provider charges solely because this policy exists; those actions need authorization within the task.
+
+Cover synchronized discovery/starts, Listening playback and answer saves, Reading navigation/saves, Writing draft persistence/submission, Speaking recording upload/submission, refresh/resume, session renewal/expiry, network recovery, duplicate requests and synchronized final submission. Include concurrent teacher reporting and representative background traffic. Test authentication bursts separately from already-authenticated assessment activity. Use approved synthetic/test data; a named student's pilot approval is not permission to clone their identity or overwrite their attempts.
+
+Run realistic pacing as well as short bursts. Each stage must include at least 10 minutes of measured activity, and repeat the highest passing stage after recovery to expose sustained queue/connection problems. Supplement API load with real-browser/device checks and audio/upload delivery measurements. Never describe API virtual users as complete human browser sessions.
+
+Record:
+- exact code/form/scoring versions, harness version, environment, data size, stage duration and actual active concurrency;
+- answer-save acknowledgment p95/p99, assignment/form load p95, Auth/Data API error counts/rates, timeouts and achieved request throughput;
+- database connections, pool waits, blocking locks/deadlocks, query plans and CPU/I/O; queue depth, oldest-job age, completion latency, failures and provider rate limits;
+- audio startup/buffering, recording upload/resume and Realtime end-to-end latency where used, plus browser responsiveness;
+- expected versus stored responses, attempt completions and scoring runs; missing/duplicate writes, replay behavior, server-grade consistency and cross-school isolation.
+
+Initial internal gates: answer-save acknowledgment **p95 <500 ms / p99 <1,500 ms** and scoped form/list/report API reads **p95 <1,500 ms**, measured end to end from the test client. All expected correctness/security checks must pass, with no missing acknowledged responses or unintended duplicate attempts/scoring runs. Audio, uploads, browser responsiveness, Auth, Realtime and asynchronous scoring require explicit numeric budgets and queue-drain deadlines recorded **before** the run. These are internal service targets, not official assessment standards or claims that the current implementation meets them. Do not hide failures behind overall averages or exclude failed/timed-out requests; retain failed stages and interrupted runs. Changes to gates require an explicit versioned policy revision, not a quieter retry.
+
+### 13.3 Release and future-edit obligations
+
+Every IELTS change affecting delivery, persistence, queries, subscriptions, audio/uploads, scoring jobs or shared infrastructure must identify its concurrency impact and the relevant test evidence. Changes to those paths invalidate applicable capacity evidence until the affected scenarios are rerun; unrelated copy-only edits need document checks, not a full load test.
+
+A limited pilot may proceed within its documented scope under section 19; it must not inherit a 500-user capacity claim. Opening access at a larger intended concurrency requires passing evidence for that workload, monitoring and a documented stop/recovery plan. An interrupted run is not a pass. Background evaluation must drain within its declared deadline; a growing queue is not acceptable merely because submission returned quickly.
+
+
 ---
 
 ## 14. Accessibility and fairness
@@ -1050,6 +1093,9 @@ No Grade 9–10 school baseline should be called “ready” until every require
 - [ ] Session-expiry pass.
 - [ ] Double-submit pass.
 - [ ] Simultaneous-class submission pass.
+- [ ] Intended active-concurrency limit and environment are documented; IELTS-specific staged tests under section 13 pass for the claimed launch scope.
+- [ ] Connection/lock pressure, Auth/Data API errors, audio/uploads and background scoring queue behavior meet the budgets declared before testing.
+- [ ] Exact tested versions, failed/interrupted stages, capacity limitations, monitoring and stop/recovery plan are recorded.
 - [ ] Error states do not lose completed work.
 
 ### Reporting
@@ -1139,6 +1185,7 @@ Agents must not skip foundational phases just to make the UI appear complete.
 ### Phase 8 — Staging and calibration
 - real Supabase/RLS testing;
 - browser/audio testing;
+- IELTS-specific staged concurrency, sustained-load and recovery tests under section 13;
 - benchmark comparisons;
 - teacher-vs-system comparison;
 - scoring adjustment.
@@ -1168,6 +1215,7 @@ Before an AI agent changes anything within IELTS diagnostic scope, it must:
 11. If the task legitimately changes the contract, update this Bible **explicitly**, state the rationale, cite the authoritative basis, and bump its version.
 12. Run the relevant tests/guards or report exactly what could not be run.
 13. State remaining risks honestly.
+14. For concurrency-sensitive edits, apply sections 13.1–13.3 and report which capacity evidence remains valid or must be rerun.
 
 For diagnostic-affecting pull requests, include:
 - Bible version used;
@@ -1200,6 +1248,16 @@ Do not make opportunistic Bible edits in the same spirit as a quick bug fix.
 Owner-requested audio production requirements follow direct review of Screener A: the first generated track spoke reading instructions without sufficient silence and used indistinguishable instruction/passage delivery. Section 6.1 makes measured pauses, clear voice separation, artifact provenance and scoped review mandatory. This strengthens the existing content and delivery gates; no scoring, band, official IELTS format or review requirement is weakened. The 30/15-second design is an internal screener decision, not a claim about official test timing.
 
 Affected implementation: Listening audio generation/assembly, asset hosting and version records, Exam Mode playback, content publication review, attempt delivery metadata, and audio/browser regression checks. Existing published forms must be assessed against these requirements without rewriting historical evidence. External scoring references below remain unchanged from v1.1.0.
+
+---
+
+### 22.2 Revision record — v1.3.0 (2026-10-08)
+
+Owner-requested concurrency governance follows the assignment incident investigation and the explicit requirement to consider large simultaneous IELTS cohorts during every future edit. General interruption and simultaneous-submission checks were insufficient to define active concurrency, protect shared resources, or justify capacity claims. Sections 13.1–13.3 add architecture requirements, a 500-student acceptance target, separate IELTS 30 → 100 → 500 tests, recorded performance/correctness gates and capacity-evidence invalidation. Section 19, Phase 8 and the agent change protocol now reference these obligations.
+
+Basis: the owner's requirement and internal engineering acceptance policy. Numeric load/latency targets are Brains Heist targets, not externally validated capacity or official IELTS timing/scoring rules. Existing local assignment tests do not establish IELTS or production capacity. No assessment format, scoring, taxonomy, confidence or human-review gate changes.
+
+Affected implementation to review: IELTS discovery/form RPCs and reads, attempt/answer/finalization transactions and indexes, Auth/session recovery, Exam Mode rendering/subscriptions, Listening storage/playback/cache, Writing draft/submission and Speaking uploads, evaluation/transcription workers, background scheduling, teacher/school reports, monitoring and release/load-test tooling. Existing academic history must remain intact. This revision defines required future work; it does not assert that the current implementation passes it.
 
 ---
 
