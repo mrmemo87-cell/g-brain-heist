@@ -89,20 +89,19 @@ test('IELTS journey objective result links use attempt tables and latest student
 test('IELTS journey route, home link, and page use the journey service safely', () => {
   const routes = fs.readFileSync(path.join(process.cwd(), 'index.tsx'), 'utf8');
   const home = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsHome.tsx'), 'utf8');
-  const page = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDashboard.tsx'), 'utf8');
+  const page = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDashboard.tsx'), 'utf8') + fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/components/IeltsStudentJourney.tsx'), 'utf8');
 
   assert.match(routes, /path:\s*'\/ielts\/journey'/, 'IELTS journey route must be registered');
   assert.match(home, /navigate\('\/ielts\/journey'\)/, 'IELTS home should link to journey dashboard');
   assert.match(page, /rpcIeltsStudentJourney/, 'journey page must use the journey RPC service');
   assert.match(page, /My IELTS Journey/, 'journey page should include title');
-  assert.match(page, /Current assignments/, 'journey page should include current assignments section');
-  assert.match(page, /Completed assignments/, 'journey page should include completed assignments section');
-  assert.match(page, /Results & Feedback/, 'journey page should include results and feedback section');
-  assert.match(page, /Next action/, 'journey page should include next action section');
-  assert.match(page, /No current IELTS assignments\./, 'journey page should include current empty state');
-  assert.match(page, /No completed IELTS assignments yet\./, 'journey page should include completed empty state');
-  assert.match(page, /No reviewed feedback yet\./, 'journey page should include reviewed feedback empty state');
-  assert.match(page, /No results available yet\./, 'journey page should include results empty state');
+  assert.match(page, /Your practice plan/, 'journey must explain the practice step');
+  assert.match(page, /Your learning trail/, 'saved screeners and reviews must be included');
+  assert.match(page, /Teacher feedback/, 'shared comments must be clearly attributed');
+  assert.match(page, /Your next step/, 'there must be a useful next action');
+  assert.match(page, /No active IELTS assignments right now/, 'no task must be invented');
+  assert.match(page, /Your feedback will appear here/, 'pending feedback must not become a zero score');
+  assert.match(page, /What about my estimated band/, 'band eligibility must be explained');
   assert.doesNotMatch(page, /\.from\(['"]ielts_/i, 'journey page must not query raw IELTS tables directly');
   assert.doesNotMatch(page, /answer_key/i, 'journey page must not expose protected answer data');
 });

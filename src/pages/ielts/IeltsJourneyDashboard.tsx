@@ -1,107 +1,19 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useNavigate } from 'react-router-dom';
-import { rpcIeltsStudentJourney, type IeltsJourneyAssignmentItem, type IeltsStudentJourney } from '../../../services/ieltsJourneyService';
+import { rpcIeltsStudentJourney, type IeltsStudentJourney } from '../../../services/ieltsJourneyService';
 import { supabase } from '../../../services/supabaseClient';
 import { rpcIeltsSchoolResults, type IeltsSchoolResultsResponse, type IeltsSchoolResultsStudentRow } from '../../../services/ieltsResultsService';
 import { rpcIeltsSchoolStudentSnapshot, type IeltsSchoolStudentSnapshot } from '../../../services/ieltsSchoolStudentSnapshotService';
 import { getUserTier, isIeltsPrime, updateIeltsTargetBand } from '../../../services/ieltsService';
 import { resolveMySchoolCapabilities } from '../../../services/schoolAdminService';
-import IeltsMissionCard from './components/IeltsMissionCard';
-import IeltsNextActionCard from './components/IeltsNextActionCard';
+import IeltsStudentJourney from './components/IeltsStudentJourney';
+import { fetchIeltsStartingPoint, type IeltsStartingPoint } from '../../../services/ieltsStartingPointService';
 import IeltsSchoolStudentProgressModal from './components/IeltsSchoolStudentProgressModal';
 import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
 import { resolveIeltsDashboardMode, type IeltsDashboardMode } from './ieltsDashboardMode';
 
-type SkillKey = 'reading' | 'listening' | 'writing' | 'speaking';
-const orderedSkills: SkillKey[] = ['reading', 'listening', 'writing', 'speaking'];
-const skillIcons: Record<SkillKey, string> = { reading: '📖', listening: '🎧', writing: '✍️', speaking: '🎤' };
-
-const formatDate = (value?: string | null, empty = 'No due date') => {
-  if (!value) return empty;
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return empty;
-  return parsed.toLocaleDateString(undefined, { dateStyle: 'medium' });
-};
-
-const humanizeStatus = (status?: string | null): string => {
-  const v = (status ?? '').trim().toLowerCase();
-  if (!v) return 'Not started';
-  if (v === 'in_progress') return 'In progress';
-  return v.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
-};
-
-const taskState = (item: IeltsJourneyAssignmentItem, skill: SkillKey): string => {
-  if (skill === 'reading' || skill === 'listening') {
-    return item.objective_result_link ? 'Result available' : item.completed_at ? 'Submitted' : item.started_at ? 'In progress' : 'Not started';
-  }
-  if (item.has_finalized_review) return 'Feedback ready';
-  if (item.completed_at || item.feedback_status === 'awaiting_feedback') return 'Review pending';
-  return item.started_at ? 'In progress' : 'Not started';
-};
-
-const statusDot = (status: string): string => {
-  const s = status.toLowerCase();
-  if (s === 'completed') return '#059669';
-  if (s === 'in_progress') return '#0891b2';
-  if (s === 'overdue') return '#dc2626';
-  return '#cbd5e1';
-};
-
-interface AssignmentCardProps {
-  item: IeltsJourneyAssignmentItem;
-  isCompleted: boolean;
-  onNavigate: (path: string) => void;
-}
-
-const AssignmentCard: React.FC<AssignmentCardProps> = ({ item, onNavigate }) => {
-  const skills = orderedSkills.filter((skill) => (item.skills ?? []).includes(skill));
-  const dot = statusDot(item.status ?? '');
-  return (
-    <div style={{ background: '#ffffff', border: `1px solid ${dot}44`, borderLeft: `3px solid ${dot}`, borderRadius: '0.85rem', padding: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h3>
-          <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Due: <strong style={{ color: '#475569' }}>{formatDate(item.due_at)}</strong></span>
-        </div>
-        <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '0.25rem 0.6rem', borderRadius: '9999px', background: '#f1f5f9', color: dot, whiteSpace: 'nowrap', flexShrink: 0 }}>
-          {humanizeStatus(item.status)}
-        </span>
-      </div>
-      {skills.length > 0 && (
-        <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-          {skills.map((skill) => {
-            const state = taskState(item, skill);
-            const canResult = (skill === 'reading' || skill === 'listening') && !!item.objective_result_link;
-            const canFeedback = (skill === 'writing' || skill === 'speaking') && !!item.review_result_link && !!item.has_finalized_review;
-            return (
-              <div key={skill} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', padding: '0.3rem 0', borderTop: '1px solid #f1f5f9' }}>
-                <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  {skillIcons[skill]} {skill.charAt(0).toUpperCase() + skill.slice(1)}
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span style={{ color: state === 'Review pending' ? '#ea580c' : state.includes('available') || state.includes('ready') ? '#0891b2' : '#94a3b8', fontWeight: 700 }}>
-                    {state}
-                  </span>
-                  {canResult && (
-                    <button type="button" onClick={() => onNavigate(item.objective_result_link as string)} style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', borderRadius: '0.4rem', padding: '0.2rem 0.55rem', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}>
-                      View result →
-                    </button>
-                  )}
-                  {canFeedback && (
-                    <button type="button" onClick={() => onNavigate(item.review_result_link as string)} style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', color: '#6d28d9', borderRadius: '0.4rem', padding: '0.2rem 0.55rem', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}>
-                      View feedback →
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-};
+const formatDate = (value?: string | null, empty = 'No activity yet') => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleDateString(undefined, { dateStyle: 'medium' }) : empty;
 
 type LoadState = 'loading' | 'ready' | 'error';
 type SnapshotModalState = 'idle' | 'loading' | 'ready' | 'error';
@@ -113,6 +25,8 @@ interface IeltsJourneyDashboardProps {
 const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded = false }) => {
   const navigate = useNavigate();
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const [startingPoint, setStartingPoint] = useState<IeltsStartingPoint | null>(null);
+  const [retry, setRetry] = useState(0);
   const [journey, setJourney] = useState<IeltsStudentJourney | null>(null);
   const [userTier, setUserTier] = useState('free');
   const [loadState, setLoadState] = useState<LoadState>('loading');
@@ -133,6 +47,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
     const run = async () => {
       setLoadState('loading');
       setError(null);
+      setStartingPoint(null);
       try {
         const [{ data: auth }, tierResult] = await Promise.all([
           supabase.auth.getUser(),
@@ -171,9 +86,10 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
           setMode('admin');
           setJourney(null);
         } else {
-          const journeyData = await rpcIeltsStudentJourney();
+          const [journeyData, startingPointData] = await Promise.all([rpcIeltsStudentJourney(), fetchIeltsStartingPoint()]);
           if (!active) return;
           setJourney(journeyData);
+          setStartingPoint(startingPointData);
           setMode('student');
           setSchoolResults(null);
         }
@@ -186,7 +102,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
     };
     void run();
     return () => { active = false; };
-  }, []);
+  }, [retry]);
 
   const openStudentSnapshot = async (student: IeltsSchoolResultsStudentRow) => {
     setSnapshotStudentId(student.student_id);
@@ -210,20 +126,6 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
     setSnapshotState('idle');
   };
 
-  const summary = useMemo(() => {
-    const current = journey?.assigned_practice.length ?? 0;
-    const completed = journey?.completed_practice.length ?? 0;
-    const results = (journey?.completed_practice ?? []).filter((item) => !!item.objective_result_link).length;
-    const feedback = (journey?.completed_practice ?? []).filter((item) => !!item.review_result_link && !!item.has_finalized_review).length;
-    return { current, completed, results, feedback };
-  }, [journey]);
-
-  const actionable = useMemo(() => (journey?.assigned_practice ?? []).find(
-    (item) => {
-      const status = (item.status ?? '').toLowerCase();
-      return status !== 'completed' && ((item.skills ?? []).length > 0 || !!item.started_at || !!item.assigned_at);
-    }
-  ) ?? null, [journey]);
   const isPrimeUser = isIeltsPrime({ tier: userTier });
 
   const openTargetBandEditor = () => {
@@ -260,7 +162,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
   };
 
   useEffect(() => {
-    if (loadState !== 'ready' || !rootRef.current) return;
+    if (loadState !== 'ready' || mode !== 'admin' || !rootRef.current) return;
     const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const ctx = gsap.context(() => {
       if (reduced) return;
@@ -269,11 +171,11 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
       gsap.from('[data-anim="section"]', { opacity: 0, y: 12, stagger: 0.08, duration: 0.4, delay: 0.12 });
     }, rootRef);
     return () => ctx.revert();
-  }, [loadState]);
+  }, [loadState, mode]);
 
   return (
     <div ref={rootRef} style={{ minHeight: embedded ? 'auto' : '100vh', background: '#f8fafc', color: '#0f172a', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ maxWidth: embedded ? '100%' : '860px', margin: '0 auto', padding: embedded ? '1rem' : '1.25rem 1rem 4rem', display: 'grid', gap: '1rem' }}>
+      <div style={{ maxWidth: embedded ? '100%' : '1120px', margin: '0 auto', padding: embedded ? '1rem' : '1.25rem 1rem 4rem', display: 'grid', gap: '1rem' }}>
 
         {/* Back button */}
         {!embedded && (
@@ -287,7 +189,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
         )}
 
         {/* Page header */}
-        <header data-anim="header" style={{ padding: '0.25rem 0' }}>
+        <header data-anim="header" hidden={loadState === 'ready' && mode === 'student'} style={{ padding: '0.25rem 0' }}>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{embedded ? 'Student IELTS Progress' : 'My IELTS Journey'}</h1>
           <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>{embedded ? 'Review assignments, results, readiness, and feedback for this school.' : 'Track assignments, results, and reviewed feedback.'}</p>
         </header>
@@ -302,7 +204,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
         {/* Error */}
         {loadState === 'error' && (
           <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '0.8rem', padding: '1rem', color: '#b91c1c', fontSize: '0.875rem' }}>
-            {error}
+            <p role="alert">{error}</p><button type="button" className="ij-link" onClick={() => setRetry(value => value + 1)}>Try again</button>
           </div>
         )}
 
@@ -359,14 +261,9 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
           </>
         )}
 
-        {loadState === 'ready' && journey && mode === 'student' && (
-          <>
-            {/* Readiness overview — verified estimates only; practice results remain separate. */}
-            <section data-anim="card" aria-labelledby="readiness-heading">
-              <p id="readiness-heading" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem', fontWeight: 800, color: '#0891b2', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-                Readiness overview
-              </p>
-              <IeltsMissionCard journey={journey} animate={true} onSetTargetBand={isPrimeUser ? openTargetBandEditor : undefined} />
+        {loadState === 'ready' && journey && startingPoint && mode === 'student' && (
+          <IeltsStudentJourney journey={journey} startingPoint={startingPoint} onSetTargetBand={isPrimeUser ? openTargetBandEditor : undefined} />
+        )}
               {isEditingTargetBand && isPrimeUser && (
                 <div
                   role="presentation"
@@ -408,97 +305,6 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
                   </div>
                 </div>
               )}
-              {!journey.current_estimates?.overall && (
-                <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                  Verified four-skill readiness is not available yet. Practice scores and teacher-reviewed feedback remain visible separately while Brains Heist builds qualifying evidence.
-                </p>
-              )}
-            </section>
-
-            {/* Next action */}
-            <div data-anim="card">
-              <IeltsNextActionCard
-                weakSkill={journey.weak_skill}
-                nextRecommendation={journey.next_recommendation ?? (actionable ? `Open "${actionable.title}" to continue.` : 'Keep practising while Brains Heist builds verified readiness evidence.')}
-                hasActionable={!!actionable}
-                onOpen={() => navigate('/ielts/practice/assigned')}
-                animate={false}
-              />
-            </div>
-
-            {/* Current assignments — No current IELTS assignments. shown when list is empty */}
-            <section data-anim="section" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.9rem', padding: '1rem' }}>
-              <h2 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>Current assignments</h2>
-              {journey.assigned_practice.length === 0 ? (
-                <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: 0 }}>
-                  No active IELTS assignments right now.
-                </p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/ielts/practice/assigned')}
-                    style={{ padding: '0.7rem 1rem', background: 'linear-gradient(90deg, #0891b2, #7c3aed)', border: 'none', borderRadius: '0.7rem', color: '#fff', fontWeight: 800, fontSize: '0.875rem', cursor: 'pointer', letterSpacing: '0.02em', boxShadow: '0 2px 8px rgba(8,145,178,0.28)' }}
-                  >
-                    Open assigned practice →
-                  </button>
-                  {journey.assigned_practice.map((item) => (
-                    <AssignmentCard key={item.assignment_id} item={item} isCompleted={false} onNavigate={navigate} />
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* Completed assignments */}
-            <section data-anim="section" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.9rem', padding: '1rem' }}>
-              <h2 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>Completed assignments</h2>
-              {journey.completed_practice.length === 0 ? (
-                <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: 0 }}>No completed IELTS assignments yet.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
-                  {journey.completed_practice.map((item) => (
-                    <AssignmentCard key={item.assignment_id} item={item} isCompleted={true} onNavigate={navigate} />
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* Results & Feedback */}
-            <section data-anim="section" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.9rem', padding: '1rem' }}>
-              <h2 style={{ margin: '0 0 0.4rem', fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>Results & Feedback</h2>
-              <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: '#64748b' }}>View your latest results and feedback.</p>
-              {summary.results === 0 && (
-                <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: '0 0 0.35rem' }}>No results available yet.</p>
-              )}
-              {summary.feedback === 0 && (
-                <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: 0 }}>No reviewed feedback yet.</p>
-              )}
-              {(summary.results > 0 || summary.feedback > 0) && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-                  {journey.completed_practice
-                    .filter((item) => item.objective_result_link || (item.review_result_link && item.has_finalized_review))
-                    .map((item) => (
-                      <div key={item.assignment_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', padding: '0.55rem 0', borderBottom: '1px solid #f1f5f9' }}>
-                        <span style={{ fontSize: '0.82rem', color: '#334155', fontWeight: 600 }}>{item.title}</span>
-                        <div style={{ display: 'flex', gap: '0.45rem' }}>
-                          {item.objective_result_link && (
-                            <button type="button" onClick={() => navigate(item.objective_result_link as string)} style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', padding: '0.3rem 0.65rem', borderRadius: '0.45rem', fontWeight: 700, fontSize: '0.72rem', cursor: 'pointer' }}>
-                              View result →
-                            </button>
-                          )}
-                          {item.review_result_link && item.has_finalized_review && (
-                            <button type="button" onClick={() => navigate(item.review_result_link as string)} style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', color: '#6d28d9', padding: '0.3rem 0.65rem', borderRadius: '0.45rem', fontWeight: 700, fontSize: '0.72rem', cursor: 'pointer' }}>
-                              View feedback →
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </section>
-          </>
-        )}
       </div>
       <IeltsSchoolStudentProgressModal
         isOpen={!!snapshotStudentId}
