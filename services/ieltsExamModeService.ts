@@ -389,6 +389,19 @@ export const rpcIeltsExamWhoami = async (
   };
 };
 
+// Status polls deliberately exclude public forms and saved draft payloads.
+export const rpcIeltsExamStatus = async (
+  examEventId: string,
+  client?: IeltsExamRpcClient
+): Promise<IeltsExamWhoamiResponse> => {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_exam_status', {
+    p_exam_event_id: examEventId,
+  }) as unknown as Awaited<RpcResult<IeltsExamWhoamiResponse>>;
+  const response = assertNoRpcError('rpc_ielts_exam_status', data, error);
+  const { form_public_payload: _form, drafts: _drafts, ...status } = response;
+  return status;
+};
+
 export const rpcIeltsStartAttempt = async (
   assignmentId: string,
   client?: IeltsExamRpcClient

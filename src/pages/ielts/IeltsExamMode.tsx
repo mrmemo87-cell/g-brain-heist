@@ -6,6 +6,7 @@ import type { WritingScreenerResult } from '../../../services/ieltsWritingScreen
 import { getIeltsReadingPassages, restoreReadingPassage, saveReadingPassage } from '../../../services/ieltsReadingDelivery';
 import { makeIeltsAudioCheckpointKey, saveIeltsAudioCheckpoint, restoreIeltsAudioCheckpoint } from '../../../services/ieltsAudioCheckpoint';
 import { fetchIeltsDiagnosticResult, getIeltsScreenerAudio, type IeltsDiagnosticResult } from '../../../services/ieltsDiagnosticEvidenceService';
+import { ieltsRequestDelay } from '../../../services/ieltsDeliveryRequestPolicy';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '../../styles/ielts-exam.css';
 import { useParams } from 'react-router-dom';
@@ -13,6 +14,7 @@ import {
   createExamIdempotencyKey,
   rpcIeltsAutosaveAttempt,
   rpcIeltsExamWhoami,
+  rpcIeltsExamStatus,
   rpcIeltsLogIncident,
   rpcIeltsStartAttempt,
   rpcIeltsSubmitAttempt,
@@ -211,6 +213,16 @@ const IeltsExamMode: React.FC = () => {
   const attemptRef = useRef<IeltsStartAttemptResponse | null>(attempt);
   const lockTokenRef = useRef<string | null>(lockToken);
   const saveInFlightRef = useRef(false);
+  const serverOffsetRef = useRef(serverOffsetMs);
+  serverOffsetRef.current = serverOffsetMs;
+  const statusInFlightRef = useRef(false);
+  const statusFailuresRef = useRef(0);
+  const statusRetryAtRef = useRef(0);
+  const saveFailuresRef = useRef(0);
+  const saveRetryAtRef = useRef(0);
+  const whoamiRef = useRef<IeltsExamWhoamiResponse | null>(null);
+  const eventRef = useRef(examEventId);
+  eventRef.current = examEventId;
   const dirtySectionsRef = useRef(new Set<string>());
   const draftVersionsRef = useRef<Record<string, number>>({});
   const incidentInFlightRef = useRef(false);
@@ -244,6 +256,7 @@ const IeltsExamMode: React.FC = () => {
       }
     }
 
+    const serverAnswers = JSON.parse(JSON.stringify(nextAnswers)) as typeof nextAnswers;
     if (response.attempt_id) {
       const localDraft = readLocalDraft(response.attempt_id);
       if (localDraft) {
@@ -253,12 +266,14 @@ const IeltsExamMode: React.FC = () => {
       }
     }
     answersRef.current = nextAnswers;
-    dirtySectionsRef.current = new Set(Object.keys(nextAnswers));
+    dirtySectionsRef.current = new Set(Object.keys(nextAnswers).filter(section =>
+      JSON.stringify(nextAnswers[section]) !== JSON.stringify(serverAnswers[section])));
     setAnswers(nextAnswers);
     draftVersionsRef.current = Object.fromEntries((response.drafts ?? []).map((draft) => [draft.section, draft.draft_version ?? 0]));
   }, []);
 
   const applyWhoamiState = useCallback((response: IeltsExamWhoamiResponse, options: { hydrateDrafts: boolean } = { hydrateDrafts: false }) => {
+    whoamiRef.current = response;
     setWhoami(response);
     syncServerClock(response.server_now);
     setRemainingSeconds(response.remaining_seconds ?? 0);
@@ -269,7 +284,8 @@ const IeltsExamMode: React.FC = () => {
     const attemptStatus = response.attempt_status ?? response.status;
     const eventStatus = response.event_status ?? (!response.attempt_id ? response.status : null);
     const previousSyncState = syncStateRef.current;
-    const nextSyncState = resolveIeltsStudentExamSyncState(attemptStatus, eventStatus, response.reason);
+    const resolvedState = resolveIeltsStudentExamSyncState(attemptStatus, eventStatus, response.reason);
+    const nextSyncState = !response.allowed && resolvedState === 'active' ? 'not_in_progress' : resolvedState;
     const syncMessage = getIeltsStudentExamSyncMessage(nextSyncState);
     syncStateRef.current = nextSyncState;
     setSyncState(nextSyncState);
@@ -306,14 +322,34 @@ const IeltsExamMode: React.FC = () => {
   }, [hydrateAnswers, syncServerClock]);
 
   const refreshLiveState = useCallback(async () => {
-    if (!examEventId || !navigator.onLine) return;
+    if (!examEventId || !navigator.onLine || !whoamiRef.current || statusInFlightRef.current
+      || Date.now() < statusRetryAtRef.current) return;
+    statusInFlightRef.current = true;
+    const eventId = examEventId;
     try {
-      const response = await rpcIeltsExamWhoami(examEventId);
-      applyWhoamiState(response);
+      const response = await rpcIeltsExamStatus(eventId);
+      if (eventRef.current !== eventId) return;
+      statusFailuresRef.current = 0;
+      statusRetryAtRef.current = 0;
+      const previous = whoamiRef.current;
+      // Another tab starting a different attempt must never attach our edits to it.
+      if (previous?.assignment_id && response.assignment_id && previous.assignment_id !== response.assignment_id) {
+        applyWhoamiState({ ...previous, allowed: false, reason: 'not_assigned', server_now: response.server_now });
+      } else if (response.allowed && !previous?.form_public_payload) {
+        // Content is fetched once when a previously unavailable event becomes live.
+        const full = await rpcIeltsExamWhoami(eventId);
+        if (eventRef.current === eventId) applyWhoamiState(full, { hydrateDrafts: true });
+      } else {
+        applyWhoamiState({ ...response, form_public_payload: previous?.form_public_payload });
+      }
     } catch (refreshError) {
+      if (eventRef.current !== eventId) return;
+      statusRetryAtRef.current = Date.now() + ieltsRequestDelay('status', ++statusFailuresRef.current);
       // Autosave owns connectivity feedback, avoiding a second interruption banner.
       setSaveState('error');
       setSaveMessage('Connection interrupted. Keep this page open; saving will retry automatically.');
+    } finally {
+      statusInFlightRef.current = false;
     }
   }, [applyWhoamiState, examEventId]);
 
@@ -323,6 +359,11 @@ const IeltsExamMode: React.FC = () => {
     setError(null);
     try {
       const response = await rpcIeltsExamWhoami(examEventId);
+      if (eventRef.current !== examEventId) return;
+      if (whoamiRef.current?.assignment_id && whoamiRef.current.assignment_id !== response.assignment_id) {
+        setAttempt(null);
+        setLockToken(null);
+      }
       applyWhoamiState(response, { hydrateDrafts: true });
       setLoadState('ready');
     } catch (loadError) {
@@ -337,21 +378,28 @@ const IeltsExamMode: React.FC = () => {
 
   useEffect(() => {
     if (loadState !== 'ready' || syncState === 'submitted' || syncState === 'voided') return undefined;
-    const timer = window.setInterval(() => {
-      void refreshLiveState();
-    }, 10000);
-    return () => window.clearInterval(timer);
+    let timer: number;
+    let stopped = false;
+    const poll = async () => {
+      if (document.visibilityState !== 'hidden') await refreshLiveState();
+      if (!stopped) timer = window.setTimeout(poll, ieltsRequestDelay('status', statusFailuresRef.current));
+    };
+    timer = window.setTimeout(poll, ieltsRequestDelay('status'));
+    return () => { stopped = true; window.clearTimeout(timer); };
   }, [loadState, refreshLiveState, syncState]);
 
   useEffect(() => {
+    let timer: number | undefined;
     const onFocusOrVisible = () => {
+      window.clearTimeout(timer);
       if (document.visibilityState !== 'hidden') {
-        void refreshLiveState();
+        timer = window.setTimeout(() => void refreshLiveState(), ieltsRequestDelay('recovery'));
       }
     };
     window.addEventListener('focus', onFocusOrVisible);
     document.addEventListener('visibilitychange', onFocusOrVisible);
     return () => {
+      window.clearTimeout(timer);
       window.removeEventListener('focus', onFocusOrVisible);
       document.removeEventListener('visibilitychange', onFocusOrVisible);
     };
@@ -446,6 +494,8 @@ const IeltsExamMode: React.FC = () => {
       setSaveMessage(syncMessage ?? 'Autosave paused because the exam is not active.');
       return false;
     }
+    if (!dirtySectionsRef.current.has(section)) return true;
+    if (reason === 'auto' && Date.now() < saveRetryAtRef.current) return false;
     if (saveInFlightRef.current || !navigator.onLine) return false;
 
     const payload = answersRef.current[section] ?? {};
@@ -460,8 +510,10 @@ const IeltsExamMode: React.FC = () => {
         section,
         payload,
         draftVersion: nextVersion,
-        clientSavedAt: new Date(Date.now() + serverOffsetMs).toISOString(),
+        clientSavedAt: new Date(Date.now() + serverOffsetRef.current).toISOString(),
       });
+      saveFailuresRef.current = 0;
+      saveRetryAtRef.current = 0;
       syncServerClock(response.server_now);
       draftVersionsRef.current[section] = Math.max(draftVersionsRef.current[section] ?? 0, response.draft_version ?? nextVersion);
       if (answersRef.current[section] === payload) dirtySectionsRef.current.delete(section);
@@ -470,6 +522,7 @@ const IeltsExamMode: React.FC = () => {
       setSaveMessage(pending ? 'Saving your latest changes…' : 'All answers saved.');
       return true;
     } catch (saveError) {
+      saveRetryAtRef.current = Date.now() + ieltsRequestDelay('save', ++saveFailuresRef.current);
       const message = saveError instanceof Error ? saveError.message : 'Autosave failed.';
       if (/attempt_not_in_progress|assignment_void|exam_paused/i.test(message)) {
         await refreshLiveState();
@@ -483,10 +536,10 @@ const IeltsExamMode: React.FC = () => {
     } finally {
       saveInFlightRef.current = false;
     }
-  }, [refreshLiveState, serverOffsetMs, submission, syncServerClock]);
+  }, [refreshLiveState, submission, syncServerClock]);
 
   const savePendingSections = useCallback(async () => {
-    const sections = dirtySectionsRef.current.size ? [...dirtySectionsRef.current] : [activeSectionRef.current];
+    const sections = [...dirtySectionsRef.current];
     for (const section of sections) {
       if (!await autosaveSection(section, 'auto')) break;
     }
@@ -498,18 +551,30 @@ const IeltsExamMode: React.FC = () => {
       setWarning(null);
       setLocalDraftSaved(writeLocalDraft(attemptRef.current?.attempt_id ?? null, answersRef.current));
     };
+    let recoveryTimer: number | undefined;
     const onOnline = () => {
       setOffline(false);
-      setSaveState('saving');
-      setSaveMessage('Back online. Saving your answers…');
-      void savePendingSections();
-      void refreshLiveState();
+      setSaveMessage('Back online. Checking your saved answers…');
+      window.clearTimeout(recoveryTimer);
+      recoveryTimer = window.setTimeout(() => {
+        void savePendingSections();
+        void refreshLiveState();
+      }, ieltsRequestDelay('recovery'));
     };
     window.addEventListener('offline', onOffline);
     window.addEventListener('online', onOnline);
-    const timer = window.setInterval(() => { void savePendingSections(); }, 8000);
+    let timer: number;
+    let stopped = false;
+    const save = async () => {
+      await savePendingSections();
+      if (!stopped) timer = window.setTimeout(save, ieltsRequestDelay('save', saveFailuresRef.current));
+    };
+    timer = window.setTimeout(save, ieltsRequestDelay('save'));
+
     return () => {
-      window.clearInterval(timer);
+      stopped = true;
+      window.clearTimeout(timer);
+      window.clearTimeout(recoveryTimer);
       window.removeEventListener('offline', onOffline);
       window.removeEventListener('online', onOnline);
     };
@@ -534,7 +599,7 @@ const IeltsExamMode: React.FC = () => {
         payload: {
           ...payload,
           active_section: activeSectionRef.current,
-          client_logged_at: new Date(Date.now() + serverOffsetMs).toISOString(),
+          client_logged_at: new Date(Date.now() + serverOffsetRef.current).toISOString(),
         },
       });
     } catch {
