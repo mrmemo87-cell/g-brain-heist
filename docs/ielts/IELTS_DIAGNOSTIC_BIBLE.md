@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.4.0\
+**Version:** 1.5.0\
 **Effective date:** 2026-10-08\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -27,7 +27,8 @@ Allowed outputs:
 - percentage where meaningful;
 - construct-level performance;
 - item-level evidence;
-- provisional readiness range **only when a validated calibration model exists**;
+- platform-calculated provisional readiness range **only when a validated calibration model exists**;
+- separately attributed provisional teacher readiness estimate only under sections 1.4 and 9.4;
 - confidence level;
 - next recommended assessment/practice.
 
@@ -63,6 +64,16 @@ Brains Heist must never:
 - call its own evaluator an “official IELTS examiner”;
 - imply that its estimate is equivalent to an official Test Report Form;
 - use “real IELTS band score” as a headline for an unvalidated short diagnostic.
+
+---
+
+### 1.4 Provisional teacher readiness estimate
+
+**Owner-authorized policy (2026-10-08):** After completion of all four screeners, an authorized IELTS teacher may publish a **Provisional teacher readiness estimate** as a low-confidence range on the IELTS band scale, subject to section 9.4. This is an attributed professional judgment for preparation planning, not a calibrated screener output, a full-baseline result, or an official IELTS result.
+
+Teacher review of Writing and Speaking is useful evidence for that judgment. It does not validate the short-form band conversion or establish the predictive accuracy of the screeners. Completion of four screeners alone never triggers an estimate.
+
+This narrowly scoped route is an explicit exception to the calibrated short-form output restriction in sections 1.1 and 9.3. It does not exempt automated estimates or trusted full-baseline claims from section 18.
 
 ---
 
@@ -582,14 +593,49 @@ For sufficiently full Listening/Reading forms, raw-to-band/readiness mapping mus
 
 ### 9.3 Short-form estimates
 
-A short screener may output a band range only if:
+A short screener may output a platform-calculated band range only if:
 - it has been calibrated against an accepted external or internal benchmark;
 - calibration method is documented;
 - sample characteristics are documented;
 - error/uncertainty is known;
 - the UI shows confidence/range rather than false precision.
 
-Until then, short forms report performance and constructs, not a definitive band.
+Until then, short forms report performance and constructs, not a definitive band. A separately stored and attributed provisional teacher judgment is permitted only under section 9.4; it is not a calibrated output of the short form.
+
+---
+
+### 9.4 Provisional teacher estimate: separate, evidence-linked route
+
+This section permits the owner-requested provisional professional judgment under section 1.4. It defines required future implementation; it does not assert that this workflow is already deployed or that any named student has an approved range.
+
+#### Eligibility and evidence review
+- Require current IELTS entitlement, all four completed valid screeners, finalized teacher reviews for Writing and Speaking, and an authorized teacher competent in IELTS-style assessment who reviews the complete four-skill evidence.
+- Existing finalized productive-skill reviews may be reused by exact source/review reference if current, relevant and sufficient. Do not reset, duplicate or silently upgrade them.
+- Inspect actual writing and criterion-level judgments, speaking audio or documented live observation, objective item outcomes, task coverage, recency, delivery conditions and integrity. A completion flag, stored number or “teacher-reviewed” badge alone is insufficient.
+- Identify Academic or General Training context and the limited scope of the writing tasks and speaking parts sampled. Missing Task 1/Task 2 or Speaking-part coverage must remain explicit and may require more evidence; one reviewed essay is not silently a complete Writing paper.
+- A documented live teacher interview may support this provisional judgment when it records observed criteria, parts/coverage, reviewer and date. Transcript-only or AI text cannot supply pronunciation evidence. Do not fabricate an audio reference where no recording exists.
+- Withhold a skill or overall range when evidence is insufficient, contradictory, stale, pending or materially compromised. Assign the specific missing check and explain why. Eligibility for IELTS does not guarantee eligibility for a numerical estimate.
+
+#### Additional Listening and Reading evidence
+- Teachers may assign original/licensed, editorially reviewed material from the new practice catalogue to gather missing evidence. Availability in the old catalogue is not approval.
+- For estimation, designate a fresh task as an independent evidence check before delivery, with reviewed constructs/coverage, difficulty rationale, exact version, appropriate test type and declared delivery rules. Objective marking must be server-trusted and keys protected before submission.
+- Retain known exposure, assistance and rehearsal metadata. Guided practice, repeated screener items, exposed keys and scaffolded corrections remain practice; they cannot fill an independent-evidence gap simply because their scores are higher.
+- A small additional check may inform the teacher's scoped provisional judgment. It does not calibrate a raw-to-band mapping, prove improvement, or automatically qualify a full-baseline result.
+
+#### Estimate, provenance and publication
+- Record a teacher-entered lower and upper band-scale bound for each supported skill, a brief evidence-linked rationale, coverage limitations, supporting and contradictory source IDs, reviewer identity/date, test type, policy version and follow-up action.
+- Use a range, not a single precise overall score. Bounds must be ordered and within the IELTS scale; a policy's permitted increments are input conventions, not proof of accuracy. Do not invent a fixed universal margin, claimed error rate or statistical confidence interval.
+- Overall publication requires evidence-backed provisional judgments for all four skills and explicit teacher confirmation of the overall range and its rationale. Do not automatically average raw scores, partial skills or rubric snapshots. This is not the official four-band calculation in section 2.6.
+- No generic percentage-to-band ladder, automatic AI publication or automatic conversion of existing saved screener results is authorized. AI may assist with evidence summaries; the named authorized teacher owns the estimate and sharing decision.
+- Required visible title: **Provisional teacher readiness estimate**. Display **Confidence: low** and **Not an official IELTS result** alongside the range, reviewer/date and a concise limitation: **Based on short assessments and teacher judgment; not a calibrated prediction. Confirm with a fuller assessment.**
+- Explain that this is a planning estimate, not a validated forecast or guaranteed exam outcome. Keep it separate from calibrated estimates in student views, school reports, exports and analytics. Do not use it as proof of mastery, intervention success, high-stakes selection or a validated school performance metric.
+- Preserve finalized original reviews, responses and scoring runs. Store the estimate as a separate versioned teacher decision with append-only supersession history; invalidate/review it when supporting evidence is voided or superseded.
+- Enforce existing student, teacher, programme and school boundaries for creation, reads, edits and sharing. Independent eligible students without an authorized reviewer see a supported review route or an unavailable state; never invent a teacher allocation.
+
+#### Pilot and acceptance
+Use Gulzada's existing account for the normal authorized pilot under AGENTS.md, without resets, role changes or invented review evidence. Verify all-four completion, finalized review reuse, missing-evidence assignment, withheld range, teacher sharing, student wording, corrections and cross-school denial before broader release. Applicable section 13 reliability/capacity gates remain mandatory; this policy certifies neither deployment nor 500-user capacity.
+
+Continue collecting benchmark comparisons under section 18. Human review supports a professional judgment; it is not a substitute for calibration or independent validation of automated band predictions.
 
 ---
 
@@ -797,6 +843,7 @@ Student and teacher results must clearly distinguish:
 - short screener result;
 - teacher-reviewed result;
 - AI-provisional result;
+- provisional teacher readiness estimate under section 9.4, distinct from calibrated results;
 - confidence level;
 - evidence count/coverage;
 - latest activity date;
@@ -1027,7 +1074,7 @@ The default student dashboard centres on:
 
 Choose the primary action from the student's actual state: recover pending work, continue an active task, view newly shared feedback, complete an agreed practice step, gather missing evidence or await review. Do not start duplicate attempts, silently overwrite work or automatically play assessment audio.
 
-Keep broad skill coverage visible without equating “completed four checks” with a full baseline or an IELTS band. For independent students, show only supported review/practice routes; never invent an allocated school teacher. Respect entitlement and reviewed-content availability.
+Keep broad skill coverage visible without equating “completed four checks” with a full baseline or an IELTS band. A separately attributed low-confidence teacher range may be shared only after section 9.4 passes; completion alone must never generate it. For independent students, show only supported review/practice routes; never invent an allocated school teacher. Respect entitlement and reviewed-content availability.
 
 ### 15B.2 Feedback that students can act on
 
@@ -1190,7 +1237,7 @@ The full baseline may be delivered across more than one school session. It does 
 
 “Looks reasonable” is not calibration.
 
-Before numerical readiness bands are treated as trusted school evidence, Brains Heist must conduct a documented validation study.
+Before numerical readiness bands are treated as trusted school evidence, Brains Heist must conduct a documented validation study. Section 9.4 permits a separate low-confidence teacher planning judgment without claiming such validation; it does not relax this requirement for calibrated platform estimates or trusted baseline evidence.
 
 At minimum:
 - compare Brains Heist estimates with a credible benchmark;
@@ -1273,6 +1320,7 @@ No Grade 9–10 school baseline should be called “ready” until every require
 - [ ] “Tested skill” cannot be auto-labelled weakest.
 - [ ] One missed item cannot create a persistent weakness.
 - [ ] Recommendations cite the evidence that caused them.
+- [ ] If provisional teacher ranges are enabled, section 9.4 eligibility, provenance, withholding, sharing and distinct low-confidence labeling pass; no automatic screener conversion or validated-accuracy claim is introduced.
 - [ ] Longitudinal labels satisfy section 8A's approved policy, independence, comparability, confidence and teacher-review gates; unavailable policies fail closed.
 - [ ] The section 15B journey separates practice participation from independent improvement and supports missing, mixed, stale and pending evidence states.
 
@@ -1442,6 +1490,16 @@ Basis: the owner's explicit instruction and Brains Heist's existing evidence, co
 No IELTS format, band conversion, external rating criteria, existing scoring or published content changes. Section 13's v1.3.0 concurrency architecture and capacity requirements remain intact. No data migration or runtime feature is activated by this documentation change, and historical assessment evidence must remain intact.
 
 Affected implementation to review: `services/ieltsJourneyService.ts`, `src/pages/ielts/IeltsJourneyDashboard.tsx`, student next-action cards, school programme/student evidence views, governed objective evidence/scoring projections, Writing/Speaking review services and AI drafts, canonical Academic Profile/registry crosswalks and confidence policies, intervention/alternate-form governance, projection workers/caches, school-scoped RPCs and regression/pilot/load-test tooling. These rules describe required future implementation and validation; they do not certify existing longitudinal tracking or 500-user capacity.
+
+---
+
+### 22.4 Revision record — v1.5.0 (2026-10-08)
+
+The owner explicitly authorized a provisional teacher estimate after four screeners, reusing finalized Writing/Speaking reviews and gathering additional Listening/Reading evidence where needed. The previous short-form restriction did not distinguish a professional planning judgment from a calibrated platform prediction. Sections 1.4 and 9.4 now permit that separate attributed, low-confidence range with evidence sufficiency, withholding, review, scope, immutable history and publication gates. Sections 1.1, 9.3, 15, 15B.1, 18 and 19 clarify the distinction consistently.
+
+Basis: the owner's explicit product-policy authorization. This is a Brains Heist internal planning route, not an IELTS-endorsed method or evidence that short screeners predict official bands. Official IELTS scoring, Writing format and Speaking format references in section 23 were rechecked on 2026-10-08 for the retained four-skill, task-coverage and criterion distinctions. Those sources do not endorse this provisional route. No official format, rating criteria, raw-to-band conversion, calibration gate, published form or existing score is changed.
+
+Affected implementation to review: teacher programme evidence/review workspace, estimate decision storage and school-scoped authorization, `services/ieltsJourneyService.ts`, student Journey/result cards, task allocation and independent-evidence checks, exports/reporting and pilot tests. This documentation-only change activates no runtime estimate, assigns no tasks, certifies no named student's range and establishes no new capacity evidence. Preserve all saved work and original reviews. Automated estimates and trusted baseline claims still require section 18 validation.
 
 ---
 
