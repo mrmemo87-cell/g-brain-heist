@@ -124,6 +124,7 @@ export default function IeltsLearningPractice() {
     setUrl("");
     setPending(null);
     setPosition(0);
+    setRecordingActive(false);
     checkpointReady.current = false;
     setPlaying(false);
     current.current = null;

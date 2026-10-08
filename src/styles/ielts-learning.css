@@ -1,4 +1,8 @@
 .il-shell {
+  --sp-ink: #15243a;
+  --sp-muted: #4c6076;
+  --sp-blue: #1746b0;
+  --sp-line: #dce5ef;
   min-height: 100vh;
   background: #f5f6fc;
   color: #18223b;

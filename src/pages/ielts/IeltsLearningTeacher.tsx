@@ -36,6 +36,9 @@ export default function IeltsLearningTeacher({
     let active = true;
     setData(null);
     setStudent(null);
+    setBusy(false);
+    setReason("");
+    request.current = crypto.randomUUID();
     setConfirmed(false);
     setNotes("");
     setMessage("Loading targeted practice…");
