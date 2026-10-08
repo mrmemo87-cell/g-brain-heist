@@ -220,12 +220,14 @@ export default function IeltsLearningPractice() {
       return;
     }
     try {
-      if (!detail.manager && !detail.result) {
-        if (restart) await learningIncident(detail.id, "replay");
-        await learningIncident(detail.id, "play");
-      }
+      // Start within the tap gesture, including Safari and offline cached playback.
       if (restart) audio.current.currentTime = 0;
-      await audio.current.play();
+      const started = audio.current.play();
+      if (!detail.manager && !detail.result) {
+        if (restart) void learningIncident(detail.id, "replay").catch(() => {});
+        void learningIncident(detail.id, "play").catch(() => {});
+      }
+      await started;
     } catch {
       setError("Playback could not start. Your answers are safe. Try again.");
     }
