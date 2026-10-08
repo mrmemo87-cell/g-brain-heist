@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.3.0\
+**Version:** 1.4.0\
 **Effective date:** 2026-10-08\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -440,6 +440,121 @@ The diagnostic must integrate with the existing Brains Heist academic-confidence
 A single diagnostic sitting may identify **development areas** or **lowest-performing constructs**, but must not create a “persistent weakness” unless the general academic-confidence policy's persistence requirements are satisfied.
 
 Missing or unanswered data is not automatically evidence of inability.
+
+---
+
+## 8A. Longitudinal learning record and decision policy
+
+**Owner requirement (2026-10-08):** Track each student's strengths, difficulties and response to practice through a traceable learning record. The rules below define the required future implementation; they do not assert that current screeners already establish persistence, sustained improvement or mastery.
+
+### 8A.1 The unit of tracking
+
+Track a reviewed construct/atomic subskill, with an Evidence Focus where governed, under a stable taxonomy ID and version. Keep the four IELTS skills, their rating criteria and their teachable subskills distinct. A skill total or a criterion rating cannot automatically diagnose every child subskill.
+
+Example: an essay's Task Response rating alone does not establish difficulty with supporting examples. That subskill needs an explicit reviewed observation linked to the relevant essay evidence.
+
+Reuse the canonical Academic Profile evidence/confidence approach and the identity rules in `docs/academic-skill-registry.md`. IELTS-specific constructs require a reviewed, versioned crosswalk before pooling with English/ESL evidence. Similar names, topic tags and AI-generated labels are not equivalence. Other English practice can inform teaching without automatically becoming IELTS readiness evidence.
+
+### 8A.2 Required learning-record fields
+
+For each observation, preserve:
+- student and authorized school/programme context;
+- canonical skill/subskill/focus IDs, taxonomy/crosswalk versions and claim scope;
+- source attempt, exact form/task/item versions and content hash; original response/essay/audio reference, excerpt or timestamp where applicable;
+- assessment purpose, occurrence/submission time, source-instance/independence group and known prior exposure;
+- outcome or rubric observation, marks/opportunities where meaningful, supporting evidence and contradictory evidence;
+- trusted scoring run/policy, verification state, reviewer identity and review time; AI model/prompt/draft provenance separately;
+- integrity, delivery, assistance and accommodation metadata; comparability decision and reasons;
+- whether it qualifies for a task observation, recurring pattern, improvement comparison or persistence decision, with exclusion reasons;
+- linked intervention, its target and completion/participation evidence when relevant.
+
+Resume, duplicate submission, rescoring and several excerpts from one essay do not create independent tasks. Count a source instance once for source diversity while retaining its item-level opportunities. Do not count a Writing rubric and its essay excerpt as two independent performances.
+
+### 8A.3 Eligibility and comparability
+
+Only trusted, reviewed-mapping evidence may drive academic conclusions. Apply the source's required human-review policy; AI drafts, client claims, marketing events and unverified free-text mappings do not qualify.
+
+Missing/unanswered work, missing audio, pending scoring, a failed upload or a late teacher review are availability states, not zero attainment. An actual governed score may record an unanswered item under its existing marking rules, but that fact alone cannot diagnose inability in its mapped construct.
+
+Before comparing performances, verify the same construct, compatible taxonomy and scoring, relevant task/test type, reviewed difficulty/coverage, delivery conditions, assistance and exposure. Do not pool Academic and General Training forms, Task 1 and Task 2 ratings, or distinct Speaking parts merely because they share a skill label. A cross-context claim needs its own qualified coverage.
+
+Reused items, memorized prompts, exposed answers, guided corrections and scaffolded practice must retain their rehearsal/assistance labels. They may show participation or task observations but cannot independently prove improvement, strength, resolution or mastery. Difficulty adjustments require a documented validated method; raw percentages from unequal forms cannot serve as one.
+
+Interruptions or accommodations are not automatic failure or automatic exclusion. Apply a documented integrity/comparability policy and retain the reason. Never exclude inconvenient incorrect evidence after seeing the result.
+
+### 8A.4 Governed thresholds: no invented defaults
+
+Before enabling a derived pattern or change label, register an academic-owner-approved, versioned policy for that construct, learner/task scope and evidence type. It must specify:
+- minimum qualifying opportunities and independent source instances;
+- task/context coverage, observation window, time separation, freshness and expiry/review rules;
+- outcome/rubric thresholds for difficulty and strength, with a minimum confidence requirement;
+- a defensible minimum change and treatment of measurement uncertainty for improvement;
+- fresh follow-up requirements for sustained improvement and resolution;
+- intervention opportunity and post-intervention evidence requirements for persistent difficulty;
+- handling of mixed, contradictory, missing, assisted and integrity-flagged evidence;
+- required teacher confirmation, reviewer disagreement and correction/supersession rules;
+- validation basis, limitations, approver and effective version/date.
+
+Repeated means evidence from more than one independent source instance; several questions in one sitting are not longitudinal repetition. This logical minimum is not a sufficient statistical threshold. Two essays, three misses, an arbitrary percentage increase or elapsed days must not silently become universal cutoffs.
+
+If the relevant policy or its qualifying evidence is unavailable, keep the observation provisional or show **not enough evidence**. No agent, AI prompt or UI helper may invent a numeric threshold to make a status appear. Confidence remains separate from attainment, and current uncalibrated screeners retain their existing low-confidence limits.
+
+### 8A.5 Pattern and change states
+
+Store evidence availability/quality, attainment pattern and change trajectory as separate dimensions. A student can have a recurring difficulty and show improvement at the same time. Do not force every student through one linear badge ladder.
+
+| State | Required meaning and gate |
+| --- | --- |
+| Not enough evidence | Required evidence, coverage, comparability or approved policy is missing. State what is needed next. |
+| Possible strength / difficulty | An eligible item/task observation suggests a narrow area to check. It is not a confirmed learner trait. |
+| Repeated strength / difficulty | The approved pattern policy passes across separate qualifying source instances, including counterevidence and confidence. |
+| Improvement observed | Fresh independent comparable work shows a change meeting the approved improvement policy relative to a recorded reference. A higher total alone is insufficient. |
+| Improvement sustained | Further independent follow-ups, separated as the policy requires, support maintained progress beyond the first improved task. |
+| Persistent difficulty | The approved persistence policy passes across time, with documented opportunity for targeted learning, qualifying fresh post-intervention evidence and teacher confirmation. |
+| Resolved for the assessed scope | The approved recovery/coverage/confidence policy passes and a teacher confirms the limited claim. Historical difficulty remains visible. |
+| Mixed evidence / teacher review needed | Qualified observations conflict, conditions differ materially or reviewer disagreement is unresolved. Do not force a strong claim. |
+| Evidence needs updating | Evidence is outside the approved freshness window. Lack of recent work does not imply deterioration or persistence. |
+| Difficulty observed again | New evidence after recovery suggests recurrence; apply the pattern policy again before confirming regression or persistence. |
+
+Use **sustained improvement**, not “resilient student”, as a performance label. Do not infer personality, effort, motivation, disability or psychological resilience from these records. Resolution is scoped to the assessed construct and conditions; it does not promise permanent mastery.
+
+### 8A.6 Practice, reassessment and causal limits
+
+The learning loop is:
+
+**qualified observation → teacher-confirmed target → targeted practice → fresh comparable reassessment → review of change → later independent follow-up**
+
+Record each intervention's subskill/focus, original evidence references, teacher confirmation, task/resource versions, intended action and success/check criteria, assignment/start/completion dates and linked reassessments. No suitable reviewed resource means “teacher planning needed”; do not silently substitute an unrelated task.
+
+Practice completion is participation, not proof of learning. A missed or incomplete practice task does not prove persistent inability. If independent follow-up is missing or incomparable, report **improvement not yet established**, rather than “did not improve”.
+
+Improvement observed after practice does not prove that the intervention caused it. Record other relevant teaching, assistance and conditions; show the observation without a causal guarantee.
+
+Example: unclear supporting examples in an essay → teacher assigns explanation practice → a fresh comparable essay supports improvement → a later fresh essay checks maintenance. Rewriting the same essay with supplied feedback remains guided practice.
+
+### 8A.7 Rebuildable decisions and teacher authority
+
+Every conclusion must reference its supporting and contradictory source IDs, qualifying counts/coverage, comparison reference, applicable policy/version, confidence, as-of date, limitations and next action. Retain an append-only decision history, including teacher confirmation/disagreement and the reason for transitions.
+
+Teacher confirmation cannot waive missing evidence or fabricate comparability. Teachers may annotate, reject or request further checks. AI may propose observations, explanations and practice drafts; it must not independently approve mappings, persistence, recovery or shared final feedback.
+
+Corrections, voided attempts, superseded reviews and taxonomy/policy changes must invalidate affected projections and trigger a scoped rebuild. Preserve original evidence, old decisions and policy versions; do not rewrite history or count old and corrected runs twice. A changed algorithm is not student improvement.
+
+Enforce the existing student/teacher/school access boundaries on every read, decision and intervention. Role changes must not expose another school's history. Cached summaries are derived views, not the source of academic truth.
+
+### 8A.8 Implementation and acceptance sequence
+
+1. **Inventory and governance:** audit current journey/Academic Profile sources and policies; approve taxonomy crosswalks, evidence qualification and numeric policy parameters. Keep advanced labels unavailable where approval is missing.
+2. **Observation ledger:** connect original Listening/Reading outcomes and confirmed Writing/Speaking observations to stable identities with deduplication, provenance and availability states.
+3. **Teacher evidence view:** show observations, confidence, source links and contradictions before enabling recurring/persistent conclusions.
+4. **Intervention loop:** add teacher-confirmed targets and governed practice links; record participation separately from independent reassessment.
+5. **Comparable reassessment:** publish reviewed alternate tasks/forms and evaluate improvement with policy-defined uncertainty and follow-ups.
+6. **Derived journey:** enable approved pattern/change projections, teacher confirmation, simple student wording and audited corrections.
+7. **Validation and scoped release:** use Gulzada's existing account for the normal authorized pilot without resets or role promotion; verify security, assessment validity, devices and applicable section 13 capacity gates before broader claims.
+
+Compute projections through bounded, idempotent background work or scoped reads. Do not scan full histories or run AI/conclusion aggregation in each answer-save transaction. Index/paginate authorized reads and invalidate caches by source/policy version. Apply all section 13 concurrency requirements; this plan establishes no 500-user capacity claim.
+
+Required acceptance cases include: one miss cannot create persistence; one success cannot create a confirmed strength; a whole sitting cannot masquerade as several sources; repeats/rescoring/duplicate AI reviews cannot inflate counts; assisted or easier work cannot establish independent improvement; missing data cannot become weakness; pending/failed processing cannot become zero; contradictory or stale evidence cannot silently retain a strong current claim; teacher approval cannot bypass evidence gates; fresh improvement can coexist with a remaining difficulty; sustained improvement and persistence each require their own policy; changed mappings/voids rebuild projections without erasing history; pronunciation requires audio; cross-school reads fail closed. Record expected outputs for each versioned policy, reviewed examples, disagreement handling and staged release results.
 
 ---
 
@@ -898,6 +1013,58 @@ If the answer to any of these is no, the feature is not finished.
 
 ---
 
+## 15B. Student journey and teacher monitoring
+
+### 15B.1 One understandable learning path
+
+The required journey is **starting point → understandable feedback → one next action → purposeful practice → fresh evidence → reviewed learning trail**.
+
+The default student dashboard centres on:
+- **Continue your work:** resume the existing authorized attempt, draft or upload with honest local-pending/server-saved status.
+- **Your next step:** one prioritized, teacher-confirmed learning action, or the missing assessment/review needed before choosing one.
+- **Teacher feedback:** clearly attributed teacher-confirmed comments and an actionable explanation.
+- **Your learning trail:** original work, practice participation, independent checks and dated feedback, with detail available on demand.
+
+Choose the primary action from the student's actual state: recover pending work, continue an active task, view newly shared feedback, complete an agreed practice step, gather missing evidence or await review. Do not start duplicate attempts, silently overwrite work or automatically play assessment audio.
+
+Keep broad skill coverage visible without equating “completed four checks” with a full baseline or an IELTS band. For independent students, show only supported review/practice routes; never invent an allocated school teacher. Respect entitlement and reviewed-content availability.
+
+### 15B.2 Feedback that students can act on
+
+Use simple language: **what went well → what to work on → how to practise → how we will check again**. Link each statement to qualified source evidence and the reviewed subskill/focus behind it.
+
+Examples:
+- “We need another task before judging this area.”
+- “Your examples were unclear in this essay. Practise explaining how each example supports your opinion.”
+- “Your new essay explains examples more clearly. Let's check this in another essay.”
+- “This difficulty has appeared in several independent tasks, including after practice. Your teacher will help choose a different next step.”
+
+Match wording to the actual state and confidence. Do not call a person weak, promise a band increase, display unsupported “mastered/resolved” badges, or replace teacher feedback with an unconfirmed AI draft. Clearly label teacher input through text and visual hierarchy; colour alone is insufficient. Technical taxonomy/policy detail stays in the expandable evidence view.
+
+### 15B.3 Teacher monitoring and next-step selection
+
+For each authorized student, the teacher view must show:
+- skill/subskill/focus, observation/pattern and change trajectory separately;
+- qualifying evidence count, source diversity/coverage, dates, confidence and missing evidence;
+- original source links, reasons for inclusion/exclusion and contradictory evidence;
+- current agreed target, assigned practice and participation status;
+- reassessment/follow-up status, reference comparison and policy-based change explanation;
+- pending review, stale evidence, disagreement and the next decision needed.
+
+Rank next actions by evidence quality, relevance to the student's goal, teacher priority and available reviewed resources. “Lowest score” or “tested skill” alone cannot determine the next weakness. Avoid overwhelming students with all flagged subskills at once.
+
+School summaries must use only authorized qualified projections, retain confidence/coverage and distinguish unavailable evidence from difficulty. A school administrator allocates the programme lead; that allocation does not authorize a teacher to bypass evidence or sharing gates.
+
+### 15B.4 Acceptance and current limitations
+
+The teacher must be able to answer **why this conclusion, what evidence, what practice, what changed and what next**. The student must understand the next action without learning internal terminology. Test missing-evidence, waiting-for-review, interruption, no-resource and mixed-evidence paths as carefully as a completed journey.
+
+Apply section 15A's accessible, coherent Brains Heist design and section 13's scoped-read/background-work requirements. A timeline, attractive progress bar, task completion or stored teacher feedback does not by itself implement longitudinal inference.
+
+Current short screeners and reviewed single submissions remain starting-point evidence. Until the policies, comparable reassessment, implementation and validation in section 8A pass, persistence/sustained-improvement/resolution features must remain unavailable rather than simulated.
+
+---
+
 ## 16. Current known legacy issues
 
 The following current/legacy behaviours are **not** canonical and must not be preserved merely because they already exist.
@@ -1106,6 +1273,8 @@ No Grade 9–10 school baseline should be called “ready” until every require
 - [ ] “Tested skill” cannot be auto-labelled weakest.
 - [ ] One missed item cannot create a persistent weakness.
 - [ ] Recommendations cite the evidence that caused them.
+- [ ] Longitudinal labels satisfy section 8A's approved policy, independence, comparability, confidence and teacher-review gates; unavailable policies fail closed.
+- [ ] The section 15B journey separates practice participation from independent improvement and supports missing, mixed, stale and pending evidence states.
 
 ### Validation
 - [ ] Benchmark/calibration protocol approved.
@@ -1174,13 +1343,15 @@ Agents must not skip foundational phases just to make the UI appear complete.
 - confidence;
 - recommendations;
 - school teacher view;
-- integration with Brains Heist academic evidence rules.
+- integration with Brains Heist academic evidence rules;
+- section 8A observation/policy/teacher-view gates and section 15B's evidence-linked next actions.
 
 ### Phase 7 — Reassessment
 - alternate forms;
 - exposure controls;
 - comparable scoring;
-- improvement logic.
+- improvement logic;
+- section 8A comparable independent checks, approved change thresholds, sustained follow-ups and audited transitions.
 
 ### Phase 8 — Staging and calibration
 - real Supabase/RLS testing;
@@ -1216,6 +1387,7 @@ Before an AI agent changes anything within IELTS diagnostic scope, it must:
 12. Run the relevant tests/guards or report exactly what could not be run.
 13. State remaining risks honestly.
 14. For concurrency-sensitive edits, apply sections 13.1–13.3 and report which capacity evidence remains valid or must be rerun.
+15. For learning-pattern, intervention or journey edits, apply sections 8A and 15B; identify the approved policy/crosswalk, evidence eligibility, teacher-review gates and unavailable claims. Never infer implementation from this contract alone.
 
 For diagnostic-affecting pull requests, include:
 - Bible version used;
@@ -1258,6 +1430,18 @@ Owner-requested concurrency governance follows the assignment incident investiga
 Basis: the owner's requirement and internal engineering acceptance policy. Numeric load/latency targets are Brains Heist targets, not externally validated capacity or official IELTS timing/scoring rules. Existing local assignment tests do not establish IELTS or production capacity. No assessment format, scoring, taxonomy, confidence or human-review gate changes.
 
 Affected implementation to review: IELTS discovery/form RPCs and reads, attempt/answer/finalization transactions and indexes, Auth/session recovery, Exam Mode rendering/subscriptions, Listening storage/playback/cache, Writing draft/submission and Speaking uploads, evaluation/transcription workers, background scheduling, teacher/school reports, monitoring and release/load-test tooling. Existing academic history must remain intact. This revision defines required future work; it does not assert that the current implementation passes it.
+
+---
+
+### 22.3 Revision record — v1.4.0 (2026-10-08)
+
+Owner-requested precision follows the agreed student journey and the question of how strengths, recurring/persistent difficulties and improvement will be monitored. Section 8's terminology alone did not define source independence, comparable evidence, policy parameters, teacher authority or a delivery plan. Section 8A now defines the observation ledger, qualification/comparability, approved decision thresholds, separate pattern/change states, intervention/follow-up loop, rebuildable history and staged acceptance. Section 15B defines the matching student/teacher journey. Section 19, Phases 6–7 and the agent protocol reference these gates.
+
+Basis: the owner's explicit instruction and Brains Heist's existing evidence, confidence, reassessment and Academic Skill Registry governance. This is an internal learning-evidence/product contract, not an official IELTS classification or a validated numerical threshold. Numeric parameters require documented academic approval and validation before enabling advanced conclusions; this revision supplies no fabricated universal cutoffs.
+
+No IELTS format, band conversion, external rating criteria, existing scoring or published content changes. Section 13's v1.3.0 concurrency architecture and capacity requirements remain intact. No data migration or runtime feature is activated by this documentation change, and historical assessment evidence must remain intact.
+
+Affected implementation to review: `services/ieltsJourneyService.ts`, `src/pages/ielts/IeltsJourneyDashboard.tsx`, student next-action cards, school programme/student evidence views, governed objective evidence/scoring projections, Writing/Speaking review services and AI drafts, canonical Academic Profile/registry crosswalks and confidence policies, intervention/alternate-form governance, projection workers/caches, school-scoped RPCs and regression/pilot/load-test tooling. These rules describe required future implementation and validation; they do not certify existing longitudinal tracking or 500-user capacity.
 
 ---
 
