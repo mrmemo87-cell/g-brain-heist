@@ -1,0 +1,111 @@
+.il-shell {
+  min-height: 100vh;
+  background: #f5f6fc;
+  color: #18223b;
+  padding: clamp(1rem, 4vw, 3rem);
+  font-family: inherit;
+}
+.il-shell > header,
+.il-shell > section,
+.il-shell > p,
+.il-shell > a {
+  max-width: 56rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+.il-shell h1 {
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  line-height: 1.15;
+}
+.il-shell h2 {
+  font-size: 1.35rem;
+}
+.il-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  color: #3447a5;
+}
+.il-card {
+  background: #fff;
+  border: 1px solid #dce1ef;
+  border-radius: 1.2rem;
+  padding: clamp(1rem, 3vw, 1.7rem);
+  margin-top: 1.25rem;
+  line-height: 1.65;
+}
+.il-grid {
+  display: grid;
+  gap: 1rem;
+}
+.il-actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+.il-shell button,
+.il-button {
+  display: inline-block;
+  min-height: 44px;
+  border: 1px solid #3244a0;
+  border-radius: 0.7rem;
+  background: #253b9d;
+  color: white;
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+.il-shell button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.il-shell a {
+  color: #253b9d;
+  text-decoration: underline;
+}
+.il-shell a.il-button {
+  color: white;
+  text-decoration: none;
+}
+.il-answer {
+  display: grid;
+  gap: 0.45rem;
+  font-weight: 650;
+  margin: 1rem 0;
+}
+.il-answer input,
+.il-answer textarea,
+.il-shell select {
+  border: 1px solid #a4aec5;
+  border-radius: 0.6rem;
+  padding: 0.8rem;
+  color: #18223b;
+  background: white;
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+.il-answer textarea {
+  min-height: 100px;
+}
+.il-answer span,
+.il-muted {
+  font-weight: 400;
+  color: #4b5874;
+  font-size: 0.9rem;
+}
+.il-alert {
+  padding: 1rem;
+  background: #fff1dc;
+  border: 1px solid #ce941d;
+  border-radius: 0.7rem;
+  color: #563900;
+}
+.il-teacher {
+  border-left: 5px solid #b64232;
+}
+.il-shell :focus-visible {
+  outline: 3px solid #14a2ac;
+  outline-offset: 3px;
+}

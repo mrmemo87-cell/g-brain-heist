@@ -13,7 +13,7 @@ import SchoolAdminContext from "../../../components/school-admin/SchoolAdminCont
 import "../../styles/ielts-speaking-pilot.css";
 import "../../styles/ielts-programme.css";
 const Practice = React.lazy(
-  () => import("../../../components/school-admin/tabs/IeltsPracticeTab"),
+  () => import("./IeltsLearningTeacher"),
 );
 const Exams = React.lazy(() => import("./IeltsExamManager"));
 type Section =
@@ -226,6 +226,7 @@ export default function IeltsProgrammeWorkspace({
           queue.
         </p>
       )}
+      {data?.can_manage && <React.Suspense fallback={<p>Loading practice reviews…</p>}><Practice schoolId={data.school_id} reviewOnly /></React.Suspense>}
       {data?.can_manage && (
         <details>
           <summary>Other practice submissions</summary>
@@ -646,7 +647,7 @@ export default function IeltsProgrammeWorkspace({
                     >
                       <Practice
                         key={data.school_id}
-                        onOpenReviews={() => open("reviews")}
+                        schoolId={data.school_id}
                       />
                     </SchoolAdminContext.Provider>
                   ) : (

@@ -308,6 +308,7 @@ export default function IeltsStudentJourney({
           <div>
             <p className="ij-eyebrow">Purposeful practice</p>
             <h2 id="practice-heading">Your practice plan</h2>
+            <button type="button" className="ij-primary" onClick={() => navigate('/ielts/practice/targeted')}>Open your next targeted task →</button>
           </div>
           <button
             type="button"
