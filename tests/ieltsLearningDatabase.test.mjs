@@ -13,8 +13,12 @@ create table users(id uuid primary key,username text,is_banned boolean default f
 create table ielts_exam_attempts(id uuid primary key,status text);
 create table schools(id uuid primary key);create table school_members(school_id uuid,user_id uuid,status text);
 create table academic_skill_registry_versions(id uuid primary key,status text);
-create table academic_skill_registry_nodes(id uuid primary key,registry_version_id uuid,node_type text,status text);
-create table private.ielts_diagnostic_attempt_evidence(attempt_id uuid primary key,student_id uuid,school_id uuid);
+create table academic_skill_registry_nodes(id uuid primary key,registry_version_id uuid,node_type text,status text,name text);
+create table private.ielts_speaking_sessions(id uuid primary key,student_id uuid,school_id uuid,status text);
+create table private.ielts_speaking_reviews(session_id uuid);
+create table private.ielts_writing_screener_reviews(attempt_id uuid);
+create table private.ielts_diagnostic_attempt_evidence(attempt_id uuid primary key,student_id uuid,school_id uuid,version_id uuid);
+create table private.ielts_diagnostic_versions(id uuid primary key,skills text[]);
 create table private.ielts_diagnostic_scoring_runs(attempt_id uuid,server_verified boolean);
 create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
 create table storage.objects(bucket_id text,name text);alter table storage.objects enable row level security;
@@ -24,12 +28,19 @@ insert into users(id,username) values('${student}','Pilot'),('${teacher}','Teach
 insert into ielts_exam_attempts values('${source}','submitted');
 insert into schools values('${school}');insert into school_members values('${school}','${student}','active');
 insert into academic_skill_registry_versions values('d4ad52b6-fd0f-4068-9982-28b89ff389c5','published');
-insert into academic_skill_registry_nodes select unnest(array['0dbe1c8f-403a-493f-afd3-c219310fb18a','d5b1fddb-ba6f-4be1-8513-bb26d822357a','d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b','f9064b63-e3f1-4bfa-8e8e-97a02756afb2']::uuid[]),'d4ad52b6-fd0f-4068-9982-28b89ff389c5','subskill','active';
-insert into private.ielts_diagnostic_attempt_evidence values('${source}','${student}','${school}');
+insert into academic_skill_registry_nodes select unnest(array['0dbe1c8f-403a-493f-afd3-c219310fb18a','d5b1fddb-ba6f-4be1-8513-bb26d822357a','d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b','f9064b63-e3f1-4bfa-8e8e-97a02756afb2']::uuid[]),'d4ad52b6-fd0f-4068-9982-28b89ff389c5','subskill','active','Listening construct';
+insert into academic_skill_registry_versions values('ad250533-8582-4bc5-986b-32b0c9640a16','published');
+insert into academic_skill_registry_nodes select unnest(array['bcddba69-28bc-436c-bb54-01a3c5733099','be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de','ccaa0aaa-c3c0-47bf-b6cc-8aedbaed12b4','83fc3944-2f92-4cca-9a38-ac81f032627f','413181a5-95eb-4d96-82e0-c47c78e8de2a','1cea5568-701e-40ed-8459-61fd5df5263d']::uuid[]),'ad250533-8582-4bc5-986b-32b0c9640a16','subskill','active','Canonical construct';
+insert into private.ielts_writing_screener_reviews values('${source}');
+insert into private.ielts_speaking_sessions values('${source}','${student}','${school}','submitted');
+insert into private.ielts_speaking_reviews values('${source}');
+insert into private.ielts_diagnostic_versions values('${source}',array['listening','reading','writing']);
+insert into private.ielts_diagnostic_attempt_evidence values('${source}','${student}','${school}','${source}');
 insert into private.ielts_diagnostic_scoring_runs values('${source}',true);`);
 await db.exec(readFileSync('supabase/migrations/20261008195545_ielts_targeted_listening_pilot.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/20261008201324_ielts_learning_exposure_integrity.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/20261008202405_ielts_learning_school_boundary.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261008211134_ielts_four_skill_practice_pilot.sql','utf8'));
 const actor=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
 const detail=async()=> (await db.query('select rpc_ielts_learning_detail($1) d',[id])).rows[0].d;
 const allocate=()=>db.query('select rpc_ielts_learning_allocate($1,$2,$3,$4,$5,null,$6) id',[school,student,'bh-ielts-targeted-listening-l1-v1',source,'Synthetic delivery test; no diagnosis asserted.',request]);
@@ -89,3 +100,53 @@ test('former-school membership blocks both student and teacher access even when 
  await db.exec("update school_members set status='active'");
 });
 test.after(()=>db.close());
+const newAllocate=async(skill,purpose='1')=>(await db.query('select rpc_ielts_learning_allocate($1,$2,$3,$4,$5,null,$6) id',[school,student,`bh-ielts-targeted-${skill}-${skill[0]}${purpose}-v1`,source,'Delivery pilot; no diagnosed weakness is asserted.',crypto.randomUUID()])).rows[0].id;
+const getDetail=async id=>(await db.query('select rpc_ielts_learning_detail($1) d',[id])).rows[0].d;
+const saveResponse=async(id,answers)=>db.query('select rpc_ielts_learning_save($1,0,$2)',[id,JSON.stringify(answers)]);
+const feedback={went_well:'Your example supports your main point.',work_on:'Explain why this example matters.',practice:'Add a reason after the example.',check_again:'Try the fresh prompt without help.'};
+test('new material requires a scoped exact-content teacher review; mismatched skill sources are rejected',async()=>{
+ await db.exec("update school_members set status='active'");await actor(teacher);
+ await assert.rejects(newAllocate('reading'),/content_review_required/);
+ const tasks=(await db.query('select rpc_ielts_learning_workspace($1) w',[school])).rows[0].w.tasks;
+ assert.equal(tasks.length,8);
+ for(const t of tasks.filter(t=>t.requires_review)){
+  await actor(student);await assert.rejects(db.query('select rpc_ielts_learning_approve_content($1,$2,$3,$4,true)',[school,t.code,t.content_sha256,'Reviewed task for delivery pilot.']),/not_authorized/);
+  await actor(teacher);await assert.rejects(db.query('select rpc_ielts_learning_approve_content($1,$2,$3,$4,true)',[school,t.code,'a'.repeat(64),'Reviewed task for delivery pilot.']),/content_review_required/);
+  await db.query('select rpc_ielts_learning_approve_content($1,$2,$3,$4,true)',[school,t.code,t.content_sha256,'Reviewed wording, key, mapping, timing and originality for pilot.']);
+ }
+ await db.exec("update private.ielts_diagnostic_versions set skills=array['listening']");await assert.rejects(newAllocate('reading'),/reviewed_source_required/);await db.exec("update private.ielts_diagnostic_versions set skills=array['listening','reading','writing']");
+ await actor(student);assert.deepEqual((await db.query('select rpc_ielts_learning_workspace(null) w')).rows[0].w.tasks,[]);
+});
+test('Reading hides keys before submit and scores the six choices separately from explanations',async()=>{
+ await actor(teacher);const reading=await newAllocate('reading');await actor(student);const d=await getDetail(reading);
+ assert.match(d.content.passage,/library/i);assert.equal(d.content.teacher_notes,undefined);assert.equal(JSON.stringify(d.questions).includes('accepted_answers'),false);
+ await assert.rejects(saveResponse(reading,{q1:'MAYBE'}),/invalid_answers/);
+ await saveResponse(reading,{q1:'TRUE',q2:'FALSE',q3:'FALSE',q4:'TRUE',q5:'NOT GIVEN',q6:'NOT GIVEN',e1:'The trial was six weeks long.'});
+ const result=(await db.query('select rpc_ielts_learning_submit($1,1) d',[reading])).rows[0].d;assert.equal(result.result.score,6);assert.equal(result.result.total,6);assert.equal(result.answers.e1,'The trial was six weeks long.');assert.ok(result.content.teacher_notes);
+});
+test('Writing requires actual text, preserves it and gives no fabricated score; all criteria are reviewed',async()=>{
+ await actor(teacher);const writing=await newAllocate('writing');await actor(student);
+ await assert.rejects(db.query('select rpc_ielts_learning_submit($1,0)',[writing]),/response_required/);
+ await assert.rejects(saveResponse(writing,{response:'x'.repeat(12001)}),/invalid_answers/);
+ await saveResponse(writing,{response:'Schools can teach budgeting. For example, students can plan a weekly food budget. This helps them use basic mathematics in daily life.',assistance:'Guided scaffold used.'});
+ const d=(await db.query('select rpc_ielts_learning_submit($1,1) d',[writing])).rows[0].d;assert.equal(d.result.score,null);assert.equal(d.result.total,null);assert.ok(d.result.word_count>0);
+ await actor(teacher);await assert.rejects(db.query('select rpc_ielts_learning_review($1,$2,$3)',[writing,JSON.stringify(feedback),crypto.randomUUID()]),/criterion_feedback_required/);
+ const criteria=Object.fromEntries(['task_response','coherence_cohesion','lexical_resource','grammar_range_accuracy'].map(k=>[k,'Use a clear example and explain your point.']));
+ await db.query('select rpc_ielts_learning_review($1,$2,$3)',[writing,JSON.stringify({...feedback,criteria}),crypto.randomUUID()]);await actor(student);assert.equal((await getDetail(writing)).review.fields.criteria.task_response,criteria.task_response);
+});
+test('Speaking consent, capture ownership, verification and audio review are enforced; verified evidence is immutable',async()=>{
+ await actor(teacher);const speaking=await newAllocate('speaking');const clip=crypto.randomUUID();await actor(student);
+ await assert.rejects(db.query('select rpc_ielts_learning_begin_recording($1,$2,false)',[speaking,clip]),/recording_not_active/);
+ await db.query('select rpc_ielts_learning_begin_recording($1,$2,true)',[speaking,clip]);
+ await assert.rejects(db.query('select rpc_ielts_learning_submit($1,0)',[speaking]),/save_recording/);
+ await actor(outsider);await assert.rejects(db.query('select rpc_ielts_learning_recording_context($1,$2)',[speaking,clip]),/not_authorized/);
+ await db.exec('set role authenticated');await assert.rejects(db.query('select service_ielts_learning_verify_recording($1,$2,$3,$4,60,false)',[speaking,clip,student,'b'.repeat(64)]),/permission denied/);await db.exec('reset role');
+ await assert.rejects(db.query('select service_ielts_learning_verify_recording($1,$2,$3,null,60,false)',[speaking,clip,student]),/invalid_recording/);
+ await db.query('select service_ielts_learning_verify_recording($1,$2,$3,$4,60,true)',[speaking,clip,student,'b'.repeat(64)]);
+ await assert.rejects(db.query("update private.ielts_learning_recordings set duration_seconds=90 where id=$1",[clip]),/immutable/);
+ await actor(student);const d=(await db.query('select rpc_ielts_learning_submit($1,0) d',[speaking])).rows[0].d;assert.equal(d.result.score,null);assert.equal(d.recordings.length,1);assert.equal(d.conditions_need_review,true);
+ await actor(teacher);const criteria=Object.fromEntries(['fluency_coherence','lexical_resource','grammar_range_accuracy','pronunciation'].map(k=>[k,'Explain your reason and add one clear detail.']));
+ await assert.rejects(db.query('select rpc_ielts_learning_review($1,$2,$3)',[speaking,JSON.stringify({...feedback,criteria}),crypto.randomUUID()]),/listen_to_audio/);
+ await db.query('select rpc_ielts_learning_review($1,$2,$3)',[speaking,JSON.stringify({...feedback,criteria,audio_checked:true}),crypto.randomUUID()]);
+ await actor(student);assert.equal((await getDetail(speaking)).review.fields.audio_checked,true);
+});

@@ -1,4 +1,8 @@
 .il-shell {
+  --sp-ink: #15243a;
+  --sp-muted: #4c6076;
+  --sp-blue: #1746b0;
+  --sp-line: #dce5ef;
   min-height: 100vh;
   background: #f5f6fc;
   color: #18223b;
@@ -108,4 +112,50 @@
 .il-shell :focus-visible {
   outline: 3px solid #14a2ac;
   outline-offset: 3px;
+}
+.il-passage {
+  white-space: pre-wrap;
+  line-height: 1.85;
+  color: #182139;
+  max-width: 78ch;
+}
+.il-answer label {
+  display: grid;
+  gap: 0.6rem;
+}
+.il-answer select {
+  min-height: 48px;
+  padding: 0.7rem;
+  border: 1px solid #94a3b8;
+  border-radius: 10px;
+  background: #fff;
+  color: #182139;
+}
+.il-response {
+  min-height: 240px;
+  line-height: 1.8;
+}
+.il-support {
+  border-left: 4px solid #5264c8;
+  padding: 1rem;
+  background: #f0f3ff;
+}
+.il-preview {
+  padding: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  margin: 1rem 0;
+}
+.il-preview summary {
+  cursor: pointer;
+  min-height: 44px;
+  font-weight: 700;
+}
+.il-shell audio {
+  max-width: 100%;
+}
+.il-shell input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
 }

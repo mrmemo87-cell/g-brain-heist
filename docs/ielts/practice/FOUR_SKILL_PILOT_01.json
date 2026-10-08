@@ -1,0 +1,326 @@
+{
+  "bible": "1.5.0",
+  "scope": "Gulzada/SRIS named-student pilot; each new task needs explicit teacher content/key/mapping/timing review before allocation.",
+  "tasks": [
+    {
+      "code": "bh-ielts-targeted-reading-r1-v1",
+      "version": "0.1.0",
+      "title": "A statement is not always a match",
+      "skill": "reading",
+      "purpose": "guided_practice",
+      "instructions": "Read the passage. Choose TRUE, FALSE or NOT GIVEN for each statement. Explain each answer using a short quote or the information that is missing. Explanations are reviewed by your teacher, separately from the six answer marks.",
+      "success_description": "Support each decision with the relevant words, or explain exactly what the passage does not tell you.",
+      "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+      "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+      "questions": [
+        {
+          "id": "q1",
+          "prompt": "Students could reserve a place using the internet.",
+          "accepted_answers": [
+            "TRUE"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        },
+        {
+          "id": "q2",
+          "prompt": "A booking had to last exactly ninety minutes.",
+          "accepted_answers": [
+            "FALSE"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        },
+        {
+          "id": "q3",
+          "prompt": "The pilot introduced longer weekend opening hours.",
+          "accepted_answers": [
+            "FALSE"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        },
+        {
+          "id": "q4",
+          "prompt": "Printers were moved because they disturbed students.",
+          "accepted_answers": [
+            "TRUE"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        },
+        {
+          "id": "q5",
+          "prompt": "Every student who used the room completed the survey.",
+          "accepted_answers": [
+            "NOT GIVEN"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        },
+        {
+          "id": "q6",
+          "prompt": "Students preferred the quiet room to studying at home.",
+          "accepted_answers": [
+            "NOT GIVEN"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        }
+      ],
+      "content": {
+        "scope": "Targeted IELTS preparation exercise; not a full paper, essay assessment or Speaking interview.",
+        "suggested_minutes": 12,
+        "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+        "focus_code": "bh-ielts-reading-targeted-focus-v1",
+        "passage": "A university library piloted a quiet study room for six weeks. Students booked a place online, and each booking lasted up to ninety minutes. During the pilot, the room opened at 8 a.m. on weekdays; weekend opening hours stayed unchanged. Staff moved the printers into the corridor after students complained about noise. In the final week, most survey respondents said the room helped them concentrate. However, only thirty-two students returned the survey, so the library decided to collect more feedback before extending the scheme.",
+        "teacher_notes": "1 TRUE — “booked a place online”.\n2 FALSE — “up to” permits shorter bookings.\n3 FALSE — weekend hours “stayed unchanged”.\n4 TRUE — moved after noise complaints.\n5 NOT GIVEN — thirty-two responses; total users and their identities are unspecified.\n6 NOT GIVEN — no home-study comparison.\nDiscuss 2/3 as qualifiers and 5/6 as missing information. Do not teach “not exactly the same words means false”.",
+        "focus": "Decide whether a statement agrees with the passage, contradicts it, or cannot be established; identify the supporting evidence or missing fact."
+      },
+      "review_record": {
+        "author": "Brains Heist AI-assisted original",
+        "rights": "Original Brains Heist text; no third-party passages or questions copied. Teacher must confirm suitability and provenance before pilot assignment.",
+        "bible": "1.5.0",
+        "human_review": "pending",
+        "difficulty_comparability": "Not calibrated equivalent forms; no bands or automatic improvement conclusions.",
+        "source": "STARTER_PACK_01_REVIEW_DRAFT.md 0.1.0"
+      },
+      "content_sha256": "15d777e9f5d04646988a7c5ef884bd7dfe17cd27624cc44d18b1734e67cfb9ec"
+    },
+    {
+      "code": "bh-ielts-targeted-reading-r2-v1",
+      "version": "0.1.0",
+      "title": "Evidence before assumption",
+      "skill": "reading",
+      "purpose": "independent_check",
+      "instructions": "Read the passage. Choose TRUE, FALSE or NOT GIVEN for each statement. Explain each answer using a short quote or the information that is missing. Explanations are reviewed by your teacher, separately from the six answer marks.",
+      "success_description": "Support each decision with the relevant words, or explain exactly what the passage does not tell you.",
+      "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+      "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+      "questions": [
+        {
+          "id": "q1",
+          "prompt": "A safety session was required before adults borrowed tools.",
+          "accepted_answers": [
+            "TRUE"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        },
+        {
+          "id": "q2",
+          "prompt": "Members paid a fee that was never returned.",
+          "accepted_answers": [
+            "FALSE"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        },
+        {
+          "id": "q3",
+          "prompt": "Borrowers could keep tools for two weeks.",
+          "accepted_answers": [
+            "FALSE"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        },
+        {
+          "id": "q4",
+          "prompt": "Drills were the most requested item in April.",
+          "accepted_answers": [
+            "TRUE"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        },
+        {
+          "id": "q5",
+          "prompt": "The cleaning checklist began when the service opened.",
+          "accepted_answers": [
+            "FALSE"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        },
+        {
+          "id": "q6",
+          "prompt": "The centre will definitely purchase more equipment in September.",
+          "accepted_answers": [
+            "NOT GIVEN"
+          ],
+          "taxonomy_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+          "supporting_node_id": "be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de"
+        }
+      ],
+      "content": {
+        "scope": "Targeted IELTS preparation exercise; not a full paper, essay assessment or Speaking interview.",
+        "suggested_minutes": 8,
+        "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+        "focus_code": "bh-ielts-reading-targeted-focus-v1",
+        "passage": "A community centre introduced an equipment-lending service in March. Adults could borrow gardening tools after attending a short safety session. Members paid no borrowing fee, but left a refundable deposit. Tools had to be returned within seven days. During April, the centre received more requests for drills than for any other item. Because several tools came back dirty, staff introduced a cleaning checklist in May. The centre plans to review the service in September before deciding whether to buy more equipment.",
+        "teacher_notes": "1 TRUE — “after attending” establishes prerequisite.\n2 FALSE — no borrowing fee; deposit refundable.\n3 FALSE — seven-day limit.\n4 TRUE — more requests than any other item.\n5 FALSE — March opening, May checklist.\n6 NOT GIVEN — decision pending; future purchase is not established.\nRecord answer and explanation separately. Review errors by construct; one total cannot establish every target. This passage is a different context with different demands, not calibrated equivalent to R1.",
+        "focus": "Decide whether a statement agrees with the passage, contradicts it, or cannot be established; identify the supporting evidence or missing fact."
+      },
+      "review_record": {
+        "author": "Brains Heist AI-assisted original",
+        "rights": "Original Brains Heist text; no third-party passages or questions copied. Teacher must confirm suitability and provenance before pilot assignment.",
+        "bible": "1.5.0",
+        "human_review": "pending",
+        "difficulty_comparability": "Not calibrated equivalent forms; no bands or automatic improvement conclusions.",
+        "source": "STARTER_PACK_01_REVIEW_DRAFT.md 0.1.0"
+      },
+      "content_sha256": "1fd26116baacd7ef3349a11c1780aec9b8f796b10c8f503699f484315daf251c"
+    },
+    {
+      "code": "bh-ielts-targeted-writing-w1-v1",
+      "version": "0.1.0",
+      "title": "Make an example do useful work",
+      "skill": "writing",
+      "purpose": "guided_practice",
+      "instructions": "Write one developed paragraph. Aim for 80–120 words; this is guidance, not a submission minimum. Include a clear point, an explanation, a specific plausible example and a link back to your point. Do not invent research statistics.",
+      "success_description": "Make the example specific and explain how it supports the paragraph’s main point.",
+      "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+      "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+      "questions": [
+        {
+          "id": "response",
+          "prompt": "Your paragraph",
+          "taxonomy_node_id": "ccaa0aaa-c3c0-47bf-b6cc-8aedbaed12b4",
+          "supporting_node_id": "83fc3944-2f92-4cca-9a38-ac81f032627f"
+        }
+      ],
+      "content": {
+        "scope": "Targeted IELTS preparation exercise; not a full paper, essay assessment or Speaking interview.",
+        "suggested_minutes": 15,
+        "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+        "focus_code": "bh-ielts-writing-targeted-focus-v1",
+        "prompt": "Some people think schools should teach practical life skills alongside academic subjects. Develop one paragraph supporting that position.",
+        "focus": "Develop a clear point using explanation and a relevant example; explain the link between the example and the point.",
+        "teacher_notes": "Review the paragraph within its limited task scope. Preserve actual excerpts and contrary evidence. A short paragraph cannot support a full Writing band. Do not invent a minimum-length penalty.",
+        "scaffold": "A useful life skill is… This matters because… For example… This shows…"
+      },
+      "review_record": {
+        "author": "Brains Heist AI-assisted original",
+        "rights": "Original Brains Heist text; no third-party passages or questions copied. Teacher must confirm suitability and provenance before pilot assignment.",
+        "bible": "1.5.0",
+        "human_review": "pending",
+        "difficulty_comparability": "Not calibrated equivalent forms; no bands or automatic improvement conclusions.",
+        "source": "STARTER_PACK_01_REVIEW_DRAFT.md 0.1.0"
+      },
+      "content_sha256": "52b5be2b5426272670ed2f8f41cfd486a77099f009662d805a2302a8e17698f0"
+    },
+    {
+      "code": "bh-ielts-targeted-writing-w2-v1",
+      "version": "0.1.0",
+      "title": "Develop a new argument",
+      "skill": "writing",
+      "purpose": "independent_check",
+      "instructions": "Write one developed paragraph. Aim for 80–120 words; this is guidance, not a submission minimum. Include a clear point, an explanation, a specific plausible example and a link back to your point. Do not invent research statistics. Work without sentence starters, model answers or live correction. Tell your teacher about any help you used.",
+      "success_description": "Make the example specific and explain how it supports the paragraph’s main point.",
+      "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+      "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+      "questions": [
+        {
+          "id": "response",
+          "prompt": "Your paragraph",
+          "taxonomy_node_id": "ccaa0aaa-c3c0-47bf-b6cc-8aedbaed12b4",
+          "supporting_node_id": "83fc3944-2f92-4cca-9a38-ac81f032627f"
+        }
+      ],
+      "content": {
+        "scope": "Targeted IELTS preparation exercise; not a full paper, essay assessment or Speaking interview.",
+        "suggested_minutes": 15,
+        "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+        "focus_code": "bh-ielts-writing-targeted-focus-v1",
+        "prompt": "Some people think students benefit from volunteering in their local community. Write one developed paragraph supporting or challenging this view.",
+        "focus": "Develop a clear point using explanation and a relevant example; explain the link between the example and the point.",
+        "teacher_notes": "Review the paragraph within its limited task scope. Preserve actual excerpts and contrary evidence. A short paragraph cannot support a full Writing band. Do not invent a minimum-length penalty."
+      },
+      "review_record": {
+        "author": "Brains Heist AI-assisted original",
+        "rights": "Original Brains Heist text; no third-party passages or questions copied. Teacher must confirm suitability and provenance before pilot assignment.",
+        "bible": "1.5.0",
+        "human_review": "pending",
+        "difficulty_comparability": "Not calibrated equivalent forms; no bands or automatic improvement conclusions.",
+        "source": "STARTER_PACK_01_REVIEW_DRAFT.md 0.1.0"
+      },
+      "content_sha256": "1cbbf05b20cf132dbc18c3f0924cf3a08f9167879f39ad3c88dc7960d5b556d2"
+    },
+    {
+      "code": "bh-ielts-targeted-speaking-s1-v1",
+      "version": "0.1.0",
+      "title": "Explain beyond the first answer",
+      "skill": "speaking",
+      "purpose": "guided_practice",
+      "instructions": "Prepare short notes, then record approximately 45–90 seconds of speech. Explain your reason and add a relevant detail. The length is a practice guide, not a minimum ability threshold. Keep this tab open and save your recording before submitting.",
+      "success_description": "Go beyond naming the topic: explain a reason, illustrate it with a relevant detail and connect your ideas clearly.",
+      "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+      "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+      "questions": [
+        {
+          "id": "response",
+          "prompt": "Preparation notes (optional)",
+          "taxonomy_node_id": "413181a5-95eb-4d96-82e0-c47c78e8de2a",
+          "supporting_node_id": "1cea5568-701e-40ed-8459-61fd5df5263d"
+        }
+      ],
+      "content": {
+        "scope": "Targeted IELTS preparation exercise; not a full paper, essay assessment or Speaking interview.",
+        "suggested_minutes": 10,
+        "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+        "focus_code": "bh-ielts-speaking-targeted-focus-v1",
+        "prompt": "Describe a place where you enjoy studying. Explain what it is like and why it helps you.",
+        "focus": "Develop and justify a response, connect ideas and sustain a relevant spoken turn.",
+        "teacher_notes": "Listen to the actual recording. Review development, relevant detail and organisation; note genuine timestamps where useful. Pronunciation observations require audio. Duration alone is not ability, and this short turn is not a complete Speaking interview.",
+        "scaffold": "What makes it suitable? Can you give an example? Has your preference changed?"
+      },
+      "review_record": {
+        "author": "Brains Heist AI-assisted original",
+        "rights": "Original Brains Heist text; no third-party passages or questions copied. Teacher must confirm suitability and provenance before pilot assignment.",
+        "bible": "1.5.0",
+        "human_review": "pending",
+        "difficulty_comparability": "Not calibrated equivalent forms; no bands or automatic improvement conclusions.",
+        "source": "STARTER_PACK_01_REVIEW_DRAFT.md 0.1.0"
+      },
+      "content_sha256": "903b51f800bf7b71715d332a7d03744f6522e65de9668fc303d1dac4015a17a1"
+    },
+    {
+      "code": "bh-ielts-targeted-speaking-s2-v1",
+      "version": "0.1.0",
+      "title": "Explain a choice",
+      "skill": "speaking",
+      "purpose": "independent_check",
+      "instructions": "Prepare short notes, then record approximately 45–90 seconds of speech. Explain your reason and add a relevant detail. The length is a practice guide, not a minimum ability threshold. Keep this tab open and save your recording before submitting. Allow yourself one minute to prepare. Speak without coaching, and record any help or interruption.",
+      "success_description": "Go beyond naming the topic: explain a reason, illustrate it with a relevant detail and connect your ideas clearly.",
+      "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+      "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+      "questions": [
+        {
+          "id": "response",
+          "prompt": "Preparation notes (optional)",
+          "taxonomy_node_id": "413181a5-95eb-4d96-82e0-c47c78e8de2a",
+          "supporting_node_id": "1cea5568-701e-40ed-8459-61fd5df5263d"
+        }
+      ],
+      "content": {
+        "scope": "Targeted IELTS preparation exercise; not a full paper, essay assessment or Speaking interview.",
+        "suggested_minutes": 5,
+        "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+        "focus_code": "bh-ielts-speaking-targeted-focus-v1",
+        "prompt": "Describe an activity you would like to learn. Explain why it interests you and how you would start learning it.",
+        "focus": "Develop and justify a response, connect ideas and sustain a relevant spoken turn.",
+        "teacher_notes": "Listen to the actual recording. Review development, relevant detail and organisation; note genuine timestamps where useful. Pronunciation observations require audio. Duration alone is not ability, and this short turn is not a complete Speaking interview."
+      },
+      "review_record": {
+        "author": "Brains Heist AI-assisted original",
+        "rights": "Original Brains Heist text; no third-party passages or questions copied. Teacher must confirm suitability and provenance before pilot assignment.",
+        "bible": "1.5.0",
+        "human_review": "pending",
+        "difficulty_comparability": "Not calibrated equivalent forms; no bands or automatic improvement conclusions.",
+        "source": "STARTER_PACK_01_REVIEW_DRAFT.md 0.1.0"
+      },
+      "content_sha256": "1cf4cbafd050cde68e4e3648162d0873743198f9c2192fc22609a435505997ab"
+    }
+  ]
+}

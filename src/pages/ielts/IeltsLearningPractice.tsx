@@ -11,13 +11,66 @@ import {
   type LearningWorkspace,
   type LearningDetail,
   type LearningFeedback,
+  type FeedbackKey,
+  learningRecordingAudio,
 } from "../../../services/ieltsLearningService";
 import {
   restoreIeltsAudioCheckpoint,
   saveIeltsAudioCheckpoint,
 } from "../../../services/ieltsAudioCheckpoint";
+import LearningSpeakingRecorder from "../../components/ielts/LearningSpeakingRecorder";
 import "../../styles/ielts-learning.css";
-const feedbackLabels: Record<keyof LearningFeedback, string> = {
+const criterionLabels: Record<string, string> = {
+  task_response: "Answering and developing the task",
+  coherence_cohesion: "Organising and linking ideas",
+  lexical_resource: "Using words accurately",
+  grammar_range_accuracy: "Using varied, accurate sentences",
+  fluency_coherence: "Speaking clearly and connecting ideas",
+  pronunciation: "Making your speech easy to understand",
+};
+function RecordingPlayer({ path }: { path: string }) {
+  const [url, setUrl] = useState(""),
+    [error, setError] = useState("");
+  useEffect(() => {
+    let active = true;
+    learningRecordingAudio(path)
+      .then((u) => active && setUrl(u))
+      .catch(() => active && setError("The saved clip could not load."));
+    return () => {
+      active = false;
+    };
+  }, [path]);
+  return (
+    <div>
+      {url && (
+        <audio
+          controls
+          preload="metadata"
+          src={url}
+          aria-label="Saved student response"
+        />
+      )}
+      {error && (
+        <p role="alert">
+          {error}{" "}
+          <button
+            onClick={() =>
+              void learningRecordingAudio(path)
+                .then((u) => {
+                  setUrl(u);
+                  setError("");
+                })
+                .catch(() => setError("The saved clip could not load."))
+            }
+          >
+            Reload saved clip
+          </button>
+        </p>
+      )}
+    </div>
+  );
+}
+const feedbackLabels: Record<FeedbackKey, string> = {
   went_well: "What went well",
   work_on: "What to work on",
   practice: "How to practise",
@@ -42,6 +95,7 @@ export default function IeltsLearningPractice() {
   const [feedback, setFeedback] = useState<LearningFeedback>(blankFeedback),
     [playing, setPlaying] = useState(false),
     [position, setPosition] = useState(0);
+  const [recordingActive, setRecordingActive] = useState(false);
   const audio = useRef<HTMLAudioElement | null>(null),
     current = useRef<LearningDetail | null>(null),
     draft = useRef(answers),
@@ -70,6 +124,7 @@ export default function IeltsLearningPractice() {
     setUrl("");
     setPending(null);
     setPosition(0);
+    setRecordingActive(false);
     checkpointReady.current = false;
     setPlaying(false);
     current.current = null;
@@ -112,6 +167,7 @@ export default function IeltsLearningPractice() {
             /* Server work remains available. */
           }
         }
+        if ((d.skill ?? "listening") !== "listening") return;
         return learningAudio(d)
           .then((u) => active && setUrl(u))
           .catch(
@@ -232,9 +288,40 @@ export default function IeltsLearningPractice() {
       setError("Playback could not start. Your answers are safe. Try again.");
     }
   };
+  const recordingSaved = useCallback((next: LearningDetail) => {
+    if (current.current?.id !== next.id) return;
+    current.current = { ...current.current, recordings: next.recordings };
+    setDetail((d) =>
+      d?.id === next.id ? { ...d, recordings: next.recordings } : d,
+    );
+    setMessage("Recording saved and checked. You can submit when ready.");
+  }, []);
+  const skill = detail?.skill ?? "listening";
+  const disabled =
+    !!detail?.manager ||
+    !!detail?.result ||
+    working ||
+    !!pending ||
+    detail?.status === "closed";
+  const criteriaKeys =
+    skill === "writing"
+      ? [
+          "task_response",
+          "coherence_cohesion",
+          "lexical_resource",
+          "grammar_range_accuracy",
+        ]
+      : skill === "speaking"
+        ? [
+            "fluency_coherence",
+            "lexical_resource",
+            "grammar_range_accuracy",
+            "pronunciation",
+          ]
+        : [];
   const submit = async () => {
     const d = current.current;
-    if (!d) return;
+    if (!d || recordingActive || pending) return;
     setWorking(true);
     setError("");
     audio.current?.pause();
@@ -325,107 +412,124 @@ export default function IeltsLearningPractice() {
               This short task does not give an IELTS band or establish
               improvement by itself.
             </p>
-            <Link to={"/ielts/screener-result/" + detail.source_attempt_id}>
+            <Link
+              to={
+                detail.source_route ??
+                "/ielts/screener-result/" + detail.source_attempt_id
+              }
+            >
               View the source evidence
             </Link>
           </section>
           <section className="il-card">
-            <h2>Listen and respond</h2>
-            <p>
-              The recording includes 30 seconds to read and 15 seconds to
-              finish.
-            </p>
-            {url && (
-              <audio
-                ref={audio}
-                src={url}
-                preload="metadata"
-                onLoadedMetadata={() => {
-                  if (audio.current) {
-                    checkpointReady.current = restoreIeltsAudioCheckpoint(
-                      audio.current,
-                      positionKey,
-                    );
-                    if (checkpointReady.current)
-                      setPosition(audio.current.currentTime);
-                  }
-                }}
-                onCanPlay={() => {
-                  if (audio.current && !checkpointReady.current) {
-                    checkpointReady.current = restoreIeltsAudioCheckpoint(
-                      audio.current,
-                      positionKey,
-                    );
-                    if (checkpointReady.current)
-                      setPosition(audio.current.currentTime);
-                  }
-                }}
-                onPlay={() => setPlaying(true)}
-                onPause={() => {
-                  setPlaying(false);
-                  if (checkpointReady.current && audio.current)
-                    saveIeltsAudioCheckpoint(
-                      positionKey,
-                      audio.current.currentTime,
-                    );
-                }}
-                onEnded={() => setPlaying(false)}
-                onTimeUpdate={() => {
-                  if (!checkpointReady.current) return;
-                  const p = audio.current?.currentTime ?? 0;
-                  setPosition(p);
-                  if (Date.now() - checkpointSavedAt.current >= 1000) {
-                    saveIeltsAudioCheckpoint(positionKey, p);
-                    checkpointSavedAt.current = Date.now();
-                  }
-                }}
-                onError={() => {
-                  setError(
-                    "The recording was interrupted. Reload it, then resume.",
-                  );
-                  if (!detail.manager && !detail.result)
-                    void learningIncident(detail.id, "audio_failure").catch(
-                      () => {},
-                    );
-                }}
-              />
+            <h2>
+              {skill === "listening"
+                ? "Listen and respond"
+                : skill === "reading"
+                  ? "Read and explain"
+                  : "Your response"}
+            </h2>
+            {skill === "listening" && (
+              <>
+                <p>
+                  The recording includes 30 seconds to read and 15 seconds to
+                  finish.
+                </p>
+                {url && (
+                  <audio
+                    ref={audio}
+                    src={url}
+                    preload="metadata"
+                    onLoadedMetadata={() => {
+                      if (audio.current) {
+                        checkpointReady.current = restoreIeltsAudioCheckpoint(
+                          audio.current,
+                          positionKey,
+                        );
+                        if (checkpointReady.current)
+                          setPosition(audio.current.currentTime);
+                      }
+                    }}
+                    onCanPlay={() => {
+                      if (audio.current && !checkpointReady.current) {
+                        checkpointReady.current = restoreIeltsAudioCheckpoint(
+                          audio.current,
+                          positionKey,
+                        );
+                        if (checkpointReady.current)
+                          setPosition(audio.current.currentTime);
+                      }
+                    }}
+                    onPlay={() => setPlaying(true)}
+                    onPause={() => {
+                      setPlaying(false);
+                      if (checkpointReady.current && audio.current)
+                        saveIeltsAudioCheckpoint(
+                          positionKey,
+                          audio.current.currentTime,
+                        );
+                    }}
+                    onEnded={() => setPlaying(false)}
+                    onTimeUpdate={() => {
+                      if (!checkpointReady.current) return;
+                      const p = audio.current?.currentTime ?? 0;
+                      setPosition(p);
+                      if (Date.now() - checkpointSavedAt.current >= 1000) {
+                        saveIeltsAudioCheckpoint(positionKey, p);
+                        checkpointSavedAt.current = Date.now();
+                      }
+                    }}
+                    onError={() => {
+                      setError(
+                        "The recording was interrupted. Reload it, then resume.",
+                      );
+                      if (!detail.manager && !detail.result)
+                        void learningIncident(detail.id, "audio_failure").catch(
+                          () => {},
+                        );
+                    }}
+                  />
+                )}
+                <div className="il-actions">
+                  <button
+                    disabled={!url || working || detail.status === "closed"}
+                    onClick={() => void play()}
+                  >
+                    {playing
+                      ? "Pause"
+                      : position > 0
+                        ? "Resume recording"
+                        : "Play recording"}
+                  </button>
+                  {detail.purpose === "guided_practice" && (
+                    <button
+                      disabled={!url || working}
+                      onClick={() => void play(true)}
+                    >
+                      Replay from start
+                    </button>
+                  )}
+                  <button
+                    onClick={() =>
+                      void learningAudio(detail)
+                        .then(setUrl)
+                        .catch(() =>
+                          setError(
+                            "Recording is unavailable. Please try again.",
+                          ),
+                        )
+                    }
+                  >
+                    Reload recording
+                  </button>
+                </div>
+                <p className="il-muted">
+                  Saved position: {Math.floor(position / 60)}:
+                  {String(Math.floor(position % 60)).padStart(2, "0")} ·
+                  playback resumes only when you choose.
+                </p>
+              </>
             )}
-            <div className="il-actions">
-              <button
-                disabled={!url || working || detail.status === "closed"}
-                onClick={() => void play()}
-              >
-                {playing
-                  ? "Pause"
-                  : position > 0
-                    ? "Resume recording"
-                    : "Play recording"}
-              </button>
-              {detail.purpose === "guided_practice" && (
-                <button
-                  disabled={!url || working}
-                  onClick={() => void play(true)}
-                >
-                  Replay from start
-                </button>
-              )}
-              <button
-                onClick={() =>
-                  void learningAudio(detail)
-                    .then(setUrl)
-                    .catch(() =>
-                      setError("Recording is unavailable. Please try again."),
-                    )
-                }
-              >
-                Reload recording
-              </button>
-            </div>
-            <p className="il-muted">
-              Saved position: {Math.floor(position / 60)}:
-              {String(Math.floor(position % 60)).padStart(2, "0")} · playback
-              resumes only when you choose.
-            </p>
             {pending && !detail.manager && !detail.result && (
               <div className="il-alert">
                 <p>This device has answers that differ from the server copy.</p>
@@ -447,42 +551,168 @@ export default function IeltsLearningPractice() {
                 </button>
               </div>
             )}
-            {detail.questions.map((q, i) => (
-              <label className="il-answer" key={q.id}>
-                {i + 1}. {q.prompt}
-                <input
-                  maxLength={120}
-                  value={answers[q.id] ?? ""}
-                  disabled={
-                    detail.manager ||
-                    !!detail.result ||
-                    working ||
-                    !!pending ||
-                    detail.status === "closed"
-                  }
+            {detail.content?.passage && (
+              <article className="il-passage">
+                <h3>The passage</h3>
+                <p>{detail.content.passage}</p>
+              </article>
+            )}
+            {detail.content?.prompt && <h3>{detail.content.prompt}</h3>}
+            {detail.content?.scaffold && (
+              <p className="il-support">
+                Guided support: {detail.content.scaffold}
+              </p>
+            )}
+            {skill === "listening" || skill === "reading" ? (
+              detail.questions.map((q, i) => (
+                <div key={q.id} className="il-answer">
+                  <label>
+                    {i + 1}. {q.prompt}
+                    {skill === "reading" ? (
+                      <select
+                        value={answers[q.id] ?? ""}
+                        disabled={disabled}
+                        onChange={(e) =>
+                          update({ ...draft.current, [q.id]: e.target.value })
+                        }
+                      >
+                        <option value="">Choose an answer</option>
+                        {["TRUE", "FALSE", "NOT GIVEN"].map((v) => (
+                          <option key={v}>{v}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        maxLength={120}
+                        value={answers[q.id] ?? ""}
+                        disabled={disabled}
+                        onChange={(e) =>
+                          update({ ...draft.current, [q.id]: e.target.value })
+                        }
+                      />
+                    )}
+                  </label>
+                  {skill === "reading" && (
+                    <label>
+                      Your evidence or the missing fact
+                      <textarea
+                        maxLength={1000}
+                        value={answers["e" + (i + 1)] ?? ""}
+                        disabled={disabled}
+                        onChange={(e) =>
+                          update({
+                            ...draft.current,
+                            ["e" + (i + 1)]: e.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                  )}
+                  {detail.result && (
+                    <span>
+                      {detail.result.outcomes.find((o) => o.id === q.id)
+                        ?.correct
+                        ? "Correct"
+                        : "Review this answer"}{" "}
+                      · Accepted:{" "}
+                      {detail.result.outcomes
+                        .find((o) => o.id === q.id)
+                        ?.accepted_answers.join(" / ")}
+                    </span>
+                  )}
+                </div>
+              ))
+            ) : (
+              <label className="il-answer">
+                {skill === "writing"
+                  ? "Your paragraph"
+                  : "Preparation notes (optional)"}
+                <textarea
+                  className="il-response"
+                  maxLength={12000}
+                  value={answers.response ?? ""}
+                  disabled={disabled}
                   onChange={(e) =>
-                    update({ ...draft.current, [q.id]: e.target.value })
+                    update({ ...draft.current, response: e.target.value })
                   }
                 />
-                {detail.result && (
+                {skill === "writing" && (
                   <span>
-                    {detail.result.outcomes.find((o) => o.id === q.id)?.correct
-                      ? "Correct"
-                      : "Review this answer"}{" "}
-                    · Accepted:{" "}
-                    {detail.result.outcomes
-                      .find((o) => o.id === q.id)
-                      ?.accepted_answers.join(" / ")}
+                    {
+                      (answers.response ?? "")
+                        .trim()
+                        .split(/\s+/)
+                        .filter(Boolean).length
+                    }{" "}
+                    words · Aim for 80–120 words. This is a practice guide.
                   </span>
                 )}
               </label>
-            ))}
+            )}
+            {skill === "speaking" && (
+              <>
+                <p>
+                  Save your clip before submitting. Keep this tab open while
+                  recording.
+                </p>
+                {!detail.manager &&
+                  !detail.result &&
+                  detail.status !== "closed" && (
+                    <LearningSpeakingRecorder
+                      detail={detail}
+                      enabled={!disabled}
+                      onSaved={recordingSaved}
+                      onActiveChange={setRecordingActive}
+                    />
+                  )}{" "}
+                {(detail.recordings ?? []).map((clip, i) => (
+                  <article key={clip.id}>
+                    <h3>
+                      Saved clip {i + 1} · {Math.round(clip.duration_seconds)}{" "}
+                      seconds
+                    </h3>
+                    {clip.interrupted && (
+                      <p>
+                        An interruption was recorded. Your teacher will consider
+                        the conditions.
+                      </p>
+                    )}
+                    <RecordingPlayer path={clip.path} />
+                  </article>
+                ))}
+              </>
+            )}
+            {skill !== "listening" && (
+              <label className="il-answer">
+                Any help or interruption? (optional)
+                <textarea
+                  maxLength={1200}
+                  value={answers.assistance ?? ""}
+                  disabled={disabled}
+                  onChange={(e) =>
+                    update({ ...draft.current, assistance: e.target.value })
+                  }
+                />
+              </label>
+            )}
+            {detail.result && detail.content?.teacher_notes && (
+              <details>
+                <summary>Review the task explanation</summary>
+                <p className="il-passage">{detail.content.teacher_notes}</p>
+              </details>
+            )}
             {!detail.manager &&
               !detail.result &&
               detail.status !== "closed" && (
                 <div className="il-actions">
                   <button
-                    disabled={working || !!pending}
+                    disabled={
+                      working ||
+                      !!pending ||
+                      recordingActive ||
+                      (skill === "speaking" &&
+                        !(detail.recordings ?? []).length)
+                    }
                     onClick={() => void submit()}
                   >
                     {working ? "Submitting…" : "Submit for review"}
@@ -500,7 +730,9 @@ export default function IeltsLearningPractice() {
           {detail.result && (
             <section className="il-card">
               <h2>
-                Task result: {detail.result.score} / {detail.result.total}
+                {detail.result.total === null
+                  ? "Your response is saved"
+                  : `Task result: ${detail.result.score} / ${detail.result.total}`}
               </h2>
               <p>
                 Responses saved.{" "}
@@ -514,7 +746,7 @@ export default function IeltsLearningPractice() {
                   judgement about your ability.
                 </p>
               )}
-              {detail.manager && (
+              {detail.manager && skill === "listening" && (
                 <p>
                   Recorded playback starts: {detail.play_count}. Playback
                   metadata is a delivery observation, not proof of independence.
@@ -527,14 +759,21 @@ export default function IeltsLearningPractice() {
               <p className="il-eyebrow">
                 TEACHER FEEDBACK · {detail.review.reviewer}
               </p>
-              {(Object.keys(feedbackLabels) as (keyof LearningFeedback)[]).map(
-                (k) => (
-                  <div key={k}>
-                    <h3>{feedbackLabels[k]}</h3>
-                    <p>{detail.review!.fields[k]}</p>
-                  </div>
-                ),
-              )}
+              {detail.review.fields.criteria &&
+                Object.entries(detail.review.fields.criteria).map(
+                  ([k, value]) => (
+                    <div key={k}>
+                      <h3>{criterionLabels[k] ?? k}</h3>
+                      <p>{value}</p>
+                    </div>
+                  ),
+                )}
+              {(Object.keys(feedbackLabels) as FeedbackKey[]).map((k) => (
+                <div key={k}>
+                  <h3>{feedbackLabels[k]}</h3>
+                  <p>{detail.review!.fields[k]}</p>
+                </div>
+              ))}
               <p className="il-muted">
                 Shared {new Date(detail.review.reviewed_at).toLocaleString()}
               </p>
@@ -547,25 +786,64 @@ export default function IeltsLearningPractice() {
                 Use simple language and refer to the student’s actual answers. A
                 fresh score alone does not establish improvement.
               </p>
-              {(Object.keys(feedbackLabels) as (keyof LearningFeedback)[]).map(
-                (k) => (
-                  <label className="il-answer" key={k}>
-                    {feedbackLabels[k]}
-                    <textarea
-                      maxLength={1200}
-                      value={feedback[k]}
+              {criteriaKeys.map((k) => (
+                <label className="il-answer" key={k}>
+                  {criterionLabels[k]}
+                  <textarea
+                    maxLength={900}
+                    value={feedback.criteria?.[k] ?? ""}
+                    onChange={(e) => {
+                      reviewRequest.current = crypto.randomUUID();
+                      setFeedback({
+                        ...feedback,
+                        criteria: { ...feedback.criteria, [k]: e.target.value },
+                      });
+                    }}
+                  />
+                </label>
+              ))}
+              {skill === "speaking" && (
+                <label className="il-answer">
+                  <span>
+                    <input
+                      type="checkbox"
+                      checked={feedback.audio_checked ?? false}
                       onChange={(e) => {
                         reviewRequest.current = crypto.randomUUID();
-                        setFeedback({ ...feedback, [k]: e.target.value });
+                        setFeedback({
+                          ...feedback,
+                          audio_checked: e.target.checked,
+                        });
                       }}
-                    />
-                  </label>
-                ),
+                    />{" "}
+                    I listened to the saved student recording and checked these
+                    observations against the audio.
+                  </span>
+                </label>
               )}
+              {(Object.keys(feedbackLabels) as FeedbackKey[]).map((k) => (
+                <label className="il-answer" key={k}>
+                  {feedbackLabels[k]}
+                  <textarea
+                    maxLength={1200}
+                    value={feedback[k]}
+                    onChange={(e) => {
+                      reviewRequest.current = crypto.randomUUID();
+                      setFeedback({ ...feedback, [k]: e.target.value });
+                    }}
+                  />
+                </label>
+              ))}
               <button
                 disabled={
                   working ||
-                  Object.values(feedback).some((v) => v.trim().length < 5)
+                  (Object.keys(feedbackLabels) as FeedbackKey[]).some(
+                    (k) => feedback[k].trim().length < 5,
+                  ) ||
+                  criteriaKeys.some(
+                    (k) => (feedback.criteria?.[k] ?? "").trim().length < 5,
+                  ) ||
+                  (skill === "speaking" && !feedback.audio_checked)
                 }
                 onClick={async () => {
                   setWorking(true);
