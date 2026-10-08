@@ -34,10 +34,10 @@ export default function IeltsGovernedScreenerResult() {
   return (
     <main className="sp-page">
       <section className="sp-card">
-        <a className="sp-back" href="/ielts/programme">
-          ← IELTS programme
+        <a className="sp-back" href="/ielts/journey">
+          ← My IELTS Journey
         </a>
-        <h1>Screener evidence</h1>
+        <h1>Your saved screener result</h1>
         {error ? (
           <p role="alert">{error}</p>
         ) : result ? (

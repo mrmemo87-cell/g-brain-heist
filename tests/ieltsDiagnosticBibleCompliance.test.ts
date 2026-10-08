@@ -67,7 +67,7 @@ test('school readiness fails closed until governed diagnostic evidence exists', 
   );
   assert.doesNotMatch(migration, /\nas \$(?!\$)\n|\n\$(?!\$);\n/, 'migration must not contain single-dollar function delimiters');
   const schoolResults = read('components/school-admin/tabs/IeltsResultsTab.tsx');
-  const journey = read('src/pages/ielts/IeltsJourneyDashboard.tsx');
+  const journey = read('src/pages/ielts/components/IeltsStudentJourney.tsx').replace(/\s+/g, ' ');
 
   assert.match(migration, /ielts_latest_skill_readiness[\s\S]*where false;/i);
   assert.match(migration, /revoke all on function public\.ielts_estimated_readiness_band\(numeric,numeric,numeric\) from public, anon, authenticated/i);
@@ -75,7 +75,7 @@ test('school readiness fails closed until governed diagnostic evidence exists', 
   assert.match(migration, /'\{summary,average_estimated_overall\}'[\s\S]*'null'::jsonb/i);
 
   assert.match(schoolResults, /Practice results are not promoted into readiness/i);
-  assert.match(journey, /Verified four-skill readiness is not available yet/i);
+  assert.match(journey, /cannot give a reliable overall band/i);
 });
 
 test('productive-skill AI remains provisional and evidence-bounded', () => {

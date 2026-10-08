@@ -8,7 +8,7 @@ const dashboardPath = path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDash
 assert.ok(fs.existsSync(dashboardPath), 'Expected IeltsJourneyDashboard.tsx to exist before reading test source');
 let page = '';
 try {
-  page = fs.readFileSync(dashboardPath, 'utf8');
+  page = (fs.readFileSync(dashboardPath, 'utf8') + fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/components/IeltsStudentJourney.tsx'), 'utf8')).replace(/\s+/g, ' ');
 } catch (error) {
   assert.fail(`Failed to read ${dashboardPath}: ${error instanceof Error ? error.message : String(error)}`);
 }
@@ -47,14 +47,14 @@ test('tier lookup failure degrades only Prime access, not the whole dashboard', 
 test('next action avoids fake completion phrasing', () => {
   assert.doesNotMatch(page, /Next: All tasks complete/);
   assert.match(page, /No active IELTS assignments right now\./);
-  assert.match(page, /View your latest results and feedback\./);
+  assert.match(page, /Open a record to see its evidence/);
 });
 
 test('light theme and verified readiness section are present', () => {
   assert.match(page, /background:\s*'#f8fafc'/);
-  assert.match(page, /Readiness overview/);
+  assert.match(page, /What about my estimated band/);
   assert.match(page, /Overall/);
-  assert.match(page, /Verified four-skill readiness is not available yet/);
+  assert.match(page, /cannot give a reliable overall band/);
 });
 
 test('status labels are humanized and no raw in_progress token appears in UI copy', () => {
@@ -63,7 +63,7 @@ test('status labels are humanized and no raw in_progress token appears in UI cop
 });
 
 test('assignment cards show only actual assigned skills and no Not assigned rows', () => {
-  assert.match(page, /orderedSkills\.filter\(\(skill\) => \(item\.skills \?\? \[\]\)\.includes\(skill\)\)/);
+  assert.match(page, /a\.skills\s*\.filter/);
   assert.doesNotMatch(page, /Not assigned/);
 });
 

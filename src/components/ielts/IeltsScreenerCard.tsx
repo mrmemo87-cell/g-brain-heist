@@ -1,43 +1,182 @@
 import React from 'react';
 import type { IeltsScreenerEntry } from '../../../services/ieltsScreenerLaunchService';
-
-type Skill = 'listening' | 'reading' | 'writing';
-type CardProps = { skill: Skill; entry?: IeltsScreenerEntry; onNavigate: (route: string) => void };
-const cardStyle = { background: '#fff', border: '1px solid #cbd5e1', borderRadius: '1.25rem', padding: 'clamp(1.2rem,3vw,1.6rem)', display: 'flex', flexDirection: 'column', gap: '.8rem', minWidth: 0 } as const;
-const actionClass = 'min-h-11 rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700';
-
-export const IeltsScreenerCard: React.FC<CardProps> = ({ skill, entry, onNavigate }) => {
-  const title = skill === 'reading' ? 'Reading' : skill === 'writing' ? 'Writing' : 'Listening';
-  const discoveryRoute = `/ielts/${skill}-screener`;
-  const completed = entry?.status === 'completed';
-  const resume = entry?.status === 'in_progress';
-  const expired = entry?.status === 'expired';
-  const savedRoute = entry?.assignment_id ? `/ielts/exam/${entry.exam_event_id}` : discoveryRoute;
-  const status = completed ? 'Completed' : resume ? 'In progress' : expired ? 'Time ended'
-    : entry?.status === 'ready' ? 'Ready to start' : entry?.status === 'paused' ? 'Paused'
-    : entry?.status === 'scheduled' ? 'Scheduled' : 'Not available';
-  const action = completed ? 'View saved result' : resume ? 'Resume check' : expired ? 'Open saved attempt'
-    : entry?.status === 'ready' ? `Start ${title} check` : 'Check availability';
-  return <article aria-label={`${title} screener`} style={cardStyle}>
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <h3 className="m-0 text-2xl font-bold text-slate-950">{title}</h3>
-      <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">{status}</span>
-    </div>
-    <p className="m-0 leading-7 text-slate-600">{skill === 'writing' ? 'One essay · Academic Task 2 · Minimum 250 words' : skill === 'reading'
-      ? 'Two passages · 12 questions · Academic Reading'
-      : 'Three recordings · 12 questions · Pause and replay available'}</p>
-    {entry && <p className="m-0 text-sm font-semibold text-slate-700">{entry.duration_minutes} minutes</p>}
-    <p className="m-0 text-sm leading-6 text-slate-600">{completed ? 'Your answers and result are saved.'
-      : resume ? 'Continue your saved attempt with its remaining time.'
-      : expired ? 'Open your attempt to finish saving and see its result.'
-      : skill === 'writing' ? 'A task-specific snapshot with teacher feedback and low confidence.' : 'A short starting-point check with a raw score and low confidence.'}</p>
-    <button type="button" className={`mt-auto ${actionClass}`}
-      onClick={() => onNavigate(completed || resume || expired ? savedRoute : discoveryRoute)}>{action}</button>
-    {completed && <div className="border-t border-slate-200 pt-3">
-      <button type="button" className="min-h-11 font-semibold text-blue-800 underline focus-visible:outline focus-visible:outline-2"
-        onClick={() => onNavigate(discoveryRoute)}>Repeat for practice</button>
-      <p className="m-0 text-sm leading-6 text-slate-600">Repeats use the same task and do not measure improvement.</p>
-    </div>}
-  </article>;
+import {
+  startingPointRoute,
+  type StartingPointEvidence,
+  type StartingPointSkill,
+} from '../../../services/ieltsStartingPointService';
+import IeltsSkillIcon from './IeltsSkillIcon';
+type CardProps = {
+  skill: StartingPointSkill;
+  entry?: IeltsScreenerEntry;
+  evidence?: StartingPointEvidence | null;
+  speakingAvailable?: boolean;
+  recordLoaded?: boolean;
+  onNavigate: (route: string) => void;
 };
-
+export const IeltsScreenerCard: React.FC<CardProps> = ({
+  skill,
+  entry,
+  evidence,
+  speakingAvailable,
+  recordLoaded = false,
+  onNavigate,
+}) => {
+  const title = skill[0].toUpperCase() + skill.slice(1);
+  const speaking = skill === 'speaking';
+  const completed = speaking
+    ? evidence?.status === 'submitted'
+    : entry?.status === 'completed';
+  const resume = speaking
+    ? evidence?.status === 'in_progress'
+    : entry?.status === 'in_progress';
+  const expired = entry?.status === 'expired';
+  const productive = skill === 'writing' || speaking;
+  const discoveryRoute = startingPointRoute(skill);
+  const savedRoute = evidence
+    ? startingPointRoute(skill, evidence)
+    : entry?.attempt_id && completed
+      ? startingPointRoute(skill, {
+          attempt_id: entry.attempt_id,
+        } as StartingPointEvidence)
+      : entry?.assignment_id
+        ? `/ielts/exam/${entry.exam_event_id}`
+        : discoveryRoute;
+  const status = completed
+    ? productive
+      ? evidence?.review
+        ? 'Feedback ready'
+        : 'Awaiting review'
+      : 'Completed'
+    : resume
+      ? 'In progress'
+      : expired
+        ? 'Time ended'
+        : entry?.status === 'ready'
+          ? 'Ready to start'
+          : speaking && speakingAvailable
+            ? 'Arrange interview'
+            : entry?.status === 'paused'
+              ? 'Paused'
+              : entry?.status === 'scheduled'
+                ? 'Scheduled'
+                : 'Not available';
+  const resultPending = completed && !productive && recordLoaded && !evidence;
+  const action = resultPending
+    ? 'View saved work'
+    : completed
+      ? productive
+        ? evidence?.review
+          ? 'View teacher feedback'
+          : 'View saved work'
+        : 'View saved result'
+      : resume
+        ? speaking
+          ? 'Open saved interview'
+          : 'Resume check'
+        : expired
+          ? 'Open saved attempt'
+          : speaking && speakingAvailable
+            ? 'Open Speaking interview'
+            : entry?.status === 'ready'
+              ? `Start ${title} check`
+              : 'Check availability';
+  const route =
+    resultPending && entry
+      ? `/ielts/exam/${entry.exam_event_id}`
+      : completed
+        ? savedRoute
+        : resume || expired
+          ? speaking
+            ? savedRoute
+            : `/ielts/exam/${entry!.exam_event_id}`
+          : discoveryRoute;
+  return (
+    <article aria-label={`${title} screener`} className="ij-skill-card">
+      <div className="ij-card-heading">
+        <span className={`ij-icon ij-${skill}`}>
+          <IeltsSkillIcon skill={skill} />
+        </span>
+        <span className={`ij-status ${completed ? 'ij-status-saved' : ''}`}>
+          {resultPending ? 'Result pending' : status}
+        </span>
+      </div>
+      <h3>{title}</h3>
+      <p>
+        {skill === 'writing'
+          ? 'One essay · Academic Task 2 · Minimum 250 words'
+          : skill === 'reading'
+            ? 'Two passages · 12 questions · Academic Reading'
+            : speaking
+              ? 'Three parts · A recorded interview with your teacher'
+              : 'Three recordings · 12 questions · Pause and replay available'}
+      </p>
+      <span className="ij-meta">
+        {speaking
+          ? 'Teacher-led'
+          : entry
+            ? `${entry.duration_minutes} minutes`
+            : 'Short check'}
+        {completed && ' · Saved'}
+        {productive && completed && ' · Confidence: low'}
+      </span>
+      {evidence && (skill === 'listening' || skill === 'reading') && (
+        <strong className="ij-result">
+          {evidence.raw_score} / {evidence.total}
+          <small>Screener score · Confidence: low</small>
+        </strong>
+      )}
+      <p className="ij-card-note">
+        {completed
+          ? productive
+            ? evidence?.review
+              ? 'Your teacher’s comments and next practice step are ready.'
+              : 'Your work is saved. Your teacher will share feedback after review.'
+            : resultPending
+              ? 'Your answers are saved. Your result is not available yet.'
+              : 'Your answers are saved. Open your record to see the result.'
+          : resume
+            ? speaking
+              ? 'Continue this interview with your teacher.'
+              : 'Continue your saved attempt with its remaining time.'
+            : expired
+              ? 'Open your attempt to finish saving and see its result.'
+              : 'Build your starting point and find a useful practice focus.'}
+      </p>
+      {evidence?.conditions_need_review && (
+        <p className="ij-conditions">
+          Assessment conditions need teacher attention. Your saved record has
+          the details.
+        </p>
+      )}
+      <button
+        type="button"
+        className="ij-primary"
+        onClick={() => onNavigate(route)}
+      >
+        {action}
+      </button>
+      {completed && (
+        <details className="ij-repeat">
+          <summary>
+            {speaking ? 'About further practice' : 'Repeat for practice'}
+          </summary>
+          <p>
+            Repeats use the same task and do not measure improvement. A fresh
+            check is needed to compare progress.
+          </p>
+          {!speaking && (
+            <button
+              type="button"
+              className="ij-link"
+              onClick={() => onNavigate(discoveryRoute)}
+            >
+              Open practice repeat
+            </button>
+          )}
+          {speaking && <p>Arrange further practice with your teacher.</p>}
+        </details>
+      )}
+    </article>
+  );
+};
