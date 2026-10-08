@@ -76,6 +76,9 @@ import {
 } from '../src/lib/teacherQuestionBulkImport';
 
 import { ProfileIcon } from './student-progress/AcademicProfilePremium';
+import { useIeltsTeacherProgrammeEntry } from '../src/hooks/useIeltsTeacherProgrammeEntry';
+import TeacherIeltsProgrammeShortcut, { IeltsProgrammeIcon } from './teacher/TeacherIeltsProgrammeShortcut';
+import { teacherProgrammeRoute } from '../services/ieltsTeacherProgrammeEntry';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -93,7 +96,7 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 
 export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'question-batch' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
-type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
+type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school' | 'ielts-programme';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
 const TEACHER_VIEW_FEATURES: Partial<Record<PortalView, FeatureKey>> = {
@@ -196,6 +199,7 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
 };
 
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard', onAssignmentSummary, academicProfilePresentation = false }) => {
+  const ieltsProgramme = useIeltsTeacherProgrammeEntry(profile.id, profile.role, profile.school_id);
   const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
   const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
   const initialWritingSection: WritingHubSection =
@@ -1151,6 +1155,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
     }
     switch (section) {
+      case 'ielts-programme':
+        if (ieltsProgramme.entry) window.location.assign(teacherProgrammeRoute(ieltsProgramme.entry));
+        break;
       case 'dashboard':
         setView('dashboard');
         break;
@@ -4547,6 +4554,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       </div>
 
       {/* Dashboard shortcuts */}
+      <TeacherIeltsProgrammeShortcut entry={ieltsProgramme.entry} failed={ieltsProgramme.failed} onRetry={ieltsProgramme.retry} />
       <div className="teacher-stats-grid">
         <button type="button" onClick={() => setView('students')} className="teacher-dashboard-stat cyan text-left" aria-label="Open My Classes">
           <div className="teacher-dashboard-stat-info">
@@ -9184,8 +9192,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const canAccessWritingInsights =
     profile.role === 'admin' || teachesEnglish;
 
-  const navTabs: Array<{ id: TeacherNavSection; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
+  const navTabs: Array<{ id: TeacherNavSection; label: string; icon: React.ReactNode; description: string; proOnly?: boolean; highlight?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
+    ...(ieltsProgramme.entry ? [{ id: 'ielts-programme' as const, label: 'IELTS Programme', icon: <IeltsProgrammeIcon />, description: 'Review, plan & guide your school programme', highlight: true }] : []),
     { id: 'students', label: 'My Classes', icon: '🏫', description: 'Allocated Classes & Students' },
     ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
     { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
@@ -9564,7 +9573,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       onFocus={(event) => desktopSidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })}
                       onBlur={() => setNavTooltip(null)}
                     >
-                      <span className="teacher-nav-icon">{academicProfilePresentation ? <ProfileIcon name={tab.id === 'dashboard' ? 'home' : tab.id === 'questions' ? 'book' : tab.id === 'students' ? 'support' : tab.id === 'interventions' ? 'target' : tab.id === 'reports' ? 'result' : tab.id === 'clan-wars' ? 'shield' : 'document'}/> : tab.icon}</span>
+                      <span className="teacher-nav-icon">{tab.id === 'ielts-programme' ? tab.icon : academicProfilePresentation ? <ProfileIcon name={tab.id === 'dashboard' ? 'home' : tab.id === 'questions' ? 'book' : tab.id === 'students' ? 'support' : tab.id === 'interventions' ? 'target' : tab.id === 'reports' ? 'result' : tab.id === 'clan-wars' ? 'shield' : 'document'}/> : tab.icon}</span>
                       <div className="teacher-nav-text">
                         <span className="teacher-nav-label">
                           {tab.label}
