@@ -1,12 +1,15 @@
 import { supabase } from "./supabaseClient";
+export type FeedbackKey = "went_well" | "work_on" | "practice" | "check_again";
+export type LearningSkill = "listening" | "reading" | "writing" | "speaking";
 export type LearningFeedback = Record<
   "went_well" | "work_on" | "practice" | "check_again",
   string
->;
+> & { criteria?: Record<string, string>; audio_checked?: boolean };
 export interface LearningAllocation {
   id: string;
   title: string;
   purpose: string;
+  skill: LearningSkill;
   status: string;
   student_name: string;
   reason: string;
@@ -21,10 +24,44 @@ export interface LearningWorkspace {
     title: string;
     purpose: string;
     success_description: string;
+    skill: LearningSkill;
+    content: LearningContent;
+    instructions: string;
+    content_sha256: string;
+    requires_review: boolean;
+    approved: boolean;
+    questions: {
+      id: string;
+      prompt: string;
+      accepted_answers?: string[];
+      primary_name: string;
+      supporting_name: string;
+    }[];
   }[];
   allocations: LearningAllocation[];
 }
+export interface LearningContent {
+  passage?: string;
+  prompt?: string;
+  scaffold?: string;
+  teacher_notes?: string;
+  focus?: string;
+  scope?: string;
+  suggested_minutes?: number;
+  mapping_scope?: string;
+}
 export interface LearningDetail {
+  skill: LearningSkill;
+  content: LearningContent;
+  source_route: string;
+  pending_recordings: string[];
+  recordings: {
+    id: string;
+    path: string;
+    duration_seconds: number;
+    interrupted: boolean;
+    sha256: string;
+  }[];
   id: string;
   student_id: string;
   manager: boolean;
@@ -44,8 +81,8 @@ export interface LearningDetail {
   play_count: number;
   conditions_need_review: boolean;
   result: null | {
-    score: number;
-    total: number;
+    score: number | null;
+    total: number | null;
     submitted_at: string;
     outcomes: {
       id: string;
@@ -127,4 +164,77 @@ export async function learningAudio(d: LearningDetail) {
       "The recording could not load. Your answers are safe. Try loading it again.",
     );
   return data.signedUrl;
+}
+
+export const approveLearningContent = (
+  school: string,
+  task: string,
+  hash: string,
+  notes: string,
+  confirmed: boolean,
+) =>
+  rpc<void>("rpc_ielts_learning_approve_content", {
+    p_school: school,
+    p_task: task,
+    p_hash: hash,
+    p_notes: notes,
+    p_confirmed: confirmed,
+  });
+export const beginLearningRecording = (id: string, clip: string) =>
+  rpc<{ path: string }>("rpc_ielts_learning_begin_recording", {
+    p_id: id,
+    p_clip: clip,
+    p_consent: true,
+  });
+export const abandonLearningRecording = (id: string, clip: string) =>
+  rpc<void>("rpc_ielts_learning_abandon_recording", { p_id: id, p_clip: clip });
+export async function learningRecordingAudio(path: string) {
+  const { data, error } = await supabase.storage
+    .from("ielts-learning-recordings")
+    .createSignedUrl(path, 900);
+  if (error || !data?.signedUrl)
+    throw new Error("Your recording could not load. Try again.");
+  return data.signedUrl;
+}
+
+export async function uploadLearningRecording(
+  audio: import("./ieltsSpeakingPilotService").LocalSpeakingAudio,
+): Promise<LearningDetail> {
+  const { localSpeaking, prepareSpeakingWav } =
+    await import("./ieltsSpeakingPilotService");
+  const blob =
+    audio.blob ??
+    (await prepareSpeakingWav(
+      new Blob(audio.chunks, { type: audio.chunks[0]?.type || "audio/webm" }),
+    ));
+  await localSpeaking("put", { ...audio, blob, complete: true });
+  const path = `${audio.ownerId}/${audio.sessionId}/${audio.id}.wav`;
+  const { error } = await supabase.storage
+    .from("ielts-learning-recordings")
+    .upload(path, blob, { contentType: "audio/wav", upsert: false });
+  if (
+    error &&
+    !["409", "400"].includes(
+      String((error as { statusCode?: string }).statusCode),
+    )
+  )
+    throw new Error(
+      "Your recording is protected on this device. Keep this page open and retry.",
+    );
+  const { data, error: verifyError } = await supabase.functions.invoke(
+    "ielts_learning_recording",
+    {
+      body: {
+        allocationId: audio.sessionId,
+        clipId: audio.id,
+        interrupted: audio.interrupted,
+      },
+    },
+  );
+  if (verifyError || !data?.detail)
+    throw new Error(
+      "We could not confirm your recording. Your device copy is safe; retry saving.",
+    );
+  await localSpeaking("delete", audio.id);
+  return data.detail;
 }

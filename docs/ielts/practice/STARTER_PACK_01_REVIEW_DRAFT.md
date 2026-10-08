@@ -2,7 +2,7 @@
 Version: 0.1.0 | Bible: 1.5.0 | Date: 2026-10-08
 Status: AUTHORING DRAFT — not assignable or published
 Author: Brains Heist AI-assisted original draft. No third-party passage or question copied.
-Pack-wide editorial/key/taxonomy review: pending. L1/L2 scripts, keys and audio were approved by Sobbi; see LISTENING_PILOT_01.json and LISTENING_PILOT_01_RUNBOOK.md for their private pilot mapping and delivery status. Other tasks remain drafts.
+Pack-wide editorial/key/taxonomy review: pending. L1/L2 scripts, keys and audio were approved by Sobbi; see LISTENING_PILOT_01.json and LISTENING_PILOT_01_RUNBOOK.md for their private pilot mapping and delivery status. Reading/Writing/Speaking are wired as a named-user pilot awaiting explicit teacher material confirmation; see FOUR_SKILL_PILOT_01.json and FOUR_SKILL_PILOT_01_RUNBOOK.md.
 Difficulty and alternate-form comparability: unvalidated. No band conversion.
 Audience: Academic preparation; these short exercises do not reproduce full IELTS papers.
 Canonical taxonomy IDs must be supplied through reviewed mapping before import. Named targets below are proposals, not approved registry mappings.

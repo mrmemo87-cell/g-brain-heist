@@ -11,20 +11,28 @@ import {
   type SpeakingSession,
 } from "../../../services/ieltsSpeakingPilot";
 import { stopBackgroundMusic } from "../../../services/audioService";
-interface Props {
-  session: SpeakingSession;
+export interface RecordingWorkflow<T> {
+  begin: (id: string, clip: string, part: number) => Promise<unknown>;
+  upload: (audio: LocalSpeakingAudio) => Promise<T>;
+  incident: (id: string) => Promise<unknown>;
+  abandon: (id: string, clip: string) => Promise<unknown>;
+}
+interface Props<T extends { id: string }> {
+  workflow?: RecordingWorkflow<T>;
+  session: T;
   part: number;
-  onSaved: (session: SpeakingSession) => void;
+  onSaved: (session: T) => void;
   enabled: boolean;
   onActiveChange: (active: boolean) => void;
 }
-export function SpeakingRecorder({
+export function SpeakingRecorder<T extends { id: string } = SpeakingSession>({
   session,
   part,
   onSaved,
   enabled,
   onActiveChange,
-}: Props) {
+  workflow,
+}: Props<T>) {
   const [recording, setRecording] = useState(false),
     [busy, setBusy] = useState(false),
     [elapsed, setElapsed] = useState(0),
@@ -40,8 +48,8 @@ export function SpeakingRecorder({
     started = useRef(0),
     timer = useRef<ReturnType<typeof setInterval> | null>(null),
     lock = useRef(false);
-  const latest = useRef({ session, onSaved });
-  latest.current = { session, onSaved };
+  const latest = useRef({ session, onSaved, workflow });
+  latest.current = { session, onSaved, workflow };
   const testUrlRef = useRef("");
   useEffect(() => {
     onActiveChange(recording || busy || pending.some((a) => !a.archived));
@@ -91,11 +99,15 @@ export function SpeakingRecorder({
     const offline = () => {
       if (recorder.current?.state === "recording") {
         if (current.current) current.current.interrupted = true;
-        void supabase.rpc("rpc_ielts_speaking_incident", {
-          p_session_id: session.id,
-          p_incident_id: crypto.randomUUID(),
-          p_reason: "connection",
-        });
+        void Promise.resolve(
+          latest.current.workflow
+            ? latest.current.workflow.incident(session.id)
+            : supabase.rpc("rpc_ielts_speaking_incident", {
+                p_session_id: session.id,
+                p_incident_id: crypto.randomUUID(),
+                p_reason: "connection",
+              }),
+        ).catch(() => {});
       }
     };
     const unload = (e: BeforeUnloadEvent) => {
@@ -203,11 +215,13 @@ export function SpeakingRecorder({
       };
       current.current = audio;
       await localSpeaking("put", audio);
-      await speakingRpc("rpc_ielts_begin_speaking_capture", {
-        p_session_id: session.id,
-        p_clip_id: audio.id,
-        p_part: part,
-      });
+      await (workflow
+        ? workflow.begin(session.id, audio.id, part)
+        : speakingRpc("rpc_ielts_begin_speaking_capture", {
+            p_session_id: session.id,
+            p_clip_id: audio.id,
+            p_part: part,
+          }));
       writes.current = Promise.resolve();
       r.ondataavailable = (e) => {
         if (e.data.size) {
@@ -267,12 +281,16 @@ export function SpeakingRecorder({
       timer.current = setInterval(() => {
         const seconds = (Date.now() - started.current) / 1000;
         if (mounted.current) setElapsed(seconds);
-        const cap = part === 2 ? 120 : 300;
+        const cap = workflow ? 120 : part === 2 ? 120 : 300;
         if (seconds >= cap) stop();
       }, 250);
     } catch (reason) {
       stop(true);
       if (current.current && current.current.chunks.length === 0) {
+        if (workflow)
+          await workflow
+            .abandon(session.id, current.current.id)
+            .catch(() => {});
         await localSpeaking("delete", current.current.id).catch(() => {});
         current.current = null;
       }
@@ -297,7 +315,9 @@ export function SpeakingRecorder({
         interrupted: audio.interrupted || !audio.complete,
         complete: true,
       };
-      const value = await uploadSpeakingAudio(recovered);
+      const value = workflow
+        ? await workflow.upload(recovered)
+        : ((await uploadSpeakingAudio(recovered)) as unknown as T);
       if (mounted.current) {
         setPending((old) => old.filter((a) => a.id !== audio.id));
         latest.current.onSaved(value);
@@ -317,7 +337,7 @@ export function SpeakingRecorder({
   return (
     <section
       className="sp-recorder"
-      aria-label="Interview recording"
+      aria-label={workflow ? "Practice recording" : "Interview recording"}
       aria-busy={busy}
     >
       {error && (
@@ -342,9 +362,13 @@ export function SpeakingRecorder({
                 <input
                   type="checkbox"
                   checked={tested}
-                  onChange={(e: { target: { checked: boolean } }) => setTested(e.target.checked)}
+                  onChange={(e: { target: { checked: boolean } }) =>
+                    setTested(e.target.checked)
+                  }
                 />
-                I listened: both voices can be heard clearly.
+                {workflow
+                  ? "I listened: my voice can be heard clearly."
+                  : "I listened: both voices can be heard clearly."}
               </label>
             </div>
           )}
@@ -354,7 +378,7 @@ export function SpeakingRecorder({
             disabled={!tested || busy || !enabled}
             onClick={() => void start()}
           >
-            Record Part {part}
+            {workflow ? "Record my response" : `Record Part ${part}`}
           </button>
         </>
       )}
@@ -367,16 +391,18 @@ export function SpeakingRecorder({
           </button>
           <p>
             Keep this tab open.{" "}
-            {part === 2
-              ? "The long turn stops at 2:00."
-              : "Aim for 4–5 minutes. Recording stops at 5:00."}
+            {workflow
+              ? "Aim for 45–90 seconds. Recording stops at 2:00."
+              : part === 2
+                ? "The long turn stops at 2:00."
+                : "Aim for 4–5 minutes. Recording stops at 5:00."}
           </p>
         </div>
       )}
       {pending.map((a) => (
         <div key={a.id} className="sp-local">
           <strong>
-            Part {a.part} ·{" "}
+            {workflow ? "Your response" : `Part ${a.part}`} ·{" "}
             {a.interrupted || !a.complete
               ? "Interrupted clip"
               : "Clip ready to save"}
@@ -389,7 +415,7 @@ export function SpeakingRecorder({
           <button
             className="sp-primary"
             type="button"
-            disabled={busy}
+            disabled={busy || !!a.archived}
             onClick={() => void save(a)}
           >
             {busy ? "Checking and uploading…" : "Save recording"}
@@ -422,11 +448,13 @@ export function SpeakingRecorder({
                 lock.current = true;
                 setBusy(true);
                 try {
-                  await speakingRpc("rpc_ielts_speaking_incident", {
-                    p_session_id: session.id,
-                    p_incident_id: crypto.randomUUID(),
-                    p_reason: "microphone",
-                  });
+                  await (workflow
+                    ? workflow.abandon(session.id, a.id)
+                    : speakingRpc("rpc_ielts_speaking_incident", {
+                        p_session_id: session.id,
+                        p_incident_id: crypto.randomUUID(),
+                        p_reason: "microphone",
+                      }));
                   const backup = { ...a, archived: true, interrupted: true };
                   await localSpeaking("put", backup);
                   setPending((old) =>

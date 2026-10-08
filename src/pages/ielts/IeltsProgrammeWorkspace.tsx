@@ -336,7 +336,7 @@ export default function IeltsProgrammeWorkspace({
                     : s === "students"
                       ? "Student progress"
                       : s === "reviews"
-                        ? `Review desk (${data.pending_count})`
+                        ? "Review desk"
                         : "Programme team"}
                 </button>
               ),
