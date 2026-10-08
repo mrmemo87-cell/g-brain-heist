@@ -222,6 +222,7 @@ When creating, importing, verifying, repairing or reviewing a question:
 5. If no legitimate canonical match exists, stop official verification and require human governance.
 6. Treat legacy curriculum fields as curriculum/display metadata only.
 7. A verified-question UI must show the registry-native mapping. If that mapping is unavailable in the response, show an explicit “canonical mapping unavailable” state instead of substituting legacy labels.
+8. Machine metadata tags such as `strand:`, `skill:`, `subskill:`, `evidence-focus:`, assessment-process tags, cognitive-process tags and registry tags must never be rendered as teacher-facing assessment labels. They may remain stored for historical/search compatibility without becoming diagnostic authority.
 
 ## Human governance
 
