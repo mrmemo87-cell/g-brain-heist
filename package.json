@@ -30,8 +30,9 @@
     "verify": "npm run guard:school-admin-portal && npm run questions:validate-verified-package && npm run questions:validate-taxonomy-review && npm run typecheck && npm run security:migrations && npm run build && npm test && git diff --check",
     "prepr": "npm run verify",
     "test:ielts:programme": "node --test tests/ieltsProgrammeDom.test.mjs tests/questAssignmentLoadingDom.test.mjs tests/ieltsJourneyDom.test.mjs tests/ieltsTeacherProgrammeEntryDom.test.mjs tests/ieltsWritingDeliveryDom.test.mjs",
-    "test:classroom:db": "node --test tests/assignmentEvidenceCompletion.test.mjs tests/classroomDatabase.test.mjs tests/classroomScopedReads.test.mjs tests/authBootstrapDatabase.test.mjs tests/ieltsGovernedEvidenceDatabase.test.mjs tests/ieltsSpeakingPilotDatabase.test.mjs tests/ieltsStartingPointDatabase.test.mjs tests/ieltsTeacherProgrammeEntryDatabase.test.mjs",
-    "load:classroom": "k6 run load-tests/classroom.js"
+    "test:classroom:db": "node --test tests/assignmentEvidenceCompletion.test.mjs tests/classroomDatabase.test.mjs tests/classroomScopedReads.test.mjs tests/authBootstrapDatabase.test.mjs tests/ieltsGovernedEvidenceDatabase.test.mjs tests/ieltsDeliveryStatusDatabase.test.mjs tests/ieltsSpeakingPilotDatabase.test.mjs tests/ieltsStartingPointDatabase.test.mjs tests/ieltsTeacherProgrammeEntryDatabase.test.mjs",
+    "load:classroom": "k6 run load-tests/classroom.js",
+    "load:ielts": "k6 run load-tests/ielts.js"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
