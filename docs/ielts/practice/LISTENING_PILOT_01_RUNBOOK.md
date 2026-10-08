@@ -17,7 +17,7 @@ Bible: 1.5.0. Scope: the two owner-reviewed L1/L2 tasks only; Gulzada and the al
 - Source evidence must be server-verified and submitted, never void. Practice totals do not change screener results, produce bands, or prove improvement.
 - Interruptions and replay metadata support teacher interpretation; they are not proof of independent conditions.
 - Teacher feedback is confirmed before sharing and append-only. Historical practice links remain available; legacy evidence is preserved.
-- Database migrations: 20261008195545 and 20261008201324. The temporary audio installer is retired with HTTP 410 and no installation capability.
+- Database migrations: 20261008195545, 20261008201324 and 20261008202405. The temporary audio installer is retired with HTTP 410 and no installation capability.
 
 ## Verification and remaining gates
 Automated database and DOM checks cover authorisation, concealed keys, draft conflicts, failed-save recovery, server marking, repeat exposure and teacher review. Production role checks used rollback-only transactions; no synthetic learner work was persisted.

@@ -29,6 +29,7 @@ insert into private.ielts_diagnostic_attempt_evidence values('${source}','${stud
 insert into private.ielts_diagnostic_scoring_runs values('${source}',true);`);
 await db.exec(readFileSync('supabase/migrations/20261008195545_ielts_targeted_listening_pilot.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/20261008201324_ielts_learning_exposure_integrity.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261008202405_ielts_learning_school_boundary.sql','utf8'));
 const actor=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
 const detail=async()=> (await db.query('select rpc_ielts_learning_detail($1) d',[id])).rows[0].d;
 const allocate=()=>db.query('select rpc_ielts_learning_allocate($1,$2,$3,$4,$5,null,$6) id',[school,student,'bh-ielts-targeted-listening-l1-v1',source,'Synthetic delivery test; no diagnosis asserted.',request]);
@@ -80,5 +81,11 @@ test('void source and previously exposed independent checks cannot generate fres
  const result=(await db.query(q,args)).rows[0].id;assert.equal((await db.query(q,args)).rows[0].id,result);
  await db.query("update private.ielts_learning_allocations set status='closed' where id=$1",[result]);
  args[5]='00000000-0000-0000-0000-000000000106';await assert.rejects(db.query(q,args),/independent_check_already_exposed/);
+});
+test('former-school membership blocks both student and teacher access even when global IELTS eligibility remains',async()=>{
+ await db.exec("update school_members set status='inactive'");
+ await actor(student);await assert.rejects(detail(),/not_authorized/);
+ await actor(teacher);await assert.rejects(detail(),/not_authorized/);
+ await db.exec("update school_members set status='active'");
 });
 test.after(()=>db.close());
