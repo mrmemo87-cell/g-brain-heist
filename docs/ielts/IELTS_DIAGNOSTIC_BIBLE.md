@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.5.0\
-**Effective date:** 2026-10-08\
+**Version:** 1.6.0\
+**Effective date:** 2026-10-09\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -338,6 +338,20 @@ Required for every published Listening audio version:
 - **Reliable player behaviour.** No automatic passage playback on page load or teacher resume. Teacher pause, submission and void states must stop playback and prevent restart while inactive. Test loading, seeking/replay under the form's rules, buffering, backgrounding, interruption and resume on the pilot browsers/devices. Keep answers safe and give a clear next action when audio fails.
 
 For the initial Brains Heist Listening Screener A audio v2, the owner-approved production design is **30 seconds to read each four-question group**, **15 seconds after each passage to finish responses**, distinct instruction and passage voices, and learner-controlled pause/replay. These are Brains Heist screener delivery conditions, **not official IELTS timing rules** and not universal baseline/benchmark defaults. Record them with the form and attempt delivery metadata; changes require review for their effect on comparability.
+
+### 6.1.1 Natural recording conditions and spoken copyright
+
+**Owner-requested production policy, 2026-10-09:** Make original practice conversations natural without making successful listening depend on overcoming poor sound. British Council test-day advice asks candidates to check that recordings are clearly audible. The official Listening format supplies everyday social and education/training contexts; these sources do **not** establish distorted phone lines, whispers or added noise as required or endorsed IELTS test features.
+
+- **Clear speech is the default.** No clipping, static, dropouts, masking noise, exaggerated accents or inaudible answer-bearing words. Do not score a learner's ability to overcome an artificial hearing or device obstacle as IELTS readiness.
+- **Restrained realism is limited to declared guided/supplementary practice.** A gentle tonal phone effect or naturally softer, fully voiced conversation may be used after review of the exact file. All speech must remain intelligible at a comfortable playback level. Preserve a clear master for any processed track. Do not use true whispering or lower the answer words' volume. These are internal practice adaptations, not claimed official test conditions.
+- **Background ambience is optional, never a difficulty mechanism.** Prefer clean dialogue. Any ambience must pass a speech-clarity review on the supported phone and desktop devices; establishing/transition sound outside assessed speech is preferable. If it compromises clarity, remove it. Effects are not a substitute for linguistic challenge, natural corrections, paraphrase or distractors.
+- **Spoken rights introduction for newly created Brains Heist tracks:** “This recording is copyright Brains Heist LLC. All rights reserved.” Use the distinct instruction voice before the instructions and before the measured reading interval. Never insert a watermark into the assessed dialogue or subtract it from reading/response time. Record the notice in file metadata too. The notice does not itself establish provider licensing, prevent copying or imply IELTS endorsement.
+- **Traceable conditions and review:** Preserve exact clean/delivered hashes, provider/voices/settings, processing parameters, measured encoded-file pauses and source-script linkage. Record sound/transcript fidelity, keys, mapping, difficulty, licensing and device acceptance as separate review scopes. Successful generation or technical level measurements do not equal human approval.
+- **Evidence boundaries:** Record the delivery condition with the task version and attempt snapshot. A practice score from a treated recording cannot automatically become comparable independent evidence, a band, improvement or a persistent weakness. Any future assessment use requires the separate comparability, accessibility and validation gates.
+- **Keep existing approved assets immutable.** Apply this notice and realism policy prospectively. A retrofit creates a new audio version and requires review; never overwrite an approved recording or its historical evidence.
+
+Official basis rechecked 2026-10-09: IELTS Academic Listening format and British Council test-day advice in section 23. The proposed 30-second reading and 15-second response pauses for extension tasks L3/L4 are internal guided-practice timings, not official IELTS timing rules.
 
 ---
 
@@ -1503,6 +1517,16 @@ Affected implementation to review: teacher programme evidence/review workspace, 
 
 ---
 
+### 22.5 Revision record — v1.6.0 (2026-10-09)
+
+The owner requested two additional Listening practice recordings with possible phone/background/quiet-speaker realism and a spoken Brains Heist copyright notice. Section 6.1 protected audibility but did not specify the permitted scope of processing or the placement of a rights introduction. Section 6.1.1 now limits restrained effects to declared guided practice, preserves clear masters and exact version provenance, prohibits masked answer cues and true-whisper scoring, and places the notice outside dialogue and measured learner time.
+
+Basis: the owner's production instruction, the official IELTS Listening contexts/question formats and British Council advice to check clear audibility, rechecked 2026-10-09. Official sources do not endorse the proposed effects; their use is an internal practice design decision. No official format, score conversion, calibration, existing task, approved recording, saved attempt, access rule or publication gate changes. The two new L3/L4 materials remain human-review drafts until their exact recordings, scripts, keys, mappings, rights and pilot conditions are reviewed.
+
+Affected implementation to review: audio generation/assembly, extension-task metadata and teacher review, private asset installation, task publication/assignment, delivery snapshots and phone/MacBook playback. This revision certifies neither live student availability nor 500-user capacity. New audio delivery must satisfy the affected capacity gates in section 13 before a wider launch.
+
+---
+
 ## 23. Canonical public sources
 
 Before changing scoring/format/criteria, re-check the latest official material.
@@ -1514,6 +1538,9 @@ Current reference set reviewed for Bible v1.1.0:
 
 - IELTS — **IELTS Academic: Listening test format**  
   https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-listening
+
+- British Council — **IELTS test-day advice: Listening audibility** (rechecked 2026-10-09 for section 6.1.1)
+  https://takeielts.britishcouncil.org/en-gb/what-is-ielts/test-day-advice
 
 - IELTS — **IELTS Academic: Writing test format**  
   https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing

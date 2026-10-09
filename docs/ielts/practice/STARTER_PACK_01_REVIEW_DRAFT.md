@@ -172,6 +172,8 @@ Teacher review: sustained relevant response, explanation, concrete detail and or
 This short response does not sample the complete Speaking interview or establish a full Speaking band.
 
 ## Review and release checklist
+Additional Listening authoring drafts: [L3/L4 extension review pack](LISTENING_EXTENSION_02_REVIEW.md), version 0.1.0. These include generated review audio, exact scripts, keys and proposed canonical mappings. Human approval is pending; neither is an independent improvement check or a live student assignment.
+
 For each exact task version:
 - Academic owner/editor verifies elicited ability, age suitability, instructions, ambiguity and task-specific requirements.
 - Objective keys/alternatives are independently checked; accepted forms are explicit.

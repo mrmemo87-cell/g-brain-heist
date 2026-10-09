@@ -25,3 +25,9 @@ Automated database and DOM checks cover authorisation, concealed keys, draft con
 Before wider release, Jess/Gulzada must complete the normal account pilot on phone and Mac: play/pause/resume, background/refresh checkpoint, offline edits and reconnect, submission/result, teacher sharing and student visibility. Confirm the final source and assigned reason against actual evidence. Record acceptance explicitly.
 
 This implementation uses bounded reads, allocation-level locks and jittered autosave. No 500-user load result is claimed. The capacity rehearsal and other skill material review remain separate release gates. Public reuse/rights and difficulty/comparability review are also pending.
+
+## Additional Listening drafts — 9 October 2026
+
+Two new guided tasks, L3 pottery workshop (gentle phone tonal colour) and L4 community food-waste project (naturally softer fully voiced conversation), are available in [Listening Extension 02 review pack](LISTENING_EXTENSION_02_REVIEW.md). Exact transcripts, keys, canonical proposed mappings, production hashes, copyright introduction and measured encoded-file pauses are in [the draft manifest](LISTENING_EXTENSION_02_DRAFT.json).
+
+They are review materials, not installed live assignments. The earlier L1/L2 approval remains confined to those exact files. Review these new recordings in full, then use the existing protected installation, scoped content confirmation and Gulzada-first assignment flow. Bible 1.6.0 section 6.1.1 governs the declared practice effects and prospective copyright notices; it changes neither current scores nor saved work.
