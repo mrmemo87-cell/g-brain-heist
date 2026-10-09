@@ -138,6 +138,7 @@ Deno.serve(async (req: Request) => {
           (response.status === 429 || response.status >= 500)
         )
           continue;
+        console.warn("Learning plan AI provider rejected", { status: response.status });
         throw new Error("provider_unavailable");
       }
       const output = await response.json();
@@ -155,7 +156,8 @@ Deno.serve(async (req: Request) => {
         );
         providerId = String(output.id || "");
         break;
-      } catch {
+      } catch (error) {
+        console.warn("Learning plan AI validation rejected", { attempt, reason: error instanceof Error && ["invalid_plan", "invalid_pathway", "evidence_required", "invalid_goal", "incomplete_draft"].includes(error.message) ? error.message : "invalid_output" });
         if (attempt > 0) throw new Error("draft_validation_failed");
       }
     }
@@ -165,7 +167,10 @@ Deno.serve(async (req: Request) => {
       p_fields: fields,
       p_provider: providerId,
     });
-    if (finishError) throw new Error("draft_save_failed");
+    if (finishError) {
+      console.warn("Learning plan AI save rejected", { code: finishError.code });
+      throw new Error("draft_save_failed");
+    }
     // Recheck revoked allocation/banned account before returning private feedback.
     const { data: access, error: accessError } = await caller.rpc(
       "rpc_ielts_learning_report_context",
@@ -174,14 +179,14 @@ Deno.serve(async (req: Request) => {
     if (accessError || !access?.can_manage)
       return json(403, { error: "review_not_available" });
     return json(200, envelope(fields));
-  } catch {
+  } catch (error) {
     await admin.rpc("rpc_ielts_finish_plan_ai", {
       p_id: claim.id,
       p_fields: null,
       p_provider: null,
     });
     // Never log student text, provider bodies, personal data or credentials.
-    console.warn("Learning plan AI draft unavailable", { draftId: claim.id });
+    console.warn("Learning plan AI draft unavailable", { draftId: claim.id, reason: error instanceof Error && ["provider_unavailable", "draft_validation_failed", "draft_save_failed", "TimeoutError"].includes(error.message) ? error.message : "request_failed" });
     return json(503, { error: "ai_unavailable" });
   }
 });
