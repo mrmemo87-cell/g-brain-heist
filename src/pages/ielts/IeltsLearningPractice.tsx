@@ -92,6 +92,8 @@ export default function IeltsLearningPractice() {
   const [teacherContext, setTeacherContext] = useState<LearningReviewContext | null>(null);
   const [contextError, setContextError] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(true);
+  const reviewToggle = useRef<HTMLButtonElement | null>(null);
   const [aiDraft, setAiDraft] = useState<string>();
   const [proposedDraft, setProposedDraft] = useState<{ id: string; fields: LearningFeedback } | null>(null);
   const teacherRoute = "/ielts?programmeSection=reviews" + (teacherContext ? "&school=" + encodeURIComponent(teacherContext.school_id) : "");
@@ -137,6 +139,7 @@ export default function IeltsLearningPractice() {
     setTeacherContext(null);
     setContextError("");
     setAiBusy(false);
+    setReviewOpen(true);
     setAiDraft(undefined);
     setProposedDraft(null);
     setDetail(null);
@@ -179,6 +182,7 @@ export default function IeltsLearningPractice() {
         saved.current = JSON.stringify(d.answers);
         setMessage("Your saved work is ready.");
         setFeedback(d.review?.fields ?? blankFeedback);
+        setReviewOpen(!d.review);
         if (!d.result) {
           try {
             const raw = localStorage.getItem(
@@ -760,7 +764,7 @@ export default function IeltsLearningPractice() {
               )}
             </section>
           )}
-          {detail.review && (
+          {detail.review && !detail.manager && (
             <section className="il-card il-teacher">
               <p className="il-eyebrow">
                 TEACHER FEEDBACK · {detail.review.reviewer}
@@ -787,7 +791,17 @@ export default function IeltsLearningPractice() {
           )}
           {detail.manager && detail.result && (
             <section className="il-card">
-              <h2>Review and share feedback</h2>
+              <h2>{detail.review ? "Feedback shared" : "Review and share feedback"}</h2>
+              {detail.review && (
+                <>
+                  <p className="il-muted">Shared by {detail.review.reviewer} · {new Date(detail.review.reviewed_at).toLocaleString()}</p>
+                  <button ref={reviewToggle} aria-expanded={reviewOpen} aria-controls="learning-review-fields" onClick={() => setReviewOpen(open => !open)}>
+                    {reviewOpen ? "Collapse feedback" : "View or edit feedback"}
+                  </button>
+                </>
+              )}
+              <div id="learning-review-fields" hidden={!reviewOpen}>
+              {detail.review && <p className="il-muted">Changes stay private until you confirm and share again.</p>}
               <p>
                 Use simple language and refer to the student’s actual answers. A
                 fresh score alone does not establish improvement.
@@ -883,6 +897,10 @@ export default function IeltsLearningPractice() {
                     );
                     setDetail(d);
                     setMessage("Teacher feedback shared.");
+                    if (d.review) {
+                      setReviewOpen(false);
+                      window.requestAnimationFrame(() => reviewToggle.current?.focus());
+                    }
                   } catch (e) {
                     setError(
                       e instanceof Error
@@ -896,6 +914,7 @@ export default function IeltsLearningPractice() {
               >
                 Confirm and share feedback
               </button>
+              </div>
             </section>
           )}
           <Link to={detail.manager ? teacherRoute : "/ielts/practice/targeted"}>{detail.manager ? "Back to assigned work and reviews →" : "All targeted practice →"}</Link>
