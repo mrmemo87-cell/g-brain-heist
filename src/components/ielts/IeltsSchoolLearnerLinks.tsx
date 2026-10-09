@@ -1,28 +1,26 @@
 import React from 'react';
+import '../../styles/ielts-navigation.css';
 
 interface IeltsSchoolLearnerLinksProps {
   onNavigate: (route: string) => void;
+  active?: 'screeners' | 'targeted' | 'journey' | 'assigned';
 }
-
-const IeltsSchoolLearnerLinks: React.FC<IeltsSchoolLearnerLinksProps> = ({ onNavigate }) => (
-  <nav
-    aria-label="IELTS study tools"
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '.7rem',
-      flexWrap: 'wrap',
-      padding: '.9rem 1rem',
-      background: 'rgba(255,255,255,0.92)',
-      border: '1px solid rgba(148,163,184,0.28)',
-      borderRadius: '1.1rem',
-      boxShadow: '0 14px 36px rgba(15,23,42,0.07)',
-    }}
-  >
-    <span style={{ color: '#475569', fontWeight: 900, marginRight: '.15rem' }}>Your study tools</span>
-    <button type="button" onClick={() => onNavigate('/ielts/practice/assigned')} style={{ minHeight: 42, border: '1px solid #c4b5fd', borderRadius: 999, background: '#f5f3ff', color: '#5b21b6', padding: '.65rem .9rem', fontWeight: 900, cursor: 'pointer' }}>📌 Assigned Practice</button>
-    <button type="button" onClick={() => onNavigate('/ielts/journey')} style={{ minHeight: 42, border: '1px solid #bae6fd', borderRadius: 999, background: '#f0f9ff', color: '#075985', padding: '.65rem .9rem', fontWeight: 900, cursor: 'pointer' }}>🧭 My IELTS Journey</button>
-  </nav>
-);
-
-export default IeltsSchoolLearnerLinks;
+const sections = [
+  { id: 'screeners', route: '/ielts', label: 'Screeners', hint: 'Start, resume or view results', icon: '01' },
+  { id: 'targeted', route: '/ielts/practice/targeted', label: 'Targeted Practice', hint: 'Your focused teacher tasks', icon: '02' },
+  { id: 'journey', route: '/ielts/journey', label: 'My Journey', hint: 'Feedback and saved evidence', icon: '03' },
+  { id: 'assigned', route: '/ielts/practice/assigned', label: 'School Assignments', hint: 'Sets assigned by your school', icon: '04' },
+] as const;
+export default function IeltsSchoolLearnerLinks({ onNavigate, active = 'screeners' }: IeltsSchoolLearnerLinksProps) {
+  return (
+    <nav aria-label="IELTS navigation" className="in-nav">
+      {sections.map(section => (
+        <a key={section.id} href={section.route} aria-current={active === section.id ? 'page' : undefined}
+          onClick={event => { if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigate(section.route); } }}>
+          <span className="in-number" aria-hidden="true">{section.icon}</span>
+          <span><strong>{section.label}</strong><small>{section.hint}</small></span>
+        </a>
+      ))}
+    </nav>
+  );
+}

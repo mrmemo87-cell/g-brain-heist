@@ -46,7 +46,7 @@ test('tier lookup failure degrades only Prime access, not the whole dashboard', 
 
 test('next action avoids fake completion phrasing', () => {
   assert.doesNotMatch(page, /Next: All tasks complete/);
-  assert.match(page, /No active IELTS assignments right now\./);
+  assert.match(page, /No active school assignments right now\./);
   assert.match(page, /Open a record to see its evidence/);
 });
 
