@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.78.0";
 import {
   PLAN_AI_INSTRUCTIONS,
-  PLAN_AI_SCHEMA,
+  planAiSchema,
   validatePlanAiOutput,
 } from "../_shared/ieltsPlanAiDraft.ts";
 
@@ -96,6 +96,7 @@ Deno.serve(async (req: Request) => {
     const signal = AbortSignal.timeout(45000);
     let fields;
     let providerId: string | null = null;
+    let validationReason = "invalid_output";
     for (let attempt = 0; attempt < 2; attempt++) {
       const response = await fetch(
         "https://api.openai.com/v1/chat/completions",
@@ -116,7 +117,7 @@ Deno.serve(async (req: Request) => {
                 content:
                   PLAN_AI_INSTRUCTIONS +
                   (attempt
-                    ? "\nThe previous output failed validation. Check every answer reference character-for-character and use clear, simple English. Do not invent evidence."
+                    ? `\nThe previous output failed ${validationReason}. Use the exact review_on from context, one to three goals, all required fields, and the stated text limits. Check source references character-for-character. Do not invent evidence.`
                     : ""),
               },
               { role: "user", content: JSON.stringify(context) },
@@ -126,7 +127,7 @@ Deno.serve(async (req: Request) => {
               json_schema: {
                 name: "ielts_learning_plan_draft",
                 strict: true,
-                schema: PLAN_AI_SCHEMA,
+                schema: planAiSchema(context),
               },
             },
           }),
@@ -157,7 +158,8 @@ Deno.serve(async (req: Request) => {
         providerId = String(output.id || "");
         break;
       } catch (error) {
-        console.warn("Learning plan AI validation rejected", { attempt, reason: error instanceof Error && ["invalid_plan", "invalid_pathway", "evidence_required", "invalid_goal", "incomplete_draft"].includes(error.message) ? error.message : "invalid_output" });
+        validationReason = error instanceof Error && ["invalid_plan", "invalid_study_goal", "invalid_next_action", "invalid_review_date", "invalid_goal_count", "invalid_pathway", "evidence_required", "invalid_goal", "incomplete_draft"].includes(error.message) ? error.message : "invalid_output";
+        console.warn("Learning plan AI validation rejected", { attempt, reason: validationReason });
         if (attempt > 0) throw new Error("draft_validation_failed");
       }
     }
