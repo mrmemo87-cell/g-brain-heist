@@ -14,6 +14,7 @@ import {
   type LearningPlanFields,
   type IeltsMonthlyReport,
 } from "../../../services/ieltsLearningReportService";
+import { needsPlanWordingReview } from "../../../services/ieltsReportPresentation";
 import IeltsMonthlyReportView from "./components/IeltsMonthlyReportView";
 import { reportDate } from "./components/IeltsMonthlyReportView";
 import "../../styles/ielts-learning-report.css";
@@ -121,9 +122,21 @@ export default function IeltsLearningPlanDesk({
       );
       setRevision((n) => n + 1);
     });
+  const wordingNeedsReview =
+    !!data?.plan &&
+    needsPlanWordingReview(
+      JSON.stringify({
+        study_goal: data.plan.fields.study_goal,
+        next_action: data.plan.fields.next_action,
+        rationales: learningSkills.map(
+          (sk) => data.plan!.fields.skills[sk].rationale,
+        ),
+        goals: data.plan.fields.goals,
+      }),
+    );
   const generate = () =>
     run(async () => {
-      if (!data?.plan || dirty) return;
+      if (!data?.plan || dirty || wordingNeedsReview) return;
       const key = [year, start, end, data.plan.id].join(":");
       if (reportRequest.current?.key !== key)
         reportRequest.current = { key, cutoff: new Date().toISOString() };
@@ -506,11 +519,25 @@ export default function IeltsLearningPlanDesk({
               </p>
               <button
                 className="sp-primary"
-                disabled={!data.plan || dirty || !year || !start || !end}
+                disabled={
+                  !data.plan ||
+                  dirty ||
+                  wordingNeedsReview ||
+                  !year ||
+                  !start ||
+                  !end
+                }
                 onClick={() => void generate()}
               >
                 Generate report draft
               </button>
+              {wordingNeedsReview && (
+                <p role="status">
+                  This plan contains technical references or conclusions that
+                  need wording review. Use AI help or edit the plan, then
+                  confirm the corrected plan before creating its report.
+                </p>
+              )}
               {dirty && (
                 <p>Save the updated plan before generating a report.</p>
               )}
@@ -553,6 +580,21 @@ export default function IeltsLearningPlanDesk({
           onClose={() => {
             setReport(null);
             setRevision((n) => n + 1);
+          }}
+          onCorrect={() => {
+            setStart(report.payload.period.start);
+            setEnd(report.payload.period.end);
+            const match = data?.years.find(
+              (y) =>
+                y.starts_on <= report.payload.period.start &&
+                y.ends_on >= report.payload.period.end,
+            );
+            if (match) setYear(match.id);
+            setReport(null);
+            setConfirmed(false);
+            setMessage(
+              "Update and confirm the learning plan, then generate a replacement for the same period. The shared report remains preserved.",
+            );
           }}
           onShared={() =>
             setMessage(

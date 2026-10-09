@@ -68,6 +68,7 @@ export interface ReportEvidence {
   confidence: string;
   exposure?: string;
   conditions?: string;
+  submission_status?: string;
   route: string;
   snapshot_hash: string;
 }

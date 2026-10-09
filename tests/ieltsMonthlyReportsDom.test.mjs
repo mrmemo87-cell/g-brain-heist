@@ -1,32 +1,382 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {build} from 'esbuild';import {JSDOM,VirtualConsole} from 'jsdom';import {randomUUID} from 'node:crypto';
-const fields={study_goal:'Prepare confidently for IELTS.',next_action:'Practise explaining one example.',review_on:'2026-11-06',skills:Object.fromEntries(['listening','reading','writing','speaking'].map(s=>[s,{pathway:'more_evidence',rationale:'Gather more suitable evidence for this skill.',sources:[]} ])),goals:[{skill:'writing',action:'Explain a relevant example.',success:'The example supports the main idea.',check:'A fresh independent essay.'}]};
-const evidence=[{source_type:'ielts_score',source_id:'source',instance_id:'attempt',skill:'listening',occurred_at:'2026-10-08T08:00:00Z',kind:'screener',raw_score:8,total:12,route:'/ielts/screener-result/attempt',confidence:'low',exposure:'exposure_not_confirmed'}];
-const report={id:'report',version:1,status:'draft',generated_at:'2026-10-09T08:00:00Z',finalized_at:null,finalized_by:null,payload_hash:'a'.repeat(64),payload:{schemaVersion:'ielts-monthly-report-v1',bibleVersion:'1.7.0',student:{id:'student',name:'Gulzada'},school:{id:'school',name:'School'},period:{start:'2026-10-01',end:'2026-10-31',cutoff:'2026-10-09T08:00:00Z',timezone:'Asia/Bishkek',interim:true},plan:{id:'plan',version:1,author:'Jess',created_at:'2026-10-09',fields},evidence,confidence:'low',progress:'improvement_not_yet_established',limitations:['Short checks do not give an IELTS band.']}};
-const bundles={};for(const mode of ['teacher','student'])bundles[mode]=(await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import {RouterProvider,createBrowserRouter} from './src/lib/router';import Page from '${mode==='teacher'?'./src/pages/ielts/IeltsLearningPlanDesk':'./src/pages/ielts/components/IeltsStudentLearningPlan'}';createRoot(document.getElementById('root')).render(<RouterProvider router={createBrowserRouter([{path:'/',element:<Page schoolId="school" studentId="student" onClose={()=>{}}/>}])}/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,format:'iife',write:false,loader:{'.css':'empty'},define:{'import.meta':JSON.stringify({env:{VITE_SUPABASE_URL:'https://test.supabase.co',VITE_SUPABASE_ANON_KEY:'test'}})},logLevel:'silent'})).outputFiles[0].text;
-async function mount(mode,{failAi=false}={}){const calls=[],errors=[];let saved=false,shared=false;const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/',runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:vc});const w=dom.window;Object.assign(w,{TextEncoder,TextDecoder,Request,Response,Headers});w.crypto.randomUUID=randomUUID;let prints=0;w.print=()=>{prints++;w.dispatchEvent(new w.Event('afterprint'));};
- w.fetch=async(url,options)=>{const fn=String(url).split('/').pop(),args=options?.body?JSON.parse(options.body):{};calls.push({fn,args});let d;
- if(fn==='rpc_ielts_learning_report_context')d={school_id:'school',student_id:'student',student_name:'Gulzada',school_name:'School',can_manage:mode==='teacher',plan:saved||mode==='student'?report.payload.plan:null,evidence:mode==='teacher'?evidence:[],years:[{id:'year',name:'2026/2027',starts_on:'2026-09-15',ends_on:'2027-06-30'}],reports:mode==='student'?[{id:'report',version:1,status:'final',period_start:'2026-10-01',period_end:'2026-10-31'}]:[]};
- else if(fn==='ielts_learning_plan_ai'){if(failAi)return new Response('{}',{status:503});d={id:'draft',fields,teacher_confirmation_required:true};}
- else if(fn==='rpc_ielts_save_plan_with_ai'){saved=true;d={id:'plan',version:1};}
- else if(fn==='rpc_ielts_generate_monthly_report')d={id:'report',version:1};
- else if(fn==='rpc_ielts_monthly_report'){if(args.p_finalize)shared=true;d={...report,status:shared||mode==='student'?'final':'draft',finalized_at:shared||mode==='student'?'2026-10-09T08:00:00Z':null,finalized_by:shared||mode==='student'?'Jess':null};}
- else throw Error(fn);
- return new Response(JSON.stringify(d),{status:200,headers:{'Content-Type':'application/json'}});
- };
- const wait=async f=>{for(let i=0;i<160;i++){if(f())return;await new Promise(r=>setTimeout(r,15));}throw Error(w.document.body.textContent);};
- const button=s=>[...w.document.querySelectorAll('button')].find(b=>b.textContent.trim()===s);
- const change=(input,value)=>{Object.getOwnPropertyDescriptor(input.tagName==='TEXTAREA'?w.HTMLTextAreaElement.prototype:w.HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new w.Event('input',{bubbles:true}));};
- w.eval(bundles[mode]);await wait(()=>mode==='teacher'?button('Confirm and share learning plan'):button('Open learning plan and reports'));
- return {w,dom,calls,errors,wait,button,change,get prints(){return prints;}};
+import test from "node:test";
+import assert from "node:assert/strict";
+import { build } from "esbuild";
+import { JSDOM, VirtualConsole } from "jsdom";
+import { randomUUID } from "node:crypto";
+const fields = {
+  study_goal: "Prepare confidently for IELTS.",
+  next_action: "Practise explaining one example.",
+  review_on: "2026-11-06",
+  skills: Object.fromEntries(
+    ["listening", "reading", "writing", "speaking"].map((s) => [
+      s,
+      {
+        pathway: "more_evidence",
+        rationale: "Gather more suitable evidence for this skill.",
+        sources: [],
+      },
+    ]),
+  ),
+  goals: [
+    {
+      skill: "writing",
+      action: "Explain a relevant example.",
+      success: "The example supports the main idea.",
+      check: "A fresh independent essay.",
+    },
+  ],
+};
+const evidence = [
+  {
+    source_type: "ielts_score",
+    source_id: "source",
+    instance_id: "attempt",
+    skill: "listening",
+    occurred_at: "2026-10-08T08:00:00Z",
+    kind: "screener",
+    raw_score: 8,
+    total: 12,
+    route: "/ielts/screener-result/attempt",
+    confidence: "low",
+    exposure: "exposure_not_confirmed",
+  },
+];
+const report = {
+  id: "report",
+  version: 1,
+  status: "draft",
+  generated_at: "2026-10-09T08:00:00Z",
+  finalized_at: null,
+  finalized_by: null,
+  payload_hash: "a".repeat(64),
+  payload: {
+    schemaVersion: "ielts-monthly-report-v1",
+    bibleVersion: "1.7.0",
+    student: { id: "student", name: "Gulzada" },
+    school: { id: "school", name: "School" },
+    period: {
+      start: "2026-10-01",
+      end: "2026-10-31",
+      cutoff: "2026-10-09T08:00:00Z",
+      timezone: "Asia/Bishkek",
+      interim: true,
+    },
+    plan: {
+      id: "plan",
+      version: 1,
+      author: "Jess",
+      created_at: "2026-10-09",
+      fields,
+    },
+    evidence,
+    confidence: "low",
+    progress: "improvement_not_yet_established",
+    limitations: ["Short checks do not give an IELTS band."],
+  },
+};
+const bundles = {};
+for (const mode of ["teacher", "student"])
+  bundles[mode] = (
+    await build({
+      stdin: {
+        contents: `import React from 'react';import {createRoot} from 'react-dom/client';import {RouterProvider,createBrowserRouter} from './src/lib/router';import Page from '${mode === "teacher" ? "./src/pages/ielts/IeltsLearningPlanDesk" : "./src/pages/ielts/components/IeltsStudentLearningPlan"}';createRoot(document.getElementById('root')).render(<RouterProvider router={createBrowserRouter([{path:'/',element:<Page schoolId="school" studentId="student" onClose={()=>{}}/>}])}/>);`,
+        loader: "tsx",
+        resolveDir: process.cwd(),
+      },
+      bundle: true,
+      format: "iife",
+      write: false,
+      loader: { ".css": "empty" },
+      define: {
+        "import.meta": JSON.stringify({
+          env: {
+            VITE_SUPABASE_URL: "https://test.supabase.co",
+            VITE_SUPABASE_ANON_KEY: "test",
+          },
+        }),
+      },
+      logLevel: "silent",
+    })
+  ).outputFiles[0].text;
+async function mount(
+  mode,
+  { failAi = false, reportEvidence = evidence, reportFields = fields } = {},
+) {
+  const calls = [],
+    errors = [];
+  let saved = false,
+    shared = false;
+  const vc = new VirtualConsole();
+  vc.on("jsdomError", (e) => errors.push(e.message));
+  const dom = new JSDOM('<div id="root"></div>', {
+    url: "http://localhost/",
+    runScripts: "outside-only",
+    pretendToBeVisual: true,
+    virtualConsole: vc,
+  });
+  const w = dom.window;
+  Object.assign(w, { TextEncoder, TextDecoder, Request, Response, Headers });
+  w.crypto.randomUUID = randomUUID;
+  let prints = 0;
+  w.print = () => {
+    prints++;
+    w.dispatchEvent(new w.Event("afterprint"));
+  };
+  w.fetch = async (url, options) => {
+    const fn = String(url).split("/").pop(),
+      args = options?.body ? JSON.parse(options.body) : {};
+    calls.push({ fn, args });
+    let d;
+    if (fn === "rpc_ielts_learning_report_context")
+      d = {
+        school_id: "school",
+        student_id: "student",
+        student_name: "Gulzada",
+        school_name: "School",
+        can_manage: mode === "teacher",
+        plan: saved || mode === "student" ? report.payload.plan : null,
+        evidence: mode === "teacher" ? evidence : [],
+        years: [
+          {
+            id: "year",
+            name: "2026/2027",
+            starts_on: "2026-09-15",
+            ends_on: "2027-06-30",
+          },
+        ],
+        reports:
+          mode === "student"
+            ? [
+                {
+                  id: "report",
+                  version: 1,
+                  status: "final",
+                  period_start: "2026-10-01",
+                  period_end: "2026-10-31",
+                },
+              ]
+            : [],
+      };
+    else if (fn === "ielts_learning_plan_ai") {
+      if (failAi) return new Response("{}", { status: 503 });
+      d = { id: "draft", fields, teacher_confirmation_required: true };
+    } else if (fn === "rpc_ielts_save_plan_with_ai") {
+      saved = true;
+      d = { id: "plan", version: 1 };
+    } else if (fn === "rpc_ielts_generate_monthly_report")
+      d = { id: "report", version: 1 };
+    else if (fn === "rpc_ielts_monthly_report") {
+      if (args.p_finalize) shared = true;
+      d = {
+        ...report,
+        payload: {
+          ...report.payload,
+          evidence: reportEvidence,
+          plan: { ...report.payload.plan, fields: reportFields },
+        },
+        status: shared || mode === "student" ? "final" : "draft",
+        finalized_at:
+          shared || mode === "student" ? "2026-10-09T08:00:00Z" : null,
+        finalized_by: shared || mode === "student" ? "Jess" : null,
+      };
+    } else throw Error(fn);
+    return new Response(JSON.stringify(d), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+  const wait = async (f) => {
+    for (let i = 0; i < 160; i++) {
+      if (f()) return;
+      await new Promise((r) => setTimeout(r, 15));
+    }
+    throw Error(w.document.body.textContent);
+  };
+  const button = (s) =>
+    [...w.document.querySelectorAll("button")].find(
+      (b) => b.textContent.trim() === s,
+    );
+  const change = (input, value) => {
+    Object.getOwnPropertyDescriptor(
+      input.tagName === "TEXTAREA"
+        ? w.HTMLTextAreaElement.prototype
+        : w.HTMLInputElement.prototype,
+      "value",
+    ).set.call(input, value);
+    input.dispatchEvent(new w.Event("input", { bubbles: true }));
+  };
+  w.eval(bundles[mode]);
+  await wait(() =>
+    mode === "teacher"
+      ? button("Confirm and share learning plan")
+      : button("Open learning plan and reports"),
+  );
+  return {
+    w,
+    dom,
+    calls,
+    errors,
+    wait,
+    button,
+    change,
+    get prints() {
+      return prints;
+    },
+  };
 }
-test('one AI action fills the whole plan, keeps sharing explicit, then generates and finalizes the exact report',async()=>{const m=await mount('teacher');try{
- assert.equal(m.button('Confirm and share learning plan').disabled,true);assert.equal(m.button('Generate report draft').disabled,true);
- m.button('✦ AI help · draft the whole plan').click();await m.wait(()=>m.w.document.body.textContent.includes('AI draft applied.'));assert.equal(m.w.document.querySelector('input').value,fields.study_goal);assert.equal(m.button('Confirm and share learning plan').disabled,true);
- const confirm=[...m.w.document.querySelectorAll('input[type=checkbox]')].find(e=>e.parentElement.textContent.includes('I have checked this plan'));confirm.click();await m.wait(()=>!m.button('Confirm and share learning plan').disabled);m.button('Confirm and share learning plan').click();await m.wait(()=>m.w.document.body.textContent.includes('Plan version 1'));
- assert.equal(m.calls.find(c=>c.fn==='rpc_ielts_save_plan_with_ai').args.p_draft,'draft');
- const dates=m.w.document.querySelectorAll('input[type=date]');m.change(dates[1],'2026-10-01');m.change(dates[2],'2026-10-31');await m.wait(()=>!m.button('Generate report draft').disabled);m.button('Generate report draft').click();await m.wait(()=>m.w.document.querySelector('[role=dialog]'));
- assert.match(m.w.document.body.textContent,/Interim monthly review/);assert.match(m.w.document.body.textContent,/Improvement is not yet established/);assert.equal(m.button('Print / Save PDF').disabled,true);assert.equal(m.button('Confirm and share with student').disabled,true);
- m.w.document.querySelector('[role=dialog] input[type=checkbox]').click();await m.wait(()=>!m.button('Confirm and share with student').disabled);m.button('Confirm and share with student').click();await m.wait(()=>!m.button('Print / Save PDF').disabled);assert.match(m.w.document.body.textContent,/Teacher confirmed · Jess/);m.button('Print / Save PDF').click();assert.equal(m.prints,1);assert.deepEqual(m.errors,[]);
- }finally{m.dom.window.close();}});
-test('AI failure preserves teacher input and never saves or shares it',async()=>{const m=await mount('teacher',{failAi:true});try{m.change(m.w.document.querySelector('input'),'Keep my student goal.');m.button('✦ AI help · draft the whole plan').click();await m.wait(()=>m.w.document.body.textContent.includes('AI help could not finish'));assert.equal(m.w.document.querySelector('input').value,'Keep my student goal.');assert.equal(m.calls.some(c=>c.fn==='rpc_ielts_save_learning_plan'||c.fn==='rpc_ielts_save_plan_with_ai'),false);}finally{m.dom.window.close();}});
-test('student fetches on demand and receives read-only confirmed plans and published reports',async()=>{const m=await mount('student');try{assert.equal(m.calls.length,0);m.button('Open learning plan and reports').click();await m.wait(()=>m.button('View report →'));assert.match(m.w.document.body.textContent,/Teacher: Jess/);assert.equal(m.button('Confirm and share learning plan'),undefined);m.button('View report →').click();await m.wait(()=>m.w.document.querySelector('[role=dialog]'));assert.equal(m.button('Confirm and share with student'),undefined);assert.equal(m.button('Print / Save PDF').disabled,false);assert.equal(m.calls.some(c=>c.args.p_finalize),false);assert.deepEqual(m.errors,[]);}finally{m.dom.window.close();}});
+test("one AI action fills the whole plan, keeps sharing explicit, then generates and finalizes the exact report", async () => {
+  const m = await mount("teacher");
+  try {
+    assert.equal(m.button("Confirm and share learning plan").disabled, true);
+    assert.equal(m.button("Generate report draft").disabled, true);
+    m.button("✦ AI help · draft the whole plan").click();
+    await m.wait(() =>
+      m.w.document.body.textContent.includes("AI draft applied."),
+    );
+    assert.equal(m.w.document.querySelector("input").value, fields.study_goal);
+    assert.equal(m.button("Confirm and share learning plan").disabled, true);
+    const confirm = [
+      ...m.w.document.querySelectorAll("input[type=checkbox]"),
+    ].find((e) =>
+      e.parentElement.textContent.includes("I have checked this plan"),
+    );
+    confirm.click();
+    await m.wait(() => !m.button("Confirm and share learning plan").disabled);
+    m.button("Confirm and share learning plan").click();
+    await m.wait(() =>
+      m.w.document.body.textContent.includes("Plan version 1"),
+    );
+    assert.equal(
+      m.calls.find((c) => c.fn === "rpc_ielts_save_plan_with_ai").args.p_draft,
+      "draft",
+    );
+    const dates = m.w.document.querySelectorAll("input[type=date]");
+    m.change(dates[1], "2026-10-01");
+    m.change(dates[2], "2026-10-31");
+    await m.wait(() => !m.button("Generate report draft").disabled);
+    m.button("Generate report draft").click();
+    await m.wait(() => m.w.document.querySelector("[role=dialog]"));
+    assert.match(m.w.document.body.textContent, /Interim monthly review/);
+    assert.match(
+      m.w.document.body.textContent,
+      /Improvement is not yet established/,
+    );
+    assert.equal(m.button("Print / Save PDF").disabled, true);
+    assert.equal(m.button("Confirm and share with student").disabled, true);
+    m.w.document.querySelector("[role=dialog] input[type=checkbox]").click();
+    await m.wait(() => !m.button("Confirm and share with student").disabled);
+    m.button("Confirm and share with student").click();
+    await m.wait(() => !m.button("Print / Save PDF").disabled);
+    assert.match(m.w.document.body.textContent, /Teacher confirmed · Jess/);
+    m.button("Print / Save PDF").click();
+    assert.equal(m.prints, 1);
+    assert.deepEqual(m.errors, []);
+  } finally {
+    m.dom.window.close();
+  }
+});
+test("AI failure preserves teacher input and never saves or shares it", async () => {
+  const m = await mount("teacher", { failAi: true });
+  try {
+    m.change(m.w.document.querySelector("input"), "Keep my student goal.");
+    m.button("✦ AI help · draft the whole plan").click();
+    await m.wait(() =>
+      m.w.document.body.textContent.includes("AI help could not finish"),
+    );
+    assert.equal(
+      m.w.document.querySelector("input").value,
+      "Keep my student goal.",
+    );
+    assert.equal(
+      m.calls.some(
+        (c) =>
+          c.fn === "rpc_ielts_save_learning_plan" ||
+          c.fn === "rpc_ielts_save_plan_with_ai",
+      ),
+      false,
+    );
+  } finally {
+    m.dom.window.close();
+  }
+});
+test("student fetches on demand and receives read-only confirmed plans and published reports", async () => {
+  const m = await mount("student");
+  try {
+    assert.equal(m.calls.length, 0);
+    m.button("Open learning plan and reports").click();
+    await m.wait(() => m.button("View report →"));
+    assert.match(m.w.document.body.textContent, /Teacher: Jess/);
+    assert.equal(m.button("Confirm and share learning plan"), undefined);
+    m.button("View report →").click();
+    await m.wait(() => m.w.document.querySelector("[role=dialog]"));
+    assert.equal(m.button("Confirm and share with student"), undefined);
+    assert.equal(m.button("Print / Save PDF").disabled, false);
+    assert.equal(
+      m.calls.some((c) => c.args.p_finalize),
+      false,
+    );
+    assert.deepEqual(m.errors, []);
+  } finally {
+    m.dom.window.close();
+  }
+});
+
+test("report keeps original starting score, labels repeats, hides database identities and preserves captured fields", async () => {
+  const original = {
+    ...evidence[0],
+    source_id: "first",
+    raw_score: 9,
+    occurred_at: "2026-10-06T08:00:00Z",
+    submission_status: "auto_submitted",
+  };
+  const repeated = {
+    ...evidence[0],
+    source_id: "repeat",
+    raw_score: 8,
+    exposure: "same_form_practice",
+  };
+  const prose = {
+    ...fields,
+    skills: {
+      ...fields.skills,
+      listening: {
+        pathway: "exam_preparation",
+        sources: ["first"],
+        rationale:
+          "You completed a check (source_id:11111111-1111-4111-8111-111111111111). Gather a fresh follow-up.",
+      },
+    },
+  };
+  const before = JSON.stringify(prose);
+  const m = await mount("student", {
+    reportEvidence: [repeated, original],
+    reportFields: prose,
+  });
+  try {
+    m.button("Open learning plan and reports").click();
+    await m.wait(() => m.button("View report →"));
+    m.button("View report →").click();
+    await m.wait(() => m.w.document.querySelector("[role=dialog]"));
+    const profile = m.w.document.querySelector(".ilr-profile article");
+    assert.match(profile.querySelector(".ilr-score").textContent, /9 \/ 12/);
+    assert.match(profile.textContent, /Repeat for practice/);
+    assert.match(profile.textContent, /Saved automatically/);
+    const dialog = m.w.document.querySelector("[role=dialog]");
+    assert.doesNotMatch(dialog.textContent, /source_id|11111111-1111/);
+    assert.equal(JSON.stringify(prose), before);
+    assert.equal(
+      m.w.document.querySelector(".ilr-evidence-ledger").open,
+      false,
+    );
+    assert.ok(dialog.querySelector('img[alt="Brains Heist logo"]'));
+    assert.equal(m.button("Prepare a corrected version →"), undefined);
+    m.button("Print / Save PDF").click();
+    assert.equal(m.prints, 1);
+    assert.equal(
+      m.w.document.querySelector(".ilr-evidence-ledger").open,
+      false,
+    );
+  } finally {
+    m.dom.window.close();
+  }
+});
