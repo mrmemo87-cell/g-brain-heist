@@ -20,6 +20,8 @@ import {
   rpcIeltsPracticeContentCatalog,
   type IeltsPracticeContentCatalogItem,
 } from '../../../services/ieltsPracticeContentService';
+import { useIeltsMaterialUsage } from '../../../src/pages/ielts/useIeltsMaterialUsage';
+import { materialUsageLabel } from '../../../services/ieltsTeacherPracticeService';
 import { friendlyIeltsAdminError } from '../../../src/lib/schoolAdminPresentation';
 
 type DraftItem = IeltsPracticeAssignmentItemInput & {
@@ -97,9 +99,10 @@ const displayStudentStatus = (assignment: IeltsPracticeAssignmentSummary, studen
 
 interface IeltsPracticeTabProps {
   onOpenReviews: () => void;
+  initialAssignmentId?: string;
 }
 
-const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews }) => {
+const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, initialAssignmentId }) => {
   const { classes = [], students = [], studentCount = students.length, studentAssignments = {}, school, addToast } = useSchoolAdmin();
   const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<AssignmentStatusFilter>('active');
   const [assignments, setAssignments] = useState<IeltsPracticeAssignmentSummary[]>([]);
@@ -126,6 +129,15 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews }) =>
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editDueAt, setEditDueAt] = useState('');
+  const [historyRevision, setHistoryRevision] = useState(0);
+  const [repeatScope, setRepeatScope] = useState('');
+  const chosenMaterials = items.filter(i=>i.contentId.trim()).map(i=>({type:i.contentType,id:i.contentId.trim()}));
+  const selectedUsage = useIeltsMaterialUsage(school?.id, chosenMaterials.slice(0,50), {classId:classId || undefined}, historyRevision);
+  const catalogUsage = useIeltsMaterialUsage(school?.id, pickerOpenFor ? contentCatalog.map(c=>({type:c.content_type,id:c.content_id})).slice(0,50) : [], {classId:classId || undefined}, historyRevision);
+  const repeatedMaterials = selectedUsage.data?.filter(u=>u.assigned_count>0) ?? [];
+  const currentRepeatScope = JSON.stringify([school?.id,classId,chosenMaterials,selectedUsage.data]);
+  const repeatAcknowledged = repeatScope === currentRepeatScope;
+
 
   const selectedClass = useMemo(
     () => classes.find((cls: any) => cls.id === classId) ?? null,
@@ -173,6 +185,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews }) =>
     try {
       const rows = await rpcIeltsPracticeListAssignments({ schoolId: school.id, statusFilter: assignmentStatusFilter });
       setAssignments(rows);
+      setHistoryRevision(n=>n+1);
       if (selectedAssignmentId) {
         const selectedStillVisible = rows.some((row) => row.id === selectedAssignmentId);
         if (!selectedStillVisible) {
@@ -223,6 +236,10 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews }) =>
       setProgressLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (initialAssignmentId) void loadAssignmentDetail(initialAssignmentId);
+  }, [initialAssignmentId, school?.id]);
 
   const selectContent = (localId: string, content: IeltsPracticeContentCatalogItem) => {
     const contentKey = `${content.content_type}:${content.content_id}`;
@@ -302,6 +319,10 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews }) =>
       setError('Choose a class before assigning practice.');
       return;
     }
+
+    if (chosenMaterials.length > 50) {setError('Use up to 50 materials per assignment. Split larger plans into separate assignments.');return;}
+    if (!selectedUsage.data || selectedUsage.error) {setError('Check previous material use before creating this assignment.');return;}
+    if (repeatedMaterials.length && !repeatAcknowledged) {setError('Review previous use and confirm that this repeat is intentional.');return;}
 
     const firstMissingIndex = items.findIndex((item) => !item.contentId.trim());
     if (firstMissingIndex >= 0) {
@@ -718,6 +739,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews }) =>
                                         {content.band && <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs text-emerald-200">Band {content.band}</span>}
                                       </div>
                                       {content.description && <p className="mt-2 line-clamp-2 text-xs text-gray-400">{content.description}</p>}
+                                      <p className="mt-2 text-xs text-sky-200">{!classId ? 'Choose a class to check previous use' : catalogUsage.loading ? 'Checking previous use…' : catalogUsage.error ? 'History unavailable · retry before assigning' : (()=>{const u=catalogUsage.data?.find(u=>u.type===content.content_type && u.id===content.content_id);return u?materialUsageLabel(u):'History not available';})()}</p>
                                     </button>
                                   );
                                 })}
@@ -741,9 +763,20 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews }) =>
             ))}
           </div>
 
+          {classId && chosenMaterials.length > 0 && <div className="mt-4 rounded-xl border border-sky-400/40 bg-sky-500/10 p-4 text-sm text-sky-100" aria-live="polite">
+            <h5 className="font-semibold">Previous use for students in this class</h5>
+            {selectedUsage.loading ? <p>Checking previous assignments…</p> : selectedUsage.error ? <><p>{selectedUsage.error}</p><button type="button" onClick={selectedUsage.retry}>Retry history check</button></> : selectedUsage.data?.map(u=><div key={u.type+':'+u.id} className="mt-3">
+              <p className="font-semibold">{items.find(i=>i.contentType===u.type && i.contentId.trim()===u.id)?.title || 'Selected material'}</p>
+              <p>{materialUsageLabel(u)}{u.students_count ? ` · ${u.students_count} student${u.students_count===1?'':'s'} previously received it` : ''}</p>
+              {u.latest_assignment_id && <button type="button" onClick={()=>void loadAssignmentDetail(u.latest_assignment_id!)} className="mt-1 underline">Open existing assignment progress</button>}
+            </div>)}
+            {!!repeatedMaterials.length && <label className="mt-3 flex items-start gap-2"><input type="checkbox" checked={repeatAcknowledged} onChange={e=>setRepeatScope(e.target.checked?currentRepeatScope:'')}/><span>I checked existing work and intend to assign these materials again for practice.</span></label>}
+            <p className="mt-3 text-xs">History covers current class members’ recorded assignments, including earlier classes and archived work. Repeating material does not establish improvement.</p>
+          </div>}
+
           {error && <div className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">{error}</div>}
           <div className="mt-5 flex flex-wrap gap-3">
-            <button type="button" data-testid="ielts-practice-create-assignment" onClick={handleCreateAssignment} disabled={saving} className="rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 disabled:opacity-60">
+            <button type="button" data-testid="ielts-practice-create-assignment" onClick={handleCreateAssignment} disabled={saving || !selectedUsage.data || !!selectedUsage.error || (!!repeatedMaterials.length && !repeatAcknowledged)} className="rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 disabled:opacity-60">
               {saving ? 'Creating…' : 'Create & assign to class'}
             </button>
             <button type="button" onClick={() => void loadAssignments()} disabled={loading} className="rounded-xl border border-gray-600 px-5 py-3 font-semibold text-gray-200 hover:bg-gray-800 disabled:opacity-60">

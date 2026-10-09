@@ -15,6 +15,7 @@ import "../../styles/ielts-programme.css";
 const Practice = React.lazy(
   () => import("./IeltsLearningTeacher"),
 );
+const PracticeDesk = React.lazy(() => import("./IeltsTeacherPracticeDesk"));
 const Exams = React.lazy(() => import("./IeltsExamManager"));
 type Section =
   | "overview"
@@ -645,9 +646,10 @@ export default function IeltsProgrammeWorkspace({
                         addToast: (msg: string) => setMessage(msg),
                       }}
                     >
-                      <Practice
+                      <PracticeDesk
                         key={data.school_id}
                         schoolId={data.school_id}
+                        onOpenReviews={() => open("reviews")}
                       />
                     </SchoolAdminContext.Provider>
                   ) : (

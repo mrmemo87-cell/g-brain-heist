@@ -11,8 +11,9 @@ import {
   programmeEvidenceRoute,
   type ProgrammeStudent,
 } from "../../../services/ieltsProgrammeService";
+import { useIeltsMaterialUsage } from "./useIeltsMaterialUsage";
+import { materialUsageLabel } from "../../../services/ieltsTeacherPracticeService";
 import "../../styles/ielts-learning.css";
-const pilot = "b30e9c28-96f1-4d34-83e9-9b28b4926f42";
 export default function IeltsLearningTeacher({
   schoolId,
   reviewOnly = false,
@@ -28,7 +29,8 @@ export default function IeltsLearningTeacher({
     [confirmed, setConfirmed] = useState(false),
     [message, setMessage] = useState("Loading targeted practice…"),
     [busy, setBusy] = useState(false),
-    [retry, setRetry] = useState(0);
+    [retry, setRetry] = useState(0),
+    [usageRevision, setUsageRevision] = useState(0);
   const request = useRef(crypto.randomUUID()),
     scope = useRef(schoolId);
   scope.current = schoolId;
@@ -42,16 +44,10 @@ export default function IeltsLearningTeacher({
     setConfirmed(false);
     setNotes("");
     setMessage("Loading targeted practice…");
-    Promise.all([
-      learningWorkspace(schoolId),
-      reviewOnly
-        ? Promise.resolve({ students: [] as ProgrammeStudent[] })
-        : programmeWorkspace(schoolId, "Gulzada"),
-    ])
-      .then(([w, p]) => {
+    learningWorkspace(schoolId)
+      .then((w) => {
         if (active) {
           setData(w);
-          setStudent(p.students.find((s) => s.id === pilot) ?? null);
           setTask(w.tasks[0]?.code ?? "");
           setMessage("");
         }
@@ -67,12 +63,28 @@ export default function IeltsLearningTeacher({
       active = false;
     };
   }, [schoolId, reviewOnly, retry]);
+  const recipientId = data?.tasks.find(t => t.code === task)?.pilot_student;
+  const recipientName = data?.tasks.find(t => t.code === task)?.pilot_student_name;
+  useEffect(() => {
+    let active = true; setStudent(null);
+    if (reviewOnly || !recipientId || !recipientName) return;
+    programmeWorkspace(schoolId, recipientName).then(p => {
+      if (active) setStudent(p.students.find(s => s.id === recipientId) ?? null);
+    }).catch(() => { if (active) setMessage("Student evidence could not load. Retry loading practice."); });
+    return () => { active = false; };
+  }, [schoolId, reviewOnly, recipientId, recipientName, retry]);
+  const usage = useIeltsMaterialUsage(reviewOnly ? undefined : schoolId, data?.tasks.filter(t=>t.pilot_student===recipientId).map(t=>({type:"targeted",id:t.code})) ?? [], {student:recipientId}, usageRevision);
+  const prior = usage.data?.find(u => u.id === task && u.type === "targeted");
+  const activeAssignment = !!prior?.active_count;
+  const exposedCheck = data?.tasks.find(t=>t.code===task)?.purpose === "independent_check" && !!prior?.assigned_count;
+  const [repeatConfirmed, setRepeatConfirmed] = useState(false);
+  useEffect(() => {setRepeatConfirmed(false);}, [task,recipientId]);
   const selected = data?.tasks.find((t) => t.code === task),
     skill = selected?.skill ?? "listening",
     source = student?.[skill],
     sourceRoute = programmeEvidenceRoute(skill, source ?? null);
   const sourceReady =
-    !!source &&
+    student?.id === recipientId && !!source &&
     (!["writing", "speaking"].includes(skill) || source.reviewed === true);
   const approved = selected?.approved ?? !selected?.requires_review;
   async function run(action: () => Promise<void>) {
@@ -99,12 +111,12 @@ export default function IeltsLearningTeacher({
           : "Choose a purposeful next step"}
       </h2>
       <p>
-        Gulzada’s delivery pilot: review the task, connect the matching screener
+        Review the task, connect the matching screener
         evidence and explain why it is useful. These tasks do not automatically
         create a band estimate or improvement label.
       </p>
       {message && <p role="status">{message}</p>}
-      {!data && (
+      {(!data || message.startsWith("Student evidence could not load")) && (
         <button onClick={() => setRetry((n) => n + 1)}>
           Retry loading practice
         </button>
@@ -113,16 +125,19 @@ export default function IeltsLearningTeacher({
         <>
           {!reviewOnly && (
             <section className="il-card">
-              <p>
-                <strong>Student:</strong>{" "}
-                {student?.name ?? "Pilot student unavailable"}
-              </p>
+              <label className="il-answer">Student
+                <select value={recipientId ?? ""} disabled aria-label="Available student for this material">
+                  <option value={recipientId ?? ""}>{recipientName ?? "Student unavailable"}</option>
+                </select>
+              </label>
+              <p className="il-muted">Recipients follow the material’s approved release scope. New materials remain in their named-student pilot.</p>
               <label className="il-answer">
                 Task
                 <select
                   value={task}
                   onChange={(e) => {
                     setTask(e.target.value);
+                    setRepeatConfirmed(false);
                     setConfirmed(false);
                     setNotes("");
                     request.current = crypto.randomUUID();
@@ -133,11 +148,25 @@ export default function IeltsLearningTeacher({
                       {t.skill ?? "listening"} · {t.title} ·{" "}
                       {t.purpose === "guided_practice"
                         ? "Guided practice"
-                        : "Fresh check"}
+                        : "Fresh check"}{(() => {
+                          const u = usage.data?.find(u=>u.type==="targeted" && u.id===t.code);
+                          return u ? u.active_count ? " · Already active" : u.assigned_count ? " · Previously given" : " · No recorded assignment" : "";
+                        })()}
                     </option>
                   ))}
                 </select>
               </label>
+              <div className="il-usage" aria-live="polite">
+                <strong>Previous assignments for this student</strong>
+                {usage.loading ? <p>Checking this material’s history…</p> : usage.error ? <><p>{usage.error}</p><button onClick={usage.retry}>Retry history check</button></> : prior ? <>
+                  <p>{materialUsageLabel(prior)}</p>
+                  {prior.last_assigned_at && <p>Last assigned {new Date(prior.last_assigned_at).toLocaleDateString()}</p>}
+                  {prior.latest_assignment_id && <Link to={"/ielts/practice/targeted/"+prior.latest_assignment_id}>Open existing assignment →</Link>}
+                  {exposedCheck && <p>This task has already been given. Choose a different fresh check.</p>}
+                  {!!prior.assigned_count && !activeAssignment && !exposedCheck && <label className="il-answer"><span><input type="checkbox" checked={repeatConfirmed} onChange={e=>setRepeatConfirmed(e.target.checked)}/> I intend to repeat this material for practice.</span></label>}
+                  {!prior.assigned_count && <p>This checks recorded assignments only; ask about other practice or help before using a fresh check.</p>}
+                </> : <p>Choose an available student and task to check previous use.</p>}
+              </div>
               {sourceRoute ? (
                 <Link to={sourceRoute}>Review {skill} source evidence →</Link>
               ) : (
@@ -260,6 +289,10 @@ export default function IeltsLearningTeacher({
               <button
                 disabled={
                   busy ||
+                  !prior ||
+                  activeAssignment ||
+                  exposedCheck ||
+                  (!!prior.assigned_count && !repeatConfirmed) ||
                   !sourceReady ||
                   !approved ||
                   reason.trim().length < 10 ||
@@ -279,8 +312,10 @@ export default function IeltsLearningTeacher({
                     const next = await learningWorkspace(schoolId);
                     if (scope.current === schoolId) {
                       setData(next);
+                      setUsageRevision(n=>n+1);
+                      setRepeatConfirmed(false);
                       setMessage(
-                        "Assigned. Gulzada can open this task from her IELTS Journey.",
+                        "Assigned. The student can open this task in Targeted Practice.",
                       );
                     }
                   })
