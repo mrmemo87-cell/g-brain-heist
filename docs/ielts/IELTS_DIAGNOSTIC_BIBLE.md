@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.6.0\
+**Version:** 1.7.0\
 **Effective date:** 2026-10-09\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -1126,6 +1126,36 @@ Current short screeners and reviewed single submissions remain starting-point ev
 
 ---
 
+## 15C. Individual learning plans and reproducible IELTS reports
+
+**Owner-authorized product contract (2026-10-09):** Extend the existing Brains Heist smart reporting system for individual IELTS learning plans and monthly progress reports. Reuse immutable snapshots, source references/hashes, versions, Draft → Final review and correction history. IELTS evidence must remain a distinct module; generic academic percentages, confidence scores and progress labels cannot be imported as IELTS conclusions without the reviewed crosswalk and qualification policies in section 8A.
+
+### 15C.1 Learning plan
+
+Store each plan as an append-only teacher decision, with student/school, author/date, previous version, policy version and source references. Include the student's study goal, two or three prioritised actionable goals where evidence permits, a next action, success criteria, follow-up method and review date. A plan can remain provisional when evidence is missing; do not force fabricated priorities. Each skill has its own pathway: Foundation + introductory IELTS, Focused IELTS preparation, or More evidence needed. Mixed profiles are valid. Pathways are revisable preparation decisions, never diagnoses, fixed ability labels, automatic band conversions or high-stakes selection criteria. Record a short evidence-linked rationale and the missing check before changing a pathway.
+
+### 15C.2 Reporting period and historical truth
+
+Support explicit monthly/course reporting dates as well as existing academic year/term reports. Display start/end dates and the exact evidence cutoff, reporting timezone and partial-period status. A current draft may cover a future course-period end but must clearly say interim; it must not imply that future lessons occurred. Capture only evidence, reviews and plans recorded by the cutoff. Later teacher reviews, rescoring, changed plans and mappings cannot silently rewrite an earlier final report. Preserve the actual captured source values, not only pointers to mutable current states. Backdated current-state practice records cannot be represented as historically reconstructed states; disclose unavailable historical participation. Evidence preceding the month can appear separately as a dated starting reference, never as activity completed during that month.
+
+### 15C.3 Report content and traceability
+
+Include student/school and period, starting-point scope, four skill summaries, supported task observations, missing/pending evidence, goals, practice participation, evidence-qualified change where available, teacher-confirmed pathway/rationale, next-month actions, confidence/limitations, author and approval date. Every conclusion must reference supporting and conflicting evidence and its applicable policy/version. Keep observation, participation and independent improvement separate. Retain incomplete and contradictory evidence; no cherry-picking. No averaging unlike raw scores/rubrics, artificial radar-chart ability levels, universal numeric persistence thresholds, or overall band from completed checks. Charts need comparable evidence and plain labels; otherwise use dated observations. Unavailable progress inference must be visible as 'Improvement not yet established', with the next suitable check.
+
+### 15C.4 AI and sharing
+
+AI may draft simple language from an authorised, bounded evidence snapshot and confirmed plan. Its structured output must use valid supplied references, preserve uncertainty, exclude private notes/keys and treat student writing/teacher text as data rather than instructions. Record provider/model/prompt, source hash and draft time. AI cannot invent scores, attendance, effort, comparisons, confidence, source references or teacher approval. Unsupported fields remain explicit gaps. Generation never finalises or shares. The authorised teacher checks and edits before explicit finalisation; final versions are immutable and correction creates a linked replacement. Students see only their own published student-audience reports/plans; staff access remains programme/student/school-scoped. Printed and online versions must convey the same claims and limitations.
+
+### 15C.5 UX, performance and acceptance
+
+Use the established Brains Heist report branding and accessible visual system. Student language answers 'What is going well?', 'What am I working on?' and 'What should I do next?'. School detail answers 'What changed?', 'What supports it?' and 'What support follows?'. Teacher contributions are explicitly labelled; colour alone is insufficient. Do not expose internal IDs or policy mechanics in the default student view.
+
+Build projections through bounded scoped reads or idempotent background work, outside answer-save transactions. Paginate histories, surface truncation and fail closed before finalising incomplete evidence captures. Hash/version cache keys and invalidate affected projections on correction. No per-student AI calls on dashboard navigation. Apply section 13; this contract certifies no capacity.
+
+Acceptance must cover missing skills, pending/late reviews, repeats, rescoring, assistance, interrupted delivery, conflicting observations, mixed pathways, stale/changed plans, earlier cutoffs, concurrent edits, idempotent generation/finalisation, source hashes, corrections, cross-school/self-only access, failed AI, accessible mobile/desktop and print parity. Advanced progress states remain disabled until section 8A policies and comparable follow-up evidence pass. Recording a plan or producing a report does not certify longitudinal inference.
+
+---
+
 ## 16. Current known legacy issues
 
 The following current/legacy behaviours are **not** canonical and must not be preserved merely because they already exist.
@@ -1524,6 +1554,14 @@ The owner requested two additional Listening practice recordings with possible p
 Basis: the owner's production instruction, the official IELTS Listening contexts/question formats and British Council advice to check clear audibility, rechecked 2026-10-09. Official sources do not endorse the proposed effects; their use is an internal practice design decision. No official format, score conversion, calibration, existing task, approved recording, saved attempt, access rule or publication gate changes. The two new L3/L4 materials remain human-review drafts until their exact recordings, scripts, keys, mappings, rights and pilot conditions are reviewed.
 
 Affected implementation to review: audio generation/assembly, extension-task metadata and teacher review, private asset installation, task publication/assignment, delivery snapshots and phone/MacBook playback. This revision certifies neither live student availability nor 500-user capacity. New audio delivery must satisfy the affected capacity gates in section 13 before a wider launch.
+
+---
+
+### 22.6 Revision record — v1.7.0 (2026-10-09)
+
+The owner requested individual foundation/exam-preparation pathways and accurate first-month reports using the existing smart reporting system. Sections 8A and 15B did not specify monthly cutoff semantics, plan versioning, report-module reuse or AI report publication boundaries. Section 15C now locks those requirements. Basis: explicit owner product-policy authorisation and existing evidence/report governance; no external IELTS format, scoring, criteria, calibration or publication gate changes. No universal numeric inference thresholds are introduced.
+
+Affected implementation: IELTS evidence projections, plan decisions, academic report snapshot/source/event services, report builder/rendering, student Journey, AI drafting, authorisation, historical-cutoff and concurrency tests. This revision defines obligations and does not itself assert deployed tracking, approved comparability policies or 500-user capacity.
 
 ---
 

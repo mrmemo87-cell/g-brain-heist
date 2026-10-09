@@ -12,9 +12,8 @@ import {
 import SchoolAdminContext from "../../../components/school-admin/SchoolAdminContext";
 import "../../styles/ielts-speaking-pilot.css";
 import "../../styles/ielts-programme.css";
-const Practice = React.lazy(
-  () => import("./IeltsLearningTeacher"),
-);
+const Practice = React.lazy(() => import("./IeltsLearningTeacher"));
+const LearningPlanDesk = React.lazy(() => import("./IeltsLearningPlanDesk"));
 const PracticeDesk = React.lazy(() => import("./IeltsTeacherPracticeDesk"));
 const Exams = React.lazy(() => import("./IeltsExamManager"));
 type Section =
@@ -86,6 +85,10 @@ export default function IeltsProgrammeWorkspace({
     [confirmed, setConfirmed] = useState(false),
     [saving, setSaving] = useState(false),
     [message, setMessage] = useState("");
+  const [planStudent, setPlanStudent] = useState<string | null>(null);
+  useEffect(() => {
+    setPlanStudent(null);
+  }, [data?.school_id]);
   const lock = useRef(false),
     changeId = useRef<string | null>(null);
   useEffect(() => {
@@ -227,7 +230,11 @@ export default function IeltsProgrammeWorkspace({
           queue.
         </p>
       )}
-      {data?.can_manage && <React.Suspense fallback={<p>Loading practice reviews…</p>}><Practice schoolId={data.school_id} reviewOnly /></React.Suspense>}
+      {data?.can_manage && (
+        <React.Suspense fallback={<p>Loading practice reviews…</p>}>
+          <Practice schoolId={data.school_id} reviewOnly />
+        </React.Suspense>
+      )}
       {data?.can_manage && (
         <details>
           <summary>Other practice submissions</summary>
@@ -460,7 +467,19 @@ export default function IeltsProgrammeWorkspace({
             </>
           )}
           {section === "reviews" && queue}
-          {section === "students" && (
+          {section === "students" && planStudent && (
+            <React.Suspense
+              fallback={<p role="status">Opening learning plan…</p>}
+            >
+              <LearningPlanDesk
+                key={data.school_id + planStudent}
+                schoolId={data.school_id}
+                studentId={planStudent}
+                onClose={() => setPlanStudent(null)}
+              />
+            </React.Suspense>
+          )}
+          {section === "students" && !planStudent && (
             <section className="sp-card">
               <p className="sp-eyebrow">
                 Four skills · Latest submitted evidence
@@ -491,6 +510,12 @@ export default function IeltsProgrammeWorkspace({
                 {data.students.map((s) => (
                   <article className="ip-student" key={s.id}>
                     <h3>{s.name}</h3>
+                    <button
+                      className="sp-primary"
+                      onClick={() => setPlanStudent(s.id)}
+                    >
+                      Learning plan & monthly reports →
+                    </button>
                     <div className="ip-skills">
                       {(
                         ["listening", "reading", "writing", "speaking"] as const

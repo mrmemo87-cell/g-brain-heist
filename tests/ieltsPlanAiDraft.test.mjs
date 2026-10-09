@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {build} from 'esbuild';
+const built=(await build({entryPoints:['supabase/functions/_shared/ieltsPlanAiDraft.ts'],bundle:true,format:'esm',write:false,logLevel:'silent'})).outputFiles[0].text;
+const {validatePlanAiOutput,PLAN_AI_INSTRUCTIONS}=await import('data:text/javascript;base64,'+Buffer.from(built).toString('base64'));
+const fields={study_goal:'A proposed study goal to agree.',next_action:'Arrange the missing checks with the teacher.',review_on:'2026-11-06',skills:Object.fromEntries(['listening','reading','writing','speaking'].map(s=>[s,{pathway:'more_evidence',rationale:'More evidence is needed for this skill.',sources:[]} ])),goals:[{skill:'writing',action:'Arrange a fresh writing check.',success:'A complete independent essay is saved.',check:'Teacher reviews the new essay.'}]};
+const context={review_on:'2026-11-06',evidence:[{source_id:'one',skill:'writing',kind:'screener',review_id:null}]};
+test('AI plan is complete, simple and keeps missing evidence explicit',()=>{assert.equal(validatePlanAiOutput(fields,context).study_goal,fields.study_goal);assert.match(PLAN_AI_INSTRUCTIONS,/untrusted data/);assert.match(PLAN_AI_INSTRUCTIONS,/Practice completion is participation only/);});
+test('AI cannot invent references, infer readiness from pending writing, change dates or claim improvement',()=>{
+ for(const change of [{...fields,review_on:'2026-11-07'},{...fields,next_action:'You improved and mastered your writing.'},{...fields,band:7},{...fields,skills:{...fields.skills,writing:{pathway:'foundation',rationale:'Develop this area next.',sources:['invented']}}},{...fields,skills:{...fields.skills,writing:{pathway:'exam_preparation',rationale:'Focus on timed practice.',sources:['one']}}}])assert.throws(()=>validatePlanAiOutput(change,context));
+ const approved={...context,evidence:[{...context.evidence[0],review_id:'review'}]};assert.equal(validatePlanAiOutput({...fields,skills:{...fields.skills,writing:{pathway:'foundation',rationale:'Develop the reviewed area next.',sources:['one']}}},approved).skills.writing.pathway,'foundation');
+});

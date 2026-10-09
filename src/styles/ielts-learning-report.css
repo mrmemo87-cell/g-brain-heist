@@ -1,0 +1,177 @@
+.ilr-panel {
+  color: #172033;
+}
+.ilr-panel input,
+.ilr-panel select,
+.ilr-panel textarea {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid #b7c5d4;
+  border-radius: 10px;
+  background: #fff;
+  color: #172033;
+  font: inherit;
+  box-sizing: border-box;
+}
+.ilr-panel textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+.ilr-panel label {
+  display: block;
+  font-weight: 650;
+  margin: 12px 0;
+}
+.ilr-panel button,
+.ilr-source {
+  min-height: 44px;
+}
+.ilr-panel input[type="checkbox"],
+.ilr-panel input[type="radio"] {
+  display: inline-block;
+  width: auto;
+  min-height: 0;
+  margin-right: 8px;
+}
+.ilr-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.ilr-skill {
+  border: 1px solid #d9e3ee;
+  border-radius: 16px;
+  padding: 20px;
+  background: #f8fbff;
+}
+.ilr-source {
+  display: block;
+  border: 0;
+  background: none;
+  color: #234ac2;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ilr-teacher {
+  padding: 22px;
+  border-left: 4px solid #2948bf;
+  border-radius: 12px;
+  background: #eef3ff;
+  line-height: 1.6;
+}
+.ilr-teacher strong {
+  color: #1b3595;
+}
+.ilr-goals {
+  display: grid;
+  gap: 12px;
+}
+.ilr-goals article {
+  padding: 20px;
+  border: 1px solid #dce5ef;
+  border-radius: 12px;
+}
+.ilr-goals span {
+  font-size: 12px;
+  font-weight: 800;
+  color: #234ac2;
+}
+.ilr-trail {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.ilr-trail li {
+  padding: 14px 18px;
+  border-left: 3px solid #16bdd4;
+  background: #f8fafc;
+}
+.ilr-trail li > span {
+  display: block;
+  font-size: 13px;
+  color: #52677a;
+  margin: 5px 0;
+}
+.ilr-pathway {
+  color: #1b3595 !important;
+  font-size: 14px !important;
+}
+.ilr-overlay .arb-subjects article > p {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.6;
+}
+.ilr-overlay .arb-report details {
+  margin-top: 15px;
+}
+.ilr-overlay summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.ilr-overlay .arb-report p {
+  line-height: 1.65;
+}
+.ilr-panel button:focus-visible,
+.ilr-overlay button:focus-visible,
+.ilr-panel input:focus-visible,
+.ilr-panel textarea:focus-visible,
+.ilr-panel select:focus-visible {
+  outline: 3px solid #295dc7;
+  outline-offset: 3px;
+}
+.ilr-panel fieldset {
+  border: 0;
+  padding: 0;
+}
+.ilr-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.ilr-hint {
+  color: #536579;
+  font-size: 13px;
+}
+.ilr-shared {
+  padding: 20px;
+  border: 1px solid #dce5ef;
+  border-radius: 14px;
+  margin: 14px 0;
+  background: #f8fbff;
+}
+@media (max-width: 650px) {
+  .ilr-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .ilr-skill {
+    padding: 15px;
+  }
+  .ilr-overlay .arb-title h1 {
+    overflow-wrap: anywhere;
+  }
+}
+@media print {
+  .ilr-trail li,
+  .ilr-goals article,
+  .ilr-teacher {
+    break-inside: avoid;
+  }
+  .ilr-overlay details > * {
+    display: block;
+  }
+  .ilr-overlay details summary {
+    display: none;
+  }
+  .ilr-overlay .arb-report {
+    font-size: 11pt;
+  }
+  .ilr-overlay .arb-report details {
+    content-visibility: visible;
+  }
+}
