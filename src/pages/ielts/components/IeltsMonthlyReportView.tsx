@@ -16,16 +16,15 @@ import {
   skillEvidence,
   evidenceRole,
   responseCoverage,
+  planEvidenceIssues,
 } from "../../../../services/ieltsReportPresentation";
-import {
-  createSchoolBrand,
-  PRODUCT_LOGO_URL,
-} from "../../../lib/schoolBranding";
+import { createSchoolBrand } from "../../../lib/schoolBranding";
 import "../../../../components/student-progress/AcademicReportBuilder.css";
 import "../../../styles/ielts-learning-report.css";
+import IeltsReportOverview from "./IeltsReportOverview";
 export const reportDate = (v: string) =>
   new Date(v.length === 10 ? v + "T12:00:00+06:00" : v).toLocaleDateString(
-    undefined,
+    "en-GB",
     { timeZone: "Asia/Bishkek", dateStyle: "medium" },
   );
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
@@ -42,6 +41,8 @@ export default function IeltsMonthlyReportView({
   onShared?: () => void;
   onCorrect?: () => void;
 }) {
+  const [view, setView] = useState<"overview" | "detail">("overview");
+  const [logoFailed, setLogoFailed] = useState(false);
   const [report, setReport] = useState(initial),
     [confirmed, setConfirmed] = useState(false),
     [busy, setBusy] = useState(false),
@@ -55,9 +56,12 @@ export default function IeltsMonthlyReportView({
     return () => previous?.focus();
   }, []);
   const print = () => {
-    const closed = [
-      ...dialog.current!.querySelectorAll<HTMLDetailsElement>("details"),
-    ].filter((d) => !d.open);
+    const closed =
+      view === "detail"
+        ? [
+            ...dialog.current!.querySelectorAll<HTMLDetailsElement>("details"),
+          ].filter((d) => !d.open)
+        : [];
     closed.forEach((d) => (d.open = true));
     const restore = () => {
       closed.forEach((d) => (d.open = false));
@@ -71,7 +75,9 @@ export default function IeltsMonthlyReportView({
   const brand = createSchoolBrand({
     schoolId: p.school.id,
     schoolName: p.school.name,
+    schoolLogoUrl: p.school.logo_url ?? report.school_brand?.logo_url,
   });
+  const consistencyIssues = planEvidenceIssues(p.plan.fields, p.evidence);
   const inPeriod = p.evidence.filter((e) =>
     evidenceInPeriod(e, p.period.start, p.period.end),
   );
@@ -79,7 +85,7 @@ export default function IeltsMonthlyReportView({
     (e) => !evidenceInPeriod(e, p.period.start, p.period.end),
   );
   const share = async () => {
-    if (busy || !confirmed) return;
+    if (busy || !confirmed || consistencyIssues.length) return;
     setBusy(true);
     setError("");
     try {
@@ -190,7 +196,9 @@ export default function IeltsMonthlyReportView({
                 (el.tagName === "SUMMARY" &&
                   el.parentElement?.closest("details:not([open])") ===
                     el.parentElement &&
-                  !el.parentElement?.parentElement?.closest("details:not([open])")),
+                  !el.parentElement?.parentElement?.closest(
+                    "details:not([open])",
+                  )),
             );
             const first = controls[0],
               last = controls.at(-1);
@@ -214,6 +222,15 @@ export default function IeltsMonthlyReportView({
             </span>
           </div>
           <div>
+            <button
+              onClick={() =>
+                setView(view === "overview" ? "detail" : "overview")
+              }
+            >
+              {view === "overview"
+                ? "View detailed learning record"
+                : "Back to overview"}
+            </button>
             <button onClick={onClose} disabled={busy}>
               Close
             </button>
@@ -231,13 +248,35 @@ export default function IeltsMonthlyReportView({
             {error}
           </p>
         )}
-        <article className="arb-report ilr-document">
+        <article
+          className={
+            "arb-report ilr-document " +
+            (view === "overview"
+              ? "ilr-overview-document"
+              : "ilr-detail-document")
+          }
+        >
           <header className="arb-report-header">
             <div className="arb-brand">
-              <img
-                src={brand.logoUrl ?? PRODUCT_LOGO_URL}
-                alt={brand.logoUrl ? "School logo" : "Brains Heist logo"}
-              />
+              {brand.logoUrl && !logoFailed ? (
+                <img
+                  src={brand.logoUrl}
+                  alt={`${p.school.name} logo`}
+                  onError={() => setLogoFailed(true)}
+                />
+              ) : (
+                <b
+                  className="ilr-school-monogram"
+                  aria-label={`${p.school.name} school mark`}
+                >
+                  {p.school.name
+                    .split(" ")
+                    .filter(Boolean)
+                    .slice(0, 3)
+                    .map((w) => w[0])
+                    .join("")}
+                </b>
+              )}
               <span>
                 <strong>{p.school.name}</strong>
                 <small>Individual IELTS learning report</small>
@@ -256,237 +295,267 @@ export default function IeltsMonthlyReportView({
               {reportDate(p.period.start)}–{reportDate(p.period.end)}
             </span>
             <h1>{p.student.name}</h1>
-            <p>A clear starting point and a purposeful next step.</p>
-          </section>
-          <section
-            className="ilr-overview"
-            aria-label="Teacher learning summary"
-          >
-            <div>
-              <span className="ilr-kicker">
-                Teacher-confirmed learning plan
-              </span>
-              <h2>Your focus for this period</h2>
-              <p>{reportProse(p.plan.fields.study_goal)}</p>
-            </div>
-            <div className="ilr-next">
-              <span className="ilr-kicker">Your next step</span>
-              <p>{reportProse(p.plan.fields.next_action)}</p>
-              <small>Review by {reportDate(p.plan.fields.review_on)}</small>
-            </div>
-          </section>
-          <section className="arb-section">
-            <div className="arb-section-heading">
-              <div>
-                <span>01 · Your priorities</span>
-                <h2>What to work on next</h2>
-              </div>
-              <p>Agreed actions and how your teacher will check them.</p>
-            </div>
-            <div className="ilr-goals">
-              {p.plan.fields.goals.map((g, i) => (
-                <article key={i}>
-                  <span>
-                    {String(i + 1).padStart(2, "0")} · {title(g.skill)}
-                  </span>
-                  <h3>{reportProse(g.action)}</h3>
-                  <dl>
-                    <div>
-                      <dt>Success looks like</dt>
-                      <dd>{reportProse(g.success)}</dd>
-                    </div>
-                    <div>
-                      <dt>Next check</dt>
-                      <dd>{reportProse(g.check)}</dd>
-                    </div>
-                  </dl>
-                </article>
-              ))}
-            </div>
-          </section>
-          <section className="arb-section">
-            <div className="arb-section-heading">
-              <div>
-                <span>02 · Four skills</span>
-                <h2>Your starting point and preparation plan</h2>
-              </div>
-              <p>
-                Confidence: low · Short checks give a starting point, not a full
-                IELTS band. Pathways are teacher planning decisions.
-              </p>
-            </div>
-            <div className="arb-subjects ilr-profile">
-              {learningSkills.map((sk) => {
-                const evidence = skillEvidence(p.evidence, sk),
-                  first = evidence.starting,
-                  plan = p.plan.fields.skills[sk];
-                const reviewed = evidence.entries.find(
-                  (e) => e.review_id && e.kind !== "guided_practice",
-                );
-                return (
-                  <article key={sk}>
-                    <header>
-                      <h3>{title(sk)}</h3>
-                      <span className="arb-evidence">
-                        {first
-                          ? "Starting check"
-                          : evidence.practice.length
-                            ? "Practice recorded"
-                            : "Evidence needed"}
-                      </span>
-                    </header>
-                    <p className="ilr-score">
-                      {first
-                        ? evidenceSummary(first)
-                        : evidence.practice.length
-                          ? "Starting check not captured in this report"
-                          : "No starting check recorded"}
-                    </p>
-                    {first && (
-                      <small>
-                        {reportDate(first.occurred_at)}
-                        {first.submission_status === "auto_submitted"
-                          ? " · Saved automatically"
-                          : ""}
-                      </small>
-                    )}
-                    <p className="ilr-pathway">
-                      <strong>{pathwayLabels[plan.pathway]}</strong>
-                      <small>Teacher-selected pathway</small>
-                    </p>
-                    {reviewed?.next_step && (
-                      <p className="ilr-observation">
-                        <strong>Teacher’s current focus</strong>
-                        {reportProse(reviewed.next_step)}
-                      </p>
-                    )}
-                    {!reviewed && (sk === "writing" || sk === "speaking") && (
-                      <p>
-                        Teacher-reviewed evidence is needed before interpreting
-                        this skill.
-                      </p>
-                    )}
-                    {evidence.practice.length > 0 && (
-                      <p className="ilr-evidence-meta">
-                        {evidence.practice.length} practice{" "}
-                        {evidence.practice.length === 1 ? "record" : "records"}{" "}
-                        kept separate from the starting check.
-                      </p>
-                    )}
-                    <details>
-                      <summary>Teacher rationale and supporting work</summary>
-                      <p>{reportProse(plan.rationale)}</p>
-                      {plan.sources.map((id) => {
-                        const e = p.evidence.find((x) => x.source_id === id);
-                        return e ? (
-                          <p key={id}>
-                            {reportDate(e.occurred_at)} · {evidenceRole(e)} ·{" "}
-                            {evidenceSummary(e)}
-                            <button
-                              className="ilr-source arb-no-print"
-                              onClick={() => source(e)}
-                            >
-                              Open supporting work →
-                            </button>
-                          </p>
-                        ) : (
-                          <p key={id}>
-                            An earlier reference is held with the plan. Ask your
-                            teacher to review it.
-                          </p>
-                        );
-                      })}
-                    </details>
-                    {evidence.entries.length > 0 && (
-                      <details>
-                        <summary>View saved checks and feedback</summary>
-                        {evidence.entries.map(detail)}
-                      </details>
-                    )}
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-          <section className="ilr-progress-note">
-            <div>
-              <span className="ilr-kicker">Progress review</span>
-              <h2>Improvement is not yet established</h2>
-            </div>
             <p>
-              We have a starting point and a plan. Fresh, suitable checks are
-              needed to show what has changed. Completing practice records
-              participation; it does not yet confirm improvement.
+              {view === "overview"
+                ? "IELTS learning overview"
+                : "Detailed learning record"}
             </p>
           </section>
-          <section className="arb-section">
-            <div className="arb-section-heading">
-              <div>
-                <span>03 · Your learning record</span>
-                <h2>Work recorded during this period</h2>
-              </div>
-            </div>
-            {inPeriod.length ? (
-              <details className="ilr-evidence-ledger">
-                <summary>
-                  View dated work and feedback · {inPeriod.length} records
-                </summary>
-                <ol className="ilr-trail">
-                  {inPeriod.map((e) => (
-                    <li key={e.source_type + e.source_id}>
-                      <strong>
-                        {title(e.skill)} · {e.title ?? evidenceRole(e)}
-                      </strong>
-                      {detail(e)}
+          {view === "overview" ? (
+            <IeltsReportOverview report={report} />
+          ) : (
+            <>
+              <section
+                className="ilr-overview"
+                aria-label="Teacher learning summary"
+              >
+                <div>
+                  <span className="ilr-kicker">
+                    {report.status === "final"
+                      ? "Teacher-confirmed learning plan"
+                      : "Draft learning plan"}
+                  </span>
+                  <h2>Your focus for this period</h2>
+                  <p>{reportProse(p.plan.fields.study_goal)}</p>
+                </div>
+                <div className="ilr-next">
+                  <span className="ilr-kicker">Your next step</span>
+                  <p>{reportProse(p.plan.fields.next_action)}</p>
+                  <small>Review by {reportDate(p.plan.fields.review_on)}</small>
+                </div>
+              </section>
+              <section className="arb-section">
+                <div className="arb-section-heading">
+                  <div>
+                    <span>01 · Your priorities</span>
+                    <h2>What to work on next</h2>
+                  </div>
+                  <p>Agreed actions and how your teacher will check them.</p>
+                </div>
+                <div className="ilr-goals">
+                  {p.plan.fields.goals.map((g, i) => (
+                    <article key={i}>
+                      <span>
+                        {String(i + 1).padStart(2, "0")} · {title(g.skill)}
+                      </span>
+                      <h3>{reportProse(g.action)}</h3>
+                      <dl>
+                        <div>
+                          <dt>Success looks like</dt>
+                          <dd>{reportProse(g.success)}</dd>
+                        </div>
+                        <div>
+                          <dt>Next check</dt>
+                          <dd>{reportProse(g.check)}</dd>
+                        </div>
+                      </dl>
+                    </article>
+                  ))}
+                </div>
+              </section>
+              <section className="arb-section">
+                <div className="arb-section-heading">
+                  <div>
+                    <span>02 · Four skills</span>
+                    <h2>Your starting point and preparation plan</h2>
+                  </div>
+                  <p>
+                    Confidence: low · Short checks give a starting point, not a
+                    full IELTS band. Pathways are teacher planning decisions.
+                  </p>
+                </div>
+                <div className="arb-subjects ilr-profile">
+                  {learningSkills.map((sk) => {
+                    const evidence = skillEvidence(p.evidence, sk),
+                      first = evidence.starting,
+                      plan = p.plan.fields.skills[sk];
+                    const reviewed = evidence.entries.find(
+                      (e) => e.review_id && e.kind !== "guided_practice",
+                    );
+                    return (
+                      <article key={sk}>
+                        <header>
+                          <h3>{title(sk)}</h3>
+                          <span className="arb-evidence">
+                            {first
+                              ? "Starting check"
+                              : evidence.practice.length
+                                ? "Practice recorded"
+                                : "Evidence needed"}
+                          </span>
+                        </header>
+                        <p className="ilr-score">
+                          {first
+                            ? evidenceSummary(first)
+                            : evidence.practice.length
+                              ? "Starting check not captured in this report"
+                              : "No starting check recorded"}
+                        </p>
+                        {first && (
+                          <small>
+                            {reportDate(first.occurred_at)}
+                            {first.submission_status === "auto_submitted"
+                              ? " · Saved automatically"
+                              : ""}
+                          </small>
+                        )}
+                        <p className="ilr-pathway">
+                          <strong>{pathwayLabels[plan.pathway]}</strong>
+                          <small>Teacher-selected pathway</small>
+                        </p>
+                        {reviewed?.next_step && (
+                          <p className="ilr-observation">
+                            <strong>Teacher’s current focus</strong>
+                            {reportProse(reviewed.next_step)}
+                          </p>
+                        )}
+                        {!reviewed &&
+                          (sk === "writing" || sk === "speaking") && (
+                            <p>
+                              Teacher-reviewed evidence is needed before
+                              interpreting this skill.
+                            </p>
+                          )}
+                        {evidence.practice.length > 0 && (
+                          <p className="ilr-evidence-meta">
+                            {evidence.practice.length} practice{" "}
+                            {evidence.practice.length === 1
+                              ? "record"
+                              : "records"}{" "}
+                            kept separate from the starting check.
+                          </p>
+                        )}
+                        <details>
+                          <summary>
+                            Teacher rationale and supporting work
+                          </summary>
+                          <p>{reportProse(plan.rationale)}</p>
+                          {plan.sources.map((id) => {
+                            const e = p.evidence.find(
+                              (x) => x.source_id === id,
+                            );
+                            return e ? (
+                              <p key={id}>
+                                {reportDate(e.occurred_at)} · {evidenceRole(e)}{" "}
+                                · {evidenceSummary(e)}
+                                <button
+                                  className="ilr-source arb-no-print"
+                                  onClick={() => source(e)}
+                                >
+                                  Open supporting work →
+                                </button>
+                              </p>
+                            ) : (
+                              <p key={id}>
+                                An earlier reference is held with the plan. Ask
+                                your teacher to review it.
+                              </p>
+                            );
+                          })}
+                        </details>
+                        {evidence.entries.length > 0 && (
+                          <details>
+                            <summary>View saved checks and feedback</summary>
+                            {evidence.entries.map(detail)}
+                          </details>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+              <section className="ilr-progress-note">
+                <div>
+                  <span className="ilr-kicker">Progress review</span>
+                  <h2>Improvement is not yet established</h2>
+                </div>
+                <p>
+                  We have a starting point and a plan. Fresh, suitable checks
+                  are needed to show what has changed. Completing practice
+                  records participation; it does not yet confirm improvement.
+                </p>
+              </section>
+              <section className="arb-section">
+                <div className="arb-section-heading">
+                  <div>
+                    <span>03 · Your learning record</span>
+                    <h2>Work recorded during this period</h2>
+                  </div>
+                </div>
+                {inPeriod.length ? (
+                  <details className="ilr-evidence-ledger">
+                    <summary>
+                      View dated work and feedback · {inPeriod.length} records
+                    </summary>
+                    <ol className="ilr-trail">
+                      {inPeriod.map((e) => (
+                        <li key={e.source_type + e.source_id}>
+                          <strong>
+                            {title(e.skill)} · {e.title ?? evidenceRole(e)}
+                          </strong>
+                          {detail(e)}
+                        </li>
+                      ))}
+                    </ol>
+                  </details>
+                ) : (
+                  <p className="arb-not-assessed">
+                    No work was recorded in this period by the report cutoff.
+                  </p>
+                )}
+                {earlier.length > 0 && (
+                  <details>
+                    <summary>
+                      Earlier starting references · {earlier.length}
+                    </summary>
+                    {earlier.map(detail)}
+                  </details>
+                )}
+              </section>
+              <details className="arb-disclosures">
+                <summary>Evidence notes and report details</summary>
+                <p>
+                  Evidence available by{" "}
+                  {new Date(p.period.cutoff).toLocaleString(undefined, {
+                    timeZone: p.period.timezone,
+                  })}{" "}
+                  · {p.period.timezone}
+                  {p.period.interim ? " · Partial reporting period" : ""}
+                </p>
+                <p>
+                  Teacher account: {p.plan.author} · Plan version{" "}
+                  {p.plan.version}
+                </p>
+                <ul>
+                  {p.limitations.map((l) => (
+                    <li key={l}>
+                      {l.startsWith("Legacy school practice")
+                        ? "For older school practice, the exact task version and feedback may be unavailable. Completion records participation."
+                        : reportProse(l)}
                     </li>
                   ))}
-                </ol>
+                </ul>
               </details>
-            ) : (
-              <p className="arb-not-assessed">
-                No work was recorded in this period by the report cutoff.
-              </p>
-            )}
-            {earlier.length > 0 && (
-              <details>
-                <summary>
-                  Earlier starting references · {earlier.length}
-                </summary>
-                {earlier.map(detail)}
-              </details>
-            )}
-          </section>
-          <details className="arb-disclosures">
-            <summary>Evidence notes and report details</summary>
-            <p>
-              Evidence available by{" "}
-              {new Date(p.period.cutoff).toLocaleString(undefined, {
-                timeZone: p.period.timezone,
-              })}{" "}
-              · {p.period.timezone}
-              {p.period.interim ? " · Partial reporting period" : ""}
+            </>
+          )}
+          {(canManage || view === "detail") && consistencyIssues.length > 0 && (
+            <p className="arb-error arb-no-print" role="alert">
+              {consistencyIssues.join(" ")}
             </p>
-            <p>
-              Teacher account: {p.plan.author} · Plan version {p.plan.version}
-            </p>
-            <ul>
-              {p.limitations.map((l) => (
-                <li key={l}>
-                  {l.startsWith("Legacy school practice")
-                    ? "For older school practice, the exact task version and feedback may be unavailable. Completion records participation."
-                    : reportProse(l)}
-                </li>
-              ))}
-            </ul>
-          </details>
+          )}
           <footer className="arb-footer">
             {report.status === "final" ? (
               <div className="arb-final">
                 <div>
-                  <strong>Teacher confirmed · {report.finalized_by}</strong>
+                  <strong>
+                    {view === "overview"
+                      ? "Teacher-confirmed learning plan"
+                      : `Teacher confirmed · ${report.finalized_by}`}
+                  </strong>
                   <span>
                     Shared {reportDate(report.finalized_at!)} · Version{" "}
-                    {report.version} is preserved.
+                    {report.version}
+                    {view === "detail" ? " is preserved." : ""}
                   </span>
                 </div>
               </div>
@@ -504,7 +573,7 @@ export default function IeltsMonthlyReportView({
                   </label>
                 </div>
                 <button
-                  disabled={!confirmed || busy}
+                  disabled={!confirmed || busy || consistencyIssues.length > 0}
                   onClick={() => void share()}
                 >
                   {busy ? "Sharing…" : "Confirm and share with student"}
@@ -553,7 +622,9 @@ export default function IeltsMonthlyReportView({
                 )}
               </details>
             )}
-            <small>Brains Heist LLC · Not an official IELTS result</small>
+            <small>
+              Powered by Brains Heist · Not an official IELTS result
+            </small>
           </footer>
         </article>
       </section>

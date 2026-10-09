@@ -2,6 +2,7 @@ import type {
   ReportEvidence,
   LearningSkill,
 } from "./ieltsLearningReportService";
+export { planEvidenceIssues } from "../supabase/functions/_shared/ieltsPlanEvidence";
 
 /** Formatting only: preserve source snapshots and teacher decisions. */
 export function reportProse(value: string | null | undefined): string {

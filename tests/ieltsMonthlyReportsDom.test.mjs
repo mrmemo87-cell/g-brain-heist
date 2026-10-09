@@ -169,6 +169,7 @@ async function mount(
       if (args.p_finalize) shared = true;
       d = {
         ...report,
+        school_brand: { logo_url: "https://school.example/logo.jpg" },
         payload: {
           ...report.payload,
           evidence: reportEvidence,
@@ -259,7 +260,7 @@ test("one AI action fills the whole plan, keeps sharing explicit, then generates
     assert.match(m.w.document.body.textContent, /Interim monthly review/);
     assert.match(
       m.w.document.body.textContent,
-      /Improvement is not yet established/,
+      /improvement not yet confirmed/,
     );
     assert.equal(m.button("Print / Save PDF").disabled, true);
     assert.equal(m.button("Confirm and share with student").disabled, true);
@@ -267,7 +268,7 @@ test("one AI action fills the whole plan, keeps sharing explicit, then generates
     await m.wait(() => !m.button("Confirm and share with student").disabled);
     m.button("Confirm and share with student").click();
     await m.wait(() => !m.button("Print / Save PDF").disabled);
-    assert.match(m.w.document.body.textContent, /Teacher confirmed · Jess/);
+    assert.match(m.w.document.body.textContent, /Teacher-confirmed learning plan/);
     m.button("Print / Save PDF").click();
     assert.equal(m.prints, 1);
     assert.deepEqual(m.errors, []);
@@ -357,6 +358,21 @@ test("report keeps original starting score, labels repeats, hides database ident
     await m.wait(() => m.button("View report →"));
     m.button("View report →").click();
     await m.wait(() => m.w.document.querySelector("[role=dialog]"));
+    assert.ok(m.w.document.querySelector(".ilr-summary"));
+    assert.equal(
+      m.w.document.querySelectorAll(".ilr-summary tbody tr").length,
+      4,
+    );
+    assert.doesNotMatch(
+      m.w.document.querySelector(".ilr-summary").textContent,
+      /Success looks like|Next check|source_id/,
+    );
+    m.button("Print / Save PDF").click();
+    assert.equal(m.prints, 1);
+    assert.equal(m.w.document.querySelector(".ilr-profile"), null);
+    assert.equal(m.w.document.querySelector(".ilr-profile"), null);
+    m.button("View detailed learning record").click();
+    await m.wait(() => m.w.document.querySelector(".ilr-profile"));
     const profile = m.w.document.querySelector(".ilr-profile article");
     assert.match(profile.querySelector(".ilr-score").textContent, /9 \/ 12/);
     assert.match(profile.textContent, /Repeat for practice/);
@@ -368,10 +384,14 @@ test("report keeps original starting score, labels repeats, hides database ident
       m.w.document.querySelector(".ilr-evidence-ledger").open,
       false,
     );
-    assert.ok(dialog.querySelector('img[alt="Brains Heist logo"]'));
+    assert.equal(
+      dialog.querySelector('img[alt="School logo"]').src,
+      "https://school.example/logo.jpg",
+    );
+    assert.equal(dialog.querySelector('img[alt="Brains Heist logo"]'), null);
     assert.equal(m.button("Prepare a corrected version →"), undefined);
     m.button("Print / Save PDF").click();
-    assert.equal(m.prints, 1);
+    assert.equal(m.prints, 2);
     assert.equal(
       m.w.document.querySelector(".ilr-evidence-ledger").open,
       false,
@@ -379,4 +399,24 @@ test("report keeps original starting score, labels repeats, hides database ident
   } finally {
     m.dom.window.close();
   }
+});
+
+test("legacy approved wording stays in the detailed record while the overview uses consistent captured priorities", async () => {
+  const oldFields = {...fields, study_goal: "Arrange a writing and speaking assessment."};
+  const captured = ["listening","reading","writing","speaking"].map((skill,i) => ({...evidence[0], source_id: skill, skill, review_id: i>1 ? "review" : null}));
+  const before = JSON.stringify(oldFields);
+  const m = await mount("student", {reportFields:oldFields,reportEvidence:captured});
+  try {
+    m.button("Open learning plan and reports").click();
+    await m.wait(() => m.button("View report →"));
+    m.button("View report →").click();
+    await m.wait(() => m.w.document.querySelector(".ilr-summary"));
+    assert.doesNotMatch(m.w.document.querySelector(".ilr-summary").textContent, /Arrange a writing and speaking assessment/);
+    assert.match(m.w.document.querySelector(".ilr-summary").textContent, /Writing and Speaking samples have teacher feedback/);
+    m.button("View detailed learning record").click();
+    await m.wait(() => m.w.document.querySelector(".ilr-profile"));
+    assert.match(m.w.document.querySelector("[role=dialog]").textContent, /Arrange a writing and speaking assessment/);
+    assert.match(m.w.document.querySelector("[role=alert]").textContent, /already has teacher-reviewed evidence/);
+    assert.equal(JSON.stringify(oldFields),before);
+  } finally {m.dom.window.close();}
 });

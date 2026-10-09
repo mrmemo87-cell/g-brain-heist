@@ -20,7 +20,7 @@ await db.exec(`create role anon;create role authenticated;create role service_ro
 create function auth.uid() returns uuid language sql as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
 create function extensions.digest(bytea,text) returns bytea language sql as $$select sha256($1)$$;
 create table auth.users(id uuid primary key);create table users(id uuid primary key,username text,full_name text,school_id uuid,role text,is_banned boolean default false);
-create table schools(id uuid primary key,name text);create table school_members(user_id uuid,school_id uuid,status text);
+create table schools(id uuid primary key,name text,logo_url text);create table school_members(user_id uuid,school_id uuid,status text);
 create table classes(id uuid primary key);create table academic_subjects(id uuid primary key);
 create table school_academic_years(id uuid primary key,school_id uuid,name text,starts_on date,ends_on date);create table school_academic_terms(id uuid primary key);
 create function public.school_has_module_access(uuid,text) returns boolean language sql as $$select $1='${school}'::uuid$$;
@@ -41,7 +41,7 @@ create table ielts_practice_assignments(id uuid,school_id uuid,updated_at timest
 create table ielts_practice_assignment_students(assignment_id uuid,student_id uuid,created_at timestamptz,updated_at timestamptz);
 create table ielts_practice_assignment_items(id uuid,assignment_id uuid,skill text,title text,content_type text,content_id text,created_at timestamptz);
 create table ielts_practice_assignment_item_students(assignment_id uuid,assignment_item_id uuid,student_id uuid,status text,submitted_at timestamptz,updated_at timestamptz);
-insert into schools values('${school}','School'),('${other}','Other school');
+insert into schools(id,name) values('${school}','School'),('${other}','Other school');
 insert into users(id,username,school_id,role) values('${teacher}','Teacher','${school}','teacher'),('${student}','Student','${school}','student'),('${second}','Second','${other}','student');
 insert into auth.users select id from users;insert into school_members values('${student}','${school}','active'),('${second}','${other}','active');
 insert into school_academic_years values('${year}','${school}','This year',current_date-100,current_date+200);
@@ -80,6 +80,18 @@ await db.exec(
 await db.exec(
   readFileSync(
     "supabase/migrations/20261009225616_ielts_report_evidence_and_plan_wording.sql",
+    "utf8",
+  ),
+);
+await db.exec(
+  readFileSync(
+    "supabase/migrations/20261009232138_ielts_report_overview_brand_and_consistency.sql",
+    "utf8",
+  ),
+);
+await db.exec(
+  readFileSync(
+    "supabase/migrations/20261009232910_ielts_plan_goal_scope_consistency.sql",
     "utf8",
   ),
 );
@@ -480,9 +492,41 @@ test("auto-submitted trusted work is retained, voided work excluded, profile nam
     ),
     false,
   );
+  await db.exec(
+    `update schools set logo_url='https://school.example/logo.jpg' where id='${school}'`,
+  );
   const old = (
     await db.query("select rpc_ielts_monthly_report($1) d", [reportId])
   ).rows[0].d;
   assert.equal(old.payload.plan.author, "Teacher");
+  assert.equal(old.school_brand.logo_url, "https://school.example/logo.jpg");
+  assert.equal(old.payload.school.logo_url, null);
 });
-await test("close database", async () => db.close());
+await test("contradictory assessment requests fail closed while fresh follow-ups remain valid", async () => {
+  await actor(teacher);
+  const ctx = await context();
+  const sources = ctx.evidence;
+  const bad = {
+    ...fields,
+    study_goal: "Arrange a writing and speaking assessment.",
+  };
+  await assert.rejects(
+    db.query("select rpc_ielts_save_learning_plan($1,$2,$3,$4,$5)", [
+      school,
+      student,
+      bad,
+      ctx.plan.id,
+      u(77),
+    ]),
+    /plan_evidence_inconsistent/,
+  );
+  await db.query("select private.check_ielts_plan_evidence($1,$2)", [
+    {
+      ...bad,
+      study_goal: "Arrange fresh writing and speaking follow-up assessments.",
+    },
+    sources,
+  ]);
+});
+
+test("close database", async () => db.close());

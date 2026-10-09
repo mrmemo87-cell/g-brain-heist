@@ -409,3 +409,194 @@
     break-inside: avoid;
   }
 }
+
+/* Audience overview: the same academic report shell, with a concise A4 hierarchy. */
+.ilr-overview-document {
+  max-width: 880px;
+  padding: 36px 42px;
+}
+.ilr-summary h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.ilr-summary-intro {
+  padding: 22px 24px;
+  background: #f3f7fa;
+  border-left: 4px solid #0e6477;
+}
+.ilr-summary-intro h2 {
+  margin: 6px 0 8px;
+  font-size: 22px;
+}
+.ilr-summary p {
+  margin: 0;
+  line-height: 1.6;
+  color: #405266;
+  font-size: 13px;
+}
+.ilr-summary-skills,
+.ilr-summary-priorities {
+  margin-top: 24px;
+}
+.ilr-summary table {
+  font-size: 12px;
+}
+.ilr-summary table th,
+.ilr-summary table td {
+  padding: 13px 12px;
+  border: 0;
+  border-bottom: 1px solid #dfe7ef;
+}
+.ilr-summary table thead th {
+  color: #405266;
+  background: #f3f7fa;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+.ilr-summary table tbody th {
+  color: #14283b;
+  font-size: 13px;
+  text-transform: none;
+  background: transparent;
+}
+.ilr-summary .ilr-summary-caption {
+  margin-top: 10px;
+  font-size: 10px;
+  color: #617286;
+}
+.ilr-summary-priorities ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.ilr-summary-priorities li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.ilr-summary-priorities li > span {
+  width: 29px;
+  height: 29px;
+  flex: 0 0 29px;
+  display: grid;
+  place-items: center;
+  background: #e9f1f4;
+  color: #0e6477;
+  border-radius: 50%;
+  font-weight: 750;
+  font-size: 11px;
+}
+.ilr-summary-priorities strong {
+  font-size: 12px;
+  color: #14283b;
+}
+.ilr-summary-review {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  margin-top: 24px;
+  padding: 16px 0;
+  border-top: 1px solid #dfe7ef;
+  border-bottom: 1px solid #dfe7ef;
+}
+.ilr-summary-review strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+}
+.ilr-overview-document .arb-footer {
+  margin-top: 18px;
+  border-top: 0;
+  padding-top: 0;
+}
+.ilr-overview-document .arb-final {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.ilr-overview-document .arb-final strong {
+  color: #14283b;
+  font-size: 11px;
+}
+.ilr-overview-document .arb-final span,
+.ilr-overview-document .arb-footer > small {
+  font-size: 10px;
+}
+.ilr-school-monogram {
+  font-size: 14px !important;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 700px) {
+  .ilr-overview-document {
+    padding: 22px 18px;
+  }
+  .ilr-summary-intro {
+    padding: 18px;
+  }
+  .ilr-summary-review {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .ilr-summary table th,
+  .ilr-summary table td {
+    padding: 10px 7px;
+    font-size: 11px;
+  }
+  .ilr-overview-document .arb-report-header {
+    align-items: flex-start;
+  }
+  .ilr-overview-document .arb-brand img {
+    width: 48px;
+    height: 48px;
+  }
+}
+@media print {
+  @page ilrOverview {
+    size: A4;
+    margin: 12mm;
+  }
+  .ilr-overview-document {
+    page: ilrOverview;
+    padding: 0 !important;
+    max-width: none;
+  }
+  .ilr-overview-document .arb-title {
+    padding: 18px 0 14px;
+  }
+  .ilr-overview-document .arb-title h1 {
+    font-size: 28px;
+  }
+  .ilr-summary-intro {
+    padding: 14px 18px;
+  }
+  .ilr-summary-skills,
+  .ilr-summary-priorities {
+    margin-top: 18px;
+  }
+  .ilr-summary table th,
+  .ilr-summary table td {
+    padding: 10px;
+  }
+  .ilr-summary-intro,
+  .ilr-summary-priorities li,
+  .ilr-summary-review {
+    break-inside: avoid;
+  }
+  .ilr-overview-document .arb-final {
+    display: block;
+  }
+}
+
+@media (max-width: 700px) {
+  .ilr-shell .arb-toolbar > div:last-child {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+  }
+  .ilr-shell .arb-toolbar > div:last-child > button:first-child {
+    grid-column: 1 / -1;
+  }
+}
