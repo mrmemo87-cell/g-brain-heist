@@ -175,3 +175,237 @@
     content-visibility: visible;
   }
 }
+/* IELTS report editorial layout; academic snapshots and decisions stay unchanged. */
+.ilr-document {
+  max-width: 1040px;
+  margin: 24px auto;
+  padding: 38px 42px;
+  border-radius: 16px;
+}
+.ilr-report-title {
+  padding: 32px 0 26px;
+}
+.ilr-report-title h1 {
+  font-size: 42px;
+  line-height: 1.15;
+}
+.ilr-overview {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 28px;
+  padding: 26px;
+  border: 1px solid #cddcf0;
+  border-radius: 16px;
+  background: #f4f8ff;
+}
+.ilr-overview h2 {
+  margin: 6px 0 10px;
+  font-size: 21px;
+}
+.ilr-overview p {
+  margin: 0;
+  color: #293b54;
+}
+.ilr-kicker {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #214da6;
+}
+.ilr-next {
+  padding-left: 24px;
+  border-left: 2px solid #bfd1ee;
+}
+.ilr-next p {
+  margin: 10px 0;
+}
+.ilr-next small {
+  color: #52677a;
+}
+.ilr-overlay .ilr-goals {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.ilr-goals article {
+  background: #fff;
+  border-top: 3px solid #16bdd4;
+  padding: 22px;
+}
+.ilr-goals h3 {
+  margin: 10px 0 18px;
+  font-size: 17px;
+  line-height: 1.5;
+}
+.ilr-goals dl {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+.ilr-goals dt {
+  font-size: 11px;
+  font-weight: 750;
+  color: #52677a;
+}
+.ilr-goals dd {
+  margin: 4px 0 0;
+  line-height: 1.6;
+  font-size: 14px;
+}
+.ilr-overlay .ilr-profile {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.ilr-overlay .ilr-profile article {
+  padding: 23px;
+  background: #fff;
+}
+.ilr-profile header {
+  align-items: center !important;
+}
+.ilr-overlay .ilr-profile .ilr-score {
+  font-size: 18px;
+  color: #172b49;
+  font-weight: 750;
+  margin: 14px 0 4px;
+}
+.ilr-profile small {
+  font-size: 12px;
+  color: #52677a;
+  display: block;
+}
+.ilr-profile .ilr-pathway {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #edf3ff;
+  margin: 18px 0 !important;
+}
+.ilr-pathway small {
+  margin-top: 4px;
+}
+.ilr-observation strong {
+  display: block;
+  font-size: 12px;
+  color: #52677a;
+  margin-bottom: 5px;
+}
+.ilr-evidence-meta {
+  font-size: 12px !important;
+  color: #52677a !important;
+}
+.ilr-source-detail {
+  padding: 12px 0;
+  border-top: 1px solid #e2e8f0;
+  overflow-wrap: anywhere;
+}
+.ilr-overlay .ilr-progress-note {
+  margin-top: 28px;
+  padding: 22px 24px;
+  border-radius: 14px;
+  background: #f0f9fb;
+  border: 1px solid #b8dfe5;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 28px;
+}
+.ilr-progress-note h2 {
+  font-size: 20px;
+  margin: 6px 0;
+}
+.ilr-progress-note p {
+  margin: 0;
+  color: #36505b;
+}
+.ilr-evidence-ledger {
+  padding: 18px 20px;
+  border: 1px solid #dce5ef;
+  border-radius: 12px;
+}
+.ilr-overlay .arb-footer {
+  font-family: inherit;
+}
+.ilr-overlay .arb-footer .arb-final {
+  font-family: inherit;
+  font-size: 14px;
+}
+.ilr-overlay .arb-final span {
+  font-size: 12px;
+}
+.ilr-overlay .arb-report summary {
+  min-height: 32px;
+  padding: 5px 0;
+  color: #25456c;
+}
+.ilr-overlay summary:focus-visible {
+  outline: 3px solid #295dc7;
+  outline-offset: 3px;
+}
+.ilr-overlay .arb-correction textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+@media (max-width: 700px) {
+  .ilr-document {
+    margin: 8px;
+    padding: 22px 18px;
+  }
+  .ilr-report-title h1 {
+    font-size: 32px;
+  }
+  .ilr-overview,
+  .ilr-overlay .ilr-progress-note {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 20px;
+  }
+  .ilr-next {
+    border-left: 0;
+    border-top: 1px solid #bfd1ee;
+    padding: 16px 0 0;
+  }
+  .ilr-overlay .ilr-profile {
+    grid-template-columns: 1fr;
+  }
+  .ilr-overlay .arb-report-header {
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .ilr-overlay .arb-brand strong {
+    overflow-wrap: anywhere;
+  }
+}
+@media print {
+  .ilr-document {
+    max-width: none;
+    border-radius: 0;
+  }
+  .ilr-overlay .ilr-overview,
+  .ilr-overlay .ilr-profile,
+  .ilr-overlay .ilr-goals,
+  .ilr-overlay .ilr-progress-note {
+    display: block;
+  }
+  .ilr-overview > div,
+  .ilr-goals article,
+  .ilr-profile article,
+  .ilr-progress-note {
+    break-inside: avoid;
+    margin-bottom: 14px;
+  }
+  .ilr-overlay .arb-section {
+    break-inside: auto;
+  }
+  .ilr-overlay .arb-report details summary {
+    display: block;
+    font-size: 11pt;
+  }
+  .ilr-next {
+    border: 0;
+    padding: 12px 0 0;
+  }
+  .ilr-overlay .arb-report-header {
+    break-inside: avoid;
+  }
+}
