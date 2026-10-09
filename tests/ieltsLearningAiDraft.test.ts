@@ -10,7 +10,7 @@ test('targeted draft fills four simple feedback fields and anchors exact saved a
 test('targeted draft rejects invented evidence, scores, incomplete fields and complex language',()=>{
  const invented=draft();invented.evidence[0].answer='Monday';assert.throws(()=>validateLearningAiOutput(invented,context));
  assert.throws(()=>validateLearningAiOutput({...draft(),band:7},context));
- const incomplete=draft();delete (incomplete.fields as Record<string,string>).practice;assert.throws(()=>validateLearningAiOutput(incomplete,context));
+ const incomplete=draft();delete (incomplete.fields as Record<string,string>)['practice'];assert.throws(()=>validateLearningAiOutput(incomplete,context));
  const jargon=draft();jargon.fields.work_on='You have a persistent weakness in listening.';assert.throws(()=>validateLearningAiOutput(jargon,context));
  const complex=draft();complex.fields.practice='word '.repeat(45);assert.throws(()=>validateLearningAiOutput(complex,context));
 });
