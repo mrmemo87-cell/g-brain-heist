@@ -1,0 +1,1266 @@
+{
+  "version": "0.1.0",
+  "bible": "1.6.0",
+  "status": "human_review_pending",
+  "rights": "Original Brains Heist AI-assisted scripts. No third-party tasks copied. Generated voice licence and public distribution rights require review before wider release.",
+  "copyright_intro": "This recording is copyright Brains Heist LLC. All rights reserved.",
+  "reading_seconds": 30,
+  "response_seconds": 15,
+  "model": "eleven_multilingual_v2",
+  "speed": 1.0,
+  "instruction_voice": "Tom",
+  "tasks": [
+    {
+      "code": "bh-ielts-targeted-listening-l3-v1",
+      "title": "Book the final arrangement: pottery workshop",
+      "purpose": "guided_practice",
+      "condition": "Gentle phone tonal colour on the receptionist. No added noise, dropouts or masked words. Internal guided-practice adaptation, not an official IELTS recording condition.",
+      "instruction": "You will hear a caller booking a pottery workshop. Complete questions one to six. Write no more than two words and or a number for each answer. Listen for the final confirmed details. You now have thirty seconds to read the questions.",
+      "voices": {
+        "Caller": "James",
+        "Receptionist": "Paula"
+      },
+      "turns": [
+        [
+          "Receptionist",
+          "Good morning, Bellmere Arts Centre. How can I help?"
+        ],
+        [
+          "Caller",
+          "Hello. I'd like to book the beginner pottery workshop. The leaflet says Sunday. Is that still right?"
+        ],
+        [
+          "Receptionist",
+          "That was the original plan, but the tutor is away on Sunday. We've moved it to Saturday. The website now has the correct day."
+        ],
+        [
+          "Caller",
+          "Saturday suits me. I finish work early that morning. Does it still start at ten?"
+        ],
+        [
+          "Receptionist",
+          "A little earlier, actually. We need time to prepare the clay, so the workshop begins at nine forty. Please be ready then; ten o'clock is when the first demonstration ends."
+        ],
+        [
+          "Caller",
+          "I'll make a note. And is the fee eighteen pounds, as advertised? I'm a student."
+        ],
+        [
+          "Receptionist",
+          "Eighteen is the standard fee. With a current student card, you'll pay fourteen pounds. That includes the clay and firing your finished piece."
+        ],
+        [
+          "Caller",
+          "Lovely. I've been to the centre before. Shall I come through the main entrance?"
+        ],
+        [
+          "Receptionist",
+          "There's a market outside it that morning. Use the west gate instead. A volunteer there will direct you to the studio."
+        ],
+        [
+          "Caller",
+          "Do I need to bring an apron, or any tools?"
+        ],
+        [
+          "Receptionist",
+          "We supply those. Bring a sketchbook so you can draw ideas for your piece. You don't need to buy any special equipment."
+        ],
+        [
+          "Caller",
+          "My classmate might come too. The leaflet mentions twenty places. Are there still spaces?"
+        ],
+        [
+          "Receptionist",
+          "There are spaces, yes, but we've reduced the group to sixteen so everyone gets enough help. That is the maximum now. I can reserve two places if your classmate confirms today."
+        ],
+        [
+          "Caller",
+          "I'll check with her and call back. Thanks for explaining everything."
+        ],
+        [
+          "Receptionist",
+          "You're welcome. We look forward to seeing you."
+        ]
+      ],
+      "questions": [
+        {
+          "id": "q1",
+          "prompt": "Workshop day",
+          "accepted_answers": [
+            "Saturday"
+          ],
+          "focus": "time_date",
+          "explanation": "Sunday was the original plan; the workshop has moved to Saturday.",
+          "taxonomy_node_id": "0dbe1c8f-403a-493f-afd3-c219310fb18a",
+          "primary_name": "Dates and times",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        },
+        {
+          "id": "q2",
+          "prompt": "Starting time",
+          "accepted_answers": [
+            "9:40",
+            "09:40",
+            "9.40",
+            "nine forty"
+          ],
+          "focus": "time_date",
+          "explanation": "The start is nine forty. Ten is when the demonstration ends.",
+          "taxonomy_node_id": "0dbe1c8f-403a-493f-afd3-c219310fb18a",
+          "primary_name": "Dates and times",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        },
+        {
+          "id": "q3",
+          "prompt": "Student fee (£)",
+          "accepted_answers": [
+            "14",
+            "fourteen"
+          ],
+          "focus": "numbers",
+          "explanation": "Eighteen is the standard fee; fourteen applies to a student with a current card.",
+          "taxonomy_node_id": "d5b1fddb-ba6f-4be1-8513-bb26d822357a",
+          "primary_name": "Numerical information",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        },
+        {
+          "id": "q4",
+          "prompt": "Entrance to use",
+          "accepted_answers": [
+            "west gate"
+          ],
+          "focus": "specific_detail",
+          "explanation": "The receptionist says to use the west gate instead of the main entrance.",
+          "taxonomy_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b",
+          "primary_name": "Explicit detail",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        },
+        {
+          "id": "q5",
+          "prompt": "Bring a",
+          "accepted_answers": [
+            "sketchbook"
+          ],
+          "focus": "specific_detail",
+          "explanation": "An apron and tools are supplied. The caller should bring a sketchbook.",
+          "taxonomy_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b",
+          "primary_name": "Explicit detail",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        },
+        {
+          "id": "q6",
+          "prompt": "Maximum group size",
+          "accepted_answers": [
+            "16",
+            "sixteen"
+          ],
+          "focus": "numbers",
+          "explanation": "Twenty was printed on the leaflet; the maximum has been reduced to sixteen.",
+          "taxonomy_node_id": "d5b1fddb-ba6f-4be1-8513-bb26d822357a",
+          "primary_name": "Numerical information",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        }
+      ],
+      "audio_file": "L3_practice_v1.mp3",
+      "audio_sha256": "051a7be84978ff4b530dfb1dbf47f2b2945b73e64204366bd4d39d1d7e090d4e",
+      "audio_path": "extension-pack-02/051a7be84978ff4b530dfb1dbf47f2b2945b73e64204366bd4d39d1d7e090d4e/L3_practice_v1.mp3",
+      "taxonomy_version_id": "d4ad52b6-fd0f-4068-9982-28b89ff389c5",
+      "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+      "requires_review": true,
+      "script_sha256": "5b066444324ea8f3355856975935aa5ab1d2dda4f838cb4a79ba95e9cab398be",
+      "content_sha256": "427a854a48eaa39882d6e35d8c5b8009c8b7d3a4725a1aef113dbd561e861279"
+    },
+    {
+      "code": "bh-ielts-targeted-listening-l4-v1",
+      "title": "Agree the research plan: community food waste",
+      "purpose": "guided_practice",
+      "condition": "A quieter conversational passage in a library setting. Fully voiced speech, consistent intelligibility and matched playback level. No true whisper, background noise or answer masking.",
+      "instruction": "You will hear two students planning a research project. Complete questions one to six. Write no more than two words and or a number for each answer. Listen for what they finally agree. You now have thirty seconds to read the questions.",
+      "voices": {
+        "Mia": "Katie",
+        "Leo": "James"
+      },
+      "turns": [
+        [
+          "Mia",
+          "Let's keep our voices down a little. This is the quiet study area. Did you look at the tutor's comments on our project proposal?"
+        ],
+        [
+          "Leo",
+          "Yes. Our first idea, public transport, was too broad. I think food waste would be easier to investigate locally."
+        ],
+        [
+          "Mia",
+          "Agreed. Food waste it is. We can find out what happens to unsold food. Were you still thinking of using a questionnaire?"
+        ],
+        [
+          "Leo",
+          "I was, but the tutor wants us to explore people's reasons, not just count responses. Let's use interviews instead. We can ask follow-up questions when an answer isn't clear."
+        ],
+        [
+          "Mia",
+          "That makes sense. At first I thought we could talk to customers, but they probably wouldn't know how much gets thrown away."
+        ],
+        [
+          "Leo",
+          "Exactly. Shop owners can explain that, so they should be our participants. We can ask how they plan their orders and deal with anything left over."
+        ],
+        [
+          "Mia",
+          "How many interviews do we need? I wrote fifteen in our first draft."
+        ],
+        [
+          "Leo",
+          "The tutor said we must complete at least twelve. Fifteen would be useful, but twelve is the minimum we need to plan for."
+        ],
+        [
+          "Mia",
+          "Fine. Let's divide the work evenly. Could we meet on Wednesday to check the interview questions before we contact anyone?"
+        ],
+        [
+          "Leo",
+          "I have a laboratory session then. Thursday works for me, and it still gives us enough time."
+        ],
+        [
+          "Mia",
+          "Thursday is good. Shall we meet back here in the library?"
+        ],
+        [
+          "Leo",
+          "We need to practise asking the questions aloud, so this quiet area won't work. I've booked Room Four in the study centre. Let's meet there."
+        ],
+        [
+          "Mia",
+          "Great. I'll bring the draft questions. Before we leave, let's check that none of them tells people what answer we expect."
+        ],
+        [
+          "Leo",
+          "Good idea. We want to hear their experience, even if it doesn't match what we predicted."
+        ]
+      ],
+      "questions": [
+        {
+          "id": "q1",
+          "prompt": "Agreed project topic",
+          "accepted_answers": [
+            "food waste"
+          ],
+          "focus": "specific_detail",
+          "explanation": "Public transport was rejected as too broad; they agree on food waste.",
+          "taxonomy_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b",
+          "primary_name": "Explicit detail",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        },
+        {
+          "id": "q2",
+          "prompt": "Method of collecting information",
+          "accepted_answers": [
+            "interviews"
+          ],
+          "focus": "specific_detail",
+          "explanation": "They replace the questionnaire with interviews to explore reasons.",
+          "taxonomy_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b",
+          "primary_name": "Explicit detail",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        },
+        {
+          "id": "q3",
+          "prompt": "Participant group",
+          "accepted_answers": [
+            "shop owners"
+          ],
+          "focus": "specific_detail",
+          "explanation": "Customers were considered, but shop owners know about unsold food.",
+          "taxonomy_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b",
+          "primary_name": "Explicit detail",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        },
+        {
+          "id": "q4",
+          "prompt": "Minimum number of interviews",
+          "accepted_answers": [
+            "12",
+            "twelve"
+          ],
+          "focus": "numbers",
+          "explanation": "Fifteen would be useful; the tutor requires at least twelve.",
+          "taxonomy_node_id": "d5b1fddb-ba6f-4be1-8513-bb26d822357a",
+          "primary_name": "Numerical information",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        },
+        {
+          "id": "q5",
+          "prompt": "Agreed meeting day",
+          "accepted_answers": [
+            "Thursday"
+          ],
+          "focus": "time_date",
+          "explanation": "Wednesday conflicts with Leo's laboratory session; Thursday is agreed.",
+          "taxonomy_node_id": "0dbe1c8f-403a-493f-afd3-c219310fb18a",
+          "primary_name": "Dates and times",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        },
+        {
+          "id": "q6",
+          "prompt": "Meeting place in the study centre",
+          "accepted_answers": [
+            "Room 4",
+            "Room Four",
+            "4",
+            "four"
+          ],
+          "focus": "numbers",
+          "explanation": "The library is unsuitable for speaking practice; Leo has booked Room Four.",
+          "taxonomy_node_id": "d5b1fddb-ba6f-4be1-8513-bb26d822357a",
+          "primary_name": "Numerical information",
+          "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+          "supporting_name": "Distractor resistance"
+        }
+      ],
+      "audio_file": "L4_practice_v1.mp3",
+      "audio_sha256": "df4c58e67b9778d30d7a77399a392e9a417670b36e8a557da73c560f6ec394d5",
+      "audio_path": "extension-pack-02/df4c58e67b9778d30d7a77399a392e9a417670b36e8a557da73c560f6ec394d5/L4_practice_v1.mp3",
+      "taxonomy_version_id": "d4ad52b6-fd0f-4068-9982-28b89ff389c5",
+      "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+      "requires_review": true,
+      "script_sha256": "f174fe414577e637917cff434edab1d08a18b8dbc32cd316dabe59d7e3c5b532",
+      "content_sha256": "cd0838ce0f7363b6e39a0f7ad4e685643afc03d9f84e85c2e5332942604322b8"
+    }
+  ],
+  "production": {
+    "date": "2026-10-09",
+    "provider": "Runway connected owner-authorized workspace",
+    "model": "eleven_multilingual_v2",
+    "instruction_voice": "Tom",
+    "segments": [
+      {
+        "id": "intro",
+        "voice": "Tom",
+        "text": "This recording is copyright Brains Heist LLC. All rights reserved.",
+        "task_id": "9951e66b-3a67-4161-ba48-e897958d1163",
+        "source_sha256": "fec34c011f0d9489dc08392c5dbd47ce9ad51f2097a940b37726e382d1575792"
+      },
+      {
+        "id": "response",
+        "voice": "Tom",
+        "text": "You now have fifteen seconds to check your answers.",
+        "task_id": "31ebd015-51a5-47b4-9225-ff36cd0a32fb",
+        "source_sha256": "609c9b140d4e3ea024bc336b5c5fef3513279377a4721a9cad06541b30f54933"
+      },
+      {
+        "id": "end",
+        "voice": "Tom",
+        "text": "That is the end of this practice task.",
+        "task_id": "eacf0f5b-486e-44d6-a424-83771d59309c",
+        "source_sha256": "d8f5022304287c36882a9be04dbf5cf2c793b4dcec788bb7ed3dec2e4a759cb1"
+      },
+      {
+        "id": "L3_instruction",
+        "voice": "Tom",
+        "text": "You will hear a caller booking a pottery workshop. Complete questions one to six. Write no more than two words and or a number for each answer. Listen for the final confirmed details. You now have thirty seconds to read the questions.",
+        "task_id": "a7ad3e2e-4ada-4c1e-8a03-84a045d3ace9",
+        "source_sha256": "a140c070323f90332238ff65745fdc2e43934965ab7d4fd901389d69169db3cf"
+      },
+      {
+        "id": "L3_0",
+        "voice": "Paula",
+        "text": "Good morning, Bellmere Arts Centre. How can I help?",
+        "task_id": "535adf62-c775-4f1c-b373-e774a0e45c28",
+        "source_sha256": "70181be2e0685157fd2c5a19760bfd68cf687c993cf176175d05f0eddca7d01e"
+      },
+      {
+        "id": "L3_1",
+        "voice": "James",
+        "text": "Hello. I'd like to book the beginner pottery workshop. The leaflet says Sunday. Is that still right?",
+        "task_id": "154aa1c7-d7b4-4a6f-9b26-ec1fdd970a28",
+        "source_sha256": "9be2c626eb77781864f113bb989046ed9606e0445ad143e9358c12bbe9f578e0"
+      },
+      {
+        "id": "L3_2",
+        "voice": "Paula",
+        "text": "That was the original plan, but the tutor is away on Sunday. We've moved it to Saturday. The website now has the correct day.",
+        "task_id": "ac3d9e0b-ecb8-4449-b4b4-9b96323df322",
+        "source_sha256": "9677438ffb7816ab8e6cdbd3e011c9179a02ab2f7654239d1c2759872f3a2c37"
+      },
+      {
+        "id": "L3_3",
+        "voice": "James",
+        "text": "Saturday suits me. I finish work early that morning. Does it still start at ten?",
+        "task_id": "377a5049-f687-45db-b96f-26edc5a65a81",
+        "source_sha256": "83609cf1092d4db508b656caaad76a7c802051e3460c0c7c5a2ef4065f37082c"
+      },
+      {
+        "id": "L3_4",
+        "voice": "Paula",
+        "text": "A little earlier, actually. We need time to prepare the clay, so the workshop begins at nine forty. Please be ready then; ten o'clock is when the first demonstration ends.",
+        "task_id": "e7ae57d9-1e18-45c7-9e56-fb58254f8fad",
+        "source_sha256": "175a82faad45050c2d498f031a1715091a5eff6b7db8a6690591e73a8dd68e03"
+      },
+      {
+        "id": "L3_5",
+        "voice": "James",
+        "text": "I'll make a note. And is the fee eighteen pounds, as advertised? I'm a student.",
+        "task_id": "1ecffcf6-edb6-4be9-b747-1d65133723d9",
+        "source_sha256": "e81fbda67837c26041f85e7b9661b27c2e0af3e6a99f6335dd75eef998f5330d"
+      },
+      {
+        "id": "L3_6",
+        "voice": "Paula",
+        "text": "Eighteen is the standard fee. With a current student card, you'll pay fourteen pounds. That includes the clay and firing your finished piece.",
+        "task_id": "094adc2b-e38f-4419-83bd-e1c73f555992",
+        "source_sha256": "aad6fabc20e0043d9ca4a94bd4e282def38b3c925ec172b7626e6724e95d0a3d"
+      },
+      {
+        "id": "L3_7",
+        "voice": "James",
+        "text": "Lovely. I've been to the centre before. Shall I come through the main entrance?",
+        "task_id": "e348360c-b53e-4bfc-b3f9-97d4073b1e3f",
+        "source_sha256": "0b95c56f0e210e09de0d37806cefc35c63d2eba92640b97dd6efa4d29694364d"
+      },
+      {
+        "id": "L3_8",
+        "voice": "Paula",
+        "text": "There's a market outside it that morning. Use the west gate instead. A volunteer there will direct you to the studio.",
+        "task_id": "5ad0acb6-3d7a-4820-ad0d-9755fb410c08",
+        "source_sha256": "4e2165cb3fd4ae7c435ce147a99290927b3a489edf57cc7da89265a12880661c"
+      },
+      {
+        "id": "L3_9",
+        "voice": "James",
+        "text": "Do I need to bring an apron, or any tools?",
+        "task_id": "0d688960-b594-4481-9a9a-bd74fd790f35",
+        "source_sha256": "fda241d1c47547789e2ae50febc7551f382a168bbd8186925aa11601f2357a79"
+      },
+      {
+        "id": "L3_10",
+        "voice": "Paula",
+        "text": "We supply those. Bring a sketchbook so you can draw ideas for your piece. You don't need to buy any special equipment.",
+        "task_id": "94b83d9b-c898-4a88-b7e1-60ae375f9d9c",
+        "source_sha256": "1a0988e20990ca80ae0ecf3ae957d6272a5166bc210318f228b13d0290b9af4c"
+      },
+      {
+        "id": "L3_11",
+        "voice": "James",
+        "text": "My classmate might come too. The leaflet mentions twenty places. Are there still spaces?",
+        "task_id": "b9555c8e-1e3d-4856-ad19-6568001f0603",
+        "source_sha256": "cd189eaa67c5cb77861c4d60a97ddf721e3d3192745deb1f18c654985a0feef8"
+      },
+      {
+        "id": "L3_12",
+        "voice": "Paula",
+        "text": "There are spaces, yes, but we've reduced the group to sixteen so everyone gets enough help. That is the maximum now. I can reserve two places if your classmate confirms today.",
+        "task_id": "75e7b07e-e709-41d9-a151-21ba4cacdedb",
+        "source_sha256": "6e8c582183085bc9b0bcf32fcb2b71beae5bec8bae77d355a68ed260a020e84a"
+      },
+      {
+        "id": "L3_13",
+        "voice": "James",
+        "text": "I'll check with her and call back. Thanks for explaining everything.",
+        "task_id": "75f72f02-b51e-4251-9d1c-8a6f4ffb2f3a",
+        "source_sha256": "bf237e1151e9260235a4444c33b7c4a175347a83b436e44900079e6d629c1bac"
+      },
+      {
+        "id": "L3_14",
+        "voice": "Paula",
+        "text": "You're welcome. We look forward to seeing you.",
+        "task_id": "e1f6e100-6b7f-4e48-a56d-097e6e3a75c9",
+        "source_sha256": "0c25d71d6e5ad07457295009cd35bcb82a67f7b16698d746a9c485c58f5b1edf"
+      },
+      {
+        "id": "L4_instruction",
+        "voice": "Tom",
+        "text": "You will hear two students planning a research project. Complete questions one to six. Write no more than two words and or a number for each answer. Listen for what they finally agree. You now have thirty seconds to read the questions.",
+        "task_id": "e8b50171-a606-440c-9f0f-d52164902c6d",
+        "source_sha256": "8f3288f1f38c1017e326b334d0e4a82ec87ef933d5b17d9c207e47fc91d21848"
+      },
+      {
+        "id": "L4_0",
+        "voice": "Katie",
+        "text": "Let's keep our voices down a little. This is the quiet study area. Did you look at the tutor's comments on our project proposal?",
+        "task_id": "b1c71063-8b57-4c4f-a918-0d88f76382b3",
+        "source_sha256": "0a479bf3f00b904dd77369d8d917b80712c9cb6970248b092c4bb025fe38acf1"
+      },
+      {
+        "id": "L4_1",
+        "voice": "James",
+        "text": "Yes. Our first idea, public transport, was too broad. I think food waste would be easier to investigate locally.",
+        "task_id": "e4b0371a-ff35-4c05-b525-d9edd3b981fb",
+        "source_sha256": "4fe4864b410b01fd70b417d639dbb7376a7e6df86def8b5255a152cb5b90acb6"
+      },
+      {
+        "id": "L4_2",
+        "voice": "Katie",
+        "text": "Agreed. Food waste it is. We can find out what happens to unsold food. Were you still thinking of using a questionnaire?",
+        "task_id": "76ce78f7-23f8-4993-8e8e-24b62a2c4395",
+        "source_sha256": "98d8340269aac528806bdb4702884996ff6c103a1faed3ce8559f7ef53d4e72b"
+      },
+      {
+        "id": "L4_3",
+        "voice": "James",
+        "text": "I was, but the tutor wants us to explore people's reasons, not just count responses. Let's use interviews instead. We can ask follow-up questions when an answer isn't clear.",
+        "task_id": "599cc442-5bd1-429d-a58c-f715b9ba178d",
+        "source_sha256": "eb612212af70b9eae0a62c4095a4a0ad3a5f76a659f3ecb07f572da0e20c85cb"
+      },
+      {
+        "id": "L4_4",
+        "voice": "Katie",
+        "text": "That makes sense. At first I thought we could talk to customers, but they probably wouldn't know how much gets thrown away.",
+        "task_id": "83cc4123-6fe5-4176-bc81-7818457e6c86",
+        "source_sha256": "d00133c3b866b16967c40d4c90cce44d3b417dc498dec44140d0891a5269beb5"
+      },
+      {
+        "id": "L4_5",
+        "voice": "James",
+        "text": "Exactly. Shop owners can explain that, so they should be our participants. We can ask how they plan their orders and deal with anything left over.",
+        "task_id": "a23c16e1-0cdc-4cfd-8b02-b7ad7d49397e",
+        "source_sha256": "a500a733a8cd8168de37928509c0f5213d2d0747e1bd84aabc6caa2e27fe6e7d"
+      },
+      {
+        "id": "L4_6",
+        "voice": "Katie",
+        "text": "How many interviews do we need? I wrote fifteen in our first draft.",
+        "task_id": "13d2a3ee-984f-4e45-8991-a3ec41ada7c3",
+        "source_sha256": "7159a510b5a94614433916ca4420d9c43c9dce689a7c9ab74f4d326be2338a6a"
+      },
+      {
+        "id": "L4_7",
+        "voice": "James",
+        "text": "The tutor said we must complete at least twelve. Fifteen would be useful, but twelve is the minimum we need to plan for.",
+        "task_id": "3f25350a-9833-4709-aa82-7d21d6e0cb63",
+        "source_sha256": "cc366cd07db23ac86666b04ff0d223cafa60a5517108e9cd1b76faa5a967f30f"
+      },
+      {
+        "id": "L4_8",
+        "voice": "Katie",
+        "text": "Fine. Let's divide the work evenly. Could we meet on Wednesday to check the interview questions before we contact anyone?",
+        "task_id": "22913c51-3591-4b7e-80be-46789fcc934b",
+        "source_sha256": "15a722a65018504073e0f931f29401120a6f6d34ec486113c34b37a563264d50"
+      },
+      {
+        "id": "L4_9",
+        "voice": "James",
+        "text": "I have a laboratory session then. Thursday works for me, and it still gives us enough time.",
+        "task_id": "d7b19de5-84ef-476c-a283-f86f9968c725",
+        "source_sha256": "2390f496d2f10d4839be279340c197ccc8bebf05bb5d4d6b6d556dc0899a8342"
+      },
+      {
+        "id": "L4_10",
+        "voice": "Katie",
+        "text": "Thursday is good. Shall we meet back here in the library?",
+        "task_id": "2da6d733-da5c-4b1a-b858-393d83a03115",
+        "source_sha256": "807414581b24942117e2eb74f4f91ebe3620201bbe3d4b9985866f17d73b0858"
+      },
+      {
+        "id": "L4_11",
+        "voice": "James",
+        "text": "We need to practise asking the questions aloud, so this quiet area won't work. I've booked Room Four in the study centre. Let's meet there.",
+        "task_id": "40f58f9e-1688-400c-b5f2-e58515d81528",
+        "source_sha256": "50769d32030563626352f1f39857687e17e7431b9b0860839b7c5aa73898b5ea"
+      },
+      {
+        "id": "L4_12",
+        "voice": "Katie",
+        "text": "Great. I'll bring the draft questions. Before we leave, let's check that none of them tells people what answer we expect.",
+        "task_id": "699a4f29-cea2-4078-9902-41730e7ccbbd",
+        "source_sha256": "72e01646762cbdf73a3ec473eb585bbc56a30ddbe822a3b8c4f8a2d81c124cc6"
+      },
+      {
+        "id": "L4_13",
+        "voice": "James",
+        "text": "Good idea. We want to hear their experience, even if it doesn't match what we predicted.",
+        "task_id": "38094f92-67b0-4153-868f-68124551e6b1",
+        "source_sha256": "d48615c1b82076933a462752c018259ff64f4e71bf7f94594eea7d1a8cb0aa03"
+      }
+    ],
+    "assembly": {
+      "sample_rate": 48000,
+      "channels": 1,
+      "turn_gap_seconds": 0.35,
+      "normalization": "per segment loudnorm I=-20 TP=-3 LRA=7",
+      "phone_filter": "Receptionist turns only: highpass 150 Hz, lowpass 6500 Hz; loudness normalized again. No static, loss or noise.",
+      "quiet_delivery": "Katie soft voiced preset, normal speech speed and matched loudness; no whisper tags or volume reduction."
+    },
+    "files": [
+      {
+        "file": "L3_clean_v1.mp3",
+        "sha256": "84a6dbb6086c5abac13d719215e1925b8569ae452909b6c18db65db845a8e002",
+        "bytes": 2072061,
+        "duration_seconds": 172.598,
+        "pcm_peak_dbfs": -3.0,
+        "pcm_clipped_samples": 0,
+        "timeline": [
+          {
+            "segment": "intro",
+            "start_seconds": 0.0,
+            "end_seconds": 4.365
+          },
+          {
+            "segment": "intro_gap",
+            "start_seconds": 4.365,
+            "end_seconds": 5.065
+          },
+          {
+            "segment": "L3_instruction",
+            "start_seconds": 5.065,
+            "end_seconds": 23.316
+          },
+          {
+            "segment": "reading_silence",
+            "start_seconds": 23.316,
+            "end_seconds": 53.316
+          },
+          {
+            "segment": "L3_0",
+            "start_seconds": 53.316,
+            "end_seconds": 56.288
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 56.288,
+            "end_seconds": 56.638
+          },
+          {
+            "segment": "L3_1",
+            "start_seconds": 56.638,
+            "end_seconds": 63.186
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 63.186,
+            "end_seconds": 63.536
+          },
+          {
+            "segment": "L3_2",
+            "start_seconds": 63.536,
+            "end_seconds": 71.292
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 71.292,
+            "end_seconds": 71.642
+          },
+          {
+            "segment": "L3_3",
+            "start_seconds": 71.642,
+            "end_seconds": 76.379
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 76.379,
+            "end_seconds": 76.729
+          },
+          {
+            "segment": "L3_4",
+            "start_seconds": 76.729,
+            "end_seconds": 87.503
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 87.503,
+            "end_seconds": 87.853
+          },
+          {
+            "segment": "L3_5",
+            "start_seconds": 87.853,
+            "end_seconds": 92.822
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 92.822,
+            "end_seconds": 93.172
+          },
+          {
+            "segment": "L3_6",
+            "start_seconds": 93.172,
+            "end_seconds": 103.342
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 103.342,
+            "end_seconds": 103.692
+          },
+          {
+            "segment": "L3_7",
+            "start_seconds": 103.692,
+            "end_seconds": 108.104
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 108.104,
+            "end_seconds": 108.454
+          },
+          {
+            "segment": "L3_8",
+            "start_seconds": 108.454,
+            "end_seconds": 115.42
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 115.42,
+            "end_seconds": 115.77
+          },
+          {
+            "segment": "L3_9",
+            "start_seconds": 115.77,
+            "end_seconds": 117.999
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 117.999,
+            "end_seconds": 118.349
+          },
+          {
+            "segment": "L3_10",
+            "start_seconds": 118.349,
+            "end_seconds": 125.547
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 125.547,
+            "end_seconds": 125.897
+          },
+          {
+            "segment": "L3_11",
+            "start_seconds": 125.897,
+            "end_seconds": 131.424
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 131.424,
+            "end_seconds": 131.774
+          },
+          {
+            "segment": "L3_12",
+            "start_seconds": 131.774,
+            "end_seconds": 144.498
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 144.498,
+            "end_seconds": 144.848
+          },
+          {
+            "segment": "L3_13",
+            "start_seconds": 144.848,
+            "end_seconds": 148.517
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 148.517,
+            "end_seconds": 148.867
+          },
+          {
+            "segment": "L3_14",
+            "start_seconds": 148.867,
+            "end_seconds": 151.514
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 151.514,
+            "end_seconds": 151.864
+          },
+          {
+            "segment": "response",
+            "start_seconds": 151.864,
+            "end_seconds": 154.836
+          },
+          {
+            "segment": "response_silence",
+            "start_seconds": 154.836,
+            "end_seconds": 169.836
+          },
+          {
+            "segment": "end",
+            "start_seconds": 169.836,
+            "end_seconds": 172.298
+          },
+          {
+            "segment": "tail",
+            "start_seconds": 172.298,
+            "end_seconds": 172.598
+          }
+        ],
+        "human_review": "pending",
+        "encoded_verification": {
+          "detected_pauses": [
+            {
+              "label": "reading_silence",
+              "detected_start": 23.1511,
+              "detected_end": 53.3486,
+              "detected_seconds": 30.197
+            },
+            {
+              "label": "response_silence",
+              "detected_start": 154.669,
+              "detected_end": 169.862,
+              "detected_seconds": 15.193
+            }
+          ],
+          "decoded_peak_dbfs": -2.92,
+          "decoded_clipped_samples": 0,
+          "decoded_seconds": 172.598,
+          "sha256_rechecked": true
+        }
+      },
+      {
+        "file": "L3_practice_v1.mp3",
+        "sha256": "051a7be84978ff4b530dfb1dbf47f2b2945b73e64204366bd4d39d1d7e090d4e",
+        "bytes": 2072064,
+        "duration_seconds": 172.598,
+        "pcm_peak_dbfs": -3.0,
+        "pcm_clipped_samples": 0,
+        "timeline": [
+          {
+            "segment": "intro",
+            "start_seconds": 0.0,
+            "end_seconds": 4.365
+          },
+          {
+            "segment": "intro_gap",
+            "start_seconds": 4.365,
+            "end_seconds": 5.065
+          },
+          {
+            "segment": "L3_instruction",
+            "start_seconds": 5.065,
+            "end_seconds": 23.316
+          },
+          {
+            "segment": "reading_silence",
+            "start_seconds": 23.316,
+            "end_seconds": 53.316
+          },
+          {
+            "segment": "L3_0",
+            "start_seconds": 53.316,
+            "end_seconds": 56.288
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 56.288,
+            "end_seconds": 56.638
+          },
+          {
+            "segment": "L3_1",
+            "start_seconds": 56.638,
+            "end_seconds": 63.186
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 63.186,
+            "end_seconds": 63.536
+          },
+          {
+            "segment": "L3_2",
+            "start_seconds": 63.536,
+            "end_seconds": 71.292
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 71.292,
+            "end_seconds": 71.642
+          },
+          {
+            "segment": "L3_3",
+            "start_seconds": 71.642,
+            "end_seconds": 76.379
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 76.379,
+            "end_seconds": 76.729
+          },
+          {
+            "segment": "L3_4",
+            "start_seconds": 76.729,
+            "end_seconds": 87.503
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 87.503,
+            "end_seconds": 87.853
+          },
+          {
+            "segment": "L3_5",
+            "start_seconds": 87.853,
+            "end_seconds": 92.822
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 92.822,
+            "end_seconds": 93.172
+          },
+          {
+            "segment": "L3_6",
+            "start_seconds": 93.172,
+            "end_seconds": 103.342
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 103.342,
+            "end_seconds": 103.692
+          },
+          {
+            "segment": "L3_7",
+            "start_seconds": 103.692,
+            "end_seconds": 108.104
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 108.104,
+            "end_seconds": 108.454
+          },
+          {
+            "segment": "L3_8",
+            "start_seconds": 108.454,
+            "end_seconds": 115.42
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 115.42,
+            "end_seconds": 115.77
+          },
+          {
+            "segment": "L3_9",
+            "start_seconds": 115.77,
+            "end_seconds": 117.999
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 117.999,
+            "end_seconds": 118.349
+          },
+          {
+            "segment": "L3_10",
+            "start_seconds": 118.349,
+            "end_seconds": 125.547
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 125.547,
+            "end_seconds": 125.897
+          },
+          {
+            "segment": "L3_11",
+            "start_seconds": 125.897,
+            "end_seconds": 131.424
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 131.424,
+            "end_seconds": 131.774
+          },
+          {
+            "segment": "L3_12",
+            "start_seconds": 131.774,
+            "end_seconds": 144.498
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 144.498,
+            "end_seconds": 144.848
+          },
+          {
+            "segment": "L3_13",
+            "start_seconds": 144.848,
+            "end_seconds": 148.517
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 148.517,
+            "end_seconds": 148.867
+          },
+          {
+            "segment": "L3_14",
+            "start_seconds": 148.867,
+            "end_seconds": 151.514
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 151.514,
+            "end_seconds": 151.864
+          },
+          {
+            "segment": "response",
+            "start_seconds": 151.864,
+            "end_seconds": 154.836
+          },
+          {
+            "segment": "response_silence",
+            "start_seconds": 154.836,
+            "end_seconds": 169.836
+          },
+          {
+            "segment": "end",
+            "start_seconds": 169.836,
+            "end_seconds": 172.298
+          },
+          {
+            "segment": "tail",
+            "start_seconds": 172.298,
+            "end_seconds": 172.598
+          }
+        ],
+        "human_review": "pending",
+        "encoded_verification": {
+          "detected_pauses": [
+            {
+              "label": "reading_silence",
+              "detected_start": 23.1511,
+              "detected_end": 53.3492,
+              "detected_seconds": 30.198
+            },
+            {
+              "label": "response_silence",
+              "detected_start": 154.669,
+              "detected_end": 169.862,
+              "detected_seconds": 15.193
+            }
+          ],
+          "decoded_peak_dbfs": -2.24,
+          "decoded_clipped_samples": 0,
+          "decoded_seconds": 172.598,
+          "sha256_rechecked": true
+        }
+      },
+      {
+        "file": "L4_practice_v1.mp3",
+        "sha256": "df4c58e67b9778d30d7a77399a392e9a417670b36e8a557da73c560f6ec394d5",
+        "bytes": 2093089,
+        "duration_seconds": 174.337,
+        "pcm_peak_dbfs": -3.0,
+        "pcm_clipped_samples": 0,
+        "timeline": [
+          {
+            "segment": "intro",
+            "start_seconds": 0.0,
+            "end_seconds": 4.365
+          },
+          {
+            "segment": "intro_gap",
+            "start_seconds": 4.365,
+            "end_seconds": 5.065
+          },
+          {
+            "segment": "L4_instruction",
+            "start_seconds": 5.065,
+            "end_seconds": 24.106
+          },
+          {
+            "segment": "reading_silence",
+            "start_seconds": 24.106,
+            "end_seconds": 54.106
+          },
+          {
+            "segment": "L4_0",
+            "start_seconds": 54.106,
+            "end_seconds": 61.443
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 61.443,
+            "end_seconds": 61.793
+          },
+          {
+            "segment": "L4_1",
+            "start_seconds": 61.793,
+            "end_seconds": 69.595
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 69.595,
+            "end_seconds": 69.945
+          },
+          {
+            "segment": "L4_2",
+            "start_seconds": 69.945,
+            "end_seconds": 77.794
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 77.794,
+            "end_seconds": 78.144
+          },
+          {
+            "segment": "L4_3",
+            "start_seconds": 78.144,
+            "end_seconds": 89.428
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 89.428,
+            "end_seconds": 89.778
+          },
+          {
+            "segment": "L4_4",
+            "start_seconds": 89.778,
+            "end_seconds": 96.048
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 96.048,
+            "end_seconds": 96.398
+          },
+          {
+            "segment": "L4_5",
+            "start_seconds": 96.398,
+            "end_seconds": 104.571
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 104.571,
+            "end_seconds": 104.921
+          },
+          {
+            "segment": "L4_6",
+            "start_seconds": 104.921,
+            "end_seconds": 108.869
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 108.869,
+            "end_seconds": 109.219
+          },
+          {
+            "segment": "L4_7",
+            "start_seconds": 109.219,
+            "end_seconds": 116.51
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 116.51,
+            "end_seconds": 116.86
+          },
+          {
+            "segment": "L4_8",
+            "start_seconds": 116.86,
+            "end_seconds": 123.129
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 123.129,
+            "end_seconds": 123.479
+          },
+          {
+            "segment": "L4_9",
+            "start_seconds": 123.479,
+            "end_seconds": 128.866
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 128.866,
+            "end_seconds": 129.216
+          },
+          {
+            "segment": "L4_10",
+            "start_seconds": 129.216,
+            "end_seconds": 132.235
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 132.235,
+            "end_seconds": 132.585
+          },
+          {
+            "segment": "L4_11",
+            "start_seconds": 132.585,
+            "end_seconds": 140.851
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 140.851,
+            "end_seconds": 141.201
+          },
+          {
+            "segment": "L4_12",
+            "start_seconds": 141.201,
+            "end_seconds": 148.074
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 148.074,
+            "end_seconds": 148.424
+          },
+          {
+            "segment": "L4_13",
+            "start_seconds": 148.424,
+            "end_seconds": 153.254
+          },
+          {
+            "segment": "turn_gap",
+            "start_seconds": 153.254,
+            "end_seconds": 153.604
+          },
+          {
+            "segment": "response",
+            "start_seconds": 153.604,
+            "end_seconds": 156.576
+          },
+          {
+            "segment": "response_silence",
+            "start_seconds": 156.576,
+            "end_seconds": 171.576
+          },
+          {
+            "segment": "end",
+            "start_seconds": 171.576,
+            "end_seconds": 174.037
+          },
+          {
+            "segment": "tail",
+            "start_seconds": 174.037,
+            "end_seconds": 174.337
+          }
+        ],
+        "human_review": "pending",
+        "encoded_verification": {
+          "detected_pauses": [
+            {
+              "label": "reading_silence",
+              "detected_start": 23.9527,
+              "detected_end": 54.2436,
+              "detected_seconds": 30.291
+            },
+            {
+              "label": "response_silence",
+              "detected_start": 156.407,
+              "detected_end": 171.601,
+              "detected_seconds": 15.194
+            }
+          ],
+          "decoded_peak_dbfs": -3.32,
+          "decoded_clipped_samples": 0,
+          "decoded_seconds": 174.337,
+          "sha256_rechecked": true
+        }
+      }
+    ],
+    "ffmpeg_version": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers"
+  },
+  "release_gate": {
+    "human_audio_fidelity": "pending",
+    "editorial_key_mapping_difficulty": "pending",
+    "rights": "public distribution review pending",
+    "pilot": "Gulzada account revalidated active and IELTS eligible on 2026-10-09; no assignment or account action performed",
+    "installation": "not installed in live task catalogue; review drafts only",
+    "device_acceptance": "pending phone/MacBook",
+    "capacity": "no new capacity claim; section 13 applies before wider audio rollout"
+  },
+  "durable_artifacts": {
+    "L3_practice_v1.mp3": "libfile_cb68ba669894819180935468606aff04",
+    "L4_practice_v1.mp3": "libfile_b11825f1d60c819182f7e9cee1105956",
+    "review_document": "libfile_6d7d5a8d3ca4819188def7c62a52a47f",
+    "complete_pack_including_clear_master_and_source_clips": "libfile_fb2553458a388191ae64109ad133fc44"
+  }
+}
