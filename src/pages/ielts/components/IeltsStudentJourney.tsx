@@ -16,6 +16,7 @@ import IeltsSkillIcon from '../../../components/ielts/IeltsSkillIcon';
 import '../../../styles/ielts-journey.css';
 import IeltsSchoolLearnerLinks from '../../../components/ielts/IeltsSchoolLearnerLinks';
 import IeltsTargetedPractice from '../../../components/ielts/IeltsTargetedPractice';
+const IeltsStudentLearningPlan = React.lazy(() => import('./IeltsStudentLearningPlan'));
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
 const date = (v?: string | null) =>
   v && Number.isFinite(Date.parse(v))
@@ -307,6 +308,7 @@ export default function IeltsStudentJourney({
           </details>
         )}
       </section>
+      {startingPoint.school_managed && <React.Suspense fallback={<p>Opening learning plans…</p>}><IeltsStudentLearningPlan /></React.Suspense>}
       <section aria-labelledby="practice-heading" className="ij-panel">
         <div className="ij-section-heading">
           <div>
