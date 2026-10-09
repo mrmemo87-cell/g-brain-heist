@@ -19,3 +19,5 @@ begin
  'years',case when staff then (select coalesce(jsonb_agg(jsonb_build_object('id',id,'name',name,'starts_on',starts_on,'ends_on',ends_on) order by starts_on desc),'[]') from public.school_academic_years where school_id=v_school) else '[]'::jsonb end,
  'evidence',case when staff then private.ielts_report_evidence(v_school,sid,now()) else '[]'::jsonb end);
 end; $$;
+revoke all on function public.rpc_ielts_learning_report_context(uuid,uuid) from public,anon,authenticated,service_role;
+grant execute on function public.rpc_ielts_learning_report_context(uuid,uuid) to authenticated;
