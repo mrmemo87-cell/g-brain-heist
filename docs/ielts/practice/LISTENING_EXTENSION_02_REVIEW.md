@@ -1,6 +1,6 @@
 # Listening practice extension 02 — owner review pack
 
-Version 0.1.0 · Bible 1.6.0 · 9 October 2026 · Human review pending
+Version 0.1.0 · Bible 1.6.0 · 9 October 2026 · Owner audio approved; teacher content confirmation pending
 
 Two original, six-question guided practice tasks. They are IELTS-style preparation, not official IELTS material, complete papers or calibrated independent checks. Pausing/replay is available in the proposed guided practice. No student score or estimate is changed.
 
@@ -154,3 +154,12 @@ No added background noise, static, dropout or true whisper is used. L3 has a gen
 ## Remaining gates
 
 Exact-file human fidelity review; editorial/key/mapping/difficulty review; voice licensing and public rights review; protected installation and content review/assignment gate; Gulzada phone/MacBook playback/resume/offline/submission checks. Wider publication and any 500-user capacity claim are separate.
+
+
+## 2026-10-09: exact-file audio approval and private pilot installation
+
+Sobbi (Brains Heist owner) said “Listened and approved” after reviewing L3_practice_v1.mp3 and L4_practice_v1.mp3. The approved SHA-256 hashes, original production metadata and bounded audio approval are recorded in LISTENING_EXTENSION_02_DRAFT.json and the immutable pilot resources in LISTENING_EXTENSION_02_PILOT.json. The separate clear L3 master remains unapproved.
+
+Both approved practice files were installed in the private ielts-targeted-listening bucket and downloaded again to verify their exact checksums. The temporary installer was retired with JWT verification enabled. L3 and L4 are guided practice for Gulzada only; no teacher reviews or assignments are created by installation.
+
+Jess: open IELTS Programme → Assign practice → select Gulzada. Review each task’s wording, key, canonical skill mappings, timing and originality; confirm the exact content using the existing review control, then assign with a reason linked to her Listening evidence. Gulzada opens assigned work through IELTS Journey → Targeted practice. Keys and transcripts stay hidden until submission. Check playback and saved answers on phone and Mac during the pilot. Replayed guided tasks do not establish independent improvement or a band score. Wider availability requires the existing release review.

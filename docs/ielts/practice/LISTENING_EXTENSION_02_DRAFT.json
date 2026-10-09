@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
   "bible": "1.6.0",
-  "status": "human_review_pending",
+  "status": "audio_approved_content_review_pending",
   "rights": "Original Brains Heist AI-assisted scripts. No third-party tasks copied. Generated voice licence and public distribution rights require review before wider release.",
   "copyright_intro": "This recording is copyright Brains Heist LLC. All rights reserved.",
   "reading_seconds": 30,
@@ -1012,7 +1012,7 @@
             "end_seconds": 172.598
           }
         ],
-        "human_review": "pending",
+        "human_review": "Owner listened and approved, 2026-10-09; exact-file audio scope.",
         "encoded_verification": {
           "detected_pauses": [
             {
@@ -1223,7 +1223,7 @@
             "end_seconds": 174.337
           }
         ],
-        "human_review": "pending",
+        "human_review": "Owner listened and approved, 2026-10-09; exact-file audio scope.",
         "encoded_verification": {
           "detected_pauses": [
             {
@@ -1249,11 +1249,11 @@
     "ffmpeg_version": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers"
   },
   "release_gate": {
-    "human_audio_fidelity": "pending",
-    "editorial_key_mapping_difficulty": "pending",
+    "human_audio_fidelity": "Owner approved the two exact practice MP3 hashes on 2026-10-09.",
+    "editorial_key_mapping_difficulty": "Pending scoped exact-content teacher confirmation before assignment.",
     "rights": "public distribution review pending",
     "pilot": "Gulzada account revalidated active and IELTS eligible on 2026-10-09; no assignment or account action performed",
-    "installation": "not installed in live task catalogue; review drafts only",
+    "installation": "Verified in private ielts-targeted-listening storage; Gulzada-only catalogue seed. Temporary installer retired with JWT verification enabled.",
     "device_acceptance": "pending phone/MacBook",
     "capacity": "no new capacity claim; section 13 applies before wider audio rollout"
   },
@@ -1262,5 +1262,21 @@
     "L4_practice_v1.mp3": "libfile_b11825f1d60c819182f7e9cee1105956",
     "review_document": "libfile_6d7d5a8d3ca4819188def7c62a52a47f",
     "complete_pack_including_clear_master_and_source_clips": "libfile_fb2553458a388191ae64109ad133fc44"
+  },
+  "audio_approval": {
+    "reviewer": "Sobbi (Brains Heist owner)",
+    "date": "2026-10-09",
+    "source_statement": "Listened and approved",
+    "scope": "Approval of the two delivered practice recordings. Teacher confirmation of editorial quality, keys, mappings, difficulty/timing and originality remains required for assignment. No calibration, device, capacity or wider-release approval inferred.",
+    "files": [
+      {
+        "file": "L3_practice_v1.mp3",
+        "sha256": "051a7be84978ff4b530dfb1dbf47f2b2945b73e64204366bd4d39d1d7e090d4e"
+      },
+      {
+        "file": "L4_practice_v1.mp3",
+        "sha256": "df4c58e67b9778d30d7a77399a392e9a417670b36e8a557da73c560f6ec394d5"
+      }
+    ]
   }
 }
