@@ -14,7 +14,10 @@ import {
   type LearningPlanFields,
   type IeltsMonthlyReport,
 } from "../../../services/ieltsLearningReportService";
-import { needsPlanWordingReview } from "../../../services/ieltsReportPresentation";
+import {
+  needsPlanWordingReview,
+  planEvidenceIssues,
+} from "../../../services/ieltsReportPresentation";
 import IeltsMonthlyReportView from "./components/IeltsMonthlyReportView";
 import { reportDate } from "./components/IeltsMonthlyReportView";
 import "../../styles/ielts-learning-report.css";
@@ -97,9 +100,10 @@ export default function IeltsLearningPlanDesk({
       if (epoch.current === generation) setBusy(false);
     }
   };
+  const draftIssues = planEvidenceIssues(fields, data?.evidence ?? []);
   const save = () =>
     run(async () => {
-      if (!data || !confirmed) return;
+      if (!data || !confirmed || draftIssues.length) return;
       request.current ??= crypto.randomUUID();
       await (aiDraft
         ? saveLearningPlanWithAi(
@@ -124,16 +128,17 @@ export default function IeltsLearningPlanDesk({
     });
   const wordingNeedsReview =
     !!data?.plan &&
-    needsPlanWordingReview(
-      JSON.stringify({
-        study_goal: data.plan.fields.study_goal,
-        next_action: data.plan.fields.next_action,
-        rationales: learningSkills.map(
-          (sk) => data.plan!.fields.skills[sk].rationale,
-        ),
-        goals: data.plan.fields.goals,
-      }),
-    );
+    (planEvidenceIssues(data.plan.fields, data.evidence).length > 0 ||
+      needsPlanWordingReview(
+        JSON.stringify({
+          study_goal: data.plan.fields.study_goal,
+          next_action: data.plan.fields.next_action,
+          rationales: learningSkills.map(
+            (sk) => data.plan!.fields.skills[sk].rationale,
+          ),
+          goals: data.plan.fields.goals,
+        }),
+      ));
   const generate = () =>
     run(async () => {
       if (!data?.plan || dirty || wordingNeedsReview) return;
@@ -457,6 +462,11 @@ export default function IeltsLearningPlanDesk({
                 }
               />
             </label>
+            {draftIssues.length > 0 && (
+              <p className="arb-error" role="alert">
+                {draftIssues.join(" ")}
+              </p>
+            )}
             <label>
               <input
                 type="checkbox"
@@ -468,7 +478,7 @@ export default function IeltsLearningPlanDesk({
             </label>
             <button
               className="sp-primary"
-              disabled={!confirmed}
+              disabled={!confirmed || draftIssues.length > 0}
               onClick={() => void save()}
             >
               {busy ? "Saving…" : "Confirm and share learning plan"}

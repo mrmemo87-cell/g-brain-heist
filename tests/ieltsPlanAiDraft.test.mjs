@@ -152,3 +152,40 @@ test("plan prose cannot leak source identities or promote a short task to a conf
   assert.match(PLAN_AI_INSTRUCTIONS, /Do not ask for a missing Writing/);
   assert.match(PLAN_AI_INSTRUCTIONS, /Do not force the same pathway/);
 });
+
+test("AI rejects retained assessment requests already covered by reviewed samples", () => {
+  const reviewed = {
+    ...context,
+    evidence: [
+      {
+        source_id: "one",
+        skill: "writing",
+        kind: "screener",
+        review_id: "review",
+      },
+      {
+        source_id: "two",
+        skill: "speaking",
+        kind: "screener",
+        review_id: "review2",
+      },
+    ],
+  };
+  assert.throws(
+    () =>
+      validatePlanAiOutput(
+        { ...fields, study_goal: "Arrange a writing and speaking assessment." },
+        reviewed,
+      ),
+    /outdated_assessment_request/,
+  );
+  assert.doesNotThrow(() =>
+    validatePlanAiOutput(
+      {
+        ...fields,
+        study_goal: "Arrange fresh writing and speaking follow-up assessments.",
+      },
+      reviewed,
+    ),
+  );
+});

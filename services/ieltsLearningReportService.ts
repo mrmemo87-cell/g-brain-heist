@@ -90,6 +90,7 @@ export interface LearningReportContext {
   }[];
 }
 export interface IeltsMonthlyReport {
+  school_brand?: { logo_url: string | null };
   id: string;
   version: number;
   status: "draft" | "final";
@@ -101,7 +102,7 @@ export interface IeltsMonthlyReport {
     schemaVersion: "ielts-monthly-report-v1";
     bibleVersion: string;
     student: { id: string; name: string };
-    school: { id: string; name: string };
+    school: { id: string; name: string; logo_url?: string | null };
     period: {
       start: string;
       end: string;
@@ -118,6 +119,10 @@ export interface IeltsMonthlyReport {
 }
 async function rpc<T>(name: string, args: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.rpc(name, args);
+  if (error?.message === "plan_evidence_inconsistent")
+    throw new Error(
+      "The plan asks for an assessment that already has teacher-reviewed evidence. Revise the goal or explicitly request a fresh follow-up before sharing.",
+    );
   if (error?.message === "plan_source_changed_review")
     throw new Error(
       "Supporting evidence has changed. Check the plan’s evidence references and share an updated plan before generating the report.",
