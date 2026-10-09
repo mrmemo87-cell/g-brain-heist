@@ -30,4 +30,13 @@ This implementation uses bounded reads, allocation-level locks and jittered auto
 
 Two new guided tasks, L3 pottery workshop (gentle phone tonal colour) and L4 community food-waste project (naturally softer fully voiced conversation), are available in [Listening Extension 02 review pack](LISTENING_EXTENSION_02_REVIEW.md). Exact transcripts, keys, canonical proposed mappings, production hashes, copyright introduction and measured encoded-file pauses are in [the draft manifest](LISTENING_EXTENSION_02_DRAFT.json).
 
-They are review materials, not installed live assignments. The earlier L1/L2 approval remains confined to those exact files. Review these new recordings in full, then use the existing protected installation, scoped content confirmation and Gulzada-first assignment flow. Bible 1.6.0 section 6.1.1 governs the declared practice effects and prospective copyright notices; it changes neither current scores nor saved work.
+The two practice recordings were owner-approved and installed in the private pilot catalogue on 9 October 2026; no assignments were created. The earlier L1/L2 approval remains confined to those exact files. Use the existing scoped content confirmation and Gulzada-first assignment flow. Bible 1.6.0 section 6.1.1 governs the declared practice effects and prospective copyright notices; it changes neither current scores nor saved work.
+
+
+## 2026-10-09: exact-file audio approval and private pilot installation
+
+Sobbi (Brains Heist owner) said “Listened and approved” after reviewing L3_practice_v1.mp3 and L4_practice_v1.mp3. The approved SHA-256 hashes, original production metadata and bounded audio approval are recorded in LISTENING_EXTENSION_02_DRAFT.json and the immutable pilot resources in LISTENING_EXTENSION_02_PILOT.json. The separate clear L3 master remains unapproved.
+
+Both approved practice files were installed in the private ielts-targeted-listening bucket and downloaded again to verify their exact checksums. The temporary installer was retired with JWT verification enabled. L3 and L4 are guided practice for Gulzada only; no teacher reviews or assignments are created by installation.
+
+Jess: open IELTS Programme → Assign practice → select Gulzada. Review each task’s wording, key, canonical skill mappings, timing and originality; confirm the exact content using the existing review control, then assign with a reason linked to her Listening evidence. Gulzada opens assigned work through IELTS Journey → Targeted practice. Keys and transcripts stay hidden until submission. Check playback and saved answers on phone and Mac during the pilot. Replayed guided tasks do not establish independent improvement or a band score. Wider availability requires the existing release review.

@@ -41,6 +41,7 @@ await db.exec(readFileSync('supabase/migrations/20261008195545_ielts_targeted_li
 await db.exec(readFileSync('supabase/migrations/20261008201324_ielts_learning_exposure_integrity.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/20261008202405_ielts_learning_school_boundary.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/20261008211134_ielts_four_skill_practice_pilot.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261009041408_ielts_listening_extension_02_reviewed_audio.sql','utf8'));
 const actor=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
 const detail=async()=> (await db.query('select rpc_ielts_learning_detail($1) d',[id])).rows[0].d;
 const allocate=()=>db.query('select rpc_ielts_learning_allocate($1,$2,$3,$4,$5,null,$6) id',[school,student,'bh-ielts-targeted-listening-l1-v1',source,'Synthetic delivery test; no diagnosis asserted.',request]);
@@ -108,8 +109,8 @@ test('new material requires a scoped exact-content teacher review; mismatched sk
  await db.exec("update school_members set status='active'");await actor(teacher);
  await assert.rejects(newAllocate('reading'),/content_review_required/);
  const tasks=(await db.query('select rpc_ielts_learning_workspace($1) w',[school])).rows[0].w.tasks;
- assert.equal(tasks.length,8);
- for(const t of tasks.filter(t=>t.requires_review)){
+ assert.equal(tasks.length,10);
+ for(const t of tasks.filter(t=>t.requires_review && !/listening-l[34]-/.test(t.code))){
   await actor(student);await assert.rejects(db.query('select rpc_ielts_learning_approve_content($1,$2,$3,$4,true)',[school,t.code,t.content_sha256,'Reviewed task for delivery pilot.']),/not_authorized/);
   await actor(teacher);await assert.rejects(db.query('select rpc_ielts_learning_approve_content($1,$2,$3,$4,true)',[school,t.code,'a'.repeat(64),'Reviewed task for delivery pilot.']),/content_review_required/);
   await db.query('select rpc_ielts_learning_approve_content($1,$2,$3,$4,true)',[school,t.code,t.content_sha256,'Reviewed wording, key, mapping, timing and originality for pilot.']);
@@ -149,4 +150,33 @@ test('Speaking consent, capture ownership, verification and audio review are enf
  await assert.rejects(db.query('select rpc_ielts_learning_review($1,$2,$3)',[speaking,JSON.stringify({...feedback,criteria}),crypto.randomUUID()]),/listen_to_audio/);
  await db.query('select rpc_ielts_learning_review($1,$2,$3)',[speaking,JSON.stringify({...feedback,criteria,audio_checked:true}),crypto.randomUUID()]);
  await actor(student);assert.equal((await getDetail(speaking)).review.fields.audio_checked,true);
+});
+
+const extension=JSON.parse(readFileSync('docs/ielts/practice/LISTENING_EXTENSION_02_PILOT.json','utf8')).resources;
+test('approved extension preserves exact audio provenance and requires its own teacher content confirmation',async()=>{
+ await actor(teacher);const workspace=(await db.query('select rpc_ielts_learning_workspace($1) w',[school])).rows[0].w;
+ for(const resource of extension){
+  const t=workspace.tasks.find(t=>t.code===resource.code);assert.equal(t.approved,false);assert.equal(t.requires_review,true);assert.equal(t.purpose,'guided_practice');
+  const stored=(await db.query('select * from private.ielts_learning_tasks where code=$1',[t.code])).rows[0];
+  assert.equal(stored.audio_sha256,resource.audio_sha256);assert.match(stored.audio_path,new RegExp(resource.audio_sha256));
+  assert.equal(stored.review_record.audio_approval.source_statement,'Listened and approved');
+  assert.equal(stored.review_record.audio_file.sha256,stored.audio_sha256);
+  await assert.rejects(db.query('select rpc_ielts_learning_allocate($1,$2,$3,$4,$5,null,$6)',[school,student,t.code,source,'Synthetic check of required teacher content review.',crypto.randomUUID()]),/content_review_required/);
+ }
+});
+test('extension hides transcript and explanations, marks final details, and snapshots exact approvals without duplicates',async()=>{
+ await db.exec('BEGIN');
+ try{
+  for(const resource of extension){
+   await actor(teacher);await db.query('select rpc_ielts_learning_approve_content($1,$2,$3,$4,true)',[school,resource.code,resource.content_sha256,'Synthetic content confirmation; rolled back after delivery verification.']);
+   const allocation=(await db.query('select rpc_ielts_learning_allocate($1,$2,$3,$4,$5,null,$6) id',[school,student,resource.code,source,'Synthetic extension delivery test; no learner diagnosis asserted.',crypto.randomUUID()])).rows[0].id;
+   await actor(student);const before=await getDetail(allocation);assert.equal(before.content.teacher_notes,undefined);
+   assert.equal(JSON.stringify(before.questions).includes('accepted_answers'),false);assert.equal(JSON.stringify(before.questions).includes('explanation'),false);assert.equal(JSON.stringify(before).includes('Transcript:'),false);
+   await actor(outsider);await db.exec('SAVEPOINT denied_access');await assert.rejects(getDetail(allocation),/not_authorized/);await db.exec('ROLLBACK TO SAVEPOINT denied_access');await actor(student);
+   const answers=Object.fromEntries(resource.questions.map(q=>[q.id,q.accepted_answers.at(-1)]));await saveResponse(allocation,answers);
+   const submitted=(await db.query('select rpc_ielts_learning_submit($1,1) d',[allocation])).rows[0].d;assert.equal(submitted.result.score,6);assert.match(submitted.content.teacher_notes,/Transcript:/);
+   const retry=(await db.query('select rpc_ielts_learning_submit($1,0) d',[allocation])).rows[0].d;assert.deepEqual(retry.result,submitted.result);
+   const rows=(await db.query('select task_snapshot from private.ielts_learning_submissions where allocation_id=$1',[allocation])).rows;assert.equal(rows.length,1);assert.equal(rows[0].task_snapshot.audio_sha256,resource.audio_sha256);assert.equal(rows[0].task_snapshot.review_record.audio_approval.source_statement,'Listened and approved');
+  }
+ }finally{await db.exec('ROLLBACK');}
 });
