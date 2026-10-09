@@ -2,7 +2,7 @@ import {JSDOM,VirtualConsole} from 'jsdom';
 import test from 'node:test';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {build} from 'esbuild';
 const base={id:'00000000-0000-0000-0000-000000000201',student_id:'00000000-0000-0000-0000-000000000202',manager:false,title:'Photography workshop',purpose:'guided_practice',instructions:'No more than two words and/or a number.',success_description:'Select the final confirmed details.',reason:'Delivery pilot; no diagnosis asserted.',questions:Array.from({length:6},(_,i)=>({id:'q'+(i+1),prompt:'Detail '+(i+1)})),audio_bucket:'test-audio',audio_path:'test.mp3',audio_sha256:'a'.repeat(64),status:'assigned',answers:{},revision:0,source_attempt_id:'00000000-0000-0000-0000-000000000203',play_count:0,conditions_need_review:false,result:null,review:null};
 const bundle=await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import {RouterProvider,createBrowserRouter} from './src/lib/router';import Page from './src/pages/ielts/IeltsLearningPractice';createRoot(document.getElementById('root')).render(<RouterProvider router={createBrowserRouter([{path:'/ielts/practice/targeted/:allocationId',element:<Page/>}])}/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,format:'iife',write:false,loader:{'.css':'empty'},define:{'import.meta':JSON.stringify({env:{VITE_SUPABASE_URL:'https://test.supabase.co',VITE_SUPABASE_ANON_KEY:'test-key'}})},logLevel:'silent'});
-async function mount({server=base,local=null,failSave=false,failAi=false}={}){
+async function mount({server=base,local=null,failSave=false,failAi=false,failReview=false}={}){
  const errors=[],calls=[];let plays=0;const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
  const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/ielts/practice/targeted/'+base.id,runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:vc});const w=dom.window;
  Object.assign(w,{TextEncoder,TextDecoder,Request,Response,Headers});w.crypto.randomUUID=randomUUID;
@@ -18,7 +18,7 @@ async function mount({server=base,local=null,failSave=false,failAi=false}={}){
   else if(fn==='rpc_ielts_learning_save'){if(failSave)return new Response(JSON.stringify({message:'network unavailable'}),{status:503});server={...server,answers:args.p_answers,revision:server.revision+1};result=server.revision;}
   else if(fn==='rpc_ielts_learning_incident')result=null;
   else if(fn==='rpc_ielts_learning_submit'){server={...server,status:'submitted',result:{score:['writing','speaking'].includes(server.skill)?null:1,total:['writing','speaking'].includes(server.skill)?null:6,submitted_at:'2026-10-09T00:00:00Z',outcomes:server.questions.map(q=>({id:q.id,correct:q.id==='q1',accepted_answers:['Sunday']}))}};result=server;}
-  else if(fn==='rpc_ielts_learning_review'||fn==='rpc_ielts_learning_review_with_draft'){server={...server,review:{fields:args.p_feedback,reviewer:'Test teacher',reviewed_at:'2026-10-09T00:00:00Z'}};result=server;}
+  else if(fn==='rpc_ielts_learning_review'||fn==='rpc_ielts_learning_review_with_draft'){if(failReview)return new Response(JSON.stringify({message:'network unavailable'}),{status:503});server={...server,review:{fields:args.p_feedback,reviewer:'Test teacher',reviewed_at:'2026-10-09T00:00:00Z'}};result=server;}
   else throw Error('Unexpected request '+fn);
   return new Response(JSON.stringify(result),{status:200,headers:{'Content-Type':'application/json'}});
  };
@@ -46,7 +46,7 @@ test('teacher feedback requires all four fields and is explicitly attributed aft
  const server={...base,manager:true,status:'submitted',result:{score:1,total:6,outcomes:base.questions.map(q=>({id:q.id,correct:true,accepted_answers:['Sunday']}))}};
  const m=await mount({server});assert.equal(m.button('Confirm and share feedback').disabled,true);
  for(const input of m.w.document.querySelectorAll('textarea'))m.change(input,'Clear feedback for this response.');
- await m.wait(()=>!m.button('Confirm and share feedback').disabled);m.button('Confirm and share feedback').click();await m.wait(()=>m.w.document.body.textContent.includes('TEACHER FEEDBACK · Test teacher'));
+ await m.wait(()=>!m.button('Confirm and share feedback').disabled);m.button('Confirm and share feedback').click();await m.wait(()=>m.w.document.body.textContent.includes('Shared by Test teacher'));
  assert.equal(m.calls.filter(c=>c.fn==='rpc_ielts_learning_review').length,1);assert.deepEqual(m.errors,[]);m.dom.window.close();
 });
 
@@ -59,7 +59,7 @@ test('Writing preserves device recovery and shows a saved response without a fab
  const server={...base,skill:'writing',content:{prompt:'Explain one useful life skill.'},questions:[{id:'response',prompt:'Your paragraph'}],recordings:[]};const m=await mount({server,local:{response:'Students can learn budgeting by planning a weekly food budget.'}});assert.equal(m.button('Submit for review').disabled,true);m.button('Use my device answers').click();await m.wait(()=>m.w.document.querySelector('textarea').value.includes('budgeting'));m.button('Submit for review').click();await m.wait(()=>m.w.document.body.textContent.includes('Your response is saved'));assert.doesNotMatch(m.w.document.body.textContent,/Task result:|null \/ null/);assert.deepEqual(m.errors,[]);m.dom.window.close();
 });
 test('Speaking review requires four criterion comments and explicit audio confirmation',async()=>{
- const server={...base,skill:'speaking',manager:true,content:{prompt:'Describe a place you study.'},questions:[{id:'response',prompt:'Notes'}],recordings:[],result:{score:null,total:null,outcomes:[]}};const m=await mount({server});const inputs=[...m.w.document.querySelectorAll('textarea')].filter(e=>!e.disabled);assert.equal(inputs.length,8);for(const input of inputs)m.change(input,'Add a clear detail that supports your reason.');await m.wait(()=>inputs.every(e=>e.value.length>5));assert.equal(m.button('Confirm and share feedback').disabled,true);m.w.document.querySelector('input[type=checkbox]').click();await m.wait(()=>!m.button('Confirm and share feedback').disabled);m.button('Confirm and share feedback').click();await m.wait(()=>m.w.document.body.textContent.includes('TEACHER FEEDBACK · Test teacher'));assert.equal(m.calls.find(c=>c.fn==='rpc_ielts_learning_review').args.p_feedback.audio_checked,true);assert.deepEqual(m.errors,[]);m.dom.window.close();
+ const server={...base,skill:'speaking',manager:true,content:{prompt:'Describe a place you study.'},questions:[{id:'response',prompt:'Notes'}],recordings:[],result:{score:null,total:null,outcomes:[]}};const m=await mount({server});const inputs=[...m.w.document.querySelectorAll('textarea')].filter(e=>!e.disabled);assert.equal(inputs.length,8);for(const input of inputs)m.change(input,'Add a clear detail that supports your reason.');await m.wait(()=>inputs.every(e=>e.value.length>5));assert.equal(m.button('Confirm and share feedback').disabled,true);m.w.document.querySelector('input[type=checkbox]').click();await m.wait(()=>!m.button('Confirm and share feedback').disabled);m.button('Confirm and share feedback').click();await m.wait(()=>m.w.document.body.textContent.includes('Shared by Test teacher'));assert.equal(m.calls.find(c=>c.fn==='rpc_ielts_learning_review').args.p_feedback.audio_checked,true);assert.deepEqual(m.errors,[]);m.dom.window.close();
 });
 test('teacher confirms the exact new material before assigning with the matching Writing source',async()=>{
  const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/',runScripts:'outside-only',pretendToBeVisual:true});try { const w=dom.window;Object.assign(w,{TextEncoder,TextDecoder,Request,Response,Headers});w.crypto.randomUUID=randomUUID;const calls=[];
@@ -80,6 +80,28 @@ test('teacher review stays in the review desk with key, item-level original evid
 });
 test('AI replacement is explicit and an unavailable provider preserves teacher edits',async()=>{
  const server={...base,manager:true,status:'submitted',review:{fields:{went_well:'Teacher original wording.',work_on:'Teacher original wording.',practice:'Teacher original wording.',check_again:'Teacher original wording.'},reviewer:'Jess',reviewed_at:'2026-10-09'},result:{score:6,total:6,outcomes:[]}};
- const m=await mount({server});await m.wait(()=>m.button('AI help · Draft all feedback')&&!m.button('AI help · Draft all feedback').disabled);m.button('AI help · Draft all feedback').click();await m.wait(()=>m.button('Apply AI draft'));assert.equal(m.w.document.querySelector('textarea').value,'Teacher original wording.');m.button('Keep my feedback').click();await m.wait(()=>!m.button('Apply AI draft'));assert.equal(m.w.document.querySelector('textarea').value,'Teacher original wording.');m.dom.window.close();
- const f=await mount({server,failAi:true});await f.wait(()=>f.button('AI help · Draft all feedback')&&!f.button('AI help · Draft all feedback').disabled);f.button('AI help · Draft all feedback').click();await f.wait(()=>f.w.document.body.textContent.includes('AI help could not finish'));assert.equal(f.w.document.querySelector('textarea').value,'Teacher original wording.');f.dom.window.close();
+ const m=await mount({server});m.button('View or edit feedback').click();await m.wait(()=>!m.w.document.getElementById('learning-review-fields').hidden);await m.wait(()=>m.button('AI help · Draft all feedback')&&!m.button('AI help · Draft all feedback').disabled);m.button('AI help · Draft all feedback').click();await m.wait(()=>m.button('Apply AI draft'));assert.equal(m.w.document.querySelector('textarea').value,'Teacher original wording.');m.button('Keep my feedback').click();await m.wait(()=>!m.button('Apply AI draft'));assert.equal(m.w.document.querySelector('textarea').value,'Teacher original wording.');m.dom.window.close();
+ const f=await mount({server,failAi:true});f.button('View or edit feedback').click();await f.wait(()=>!f.w.document.getElementById('learning-review-fields').hidden);await f.wait(()=>f.button('AI help · Draft all feedback')&&!f.button('AI help · Draft all feedback').disabled);f.button('AI help · Draft all feedback').click();await f.wait(()=>f.w.document.body.textContent.includes('AI help could not finish'));assert.equal(f.w.document.querySelector('textarea').value,'Teacher original wording.');f.dom.window.close();
+});
+
+test('confirmed sharing collapses the editor; saved feedback reopens collapsed and remains editable',async()=>{
+ const fields={went_well:'Your final answers are correct.',work_on:'Explain why the earlier detail changed.',practice:'Listen and note the final detail.',check_again:'Try a fresh task with your teacher.'};
+ const server={...base,manager:true,status:'submitted',result:{score:6,total:6,outcomes:[]}};
+ const m=await mount({server});const editor=m.w.document.getElementById('learning-review-fields');assert.equal(editor.hidden,false);
+ for(const input of editor.querySelectorAll('textarea'))m.change(input,'Clear feedback for this response.');
+ await m.wait(()=>!m.button('Confirm and share feedback').disabled);m.button('Confirm and share feedback').click();
+ await m.wait(()=>m.button('View or edit feedback')&&editor.hidden);
+ assert.match(m.w.document.body.textContent,/Feedback shared/);assert.equal(m.button('View or edit feedback').getAttribute('aria-expanded'),'false');
+ m.button('View or edit feedback').click();await m.wait(()=>!editor.hidden);assert.equal(editor.querySelector('textarea').value,'Clear feedback for this response.');
+ m.change(editor.querySelector('textarea'),'An updated comment for this response.');await m.wait(()=>editor.querySelector('textarea').value.startsWith('An updated'));m.button('Confirm and share feedback').click();await m.wait(()=>editor.hidden);
+ assert.equal(m.calls.filter(c=>c.fn==='rpc_ielts_learning_review').length,2);m.dom.window.close();
+ const reopened=await mount({server:{...server,review:{fields,reviewer:'Jess',reviewed_at:'2026-10-09'}}});
+ const savedEditor=reopened.w.document.getElementById('learning-review-fields');assert.equal(savedEditor.hidden,true);reopened.button('View or edit feedback').click();await reopened.wait(()=>!savedEditor.hidden);assert.equal(savedEditor.querySelector('textarea').value,fields.went_well);reopened.dom.window.close();
+});
+test('failed sharing keeps the feedback editor open and preserves all teacher wording',async()=>{
+ const server={...base,manager:true,status:'submitted',result:{score:6,total:6,outcomes:[]}};
+ const m=await mount({server,failReview:true});const editor=m.w.document.getElementById('learning-review-fields');
+ for(const input of editor.querySelectorAll('textarea'))m.change(input,'Keep this teacher feedback safe.');
+ await m.wait(()=>!m.button('Confirm and share feedback').disabled);m.button('Confirm and share feedback').click();await m.wait(()=>m.w.document.querySelector('[role=alert]'));
+ assert.equal(editor.hidden,false);assert.equal(m.button('View or edit feedback'),undefined);assert.equal(editor.querySelector('textarea').value,'Keep this teacher feedback safe.');m.dom.window.close();
 });
