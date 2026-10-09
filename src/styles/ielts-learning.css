@@ -159,3 +159,8 @@
   height: 20px;
   vertical-align: middle;
 }
+
+.il-key-notes { white-space: pre-wrap; line-height: 1.7; }
+.il-source-item { padding: .8rem 0; border-top: 1px solid #cbd5e1; }
+.il-ai-help { padding: 1rem; margin: 1rem 0; border: 1px solid #818cf8; border-radius: 14px; background: #eef2ff; color: #182139; }
+.il-ai-help button[aria-busy="true"] { cursor: progress; }
