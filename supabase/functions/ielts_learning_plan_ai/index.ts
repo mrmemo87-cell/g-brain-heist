@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.78.0";
 import {
   PLAN_AI_INSTRUCTIONS,
-  PLAN_AI_SCHEMA,
+  planAiSchema,
   validatePlanAiOutput,
 } from "../_shared/ieltsPlanAiDraft.ts";
 
@@ -96,6 +96,7 @@ Deno.serve(async (req: Request) => {
     const signal = AbortSignal.timeout(45000);
     let fields;
     let providerId: string | null = null;
+    let validationReason = "invalid_output";
     for (let attempt = 0; attempt < 2; attempt++) {
       const response = await fetch(
         "https://api.openai.com/v1/chat/completions",
@@ -116,7 +117,7 @@ Deno.serve(async (req: Request) => {
                 content:
                   PLAN_AI_INSTRUCTIONS +
                   (attempt
-                    ? "\nThe previous output failed validation. Check every answer reference character-for-character and use clear, simple English. Do not invent evidence."
+                    ? `\nThe previous output failed ${validationReason}. Use the exact review_on from context, one to three goals, all required fields, and the stated text limits. Check source references character-for-character. Do not invent evidence.`
                     : ""),
               },
               { role: "user", content: JSON.stringify(context) },
@@ -126,7 +127,7 @@ Deno.serve(async (req: Request) => {
               json_schema: {
                 name: "ielts_learning_plan_draft",
                 strict: true,
-                schema: PLAN_AI_SCHEMA,
+                schema: planAiSchema(context),
               },
             },
           }),
@@ -138,6 +139,7 @@ Deno.serve(async (req: Request) => {
           (response.status === 429 || response.status >= 500)
         )
           continue;
+        console.warn("Learning plan AI provider rejected", { status: response.status });
         throw new Error("provider_unavailable");
       }
       const output = await response.json();
@@ -155,7 +157,9 @@ Deno.serve(async (req: Request) => {
         );
         providerId = String(output.id || "");
         break;
-      } catch {
+      } catch (error) {
+        validationReason = error instanceof Error && ["invalid_plan", "invalid_study_goal", "invalid_next_action", "invalid_review_date", "invalid_goal_count", "invalid_pathway", "evidence_required", "invalid_goal", "incomplete_draft"].includes(error.message) ? error.message : "invalid_output";
+        console.warn("Learning plan AI validation rejected", { attempt, reason: validationReason });
         if (attempt > 0) throw new Error("draft_validation_failed");
       }
     }
@@ -165,7 +169,10 @@ Deno.serve(async (req: Request) => {
       p_fields: fields,
       p_provider: providerId,
     });
-    if (finishError) throw new Error("draft_save_failed");
+    if (finishError) {
+      console.warn("Learning plan AI save rejected", { code: finishError.code });
+      throw new Error("draft_save_failed");
+    }
     // Recheck revoked allocation/banned account before returning private feedback.
     const { data: access, error: accessError } = await caller.rpc(
       "rpc_ielts_learning_report_context",
@@ -174,14 +181,14 @@ Deno.serve(async (req: Request) => {
     if (accessError || !access?.can_manage)
       return json(403, { error: "review_not_available" });
     return json(200, envelope(fields));
-  } catch {
+  } catch (error) {
     await admin.rpc("rpc_ielts_finish_plan_ai", {
       p_id: claim.id,
       p_fields: null,
       p_provider: null,
     });
     // Never log student text, provider bodies, personal data or credentials.
-    console.warn("Learning plan AI draft unavailable", { draftId: claim.id });
+    console.warn("Learning plan AI draft unavailable", { draftId: claim.id, reason: error instanceof Error && ["provider_unavailable", "draft_validation_failed", "draft_save_failed", "TimeoutError"].includes(error.message) ? error.message : "request_failed" });
     return json(503, { error: "ai_unavailable" });
   }
 });
