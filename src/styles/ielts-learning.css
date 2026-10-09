@@ -164,3 +164,19 @@
 .il-source-item { padding: .8rem 0; border-top: 1px solid #cbd5e1; }
 .il-ai-help { padding: 1rem; margin: 1rem 0; border: 1px solid #818cf8; border-radius: 14px; background: #eef2ff; color: #182139; }
 .il-ai-help button[aria-busy="true"] { cursor: progress; }
+
+/* Teacher history: one hierarchy, readable work and feedback states. */
+.il-desk-nav,.il-history-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; margin:1rem 0; }
+.il-desk-nav button[aria-pressed="true"] { background:#233da1; color:white; box-shadow:0 0 0 3px #dce3ff; }
+.il-history-filters { display:grid; grid-template-columns:minmax(180px,2fr) repeat(3,minmax(120px,1fr)); gap:1rem; align-items:end; }
+.il-history-filters .il-answer { margin:0; }
+.il-history-filters button { justify-self:start; }
+.il-history-toolbar { justify-content:space-between; color:#4b5874; }
+.il-history-row { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); gap:1.5rem; border-top:1px solid #d7deec; padding:1.4rem 0; }
+.il-history-row h4 { font-size:1.1rem; margin:.4rem 0; }
+.il-history-row p { margin:.5rem 0; overflow-wrap:anywhere; }
+.il-history-badge { display:inline-block; border:1px solid #b8c5ed; background:#eef2ff; color:#233566; padding:.35rem .7rem; margin:0 .4rem .4rem 0; border-radius:999px; font-size:.85rem; font-weight:700; }
+.il-usage { border-left:4px solid #465ac8; background:#eef2ff; border-radius:.6rem; padding:1rem; margin:1rem 0; }
+.il-usage p { margin:.4rem 0; }
+@media(max-width:760px) { .il-history-filters { grid-template-columns:1fr 1fr; } .il-history-row { grid-template-columns:1fr; gap:.5rem; } }
+@media(max-width:430px) { .il-history-filters { grid-template-columns:1fr; } }

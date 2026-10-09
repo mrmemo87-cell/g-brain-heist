@@ -7,6 +7,9 @@ export type LearningFeedback = Record<
 > & { criteria?: Record<string, string>; audio_checked?: boolean };
 export interface LearningAllocation {
   id: string;
+  task_code?: string;
+  student_id?: string;
+  assigned_at?: string;
   title: string;
   purpose: string;
   skill: LearningSkill;
@@ -21,6 +24,9 @@ export interface LearningWorkspace {
   pilot_only: boolean;
   tasks: {
     code: string;
+    pilot_student: string;
+    pilot_student_name: string;
+    version: string;
     title: string;
     purpose: string;
     success_description: string;
