@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   learningWorkspace,
   learningDetail,
@@ -20,6 +20,8 @@ import {
 } from "../../../services/ieltsAudioCheckpoint";
 import LearningSpeakingRecorder from "../../components/ielts/LearningSpeakingRecorder";
 import "../../styles/ielts-learning.css";
+import IeltsSchoolLearnerLinks from "../../components/ielts/IeltsSchoolLearnerLinks";
+import { IeltsTargetedTaskCards } from "../../components/ielts/IeltsTargetedPractice";
 const criterionLabels: Record<string, string> = {
   task_response: "Answering and developing the task",
   coherence_cohesion: "Organising and linking ideas",
@@ -83,6 +85,7 @@ const blankFeedback: LearningFeedback = {
   check_again: "",
 };
 export default function IeltsLearningPractice() {
+  const navigate = useNavigate();
   const { allocationId } = useParams<{ allocationId: string }>();
   const [workspace, setWorkspace] = useState<LearningWorkspace | null>(null),
     [detail, setDetail] = useState<LearningDetail | null>(null);
@@ -348,53 +351,17 @@ export default function IeltsLearningPractice() {
     <main className="il-shell">
       <header>
         <p className="il-eyebrow">BRAINS HEIST · PURPOSEFUL PRACTICE</p>
-        <h1>{detail?.title ?? "Your next practice step"}</h1>
+        <h1>{detail?.title ?? "Targeted Practice"}</h1>
         <Link to="/ielts/journey">← IELTS Journey</Link>
       </header>
+      {!detail?.manager && <IeltsSchoolLearnerLinks onNavigate={navigate} active="targeted" />}
+      {!allocationId && <p>Short tasks chosen by your teacher. Start a task, continue saved work or read your feedback.</p>}
       {error && (
         <p role="alert" className="il-alert">
           {error}
         </p>
       )}
-      {workspace && (
-        <section className="il-grid">
-          {workspace.allocations.length === 0 ? (
-            <article className="il-card">
-              <h2>No targeted practice assigned yet</h2>
-              <p>Your other next steps remain available in IELTS Journey.</p>
-            </article>
-          ) : (
-            workspace.allocations.map((a) => (
-              <article key={a.id} className="il-card">
-                <p className="il-eyebrow">
-                  {a.purpose === "guided_practice"
-                    ? "Guided practice"
-                    : "Independent check"}
-                </p>
-                <h2>{a.title}</h2>
-                <p>{a.reason}</p>
-                <p>
-                  {a.reviewed
-                    ? "Teacher feedback ready"
-                    : a.status === "submitted"
-                      ? "Submitted · awaiting review"
-                      : a.status === "in_progress"
-                        ? "In progress"
-                        : "Ready to start"}
-                </p>
-                <Link
-                  className="il-button"
-                  to={"/ielts/practice/targeted/" + a.id}
-                >
-                  {a.status === "submitted"
-                    ? "View saved work"
-                    : "Open this task"}
-                </Link>
-              </article>
-            ))
-          )}
-        </section>
-      )}
+      {workspace && <IeltsTargetedTaskCards tasks={workspace.allocations} />}
       {detail && (
         <>
           <section className="il-card">

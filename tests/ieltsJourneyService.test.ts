@@ -95,11 +95,11 @@ test('IELTS journey route, home link, and page use the journey service safely', 
   assert.match(home, /navigate\('\/ielts\/journey'\)/, 'IELTS home should link to journey dashboard');
   assert.match(page, /rpcIeltsStudentJourney/, 'journey page must use the journey RPC service');
   assert.match(page, /My IELTS Journey/, 'journey page should include title');
-  assert.match(page, /Your practice plan/, 'journey must explain the practice step');
+  assert.match(page, /School assignments/, 'journey must explain the practice step');
   assert.match(page, /Your learning trail/, 'saved screeners and reviews must be included');
   assert.match(page, /Teacher feedback/, 'shared comments must be clearly attributed');
   assert.match(page, /Your next step/, 'there must be a useful next action');
-  assert.match(page, /No active IELTS assignments right now/, 'no task must be invented');
+  assert.match(page, /No active school assignments right now/, 'no task must be invented');
   assert.match(page, /Your feedback will appear here/, 'pending feedback must not become a zero score');
   assert.match(page, /What about my estimated band/, 'band eligibility must be explained');
   assert.doesNotMatch(page, /\.from\(['"]ielts_/i, 'journey page must not query raw IELTS tables directly');

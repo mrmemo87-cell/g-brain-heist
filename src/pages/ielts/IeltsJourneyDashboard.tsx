@@ -49,12 +49,8 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
       setError(null);
       setStartingPoint(null);
       try {
-        const [{ data: auth }, tierResult] = await Promise.all([
-          supabase.auth.getUser(),
-          getUserTier().catch(() => null),
-        ]);
+        const { data: auth } = await supabase.auth.getUser();
         if (!active) return;
-        setUserTier(tierResult || 'free');
         const userId = auth?.user?.id;
         let dashboardMode: IeltsDashboardMode = 'student';
         if (userId) {
@@ -103,6 +99,16 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
     void run();
     return () => { active = false; };
   }, [retry]);
+
+  // Goal editing is optional; a billing/tier read must not delay saved evidence.
+  useEffect(() => {
+    let active = true;
+    if (loadState !== 'ready' || mode !== 'student') return;
+    void getUserTier().catch(() => null).then(tierResult => {
+      if (active) setUserTier(tierResult || 'free');
+    });
+    return () => { active = false; };
+  }, [loadState, mode]);
 
   const openStudentSnapshot = async (student: IeltsSchoolResultsStudentRow) => {
     setSnapshotStudentId(student.student_id);

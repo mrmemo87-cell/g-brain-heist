@@ -15,6 +15,7 @@ import {
   getAssignmentItemVisualStatus,
   getAssignmentProgressSummaryFromAssignment,
 } from '../../../services/ieltsAssignmentUx';
+import IeltsSchoolLearnerLinks from '../../components/ielts/IeltsSchoolLearnerLinks';
 import { AssignmentItemStatusBadge, AssignmentProgressBar } from './assignmentPracticeUi';
 
 type AssignmentLoadState = 'loading' | 'ready' | 'error';
@@ -122,14 +123,7 @@ const IeltsAssignedPractice: React.FC = () => {
       const rows = await rpcIeltsPracticeStudentAssignments();
       setAssignments(rows);
       setLoadState('ready');
-      const progressRows = await Promise.allSettled(rows.map((assignment) => rpcIeltsPracticeAssignmentProgress(assignment.id)));
-      const progressById = progressRows.reduce<Record<string, IeltsPracticeAssignmentProgress>>((acc, result) => {
-        if (result.status === 'fulfilled') {
-          acc[result.value.assignment_id] = result.value;
-        }
-        return acc;
-      }, {});
-      setAssignmentProgressById(progressById);
+      setAssignmentProgressById({});
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load assigned IELTS practice.');
       setLoadState('error');
@@ -139,6 +133,20 @@ const IeltsAssignedPractice: React.FC = () => {
   useEffect(() => {
     void loadAssignments();
   }, []);
+
+  const toggleAssignment = async (assignment: IeltsPracticeStudentAssignment) => {
+    if (busyAssignmentId) return;
+    const opening = !expandedAssignments[assignment.id];
+    setExpandedAssignments(current => ({ ...current, [assignment.id]: opening }));
+    if (!opening || assignmentProgressById[assignment.id] || busyAssignmentId) return;
+    setBusyAssignmentId(assignment.id);
+    try {
+      const progress = await rpcIeltsPracticeAssignmentProgress(assignment.id);
+      setAssignmentProgressById(current => ({ ...current, [assignment.id]: progress }));
+    } catch {
+      setError('The assignment details could not load. Close and reopen its details to try again.');
+    } finally { setBusyAssignmentId(null); }
+  };
 
   const handleOpenItem = async (assignment: IeltsPracticeStudentAssignment, item: IeltsPracticeAssignmentItem, route: string) => {
     if (assignment.status === 'closed') {
@@ -183,12 +191,13 @@ const IeltsAssignedPractice: React.FC = () => {
           ← Back to IELTS Home
         </button>
 
+        <IeltsSchoolLearnerLinks onNavigate={navigate} active="assigned" />
         {/* Header */}
         <header style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.25rem', marginBottom: '1rem', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           <p style={{ margin: '0 0 0.35rem', color: '#0891b2', textTransform: 'uppercase', letterSpacing: '0.16em', fontSize: '0.65rem', fontWeight: 800 }}>SCHOOL IELTS PRACTICE</p>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#0f172a' }}>Assigned Practice</h1>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#0f172a' }}>School Assignments</h1>
           <p style={{ margin: '0.5rem 0 0', color: '#64748b', lineHeight: 1.6, fontSize: '0.82rem' }}>
-            IELTS practice assigned by your school or teacher. Clear item states help you pick up exactly where you left off.
+            Multi-item practice sets assigned by your school. Short focused tasks are in Targeted Practice. Assignments complete automatically after all required items are finished.
           </p>
         </header>
 
@@ -219,7 +228,8 @@ const IeltsAssignedPractice: React.FC = () => {
         {/* Empty */}
         {loadState === 'ready' && sortedAssignments.length === 0 && (
           <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1.25rem', color: '#64748b', fontSize: '0.875rem', lineHeight: 1.6 }}>
-            No IELTS practice has been assigned yet. Assignments complete automatically after all required items are finished, and closed assignments are read-only.
+            <p>No school assignment sets right now. Your teacher may have assigned a focused task in Targeted Practice.</p>
+            <button type="button" className="ij-link" onClick={() => navigate('/ielts/practice/targeted')}>Open Targeted Practice →</button>
           </div>
         )}
 
@@ -291,14 +301,17 @@ const IeltsAssignedPractice: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => setExpandedAssignments((current) => ({ ...current, [assignment.id]: !isExpanded }))}
+                disabled={busyAssignmentId !== null}
+                aria-expanded={isExpanded}
+                onClick={() => void toggleAssignment(assignment)}
                 style={{ marginTop: '0.75rem', background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}
               >
                 {isExpanded ? 'Hide submission details' : 'View submission details'}
               </button>
 
               {/* Skill sections */}
-              {isExpanded && <div style={{ marginTop: '0.85rem' }}>
+              {isExpanded && isBusy && <p role="status">Checking assignment details…</p>}
+              {isExpanded && !isBusy && <div style={{ marginTop: '0.85rem' }}>
                 {visibleSkills.length === 0 && (
                     <div data-testid={`ielts-assigned-no-items-${assignment.id}`} style={{ border: '1px dashed #cbd5e1', background: '#f8fafc', borderRadius: '0.75rem', padding: '0.875rem', color: '#94a3b8', fontSize: '0.82rem', fontWeight: 700 }}>
                     This assignment has no items yet. Ask your teacher to add practice content.

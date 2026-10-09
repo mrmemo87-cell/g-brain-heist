@@ -1,4 +1,5 @@
-import IeltsProgrammeWorkspace from './IeltsProgrammeWorkspace';
+import { lazyRetry } from '../../utils/lazyRetry';
+const IeltsProgrammeWorkspace = lazyRetry(() => import('./IeltsProgrammeWorkspace'), 'IeltsProgrammeWorkspace');
 import IeltsScreenerHub from '../../components/ielts/IeltsScreenerHub';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +26,7 @@ import { schoolAdminIeltsUrl } from '../../lib/schoolAdminIeltsNavigation';
 import IeltsAnimatedHero from '../../components/ielts/IeltsAnimatedHero';
 import IeltsPrimeDashboard from '../../components/ielts/IeltsPrimeDashboard';
 import IeltsSchoolLearnerLinks from '../../components/ielts/IeltsSchoolLearnerLinks';
+import IeltsTargetedPractice from '../../components/ielts/IeltsTargetedPractice';
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
@@ -60,6 +62,7 @@ const IeltsHome: React.FC = () => {
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
   const isIeltsAdminLandingRole = isPlatformAdmin || canAdministerSchool || normalizeIeltsRole(userRole) === 'teacher';
+  const isSchoolStudentWorkspace = profileContextLoaded && !profileContextError && hasSchoolMembership && !isIeltsAdminLandingRole && new URLSearchParams(window.location.search).get('view') !== 'library';
   const shouldUseSchoolAdminShell = profileContextLoaded
     && canAdministerSchool
     && !isPlatformAdmin
@@ -161,6 +164,7 @@ const IeltsHome: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
+    if (!profileContextLoaded || profileContextError || isSchoolStudentWorkspace || isIeltsAdminLandingRole) return;
     getUserTier()
       .then((tier) => {
         if (isMounted) {
@@ -176,7 +180,7 @@ const IeltsHome: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [authUserId]);
+  }, [authUserId, profileContextLoaded, profileContextError, isSchoolStudentWorkspace, isIeltsAdminLandingRole]);
 
   useEffect(() => {
     let active = true;
@@ -270,6 +274,8 @@ const IeltsHome: React.FC = () => {
       return () => { active = false; };
     }
 
+    if (isSchoolStudentWorkspace) return () => { active = false; };
+
     const loadDashboard = async () => {
       setDashboardLoading(true);
       setDashboardLoaded(false);
@@ -309,11 +315,12 @@ const IeltsHome: React.FC = () => {
 
     void loadDashboard();
     return () => { active = false; };
-  }, [profileContextLoaded, profileContextError, authUserId, isAuthenticated, isIeltsAdminLandingRole, hasSchoolMembership]);
+  }, [profileContextLoaded, profileContextError, authUserId, isAuthenticated, isIeltsAdminLandingRole, hasSchoolMembership, isSchoolStudentWorkspace]);
 
   useEffect(() => {
     let active = true;
     const loadExtraPracticeSetting = async () => {
+      if (!profileContextLoaded || profileContextError || isIeltsAdminLandingRole || isSchoolStudentWorkspace) return;
       if (!isAuthenticated) {
         if (active) {
           setExtraPracticeEnabled(true);
@@ -336,7 +343,7 @@ const IeltsHome: React.FC = () => {
     };
     void loadExtraPracticeSetting();
     return () => { active = false; };
-  }, [authUserId, isAuthenticated, extraPracticeRetry]);
+  }, [authUserId, isAuthenticated, extraPracticeRetry, profileContextLoaded, profileContextError, isIeltsAdminLandingRole, isSchoolStudentWorkspace]);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -436,12 +443,12 @@ const IeltsHome: React.FC = () => {
       }
     };
 
-    if (profileContextLoaded && !profileContextError && !isIeltsAdminLandingRole) {
+    if (profileContextLoaded && !profileContextError && !isIeltsAdminLandingRole && !isSchoolStudentWorkspace) {
       void loadTasks();
       return;
     }
     setIsLoading(false);
-  }, [authUserId, isAuthenticated, profileContextLoaded, profileContextError, isIeltsAdminLandingRole]);
+  }, [authUserId, isAuthenticated, profileContextLoaded, profileContextError, isIeltsAdminLandingRole, isSchoolStudentWorkspace]);
 
   // GSAP is already installed in this project and powers the IELTS hero components.
 
@@ -451,8 +458,7 @@ const IeltsHome: React.FC = () => {
 
   const shouldShowDashboardLoading = !authResolved || (isAuthenticated && !isIeltsAdminLandingRole && (
     !profileContextLoaded
-    || dashboardLoading
-    || (!dashboardLoaded && !dashboardSummary)
+    || (!isSchoolStudentWorkspace && (dashboardLoading || (!dashboardLoaded && !dashboardSummary)))
   ));
 
   if (isAuthenticated && profileContextLoaded && profileContextError) {
@@ -481,9 +487,20 @@ const IeltsHome: React.FC = () => {
   }
 
   if (isIeltsAdminLandingRole || (profileContextLoaded && normalizeIeltsRole(userRole) === 'teacher')) {
-    return <IeltsProgrammeWorkspace />;
+    return <React.Suspense fallback={<p role="status">Loading IELTS programme…</p>}><IeltsProgrammeWorkspace /></React.Suspense>;
   }
 
+
+  if (isSchoolStudentWorkspace) {
+    return <div style={{minHeight:'100vh',background:'#f8fafc',color:'#0f172a',padding:'1.25rem 1rem 4rem'}}><main style={{maxWidth:1120,margin:'0 auto',display:'grid',gap:'1rem'}}>
+      <header><p className="ij-eyebrow">Brains Heist IELTS</p><h1 className="text-3xl font-bold tracking-tight">Your IELTS workspace</h1><p>Find your checks, practise your next focus and read your teacher’s feedback.</p></header>
+      <IeltsSchoolLearnerLinks onNavigate={navigate} />
+      <IeltsTargetedPractice key={authUserId + '-practice'} />
+      <IeltsScreenerHub key={authUserId} />
+      <button type="button" className="ij-link" onClick={()=>navigate('/ielts?view=library')}>Explore other practice tools →</button>
+      <button type="button" className="ij-link" onClick={()=>navigate('/')}>Back to Brains Heist Game</button>
+    </main></div>;
+  }
 
   const formatDate = (value?: string | null) => {
     if (!value) return 'Not available yet';

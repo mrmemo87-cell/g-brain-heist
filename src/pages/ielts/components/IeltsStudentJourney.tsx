@@ -14,6 +14,8 @@ import { SPEAKING_CRITERIA } from '../../../../services/ieltsSpeakingPilot';
 import IeltsScreenerHub from '../../../components/ielts/IeltsScreenerHub';
 import IeltsSkillIcon from '../../../components/ielts/IeltsSkillIcon';
 import '../../../styles/ielts-journey.css';
+import IeltsSchoolLearnerLinks from '../../../components/ielts/IeltsSchoolLearnerLinks';
+import IeltsTargetedPractice from '../../../components/ielts/IeltsTargetedPractice';
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
 const date = (v?: string | null) =>
   v && Number.isFinite(Date.parse(v))
@@ -123,6 +125,8 @@ export default function IeltsStudentJourney({
           <small>{reviews.length} of 2 teacher reviews shared</small>
         </div>
       </header>
+      <IeltsSchoolLearnerLinks onNavigate={navigate} active="journey" />
+      <IeltsTargetedPractice />
       <section className="ij-next" aria-labelledby="next-step-heading">
         <div>
           <p className="ij-eyebrow">Your next step</p>
@@ -307,7 +311,7 @@ export default function IeltsStudentJourney({
         <div className="ij-section-heading">
           <div>
             <p className="ij-eyebrow">Purposeful practice</p>
-            <h2 id="practice-heading">Your practice plan</h2>
+            <h2 id="practice-heading">School assignments</h2>
             <button type="button" className="ij-primary" onClick={() => navigate('/ielts/practice/targeted')}>Open your next targeted task →</button>
           </div>
           <button
@@ -315,7 +319,7 @@ export default function IeltsStudentJourney({
             className="ij-link"
             onClick={() => navigate('/ielts/practice/assigned')}
           >
-            Open assigned practice →
+            Open school assignments →
           </button>
         </div>
         {journey.assigned_practice.length ? (
@@ -348,7 +352,7 @@ export default function IeltsStudentJourney({
         ) : (
           <p>
             {startingPoint.school_managed
-              ? 'No active IELTS assignments right now. Agree one practice focus with your teacher using the feedback above.'
+              ? 'No active school assignments right now. Agree one practice focus with your teacher using the feedback above.'
               : 'No assigned tasks yet. Use the teacher’s next step as a practice focus.'}
           </p>
         )}

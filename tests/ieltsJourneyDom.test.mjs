@@ -16,6 +16,7 @@ async function mount(data=point,fail=false){
  w.fetch=async(url,options)=>{const fn=String(url).split('/').pop();calls.push(fn);let result;
   if(fn==='rpc_ielts_starting_point_summary'){if(fail){fail=false;return new Response(JSON.stringify({message:'failed'}),{status:500,headers:{'Content-Type':'application/json'}});}result=data;}
   else if(fn==='rpc_ielts_student_journey')result=journey;
+  else if(fn==='rpc_ielts_learning_workspace')result={manager:false,pilot_only:true,tasks:[],allocations:[]};
   else throw Error('Unexpected request '+fn);
   return new Response(JSON.stringify(result),{status:200,headers:{'Content-Type':'application/json'}});
  };
