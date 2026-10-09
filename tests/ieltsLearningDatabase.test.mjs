@@ -17,9 +17,10 @@ create table academic_skill_registry_nodes(id uuid primary key,registry_version_
 create table private.ielts_speaking_sessions(id uuid primary key,student_id uuid,school_id uuid,status text);
 create table private.ielts_speaking_reviews(session_id uuid);
 create table private.ielts_writing_screener_reviews(attempt_id uuid);
-create table private.ielts_diagnostic_attempt_evidence(attempt_id uuid primary key,student_id uuid,school_id uuid,version_id uuid);
+create table private.ielts_diagnostic_attempt_evidence(attempt_id uuid primary key,student_id uuid,school_id uuid,version_id uuid,form_snapshot jsonb);
 create table private.ielts_diagnostic_versions(id uuid primary key,skills text[]);
-create table private.ielts_diagnostic_scoring_runs(attempt_id uuid,server_verified boolean);
+create table private.ielts_diagnostic_scoring_runs(id uuid default gen_random_uuid(),attempt_id uuid,server_verified boolean,run_version int default 1,raw_score int,marks_possible int,integrity_state text,outcomes jsonb,submission_id uuid);
+create table ielts_exam_submissions(id uuid,student_id uuid,payload jsonb);
 create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
 create table storage.objects(bucket_id text,name text);alter table storage.objects enable row level security;
 create function private.ielts_speaking_student_eligible(uuid) returns boolean language sql as $$select $1='${student}'::uuid$$;
@@ -35,13 +36,15 @@ insert into private.ielts_writing_screener_reviews values('${source}');
 insert into private.ielts_speaking_sessions values('${source}','${student}','${school}','submitted');
 insert into private.ielts_speaking_reviews values('${source}');
 insert into private.ielts_diagnostic_versions values('${source}',array['listening','reading','writing']);
-insert into private.ielts_diagnostic_attempt_evidence values('${source}','${student}','${school}','${source}');
-insert into private.ielts_diagnostic_scoring_runs values('${source}',true);`);
+insert into private.ielts_diagnostic_attempt_evidence(attempt_id,student_id,school_id,version_id,form_snapshot) values('${source}','${student}','${school}','${source}', '{"items":[{"item_key":"q1","skill":"listening","prompt":"Which room?","accepted_answers":["lab"],"order_index":1,"taxonomy":{"name":"Final detail"}}]}');
+insert into ielts_exam_submissions values('${source}','${student}','{"listening":{"q1":"hall"}}');
+insert into private.ielts_diagnostic_scoring_runs(attempt_id,server_verified,raw_score,marks_possible,integrity_state,outcomes,submission_id) values('${source}',true,8,12,'clear','[{"item_key":"q1","skill":"listening","marks_awarded":0,"response_state":"answered"}]','${source}');`);
 await db.exec(readFileSync('supabase/migrations/20261008195545_ielts_targeted_listening_pilot.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/20261008201324_ielts_learning_exposure_integrity.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/20261008202405_ielts_learning_school_boundary.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/20261008211134_ielts_four_skill_practice_pilot.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/20261009041408_ielts_listening_extension_02_reviewed_audio.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261009055444_ielts_targeted_teacher_review.sql','utf8'));
 const actor=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
 const detail=async()=> (await db.query('select rpc_ielts_learning_detail($1) d',[id])).rows[0].d;
 const allocate=()=>db.query('select rpc_ielts_learning_allocate($1,$2,$3,$4,$5,null,$6) id',[school,student,'bh-ielts-targeted-listening-l1-v1',source,'Synthetic delivery test; no diagnosis asserted.',request]);
@@ -179,4 +182,28 @@ test('extension hides transcript and explanations, marks final details, and snap
    const rows=(await db.query('select task_snapshot from private.ielts_learning_submissions where allocation_id=$1',[allocation])).rows;assert.equal(rows.length,1);assert.equal(rows[0].task_snapshot.audio_sha256,resource.audio_sha256);assert.equal(rows[0].task_snapshot.review_record.audio_approval.source_statement,'Listened and approved');
   }
  }finally{await db.exec('ROLLBACK');}
+});
+
+test('teacher-only context shows the exact practice key and original screener evidence; student and outsider fail closed',async()=>{
+ await actor(student); await assert.rejects(db.query('select rpc_ielts_learning_review_context($1)',[id]),/not_authorized/);
+ await actor(outsider); await assert.rejects(db.query('select rpc_ielts_learning_review_context($1)',[id]),/not_authorized/);
+ await actor(teacher); const c=(await db.query('select rpc_ielts_learning_review_context($1) c',[id])).rows[0].c;
+ assert.equal(c.school_id,school); assert.deepEqual(c.questions[0].accepted_answers,['Sunday']);
+ assert.equal(c.source.items[0].response,'hall'); assert.deepEqual(c.source.items[0].accepted_answers,['lab']); assert.equal(c.source.items[0].correct,false);
+});
+test('AI is teacher-only, deduplicates work, caches private drafts and links confirmed review provenance',async()=>{
+ const aiId=(await db.query("select a.id from private.ielts_learning_allocations a join private.ielts_learning_tasks t on t.code=a.task_code where a.status='submitted' and t.skill='reading' limit 1")).rows[0].id;
+ await actor(student);await assert.rejects(db.query('select rpc_ielts_claim_learning_ai($1,$2)',[aiId,'test-model']),/not_authorized/);
+ await actor(teacher);const claim=(await db.query('select rpc_ielts_claim_learning_ai($1,$2) c',[aiId,'test-model'])).rows[0].c;
+ assert.ok(claim.context.questions[0].accepted_answers);assert.equal(JSON.stringify(claim.context).includes(student),false);
+ await assert.rejects(db.query('select rpc_ielts_claim_learning_ai($1,$2)',[aiId,'test-model']),/ai_already_working/);
+ const fields={went_well:'You selected Sunday correctly.',work_on:'Check the final starting time.',practice:'Listen again and note the correction.',check_again:'Try a fresh task with your teacher.'};
+ await db.query('select rpc_ielts_finish_learning_ai($1,$2,$3)',[claim.id,JSON.stringify({fields,evidence:[{id:'q1',answer:'  sUnDaY '}]}),'test-provider']);
+ const cached=(await db.query('select rpc_ielts_claim_learning_ai($1,$2) c',[aiId,'test-model'])).rows[0].c;assert.equal(cached.id,claim.id);assert.deepEqual(cached.fields.fields,fields);
+ const req='00000000-0000-4000-8000-000000000770';
+ await db.query('select rpc_ielts_learning_review_with_draft($1,$2,$3,$4)',[aiId,JSON.stringify(fields),req,claim.id]);
+ await db.query('select rpc_ielts_learning_review_with_draft($1,$2,$3,$4)',[aiId,JSON.stringify(fields),req,claim.id]);
+ assert.equal((await db.query('select count(*)::int n from private.ielts_learning_ai_review_links')).rows[0].n,1);
+ assert.equal((await getDetail(aiId)).review.fields.went_well,fields.went_well);
+ await actor(outsider);await assert.rejects(db.query('select rpc_ielts_learning_review_with_draft($1,$2,$3,$4)',[aiId,JSON.stringify(fields),req,claim.id]),/not_authorized/);
 });

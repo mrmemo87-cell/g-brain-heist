@@ -32,3 +32,6 @@ verify_jwt = true
 verify_jwt = true
 [functions.ielts_speaking_pilot]
 verify_jwt = true
+
+[functions.ielts_learning_teacher_ai]
+verify_jwt = true

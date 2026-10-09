@@ -13,6 +13,9 @@ import {
   type LearningFeedback,
   type FeedbackKey,
   learningRecordingAudio,
+  learningReviewContext,
+  draftLearningFeedback,
+  type LearningReviewContext,
 } from "../../../services/ieltsLearningService";
 import {
   restoreIeltsAudioCheckpoint,
@@ -86,6 +89,17 @@ const blankFeedback: LearningFeedback = {
 };
 export default function IeltsLearningPractice() {
   const navigate = useNavigate();
+  const [teacherContext, setTeacherContext] = useState<LearningReviewContext | null>(null);
+  const [contextError, setContextError] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiDraft, setAiDraft] = useState<string>();
+  const [proposedDraft, setProposedDraft] = useState<{ id: string; fields: LearningFeedback } | null>(null);
+  const teacherRoute = "/ielts?programmeSection=reviews" + (teacherContext ? "&school=" + encodeURIComponent(teacherContext.school_id) : "");
+  const loadTeacherContext = async (id: string) => {
+    setContextError("");
+    try { const c = await learningReviewContext(id); if (current.current?.id === id) setTeacherContext(c); }
+    catch { if (current.current?.id === id) setContextError("The answer key and source evidence could not load. Saved work is safe. Try loading them again."); }
+  };
   const { allocationId } = useParams<{ allocationId: string }>();
   const [workspace, setWorkspace] = useState<LearningWorkspace | null>(null),
     [detail, setDetail] = useState<LearningDetail | null>(null);
@@ -120,6 +134,11 @@ export default function IeltsLearningPractice() {
   };
   useEffect(() => {
     let active = true;
+    setTeacherContext(null);
+    setContextError("");
+    setAiBusy(false);
+    setAiDraft(undefined);
+    setProposedDraft(null);
     setDetail(null);
     setWorkspace(null);
     setError("");
@@ -154,6 +173,7 @@ export default function IeltsLearningPractice() {
         if (!active) return;
         setDetail(d);
         current.current = d;
+        if (d.manager) void loadTeacherContext(d.id);
         setAnswers(d.answers);
         draft.current = d.answers;
         saved.current = JSON.stringify(d.answers);
@@ -352,7 +372,8 @@ export default function IeltsLearningPractice() {
       <header>
         <p className="il-eyebrow">BRAINS HEIST · PURPOSEFUL PRACTICE</p>
         <h1>{detail?.title ?? "Targeted Practice"}</h1>
-        <Link to="/ielts/journey">← IELTS Journey</Link>
+        <Link to={detail?.manager ? teacherRoute : "/ielts/journey"}>{detail?.manager ? "← Review desk" : "← IELTS Journey"}</Link>
+        {detail?.manager && <p className="il-eyebrow">TEACHER REVIEW{teacherContext ? " · " + teacherContext.student_name : ""}</p>}
       </header>
       {!detail?.manager && <IeltsSchoolLearnerLinks onNavigate={navigate} active="targeted" />}
       {!allocationId && <p>Short tasks chosen by your teacher. Start a task, continue saved work or read your feedback.</p>}
@@ -372,21 +393,39 @@ export default function IeltsLearningPractice() {
             </p>
             <h2>Why this task?</h2>
             <p>{detail.reason}</p>
-            <h3>Your goal</h3>
+            <h3>{detail.manager ? "Practice goal" : "Your goal"}</h3>
             <p>{detail.success_description}</p>
             <p>{detail.instructions}</p>
             <p className="il-muted">
               This short task does not give an IELTS band or establish
               improvement by itself.
             </p>
-            <Link
-              to={
-                detail.source_route ??
-                "/ielts/screener-result/" + detail.source_attempt_id
-              }
-            >
-              View the source evidence
-            </Link>
+            {detail.manager ? (
+              <>
+                {contextError && <p role="alert">{contextError} <button onClick={() => void loadTeacherContext(detail.id)}>Reload review evidence</button></p>}
+                {teacherContext ? <>
+                  <details className="il-preview">
+                    <summary>Answer key and teaching notes</summary>
+                    {teacherContext.questions.filter(q => q.accepted_answers?.length).map((q, i) => <p key={q.id}><strong>{i + 1}. {q.prompt}</strong><br />{q.accepted_answers!.join(" / ")}</p>)}
+                    {teacherContext.teacher_notes && <p className="il-key-notes">{teacherContext.teacher_notes}</p>}
+                  </details>
+                  {(skill === "listening" || skill === "reading") ? <details className="il-preview">
+                    <summary>View original screener evidence</summary>
+                    {teacherContext.source ? <>
+                      <p>{teacherContext.source.score} / {teacherContext.source.total} · Confidence: low</p>
+                      <p>These are the original screener answers. This practice is a separate task. Neither result alone establishes improvement.</p>
+                      {teacherContext.source.integrity_state !== "clear" && <p>Check the original assessment conditions before drawing conclusions.</p>}
+                      {teacherContext.source.items.map((item, i) => <article key={item.id} className="il-source-item">
+                        <h3>{i + 1}. {item.prompt}</h3>
+                        <p><strong>Student answer:</strong> {item.response || "No answer saved"}</p>
+                        <p><strong>Accepted answer:</strong> {item.accepted_answers.join(" / ")}</p>
+                        <p>{item.response_state === "answered" ? item.correct ? "Correct" : "Incorrect" : "No valid answer"} · {item.construct}</p>
+                      </article>)}
+                    </> : <p>The original screener evidence is unavailable for review. Check the student’s record in the review desk.</p>}
+                  </details> : <Link to={skill === "writing" ? "/ielts/writing-screener/reviews/" + detail.source_attempt_id : detail.source_route}>Review original {skill} evidence →</Link>}
+                </> : !contextError && <p role="status">Loading teacher key and source evidence…</p>}
+              </>
+            ) : <Link to={detail.source_route ?? "/ielts/screener-result/" + detail.source_attempt_id}>View the source evidence</Link>}
           </section>
           <section className="il-card">
             <h2>
@@ -753,10 +792,30 @@ export default function IeltsLearningPractice() {
                 Use simple language and refer to the student’s actual answers. A
                 fresh score alone does not establish improvement.
               </p>
+              {(skill === "listening" || skill === "reading") && <div className="il-ai-help">
+                <button disabled={working || aiBusy || !teacherContext || !!proposedDraft} aria-busy={aiBusy} onClick={async () => {
+                  const id = detail.id;
+                  setAiBusy(true); setError("");
+                  try {
+                    const proposal = await draftLearningFeedback(id);
+                    if (current.current?.id !== id) return;
+                    if (Object.values(feedback).some(v => typeof v === "string" && v.trim())) setProposedDraft(proposal);
+                    else { setFeedback(proposal.fields); setAiDraft(proposal.id); reviewRequest.current = crypto.randomUUID(); setMessage("AI draft ready. Check and edit every field before sharing."); }
+                  } catch (e) { if (current.current?.id === id) setError(e instanceof Error ? e.message : "AI help is unavailable. Your feedback is safe."); }
+                  finally { if (current.current?.id === id) setAiBusy(false); }
+                }}>{aiBusy ? "AI magic is being applied…" : "AI help · Draft all feedback"}</button>
+                <p role="status">{aiBusy ? "Reading the saved answers and key. Your feedback will stay private until you confirm and share." : aiDraft ? "AI draft · Check the evidence, edit the wording and confirm before sharing." : "Fills all four feedback boxes using the saved answers and key. You check and edit before sharing."}</p>
+                {proposedDraft && <div className="il-alert">
+                  <p>Your existing feedback is still here. Apply the AI draft to replace all four boxes, or keep your wording.</p>
+                  <button onClick={() => { setFeedback(proposedDraft.fields); setAiDraft(proposedDraft.id); setProposedDraft(null); reviewRequest.current = crypto.randomUUID(); }}>Apply AI draft</button>
+                  <button onClick={() => setProposedDraft(null)}>Keep my feedback</button>
+                </div>}
+              </div>}
               {criteriaKeys.map((k) => (
                 <label className="il-answer" key={k}>
                   {criterionLabels[k]}
                   <textarea
+                    disabled={aiBusy || working}
                     maxLength={900}
                     value={feedback.criteria?.[k] ?? ""}
                     onChange={(e) => {
@@ -792,6 +851,7 @@ export default function IeltsLearningPractice() {
                 <label className="il-answer" key={k}>
                   {feedbackLabels[k]}
                   <textarea
+                    disabled={aiBusy || working}
                     maxLength={1200}
                     value={feedback[k]}
                     onChange={(e) => {
@@ -803,7 +863,7 @@ export default function IeltsLearningPractice() {
               ))}
               <button
                 disabled={
-                  working ||
+                  working || aiBusy || !!proposedDraft ||
                   (Object.keys(feedbackLabels) as FeedbackKey[]).some(
                     (k) => feedback[k].trim().length < 5,
                   ) ||
@@ -819,6 +879,7 @@ export default function IeltsLearningPractice() {
                       detail.id,
                       feedback,
                       reviewRequest.current,
+                      aiDraft,
                     );
                     setDetail(d);
                     setMessage("Teacher feedback shared.");
@@ -837,7 +898,7 @@ export default function IeltsLearningPractice() {
               </button>
             </section>
           )}
-          <Link to="/ielts/practice/targeted">All targeted practice →</Link>
+          <Link to={detail.manager ? teacherRoute : "/ielts/practice/targeted"}>{detail.manager ? "Back to assigned work and reviews →" : "All targeted practice →"}</Link>
         </>
       )}
       {!workspace && !detail && <p role="status">{message}</p>}

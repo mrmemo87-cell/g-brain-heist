@@ -149,11 +149,13 @@ export const shareLearningReview = (
   id: string,
   feedback: LearningFeedback,
   request: string,
+  aiDraft?: string,
 ) =>
-  rpc<LearningDetail>("rpc_ielts_learning_review", {
+  rpc<LearningDetail>(aiDraft ? "rpc_ielts_learning_review_with_draft" : "rpc_ielts_learning_review", {
     p_id: id,
     p_feedback: feedback,
     p_request: request,
+    ...(aiDraft ? { p_draft: aiDraft } : {}),
   });
 export async function learningAudio(d: LearningDetail) {
   const { data, error } = await supabase.storage
@@ -237,4 +239,23 @@ export async function uploadLearningRecording(
     );
   await localSpeaking("delete", audio.id);
   return data.detail;
+}
+
+export interface LearningReviewContext {
+  school_id: string;
+  student_name: string;
+  questions: { id: string; prompt: string; accepted_answers?: string[] }[];
+  teacher_notes: string | null;
+  source: null | {
+    score: number; total: number; confidence: string; integrity_state: string;
+    items: { id: string; prompt: string; construct: string; response: string | null;
+      accepted_answers: string[]; correct: boolean; response_state: string }[];
+  };
+}
+export const learningReviewContext = (id: string) =>
+  rpc<LearningReviewContext>("rpc_ielts_learning_review_context", { p_id: id });
+export async function draftLearningFeedback(id: string): Promise<{ id: string; fields: LearningFeedback }> {
+  const { data, error } = await supabase.functions.invoke("ielts_learning_teacher_ai", { body: { allocationId: id } });
+  if (error || !data?.fields || !data?.id) throw new Error("AI help could not finish. Your feedback is safe. Try again or continue writing it yourself.");
+  return data;
 }
