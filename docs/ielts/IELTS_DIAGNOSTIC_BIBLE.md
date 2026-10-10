@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.8.0\
+**Version:** 1.9.0\
 **Effective date:** 2026-10-10\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -1168,6 +1168,40 @@ Backfill current material codes without rewriting content, assessment evidence, 
 
 ---
 
+## 15E. Material originality and intentional variants
+
+**Owner-authorized product contract (2026-10-10):** Creating a new IELTS material must involve a substantive new learning task, not merely a new title, code, scenario name or regenerated recording. Section 15D guarantees identity; this section governs content reuse. The implementation gate covers targeted practice and the four school practice catalogues. Diagnostic/screener forms retain their separate immutable form, exposure and human release gates; their authors must follow this originality policy too. Do not claim that the practice inventory automatically compares every diagnostic form or external material.
+
+### 15E.1 Comparison before availability
+
+Save new or changed catalogue material as an unavailable draft. Save the passage/prompt, questions, answer logic and listening transcript before review; multi-step saving must never publish half a task. Retain a created draft ID when a later save step fails so retry updates the same material. Compare task-bearing content against current, retired and retained earlier versions in the practice inventory, including across targeted/school catalogues within the same skill. Titles, display codes, taxonomy IDs and administrative metadata cannot make copied content new.
+
+Maintain private, append-only normalized content fingerprints, separate exact source hashes and reviewer snapshots, with the comparison policy version. Cosmetic source edits can keep a duplicate fingerprint while still invalidating an exact-version approval. Normalize Unicode compatibility forms, case, spacing and punctuation for exact-copy checks. Include passage/prompt, question content/options/keys, relevant scaffolds and recording/script identity; compare question bundles independently of their display order. Block a complete exact copy under another identity, even as a draft. An incomplete draft is not an approved task and must not prevent a genuinely changed question bundle from being completed. Existing inventory is recorded as **Existing material**, not retrospectively certified as original or approved; preserve its existing availability and all separate release gates.
+
+Flag shared passages/prompts, question bundles, recording references or script hashes and near wording. The initial **ielts-originality-v1** near-wording rule uses token-set Dice similarity of at least **0.72** as an internal editorial flag only. It is not a scientific novelty threshold, difficulty calibration, IELTS score, validated plagiarism detector or proof that an unflagged paraphrase is new. All new content requires a human content comparison, even when automatic checks flag nothing. AI may draft material and comparison notes but may never record human approval on a person's behalf.
+
+### 15E.2 Human review and version binding
+
+An authorised content administrator compares the actual task, related saved materials, question/answer logic and response demand. Record the reviewer, date, exact content hash, matching-inventory hash, policy, decision and a substantive explanation of differences. A genuinely new task changes the stimulus, evidence, answer reasoning or response demand meaningfully. Renaming people, changing decorative details, rearranging questions or paraphrasing the same answer logic is insufficient. Similar wording requires an explicit supported review; shared primary content/questions/script/recording cannot be approved as fresh.
+
+A review approves only the captured content and comparison inventory. Changed content, questions or private transcript invalidates that approval. New related inventory also requires a refreshed comparison at the next publication or allocation; unrelated new material does not invalidate the review. A reviewed descendant linked to this exact parent version is intentional reuse and does not revoke the original’s approval; its student exposure still belongs to the same family. Completed unreviewed or differently linked matching drafts remain review challenges. Retained exploratory versions of a declared descendant stay in its same reuse family; they do not turn the earlier original into a derivative. Never re-label an earlier original as a variant of a later recorded version to manufacture a fresh claim. Server-side checks protect publication and new school/targeted allocations, including raw table/RPC bypass attempts. Existing student answer saves, submitted evidence and historical reports continue without rescoring or rewriting.
+
+For Listening, keep transcripts and answer-bearing comparison snapshots private. New Listening material must include a reviewable private transcript, and the human reviewer must listen to the actual recording and compare its script and answers. A remote audio URL, even stripped of signed query parameters, is only a reuse hint: a new URL does not prove a new recording, and the same URL does not certify byte identity. Trusted installed audio/script checksums are additional signals; they do not replace human listening or the existing rights, editorial, mapping, device and release approvals.
+
+### 15E.3 Declared variants and exposure
+
+Intentional reuse must be an explicit **variant**, linked to a matching parent's canonical identity and earlier recorded exact content version, with its practice purpose and substantive changes explained. Keep its own section 15D code. An exact complete copy has no override; reuse the existing material instead. Show **Variant of L-001 · repeat practice** (or the appropriate skill/code) in teacher selection and student task/assignment views. Keep the parent link and exposure family in the audit trail.
+
+A variant is repeat/guided practice, never an unseen independent check or automatic proof of improvement. Before allocating an independent targeted check, consider prior allocations, school assignments and direct practice attempts involving its linked variant family, including transitive links across the practice catalogues. Reused material cannot become independent evidence simply because its code is different. Human source/exposure review and the separate section 8A qualification/comparability policies remain necessary; the originality gate does not certify learning progress or an IELTS band.
+
+### 15E.4 Privacy, preservation and acceptance
+
+Ordinary students/teachers cannot browse private comparison snapshots, transcripts, keys or a global protected task directory. Match previews and decisions use existing content-admin permissions; protected targeted content and matches require platform content-admin review. Check actual account roles and banned status on the server. Keep decisions and inventory append-only; retain historical content after retirement. Preserve existing codes, student work, feedback, scores and approved report versions exactly.
+
+Acceptance covers disguised copies, shared sources, near wording, unflagged material requiring human review, incomplete/multi-step saves, changed/stale reviews, exact-copy override attempts, linked variants, family exposure, private transcripts/keys, role denial and retained history. Serialize creation/review/publication per skill on this cold path; do not add comparison scans to answer-save/scoring transactions. Apply section 13 before claiming wider-launch capacity. These checks reduce accidental reuse; neither automation nor a checked box can guarantee semantic uniqueness without competent human review.
+
+---
+
 ## 16. Current known legacy issues
 
 The following current/legacy behaviours are **not** canonical and must not be preserved merely because they already exist.
@@ -1582,6 +1616,14 @@ Affected implementation: IELTS evidence projections, plan decisions, academic re
 The owner explicitly requested short task identifiers for current work and permanent Bible rules to help teachers and students recognise previous assignments. Section 15D establishes the display-code contract, stable material/assignment/attempt distinctions, atomic numbering, non-reuse, scope, and historical preservation. Basis: explicit owner product-policy authorisation and existing evidence governance. No external IELTS format, scoring, criteria, calibration or content-release gate changes.
 
 Affected implementation: material registry and insert/update triggers, catalogue/code search, scoped teacher/student task and assignment payloads, task/results presentation and retained assignment history. Additive code fields use existing reads; new-material publication serializes briefly per skill. Ordinary answer saves/submissions and scores are unchanged. Tests establish functional correctness and isolation, not 500-user capacity.
+
+---
+
+### 22.8 Revision record — v1.9.0 (2026-10-10)
+
+The owner requested safeguards so newly created IELTS material is meaningfully different and repetition cannot happen unnoticed. Section 15E establishes content comparison, exact-copy blocking, required human originality decisions, explicit parent-linked variants, private listening transcripts, version/inventory binding and exposure-family checks. Basis: explicit owner product-policy authorisation and the existing evidence, privacy and release contracts. The token similarity threshold is an internal editorial rule, not an external IELTS standard or calibration claim.
+
+Affected implementation: practice inventory fingerprints, draft/publication and allocation triggers, content-admin comparison/review UI, private transcripts, scoped provenance labels and tests. Existing inventory is grandfathered without originality certification; no content, scores, evidence, approved reports or official assessment rules are rewritten. Diagnostic form publication remains separately governed. No semantic-uniqueness guarantee or 500-user capacity claim follows.
 
 ---
 

@@ -8,6 +8,7 @@ export type LearningFeedback = Record<
 export interface LearningAllocation {
   id: string;
   task_code?: string;
+  originality_label?: string | null;
   display_code?: string;
   student_id?: string;
   assigned_at?: string;
@@ -25,7 +26,8 @@ export interface LearningWorkspace {
   pilot_only: boolean;
   tasks: {
     code: string;
-    display_code?: string;
+    originality_label?: string | null;
+  display_code?: string;
     pilot_student: string;
     pilot_student_name: string;
     version: string;
@@ -59,6 +61,7 @@ export interface LearningContent {
   mapping_scope?: string;
 }
 export interface LearningDetail {
+  originality_label?: string | null;
   display_code?: string;
   skill: LearningSkill;
   content: LearningContent;
@@ -110,7 +113,11 @@ async function rpc<T>(name: string, args: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.rpc(name, args);
   if (error)
     throw new Error(
-      error.message.includes("draft_changed")
+      error.message.includes("Originality review required")
+        ? "A content administrator must finish originality review before this task can be assigned."
+        : error.message.includes("already been exposed")
+        ? "This student has already seen this material or a linked variant. Choose an unseen independent check."
+        : error.message.includes("draft_changed")
         ? "This task changed in another tab. Reopen it and choose which saved copy to use."
         : "We could not confirm this step. Check your access and connection, then try again.",
     );

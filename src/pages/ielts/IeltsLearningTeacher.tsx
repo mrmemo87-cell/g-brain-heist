@@ -146,7 +146,7 @@ export default function IeltsLearningTeacher({
                 >
                   {data.tasks.map((t) => (
                     <option key={t.code} value={t.code}>
-                      {t.skill ?? "listening"} · {ieltsMaterialTitle(t.display_code, t.title)} ·{" "}
+                      {t.skill ?? "listening"} · {ieltsMaterialTitle(t.display_code, t.title)}{t.originality_label?.startsWith("Variant of ") ? ` · ${t.originality_label}` : ""} ·{" "}
                       {t.purpose === "guided_practice"
                         ? "Guided practice"
                         : "Fresh check"}{(() => {
@@ -342,7 +342,7 @@ export default function IeltsLearningTeacher({
                   <article key={a.id}>
                     <p className="il-eyebrow">{a.skill}</p>
                     <h4>
-                      {a.student_name} · {ieltsMaterialTitle(a.display_code, a.title)}
+                      {a.student_name} · {ieltsMaterialTitle(a.display_code, a.title)}{a.originality_label?.startsWith("Variant of ") ? ` · ${a.originality_label}` : ""}
                     </h4>
                     <p>{a.reason}</p>
                     <p>

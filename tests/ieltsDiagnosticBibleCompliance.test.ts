@@ -9,7 +9,10 @@ test('IELTS Diagnostic Bible is wired into the repository agent contract', () =>
   const agents = read('AGENTS.md');
   const bible = read('docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md');
 
-  assert.match(bible, /\*\*Version:\*\* 1\.8\.0/i);
+  assert.match(bible, /\*\*Version:\*\* 1\.9\.0/i);
+  assert.match(bible, /## 15E\. Material originality and intentional variants/);
+  assert.match(bible, /All new content requires a human content comparison/);
+  assert.match(bible, /An exact complete copy has no override/);
   assert.match(bible, /## 15D\. Stable task codes and assignment history/);
   assert.match(bible, /never.*reuse a retired code/is);
   assert.match(bible, /code identifies a canonical material, not an allocation, an attempt/);

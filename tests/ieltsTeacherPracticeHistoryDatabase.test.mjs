@@ -61,6 +61,20 @@ insert into ielts_speaking_tasks(id,slug,is_active) values(1,'Speaking one',true
 `);
 await db.exec(readFileSync('supabase/migrations/20261009235621_ielts_stable_material_codes.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/20261010011014_ielts_task_code_read_payloads.sql','utf8'));
+await db.exec(`alter table users add column role text default 'superadmin';
+alter table private.ielts_learning_tasks add column audio_sha256 text,add column audio_path text,add column review_record jsonb;
+alter table public.ielts_reading_sets add column passage_text text;
+alter table public.ielts_listening_questions add column body text,add column options jsonb,add column correct_answer jsonb;
+create table public.ielts_reading_questions(set_id bigint,body text,options jsonb,correct_answer jsonb);
+alter table public.ielts_speaking_tasks add column follow_ups jsonb;
+create table public.ielts_reading_attempts(user_id uuid,set_id bigint);
+create table public.ielts_listening_attempts(user_id uuid,set_id bigint);
+create table public.ielts_writing_attempts(user_id uuid,task_id bigint);
+create table public.ielts_speaking_attempts(user_id uuid,task_id bigint);
+create function private.ielts_learning_immutable() returns trigger language plpgsql as $$begin raise exception 'immutable';end;$$;`);
+await db.exec(readFileSync('supabase/migrations/20261010014023_ielts_material_originality_gate.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261010015030_ielts_material_originality_payloads.sql','utf8'));
+
 
 const actor=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
 const history=async(filters={})=>(await db.query('select rpc_ielts_teacher_practice_history($1,$2,$3,$4,$5,$6) d',[school,filters.search??'',filters.skill??'',filters.kind??'',filters.status??'',filters.offset??0])).rows[0].d;
@@ -76,6 +90,7 @@ test('both assignment types appear, with independent work/feedback states and no
 });
 test('workspace and assignment/progress payloads carry codes without replacing canonical IDs or statuses',async()=>{
  const workspace=(await db.query('select rpc_ielts_learning_workspace($1) d',[school])).rows[0].d;
+ assert.equal(workspace.tasks[0].originality_label,'Existing material');assert.equal(workspace.allocations[0].originality_label,'Existing material');
  assert.equal(workspace.tasks[0].code,'exact-task');assert.equal(workspace.tasks[0].display_code,'L-001');
  assert.equal(workspace.allocations[0].task_code,'exact-task');assert.equal(workspace.allocations[0].display_code,'L-001');assert.equal(workspace.allocations[0].status,'submitted');
  const payload=(await db.query('select ielts_practice_assignment_payload($1) d',[assignment])).rows[0].d;
@@ -111,6 +126,7 @@ test('students, cross-school requests, banned actors, bad recipient scope and pu
  const p=(await db.query("select has_function_privilege('anon','public.rpc_ielts_teacher_practice_history(uuid,text,text,text,text,integer)','execute') anon,has_function_privilege('authenticated','private.ielts_teacher_practice_rows(uuid,uuid,uuid,jsonb)','execute') helper")).rows[0];assert.equal(p.anon,false);assert.equal(p.helper,false);
 });
 test('codes are distinct across catalogues, server assigned, immutable and never reused',async()=>{
+ await db.exec(`update users set is_banned=false where id='${teacher}'`);
  const registry=(await db.query('select * from private.ielts_material_codes')).rows;
  assert.equal(registry.length,7);assert.equal(new Set(registry.map(r=>r.display_code)).size,7);
  assert.equal((await db.query('select display_code from ielts_listening_sets where id=1')).rows[0].display_code,'L-002');
@@ -138,11 +154,17 @@ test('new targeted materials receive a code without altering immutable source co
  await assert.rejects(db.exec("update private.ielts_learning_tasks set title='Changed' where code='exact-task'"),/source_is_immutable/);
 });
 test('catalogue code search preserves active and deliverable material filters',async()=>{
- const search=async(term)=>(await db.query('select * from rpc_ielts_practice_content_catalog_with_codes(null,$1,100)',[term])).rows;
+ const search=async(term)=>(await db.query('select * from rpc_ielts_practice_content_catalog_with_provenance(null,$1,100)',[term])).rows;
  assert.equal((await search('l-002'))[0].title,'Listening one');
  assert.equal((await search('L-003')).length,0); // active but no deliverable audio
- assert.equal((await search('New title'))[0].display_code,'R-001');
+ assert.equal((await search('New title'))[0].display_code,'R-001');assert.equal((await search('New title'))[0].originality_label,'Existing material');
  assert.equal((await search('R-002')).length,0); // reinserted inactive/unpublished
  const rights=(await db.query("select has_function_privilege('anon','public.rpc_ielts_practice_content_catalog_with_codes(text,text,integer)','execute') anon")).rows[0];assert.equal(rights.anon,false);
 });
-await test('close database' ,async()=>db.close());
+test('provenance catalogue keeps invoker RLS and cannot reveal private snapshots',async()=>{
+ await db.exec(`grant select on public.ielts_reading_sets,public.ielts_listening_sets,public.ielts_writing_tasks,public.ielts_speaking_tasks,public.ielts_listening_questions to authenticated;
+ alter table public.ielts_reading_sets enable row level security;create policy scoped_read on public.ielts_reading_sets for select to authenticated using(id=1);set role authenticated;`);
+ try {const rows=(await db.query("select * from rpc_ielts_practice_content_catalog_with_provenance('reading',null,100)")).rows;assert.equal(rows.length,1);assert.equal(rows[0].content_id,'1');assert.equal(rows[0].originality_label,'Existing material');assert.doesNotMatch(JSON.stringify(rows),/snapshot|correct_answer|transcript/);}finally{await db.exec('reset role');}
+ const rights=(await db.query("select prosecdef from pg_proc where oid='public.rpc_ielts_practice_content_catalog_with_provenance(text,text,integer)'::regprocedure")).rows[0];assert.equal(rights.prosecdef,false);
+});
+await test('close database'  ,async()=>db.close());
