@@ -45,3 +45,12 @@ Keep this change in draft until the Visual & UX Bible acceptance matrix is compl
 Also complete regression walkthroughs for timed Reading/Listening, offline answer recovery, Writing save/feedback, Speaking microphone/recording recovery, review publication, entitlement and school isolation. Revalidate the governed pilot identity before any authorized live pilot. No live pilot was attempted for this change.
 
 Acceptance authority: `IELTS_DIAGNOSTIC_BIBLE.md` and `IELTS_VISUAL_UX_BIBLE.md`. Builds and source review cannot substitute for their required browser/device evidence.
+
+
+## Follow-up: screener presentation and A4 overview
+
+The supplied desktop screenshots show a flat saved-result page, a teacher being sent to the student Journey, and an A4 overview with its confirmation footer on a second page. The result now groups the authoritative raw score, response coverage, next action and interpretation limits. Profile-based navigation sends students to Journey, allocated teachers to Programme student progress (with the authorized school preserved), other teachers to their teacher workspace, and school administrators to the governed admin progress destination. Missing or failed profile reads retain a safe IELTS landing link. Navigation does not grant access or alter the existing result RPC. Failed result reads can retry the same attempt, and integrity-review flags remain visible.
+
+Overview-only print rules reduce empty spacing, keep readable 9.5pt body text, and align the confirmation and platform footer on the same row. Existing A4 sizing and 12mm margins remain. No report content is hidden, truncated or scaled into a fixed-height container; detailed records and unusually long overviews may still paginate to preserve every word. The requested standard overview targets one A4 page.
+
+Diagnostic Bible used: 1.9.0. No scoring, band estimation, evidence, confidence, review or authorization changes. Programme DOM tests: 67 passed, zero failed. Local typecheck and production build hit a 60-second environment timeout without emitting code errors; full verification remains pending in GitHub CI. Screenshot inspection is not a rendered acceptance certificate: browser print pagination, 320/375/768/1440px layout, keyboard focus and authenticated teacher/student return paths still require exact-branch browser QA. This narrow follow-up is saved for review before production release.

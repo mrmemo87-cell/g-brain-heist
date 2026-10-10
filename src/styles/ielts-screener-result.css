@@ -1,0 +1,21 @@
+@import './ielts-ui.css';
+
+.isr-page { max-width:1040px; margin:24px auto; border-radius:0; }
+.isr-back { display:inline-flex; align-items:center; min-height:44px; color:var(--bh-ielts-primary); font-weight:600; text-decoration:none; }
+.isr-heading h1 { margin:8px 0 12px; font-size:clamp(1.875rem,4vw,2.75rem); font-weight:700; line-height:1.15; letter-spacing:-.025em; overflow-wrap:anywhere; }
+.isr-evidence-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.isr-metrics { display:grid; grid-template-columns:1.15fr 1fr 1fr; gap:20px; margin:24px 0 0; }
+.isr-metrics > div { min-width:0; padding:16px; border:1px solid var(--bh-ielts-border); border-radius:var(--bh-ielts-radius-sm); }
+.isr-metrics .isr-score { background:var(--bh-ielts-secondary); }
+.isr-metrics dt { font-size:.875rem; font-weight:600; color:var(--bh-ielts-foreground-muted); }
+.isr-metrics dd { margin:12px 0; font-size:2.5rem; line-height:1.2; font-weight:700; font-variant-numeric:tabular-nums; }
+.isr-metrics dd span { font-size:1.25rem; font-weight:500; color:var(--bh-ielts-foreground-muted); }
+.isr-metrics p { font-size:.875rem; color:var(--bh-ielts-foreground-muted); }
+.isr-evidence .ix-notice { margin-top:20px; }
+.isr-next a { text-decoration:none; }
+.isr-next { border-left:4px solid var(--bh-ielts-primary); }
+.isr-next > * + *, .isr-state > * + *, .isr-notes > * + * { margin-top:16px; }
+.isr-notes h2 { font-size:1.25rem; }
+.isr-notes ul { padding-left:20px; color:var(--bh-ielts-foreground-muted); font-size:.875rem; }
+.isr-notes li + li { margin-top:8px; }
+@media(max-width:700px) { .isr-page { margin:0 auto; } .isr-metrics { grid-template-columns:1fr; gap:12px; } }
