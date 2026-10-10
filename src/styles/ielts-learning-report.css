@@ -603,3 +603,39 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Compact A4 overview. Detailed records keep their natural pagination. */
+@media print {
+  .ilr-overview-document {
+    margin: 0;
+    width: auto;
+    font-size: 10pt;
+    line-height: 1.35;
+  }
+  .ilr-overview-document .arb-report-header { padding-bottom: 3mm; }
+  .ilr-overview-document .arb-brand img,
+  .ilr-overview-document .arb-brand > b { width: 12mm; height: 12mm; }
+  .ilr-overview-document .arb-title { padding: 4mm 0 3mm; }
+  .ilr-overview-document .arb-title h1 { font-size: 22pt; }
+  .ilr-overview-document .ilr-summary-intro { padding: 3mm 4mm; }
+  .ilr-overview-document .ilr-summary-intro h2 { font-size: 14pt; }
+  .ilr-overview-document .ilr-summary h2 { margin-bottom: 2mm; }
+  .ilr-overview-document .ilr-summary p { font-size: 9.5pt; line-height: 1.4; }
+  .ilr-overview-document .ilr-summary-skills,
+  .ilr-overview-document .ilr-summary-priorities { margin-top: 3mm; }
+  .ilr-overview-document .ilr-summary table th,
+  .ilr-overview-document .ilr-summary table td { padding: 2mm; }
+  .ilr-overview-document .ilr-summary-priorities ol { gap: 2mm; }
+  .ilr-overview-document .ilr-summary-priorities li > span { width: 6mm; height: 6mm; flex-basis: 6mm; }
+  .ilr-overview-document .ilr-summary-review {
+    grid-template-columns: 1fr auto;
+    gap: 4mm;
+    margin-top: 3mm;
+    padding: 3mm 0;
+  }
+  .ilr-overview-document .ilr-summary .ilr-summary-caption { margin-top: 2mm; font-size: 8pt; }
+  .ilr-overview-document .arb-footer { margin-top: 3mm; gap: 2mm; grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+  .ilr-overview-document .arb-footer .arb-final strong,
+  .ilr-overview-document .arb-footer .arb-final span,
+  .ilr-overview-document .arb-footer > small { font-size: 8pt; }
+}
