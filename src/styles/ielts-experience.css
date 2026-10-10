@@ -259,3 +259,142 @@
     scroll-behavior: auto !important;
   }
 }
+
+
+/* Polished standalone shells for results, the journey, and review queues. */
+.bh-ielts-experience .bh-ielts-page {
+  min-width: 0;
+  background: var(--bh-ielts-background) !important;
+  color: var(--bh-ielts-foreground) !important;
+  font-family: var(--bh-ielts-font-body) !important;
+}
+.bh-ielts-experience .bh-ielts-page > section {
+  max-width: min(100%, 1180px);
+}
+.bh-ielts-experience .bh-ielts-result > section {
+  border: 1px solid var(--bh-ielts-border) !important;
+  background: var(--bh-ielts-surface) !important;
+  border-radius: var(--bh-ielts-radius-lg) !important;
+  box-shadow: var(--bh-ielts-shadow-md);
+  padding: clamp(20px, 3vw, 36px) !important;
+}
+.bh-ielts-experience .bh-ielts-page :is(h1,h2,h3) {
+  letter-spacing: -.03em;
+  line-height: 1.23;
+}
+.bh-ielts-experience .bh-ielts-page > :is(header,section,article):first-child {
+  scroll-margin-top: 24px;
+}
+.bh-ielts-experience .bh-ielts-review-list > section,
+.bh-ielts-experience .bh-ielts-review-form > section {
+  max-width: min(100%, 1200px) !important;
+}
+.bh-ielts-experience .bh-ielts-analytics > section {
+  max-width: min(100%, 1200px) !important;
+}
+.bh-ielts-experience .bh-ielts-assignments > div {
+  max-width: min(100%, 1080px) !important;
+}
+.bh-ielts-experience .bh-ielts-assignments article,
+.bh-ielts-experience .bh-ielts-review-list article {
+  border-color: var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-md);
+}
+.bh-ielts-experience .bh-ielts-journey {
+  font-family: var(--bh-ielts-font-body) !important;
+}
+.sp-page .bh-ielts-page {
+  min-height: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* Accent the Programme's existing hero, without adding duplicate navigation. */
+.bh-ielts-experience .sp-page:not(.ip-embedded) > .sp-hero {
+  border: 1px solid var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-lg);
+  background: linear-gradient(108deg, var(--bh-ielts-surface), var(--bh-ielts-secondary));
+  padding: clamp(20px, 3vw, 36px);
+  margin-bottom: 16px;
+}
+.bh-ielts-experience .ip-tools button,
+.bh-ielts-experience .sp-card {
+  transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+.bh-ielts-experience .ip-tools button:focus-visible,
+.bh-ielts-experience .sp-primary:focus-visible {
+  box-shadow: 0 0 0 4px var(--bh-ielts-secondary);
+}
+
+/* School Administration is embedded in the darker Brains Heist shell: light canvas
+ * must be explicit, otherwise pale text has insufficient contrast. */
+.bh-ielts-admin {
+  padding: clamp(12px, 2vw, 24px);
+  border-radius: var(--bh-ielts-radius-lg);
+  background: var(--bh-ielts-background);
+  color: var(--bh-ielts-foreground);
+}
+.bh-ielts-admin.card-glass {
+  background: var(--bh-ielts-background) !important;
+  border-color: var(--bh-ielts-border) !important;
+  box-shadow: var(--bh-ielts-shadow-md) !important;
+}
+.bh-ielts-admin.card-glass::after { display: none; }
+.bh-ielts-admin [class*="bg-amber-50"],
+.bh-ielts-admin [class*="bg-red-50"],
+.bh-ielts-admin [class*="bg-emerald-50"] { background-image: none; }
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-slate-3"],
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-slate-4"],
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-gray-2"],
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-gray-4"] {
+  color: var(--bh-ielts-foreground-muted) !important;
+}
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-cyan-2"],
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-cyan-3"] {
+  color: var(--bh-ielts-accent) !important;
+}
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-emerald-3"] {
+  color: var(--bh-ielts-success) !important;
+}
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-amber-2"],
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-amber-3"] {
+  color: var(--bh-ielts-warning) !important;
+}
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-red-3"] {
+  color: var(--bh-ielts-danger) !important;
+}
+/* Strong button text must remain high contrast after legacy text-color normalization. */
+.bh-ielts-admin button[class*="bg-blue"] :is(span,strong)[class*="text-white"],
+.bh-ielts-admin button[class*="bg-cyan"] :is(span,strong)[class*="text-white"],
+.bh-ielts-admin button[class*="bg-emerald"] :is(span,strong)[class*="text-white"] {
+  color: #fff !important;
+}
+.bh-ielts-admin button[class*="bg-blue-700"] {
+  background: var(--bh-ielts-primary) !important;
+  color: #fff !important;
+}
+.bh-ielts-admin :is(input,select,textarea):disabled {
+  background: var(--bh-ielts-secondary) !important;
+  color: var(--bh-ielts-foreground-muted) !important;
+}
+.bh-ielts-admin :is(table) {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  line-height: 1.5;
+}
+.bh-ielts-admin :is(th) { color: var(--bh-ielts-foreground-muted); }
+.bh-ielts-admin :is(td,th) { padding: 10px 12px; }
+.bh-ielts-admin [class*="overflow-x-auto"] { scrollbar-width: thin; }
+
+/* Preserve input tap targets and browser-safe responsive layouts. */
+@media (max-width: 640px) {
+  .bh-ielts-experience .bh-ielts-page { padding: 14px !important; }
+  .bh-ielts-experience .bh-ielts-result > section { padding: 18px !important; }
+  .bh-ielts-admin { padding: 12px; border-radius: 14px; }
+  .bh-ielts-experience .sp-page:not(.ip-embedded) > .sp-hero {
+    padding: 20px; border-radius: 16px;
+  }
+  .bh-ielts-experience .bh-ielts-page :is(button,select,input:not([type="checkbox"]),textarea) { max-width: 100%; }
+  .bh-ielts-experience .bh-ielts-page :is(section,article,header) { min-width: 0; }
+}
