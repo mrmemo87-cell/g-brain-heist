@@ -1,0 +1,81 @@
+{
+  "scope": "Local Supabase classroom RPC benchmark; focused schema, no production capacity certification",
+  "versions": {
+    "node": "v24.21.0",
+    "source": "fe28b3e8bbac0c83641a59e3b86d16f79afeee81",
+    "rpcSha256": {
+      "20260928055401_classroom_reliability.sql": "7fab17379ff654eaca9f905757047c522a43fd6ed0b40b27a936d05d0d857395",
+      "20260928163701_auth_bootstrap_v1.sql": "3b38ca6e7b2ab016efc80f296694f21626de6c865abb7b433c2a645e19712047",
+      "20261007153922_classroom_scoped_reads.sql": "58ad5452c83e33986d56a4227e8bd5c524d7822745a2e5e7b718c16800ceb3d1"
+    }
+  },
+  "host": {
+    "platform": "linux",
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.50GHz",
+    "cpuCount": 4,
+    "memoryBytes": 8811360256
+  },
+  "limitations": [
+    "Focused classroom schema; unrelated tables, production analytics/reward triggers and billing pre-request hook omitted",
+    "Synthetic data: 500 students, one teacher, 16 questions per fresh assignment",
+    "Real Supabase Auth users and password-issued sessions; signup/login provisioning is outside the measured load",
+    "Loopback HTTP; no WAN/CDN/TLS latency, browser rendering or hosted connection limits",
+    "Load generator and database share the test host; results do not certify hosted production capacity"
+  ],
+  "stages": [
+    {
+      "students": 30,
+      "started": "2026-10-07T17:11:04.489Z",
+      "finished": "2026-10-07T17:13:05.988Z",
+      "k6ExitCode": 0,
+      "database": {
+        "answers": 480,
+        "results": 30,
+        "completed": 30,
+        "wrong_results": 0,
+        "duplicate_answers": 0
+      },
+      "teacherSubmissionCount": 30,
+      "expectedTeacherSubmissions": 30,
+      "passed": true
+    },
+    {
+      "students": 100,
+      "started": "2026-10-07T17:13:06.295Z",
+      "finished": "2026-10-07T17:15:11.351Z",
+      "k6ExitCode": 0,
+      "database": {
+        "answers": 1600,
+        "results": 100,
+        "completed": 100,
+        "wrong_results": 0,
+        "duplicate_answers": 0
+      },
+      "teacherSubmissionCount": 130,
+      "expectedTeacherSubmissions": 130,
+      "passed": true
+    },
+    {
+      "students": 500,
+      "started": "2026-10-07T17:15:11.711Z",
+      "finished": "2026-10-07T17:18:30.086Z",
+      "k6ExitCode": 105,
+      "database": {
+        "answers": 2646,
+        "results": 153,
+        "completed": 153,
+        "wrong_results": 0,
+        "duplicate_answers": 0
+      },
+      "teacherSubmissionCount": 283,
+      "expectedTeacherSubmissions": 630,
+      "passed": false
+    }
+  ],
+  "initialDatabaseRows": {
+    "users": 1002,
+    "assignments": 1,
+    "answers": 480,
+    "results": 30
+  }
+}

@@ -1,0 +1,71 @@
+name: Isolated classroom load (30, 100, 500)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: classroom-local-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  staged-load:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install pinned Supabase CLI and verified k6
+        run: |
+          npm install --prefix "$RUNNER_TEMP/classroom-cli" --no-audit --no-fund supabase@2.120.0
+          echo "$RUNNER_TEMP/classroom-cli/node_modules/.bin" >> "$GITHUB_PATH"
+          python3 - <<'PY'
+          import os, urllib.request, hashlib, tarfile
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'classroom-k6';root.mkdir()
+          release='https://github.com/grafana/k6/releases/download/v2.3.0/'
+          name='k6-v2.3.0-linux-amd64.tar.gz'
+          urllib.request.urlretrieve(release+name,root/name)
+          checks=urllib.request.urlopen(release+'k6-v2.3.0-checksums.txt').read().decode()
+          expected=next(line.split()[0] for line in checks.splitlines() if line.split()[-1].lstrip('*')==name)
+          assert hashlib.sha256((root/name).read_bytes()).hexdigest()==expected
+          with tarfile.open(root/name) as archive:archive.extractall(root,filter='data')
+          PY
+      - name: Start disposable local Supabase (no remote credentials)
+        run: |
+          mkdir -p "$RUNNER_TEMP/brains-classroom"
+          supabase init --workdir "$RUNNER_TEMP/brains-classroom" --yes
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'brains-classroom/supabase/config.toml'
+          text=p.read_text().replace('project_id = "brains-classroom"','project_id = "brains-classroom-local"').replace('sign_in_sign_ups = 30','sign_in_sign_ups = 2000')
+          p.write_text(text)
+          PY
+          umask 077
+          supabase start --workdir "$RUNNER_TEMP/brains-classroom" --exclude realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/classroom-start-private.log" 2>&1
+          bash load-tests/configure-local-classroom-gateway.sh
+          python3 load-tests/configure-local-classroom-auth.py
+          supabase status --workdir "$RUNNER_TEMP/brains-classroom" -o json > "$RUNNER_TEMP/classroom-local-keys.json"
+      - name: Load focused classroom schema and current RPCs
+        run: |
+          node load-tests/prepare-local-classroom.mjs "$RUNNER_TEMP/classroom-schema.sql"
+          docker exec -i supabase_db_brains-classroom-local psql -U postgres -d postgres -v ON_ERROR_STOP=1 < "$RUNNER_TEMP/classroom-schema.sql"
+      - name: Run and reconcile 30 then 100 then 500
+        run: |
+          node load-tests/run-local-classroom.mjs "$RUNNER_TEMP/classroom-local-keys.json" "$RUNNER_TEMP/classroom-results" "$RUNNER_TEMP/classroom-k6/k6-v2.3.0-linux-amd64/k6"
+      - name: Keep non-secret test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: classroom-local-results
+          path: |
+            ${{ runner.temp }}/classroom-results/report.json
+            ${{ runner.temp }}/classroom-results/summary-*.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Remove disposable stack and synthetic credentials
+        if: always()
+        run: |
+          if command -v supabase >/dev/null; then supabase stop --workdir "$RUNNER_TEMP/brains-classroom" --no-backup || true; fi
+          rm -f "$RUNNER_TEMP/classroom-local-keys.json" "$RUNNER_TEMP/classroom-start-private.log" "$RUNNER_TEMP/classroom-results"/fixture-*.json
