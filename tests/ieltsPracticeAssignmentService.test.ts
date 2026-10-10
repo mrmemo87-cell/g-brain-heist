@@ -526,7 +526,7 @@ test('IELTS Practice content picker exposes safe filters, grouped catalog, and m
   const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsPracticeTab.tsx'), 'utf8');
 
   assert.match(tab, /Skill filter/, 'picker should include a simple skill filter');
-  assert.match(tab, /Title search/, 'picker should include title search');
+  assert.match(tab, /Title or task code/, 'picker should include title and task-code search');
   assert.match(tab, /groupedContentCatalog/, 'catalog content should be grouped by skill');
   assert.match(tab, /Difficulty:/, 'picker should show difficulty display only');
   assert.match(tab, /Band \{content\.band\}/, 'picker should show band display only');

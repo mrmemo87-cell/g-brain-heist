@@ -2,6 +2,7 @@ import { supabase } from './supabaseClient.js';
 import type { IeltsPracticeSkill } from './ieltsPracticeAssignmentService.js';
 
 export interface IeltsPracticeContentCatalogItem {
+  display_code?: string | null;
   content_type: string;
   content_id: string;
   title: string;

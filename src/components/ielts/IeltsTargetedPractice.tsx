@@ -1,3 +1,4 @@
+import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { learningWorkspace, type LearningAllocation } from '../../../services/ieltsLearningService';
@@ -9,7 +10,7 @@ export function IeltsTargetedTaskCards({ tasks, compact = false }: { tasks: Lear
     {tasks.length === 0 ? <div className="it-task"><h3>No targeted tasks yet</h3><p>Your teacher can assign a short task based on your screener feedback. Your saved results are still in My Journey.</p><Link to="/ielts/journey">View your feedback →</Link></div> : <div className={compact ? 'it-next-grid' : 'it-list'}>
       {(compact ? ordered.slice(0,3) : ordered).map(task => <article className="it-task" key={task.id}>
         <div className="it-meta"><span>{task.skill[0].toUpperCase() + task.skill.slice(1)}</span><span className="it-status">{status(task)}</span></div>
-        <h3>{task.title}</h3><p>{task.reason}</p>
+        <h3>{ieltsMaterialTitle(task.display_code, task.title)}</h3><p>{task.reason}</p>
         {task.due_at && Number.isFinite(Date.parse(task.due_at)) && <p>Due {new Date(task.due_at).toLocaleDateString(undefined,{dateStyle:'medium'})}</p>}
         <Link to={'/ielts/practice/targeted/' + task.id}>{task.status === 'closed' ? 'View saved work' : task.reviewed ? 'View teacher feedback' : task.status === 'submitted' ? 'View saved work' : task.status === 'in_progress' ? 'Continue task' : 'Start task'} →</Link>
       </article>)}

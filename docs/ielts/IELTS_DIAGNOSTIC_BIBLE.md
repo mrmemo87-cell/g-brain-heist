@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.7.0\
-**Effective date:** 2026-10-09\
+**Version:** 1.8.0\
+**Effective date:** 2026-10-10\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -1156,6 +1156,18 @@ Acceptance must cover missing skills, pending/late reviews, repeats, rescoring, 
 
 ---
 
+## 15D. Stable task codes and assignment history
+
+Every targeted practice task and school practice catalogue material must have a short, server-assigned display code: **L-001**, **R-001**, **W-001** or **S-001** for Listening, Reading, Writing or Speaking. Use a shared sequence per skill across the targeted and school catalogues, with at least three digits; expand beyond 999 without truncation. Display the code beside the human-readable title in teacher selection/history and student assignment/task/results views. Teachers must be able to search catalogue and assignment history by code. Keep codes readable in printed task/result views wherever those views are printed.
+
+The code identifies a canonical material, not an allocation, an attempt, a student or a score. Preserve all internal source IDs, allocation IDs, attempt IDs, routes, hashes, material versions and entitlement/pilot boundaries. Reassigning or repeating that material keeps its display code and creates or retains the appropriate separate allocation/attempt history. Display the student's authoritative work and feedback status beside the task; a code or previous assignment does not prove completion, review, independence, improvement or readiness. Existing exact-identity exposure checks remain mandatory.
+
+Assign codes atomically on the server. Never calculate them from a visible list index, accept a client-selected code, silently renumber existing materials, or reuse a retired code. Reserve codes for inactive materials too. An ordinary edit or in-place revision of the same canonical material retains its code with separate governed version/hash provenance. A new canonical material ID receives a new code; do not infer a common family by stripping ID suffixes or matching titles. Source content/version immutability and human publication approvals still apply: assigning a code confers no content approval or wider release permission.
+
+Backfill current material codes without rewriting content, assessment evidence, allocations, submissions, feedback or scores. Preserve already-approved report snapshots exactly; codes may be captured prospectively in new report versions. Display codes are presentation metadata, not authorization credentials. Carry them in existing scoped, bounded reads; do not add per-card requests or expose a private global directory. Tests must verify uniqueness, immutable retention, automatic future allocation, scope/visibility, code search and separate statuses for repeated assignments. No capacity claim follows from these checks; affected wider-launch workloads still require section 13 evidence.
+
+---
+
 ## 16. Current known legacy issues
 
 The following current/legacy behaviours are **not** canonical and must not be preserved merely because they already exist.
@@ -1562,6 +1574,14 @@ Affected implementation to review: audio generation/assembly, extension-task met
 The owner requested individual foundation/exam-preparation pathways and accurate first-month reports using the existing smart reporting system. Sections 8A and 15B did not specify monthly cutoff semantics, plan versioning, report-module reuse or AI report publication boundaries. Section 15C now locks those requirements. Basis: explicit owner product-policy authorisation and existing evidence/report governance; no external IELTS format, scoring, criteria, calibration or publication gate changes. No universal numeric inference thresholds are introduced.
 
 Affected implementation: IELTS evidence projections, plan decisions, academic report snapshot/source/event services, report builder/rendering, student Journey, AI drafting, authorisation, historical-cutoff and concurrency tests. This revision defines obligations and does not itself assert deployed tracking, approved comparability policies or 500-user capacity.
+
+---
+
+### 22.7 Revision record — v1.8.0 (2026-10-10)
+
+The owner explicitly requested short task identifiers for current work and permanent Bible rules to help teachers and students recognise previous assignments. Section 15D establishes the display-code contract, stable material/assignment/attempt distinctions, atomic numbering, non-reuse, scope, and historical preservation. Basis: explicit owner product-policy authorisation and existing evidence governance. No external IELTS format, scoring, criteria, calibration or content-release gate changes.
+
+Affected implementation: material registry and insert/update triggers, catalogue/code search, scoped teacher/student task and assignment payloads, task/results presentation and retained assignment history. Additive code fields use existing reads; new-material publication serializes briefly per skill. Ordinary answer saves/submissions and scores are unchanged. Tests establish functional correctness and isolation, not 500-user capacity.
 
 ---
 

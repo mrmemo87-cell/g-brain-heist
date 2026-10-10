@@ -1,3 +1,4 @@
+import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -344,6 +345,7 @@ const ReadingPractice: React.FC = () => {
             <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
               Practice Completed
             </h1>
+            <p>{ieltsMaterialTitle(currentSet.display_code, currentSet.title)}</p>
           </div>
 
           <AssignmentCompletionStatus
@@ -614,7 +616,7 @@ const ReadingPractice: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
             <div style={{ flex: 1, minWidth: '200px' }}>
               <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.875rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
-                {currentSet.title}
+                {ieltsMaterialTitle(currentSet.display_code, currentSet.title)}
               </h1>
               <div style={{ display: 'flex', gap: '0.5rem', fontSize: 'clamp(0.7rem, 2vw, 0.875rem)', color: '#64748b', flexWrap: 'wrap' }}>
                 <span>Level: {currentSet.level}</span>

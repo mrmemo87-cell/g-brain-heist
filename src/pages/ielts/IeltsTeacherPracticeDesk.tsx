@@ -1,3 +1,4 @@
+import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { teacherPracticeHistory, practiceWorkLabel, type PracticeHistoryRow } from '../../../services/ieltsTeacherPracticeService';
@@ -41,7 +42,7 @@ export default function IeltsTeacherPracticeDesk({schoolId,onOpenReviews}: {scho
       <h3>Every assignment, in one place</h3>
       <p className="il-muted">Work status and teacher feedback are separate. Completing or repeating a task does not establish improvement.</p>
       <form className="il-history-filters" onSubmit={e=>{e.preventDefault();setOffset(0);setApplied(search.trim());}}>
-        <label className="il-answer">Student, class or material<input maxLength={120} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search practice history" /></label>
+        <label className="il-answer">Student, class, title or task code<input maxLength={120} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search, e.g. L-002" /></label>
         <label className="il-answer">Skill<select value={skill} onChange={e=>{setSkill(e.target.value);setOffset(0);}}><option value="">All skills</option>{['listening','reading','writing','speaking'].map(s=><option key={s} value={s}>{s[0]?.toUpperCase()}{s.slice(1)}</option>)}</select></label>
         <label className="il-answer">Type<select value={kind} onChange={e=>{setKind(e.target.value);setOffset(0);}}><option value="">Both types</option><option value="targeted">Targeted practice</option><option value="school">School assignment</option></select></label>
         <label className="il-answer">Status<select value={status} onChange={e=>{setStatus(e.target.value);setOffset(0);}}><option value="">All statuses</option>{[['assigned','Not started'],['in_progress','In progress'],['submitted','Submitted'],['completed','Completed'],['shared','Feedback shared'],['overdue','Overdue'],['closed','Closed'],['archived','Archived']].map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label>
@@ -52,7 +53,7 @@ export default function IeltsTeacherPracticeDesk({schoolId,onOpenReviews}: {scho
       {!loading && !error && !rows.length && <p>No assignments match these filters. Choose another filter or assign the next task.</p>}
       {loading && <p role="status">Gathering assignment history…</p>}
       <div className="il-history-list">{rows.map(r=><article className="il-history-row" key={r.row_id}>
-        <div><p className="il-eyebrow">{r.skill} · {r.kind==='targeted'?'Targeted practice':'School assignment'}</p><h4>{r.title}</h4><p><strong>{r.student_name || 'Student'}</strong>{r.class_name?` · ${r.class_name}`:''}</p>{r.kind==='school' && <p className="il-muted">{r.assignment_title}</p>}<p className="il-muted">Assigned {date(r.assigned_at)}{r.due_at?` · Due ${date(r.due_at)}`:''}</p></div>
+        <div><p className="il-eyebrow">{r.skill} · {r.kind==='targeted'?'Targeted practice':'School assignment'}</p><h4>{ieltsMaterialTitle(r.display_code, r.title)}</h4><p><strong>{r.student_name || 'Student'}</strong>{r.class_name?` · ${r.class_name}`:''}</p>{r.kind==='school' && <p className="il-muted">{r.assignment_title}</p>}<p className="il-muted">Assigned {date(r.assigned_at)}{r.due_at?` · Due ${date(r.due_at)}`:''}</p></div>
         <div className="il-history-state"><span className="il-history-badge">{practiceWorkLabel(r)}</span>{['closed','archived'].includes(r.assignment_status) && <span className="il-history-badge">Assignment {r.assignment_status}</span>}
           <p>{r.due_at && new Date(r.due_at).getTime()<Date.now() && ["assigned","in_progress"].includes(r.status) && !["closed","archived"].includes(r.assignment_status) && <span className="il-history-badge">Overdue</span>}</p>
           <p>{r.feedback_status==='shared'?`Feedback shared · ${date(r.feedback_at)}`:r.feedback_status==='pending'?'Teacher review needed':r.feedback_status==='not_tracked'?'Check feedback in practice reviews':'Feedback after submission'}</p>

@@ -1,3 +1,4 @@
+import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -145,7 +146,7 @@ export default function IeltsLearningTeacher({
                 >
                   {data.tasks.map((t) => (
                     <option key={t.code} value={t.code}>
-                      {t.skill ?? "listening"} · {t.title} ·{" "}
+                      {t.skill ?? "listening"} · {ieltsMaterialTitle(t.display_code, t.title)} ·{" "}
                       {t.purpose === "guided_practice"
                         ? "Guided practice"
                         : "Fresh check"}{(() => {
@@ -341,7 +342,7 @@ export default function IeltsLearningTeacher({
                   <article key={a.id}>
                     <p className="il-eyebrow">{a.skill}</p>
                     <h4>
-                      {a.student_name} · {a.title}
+                      {a.student_name} · {ieltsMaterialTitle(a.display_code, a.title)}
                     </h4>
                     <p>{a.reason}</p>
                     <p>
