@@ -116,7 +116,7 @@ const IeltsPrimeDashboard: React.FC<Props> = ({ summary, lapsedPrime, taskTotal,
   return (
     <div ref={rootRef} className="ielts-prime-dashboard" style={shell}>
       <main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}>
-        <section data-prime-hero style={{ position: 'relative', overflow: 'hidden', borderRadius: '1.8rem', color: '#fff', padding: 'clamp(1.25rem,4vw,2.4rem)', background: 'radial-gradient(circle at 78% 18%, rgba(124,58,237,.52), transparent 28%), radial-gradient(circle at 20% 5%, rgba(14,165,233,.4), transparent 26%), linear-gradient(135deg,#08111f 0%,#172554 52%,#3b0764 100%)', boxShadow: '0 28px 80px rgba(30,41,59,.22)' }}>
+        <section data-prime-hero style={{ position: 'relative', overflow: 'hidden', borderRadius: '1.8rem', color: '#fff', padding: 'clamp(1.25rem,4vw,2.4rem)', background: 'radial-gradient(circle at 78% 18%, rgba(14,116,144,.38), transparent 32%), linear-gradient(135deg,#15243A 0%,#1746B0 100%)', boxShadow: '0 28px 80px rgba(30,41,59,.22)' }}>
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(0deg,rgba(255,255,255,.06) 1px,transparent 1px)', backgroundSize: '44px 44px', opacity: .34 }} aria-hidden="true" />
           <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'minmax(0,1.55fr) minmax(220px,.65fr)', gap: 'clamp(1.1rem,4vw,2rem)', alignItems: 'center' }} className="ielts-prime-hero-grid">
             <div>

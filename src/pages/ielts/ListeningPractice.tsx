@@ -397,7 +397,7 @@ const ListeningPractice: React.FC = () => {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%)',
+        background: 'linear-gradient(135deg, #15243A 0%, #193E65 55%, #15243A 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -448,7 +448,7 @@ const ListeningPractice: React.FC = () => {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        background: 'linear-gradient(135deg, #15243A 0%, #234566 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -749,7 +749,7 @@ const ListeningPractice: React.FC = () => {
               style={{
                 flex: 1,
                 padding: '0.875rem 1.5rem',
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                background: 'linear-gradient(135deg, #1746B0 0%, #103B9A 100%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '0.5rem',
@@ -1131,7 +1131,7 @@ const ListeningPractice: React.FC = () => {
                     style={{
                       flex: 1,
                       padding: '0.75rem 1.5rem',
-                      background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                      background: 'linear-gradient(135deg, #1746B0 0%, #103B9A 100%)',
                       color: 'white',
                       border: 'none',
                       borderRadius: '0.5rem',

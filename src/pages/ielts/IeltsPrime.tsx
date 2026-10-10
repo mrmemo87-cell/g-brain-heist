@@ -284,10 +284,10 @@ const IeltsPrime: React.FC = () => {
     <div
       style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #07111f 0%, #0f172a 52%, #172554 100%)',
+        background: 'linear-gradient(135deg, #15243A 0%, #1746B0 100%)',
         color: '#fff',
         padding: '1.25rem',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
+        fontFamily: 'var(--bh-ielts-font-body)',
       }}
     >
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
