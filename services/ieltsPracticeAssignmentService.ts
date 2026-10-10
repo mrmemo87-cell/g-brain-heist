@@ -15,6 +15,7 @@ export interface IeltsPracticeAssignmentItemInput {
 }
 
 export interface IeltsPracticeAssignmentItem {
+  originality_label?: string | null;
   display_code?: string | null;
   id: string;
   assignment_id: string;
@@ -71,6 +72,7 @@ export interface IeltsPracticeAssignmentStudentProgress {
 }
 
 export interface IeltsPracticeAssignmentItemProgress {
+  originality_label?: string | null;
   display_code?: string | null;
   assignment_item_id: string;
   skill: IeltsPracticeSkill | string;

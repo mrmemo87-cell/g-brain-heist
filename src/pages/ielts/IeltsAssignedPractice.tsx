@@ -1,3 +1,4 @@
+import IeltsMaterialProvenance from "../../components/ielts/IeltsMaterialProvenance";
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -339,7 +340,7 @@ const IeltsAssignedPractice: React.FC = () => {
                           <div key={item.id} data-testid={`ielts-assigned-item-${item.id}`} data-status={itemStatus} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', border: `1px solid ${itemStyle.border}`, background: itemStyle.bg, borderRadius: '0.65rem', padding: '0.65rem', flexWrap: 'wrap' }}>
                             <div style={{ flex: 1 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.875rem' }}>{ieltsMaterialTitle(item.display_code, item.title || `${skillLabels[skill] ?? skill} practice`)}</p>
+                                <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.875rem' }}>{ieltsMaterialTitle(item.display_code, item.title || `${skillLabels[skill] ?? skill} practice`)}<IeltsMaterialProvenance label={item.originality_label}/></p>
                                 <AssignmentItemStatusBadge status={itemStatus} />
                               </div>
                               <p style={{ margin: '0.2rem 0 0', color: '#94a3b8', fontSize: '0.75rem' }}>{item.required ? 'Required' : 'Optional'}</p>

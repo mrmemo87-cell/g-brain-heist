@@ -1,3 +1,4 @@
+import IeltsMaterialProvenance from "../../components/ielts/IeltsMaterialProvenance";
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -10,6 +11,7 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { buildSpeakingAttemptPayload } from '../../lib/ieltsPracticeScoring';
 
 interface SpeakingTask {
+  originality_label?: string | null;
   display_code?: string | null;
   id: number;
   slug: string;
@@ -460,7 +462,7 @@ const SpeakingPractice: React.FC = () => {
           <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
             Speaking submitted
           </h1>
-          <p>{ieltsMaterialTitle(task.display_code, `Speaking Practice · Part ${task.part}`)}</p>
+          <p>{ieltsMaterialTitle(task.display_code, `Speaking Practice · Part ${task.part}`)}<IeltsMaterialProvenance label={task.originality_label}/></p>
           <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b', marginBottom: '1rem' }}>
             Your recording was saved.
           </p>
@@ -540,7 +542,7 @@ const SpeakingPractice: React.FC = () => {
                 IELTS Speaking - Part {task.part}
               </div>
               <h1 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>
-                {ieltsMaterialTitle(task.display_code, "Speaking Practice")}
+                {ieltsMaterialTitle(task.display_code, "Speaking Practice")}<IeltsMaterialProvenance label={task.originality_label}/>
               </h1>
             </div>
             <button

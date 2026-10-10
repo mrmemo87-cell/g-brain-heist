@@ -1,3 +1,4 @@
+import IeltsMaterialProvenance from "../../../src/components/ielts/IeltsMaterialProvenance";
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
@@ -608,7 +609,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-xs font-semibold uppercase tracking-wide text-emerald-200">#{index + 1} · {String(item.skill)} · {item.required ?? true ? 'Required' : 'Optional'}</p>
-                      <p className="mt-1 truncate font-semibold text-white">{ieltsMaterialTitle(item.display_code, item.title?.trim() || 'No content selected')}</p>
+                      <p className="mt-1 truncate font-semibold text-white">{ieltsMaterialTitle(item.display_code, item.title?.trim() || 'No content selected')}<IeltsMaterialProvenance label={item.originality_label}/></p>
                       <p className="mt-1 text-xs text-gray-300">{item.contentType || contentTypesBySkill[String(item.skill)]} · {item.contentId || 'Choose content'}</p>
                     </div>
                     <button type="button" className="text-xs text-red-200 hover:text-red-100" onClick={() => removeItem(item.localId)} disabled={items.length === 1}>Remove</button>
@@ -658,7 +659,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">Chosen content</p>
-                        <p className="mt-1 font-semibold text-white">{ieltsMaterialTitle(item.display_code, item.title?.trim() || 'No content selected')}</p>
+                        <p className="mt-1 font-semibold text-white">{ieltsMaterialTitle(item.display_code, item.title?.trim() || 'No content selected')}<IeltsMaterialProvenance label={item.originality_label}/></p>
                         <p className="mt-1 text-xs text-gray-400">{item.contentType || contentTypesBySkill[String(item.skill)]} · {item.contentId || 'Choose content to fill ID'}</p>
                         {(item.difficulty || item.band) && (
                           <div className="mt-2 flex flex-wrap gap-2">
@@ -738,7 +739,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
                                       className={`w-full rounded-lg border p-3 text-left ${isSelected ? 'border-emerald-300 bg-emerald-500/15 ring-1 ring-emerald-300/40' : 'border-gray-700 bg-gray-900 hover:border-emerald-400 hover:bg-emerald-500/10'}`}
                                     >
                                       <div className="flex flex-wrap items-center gap-2">
-                                        <span className="font-semibold text-white">{ieltsMaterialTitle(content.display_code, content.title)}</span>
+                                        <span className="font-semibold text-white">{ieltsMaterialTitle(content.display_code, content.title)}<IeltsMaterialProvenance label={content.originality_label}/></span>
                                         {isSelected && <span className="rounded-full bg-emerald-400 px-2 py-1 text-xs font-semibold text-emerald-950">Selected</span>}
                                         <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-300">{content.skill}</span>
                                         {content.difficulty && <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-300">Difficulty: {content.difficulty}</span>}

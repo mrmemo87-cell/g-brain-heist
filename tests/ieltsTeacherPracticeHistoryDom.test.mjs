@@ -13,7 +13,7 @@ async function mount(mode,{fail=false,purpose='guided_practice',prior=usage}={})
  else if(fn==='rpc_ielts_learning_workspace')result={manager:true,pilot_only:true,tasks:[{code:'task',pilot_student:'student',pilot_student_name:'Gulzada',title:'Task',display_code:'L-001',skill:'listening',purpose,approved:true,requires_review:false,questions:[],content:{},success_description:'Check the final detail.'}],allocations:[]};
  else if(fn==='rpc_ielts_programme_workspace')result={students:[{id:'student',name:'Gulzada',listening:{attempt_id:'source'}}]};
  else if(fn==='rpc_ielts_practice_list_assignments')result=[];
- else if(fn==='rpc_ielts_practice_content_catalog_with_codes')result=[{content_type:'ielts_reading_set',content_id:'material',title:'Reading material',display_code:'R-003',skill:'reading'}];
+ else if(fn==='rpc_ielts_practice_content_catalog_with_provenance')result=[{content_type:'ielts_reading_set',content_id:'material',title:'Reading material',display_code:'R-003',skill:'reading'}];
  else if(fn==='rpc_ielts_practice_assignment_detail')result={assignment:{id:args.p_assignment_id,title:'Existing assignment',status:'assigned',items:[],item_count:1},students:[],items:[]};
  else throw Error(fn);
  return new Response(JSON.stringify(result),{status:200,headers:{'Content-Type':'application/json'}});

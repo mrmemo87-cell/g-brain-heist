@@ -677,6 +677,7 @@ export interface IELTSUserProfile {
 }
 
 export interface IELTSReadingSet {
+  originality_label?: string | null;
   display_code?: string | null;
   id: number;
   slug: string;
@@ -705,6 +706,7 @@ export interface IELTSReadingQuestion {
 }
 
 export interface IELTSListeningSet {
+  originality_label?: string | null;
   display_code?: string | null;
   id: number;
   slug: string;
@@ -727,6 +729,7 @@ export interface IELTSListeningSet {
 }
 
 export interface IELTSWritingTask {
+  originality_label?: string | null;
   display_code?: string | null;
   id: number;
   slug: string;
@@ -742,6 +745,7 @@ export interface IELTSWritingTask {
 }
 
 export interface IELTSSpeakingTask {
+  originality_label?: string | null;
   display_code?: string | null;
   id: number;
   slug: string;

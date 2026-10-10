@@ -60,7 +60,7 @@ test('IELTS practice content catalog service maps RPC names and parameters', asy
   const rows = await rpcIeltsPracticeContentCatalog({ skill: 'reading', search: 'Reading', limit: 25 }, client);
 
   assert.deepEqual(calls, [
-    { name: 'rpc_ielts_practice_content_catalog_with_codes', params: { p_skill: 'reading', p_search: 'Reading', p_limit: 25 } },
+    { name: 'rpc_ielts_practice_content_catalog_with_provenance', params: { p_skill: 'reading', p_search: 'Reading', p_limit: 25 } },
   ]);
   assert.equal(rows[0].content_type, 'ielts_reading_set');
   assert.equal(rows[0].content_id, '42');
