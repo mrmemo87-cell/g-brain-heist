@@ -13,7 +13,7 @@
     "guard:school-admin-portal": "node scripts/check-school-admin-portal-integrity.mjs",
     "test:clean": "rm -rf dist-tests",
     "test:build": "tsc --project tsconfig.tests.json && node scripts/fix-test-esm-imports.mjs",
-    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js && npm run test:ielts:programme && npm run test:classroom:db",
+    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js && npm run test:ielts:programme && npm run test:language:dom && npm run test:classroom:db",
     "load:leaderboard": "k6 run load-tests/leaderboard.js",
     "load:shop": "k6 run load-tests/shop.js",
     "load:pvp": "k6 run load-tests/pvp.js",
@@ -30,6 +30,7 @@
     "verify": "npm run guard:school-admin-portal && npm run questions:validate-verified-package && npm run questions:validate-taxonomy-review && npm run typecheck && npm run security:migrations && npm run build && npm test && git diff --check",
     "prepr": "npm run verify",
     "test:ielts:programme": "node --test tests/ieltsScreenerResultDom.test.mjs tests/ieltsUiDom.test.mjs tests/ieltsPlanAiFunction.test.mjs tests/ieltsMonthlyReportsDom.test.mjs tests/ieltsPlanAiDraft.test.mjs tests/ieltsTeacherPracticeHistoryDom.test.mjs tests/ieltsStudentNavigationDom.test.mjs tests/ieltsProgrammeDom.test.mjs tests/questAssignmentLoadingDom.test.mjs tests/ieltsJourneyDom.test.mjs tests/ieltsTeacherProgrammeEntryDom.test.mjs tests/ieltsWritingDeliveryDom.test.mjs tests/ieltsLearningDom.test.mjs tests/ieltsMaterialOriginalityDom.test.mjs",
+    "test:language:dom": "node --test tests/floatingLanguageControlDom.test.mjs",
     "test:classroom:db": "node --test tests/ieltsMonthlyReportsDatabase.test.mjs tests/ieltsTeacherPracticeHistoryDatabase.test.mjs tests/assignmentEvidenceCompletion.test.mjs tests/classroomDatabase.test.mjs tests/classroomScopedReads.test.mjs tests/authBootstrapDatabase.test.mjs tests/ieltsGovernedEvidenceDatabase.test.mjs tests/ieltsDeliveryStatusDatabase.test.mjs tests/ieltsSpeakingPilotDatabase.test.mjs tests/ieltsStartingPointDatabase.test.mjs tests/ieltsTeacherProgrammeEntryDatabase.test.mjs tests/ieltsLearningDatabase.test.mjs tests/ieltsMaterialOriginalityDatabase.test.mjs tests/ieltsEligiblePracticeReleaseDatabase.test.mjs",
     "load:classroom": "k6 run load-tests/classroom.js",
     "load:ielts": "k6 run load-tests/ielts.js"

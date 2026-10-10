@@ -2265,7 +2265,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
             );
         case 'ielts':
             return renderLazy(
-              <div className="relative">
+              <div className="relative" data-ielts-route="embedded">
                   {!isIeltsOnlyUser && (
                     <button
                         onClick={() => handleViewChange('dashboard')}

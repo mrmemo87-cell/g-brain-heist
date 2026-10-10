@@ -32,13 +32,6 @@ header.localized-ui .language-mini-card { display: none; }
   .student-mobile-header__primary { flex-wrap: wrap; row-gap: .5rem; }
   .student-mobile-header__actions { flex-shrink: 0; }
 
-  /* Keep the floating language control out of the middle of mobile game cards. */
-  [data-global-language-control="true"] {
-    top: max(76px, calc(env(safe-area-inset-top) + 64px)) !important;
-    bottom: auto !important;
-    transform: none !important;
-  }
-
   /* Commander cards: give irregular unit silhouettes a responsive, contained stage. */
   .cc-command-center .cc-premium-hero {
     height: clamp(290px, 88vw, 370px) !important;

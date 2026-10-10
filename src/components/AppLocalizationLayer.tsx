@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import FloatingLanguageControl from './FloatingLanguageControl';
 import type { Language } from '../i18n/language';
 import { hasInterfaceTranslation, normalizeInterfaceSource, translateInterfaceText } from '../i18n/interfaceTranslations';
 import { hasSupplementalInterfaceTranslation, translateSupplementalInterfaceText } from '../i18n/interfaceTranslationSupplement';
@@ -106,99 +107,12 @@ function translateTrackedText(language: Language, value: string): TrackedTransla
   return { translated, matched };
 }
 
-function LanguageControl({ language, setLanguage }: { language: Language; setLanguage: (language: Language) => void }) {
-  const [open, setOpen] = useState(false);
-  const labels: Record<Language, { short: string; name: string }> = useMemo(() => ({
-    en: { short: 'EN', name: 'English' },
-    ar: { short: 'ع', name: 'العربية' },
-    ru: { short: 'RU', name: 'Русский' },
-  }), []);
-
-  return (
-    <div
-      data-global-language-control="true"
-      dir="ltr"
-      style={{
-        position: 'fixed',
-        left: 'max(10px, env(safe-area-inset-left))',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        zIndex: 2147483000,
-        display: 'flex',
-        alignItems: 'center',
-        gap: open ? 6 : 0,
-        padding: 5,
-        borderRadius: 16,
-        border: '1px solid rgba(103,232,249,0.3)',
-        background: 'linear-gradient(145deg, rgba(11,18,32,0.96), rgba(17,24,39,0.96))',
-        boxShadow: '0 12px 34px rgba(2,6,23,0.42), 0 0 22px rgba(34,211,238,0.09), inset 0 1px 0 rgba(255,255,255,0.06)',
-        WebkitBackdropFilter: 'blur(14px)',
-        backdropFilter: 'blur(14px)',
-        fontFamily: 'inherit',
-        maxWidth: open ? 236 : 46,
-        overflow: 'hidden',
-        transition: 'max-width 180ms ease, gap 180ms ease',
-      }}
-    >
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-label="Interface language"
-        aria-expanded={open}
-        title="Interface language"
-        style={{
-          width: 36,
-          minWidth: 36,
-          height: 36,
-          display: 'grid',
-          placeItems: 'center',
-          borderRadius: 12,
-          color: '#67e8f9',
-          background: open ? 'rgba(34,211,238,0.12)' : 'rgba(34,211,238,0.08)',
-          border: '1px solid rgba(103,232,249,0.18)',
-          cursor: 'pointer',
-          fontSize: 17,
-          padding: 0,
-        }}
-      >
-        🌐
-      </button>
-      {open && (['en', 'ar', 'ru'] as Language[]).map((code) => {
-        const active = language === code;
-        return (
-          <button
-            key={code}
-            type="button"
-            onClick={() => {
-              setLanguage(code);
-              setOpen(false);
-            }}
-            aria-pressed={active}
-            aria-label={labels[code].name}
-            title={labels[code].name}
-            style={{
-              minWidth: 38,
-              height: 36,
-              padding: '0 9px',
-              border: active ? '1px solid rgba(103,232,249,0.82)' : '1px solid transparent',
-              borderRadius: 11,
-              cursor: 'pointer',
-              color: active ? '#06111d' : '#dbeafe',
-              background: active
-                ? 'linear-gradient(135deg, #67e8f9 0%, #38bdf8 58%, #a78bfa 100%)'
-                : 'transparent',
-              boxShadow: active ? '0 7px 20px rgba(56,189,248,0.24)' : 'none',
-              fontSize: code === 'ar' ? 17 : 12,
-              fontWeight: 900,
-              letterSpacing: code === 'ar' ? 0 : '0.04em',
-            }}
-          >
-            {labels[code].short}
-          </button>
-        );
-      })}
-    </div>
-  );
+function isIeltsScope(root: HTMLElement | null): boolean {
+  const params = new URLSearchParams(window.location.search);
+  return /^\/ielts(?:\/|$)/i.test(window.location.pathname)
+    || params.get('view') === 'ielts'
+    || (params.get('view') === 'school_admin' && params.get('adminTab') === 'ielts')
+    || Boolean(root?.querySelector('[data-ielts-route], .school-admin-ielts-tab'));
 }
 
 export function AppLocalizationLayer({
@@ -213,6 +127,15 @@ export function AppLocalizationLayer({
   setLanguage: (language: Language) => void;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const [hideLanguageControl, setHideLanguageControl] = useState(() => isIeltsScope(null));
+  useLayoutEffect(() => {
+    const check = () => setHideLanguageControl(isIeltsScope(rootRef.current));
+    check();
+    const observer = new MutationObserver(check);
+    if (rootRef.current) observer.observe(rootRef.current, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'data-ielts-route'] });
+    window.addEventListener('popstate', check);
+    return () => { observer.disconnect(); window.removeEventListener('popstate', check); };
+  }, []);
   const textStates = useRef(new WeakMap<Text, TextState>());
   const attributeStates = useRef(new WeakMap<Element, Map<string, AttributeState>>());
 
@@ -324,7 +247,7 @@ export function AppLocalizationLayer({
       style={{ minHeight: '100%', width: '100%', direction }}
     >
       {children}
-      <LanguageControl language={language} setLanguage={setLanguage} />
+      {!hideLanguageControl && <FloatingLanguageControl language={language} setLanguage={setLanguage} />}
     </div>
   );
 }

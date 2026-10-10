@@ -1,0 +1,19 @@
+/* Physical edge positioning stays predictable in both LTR and RTL interfaces. */
+.language-dock-insets { position:fixed; left:max(12px,env(safe-area-inset-left)); right:max(12px,env(safe-area-inset-right)); top:max(12px,env(safe-area-inset-top)); bottom:max(12px,env(safe-area-inset-bottom)); visibility:hidden; pointer-events:none; }
+.language-dock { position:fixed; left:0; top:0; width:54px; height:54px; z-index:2147483000; transition:transform 420ms cubic-bezier(.22,.8,.25,1); font-family:inherit; }
+.language-dock-trigger { display:grid; place-items:center; position:relative; width:54px; height:54px; min-width:54px; padding:0; border:1px solid rgba(103,232,249,.5); border-radius:18px; color:#a5f3fc; background:linear-gradient(145deg,#0b1220,#172638); box-shadow:0 8px 24px rgba(2,6,23,.3),inset 0 1px rgba(255,255,255,.1); font-size:22px; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; transition:box-shadow 180ms ease,border-color 180ms ease; }
+.language-dock-trigger > span:first-child { margin-top:-3px; }
+.language-dock-grip { position:absolute; bottom:7px; width:12px; height:2px; border-radius:2px; background:#67e8f9; opacity:.7; }
+.language-dock.is-dragging { transition:none; }
+.language-dock.is-dragging .language-dock-trigger { cursor:grabbing; border-color:#a5f3fc; box-shadow:0 14px 34px rgba(2,6,23,.4),0 0 0 4px rgba(34,211,238,.13); }
+.language-dock-panel { position:absolute; top:50%; left:calc(100% + 8px); transform:translateY(-50%); display:flex; gap:4px; padding:6px; border:1px solid #527387; border-radius:16px; background:#102031; box-shadow:0 8px 28px rgba(2,6,23,.3); }
+.language-dock.is-right .language-dock-panel { left:auto; right:calc(100% + 8px); }
+.language-dock-panel button { width:44px; min-width:44px; height:44px; border:1px solid transparent; border-radius:10px; background:transparent; color:#e0f2fe; font-family:inherit; font-size:14px; font-weight:600; line-height:1.2; cursor:pointer; }
+.language-dock-panel button[aria-pressed=true] { border-color:#67e8f9; color:#082032; background:linear-gradient(135deg,#a5f3fc,#7dd3fc); }
+.language-dock-panel button:hover { border-color:#a5f3fc; }
+.language-dock button:focus-visible { outline:3px solid #a5f3fc; outline-offset:3px; }
+.language-dock-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+/* Immediate hiding also covers the commit before the scope observer updates React. */
+.app-localization-layer:has([data-ielts-route],.school-admin-ielts-tab) .language-dock { display:none; }
+@media(prefers-reduced-motion:reduce) { .language-dock,.language-dock-trigger { transition:none; } }
+@media print { .language-dock,.language-dock-insets { display:none; } }
