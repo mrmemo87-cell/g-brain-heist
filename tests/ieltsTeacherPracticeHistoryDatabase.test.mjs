@@ -60,6 +60,7 @@ insert into ielts_writing_tasks(id,title,is_active) values(1,'Writing one',true)
 insert into ielts_speaking_tasks(id,slug,is_active) values(1,'Speaking one',true);
 `);
 await db.exec(readFileSync('supabase/migrations/20261009235621_ielts_stable_material_codes.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261010011014_ielts_task_code_read_payloads.sql','utf8'));
 
 const actor=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
 const history=async(filters={})=>(await db.query('select rpc_ielts_teacher_practice_history($1,$2,$3,$4,$5,$6) d',[school,filters.search??'',filters.skill??'',filters.kind??'',filters.status??'',filters.offset??0])).rows[0].d;
@@ -137,11 +138,11 @@ test('new targeted materials receive a code without altering immutable source co
  await assert.rejects(db.exec("update private.ielts_learning_tasks set title='Changed' where code='exact-task'"),/source_is_immutable/);
 });
 test('catalogue code search preserves active and deliverable material filters',async()=>{
- const search=async(term)=>(await db.query('select * from rpc_ielts_practice_content_catalog(null,$1,100)',[term])).rows;
+ const search=async(term)=>(await db.query('select * from rpc_ielts_practice_content_catalog_with_codes(null,$1,100)',[term])).rows;
  assert.equal((await search('l-002'))[0].title,'Listening one');
  assert.equal((await search('L-003')).length,0); // active but no deliverable audio
  assert.equal((await search('New title'))[0].display_code,'R-001');
  assert.equal((await search('R-002')).length,0); // reinserted inactive/unpublished
- const rights=(await db.query("select has_function_privilege('anon','public.rpc_ielts_practice_content_catalog(text,text,integer)','execute') anon")).rows[0];assert.equal(rights.anon,false);
+ const rights=(await db.query("select has_function_privilege('anon','public.rpc_ielts_practice_content_catalog_with_codes(text,text,integer)','execute') anon")).rows[0];assert.equal(rights.anon,false);
 });
 await test('close database' ,async()=>db.close());
