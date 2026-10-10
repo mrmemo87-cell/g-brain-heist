@@ -59,11 +59,11 @@ export default function IeltsGovernedScreenerResult() {
       : !result ? <section className="ix-panel" role="status">Opening saved evidence…</section>
       : <>
         <section className="ix-panel isr-evidence" aria-labelledby="isr-score-heading">
-          <div className="isr-evidence-header"><h2 id="isr-score-heading">Starting evidence</h2><span className="ix-status">Confidence: low</span></div>
+          <div className="isr-evidence-header"><h2 id="isr-score-heading">Starting evidence</h2><span className="ix-status">Short check · More evidence needed</span></div>
           <dl className="isr-metrics">
             <div className="isr-score"><dt>Screener score</dt><dd>{result.raw_score} <span>/ {result.marks_possible}</span></dd><p>Marks recorded in this short check</p></div>
             <div><dt>Items answered</dt><dd>{result.confidence.items_answered} <span>/ {result.confidence.items_possible}</span></dd><p>Response coverage</p></div>
-            <div><dt>Sampled skills with responses</dt><dd>{result.confidence.constructs_with_responses} <span>/ {result.confidence.constructs_sampled}</span></dd><p>Coverage of this form’s sampled skills</p></div>
+            <div><dt>Skill areas attempted</dt><dd>{result.confidence.constructs_with_responses} <span>/ {result.confidence.constructs_sampled}</span></dd><p>An area counts when you answer at least one question. This does not show mastery.</p></div>
           </dl>
           {result.integrity_state === 'review_required' && <IeltsNotice>Assessment conditions need teacher review before this result is interpreted.</IeltsNotice>}
         </section>
@@ -74,6 +74,7 @@ export default function IeltsGovernedScreenerResult() {
         </section>
         <section className="ix-panel isr-notes" aria-labelledby="isr-notes-heading">
           <h2 id="isr-notes-heading">How to read this result</h2>
+          <p>Confidence in this evidence is low because the check is short. This describes the amount of evidence, not the student’s ability.</p>
           <p>This is starting evidence from a short check, not a full IELTS skill assessment or an official IELTS result. It does not establish a band or a persistent weakness.</p>
           {warnings.length > 0 && <ul>{warnings.map(w => <li key={w}>{w}</li>)}</ul>}
         </section>
