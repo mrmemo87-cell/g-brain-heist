@@ -45,7 +45,7 @@ export default function IeltsMaterialOriginalityReview({ target, onDone, onClose
     } catch (e) { setError(e instanceof Error ? e.message : 'The review could not be saved.'); }
     finally { setBusy(false); }
   };
-  return <section aria-label="Material originality review" className="space-y-4 rounded-xl border border-cyan-800 bg-slate-900 p-5 text-slate-100">
+  return <section aria-label="Material originality review" className="bh-ielts-admin space-y-4 rounded-xl border border-cyan-800 bg-slate-900 p-5 text-slate-100">
     <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl font-semibold">Originality review · {check?.display_code ?? target.title}</h2><button onClick={onClose} disabled={busy}>Close review</button></div>
     <p className="text-sm text-slate-300">Compare the actual task with earlier materials. A different title or code does not make a new task. Wording checks help you review; they cannot establish independence or comparable difficulty.</p>
     {check && <>

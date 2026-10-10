@@ -12,7 +12,7 @@ const IeltsExamsTab: React.FC<IeltsExamsTabProps> = ({ onOpenMonitor }) => {
   const { school } = useSchoolAdmin();
 
   return (
-    <div className="space-y-6">
+    <div className="bh-ielts-admin space-y-6">
       <div className="bg-gradient-to-br from-slate-900/95 to-blue-950/90 rounded-2xl border border-blue-500/30 p-6 shadow-xl">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>

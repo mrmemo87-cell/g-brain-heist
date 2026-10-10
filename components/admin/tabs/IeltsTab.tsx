@@ -7,7 +7,7 @@ const IeltsTab: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="card-glass p-6 border-2 border-emerald-400/50">
+    <div className="bh-ielts-admin card-glass p-6 border-2 border-emerald-400/50">
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">Platform admin IELTS dashboard</p>

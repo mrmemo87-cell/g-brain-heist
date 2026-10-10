@@ -5,7 +5,7 @@ const IeltsAnalyticsTab: React.FC = () => {
   const { classes = [], students = [] } = useSchoolAdmin();
 
   return (
-    <div className="space-y-6">
+    <div className="bh-ielts-admin space-y-6">
       <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-br from-gray-900 to-purple-950/40 p-6 shadow-xl">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-purple-300">IELTS Academy</p>
         <h3 className="mt-2 text-2xl font-bold text-white">IELTS Analytics</h3>
