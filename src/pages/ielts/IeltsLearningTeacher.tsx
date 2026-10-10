@@ -24,6 +24,11 @@ export default function IeltsLearningTeacher({
 }) {
   const [data, setData] = useState<LearningWorkspace | null>(null),
     [student, setStudent] = useState<ProgrammeStudent | null>(null);
+  const [recipients, setRecipients] = useState<ProgrammeStudent[]>([]);
+  const [chosenRecipient, setChosenRecipient] = useState<ProgrammeStudent | null>(null);
+  const [studentSearch, setStudentSearch] = useState(""), [studentOffset, setStudentOffset] = useState(0);
+  const [studentTotal, setStudentTotal] = useState(0), [studentsLoading, setStudentsLoading] = useState(false);
+  const [studentsError, setStudentsError] = useState("");
   const [task, setTask] = useState(""),
     [reason, setReason] = useState(""),
     [notes, setNotes] = useState(""),
@@ -39,6 +44,10 @@ export default function IeltsLearningTeacher({
     let active = true;
     setData(null);
     setStudent(null);
+    setChosenRecipient(null);
+    setRecipients([]);
+    setStudentSearch("");
+    setStudentOffset(0);
     setBusy(false);
     setReason("");
     request.current = crypto.randomUUID();
@@ -64,8 +73,22 @@ export default function IeltsLearningTeacher({
       active = false;
     };
   }, [schoolId, reviewOnly, retry]);
-  const recipientId = data?.tasks.find(t => t.code === task)?.pilot_student;
-  const recipientName = data?.tasks.find(t => t.code === task)?.pilot_student_name;
+  const released = data?.tasks.find(t => t.code === task)?.released === true;
+  const recipientId = released ? chosenRecipient?.id : data?.tasks.find(t => t.code === task)?.pilot_student;
+  const recipientName = released ? chosenRecipient?.name : data?.tasks.find(t => t.code === task)?.pilot_student_name;
+  useEffect(() => {
+    if (reviewOnly || !released) return;
+    let active = true;
+    setStudentsLoading(true);
+    setStudentsError("");
+    const timer = setTimeout(() => {
+      programmeWorkspace(schoolId, studentSearch, studentOffset).then(p => {
+        if (active) { setRecipients(p.students); setStudentTotal(p.total_students); }
+      }).catch(() => { if (active) setStudentsError("Students could not load. Retry loading practice."); })
+        .finally(() => { if (active) setStudentsLoading(false); });
+    }, 250);
+    return () => { active = false; clearTimeout(timer); };
+  }, [schoolId, reviewOnly, released, studentSearch, studentOffset, retry]);
   useEffect(() => {
     let active = true; setStudent(null);
     if (reviewOnly || !recipientId || !recipientName) return;
@@ -74,7 +97,7 @@ export default function IeltsLearningTeacher({
     }).catch(() => { if (active) setMessage("Student evidence could not load. Retry loading practice."); });
     return () => { active = false; };
   }, [schoolId, reviewOnly, recipientId, recipientName, retry]);
-  const usage = useIeltsMaterialUsage(reviewOnly ? undefined : schoolId, data?.tasks.filter(t=>t.pilot_student===recipientId).map(t=>({type:"targeted",id:t.code})) ?? [], {student:recipientId}, usageRevision);
+  const usage = useIeltsMaterialUsage(reviewOnly || !recipientId ? undefined : schoolId, data?.tasks.filter(t=>t.released || t.pilot_student===recipientId).map(t=>({type:"targeted",id:t.code})) ?? [], {student:recipientId}, usageRevision);
   const prior = usage.data?.find(u => u.id === task && u.type === "targeted");
   const activeAssignment = !!prior?.active_count;
   const exposedCheck = data?.tasks.find(t=>t.code===task)?.purpose === "independent_check" && !!prior?.assigned_count;
@@ -105,7 +128,7 @@ export default function IeltsLearningTeacher({
   }
   return (
     <div className="il-shell">
-      <p className="il-eyebrow">FOUR SKILLS · NAMED-STUDENT PILOT</p>
+      <p className="il-eyebrow">FOUR SKILLS · TARGETED PRACTICE</p>
       <h2>
         {reviewOnly
           ? "Targeted practice reviews"
@@ -126,16 +149,35 @@ export default function IeltsLearningTeacher({
         <>
           {!reviewOnly && (
             <section className="il-card">
+              {released && <label className="il-answer">Find a student
+                <input value={studentSearch} maxLength={80} disabled={busy} onChange={e => { setStudentSearch(e.target.value); setStudentOffset(0); }} placeholder="Search eligible students by name" />
+              </label>}
               <label className="il-answer">Student
-                <select value={recipientId ?? ""} disabled aria-label="Available student for this material">
-                  <option value={recipientId ?? ""}>{recipientName ?? "Student unavailable"}</option>
+                <select value={recipientId ?? ""} disabled={!released || busy || studentsLoading || !!studentsError} aria-label="Available student for this material" onChange={e => {
+                  setChosenRecipient(recipients.find(s => s.id === e.target.value) ?? null);
+                  setStudent(null); setReason(""); setRepeatConfirmed(false);
+                  request.current = crypto.randomUUID();
+                }}>
+                  {released ? <>
+                    <option value="">Choose an eligible student</option>
+                    {chosenRecipient && !recipients.some(s => s.id === chosenRecipient.id) && <option value={chosenRecipient.id}>{chosenRecipient.name}</option>}
+                    {recipients.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </> : <option value={recipientId ?? ""}>{recipientName ?? "Student unavailable"}</option>}
                 </select>
               </label>
-              <p className="il-muted">Recipients follow the material’s approved release scope. New materials remain in their named-student pilot.</p>
+              {released && <>
+                {studentsLoading && <p role="status">Loading eligible students…</p>}
+                {studentsError && <p role="alert">{studentsError}</p>}
+                {!studentsLoading && !studentsError && recipients.length === 0 && <p>No eligible students match this search.</p>}
+                <div><button disabled={busy || studentsLoading || studentOffset === 0} onClick={() => setStudentOffset(n => Math.max(0,n-50))}>Previous students</button>{" "}
+                <button disabled={busy || studentsLoading || studentOffset + 50 >= studentTotal} onClick={() => setStudentOffset(n => n+50)}>Next students</button></div>
+              </>}
+              <p className="il-muted">{released ? "Available to eligible students in your school. Select a student and review their matching evidence." : "This material is restricted to its named-student pilot."}</p>
               <label className="il-answer">
                 Task
                 <select
                   value={task}
+                  disabled={busy}
                   onChange={(e) => {
                     setTask(e.target.value);
                     setRepeatConfirmed(false);
@@ -272,7 +314,7 @@ export default function IeltsLearningTeacher({
                       </button>
                     </div>
                   )}
-                  {approved && <p>Material ready for pilot assignment.</p>}
+                  {approved && <p>{released ? "Material published and ready for assignment." : "Material ready for pilot assignment."}</p>}
                 </>
               )}
               <label className="il-answer">

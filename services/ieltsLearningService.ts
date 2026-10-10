@@ -26,6 +26,7 @@ export interface LearningWorkspace {
   pilot_only: boolean;
   tasks: {
     code: string;
+    released?: boolean;
     originality_label?: string | null;
   display_code?: string;
     pilot_student: string;
