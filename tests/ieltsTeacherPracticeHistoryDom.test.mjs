@@ -61,3 +61,26 @@ test('school picker shows recipient-scoped use and requires an intentional repea
  assert.equal(m.calls.some(c=>c.fn==='rpc_ielts_practice_create_assignment'),false);m.change(m.w.document.querySelector('[data-testid="ielts-practice-class-select"]'),'');assert.equal(create.disabled,true);assert.deepEqual(m.errors,[]);
  }finally{m.dom.window.close();}
 });
+
+
+test('published targeted material supports choosing another entitled student without defaulting to the pilot',async()=>{
+ const calls=[],errors=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
+ const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/',runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:vc});
+ try{const w=dom.window;Object.assign(w,{TextEncoder,TextDecoder,Request,Response,Headers});w.crypto.randomUUID=randomUUID;
+ w.fetch=async(url,options)=>{const fn=String(url).split('/').pop(),args=JSON.parse(options.body);calls.push({fn,args});let result;
+ if(fn==='rpc_ielts_learning_workspace')result={manager:true,pilot_only:false,tasks:[{code:'released-task',released:true,pilot_student:'pilot',pilot_student_name:'Gulzada',title:'Published task',skill:'listening',purpose:'guided_practice',approved:true,requires_review:true,questions:[],content:{},success_description:'Check details.'}],allocations:[]};
+ else if(fn==='rpc_ielts_programme_workspace')result={students:[{id:'second',name:'Another student',listening:{attempt_id:'second-source'}},{id:'missing',name:'No evidence yet',listening:null}],total_students:2};
+ else if(fn==='rpc_ielts_teacher_material_usage')result=args.p_items.map(i=>({...i,assigned_count:0,active_count:0,students_count:0}));
+ else if(fn==='rpc_ielts_learning_allocate')result='new-allocation';else throw Error(fn);
+ return new Response(JSON.stringify(result),{status:200,headers:{'Content-Type':'application/json'}});};
+ const wait=async f=>{for(let i=0;i<150;i++){if(f())return;await new Promise(r=>setTimeout(r,15));}throw Error(w.document.body.textContent);};
+ const button=label=>[...w.document.querySelectorAll('button')].find(b=>b.textContent===label);
+ const change=(input,value)=>{const p=input.tagName==='SELECT'?w.HTMLSelectElement.prototype:input.tagName==='TEXTAREA'?w.HTMLTextAreaElement.prototype:w.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(p,'value').set.call(input,value);input.dispatchEvent(new w.Event(input.tagName==='SELECT'?'change':'input',{bubbles:true}));};
+ w.eval(bundles.targeted);await wait(()=>w.document.querySelector('[aria-label="Available student for this material"]')?.querySelector('option[value="second"]'));
+ const picker=w.document.querySelector('[aria-label="Available student for this material"]');assert.equal(picker.value,'');assert.equal(button('Confirm and assign').disabled,true);
+ change(picker,'second');await wait(()=>w.document.body.textContent.includes('Review listening source evidence'));change(w.document.querySelector('textarea'),'Use the task to practise the details identified in your screener.');await wait(()=>!button('Confirm and assign').disabled);
+ button('Confirm and assign').click();await wait(()=>calls.some(c=>c.fn==='rpc_ielts_learning_allocate'));
+ assert.equal(calls.find(c=>c.fn==='rpc_ielts_learning_allocate').args.p_student,'second');assert.equal(calls.find(c=>c.fn==='rpc_ielts_learning_allocate').args.p_source,'second-source');
+ change(picker,'missing');await wait(()=>w.document.body.textContent.includes('No matching screener evidence'));assert.equal(button('Confirm and assign').disabled,true);assert.deepEqual(errors,[]);
+ }finally{dom.window.close();}
+});
