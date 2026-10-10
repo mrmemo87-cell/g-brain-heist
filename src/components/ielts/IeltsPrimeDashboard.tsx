@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
+import '../../styles/ielts-design-system.css';
 import { gsap } from 'gsap';
 import type { IeltsDashboardSummary, IeltsSkill, IeltsSkillProgress } from '../../../services/ieltsDashboardService';
 import IeltsSchoolLearnerLinks from './IeltsSchoolLearnerLinks';
@@ -27,19 +28,19 @@ type Props = {
 
 const shell: React.CSSProperties = {
   minHeight: '100vh',
-  background: 'radial-gradient(circle at 14% 8%, rgba(125,211,252,0.38), transparent 28%), radial-gradient(circle at 88% 0%, rgba(196,181,253,0.42), transparent 32%), linear-gradient(135deg,#f8fbff 0%,#eef7ff 42%,#fbf7ff 100%)',
-  color: '#0f172a',
-  fontFamily: 'system-ui, -apple-system, sans-serif',
+  background: 'var(--bh-ielts-background)',
+  color: 'var(--bh-ielts-foreground)',
+  fontFamily: 'var(--bh-ielts-font-body)',
   padding: 'clamp(1rem,3vw,2rem)',
   overflowX: 'hidden',
 };
 
 const glassCard: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.9)',
-  border: '1px solid rgba(148,163,184,0.24)',
-  borderRadius: '1.35rem',
+  background: 'var(--bh-ielts-surface)',
+  border: '1px solid var(--bh-ielts-border)',
+  borderRadius: 'var(--bh-ielts-radius-lg)',
   padding: '1.05rem',
-  boxShadow: '0 18px 48px rgba(15,23,42,0.08)',
+  boxShadow: 'var(--bh-ielts-shadow-md)',
 };
 
 const skillName = (skill?: string | null) => skill ? `${skill[0].toUpperCase()}${skill.slice(1)}` : 'Reading';
@@ -113,7 +114,7 @@ const IeltsPrimeDashboard: React.FC<Props> = ({ summary, lapsedPrime, taskTotal,
   }, []);
 
   return (
-    <div ref={rootRef} style={shell}>
+    <div ref={rootRef} className="ielts-prime-dashboard" style={shell}>
       <main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}>
         <section data-prime-hero style={{ position: 'relative', overflow: 'hidden', borderRadius: '1.8rem', color: '#fff', padding: 'clamp(1.25rem,4vw,2.4rem)', background: 'radial-gradient(circle at 78% 18%, rgba(124,58,237,.52), transparent 28%), radial-gradient(circle at 20% 5%, rgba(14,165,233,.4), transparent 26%), linear-gradient(135deg,#08111f 0%,#172554 52%,#3b0764 100%)', boxShadow: '0 28px 80px rgba(30,41,59,.22)' }}>
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(0deg,rgba(255,255,255,.06) 1px,transparent 1px)', backgroundSize: '44px 44px', opacity: .34 }} aria-hidden="true" />
