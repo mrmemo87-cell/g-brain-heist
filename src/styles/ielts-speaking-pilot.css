@@ -1,14 +1,16 @@
+@import "./ielts-design-system.css";
+
 .sp-page {
-  --sp-ink: #15243a;
-  --sp-muted: #4c6076;
-  --sp-blue: #1746b0;
-  --sp-line: #dce5ef;
+  --sp-ink: var(--bh-ielts-foreground);
+  --sp-muted: var(--bh-ielts-foreground-muted);
+  --sp-blue: var(--bh-ielts-primary);
+  --sp-line: var(--bh-ielts-border);
   color: var(--sp-ink);
-  background: linear-gradient(160deg, #eff5ff, #f7f9fc 35%, #f1f9f8);
+  background: var(--bh-ielts-background);
   min-height: 100vh;
   padding: 32px max(20px, calc((100vw - 1260px) / 2));
-  font-family: inherit;
-  line-height: 1.65;
+  font-family: var(--bh-ielts-font-body);
+  line-height: var(--bh-ielts-leading);
   color-scheme: light;
 }
 .sp-page * {
@@ -75,19 +77,19 @@
   color: #286594;
 }
 .sp-card {
-  background: #fff;
+  background: var(--bh-ielts-surface);
   border: 1px solid var(--sp-line);
-  border-radius: 24px;
+  border-radius: var(--bh-ielts-radius-lg);
   padding: clamp(20px, 3vw, 32px);
   margin: 0 0 24px;
-  box-shadow: 0 8px 30px #173b6c06;
+  box-shadow: var(--bh-ielts-shadow-sm);
   min-width: 0;
 }
 .sp-pill {
   display: inline-block;
-  background: #eef3fa;
-  color: #284b72;
-  border: 1px solid #d4e1ef;
+  background: var(--bh-ielts-secondary);
+  color: var(--bh-ielts-secondary-foreground);
+  border: 1px solid var(--bh-ielts-border);
   border-radius: 999px;
   padding: 4px 11px;
   font-size: 0.77rem;
@@ -106,18 +108,18 @@
     box-shadow 0.15s;
 }
 .sp-primary {
-  background: #1746b0;
-  color: #fff !important;
-  border: 1px solid #1746b0;
+  background: var(--bh-ielts-primary);
+  color: var(--bh-ielts-primary-foreground) !important;
+  border: 1px solid var(--bh-ielts-primary);
   box-shadow: 0 4px 12px #1746b01a;
 }
 .sp-primary:hover {
-  background: #103b9a;
+  background: var(--bh-ielts-primary-hover);
 }
 .sp-secondary {
-  background: #f6f8fc;
-  color: #193f77 !important;
-  border: 1px solid #c9d8ea;
+  background: var(--bh-ielts-surface-muted);
+  color: var(--bh-ielts-secondary-foreground) !important;
+  border: 1px solid var(--bh-ielts-border);
 }
 .sp-page button:disabled {
   opacity: 0.5;
@@ -130,7 +132,7 @@
 .sp-page textarea:focus-visible,
 .sp-page select:focus-visible,
 .sp-page summary:focus-visible {
-  outline: 3px solid #579bff;
+  outline: 3px solid var(--bh-ielts-focus);
   outline-offset: 3px;
 }
 .sp-actions {

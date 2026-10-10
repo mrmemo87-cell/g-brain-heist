@@ -1,6 +1,8 @@
+@import "./ielts-design-system.css";
+
 /* A scoped light workspace: the game shell must not recolour review evidence. */
-body:has(.writing-review) { background:#f3f6fb; color-scheme:light; }
-.writing-review { --wr-ink:#17243b; --wr-muted:#475569; --wr-blue:#174fa4; min-height:100vh; padding:72px 20px 64px; background:radial-gradient(ellipse at 95% 0, #e8edff, transparent 40%),#f3f6fb; color:var(--wr-ink); color-scheme:light; }
+body:has(.writing-review) { background:var(--bh-ielts-background); color-scheme:light; }
+.writing-review { --wr-ink:var(--bh-ielts-foreground); --wr-muted:var(--bh-ielts-foreground-muted); --wr-blue:var(--bh-ielts-primary); min-height:100vh; padding:72px 20px 64px; background:var(--bh-ielts-background); color:var(--wr-ink); font-family:var(--bh-ielts-font-body); color-scheme:light; }
 body:has(.writing-review) [data-global-language-control="true"] { top:calc(12px + env(safe-area-inset-top))!important; right:12px!important; left:auto!important; bottom:auto!important; transform:none!important; }
 .writing-review * { box-sizing:border-box; }
 .writing-review :is(h1,h2,h3,h4,legend,label,p,blockquote) { color:var(--wr-ink); -webkit-text-fill-color:currentColor; background-clip:border-box; }
@@ -26,7 +28,7 @@ body:has(.writing-review) [data-global-language-control="true"] { top:calc(12px 
 .wr-header-icon svg { width:52px; height:52px; }
 .wr-header-footer { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; border-top:1px solid #e1e8f2; padding-top:18px; margin-top:18px; font-size:.82rem; color:#475569; }
 .wr-pill { display:inline-flex; align-items:center; min-height:28px; padding:5px 10px; border:1px solid #d4e2f5; border-radius:999px; background:#eef4ff; color:#174fa4; font-size:.72rem; font-weight:750; white-space:normal; }
-.wr-card { min-width:0; padding:24px; border:1px solid #d9e2ef; border-radius:20px; background:#fff; box-shadow:0 4px 16px #183a6405; }
+.wr-card { min-width:0; padding:24px; border:1px solid var(--bh-ielts-border); border-radius:var(--bh-ielts-radius-lg); background:var(--bh-ielts-surface); box-shadow:var(--bh-ielts-shadow-sm); }
 .wr-card-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .wr-workspace { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:24px; align-items:start; }
 .wr-essay { position:sticky; top:24px; }
@@ -62,7 +64,7 @@ body:has(.writing-review) [data-global-language-control="true"] { top:calc(12px 
 .wr-evidence { border-top:1px solid #e1e7f0; padding-top:16px; margin-top:18px; }
 .wr-evidence blockquote { white-space:pre-wrap; overflow-wrap:anywhere; border-left:3px solid #80a7e4; padding:12px 14px; background:#f3f7ff; border-radius:0 10px 10px 0; margin:14px 0 0; font-size:.87rem; line-height:1.8; }
 .wr-secondary { padding:9px 13px; color:#174fa4; background:#eef4ff; border:1px solid #b9cfee; border-radius:10px; font-size:.8rem!important; }
-.wr-primary { display:inline-flex; align-items:center; justify-content:center; padding:12px 18px; border:1px solid #174fa4; border-radius:12px; background:#174fa4; color:white!important; -webkit-text-fill-color:#fff!important; font-size:.88rem!important; box-shadow:0 3px 8px #174fa418; }
+.wr-primary { display:inline-flex; align-items:center; justify-content:center; padding:12px 18px; border:1px solid var(--bh-ielts-primary); border-radius:var(--bh-ielts-radius-md); background:var(--bh-ielts-primary); color:white!important; -webkit-text-fill-color:#fff!important; font-size:.88rem!important; box-shadow:0 3px 8px #174fa418; }
 .wr-primary:hover:not(:disabled) { background:#103e87; }
 .wr-criterion-actions { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:18px; }
 .wr-next { border-top:3px solid #259c8a; }

@@ -1,12 +1,11 @@
+@import "./ielts-design-system.css";
+
 .ij-student,
 .ij-checks {
-  color: #15243a;
+  color: var(--bh-ielts-foreground);
   color-scheme: light;
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
-  line-height: 1.65;
+  font-family: var(--bh-ielts-font-body);
+  line-height: var(--bh-ielts-leading);
 }
 .ij-student {
   display: grid;
@@ -22,8 +21,8 @@
 .ij-student h4,
 .ij-checks h2,
 .ij-checks h3 {
-  color: #15243a;
-  letter-spacing: -0.025em;
+  color: var(--bh-ielts-foreground);
+  letter-spacing: var(--bh-ielts-tracking);
   line-height: 1.25;
   margin: 0 0 12px;
 }
@@ -54,7 +53,7 @@
 .ij-checks button:focus-visible,
 .ij-student summary:focus-visible,
 .ij-checks summary:focus-visible {
-  outline: 3px solid #2563eb;
+  outline: 3px solid var(--bh-ielts-focus);
   outline-offset: 4px;
 }
 .ij-student .ij-eyebrow,
@@ -63,7 +62,7 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #1e40af;
+  color: var(--bh-ielts-primary);
   margin-bottom: 10px;
 }
 .ij-hero {

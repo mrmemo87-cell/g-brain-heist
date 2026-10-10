@@ -1,5 +1,8 @@
+@import "./ielts-design-system.css";
+
 .ilr-panel {
-  color: #172033;
+  color: var(--bh-ielts-foreground);
+  font-family: var(--bh-ielts-font-body);
 }
 .ilr-panel input,
 .ilr-panel select,
@@ -9,10 +12,10 @@
   min-height: 44px;
   margin-top: 6px;
   padding: 10px 12px;
-  border: 1px solid #b7c5d4;
-  border-radius: 10px;
-  background: #fff;
-  color: #172033;
+  border: 1px solid var(--bh-ielts-input-border);
+  border-radius: var(--bh-ielts-radius-sm);
+  background: var(--bh-ielts-surface);
+  color: var(--bh-ielts-foreground);
   font: inherit;
   box-sizing: border-box;
 }

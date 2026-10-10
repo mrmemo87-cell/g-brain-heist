@@ -1,3 +1,5 @@
+@import "./ielts-design-system.css";
+
 .ip-embedded {
   padding: 0;
   max-width: none;
@@ -24,8 +26,8 @@
   overflow: auto;
   margin: 22px 0;
   padding: 5px;
-  background: #eaf0fa;
-  border-radius: 16px;
+  background: var(--bh-ielts-secondary);
+  border-radius: var(--bh-ielts-radius-md);
 }
 .ip-nav button {
   white-space: nowrap;
@@ -34,13 +36,13 @@
   border: 0;
   border-radius: 12px;
   background: transparent;
-  color: #334155;
+  color: var(--bh-ielts-foreground-muted);
   font-weight: 700;
 }
 .ip-nav [aria-current] {
-  background: #fff;
-  color: #1e40af;
-  box-shadow: 0 2px 8px #1e3a8a12;
+  background: var(--bh-ielts-surface);
+  color: var(--bh-ielts-primary);
+  box-shadow: var(--bh-ielts-shadow-sm);
 }
 .ip-tools {
   display: grid;
@@ -53,10 +55,10 @@
   text-align: left;
   min-height: 160px;
   padding: 22px;
-  border: 1px solid #dce5ef;
-  border-radius: 16px;
-  background: #f8fafc;
-  color: #0f172a;
+  border: 1px solid var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-md);
+  background: var(--bh-ielts-surface-muted);
+  color: var(--bh-ielts-foreground);
 }
 .ip-tools button:hover {
   border-color: #93b4ef;
@@ -161,7 +163,7 @@
 }
 .ip-page button:focus-visible,
 .ip-page a:focus-visible {
-  outline: 3px solid #2563eb;
+  outline: 3px solid var(--bh-ielts-focus);
   outline-offset: 3px;
 }
 .ip-page button:disabled {

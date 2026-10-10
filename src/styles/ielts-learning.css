@@ -1,14 +1,24 @@
+@import "./ielts-design-system.css";
+
 .il-shell {
-  --sp-ink: #15243a;
-  --sp-muted: #4c6076;
-  --sp-blue: #1746b0;
-  --sp-line: #dce5ef;
+  --sp-ink: var(--bh-ielts-foreground);
+  --sp-muted: var(--bh-ielts-foreground-muted);
+  --sp-blue: var(--bh-ielts-primary);
+  --sp-line: var(--bh-ielts-border);
   min-height: 100vh;
-  background: #f5f6fc;
-  color: #18223b;
+  background: var(--bh-ielts-background);
+  color: var(--bh-ielts-foreground);
   padding: clamp(1rem, 4vw, 3rem);
-  font-family: inherit;
+  font-family: var(--bh-ielts-font-body);
 }
+
+/* Embedded inside the Programme card: no second full-height background or page padding. */
+.sp-page .il-shell {
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+.sp-page .il-shell > :is(section,header,p,a) { max-width: none; }
 .il-shell > header,
 .il-shell > section,
 .il-shell > p,
@@ -28,12 +38,12 @@
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.09em;
-  color: #3447a5;
+  color: var(--bh-ielts-primary);
 }
 .il-card {
-  background: #fff;
-  border: 1px solid #dce1ef;
-  border-radius: 1.2rem;
+  background: var(--bh-ielts-surface);
+  border: 1px solid var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-lg);
   padding: clamp(1rem, 3vw, 1.7rem);
   margin-top: 1.25rem;
   line-height: 1.65;
@@ -51,9 +61,9 @@
 .il-button {
   display: inline-block;
   min-height: 44px;
-  border: 1px solid #3244a0;
-  border-radius: 0.7rem;
-  background: #253b9d;
+  border: 1px solid var(--bh-ielts-primary);
+  border-radius: var(--bh-ielts-radius-md);
+  background: var(--bh-ielts-primary);
   color: white;
   padding: 0.7rem 1rem;
   font-weight: 700;
@@ -65,7 +75,7 @@
   cursor: not-allowed;
 }
 .il-shell a {
-  color: #253b9d;
+  color: var(--bh-ielts-primary);
   text-decoration: underline;
 }
 .il-shell a.il-button {
@@ -81,8 +91,8 @@
 .il-answer input,
 .il-answer textarea,
 .il-shell select {
-  border: 1px solid #a4aec5;
-  border-radius: 0.6rem;
+  border: 1px solid var(--bh-ielts-input-border);
+  border-radius: var(--bh-ielts-radius-sm);
   padding: 0.8rem;
   color: #18223b;
   background: white;
@@ -110,7 +120,7 @@
   border-left: 5px solid #b64232;
 }
 .il-shell :focus-visible {
-  outline: 3px solid #14a2ac;
+  outline: 3px solid var(--bh-ielts-focus);
   outline-offset: 3px;
 }
 .il-passage {
@@ -167,7 +177,7 @@
 
 /* Teacher history: one hierarchy, readable work and feedback states. */
 .il-desk-nav,.il-history-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; margin:1rem 0; }
-.il-desk-nav button[aria-pressed="true"] { background:#233da1; color:white; box-shadow:0 0 0 3px #dce3ff; }
+.il-desk-nav button[aria-pressed="true"] { background:var(--bh-ielts-primary); color:var(--bh-ielts-primary-foreground); box-shadow:0 0 0 3px var(--bh-ielts-secondary); }
 .il-history-filters { display:grid; grid-template-columns:minmax(180px,2fr) repeat(3,minmax(120px,1fr)); gap:1rem; align-items:end; }
 .il-history-filters .il-answer { margin:0; }
 .il-history-filters button { justify-self:start; }
@@ -176,7 +186,7 @@
 .il-history-row h4 { font-size:1.1rem; margin:.4rem 0; }
 .il-history-row p { margin:.5rem 0; overflow-wrap:anywhere; }
 .il-history-badge { display:inline-block; border:1px solid #b8c5ed; background:#eef2ff; color:#233566; padding:.35rem .7rem; margin:0 .4rem .4rem 0; border-radius:999px; font-size:.85rem; font-weight:700; }
-.il-usage { border-left:4px solid #465ac8; background:#eef2ff; border-radius:.6rem; padding:1rem; margin:1rem 0; }
+.il-usage { border-left:4px solid var(--bh-ielts-accent); background:var(--bh-ielts-surface-muted); border-radius:var(--bh-ielts-radius-sm); padding:1rem; margin:1rem 0; }
 .il-usage p { margin:.4rem 0; }
 @media(max-width:760px) { .il-history-filters { grid-template-columns:1fr 1fr; } .il-history-row { grid-template-columns:1fr; gap:.5rem; } }
 @media(max-width:430px) { .il-history-filters { grid-template-columns:1fr; } }
