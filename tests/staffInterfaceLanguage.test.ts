@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const provider = readFileSync('src/contexts/LanguageContext.tsx', 'utf8');
 const layer = readFileSync('src/components/AppLocalizationLayer.tsx', 'utf8');
+const control = readFileSync('src/components/FloatingLanguageControl.tsx', 'utf8');
 const boundary = readFileSync('src/components/PortalLocalizationBoundary.tsx', 'utf8');
 const files = [
   ['Teacher', 'components/TeacherPortalShell.tsx'],
@@ -15,8 +16,8 @@ const files = [
 
 test('one persisted language layer covers public and portal routes', () => {
   assert.match(provider, /AppLocalizationLayer/);
-  assert.match(layer, /data-global-language-control="true"/);
-  assert.match(layer, /\['en', 'ar', 'ru'\]/);
+  assert.match(control, /data-global-language-control="true"/);
+  assert.match(control, /\['en', 'ar', 'ru'\]/);
   for (const [name, path] of files) {
     const source = readFileSync(path, 'utf8');
     assert.match(source, /withPortalLocalization/, `${name} portal compatibility wrapper is missing`);
