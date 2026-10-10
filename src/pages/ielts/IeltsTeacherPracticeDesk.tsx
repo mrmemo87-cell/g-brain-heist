@@ -7,8 +7,24 @@ const Targeted = React.lazy(() => import('./IeltsLearningTeacher'));
 const SchoolAssignments = React.lazy(() => import('../../../components/school-admin/tabs/IeltsPracticeTab'));
 const date = (value: string | null) => value ? new Date(value).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'}) : '—';
 export default function IeltsTeacherPracticeDesk({schoolId,onOpenReviews}: {schoolId:string;onOpenReviews:()=>void}) {
-  const [mode,setMode] = useState<'history'|'targeted'|'school'>('history');
-  const [assignment,setAssignment] = useState<string|undefined>();
+  const [query,setQuery] = useState(() => window.location.search);
+  const params = new URLSearchParams(query);
+  useEffect(() => {
+    const restore = () => setQuery(window.location.search);
+    window.addEventListener('popstate',restore);
+    return () => window.removeEventListener('popstate',restore);
+  }, []);
+  const mode = params.get('practice') === 'school' ? 'school' : params.get('practice') === 'targeted' ? 'targeted' : 'history';
+  const candidate = params.get('assignment');
+  const assignment = candidate && /^[\w-]{1,128}$/.test(candidate) ? candidate : undefined;
+  const setMode = (next: 'history'|'targeted'|'school', id?: string) => {
+    const updated = new URLSearchParams(window.location.search);
+    if (next === 'history') updated.delete('practice'); else updated.set('practice', next);
+    if (next === 'school' && id) updated.set('assignment', id); else updated.delete('assignment');
+    const search = updated.size ? `?${updated}` : '';
+    window.history.pushState(window.history.state, '', window.location.pathname + search + window.location.hash);
+    setQuery(search);
+  };
   const [rows,setRows] = useState<PracticeHistoryRow[]>([]), [more,setMore] = useState(false);
   const [search,setSearch] = useState(''), [applied,setApplied] = useState('');
   const [skill,setSkill] = useState(''), [kind,setKind] = useState(''), [status,setStatus] = useState('');
@@ -28,7 +44,7 @@ export default function IeltsTeacherPracticeDesk({schoolId,onOpenReviews}: {scho
     window.addEventListener('focus',refresh);
     return()=>window.removeEventListener('focus',refresh);
   }, [mode]);
-  const openSchool = (id?:string) => {setAssignment(id);setMode('school');};
+  const openSchool = (id?:string) => setMode('school',id);
   return <div className="il-shell il-desk">
     <p className="il-eyebrow">TEACHER · PRACTICE DESK</p>
     <h2 ref={heading} tabIndex={-1}>The right task. The clear next step.</h2>

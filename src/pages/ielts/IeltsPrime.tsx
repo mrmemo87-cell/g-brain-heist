@@ -301,7 +301,7 @@ const IeltsPrime: React.FC = () => {
             borderRadius: 999,
             padding: '0.55rem 0.9rem',
             cursor: 'pointer',
-            fontWeight: 800,
+            fontWeight: 700,
           }}
         >
           ← Back to IELTS tasks
@@ -317,7 +317,7 @@ const IeltsPrime: React.FC = () => {
               color: '#111827',
               borderRadius: 999,
               padding: '0.45rem 0.9rem',
-              fontWeight: 900,
+              fontWeight: 700,
               fontSize: '0.78rem',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
@@ -332,7 +332,7 @@ const IeltsPrime: React.FC = () => {
               margin: 0,
               fontSize: 'clamp(2.3rem, 7vw, 4.8rem)',
               lineHeight: 0.95,
-              fontWeight: 950,
+              fontWeight: 700,
             }}
           >
             Start IELTS Prime instantly.
@@ -352,7 +352,7 @@ const IeltsPrime: React.FC = () => {
           </p>
 
           {!isAuthenticated && (
-            <p style={{ margin: '1rem auto 0', color: '#93c5fd', fontWeight: 800 }}>
+            <p style={{ margin: '1rem auto 0', color: '#93c5fd', fontWeight: 700 }}>
               Sign in with Google to buy Prime — no school required.
             </p>
           )}
@@ -367,7 +367,7 @@ const IeltsPrime: React.FC = () => {
                 borderRadius: '1rem',
                 padding: '0.9rem 1rem',
                 color: '#bbf7d0',
-                fontWeight: 800,
+                fontWeight: 700,
               }}
             >
               {statusMessage}
@@ -384,7 +384,7 @@ const IeltsPrime: React.FC = () => {
                 borderRadius: '1rem',
                 padding: '0.9rem 1rem',
                 color: '#fecaca',
-                fontWeight: 800,
+                fontWeight: 700,
               }}
             >
               {error}
@@ -415,7 +415,7 @@ const IeltsPrime: React.FC = () => {
                 border: '1px solid rgba(74,222,128,0.45)',
                 borderRadius: 999,
                 padding: '0.45rem 0.85rem',
-                fontWeight: 950,
+                fontWeight: 700,
                 fontSize: '0.78rem',
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
@@ -424,7 +424,7 @@ const IeltsPrime: React.FC = () => {
             >
               IELTS Prime Active
             </div>
-            <h2 style={{ margin: 0, fontSize: 'clamp(2rem, 5vw, 3.4rem)', lineHeight: 1, fontWeight: 950 }}>
+            <h2 style={{ margin: 0, fontSize: 'clamp(2rem, 5vw, 3.4rem)', lineHeight: 1, fontWeight: 700 }}>
               You’re in. IELTS Prime is active.
             </h2>
             <p style={{ maxWidth: 620, margin: '1rem auto 1.5rem', color: '#dbeafe', fontSize: '1.05rem', lineHeight: 1.7 }}>
@@ -433,8 +433,8 @@ const IeltsPrime: React.FC = () => {
                 : 'Checkout received. We’re activating your access now, and you can refresh once if Prime does not appear immediately.'}
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <button type="button" onClick={() => navigate('/ielts')} style={{ border: 'none', borderRadius: '0.85rem', padding: '0.9rem 1.15rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#052e16', fontWeight: 950, cursor: 'pointer' }}>Start Prime Tasks</button>
-              <button type="button" onClick={() => navigate('/ielts')} style={{ border: '1px solid rgba(191,219,254,0.45)', borderRadius: '0.85rem', padding: '0.9rem 1.15rem', background: 'rgba(255,255,255,0.08)', color: '#dbeafe', fontWeight: 950, cursor: 'pointer' }}>Back to IELTS Dashboard</button>
+              <button type="button" onClick={() => navigate('/ielts')} style={{ border: 'none', borderRadius: '0.85rem', padding: '0.9rem 1.15rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#052e16', fontWeight: 700, cursor: 'pointer' }}>Start Prime Tasks</button>
+              <button type="button" onClick={() => navigate('/ielts')} style={{ border: '1px solid rgba(191,219,254,0.45)', borderRadius: '0.85rem', padding: '0.9rem 1.15rem', background: 'rgba(255,255,255,0.08)', color: '#dbeafe', fontWeight: 700, cursor: 'pointer' }}>Back to IELTS Dashboard</button>
             </div>
             <p style={{ margin: '1.25rem 0 0', color: '#bfdbfe', fontSize: '0.9rem' }}>
               If access does not appear immediately, refresh once or contact support.
@@ -477,7 +477,7 @@ const IeltsPrime: React.FC = () => {
                     color: '#052e16',
                     borderRadius: 999,
                     padding: '0.28rem 0.62rem',
-                    fontWeight: 900,
+                    fontWeight: 700,
                     fontSize: '0.7rem',
                   }}
                 >
@@ -485,7 +485,7 @@ const IeltsPrime: React.FC = () => {
                 </div>
               )}
 
-              <h2 style={{ margin: '0 0 0.7rem', fontSize: '1.35rem', fontWeight: 950 }}>
+              <h2 style={{ margin: '0 0 0.7rem', fontSize: '1.35rem', fontWeight: 700 }}>
                 {plan.name}
               </h2>
 
@@ -502,18 +502,18 @@ const IeltsPrime: React.FC = () => {
                     color: '#94a3b8',
                     textDecoration: 'line-through',
                     fontSize: '1.15rem',
-                    fontWeight: 800,
+                    fontWeight: 700,
                   }}
                 >
                   {formatPrice(plan.originalPrice)}
                 </span>
-                <span style={{ fontSize: '2.35rem', fontWeight: 950, color: '#fef3c7' }}>
+                <span style={{ fontSize: '2.35rem', fontWeight: 700, color: '#fef3c7' }}>
                   {formatPrice(plan.discountedPrice)}
                 </span>
                 <span style={{ color: '#cbd5e1', fontWeight: 700 }}>{plan.period}</span>
               </div>
 
-              <p style={{ margin: '0 0 1rem', color: '#fde68a', fontWeight: 900 }}>
+              <p style={{ margin: '0 0 1rem', color: '#fde68a', fontWeight: 700 }}>
                 50% off at checkout
               </p>
 
@@ -543,7 +543,7 @@ const IeltsPrime: React.FC = () => {
                   padding: '0.9rem 1rem',
                   background: 'linear-gradient(135deg, #22c55e, #16a34a)',
                   color: '#052e16',
-                  fontWeight: 950,
+                  fontWeight: 700,
                   cursor: checkoutPlan || googleLoading ? 'wait' : 'pointer',
                   opacity: checkoutPlan || googleLoading ? 0.75 : 1,
                 }}
@@ -570,7 +570,7 @@ const IeltsPrime: React.FC = () => {
             marginBottom: '2rem',
           }}
         >
-          <h2 style={{ margin: '0 0 0.8rem', fontWeight: 950 }}>What Prime unlocks</h2>
+          <h2 style={{ margin: '0 0 0.8rem', fontWeight: 700 }}>What Prime unlocks</h2>
 
           <div
             style={{
@@ -593,7 +593,7 @@ const IeltsPrime: React.FC = () => {
               href={manageUrl}
               target="_blank"
               rel="noreferrer"
-              style={{ color: '#bfdbfe', fontWeight: 900 }}
+              style={{ color: '#bfdbfe', fontWeight: 700 }}
             >
               Manage your Paddle subscription
             </a>

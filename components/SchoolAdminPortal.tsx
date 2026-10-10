@@ -1946,7 +1946,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
           {/* Sub-tab Segmented Control */}
           <div
-            className="flex gap-1 overflow-x-auto rounded-2xl border border-gray-700/50 bg-gray-900/70 p-1.5 backdrop-blur-sm"
+            className="ielts-tools-nav flex gap-1 overflow-x-auto rounded-2xl border border-gray-700/50 bg-gray-900/70 p-1.5 backdrop-blur-sm"
             role="tablist"
             aria-label="IELTS sections"
             aria-orientation="horizontal"

@@ -1,3 +1,4 @@
+import '../../../src/styles/ielts-ui.css';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import {
@@ -74,20 +75,20 @@ const IeltsResultsTab: React.FC = () => {
   ];
 
   return (
-    <div className="bh-ielts-admin space-y-6" data-testid="ielts-results-tab">
-      <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-gray-900 to-amber-950/30 p-6 shadow-xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">IELTS Academy</p>
-        <h3 className="mt-2 text-2xl font-bold text-white">IELTS Results</h3>
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-amber-50/80">
+    <div className="ix-workspace space-y-6" data-testid="ielts-results-tab">
+      <div className="rounded-2xl border ix-border ix-surface p-6 shadow-xl">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] ix-accent">IELTS Academy</p>
+        <h3 className="mt-2 text-2xl font-bold ix-ink">IELTS Results</h3>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed ix-accent">
           Review practice completion, controlled-exam submissions, and verified readiness evidence for this school.
         </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <label className="rounded-xl border border-gray-700 bg-gray-900/80 p-4 text-sm text-gray-300">
-          <span className="mb-2 block font-semibold text-white">Class</span>
+        <label className="rounded-xl border ix-border ix-surface p-4 text-sm ix-muted">
+          <span className="mb-2 block font-semibold ix-ink">Class</span>
           <select
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-gray-200"
+            className="w-full rounded-lg border ix-border ix-surface p-2 ix-muted"
             value={selectedClassId}
             onChange={(event) => setSelectedClassId(event.target.value)}
           >
@@ -96,13 +97,13 @@ const IeltsResultsTab: React.FC = () => {
               <option key={cls.id} value={cls.id}>{cls.class_name}</option>
             ))}
           </select>
-          <p className="mt-2 text-xs text-gray-500">{selectedClassName ? `Showing ${selectedClassName}.` : 'Showing every class you are authorised to view.'}</p>
+          <p className="mt-2 text-sm ix-muted">{selectedClassName ? `Showing ${selectedClassName}.` : 'Showing every class you are authorised to view.'}</p>
         </label>
 
-        <label className="rounded-xl border border-gray-700 bg-gray-900/80 p-4 text-sm text-gray-300">
-          <span className="mb-2 block font-semibold text-white">Student</span>
+        <label className="rounded-xl border ix-border ix-surface p-4 text-sm ix-muted">
+          <span className="mb-2 block font-semibold ix-ink">Student</span>
           <select
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-gray-200"
+            className="w-full rounded-lg border ix-border ix-surface p-2 ix-muted"
             value={selectedStudentId}
             onChange={(event) => setSelectedStudentId(event.target.value)}
           >
@@ -111,16 +112,16 @@ const IeltsResultsTab: React.FC = () => {
               <option key={student.user_id} value={student.user_id}>{student.username || student.email || 'Unnamed student'}</option>
             ))}
           </select>
-          <p className="mt-2 text-xs text-gray-500">{selectedStudentName ? `Showing ${selectedStudentName}.` : 'Showing every student you are authorised to view.'}</p>
+          <p className="mt-2 text-sm ix-muted">{selectedStudentName ? `Showing ${selectedStudentName}.` : 'Showing every student you are authorised to view.'}</p>
         </label>
 
-        <div className="rounded-xl border border-gray-700 bg-gray-900/80 p-4 text-sm text-gray-300">
-          <span className="mb-2 block font-semibold text-white">School results</span>
-          <p className="text-gray-400">Shows authorised IELTS results for students in this school.</p>
+        <div className="rounded-xl border ix-border ix-surface p-4 text-sm ix-muted">
+          <span className="mb-2 block font-semibold ix-ink">School results</span>
+          <p className="ix-muted">Shows authorised IELTS results for students in this school.</p>
           <button
             type="button"
             onClick={() => void loadResults()}
-            className="mt-3 rounded-lg border border-amber-400/50 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-3 rounded-lg border ix-border px-3 py-2 text-sm font-semibold ix-accent hover:bg-amber-500/10 disabled:cursor-not-allowed disabled:opacity-60"
             disabled={loading || !school?.id}
           >
             {loading ? 'Refreshing…' : 'Refresh results'}
@@ -129,33 +130,33 @@ const IeltsResultsTab: React.FC = () => {
       </div>
 
       {error && (
-        <div className="rounded-2xl border border-red-500/40 bg-red-950/40 p-5 text-sm text-red-100">
+        <div className="rounded-2xl border ix-border ix-soft p-5 text-sm ix-danger">
           <p className="font-semibold">Unable to load IELTS Results</p>
-          <p className="mt-1 text-red-100/80">{error}</p>
+          <p className="mt-1 ix-danger">{error}</p>
         </div>
       )}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {summaryCards.map((card) => (
-          <div key={card.label} data-testid={`ielts-results-summary-${card.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`} className="rounded-2xl border border-amber-500/20 bg-gray-900/80 p-5 shadow-lg">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">{card.label}</p>
-            <p className="mt-3 text-3xl font-bold text-white">{loading && !results ? '…' : card.value}</p>
-            <p className="mt-2 text-xs leading-relaxed text-gray-400">{card.detail}</p>
+          <div key={card.label} data-testid={`ielts-results-summary-${card.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`} className="rounded-2xl border ix-border ix-surface p-5 shadow-lg">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] ix-accent">{card.label}</p>
+            <p className="mt-3 text-3xl font-bold ix-ink">{loading && !results ? '…' : card.value}</p>
+            <p className="mt-2 text-sm leading-relaxed ix-muted">{card.detail}</p>
           </div>
         ))}
       </div>
 
-      <section className="rounded-2xl border border-amber-500/30 bg-gray-900/80 p-5">
+      <section className="rounded-2xl border ix-border ix-surface p-5">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <h4 className="text-lg font-semibold text-white">Student Results</h4>
-            <p className="text-sm text-gray-400">Readiness values appear only when the evidence meets Brains Heist verification and coverage rules. Practice results are not promoted into readiness.</p>
+            <h4 className="text-lg font-semibold ix-ink">Student Results</h4>
+            <p className="text-sm ix-muted">Readiness values appear only when the evidence meets Brains Heist verification and coverage rules. Practice results are not promoted into readiness.</p>
           </div>
-          {loading && <span className="text-sm text-amber-200">Loading results…</span>}
+          {loading && <span className="text-sm ix-accent">Loading results…</span>}
         </div>
 
         {!loading && !error && rows.length === 0 && (
-          <div className="mt-5 rounded-xl border border-dashed border-gray-700 bg-black/20 p-6 text-center text-sm text-gray-300">
+          <div className="mt-5 rounded-xl border border-dashed ix-border ix-soft p-6 text-center text-sm ix-muted">
             Results have no completed practice yet for the selected filters. Completed assignments will appear here as students finish required items.
           </div>
         )}
@@ -163,7 +164,7 @@ const IeltsResultsTab: React.FC = () => {
         {rows.length > 0 && (
           <div className="admin-table-scroll mt-5" role="region" aria-label="IELTS results table" tabIndex={0}>
             <table className="min-w-[920px] divide-y divide-gray-800 text-left text-sm">
-              <thead className="text-xs uppercase tracking-wide text-gray-400">
+              <thead className="text-sm uppercase tracking-wide ix-muted">
                 <tr>
                   <th className="px-3 py-3">Student</th>
                   <th className="px-3 py-3">Class</th>
@@ -176,21 +177,21 @@ const IeltsResultsTab: React.FC = () => {
                   <th className="px-3 py-3">Last activity</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800 text-gray-200">
+              <tbody className="divide-y divide-gray-800 ix-muted">
                 {rows.map((row) => (
                   <tr key={row.student_id} data-testid={`ielts-results-student-${row.student_id}`} className="align-top hover:bg-amber-500/5">
                     <td className="px-3 py-4">
-                      <p className="font-semibold text-white">{getStudentName(row)}</p>
-                      <p className="text-xs text-gray-400">{row.email || 'No email'}</p>
+                      <p className="font-semibold ix-ink">{getStudentName(row)}</p>
+                      <p className="text-sm ix-muted">{row.email || 'No email'}</p>
                     </td>
-                    <td className="px-3 py-4 text-gray-300">{row.class_name || '—'}</td>
-                    <td className="px-3 py-4 text-gray-300">{formatNumber(row.completed_practice_total)} / {formatNumber(row.assigned_practice_total)}</td>
+                    <td className="px-3 py-4 ix-muted">{row.class_name || '—'}</td>
+                    <td className="px-3 py-4 ix-muted">{formatNumber(row.completed_practice_total)} / {formatNumber(row.assigned_practice_total)}</td>
                     <td className="px-3 py-4">{formatEstimate(row.latest_reading_estimate)}</td>
                     <td className="px-3 py-4">{formatEstimate(row.latest_listening_estimate)}</td>
                     <td className="px-3 py-4">{formatEstimate(row.latest_writing_estimate)}</td>
                     <td className="px-3 py-4">{formatEstimate(row.latest_speaking_estimate)}</td>
-                    <td className="px-3 py-4 font-semibold text-amber-100">{formatEstimate(row.latest_overall_estimate)}</td>
-                    <td className="px-3 py-4 text-gray-300">{formatDateTime(row.last_activity_at)}</td>
+                    <td className="px-3 py-4 font-semibold ix-accent">{formatEstimate(row.latest_overall_estimate)}</td>
+                    <td className="px-3 py-4 ix-muted">{formatDateTime(row.last_activity_at)}</td>
                   </tr>
                 ))}
               </tbody>

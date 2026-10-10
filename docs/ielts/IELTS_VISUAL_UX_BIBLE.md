@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
-**Status:** CANONICAL DESIGN CONTRACT — review branch until merged  
-**Version:** 1.0.0  
+**Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
+**Version:** 1.1.0
 **Effective date:** 2026-10-10  
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -45,7 +45,7 @@ This is a *governance document*, not evidence that every screen has passed visua
 | Accent/focus | `--bh-ielts-accent`, `--bh-ielts-focus` | `#0E7490` |
 | Borders | `--bh-ielts-border` | `#DCE5EF` |
 
-Type: **IBM Plex Sans**, fallback Inter/system sans. Base 16px, small 14px; headings weight 750 and tracking `-0.02em`; typical body line-height 1.6. Spacing follows the 4/8/16/24/32/48px scale. Radius: 10/13/24px and pill 999px. Shadows use the three `--bh-ielts-shadow-*` tokens.
+Type: **IBM Plex Sans**, fallback Inter/system sans. Base 16px, small 14px; headings weight 700 and tracking `-0.02em`; typical body line-height 1.6. Spacing follows the 4/8/16/24/32/48px scale. Radius: 10/13/24px and pill 999px. Shadows use the three `--bh-ielts-shadow-*` tokens.
 
 Preserve separate semantic success/warning/error treatment. Status must be expressed **in text and accessible metadata**, not color alone. Strong colored surfaces must be contrast-tested against actual foregrounds. Avoid global element selectors that recolor the non-IELTS Brains Heist game, and never normalize all colored cards if doing so obscures academic or workflow state.
 
@@ -171,3 +171,54 @@ Before coding: **read both Bibles**, inspect the affected components and their C
 After coding: report files changed, screenshots reviewed, test outcomes, remaining gaps, and whether any nonvisual behavior changed. If a request contradicts a Bible, **stop that specific change and document the conflict** rather than silently weakening a rule.
 
 This Visual & UX Bible is versioned alongside the code. Change it only through an explicit reviewed update. The Themely reference may evolve, but this document governs visual decision-making across the whole IELTS product.
+
+
+## 12. Native interaction and navigation contract — v1.1.0
+
+This revision implements the owner's request for professional IELTS frontend quality. It strengthens component ownership and testable acceptance without changing assessment, access, data or release rules. Diagnostic Bible **1.9.0** remains authoritative. It does not certify the untested screens or production capacity.
+
+### 12.1 Shared components
+
+`src/components/ielts/IeltsUi.tsx` and `src/styles/ielts-ui.css` define native Evidence Blue buttons, notices, confirmation dialogs, fields, rows, statuses and panels. `IeltsSkillTrack.tsx` owns the common independent/Prime skill-card interaction. New and migrated screens consume semantic classes directly. Do not add attribute-string matching or `!important` to compensate for incorrect markup. Keep compatibility CSS only for screens that have not yet migrated and list that debt in the acceptance record.
+
+Use the loaded IBM Plex Sans faces: **400, 500, 600, 700**. Supported weights apply to headings, badges, SVG text and body text. Do not request invented 750–950 faces. The font token/reference must change together if the supported font is intentionally changed.
+
+### 12.2 Canonical interaction dictionary
+
+| Area | Label | Behavior / destination |
+| --- | --- | --- |
+| Programme | Today / Student progress / Review desk / Programme team | Retain the four governed sections and permissions. |
+| Practice Desk | Practice history / Assign targeted practice / School assignments | Preserve distinct workflows; record selected tool in the URL. |
+| Class assignments | New assignment | Opens the focused creation flow. |
+| Assignment overview | Filter assignments by class | Filters visible assignment records; never sets creation recipients. |
+| Creation | Assign to class | Selects the actual recipients of new work. |
+| Creation | Class & instructions → Materials → Review & assign | Preserve entered data across steps and return to the overview. |
+| Creation | Confirm & assign to class | Available only after content, recipient, prior-use and repeat checks pass. |
+| Saved draft | Retry class allocation / Allocate saved assignment | Allocates the same saved identity; never creates another record. |
+| Assignment | View progress | Loads the exact authorized assignment, including closed/archived history. |
+| Assignment | Close to new work | Confirm read-only consequences; preserve saved work. |
+| Assignment | Archive assignment | Confirm hiding from the active list; preserve history. |
+| Archived assignment | Restore as closed | Confirm it returns closed, without accepting submissions. |
+| Completed skill track | View progress & feedback | `/ielts/journey`; never invent a skill base route or task ID. |
+| Public skill overview | Reading / Listening / Writing / Speaking | Informational cards until a verified discovery destination exists; never dead buttons. |
+| Prime | Explore IELTS Prime | Clearly describes optional access; does not promise band improvement. |
+
+A history deep link uses the existing Programme URL with `practice=school&assignment=<saved-id>`. Targeted mode uses `practice=targeted`; history removes these two keys. Preserve other query parameters. Query parameters select presentation only: scoped services must authorize the actual school and saved assignment. Browser back/forward must restore the tool, not silently create work.
+
+### 12.3 Failure and async-state contracts
+
+- Preserve a successfully created assignment identity when allocation fails. The UI must distinguish saved work from confirmed class allocation. Retry the existing class-allocation operation only, with its original class; the existing server uniqueness/authorization contracts still apply.
+- Draft rows expose a recovery action after reopening the screen. If creation itself has an uncertain outcome, direct the user to check the list before creating again. This frontend behavior does not claim network-level idempotency for creation; an atomic/idempotent server API requires a separately reviewed change.
+- Prevent rapid-click duplicate creation and lifecycle mutations synchronously. Disabled-state rendering alone is insufficient.
+- Keep detail selection authoritative while status/class filters change. An assignment absent from the filtered list is not an authorization failure or a reason to discard its detail.
+- Ignore stale list/catalogue/detail responses when a newer request, school context or unmount supersedes them. Never show earlier work under a newly selected title.
+- Dialogs name their consequences, trap keyboard focus, isolate background interaction, restore focus, and retain failure state until the operation succeeds or the user cancels.
+- Selected materials must preserve their provenance label. Changing skill clears the old material identity and stale metadata before another selection.
+
+### 12.4 Release evidence
+
+Navigation tests cover unavailable, unfinished, completed and locked skill cards; assignment tests cover scoped usage, intentional repeats, partial allocation recovery, rapid clicks, history outside active lists, independent list filters, and contextual browser back/forward. Existing authorization, academic and persistence suites remain mandatory.
+
+Finite entrance motion may remain; remove continuous CTA movement and decorative loops. Presentational animation cannot decide application state or delay save/feedback. Keep GSAP targets component-scoped and respect reduced motion.
+
+The full rendered-screen matrix in sections 7A and 10 remains a release gate. Passing DOM tests, typecheck or a build never replaces browser/device acceptance. Record covered and uncovered families in `IELTS_FRONTEND_QUALITY_2026-10-10.md` before promoting a broad redesign. Do not silently waive this gate or declare every screen professional without evidence.

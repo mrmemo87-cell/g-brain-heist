@@ -92,7 +92,7 @@
 .bh-ielts-experience .sp-hero { padding-block: clamp(20px,3vw,36px); }
 .bh-ielts-experience .sp-hero h1 {
   font-size: var(--bh-ielts-display-size);
-  font-weight: 750;
+  font-weight: 700;
   letter-spacing: -.045em;
 }
 .bh-ielts-experience .ip-nav {
@@ -420,7 +420,7 @@
   border-radius: var(--bh-ielts-radius-md);
   background: var(--bh-ielts-surface-muted);
   color: var(--bh-ielts-foreground);
-  font-weight: 750;
+  font-weight: 700;
 }
 .bh-ielts-experience .bh-ielts-field-reason {
   border-left: 4px solid var(--bh-ielts-primary) !important;
@@ -445,7 +445,7 @@
 }
 .bh-ielts-experience .il-desk > h2 {
   font-size: clamp(1.6rem,3vw,2.25rem);
-  font-weight: 750;
+  font-weight: 700;
   letter-spacing: -.035em;
   max-width: 720px;
 }

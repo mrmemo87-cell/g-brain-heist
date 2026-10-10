@@ -196,7 +196,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
 
         {/* Page header */}
         <header data-anim="header" hidden={loadState === 'ready' && mode === 'student'} style={{ padding: '0.25rem 0' }}>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{embedded ? 'Student IELTS Progress' : 'My IELTS Journey'}</h1>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>{embedded ? 'Student IELTS Progress' : 'My IELTS Journey'}</h1>
           <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>{embedded ? 'Review assignments, results, readiness, and feedback for this school.' : 'Track assignments, results, and reviewed feedback.'}</p>
         </header>
 
@@ -219,12 +219,12 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
             <section data-anim="card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.9rem', padding: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: '#0f172a' }}>School IELTS Results</h2>
+                  <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>School IELTS Results</h2>
                   <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>Select a student name to open their authorised IELTS progress record.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <span style={{ background: '#ecfeff', color: '#0e7490', border: '1px solid #a5f3fc', borderRadius: '9999px', padding: '0.35rem 0.7rem', fontSize: '0.72rem', fontWeight: 900 }}>{schoolResults.summary.total_students} students</span>
-                  <span style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', borderRadius: '9999px', padding: '0.35rem 0.7rem', fontSize: '0.72rem', fontWeight: 900 }}>{schoolResults.summary.completed_practice_count} completed practices</span>
+                  <span style={{ background: '#ecfeff', color: '#0e7490', border: '1px solid #a5f3fc', borderRadius: '9999px', padding: '0.35rem 0.7rem', fontSize: '0.72rem', fontWeight: 700 }}>{schoolResults.summary.total_students} students</span>
+                  <span style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', borderRadius: '9999px', padding: '0.35rem 0.7rem', fontSize: '0.72rem', fontWeight: 700 }}>{schoolResults.summary.completed_practice_count} completed practices</span>
                 </div>
               </div>
             </section>
@@ -248,14 +248,14 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
                               type="button"
                               data-testid="ielts-open-student-progress"
                               onClick={() => void openStudentSnapshot(student)}
-                              style={{ background: 'transparent', border: 'none', color: '#0e7490', fontWeight: 900, cursor: 'pointer', padding: 0, textAlign: 'left', fontSize: '0.86rem' }}
+                              style={{ background: 'transparent', border: 'none', color: '#0e7490', fontWeight: 700, cursor: 'pointer', padding: 0, textAlign: 'left', fontSize: '0.86rem' }}
                             >
                               {student.username ?? student.email ?? 'Student'}
                             </button>
                           </td>
                           <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.82rem' }}>{student.class_name ?? 'No class'}</td>
-                          <td style={{ padding: '0.75rem', color: '#334155', fontSize: '0.82rem', fontWeight: 800 }}>{student.completed_practice_total} / {student.assigned_practice_total} completed</td>
-                          <td style={{ padding: '0.75rem', color: '#334155', fontSize: '0.82rem', fontWeight: 800 }}>{student.latest_overall_estimate == null ? 'Verified readiness pending' : `${student.latest_overall_estimate.toFixed(1)} / 9.0`}</td>
+                          <td style={{ padding: '0.75rem', color: '#334155', fontSize: '0.82rem', fontWeight: 700 }}>{student.completed_practice_total} / {student.assigned_practice_total} completed</td>
+                          <td style={{ padding: '0.75rem', color: '#334155', fontSize: '0.82rem', fontWeight: 700 }}>{student.latest_overall_estimate == null ? 'Verified readiness pending' : `${student.latest_overall_estimate.toFixed(1)} / 9.0`}</td>
                           <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.82rem' }}>{formatDate(student.last_activity_at, 'No activity yet')}</td>
                         </tr>
                       ))}
@@ -283,7 +283,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
                     onClick={(e) => e.stopPropagation()}
                     style={{ width: '100%', maxWidth: '360px', borderRadius: '0.9rem', border: '1px solid #e2e8f0', background: '#fff', boxShadow: '0 18px 44px rgba(15, 23, 42, 0.22)', padding: '1rem' }}
                   >
-                    <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 900, color: '#0f172a' }}>Set target band</h3>
+                    <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>Set target band</h3>
                     <p style={{ margin: '0.35rem 0 0.75rem', fontSize: '0.75rem', color: '#64748b' }}>Choose your IELTS goal between 0.0 and 9.0 in 0.5 steps.</p>
                     <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                       <input
@@ -304,7 +304,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
                       <button type="button" disabled={isSavingTargetBand} onClick={() => setIsEditingTargetBand(false)} style={{ border: '1px solid #cbd5e1', background: '#fff', color: '#475569', fontWeight: 700, borderRadius: '0.5rem', padding: '0.4rem 0.8rem', fontSize: '0.75rem', cursor: 'pointer' }}>
                         Cancel
                       </button>
-                      <button type="button" disabled={isSavingTargetBand} onClick={saveTargetBand} style={{ border: 'none', background: '#0ea5e9', color: '#fff', fontWeight: 800, borderRadius: '0.5rem', padding: '0.4rem 0.8rem', fontSize: '0.75rem', cursor: 'pointer' }}>
+                      <button type="button" disabled={isSavingTargetBand} onClick={saveTargetBand} style={{ border: 'none', background: '#0ea5e9', color: '#fff', fontWeight: 700, borderRadius: '0.5rem', padding: '0.4rem 0.8rem', fontSize: '0.75rem', cursor: 'pointer' }}>
                         {isSavingTargetBand ? 'Saving…' : 'Save'}
                       </button>
                     </div>
