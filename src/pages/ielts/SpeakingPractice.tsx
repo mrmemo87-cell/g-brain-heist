@@ -1,3 +1,4 @@
+import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -9,6 +10,7 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { buildSpeakingAttemptPayload } from '../../lib/ieltsPracticeScoring';
 
 interface SpeakingTask {
+  display_code?: string | null;
   id: number;
   slug: string;
   part: number;
@@ -458,6 +460,7 @@ const SpeakingPractice: React.FC = () => {
           <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
             Speaking submitted
           </h1>
+          <p>{ieltsMaterialTitle(task.display_code, `Speaking Practice · Part ${task.part}`)}</p>
           <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b', marginBottom: '1rem' }}>
             Your recording was saved.
           </p>
@@ -537,7 +540,7 @@ const SpeakingPractice: React.FC = () => {
                 IELTS Speaking - Part {task.part}
               </div>
               <h1 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>
-                Speaking Practice
+                {ieltsMaterialTitle(task.display_code, "Speaking Practice")}
               </h1>
             </div>
             <button

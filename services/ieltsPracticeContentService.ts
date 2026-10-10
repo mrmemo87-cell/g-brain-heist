@@ -2,6 +2,7 @@ import { supabase } from './supabaseClient.js';
 import type { IeltsPracticeSkill } from './ieltsPracticeAssignmentService.js';
 
 export interface IeltsPracticeContentCatalogItem {
+  display_code?: string | null;
   content_type: string;
   content_id: string;
   title: string;
@@ -40,11 +41,11 @@ export const rpcIeltsPracticeContentCatalog = async (
   params: IeltsPracticeContentCatalogParams = {},
   client?: IeltsPracticeContentRpcClient,
 ): Promise<IeltsPracticeContentCatalogItem[]> => {
-  const { data, error } = await withClient(client).rpc('rpc_ielts_practice_content_catalog', {
+  const { data, error } = await withClient(client).rpc('rpc_ielts_practice_content_catalog_with_codes', {
     p_skill: params.skill ?? null,
     p_search: params.search?.trim() || null,
     p_limit: params.limit ?? 50,
   }) as unknown as Awaited<RpcResult<IeltsPracticeContentCatalogItem[]>>;
 
-  return assertNoRpcError('rpc_ielts_practice_content_catalog', data, error);
+  return assertNoRpcError('rpc_ielts_practice_content_catalog_with_codes', data, error);
 };

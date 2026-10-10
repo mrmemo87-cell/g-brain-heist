@@ -8,6 +8,7 @@ export type LearningFeedback = Record<
 export interface LearningAllocation {
   id: string;
   task_code?: string;
+  display_code?: string;
   student_id?: string;
   assigned_at?: string;
   title: string;
@@ -24,6 +25,7 @@ export interface LearningWorkspace {
   pilot_only: boolean;
   tasks: {
     code: string;
+    display_code?: string;
     pilot_student: string;
     pilot_student_name: string;
     version: string;
@@ -57,6 +59,7 @@ export interface LearningContent {
   mapping_scope?: string;
 }
 export interface LearningDetail {
+  display_code?: string;
   skill: LearningSkill;
   content: LearningContent;
   source_route: string;

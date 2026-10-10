@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 export interface PracticeHistoryRow {
+  display_code?: string | null;
   row_id: string; kind: 'targeted' | 'school'; assignment_id: string; student_id: string;
   student_name: string; class_id: string | null; class_name: string | null;
   material_type: string; material_id: string; material_version: string | null;

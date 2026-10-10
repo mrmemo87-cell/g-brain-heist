@@ -9,7 +9,10 @@ test('IELTS Diagnostic Bible is wired into the repository agent contract', () =>
   const agents = read('AGENTS.md');
   const bible = read('docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md');
 
-  assert.match(bible, /\*\*Version:\*\* 1\.7\.0/i);
+  assert.match(bible, /\*\*Version:\*\* 1\.8\.0/i);
+  assert.match(bible, /## 15D\. Stable task codes and assignment history/);
+  assert.match(bible, /never.*reuse a retired code/is);
+  assert.match(bible, /code identifies a canonical material, not an allocation, an attempt/);
   assert.match(agents, /docs\/ielts\/IELTS_DIAGNOSTIC_BIBLE\.md/i);
   assert.match(agents, /Before making \*\*any\*\* change that can affect IELTS diagnostics/i);
 });

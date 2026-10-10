@@ -1,3 +1,4 @@
+import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -12,6 +13,7 @@ import { logIeltsViolation } from '../../../services/ieltsViolationService';
 import { buildWritingAttemptPayload } from '../../lib/ieltsPracticeScoring';
 
 interface WritingTask {
+  display_code?: string | null;
   id: number;
   slug: string;
   task_type: string;
@@ -452,6 +454,7 @@ const WritingPractice: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
+            <p>{ieltsMaterialTitle(task.display_code, task.title || "Writing Practice")}</p>
             {isAssignmentCompletedBySubmission ? (
               <>
                 <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
@@ -674,7 +677,7 @@ const WritingPractice: React.FC = () => {
                 IELTS Writing - {task.task_type === 'task1' ? 'Task 1' : 'Task 2'}
               </div>
               <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.875rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
-                {task.title || 'Writing Practice'}
+                {ieltsMaterialTitle(task.display_code, task.title || 'Writing Practice')}
               </h1>
               <div style={{ display: 'flex', gap: '0.5rem', fontSize: 'clamp(0.7rem, 2vw, 0.875rem)', color: '#64748b', flexWrap: 'wrap' }}>
                 <span>Target: {task.bands_target}</span>

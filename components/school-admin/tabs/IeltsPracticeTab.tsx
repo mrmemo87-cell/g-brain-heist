@@ -1,3 +1,4 @@
+import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import {
@@ -25,6 +26,7 @@ import { materialUsageLabel } from '../../../services/ieltsTeacherPracticeServic
 import { friendlyIeltsAdminError } from '../../../src/lib/schoolAdminPresentation';
 
 type DraftItem = IeltsPracticeAssignmentItemInput & {
+  display_code?: string | null;
   localId: string;
   description?: string | null;
   difficulty?: string | null;
@@ -253,6 +255,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
       contentType: content.content_type,
       contentId: content.content_id,
       title: content.title,
+      display_code: content.display_code,
       description: content.description,
       difficulty: content.difficulty,
       band: content.band,
@@ -277,6 +280,9 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
       const next = { ...item, ...patch };
       if (patch.skill) {
         next.contentType = contentTypesBySkill[String(patch.skill)] ?? next.contentType;
+      }
+      if ((next.contentId !== item.contentId || next.contentType !== item.contentType) && !Object.prototype.hasOwnProperty.call(patch, 'display_code')) {
+        next.display_code = undefined;
       }
       return next;
     }));
@@ -602,7 +608,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-xs font-semibold uppercase tracking-wide text-emerald-200">#{index + 1} · {String(item.skill)} · {item.required ?? true ? 'Required' : 'Optional'}</p>
-                      <p className="mt-1 truncate font-semibold text-white">{item.title?.trim() || 'No content selected'}</p>
+                      <p className="mt-1 truncate font-semibold text-white">{ieltsMaterialTitle(item.display_code, item.title?.trim() || 'No content selected')}</p>
                       <p className="mt-1 text-xs text-gray-300">{item.contentType || contentTypesBySkill[String(item.skill)]} · {item.contentId || 'Choose content'}</p>
                     </div>
                     <button type="button" className="text-xs text-red-200 hover:text-red-100" onClick={() => removeItem(item.localId)} disabled={items.length === 1}>Remove</button>
@@ -652,7 +658,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">Chosen content</p>
-                        <p className="mt-1 font-semibold text-white">{item.title?.trim() || 'No content selected'}</p>
+                        <p className="mt-1 font-semibold text-white">{ieltsMaterialTitle(item.display_code, item.title?.trim() || 'No content selected')}</p>
                         <p className="mt-1 text-xs text-gray-400">{item.contentType || contentTypesBySkill[String(item.skill)]} · {item.contentId || 'Choose content to fill ID'}</p>
                         {(item.difficulty || item.band) && (
                           <div className="mt-2 flex flex-wrap gap-2">
@@ -696,12 +702,12 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
                             </select>
                           </label>
                           <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                            Title search
+                            Title or task code
                             <input
                               className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white"
                               value={contentSearch}
                               onChange={(event) => setContentSearch(event.target.value)}
-                              placeholder="Search by title"
+                              placeholder="Search by title or code, e.g. R-003"
                             />
                           </label>
                           <button
@@ -732,7 +738,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
                                       className={`w-full rounded-lg border p-3 text-left ${isSelected ? 'border-emerald-300 bg-emerald-500/15 ring-1 ring-emerald-300/40' : 'border-gray-700 bg-gray-900 hover:border-emerald-400 hover:bg-emerald-500/10'}`}
                                     >
                                       <div className="flex flex-wrap items-center gap-2">
-                                        <span className="font-semibold text-white">{content.title}</span>
+                                        <span className="font-semibold text-white">{ieltsMaterialTitle(content.display_code, content.title)}</span>
                                         {isSelected && <span className="rounded-full bg-emerald-400 px-2 py-1 text-xs font-semibold text-emerald-950">Selected</span>}
                                         <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-300">{content.skill}</span>
                                         {content.difficulty && <span className="rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-300">Difficulty: {content.difficulty}</span>}

@@ -8,12 +8,12 @@ async function mount(mode,{fail=false,purpose='guided_practice',prior=usage}={})
  const calls=[],errors=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
  const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/',runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:vc});const w=dom.window;Object.assign(w,{TextEncoder,TextDecoder,Request,Response,Headers});w.crypto.randomUUID=randomUUID;
  w.fetch=async(url,options)=>{const fn=String(url).split('/').pop(),args=options?.body?JSON.parse(options.body):{};calls.push({fn,args});let result;
- if(fn==='rpc_ielts_teacher_practice_history') {if(fail)return new Response(JSON.stringify({message:'unavailable'}),{status:503});result={rows:args.p_offset?[{row_id:'old',kind:'targeted',assignment_id:'old',student_name:'Student',title:'Earlier task',skill:'reading',status:'closed',assignment_status:'closed',feedback_status:'not_ready',assigned_at:'2026-09-01'}]:[{row_id:'one',kind:'targeted',assignment_id:'existing',student_name:'Gulzada',title:'Photography workshop',skill:'listening',status:'submitted',assignment_status:'submitted',feedback_status:'shared',feedback_at:'2026-10-09',assigned_at:'2026-10-08'},{row_id:'two',kind:'school',assignment_id:'class-work',student_name:'Gulzada',class_name:'Class 9',title:'Reading task',assignment_title:'Weekly reading',skill:'reading',status:'completed',assignment_status:'assigned',feedback_status:'not_tracked',assigned_at:'2026-10-08'}],has_more:!args.p_offset};}
+ if(fn==='rpc_ielts_teacher_practice_history') {if(fail)return new Response(JSON.stringify({message:'unavailable'}),{status:503});result={rows:args.p_offset?[{row_id:'old',kind:'targeted',assignment_id:'old',student_name:'Student',title:'Earlier task',skill:'reading',status:'closed',assignment_status:'closed',feedback_status:'not_ready',assigned_at:'2026-09-01'}]:[{row_id:'one',kind:'targeted',assignment_id:'existing',student_name:'Gulzada',title:'Photography workshop',display_code:'L-001',skill:'listening',status:'submitted',assignment_status:'submitted',feedback_status:'shared',feedback_at:'2026-10-09',assigned_at:'2026-10-08'},{row_id:'two',kind:'school',assignment_id:'class-work',student_name:'Gulzada',class_name:'Class 9',title:'Reading task',assignment_title:'Weekly reading',skill:'reading',status:'completed',assignment_status:'assigned',feedback_status:'not_tracked',assigned_at:'2026-10-08'}],has_more:!args.p_offset};}
  else if(fn==='rpc_ielts_teacher_material_usage'){if(fail)return new Response(JSON.stringify({message:'unavailable'}),{status:503});result=args.p_items.map(i=>({...prior,...i}));}
- else if(fn==='rpc_ielts_learning_workspace')result={manager:true,pilot_only:true,tasks:[{code:'task',pilot_student:'student',pilot_student_name:'Gulzada',title:'Task',skill:'listening',purpose,approved:true,requires_review:false,questions:[],content:{},success_description:'Check the final detail.'}],allocations:[]};
+ else if(fn==='rpc_ielts_learning_workspace')result={manager:true,pilot_only:true,tasks:[{code:'task',pilot_student:'student',pilot_student_name:'Gulzada',title:'Task',display_code:'L-001',skill:'listening',purpose,approved:true,requires_review:false,questions:[],content:{},success_description:'Check the final detail.'}],allocations:[]};
  else if(fn==='rpc_ielts_programme_workspace')result={students:[{id:'student',name:'Gulzada',listening:{attempt_id:'source'}}]};
  else if(fn==='rpc_ielts_practice_list_assignments')result=[];
- else if(fn==='rpc_ielts_practice_content_catalog')result=[{content_type:'ielts_reading_set',content_id:'material',title:'Reading material',skill:'reading'}];
+ else if(fn==='rpc_ielts_practice_content_catalog_with_codes')result=[{content_type:'ielts_reading_set',content_id:'material',title:'Reading material',display_code:'R-003',skill:'reading'}];
  else if(fn==='rpc_ielts_practice_assignment_detail')result={assignment:{id:args.p_assignment_id,title:'Existing assignment',status:'assigned',items:[],item_count:1},students:[],items:[]};
  else throw Error(fn);
  return new Response(JSON.stringify(result),{status:200,headers:{'Content-Type':'application/json'}});
@@ -31,10 +31,10 @@ async function mount(mode,{fail=false,purpose='guided_practice',prior=usage}={})
 }
 test('unified desk separates shared feedback from completed work, filters and paginates on the server',async()=>{
  const m=await mount('desk');try{
- assert.match(m.w.document.body.textContent,/Feedback shared/);assert.match(m.w.document.body.textContent,/Check feedback in practice reviews/);
+ assert.match(m.w.document.body.textContent,/L-001 · Photography workshop/);assert.match(m.w.document.body.textContent,/Feedback shared/);assert.match(m.w.document.body.textContent,/Check feedback in practice reviews/);
  assert.ok(m.button('Open saved assignment →'));
  m.button('Next').click();await m.wait(()=>m.w.document.body.textContent.includes('Earlier task'));assert.equal(m.calls.at(-1).args.p_offset,50);
- m.change(m.w.document.querySelector('input'),'Gulzada');m.button('Search').click();await m.wait(()=>m.calls.at(-1).args.p_search==='Gulzada');assert.equal(m.calls.at(-1).args.p_offset,0);
+ m.change(m.w.document.querySelector('input'),'L-001');m.button('Search').click();await m.wait(()=>m.calls.at(-1).args.p_search==='L-001');assert.equal(m.calls.at(-1).args.p_offset,0);
  assert.deepEqual(m.errors,[]);m.button('Open saved assignment →').click();assert.equal(m.w.location.pathname,'/ielts/practice/targeted/existing');
  }finally{m.dom.window.close();}
 });
