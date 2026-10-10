@@ -1,5 +1,7 @@
 # IELTS design system — Themely Evidence Blue
 
+> **Governance:** [IELTS Visual & UX Bible](./IELTS_VISUAL_UX_BIBLE.md) is the canonical presentation and experience contract; this file is the *technical token and migration reference*. For assessment and security, [IELTS Diagnostic Bible](./IELTS_DIAGNOSTIC_BIBLE.md) takes precedence over both.
+
 **Design date:** 10 October 2026. **Status:** review branch; not deployed.
 
 Theme generated in Themely, based on the existing Brains Heist IELTS Programme identity. All IELTS pages now share a semantic token source at `src/styles/ielts-design-system.css`. The school workspace, teacher assignment/review, student Journey, legacy IELTS, monthly reports, Prime dashboard and exam pages keep their own functional layouts and consume the same design primitives. Different contexts can remain visually distinctive.
