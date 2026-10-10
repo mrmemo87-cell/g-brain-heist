@@ -150,14 +150,14 @@ const IeltsFunnelAnalytics: React.FC = () => {
   return (
     <main className="bh-ielts-page bh-ielts-analytics" style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', padding: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <section style={{ maxWidth: 1180, margin: '0 auto' }}>
-        <button type="button" onClick={() => navigate('/ielts')} style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', fontWeight: 800, marginBottom: '1rem' }}>← Back to IELTS Control Center</button>
+        <button type="button" onClick={() => navigate('/ielts')} style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', fontWeight: 700, marginBottom: '1rem' }}>← Back to IELTS Control Center</button>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <div>
-            <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#0891b2' }}>IELTS Analytics</p>
-            <h1 style={{ margin: '0.25rem 0 0.5rem', fontSize: '2rem', fontWeight: 950 }}>Launch funnel</h1>
+            <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#0891b2' }}>IELTS Analytics</p>
+            <h1 style={{ margin: '0.25rem 0 0.5rem', fontSize: '2rem', fontWeight: 700 }}>Launch funnel</h1>
             <p style={{ margin: '0 0 1.25rem', color: '#64748b' }}>A clearer operational view of funnel health: step conversion, daily volume, events, traffic sources, routes, and offer plans. No names, emails, answers, essays, recordings, or feedback are shown.</p>
           </div>
-          <button type="button" disabled={busy || rows.length === 0} onClick={resetEvents} style={{ border: '1px solid #fecaca', background: rows.length === 0 ? '#f8fafc' : '#fee2e2', color: rows.length === 0 ? '#94a3b8' : '#991b1b', borderRadius: '0.85rem', padding: '0.75rem 1rem', fontWeight: 900, cursor: busy || rows.length === 0 ? 'not-allowed' : 'pointer' }}>{state === 'resetting' ? 'Resetting…' : 'Reset test trials'}</button>
+          <button type="button" disabled={busy || rows.length === 0} onClick={resetEvents} style={{ border: '1px solid #fecaca', background: rows.length === 0 ? '#f8fafc' : '#fee2e2', color: rows.length === 0 ? '#94a3b8' : '#991b1b', borderRadius: '0.85rem', padding: '0.75rem 1rem', fontWeight: 700, cursor: busy || rows.length === 0 ? 'not-allowed' : 'pointer' }}>{state === 'resetting' ? 'Resetting…' : 'Reset test trials'}</button>
         </div>
 
         {state === 'loading' ? <p>Loading funnel analytics…</p> : null}
@@ -179,7 +179,7 @@ const IeltsFunnelAnalytics: React.FC = () => {
             <div style={{ overflowX: 'auto', ...cardStyle, padding: 0 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
                 <thead><tr style={{ background: '#f1f5f9', color: '#475569', textAlign: 'left' }}><th style={{ padding: '0.8rem' }}>Step</th><th>What it means</th><th>Last 24h</th><th>Last 7d</th><th>All time</th><th>Share</th><th>Step conversion</th></tr></thead>
-                <tbody>{metrics.stepRows.map((step, index) => (<tr key={step.key} style={{ borderTop: '1px solid #e2e8f0' }}><td style={{ padding: '0.8rem', fontWeight: 900 }}>{index + 1}. {step.label}</td><td style={muted}>{step.intent}</td><td>{step.last24}</td><td>{step.last7}</td><td>{step.all}</td><td>{step.share}%</td><td style={{ fontWeight: 900, color: step.conversion !== null && step.conversion < 50 ? '#b45309' : '#166534' }}>{step.conversion === null ? '—' : `${step.conversion}%`}</td></tr>))}</tbody>
+                <tbody>{metrics.stepRows.map((step, index) => (<tr key={step.key} style={{ borderTop: '1px solid #e2e8f0' }}><td style={{ padding: '0.8rem', fontWeight: 700 }}>{index + 1}. {step.label}</td><td style={muted}>{step.intent}</td><td>{step.last24}</td><td>{step.last7}</td><td>{step.all}</td><td>{step.share}%</td><td style={{ fontWeight: 700, color: step.conversion !== null && step.conversion < 50 ? '#b45309' : '#166534' }}>{step.conversion === null ? '—' : `${step.conversion}%`}</td></tr>))}</tbody>
               </table>
             </div>
 

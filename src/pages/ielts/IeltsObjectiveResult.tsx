@@ -71,7 +71,7 @@ const IeltsObjectiveResult: React.FC = () => {
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.85rem', padding: '1rem', color: '#334155' }}>
           <h2 style={{ margin: '0 0 0.4rem', color: '#0f172a', fontSize: '1rem' }}>Result not available yet.</h2>
           <p style={{ margin: 0, color: '#64748b' }}>This result may not have been completed, or you may not have permission to view it.</p>
-          <button type="button" onClick={() => navigate('/ielts/journey')} style={{ marginTop: '0.85rem', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '0.55rem', padding: '0.55rem 0.85rem', fontWeight: 800, cursor: 'pointer' }}>
+          <button type="button" onClick={() => navigate('/ielts/journey')} style={{ marginTop: '0.85rem', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '0.55rem', padding: '0.55rem 0.85rem', fontWeight: 700, cursor: 'pointer' }}>
             Back to My IELTS Journey
           </button>
         </div>
@@ -95,7 +95,7 @@ const IeltsObjectiveResult: React.FC = () => {
           <div style={{ background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: '0.85rem', padding: '1rem' }}>
             <h2 style={{ margin: '0 0 0.35rem', fontSize: '1rem', color: '#3730a3' }}>Build a broader IELTS practice plan</h2>
             <p style={{ margin: '0 0 0.75rem', color: '#4338ca' }}>IELTS Prime can combine broader practice, reviewed feedback, transcripts, and progress tracking without treating one attempt as a complete readiness judgment.</p>
-            <button type="button" onClick={() => { trackIeltsFunnelEvent('prime_upsell_click', { skill: skill === 'reading' || skill === 'listening' ? skill : undefined, content_id: attemptId, score_percent: data.percent, plan: 'quarterly' }); navigate('/ielts/apply-prime?plan=quarterly&autostart=1'); }} style={{ background: '#4f46e5', color: '#ffffff', border: 'none', borderRadius: '0.55rem', padding: '0.6rem 0.9rem', fontWeight: 800, cursor: 'pointer' }}>Checkout with IELTS Prime</button>
+            <button type="button" onClick={() => { trackIeltsFunnelEvent('prime_upsell_click', { skill: skill === 'reading' || skill === 'listening' ? skill : undefined, content_id: attemptId, score_percent: data.percent, plan: 'quarterly' }); navigate('/ielts/apply-prime?plan=quarterly&autostart=1'); }} style={{ background: '#4f46e5', color: '#ffffff', border: 'none', borderRadius: '0.55rem', padding: '0.6rem 0.9rem', fontWeight: 700, cursor: 'pointer' }}>Checkout with IELTS Prime</button>
           </div>
         ) : null}
       </div> : null}

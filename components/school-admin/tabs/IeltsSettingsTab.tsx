@@ -1,3 +1,4 @@
+import '../../../src/styles/ielts-ui.css';
 import React, { useState, useEffect } from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import {
@@ -76,30 +77,30 @@ const IeltsSettingsTab: React.FC = () => {
   };
 
   return (
-    <div className="bh-ielts-admin space-y-6">
+    <div className="ix-workspace space-y-6">
       {/* Header */}
-      <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-gray-900 to-cyan-950/40 p-6 shadow-xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300">IELTS Academy</p>
-        <h3 className="mt-2 text-2xl font-bold text-white">Settings & Configuration</h3>
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-cyan-50/80">
+      <div className="rounded-2xl border ix-border ix-surface p-6 shadow-xl">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] ix-accent">IELTS Academy</p>
+        <h3 className="mt-2 text-2xl font-bold ix-ink">Settings & Configuration</h3>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed ix-accent">
           Control school-wide IELTS features and student access options.
         </p>
       </div>
 
       {/* Extra Practice Toggle Card */}
-      <div className="rounded-2xl border border-cyan-500/20 bg-gray-900/80 p-6">
+      <div className="rounded-2xl border ix-border ix-surface p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1">
-            <h4 className="text-lg font-semibold text-white">Extra Practice Access</h4>
-            <p id="ielts-extra-practice-description" className="mt-2 text-sm text-gray-400">
+            <h4 className="text-lg font-semibold ix-ink">Extra Practice Access</h4>
+            <p id="ielts-extra-practice-description" className="mt-2 text-sm ix-muted">
               When enabled, students can access free practice content beyond assigned work. When disabled, students only see assigned IELTS practice and their learning journey.
             </p>
-            <div className="mt-4 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-cyan-300">Current Status</p>
-              <p id="ielts-extra-practice-status" role="status" aria-live="polite" className="mt-1 text-sm font-semibold text-cyan-100">
+            <div className="mt-4 rounded-lg border ix-border ix-soft px-4 py-3">
+              <p className="text-sm font-semibold uppercase tracking-wide ix-accent">Current Status</p>
+              <p id="ielts-extra-practice-status" role="status" aria-live="polite" className="mt-1 text-sm font-semibold ix-accent">
                 {loadError ? 'Unable to verify' : extraPracticeEnabled === null ? 'Verifying access…' : extraPracticeEnabled ? 'Enabled' : 'Disabled'}
               </p>
-              {loadError ? <p className="mt-2 text-sm font-semibold text-red-200" role="alert">{loadError}</p> : null}
+              {loadError ? <p className="mt-2 text-sm font-semibold ix-danger" role="alert">{loadError}</p> : null}
             </div>
           </div>
 
@@ -117,9 +118,9 @@ const IeltsSettingsTab: React.FC = () => {
                 disabled={loading || !canManage || extraPracticeEnabled === null}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600" />
+              <div className="w-11 h-6 ix-soft peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600" />
             </label>
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+            <span className="text-sm font-semibold ix-muted uppercase tracking-wide">
               {loading
                 ? extraPracticeEnabled === null ? 'Verifying…' : 'Updating…'
                 : !canManage || extraPracticeEnabled === null
@@ -132,11 +133,11 @@ const IeltsSettingsTab: React.FC = () => {
 
       {/* Info Cards */}
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-4">
+        <div className="rounded-xl border ix-border ix-soft p-4">
           <div className="flex gap-3">
             <div>
-              <h5 className="font-semibold text-white">When Enabled</h5>
-              <ul className="mt-2 space-y-1 text-xs text-gray-300">
+              <h5 className="font-semibold ix-ink">When Enabled</h5>
+              <ul className="mt-2 space-y-1 text-sm ix-muted">
                 <li>• Students see free practice in IELTS home</li>
                 <li>• Trial listening test accessible</li>
                 <li>• Practice content browsable by skill</li>
@@ -145,11 +146,11 @@ const IeltsSettingsTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-700 bg-gray-900/80 p-4">
+        <div className="rounded-xl border ix-border ix-surface p-4">
           <div className="flex gap-3">
             <div>
-              <h5 className="font-semibold text-white">When Disabled</h5>
-              <ul className="mt-2 space-y-1 text-xs text-gray-300">
+              <h5 className="font-semibold ix-ink">When Disabled</h5>
+              <ul className="mt-2 space-y-1 text-sm ix-muted">
                 <li>• Students only see assigned practice</li>
                 <li>• Learning journey still accessible</li>
                 <li>• Controlled practice environment</li>

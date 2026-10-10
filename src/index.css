@@ -3579,3 +3579,12 @@ body.sb-no-fx .sb-beam {
 @media(max-width:700px){.community-filters{align-items:stretch;flex-direction:column}.community-filters label{width:100%}.community-filter-count{margin-left:0;padding:0}.admission-candidate-toolbar{grid-template-columns:1fr}.admission-candidate-search{grid-column:auto}.admission-test-card-content{grid-template-columns:1fr}.admission-test-actions{justify-content:flex-start}.admin-assignment-actions{width:100%}.admin-assignment-actions button{width:100%}}
 @media(max-width:700px){.academic-setup-steps{grid-template-columns:1fr}.academic-date-row,.elective-filter-grid,.school-system-grid{grid-template-columns:1fr}.academic-accordion-trigger{grid-template-columns:auto 1fr auto}.academic-accordion-summary{grid-column:2/3;text-align:left}.grade-plan-toolbar,.academic-year-summary,.school-document-center.is-admin .teacher-section-header{align-items:flex-start;flex-direction:column}.school-identity-lock{grid-template-columns:auto 1fr}.school-identity-lock>a{grid-column:1/-1;width:100%}.class-wizard-steps{grid-template-columns:1fr;gap:.55rem}.class-wizard-steps li:after{display:none}.admin-advanced-disclosure>summary{align-items:flex-start;flex-wrap:wrap}.admin-advanced-disclosure>summary small{order:3;flex-basis:100%}}
 @media(max-width:700px){.class-roster-summary,.school-head-program-empty{align-items:flex-start;flex-direction:column}.class-roster-summary>div:last-child,.class-roster-summary>div:last-child button,.school-head-program-empty>button{width:100%}.class-roster-card-trigger{align-items:flex-start;flex-direction:column}.class-roster-card-meta{width:100%;flex-wrap:wrap}.administrator-teaching-status{grid-template-columns:1fr}.administrator-teaching-status>button{width:100%}}
+
+/* School IELTS: all seven destinations remain visible on phones and tablets. */
+@media (max-width: 1024px) {
+  .school-admin-ielts-tab .ielts-tools-nav { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); overflow:visible; }
+  .school-admin-ielts-tab .ielts-tools-nav button { min-width:0; width:100%; min-height:64px; white-space:normal; overflow-wrap:anywhere; }
+}
+@media (max-width: 600px) {
+  .school-admin-ielts-tab .ielts-tools-nav { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}

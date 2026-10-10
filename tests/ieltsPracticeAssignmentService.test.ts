@@ -559,25 +559,9 @@ test('IELTS Practice picker and safe catalog fields do not expose protected solu
   assert.match(service, /content_type[\s\S]*content_id[\s\S]*title[\s\S]*skill[\s\S]*description[\s\S]*difficulty[\s\S]*band/, 'catalog service type should model only safe picker metadata fields');
 });
 
-test('IELTS Practice production UI includes readiness, status helper text, and empty states', () => {
+test('IELTS Practice production UI puts assignments first and preserves guided creation and recovery', () => {
   const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsPracticeTab.tsx'), 'utf8');
-
-  assert.match(tab, /Assignment readiness/, 'admin practice tab should show a short readiness panel');
-  for (const phrase of [
-    /Assignments created/,
-    /Content selected/,
-    /Class assigned/,
-    /Progress visible/,
-    /Results visible/,
-  ]) {
-    assert.match(tab, phrase, `readiness checklist should include ${phrase}`);
-  }
-  assert.match(tab, /Active = students can work/, 'status helper should explain active assignments');
-  assert.match(tab, /Closed = read-only, no new submissions/, 'status helper should explain closed assignments');
-  assert.match(tab, /Archived = hidden from active view, history preserved/, 'status helper should explain archived assignments');
-  assert.match(tab, /No content found in picker/, 'content picker should have a clear no-content empty state');
-  assert.match(tab, /No students in this class/, 'class selection should warn when no students are enrolled');
-  assert.match(tab, /Assignment has no items/, 'assignment list/progress should call out assignments with no items');
+  for (const phrase of ['New assignment','Filter assignments by class','Assign to class','Choose recipients & instructions','Choose practice materials','Review & assign','Retry class allocation','Active = students can work','Closed = read-only, no new submissions','Archived = hidden from active view, history preserved','No content found in picker','No students in this class','Assignment has no items']) assert.ok(tab.includes(phrase), phrase);
 });
 
 test('IELTS practice submission/completion migration adds submitted state metadata and RPC', () => {

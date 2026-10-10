@@ -7,9 +7,9 @@ body:has(.writing-review) [data-global-language-control="true"] { top:calc(12px 
 .writing-review * { box-sizing:border-box; }
 .writing-review :is(h1,h2,h3,h4,legend,label,p,blockquote) { color:var(--wr-ink); -webkit-text-fill-color:currentColor; background-clip:border-box; }
 .writing-review :is(h1,h2,h3,h4) { background-image:none; color:#17243b!important; -webkit-text-fill-color:#17243b!important; font-family:inherit; }
-.writing-review h1 { margin:12px 0; max-width:720px; font-size:clamp(1.85rem,3.3vw,2.65rem); font-weight:800; letter-spacing:-.045em; line-height:1.13; }
-.writing-review h2 { margin:0; font-size:1.22rem; font-weight:800; letter-spacing:-.025em; }
-.writing-review h3 { margin:0; font-size:1.02rem; font-weight:750; }
+.writing-review h1 { margin:12px 0; max-width:720px; font-size:clamp(1.85rem,3.3vw,2.65rem); font-weight:700; letter-spacing:-.045em; line-height:1.13; }
+.writing-review h2 { margin:0; font-size:1.22rem; font-weight:700; letter-spacing:-.025em; }
+.writing-review h3 { margin:0; font-size:1.02rem; font-weight:700; }
 .writing-review :is(button,a,input,textarea,summary):focus-visible { outline:3px solid #2271d0; outline-offset:3px; }
 .writing-review :is(textarea,input) { color:#17243b!important; -webkit-text-fill-color:#17243b!important; background:#fff!important; caret-color:#17243b; }
 .writing-review textarea::placeholder { color:#58677e!important; -webkit-text-fill-color:#58677e!important; opacity:1; }
@@ -22,19 +22,19 @@ body:has(.writing-review) [data-global-language-control="true"] { top:calc(12px 
 .wr-header::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#2563eb,#745be8,#22a6a0); }
 .wr-back,.wr-text-button { display:inline-flex; align-items:center; min-height:44px; color:#174fa4!important; -webkit-text-fill-color:#174fa4; text-decoration:none; font-size:.88rem!important; font-weight:700; background:none; border:0; padding:0 4px; }
 .wr-header-content { display:flex; align-items:center; justify-content:space-between; gap:24px; }
-.writing-review .wr-eyebrow { margin:6px 0 8px; color:#174fa4; font-size:.7rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+.writing-review .wr-eyebrow { margin:6px 0 8px; color:#174fa4; font-size:.7rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
 .writing-review .wr-intro { color:#475569; margin:12px 0 8px; max-width:660px; font-size:1rem; line-height:1.7; }
 .wr-header-icon { width:86px; height:86px; flex-shrink:0; border:1px solid #c8d9f5; border-radius:24px; background:#e5edff; color:#225bb6; transform:rotate(-5deg); display:grid; place-items:center; }
 .wr-header-icon svg { width:52px; height:52px; }
 .wr-header-footer { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; border-top:1px solid #e1e8f2; padding-top:18px; margin-top:18px; font-size:.82rem; color:#475569; }
-.wr-pill { display:inline-flex; align-items:center; min-height:28px; padding:5px 10px; border:1px solid #d4e2f5; border-radius:999px; background:#eef4ff; color:#174fa4; font-size:.72rem; font-weight:750; white-space:normal; }
+.wr-pill { display:inline-flex; align-items:center; min-height:28px; padding:5px 10px; border:1px solid #d4e2f5; border-radius:999px; background:#eef4ff; color:#174fa4; font-size:.72rem; font-weight:700; white-space:normal; }
 .wr-card { min-width:0; padding:24px; border:1px solid var(--bh-ielts-border); border-radius:var(--bh-ielts-radius-lg); background:var(--bh-ielts-surface); box-shadow:var(--bh-ielts-shadow-sm); }
 .wr-card-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .wr-workspace { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:24px; align-items:start; }
 .wr-essay { position:sticky; top:24px; }
 .wr-meta { display:flex; flex-wrap:wrap; gap:10px 20px; margin:16px 0; color:#475569; font-size:.82rem; }
 .wr-task { margin:18px 0; padding:12px 14px; border:1px solid #dce5f0; border-radius:12px; background:#f7f9fd; }
-.wr-task summary { min-height:36px; padding:7px 0; cursor:pointer; font-size:.85rem; font-weight:750; color:#25405e; }
+.wr-task summary { min-height:36px; padding:7px 0; cursor:pointer; font-size:.85rem; font-weight:700; color:#25405e; }
 .wr-task p { margin:12px 0 4px; white-space:pre-line; line-height:1.75; font-size:.9rem; }
 .writing-review .wr-help { color:#475569; display:block; font-size:.82rem; line-height:1.65; margin:10px 0; }
 .writing-review .wr-original { min-height:360px; height:min(52vh,560px); resize:vertical; line-height:1.9; background:#fcfdff!important; }
@@ -51,15 +51,15 @@ body:has(.writing-review) [data-global-language-control="true"] { top:calc(12px 
 .wr-step-complete { background:#e5f6ef; color:#17624a; border-color:#aad3c1; }
 .wr-criteria small { display:block; color:#17624a; margin-top:3px; font-size:.65rem; }
 .wr-observation,.wr-next fieldset { min-width:0; padding:0; border:0; margin:0; }
-.wr-observation>legend { font-size:1.04rem; font-weight:800; }
+.wr-observation>legend { font-size:1.04rem; font-weight:700; }
 .wr-choice { padding:0; margin:20px 0; border:0; display:grid; gap:8px; }
-.wr-choice legend { font-size:.85rem; font-weight:750; margin-bottom:10px; }
+.wr-choice legend { font-size:.85rem; font-weight:700; margin-bottom:10px; }
 .wr-choice label { display:flex; align-items:center; gap:12px; min-height:60px; padding:12px; border:1px solid #d6dfeb; border-radius:12px; cursor:pointer; }
 .wr-choice label.wr-choice-selected { border-color:#3166b5; background:#f0f5ff; }
 .wr-choice input { min-height:18px; width:18px; height:18px; padding:0; margin:0; accent-color:#174fa4; flex-shrink:0; }
 .wr-choice strong { font-size:.85rem; }
 .wr-choice small { display:block; margin-top:4px; font-size:.75rem; color:#475569; }
-.wr-label { display:block; margin:18px 0 9px; font-size:.88rem; font-weight:750; }
+.wr-label { display:block; margin:18px 0 9px; font-size:.88rem; font-weight:700; }
 .writing-review .wr-note { min-height:130px; resize:vertical; }
 .wr-evidence { border-top:1px solid #e1e7f0; padding-top:16px; margin-top:18px; }
 .wr-evidence blockquote { white-space:pre-wrap; overflow-wrap:anywhere; border-left:3px solid #80a7e4; padding:12px 14px; background:#f3f7ff; border-radius:0 10px 10px 0; margin:14px 0 0; font-size:.87rem; line-height:1.8; }
@@ -81,7 +81,7 @@ body:has(.writing-review) [data-global-language-control="true"] { top:calc(12px 
 .wr-ai-confirm input { width:20px; height:20px; flex-shrink:0; margin-top:3px; accent-color:#5340a8; }
 @keyframes wr-ai-spin { to { transform:rotate(360deg); } }
 @media(prefers-reduced-motion:reduce) { .wr-ai-spinner { animation:none; } }
-.writing-review .wr-success { color:#17624a; font-weight:750; font-size:.85rem; }
+.writing-review .wr-success { color:#17624a; font-weight:700; font-size:.85rem; }
 .wr-alert { display:flex; gap:16px; align-items:center; justify-content:space-between; padding:18px 20px; margin-bottom:20px; border:1px solid #e5c28c; background:#fff7e9; border-radius:14px; color:#703e08; font-size:.9rem; line-height:1.7; }
 .wr-queue-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin:28px 0 18px; }
 .wr-filters { display:flex; gap:4px; border:1px solid #cbd7e7; background:white; padding:4px; border-radius:12px; }
@@ -89,7 +89,7 @@ body:has(.writing-review) [data-global-language-control="true"] { top:calc(12px 
 .wr-filters button[aria-pressed='true'] { background:#edf3ff; color:#174fa4; }
 .wr-queue-list { display:grid; gap:14px; }
 .wr-queue-row { display:flex; align-items:center; gap:18px; }
-.wr-avatar { width:48px; height:48px; display:grid; place-items:center; flex-shrink:0; background:#edf0ff; color:#4653a3; border:1px solid #d8defb; border-radius:15px; font-size:1.1rem; font-weight:800; }
+.wr-avatar { width:48px; height:48px; display:grid; place-items:center; flex-shrink:0; background:#edf0ff; color:#4653a3; border:1px solid #d8defb; border-radius:15px; font-size:1.1rem; font-weight:700; }
 .wr-queue-copy { flex:1; min-width:0; }
 .wr-queue-copy h3 { overflow-wrap:anywhere; }
 .wr-queue-copy p { font-size:.82rem; margin:8px 0; color:#475569; }

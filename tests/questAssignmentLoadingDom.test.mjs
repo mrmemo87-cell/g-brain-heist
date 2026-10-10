@@ -9,7 +9,7 @@ const bundle = await build({
  stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import Quest from './components/QuestView';window.root=createRoot(document.getElementById('root'));window.show=(assignment)=>window.root.render(<Quest onComplete={()=>{}} onGrantReward={()=>{}} initialAssignment={assignment} currentProfile={{id:'student',level:2}}/>);`,loader:'tsx',resolveDir:process.cwd()},
  bundle:true,format:'iife',write:false,loader:{'.css':'empty'},
  define:{'import.meta':JSON.stringify({env:{VITE_SUPABASE_URL:'https://test.supabase.co',VITE_SUPABASE_ANON_KEY:'test'}})},
- plugins:[{name:'mock-game-service',setup(b){b.onLoad({filter:/services\/gameService\.ts$/},()=>({contents:names.map(name=>`export const ${name}=(...args)=>window.gameService('${name}',args);`).join('\n'),loader:'js'}));}}],logLevel:'silent',
+ plugins:[{name:'mock-game-service',setup(b){b.onResolve({filter:/^lottie-react$/},()=>({path:'decorative-lottie',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'export default function Lottie(){return null;}',loader:'js'}));b.onLoad({filter:/services\/gameService\.ts$/},()=>({contents:names.map(name=>`export const ${name}=(...args)=>window.gameService('${name}',args);`).join('\n'),loader:'js'}));}}],logLevel:'silent',
 });
 const a={assignment_id:'assignment-a',subject_name:'ESL',topic_name:'Tense',title:'Classroom assessment',teacher_username:'Teacher',assigned_at:new Date().toISOString(),questions:[],question_count:2};
 const q={id:'question-1',question_text:'Select the answer',question_type:'multiple_choice',options:['A','B'],correct_answer:'A',points:10};

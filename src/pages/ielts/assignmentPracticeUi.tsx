@@ -51,7 +51,7 @@ export interface AssignmentProgressBarProps {
 
 export const AssignmentProgressBar = ({ summary, label, style, testId }: AssignmentProgressBarProps) => (
   <div style={style} data-testid={testId}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.4rem', fontSize: '0.875rem', fontWeight: 800 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.4rem', fontSize: '0.875rem', fontWeight: 700 }}>
       <span>{label ?? `${summary.completedCount} of ${summary.totalCount} completed`}</span>
       <span>{summary.percentage}%</span>
     </div>
@@ -80,7 +80,7 @@ const itemBadgeStyles: Record<AssignmentItemStatus, { label: string; background:
 export const AssignmentItemStatusBadge = ({ status }: { status: AssignmentItemStatus }) => {
   const badge = itemBadgeStyles[status];
   return (
-    <span style={{ backgroundColor: badge.background, border: `1px solid ${badge.border}`, color: badge.color, borderRadius: '9999px', padding: '0.3rem 0.65rem', fontSize: '0.75rem', fontWeight: 900, whiteSpace: 'nowrap' }}>
+    <span style={{ backgroundColor: badge.background, border: `1px solid ${badge.border}`, color: badge.color, borderRadius: '9999px', padding: '0.3rem 0.65rem', fontSize: '0.75rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
       {badge.label}
     </span>
   );
@@ -132,11 +132,11 @@ export const AssignmentCompletionStatus = ({
       textAlign: 'left',
       ...style,
     }}>
-      <p style={{ margin: '0 0 0.35rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '0.75rem', fontWeight: 900 }}>
+      <p style={{ margin: '0 0 0.35rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '0.75rem', fontWeight: 700 }}>
         School Assignment Progress
       </p>
       {context.assignmentTitle && (
-        <h2 style={{ margin: '0 0 0.35rem', fontSize: '1.125rem', fontWeight: 900, color: summary.allItemsComplete ? '#14532d' : '#1e3a8a' }}>
+        <h2 style={{ margin: '0 0 0.35rem', fontSize: '1.125rem', fontWeight: 700, color: summary.allItemsComplete ? '#14532d' : '#1e3a8a' }}>
           {context.assignmentTitle}
         </h2>
       )}
@@ -145,12 +145,12 @@ export const AssignmentCompletionStatus = ({
           Due: {dueDate}
         </p>
       )}
-      <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem', fontWeight: 800 }}>
+      <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem', fontWeight: 700 }}>
         {(completionError || submissionNotice) ? 'Assignment item needs attention' : summary.allItemsComplete ? 'Assignment item completed' : 'Assignment item submitted'}
       </h3>
       <AssignmentProgressBar summary={summary} label={`${summary.completedCount} of ${summary.totalCount} assignment items completed`} style={{ marginBottom: '0.75rem' }} />
       {summary.allItemsComplete && (
-        <p style={{ margin: '0.5rem 0 0', fontWeight: 900 }}>
+        <p style={{ margin: '0.5rem 0 0', fontWeight: 700 }}>
           School assignment completed
         </p>
       )}
@@ -170,7 +170,7 @@ export const AssignmentCompletionStatus = ({
             type="button"
             data-testid="assignment-completion-next-item"
             onClick={() => onNavigate?.(nextItemRoute)}
-            style={{ background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.65rem 1rem', fontWeight: 900, cursor: 'pointer' }}
+            style={{ background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.65rem 1rem', fontWeight: 700, cursor: 'pointer' }}
           >
             Continue to next assignment item
           </button>
@@ -179,7 +179,7 @@ export const AssignmentCompletionStatus = ({
           type="button"
           data-testid="assignment-completion-back-to-assigned"
           onClick={() => onNavigate?.('/ielts/practice/assigned')}
-          style={{ background: '#ffffff', color: '#1e40af', border: '1px solid #93c5fd', borderRadius: '0.5rem', padding: '0.65rem 1rem', fontWeight: 900, cursor: 'pointer' }}
+          style={{ background: '#ffffff', color: '#1e40af', border: '1px solid #93c5fd', borderRadius: '0.5rem', padding: '0.65rem 1rem', fontWeight: 700, cursor: 'pointer' }}
         >
           Back to assigned practice
         </button>

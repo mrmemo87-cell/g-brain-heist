@@ -86,7 +86,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing
             margin: '0 0 .65rem',
             color: '#0369a1',
             fontSize: '.76rem',
-            fontWeight: 900,
+            fontWeight: 700,
             letterSpacing: '.12em',
             textTransform: 'uppercase',
           }}
@@ -163,7 +163,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing
             padding: '.95rem 1.2rem',
             background: 'linear-gradient(135deg,#0891b2,#2563eb 58%,#6d28d9)',
             color: '#ffffff',
-            fontWeight: 900,
+            fontWeight: 700,
             fontSize: '.96rem',
             cursor: 'pointer',
           }}

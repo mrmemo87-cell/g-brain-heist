@@ -2,7 +2,7 @@
 
 > **Governance:** [IELTS Visual & UX Bible](./IELTS_VISUAL_UX_BIBLE.md) is the canonical presentation and experience contract; this file is the *technical token and migration reference*. For assessment and security, [IELTS Diagnostic Bible](./IELTS_DIAGNOSTIC_BIBLE.md) takes precedence over both.
 
-**Design date:** 10 October 2026. **Status:** review branch; not deployed.
+**Design date:** 10 October 2026. **Status:** canonical token reference; deployment and rendered acceptance are recorded separately.
 
 Theme generated in Themely, based on the existing Brains Heist IELTS Programme identity. All IELTS pages now share a semantic token source at `src/styles/ielts-design-system.css`. The school workspace, teacher assignment/review, student Journey, legacy IELTS, monthly reports, Prime dashboard and exam pages keep their own functional layouts and consume the same design primitives. Different contexts can remain visually distinctive.
 
@@ -21,7 +21,7 @@ Theme generated in Themely, based on the existing Brains Heist IELTS Programme i
 | Accent/focus | `--bh-ielts-accent` | #0E7490 | Adapted teal |
 | Border | `--bh-ielts-border` | #DCE5EF | Existing Programme |
 
-Themely typography: IBM Plex Sans with Inter/system fallbacks, 1rem base, 0.875rem small, 750 heading, line height 1.6, tracking −0.02em. Spacing 4/8/16/24/32/48px. Radii 10/13/24/999px. Three light shadow elevations.
+Themely typography: IBM Plex Sans with Inter/system fallbacks, 1rem base, 0.875rem small, 700 heading, line height 1.6, tracking −0.02em. Spacing 4/8/16/24/32/48px. Radii 10/13/24/999px. Three light shadow elevations.
 
 Inferred semantic extensions: hover, input border, success, warning and danger. These tokens are presentation only; **do not** turn status colors into grade/band/readiness/improvement claims.
 
