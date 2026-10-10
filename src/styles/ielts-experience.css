@@ -469,3 +469,53 @@
   color: var(--bh-ielts-secondary-foreground);
   border-color: var(--bh-ielts-border);
 }
+
+
+/* Mobile/tablet Programme navigation: four readable, non-overlapping tabs.
+   Scoped to Programme only; no change to selection, routes or evidence logic. */
+@media (max-width: 900px) {
+  .bh-ielts-experience .ip-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    overflow: visible;
+    padding: 6px;
+  }
+  .bh-ielts-experience .ip-nav button {
+    min-width: 0;
+    width: 100%;
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
+    line-height: 1.25;
+    text-align: center;
+    padding: 12px 8px;
+    min-height: 48px;
+  }
+}
+@media (max-width: 640px) {
+  .bh-ielts-experience .ip-page .sp-hero {
+    gap: 10px;
+    padding: 18px !important;
+    margin-bottom: 12px;
+    align-items: flex-start;
+  }
+  .bh-ielts-experience .ip-page .sp-hero h1 {
+    font-size: clamp(1.55rem, 6vw, 2rem);
+    line-height: 1.12;
+    margin: 12px 0;
+  }
+  .bh-ielts-experience .ip-page .sp-hero p {
+    margin: 8px 0 0;
+  }
+  .bh-ielts-experience .ip-page .sp-hero .sp-back {
+    margin-bottom: 10px;
+  }
+  .bh-ielts-experience .ip-nav {
+    margin: 12px 0 16px;
+  }
+  .bh-ielts-experience .ip-nav button {
+    font-size: 0.875rem;
+    min-height: 48px;
+  }
+}
