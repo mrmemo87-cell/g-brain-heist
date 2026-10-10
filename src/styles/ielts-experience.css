@@ -398,3 +398,74 @@
   .bh-ielts-experience .bh-ielts-page :is(button,select,input:not([type="checkbox"]),textarea) { max-width: 100%; }
   .bh-ielts-experience .bh-ielts-page :is(section,article,header) { min-width: 0; }
 }
+
+
+/* The teacher's three real decisions: who, which material, and why.
+ * Same DOM, same validation and independent check safeguards. */
+.bh-ielts-experience .bh-ielts-targeted-form {
+  max-width: min(100%, 960px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bh-ielts-experience .bh-ielts-targeted-form > .bh-ielts-field-student-search,
+.bh-ielts-experience .bh-ielts-targeted-form > .bh-ielts-field-student,
+.bh-ielts-experience .bh-ielts-targeted-form > .bh-ielts-field-task,
+.bh-ielts-experience .bh-ielts-targeted-form > .bh-ielts-field-reason {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 16px 18px;
+  border: 1px solid var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-md);
+  background: var(--bh-ielts-surface-muted);
+  color: var(--bh-ielts-foreground);
+  font-weight: 750;
+}
+.bh-ielts-experience .bh-ielts-field-reason {
+  border-left: 4px solid var(--bh-ielts-primary) !important;
+}
+.bh-ielts-experience .bh-ielts-targeted-form > .bh-ielts-reuse-history {
+  border-left-width: 4px;
+  border-radius: var(--bh-ielts-radius-md);
+  padding: 18px;
+  margin-block: 8px;
+}
+.bh-ielts-experience .bh-ielts-targeted-form .il-preview {
+  background: var(--bh-ielts-surface-muted);
+  border-color: var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-md);
+}
+.bh-ielts-experience .bh-ielts-targeted-form button:disabled {
+  opacity: .58;
+}
+.bh-ielts-experience .bh-ielts-targeted-form .bh-ielts-field-reason textarea {
+  min-height: 120px;
+  line-height: 1.65;
+}
+.bh-ielts-experience .il-desk > h2 {
+  font-size: clamp(1.6rem,3vw,2.25rem);
+  font-weight: 750;
+  letter-spacing: -.035em;
+  max-width: 720px;
+}
+.bh-ielts-experience .il-desk > p:not(.il-eyebrow) {
+  color: var(--bh-ielts-foreground-muted);
+  max-width: 68ch;
+}
+.bh-ielts-experience .il-history-row {
+  padding: 18px;
+  margin: 10px 0;
+  border: 1px solid var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-md);
+  background: var(--bh-ielts-surface);
+}
+.bh-ielts-experience .il-history-row h4 {
+  color: var(--bh-ielts-foreground);
+  font-size: 1.125rem;
+}
+.bh-ielts-experience .il-history-toolbar button {
+  background: var(--bh-ielts-secondary);
+  color: var(--bh-ielts-secondary-foreground);
+  border-color: var(--bh-ielts-border);
+}
