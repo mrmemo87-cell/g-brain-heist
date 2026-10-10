@@ -875,7 +875,9 @@ const router = createBrowserRouter([
     path: '*',
     element: <Main />,
   },
-]);
+].map((route) => route.path?.startsWith('/ielts')
+  ? { ...route, element: <div className="bh-ielts-experience" data-ielts-route={route.path}>{route.element}</div> }
+  : route));
 
 // Render the main app with routing for all paths
 root.render(
