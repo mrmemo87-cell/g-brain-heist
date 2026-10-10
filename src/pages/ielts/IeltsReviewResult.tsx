@@ -17,7 +17,7 @@ const IeltsReviewResult: React.FC = () => {
   });
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f8fafc', padding: '2rem' }}>
+    <main className="bh-ielts-page bh-ielts-result" style={{ minHeight: '100vh', background: '#f8fafc', padding: '2rem' }}>
       <section style={{ maxWidth: '54rem', margin: '0 auto', background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.5rem' }}>
         <button onClick={() => navigate('/ielts/journey')} style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', marginBottom: '1rem' }}>← Back to My IELTS Journey</button>
         <h1 style={{ color: '#0f172a', marginTop: 0 }}>IELTS {skill} reviewed feedback</h1>

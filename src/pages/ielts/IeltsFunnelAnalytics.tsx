@@ -148,7 +148,7 @@ const IeltsFunnelAnalytics: React.FC = () => {
   const busy = state === 'loading' || state === 'resetting';
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', padding: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <main className="bh-ielts-page bh-ielts-analytics" style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', padding: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <section style={{ maxWidth: 1180, margin: '0 auto' }}>
         <button type="button" onClick={() => navigate('/ielts')} style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', fontWeight: 800, marginBottom: '1rem' }}>← Back to IELTS Control Center</button>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
