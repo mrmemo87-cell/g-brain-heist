@@ -148,11 +148,11 @@ export default function IeltsLearningTeacher({
       {data && (
         <>
           {!reviewOnly && (
-            <section className="il-card">
-              {released && <label className="il-answer">Find a student
+            <section className="il-card bh-ielts-targeted-form">
+              {released && <label className="il-answer bh-ielts-field-student-search">Find a student
                 <input value={studentSearch} maxLength={80} disabled={busy} onChange={e => { setStudentSearch(e.target.value); setStudentOffset(0); }} placeholder="Search eligible students by name" />
               </label>}
-              <label className="il-answer">Student
+              <label className="il-answer bh-ielts-field-student">Student
                 <select value={recipientId ?? ""} disabled={!released || busy || studentsLoading || !!studentsError} aria-label="Available student for this material" onChange={e => {
                   setChosenRecipient(recipients.find(s => s.id === e.target.value) ?? null);
                   setStudent(null); setReason(""); setRepeatConfirmed(false);
@@ -173,7 +173,7 @@ export default function IeltsLearningTeacher({
                 <button disabled={busy || studentsLoading || studentOffset + 50 >= studentTotal} onClick={() => setStudentOffset(n => n+50)}>Next students</button></div>
               </>}
               <p className="il-muted">{released ? "Available to eligible students in your school. Select a student and review their matching evidence." : "This material is restricted to its named-student pilot."}</p>
-              <label className="il-answer">
+              <label className="il-answer bh-ielts-field-task">
                 Task
                 <select
                   value={task}
@@ -199,7 +199,7 @@ export default function IeltsLearningTeacher({
                   ))}
                 </select>
               </label>
-              <div className="il-usage" aria-live="polite">
+              <div className="il-usage bh-ielts-reuse-history" aria-live="polite">
                 <strong>Previous assignments for this student</strong>
                 {usage.loading ? <p>Checking this material’s history…</p> : usage.error ? <><p>{usage.error}</p><button onClick={usage.retry}>Retry history check</button></> : prior ? <>
                   <p>{materialUsageLabel(prior)}</p>
@@ -317,7 +317,7 @@ export default function IeltsLearningTeacher({
                   {approved && <p>{released ? "Material published and ready for assignment." : "Material ready for pilot assignment."}</p>}
                 </>
               )}
-              <label className="il-answer">
+              <label className="il-answer bh-ielts-field-reason">
                 Why this task for this student?
                 <textarea
                   maxLength={1200}

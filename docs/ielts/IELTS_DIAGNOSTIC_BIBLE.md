@@ -8,6 +8,8 @@
 
 > **Mandatory rule:** Read this file before changing any IELTS diagnostic-related code, content, schema, scoring, prompts, copy, analytics, reporting, or school pilot behaviour.
 
+> **Visual & UX companion:** All IELTS interfaces must follow [IELTS_VISUAL_UX_BIBLE.md](./IELTS_VISUAL_UX_BIBLE.md) for appearance, layout, navigation, responsiveness, accessibility, and interaction presentation, with [IELTS_DESIGN_SYSTEM_THEMELY.md](./IELTS_DESIGN_SYSTEM_THEMELY.md) as its technical token reference. **If a visual/UX requirement conflicts with academic validity, evidence, scoring, access, privacy, security, or review authority, this Diagnostic Bible always takes precedence.** Do not weaken a safeguard to satisfy a design preference.
+
 This file exists to stop Brains Heist from drifting into invalid assessment claims while the product evolves. If current code, old documentation, old prompts, or a previous implementation conflicts with this Bible, **this Bible wins** unless the Bible itself is explicitly revised through a reviewed change.
 
 ---

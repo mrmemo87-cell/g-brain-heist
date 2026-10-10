@@ -1,0 +1,57 @@
+/* Brains Heist IELTS: Evidence Blue — Themely design tokens, 2026-10-10.
+   Visual-only. Never override assessment logic or the global game theme. */
+:root {
+  --bh-ielts-background: #F5F7FC;
+  --bh-ielts-surface: #FFFFFF;
+  --bh-ielts-surface-muted: #F5F8FC;
+  --bh-ielts-foreground: #15243A;
+  --bh-ielts-foreground-muted: #4C6076;
+  --bh-ielts-primary: #1746B0;
+  --bh-ielts-primary-foreground: #FFFFFF;
+  --bh-ielts-secondary: #EEF3FA;
+  --bh-ielts-secondary-foreground: #284B72;
+  --bh-ielts-accent: #0E7490;
+  --bh-ielts-border: #DCE5EF;
+  --bh-ielts-primary-hover: #103B9A;
+  --bh-ielts-focus: #0E7490;
+  --bh-ielts-input-border: #A4AEC5;
+  --bh-ielts-success: #087F5B;
+  --bh-ielts-warning: #946200;
+  --bh-ielts-danger: #B42318;
+
+  --bh-ielts-font-heading: 'IBM Plex Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  --bh-ielts-font-body: 'IBM Plex Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  --bh-ielts-font-mono: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --bh-ielts-display-size: clamp(2rem, 4vw, 3.3rem);
+  --bh-ielts-text-base: 1rem;
+  --bh-ielts-text-small: 0.875rem;
+  --bh-ielts-weight-heading: 750;
+  --bh-ielts-weight-body: 400;
+  --bh-ielts-leading: 1.6;
+  --bh-ielts-tracking: -0.02em;
+
+  --bh-ielts-space-xs: 4px;
+  --bh-ielts-space-sm: 8px;
+  --bh-ielts-space-md: 16px;
+  --bh-ielts-space-lg: 24px;
+  --bh-ielts-space-xl: 32px;
+  --bh-ielts-space-2xl: 48px;
+  --bh-ielts-radius-sm: 10px;
+  --bh-ielts-radius-md: 13px;
+  --bh-ielts-radius-lg: 24px;
+  --bh-ielts-radius-full: 999px;
+  --bh-ielts-shadow-sm: 0 2px 8px rgba(23,59,108,.05);
+  --bh-ielts-shadow-md: 0 8px 30px rgba(23,59,108,.08);
+  --bh-ielts-shadow-lg: 0 16px 48px rgba(23,59,108,.12);
+}
+:where(.sp-page,.il-shell,.ij-student,.ij-checks,.writing-review,
+       .ilr-panel,.ielts-exam-frame,.ielts-prime-dashboard) {
+  font-family: var(--bh-ielts-font-body);
+  color-scheme: light;
+}
+:where(.sp-page,.il-shell,.ij-student,.ij-checks,.writing-review,
+       .ilr-panel,.ielts-exam-frame,.ielts-prime-dashboard)
+:is(button,a,input,select,textarea,summary):focus-visible {
+  outline: 3px solid var(--bh-ielts-focus);
+  outline-offset: 3px;
+}

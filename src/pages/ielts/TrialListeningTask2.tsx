@@ -50,7 +50,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing
         minHeight: '100vh',
         display: 'grid',
         placeItems: 'center',
-        background: 'linear-gradient(145deg,#f8fafc 0%,#eef2ff 52%,#ecfeff 100%)',
+        background: 'var(--bh-ielts-background)',
         padding: 'clamp(1rem,4vw,2.5rem)',
       }}
     >
@@ -62,7 +62,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing
           border: '1px solid #dbeafe',
           borderRadius: '1.5rem',
           padding: 'clamp(1.4rem,5vw,2.5rem)',
-          boxShadow: '0 28px 80px rgba(37,99,235,0.12)',
+          boxShadow: 'var(--bh-ielts-shadow-md)',
         }}
       >
         <div

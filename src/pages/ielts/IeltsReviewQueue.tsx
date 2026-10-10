@@ -34,7 +34,7 @@ const IeltsReviewQueue: React.FC<IeltsReviewQueueProps> = ({ embedded = false, o
   };
 
   return (
-    <main data-testid={embedded ? 'embedded-ielts-review-queue' : 'ielts-review-queue'} style={{ minHeight: embedded ? undefined : '100vh', background: '#f8fafc', padding: '2rem' }}>
+    <main data-testid={embedded ? 'embedded-ielts-review-queue' : 'ielts-review-queue'} className="bh-ielts-page bh-ielts-review-list" style={{ minHeight: embedded ? undefined : '100vh', background: '#f8fafc', padding: '2rem' }}>
       <section style={{ maxWidth: '72rem', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
           <div>

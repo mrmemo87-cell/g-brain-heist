@@ -1,13 +1,16 @@
+@import "./ielts-design-system.css";
+
 /* Exam Mode has a quiet light surface, independent of the game/theme shell. */
 body.ielts-exam-mode {
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--bh-ielts-surface-muted);
+  color: var(--bh-ielts-foreground);
 }
 
 .ielts-exam-frame {
   color-scheme: light;
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--bh-ielts-surface-muted);
+  color: var(--bh-ielts-foreground);
+  font-family: var(--bh-ielts-font-body);
   padding-top: calc(72px + env(safe-area-inset-top));
 }
 
@@ -18,8 +21,8 @@ body.ielts-exam-mode {
 .ielts-exam-frame :is(input, textarea) {
   color: #0f172a;
   -webkit-text-fill-color: #0f172a;
-  background-color: #ffffff;
-  caret-color: #0f172a;
+  background-color: var(--bh-ielts-surface);
+  caret-color: var(--bh-ielts-foreground);
 }
 
 .ielts-exam-frame :is(input, textarea)::placeholder {

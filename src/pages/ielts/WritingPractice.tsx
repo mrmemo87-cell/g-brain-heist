@@ -348,7 +348,7 @@ const WritingPractice: React.FC = () => {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%)',
+        background: 'linear-gradient(135deg, #15243A 0%, #193E65 55%, #15243A 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -396,7 +396,7 @@ const WritingPractice: React.FC = () => {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        background: 'linear-gradient(135deg, #15243A 0%, #234566 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'

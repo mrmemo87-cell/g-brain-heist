@@ -500,7 +500,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
   };
 
   return (
-    <div className="space-y-6" data-testid="ielts-practice-admin-tab">
+    <div className="bh-ielts-admin space-y-6" data-testid="ielts-practice-admin-tab">
       <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-gray-900 to-emerald-950/40 p-6 shadow-xl">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">IELTS Academy</p>
         <h3 className="mt-2 text-2xl font-bold text-white">IELTS Practice</h3>

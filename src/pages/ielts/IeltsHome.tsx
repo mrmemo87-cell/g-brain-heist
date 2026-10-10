@@ -1,4 +1,5 @@
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
+import '../../styles/ielts-design-system.css';
 import { lazyRetry } from '../../utils/lazyRetry';
 const IeltsProgrammeWorkspace = lazyRetry(() => import('./IeltsProgrammeWorkspace'), 'IeltsProgrammeWorkspace');
 import IeltsScreenerHub from '../../components/ielts/IeltsScreenerHub';
@@ -518,7 +519,7 @@ const IeltsHome: React.FC = () => {
     const recommendedRoute = summary.continueLearningRoute;
     const taskTotal = Object.values(summary.tasks).reduce((sum, list) => sum + list.length, 0);
     const completedTotal = Object.values(summary.skillProgress).reduce((sum, progress) => sum + progress.completedTaskCount, 0);
-    const shell: React.CSSProperties = { minHeight: '100vh', background: 'linear-gradient(135deg,#eef7ff 0%,#f8fafc 42%,#f3e8ff 100%)', color: '#0f172a', fontFamily: 'system-ui, -apple-system, sans-serif', padding: 'clamp(1rem,3vw,2rem)' };
+    const shell: React.CSSProperties = { minHeight: '100vh', background: 'var(--bh-ielts-background)', color: 'var(--bh-ielts-foreground)', fontFamily: 'var(--bh-ielts-font-body)', padding: 'clamp(1rem,3vw,2rem)' };
     const whiteCard: React.CSSProperties = { background: 'rgba(255,255,255,0.92)', border: '1px solid rgba(148,163,184,0.28)', borderRadius: '1.25rem', padding: '1.1rem', boxShadow: '0 18px 45px rgba(15,23,42,0.08)' };
     const skillCards = [
       { skill: 'reading' as const, label: 'Reading', benefit: 'Build speed, scanning, and evidence matching.', progress: summary.skillProgress.reading, overviewRoute: '/ielts/reading' },
@@ -571,7 +572,7 @@ const IeltsHome: React.FC = () => {
   const card: React.CSSProperties = { background: 'rgba(255,255,255,0.92)', border: '1px solid rgba(148,163,184,0.22)', borderRadius: '1.35rem', padding: '1.1rem', boxShadow: '0 18px 48px rgba(15,23,42,0.08)' };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'radial-gradient(circle at 85% 8%, #dbeafe 0, transparent 30%), radial-gradient(circle at 12% 16%, #ccfbf1 0, transparent 28%), linear-gradient(180deg,#f8fbff 0%,#eef6ff 45%,#ffffff 100%)', color: '#0f172a', fontFamily: 'system-ui, -apple-system, sans-serif', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bh-ielts-background)', color: 'var(--bh-ielts-foreground)', fontFamily: 'var(--bh-ielts-font-body)', overflowX: 'hidden' }}>
       <button onClick={toggleMusic} style={{ position: 'fixed', bottom: '1.25rem', right: '1.25rem', width: '3rem', height: '3rem', borderRadius: '50%', background: musicEnabled ? '#dbeafe' : '#ffffff', border: '1px solid #bfdbfe', color: '#1e3a8a', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, boxShadow: '0 14px 30px rgba(37,99,235,0.16)' }} title={musicEnabled ? 'Turn off music' : 'Turn on music'}>
         {musicEnabled ? '🔊' : '🔇'}
       </button>

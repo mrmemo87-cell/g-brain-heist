@@ -60,7 +60,7 @@ const IeltsObjectiveResult: React.FC = () => {
       score_percent: data.percent,
     });
   }, [data, skill, attemptId]);
-  return <main style={{ minHeight: '100vh', background: '#f8fafc', padding: '1.2rem' }}>
+  return <main className="bh-ielts-page bh-ielts-result" style={{ minHeight: '100vh', background: '#f8fafc', padding: '1.2rem' }}>
     <section style={{ maxWidth: 760, margin: '0 auto', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.25rem' }}>
       <button type="button" onClick={() => navigate('/ielts/journey')} style={{ border: 'none', background: 'none', color: '#2563eb', cursor: 'pointer', marginBottom: '1rem', fontWeight: 700 }}>← Back to My IELTS Journey</button>
       <h1 style={{ marginTop: 0 }}>{skill === 'reading' ? 'Reading' : 'Listening'} Objective Result</h1>

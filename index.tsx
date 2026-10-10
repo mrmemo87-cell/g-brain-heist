@@ -17,6 +17,7 @@ import { LightModeProvider } from './src/contexts/LightModeContext';
 import './src/index.css';
 import './src/styles/light-mode.css';
 import './src/styles/platform-light-theme.css';
+import './src/styles/ielts-experience.css';
 import { createBrowserRouter, Navigate, RouterProvider, useNavigate, useParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazyRetry } from './src/utils/lazyRetry';
@@ -875,7 +876,9 @@ const router = createBrowserRouter([
     path: '*',
     element: <Main />,
   },
-]);
+].map((route) => route.path?.startsWith('/ielts')
+  ? { ...route, element: <div className="bh-ielts-experience" data-ielts-route={route.path}>{route.element}</div> }
+  : route));
 
 // Render the main app with routing for all paths
 root.render(

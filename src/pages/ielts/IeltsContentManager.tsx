@@ -189,7 +189,7 @@ const IeltsContentManager: React.FC = () => {
     setEditingListening({ ...editingListening, questions: next });
   };
 
-  return <div className="space-y-4 rounded-xl border border-emerald-400/40 bg-slate-950/70 p-4">{/* existing UI omitted for brevity in style parity */}
+  return <div className="bh-ielts-admin space-y-4 rounded-xl border border-emerald-400/40 bg-slate-950/70 p-4">{/* existing UI omitted for brevity in style parity */}
     <div className="flex items-center justify-between"><h2 className="text-xl font-bold text-emerald-300">IELTS Content</h2><input className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white" placeholder="Search title" value={query} onChange={e=>setQuery(e.target.value)} /></div>
     <div className="flex gap-2">{tabs.map(t=><button key={t} onClick={()=>setActiveTab(t)} className={`rounded px-3 py-1 text-sm ${t===activeTab?'bg-emerald-500 text-black':'bg-slate-800 text-slate-200'}`}>{t[0].toUpperCase()+t.slice(1)}</button>)}</div>
     {activeTab==='reading'&&<button onClick={()=>setEditingReading(blankReading())} className="rounded bg-cyan-500 px-3 py-1 text-sm font-semibold text-black">New Reading Task</button>}

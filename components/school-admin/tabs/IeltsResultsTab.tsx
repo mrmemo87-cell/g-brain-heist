@@ -74,7 +74,7 @@ const IeltsResultsTab: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6" data-testid="ielts-results-tab">
+    <div className="bh-ielts-admin space-y-6" data-testid="ielts-results-tab">
       <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-gray-900 to-amber-950/30 p-6 shadow-xl">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">IELTS Academy</p>
         <h3 className="mt-2 text-2xl font-bold text-white">IELTS Results</h3>

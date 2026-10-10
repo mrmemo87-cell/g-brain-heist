@@ -180,7 +180,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
   }, [loadState, mode]);
 
   return (
-    <div ref={rootRef} style={{ minHeight: embedded ? 'auto' : '100vh', background: '#f8fafc', color: '#0f172a', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div ref={rootRef} className="bh-ielts-page bh-ielts-journey" style={{ minHeight: embedded ? 'auto' : '100vh', background: '#f8fafc', color: '#0f172a', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ maxWidth: embedded ? '100%' : '1120px', margin: '0 auto', padding: embedded ? '1rem' : '1.25rem 1rem 4rem', display: 'grid', gap: '1rem' }}>
 
         {/* Back button */}

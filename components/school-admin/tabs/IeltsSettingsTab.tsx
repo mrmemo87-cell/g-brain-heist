@@ -76,7 +76,7 @@ const IeltsSettingsTab: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="bh-ielts-admin space-y-6">
       {/* Header */}
       <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-gray-900 to-cyan-950/40 p-6 shadow-xl">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300">IELTS Academy</p>

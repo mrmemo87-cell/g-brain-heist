@@ -181,7 +181,7 @@ const IeltsAssignedPractice: React.FC = () => {
   }), [assignments]);
 
   return (
-    <div data-testid="ielts-assigned-practice-page" style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', padding: '1rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div data-testid="ielts-assigned-practice-page" className="bh-ielts-page bh-ielts-assignments" style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', padding: '1rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
 
         {/* Back */}
