@@ -116,6 +116,22 @@ Every route must have a specific, plain-language empty state; a usable loading s
 
 No “pixel-perfect” sign-off solely from a CSS change or desktop screenshot. Verify real rendered components, conditional states, representative browsers and role-specific permissions. Keep baseline screenshots in test artifacts when available.
 
+## 7A. Strict responsive acceptance gates — release blockers
+
+**A responsive bug is a release blocker, not a minor cosmetic issue.** A build, token compliance or a CSS media query does not prove a working mobile/tablet experience.
+
+- **Zero overlapping navigation labels or controls.** Every Programme tab must have its own readable and tappable box; no clipped, superimposed or inaccessible labels at any supported viewport. At narrow widths prefer a two-column tab grid, wrapping labels, or an explicitly accessible horizontal scroll control with an obvious affordance; never force a single `nowrap` row that hides destinations.
+- **Zero horizontal page overflow** at 320px, 375px, 390px, 768px, 1024px and 1440px except intentional inner scroll containers for wide tables or passages. Verify at 200% browser zoom and with larger system text.
+- **No action obstruction:** browser chrome, sticky footers, safe-area insets, on-screen keyboard, audio player, timers or recording controls must not obscure primary actions, validation feedback or answer inputs.
+- **Visual hierarchy on phones:** back/navigation, page purpose and next action must remain usable without excessive hero padding. Preserve important academic caveats and student/school identity where relevant rather than hiding them to save space.
+- **Inputs, states and reachability:** each tab, action, error, search, form and confirmation must work via touch and keyboard. Verify active, hover-equivalent, focus, disabled, loading, empty and error states; selection remains recognizable without color alone.
+- **Evidence is mandatory:** for each redesigned page family capture or review actual browser renderings at phone (375px), tablet (768px) and desktop (1440px), with a written pass/fail record covering navigation, overlap, clipping, scroll, focus, readable contrast and form interaction. Source inspection, screenshots of just one page, or green automated tests alone do not satisfy the gate.
+- **Failure policy:** any reproduced responsive defect requires a linked issue/patch, regression check and reviewer verification before signing off a broad UX PR. Never label the experience “pixel-perfect,” “production-verified,” or “mobile complete” while a required viewport/state is untested or failing.
+
+**Required QA matrix:** IELTS Programme Today, Student progress, Review desk and Programme team; Practice Desk history/assign; student Journey/assigned work; four skill practice flows; reviews; screeners/exam mode; school-admin management; Prime and results. Test genuinely populated states as well as loading/error/empty states where access allows. For exam/recording views, verify no timer, audio or submission controls are obstructed.
+
+---
+
 ## 8. UX governance: the DO NOT BREAK list
 
 **Never touch while executing a visual-only task:** assessment calculations, eligibility/repetition/exposure guards, submission thresholds, recording duration, score/result authority, review publication rules, school isolation, authorization, Supabase schema/RLS/RPC, paid entitlement/checkout, source provenance and stored student history.
