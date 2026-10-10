@@ -27,7 +27,7 @@ Inferred semantic extensions: hover, input border, success, warning and danger. 
 - Canonical `docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md`, permissions, RPCs, Supabase schema, eligibility, exposure/repeat gates, idempotent assignment and teacher review remain untouched.
 - Independent-check exposure is not softened. Writing and Speaking still require valid reviewed evidence.
 - Exam controls remain quiet and readable; Prime's unique hero illustration retains its own composition.
-- No global Brain Heist game selectors or theme variables are changed.
+- No global Brains Heist game selectors or theme variables are changed.
 - Legacy `ielts-theme` force-light CSS is retained until separate browser QA. Avoid universal button/div background resets.
 
 ## Acceptance before merge
