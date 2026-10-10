@@ -1,0 +1,261 @@
+/* Brains Heist IELTS — unified screen experience (Themely Evidence Blue).
+ * Applies ONLY within the route boundary or explicitly labelled embedded IELTS tools.
+ * Respect exam focus, teacher evidence, independent-check and recording states.
+ * Distinct marketing heroes and meaningful warning/error colors intentionally remain.
+ */
+
+/* Route-level design context: display:contents avoids extra layout/scroll wrappers. */
+.bh-ielts-experience { display: contents; }
+.bh-ielts-experience,
+.bh-ielts-admin,
+.bh-ielts-admin * { font-family: var(--bh-ielts-font-body, 'IBM Plex Sans', system-ui, sans-serif); }
+.bh-ielts-experience :is(h1,h2,h3,h4),
+.bh-ielts-admin :is(h1,h2,h3,h4) {
+  font-family: var(--bh-ielts-font-heading, 'IBM Plex Sans', system-ui, sans-serif);
+  letter-spacing: var(--bh-ielts-tracking, -.02em);
+  text-wrap: pretty;
+}
+.bh-ielts-experience :is(main,header,section,article,div),
+.bh-ielts-admin :is(main,header,section,article,div) { min-width: 0; }
+.bh-ielts-experience :is(p,li,td,th),
+.bh-ielts-admin :is(p,li,td,th) { overflow-wrap: anywhere; }
+.bh-ielts-experience :is(input,select,textarea),
+.bh-ielts-admin :is(input,select,textarea) {
+  font-family: inherit;
+  font-size: 1rem;
+  accent-color: var(--bh-ielts-primary);
+}
+.bh-ielts-experience :is(button,a,input,textarea,select,summary):focus-visible,
+.bh-ielts-admin :is(button,a,input,textarea,select,summary):focus-visible {
+  outline: 3px solid var(--bh-ielts-focus);
+  outline-offset: 3px;
+}
+.bh-ielts-experience :is(button,[role="button"]),
+.bh-ielts-admin :is(button,[role="button"]) {
+  -webkit-tap-highlight-color: transparent;
+}
+.bh-ielts-experience button:disabled,
+.bh-ielts-admin button:disabled { cursor: not-allowed; }
+
+/* Calm canvas shared by result pages, history, dashboards and standalone tools.
+ * Exclude hero gradients, in-progress exam/proctor or recording panels. */
+.bh-ielts-experience :is(main,div)[style*="min-height: 100vh"][style*="background: rgb(248, 250, 252)"],
+.bh-ielts-experience :is(main,div)[style*="min-height: 100vh"][style*="background: #f8fafc"] {
+  background: var(--bh-ielts-background) !important;
+  color: var(--bh-ielts-foreground);
+}
+.bh-ielts-experience :is(main,div)[data-testid="ielts-assigned-practice-page"],
+.bh-ielts-experience :is(main,div)[data-testid="ielts-review-queue"],
+.bh-ielts-experience :is(main,div)[data-testid="ielts-submission-review"],
+.bh-ielts-experience [data-testid="embedded-ielts-review-queue"],
+.bh-ielts-experience [data-testid="embedded-ielts-submission-review"] {
+  background: var(--bh-ielts-background) !important;
+  color: var(--bh-ielts-foreground);
+  font-family: var(--bh-ielts-font-body);
+}
+.bh-ielts-experience [data-testid^="embedded-ielts-"] { min-height: auto !important; }
+/* Cards produced with inline React styles: preserve contextual accents, normalize only neutral surfaces. */
+.bh-ielts-experience :is(section,article,header,div)[style*="background: rgb(255, 255, 255)"][style*="border-radius"],
+.bh-ielts-experience :is(section,article,header,div)[style*="background: white"][style*="border-radius"] {
+  background: var(--bh-ielts-surface);
+  border-color: var(--bh-ielts-border);
+  box-shadow: var(--bh-ielts-shadow-sm);
+}
+.bh-ielts-experience :is(section,article)[style*="border-radius: 1rem"],
+.bh-ielts-experience :is(section,article)[style*="border-radius: 0.9rem"] {
+  border-radius: var(--bh-ielts-radius-md) !important;
+}
+.bh-ielts-experience :is(input,select,textarea)[style*="border: 1px solid rgb(203, 213, 225)"] {
+  border-color: var(--bh-ielts-input-border) !important;
+}
+.bh-ielts-experience :is(table,pre) { max-width: 100%; }
+.bh-ielts-experience :is(table) { border-collapse: separate; border-spacing: 0; }
+.bh-ielts-experience :is(th) { letter-spacing: .025em; }
+.bh-ielts-experience :is(button,a) { text-underline-offset: 3px; }
+.bh-ielts-experience :is([role="alert"]) { line-height: 1.6; }
+
+/* Standard panel rhythm for existing named design families. */
+.bh-ielts-experience .sp-page,
+.bh-ielts-experience .il-shell {
+  --sp-ink: var(--bh-ielts-foreground);
+  --sp-muted: var(--bh-ielts-foreground-muted);
+  --sp-blue: var(--bh-ielts-primary);
+  --sp-line: var(--bh-ielts-border);
+}
+.bh-ielts-experience .sp-card,
+.bh-ielts-experience .il-card,
+.bh-ielts-experience .wr-card {
+  border-radius: var(--bh-ielts-radius-lg);
+  border-color: var(--bh-ielts-border);
+  box-shadow: var(--bh-ielts-shadow-sm);
+}
+.bh-ielts-experience .sp-hero { padding-block: clamp(20px,3vw,36px); }
+.bh-ielts-experience .sp-hero h1 {
+  font-size: var(--bh-ielts-display-size);
+  font-weight: 750;
+  letter-spacing: -.045em;
+}
+.bh-ielts-experience .ip-nav {
+  background: var(--bh-ielts-secondary);
+  border: 1px solid var(--bh-ielts-border);
+  gap: 4px;
+}
+.bh-ielts-experience .ip-nav button {
+  border-radius: var(--bh-ielts-radius-sm);
+  transition: background .16s ease, color .16s ease, box-shadow .16s ease;
+}
+.bh-ielts-experience .ip-nav button[aria-current="page"] { box-shadow: var(--bh-ielts-shadow-sm); }
+.bh-ielts-experience .il-desk-nav { gap: 8px; margin-bottom: 20px; }
+.bh-ielts-experience .il-desk-nav button {
+  background: var(--bh-ielts-secondary);
+  color: var(--bh-ielts-secondary-foreground);
+  border: 1px solid var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-sm);
+}
+.bh-ielts-experience .il-desk-nav button[aria-pressed="true"] {
+  background: var(--bh-ielts-primary);
+  border-color: var(--bh-ielts-primary);
+  color: #fff;
+}
+.bh-ielts-experience .il-shell .il-card { max-width: min(100%, 960px); }
+.bh-ielts-experience .il-shell .il-card :is(input,textarea,select) {
+  background: #fff; color: var(--bh-ielts-foreground);
+  border: 1px solid var(--bh-ielts-input-border);
+  border-radius: var(--bh-ielts-radius-sm);
+}
+.bh-ielts-experience .il-shell .il-card :is(input,textarea,select):focus-visible {
+  border-color: var(--bh-ielts-primary);
+}
+.bh-ielts-experience .il-shell .il-card button:not(:disabled):hover {
+  filter: brightness(.96);
+}
+.bh-ielts-experience .il-usage { border-left-color: var(--bh-ielts-accent); }
+.bh-ielts-experience .il-history-row { gap: 20px; padding-block: 20px; }
+
+/* A consistent light administrative language for the legacy dark admin panels.
+ * Explicit wrapper only: never recolor other school-admin or game pages.
+ */
+.bh-ielts-admin {
+  --bh-admin-canvas: var(--bh-ielts-background);
+  width: 100%;
+  min-width: 0;
+  color: var(--bh-ielts-foreground);
+}
+.bh-ielts-admin > :is(section,article,div)[class*="bg-slate"],
+.bh-ielts-admin > :is(section,article,div)[class*="bg-gray"],
+.bh-ielts-admin > :is(section,article,div)[class*="bg-gradient"],
+.bh-ielts-admin[class*="bg-slate"],
+.bh-ielts-admin[class*="bg-gray"],
+.bh-ielts-admin[class*="bg-gradient"] {
+  background: var(--bh-ielts-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--bh-ielts-border) !important;
+  border-radius: var(--bh-ielts-radius-lg);
+  color: var(--bh-ielts-foreground) !important;
+  box-shadow: var(--bh-ielts-shadow-sm);
+}
+.bh-ielts-admin :is(section,article,div,label)[class*="bg-slate-9"],
+.bh-ielts-admin :is(section,article,div,label)[class*="bg-slate-8"],
+.bh-ielts-admin :is(section,article,div,label)[class*="bg-gray-9"],
+.bh-ielts-admin :is(section,article,div,label)[class*="bg-gray-8"],
+.bh-ielts-admin :is(section,article,div,label)[class*="bg-gradient-to-br"] {
+  background: var(--bh-ielts-surface-muted) !important;
+  background-image: none !important;
+  border-color: var(--bh-ielts-border) !important;
+  color: var(--bh-ielts-foreground) !important;
+}
+.bh-ielts-admin :is(h1,h2,h3,h4)[class*="text-emerald"],
+.bh-ielts-admin :is(h1,h2,h3,h4)[class*="text-cyan"],
+.bh-ielts-admin :is(h1,h2,h3,h4)[class*="text-amber"],
+.bh-ielts-admin :is(h1,h2,h3,h4)[class*="text-purple"],
+.bh-ielts-admin :is(h1,h2,h3,h4)[class*="text-white"] {
+  color: var(--bh-ielts-primary) !important;
+}
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-white"],
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-slate-1"],
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-slate-2"],
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-gray-3"],
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-cyan-1"],
+.bh-ielts-admin :is(p,span,label,strong,td,th,li)[class*="text-emerald-1"] {
+  color: var(--bh-ielts-foreground-muted) !important;
+}
+.bh-ielts-admin :is(input,select,textarea) {
+  background: var(--bh-ielts-surface) !important;
+  color: var(--bh-ielts-foreground) !important;
+  border: 1px solid var(--bh-ielts-input-border) !important;
+  border-radius: var(--bh-ielts-radius-sm);
+  min-height: 42px;
+  padding: 10px 12px;
+}
+.bh-ielts-admin :is(input,textarea)::placeholder { color: var(--bh-ielts-foreground-muted); }
+.bh-ielts-admin button[class*="bg-cyan-500"],
+.bh-ielts-admin button[class*="bg-emerald-500"] {
+  background: var(--bh-ielts-primary) !important;
+  color: #fff !important;
+  border-color: var(--bh-ielts-primary) !important;
+}
+.bh-ielts-admin button[class*="bg-slate-700"],
+.bh-ielts-admin button[class*="bg-slate-800"] {
+  background: var(--bh-ielts-secondary) !important;
+  color: var(--bh-ielts-secondary-foreground) !important;
+  border: 1px solid var(--bh-ielts-border) !important;
+}
+.bh-ielts-admin button { border-radius: var(--bh-ielts-radius-sm); min-height: 40px; }
+.bh-ielts-admin button:focus-visible { outline: 3px solid var(--bh-ielts-focus); outline-offset: 3px; }
+/* Preserve meaningful warning/error success colors for alerts, checked states and status. */
+.bh-ielts-admin [role="alert"],.bh-ielts-admin [class*="bg-red-"],.bh-ielts-admin [class*="bg-amber-"] {
+  background-image: none;
+}
+
+/* Exams and listening responses stay deliberately distraction free. */
+.bh-ielts-experience[data-ielts-route="/ielts/exam/:examEventId"] .ielts-exam-frame {
+  background: var(--bh-ielts-surface-muted);
+}
+.bh-ielts-experience .ielts-exam-frame :is(input,textarea) {
+  outline-offset: 3px; caret-color: var(--bh-ielts-primary);
+}
+.bh-ielts-experience .ielts-exam-frame audio,
+.bh-ielts-experience .sp-page audio {
+  max-width: 100%;
+}
+.bh-ielts-experience .ielts-prime-dashboard {
+  background: var(--bh-ielts-background) !important;
+}
+.bh-ielts-experience .ij-student,
+.bh-ielts-experience .ij-checks {
+  font-family: var(--bh-ielts-font-body);
+}
+.bh-ielts-experience .wr-shell {
+  max-width: 1200px;
+}
+.bh-ielts-experience .wr-card {
+  background: var(--bh-ielts-surface);
+}
+
+/* Responsive: dense tables scroll independently; actions wrap rather than clip. */
+@media (max-width: 900px) {
+  .bh-ielts-experience .sp-page { padding: clamp(16px, 3vw, 26px); }
+  .bh-ielts-experience .ip-nav { overflow-x: auto; scrollbar-width: thin; }
+  .bh-ielts-experience .sp-three { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .bh-ielts-experience .sp-interview-grid,
+  .bh-ielts-experience .wr-workspace { grid-template-columns: 1fr; }
+  .bh-ielts-experience .wr-essay { position: static; }
+}
+@media (max-width: 640px) {
+  .bh-ielts-experience .sp-page { padding: 14px; }
+  .bh-ielts-experience .sp-card,
+  .bh-ielts-experience .il-card,
+  .bh-ielts-experience .wr-card { padding: 18px; border-radius: 16px; }
+  .bh-ielts-experience .sp-hero h1 { font-size: clamp(1.7rem, 7.5vw, 2.5rem); }
+  .bh-ielts-experience .ip-nav button { min-height: 44px; padding: 10px 12px; }
+  .bh-ielts-experience .il-history-row { grid-template-columns: 1fr; }
+  .bh-ielts-experience .sp-three,.bh-ielts-experience .sp-interview-grid { grid-template-columns: 1fr; }
+  .bh-ielts-experience .ij-hero { flex-direction: column; align-items: stretch; }
+  .bh-ielts-admin :is(section,article,div)[class*="rounded-2xl"] { max-width: 100%; }
+  .bh-ielts-experience :is(table) { font-size: .875rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bh-ielts-experience *, .bh-ielts-admin * {
+    scroll-behavior: auto !important;
+  }
+}
