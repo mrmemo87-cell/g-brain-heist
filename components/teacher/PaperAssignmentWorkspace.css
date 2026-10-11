@@ -553,3 +553,7 @@
     min-width: 190px;
   }
 }
+
+.paw-mode{display:flex;gap:8px;padding:12px 24px;border-bottom:1px solid #e1e8f2;background:white}.paw-mode button[aria-pressed=true]{background:#edf3ff;border-color:#2454e8;color:#1d4ed8}.paw-mode .paw-button{font-size:13px;padding:10px 16px}@media(max-width:600px){.paw-mode{padding:10px 16px}.paw-mode button{flex:1;justify-content:center}}
+
+.paw-scan-confirmed{background:#e7f7ef;color:#176046;border-bottom:1px solid #bce6ce;padding:12px 24px;font-size:14px}

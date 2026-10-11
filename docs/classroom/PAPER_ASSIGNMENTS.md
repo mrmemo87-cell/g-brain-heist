@@ -36,7 +36,7 @@ Use staging fixtures and `npm run load:classroom` for concurrency acceptance. Pr
 
 PGlite tests execute the paper/online transactions and access grants, including grading, deliberate blanks, stale revisions, duplicate acknowledgements, form mismatch, unauthorized students/teachers, explicit partial replacement, and legacy/paper-only guards. Browser validation uses mocked RPC responses to test the real component at desktop, tablet, and phone sizes; it is separate from production data validation.
 
-Initial paper entry covers multiple choice and true/false with distinct nonempty text options. Other question types can still be printed but cannot be confirmed through this entry screen. Photo scanning, students without accounts, and governed post-completion corrections require separate implementation; they are not silently approximated.
+Initial paper entry covers multiple choice and true/false with distinct nonempty text options. Other question types can still be printed but cannot be confirmed through this entry screen. Print & Scan now adds QR bubble-sheet recognition with mandatory visual review; see `PRINT_SCAN.md`. Students without accounts and governed post-completion corrections require separate implementation; they are not silently approximated.
 
 ## Rollout order
 

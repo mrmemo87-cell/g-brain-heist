@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import {
   confirmPaper,
@@ -12,6 +19,8 @@ import {
 } from "../../services/assignmentPaperService";
 import { openPrintableTeacherAssignment } from "../../services/teacherAssignmentPrintService";
 import "./PaperAssignmentWorkspace.css";
+
+const PaperScanWorkspace = lazy(() => import("./PaperScanWorkspace"));
 
 type Props = {
   assignmentId: string;
@@ -36,6 +45,8 @@ export default function PaperAssignmentWorkspace(props: Props) {
   const [error, setError] = useState("");
   const [selected, setSelected] = useState("");
   const [search, setSearch] = useState("");
+  const [scanConfirmed, setScanConfirmed] = useState(false);
+  const [mode, setMode] = useState<"manual" | "scan">("manual");
   const [loading, setLoading] = useState(true);
   const [closing, setClosing] = useState(false);
   const [closeFailed, setCloseFailed] = useState(false);
@@ -169,129 +180,196 @@ export default function PaperAssignmentWorkspace(props: Props) {
           </div>
         ) : packet ? (
           <>
-            <div className="paw-toolbar">
-              <span className="paw-progress">
-                <strong>
-                  {completed}/{packet.students.length}
-                </strong>{" "}
-                completed
-              </span>
+            <div className="paw-mode" role="group" aria-label="Paper workflow">
               <button
+                aria-pressed={mode === "manual"}
                 className="paw-button"
-                onClick={() =>
-                  openPrintableTeacherAssignment({
-                    packet,
-                    schoolName: props.schoolName,
-                    schoolLogoUrl: props.schoolLogoUrl,
-                    teacherName: props.teacherName,
-                  })
-                }
+                onClick={async () => {
+                  try {
+                    await flush.current();
+                    setMode("manual");
+                    setError("");
+                  } catch (e) {
+                    setError(errorText(e));
+                  }
+                }}
               >
-                ▤ Print pack
+                Enter answers
               </button>
               <button
+                aria-pressed={mode === "scan"}
                 className="paw-button"
-                onClick={() =>
-                  openPrintableTeacherAssignment({
-                    packet,
-                    schoolName: props.schoolName,
-                    schoolLogoUrl: props.schoolLogoUrl,
-                    teacherName: props.teacherName,
-                    markingKey: true,
-                  })
-                }
+                onClick={async () => {
+                  try {
+                    await flush.current();
+                    setMode("scan");
+                    setError("");
+                  } catch (e) {
+                    setError(errorText(e));
+                  }
+                }}
               >
-                Teacher key
+                ▣ Print & Scan
               </button>
             </div>
-            {error ? (
+            {mode === "scan" && scanConfirmed ? <div className="paw-scan-confirmed" role="status">✓ Student result confirmed.</div> : null}
+            {mode === "scan" && error ? (
               <div className="paw-error" role="alert">
                 {error}
-                {closeFailed && canLeave.current() && (
-                  <button className="paw-button" onClick={props.onClose}>
-                    Close · draft on this device
-                  </button>
-                )}
               </div>
             ) : null}
-            <div className="paw-layout">
-              <aside className="paw-roster">
-                <label className="paw-search">
-                  <span className="sr-only">Find student</span>
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Find student"
-                  />
-                </label>
-                <nav aria-label="Class students">
-                  {packet.students
-                    .filter((s) =>
-                      s.name.toLowerCase().includes(search.toLowerCase()),
-                    )
-                    .map((s) => (
-                      <button
-                        key={s.id}
-                        aria-current={selected === s.id ? "true" : undefined}
-                        className={`paw-student ${selected === s.id ? "is-active" : ""}`}
-                        onClick={() => void switchStudent(s.id)}
-                      >
-                        <span className="paw-avatar" aria-hidden="true">
-                          {s.name.slice(0, 1).toUpperCase()}
-                        </span>
-                        <span>
-                          <strong>{s.name}</strong>
-                          <small>
-                            {s.status === "completed"
-                              ? `${s.source === "paper" ? "Paper" : "Online"} · Completed`
-                              : s.draft
-                                ? "Draft saved"
-                                : s.existingAnswerCount
-                                  ? `${s.existingAnswerCount} online answers`
-                                  : "Not started"}
-                          </small>
-                        </span>
-                        <span aria-hidden="true">
-                          {s.status === "completed" ? "✓" : "›"}
-                        </span>
-                      </button>
-                    ))}
-                </nav>
-                {!packet.students.length && (
-                  <p className="paw-empty">No students assigned.</p>
-                )}
-              </aside>
-              <main className="paw-main">
-                {student ? (
-                  <PaperStudentEditor
-                    key={student.id}
-                    packet={packet}
-                    student={student}
-                    userId={props.userId}
-                    flush={flush}
-                    canLeave={canLeave}
-                    onDraft={(draft) =>
-                      setPacket((p) =>
-                        p
-                          ? {
-                              ...p,
-                              students: p.students.map((s) =>
-                                s.id === student.id ? { ...s, draft } : s,
-                              ),
-                            }
-                          : p,
-                      )
+            {mode === "scan" ? (
+              <Suspense
+                fallback={
+                  <div className="paw-empty" role="status">
+                    Opening scanner…
+                  </div>
+                }
+              >
+                <PaperScanWorkspace
+                  packet={packet}
+                  userId={props.userId}
+                  schoolName={props.schoolName}
+                  flush={flush}
+                  canLeave={canLeave}
+                  onConfirmed={async () => {
+                    setScanConfirmed(true);
+                    props.onRecorded();
+                    await load();
+                  }}
+                />
+              </Suspense>
+            ) : (
+              <>
+                <div className="paw-toolbar">
+                  <span className="paw-progress">
+                    <strong>
+                      {completed}/{packet.students.length}
+                    </strong>{" "}
+                    completed
+                  </span>
+                  <button
+                    className="paw-button"
+                    onClick={() =>
+                      openPrintableTeacherAssignment({
+                        packet,
+                        schoolName: props.schoolName,
+                        schoolLogoUrl: props.schoolLogoUrl,
+                        teacherName: props.teacherName,
+                      })
                     }
-                    onConfirmed={async () => {
-                      props.onRecorded();
-                      await load();
-                    }}
-                  />
-                ) : (
-                  <div className="paw-empty">Choose a student to begin.</div>
-                )}
-              </main>
-            </div>
+                  >
+                    ▤ Print pack
+                  </button>
+                  <button
+                    className="paw-button"
+                    onClick={() =>
+                      openPrintableTeacherAssignment({
+                        packet,
+                        schoolName: props.schoolName,
+                        schoolLogoUrl: props.schoolLogoUrl,
+                        teacherName: props.teacherName,
+                        markingKey: true,
+                      })
+                    }
+                  >
+                    Teacher key
+                  </button>
+                </div>
+                {error ? (
+                  <div className="paw-error" role="alert">
+                    {error}
+                    {closeFailed && canLeave.current() && (
+                      <button className="paw-button" onClick={props.onClose}>
+                        Close · draft on this device
+                      </button>
+                    )}
+                  </div>
+                ) : null}
+                <div className="paw-layout">
+                  <aside className="paw-roster">
+                    <label className="paw-search">
+                      <span className="sr-only">Find student</span>
+                      <input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Find student"
+                      />
+                    </label>
+                    <nav aria-label="Class students">
+                      {packet.students
+                        .filter((s) =>
+                          s.name.toLowerCase().includes(search.toLowerCase()),
+                        )
+                        .map((s) => (
+                          <button
+                            key={s.id}
+                            aria-current={
+                              selected === s.id ? "true" : undefined
+                            }
+                            className={`paw-student ${selected === s.id ? "is-active" : ""}`}
+                            onClick={() => void switchStudent(s.id)}
+                          >
+                            <span className="paw-avatar" aria-hidden="true">
+                              {s.name.slice(0, 1).toUpperCase()}
+                            </span>
+                            <span>
+                              <strong>{s.name}</strong>
+                              <small>
+                                {s.status === "completed"
+                                  ? `${s.source === "paper" ? "Paper" : "Online"} · Completed`
+                                  : s.draft
+                                    ? "Draft saved"
+                                    : s.existingAnswerCount
+                                      ? `${s.existingAnswerCount} online answers`
+                                      : "Not started"}
+                              </small>
+                            </span>
+                            <span aria-hidden="true">
+                              {s.status === "completed" ? "✓" : "›"}
+                            </span>
+                          </button>
+                        ))}
+                    </nav>
+                    {!packet.students.length && (
+                      <p className="paw-empty">No students assigned.</p>
+                    )}
+                  </aside>
+                  <main className="paw-main">
+                    {student ? (
+                      <PaperStudentEditor
+                        key={student.id}
+                        packet={packet}
+                        student={student}
+                        userId={props.userId}
+                        flush={flush}
+                        canLeave={canLeave}
+                        onDraft={(draft) =>
+                          setPacket((p) =>
+                            p
+                              ? {
+                                  ...p,
+                                  students: p.students.map((s) =>
+                                    s.id === student.id ? { ...s, draft } : s,
+                                  ),
+                                }
+                              : p,
+                          )
+                        }
+                        onConfirmed={async () => {
+                          props.onRecorded();
+                          await load();
+                        }}
+                      />
+                    ) : (
+                      <div className="paw-empty">
+                        Choose a student to begin.
+                      </div>
+                    )}
+                  </main>
+                </div>
+              </>
+            )}
           </>
         ) : (
           <div className="paw-empty">
