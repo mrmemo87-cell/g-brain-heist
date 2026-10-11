@@ -33,6 +33,7 @@ type Props = {
   packet: PaperWorkspace;
   userId: string;
   schoolName: string;
+  schoolLogoUrl?: string | null;
   flush: React.MutableRefObject<() => Promise<void>>;
   canLeave: React.MutableRefObject<() => boolean>;
   onConfirmed: () => Promise<void>;
@@ -56,6 +57,7 @@ export default function PaperScanWorkspace({
   packet,
   userId,
   schoolName,
+  schoolLogoUrl,
   flush,
   canLeave,
   onConfirmed,
@@ -212,7 +214,7 @@ export default function PaperScanWorkspace({
         assessedAt,
       );
       remember(result);
-      renderSheetPrintWindow(win, result, packet, schoolName);
+      renderSheetPrintWindow(win, result, packet, schoolName, schoolLogoUrl);
       setMessage(`${result.sheets.length} personalised sheets ready.`);
     } catch (e) {
       win?.close();
