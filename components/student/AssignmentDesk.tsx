@@ -15,6 +15,8 @@ const subjectKey = (row: { subject_name: string }) => subject(row).toLocaleLower
 const pendingReview = (row: CompletedAssignment) => row.grading_status === 'pending_review' || (row.pending_review_count ?? 0) > 0;
 const progressing = (row: StudentAssignmentTask) => row.student_status === 'in_progress' || (row.resume_answered_count ?? 0) > 0;
 const overdue = (row: StudentAssignmentTask) => Boolean(row.is_late || (row.due_at && new Date(row.due_at).getTime() < Date.now()));
+const assignedTime = (row: StudentAssignmentTask) => new Date(row.assigned_at).getTime() || 0;
+const priority = (row: StudentAssignmentTask) => progressing(row) ? 0 : overdue(row) ? 2 : 1;
 const deadline = (row: StudentAssignmentTask) => row.due_at ? new Date(row.due_at).getTime() || Infinity : Infinity;
 
 export default function AssignmentDesk({ assignments, studentId, onOpen }: Props) {
@@ -63,7 +65,7 @@ export default function AssignmentDesk({ assignments, studentId, onOpen }: Props
   // Confirmed server results win if a background summary is briefly stale.
   const completedIds = new Set(completed.map(row => row.assignment_id));
   const remaining = assignments.filter(row => !completedIds.has(row.assignment_id));
-  const todo = remaining.filter(row => !row.is_closed).sort((a, b) => deadline(a) - deadline(b) || Number(progressing(b)) - Number(progressing(a)) || a.assigned_at.localeCompare(b.assigned_at));
+  const todo = remaining.filter(row => !row.is_closed).sort((a, b) => priority(a) - priority(b) || (overdue(a) && overdue(b) ? assignedTime(b) - assignedTime(a) : deadline(a) - deadline(b)) || assignedTime(b) - assignedTime(a));
   const closed = remaining.filter(row => row.is_closed);
   const history = [...completed].sort((a, b) => b.completed_at.localeCompare(a.completed_at));
   const subjects = Array.from(new Map([...remaining, ...history].map(row => [subjectKey(row), subject(row)])).entries()).sort((a, b) => a[1].localeCompare(b[1]));
@@ -84,7 +86,7 @@ export default function AssignmentDesk({ assignments, studentId, onOpen }: Props
   return <section className="assignment-desk localized-ui" lang={language} dir={direction} aria-label="My assignments">
     <header className="assignment-desk__heading">
       <div><span className="assignment-desk__eyebrow">YOUR STUDY DESK</span><h1>My assignments</h1><p>Your subjects. Your progress. Your next move.</p></div>
-      {historyState === 'ready' && total > 0 && <div className="assignment-desk__completion"><span className="assignment-desk__ring" style={{ '--completion': `${percent}%` } as React.CSSProperties}><b>{percent}%</b></span><span><strong>{completed.length} of {total} finished</strong><small>Teacher assignments</small></span></div>}
+      {historyState === 'ready' && total > 0 && <div className="assignment-desk__completion"><span className="assignment-desk__ring" style={{ '--completion': `${percent}%` } as React.CSSProperties}><b>{percent}%</b></span><span><strong>{completed.length} of {total} finished</strong><small>Overall progress</small></span></div>}
     </header>
     {tab === 'todo' && <article className="assignment-desk__next">
       <span className="assignment-desk__next-icon" aria-hidden="true">{next ? '↗' : '✓'}</span>
@@ -115,7 +117,7 @@ export default function AssignmentDesk({ assignments, studentId, onOpen }: Props
       <div className="assignment-desk__grid">{visible.map(row => <article className="assignment-desk__card" key={row.assignment_id}>
         <div className="assignment-desk__card-top"><span className="assignment-desk__subject"><bdi>{subject(row)}</bdi></span><span className={`assignment-desk__status ${overdue(row) && !row.is_closed ? 'assignment-desk__status--late' : ''}`}>{status(row)}</span></div>
         <h2 dir="auto">{row.title || row.topic_name || 'New assignment'}</h2><p className="assignment-desk__teacher">Assigned by <bdi>{row.teacher_username || 'Your teacher'}</bdi></p>
-        <p className="assignment-desk__meta"><span>{row.batch || 'Selected students'}</span><span className="assignment-desk__category" style={assignmentCategoryBadgeStyle(row.assignment_category)}>{getAssignmentCategoryMeta(row.assignment_category).label}</span><span>{row.delivery_mode === 'paper' ? 'Paper' : row.delivery_mode === 'mixed' ? 'Online & paper' : 'Online'}</span></p>
+        <p className="assignment-desk__meta"><span>{row.batch || 'Selected students'}</span>{row.assignment_category && <span className="assignment-desk__category" style={assignmentCategoryBadgeStyle(row.assignment_category)}>{getAssignmentCategoryMeta(row.assignment_category).label}</span>}<span>{row.delivery_mode === 'paper' ? 'Paper' : row.delivery_mode === 'mixed' ? 'Online & paper' : 'Online'}</span></p>
         <div className="assignment-desk__progress"><strong>{progress(row)}</strong>{row.resume_answered_count != null && <progress value={row.resume_answered_count} max={Math.max(1, row.question_count ?? row.questions?.length ?? 0)} aria-label="Saved answer progress" />}<small>{row.due_at ? `Due ${date(row.due_at)}` : 'No deadline'}</small></div>
         <details className="assignment-desk__details"><summary>Assignment details</summary><p>Topic: <bdi>{row.topic_name || 'General'}</bdi></p><p>Given {date(row.assigned_at)}</p>{row.instructions && <p dir="auto"><strong>Teacher instructions:</strong> {row.instructions}</p>}</details>
         {row.is_closed ? <p className="assignment-desk__closed">Submissions are closed. Ask your teacher if you need more time.</p> : <button type="button" className="assignment-desk__primary" onClick={() => onOpen(row)}>{action(row)} <span aria-hidden="true">→</span></button>}
