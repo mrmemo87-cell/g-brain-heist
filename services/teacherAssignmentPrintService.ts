@@ -57,7 +57,7 @@ const responseLines = (count = 3) => Array.from({ length: count }, () => (
   '<div style="height:9mm;border-bottom:1px solid #b9c4d4"></div>'
 )).join('');
 
-const questionHtml = (question: PrintableAssignmentQuestion) => {
+export const questionHtml = (question: PrintableAssignmentQuestion) => {
   const options = Array.isArray(question.options) ? economicsDisplayOptions(question.questionId, question.options.filter((option) => option && (option.text || option.imageUrl)), question.optionOrderPolicy) : [];
   const isShortAnswer = question.questionType === 'short_answer' || options.length === 0;
   const image = question.imageUrl
