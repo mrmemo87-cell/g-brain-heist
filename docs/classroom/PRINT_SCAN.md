@@ -40,4 +40,18 @@ Database tests cover issuance replay, frozen option permutations, missing pages,
 
 Next acceptance gate: printed/photocopied sheets, pencil/pen, erasures, glare, shadows, rotated/tilted images, older phones, slow connections and interruptions. Record false-ready rate, actual recognition errors, retake rate and teacher review time. Do not claim calibrated accuracy or broad classroom readiness before this pilot.
 
-Live video capture/auto-shutter, batch upload, students without accounts, handwriting recognition, cloud photo retention and corrections after completion remain outside this version. Mobile Take photo uses the browser file capture hint; camera/gallery behavior depends on the device. Choose photo is always available. Unsupported question types still use the existing printable/manual flow.
+Live video capture/auto-shutter, batch upload, handwriting recognition, cloud photo retention and corrections after completion remain outside this version. Mobile Take photo uses the browser file capture hint; camera/gallery behavior depends on the device. Choose photo is always available. Unsupported question types still use the existing printable/manual flow.
+
+
+## Unified print and guest workflow
+
+Print has four visual choices: Questions only, Questions + bubbles, Bubble sheets only, and Unnamed bubble sheets. Unnamed booklets can include questions. Each complete pack prints questions immediately before its matching QR pages. Frozen option order, option images, school logo and the BRAINS HEIST heading are preserved. Each unnamed booklet receives unique sheet tokens; photocopying one booklet for multiple students is not supported. Use the count control to issue unique copies.
+
+After reviewing every page, the teacher records the written name and optional school reference and chooses Save for later linking. Holding seals the answers without generating accounts, grades or profile evidence. Awaiting link lists issued, held and linked booklets across print sessions. After signup and authorised school/roster membership, a teacher selects the registered account and explicitly confirms identity. No name matching or automatic signup link occurs. Partial online work requires explicit replacement and is archived; completed results are protected. Linking uses normal paper grading and evidence with the original assessment time, not the signup date. Identical retries are safe.
+
+Guest records and server-only question snapshots persist with the assignment. Assignment edits keep the saved record but block linking against a different form version. Photos are not retained. Held identities and answers are sealed in this release; corrections after holding/completion require a future governed correction workflow.
+
+Deploy migration `20261011122528_classroom_unified_print_guests.sql` after the existing paper/scan migrations and before this frontend. Applied to production on 2026-10-11 under migration version `20261011122528`. Validate staging and physical print/phone acceptance before broad classroom use.
+
+
+Validation on 2026-10-11: full `npm run verify` passed (1,842 unit tests, 67 programme DOM checks, 11 language DOM checks, 115 database checks and 4 assignment-card checks). Eight guest database checks subsequently passed, including multi-page separation and named-scan regression. Final typecheck, build, migration guard and diff checks passed. Chromium checks used mocked RPC transport with real QR generation, SVG rasterisation, worker recognition, four print modes, deliberate guest holding/linking and desktop/tablet/phone overflow checks. Two student packs produced four A4 PDF pages; bubbles alone produced two. Physical print/phone calibration remains pending; the production migration was applied on 2026-10-11.

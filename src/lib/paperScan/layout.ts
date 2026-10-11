@@ -19,7 +19,12 @@ export interface ScanQuestion {
 }
 export interface ScanSheet {
   id: string;
-  studentId: string;
+  studentId: string | null;
+  guestId?: string | null;
+  guestNumber?: number | null;
+  claimedName?: string;
+  localReference?: string;
+  heldAt?: string | null;
   studentName: string;
   pageNumber: number;
   pageCount: number;
@@ -61,3 +66,6 @@ export function parseSheetToken(text: string): string {
     throw new Error("This is not a Brains Heist answer sheet.");
   return text.slice(QR_PREFIX.length).toLowerCase();
 }
+
+export const guestBookletCode = (guestId: string, number: number) =>
+  `G${String(number).padStart(3, "0")}-${guestId.slice(0, 6).toUpperCase()}`;

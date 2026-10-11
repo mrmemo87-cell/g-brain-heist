@@ -1,6 +1,9 @@
 import QRCode from "qrcode";
+import { questionHtml } from "./teacherAssignmentPrintService";
+import { paperOptions } from "./assignmentPaperService";
 import {
   LAYOUT,
+  guestBookletCode,
   QR_PREFIX,
   bubblePosition,
   rowLabelPosition,
@@ -9,7 +12,10 @@ import {
 } from "../src/lib/paperScan/layout";
 import { escapeSchoolDocumentHtml as escape } from "../src/lib/schoolDocument";
 import type { PaperWorkspace } from "./assignmentPaperService";
-import { normalizeBrandLogoUrl, PRODUCT_LOGO_URL } from "../src/lib/schoolBranding";
+import {
+  normalizeBrandLogoUrl,
+  PRODUCT_LOGO_URL,
+} from "../src/lib/schoolBranding";
 const text = (x: number, y: number, value: string, size = 20, weight = 400) =>
   `<text x="${x}" y="${y}" font-size="${size}" font-weight="${weight}" fill="#172438">${escape(value)}</text>`;
 const short = (s: string, n: number) =>
@@ -57,7 +63,7 @@ export function buildBubbleSheetSvg(
  ${text(90, 210, short(packet.assignment.title, 35), 29, 700)}
  ${text(90, 255, `${packet.code} · Page ${sheet.pageNumber} of ${sheet.pageCount}`, 17)}
  <path d="${qrPath}" fill="black"/>
- ${text(90, 300, short(sheet.studentName, 39), 27, 700)}
+ ${sheet.guestId && !sheet.studentId ? text(90, 285, `Booklet ${guestBookletCode(sheet.guestId, sheet.guestNumber!)} · Name: ______________`, 21, 700) : text(90, 300, short(sheet.studentName, 39), 27, 700)}
  ${text(90, 329, `${packet.assignment.className || "Class"} · ${new Date(session.assessedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`, 17)}
  ${columns.map((x) => ["A", "B", "C", "D"].map((letter, i) => text(x - 7 + i * 48, 370, letter, 20, 700)).join("")).join("")}
  ${grid}
@@ -84,37 +90,133 @@ export function renderSheetPrintWindow(
   packet: PaperWorkspace,
   schoolName: string,
   schoolLogoUrl?: string | null,
+  includeQuestions = false,
+  questionsOnlyCopies = 0,
 ) {
   if (win.closed) throw new Error("The print window was closed. Try again.");
+  const questionPack = (
+    name: string,
+    rows?: ScanSheet["questions"],
+    booklet?: string | null,
+  ) => {
+    const logo = normalizeBrandLogoUrl(schoolLogoUrl);
+    const badge =
+      logo && logo !== PRODUCT_LOGO_URL
+        ? `<img class="pack-logo" src="${escape(logo)}" alt="School logo">`
+        : "";
+    const frozen = new Map(rows?.map((q) => [q.questionId, q.options]));
+    const testDate = new Date(session.assessedAt).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    return `<section class="question-pack"><header>${badge}<strong>BRAINS HEIST</strong><span>${escape(schoolName)}</span></header><h1>${escape(packet.assignment.title)}</h1><p class="pack-meta">${escape(packet.code)} · Questions · ${packet.questions.length} items · ${escape(testDate)}${booklet ? ` · Booklet ${escape(booklet)}` : ""}</p><p class="pack-name">Name: ${escape(name)}${name ? "" : "____________________________"}</p><p class="pack-instruction">${escape(packet.assignment.instructions?.trim() || (includeQuestions ? "Write your answers on the matching QR bubble sheet." : "Follow your teacher’s instructions for answering."))}</p>${packet.questions.map((q) => questionHtml({ ...q, options: frozen.has(q.questionId) ? frozen.get(q.questionId)!.map((text) => paperOptions(q).find((o) => o.text === text) || { text }) : paperOptions(q), optionOrderPolicy: "assignment-balanced-v1" })).join("")}</section>`;
+  };
+  let content = "";
+  if (questionsOnlyCopies) {
+    content = Array.from({ length: questionsOnlyCopies }, () =>
+      questionPack(""),
+    ).join("");
+  } else {
+    const groups = new Map<string, ScanSheet[]>();
+    session.sheets.forEach((s) => {
+      const key = s.guestId || s.studentId!;
+      groups.set(key, [...(groups.get(key) || []), s]);
+    });
+    content = [...groups.values()]
+      .map((pages) => {
+        pages.sort((a, b) => a.pageNumber - b.pageNumber);
+        const first = pages[0];
+        return (
+          (includeQuestions
+            ? questionPack(
+                first.guestId && !first.studentId ? "" : first.studentName,
+                pages.flatMap((p) => p.questions),
+                first.guestId
+                  ? guestBookletCode(first.guestId, first.guestNumber!)
+                  : null,
+              )
+            : "") +
+          pages
+            .map(
+              (sheet) =>
+                `<section class="sheet">${buildBubbleSheetSvg(sheet, session, packet, schoolName, schoolLogoUrl)}</section>`,
+            )
+            .join("")
+        );
+      })
+      .join("");
+  }
   win.document.open();
   win.document
     .write(`<!doctype html><html><head><meta charset="utf-8"><title>${escape(packet.code)} · Answer sheets</title><style>
- @page{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;background:#e8edf4;font-family:Arial,sans-serif}.bar{position:sticky;top:0;background:#172438;color:white;padding:16px;display:flex;align-items:center;gap:16px;z-index:2}.bar button{padding:10px 20px;border:0;border-radius:8px;background:white;color:#172438;font-weight:bold;cursor:pointer}.sheet{width:210mm;height:297mm;background:white;margin:20px auto;break-after:page}.sheet:last-child{break-after:auto}svg{display:block;width:210mm;height:297mm}@media print{body{background:white}.bar{display:none}.sheet{margin:0;box-shadow:none}}
- </style></head><body><div class="bar"><button id="print" disabled>Preparing…</button><span id="print-status" role="status">A4 · 100% / Actual size · Headers & footers off</span></div>${session.sheets.map((sheet) => `<section class="sheet">${buildBubbleSheetSvg(sheet, session, packet, schoolName, schoolLogoUrl)}</section>`).join("")}</body></html>`);
+ @page{size:A4 portrait;margin:0}@page questions{size:A4 portrait;margin:16mm}@page bubbles{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;background:#e8edf4;font-family:Arial,sans-serif}.bar{position:sticky;top:0;background:#172438;color:white;padding:16px;display:flex;align-items:center;gap:16px;z-index:2}.bar button{padding:10px 20px;border:0;border-radius:8px;background:white;color:#172438;font-weight:bold;cursor:pointer}.sheet{page:bubbles;width:210mm;height:297mm;background:white;margin:20px auto;break-after:page}.sheet:last-child{break-after:auto}svg{display:block;width:210mm;height:297mm}@media print{body{background:white}.bar{display:none}.sheet{margin:0;box-shadow:none}}
+ .question-pack{page:questions;width:210mm;min-height:297mm;padding:18mm;background:white;margin:20px auto;break-after:page;color:#172438}.question-pack header{position:relative;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid #d4d9e0;padding:0 23mm 12px 0;min-height:20mm}.pack-logo{position:absolute;right:0;top:0;width:18mm;height:18mm;object-fit:contain}.question-pack h1{font-size:24px;margin:20px 0 8px}.pack-meta,.pack-instruction{font-size:12px}.pack-name{font-size:16px;margin:22px 0}.question-pack .document-card{border:1px solid #d4d9e0;border-radius:8px;padding:4mm;break-inside:avoid}.question-pack .document-card strong{font-size:14px!important}.question-pack ol{font-size:14px;line-height:1.5}.bar button:disabled{opacity:.65;cursor:wait}@media print{.question-pack{margin:0;padding:0;width:auto;min-height:0}.question-pack:last-child{break-after:auto}}@media screen and (max-width:850px){body{overflow-x:hidden}.bar{position:sticky;left:0;flex-wrap:wrap}.sheet,.question-pack{margin:12px auto;width:100%;max-width:210mm}.sheet{height:auto;aspect-ratio:210/297}.sheet svg{width:100%;height:auto}.question-pack{min-height:0;padding:7vw}}
+ </style></head><body><div class="bar"><button id="print" disabled>Preparing…</button><span id="print-status" role="status">A4 · 100% / Actual size · Headers & footers off</span></div>${content}</body></html>`);
   win.document.close();
   win.document
     .getElementById("print")
     ?.addEventListener("click", () => win.print());
-  // Wait for the school badge before offering print, including cached images.
-  const logos = Array.from(win.document.querySelectorAll("svg image"));
-  const sources = [...new Set(logos.map((logo) => logo.getAttribute("href")!))];
-  void Promise.all(sources.map(async (src) => {
-    const image = win.document.createElement("img");
-    image.src = src;
-    try {
-      await image.decode();
-      return true;
-    } catch {
-      logos.filter((logo) => logo.getAttribute("href") === src).forEach((logo) => logo.remove());
-      return false;
-    }
-  })).then((loaded) => {
+  // Question visuals must finish loading before a pack can be printed.
+  const visuals = Array.from(win.document.querySelectorAll("svg image, img"));
+  const sourceOf = (element: Element) =>
+    element.getAttribute("href") || element.getAttribute("src");
+  const sources = [
+    ...new Set(visuals.map(sourceOf).filter((src): src is string => !!src)),
+  ];
+  void Promise.all(
+    sources.map(async (src) => {
+      const image = win.document.createElement("img");
+      image.src = src;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        await Promise.race([
+          image.decode(),
+          new Promise<never>((_, reject) => {
+            timer = setTimeout(
+              () => reject(new Error("Image unavailable")),
+              10000,
+            );
+          }),
+        ]);
+        return { src, loaded: true };
+      } catch {
+        return { src, loaded: false };
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    }),
+  ).then((results) => {
     if (win.closed) return;
-    const button = win.document.getElementById("print") as HTMLButtonElement | null;
-    if (button) { button.disabled = false; button.textContent = "Print sheets"; }
-    if (loaded.includes(false)) {
-      const status = win.document.getElementById("print-status");
-      if (status) status.textContent = "School logo unavailable · A4 · Actual size · Headers & footers off";
+    let missingQuestion = false,
+      missingLogo = false;
+    results
+      .filter((result) => !result.loaded)
+      .forEach(({ src }) => {
+        visuals
+          .filter((element) => sourceOf(element) === src)
+          .forEach((element) => {
+            if (element.matches("svg image, .pack-logo")) {
+              missingLogo = true;
+              element.remove();
+            } else missingQuestion = true;
+          });
+      });
+    const button = win.document.getElementById(
+      "print",
+    ) as HTMLButtonElement | null;
+    if (button) {
+      button.disabled = missingQuestion;
+      button.textContent = missingQuestion
+        ? "Images unavailable"
+        : "Print / Save PDF";
     }
+    const status = win.document.getElementById("print-status");
+    if (status && missingQuestion)
+      status.textContent =
+        "A question image could not load. Close this preview and try again.";
+    else if (status && missingLogo)
+      status.textContent =
+        "School logo unavailable · A4 · Actual size · Headers & footers off";
   });
 }

@@ -1,6 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   issueScanSheets,
+  issueUnnamedSheets,
+  holdGuest,
   resolveScanSheet,
   saveScan,
   reviewScan,
@@ -28,6 +30,10 @@ import type {
   ScanSheet,
   DetectedRow,
 } from "../../src/lib/paperScan/layout";
+import ClassroomPrintPanel, {
+  type ClassroomPrintOrder,
+} from "./ClassroomPrintPanel";
+import GuestResultsPanel from "./GuestResultsPanel";
 import "./PaperScanWorkspace.css";
 type Props = {
   packet: PaperWorkspace;
@@ -37,12 +43,6 @@ type Props = {
   flush: React.MutableRefObject<() => Promise<void>>;
   canLeave: React.MutableRefObject<() => boolean>;
   onConfirmed: () => Promise<void>;
-};
-const dateInput = (iso: string) => {
-  const d = new Date(iso);
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
-    .toISOString()
-    .slice(0, 16);
 };
 const errorText = (e: unknown) =>
   e instanceof Error ? e.message : "Could not save. Try again.";
@@ -62,12 +62,9 @@ export default function PaperScanWorkspace({
   canLeave,
   onConfirmed,
 }: Props) {
-  const pending = packet.students.filter((s) => s.status !== "completed");
-  const [tab, setTab] = useState<"print" | "scan">("print");
-  const [selected, setSelected] = useState(
-    () => new Set(pending.map((s) => s.id)),
-  );
-  const [date, setDate] = useState(() => dateInput(new Date().toISOString()));
+  const [tab, setTab] = useState<"print" | "scan" | "guests">("print");
+  const [guestName, setGuestName] = useState("");
+  const [guestReference, setGuestReference] = useState("");
   const [session, setSession] = useState<ScanSession | null>(null);
   const [sheetId, setSheetId] = useState("");
   const [photo, setPhoto] = useState<ProcessedPhoto | null>(null);
@@ -85,6 +82,10 @@ export default function PaperScanWorkspace({
   const camera = useRef<HTMLInputElement>(null);
   const busyRef = useRef(busy);
   busyRef.current = busy;
+  const guestBusyChange = useCallback((value: boolean) => {
+    busyRef.current = value ? "Updating saved booklets…" : "";
+    setBusy(busyRef.current);
+  }, []);
   const unsafeCorrections = useRef(false);
   const sessionIdentity = useRef("");
   const sessionKey = `bh:scan-session:v1:${userId}:${packet.assignment.id}`;
@@ -95,7 +96,11 @@ export default function PaperScanWorkspace({
   const sheet = session?.sheets.find((s) => s.id === sheetId);
   const currentStudent = packet.students.find((s) => s.id === sheet?.studentId);
   const studentPages =
-    session?.sheets.filter((s) => s.studentId === sheet?.studentId) || [];
+    session?.sheets.filter((s) =>
+      sheet?.guestId
+        ? s.guestId === sheet.guestId
+        : s.studentId === sheet?.studentId,
+    ) || [];
   const completePages = studentPages.filter((s) => s.reviewedAnswers).length;
   const allPagesReviewed =
     studentPages.length > 0 && completePages === studentPages.length;
@@ -190,32 +195,81 @@ export default function PaperScanWorkspace({
         "Device storage is unavailable. Keep this screen open until the page is saved.",
       );
   };
-  const print = async () => {
+  const print = async (order: ClassroomPrintOrder) => {
     if (busyRef.current) return;
-    busyRef.current = "Preparing sheets…";
+    busyRef.current = "Preparing print order…";
     let win: Window | undefined;
     setError("");
     setMessage("");
+    setBusy(busyRef.current);
     try {
-      if (!selected.size) throw new Error("Choose at least one student.");
-      if (!date || !Number.isFinite(Date.parse(date)))
-        throw new Error("Choose an assessment date.");
+      if (
+        !Number.isInteger(order.copies) ||
+        order.copies < 1 ||
+        order.copies > 200
+      )
+        throw new Error("Choose 1–200 copies.");
       win = openSheetPrintWindow();
-      setBusy("Preparing sheets…");
-      const ids = [...selected].sort();
-      const assessedAt = new Date(date).toISOString();
-      const key = JSON.stringify({ ids, assessedAt, hash: packet.formHash });
-      if (request.current?.key !== key)
-        request.current = { key, id: crypto.randomUUID() };
-      const result = await issueScanSheets(
-        packet,
-        request.current.id,
-        ids,
-        assessedAt,
-      );
-      remember(result);
-      renderSheetPrintWindow(win, result, packet, schoolName, schoolLogoUrl);
-      setMessage(`${result.sheets.length} personalised sheets ready.`);
+      if (order.mode === "questions") {
+        renderSheetPrintWindow(
+          win,
+          {
+            id: "",
+            assignmentId: packet.assignment.id,
+            assessedAt: order.assessedAt,
+            formHash: packet.formHash,
+            sheets: [],
+          },
+          packet,
+          schoolName,
+          schoolLogoUrl,
+          false,
+          order.copies,
+        );
+      } else {
+        if (!supported)
+          throw new Error(
+            "Use question papers and manual marking for this assignment.",
+          );
+        if (!Number.isFinite(Date.parse(order.assessedAt)))
+          throw new Error("Choose a test date.");
+        const unnamed = order.mode === "unnamed";
+        if (!unnamed && !order.studentIds.length)
+          throw new Error("Choose at least one student.");
+        const key = JSON.stringify({
+          ids: unnamed ? [] : order.studentIds,
+          count: unnamed ? order.copies : 0,
+          date: order.assessedAt,
+          hash: packet.formHash,
+        });
+        if (request.current?.key !== key)
+          request.current = { key, id: crypto.randomUUID() };
+        const result = unnamed
+          ? await issueUnnamedSheets(
+              packet,
+              request.current.id,
+              order.copies,
+              order.assessedAt,
+            )
+          : await issueScanSheets(
+              packet,
+              request.current.id,
+              order.studentIds,
+              order.assessedAt,
+            );
+        remember(result);
+        renderSheetPrintWindow(
+          win,
+          result,
+          packet,
+          schoolName,
+          schoolLogoUrl,
+          order.includeQuestions,
+        );
+        // A successful preview completes this issuance. Next print gets fresh QR tokens; failed retries reuse the same request.
+        request.current = null;
+      }
+      setMessage("Print order ready. Check the preview before printing.");
     } catch (e) {
       win?.close();
       setError(errorText(e));
@@ -250,7 +304,11 @@ export default function PaperScanWorkspace({
       const nextSheet = result.sheets.find((s) => s.id === nextPhoto.sheetId);
       if (!nextSheet) throw new Error("This sheet could not be found.");
       const student = packet.students.find((s) => s.id === nextSheet.studentId);
-      if (student?.status === "completed" || nextSheet.confirmedAt)
+      if (
+        student?.status === "completed" ||
+        nextSheet.confirmedAt ||
+        nextSheet.heldAt
+      )
         throw new Error("This student already has a completed result.");
       const marks = detectedAnswers(nextPhoto, nextSheet);
       setBusy("Saving scan…");
@@ -296,6 +354,8 @@ export default function PaperScanWorkspace({
       }
       setPhoto(nextPhoto);
       setSheetId(nextSheet.id);
+      setGuestName(stored.claimedName || "");
+      setGuestReference(stored.localReference || "");
       unsafeCorrections.current = false;
       setAnswers(initial);
       setCrops(rowPreviews(nextPhoto, nextSheet));
@@ -350,6 +410,25 @@ export default function PaperScanWorkspace({
     setError("");
     setBusy("Confirming result…");
     try {
+      if (sheet.guestId && !sheet.studentId) {
+        if (!guestName.trim())
+          throw new Error("Enter the name written on the sheet.");
+        remember(
+          await holdGuest(
+            sheet.guestId,
+            guestName.trim(),
+            guestReference.trim(),
+          ),
+        );
+        setMessage("Answers saved. Link this booklet after the student joins.");
+        setSheetId("");
+        setPhoto(null);
+        setCrops({});
+        setTab("guests");
+        return;
+      }
+      if (!sheet.studentId)
+        throw new Error("This sheet has no student account.");
       await confirmScan(session.id, sheet.studentId, replace);
       setMessage(`${sheet.studentName} · Result confirmed.`);
       setSheetId("");
@@ -390,11 +469,15 @@ export default function PaperScanWorkspace({
           ) {
             event.preventDefault();
             if (unsafeCorrections.current) return;
-            const next = tab === "print" ? "scan" : "print";
+            const tabs = ["print", "scan", "guests"] as const;
+            const next =
+              tabs[
+                (tabs.indexOf(tab) + (event.key === "ArrowRight" ? 1 : 2)) % 3
+              ];
             setTab(next);
             event.currentTarget
               .querySelectorAll<HTMLButtonElement>("[role=tab]")
-              [next === "print" ? 0 : 1]?.focus();
+              [tabs.indexOf(next)]?.focus();
           }
         }}
       >
@@ -413,7 +496,7 @@ export default function PaperScanWorkspace({
             setTab("print");
           }}
         >
-          ▤ Print sheets
+          ▤ Print
         </button>
         <button
           role="tab"
@@ -423,6 +506,23 @@ export default function PaperScanWorkspace({
           onClick={() => setTab("scan")}
         >
           ▣ Scan & review
+        </button>
+        <button
+          role="tab"
+          aria-selected={tab === "guests"}
+          tabIndex={tab === "guests" ? 0 : -1}
+          disabled={!!busy}
+          onClick={() => {
+            if (unsafeCorrections.current) {
+              setError(
+                "Save this page before leaving. Device storage is unavailable.",
+              );
+              return;
+            }
+            setTab("guests");
+          }}
+        >
+          Awaiting link
         </button>
       </div>
       {error ? (
@@ -435,103 +535,35 @@ export default function PaperScanWorkspace({
           ✓ {message}
         </div>
       ) : null}
-      {!supported ? (
-        <div className="paw-empty">
-          Scanning supports up to 200 multiple-choice or true/false questions
-          with 2–4 text choices. Use manual paper entry for this assignment.
-        </div>
+      {tab === "guests" ? (
+        <GuestResultsPanel
+          assignmentId={packet.assignment.id}
+          onBusyChange={guestBusyChange}
+          onLinked={onConfirmed}
+          onOpen={async (id) => {
+            const result = await resolveScanSheet(id, packet.assignment.id);
+            const found = result.sheets.find((s) => s.id === id);
+            if (!found) throw new Error("Sheet not found.");
+            remember(result);
+            setSheetId(id);
+            setPhoto(null);
+            setCrops({});
+            setAnswers(found.reviewedAnswers || {});
+            setGuestName(found.claimedName || "");
+            setGuestReference(found.localReference || "");
+            setTab("scan");
+          }}
+        />
       ) : tab === "print" ? (
-        <div className="psc-print-grid">
-          <section className="psc-card">
-            <span className="paw-eyebrow">Personalised for your class</span>
-            <h3>Paper in. Progress out.</h3>
-            <p>Names, QR codes, and answer bubbles. Ready to hand out.</p>
-            <label className="psc-date">
-              Assessment time
-              <input
-                type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                disabled={!!busy}
-              />
-            </label>
-            <div className="psc-select-heading">
-              <strong>
-                {selected.size} {selected.size === 1 ? "student" : "students"}{" "}
-                selected
-              </strong>
-              <button
-                className="psc-link"
-                disabled={!!busy}
-                onClick={() =>
-                  setSelected(
-                    selected.size === pending.length
-                      ? new Set()
-                      : new Set(pending.map((s) => s.id)),
-                  )
-                }
-              >
-                {selected.size === pending.length ? "Clear" : "Select all"}
-              </button>
-            </div>
-            <div className="psc-students">
-              {pending.map((s) => (
-                <label key={s.id}>
-                  <input
-                    type="checkbox"
-                    checked={selected.has(s.id)}
-                    disabled={!!busy}
-                    onChange={() =>
-                      setSelected((old) => {
-                        const next = new Set(old);
-                        next.has(s.id) ? next.delete(s.id) : next.add(s.id);
-                        return next;
-                      })
-                    }
-                  />
-                  <span>{s.name}</span>
-                </label>
-              ))}
-              {pending.length === 0 ? (
-                <p>Everyone has completed this assignment.</p>
-              ) : null}
-            </div>
-            <button
-              className="paw-button primary psc-wide"
-              disabled={!!busy || !selected.size}
-              onClick={() => void print()}
-            >
-              {busy || "Print personalised sheets"}
-            </button>
-          </section>
-          <div
-            className="psc-sheet-preview"
-            aria-label="Illustration of a bubble sheet"
-          >
-            <div className="psc-mini-corner tl" />
-            <div className="psc-mini-corner tr" />
-            <span className="psc-mini-brand">BRAINS HEIST</span>
-            <h4>Answer sheet</h4>
-            <div className="psc-mini-qr" aria-hidden="true">
-              ▦
-            </div>
-            <p>Student name · Assignment · Date</p>
-            <div className="psc-mini-grid">
-              {Array.from({ length: 8 }, (_, i) => (
-                <div key={i}>
-                  <strong>{i + 1}</strong>
-                  {["A", "B", "C", "D"].map((l, n) => (
-                    <span className={n === i % 4 ? "filled" : ""} key={l}>
-                      {l}
-                    </span>
-                  ))}
-                </div>
-              ))}
-            </div>
-            <div className="psc-mini-note">Fill one bubble fully.</div>
-            <div className="psc-mini-corner bl" />
-            <div className="psc-mini-corner br" />
-          </div>
+        <ClassroomPrintPanel
+          packet={packet}
+          supported={supported}
+          busy={!!busy}
+          onPrint={print}
+        />
+      ) : !supported ? (
+        <div className="paw-empty">
+          Use manual paper entry for this assignment.
         </div>
       ) : (
         <>
@@ -599,6 +631,7 @@ export default function PaperScanWorkspace({
                       (s) =>
                         s.scanId &&
                         !s.confirmedAt &&
+                        !s.heldAt &&
                         packet.students.find((p) => p.id === s.studentId)
                           ?.status !== "completed",
                     )
@@ -609,6 +642,8 @@ export default function PaperScanWorkspace({
                         disabled={!!busy}
                         onClick={() => {
                           setSheetId(s.id);
+                          setGuestName(s.claimedName || "");
+                          setGuestReference(s.localReference || "");
                           setPhoto(null);
                           setCrops({});
                           setAnswers(s.reviewedAnswers || {});
@@ -771,8 +806,32 @@ export default function PaperScanWorkspace({
                   ) : null}
                 </div>
               )}
-              {allPagesReviewed ? (
+              {allPagesReviewed && !sheet.heldAt ? (
                 <div className="psc-confirm">
+                  {sheet.guestId && !sheet.studentId ? (
+                    <div className="psc-guest-form">
+                      <label className="psc-date">
+                        Name written on the sheet
+                        <input
+                          value={guestName}
+                          maxLength={120}
+                          disabled={!!busy}
+                          onChange={(e) => setGuestName(e.target.value)}
+                          autoComplete="off"
+                        />
+                      </label>
+                      <label className="psc-date">
+                        School ID or class (optional)
+                        <input
+                          value={guestReference}
+                          maxLength={80}
+                          disabled={!!busy}
+                          onChange={(e) => setGuestReference(e.target.value)}
+                          autoComplete="off"
+                        />
+                      </label>
+                    </div>
+                  ) : null}
                   {needsReplacement ? (
                     <label className="psc-replace">
                       <input
@@ -787,10 +846,16 @@ export default function PaperScanWorkspace({
                   ) : null}
                   <button
                     className="paw-button primary psc-wide"
-                    disabled={!!busy || (needsReplacement && !replace)}
+                    disabled={
+                      !!busy ||
+                      (needsReplacement && !replace) ||
+                      (!!sheet.guestId && !sheet.studentId && !guestName.trim())
+                    }
                     onClick={() => void finalize()}
                   >
-                    Confirm student result
+                    {sheet.guestId && !sheet.studentId
+                      ? "Save for later linking"
+                      : "Confirm student result"}
                   </button>
                 </div>
               ) : null}

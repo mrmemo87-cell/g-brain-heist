@@ -14,7 +14,6 @@ import {
 import { supabase } from '../services/supabaseClient';
 import { getAcademicReportingContext, type AcademicReportingYear } from '../services/academicReportingService';
 import { fetchTeacherAssignmentDiagnosticIntelligence, type TeacherAssignmentDiagnosticIntelligence } from '../services/teacherDiagnosticService';
-import { fetchPrintableTeacherAssignment, openPrintableTeacherAssignment } from '../services/teacherAssignmentPrintService';
 import type { PreparedDiagnostic } from '../services/diagnosticComposerService';
 import { useAssignmentQuestionSelection } from '../src/hooks/useAssignmentQuestionSelection';
 import BackButton from './BackButton';
@@ -614,6 +613,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentCloseAfterDue, setAssignmentCloseAfterDue] = useState(false);
   const [assignmentNotifyByEmail, setAssignmentNotifyByEmail] = useState(false);
   const [assignmentSuccess, setAssignmentSuccess] = useState<GameService.TeacherAssignmentSuccessSummary | null>(null);
+  const [paperWorkspaceMode, setPaperWorkspaceMode] = useState<"manual" | "scan">("manual");
   const [paperAssignment, setPaperAssignment] = useState<TeacherAssignmentSummary | null>(null);
   const [assignmentDelivery, setAssignmentDelivery] = useState<'online' | 'paper' | 'mixed'>('online');
   const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
@@ -6034,26 +6034,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
 
-    setPrintingAssignmentId(assignment.id);
-    try {
-      const packet = await fetchPrintableTeacherAssignment(assignment.id);
-      if (!packet.questions.length) {
-        brainsAlert('This assignment does not contain printable questions.', 'info');
-        return;
-      }
-      openPrintableTeacherAssignment({
-        packet,
-        schoolName: resolvedBranding.schoolName,
-        schoolLogoUrl: resolvedBranding.schoolLogoUrl,
-        schoolId: profile.school_id,
-        teacherName: profile.full_name || profile.username || 'Teacher',
-      });
-    } catch (error) {
-      console.error('Error preparing assignment paper:', error);
-      brainsAlert(error instanceof Error ? error.message : 'Unable to prepare the printable assignment.', 'error');
-    } finally {
-      setPrintingAssignmentId(null);
-    }
+    setPaperWorkspaceMode('scan');
+    setPaperAssignment(assignment);
   };
 
   const renderAssignments = () => (
@@ -6274,7 +6256,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 deleteDisabled={deletingAssignmentId !== null}
                 onReport={() => handleOpenReport(assignment)}
                 onPrint={() => void handlePrintAssignmentPaper(assignment)}
-                onRecord={() => setPaperAssignment(assignment)}
+                onRecord={() => { setPaperWorkspaceMode("manual"); setPaperAssignment(assignment); }}
                 onEdit={() => handleEditAssignment(assignment)}
                 onDelete={() => void handleDeleteAssignment(assignment)}
               />
@@ -9417,7 +9399,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         </div>
       </header>
       {paperAssignment && <React.Suspense fallback={<div role="status" className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/70 text-white">Opening paper workspace…</div>}>
-        <PaperAssignmentWorkspace assignmentId={paperAssignment.id} userId={profile.id} schoolName={resolvedBranding.schoolName}
+        <PaperAssignmentWorkspace initialMode={paperWorkspaceMode} assignmentId={paperAssignment.id} userId={profile.id} schoolName={resolvedBranding.schoolName}
           schoolLogoUrl={resolvedBranding.schoolLogoUrl} teacherName={profile.full_name || profile.username || 'Teacher'}
           onClose={() => setPaperAssignment(null)} onRecorded={() => { void GameService.get_teacher_assignments().then(setAssignments).catch((error) => console.warn('Assignment refresh failed:', error)); }} />
       </React.Suspense>}

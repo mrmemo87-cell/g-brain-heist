@@ -24,6 +24,7 @@ const PaperScanWorkspace = lazy(() => import("./PaperScanWorkspace"));
 
 type Props = {
   assignmentId: string;
+  initialMode?: "manual" | "scan";
   userId: string;
   schoolName: string;
   schoolLogoUrl?: string | null;
@@ -46,7 +47,7 @@ export default function PaperAssignmentWorkspace(props: Props) {
   const [selected, setSelected] = useState("");
   const [search, setSearch] = useState("");
   const [scanConfirmed, setScanConfirmed] = useState(false);
-  const [mode, setMode] = useState<"manual" | "scan">("manual");
+  const [mode, setMode] = useState<"manual" | "scan">(props.initialMode || "manual");
   const [loading, setLoading] = useState(true);
   const [closing, setClosing] = useState(false);
   const [closeFailed, setCloseFailed] = useState(false);
@@ -251,16 +252,9 @@ export default function PaperAssignmentWorkspace(props: Props) {
                   </span>
                   <button
                     className="paw-button"
-                    onClick={() =>
-                      openPrintableTeacherAssignment({
-                        packet,
-                        schoolName: props.schoolName,
-                        schoolLogoUrl: props.schoolLogoUrl,
-                        teacherName: props.teacherName,
-                      })
-                    }
+                    onClick={() => setMode("scan")}
                   >
-                    ▤ Print pack
+                    ▤ Print
                   </button>
                   <button
                     className="paw-button"

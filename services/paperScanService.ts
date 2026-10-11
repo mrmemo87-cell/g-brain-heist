@@ -6,7 +6,40 @@ import {
   type PaperAnswers,
 } from "./assignmentPaperService";
 import type { ScanSession, DetectedRow } from "../src/lib/paperScan/layout";
+export interface GuestResult {
+  id: string;
+  name: string;
+  reference: string;
+  number: number;
+  sessionId: string;
+  assessedAt: string;
+  heldAt: string | null;
+  linkedAt: string | null;
+  studentId: string | null;
+  versionMatches: boolean;
+  firstSheetId: string;
+}
+export interface GuestLinkCandidate {
+  id: string;
+  name: string;
+  username: string;
+  className: string;
+  completed: boolean;
+  existingAnswerCount: number;
+}
 const errors: Record<string, string> = {
+  GUEST_RESULT_LOCKED: "This result is sealed and ready for linking.",
+  GUEST_ALREADY_LINKED: "This booklet is already linked to another student.",
+  GUEST_NAME_REQUIRED:
+    "Enter the name written on the sheet (up to 120 characters).",
+  GUEST_NOT_REVIEWED: "Review every page before linking this booklet.",
+  STUDENT_NOT_ELIGIBLE:
+    "The student must join your school and authorised teaching roster first.",
+  IDENTITY_CONFIRMATION_REQUIRED:
+    "Confirm that this account belongs to the student.",
+  ASSIGNMENT_NOT_PUBLISHED:
+    "Publish the assignment before issuing unnamed sheets.",
+  ASSIGNMENT_CLOSED: "This test date falls after the assignment closed.",
   WRONG_ASSIGNMENT: "This sheet belongs to a different assignment.",
   NOT_AUTHORIZED: "Only the assignment teacher can scan these sheets.",
   PAPER_VERSION_CHANGED: "The assignment changed. Print a new set of sheets.",
@@ -93,4 +126,52 @@ export async function confirmScan(
   });
   if (result?.success !== true)
     throw new Error("The result was not confirmed. Please retry.");
+}
+
+export function issueUnnamedSheets(
+  packet: PaperWorkspace,
+  sessionId: string,
+  count: number,
+  assessedAt: string,
+) {
+  return rpc<ScanSession>("rpc_teacher_issue_unnamed_sheets", {
+    p_assignment_id: packet.assignment.id,
+    p_session_id: sessionId,
+    p_count: count,
+    p_assessed_at: assessedAt,
+    p_option_order: Object.fromEntries(
+      packet.questions.map((q) => [
+        q.questionId,
+        paperOptions(q).map((o) => o.text),
+      ]),
+    ),
+  });
+}
+export const fetchGuestResults = (assignmentId: string) =>
+  rpc<GuestResult[]>("rpc_teacher_guest_results", {
+    p_assignment_id: assignmentId,
+  });
+export const fetchGuestCandidates = (assignmentId: string) =>
+  rpc<GuestLinkCandidate[]>("rpc_teacher_guest_link_candidates", {
+    p_assignment_id: assignmentId,
+  });
+export const holdGuest = (guestId: string, name: string, reference: string) =>
+  rpc<ScanSession>("rpc_teacher_hold_guest", {
+    p_guest_id: guestId,
+    p_name: name,
+    p_reference: reference,
+  });
+export async function linkGuest(
+  guestId: string,
+  studentId: string,
+  replacePartial: boolean,
+) {
+  const result = await rpc<{ success: boolean }>("rpc_teacher_link_guest", {
+    p_guest_id: guestId,
+    p_student_id: studentId,
+    p_identity_confirmed: true,
+    p_replace_partial: replacePartial,
+  });
+  if (result?.success !== true)
+    throw new Error("The result was not linked. Please retry.");
 }
