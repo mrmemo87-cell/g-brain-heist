@@ -53,7 +53,7 @@ test('school administration and executive UX reserve assignment for academic wor
 test('teacher workspace prefers teaching groups while retaining legacy class compatibility', () => {
   assert.match(teacherPortal, /fetchTeacherTeachingGroups/);
   assert.match(teacherPortal, /getTeacherAllocatedClasses/);
-  assert.match(teacherPortal, /Your Teaching Groups/);
+  assert.match(teacherPortal, /Your teaching groups/);
   assert.match(assignmentWizard, /Choose the teaching group this assignment belongs to/);
   assert.match(assignmentWizard, /Create an assignment/);
   assert.match(assignmentWizard, /Assignment title/);

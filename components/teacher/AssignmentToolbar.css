@@ -53,3 +53,10 @@
   .teacher-assignment-view .teacher-header-title { font-size:20px; }
 }
 @media(prefers-reduced-motion:no-preference) { .assignment-toolbar__classes button,.assignment-toolbar__status button { transition:background 150ms ease,color 150ms ease; } }
+/* Keep the title and Create action inside the smallest phone workspace. */
+.assignment-toolbar__heading > div:first-child { min-width:0; }
+@media(max-width:374px) {
+  .assignment-toolbar__heading { gap:8px; }
+  .assignment-toolbar__heading h2 { font-size:20px; }
+  .assignment-toolbar__primary { padding:0 12px; gap:6px; font-size:13px!important; }
+}

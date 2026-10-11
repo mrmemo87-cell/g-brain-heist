@@ -33,7 +33,7 @@ test('student alerts identify the learner, assignment, and reason for follow-up'
 
 test('teacher portal exposes assigned students and assignment metadata', () => {
   assert.match(teacherPortal, /const renderStudents/);
-  assert.match(teacherPortal, />🏫 My Classes</);
+  assert.match(teacherPortal, />My Classes</);
   assert.match(teacherPortal, /Each teaching group stays separate, including custom groups such as ESL/);
   assert.match(teacherPortal, /fetchTeacherTeachingGroupRoster/);
   assert.match(teacherPortal, />Created<\/dt>/);
