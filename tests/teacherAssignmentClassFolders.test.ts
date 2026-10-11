@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
+const card = readFileSync('components/teacher/AssignmentCard.tsx', 'utf8');
 
 test('assignment workspace groups existing assignments by class without changing assignment creation', () => {
   assert.match(portal, /const \[assignmentClassFilter, setAssignmentClassFilter\]/);
@@ -12,7 +13,9 @@ test('assignment workspace groups existing assignments by class without changing
   assert.match(portal, /assignment\.batch/);
   assert.match(portal, /Individual assignments/);
   assert.match(portal, /Class folders/);
-  assert.match(portal, /🏫 \$\{assignment\.batch \|\| 'Class'\}/);
+  assert.match(portal, /<AssignmentCard/);
+  assert.match(card, /assignment\.subject_group_name/);
+  assert.match(card, /assignment\.batch \|\| 'Class'/);
 });
 
 test('class folder selection participates in display filtering only', () => {

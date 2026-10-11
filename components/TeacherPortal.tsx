@@ -29,6 +29,7 @@ const PaperAssignmentWorkspace = React.lazy(() => import('./teacher/PaperAssignm
 const AssignmentWizard = React.lazy(() => import('./teacher/AssignmentWizard'));
 const DiagnosticComposer = React.lazy(() => import('./teacher/DiagnosticComposer'));
 import DiagnosticIntelligencePanel, { DiagnosticStudentSkillMap } from './teacher/DiagnosticIntelligencePanel';
+import AssignmentCard from './teacher/AssignmentCard';
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
 import { brainsAlert, brainsConfirm } from '../src/utils/brainsAlert';
@@ -6254,80 +6255,28 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           </button>
         </div>
       ) : (
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4">
+        <section className="rounded-2xl border border-slate-200 bg-slate-50">
+          <header className="flex flex-wrap items-center justify-between gap-3 rounded-t-2xl border-b border-slate-200 bg-white px-5 py-4">
             <div><span className="text-xs font-bold uppercase tracking-wider text-blue-600">{assignmentClassFilter === 'all' ? 'All assignments' : assignmentClassFilter === 'individual' ? 'Individual assignments' : `${assignmentClassFilter} assignments`}</span><h3 className="mt-1 text-lg font-bold text-slate-800">Assignment workspace</h3></div>
             <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{filteredAssignments.length} shown</span>
           </header>
           <div className="grid gap-3 p-4 xl:grid-cols-2">
-            {filteredAssignments.map((assignment) => {
-                          const completed = assignment.student_count > 0 && assignment.completed_count >= assignment.student_count;
-                          const completionPercent = assignment.student_count > 0
-                            ? Math.round((assignment.completed_count / assignment.student_count) * 100)
-                            : 0;
-                          const now = Date.now();
-                          const due = assignment.due_at ? new Date(assignment.due_at) : null;
-                          const assigned = new Date(assignment.assigned_at);
-                          const duePast = Boolean(due && due.getTime() < now);
-                          const dueToday = Boolean(due && due.toDateString() === new Date().toDateString());
-                          const dueSoon = Boolean(due && !duePast && due.getTime() - now <= 24 * 60 * 60 * 1000);
-                          const statusLabel = assignment.publish_status === 'draft' ? 'Draft'
-                            : (assignment.publish_status === 'scheduled' && assigned.getTime() > now) ? 'Scheduled'
-                            : completed ? 'Completed'
-                            : duePast && assignment.close_submissions_after_due ? 'Closed'
-                            : duePast ? 'Late / overdue'
-                            : dueToday ? 'Due today'
-                            : dueSoon ? 'Due soon'
-                            : `${completionPercent}% complete`;
-                          return (
-                            <article key={assignment.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <span className="text-xs font-bold text-blue-600">{assignment.subject_name} · {assignment.topic_name} · {assignment.delivery_mode === 'paper' ? 'Paper' : assignment.delivery_mode === 'mixed' ? 'Mixed' : 'Online'}</span>
-                                  <h5 className="mt-1 text-lg font-bold text-slate-800">{assignment.title || assignment.topic_name}</h5>
-                                  <span className="mt-2 inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">
-                                    {assignment.subject_group_name ? `👥 ${assignment.subject_group_name}` : assignment.assignment_mode === 'custom' ? '👤 Individual' : `🏫 ${assignment.batch || 'Class'}`} · {assignment.student_count} student{assignment.student_count === 1 ? '' : 's'}
-                                  </span>
-                                </div>
-                                <span className={`rounded-full px-3 py-1 text-xs font-bold ${completed ? 'bg-emerald-100 text-emerald-800' : duePast ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>{statusLabel}</span>
-                              </div>
-                              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100" aria-label={`${completionPercent}% completed`}>
-                                <span className={`block h-full rounded-full ${completed ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${completionPercent}%` }} />
-                              </div>
-                              <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Group</dt><dd>{assignment.subject_group_name || (assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—')}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(assignment.assigned_at).toLocaleDateString()}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Questions</dt><dd>{assignment.question_count}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{assignment.student_count}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Completed</dt><dd>{assignment.completed_count}/{assignment.student_count}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'None'}</dd></div>
-                              </dl>
-                              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                                <button onClick={() => handleOpenReport(assignment)} className="teacher-btn teacher-btn-secondary w-full">View report</button>
-                                <button
-                                  type="button"
-                                  onClick={() => void handlePrintAssignmentPaper(assignment)}
-                                  disabled={printingAssignmentId !== null}
-                                  className="teacher-btn teacher-btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60"
-                                  aria-label={`Print ${assignment.title || assignment.topic_name} question paper`}
-                                >
-                                  {printingAssignmentId === assignment.id ? 'Preparing paper…' : '🖨️ Print paper'}
-                                </button>
-                                <button type="button" onClick={() => setPaperAssignment(assignment)} disabled={assignment.teacher_id !== teacher?.id} className="teacher-btn teacher-btn-secondary w-full" aria-label={`Record paper answers for ${assignment.title || assignment.topic_name}`}>▤ Record paper answers</button>
-                                <button type="button" onClick={() => handleEditAssignment(assignment)} className="teacher-btn teacher-btn-secondary w-full" aria-label={`Edit ${assignment.title || assignment.topic_name}`}>Edit assignment</button>
-                                <button
-                                  type="button"
-                                  onClick={() => void handleDeleteAssignment(assignment)}
-                                  disabled={deletingAssignmentId !== null}
-                                  className="teacher-btn w-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                                  aria-label={`Delete ${assignment.title || assignment.topic_name}`}
-                                >
-                                  {deletingAssignmentId === assignment.id ? 'Deleting…' : 'Delete assignment'}
-                                </button>
-                              </div>
-                            </article>
-                          );
-            })}
+            {filteredAssignments.map((assignment) => (
+              <AssignmentCard
+                key={assignment.id}
+                assignment={assignment}
+                canManage={assignment.teacher_id === teacher?.id}
+                printing={printingAssignmentId === assignment.id}
+                printDisabled={printingAssignmentId !== null}
+                deleting={deletingAssignmentId === assignment.id}
+                deleteDisabled={deletingAssignmentId !== null}
+                onReport={() => handleOpenReport(assignment)}
+                onPrint={() => void handlePrintAssignmentPaper(assignment)}
+                onRecord={() => setPaperAssignment(assignment)}
+                onEdit={() => handleEditAssignment(assignment)}
+                onDelete={() => void handleDeleteAssignment(assignment)}
+              />
+            ))}
           </div>
         </section>
       )}
