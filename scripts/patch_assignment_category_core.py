@@ -360,7 +360,7 @@ const localDateKey = (date = new Date()) => {
 # App.tsx -------------------------------------------------------------------
 path = 'App.tsx'
 text = load(path)
-if 'assignmentCategoryBadgeStyle' not in text:
+if 'assignmentCategoryBadgeStyle' not in text and '<AssignmentDesk ' not in text:
     import_anchor = "import { enrollInApprovedSchoolClass, listMySchoolClasses, type ApprovedSignupClass } from './services/authService';"
     text = replace_once(
         text,

@@ -6039,11 +6039,12 @@ export const get_assignment_question_analysis = async (
 /**
  * Get student's completed assignments for achievement display
  */
-export const get_student_completed_assignments = async (): Promise<CompletedAssignment[]> => {
+export const get_student_completed_assignments = async (options: { throwOnError?: boolean } = {}): Promise<CompletedAssignment[]> => {
     const { data, error } = await rpcGetStudentCompletedAssignments();
 
     if (error) {
         console.error('Failed to load completed assignments:', error);
+        if (options.throwOnError) throw new Error(error.message || 'Failed to load completed assignments');
         return [];
     }
 
