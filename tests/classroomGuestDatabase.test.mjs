@@ -27,7 +27,7 @@ create function private.teacher_assignment_authorized_students(uuid,uuid,text,uu
 `);
   for (const path of [
     "20261011055654_classroom_print_scan.sql",
-    "20261011082642_classroom_unified_print_guests.sql",
+    "20261011122528_classroom_unified_print_guests.sql",
   ])
     await f.db.exec(readFileSync("supabase/migrations/" + path, "utf8"));
   return f;

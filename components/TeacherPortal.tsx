@@ -62,6 +62,7 @@ import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
+import { useTeacherSidebarViewport } from '../src/hooks/useTeacherSidebarViewport';
 import {
   createSchoolDocumentId,
   escapeSchoolDocumentHtml,
@@ -1136,6 +1137,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     navigationRef: mobileNavigationRef,
     revealNavigation: revealMobileNavigation,
   } = useSmartCollapsedNavigation(view, TEACHER_MOBILE_NAV_QUERY);
+  const desktopSidebarRef = useTeacherSidebarViewport();
 
   const changeSection = async (section: TeacherNavSection) => {
     revealMobileNavigation();
@@ -9506,7 +9508,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
         <div className={`teacher-workspace-shell ${desktopSidebarCollapsed ? 'is-sidebar-collapsed' : ''}`}>
           {/* Navigation */}
-          <aside className={`teacher-sidebar teacher-desktop-sidebar ${desktopSidebarCollapsed ? 'is-collapsed' : ''}`}>
+          <aside ref={desktopSidebarRef} className={`teacher-sidebar teacher-desktop-sidebar ${desktopSidebarCollapsed ? 'is-collapsed' : ''}`}>
             <div className="teacher-nav-container teacher-nav-container--sidebar">
               <button
                 type="button"
@@ -9520,7 +9522,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 <span className="teacher-sidebar-toggle__icon" aria-hidden="true">{desktopSidebarCollapsed ? '›' : '‹'}</span>
                 <span>{desktopSidebarCollapsed ? 'Expand' : 'Collapse'}</span>
               </button>
-              <div id="teacher-primary-navigation" className="teacher-nav-grid teacher-nav-grid--sidebar">
+              <div id="teacher-primary-navigation" className="teacher-nav-grid teacher-nav-grid--sidebar" role="navigation" aria-label="Teacher tools">
                 {navTabs.map((tab) => {
                   const { isPilot, quota: tq, pilotExhausted, locked } = getNavTabState(tab);
                   return (
