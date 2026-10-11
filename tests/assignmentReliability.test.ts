@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { QuestionInputGuard, retryAssignmentOperation, readAssignmentDraft, writeAssignmentDraft, clearAssignmentDraft } from '../services/assignmentReliability';
+import { QuestionInputGuard, retryAssignmentOperation, readAssignmentDraft, writeAssignmentDraft, clearAssignmentDraft, setAssignmentSubmissionIntent, hasAssignmentSubmissionIntent } from '../services/assignmentReliability';
 
 test('rapid clicks and transitions accept one action, including before React renders', () => {
   const guard = new QuestionInputGuard();
@@ -40,4 +40,23 @@ test('draft survives reload, stays account scoped, and clears only after acknowl
   assert.equal(writeAssignmentDraft({...storage,setItem:()=>{throw new Error('QuotaExceeded');}},'s','a','q',draft),false);
   writeAssignmentDraft(storage,'s','a','q',{...draft,savedAt:0});
   assert.equal(readAssignmentDraft(storage,'s','a','q'),null);
+});
+
+test('unacknowledged answers survive long school breaks', () => {
+  const values = new Map<string,string>();
+  const storage = { getItem:(key:string)=>values.get(key)??null, setItem:(key:string,value:string)=>{values.set(key,value);}, removeItem:(key:string)=>{values.delete(key);} };
+  const draft = { answer:'B',timeTakenMs:800,savedAt:Date.now()-30*86400000 };
+  writeAssignmentDraft(storage,'s','a','q',draft);
+  assert.deepEqual(readAssignmentDraft(storage,'s','a','q'),draft);
+});
+
+
+test('submission intent persists until acknowledgement and stays account scoped', () => {
+  const values = new Map<string,string>();
+  const storage = { getItem:(key:string)=>values.get(key)??null, setItem:(key:string,value:string)=>{values.set(key,value);}, removeItem:(key:string)=>{values.delete(key);} };
+  assert.equal(setAssignmentSubmissionIntent(storage,'s','a',true),true);
+  assert.equal(hasAssignmentSubmissionIntent(storage,'s','a'),true);
+  assert.equal(hasAssignmentSubmissionIntent(storage,'other','a'),false);
+  assert.equal(setAssignmentSubmissionIntent(storage,'s','a',false),true);
+  assert.equal(hasAssignmentSubmissionIntent(storage,'s','a'),false);
 });

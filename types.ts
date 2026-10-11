@@ -1071,6 +1071,7 @@ export interface TeacherAssignmentSummary {
   completed_count: number;
   student_count: number;
   assignment_mode?: 'batch' | 'custom';
+  delivery_mode?: 'online' | 'paper' | 'mixed';
   assignment_category?: AssignmentCategory | null;
   academic_year_id?: string | null;
   academic_term_id?: string | null;
@@ -1107,6 +1108,7 @@ export interface StudentAssignmentTask {
   close_submissions_after_due?: boolean;
   is_late?: boolean;
   is_closed?: boolean;
+  delivery_mode?: 'online' | 'paper' | 'mixed';
   student_status?: 'pending' | 'in_progress';
   answered_question_ids?: string[];
   resume_answered_count?: number;
@@ -1118,6 +1120,8 @@ export interface StudentAssignmentTask {
 }
 
 export interface TeacherAssignmentReportRow {
+  completion_source?: 'online' | 'paper';
+  timing_available?: boolean;
   student_id: string;
   student_name: string;
   /** Assignment-time class snapshot. Kept as `batch` for API compatibility. */
@@ -1150,6 +1154,7 @@ export interface CreateAssignmentRequest {
   instructions?: string;
   difficulty?: QuestionDifficulty;
   assignment_mode?: 'batch' | 'custom';
+  delivery_mode?: 'online' | 'paper' | 'mixed';
   student_ids?: string[];
   publish_status?: 'draft' | 'scheduled' | 'published';
   close_submissions_after_due?: boolean;
