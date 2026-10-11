@@ -230,6 +230,7 @@ export default function PaperAssignmentWorkspace(props: Props) {
                   packet={packet}
                   userId={props.userId}
                   schoolName={props.schoolName}
+                  schoolLogoUrl={props.schoolLogoUrl}
                   flush={flush}
                   canLeave={canLeave}
                   onConfirmed={async () => {
