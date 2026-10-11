@@ -94,6 +94,8 @@ interface TeacherPortalProps {
   onOpenSchoolAdmin?: () => void;
   initialView?: PortalView;
   academicProfilePresentation?: boolean;
+  activeNavigationSection?: TeacherNavSection;
+  onNavigateSection?: (section: TeacherNavSection) => boolean;
   onAssignmentSummary?: (summary: GameService.TeacherAssignmentSuccessSummary | null) => void;
 }
 
@@ -101,7 +103,7 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 
 export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'question-batch' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
-type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school' | 'ielts-programme';
+export type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school' | 'ielts-programme';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
 const TEACHER_VIEW_FEATURES: Partial<Record<PortalView, FeatureKey>> = {
@@ -203,7 +205,7 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
   return { grammar, punctuation };
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard', onAssignmentSummary, academicProfilePresentation = false }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard', onAssignmentSummary, academicProfilePresentation = false, activeNavigationSection, onNavigateSection }) => {
   const ieltsProgramme = useIeltsTeacherProgrammeEntry(profile.id, profile.role, profile.school_id);
   const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
   const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
@@ -1123,6 +1125,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     );
   }, [availableStudents, studentSearchTerm]);
   const primarySection = useMemo<TeacherNavSection>(() => {
+    if (activeNavigationSection) return activeNavigationSection;
     if (view === 'dashboard') return 'dashboard';
     if (view === 'students') return 'students';
     if (view === 'academic-profiles') return 'academic-profiles';
@@ -1136,7 +1139,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (view === 'clan-wars') return 'clan-wars';
     if (view === 'cambridge-reports') return 'cambridge';
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
-  }, [view]);
+  }, [view, activeNavigationSection]);
   const {
     navigationRef: mobileNavigationRef,
     revealNavigation: revealMobileNavigation,
@@ -1174,6 +1177,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         if (!confirmed) return;
       }
     }
+    // Notify the shell only after access checks and any discard confirmation.
+    if (onNavigateSection?.(section)) return;
     switch (section) {
       case 'ielts-programme':
         if (ieltsProgramme.entry) window.location.assign(teacherProgrammeRoute(ieltsProgramme.entry));
