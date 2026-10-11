@@ -21,7 +21,7 @@ create index assignment_scan_guests_linked_by_idx on public.assignment_scan_gues
 alter table public.assignment_scan_sessions add column guest_count integer not null default 0 check(guest_count between 0 and 200);
 -- Full snapshots retained server-side for provenance; never included in QR/session responses.
 alter table public.assignment_scan_sessions add column question_snapshots jsonb;
-update public.assignment_scan_sessions s set question_snapshots=(select jsonb_agg(to_jsonb(q) order by q.order_index,q.question_id) from public.assignment_questions q where q.assignment_id=s.assignment_id);
+update public.assignment_scan_sessions s set question_snapshots=(select jsonb_agg(to_jsonb(q) order by q.order_index,q.question_id) from public.assignment_questions q where q.assignment_id=s.assignment_id) where s.form_hash=private.paper_form_hash(s.assignment_id);
 create or replace function public.rpc_teacher_scan_session(p_session_id uuid) returns jsonb
 language plpgsql stable security definer set search_path='' as $function$
 declare v_s public.assignment_scan_sessions;

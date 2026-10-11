@@ -67,4 +67,5 @@ export function parseSheetToken(text: string): string {
   return text.slice(QR_PREFIX.length).toLowerCase();
 }
 
-export const guestBookletCode = (guestId: string, number: number) => `G${String(number).padStart(3, "0")}-${guestId.slice(0, 6).toUpperCase()}`;
+export const guestBookletCode = (guestId: string, number: number) =>
+  `G${String(number).padStart(3, "0")}-${guestId.slice(0, 6).toUpperCase()}`;
