@@ -120,7 +120,7 @@ export default function FloatingLanguageControl({ language, setLanguage }: { lan
         onPointerCancel={event => { if (drag.current?.id === event.pointerId) finish(true); }}
         onLostPointerCapture={() => finish(true)}
         onClick={() => { if (suppressClick.current) { suppressClick.current = false; return; } setOpen(value => !value); }}>
-        <span aria-hidden="true">🌐</span><span className="language-dock-grip" aria-hidden="true" />
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 6.5h14M5 17.5h14"/></svg><span className="language-dock-grip" aria-hidden="true" />
       </button>
       {open && <div ref={panel} id={panelId} className="language-dock-panel" role="group" aria-label="Choose interface language">
         {(['en', 'ar', 'ru'] as Language[]).map(code => <button key={code} type="button" aria-label={labels[code].name} aria-pressed={language === code} title={labels[code].name} onClick={() => { setLanguage(code); setOpen(false); trigger.current?.focus(); }}>{labels[code].short}</button>)}
