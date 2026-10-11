@@ -19,7 +19,7 @@ import {
   Profile,
 } from '../types';
 import * as GameService from '../services/gameService';
-import { QuestionInputGuard, assignmentDraftStorage, readAssignmentDraft, writeAssignmentDraft, clearAssignmentDraft } from '../services/assignmentReliability';
+import { QuestionInputGuard, isTransientAssignmentError, setAssignmentSubmissionIntent, hasAssignmentSubmissionIntent, assignmentDraftStorage, readAssignmentDraft, writeAssignmentDraft, clearAssignmentDraft } from '../services/assignmentReliability';
 import { boundedRead } from '../services/boundedRead';
 import { audioService } from '../services/audioService';
 import { CoinIcon, GemIcon, XPIcon } from './icons';
@@ -330,6 +330,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const finalizationLockRef = useRef(false);
   const [answerSaveError, setAnswerSaveError] = useState<string | null>(null);
   const [draftStored, setDraftStored] = useState(false);
+  const [answerRecoveryEnabled, setAnswerRecoveryEnabled] = useState(false);
+  const [connectionAvailable, setConnectionAvailable] = useState(() => navigator.onLine);
   const [inputCoolingDown, setInputCoolingDown] = useState(false);
   const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advanceOnce = (action: () => void) => {
@@ -1219,7 +1221,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   };
 
   const handleAssignmentBegin = () => {
-    if (!activeAssignment) return;
+    if (!activeAssignment || activeAssignment.delivery_mode === 'paper') return;
     inputGuardRef.current.reset();
     setAnswerSaveError(null);
     setHasDeferredAssignments(false);
@@ -1291,6 +1293,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       setFreeformAnswer(draft.answer);
       setDraftStored(true);
       setAnswerSaveError('Your previous answer is ready to retry.');
+      setAnswerRecoveryEnabled(true);
     }
   }, [mode, stage, activeAssignment?.assignment_id, currentProfile?.id, currentQuestionIndex, teacherQuestions]);
 
@@ -1311,6 +1314,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const assignmentScore = Math.max(0, assignmentScoreRaw); // defensive fallback only (no semantic remap)
     const timeTakenSeconds = assignmentStartTime ? Math.max(0, Math.round((Date.now() - assignmentStartTime) / 1000)) : 0;
 
+    if (currentProfile?.id) setAssignmentSubmissionIntent(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id, true);
     setAssignmentSubmissionState('finalizing');
     setAssignmentSubmissionError(null);
 
@@ -1342,6 +1346,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         }));
       }
 
+      if (currentProfile?.id) setAssignmentSubmissionIntent(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id, false);
       setAssignmentSubmissionState('submitted');
       setLastCompletedAssignment(activeAssignment);
       setActiveAssignment(null);
@@ -1367,6 +1372,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     questionScores,
     assignmentStartTime,
     assignmentPendingReviews,
+    currentProfile?.id,
   ]);
 
   useEffect(() => {
@@ -1395,6 +1401,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
     setSelectedOption(option);
     setAnswerSaveError(null);
+    setAnswerRecoveryEnabled(false);
     setIsSubmitting(true);
 
     const spawnParticles = (response: AnswerResponse) => {
@@ -1625,6 +1632,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         inputGuardRef.current.finish(false);
         if (mode === 'assignment') {
           setAnswerSaveError(error instanceof Error ? error.message : 'Could not save. Please retry.');
+          setAnswerRecoveryEnabled(isTransientAssignmentError(error));
         } else {
           brainsAlert('Unable to submit answer. Please try again.', 'error');
           setSelectedOption(null);
@@ -1635,6 +1643,29 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
   };
 
+
+  const recoverAnswerRef = useRef(handleAnswerSubmit);
+  recoverAnswerRef.current = handleAnswerSubmit;
+  const recoveryStateRef = useRef({ mode, answerSaveError, answerRecoveryEnabled, isSubmitting, selectedOption });
+  recoveryStateRef.current = { mode, answerSaveError, answerRecoveryEnabled, isSubmitting, selectedOption };
+  useEffect(() => {
+    const recover = () => {
+      setConnectionAvailable(navigator.onLine);
+      const state = recoveryStateRef.current;
+      if (navigator.onLine && state.mode === 'assignment' && state.answerSaveError && state.answerRecoveryEnabled && !state.isSubmitting && state.selectedOption !== null) {
+        void recoverAnswerRef.current(state.selectedOption);
+      }
+    };
+    const offline = () => setConnectionAvailable(false);
+    window.addEventListener('online', recover); window.addEventListener('offline', offline);
+    const timer = window.setInterval(recover, 15000);
+    return () => { window.removeEventListener('online', recover); window.removeEventListener('offline', offline); window.clearInterval(timer); };
+  }, []);
+  useEffect(() => {
+    if (stage === 'assignment_blocked' && activeAssignment && currentProfile?.id && hasAssignmentSubmissionIntent(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id)) {
+      handleAssignmentBegin();
+    }
+  }, [stage, activeAssignment?.assignment_id, currentProfile?.id]);
 
   const handleTrainingAnswer = async (option: string, startRect?: DOMRect) => {
     if (trainingAnswered) return;
@@ -2388,8 +2419,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         {mode === 'assignment' && (isSubmitting || answerSaveError) && (
           <div role="status" aria-live="polite" className="mt-4 rounded-xl border border-cyan-500/30 bg-slate-900/80 p-4 text-sm text-cyan-100">
             {isSubmitting ? 'Saving your answer…' : <>
-              <p>{draftStored ? 'Your answer is saved on this device. Retry to send it.' : 'Your answer is still on this screen. Please retry before leaving.'}</p>
-              <p className="mt-1 text-xs text-slate-300">{answerSaveError}</p>
+              <p>{draftStored ? !answerRecoveryEnabled ? answerSaveError?.includes('ANSWER_ALREADY_SAVED') ? 'A different answer is already saved. Load your progress.' : 'Saved on this device · Needs attention' : connectionAvailable ? 'Saved on this device · Retrying automatically' : 'Saved on this device · Waiting for connection' : 'Not saved yet. Keep this screen open and retry.'}</p>
               <button type="button" onClick={() => { if (selectedOption !== null) void handleAnswerSubmit(selectedOption); }} className="mt-3 rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white">Retry answer</button>
               {answerSaveError?.includes('ANSWER_ALREADY_SAVED') && <button type="button" onClick={() => { void hydrateAssignment({ showLoading: true }); }} className="ml-3 mt-3 rounded-lg border border-cyan-500 px-4 py-2">Load saved progress</button>}
             </>}
@@ -2617,13 +2647,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           <div className="grid gap-3 sm:grid-cols-2">
             <button
               onClick={handleAssignmentBegin}
+              disabled={activeAssignment.delivery_mode === 'paper'}
               className={`w-full px-6 py-4 rounded-xl text-white font-heading text-lg hover:scale-[1.02] transition-all shadow-lg ${
                 isLate
                   ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400'
                   : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400'
               }`}
             >
-              {hasAnsweredEveryQuestion
+              {activeAssignment.delivery_mode === 'paper' ? '▤ Complete on paper in class' : hasAnsweredEveryQuestion
                 ? '✅ Finish Submission'
                 : isResuming
                   ? '▶️ Continue Assignment'

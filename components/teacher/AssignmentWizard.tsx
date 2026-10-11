@@ -17,6 +17,8 @@ import { get_teacher_questions_by_ids } from '../../services/gameService';
 import { useQuestionBrowser } from '../../src/hooks/useQuestionBrowser';
 import SubjectIcon from '../SubjectIcon';
 import { isBrainsHeistPoolQuestion, isMyPoolQuestion, isSchoolPoolQuestion } from './questionPool.js';
+import AssignmentDeliveryPicker, { DELIVERY_LABELS } from './AssignmentDeliveryPicker';
+import type { AssignmentDelivery } from '../../services/assignmentPaperService';
 import './AssignmentWizard.css';
 
 type AssignmentMode = 'batch' | 'custom';
@@ -46,6 +48,8 @@ interface AssignmentWizardProps {
   initialStep?: WizardStep;
   lockedSubject?: string | null;
   preparedDiagnostic?: PreparedDiagnostic | null;
+  assignmentDelivery: AssignmentDelivery;
+  setAssignmentDelivery: (value: AssignmentDelivery) => void;
   assignmentMode: AssignmentMode;
   setAssignmentMode: (mode: AssignmentMode) => void;
   assignmentBatches: string[];
@@ -167,6 +171,8 @@ export default function AssignmentWizard({
   setAssignmentBatches,
   assignmentSubject,
   setAssignmentSubject,
+  assignmentDelivery,
+  setAssignmentDelivery,
   assignmentTitle,
   setAssignmentTitle,
   assignmentDescription,
@@ -983,6 +989,7 @@ export default function AssignmentWizard({
 
           {step === 4 && (
             <div className="aw-step aw-details">
+              <AssignmentDeliveryPicker value={assignmentDelivery} onChange={(value) => { setAssignmentDelivery(value); setReviewConfirmed(false); }} />
               <label><span>Assignment title <strong aria-hidden="true">*</strong></span><input required aria-required="true" value={assignmentTitle} onChange={(event) => { setAssignmentTitle(event.target.value); setReviewConfirmed(false); }} placeholder="e.g. Fractions confidence check" /><small>Required. This is the name students and reports will show.</small></label>
               <fieldset className="grid gap-2"><legend className="text-sm font-bold text-slate-700">Assignment type <strong aria-hidden="true">*</strong></legend><div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Assignment type">{(Object.keys(ASSIGNMENT_CATEGORY_META) as AssignmentCategory[]).map((category) => { const meta = ASSIGNMENT_CATEGORY_META[category]; const selected = assignmentCategory === category; return <button key={category} type="button" role="radio" aria-checked={selected} onClick={() => { setAssignmentCategory(category); setReviewConfirmed(false); }} className={`rounded-xl border px-4 py-3 text-left transition ${selected ? 'ring-2 ring-slate-700 ring-offset-1' : 'hover:shadow-sm'}`} style={{ backgroundColor: meta.background, borderColor: meta.border, color: meta.text }}><strong className="block">{meta.label}</strong><small>{category === 'classwork' ? 'Work completed during class' : category === 'homework' ? 'Work completed outside class' : category === 'quiz' ? 'Short assessment or knowledge check' : 'Formal assessment for the current term'}</small></button>; })}</div><small className="text-slate-500">The type is reporting metadata only; it does not change marks, XP, rewards, or completion rules.</small></fieldset>
               <label><span>Description</span><textarea rows={3} value={assignmentDescription} onChange={(event) => setAssignmentDescription(event.target.value)} placeholder="Explain the learning goal and why this work matters…" /></label>
@@ -1027,6 +1034,7 @@ export default function AssignmentWizard({
                 ['Assignment type', getAssignmentCategoryMeta(assignmentCategory).label, 4],
                 ['Audience', selectedTeachingGroup ? `${selectedTeachingGroup.name} · ${selectedStudentIds.length} student${selectedStudentIds.length === 1 ? '' : 's'}` : assignmentMode === 'batch' ? selectedClasses.map((item) => item.class_code).join(', ') : `${audienceStudents.length} individual students`, 2],
                 ['Questions', `${selectedQuestions.length} across ${new Set(selectedQuestions.map((q) => q.topic_name || q.topic || 'General')).size} topics · ${averageDifficulty}`, 3],
+                ['Delivery', DELIVERY_LABELS[assignmentDelivery], 4],
                 ['Details', [assignmentDescription, assignmentInstructions].filter(Boolean).join(' · ') || 'No additional details', 4],
                 ['Due date', formatDueDate(assignmentDueAt), 5],
                 ['Publication', assignmentPublishStatus === 'scheduled' ? `Scheduled · ${formatDueDate(assignmentAssignedAt)}` : 'Publish now', 5],

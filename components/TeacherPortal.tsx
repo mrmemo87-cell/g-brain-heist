@@ -25,6 +25,7 @@ import { NotificationCenter } from './NotificationCenter';
 const DiagramBuilder = React.lazy(() => import('./geometry/DiagramBuilder'));
 const QuestionBank = React.lazy(() => import('./teacher/QuestionBank'));
 const QuestionBatchWorkspace = React.lazy(() => import('./teacher/QuestionBatchWorkspace'));
+const PaperAssignmentWorkspace = React.lazy(() => import('./teacher/PaperAssignmentWorkspace'));
 const AssignmentWizard = React.lazy(() => import('./teacher/AssignmentWizard'));
 const DiagnosticComposer = React.lazy(() => import('./teacher/DiagnosticComposer'));
 import DiagnosticIntelligencePanel, { DiagnosticStudentSkillMap } from './teacher/DiagnosticIntelligencePanel';
@@ -33,7 +34,7 @@ import '../src/styles/teacher-theme.css';
 import { brainsAlert, brainsConfirm } from '../src/utils/brainsAlert';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz } from './biologyReviewAnswerKey';
-import { getQuestionsForQuiz, type QuestionData } from './cambridgeQuestionData';
+import type { QuestionData } from './cambridgeQuestionData';
 import {
   CAMBRIDGE_LISTENING_TEST_1_ANSWER_KEY,
   CAMBRIDGE_LISTENING_TEST_1_QUESTIONS,
@@ -611,6 +612,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentCloseAfterDue, setAssignmentCloseAfterDue] = useState(false);
   const [assignmentNotifyByEmail, setAssignmentNotifyByEmail] = useState(false);
   const [assignmentSuccess, setAssignmentSuccess] = useState<GameService.TeacherAssignmentSuccessSummary | null>(null);
+  const [paperAssignment, setPaperAssignment] = useState<TeacherAssignmentSummary | null>(null);
+  const [assignmentDelivery, setAssignmentDelivery] = useState<'online' | 'paper' | 'mixed'>('online');
   const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
   const [assignmentBatches, setAssignmentBatches] = useState<string[]>([]);
   const [assignmentGroupId, setAssignmentGroupId] = useState('');
@@ -724,6 +727,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [showCambridgeReport, setShowCambridgeReport] = useState(false);
   const [showCambridgeAnswers, setShowCambridgeAnswers] = useState(false);
   const [selectedCambridgeStudent, setSelectedCambridgeStudent] = useState<any | null>(null);
+  const [cambridgeQuestionLookup, setCambridgeQuestionLookup] = useState<typeof import('./cambridgeQuestionData')['getQuestionsForQuiz'] | null>(null);
+  const [cambridgeQuestionsError, setCambridgeQuestionsError] = useState(false);
+  const [cambridgeQuestionsRetry, setCambridgeQuestionsRetry] = useState(0);
+  useEffect(() => {
+    if (!showCambridgeAnswers || !selectedCambridgeStudent || cambridgeQuestionLookup) return;
+    let cancelled = false; setCambridgeQuestionsError(false);
+    void import('./cambridgeQuestionData').then((module) => { if (!cancelled) setCambridgeQuestionLookup(() => module.getQuestionsForQuiz); })
+      .catch(() => { if (!cancelled) setCambridgeQuestionsError(true); });
+    return () => { cancelled = true; };
+  }, [showCambridgeAnswers, selectedCambridgeStudent?.quiz_name, cambridgeQuestionLookup, cambridgeQuestionsRetry]);
   const [showStudentOverviewReport, setShowStudentOverviewReport] = useState(false);
   const [studentOverviewData, setStudentOverviewData] = useState<StudentOverviewReportData | null>(null);
   const [cambridgeDrawerOpen, setCambridgeDrawerOpen] = useState(false);
@@ -3831,6 +3844,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentAssignedAt(new Date().toISOString().slice(0, 16));
     setAssignmentPublishStatus('published');
     setAssignmentCategory(null);
+    setAssignmentDelivery('online');
     setAssignmentCloseAfterDue(false);
     setAssignmentNotifyByEmail(false);
     setEditingAssignment(null);
@@ -3926,6 +3940,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentDifficulty((assignment.difficulty || 'easy') as QuestionDifficulty);
     setAssignmentGroupId(assignment.subject_group_id || '');
     setAssignmentMode(assignment.assignment_mode || 'batch');
+    setAssignmentDelivery(assignment.delivery_mode || 'online');
     setAssignmentBatches(assignment.assignment_mode === 'custom' ? [] : assignment.batch ? [assignment.batch] : []);
     setSelectedStudentIds(assignment.student_ids || []);
     setAssignmentPublishStatus(assignment.publish_status || (new Date(assignment.assigned_at).getTime() > Date.now() ? 'scheduled' : 'published'));
@@ -4042,6 +4057,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         description: assignmentDescription || undefined,
         instructions: assignmentInstructions || undefined,
         difficulty: assignmentDifficulty,
+        delivery_mode: assignmentDelivery,
         assignment_category: assignmentCategory,
         client_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
         publish_status: publishStatus,
@@ -4166,6 +4182,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       p_assignment_id: assignment.id,
       p_teacher_id: teacherId,
     });
+    const completionRequest = supabase.rpc('rpc_teacher_assignment_delivery_context', { p_assignment_ids: [assignment.id] });
     const analysisRequest = supabase.rpc('rpc_get_assignment_question_analysis', {
       p_assignment_id: assignment.id,
       p_teacher_id: teacherId,
@@ -4176,12 +4193,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     const loadReportRows = async () => {
       try {
-        const { data, error } = await reportRequest;
+        const [{ data, error }, { data: completionData, error: completionError }] = await Promise.all([reportRequest, completionRequest]);
+        if (completionError) throw new Error('Completion details could not be loaded. Please retry.');
+        const completionByStudent = new Map<string, { completion_source: 'paper' | 'online'; timing_available: boolean }>((completionData?.[0]?.completions || []).map((row: { student_id: string; completion_source: 'paper' | 'online'; timing_available: boolean }) => [row.student_id, row]));
         if (error) throw new Error(error.message || 'Failed to load report');
         if (requestId !== reportLoadRequestRef.current) return;
         const rows = (((data as TeacherAssignmentReportRow[] | null) || [])).map((row) => ({
           ...row,
           student_name: officialNames.get(row.student_id) || row.student_name || 'Student name unavailable',
+          ...completionByStudent.get(row.student_id),
         }));
         setAssignmentReport(rows);
         setAssignments((current) => current.map((item) => item.id === assignment.id ? { ...item, completed_count: rows.length } : item));
@@ -4264,7 +4284,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
 
-    const csvHeader = 'Student,Class,Score,Correct,Incorrect,Accuracy (%),Completed At';
+    const csvHeader = 'Student,Class,Score,Correct,Incorrect,Accuracy (%),Completed At,Completion source';
     const header = csvHeader.split(',').map(safeCsvCell).join(',');
     const rows = assignmentReport.map((row) => (
       [
@@ -4275,6 +4295,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         row.incorrect,
         row.accuracy,
         new Date(row.completed_at).toLocaleString(),
+        row.completion_source === 'paper' ? 'Paper - Teacher confirmed' : 'Online',
       ].map(safeCsvCell).join(',')
     ));
     const csv = [header, ...rows].join('\n');
@@ -4293,7 +4314,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const answerRows = audience === 'teacher' && studentAnswers.length
       ? studentAnswers.map((answer, index) => `
         <article class="document-card">
-          <strong>Question ${index + 1} · ${answer.is_correct ? 'Correct' : 'Needs review'} · ${Math.round(answer.time_taken_ms / 1000)}s</strong>
+          <strong>Question ${index + 1} · ${answer.is_correct ? 'Correct' : 'Needs review'} · ${selectedAnalysisStudent?.completion_source === 'paper' ? 'Paper · Timing unavailable' : `${Math.round(answer.time_taken_ms / 1000)}s`}</strong>
           <p>${escapeSchoolDocumentHtml(answer.question_text)}</p>
           <div class="document-grid"><div><strong>Student answer</strong><p>${escapeSchoolDocumentHtml(answer.student_answer || 'No answer')}</p></div><div><strong>Correct answer</strong><p>${escapeSchoolDocumentHtml(answer.correct_answer)}</p></div></div>
           ${answer.explanation ? `<div class="document-callout"><strong>Teacher explanation</strong><p>${escapeSchoolDocumentHtml(answer.explanation)}</p></div>` : ''}
@@ -6038,7 +6059,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       <div className="teacher-section-header">
         <div>
           <h2>🗂️ Assignments</h2>
-          <p className="mt-1 text-sm text-slate-500">Create normal assignments or prepare a governed diagnostic, then review everything in the same Assignment Wizard.</p>
+          <p className="mt-1 text-sm text-slate-500">Create, print, and track your class in one place.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -6262,7 +6283,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                             <article key={assignment.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                               <div className="flex items-start justify-between gap-3">
                                 <div>
-                                  <span className="text-xs font-bold text-blue-600">{assignment.subject_name} · {assignment.topic_name}</span>
+                                  <span className="text-xs font-bold text-blue-600">{assignment.subject_name} · {assignment.topic_name} · {assignment.delivery_mode === 'paper' ? 'Paper' : assignment.delivery_mode === 'mixed' ? 'Mixed' : 'Online'}</span>
                                   <h5 className="mt-1 text-lg font-bold text-slate-800">{assignment.title || assignment.topic_name}</h5>
                                   <span className="mt-2 inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">
                                     {assignment.subject_group_name ? `👥 ${assignment.subject_group_name}` : assignment.assignment_mode === 'custom' ? '👤 Individual' : `🏫 ${assignment.batch || 'Class'}`} · {assignment.student_count} student{assignment.student_count === 1 ? '' : 's'}
@@ -6292,6 +6313,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                                 >
                                   {printingAssignmentId === assignment.id ? 'Preparing paper…' : '🖨️ Print paper'}
                                 </button>
+                                <button type="button" onClick={() => setPaperAssignment(assignment)} disabled={assignment.teacher_id !== teacher?.id} className="teacher-btn teacher-btn-secondary w-full" aria-label={`Record paper answers for ${assignment.title || assignment.topic_name}`}>▤ Record paper answers</button>
                                 <button type="button" onClick={() => handleEditAssignment(assignment)} className="teacher-btn teacher-btn-secondary w-full" aria-label={`Edit ${assignment.title || assignment.topic_name}`}>Edit assignment</button>
                                 <button
                                   type="button"
@@ -6343,6 +6365,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           initialStep={preparedDiagnostic ? 3 : assignmentLockedSubject ? 2 : 1}
           lockedSubject={assignmentLockedSubject}
           preparedDiagnostic={preparedDiagnostic}
+          assignmentDelivery={assignmentDelivery}
+          setAssignmentDelivery={setAssignmentDelivery}
           assignmentMode={assignmentMode}
           setAssignmentMode={setAssignmentMode}
           assignmentBatches={assignmentBatches}
@@ -6620,7 +6644,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   <tbody>
                     {assignmentReport.map((row, i) => (
                       <tr key={row.student_id} className={`border-b border-slate-100 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
-                        <td className="py-3 px-4 text-slate-800 font-medium">{row.student_name}</td>
+                        <td className="py-3 px-4 text-slate-800 font-medium">{row.student_name}{row.completion_source === 'paper' && <span className="mt-1 block text-xs font-medium text-blue-700">Paper · Teacher confirmed</span>}</td>
                         <td className="py-3 px-4 text-slate-600">{row.batch ?? '—'}</td>
                         <td className="py-3 px-4 text-slate-700">{row.score}</td>
                         <td className="py-3 px-4 text-green-600 font-medium">{row.correct}</td>
@@ -6815,7 +6839,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     <div key={answer.question_id} className="bg-red-50 border border-red-200 rounded-xl p-4 mb-3">
                       <div className="flex items-start justify-between mb-2">
                         <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">INCORRECT</span>
-                        <span className="text-xs text-slate-500">⏱️ {Math.round(answer.time_taken_ms / 1000)}s</span>
+                        <span className="text-xs text-slate-500">{selectedAnalysisStudent?.completion_source === 'paper' ? 'Paper · Timing unavailable' : `⏱️ ${Math.round(answer.time_taken_ms / 1000)}s`}</span>
                       </div>
                       <p className="text-slate-800 font-medium mb-3">{answer.question_text}</p>
                       <div className="grid grid-cols-2 gap-4 text-sm">
@@ -6849,7 +6873,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     <div key={answer.question_id} className="bg-green-50 border border-green-200 rounded-xl p-4 mb-3">
                       <div className="flex items-start justify-between mb-2">
                         <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">CORRECT</span>
-                        <span className="text-xs text-slate-500">⏱️ {Math.round(answer.time_taken_ms / 1000)}s</span>
+                        <span className="text-xs text-slate-500">{selectedAnalysisStudent?.completion_source === 'paper' ? 'Paper · Timing unavailable' : `⏱️ ${Math.round(answer.time_taken_ms / 1000)}s`}</span>
                       </div>
                       <p className="text-slate-800 font-medium mb-2">{answer.question_text}</p>
                       <div className="bg-green-100 rounded-lg p-3 text-sm">
@@ -6882,7 +6906,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   <span className="text-purple-500">•</span>
                   <span>Consider assigning targeted practice on the topics where mistakes occurred</span>
                 </li>
-                {studentAnswers.some(a => !a.is_correct && a.time_taken_ms < 5000) && (
+                {selectedAnalysisStudent?.completion_source !== 'paper' && studentAnswers.some(a => !a.is_correct && a.time_taken_ms < 5000) && (
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">⚠️</span>
                     <span>Some questions were answered very quickly - encourage the student to read more carefully</span>
@@ -8130,13 +8154,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           );
         }
         
+        if (quizName !== 'Cambridge Listening Test 1' && !cambridgeQuestionLookup) return createPortal(
+          <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/70"><div className="rounded-2xl bg-white p-8 text-slate-800" role="status">
+            {cambridgeQuestionsError ? <><p>Questions could not be loaded.</p><button className="teacher-btn teacher-btn-primary mt-3" onClick={() => setCambridgeQuestionsRetry((n) => n + 1)}>Retry</button></> : 'Preparing answer review…'}
+            <button className="teacher-btn teacher-btn-secondary mt-3" onClick={() => setShowCambridgeAnswers(false)}>Close</button>
+          </div></div>, document.body);
         // Regular test handling
         const answerKey = isChemistryTest ? getScienceAnswerKey(quizName, selectedCambridgeStudent) : (correctAnswers[quizName] || {});
         const sections = testSections[quizName] || [];
         const summary = buildResponseSummary(selectedCambridgeStudent, answerKey);
         const questionBank = quizName === 'Cambridge Listening Test 1'
           ? CAMBRIDGE_LISTENING_TEST_1_QUESTIONS as QuestionData[]
-          : getQuestionsForQuiz(quizName);
+          : cambridgeQuestionLookup!(quizName);
         const questionMap = new Map<number, QuestionData>();
         questionBank.forEach(q => questionMap.set(q.number, q));
         const mistakes = summary.details
@@ -9436,6 +9465,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           </div>
         </div>
       </header>
+      {paperAssignment && <React.Suspense fallback={<div role="status" className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/70 text-white">Opening paper workspace…</div>}>
+        <PaperAssignmentWorkspace assignmentId={paperAssignment.id} userId={profile.id} schoolName={resolvedBranding.schoolName}
+          schoolLogoUrl={resolvedBranding.schoolLogoUrl} teacherName={profile.full_name || profile.username || 'Teacher'}
+          onClose={() => setPaperAssignment(null)} onRecorded={() => { void GameService.get_teacher_assignments().then(setAssignments).catch((error) => console.warn('Assignment refresh failed:', error)); }} />
+      </React.Suspense>}
       {showSettingsModal && (
         <SettingsModal
           onClose={() => setShowSettingsModal(false)}
