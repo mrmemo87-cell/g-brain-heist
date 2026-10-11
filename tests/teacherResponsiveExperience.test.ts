@@ -100,3 +100,9 @@ test('Game Settings presents a focused four-step wizard on desktop and mobile', 
   assert.match(globalStyles, /\.clan-setup-progress[\s\S]*grid-template-columns: repeat\(4/);
   assert.match(globalStyles, /@media \(max-width: 640px\)[\s\S]*\.clan-setup-progress/);
 });
+
+test('teacher assignment navigation uses its canonical label on phones', () => {
+  assert.match(teacherPortal, /teacherMobileLabel\(tab\.id, tab\.label\)/);
+  assert.doesNotMatch(teacherPortal, /\? 'Tasks'/);
+  assert.match(teacherPortal, /label: 'Assignments'/);
+ });

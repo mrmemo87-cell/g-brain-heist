@@ -30,8 +30,10 @@ const DiagnosticComposer = React.lazy(() => import('./teacher/DiagnosticComposer
 import DiagnosticIntelligencePanel, { DiagnosticStudentSkillMap } from './teacher/DiagnosticIntelligencePanel';
 import AssignmentCard from './teacher/AssignmentCard';
 import AssignmentToolbar from './teacher/AssignmentToolbar';
+import TeacherWorkspaceIcon, { teacherMobileLabel } from './teacher/TeacherWorkspaceIcon';
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
+import '../src/styles/teacher-professional.css';
 import { brainsAlert, brainsConfirm } from '../src/utils/brainsAlert';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz } from './biologyReviewAnswerKey';
@@ -4588,7 +4590,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <div className="teacher-dashboard-stat-value">{myClasses.length || 0}</div>
             <p className="teacher-dashboard-stat-sub">{myClasses.join(' · ') || 'No classes assigned'}</p>
           </div>
-          <div className="teacher-dashboard-stat-icon">🏫</div>
+          <div className="teacher-dashboard-stat-icon"><TeacherWorkspaceIcon name="classes" /></div>
         </button>
 
         <button
@@ -4603,7 +4605,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <div className="teacher-dashboard-stat-value">{assignments.length}</div>
             <p className="teacher-dashboard-stat-sub">{activeAssignments} in progress</p>
           </div>
-          <div className="teacher-dashboard-stat-icon">📋</div>
+          <div className="teacher-dashboard-stat-icon"><TeacherWorkspaceIcon name="assignments" /></div>
         </button>
 
         <button
@@ -4706,7 +4708,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           >
             {isDisabled('Question Bank') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
             {quotaBadge('Question Bank')}
-            <div className="teacher-action-icon">📚</div>
+            <div className="teacher-action-icon"><TeacherWorkspaceIcon name="questions" /></div>
             <h4 className="teacher-action-title">Question Bank</h4>
             <p className="teacher-action-desc">View and manage all questions</p>
           </button>
@@ -4719,7 +4721,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           >
             {isDisabled('New Assignment') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
             {quotaBadge('New Assignment')}
-            <div className="teacher-action-icon">📋</div>
+            <div className="teacher-action-icon"><TeacherWorkspaceIcon name="assignments" /></div>
             <h4 className="teacher-action-title">New Assignment</h4>
             <p className="teacher-action-desc">Assign work to students</p>
           </button>
@@ -4992,7 +4994,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       </button>
 
       <h2 className="text-2xl font-bold text-slate-800 mb-6">
-        {editingQuestion ? '✏️ Edit Question' : '➕ Create New Question'}
+        {editingQuestion ? 'Edit Question' : 'Create New Question'}
       </h2>
 
       {/* Question type selector */}
@@ -5925,7 +5927,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       <div className="space-y-6">
         <div className="teacher-section-header">
           <div>
-            <h2>🏫 My Classes</h2>
+            <h2>My Classes</h2>
             <p className="text-sm text-slate-500 mt-1">Each teaching group stays separate, including custom groups such as ESL.</p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -6195,7 +6197,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       {reportAssignmentsLoading && <div className="teacher-info-message">Loading archived assignment reports…</div>}
       <div className="teacher-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <h2 style={{ margin: 0 }}>📊 Assignment Reports</h2>
+          <h2 style={{ margin: 0 }}>Assignment Reports</h2>
           {reportAcademicYears.length > 0 && <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700 }}>
             Academic Year
             <select
@@ -6868,7 +6870,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         <div className="cambridge-reports-title-row flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-3 min-w-0">
             <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 whitespace-nowrap">
-              <span className="text-xl">📊</span> Cambridge Tests
+              <TeacherWorkspaceIcon name="cambridge" /> Cambridge Tests
             </h2>
           </div>
           <div className="cambridge-summary-chips flex flex-wrap items-center gap-2 text-xs flex-shrink-0">
@@ -8989,25 +8991,25 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     profile.role === 'admin' || teachesEnglish;
 
   const navTabs: Array<{ id: TeacherNavSection; label: string; icon: React.ReactNode; description: string; proOnly?: boolean; highlight?: boolean }> = [
-    { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
+    { id: 'dashboard', label: 'Dashboard', icon: <TeacherWorkspaceIcon name="home" />, description: 'Overview & Quick Actions' },
     ...(ieltsProgramme.entry ? [{ id: 'ielts-programme' as const, label: 'IELTS Programme', icon: <IeltsProgrammeIcon />, description: 'Review, plan & guide your school programme', highlight: true }] : []),
-    { id: 'students', label: 'My Classes', icon: '🏫', description: 'Allocated Classes & Students' },
-    ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
-    { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
-    { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
-    { id: 'academic-profiles', label: 'Academic Profiles', icon: '🎓', description: 'Progress, Strengths & Focus Areas', proOnly: true },
-    { id: 'curriculum-intelligence', label: 'Curriculum Intelligence', icon: '🧭', description: 'Curriculum Map & Evidence Readiness', proOnly: true },
-    { id: 'interventions', label: 'Interventions', icon: '🎯', description: 'Targeted Support & Follow-up', proOnly: true },
-    { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
+    { id: 'students', label: 'My Classes', icon: <TeacherWorkspaceIcon name="classes" />, description: 'Allocated Classes & Students' },
+    ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: <TeacherWorkspaceIcon name="classes" />, description: 'Use your invite code to unlock school features', highlight: true }] : []),
+    { id: 'assignments', label: 'Assignments', icon: <TeacherWorkspaceIcon name="assignments" />, description: 'Assign Work to Students', proOnly: true },
+    { id: 'reports', label: 'Reports', icon: <TeacherWorkspaceIcon name="reports" />, description: 'Student Performance', proOnly: true },
+    { id: 'academic-profiles', label: 'Academic Profiles', icon: <TeacherWorkspaceIcon name="profiles" />, description: 'Progress, Strengths & Focus Areas', proOnly: true },
+    { id: 'curriculum-intelligence', label: 'Curriculum Intelligence', icon: <TeacherWorkspaceIcon name="curriculum" />, description: 'Curriculum Map & Evidence Readiness', proOnly: true },
+    { id: 'interventions', label: 'Interventions', icon: <TeacherWorkspaceIcon name="interventions" />, description: 'Targeted Support & Follow-up', proOnly: true },
+    { id: 'questions', label: 'Question Bank', icon: <TeacherWorkspaceIcon name="questions" />, description: 'Create & Manage Questions', proOnly: true },
     ...(canAccessWritingInsights && canUseWritingModule
       ? [
-          { id: 'writing-hub' as const, label: 'Writing Hub', icon: '✍️', description: 'Monitor, analyse, and export writing progress', proOnly: true },
+          { id: 'writing-hub' as const, label: 'Writing Hub', icon: <TeacherWorkspaceIcon name="writing" />, description: 'Monitor, analyse, and export writing progress', proOnly: true },
         ]
       : []),
     ...(canUseCambridgeModule
-      ? [{ id: 'cambridge' as const, label: 'Cambridge Tests', icon: '🧾', description: 'Writing & Test Results', proOnly: true }]
+      ? [{ id: 'cambridge' as const, label: 'Cambridge Tests', icon: <TeacherWorkspaceIcon name="cambridge" />, description: 'Writing & Test Results', proOnly: true }]
       : []),
-    { id: 'clan-wars', label: 'Clan Wars', icon: '⚔️', description: 'Host official class battles' },
+    { id: 'clan-wars', label: 'Clan Wars', icon: <TeacherWorkspaceIcon name="battle" />, description: 'Host official class battles' },
   ];
 
   // Plan badge info for top bar
@@ -9058,7 +9060,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   return (
     <div
-      className="teacher-portal"
+      className="teacher-portal teacher-professional"
       style={{ '--teacher-top-nav-height': `${topNavHeight || 76}px` } as React.CSSProperties}
     >
       {/* Top Navigation Bar */}
@@ -9296,11 +9298,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
               
               {/* Canonical teaching responsibilities. */}
-              {teacherHasClassAllocations && view !== 'assignments' && (
+              {teacherHasClassAllocations && view === 'dashboard' && (
+                <details className="teacher-group-summary">
+                  <summary>Your teaching groups <span>{teachingGroups.length || allocatedClasses.length}</span></summary>
                 <div className="teacher-assigned-classes mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sky-700 font-semibold text-sm">📚 Your Teaching Groups ({teachingGroups.length || allocatedClasses.length})</span>
-                  </div>
                   <div className="flex flex-wrap gap-2">
                     {(teachingGroups.length
                       ? teachingGroups.map((group) => ({ key: group.id, label: group.name, subject: group.schoolSubjectName }))
@@ -9319,6 +9320,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     )}
                   </div>
                 </div>
+                </details>
               )}
               
               {!teacherHasClassAllocations && (
@@ -9373,7 +9375,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       onFocus={(event) => desktopSidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })}
                       onBlur={() => setNavTooltip(null)}
                     >
-                      <span className="teacher-nav-icon">{tab.id === 'ielts-programme' ? tab.icon : academicProfilePresentation ? <ProfileIcon name={tab.id === 'dashboard' ? 'home' : tab.id === 'questions' ? 'book' : tab.id === 'students' ? 'support' : tab.id === 'interventions' ? 'target' : tab.id === 'reports' ? 'result' : tab.id === 'clan-wars' ? 'shield' : 'document'}/> : tab.icon}</span>
+                      <span className="teacher-nav-icon" aria-hidden="true">{tab.icon}</span>
                       <div className="teacher-nav-text">
                         <span className="teacher-nav-label">
                           {tab.label}
@@ -9455,7 +9457,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               <div className="teacher-writing-hub__header">
                 <div>
                   <span className="teacher-writing-hub__eyebrow">Writing workspace</span>
-                  <h2 id="writing-hub-title">✍️ Writing Hub</h2>
+                  <h2 id="writing-hub-title">Writing Hub</h2>
                   <p>Follow student progress, understand class patterns, and prepare reports in one place.</p>
                 </div>
                 <div className="teacher-writing-hub__tabs" role="tablist" aria-label="Writing Hub sections">
@@ -9574,7 +9576,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 aria-label={tab.label}
               >
                 <span aria-hidden="true">{tab.icon}</span>
-                <small>{tab.id === 'dashboard' ? 'Home' : tab.id === 'students' ? 'Classes' : tab.id === 'assignments' ? 'Tasks' : tab.label}</small>
+                <small>{teacherMobileLabel(tab.id, tab.label)}</small>
               </button>
             );
           })}
@@ -9588,7 +9590,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             aria-expanded={mobileWorkspaceMenuOpen}
             aria-label="More"
           >
-            <span aria-hidden="true">•••</span>
+            <span aria-hidden="true"><TeacherWorkspaceIcon name="more" /></span>
             <small>More</small>
           </button>
         </nav>
