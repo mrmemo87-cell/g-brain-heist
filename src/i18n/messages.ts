@@ -1,5 +1,6 @@
 // UI messages only. Never pass question, passage, answer, or user-authored text to this catalog.
 export const messages = {
+  "Assignments": { "ar": "الواجبات", "ru": "Задания" },
   "Language": {
     "ar": "اللغة",
     "ru": "Язык"

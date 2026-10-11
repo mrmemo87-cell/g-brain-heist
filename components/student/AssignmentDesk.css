@@ -1,0 +1,57 @@
+.assignment-desk{--desk-muted:#aebdd3;--desk-accent:#85e8f4;--desk-panel:#142238;--desk-line:#30425b;color:#f4f7fc;min-width:0;padding-bottom:24px}
+.assignment-desk__heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:24px}
+.assignment-desk__eyebrow{font-size:10px;font-weight:800;letter-spacing:.16em;color:var(--desk-accent)}
+.assignment-desk h1{font-size:clamp(26px,4vw,36px);font-weight:800;letter-spacing:-.035em;margin:5px 0 8px}
+.assignment-desk h2{font-size:19px;font-weight:750;line-height:1.4;overflow-wrap:anywhere;margin:8px 0}
+.assignment-desk p{color:var(--desk-muted);font-size:14px;line-height:1.6;margin:0}
+.assignment-desk button{font:inherit;cursor:pointer;min-height:44px;transition:background .18s,box-shadow .18s}
+.assignment-desk button:focus-visible,.assignment-desk summary:focus-visible{outline:3px solid var(--desk-accent);outline-offset:4px}
+.assignment-desk__completion{display:flex;align-items:center;gap:12px;flex-shrink:0;font-size:13px}
+.assignment-desk small{display:block;color:var(--desk-muted);font-size:12px;margin-top:5px}
+.assignment-desk__ring{width:58px;height:58px;display:grid;place-items:center;border-radius:50%;background:conic-gradient(var(--desk-accent) var(--completion),var(--desk-line) 0);position:relative}
+.assignment-desk__ring:before{content:'';position:absolute;inset:5px;border-radius:50%;background:var(--desk-panel)}
+.assignment-desk__ring b{position:relative;font-size:13px}
+.assignment-desk__next{display:flex;align-items:center;gap:20px;background:linear-gradient(120deg,#183851,#17263d 65%);border:1px solid #3f637b;border-radius:24px;padding:24px;margin-bottom:24px;position:relative;overflow:hidden}
+.assignment-desk__next>div{flex:1;min-width:0}
+.assignment-desk__next-icon{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:#85e8f41a;color:var(--desk-accent);font-size:28px;flex:none}
+.assignment-desk__primary,.assignment-desk__secondary{border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:13px!important;font-weight:750!important;text-align:start}
+.assignment-desk__primary{border:1px solid #85e8f4;background:#85e8f4;color:#0b2134}
+.assignment-desk__primary:hover{background:#b4f2f9;box-shadow:0 4px 20px #85e8f420}
+.assignment-desk__secondary{border:1px solid var(--desk-line);background:#ffffff06;color:inherit}
+.assignment-desk__secondary:hover{background:#ffffff12}
+.assignment-desk__tabs{display:flex;gap:6px;border-bottom:1px solid var(--desk-line);padding-bottom:10px}
+.assignment-desk__tabs button{background:transparent;border:0;border-radius:12px;color:var(--desk-muted);padding:10px 16px;font-size:14px;font-weight:750}
+.assignment-desk__tabs button[aria-pressed=true]{background:#85e8f414;color:var(--desk-accent)}
+.assignment-desk__tabs span{display:inline-block;min-width:22px;background:#ffffff0b;border-radius:7px;padding:2px 5px;font-size:11px;margin-inline-start:7px}
+.assignment-desk__subjects{display:flex;flex-wrap:wrap;gap:8px;padding:18px 0 22px}
+.assignment-desk__subjects button{display:inline-flex;align-items:center;gap:8px;max-width:100%;border:1px solid var(--desk-line);border-radius:30px;padding:8px 14px;background:transparent;color:var(--desk-muted);font-size:12px}
+.assignment-desk__subjects button[aria-pressed=true]{background:#ffffff0c;border-color:#7794b5;color:#fff}
+.assignment-desk__dot{width:7px;height:7px;background:#85e8f4;border-radius:50%;flex:none}.assignment-desk__dot--1{background:#d4b5ff}.assignment-desk__dot--2{background:#ffc78b}.assignment-desk__dot--3{background:#8ee1b6}
+.assignment-desk__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.assignment-desk__card{display:flex;flex-direction:column;gap:8px;border:1px solid var(--desk-line);border-radius:20px;padding:22px;background:linear-gradient(145deg,var(--desk-panel),#111c2e);min-width:0}
+.assignment-desk__card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.assignment-desk__subject{color:var(--desk-accent);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.assignment-desk__status{display:inline-block;border-radius:20px;background:#ffffff09;color:#c1cee0;font-size:11px;font-weight:700;padding:5px 9px}
+.assignment-desk__status--late{background:#ffbe6320;color:#ffd49b}
+.assignment-desk__card--completed{border-color:#365647}.assignment-desk__card--completed .assignment-desk__status{color:#9ce9c0;background:#79e1a914}
+.assignment-desk__teacher{font-size:12px!important}.assignment-desk__meta{display:flex;flex-wrap:wrap;gap:5px 14px;font-size:11px!important}
+.assignment-desk__progress,.assignment-desk__result{margin:8px 0;padding:14px;border-radius:12px;background:#ffffff04;font-size:13px;color:inherit}
+.assignment-desk__progress progress{width:100%;height:5px;display:block;accent-color:var(--desk-accent);margin-top:10px}
+.assignment-desk__details{margin:4px 0 10px;font-size:12px;color:var(--desk-muted)}.assignment-desk__details summary{cursor:pointer;padding:10px 0;min-height:44px}.assignment-desk__details p{font-size:12px;padding:5px 0}
+.assignment-desk__card>.assignment-desk__primary,.assignment-desk__card>.assignment-desk__secondary{margin-top:auto;width:100%}
+.assignment-desk__closed{font-size:12px!important;margin-top:auto!important}
+.assignment-desk__empty{padding:32px;text-align:center;border:1px dashed var(--desk-line);border-radius:20px;margin-bottom:16px}
+.assignment-desk__notice{padding:16px;border:1px solid #ac7d40;border-radius:12px;font-size:13px;margin-bottom:16px}.assignment-desk__notice button{background:none;border:0;color:var(--desk-accent);text-decoration:underline;padding-inline:12px}
+.assignment-desk__dialog{color:#f4f7fc;background:#142238;border:1px solid #415976;border-radius:24px;padding:24px;width:min(720px,calc(100% - 32px));max-height:85dvh;overflow-y:auto;margin:auto;overscroll-behavior:contain}.assignment-desk__dialog::backdrop{background:#050d1dcc;backdrop-filter:blur(6px)}
+.assignment-desk__dialog-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}.assignment-desk__dialog-header>div{min-width:0}
+.assignment-desk__answer{padding:18px 0;border-bottom:1px solid var(--desk-line);margin-bottom:16px}.assignment-desk__answer h3{font-weight:700;margin:10px 0}.assignment-desk__answer p{margin:6px 0;overflow-wrap:anywhere}
+@media(max-width:700px){.assignment-desk__heading{align-items:flex-start;flex-direction:column;gap:16px}.assignment-desk__grid{grid-template-columns:1fr}.assignment-desk__next{flex-wrap:wrap;padding:20px;gap:12px}.assignment-desk__next>.assignment-desk__primary{width:100%}.assignment-desk__card{padding:18px}.assignment-desk__tabs button{padding:10px 12px}.assignment-desk__dialog{padding:20px}.assignment-desk__heading p{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.assignment-desk button{transition:none}}
+body.light-mode .assignment-desk{--desk-muted:#526479;--desk-accent:#086979;--desk-panel:#fff;--desk-line:#d8e2ec;color:#142238}
+body.light-mode .assignment-desk__next{background:linear-gradient(120deg,#e6f7fb,#f5f8fc);border-color:#bad8e3}
+body.light-mode .assignment-desk__card{background:#fff}body.light-mode .assignment-desk__status{color:#526479;background:#edf2f7}body.light-mode .assignment-desk__status--late{color:#7c4806;background:#fff0d9}
+body.light-mode .assignment-desk__card--completed .assignment-desk__status{color:#246c48;background:#e6f5ed}body.light-mode .assignment-desk__subjects button[aria-pressed=true]{color:#142238;background:#eaf3f7}
+body.light-mode .assignment-desk__dialog{color:#142238;background:#fff}body.light-mode .assignment-desk__ring:before{background:#fff}
+@keyframes assignment-desk-arrive{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:no-preference){.assignment-desk__next,.assignment-desk__card--completed{animation:assignment-desk-arrive .25s ease-out both}}
+.assignment-desk__category{border:1px solid;border-radius:6px;padding:1px 6px;font-weight:700}

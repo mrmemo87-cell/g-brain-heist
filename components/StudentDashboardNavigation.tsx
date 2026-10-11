@@ -30,13 +30,13 @@ const destinations: Array<{ id: StudentDashboardDestination; icon: string; label
   { id: 'learn', icon: '📚', label: 'Learn' },
   { id: 'game', icon: '🎮', label: 'Game' },
   { id: 'tournaments', icon: '🏅', label: 'Tournaments' },
-  { id: 'tasks', icon: '✅', label: 'Tasks' },
+  { id: 'tasks', icon: '📋', label: 'Assignments' },
   { id: 'clan', icon: '🛡️', label: 'Clan' },
   { id: 'leaderboard', icon: '🏆', label: 'Leaderboard' },
   { id: 'more', icon: '☰', label: 'More' },
 ];
 
-const mobileDestinations = destinations.filter(({ id }) => ['home', 'learn', 'game', 'clan', 'more'].includes(id));
+const mobileDestinations = destinations.filter(({ id }) => ['home', 'learn', 'tasks', 'game', 'more'].includes(id));
 const STUDENT_SIDEBAR_STORAGE_KEY = 'brains-heist:student-sidebar-collapsed';
 const STUDENT_MOBILE_NAV_QUERY = '(max-width: 1024px)';
 const STUDENT_SIDEBAR_COMPACT_QUERY = '(min-width: 1025px) and (max-width: 1279px)';
@@ -83,7 +83,7 @@ const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps
 
   const activeIndex = Math.max(
     0,
-    mobileDestinations.findIndex(({ id }) => id === activeDestination),
+    mobileDestinations.findIndex(({ id }) => id === (mobileDestinations.some(destination => destination.id === activeDestination) ? activeDestination : 'more')),
   );
 
   return (
