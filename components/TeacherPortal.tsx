@@ -29,6 +29,7 @@ const AssignmentWizard = React.lazy(() => import('./teacher/AssignmentWizard'));
 const DiagnosticComposer = React.lazy(() => import('./teacher/DiagnosticComposer'));
 import DiagnosticIntelligencePanel, { DiagnosticStudentSkillMap } from './teacher/DiagnosticIntelligencePanel';
 import AssignmentCard from './teacher/AssignmentCard';
+import AssignmentToolbar from './teacher/AssignmentToolbar';
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
 import { brainsAlert, brainsConfirm } from '../src/utils/brainsAlert';
@@ -1029,6 +1030,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       if (!labels.has(key)) labels.set(key, label);
     };
 
+    teachingGroups.forEach((group) => rememberClass(group.name));
     allocatedClasses.forEach((item) => {
       if (item.is_active) rememberClass(item.class_code);
     });
@@ -1041,7 +1043,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     });
 
     return [...labels.values()].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-  }, [allocatedClasses, assignments]);
+  }, [allocatedClasses, assignments, teachingGroups]);
 
   const assignmentFolderCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -6039,189 +6041,24 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const renderAssignments = () => (
-    <div className="space-y-6">
-      {/* Header with Title and Create Button */}
-      <div className="teacher-section-header">
-        <div>
-          <h2>🗂️ Assignments</h2>
-          <p className="mt-1 text-sm text-slate-500">Create, print, and track your class in one place.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => openDiagnosticComposer()}
-            className={`teacher-btn border border-cyan-200 bg-cyan-50 text-cyan-800 hover:bg-cyan-100 ${!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            disabled={!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
-          >
-            ✦ Create Diagnostic
-          </button>
-          <button
-            onClick={openBlankAssignmentForm}
-            className={`teacher-btn teacher-btn-primary ${!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            disabled={!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
-          >
-            ➕ New Assignment
-          </button>
-        </div>
-      </div>
-
-      {assignments.length > 0 && (
-        <div className="teacher-card p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Class folders</p>
-              <p className="mt-1 text-sm text-slate-500">Keep each class's assignments separate while preserving one shared assignment system.</p>
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Assignment folders by class">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={assignmentClassFilter === 'all'}
-              onClick={() => setAssignmentClassFilter('all')}
-              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition ${assignmentClassFilter === 'all' ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50'}`}
-            >
-              <span aria-hidden="true">🗂️</span> All <span className={`rounded-full px-2 py-0.5 text-xs ${assignmentClassFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>{assignments.length}</span>
-            </button>
-            {assignmentClassFolders.map((classCode) => {
-              const selected = assignmentClassFilter.toLocaleLowerCase() === classCode.toLocaleLowerCase();
-              const count = assignmentFolderCounts.get(classCode.toLocaleLowerCase()) || 0;
-              return (
-                <button
-                  key={classCode}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => setAssignmentClassFilter(classCode)}
-                  className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition ${selected ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50'}`}
-                >
-                  <span aria-hidden="true">📁</span> {classCode} <span className={`rounded-full px-2 py-0.5 text-xs ${selected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>{count}</span>
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              role="tab"
-              aria-selected={assignmentClassFilter === 'individual'}
-              onClick={() => setAssignmentClassFilter('individual')}
-              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition ${assignmentClassFilter === 'individual' ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50'}`}
-            >
-              <span aria-hidden="true">👤</span> Individual <span className={`rounded-full px-2 py-0.5 text-xs ${assignmentClassFilter === 'individual' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>{assignmentFolderCounts.get('individual') || 0}</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Existing search / subject / status filters stay scoped to the selected class folder. */}
-      {assignments.length > 0 && (
-        <div className="teacher-card p-4">
-          <div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_minmax(0,1.5fr)_minmax(0,1fr)]">
-            {/* Search Bar */}
-            <div className="flex-1 w-full lg:w-auto">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                <input
-                  type="text"
-                  placeholder="Search assignments..."
-                  value={assignmentSearchTerm}
-                  onChange={(e) => setAssignmentSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white text-slate-700"
-                />
-              </div>
-            </div>
-
-            <fieldset className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-500">Subject</legend>
-              <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setAssignmentSubjectFilter('all')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  assignmentSubjectFilter === 'all'
-                    ? 'bg-cyan-500 text-white shadow-md'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                📁 All Subjects
-              </button>
-              {assignmentSubjects.map(subject => (
-                <button
-                  key={subject}
-                  onClick={() => setAssignmentSubjectFilter(subject as Subject)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    assignmentSubjectFilter === subject
-                      ? 'bg-purple-500 text-white shadow-md'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  📂 {subject}
-                </button>
-              ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-500">Progress</legend>
-              <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setAssignmentStatusFilter('all')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  assignmentStatusFilter === 'all'
-                    ? 'bg-slate-700 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setAssignmentStatusFilter('in-progress')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  assignmentStatusFilter === 'in-progress'
-                    ? 'bg-amber-500 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                ⏳ In Progress
-              </button>
-              <button
-                onClick={() => setAssignmentStatusFilter('completed')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  assignmentStatusFilter === 'completed'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                ✅ Completed
-              </button>
-              </div>
-            </fieldset>
-          </div>
-
-          {/* Results Summary */}
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-sm text-slate-500">
-              Showing {filteredAssignments.length} of {assignments.length} assignments
-            </span>
-            {(assignmentSearchTerm || assignmentSubjectFilter !== 'all' || assignmentStatusFilter !== 'all') && (
-              <button
-                onClick={() => {
-                  setAssignmentSearchTerm('');
-                  setAssignmentSubjectFilter('all');
-                  setAssignmentStatusFilter('all');
-                }}
-                className="text-sm text-cyan-600 hover:text-cyan-700 font-medium"
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+    <div className="teacher-assignment-workspace">
+      <AssignmentToolbar
+        classes={assignmentClassFolders} counts={assignmentFolderCounts}
+        total={assignments.length} shown={filteredAssignments.length}
+        selectedClass={assignmentClassFilter} onClass={setAssignmentClassFilter}
+        search={assignmentSearchTerm} onSearch={setAssignmentSearchTerm}
+        subjects={assignmentSubjects} subject={assignmentSubjectFilter}
+        onSubject={(value) => setAssignmentSubjectFilter(value as Subject | 'all')}
+        status={assignmentStatusFilter} onStatus={setAssignmentStatusFilter}
+        canCreate={canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
+        onAssignment={openBlankAssignmentForm} onDiagnostic={() => openDiagnosticComposer()}
+      />
 
       {assignments.length === 0 ? (
         <div className="teacher-card p-12 text-center">
           <div className="text-6xl mb-4">🧭</div>
           <p className="text-xl text-slate-500 mb-4">No assignments yet</p>
-          <p className="text-slate-400">Create a mission to block normal quests until students finish.</p>
+          <p className="text-slate-400">Choose Create to add an assignment or diagnostic.</p>
         </div>
       ) : filteredAssignments.length === 0 ? (
         <div className="teacher-card p-12 text-center">
@@ -6229,6 +6066,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           <p className="text-lg text-slate-500 mb-2">No assignments match your filters</p>
           <button
             onClick={() => {
+              setAssignmentClassFilter('all');
               setAssignmentSearchTerm('');
               setAssignmentSubjectFilter('all');
               setAssignmentStatusFilter('all');
@@ -6239,12 +6077,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           </button>
         </div>
       ) : (
-        <section className="rounded-2xl border border-slate-200 bg-slate-50">
-          <header className="flex flex-wrap items-center justify-between gap-3 rounded-t-2xl border-b border-slate-200 bg-white px-5 py-4">
-            <div><span className="text-xs font-bold uppercase tracking-wider text-blue-600">{assignmentClassFilter === 'all' ? 'All assignments' : assignmentClassFilter === 'individual' ? 'Individual assignments' : `${assignmentClassFilter} assignments`}</span><h3 className="mt-1 text-lg font-bold text-slate-800">Assignment workspace</h3></div>
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{filteredAssignments.length} shown</span>
-          </header>
-          <div className="grid gap-3 p-4 xl:grid-cols-2">
+        <section aria-label={assignmentClassFilter === 'all' ? 'All assignments' : assignmentClassFilter === 'individual' ? 'Individual assignments' : `${assignmentClassFilter} assignments`}>
+          <div className="teacher-assignment-workspace__list">
             {filteredAssignments.map((assignment) => (
               <AssignmentCard
                 key={assignment.id}
@@ -9446,7 +9280,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         </React.Suspense>
       ) : null}
 
-      <div className="teacher-portal-container">
+      <div className={`teacher-portal-container${view === 'assignments' ? ' teacher-assignment-view' : ''}`}>
         {/* Professional Header */}
         <div className="teacher-header">
           <div className="teacher-header-content">
@@ -9462,7 +9296,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
               
               {/* Canonical teaching responsibilities. */}
-              {teacherHasClassAllocations && (
+              {teacherHasClassAllocations && view !== 'assignments' && (
                 <div className="teacher-assigned-classes mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-sky-700 font-semibold text-sm">📚 Your Teaching Groups ({teachingGroups.length || allocatedClasses.length})</span>
@@ -9475,8 +9309,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       .map((item) => (
                         <div key={item.key} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs">
                           <span className="font-semibold text-slate-700">{item.label}</span>
-                          <span className="text-slate-400">•</span>
-                          <span className="text-slate-600">{item.subject}</span>
+                          {!item.label.toLocaleLowerCase().includes(item.subject.toLocaleLowerCase()) && <><span className="text-slate-400">•</span><span className="text-slate-600">{item.subject}</span></>}
                         </div>
                       ))}
                     {(teachingGroups.length || allocatedClasses.length) > 6 && (

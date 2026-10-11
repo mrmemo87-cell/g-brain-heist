@@ -1,8 +1,8 @@
 /* Physical edge positioning stays predictable in both LTR and RTL interfaces. */
 .language-dock-insets { position:fixed; left:max(12px,env(safe-area-inset-left)); right:max(12px,env(safe-area-inset-right)); top:max(12px,env(safe-area-inset-top)); bottom:max(12px,env(safe-area-inset-bottom)); visibility:hidden; pointer-events:none; }
 .language-dock { position:fixed; left:0; top:0; width:54px; height:54px; z-index:2147483000; transition:transform 420ms cubic-bezier(.22,.8,.25,1); font-family:inherit; }
-.language-dock-trigger { display:grid; place-items:center; position:relative; width:54px; height:54px; min-width:54px; padding:0; border:1px solid rgba(103,232,249,.5); border-radius:18px; color:#a5f3fc; background:linear-gradient(145deg,#0b1220,#172638); box-shadow:0 8px 24px rgba(2,6,23,.3),inset 0 1px rgba(255,255,255,.1); font-size:22px; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; transition:box-shadow 180ms ease,border-color 180ms ease; }
-.language-dock-trigger > span:first-child { margin-top:-3px; }
+.language-dock-trigger { display:grid; place-items:center; position:relative; width:54px; height:54px; min-width:54px; padding:0; border:1px solid rgba(103,232,249,.5); border-radius:18px; color:#a5f3fc; background:linear-gradient(145deg,#0b1220,#172638); box-shadow:0 3px 10px rgba(2,6,23,.18),inset 0 1px rgba(255,255,255,.08); font-size:22px; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; transition:box-shadow 180ms ease,border-color 180ms ease; }
+.language-dock-trigger > svg { margin-top:-3px; }
 .language-dock-grip { position:absolute; bottom:7px; width:12px; height:2px; border-radius:2px; background:#67e8f9; opacity:.7; }
 .language-dock.is-dragging { transition:none; }
 .language-dock.is-dragging .language-dock-trigger { cursor:grabbing; border-color:#a5f3fc; box-shadow:0 14px 34px rgba(2,6,23,.4),0 0 0 4px rgba(34,211,238,.13); }
