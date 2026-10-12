@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   LAYOUT,
   bubblePosition,
+  bubblePreviewRegion,
   parseSheetToken,
 } from "../src/lib/paperScan/layout";
 import {
@@ -109,4 +110,81 @@ test("solid corner detection tolerates coarse alignment noise and ignores text-s
     assert.ok(Math.abs(p.x - LAYOUT.markers[i].x) < 1);
     assert.ok(Math.abs(p.y - LAYOUT.markers[i].y) < 1);
   });
+});
+
+test("uneven single marks are accepted only with a substantial lead", () => {
+  for (const coverage of [[0.45, 0.02, 0, 0], [0.55, 0.1, 0, 0], [0.8, 0.12, 0, 0]]) {
+    assert.equal(classifyBubbles(coverage).state, "clear");
+    assert.equal(classifyBubbles(coverage).choice, 0);
+  }
+  for (const coverage of [[0.39, 0, 0, 0], [0.4, 0.12, 0, 0], [0.8, 0.13, 0, 0], [0.25, 0.2, 0, 0]]) {
+    assert.equal(classifyBubbles(coverage).state, "uncertain");
+    assert.equal(classifyBubbles(coverage).choice, null);
+  }
+  assert.equal(classifyBubbles([0.9, 0.22, 0, 0]).state, "multiple");
+  assert.equal(classifyBubbles([0.02, 0.03]).state, "blank");
+});
+
+test("pencil, uneven shading, mild shadows and stray graphite retain the intended answer", () => {
+  const image = raster();
+  const questions = Array.from({ length: 8 }, (_, i) => ({
+    questionId: String(i), orderIndex: i + 1, options: ["A", "B", "C", "D"],
+  }));
+  // Medium-grey pencil: previously no pixels passed the fixed 170 threshold.
+  let p = bubblePosition(0, 0);
+  disk(image, p.x, p.y, 8, 180);
+  // Messy half-fill: substantial, isolated mark, previously below 62%.
+  p = bubblePosition(1, 2);
+  disk(image, p.x + 5, p.y, 8, 60);
+  // Pencil under a mild shadow.
+  p = bubblePosition(2, 3);
+  disk(image, p.x, p.y, 22, 200);
+  disk(image, p.x, p.y, 8, 145);
+  // Pencil extending outside the bubble cannot lower the paper reference.
+  p = bubblePosition(3, 1);
+  disk(image, p.x, p.y, 8, 180);
+  disk(image, p.x + 18, p.y, 9, 30);
+  // Light erasure and genuine double mark stay reviewable.
+  p = bubblePosition(4, 0);
+  disk(image, p.x, p.y, 3, 160);
+  for (const choice of [0, 2]) {
+    p = bubblePosition(5, choice);
+    disk(image, p.x, p.y, 8, 180);
+  }
+  // Printed outlines must never be interpreted as filled bubbles.
+  for (let choice = 0; choice < 4; choice++) {
+    p = bubblePosition(6, choice);
+    disk(image, p.x, p.y, 12);
+    disk(image, p.x, p.y, 10, 255);
+  }
+  // True/false uses the same rules.
+  questions[7].options = ["True", "False"];
+  p = bubblePosition(7, 1);
+  disk(image, p.x, p.y, 8, 180);
+  const rows = readBubbles(image, questions);
+  for (const [row, choice] of [[0, 0], [1, 2], [2, 3], [3, 1], [7, 1]]) {
+    assert.equal(rows[String(row)].state, "clear", `row ${row}`);
+    assert.equal(rows[String(row)].choice, choice);
+  }
+  assert.equal(rows["4"].state, "uncertain");
+  assert.equal(rows["5"].state, "multiple");
+  assert.equal(rows["6"].state, "blank");
+});
+
+test("review crops align every option centre with its equal-width button cell", () => {
+  for (const row of [0, 19, 20, 39]) {
+    for (const count of [2, 3, 4]) {
+      const region = bubblePreviewRegion(row, count);
+      for (let choice = 0; choice < count; choice++) {
+        const bubble = bubblePosition(row, choice);
+        assert.equal((bubble.x - region.x) / region.width, (choice + 0.5) / count);
+        assert.equal(bubble.y - region.y, region.height / 2);
+        for (const displayWidth of [192, 256, 320, 384]) {
+          const photoCentre = ((bubble.x - region.x) / region.width) * displayWidth;
+          const buttonCentre = ((choice + 0.5) / count) * displayWidth;
+          assert.equal(photoCentre, buttonCentre);
+        }
+      }
+    }
+  }
 });

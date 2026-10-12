@@ -701,3 +701,49 @@
     display: none;
   }
 }
+
+/* Shared photo and answer geometry: each bubble centre is at the centre
+   of one equal-width option cell. Blank occupies a separate full row. */
+.psc-answer-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+.psc-aligned-answers {
+  width: 100%;
+  max-width: calc(var(--psc-option-count) * 96px);
+  min-width: 0;
+}
+.psc-bubble-labels,
+.psc-aligned-answers .psc-choices {
+  display: grid;
+  grid-template-columns: repeat(var(--psc-option-count), minmax(0, 1fr));
+  column-gap: 0;
+}
+.psc-bubble-labels {
+  text-align: center;
+  color: #465773;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0 0 6px;
+}
+.psc-aligned-answers img {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  border: 0;
+  outline: 1px solid #e1e7f0;
+}
+.psc-aligned-answers .psc-choices {
+  margin-top: 10px;
+  row-gap: 8px;
+}
+.psc-aligned-answers .psc-choices button {
+  min-width: 0;
+  min-height: 44px;
+  margin: 0 4px;
+  padding: 9px 4px;
+}
+.psc-aligned-answers .psc-blank-choice {
+  grid-column: 1 / -1;
+  margin: 0 4px;
+}

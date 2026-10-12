@@ -149,23 +149,25 @@ export function markerCentres(image: Raster, searchRadius = 100): Point[] {
 }
 /** Interior-only measurements exclude printed outlines. Local paper brightness handles mild shadows. */
 export function bubbleCoverage(image: Raster, p: Point): number {
-  let background = 0,
-    n = 0;
+  const background: number[] = [];
   for (let y = -18; y <= 18; y++)
     for (let x = -18; x <= 18; x++)
       if (x * x + y * y >= 225 && x * x + y * y <= 324) {
-        background += luminance(
+        background.push(luminance(
           image.data,
           ((p.y + y) * image.width + p.x + x) * 4,
-        );
-        n++;
+        ));
       }
-  const paper = background / n;
+  // Stray pencil outside the circle must not darken the paper reference.
+  background.sort((a, b) => a - b);
+  const paper = background[Math.floor(background.length * 0.75)];
   if (paper < 95)
     throw new Error("A dark shadow covers the answers. Retake in even light.");
   let marked = 0,
     count = 0;
-  const threshold = Math.min(170, paper * 0.68);
+  // Measure contrast against local paper, including medium-grey graphite.
+  // Very light erasures remain below this contrast and require review.
+  const threshold = Math.min(205, paper - Math.max(30, paper * 0.2));
   for (let y = -7; y <= 7; y++)
     for (let x = -7; x <= 7; x++)
       if (x * x + y * y <= 49) {
@@ -190,7 +192,13 @@ export function classifyBubbles(coverage: number[]): DetectedRow {
     second = sorted[1];
   if (first.v < 0.06) return { choice: null, state: "blank", coverage };
   if (second.v >= 0.22) return { choice: null, state: "multiple", coverage };
-  if (first.v >= 0.62 && second.v <= 0.08 && first.v - second.v >= 0.5)
+  // Accept uneven shading only when a substantial single mark dominates.
+  // Two substantial marks are always reviewed, even if one is darker.
+  if (
+    first.v >= 0.4 &&
+    second.v <= 0.12 &&
+    first.v - second.v >= 0.3
+  )
     return { choice: first.i, state: "clear", coverage };
   return { choice: null, state: "uncertain", coverage };
 }
