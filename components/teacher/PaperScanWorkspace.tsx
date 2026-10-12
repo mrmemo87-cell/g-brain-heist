@@ -49,8 +49,8 @@ const errorText = (e: unknown) =>
 const choiceLabel = (index: number) => String.fromCharCode(65 + index);
 const statuses: Record<DetectedRow["state"], string> = {
   clear: "Clear mark",
-  blank: "Check blank",
-  uncertain: "Faint or erased",
+  blank: "No mark detected",
+  uncertain: "Mark needs checking",
   multiple: "Two marks",
 };
 export default function PaperScanWorkspace({
@@ -68,6 +68,7 @@ export default function PaperScanWorkspace({
   const [session, setSession] = useState<ScanSession | null>(null);
   const [sheetId, setSheetId] = useState("");
   const [photo, setPhoto] = useState<ProcessedPhoto | null>(null);
+  const [photoMarks, setPhotoMarks] = useState<Record<string, DetectedRow>>({});
   const [crops, setCrops] = useState<Record<string, string>>({});
   const [answers, setAnswers] = useState<PaperAnswers>({});
   const [busy, setBusy] = useState("");
@@ -108,16 +109,18 @@ export default function PaperScanWorkspace({
     !!currentStudent?.existingAnswerCount &&
     currentStudent.status !== "completed";
   const reviewed = !!sheet?.reviewedAnswers;
-  const detected = sheet?.detected || {};
+  const detected = photo ? photoMarks : sheet?.detected || {};
   const unresolved =
     sheet?.questions.filter(
       (q) => !Object.prototype.hasOwnProperty.call(answers, q.questionId),
     ) || [];
   const checks =
-    sheet?.questions.filter((q) => detected[q.questionId]?.state !== "clear") ||
+    sheet?.questions.filter(
+      (q) => !["clear", "blank"].includes(detected[q.questionId]?.state || ""),
+    ) ||
     [];
   const rows = sheet
-    ? onlyChecks && checks.length
+    ? onlyChecks
       ? checks
       : sheet.questions
     : [];
@@ -333,6 +336,7 @@ export default function PaperScanWorkspace({
         const mark = marks[q.questionId];
         if (mark.state === "clear" && mark.choice !== null)
           initial[q.questionId] = q.options[mark.choice];
+        else if (mark.state === "blank") initial[q.questionId] = null;
       });
       if (stored.reviewedAnswers)
         Object.assign(initial, stored.reviewedAnswers);
@@ -352,6 +356,7 @@ export default function PaperScanWorkspace({
             });
         } catch {}
       }
+      setPhotoMarks(marks);
       setPhoto(nextPhoto);
       setSheetId(nextSheet.id);
       setGuestName(stored.claimedName || "");
@@ -699,7 +704,7 @@ export default function PaperScanWorkspace({
                     <strong>
                       {unresolved.length
                         ? `${unresolved.length} answers to check`
-                        : "All answers resolved"}
+                        : "Ready for page confirmation"}
                     </strong>
                     <button
                       className="psc-link"
@@ -708,6 +713,11 @@ export default function PaperScanWorkspace({
                       {onlyChecks ? "Show all answers" : "Show checks"}
                     </button>
                   </div>
+                  <p className="psc-hint">
+                    {sheet.questions.filter((q) => detected[q.questionId]?.state === "clear").length} clear answers ·{" "}
+                    {sheet.questions.filter((q) => detected[q.questionId]?.state === "blank").length} blank ·{" "}
+                    {checks.length} marks flagged. Clear answers and blanks are filled in automatically. You can inspect and edit all answers before saving.
+                  </p>
                   <div className="psc-answer-list">
                     {rows.map((q) => (
                       <article
