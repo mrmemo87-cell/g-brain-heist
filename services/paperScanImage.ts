@@ -4,7 +4,7 @@ import {
   type ScanSheet,
   type DetectedRow,
 } from "../src/lib/paperScan/layout";
-import { readBubbles, type Raster } from "../src/lib/paperScan/omr";
+import { readBubbles, bubbleRowOffset, type Raster } from "../src/lib/paperScan/omr";
 export interface ProcessedPhoto {
   sheetId: string;
   image: Raster;
@@ -133,6 +133,9 @@ export function rowPreviews(
   return Object.fromEntries(
     sheet.questions.map((q, row) => {
       const region = bubblePreviewRegion(row, q.options.length);
+      const offset = bubbleRowOffset(photo.image, row, q.options.length);
+      region.x += offset.x;
+      region.y += offset.y;
       canvas.width = region.width;
       canvas.height = region.height;
       ctx.clearRect(0, 0, canvas.width, canvas.height);

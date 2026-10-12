@@ -72,12 +72,26 @@ export function warp(source: Raster, canonicalToSource: number[]): Raster {
     }
   return { width: LAYOUT.width, height: LAYOUT.height, data };
 }
-export function markerCentres(image: Raster, searchRadius = 100): Point[] {
-  return LAYOUT.markers.map((p) => {
+export function markerCentres(
+  image: Raster,
+  searchRadius = 100,
+  expected: readonly Point[] = LAYOUT.markers,
+  markerScale = 1,
+): Point[] {
+  return expected.map((p) => {
     const minX = Math.max(0, Math.round(p.x - searchRadius)),
       maxX = Math.min(image.width - 1, Math.round(p.x + searchRadius));
     const minY = Math.max(0, Math.round(p.y - searchRadius)),
       maxY = Math.min(image.height - 1, Math.round(p.y + searchRadius));
+    if (minX >= maxX || minY >= maxY)
+      throw new Error("Keep all four corner squares visible. Retake the photo.");
+    // Relative contrast works for grey photocopies and uneven phone lighting.
+    const background: number[] = [];
+    for (let y = minY; y <= maxY; y += 4)
+      for (let x = minX; x <= maxX; x += 4)
+        background.push(luminance(image.data, (y * image.width + x) * 4));
+    background.sort((a, b) => a - b);
+    const threshold = Math.min(190, background[Math.floor(background.length * 0.8)] * 0.72);
     const width = maxX - minX + 1,
       height = maxY - minY + 1,
       visited = new Uint8Array(width * height);
@@ -87,7 +101,7 @@ export function markerCentres(image: Raster, searchRadius = 100): Point[] {
         const local = (y - minY) * width + x - minX;
         if (visited[local]) continue;
         visited[local] = 1;
-        if (luminance(image.data, (y * image.width + x) * 4) >= 110) continue;
+        if (luminance(image.data, (y * image.width + x) * 4) >= threshold) continue;
         const queue = [{ x, y }];
         let count = 0,
           xsum = 0,
@@ -117,23 +131,50 @@ export function markerCentres(image: Raster, searchRadius = 100): Point[] {
             const index = (ny - minY) * width + nx - minX;
             if (visited[index]) continue;
             visited[index] = 1;
-            if (luminance(image.data, (ny * image.width + nx) * 4) < 110)
+            if (luminance(image.data, (ny * image.width + nx) * 4) < threshold)
               queue.push({ x: nx, y: ny });
           }
         }
         const w = right - left + 1,
           h = bottom - top + 1;
         if (
-          count < 170 ||
-          count > 1600 ||
-          w < 13 ||
-          h < 13 ||
-          w / h < 0.65 ||
-          w / h > 1.55 ||
-          count / (w * h) < 0.8
+          count < 100 * markerScale * markerScale ||
+          count > 1800 * markerScale * markerScale ||
+          w < 10 * markerScale ||
+          h < 10 * markerScale ||
+          w > 65 * markerScale ||
+          h > 65 * markerScale ||
+          w / h < 0.5 ||
+          w / h > 2 ||
+          count / (w * h) < 0.48
         )
           continue;
         const point = { x: xsum / count, y: ysum / count };
+        let solid = 0, samples = 0;
+        const core = Math.max(2, Math.floor(Math.min(w, h) * 0.16));
+        for (let dy = -core; dy <= core; dy++)
+          for (let dx = -core; dx <= core; dx++) {
+            samples++;
+            const px = Math.round(point.x) + dx, py = Math.round(point.y) + dy;
+            if (luminance(image.data, (py * image.width + px) * 4) < threshold) solid++;
+          }
+        if (solid / samples < 0.9) continue;
+        // A filled answer bubble near the footer is not a corner square.
+        const radii: number[] = [];
+        for (let angle = 0; angle < 32; angle++) {
+          const a = angle * Math.PI * 2 / 32;
+          let radius = 0;
+          for (let r = 1; r <= Math.max(w, h); r++) {
+            const px = Math.round(point.x + Math.cos(a) * r);
+            const py = Math.round(point.y + Math.sin(a) * r);
+            if (px < minX || px > maxX || py < minY || py > maxY ||
+              luminance(image.data, (py * image.width + px) * 4) >= threshold) break;
+            radius = r;
+          }
+          radii.push(radius);
+        }
+        const radialRatio = Math.min(...radii) / Math.max(...radii);
+        if (radialRatio > 0.88 || radialRatio < 0.35) continue;
         candidates.push({
           point,
           distance: Math.hypot(point.x - p.x, point.y - p.y),
@@ -146,6 +187,44 @@ export function markerCentres(image: Raster, searchRadius = 100): Point[] {
       );
     return candidates[0].point;
   });
+}
+/** Register the printed circle grid locally before measuring its interiors.
+ * Phone/print distortion can leave rows several pixels off after page calibration.
+ * A common row offset preserves A-D ordering and cannot chase an isolated pencil mark.
+ */
+export function bubbleRowOffset(image: Raster, row: number, choices: number): Point {
+  const ring = Array.from({ length: 32 }, (_, i) => {
+    const angle = i * Math.PI * 2 / 32;
+    return [8, 11, 12, 13, 16].map((radius) => ({
+      x: Math.round(Math.cos(angle) * radius),
+      y: Math.round(Math.sin(angle) * radius),
+    }));
+  });
+  let best = { x: 0, y: 0 }, bestScore = 0;
+  for (let dy = -8; dy <= 8; dy++)
+    for (let dx = -8; dx <= 8; dx++) {
+      let score = 0, supported = 0;
+      for (let choice = 0; choice < choices; choice++) {
+        const p = bubblePosition(row, choice);
+        let circleScore = 0;
+        for (const samples of ring) {
+          const values = samples.map((v) => luminance(
+            image.data, ((p.y + dy + v.y) * image.width + p.x + dx + v.x) * 4,
+          ));
+          // Printed annulus darker than its surroundings, including a filled circle.
+          circleScore += 0.25 * values[0] + 0.75 * values[4]
+            - (values[1] + values[2] + values[3]) / 3;
+        }
+        if (circleScore / (ring.length * 255) >= 0.025) supported++;
+        score += circleScore;
+      }
+      if (supported < Math.max(2, Math.ceil(choices / 2))) continue;
+      score /= choices * ring.length * 255;
+      score -= (dx * dx + dy * dy) * 0.00003;
+      if (score > bestScore) { bestScore = score; best = { x: dx, y: dy }; }
+    }
+  // Low-outline fixtures or genuinely unreadable rows cannot invent a location.
+  return bestScore >= 0.025 ? best : { x: 0, y: 0 };
 }
 /** Interior-only measurements exclude printed outlines. Local paper brightness handles mild shadows. */
 export function bubbleCoverage(image: Raster, p: Point): number {
@@ -214,13 +293,12 @@ export function readBubbles(
   )
     throw new Error("Unsupported sheet layout.");
   return Object.fromEntries(
-    questions.map((q, row) => [
-      q.questionId,
-      classifyBubbles(
-        q.options.map((_, choice) =>
-          bubbleCoverage(image, bubblePosition(row, choice)),
-        ),
-      ),
-    ]),
+    questions.map((q, row) => {
+      const offset = bubbleRowOffset(image, row, q.options.length);
+      return [q.questionId, classifyBubbles(q.options.map((_, choice) => {
+        const p = bubblePosition(row, choice);
+        return bubbleCoverage(image, { x: p.x + offset.x, y: p.y + offset.y });
+      }))];
+    }),
   );
 }
