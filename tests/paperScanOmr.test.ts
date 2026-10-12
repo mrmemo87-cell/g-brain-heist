@@ -32,7 +32,7 @@ test("reported phone review rows recognise D and B despite local grid drift", ()
         const source = (y * fixture.width + x) * 3;
         image.data.set(fixture.rows[row].slice(source, source + 3), target);
       }
-    const detected = readBubbles(image, [{ questionId: "photo", orderIndex: 1, options: ["A", "B", "C", "D"] }]).photo;
+    const detected = readBubbles(image, [{ questionId: "photo", orderIndex: 1, options: ["A", "B", "C", "D"] }])["photo"];
     assert.equal(detected.state, "clear", JSON.stringify(detected));
     assert.equal(detected.choice, fixture.expected[row]);
   }
@@ -48,7 +48,7 @@ test("sloped printed circles exclude outlines and preserve genuine double marks"
       disk(image, x, y, 10, 190);
       if (marks.includes(choice)) disk(image, x, y, 9, 70);
     }
-    const detected = readBubbles(image, [{ questionId: "sloped", orderIndex: 1, options: ["A", "B", "C", "D"] }]).sloped;
+    const detected = readBubbles(image, [{ questionId: "sloped", orderIndex: 1, options: ["A", "B", "C", "D"] }])["sloped"];
     assert.equal(detected.state, marks.length === 2 ? "multiple" : marks.length ? "clear" : "blank");
     assert.equal(detected.choice, marks.length === 1 ? marks[0] : null);
   }
