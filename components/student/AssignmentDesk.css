@@ -5,7 +5,7 @@
 .assignment-desk h2{color:#f4f7fc;font-size:19px;font-weight:750;line-height:1.4;overflow-wrap:anywhere;margin:8px 0}
 .assignment-desk p{color:var(--desk-muted);font-size:14px;line-height:1.6;margin:0}
 .assignment-desk button{font:inherit;cursor:pointer;min-height:44px;transition:background .18s,box-shadow .18s}
-.assignment-desk button:focus-visible,.assignment-desk summary:focus-visible{outline:3px solid var(--desk-accent);outline-offset:4px}
+.assignment-desk button:focus-visible,.assignment-desk summary:focus-visible,.assignment-desk a:focus-visible,.assignment-desk select:focus-visible,.assignment-desk__table-scroll:focus-visible{outline:3px solid var(--desk-accent);outline-offset:4px}
 .assignment-desk__completion{color:#f4f7fc;display:flex;align-items:center;gap:12px;flex-shrink:0;font-size:13px}
 .assignment-desk small{display:block;color:var(--desk-muted);font-size:12px;margin-top:5px}
 .assignment-desk__ring{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:conic-gradient(var(--desk-accent) var(--completion),var(--desk-line) 0);position:relative}
@@ -20,8 +20,9 @@
 .assignment-desk__secondary{border:1px solid var(--desk-line);background:#ffffff06;color:inherit}
 .assignment-desk__secondary:hover{background:#ffffff12}
 .assignment-desk__tabs{display:flex;gap:6px;border-bottom:1px solid var(--desk-line);padding-bottom:10px}
-.assignment-desk__tabs button{background:transparent;border:0;border-radius:12px;color:var(--desk-muted);padding:10px 16px;font-size:14px;font-weight:750}
+.assignment-desk__tabs button,.assignment-desk__tabs a{background:transparent;border:0;border-radius:12px;color:var(--desk-muted);padding:10px 16px;font-size:14px;font-weight:750}
 .assignment-desk__tabs button[aria-pressed=true]{background:#85e8f414;color:var(--desk-accent)}
+.assignment-desk__tabs a{display:inline-flex;align-items:center;text-decoration:none;min-height:44px}
 .assignment-desk__tabs span{display:inline-block;min-width:22px;background:#ffffff0b;border-radius:7px;padding:2px 5px;font-size:11px;margin-inline-start:7px}
 .assignment-desk__subjects{display:flex;flex-wrap:wrap;gap:8px;padding:12px 0 16px}
 .assignment-desk__subjects button{display:inline-flex;align-items:center;gap:8px;max-width:100%;border:1px solid var(--desk-line);border-radius:30px;padding:8px 14px;background:transparent;color:var(--desk-muted);font-size:12px}
@@ -63,7 +64,7 @@
  .assignment-desk__next>.assignment-desk__primary{width:100%;min-height:44px;padding:10px 12px}
  .assignment-desk__card{padding:16px;border-radius:16px;gap:6px}
  .assignment-desk__card h2{font-size:17px;margin:4px 0}
- .assignment-desk__tabs button{padding:8px 10px;font-size:13px}
+ .assignment-desk__tabs button,.assignment-desk__tabs a{padding:8px 10px;font-size:13px}
  .assignment-desk__subjects{gap:6px;padding:10px 0 14px}
  .assignment-desk__subjects button{padding:6px 11px}
  .assignment-desk__progress,.assignment-desk__result{padding:10px;margin:4px 0}
@@ -75,3 +76,20 @@ body.light-mode .assignment-desk__dialog{background:#142238!important}
 @keyframes assignment-desk-arrive{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:no-preference){.assignment-desk__next,.assignment-desk__card--completed{animation:assignment-desk-arrive .25s ease-out both}}
 .assignment-desk__category{border:1px solid;border-radius:6px;padding:1px 6px;font-weight:700}
+
+.assignment-desk__history{border-top:1px solid var(--desk-line);margin-top:28px;padding-top:22px;scroll-margin-top:90px}
+.assignment-desk__history-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
+.assignment-desk__history-heading h2{margin:5px 0}.assignment-desk__history-heading p{font-size:12px}
+.assignment-desk__history-filter{display:flex;flex-direction:column;gap:6px;color:#aebdd3;font-size:12px;min-width:160px}
+.assignment-desk__history-filter select{color:#f4f7fc;background:#142238;border:1px solid #536986;border-radius:10px;font:inherit;padding:10px 12px;min-height:44px;max-width:100%}
+.assignment-desk__history-count{margin-bottom:10px!important;font-size:12px!important}
+.assignment-desk__table-scroll{overflow-x:auto;max-width:100%;border:1px solid var(--desk-line);border-radius:14px;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#536986 #101c2e}
+.assignment-desk__table{width:100%;border-collapse:collapse;min-width:650px;text-align:start;font-size:13px;color:#f4f7fc}
+.assignment-desk__table thead{background:#1b2d45;color:#bfcee1}.assignment-desk__table th,.assignment-desk__table td{padding:14px 16px;text-align:start;vertical-align:middle;border-bottom:1px solid #30425b}
+.assignment-desk__table thead th{font-size:11px;font-weight:750;letter-spacing:.03em;text-transform:uppercase}.assignment-desk__table tbody th{min-width:180px;max-width:300px;font-weight:600;overflow-wrap:anywhere}
+.assignment-desk__table tbody tr:nth-child(even){background:#142238}.assignment-desk__table tbody tr:last-child>*{border-bottom:0}
+.assignment-desk__table small{font-size:11px;font-weight:400}.assignment-desk__table time{white-space:nowrap;color:#aebdd3;font-size:12px}
+.assignment-desk__score{color:#9ce9c0;font-size:15px;white-space:nowrap}.assignment-desk__score--pending{max-width:150px;font-size:11px;line-height:1.5}
+.assignment-desk__table .assignment-desk__secondary{white-space:nowrap;min-height:44px;padding:8px 12px}
+.assignment-desk__table-hint{display:none;margin-top:8px!important;font-size:11px!important}
+@media(max-width:700px){.assignment-desk__history{margin-top:20px;padding-top:16px}.assignment-desk__history-heading{flex-direction:column;align-items:stretch;gap:12px}.assignment-desk__history-filter{min-width:0}.assignment-desk__table-hint{display:block}.assignment-desk__table th,.assignment-desk__table td{padding:12px}.assignment-desk__table{min-width:600px}}
