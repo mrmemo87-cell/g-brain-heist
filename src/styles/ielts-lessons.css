@@ -1,0 +1,49 @@
+.ielts-lessons {
+  overflow-wrap: anywhere;
+}
+.ielts-lessons h3 {
+  margin-top: var(--bh-ielts-space-6, 24px);
+}
+.ielts-lessons .lesson-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+}
+.ielts-lessons .lesson-plan {
+  padding-left: 24px;
+}
+.ielts-lessons .lesson-plan li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bh-ielts-border);
+}
+.ielts-lessons .lesson-plan p {
+  margin: 8px 0;
+}
+.ielts-lessons .lesson-audio {
+  padding: 16px 0;
+  border-top: 1px solid var(--bh-ielts-border);
+}
+.ielts-lessons audio {
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  margin: 12px 0;
+}
+.ielts-lessons button {
+  min-height: 44px;
+  white-space: normal;
+  max-width: 100%;
+}
+.ielts-lessons button:focus-visible {
+  outline: 3px solid var(--bh-ielts-focus);
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .ielts-lessons .lesson-actions {
+    flex-direction: column;
+  }
+  .ielts-lessons .lesson-actions button {
+    width: 100%;
+  }
+}

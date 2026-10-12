@@ -15,6 +15,7 @@ import "../../styles/ielts-programme.css";
 const Practice = React.lazy(() => import("./IeltsLearningTeacher"));
 const LearningPlanDesk = React.lazy(() => import("./IeltsLearningPlanDesk"));
 const PracticeDesk = React.lazy(() => import("./IeltsTeacherPracticeDesk"));
+const Lessons = React.lazy(() => import("./IeltsLessonLibrary"));
 const Exams = React.lazy(() => import("./IeltsExamManager"));
 type Section =
   | "overview"
@@ -22,7 +23,8 @@ type Section =
   | "reviews"
   | "team"
   | "practice"
-  | "exams";
+  | "exams"
+  | "lessons";
 const sections = [
   "overview",
   "students",
@@ -30,6 +32,7 @@ const sections = [
   "team",
   "practice",
   "exams",
+  "lessons",
 ];
 function Mark({ kind = "school" }: { kind?: string }) {
   return (
@@ -417,6 +420,7 @@ export default function IeltsProgrammeWorkspace({
                   </button>
                   {data.can_manage && (
                     <>
+                      <button onClick={() => open("lessons")}><Mark kind="review" /><strong>Lessons</strong><span>Ready teaching packs, presentations and approved audio.</span></button>
                       <button onClick={() => open("practice")}>
                         <Mark />
                         <strong>Assign practice</strong>
@@ -466,6 +470,7 @@ export default function IeltsProgrammeWorkspace({
               </section>
             </>
           )}
+          {section === "lessons" && (data.can_manage ? <React.Suspense fallback={<p role="status">Opening lessons…</p>}><Lessons key={data.school_id} schoolId={data.school_id} onClose={() => open("overview")} onAssign={() => open("practice")} onProgress={() => open("students")} /></React.Suspense> : <section className="sp-card"><p>Your programme lead prepares school lessons.</p></section>)}
           {section === "reviews" && queue}
           {section === "students" && planStudent && (
             <React.Suspense
