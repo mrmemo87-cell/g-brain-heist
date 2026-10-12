@@ -357,6 +357,10 @@
 .teacher-sidebar .teacher-nav-grid--sidebar {
   flex: 1 1 auto;
   min-height: 0;
+  /* Preserve each item's content height; short windows scroll instead of
+     compressing grid tracks until labels overlap adjacent buttons. */
+  grid-auto-rows: max-content;
+  align-content: start;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -365,6 +369,17 @@
   scrollbar-color: #94a3b8 #f1f5f9;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
+}
+
+.teacher-sidebar .teacher-nav-btn {
+  min-height: 56px;
+  height: auto;
+  flex-shrink: 0;
+  padding: 0.65rem 0.75rem;
+}
+
+.teacher-sidebar .teacher-nav-desc {
+  line-height: 1.4;
 }
 
 .teacher-sidebar .teacher-nav-grid--sidebar::-webkit-scrollbar {
