@@ -26,11 +26,12 @@ test("reported phone review rows recognise D and B despite local grid drift", ()
   for (let row = 0; row < fixture.rows.length; row++) {
     const image = raster();
     const region = bubblePreviewRegion(0, 4);
+    const pixels = Buffer.from(fixture.rows[row], "base64");
     for (let y = 0; y < fixture.height; y++)
       for (let x = 0; x < fixture.width; x++) {
         const target = ((region.y + y) * image.width + region.x + x) * 4;
-        const source = (y * fixture.width + x) * 3;
-        image.data.set(fixture.rows[row].slice(source, source + 3), target);
+        const value = pixels[y * fixture.width + x];
+        image.data[target] = image.data[target + 1] = image.data[target + 2] = value;
       }
     const detected = readBubbles(image, [{ questionId: "photo", orderIndex: 1, options: ["A", "B", "C", "D"] }])["photo"];
     assert.equal(detected.state, "clear", JSON.stringify(detected));
