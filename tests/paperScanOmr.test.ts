@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   LAYOUT,
   bubblePosition,
+  bubblePreviewRegion,
   parseSheetToken,
 } from "../src/lib/paperScan/layout";
 import {
@@ -168,4 +169,22 @@ test("pencil, uneven shading, mild shadows and stray graphite retain the intende
   assert.equal(rows["4"].state, "uncertain");
   assert.equal(rows["5"].state, "multiple");
   assert.equal(rows["6"].state, "blank");
+});
+
+test("review crops align every option centre with its equal-width button cell", () => {
+  for (const row of [0, 19, 20, 39]) {
+    for (const count of [2, 3, 4]) {
+      const region = bubblePreviewRegion(row, count);
+      for (let choice = 0; choice < count; choice++) {
+        const bubble = bubblePosition(row, choice);
+        assert.equal((bubble.x - region.x) / region.width, (choice + 0.5) / count);
+        assert.equal(bubble.y - region.y, region.height / 2);
+        for (const displayWidth of [192, 256, 320, 384]) {
+          const photoCentre = ((bubble.x - region.x) / region.width) * displayWidth;
+          const buttonCentre = ((choice + 0.5) / count) * displayWidth;
+          assert.equal(photoCentre, buttonCentre);
+        }
+      }
+    }
+  }
 });

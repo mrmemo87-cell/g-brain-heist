@@ -1,5 +1,6 @@
 import {
   LAYOUT,
+  bubblePreviewRegion,
   type ScanSheet,
   type DetectedRow,
 } from "../src/lib/paperScan/layout";
@@ -131,17 +132,20 @@ export function rowPreviews(
     );
   return Object.fromEntries(
     sheet.questions.map((q, row) => {
-      ctx.clearRect(0, 0, 350, 38);
+      const region = bubblePreviewRegion(row, q.options.length);
+      canvas.width = region.width;
+      canvas.height = region.height;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(
         source,
-        row < 20 ? 100 : 540,
-        376 + (row % 20) * 39,
-        350,
-        38,
+        region.x,
+        region.y,
+        region.width,
+        region.height,
         0,
         0,
-        350,
-        38,
+        region.width,
+        region.height,
       );
       return [q.questionId, canvas.toDataURL("image/png")];
     }),

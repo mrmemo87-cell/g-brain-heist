@@ -69,3 +69,9 @@ export function parseSheetToken(text: string): string {
 
 export const guestBookletCode = (guestId: string, number: number) =>
   `G${String(number).padStart(3, "0")}-${guestId.slice(0, 6).toUpperCase()}`;
+
+/** Equal-width preview cells keep every photographed bubble over its answer button. */
+export const bubblePreviewRegion = (row: number, choiceCount: number) => {
+  const first = bubblePosition(row, 0);
+  return { x: first.x - 24, y: first.y - 19, width: choiceCount * 48, height: 38 };
+};

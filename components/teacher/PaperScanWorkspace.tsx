@@ -734,6 +734,13 @@ export default function PaperScanWorkspace({
                             }
                           </span>
                         </div>
+                        <div
+                          className="psc-aligned-answers"
+                          style={{ "--psc-option-count": q.options.length } as React.CSSProperties}
+                        >
+                        <div className="psc-bubble-labels" aria-hidden="true">
+                          {q.options.map((_, index) => <span key={index}>{choiceLabel(index)}</span>)}
+                        </div>
                         {crops[q.questionId] ? (
                           <img
                             src={crops[q.questionId]}
@@ -761,6 +768,7 @@ export default function PaperScanWorkspace({
                             </button>
                           ))}
                           <button
+                            className="psc-blank-choice"
                             disabled={!!busy}
                             aria-pressed={
                               Object.prototype.hasOwnProperty.call(
@@ -772,6 +780,7 @@ export default function PaperScanWorkspace({
                           >
                             Blank
                           </button>
+                        </div>
                         </div>
                       </article>
                     ))}
