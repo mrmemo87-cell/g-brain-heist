@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   LAYOUT,
   bubblePosition,
@@ -19,6 +20,40 @@ const raster = (): Raster => {
   data.fill(255);
   return { width: LAYOUT.width, height: LAYOUT.height, data };
 };
+// Cropped/resampled from IMG_7129.png; contains only answer bubbles, no identity.
+test("reported phone review rows recognise D and B despite local grid drift", () => {
+  const fixture = JSON.parse(readFileSync("tests/fixtures/paperScanSingleMarkPhotoRows.json", "utf8"));
+  for (let row = 0; row < fixture.rows.length; row++) {
+    const image = raster();
+    const region = bubblePreviewRegion(0, 4);
+    const pixels = Buffer.from(fixture.rows[row], "base64");
+    for (let y = 0; y < fixture.height; y++)
+      for (let x = 0; x < fixture.width; x++) {
+        const target = ((region.y + y) * image.width + region.x + x) * 4;
+        const value = pixels[y * fixture.width + x];
+        image.data[target] = image.data[target + 1] = image.data[target + 2] = value;
+      }
+    const detected = readBubbles(image, [{ questionId: "photo", orderIndex: 1, options: ["A", "B", "C", "D"] }])["photo"];
+    assert.equal(detected.state, "clear", JSON.stringify(detected));
+    assert.equal(detected.choice, fixture.expected[row]);
+  }
+});
+test("sloped printed circles exclude outlines and preserve genuine double marks", () => {
+  for (const marks of [[3], [1], [0, 2], []]) {
+    const image = raster();
+    image.data.fill(190);
+    for (let choice = 0; choice < 4; choice++) {
+      const p = bubblePosition(0, choice);
+      const x = p.x + 4 - choice * 2, y = p.y - 3 + choice * 2;
+      disk(image, x, y, 13, 30);
+      disk(image, x, y, 10, 190);
+      if (marks.includes(choice)) disk(image, x, y, 9, 70);
+    }
+    const detected = readBubbles(image, [{ questionId: "sloped", orderIndex: 1, options: ["A", "B", "C", "D"] }])["sloped"];
+    assert.equal(detected.state, marks.length === 2 ? "multiple" : marks.length ? "clear" : "blank");
+    assert.equal(detected.choice, marks.length === 1 ? marks[0] : null);
+  }
+});
 function disk(image: Raster, x: number, y: number, r: number, value = 0) {
   for (let dy = -r; dy <= r; dy++)
     for (let dx = -r; dx <= r; dx++)
@@ -188,3 +223,4 @@ test("review crops align every option centre with its equal-width button cell", 
     }
   }
 });
+

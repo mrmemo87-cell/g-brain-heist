@@ -226,6 +226,37 @@ export function bubbleRowOffset(image: Raster, row: number, choices: number): Po
   // Low-outline fixtures or genuinely unreadable rows cannot invent a location.
   return bestScore >= 0.025 ? best : { x: 0, y: 0 };
 }
+/** Refine each printed circle after row registration. Photographed rows can slope
+ * or change spacing slightly, so one shared translation does not centre A-D.
+ * Only a circular outline with broad angular support may move the sampling core;
+ * isolated pencil strokes must not pull it towards a stray mark.
+ */
+export function bubbleCentre(image: Raster, expected: Point): Point {
+  let best = expected, bestScore = 0.06;
+  for (let dy = -5; dy <= 5; dy++)
+    for (let dx = -5; dx <= 5; dx++) {
+      let score = 0, supported = 0;
+      for (let i = 0; i < 32; i++) {
+        const angle = i * Math.PI * 2 / 32;
+        const sample = (radius: number) => {
+          const x = Math.round(expected.x + dx + Math.cos(angle) * radius);
+          const y = Math.round(expected.y + dy + Math.sin(angle) * radius);
+          return luminance(image.data, (y * image.width + x) * 4);
+        };
+        const contrast = (0.25 * sample(8) + 0.75 * sample(16)
+          - (sample(11) + sample(12) + sample(13)) / 3) / 255;
+        if (contrast >= 0.06) supported++;
+        score += contrast;
+      }
+      if (supported < 20) continue;
+      score = score / 32 - (dx * dx + dy * dy) * 0.0003;
+      if (score > bestScore) {
+        bestScore = score;
+        best = { x: expected.x + dx, y: expected.y + dy };
+      }
+    }
+  return best;
+}
 /** Interior-only measurements exclude printed outlines. Local paper brightness handles mild shadows. */
 export function bubbleCoverage(image: Raster, p: Point): number {
   const background: number[] = [];
@@ -297,8 +328,9 @@ export function readBubbles(
       const offset = bubbleRowOffset(image, row, q.options.length);
       return [q.questionId, classifyBubbles(q.options.map((_, choice) => {
         const p = bubblePosition(row, choice);
-        return bubbleCoverage(image, { x: p.x + offset.x, y: p.y + offset.y });
+        return bubbleCoverage(image, bubbleCentre(image, { x: p.x + offset.x, y: p.y + offset.y }));
       }))];
     }),
   );
 }
+
