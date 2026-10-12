@@ -21,8 +21,9 @@ const deadline = (row: StudentAssignmentTask) => row.due_at ? new Date(row.due_a
 
 export default function AssignmentDesk({ assignments, studentId, onOpen }: Props) {
   const { language, direction } = useLanguage();
-  const [tab, setTab] = useState<'todo' | 'completed' | 'closed'>('todo');
+  const [tab, setTab] = useState<'todo' | 'closed'>('todo');
   const [filter, setFilter] = useState('all');
+  const [completedSubject, setCompletedSubject] = useState('all');
   const [completed, setCompleted] = useState<CompletedAssignment[]>([]);
   const [historyState, setHistoryState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [retry, setRetry] = useState(0);
@@ -72,7 +73,9 @@ export default function AssignmentDesk({ assignments, studentId, onOpen }: Props
   const chosenFilter = subjects.some(([key]) => key === filter) ? filter : 'all';
   const matches = (row: { subject_name: string }) => chosenFilter === 'all' || subjectKey(row) === chosenFilter;
   const visible = (tab === 'closed' ? closed : todo).filter(matches);
-  const visibleHistory = history.filter(matches);
+  const historySubjects = Array.from(new Map(history.map(row => [subjectKey(row), subject(row)])).entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  const historyFilter = historySubjects.some(([key]) => key === completedSubject) ? completedSubject : 'all';
+  const visibleHistory = history.filter(row => historyFilter === 'all' || subjectKey(row) === historyFilter);
   const next = todo.filter(matches)[0];
   const total = todo.length + closed.length + completed.length;
   const percent = total ? Math.round(completed.length / total * 100) : 0;
@@ -95,7 +98,7 @@ export default function AssignmentDesk({ assignments, studentId, onOpen }: Props
     </article>}
     <div className="assignment-desk__tabs" role="group" aria-label="Assignment status">
       <button type="button" aria-pressed={tab === 'todo'} onClick={() => setTab('todo')}>To do <span>{todo.length}</span></button>
-      <button type="button" aria-pressed={tab === 'completed'} onClick={() => setTab('completed')}>Completed <span>{historyState === 'ready' ? completed.length : '—'}</span></button>
+      <a href="#completed-assignment-history">Completed <span>{historyState === 'ready' ? completed.length : '—'}</span></a>
       {closed.length > 0 && <button type="button" aria-pressed={tab === 'closed'} onClick={() => setTab('closed')}>Closed <span>{closed.length}</span></button>}
     </div>
     <div className="assignment-desk__subjects" role="group" aria-label="Filter by subject">
@@ -103,16 +106,7 @@ export default function AssignmentDesk({ assignments, studentId, onOpen }: Props
       {subjects.map(([key, label], index) => <button type="button" key={key} aria-pressed={chosenFilter === key} onClick={() => setFilter(key)}><i aria-hidden="true" className={`assignment-desk__dot assignment-desk__dot--${index % 4}`} /><bdi>{label}</bdi></button>)}
     </div>
     {historyState === 'error' && <div className="assignment-desk__notice" role="alert">Completed work couldn’t load. Your unfinished assignments are still available. <button type="button" onClick={() => setRetry(value => value + 1)}>Try again</button></div>}
-    {tab === 'completed' ? <>
-      {historyState === 'loading' && <p role="status">Loading your completed work…</p>}
-      {historyState === 'ready' && !visibleHistory.length && <div className="assignment-desk__empty"><h2>Your finished work belongs here</h2><p>Completed assignments and teacher feedback will appear here once you submit.</p></div>}
-      <div className="assignment-desk__grid">{visibleHistory.map(row => <article className="assignment-desk__card assignment-desk__card--completed" key={row.assignment_id}>
-        <div className="assignment-desk__card-top"><span className="assignment-desk__subject"><bdi>{subject(row)}</bdi></span><span className="assignment-desk__status">✓ Completed</span></div>
-        <h2 dir="auto">{row.title || row.topic_name || 'Assignment'}</h2><p className="assignment-desk__teacher">Assigned by <bdi>{row.teacher_name || 'Your teacher'}</bdi></p>
-        <div className="assignment-desk__result"><strong>{pendingReview(row) ? 'Waiting for teacher feedback' : `Your result: ${row.correct}/${row.total_questions}`}</strong><small>Submitted {date(row.completed_at)}</small></div>
-        <button type="button" className="assignment-desk__secondary" onClick={() => setSelected(row)}>View results <span aria-hidden="true">→</span></button>
-      </article>)}</div>
-    </> : <>
+    <>
       {!visible.length && <div className="assignment-desk__empty"><p>{tab === 'closed' ? 'No closed assignments in this subject.' : 'No unfinished assignments in this subject.'}</p></div>}
       <div className="assignment-desk__grid">{visible.map(row => <article className="assignment-desk__card" key={row.assignment_id}>
         <div className="assignment-desk__card-top"><span className="assignment-desk__subject"><bdi>{subject(row)}</bdi></span><span className={`assignment-desk__status ${overdue(row) && !row.is_closed ? 'assignment-desk__status--late' : ''}`}>{status(row)}</span></div>
@@ -122,7 +116,29 @@ export default function AssignmentDesk({ assignments, studentId, onOpen }: Props
         <details className="assignment-desk__details"><summary>Assignment details</summary><p>Topic: <bdi>{row.topic_name || 'General'}</bdi></p><p>Given {date(row.assigned_at)}</p>{row.instructions && <p dir="auto"><strong>Teacher instructions:</strong> {row.instructions}</p>}</details>
         {row.is_closed ? <p className="assignment-desk__closed">Submissions are closed. Ask your teacher if you need more time.</p> : <button type="button" className="assignment-desk__primary" onClick={() => onOpen(row)}>{action(row)} <span aria-hidden="true">→</span></button>}
       </article>)}</div>
-    </>}
+    </>
+    <section className="assignment-desk__history" id="completed-assignment-history" aria-labelledby="completed-history-title">
+      <div className="assignment-desk__history-heading"><div><span className="assignment-desk__eyebrow">YOUR LEARNING RECORD</span><h2 id="completed-history-title">Completed assignments</h2><p>Review your scores and revisit your answers.</p></div>
+        <label className="assignment-desk__history-filter"><span>Subject</span><select value={historyFilter} onChange={event => setCompletedSubject(event.target.value)} aria-label="Filter completed assignments by subject"><option value="all">All subjects</option>{historySubjects.map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>
+      </div>
+      {historyState === 'loading' && <p role="status">Loading your completed work…</p>}
+      {historyState === 'ready' && !visibleHistory.length && <div className="assignment-desk__empty"><p>{history.length ? 'No completed assignments in this subject.' : 'Your completed assignments and scores will appear here once you submit.'}</p></div>}
+      {historyState === 'ready' && visibleHistory.length > 0 && <>
+        <p className="assignment-desk__history-count">{visibleHistory.length} completed {visibleHistory.length === 1 ? 'assignment' : 'assignments'}</p>
+        <div className="assignment-desk__table-scroll" role="region" aria-label="Completed assignment scores" tabIndex={0}>
+          <table className="assignment-desk__table"><caption className="sr-only">Completed assignments, scores, and results</caption><thead><tr><th scope="col">Subject</th><th scope="col">Assignment</th><th scope="col">Submitted</th><th scope="col">Score</th><th scope="col">Results</th></tr></thead>
+          <tbody>{visibleHistory.map(row => <tr key={row.assignment_id}>
+            <td><span className="assignment-desk__subject"><bdi>{subject(row)}</bdi></span></td>
+            <th scope="row"><strong dir="auto">{row.title || row.topic_name || 'Assignment'}</strong><small>Assigned by <bdi>{row.teacher_name || 'Your teacher'}</bdi></small></th>
+            <td><time dateTime={row.completed_at}>{date(row.completed_at)}</time></td>
+            <td>{pendingReview(row) ? <span className="assignment-desk__status assignment-desk__score--pending">Waiting for teacher feedback</span> : <strong className="assignment-desk__score">{row.total_questions > 0 ? `${row.correct}/${row.total_questions}` : '—'}</strong>}</td>
+            <td><button type="button" className="assignment-desk__secondary" onClick={() => setSelected(row)} aria-label={`View results for ${row.title || row.topic_name || 'assignment'}`}>View results <span aria-hidden="true">→</span></button></td>
+          </tr>)}</tbody>
+          </table>
+        </div>
+        <p className="assignment-desk__table-hint">Swipe across the table to see every column.</p>
+      </>}
+    </section>
     {selected && <dialog className="assignment-desk__dialog" ref={dialog} aria-labelledby="assignment-review-title" onCancel={closeReview} onClick={event => { if (event.target === event.currentTarget) closeReview(); }}>
       <div className="assignment-desk__dialog-header"><div><span className="assignment-desk__eyebrow">YOUR COMPLETED WORK</span><h2 id="assignment-review-title" dir="auto">{selected.title || selected.topic_name || 'Assignment results'}</h2><p>{subject(selected)} · Submitted {date(selected.completed_at)}</p></div><button type="button" className="assignment-desk__secondary" onClick={closeReview} autoFocus aria-label="Close results">✕</button></div>
       <p className="assignment-desk__result"><strong>{pendingReview(selected) ? 'Waiting for teacher feedback' : `${selected.correct} of ${selected.total_questions} correct`}</strong></p>
