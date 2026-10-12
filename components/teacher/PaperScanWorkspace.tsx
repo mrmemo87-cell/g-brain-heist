@@ -34,7 +34,24 @@ import ClassroomPrintPanel, {
   type ClassroomPrintOrder,
 } from "./ClassroomPrintPanel";
 import GuestResultsPanel from "./GuestResultsPanel";
+import { MAX_SCAN_BATCH, runScanBatch } from "../../src/lib/paperScan/batch";
 import "./PaperScanWorkspace.css";
+type BatchDraft = {
+  session: ScanSession;
+  sheet: ScanSheet;
+  photo: Pick<ProcessedPhoto, "sheetId" | "hash">;
+  marks: Record<string, DetectedRow>;
+  crops: Record<string, string>;
+  answers: PaperAnswers;
+};
+type BatchItem = {
+  id: string;
+  name: string;
+  file?: File;
+  state: "queued" | "reading" | "ready" | "error" | "reviewed" | "completed";
+  error?: string;
+  draft?: BatchDraft;
+};
 type Props = {
   packet: PaperWorkspace;
   userId: string;
@@ -67,7 +84,7 @@ export default function PaperScanWorkspace({
   const [guestReference, setGuestReference] = useState("");
   const [session, setSession] = useState<ScanSession | null>(null);
   const [sheetId, setSheetId] = useState("");
-  const [photo, setPhoto] = useState<ProcessedPhoto | null>(null);
+  const [photo, setPhoto] = useState<Pick<ProcessedPhoto, "sheetId" | "hash"> | null>(null);
   const [photoMarks, setPhotoMarks] = useState<Record<string, DetectedRow>>({});
   const [crops, setCrops] = useState<Record<string, string>>({});
   const [answers, setAnswers] = useState<PaperAnswers>({});
@@ -77,6 +94,13 @@ export default function PaperScanWorkspace({
   const [replace, setReplace] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [onlyChecks, setOnlyChecks] = useState(true);
+  const [batch, setBatch] = useState<BatchItem[]>([]);
+  const batchRef = useRef<BatchItem[]>([]);
+  const batchAbort = useRef<AbortController | null>(null);
+  const updateBatch = (update: (items: BatchItem[]) => BatchItem[]) => {
+    batchRef.current = update(batchRef.current);
+    setBatch(batchRef.current);
+  };
   const abort = useRef<AbortController | null>(null);
   const request = useRef<{ key: string; id: string } | null>(null);
   const upload = useRef<HTMLInputElement>(null);
@@ -141,6 +165,7 @@ export default function PaperScanWorkspace({
     return () => {
       flush.current = async () => {};
       canLeave.current = () => false;
+      batchAbort.current?.abort();
       abort.current?.abort();
     };
   }, [flush, canLeave]);
@@ -171,6 +196,12 @@ export default function PaperScanWorkspace({
   const remember = (value: ScanSession) => {
     sessionIdentity.current = value.id;
     setSession(value);
+    updateBatch((items) => items.map((item) => {
+      if (item.draft?.session.id !== value.id) return item;
+      const nextSheet = value.sheets.find((page) => page.id === item.draft!.sheet.id);
+      return nextSheet ? { ...item, state: nextSheet.confirmedAt || nextSheet.heldAt ? "completed" : nextSheet.reviewedAnswers ? "reviewed" : item.state,
+        draft: { ...item.draft, session: value, sheet: nextSheet } } : item;
+    }));
     try {
       localStorage.setItem(sessionKey, value.id);
     } catch {
@@ -281,31 +312,18 @@ export default function PaperScanWorkspace({
       setBusy("");
     }
   };
-  const process = async (file: File) => {
-    if (busyRef.current) return;
-    if (unsafeCorrections.current) {
-      setError(
-        "Save this page before scanning another. Device storage is unavailable.",
-      );
-      return;
-    }
-    busyRef.current = "Reading your sheet…";
-    setError("");
-    setMessage("");
-    setBusy("Reading your sheet…");
-    abort.current?.abort();
-    const controller = new AbortController();
-    abort.current = controller;
-    try {
+  const process = async (file: File, controller: AbortController): Promise<BatchDraft> => {
       const nextPhoto = await loadScanPhoto(file, controller.signal);
       setBusy("Checking student and assignment…");
       const result = await resolveScanSheet(
         nextPhoto.sheetId,
         packet.assignment.id,
       );
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) throw new DOMException("Aborted", "AbortError");
       const nextSheet = result.sheets.find((s) => s.id === nextPhoto.sheetId);
       if (!nextSheet) throw new Error("This sheet could not be found.");
+      if (batchRef.current.some((item) => item.draft?.sheet.id === nextSheet.id))
+        throw new Error("This page is already in your batch. Its first scan was kept.");
       const student = packet.students.find((s) => s.id === nextSheet.studentId);
       if (
         student?.status === "completed" ||
@@ -324,8 +342,8 @@ export default function PaperScanWorkspace({
               nextPhoto.hash,
               marks,
             );
-      if (controller.signal.aborted) return;
-      remember(saved);
+      if (controller.signal.aborted) throw new DOMException("Aborted", "AbortError");
+
       const stored = saved.sheets.find((s) => s.id === nextSheet.id)!;
       if (stored.imageHash !== nextPhoto.hash)
         throw new Error(
@@ -356,30 +374,130 @@ export default function PaperScanWorkspace({
             });
         } catch {}
       }
-      setPhotoMarks(marks);
-      setPhoto(nextPhoto);
-      setSheetId(nextSheet.id);
-      setGuestName(stored.claimedName || "");
-      setGuestReference(stored.localReference || "");
-      unsafeCorrections.current = false;
-      setAnswers(initial);
-      setCrops(rowPreviews(nextPhoto, nextSheet));
-      setReplace(false);
-      setAccepted(false);
-      setOnlyChecks(true);
-      setTab("scan");
-      if (stored.scanId && !storeAnswers(stored.scanId, initial))
-        setError(
-          "Device storage is unavailable. Keep this screen open until the page is saved.",
-        );
-    } catch (e) {
-      if ((e as Error).name !== "AbortError") setError(errorText(e));
-    } finally {
-      if (!controller.signal.aborted) {
-        busyRef.current = "";
-        setBusy("");
-      }
+      return { session: saved, sheet: stored,
+        photo: { sheetId: nextPhoto.sheetId, hash: nextPhoto.hash },
+        marks, crops: rowPreviews(nextPhoto, nextSheet), answers: initial };
+  };
+  const retainReview = () => {
+    if (!sheet?.scanId || reviewed) return true;
+    if (!storeAnswers(sheet.scanId, answers)) {
+      setError("Save this page before switching. Device storage is unavailable.");
+      return false;
     }
+    updateBatch((items) => items.map((item) => item.draft?.sheet.id === sheet.id
+      ? { ...item, draft: { ...item.draft, answers } } : item));
+    return true;
+  };
+  const showDraft = (draft: BatchDraft) => {
+    remember(draft.session);
+    setSheetId(draft.sheet.id);
+    setPhoto(draft.photo);
+    setPhotoMarks(draft.marks);
+    setCrops(draft.crops);
+    setAnswers(draft.sheet.reviewedAnswers || draft.answers);
+    setGuestName(draft.sheet.claimedName || "");
+    setGuestReference(draft.sheet.localReference || "");
+    setReplace(false);
+    setAccepted(false);
+    setOnlyChecks(true);
+    setTab("scan");
+    unsafeCorrections.current = false;
+  };
+  const openBatchPage = async (item: BatchItem) => {
+    if (busyRef.current || !item.draft || !retainReview()) return;
+    busyRef.current = "Opening page…";
+    setBusy(busyRef.current);
+    setError("");
+    try {
+      const current = await resolveScanSheet(item.draft.sheet.id, packet.assignment.id);
+      const found = current.sheets.find((page) => page.id === item.draft!.sheet.id);
+      if (!found || found.imageHash !== item.draft.photo.hash)
+        throw new Error("This page changed in another tab. Upload its latest photo again.");
+      showDraft({ ...item.draft, session: current, sheet: found });
+    } catch (e) { setError(errorText(e)); }
+    finally { busyRef.current = ""; setBusy(""); }
+  };
+  const readBatch = async (items: BatchItem[]) => {
+    if (busyRef.current || !retainReview()) return;
+    const controller = new AbortController();
+    const stopping = new AbortController();
+    abort.current = controller;
+    batchAbort.current = stopping;
+    busyRef.current = "Reading batch…";
+    setBusy(busyRef.current);
+    setError("");
+    setMessage("");
+    setTab("scan");
+    let done = 0;
+    try {
+      await runScanBatch(items, async (item) => {
+        if (!item.file) return;
+        updateBatch((list) => list.map((page) => page.id === item.id ? { ...page, state: "reading", error: undefined } : page));
+        setBusy(`Reading photo ${++done} of ${items.length}…`);
+        const draft = await process(item.file, controller);
+        if (controller.signal.aborted) return;
+        updateBatch((list) => list.map((page) => page.id === item.id
+          ? { ...page, file: undefined, draft, state: draft.sheet.reviewedAnswers ? "reviewed" : "ready" } : page));
+      }, (item, e) => {
+        updateBatch((list) => list.map((page) => page.id === item.id
+          ? { ...page, state: "error", error: errorText(e) } : page));
+      }, stopping.signal);
+      if (controller.signal.aborted) return;
+      const first = batchRef.current.find((item) => item.draft && item.state === "ready");
+      if (!sheet && first?.draft) showDraft(first.draft);
+      setMessage(stopping.signal.aborted ? "Paused after the current photo. Continue whenever you’re ready." : "Photos read. Review the pages below, then confirm ready results.");
+    } finally {
+      if (!controller.signal.aborted) { busyRef.current = ""; setBusy(""); }
+      batchAbort.current = null;
+    }
+  };
+  const addPhotos = (files: File[]) => {
+    if (busyRef.current || !files.length || !retainReview()) return;
+    if (batchRef.current.length + files.length > MAX_SCAN_BATCH) {
+      setError(`Keep each batch to ${MAX_SCAN_BATCH} photos. Finish this batch before adding more.`);
+      return;
+    }
+    const additions: BatchItem[] = files.map((file) => ({ id: crypto.randomUUID(), name: file.name, file, state: "queued" }));
+    updateBatch((items) => [...items, ...additions]);
+    void readBatch(additions);
+  };
+  const confirmBatch = async () => {
+    if (busyRef.current || !retainReview()) return;
+    busyRef.current = "Confirming reviewed results…";
+    setBusy(busyRef.current);
+    setError("");
+    let confirmed = 0;
+    const seen = new Set<string>();
+    const failures: string[] = [];
+    try {
+      for (const item of batchRef.current) {
+        const draft = item.draft;
+        if (!draft?.sheet.studentId || item.state === "completed") continue;
+        const studentId = draft.sheet.studentId;
+        const key = `${draft.session.id}:${studentId}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        // Existing unfinished online work and unnamed booklets retain their
+        // individual identity/replacement confirmation gates.
+        if (packet.students.find((student) => student.id === studentId)?.existingAnswerCount) continue;
+        try {
+          const current = await resolveScanSheet(draft.sheet.id, packet.assignment.id);
+          const pages = current.sheets.filter((page) => page.studentId === studentId);
+          if (!pages.length || pages.some((page) => !page.reviewedAnswers || page.confirmedAt)) continue;
+          await confirmScan(current.id, studentId, false);
+          confirmed++;
+          updateBatch((items) => items.map((page) => page.draft?.session.id === current.id && page.draft.sheet.studentId === studentId
+            ? { ...page, state: "completed" } : page));
+        } catch (e) { failures.push(`${draft.sheet.studentName}: ${errorText(e)}`); }
+      }
+      if (confirmed) await onConfirmed();
+      if (failures.length) setError(failures.join(" · "));
+      setMessage(`${confirmed} student results confirmed. Incomplete booklets, unnamed sheets and unfinished online answers can be finished individually.`);
+      if (batchRef.current.find((item) => item.draft?.sheet.id === sheetId)?.state === "completed") {
+        setSheetId(""); setPhoto(null); setCrops({});
+      }
+    } catch (e) { setError(errorText(e)); }
+    finally { busyRef.current = ""; setBusy(""); }
   };
   const finishPage = async () => {
     if (busyRef.current) return;
@@ -435,6 +553,7 @@ export default function PaperScanWorkspace({
       if (!sheet.studentId)
         throw new Error("This sheet has no student account.");
       await confirmScan(session.id, sheet.studentId, replace);
+      updateBatch((items) => items.map((item) => item.draft?.session.id === session.id && item.draft.sheet.studentId === sheet.studentId ? { ...item, state: "completed" } : item));
       setMessage(`${sheet.studentName} · Result confirmed.`);
       setSheetId("");
       setPhoto(null);
@@ -454,6 +573,7 @@ export default function PaperScanWorkspace({
       );
       return;
     }
+    if (!retainReview()) return;
     setSheetId("");
     setPhoto(null);
     setCrops({});
@@ -577,11 +697,12 @@ export default function PaperScanWorkspace({
             type="file"
             accept="image/jpeg,image/png,image/webp"
             className="psc-file"
-            aria-label="Choose answer sheet photo"
+            multiple
+            aria-label="Choose answer sheet photos"
             onChange={(e) => {
-              const file = e.target.files?.[0];
+              const files = Array.from(e.target.files || []);
               e.target.value = "";
-              if (file) void process(file);
+              addPhotos(files);
             }}
           />
           <input
@@ -592,19 +713,55 @@ export default function PaperScanWorkspace({
             className="psc-file"
             aria-label="Take answer sheet photo"
             onChange={(e) => {
-              const file = e.target.files?.[0];
+              const files = Array.from(e.target.files || []);
               e.target.value = "";
-              if (file) void process(file);
+              addPhotos(files);
             }}
           />
+          {batch.length ? (
+            <section className="psc-batch" aria-label="Scan batch">
+              <header className="psc-batch-heading">
+                <div><span className="paw-eyebrow">Your scan tray</span><h3>{batch.length} photos · one batch</h3>
+                  <p>{batch.filter((item) => item.state === "ready").length} to review · {batch.filter((item) => item.state === "reviewed").length} reviewed · {batch.filter((item) => item.state === "completed").length} finished</p></div>
+                <div className="psc-batch-actions">
+                  <button className="paw-button" disabled={!!busy} onClick={() => camera.current?.click()}>+ Take photo</button>
+                  <button className="paw-button" disabled={!!busy} onClick={() => upload.current?.click()}>+ Add photos</button>
+                </div>
+              </header>
+              <div className="psc-batch-list">
+                {batch.map((item, index) => (
+                  <article key={item.id} className={`psc-batch-item ${item.state}`}>
+                    <span className="psc-batch-number">{index + 1}</span>
+                    <div><strong>{item.draft?.sheet.studentName || item.name}</strong>
+                      <span>{item.draft ? `Page ${item.draft.sheet.pageNumber}/${item.draft.sheet.pageCount} · ` : ""}{item.state === "ready" ? "Ready to review" : item.state === "completed" ? "Result saved" : item.state === "error" ? "Needs another look" : item.state === "reading" ? "Reading…" : item.state === "queued" ? "Waiting" : "Page reviewed"}</span>
+                      {item.error ? <p role="status">{item.error}</p> : null}</div>
+                    {item.draft && item.state !== "completed" ? <button className="psc-link" disabled={!!busy} aria-pressed={sheetId === item.draft.sheet.id} onClick={() => void openBatchPage(item)}>Open page →</button> : null}
+                    {item.state === "error" ? <button className="psc-link" disabled={!!busy} onClick={() => void readBatch([item])}>Retry</button> : null}
+                    {item.state !== "completed" ? <button className="psc-link" disabled={!!busy} aria-label={`Remove ${item.name} from tray`} onClick={() => {
+                      if (!retainReview()) return;
+                      if (item.draft?.sheet.id === sheetId) resetReview();
+                      updateBatch((items) => items.filter((page) => page.id !== item.id));
+                    }}>Remove</button> : null}
+                  </article>
+                ))}
+              </div>
+              <div className="psc-batch-actions">
+                {batchAbort.current ? <button className="paw-button" onClick={() => batchAbort.current?.abort()}>Pause after this photo</button> : null}
+                {batch.some((item) => item.state === "queued") ? <button className="paw-button" disabled={!!busy} onClick={() => void readBatch(batch.filter((item) => item.state === "queued"))}>Continue reading</button> : null}
+                <button className="paw-button primary" disabled={!!busy || !batch.some((item) => item.state === "reviewed" && item.draft?.sheet.studentId)} onClick={() => void confirmBatch()}>Confirm ready results</button>
+                <button className="psc-link" disabled={!!busy || batch.some((item) => !["completed", "error"].includes(item.state))} onClick={() => { updateBatch(() => []); resetReview(); }}>Clear finished batch</button>
+              </div>
+              <small>Each page must be checked and saved first. Photos stay on this device; saved scans can be resumed after closing by choosing the originals.</small>
+            </section>
+          ) : null}
           {!sheet ? (
             <section className="psc-capture">
               <div className="psc-viewfinder" aria-hidden="true">
                 <span>▣</span>
               </div>
               <span className="paw-eyebrow">Your phone is the scanner</span>
-              <h3>One clear photo. All the answers.</h3>
-              <p>Include the QR code and all four corner squares.</p>
+              <h3>A stack of papers. One scan batch.</h3>
+              <p>Choose several photos together, or keep adding camera shots. One page per photo, with its QR code and four corner squares visible.</p>
               <div className="psc-capture-actions">
                 <button
                   className="paw-button primary"
@@ -618,7 +775,7 @@ export default function PaperScanWorkspace({
                   disabled={!!busy}
                   onClick={() => upload.current?.click()}
                 >
-                  Choose photo
+                  Choose photos
                 </button>
               </div>
               <small>
@@ -696,7 +853,7 @@ export default function PaperScanWorkspace({
                         disabled={!!busy}
                         onClick={() => upload.current?.click()}
                       >
-                        Choose photo
+                        Choose photos
                       </button>
                     </div>
                   ) : null}
@@ -818,9 +975,14 @@ export default function PaperScanWorkspace({
                     <button
                       className="paw-button primary"
                       disabled={!!busy}
-                      onClick={() => upload.current?.click()}
+                      onClick={() => {
+                        const next = batchRef.current.find((item) => item.state === "ready" && item.draft?.session.id === session?.id &&
+                          (sheet.guestId ? item.draft.sheet.guestId === sheet.guestId : item.draft.sheet.studentId === sheet.studentId));
+                        if (next) void openBatchPage(next);
+                        else upload.current?.click();
+                      }}
                     >
-                      Scan the next page
+                      Continue to next page
                     </button>
                   ) : null}
                 </div>
@@ -891,3 +1053,4 @@ export default function PaperScanWorkspace({
     </div>
   );
 }
+
