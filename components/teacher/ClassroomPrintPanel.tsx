@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import type { PaperWorkspace } from "../../services/assignmentPaperService";
+import {
+  DEFAULT_BOOKLET_PRINT_SETTINGS,
+  type BookletPrintSettings,
+} from "../../src/lib/paperScan/printBooklets";
 export type ClassroomPrintMode = "questions" | "pack" | "bubbles" | "unnamed";
 export interface ClassroomPrintOrder {
   mode: ClassroomPrintMode;
@@ -7,6 +11,7 @@ export interface ClassroomPrintOrder {
   copies: number;
   assessedAt: string;
   includeQuestions: boolean;
+  printSettings: BookletPrintSettings;
 }
 const choices = [
   ["questions", "Questions only", "Use your own answer paper", "questions"],
@@ -96,6 +101,9 @@ export default function ClassroomPrintPanel({
   const [copies, setCopies] = useState(1),
     [guestCount, setGuestCount] = useState(5);
   const [guestQuestions, setGuestQuestions] = useState(true);
+  const [printSettings, setPrintSettings] = useState<BookletPrintSettings>(
+    () => ({ ...DEFAULT_BOOKLET_PRINT_SETTINGS }),
+  );
   const [date, setDate] = useState(() => {
     const d = new Date();
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
@@ -126,6 +134,7 @@ export default function ClassroomPrintPanel({
           : new Date(date).toISOString(),
       includeQuestions:
         actualMode === "pack" || (actualMode === "unnamed" && guestQuestions),
+      printSettings,
     });
   return (
     <div className="psc-print-grid">
@@ -266,6 +275,46 @@ export default function ClassroomPrintPanel({
             )}
           </>
         )}
+        <fieldset className="psc-printer-settings" disabled={busy}>
+          <legend>Printer layout</legend>
+          <label className="psc-accept">
+            <input
+              type="checkbox"
+              checked={printSettings.keepTogether}
+              onChange={(e) => setPrintSettings((old) => ({ ...old, keepTogether: e.target.checked }))}
+            />
+            Keep each student's papers together
+          </label>
+          <div className="psc-printer-options">
+            <label className="psc-date">
+              Print sides
+              <select
+                aria-label="Print sides"
+                value={printSettings.duplex ? "double" : "single"}
+                onChange={(e) => setPrintSettings((old) => ({ ...old, duplex: e.target.value === "double" }))}
+              >
+                <option value="single">Single-sided</option>
+                <option value="double">Double-sided</option>
+              </select>
+            </label>
+            <label className="psc-date">
+              Pages per side
+              <select
+                aria-label="Pages per side"
+                value={printSettings.pagesPerSide}
+                onChange={(e) => setPrintSettings((old) => ({ ...old, pagesPerSide: Number(e.target.value) as 1 | 2 | 4 }))}
+              >
+                <option value={1}>1 page</option>
+                <option value={2}>2 pages</option>
+                <option value={4}>4 pages</option>
+              </select>
+            </label>
+          </div>
+          <p className="psc-hint">Use these same settings in the printer dialog. The preview shows exact sheets and added blanks.</p>
+          {actualMode !== "questions" && printSettings.pagesPerSide > 1 ? (
+            <p className="psc-hint">For the clearest bubble marks and scans, use 1 page per side.</p>
+          ) : null}
+        </fieldset>
         <div className="psc-order-summary" aria-live="polite">
           <strong>
             {count}{" "}
