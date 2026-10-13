@@ -13,6 +13,8 @@ import {
   transform,
   readBubbles,
   markerCentres,
+  registeredBubbleCentres,
+  bubblePreviewSamples,
   type Raster,
 } from "../src/lib/paperScan/omr";
 const raster = (): Raster => {
@@ -62,6 +64,34 @@ function disk(image: Raster, x: number, y: number, r: number, value = 0) {
         image.data[p] = image.data[p + 1] = image.data[p + 2] = value;
       }
 }
+test("whole-column registration recovers a half-row offset without confusing question numbers", () => {
+  for (const shift of [-20, 20]) {
+    const image = raster();
+    image.data.fill(190);
+    const questions = Array.from({ length: 24 }, (_, row) => ({ questionId: String(row), orderIndex: row + 1, options: ["A", "B", "C", "D"] }));
+    for (let row = 0; row < questions.length; row++) {
+      for (let choice = 0; choice < 4; choice++) {
+        const p = bubblePosition(row, choice);
+        disk(image, p.x + 4, p.y + shift, 13, 30);
+        disk(image, p.x + 4, p.y + shift, 10, 190);
+        if (choice === row % 4) disk(image, p.x + 4, p.y + shift, 9, 50);
+      }
+    }
+    const rows = readBubbles(image, questions);
+    const centres = registeredBubbleCentres(image, questions);
+    for (let row = 0; row < questions.length; row++) {
+      assert.equal(rows[String(row)].choice, row % 4, `question ${row + 1}, shift ${shift}`);
+      const regions = bubblePreviewSamples(centres[row]);
+      for (let choice = 0; choice < 4; choice++) {
+        const actual = bubblePosition(row, choice);
+        const crop = regions[choice];
+        assert.ok(Math.abs(crop.y + crop.height / 2 - actual.y - shift) <= 2);
+        assert.equal(crop.width / 2, actual.x + 4 - crop.x);
+        assert.ok(crop.height < 39, "preview excludes adjacent question rows");
+      }
+    }
+  }
+});
 test("bubble measurements distinguish clear marks, blanks, faint marks and double answers", () => {
   assert.equal(classifyBubbles([0, 0.95, 0, 0]).choice, 1);
   assert.equal(classifyBubbles([0, 0.95, 0, 0]).state, "clear");
@@ -223,4 +253,5 @@ test("review crops align every option centre with its equal-width button cell", 
     }
   }
 });
+
 

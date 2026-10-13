@@ -192,7 +192,7 @@ export function markerCentres(
  * Phone/print distortion can leave rows several pixels off after page calibration.
  * A common row offset preserves A-D ordering and cannot chase an isolated pencil mark.
  */
-export function bubbleRowOffset(image: Raster, row: number, choices: number): Point {
+export function bubbleRowOffset(image: Raster, row: number, choices: number, base: Point = { x: 0, y: 0 }): Point {
   const ring = Array.from({ length: 32 }, (_, i) => {
     const angle = i * Math.PI * 2 / 32;
     return [8, 11, 12, 13, 16].map((radius) => ({
@@ -209,7 +209,7 @@ export function bubbleRowOffset(image: Raster, row: number, choices: number): Po
         let circleScore = 0;
         for (const samples of ring) {
           const values = samples.map((v) => luminance(
-            image.data, ((p.y + dy + v.y) * image.width + p.x + dx + v.x) * 4,
+            image.data, ((p.y + base.y + dy + v.y) * image.width + p.x + base.x + dx + v.x) * 4,
           ));
           // Printed annulus darker than its surroundings, including a filled circle.
           circleScore += 0.25 * values[0] + 0.75 * values[4]
@@ -224,7 +224,7 @@ export function bubbleRowOffset(image: Raster, row: number, choices: number): Po
       if (score > bestScore) { bestScore = score; best = { x: dx, y: dy }; }
     }
   // Low-outline fixtures or genuinely unreadable rows cannot invent a location.
-  return bestScore >= 0.025 ? best : { x: 0, y: 0 };
+  return bestScore >= 0.025 ? { x: base.x + best.x, y: base.y + best.y } : base;
 }
 /** Refine each printed circle after row registration. Photographed rows can slope
  * or change spacing slightly, so one shared translation does not centre A-D.
@@ -312,6 +312,70 @@ export function classifyBubbles(coverage: number[]): DetectedRow {
     return { choice: first.i, state: "clear", coverage };
   return { choice: null, state: "uncertain", coverage };
 }
+/** Register a whole printed column before the small local row correction.
+ * Scoring every numbered row together prevents snapping Q12 to Q11/Q13 when
+ * the nominal row falls between two circles. Missing end rows penalise a
+ * one-row phase shift. No isolated filled answer determines this translation.
+ */
+function columnOffset(image: Raster, questions: ScanQuestion[], start: number, end: number): Point {
+  if (end - start < 3) return { x: 0, y: 0 };
+  let best = { x: 0, y: 0 }, bestSupport = 0, bestScore = -Infinity;
+  for (let dy = -32; dy <= 32; dy += 2)
+    for (let dx = -12; dx <= 12; dx += 2) {
+      let supportedRows = 0, total = 0;
+      for (let row = start; row < end; row++) {
+        let supportedChoices = 0, rowScore = 0;
+        for (let choice = 0; choice < questions[row].options.length; choice++) {
+          const p = bubblePosition(row, choice);
+          let outline = 0;
+          for (let i = 0; i < 16; i++) {
+            const angle = i * Math.PI * 2 / 16;
+            const sample = (radius: number) => luminance(image.data,
+              ((Math.round(p.y + dy + Math.sin(angle) * radius)) * image.width
+                + Math.round(p.x + dx + Math.cos(angle) * radius)) * 4);
+            outline += 0.25 * sample(8) + 0.75 * sample(16)
+              - (sample(11) + sample(12) + sample(13)) / 3;
+          }
+          outline /= 16 * 255;
+          if (outline >= 0.04) supportedChoices++;
+          rowScore += outline;
+        }
+        if (supportedChoices >= Math.max(2, Math.ceil(questions[row].options.length / 2))) supportedRows++;
+        total += rowScore / questions[row].options.length;
+      }
+      total /= end - start;
+      total -= (dx * dx + dy * dy) * 0.000005;
+      if (supportedRows > bestSupport || (supportedRows === bestSupport && total > bestScore)) {
+        bestSupport = supportedRows; bestScore = total; best = { x: dx, y: dy };
+      }
+    }
+  return bestSupport >= Math.ceil((end - start) * 0.7) ? best : { x: 0, y: 0 };
+}
+const registrations = new WeakMap<Raster, Map<string, Point[][]>>();
+/** Detection and review previews use exactly the same registered centres. */
+export function registeredBubbleCentres(image: Raster, questions: ScanQuestion[]): Point[][] {
+  const key = questions.map((q) => q.options.length).join(",");
+  let cache = registrations.get(image);
+  if (!cache) { cache = new Map(); registrations.set(image, cache); }
+  const cached = cache.get(key);
+  if (cached) return cached;
+  const offsets = [columnOffset(image, questions, 0, Math.min(20, questions.length)),
+    columnOffset(image, questions, 20, questions.length)];
+  const centres = questions.map((q, row) => {
+    const offset = bubbleRowOffset(image, row, q.options.length, offsets[row < 20 ? 0 : 1]);
+    return q.options.map((_, choice) => {
+      const p = bubblePosition(row, choice);
+      return bubbleCentre(image, { x: p.x + offset.x, y: p.y + offset.y });
+    });
+  });
+  cache.set(key, centres);
+  return centres;
+}
+/** Individual 32px-high crops cannot include the adjacent 39px-spaced row. */
+export function bubblePreviewSamples(centres: Point[]) {
+  return centres.map((p) => ({ x: p.x - 24, y: p.y - 16, width: 48, height: 32 }));
+}
+
 export function readBubbles(
   image: Raster,
   questions: ScanQuestion[],
@@ -323,14 +387,9 @@ export function readBubbles(
     questions.length > 40
   )
     throw new Error("Unsupported sheet layout.");
-  return Object.fromEntries(
-    questions.map((q, row) => {
-      const offset = bubbleRowOffset(image, row, q.options.length);
-      return [q.questionId, classifyBubbles(q.options.map((_, choice) => {
-        const p = bubblePosition(row, choice);
-        return bubbleCoverage(image, bubbleCentre(image, { x: p.x + offset.x, y: p.y + offset.y }));
-      }))];
-    }),
-  );
+  const centres = registeredBubbleCentres(image, questions);
+  return Object.fromEntries(questions.map((q, row) => [q.questionId,
+    classifyBubbles(centres[row].map((p) => bubbleCoverage(image, p)))]));
 }
+
 

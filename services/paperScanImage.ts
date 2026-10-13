@@ -1,10 +1,9 @@
 import {
   LAYOUT,
-  bubblePreviewRegion,
   type ScanSheet,
   type DetectedRow,
 } from "../src/lib/paperScan/layout";
-import { readBubbles, bubbleRowOffset, type Raster } from "../src/lib/paperScan/omr";
+import { readBubbles, registeredBubbleCentres, bubblePreviewSamples, type Raster } from "../src/lib/paperScan/omr";
 export interface ProcessedPhoto {
   sheetId: string;
   image: Raster;
@@ -130,27 +129,15 @@ export function rowPreviews(
       0,
       0,
     );
-  return Object.fromEntries(
-    sheet.questions.map((q, row) => {
-      const region = bubblePreviewRegion(row, q.options.length);
-      const offset = bubbleRowOffset(photo.image, row, q.options.length);
-      region.x += offset.x;
-      region.y += offset.y;
-      canvas.width = region.width;
-      canvas.height = region.height;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(
-        source,
-        region.x,
-        region.y,
-        region.width,
-        region.height,
-        0,
-        0,
-        region.width,
-        region.height,
-      );
-      return [q.questionId, canvas.toDataURL("image/png")];
-    }),
-  );
+  const centres = registeredBubbleCentres(photo.image, sheet.questions);
+  return Object.fromEntries(sheet.questions.map((q, row) => {
+    canvas.width = q.options.length * 48;
+    canvas.height = 32;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    bubblePreviewSamples(centres[row]).forEach((region, choice) => {
+      ctx.drawImage(source, region.x, region.y, region.width, region.height,
+        choice * 48, 0, 48, 32);
+    });
+    return [q.questionId, canvas.toDataURL("image/png")];
+  }));
 }
