@@ -7,6 +7,7 @@ import {
   saveScan,
   reviewScan,
   confirmScan,
+  fetchScanInbox,
 } from "../../services/paperScanService";
 import {
   detectedAnswers,
@@ -36,6 +37,8 @@ import ClassroomPrintPanel, {
 import GuestResultsPanel from "./GuestResultsPanel";
 import { MAX_SCAN_BATCH, runScanBatch } from "../../src/lib/paperScan/batch";
 import { saveRowPreviews, loadRowPreviews } from "../../services/paperScanPreviewCache";
+import ScanPhotoCapture from "./ScanPhotoCapture";
+import { scanInbox } from "../../src/lib/paperScan/inbox";
 import "./PaperScanWorkspace.css";
 type BatchDraft = {
   session: ScanSession;
@@ -110,7 +113,20 @@ export default function PaperScanWorkspace({
   const abort = useRef<AbortController | null>(null);
   const request = useRef<{ key: string; id: string } | null>(null);
   const upload = useRef<HTMLInputElement>(null);
-  const camera = useRef<HTMLInputElement>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const cameraOpenRef = useRef(cameraOpen);
+  cameraOpenRef.current = cameraOpen;
+  const [inboxSessions, setInboxSessions] = useState<ScanSession[]>([]);
+  const [inboxError, setInboxError] = useState("");
+  const refreshInbox = useCallback(async () => {
+    try { setInboxSessions(await fetchScanInbox(packet.assignment.id)); setInboxError(""); }
+    catch (e) { setInboxError(errorText(e)); }
+  }, [packet.assignment.id]);
+  useEffect(() => {
+    let active = true;
+    void fetchScanInbox(packet.assignment.id).then(value => { if (active) setInboxSessions(value); }).catch(e => { if (active) setInboxError(errorText(e)); });
+    return () => { active = false; };
+  }, [packet.assignment.id]);
   const busyRef = useRef(busy);
   busyRef.current = busy;
   const guestBusyChange = useCallback((value: boolean) => {
@@ -154,12 +170,8 @@ export default function PaperScanWorkspace({
       ? checks
       : sheet.questions
     : [];
-  const readyResultCount = new Set(batch.filter((item) => {
-    const draft = item.draft;
-    if (item.state !== "reviewed" || !draft?.sheet.studentId || packet.students.find((student) => student.id === draft.sheet.studentId)?.existingAnswerCount) return false;
-    const pages = draft.session.sheets.filter((page) => page.studentId === draft.sheet.studentId);
-    return pages.length > 0 && pages.every((page) => page.reviewedAnswers && !page.confirmedAt && !page.heldAt);
-  }).map((item) => `${item.draft!.session.id}:${item.draft!.sheet.studentId}`)).size;
+  const booklets = scanInbox(inboxSessions, packet.students);
+  const readyResultCount = booklets.filter(booklet => booklet.ready).length;
   const activeDraft = batch.find((item) => item.draft?.sheet.id === sheetId)?.draft;
   useEffect(() => {
     if (!activeDraft?.originalFile) { setOriginalUrl(""); return; }
@@ -175,9 +187,9 @@ export default function PaperScanWorkspace({
   }, [sheetId, flow]);
   useEffect(() => {
     flush.current = () =>
-      busyRef.current
+      (busyRef.current || cameraOpenRef.current)
         ? Promise.reject(
-            new Error("Please wait for the current scan to finish."),
+            new Error("Finish the camera tray or wait for the current scan to finish."),
           )
         : unsafeCorrections.current
           ? Promise.reject(
@@ -186,7 +198,7 @@ export default function PaperScanWorkspace({
               ),
             )
           : Promise.resolve();
-    canLeave.current = () => !busyRef.current && !unsafeCorrections.current;
+    canLeave.current = () => !busyRef.current && !cameraOpenRef.current && !unsafeCorrections.current;
     return () => {
       flush.current = async () => {};
       canLeave.current = () => false;
@@ -221,6 +233,14 @@ export default function PaperScanWorkspace({
   const remember = (value: ScanSession) => {
     sessionIdentity.current = value.id;
     setSession(value);
+    setInboxSessions(values => {
+      const previous = values.find(item => item.id === value.id);
+      const next = { ...value, sheets: value.sheets.map(page => {
+        const old = previous?.sheets.find(old => old.id === page.id && old.scanId === page.scanId);
+        return { ...page, scannedAt: page.scannedAt || old?.scannedAt };
+      }) };
+      return previous ? values.map(item => item.id === value.id ? next : item) : [next, ...values];
+    });
     updateBatch((items) => items.map((item) => {
       if (item.draft?.session.id !== value.id) return item;
       const nextSheet = value.sheets.find((page) => page.id === item.draft!.sheet.id);
@@ -521,6 +541,7 @@ export default function PaperScanWorkspace({
           ? { ...page, state: "error", error: errorText(e) } : page));
       }, stopping.signal);
       if (controller.signal.aborted) return;
+      await refreshInbox();
       // Capture stays in the tray until the teacher explicitly starts review.
       // A missing-preview resume is the one case that returns to that page.
       const restored = sheetId && !photo ? batchRef.current.find((item) => item.draft?.sheet.id === sheetId) : null;
@@ -555,27 +576,30 @@ export default function PaperScanWorkspace({
     const seen = new Set<string>();
     const failures: string[] = [];
     try {
-      for (const item of batchRef.current) {
-        const draft = item.draft;
-        if (!draft?.sheet.studentId || item.state === "completed") continue;
-        const studentId = draft.sheet.studentId;
-        const key = `${draft.session.id}:${studentId}`;
+      const latest = scanInbox(await fetchScanInbox(packet.assignment.id), packet.students);
+      for (const booklet of booklets.filter(value => value.ready)) {
+        const freshBooklet = latest.find(value => value.pages[0].studentId === booklet.pages[0].studentId);
+        if (!freshBooklet?.ready || freshBooklet.session.id !== booklet.session.id) {
+          failures.push(`${booklet.pages[0].studentName}: A newer or unfinished booklet needs review. Refresh saved reviews.`);
+          continue;
+        }
+        const draftSheet = booklet.pages[0];
+        const studentId = draftSheet.studentId!;
+        const key = `${booklet.session.id}:${studentId}`;
         if (seen.has(key)) continue;
         seen.add(key);
-        // Existing unfinished online work and unnamed booklets retain their
-        // individual identity/replacement confirmation gates.
-        if (packet.students.find((student) => student.id === studentId)?.existingAnswerCount) continue;
         try {
-          const current = await resolveScanSheet(draft.sheet.id, packet.assignment.id);
-          const pages = current.sheets.filter((page) => page.studentId === studentId);
-          if (!pages.length || pages.some((page) => !page.reviewedAnswers || page.confirmedAt)) continue;
+          const current = await resolveScanSheet(draftSheet.id, packet.assignment.id);
+          const pages = current.sheets.filter(page => page.studentId === studentId);
+          if (!scanInbox([current], packet.students).some(value => value.ready && value.pages[0].studentId === studentId)) continue;
+          if (pages.some(page => { const old = booklet.pages.find(old => old.id === page.id); return page.scanId !== old?.scanId || JSON.stringify(page.reviewedAnswers) !== JSON.stringify(old.reviewedAnswers); })) throw new Error("This booklet changed. Refresh and review it again.");
           await confirmScan(current.id, studentId, false);
           confirmed++;
-          updateBatch((items) => items.map((page) => page.draft?.session.id === current.id && page.draft.sheet.studentId === studentId
-            ? { ...page, state: "completed" } : page));
-        } catch (e) { failures.push(`${draft.sheet.studentName}: ${errorText(e)}`); }
+          updateBatch(items => items.map(page => page.draft?.session.id === current.id && page.draft.sheet.studentId === studentId ? { ...page, state: "completed" } : page));
+        } catch (e) { failures.push(`${draftSheet.studentName}: ${errorText(e)}`); }
       }
       if (confirmed) await onConfirmed();
+      await refreshInbox();
       if (failures.length) setError(failures.join(" · "));
       setMessage(`${confirmed} student results confirmed. Incomplete booklets, unnamed sheets and unfinished online answers can be finished individually.`);
       if (batchRef.current.find((item) => item.draft?.sheet.id === sheetId)?.state === "completed") {
@@ -597,7 +621,8 @@ export default function PaperScanWorkspace({
       try {
         localStorage.removeItem(correctionKey(sheet.scanId));
       } catch {}
-      setMessage("Page saved. Continue to the next page.");
+      await refreshInbox();
+      setMessage("Review saved. Confirm the student result to complete the assignment and update their Academic Profile.");
       if (advance) {
         const nextPage = batchRef.current.find((item) => item.state === "ready" && item.draft?.sheet.id !== sheet.id);
         if (nextPage?.draft) {
@@ -653,6 +678,7 @@ export default function PaperScanWorkspace({
       setPhoto(null);
       setCrops({});
       await onConfirmed();
+      await refreshInbox();
     } catch (e) {
       setError(errorText(e));
     } finally {
@@ -800,19 +826,16 @@ export default function PaperScanWorkspace({
               addPhotos(files);
             }}
           />
-          <input
-            ref={camera}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            capture="environment"
-            className="psc-file"
-            aria-label="Take answer sheet photo"
-            onChange={(e) => {
-              const files = Array.from(e.target.files || []);
-              e.target.value = "";
-              addPhotos(files);
-            }}
-          />
+          {cameraOpen ? <ScanPhotoCapture limit={MAX_SCAN_BATCH - batch.length} onClose={() => setCameraOpen(false)} onUse={files => { setCameraOpen(false); addPhotos(files); }} /> : null}
+          {!sheet ? <section className="psc-inbox" aria-label="Saved scan results">
+            <span className="paw-eyebrow">{packet.students.filter(student => student.status === "completed").length}/{packet.students.length} students completed · saved across your scan sessions</span>
+            <h3>{readyResultCount ? `${readyResultCount} ${readyResultCount === 1 ? "result is" : "results are"} ready to confirm` : "Saved reviews & results"}</h3>
+            <p>Saving a review keeps the checked answers. Confirming the result completes the assignment and updates the student’s Academic Profile.</p>
+            {inboxError ? <p role="alert">Could not load saved reviews: {inboxError}</p> : null}
+            <div className="psc-batch-actions"><button className="paw-button primary" disabled={!!busy || !readyResultCount || !!inboxError} onClick={() => void confirmBatch()}>Confirm {readyResultCount} {readyResultCount === 1 ? "result" : "results"} & complete assignments</button><button className="psc-link" disabled={!!busy} onClick={() => void refreshInbox()}>Refresh saved reviews</button></div>
+            <div className="psc-session-list">{booklets.map(booklet => <button key={`${booklet.session.id}:${booklet.pages[0].studentId || booklet.pages[0].guestId}`} className="psc-session-row" disabled={!!busy} onClick={() => void openSavedPage((booklet.pages.find(page => page.scanId && !page.reviewedAnswers) || booklet.pages.find(page => page.scanId)!).id)}><strong>{booklet.pages[0].studentName}</strong><span>{booklet.ready ? "Reviewed · ready to confirm" : !booklet.pages[0].studentId ? "Unnamed booklet · finish & link" : booklet.pages.filter(page => page.reviewedAnswers).length === booklet.pages[0].pageCount ? "Reviewed · finish individually" : `${booklet.pages.filter(page => page.reviewedAnswers).length}/${booklet.pages[0].pageCount} pages reviewed`} →</span></button>)}</div>
+            {!booklets.length && !inboxError ? <small>No unfinished scanned booklets yet.</small> : null}
+          </section> : null}
           {batch.length ? <ol className="psc-steps" aria-label="Scan progress">
             <li aria-current={flow === "capture" ? "step" : undefined}>1 · Add photos</li>
             <li aria-current={flow === "review" ? "step" : undefined}>2 · Review pages</li>
@@ -821,10 +844,10 @@ export default function PaperScanWorkspace({
           {batch.length && !sheet ? (
             <section className="psc-batch" aria-label="Scan batch">
               <header className="psc-batch-heading">
-                <div><span className="paw-eyebrow">Your scan tray</span><h3>{flow === "finish" ? "Finish this batch" : `${batch.length} photos ready in your tray`}</h3>
+                <div><span className="paw-eyebrow">Your scan tray</span><h3>{flow === "finish" ? "Finish this batch" : `${batch.length} ${batch.length === 1 ? "photo" : "photos"} ready in your tray`}</h3>
                   <p>{batch.filter((item) => item.state === "ready").length} to review · {batch.filter((item) => item.state === "reviewed").length} reviewed · {batch.filter((item) => item.state === "completed").length} finished</p></div>
                 <div className="psc-batch-actions">
-                  <button className="paw-button" disabled={!!busy} onClick={() => camera.current?.click()}>+ Take photo</button>
+                  <button className="paw-button" disabled={!!busy} onClick={() => setCameraOpen(true)}>+ Take photo</button>
                   <button className="paw-button" disabled={!!busy} onClick={() => upload.current?.click()}>+ Add photos</button>
                 </div>
               </header>
@@ -832,7 +855,7 @@ export default function PaperScanWorkspace({
                 {batch.some((item) => item.state === "ready") ? <button className="paw-button primary" disabled={!!busy} onClick={() => {
                   const first = batchRef.current.find((item) => item.state === "ready");
                   if (first) void openBatchPage(first);
-                }}>{flow === "finish" ? "Continue review" : "Start review"} · {batch.filter((item) => item.state === "ready").length} pages</button> : null}
+                }}>{flow === "finish" ? "Continue review" : "Start review"} · {batch.filter((item) => item.state === "ready").length} {batch.filter((item) => item.state === "ready").length === 1 ? "page" : "pages"}</button> : null}
               </div>
               <div className="psc-batch-list">
                 {batch.map((item, index) => (
@@ -854,7 +877,7 @@ export default function PaperScanWorkspace({
               <div className="psc-batch-actions">
                 {batchAbort.current ? <button className="paw-button" onClick={() => batchAbort.current?.abort()}>Pause after this photo</button> : null}
                 {batch.some((item) => item.state === "queued") ? <button className="paw-button" disabled={!!busy} onClick={() => void readBatch(batch.filter((item) => item.state === "queued"))}>Continue reading</button> : null}
-                <button className="paw-button" disabled={!!busy || readyResultCount === 0} onClick={() => void confirmBatch()}>Confirm {readyResultCount} {readyResultCount === 1 ? "student result" : "student results"}</button>
+                <button className="paw-button" disabled={!!busy || readyResultCount === 0 || !!inboxError} onClick={() => void confirmBatch()}>Confirm {readyResultCount} {readyResultCount === 1 ? "student result" : "student results"}</button>
                 <button className="psc-link" disabled={!!busy || batch.some((item) => !["completed", "error"].includes(item.state))} onClick={() => { updateBatch(() => []); resetReview(); }}>Clear finished batch</button>
               </div>
               {flow === "finish" ? <p className="psc-hint">Reviewed pages are saved. Confirm student results to complete their assignments. Use Finish student for unnamed sheets, incomplete booklets or unfinished online work.</p> : null}
@@ -869,12 +892,12 @@ export default function PaperScanWorkspace({
               </div>
               <span className="paw-eyebrow">Your phone is the scanner</span>
               <h3>A stack of papers. One scan batch.</h3>
-              <p>Choose several photos together, or keep adding camera shots. One page per photo, with its QR code and four corner squares visible.</p>
+              <p>Take the whole stack one shot after another, then tap Use photos. You can also choose existing photos together. One page per photo, with its QR code and four corner squares visible.</p>
               <div className="psc-capture-actions">
                 <button
                   className="paw-button primary"
                   disabled={!!busy}
-                  onClick={() => camera.current?.click()}
+                  onClick={() => setCameraOpen(true)}
                 >
                   Take photo
                 </button>
@@ -890,38 +913,6 @@ export default function PaperScanWorkspace({
                 Photos stay on this device. Reviewed answers are saved securely.
               </small>
               </> : null}
-              {session && !batch.length ? (
-                <div className="psc-session-list">
-                  <strong>Latest print session</strong>
-                  <span>
-                    {session.sheets.filter((s) => s.reviewedAnswers).length}/
-                    {session.sheets.length} pages reviewed
-                  </span>
-                  {session.sheets
-                    .filter(
-                      (s) =>
-                        s.scanId &&
-                        !s.confirmedAt &&
-                        !s.heldAt &&
-                        packet.students.find((p) => p.id === s.studentId)
-                          ?.status !== "completed",
-                    )
-                    .map((s) => (
-                      <button
-                        key={s.id}
-                        className="psc-session-row"
-                        disabled={!!busy}
-                        onClick={() => void openSavedPage(s.id)}
-                      >
-                        {s.studentName}
-                        <span>
-                          Page {s.pageNumber}/{s.pageCount} ·{" "}
-                          {s.reviewedAnswers ? "Reviewed" : "Resume review"} →
-                        </span>
-                      </button>
-                    ))}
-                </div>
-              ) : null}
             </section>
           ) : (
             <section className="psc-review">

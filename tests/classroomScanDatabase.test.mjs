@@ -25,6 +25,7 @@ const detected = {
 async function setup() {
   const f = await fixture();
   await f.db.exec(migration);
+  await f.db.exec(readFileSync("supabase/migrations/20261013155534_assignment_scan_inbox.sql", "utf8"));
   return f;
 }
 const issue = (f, opts = {}) =>
@@ -261,4 +262,27 @@ test("long assignments require every page to be reviewed before one result can b
       if (![q1, q2].includes(key)) delete options[key];
     await f.db.close();
   }
+});
+
+test("assignment scan inbox restores scanned sessions, enforces ownership, and performs no grading", async () => {
+  const f = await setup();
+  try {
+    const sheet = (await issue(f)).rows[0].result.sheets[0];
+    const inbox = async () => (await f.db.query("select rpc_teacher_scan_inbox($1) result", [assignment])).rows[0].result;
+    assert.deepEqual(await inbox(), []);
+    await scan(f, sheet.id); await review(f);
+    const restored = await inbox();
+    assert.equal(restored.length, 1);
+    assert.equal(restored[0].id, sessionId);
+    assert.ok(restored[0].sheets[0].scannedAt);
+    assert.deepEqual(restored[0].sheets[0].reviewedAnswers, { [q1]: "Yes", [q2]: null });
+    assert.equal((await f.db.query("select count(*)::int n from student_assignment_results")).rows[0].n, 0);
+    await f.db.query("select set_config('request.jwt.claim.sub',$1,false)", [student]);
+    await assert.rejects(inbox(), /NOT_AUTHORIZED/);
+    await f.db.query("select set_config('request.jwt.claim.sub','',false)");
+    await assert.rejects(inbox(), /NOT_AUTHENTICATED/);
+    await f.db.query("select set_config('request.jwt.claim.sub',$1,false)", [teacher]);
+    await f.db.exec("update assignment_questions set question_snapshot=jsonb_set(question_snapshot,'{question_text}','\"Changed\"'::jsonb)");
+    assert.deepEqual(await inbox(), []);
+  } finally { await f.db.close(); }
 });
