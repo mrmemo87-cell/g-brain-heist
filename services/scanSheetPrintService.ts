@@ -13,6 +13,12 @@ import {
 import { escapeSchoolDocumentHtml as escape } from "../src/lib/schoolDocument";
 import type { PaperWorkspace } from "./assignmentPaperService";
 import {
+  BOOKLET_PRINT_CSS,
+  DEFAULT_BOOKLET_PRINT_SETTINGS,
+  prepareBookletPrint,
+  type BookletPrintSettings,
+} from "../src/lib/paperScan/printBooklets";
+import {
   normalizeBrandLogoUrl,
   PRODUCT_LOGO_URL,
 } from "../src/lib/schoolBranding";
@@ -92,6 +98,7 @@ export function renderSheetPrintWindow(
   schoolLogoUrl?: string | null,
   includeQuestions = false,
   questionsOnlyCopies = 0,
+  printSettings: BookletPrintSettings = DEFAULT_BOOKLET_PRINT_SETTINGS,
 ) {
   if (win.closed) throw new Error("The print window was closed. Try again.");
   const questionPack = (
@@ -114,8 +121,8 @@ export function renderSheetPrintWindow(
   };
   let content = "";
   if (questionsOnlyCopies) {
-    content = Array.from({ length: questionsOnlyCopies }, () =>
-      questionPack(""),
+    content = Array.from({ length: questionsOnlyCopies }, (_, index) =>
+      `<article class="student-booklet" data-booklet="${index + 1}">${questionPack("")}</article>`,
     ).join("");
   } else {
     const groups = new Map<string, ScanSheet[]>();
@@ -127,7 +134,7 @@ export function renderSheetPrintWindow(
       .map((pages) => {
         pages.sort((a, b) => a.pageNumber - b.pageNumber);
         const first = pages[0];
-        return (
+        return `<article class="student-booklet" data-booklet="${escape(first.guestId || first.studentId || "")}">` + (
           (includeQuestions
             ? questionPack(
                 first.guestId && !first.studentId ? "" : first.studentName,
@@ -140,19 +147,18 @@ export function renderSheetPrintWindow(
           pages
             .map(
               (sheet) =>
-                `<section class="sheet">${buildBubbleSheetSvg(sheet, session, packet, schoolName, schoolLogoUrl)}</section>`,
+                `<section class="sheet print-page">${buildBubbleSheetSvg(sheet, session, packet, schoolName, schoolLogoUrl)}</section>`,
             )
             .join("")
-        );
+        ) + "</article>";
       })
       .join("");
   }
   win.document.open();
   win.document
     .write(`<!doctype html><html><head><meta charset="utf-8"><title>${escape(packet.code)} · Answer sheets</title><style>
- @page{size:A4 portrait;margin:0}@page questions{size:A4 portrait;margin:16mm}@page bubbles{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;background:#e8edf4;font-family:Arial,sans-serif}.bar{position:sticky;top:0;background:#172438;color:white;padding:16px;display:flex;align-items:center;gap:16px;z-index:2}.bar button{padding:10px 20px;border:0;border-radius:8px;background:white;color:#172438;font-weight:bold;cursor:pointer}.sheet{page:bubbles;width:210mm;height:297mm;background:white;margin:20px auto;break-after:page}.sheet:last-child{break-after:auto}svg{display:block;width:210mm;height:297mm}@media print{body{background:white}.bar{display:none}.sheet{margin:0;box-shadow:none}}
- .question-pack{page:questions;width:210mm;min-height:297mm;padding:18mm;background:white;margin:20px auto;break-after:page;color:#172438}.question-pack header{position:relative;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid #d4d9e0;padding:0 23mm 12px 0;min-height:20mm}.pack-logo{position:absolute;right:0;top:0;width:18mm;height:18mm;object-fit:contain}.question-pack h1{font-size:24px;margin:20px 0 8px}.pack-meta,.pack-instruction{font-size:12px}.pack-name{font-size:16px;margin:22px 0}.question-pack .document-card{border:1px solid #d4d9e0;border-radius:8px;padding:4mm;break-inside:avoid}.question-pack .document-card strong{font-size:14px!important}.question-pack ol{font-size:14px;line-height:1.5}.bar button:disabled{opacity:.65;cursor:wait}@media print{.question-pack{margin:0;padding:0;width:auto;min-height:0}.question-pack:last-child{break-after:auto}}@media screen and (max-width:850px){body{overflow-x:hidden}.bar{position:sticky;left:0;flex-wrap:wrap}.sheet,.question-pack{margin:12px auto;width:100%;max-width:210mm}.sheet{height:auto;aspect-ratio:210/297}.sheet svg{width:100%;height:auto}.question-pack{min-height:0;padding:7vw}}
- </style></head><body><div class="bar"><button id="print" disabled>Preparing…</button><span id="print-status" role="status">A4 · 100% / Actual size · Headers & footers off</span></div>${content}</body></html>`);
+ ${BOOKLET_PRINT_CSS}
+ </style></head><body><div class="bar"><button id="print" disabled>Preparing…</button><div class="bar-copy"><strong id="print-status" role="status">Counting pages and preparing booklets…</strong><span id="printer-reminder"></span></div></div><div class="preview-viewport"><main class="preview-stage">${content}</main></div></body></html>`);
   win.document.close();
   win.document
     .getElementById("print")
@@ -186,7 +192,7 @@ export function renderSheetPrintWindow(
         if (timer) clearTimeout(timer);
       }
     }),
-  ).then((results) => {
+  ).then(async (results) => {
     if (win.closed) return;
     let missingQuestion = false,
       missingLogo = false;
@@ -202,21 +208,36 @@ export function renderSheetPrintWindow(
             } else missingQuestion = true;
           });
       });
-    const button = win.document.getElementById(
-      "print",
-    ) as HTMLButtonElement | null;
-    if (button) {
-      button.disabled = missingQuestion;
-      button.textContent = missingQuestion
-        ? "Images unavailable"
-        : "Print / Save PDF";
-    }
+    const button = win.document.getElementById("print") as HTMLButtonElement | null;
     const status = win.document.getElementById("print-status");
-    if (status && missingQuestion)
-      status.textContent =
-        "A question image could not load. Close this preview and try again.";
-    else if (status && missingLogo)
-      status.textContent =
-        "School logo unavailable · A4 · Actual size · Headers & footers off";
+    if (missingQuestion) {
+      if (button) { button.disabled = true; button.textContent = "Images unavailable"; }
+      if (status) status.textContent = "A question image could not load. Close this preview and try again.";
+      return;
+    }
+    try {
+      await win.document.fonts?.ready;
+      if (win.closed) return;
+      const plan = prepareBookletPrint(win.document, printSettings);
+      if (status) status.textContent = `${plan.physicalSheets} physical sheets · ${plan.contentPages} content pages · ${plan.blankPages} added blank pages`;
+      const reminder = win.document.getElementById("printer-reminder");
+      if (reminder) reminder.textContent = `${printSettings.duplex ? "Double-sided" : "Single-sided"} · ${printSettings.pagesPerSide} page${printSettings.pagesPerSide === 1 ? "" : "s"} per side · A4 · Actual size · Headers & footers off · Copies: 1 · Print all pages. Use these same settings in the printer dialog.${printSettings.keepTogether ? " Keep blank pages: each booklet starts on a fresh sheet." : " Student separation is off."}${missingLogo ? " School logo unavailable." : ""}`;
+      const stage = win.document.querySelector<HTMLElement>(".preview-stage");
+      const viewport = win.document.querySelector<HTMLElement>(".preview-viewport");
+      const scalePreview = () => {
+        if (!stage || !viewport) return;
+        const width = stage.offsetWidth;
+        const scale = Math.min(1, Math.max(200, win.innerWidth - 24) / width);
+        stage.style.transform = `scale(${scale})`;
+        viewport.style.width = `${width * scale}px`;
+        viewport.style.height = `${stage.offsetHeight * scale}px`;
+      };
+      scalePreview();
+      win.addEventListener("resize", scalePreview);
+      if (button) { button.disabled = false; button.textContent = "Print / Save PDF"; }
+    } catch (error) {
+      if (status) status.textContent = error instanceof Error ? error.message : "This pack could not be paginated. Close the preview and try again.";
+      if (button) { button.disabled = true; button.textContent = "Check page layout"; }
+    }
   });
 }
