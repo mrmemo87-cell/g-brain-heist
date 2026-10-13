@@ -2,6 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { build } from "esbuild";
 import { JSDOM, VirtualConsole } from "jsdom";
+import { readFileSync } from "node:fs";
+import { createHash, webcrypto } from "node:crypto";
+import { unzipSync, strFromU8 } from "fflate";
+const audioFixture = new Uint8Array([1, 2, 3, 4]);
+const fixtureAudioHash = createHash("sha256")
+  .update(audioFixture)
+  .digest("hex");
 const buildResult = await build({
   stdin: {
     contents: `import React from 'react';import {createRoot} from 'react-dom/client';import Library from './src/pages/ielts/IeltsLessonLibrary';const root=createRoot(document.getElementById('root'));window.show=s=>root.render(<Library key={s} schoolId={s} onClose={()=>window.action='close'} onAssign={()=>window.action='assign'} onProgress={()=>window.action='progress'}/>);window.show('school-a');`,
@@ -38,18 +45,20 @@ function pack(s) {
       title: "Guided listening",
       version: "0.1.0",
       content_sha256: "a".repeat(64),
-      audio_sha256: "b".repeat(64),
+      audio_sha256: fixtureAudioHash,
       audio_bucket: "ielts-targeted-listening",
       audio_path: "x",
       teacher_notes: "PRIVATE SCRIPT",
       instructions: "Read first.",
-      questions: [
-        { id: "q1", prompt: "Day", accepted_answers: ["SECRET KEY"] },
-      ],
+      questions: Array.from({ length: 6 }, (_, i) => ({
+        id: `q${i + 1}`,
+        prompt: `Day ${i + 1}`,
+        accepted_answers: ["SECRET KEY"],
+      })),
     })),
   };
 }
-async function setup(deny = false) {
+async function setup(deny = false, tamper = false) {
   const vc = new VirtualConsole();
   const errors = [];
   vc.on("jsdomError", (e) => {
@@ -62,12 +71,15 @@ async function setup(deny = false) {
     virtualConsole: vc,
   });
   const w = d.window;
+  // Keep encoder-produced byte arrays in the same realm as fflate.
+  w.Uint8Array = Uint8Array;
   w.TextEncoder = TextEncoder;
   w.TextDecoder = TextDecoder;
   w.Request = Request;
   w.Response = Response;
   w.Headers = Headers;
   w.Blob = Blob;
+  Object.defineProperty(w, "crypto", { value: webcrypto });
   const downloads = [];
   w.URL.createObjectURL = (b) => {
     downloads.push(b);
@@ -76,6 +88,27 @@ async function setup(deny = false) {
   w.URL.revokeObjectURL = () => {};
   w.HTMLAnchorElement.prototype.click = () => {};
   w.fetch = async (url, opts) => {
+    if (String(url).startsWith("/ielts/lessons/"))
+      return {
+        ok: true,
+        arrayBuffer: async () => {
+          const bytes = readFileSync(
+            "public/ielts/lessons/ielts-01-v2-template.pptx",
+          );
+          return bytes.buffer.slice(
+            bytes.byteOffset,
+            bytes.byteOffset + bytes.byteLength,
+          );
+        },
+      };
+    if (String(url).includes("/storage/v1/object/"))
+      return {
+        ok: true,
+        blob: async () =>
+          new Blob([tamper ? new Uint8Array([9]) : audioFixture], {
+            type: "audio/mpeg",
+          }),
+      };
     const args = JSON.parse(opts.body);
     return new Response(
       JSON.stringify(
@@ -118,4 +151,46 @@ test("school switch clears earlier content; access denial offers retry without d
   assert.ok(denied.w.document.querySelector('[role="alert"]'));
   assert.ok(!denied.w.document.body.textContent.includes("Download complete"));
   denied.d.window.close();
+});
+
+test("LB-05/06/09 complete ZIP includes both presentation modes and bound versions; student files omit keys", async () => {
+  const { d, w, downloads, errors } = await setup();
+  [...w.document.querySelectorAll("button")]
+    .find((x) => x.textContent.includes("Download complete"))
+    .click();
+  for (let i = 0; i < 20 && !downloads.length; i++) await wait();
+  assert.equal(downloads.length, 1, w.document.body.textContent);
+  const files = unzipSync(new Uint8Array(await downloads[0].arrayBuffer()));
+  assert.ok(files["IELTS-01-presentation.pptx"]);
+  assert.ok(files["IELTS-01-presentation-static.pptx"]);
+  const manifest = JSON.parse(strFromU8(files["versions.json"]));
+  assert.equal(manifest.school.name, "School A");
+  assert.equal(manifest.presentation_version, "2.0.0");
+  assert.equal(manifest.lesson_bible_version, "1.0.0");
+  assert.ok(!strFromU8(files["IELTS-01-students.html"]).includes("SECRET KEY"));
+  const staticSlides = Object.entries(
+    unzipSync(files["IELTS-01-presentation-static.pptx"]),
+  ).filter(([p]) => /^ppt\/slides\/slide\d+\.xml$/.test(p));
+  assert.equal(staticSlides.length, 34);
+  assert.ok(
+    staticSlides.every(([, b]) => !strFromU8(b).includes("<p:transition")),
+  );
+  assert.deepEqual(errors, []);
+  d.window.close();
+});
+
+test("LB-05 audio hash mismatch blocks the complete pack instead of exporting unverified recording", async () => {
+  const { d, w, downloads } = await setup(false, true);
+  [...w.document.querySelectorAll("button")]
+    .find((x) => x.textContent.includes("Download complete"))
+    .click();
+  for (let i = 0; i < 20 && !w.document.querySelector('[role="alert"]'); i++)
+    await wait();
+  assert.equal(downloads.length, 0);
+  assert.ok(
+    w.document
+      .querySelector('[role="alert"]')
+      .textContent.includes("download could not finish"),
+  );
+  d.window.close();
 });

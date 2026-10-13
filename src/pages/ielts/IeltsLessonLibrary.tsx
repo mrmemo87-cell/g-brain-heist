@@ -1,3 +1,4 @@
+import { lessonProduction } from "../../../services/ieltsLessonPresentation";
 import { lessonPowerPoint } from "../../../services/ieltsLessonPowerPoint";
 import React, { useEffect, useRef, useState } from "react";
 import { zipSync, strToU8 } from "fflate";
@@ -103,6 +104,9 @@ export default function IeltsLessonLibrary({
       files["IELTS-01-presentation.pptx"] = new Uint8Array(
         await pptx.arrayBuffer(),
       );
+      files["IELTS-01-presentation-static.pptx"] = new Uint8Array(
+        await (await lessonPowerPoint(data, true)).arrayBuffer(),
+      );
       for (const kind of [
         "plan",
         "students",
@@ -123,13 +127,15 @@ export default function IeltsLessonLibrary({
         `<!doctype html><html lang="en"><meta charset="utf-8"><title>IELTS lesson audio</title><h1>Lesson 1 audio</h1>${data.materials.map((m) => `<p>${m.display_code}</p><audio controls preload="none" src="${m.display_code}.mp3"></audio>`).join("")}</html>`,
       );
       files["START-HERE.txt"] = strToU8(
-        "Extract this complete folder. Open IELTS-01-presentation.pptx in PowerPoint or IELTS-01-slides.html in a browser to present. Open Audio-player.html separately. Print the students file or save it as PDF using your browser. Keep keys and scripts private. Use the actual Reading Screener in Brains Heist. Paper guided listening and reflections do not automatically enter student records. Targeted practice uses existing assignment/source/exposure checks.",
+        "Extract this complete folder. Open IELTS-01-presentation.pptx in PowerPoint or IELTS-01-slides.html in a browser to present. Use IELTS-01-presentation-static.pptx for motion-free presenting. Both presentations contain guided-practice answers on separate reveal slides. Advance only after students commit an answer. Keep decks private before listening. In HTML use Reduce motion and Teacher notes controls. Open Audio-player.html separately. Print the students file or save it as PDF using your browser. Keep keys and scripts private. Use the actual Reading Screener in Brains Heist. Paper guided listening and reflections do not automatically enter student records. Targeted practice uses existing assignment/source/exposure checks.",
       );
       files["versions.json"] = strToU8(
         JSON.stringify(
           {
             lesson: data.lesson_code,
             version: data.version,
+            lesson_bible_version: lessonProduction.bibleVersion,
+            presentation_version: lessonProduction.presentationVersion,
             school: data.school,
             materials: data.materials.map((m) => ({
               code: m.display_code,
@@ -218,6 +224,29 @@ export default function IeltsLessonLibrary({
             >
               Download PowerPoint (.pptx)
             </button>
+            <button
+              className="sp-secondary"
+              disabled={!ready || busy}
+              onClick={() =>
+                void act(async () => {
+                  if (data) {
+                    const blob = await lessonPowerPoint(data, true);
+                    if (current.current === schoolId)
+                      downloadLessonFile(
+                        blob,
+                        "IELTS-01-presentation-static.pptx",
+                      );
+                  }
+                })
+              }
+            >
+              Download motion-free PowerPoint (.pptx)
+            </button>
+            <p>
+              Teacher presentations include guided-practice answers. Advance to
+              each reveal after students commit. Keep the decks private before
+              listening.
+            </p>
             <h3>Prepare</h3>
             <p>
               Check student access to Reading Screener A and its published
