@@ -1,23 +1,25 @@
-# ESL question sets for Jess: Grades 7 and 8
+# Shared verified ESL assessment sets: teacher guide
 
-Published 13 October 2026. Brains Heist Verified → subject English/ESL → search the lesson code below. The records use canonical English and support the ESL subject alias.
+Published 13 October 2026. Brains Heist Verified → subject English/ESL → search the skill name below and select Initial check or Recheck. The records use canonical English and support the ESL subject alias.
 
 ## What is available
 
 100 original questions per group, 200 total. Each lesson contains six `lesson-check` items and four `fresh-recheck` items. Both pathways cover the same ten lesson themes; Grade 7 uses shorter sentences and texts, while Grade 8 uses slightly longer contexts, familiar everyday situations, and controlled additional complexity. These labels describe task design, not a formally measured CEFR level.
 
-| Lesson | Topic | Grade 7 search | Grade 8 search |
+| Sequence | Skill topic | Starting pathway | Further pathway |
 |---|---|---|---|
-| 1 | Past simple and did | ESL7-L01 | ESL8-L01 |
-| 2 | Past simple or present perfect | ESL7-L02 | ESL8-L02 |
-| 3 | Find reading details | ESL7-L03 | ESL8-L03 |
-| 4 | Infer feelings from clues | ESL7-L04 | ESL8-L04 |
-| 5 | Articles and uncountable nouns | ESL7-L05 | ESL8-L05 |
-| 6 | Connect ideas | ESL7-L06 | ESL8-L06 |
-| 7 | Passive voice | ESL7-L07 | ESL8-L07 |
-| 8 | Reported speech | ESL7-L08 | ESL8-L08 |
-| 9 | Past deductions | ESL7-L09 | ESL8-L09 |
-| 10 | Past regrets and third conditional | ESL7-L10 | ESL8-L10 |
+| 1 | Past simple: irregular verbs and did | Foundation | Developing |
+| 2 | Past simple and present perfect | Foundation | Developing |
+| 3 | Reading: locating specific information | Foundation | Developing |
+| 4 | Reading: feelings and supporting evidence | Foundation | Developing |
+| 5 | Articles and uncountable nouns | Foundation | Developing |
+| 6 | Connectors: linking ideas | Foundation | Developing |
+| 7 | Passive voice: was and past participles | Foundation | Developing |
+| 8 | Reported speech: tense and time changes | Foundation | Developing |
+| 9 | Past deductions: must have and might have | Foundation | Developing |
+| 10 | Third conditional: unreal past conditions and results | Foundation | Developing |
+
+Every topic now ends with `Foundation · Initial check`, `Foundation · Recheck`, `Developing · Initial check` or `Developing · Recheck`. Initial check topics contain six questions; Recheck topics contain four different questions. Choose a pathway based on learner readiness and the available eligible grades, not teacher identity. Foundation currently has Grade 7 eligibility and Developing Grade 8 eligibility. These are item-demand labels, not CEFR certifications. Old ESL7-L01–L10 and ESL8-L01–L10 codes remain searchable as legacy tags, but are no longer the displayed topics.
 
 ## Use in class
 
@@ -40,7 +42,7 @@ Lesson 9 is an extension until the learner can reliably select have + participle
 
 ## Academic mapping and validation
 
-Every item has one approved registry mapping, a clear item-specific evidence statement and a matching assessment process. Existing evidence focuses were reused for 102 items where the target matched earlier evidence. New focuses cover the remaining controlled tasks. All 200 items are active, globally public, verified and analytics-eligible with matching content hashes. Keys occur 50 times each in positions A–D. Importer dry runs passed before publication. Live verification confirmed ten items per topic, six check and four recheck items, and exact intervention candidates for all 23 Grade 7 and 24 Grade 8 targets tested with representative enrolled student contexts.
+Every item has one approved registry mapping, a clear item-specific evidence statement and a matching assessment process. Existing evidence focuses were reused for 102 items where the target matched earlier evidence. New focuses cover the remaining controlled tasks. All 200 items are active, globally public, verified and analytics-eligible with matching content hashes. Keys occur 50 times each in positions A–D. Importer dry runs passed before publication. Live verification confirmed 40 separate named topics: 20 initial checks with six items each and 20 rechecks with four items each, and exact intervention candidates for all 23 Grade 7 and 24 Grade 8 targets tested with representative enrolled student contexts.
 
 MCQs provide evidence of recognition, form selection, reading retrieval and inference; they do not establish independent speaking or extended-writing competence. Student scores and old evidence snapshots were not changed. Actual improvement requires new completed work showing stronger performance.
 
@@ -351,3 +353,7 @@ External item suffixes 01–06 are lesson checks; 07–10 are fresh rechecks. Th
 | esl-path-20261013-g8-l10-08 | Fresh recheck | Past fact: He did not save the file, so he lost his work. / Complete the imagined past result: If he had saved the file, he _____. | would have kept his work |
 | esl-path-20261013-g8-l10-09 | Fresh recheck | Past fact: They did not invite Ali, so he stayed home. / Complete the unreal past condition: If they _____, the result would have been different. | had invited Ali |
 | esl-path-20261013-g8-l10-10 | Fresh recheck | Past fact: They did not invite Ali, so he stayed home. / Complete the imagined past result: If they had invited Ali, Ali _____. | would have joined them |
+
+## Topic relabelling verification
+
+The shared labels were applied to all 200 questions without changing assessed content hashes, item IDs, answers, or approved academic mappings. A rollback-only regression check confirmed trusted topic relabelling is accepted, while assessed-content edits and authenticated/anonymous topic edits remain blocked. Existing completed assignment snapshots retain their original labels.
