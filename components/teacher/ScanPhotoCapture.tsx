@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 type Shot = { file: File; url: string; id: string };
 type Props = { limit: number; onUse: (files: File[]) => void; onClose: () => void };
 /** Capture a stack locally; no scanning starts until the teacher chooses Use photos. */
@@ -64,7 +65,8 @@ export default function ScanPhotoCapture({ limit, onUse, onClose }: Props) {
     } catch (e) { if (alive.current) setError(e instanceof Error ? e.message : 'Could not capture photo.'); }
     finally { capturing.current = false; if (alive.current) setWorking(false); }
   };
-  return <div className="psc-camera-backdrop"><section className="psc-camera" role="dialog" aria-modal="true" aria-labelledby="psc-camera-title" onKeyDown={e => {
+  return createPortal(<div className="psc-camera-backdrop"><section className="psc-camera" role="dialog" aria-modal="true" aria-labelledby="psc-camera-title" onKeyDown={e => {
+    if (e.key === 'Escape' || e.key === 'Tab') e.stopPropagation();
     if (e.key === 'Escape' && !working) onClose();
     if (e.key === 'Tab') {
       const controls = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not([type="file"])')).filter(el => el.offsetParent !== null);
@@ -82,5 +84,5 @@ export default function ScanPhotoCapture({ limit, onUse, onClose }: Props) {
     <input ref={gallery} className="psc-file" type="file" accept="image/*" multiple aria-label="Add photos to camera tray" onChange={e => { add(Array.from(e.target.files || [])); e.target.value = ''; }} />
     <div className="psc-camera-shots" aria-label="Captured photos">{shots.map((shot, index) => <figure key={shot.id}><img src={shot.url} alt={`Captured page ${index + 1}`} /><figcaption>{index + 1}<button className="psc-link" aria-label={`Remove photo ${index + 1}`} disabled={working} onClick={() => { URL.revokeObjectURL(shot.url); shotsRef.current = shotsRef.current.filter(item => item.id !== shot.id); setShots(shotsRef.current); }}>Remove</button></figcaption></figure>)}</div>
     <footer><span role="status">{shots.length}/{limit} photos · kept on this device</span><button className="paw-button primary" disabled={!shots.length || working} onClick={() => { stop(); onUse(shotsRef.current.map(shot => shot.file)); }}>Use {shots.length} {shots.length === 1 ? 'photo' : 'photos'}</button></footer>
-  </section></div>;
+  </section></div>, document.body);
 }
