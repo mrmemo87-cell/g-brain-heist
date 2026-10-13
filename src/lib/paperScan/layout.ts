@@ -31,6 +31,7 @@ export interface ScanSheet {
   layoutVersion: string;
   questions: ScanQuestion[];
   scanId?: string | null;
+  scannedAt?: string | null;
   imageHash?: string | null;
   detected?: Record<string, DetectedRow> | null;
   reviewedAnswers?: Record<string, string | null> | null;
