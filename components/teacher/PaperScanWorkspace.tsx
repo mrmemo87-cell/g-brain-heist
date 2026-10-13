@@ -284,6 +284,7 @@ export default function PaperScanWorkspace({
           schoolLogoUrl,
           false,
           order.copies,
+          order.printSettings,
         );
       } else {
         if (!supported)
@@ -324,6 +325,8 @@ export default function PaperScanWorkspace({
           schoolName,
           schoolLogoUrl,
           order.includeQuestions,
+          0,
+          order.printSettings,
         );
         // A successful preview completes this issuance. Next print gets fresh QR tokens; failed retries reuse the same request.
         request.current = null;

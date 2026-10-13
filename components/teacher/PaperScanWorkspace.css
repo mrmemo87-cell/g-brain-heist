@@ -79,6 +79,30 @@
   background: white;
   color: #172438;
 }
+.psc-date select {
+  border: 1px solid #cad6e8;
+  border-radius: 10px;
+  padding: 12px;
+  background: white;
+  color: #172438;
+  width: 100%;
+  min-width: 0;
+}
+.psc select:focus-visible {
+  outline: 3px solid #60a5fa;
+  outline-offset: 3px;
+}
+.psc-printer-settings {
+  border: 1px solid #d6e1f0;
+  border-radius: 14px;
+  padding: 16px;
+  margin: 20px 0;
+  min-width: 0;
+  background: #f7f9fc;
+}
+.psc-printer-settings legend { font-weight: 700; font-size: 14px; padding: 0 5px; }
+.psc-printer-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.psc-printer-settings .psc-hint { margin: 12px 0 0; font-size: 12px; }
 .psc-select-heading {
   display: flex;
   justify-content: space-between;
