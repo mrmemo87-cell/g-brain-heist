@@ -1,3 +1,7 @@
+import {
+  lessonPresentation,
+  lessonProduction,
+} from "./ieltsLessonPresentation";
 import { lessonStages } from "./ieltsLessonPlan";
 import { type TeacherLesson, type LessonMaterial } from "./ieltsLessonService";
 export type ResourceKind = "plan" | "students" | "keys" | "slides";
@@ -40,50 +44,25 @@ export function lessonResourceHtml(lesson: TeacherLesson, kind: ResourceKind) {
   if (kind === "keys")
     body = `<h1>${titles.keys}</h1><p>Teacher only. Keep scripts and keys out of students’ hands before listening.</p>${lesson.materials.map((m) => `${questions(m, true)}<h3>Teaching notes and script</h3><pre>${e(m.teacher_notes || "No version-bound script is available in this pack. Use the approved recording.")}</pre><p>Material version ${e(m.version)}. Content ${e(m.content_sha256)}. Audio ${e(m.audio_sha256)}.</p>`).join('<div class="break"></div>')}<p>Guided listening responses are rehearsal, not independent diagnostic evidence. Different tasks and replay do not prove band improvement.</p>`;
   if (kind === "slides") {
-    const slides = [
-      ["Good English. Wrong answer. How?", "Can you beat the IELTS trap?"],
-      [
-        "Our challenge",
-        "Listen for the final confirmed detail. Choose your own answer, then compare.",
-      ],
-      ...lesson.materials.flatMap((m) => [
-        [`${m.display_code}: ${m.title}`, m.instructions],
-        ...m.questions.map((q) => [
-          q.prompt,
-          "Write your answer. Which detail matters?",
-        ]),
-        [
-          "The listening strategy",
-          "Identify the exact question. Keep the first answer provisional. Check corrections and conditions.",
-        ],
-      ]),
-      [
-        "Your course goal",
-        "Why are you here? What would you like to do with your English?",
-      ],
-      [
-        "Reading starting point",
-        "Open the Reading Screener in Brains Heist. Work independently and follow its instructions.",
-      ],
-      [
-        "One thing you learned",
-        "One trap I can now spot… One question I still have…",
-      ],
-      [
-        "Your next step",
-        "Review your saved screener result. Follow your teacher’s next activity in IELTS Journey.",
-      ],
-    ];
+    const slides = lessonPresentation(lesson);
     body =
+      `<p class="teacher-warning">Teacher presentation: contains guided-practice answers. Keep private before listening.</p>` +
       slides
         .map(
-          ([title, text], i) =>
-            `<section class="slide" ${i ? "hidden" : ""}><p>${e(lesson.school.name)} · Brains Heist IELTS</p><h1>${e(title)}</h1><p>${e(text)}</p><small>${i + 1} / ${slides.length}</small></section>`,
+          (slide, i) =>
+            `<section class="slide ${slide.layout}" aria-label="Slide ${i + 1}" ${i ? "hidden" : ""}><p class="school">${e(lesson.school.name)} · Brains Heist IELTS</p><p class="phase">${e(slide.phase)}</p><h1>${e(slide.title)}</h1><p class="slide-body">${e(slide.body)}</p><small>${e(lesson.lesson_code)} · Presentation ${lessonProduction.presentationVersion} · ${i + 1} / ${slides.length}</small><aside hidden>${e(slide.notes)}</aside></section>`,
         )
         .join("") +
-      `<nav><button id="prev">Previous</button><button id="next">Next</button></nav><script>let i=0;const s=[...document.querySelectorAll('.slide')];function show(n){i=Math.max(0,Math.min(s.length-1,n));s.forEach((x,j)=>x.hidden=j!==i)}document.getElementById('prev').onclick=()=>show(i-1);document.getElementById('next').onclick=()=>show(i+1);document.onkeydown=x=>{if(x.key==='ArrowRight')show(i+1);if(x.key==='ArrowLeft')show(i-1)}</script>`;
+      `<nav aria-label="Presentation controls"><button id="prev" type="button">Previous</button><button id="next" type="button">Next</button><button id="motion" type="button" aria-pressed="false">Reduce motion</button><button id="notes" type="button" aria-pressed="false">Teacher notes</button><label>Go to slide <select id="jump">${slides.map((s, i) => `<option value="${i}">${i + 1}: ${e(s.phase)}</option>`).join("")}</select></label></nav><p id="status" role="status" aria-live="polite"></p><script>
+    let i=0;const slides=[...document.querySelectorAll('.slide')],prev=document.getElementById('prev'),next=document.getElementById('next'),jump=document.getElementById('jump'),motion=document.getElementById('motion'),notes=document.getElementById('notes');
+    const systemReduced=window.matchMedia?window.matchMedia('(prefers-reduced-motion: reduce)').matches:false;
+    function reduce(on){document.body.classList.toggle('reduced-motion',on);motion.setAttribute('aria-pressed',String(on));motion.textContent=on?'Motion off':'Reduce motion'}
+    function show(n){i=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,j)=>s.hidden=j!==i);prev.disabled=i===0;next.disabled=i===slides.length-1;jump.value=String(i);document.getElementById('status').textContent='Slide '+(i+1)+' of '+slides.length+'. '+slides[i].querySelector('.phase').textContent}
+    prev.onclick=()=>show(i-1);next.onclick=()=>show(i+1);jump.onchange=()=>show(Number(jump.value));motion.onclick=()=>reduce(motion.getAttribute('aria-pressed')!=='true');notes.onclick=()=>{const on=notes.getAttribute('aria-pressed')!=='true';notes.setAttribute('aria-pressed',String(on));slides.forEach(s=>s.querySelector('aside').hidden=!on)};
+    document.addEventListener('keydown',event=>{if(event.target instanceof Element && event.target.closest('button,input,select,textarea,a')||event.altKey||event.ctrlKey||event.metaKey)return;if(event.key==='ArrowRight'||event.key===' '){event.preventDefault();show(i+1)}if(event.key==='ArrowLeft'){event.preventDefault();show(i-1)}if(event.key==='Home'){event.preventDefault();show(0)}if(event.key==='End'){event.preventDefault();show(slides.length-1)}});reduce(systemReduced);show(0);
+    </script>`;
   }
-  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(titles[kind])}</title><style>body{font:16px/1.6 system-ui,sans-serif;color:#15243A;background:#F5F7FC;margin:0}main{max-width:850px;padding:32px;margin:auto;background:white}h1{font-size:36px;line-height:1.2}h2{color:#1746B0}.logo{max-width:110px;max-height:65px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}li{margin:12px 0}.slide{min-height:65vh;padding:20px}.slide h1{font-size:clamp(32px,5vw,64px)}nav{display:flex;gap:16px}button{padding:12px 24px;font:inherit}small{color:#4C6076}@media print{body,main{background:white}main{padding:0}.break{break-before:page}.slide{display:block!important;break-after:page;height:auto;min-height:0}nav{display:none}@page{size:A4;margin:18mm}}</style><main>${kind === "slides" ? "" : header}${body}</main></html>`;
+  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(titles[kind])}</title><style>body{font:16px/1.6 system-ui,sans-serif;color:#15243A;background:#F5F7FC;margin:0}main{max-width:850px;padding:32px;margin:auto;background:white}h1{font-size:36px;line-height:1.2}h2{color:#1746B0}.logo{max-width:110px;max-height:65px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}li{margin:12px 0}.slide{min-height:65vh;padding:clamp(20px,4vw,48px);overflow-wrap:anywhere;animation:enter ${lessonProduction.motionMs}ms ease-out}.slide[hidden]{display:none}.slide h1{font-size:clamp(32px,5vw,64px);white-space:pre-line;margin:32px 0;line-height:1.15}.slide-body{font-size:clamp(22px,2.5vw,30px);white-space:pre-line}.phase{font-size:18px;font-weight:600;letter-spacing:.05em;color:#1746B0}.hero{background:#15243A;color:white}.hero .phase,.hero small{color:#B6CEFF}.reveal h1{color:#1746B0}.school{font-size:18px}.teacher-warning{font-size:14px}aside{margin-top:20px;border-top:1px solid #4C6076;font-size:18px}nav{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}button,select{min-height:44px;max-width:100%;padding:10px 14px;font:inherit}nav label{min-width:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}button:focus-visible,select:focus-visible{outline:3px solid #1746B0;outline-offset:3px}small{color:#4C6076}.reduced-motion .slide{animation:none}@keyframes enter{from{opacity:0}to{opacity:1}}@media(prefers-reduced-motion:reduce){.slide{animation:none}}@media print{body,main{background:white}main{padding:0}.break{break-before:page}.slide{display:block!important;break-after:page;height:auto;min-height:0;animation:none;color:#15243A;background:white}.hero .phase,.hero small{color:#1746B0}aside,nav,#status{display:none}@page{size:A4;margin:18mm}}</style><main>${kind === "slides" ? "" : header}${body}</main></html>`;
 }
 export function downloadLessonFile(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob);

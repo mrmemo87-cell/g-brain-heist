@@ -47,8 +47,8 @@ const lesson = {
     },
   ],
 };
-test("student and presentation downloads exclude scripts and keys and escape school/material text", () => {
-  for (const kind of ["students", "slides", "plan"]) {
+test("student downloads exclude scripts and keys and escape school/material text", () => {
+  for (const kind of ["students", "plan"]) {
     const html = lessonResourceHtml(lesson, kind);
     assert.ok(!html.includes("SECRETANSWER"));
     assert.ok(!html.includes("PRIVATE SCRIPT"));
@@ -91,4 +91,60 @@ test("offline presentation has keyboard navigation and print layout; school iden
   );
   assert.ok(other.includes("School B"));
   assert.ok(!other.includes("School A"));
+});
+
+test("LB-03 guided reveal follows question, has no script, and stays hidden until teacher advance", () => {
+  const d = new JSDOM(lessonResourceHtml(lesson, "slides"), {
+    runScripts: "dangerously",
+  });
+  const doc = d.window.document,
+    slides = [...doc.querySelectorAll(".slide")];
+  const reveal = slides.findIndex((s) => s.classList.contains("reveal"));
+  assert.equal(slides[reveal].hidden, true);
+  assert.ok(
+    slides[reveal - 1].textContent.includes(
+      lesson.materials[0].questions[0].prompt,
+    ),
+  );
+  assert.ok(slides[reveal].textContent.includes("SECRETANSWER"));
+  assert.ok(!doc.body.textContent.includes("PRIVATE SCRIPT"));
+  for (let i = 0; i < reveal; i++) doc.querySelector("#next").click();
+  assert.equal(slides[reveal].hidden, false);
+  assert.ok(doc.querySelector("#status").textContent.includes("ANSWER 1"));
+  assert.equal(slides[reveal].querySelector("aside").hidden, true);
+  doc.querySelector("#notes").click();
+  assert.equal(slides[reveal].querySelector("aside").hidden, false);
+});
+test("LB-04 reduced motion, bounds, slide selector and focused keyboard controls", () => {
+  const d = new JSDOM(lessonResourceHtml(lesson, "slides"), {
+    runScripts: "dangerously",
+    beforeParse(w) {
+      w.matchMedia = () => ({ matches: true });
+    },
+  });
+  const doc = d.window.document;
+  assert.ok(doc.body.classList.contains("reduced-motion"));
+  assert.equal(doc.querySelector("#prev").disabled, true);
+  doc.querySelector("#motion").click();
+  assert.ok(!doc.body.classList.contains("reduced-motion"));
+  const jump = doc.querySelector("#jump");
+  jump.value = "2";
+  jump.dispatchEvent(new d.window.Event("change"));
+  assert.equal(doc.querySelectorAll(".slide")[2].hidden, false);
+  jump.dispatchEvent(
+    new d.window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
+  );
+  assert.equal(doc.querySelectorAll(".slide")[2].hidden, false);
+  doc.dispatchEvent(new d.window.KeyboardEvent("keydown", { key: "End" }));
+  assert.equal(doc.querySelector("#next").disabled, true);
+  doc.dispatchEvent(new d.window.KeyboardEvent("keydown", { key: "Home" }));
+  assert.equal(doc.querySelector("#prev").disabled, true);
+  doc.dispatchEvent(new d.window.KeyboardEvent("keydown", { key: " " }));
+  assert.equal(doc.querySelectorAll(".slide")[1].hidden, false);
+  assert.ok(
+    doc
+      .querySelector("style")
+      .textContent.includes("@media(prefers-reduced-motion:reduce)"),
+  );
+  assert.ok(!doc.querySelector("script").textContent.includes("setInterval"));
 });
