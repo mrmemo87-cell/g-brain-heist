@@ -84,11 +84,23 @@ export function normalizeScanPhoto(image: Raster, anchors?: readonly Point[]) {
   };
   if (anchors) {
     if (anchors.length !== 4 || anchors.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y) || p.x < 0 || p.y < 0 || p.x > 1 || p.y > 1)) throw new Error("Choose all four corner squares.");
-    const expected = anchors.map(p => ({ x: p.x * image.width, y: p.y * image.height }));
-    // Taps locate the search, never override square, QR, or geometry validation.
+    const selected = anchors.map(p => ({ x: p.x * image.width, y: p.y * image.height }));
+    const centre = { x: selected.reduce((sum, p) => sum + p.x, 0) / 4, y: selected.reduce((sum, p) => sum + p.y, 0) / 4 };
+    // Teachers identify squares in any order. Geometry supplies clockwise order;
+    // the QR independently identifies the printed page's first corner.
+    const expected = selected.sort((a, b) => Math.atan2(a.y - centre.y, a.x - centre.x) - Math.atan2(b.y - centre.y, b.x - centre.x));
     const localScale = (Math.hypot(expected[1].x - expected[0].x, expected[1].y - expected[0].y) / 910 + Math.hypot(expected[3].x - expected[0].x, expected[3].y - expected[0].y) / 1324) / 2;
-    return calibrate(markerCentres(image, 45 * localScale, expected, localScale));
+    let cause: unknown;
+    for (let offset = 0; offset < 4; offset++) {
+      const ordered = [...expected.slice(offset), ...expected.slice(0, offset)];
+      try {
+        // Taps locate the search, never override square, QR or frame validation.
+        return calibrate(markerCentres(image, 45 * localScale, ordered, localScale));
+      } catch (error) { cause = error; }
+    }
+    throw new Error("The four selected corner squares could not be aligned with the QR. Select each black square once, or retake a clear photo with the whole sheet visible.", { cause });
   }
+
   let lastError: unknown;
   // QR extrapolation is noisy far from the code. Match candidate sets jointly
   // against the independent QR; a nearby dark blob cannot reject a real square.
