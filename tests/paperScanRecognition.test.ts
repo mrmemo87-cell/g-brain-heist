@@ -135,12 +135,12 @@ test('teacher corner hints recover the original photo without changing sheet ide
   const rows = detectedAnswers({ ...result, hash: "photo-hash", manuallyAligned: true }, sheet);
   assert.ok(Object.values(rows).every(row => row.state === "uncertain" && row.choice === null));
 });
-test('corner adjustment never accepts an incomplete page, invalid points or crossed ordering', async () => {
+test('corner adjustment accepts arbitrary order but rejects invalid hints and incomplete pages', async () => {
   const source = await printedSheet();
   const anchors = LAYOUT.markers.map(p => ({x:p.x/source.width,y:p.y/source.height}));
   assert.throws(() => normalizeScanPhoto(source, anchors.slice(0,3)), /four corner/);
   assert.throws(() => normalizeScanPhoto(source, [{x:NaN,y:0},...anchors.slice(1)]), /four corner/);
-  assert.throws(() => normalizeScanPhoto(source, [anchors[0], anchors[2], anchors[1], anchors[3]]));
+  assert.equal(normalizeScanPhoto(source, [anchors[0], anchors[2], anchors[1], anchors[3]]).sheetId, sheet.id);
   for(let y=1310;y<source.height;y++)for(let x=0;x<source.width;x++) { const i=(y*source.width+x)*4; source.data[i]=source.data[i+1]=source.data[i+2]=255; }
   assert.throws(() => normalizeScanPhoto(source, anchors), /corner/);
 });
