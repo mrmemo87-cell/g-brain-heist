@@ -7,11 +7,9 @@ import {
   saveScan,
   reviewScan,
   confirmScan,
-  fetchScanInbox,
 } from "../../services/paperScanService";
 import {
   detectedAnswers,
-  ScanPhotoReadError,
   loadScanPhoto,
   rowPreviews,
   type ProcessedPhoto,
@@ -38,10 +36,6 @@ import ClassroomPrintPanel, {
 import GuestResultsPanel from "./GuestResultsPanel";
 import { MAX_SCAN_BATCH, runScanBatch } from "../../src/lib/paperScan/batch";
 import { saveRowPreviews, loadRowPreviews } from "../../services/paperScanPreviewCache";
-import ScanPhotoCapture from "./ScanPhotoCapture";
-import ScanCornerAdjust from "./ScanCornerAdjust";
-import type { Point } from "../../src/lib/paperScan/omr";
-import { scanInbox } from "../../src/lib/paperScan/inbox";
 import "./PaperScanWorkspace.css";
 type BatchDraft = {
   session: ScanSession;
@@ -59,8 +53,6 @@ type BatchItem = {
   state: "queued" | "reading" | "ready" | "error" | "reviewed" | "completed";
   error?: string;
   draft?: BatchDraft;
-  anchors?: Point[];
-  decodedSheetId?: string;
 };
 type Props = {
   packet: PaperWorkspace;
@@ -70,7 +62,6 @@ type Props = {
   flush: React.MutableRefObject<() => Promise<void>>;
   canLeave: React.MutableRefObject<() => boolean>;
   onConfirmed: () => Promise<void>;
-  renderManualEntry?: (studentId: string, assessedAt: string) => React.ReactNode;
 };
 const errorText = (e: unknown) =>
   e instanceof Error ? e.message : "Could not save. Try again.";
@@ -89,7 +80,6 @@ export default function PaperScanWorkspace({
   flush,
   canLeave,
   onConfirmed,
-  renderManualEntry,
 }: Props) {
   const [tab, setTab] = useState<"print" | "scan" | "guests">("print");
   const [guestName, setGuestName] = useState("");
@@ -120,29 +110,7 @@ export default function PaperScanWorkspace({
   const abort = useRef<AbortController | null>(null);
   const request = useRef<{ key: string; id: string } | null>(null);
   const upload = useRef<HTMLInputElement>(null);
-  const phoneCamera = useRef<HTMLInputElement>(null);
-  const [manualScan, setManualScan] = useState<{ studentId: string; name: string; assessedAt: string; file: File; sheetIds: string[] } | null>(null);
-  const [manualPhotoUrl, setManualPhotoUrl] = useState("");
-  useEffect(() => {
-    if (!manualScan) { setManualPhotoUrl(""); return; }
-    const url = URL.createObjectURL(manualScan.file); setManualPhotoUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [manualScan?.file]);
-  const [cameraOpen, setCameraOpen] = useState(false);
-  const [adjusting, setAdjusting] = useState<BatchItem | null>(null);
-  const cameraOpenRef = useRef(cameraOpen);
-  cameraOpenRef.current = cameraOpen || !!adjusting;
-  const [inboxSessions, setInboxSessions] = useState<ScanSession[]>([]);
-  const [inboxError, setInboxError] = useState("");
-  const refreshInbox = useCallback(async () => {
-    try { setInboxSessions(await fetchScanInbox(packet.assignment.id)); setInboxError(""); }
-    catch (e) { setInboxError(errorText(e)); }
-  }, [packet.assignment.id]);
-  useEffect(() => {
-    let active = true;
-    void fetchScanInbox(packet.assignment.id).then(value => { if (active) setInboxSessions(value); }).catch(e => { if (active) setInboxError(errorText(e)); });
-    return () => { active = false; };
-  }, [packet.assignment.id]);
+  const camera = useRef<HTMLInputElement>(null);
   const busyRef = useRef(busy);
   busyRef.current = busy;
   const guestBusyChange = useCallback((value: boolean) => {
@@ -186,8 +154,12 @@ export default function PaperScanWorkspace({
       ? checks
       : sheet.questions
     : [];
-  const booklets = scanInbox(inboxSessions, packet.students);
-  const readyResultCount = booklets.filter(booklet => booklet.ready).length;
+  const readyResultCount = new Set(batch.filter((item) => {
+    const draft = item.draft;
+    if (item.state !== "reviewed" || !draft?.sheet.studentId || packet.students.find((student) => student.id === draft.sheet.studentId)?.existingAnswerCount) return false;
+    const pages = draft.session.sheets.filter((page) => page.studentId === draft.sheet.studentId);
+    return pages.length > 0 && pages.every((page) => page.reviewedAnswers && !page.confirmedAt && !page.heldAt);
+  }).map((item) => `${item.draft!.session.id}:${item.draft!.sheet.studentId}`)).size;
   const activeDraft = batch.find((item) => item.draft?.sheet.id === sheetId)?.draft;
   useEffect(() => {
     if (!activeDraft?.originalFile) { setOriginalUrl(""); return; }
@@ -202,11 +174,10 @@ export default function PaperScanWorkspace({
     }
   }, [sheetId, flow]);
   useEffect(() => {
-    if (manualScan) return;
     flush.current = () =>
-      (busyRef.current || cameraOpenRef.current)
+      busyRef.current
         ? Promise.reject(
-            new Error("Finish the camera tray or wait for the current scan to finish."),
+            new Error("Please wait for the current scan to finish."),
           )
         : unsafeCorrections.current
           ? Promise.reject(
@@ -215,14 +186,14 @@ export default function PaperScanWorkspace({
               ),
             )
           : Promise.resolve();
-    canLeave.current = () => !busyRef.current && !cameraOpenRef.current && !unsafeCorrections.current;
+    canLeave.current = () => !busyRef.current && !unsafeCorrections.current;
     return () => {
       flush.current = async () => {};
       canLeave.current = () => false;
       batchAbort.current?.abort();
       abort.current?.abort();
     };
-  }, [flush, canLeave, !!manualScan]);
+  }, [flush, canLeave]);
   useEffect(() => {
     let active = true;
     let id: string | null = null;
@@ -250,14 +221,6 @@ export default function PaperScanWorkspace({
   const remember = (value: ScanSession) => {
     sessionIdentity.current = value.id;
     setSession(value);
-    setInboxSessions(values => {
-      const previous = values.find(item => item.id === value.id);
-      const next = { ...value, sheets: value.sheets.map(page => {
-        const old = previous?.sheets.find(old => old.id === page.id && old.scanId === page.scanId);
-        return { ...page, scannedAt: page.scannedAt || old?.scannedAt };
-      }) };
-      return previous ? values.map(item => item.id === value.id ? next : item) : [next, ...values];
-    });
     updateBatch((items) => items.map((item) => {
       if (item.draft?.session.id !== value.id) return item;
       const nextSheet = value.sheets.find((page) => page.id === item.draft!.sheet.id);
@@ -377,8 +340,8 @@ export default function PaperScanWorkspace({
       setBusy("");
     }
   };
-  const process = async (file: File, controller: AbortController, anchors?: Point[]): Promise<BatchDraft> => {
-      const nextPhoto = await loadScanPhoto(file, controller.signal, anchors);
+  const process = async (file: File, controller: AbortController): Promise<BatchDraft> => {
+      const nextPhoto = await loadScanPhoto(file, controller.signal);
       setBusy("Checking student and assignment…");
       const result = await resolveScanSheet(
         nextPhoto.sheetId,
@@ -549,23 +512,21 @@ export default function PaperScanWorkspace({
         if (!item.file) return;
         updateBatch((list) => list.map((page) => page.id === item.id ? { ...page, state: "reading", error: undefined } : page));
         setBusy(`Reading photo ${++done} of ${items.length}…`);
-        const draft = await process(item.file, controller, item.anchors);
+        const draft = await process(item.file, controller);
         if (controller.signal.aborted) return;
         updateBatch((list) => list.map((page) => page.id === item.id
           ? { ...page, file: undefined, draft, state: draft.sheet.reviewedAnswers ? "reviewed" : "ready" } : page));
       }, (item, e) => {
         updateBatch((list) => list.map((page) => page.id === item.id
-          ? { ...page, state: "error", error: errorText(e), decodedSheetId: e instanceof ScanPhotoReadError ? e.sheetId : undefined } : page));
+          ? { ...page, state: "error", error: errorText(e) } : page));
       }, stopping.signal);
       if (controller.signal.aborted) return;
-      await refreshInbox();
       // Capture stays in the tray until the teacher explicitly starts review.
       // A missing-preview resume is the one case that returns to that page.
       const restored = sheetId && !photo ? batchRef.current.find((item) => item.draft?.sheet.id === sheetId) : null;
       if (restored?.draft) showDraft(restored.draft);
       else setFlow("capture");
-      const failed = batchRef.current.filter(item => item.state === "error").length;
-      setMessage(stopping.signal.aborted ? "Paused after this photo. Continue when ready." : failed ? `${failed} photos need attention. Review ready pages, adjust corners, or enter answers using the original photo.` : "Photos are ready. Tap Start review to check one page at a time.");
+      setMessage(stopping.signal.aborted ? "Paused after this photo. Continue when ready." : "Photos are ready. Tap Start review to check one page at a time.");
     } finally {
       if (!controller.signal.aborted) { busyRef.current = ""; setBusy(""); }
       batchAbort.current = null;
@@ -585,19 +546,6 @@ export default function PaperScanWorkspace({
     updateBatch((items) => [...items, ...additions]);
     void readBatch(additions);
   };
-  const enterPhotoAnswers = async (item: BatchItem) => {
-    if (busyRef.current || !item.file || !item.decodedSheetId || !renderManualEntry || !retainReview()) return;
-    busyRef.current = "Checking paper identity…"; setBusy(busyRef.current); setError("");
-    try {
-      const current = await resolveScanSheet(item.decodedSheetId, packet.assignment.id);
-      const page = current.sheets.find(page => page.id === item.decodedSheetId);
-      const student = packet.students.find(student => student.id === page?.studentId);
-      if (!page || !student) throw new Error("This booklet must be linked to an assigned student before using manual entry.");
-      if (student.status === "completed" || page.confirmedAt) throw new Error("This student already has a completed result.");
-      setManualScan({ studentId: student.id, name: student.name, assessedAt: current.assessedAt, file: item.file, sheetIds: current.sheets.filter(page => page.studentId === student.id).map(page => page.id) });
-    } catch (e) { setError(errorText(e)); }
-    finally { busyRef.current = ""; setBusy(""); }
-  };
   const confirmBatch = async () => {
     if (busyRef.current || !retainReview()) return;
     busyRef.current = "Confirming reviewed results…";
@@ -607,30 +555,27 @@ export default function PaperScanWorkspace({
     const seen = new Set<string>();
     const failures: string[] = [];
     try {
-      const latest = scanInbox(await fetchScanInbox(packet.assignment.id), packet.students);
-      for (const booklet of booklets.filter(value => value.ready)) {
-        const freshBooklet = latest.find(value => value.pages[0].studentId === booklet.pages[0].studentId);
-        if (!freshBooklet?.ready || freshBooklet.session.id !== booklet.session.id) {
-          failures.push(`${booklet.pages[0].studentName}: A newer or unfinished booklet needs review. Refresh saved reviews.`);
-          continue;
-        }
-        const draftSheet = booklet.pages[0];
-        const studentId = draftSheet.studentId!;
-        const key = `${booklet.session.id}:${studentId}`;
+      for (const item of batchRef.current) {
+        const draft = item.draft;
+        if (!draft?.sheet.studentId || item.state === "completed") continue;
+        const studentId = draft.sheet.studentId;
+        const key = `${draft.session.id}:${studentId}`;
         if (seen.has(key)) continue;
         seen.add(key);
+        // Existing unfinished online work and unnamed booklets retain their
+        // individual identity/replacement confirmation gates.
+        if (packet.students.find((student) => student.id === studentId)?.existingAnswerCount) continue;
         try {
-          const current = await resolveScanSheet(draftSheet.id, packet.assignment.id);
-          const pages = current.sheets.filter(page => page.studentId === studentId);
-          if (!scanInbox([current], packet.students).some(value => value.ready && value.pages[0].studentId === studentId)) continue;
-          if (pages.some(page => { const old = booklet.pages.find(old => old.id === page.id); return page.scanId !== old?.scanId || JSON.stringify(page.reviewedAnswers) !== JSON.stringify(old.reviewedAnswers); })) throw new Error("This booklet changed. Refresh and review it again.");
+          const current = await resolveScanSheet(draft.sheet.id, packet.assignment.id);
+          const pages = current.sheets.filter((page) => page.studentId === studentId);
+          if (!pages.length || pages.some((page) => !page.reviewedAnswers || page.confirmedAt)) continue;
           await confirmScan(current.id, studentId, false);
           confirmed++;
-          updateBatch(items => items.map(page => page.draft?.session.id === current.id && page.draft.sheet.studentId === studentId ? { ...page, state: "completed" } : page));
-        } catch (e) { failures.push(`${draftSheet.studentName}: ${errorText(e)}`); }
+          updateBatch((items) => items.map((page) => page.draft?.session.id === current.id && page.draft.sheet.studentId === studentId
+            ? { ...page, state: "completed" } : page));
+        } catch (e) { failures.push(`${draft.sheet.studentName}: ${errorText(e)}`); }
       }
       if (confirmed) await onConfirmed();
-      await refreshInbox();
       if (failures.length) setError(failures.join(" · "));
       setMessage(`${confirmed} student results confirmed. Incomplete booklets, unnamed sheets and unfinished online answers can be finished individually.`);
       if (batchRef.current.find((item) => item.draft?.sheet.id === sheetId)?.state === "completed") {
@@ -652,8 +597,7 @@ export default function PaperScanWorkspace({
       try {
         localStorage.removeItem(correctionKey(sheet.scanId));
       } catch {}
-      await refreshInbox();
-      setMessage("Review saved. Confirm the student result to complete the assignment and update their Academic Profile.");
+      setMessage("Page saved. Continue to the next page.");
       if (advance) {
         const nextPage = batchRef.current.find((item) => item.state === "ready" && item.draft?.sheet.id !== sheet.id);
         if (nextPage?.draft) {
@@ -709,7 +653,6 @@ export default function PaperScanWorkspace({
       setPhoto(null);
       setCrops({});
       await onConfirmed();
-      await refreshInbox();
     } catch (e) {
       setError(errorText(e));
     } finally {
@@ -733,15 +676,6 @@ export default function PaperScanWorkspace({
     setFlow(batchRef.current.some((item) => item.state === "ready") ? "capture" : "finish");
     setMessage("");
   };
-  if (manualScan && renderManualEntry) return <div className="psc psc-manual-recovery">
-    <header className="psc-review-heading"><div><span className="paw-eyebrow">QR identity checked · enter paper answers</span><h3>{manualScan.name}</h3></div><button className="paw-button" onClick={async () => { try { await flush.current();
-      if (packet.students.find(student => student.id === manualScan.studentId)?.status === "completed") updateBatch(items => items.map(item => item.draft?.sheet.studentId === manualScan.studentId || (item.decodedSheetId && manualScan.sheetIds.includes(item.decodedSheetId)) ? { ...item, state: "completed" } : item));
-      setManualScan(null); await refreshInbox(); } catch (e) { setError(errorText(e)); } }}>Back to scan tray</button></header>
-    <p>The QR identified this student and assignment. Alignment failed, so no answers were guessed. Use the original photo below to enter each answer, review and confirm it.</p>
-    {error ? <p role="alert">{error}</p> : null}
-    <details className="psc-original" open><summary>Original paper photo</summary>{manualPhotoUrl ? <img src={manualPhotoUrl} alt={`Original paper for ${manualScan.name}`} /> : null}</details>
-    {renderManualEntry(manualScan.studentId, manualScan.assessedAt)}
-  </div>;
   return (
     <div className="psc">
       <div
@@ -866,18 +800,19 @@ export default function PaperScanWorkspace({
               addPhotos(files);
             }}
           />
-          <input ref={phoneCamera} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="psc-file" aria-label="Take answer sheet photo with phone camera" onChange={e => { const files = Array.from(e.target.files || []); e.target.value = ""; addPhotos(files); }} />
-          {adjusting?.file ? <ScanCornerAdjust file={adjusting.file} onClose={() => setAdjusting(null)} onUse={anchors => { const item = { ...adjusting, anchors }; setAdjusting(null); updateBatch(items => items.map(old => old.id === item.id ? item : old)); void readBatch([item]); }} /> : null}
-          {cameraOpen ? <ScanPhotoCapture limit={MAX_SCAN_BATCH - batch.length} onClose={() => setCameraOpen(false)} onUse={files => { setCameraOpen(false); addPhotos(files); }} /> : null}
-          {!sheet ? <section className="psc-inbox" aria-label="Saved scan results">
-            <span className="paw-eyebrow">{packet.students.filter(student => student.status === "completed").length}/{packet.students.length} students completed · saved across your scan sessions</span>
-            <h3>{readyResultCount ? `${readyResultCount} ${readyResultCount === 1 ? "result is" : "results are"} ready to confirm` : "Saved reviews & results"}</h3>
-            <p>Saving a review keeps the checked answers. Confirming the result completes the assignment and updates the student’s Academic Profile.</p>
-            {inboxError ? <p role="alert">Could not load saved reviews: {inboxError}</p> : null}
-            <div className="psc-batch-actions"><button className="paw-button primary" disabled={!!busy || !readyResultCount || !!inboxError} onClick={() => void confirmBatch()}>Confirm {readyResultCount} {readyResultCount === 1 ? "result" : "results"} & complete assignments</button><button className="psc-link" disabled={!!busy} onClick={() => void refreshInbox()}>Refresh saved reviews</button></div>
-            <div className="psc-session-list">{booklets.map(booklet => <button key={`${booklet.session.id}:${booklet.pages[0].studentId || booklet.pages[0].guestId}`} className="psc-session-row" disabled={!!busy} onClick={() => void openSavedPage((booklet.pages.find(page => page.scanId && !page.reviewedAnswers) || booklet.pages.find(page => page.scanId)!).id)}><strong>{booklet.pages[0].studentName}</strong><span>{booklet.ready ? "Reviewed · ready to confirm" : !booklet.pages[0].studentId ? "Unnamed booklet · finish & link" : booklet.pages.filter(page => page.reviewedAnswers).length === booklet.pages[0].pageCount ? "Reviewed · finish individually" : `${booklet.pages.filter(page => page.reviewedAnswers).length}/${booklet.pages[0].pageCount} pages reviewed`} →</span></button>)}</div>
-            {!booklets.length && !inboxError ? <small>No unfinished scanned booklets yet.</small> : null}
-          </section> : null}
+          <input
+            ref={camera}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            capture="environment"
+            className="psc-file"
+            aria-label="Take answer sheet photo"
+            onChange={(e) => {
+              const files = Array.from(e.target.files || []);
+              e.target.value = "";
+              addPhotos(files);
+            }}
+          />
           {batch.length ? <ol className="psc-steps" aria-label="Scan progress">
             <li aria-current={flow === "capture" ? "step" : undefined}>1 · Add photos</li>
             <li aria-current={flow === "review" ? "step" : undefined}>2 · Review pages</li>
@@ -886,19 +821,18 @@ export default function PaperScanWorkspace({
           {batch.length && !sheet ? (
             <section className="psc-batch" aria-label="Scan batch">
               <header className="psc-batch-heading">
-                <div><span className="paw-eyebrow">Your scan tray</span><h3>{flow === "finish" ? "Finish this batch" : `${batch.length} ${batch.length === 1 ? "photo" : "photos"} in your tray`}</h3>
-                  <p>{batch.filter((item) => item.state === "ready").length} to review · {batch.filter((item) => item.state === "reviewed").length} reviewed · {batch.filter((item) => item.state === "completed").length} finished · {batch.filter(item => item.state === "error").length} need attention</p></div>
+                <div><span className="paw-eyebrow">Your scan tray</span><h3>{flow === "finish" ? "Finish this batch" : `${batch.length} photos ready in your tray`}</h3>
+                  <p>{batch.filter((item) => item.state === "ready").length} to review · {batch.filter((item) => item.state === "reviewed").length} reviewed · {batch.filter((item) => item.state === "completed").length} finished</p></div>
                 <div className="psc-batch-actions">
-                  <button className="paw-button" disabled={!!busy} onClick={() => phoneCamera.current?.click()}>+ Take photo</button>
+                  <button className="paw-button" disabled={!!busy} onClick={() => camera.current?.click()}>+ Take photo</button>
                   <button className="paw-button" disabled={!!busy} onClick={() => upload.current?.click()}>+ Add photos</button>
-                  <button className="psc-link" disabled={!!busy || batch.length >= MAX_SCAN_BATCH} onClick={() => setCameraOpen(true)}>Capture a stack</button>
                 </div>
               </header>
               <div className="psc-batch-actions">
                 {batch.some((item) => item.state === "ready") ? <button className="paw-button primary" disabled={!!busy} onClick={() => {
                   const first = batchRef.current.find((item) => item.state === "ready");
                   if (first) void openBatchPage(first);
-                }}>{flow === "finish" ? "Continue review" : "Start review"} · {batch.filter((item) => item.state === "ready").length} {batch.filter((item) => item.state === "ready").length === 1 ? "page" : "pages"}</button> : null}
+                }}>{flow === "finish" ? "Continue review" : "Start review"} · {batch.filter((item) => item.state === "ready").length} pages</button> : null}
               </div>
               <div className="psc-batch-list">
                 {batch.map((item, index) => (
@@ -908,8 +842,6 @@ export default function PaperScanWorkspace({
                       <span>{item.draft ? `Page ${item.draft.sheet.pageNumber}/${item.draft.sheet.pageCount} · ` : ""}{item.state === "ready" ? "Ready to review" : item.state === "completed" ? "Result saved" : item.state === "error" ? "Needs another look" : item.state === "reading" ? "Reading…" : item.state === "queued" ? "Waiting" : "Page reviewed"}</span>
                       {item.error ? <p role="status">{item.error}</p> : null}</div>
                     {item.draft && item.state !== "completed" ? <button className="psc-link" disabled={!!busy} aria-pressed={sheetId === item.draft.sheet.id} onClick={() => void openBatchPage(item)}>{item.state === "reviewed" ? "Finish student →" : "Review page →"}</button> : null}
-                    {item.state === "error" && item.decodedSheetId && renderManualEntry ? <button className="paw-button" disabled={!!busy} onClick={() => void enterPhotoAnswers(item)}>Enter answers from photo</button> : null}
-                    {item.state === "error" && item.file && /corners|corner|calibrat/i.test(item.error || "") ? <button className="paw-button" disabled={!!busy} onClick={() => setAdjusting(item)}>Adjust corners</button> : null}
                     {item.state === "error" ? <button className="psc-link" disabled={!!busy} onClick={() => void readBatch([item])}>Retry</button> : null}
                     {item.state !== "completed" ? <button className="psc-link" disabled={!!busy} aria-label={`Remove ${item.name} from tray`} onClick={() => {
                       if (!retainReview()) return;
@@ -922,7 +854,7 @@ export default function PaperScanWorkspace({
               <div className="psc-batch-actions">
                 {batchAbort.current ? <button className="paw-button" onClick={() => batchAbort.current?.abort()}>Pause after this photo</button> : null}
                 {batch.some((item) => item.state === "queued") ? <button className="paw-button" disabled={!!busy} onClick={() => void readBatch(batch.filter((item) => item.state === "queued"))}>Continue reading</button> : null}
-                <button className="paw-button" disabled={!!busy || readyResultCount === 0 || !!inboxError} onClick={() => void confirmBatch()}>Confirm {readyResultCount} {readyResultCount === 1 ? "student result" : "student results"}</button>
+                <button className="paw-button" disabled={!!busy || readyResultCount === 0} onClick={() => void confirmBatch()}>Confirm {readyResultCount} {readyResultCount === 1 ? "student result" : "student results"}</button>
                 <button className="psc-link" disabled={!!busy || batch.some((item) => !["completed", "error"].includes(item.state))} onClick={() => { updateBatch(() => []); resetReview(); }}>Clear finished batch</button>
               </div>
               {flow === "finish" ? <p className="psc-hint">Reviewed pages are saved. Confirm student results to complete their assignments. Use Finish student for unnamed sheets, incomplete booklets or unfinished online work.</p> : null}
@@ -937,12 +869,12 @@ export default function PaperScanWorkspace({
               </div>
               <span className="paw-eyebrow">Your phone is the scanner</span>
               <h3>A stack of papers. One scan batch.</h3>
-              <p>Use your phone camera for one page, or choose Capture a stack to take several shots before tapping Use photos. One page per photo, with its QR code and four corner squares visible.</p>
+              <p>Choose several photos together, or keep adding camera shots. One page per photo, with its QR code and four corner squares visible.</p>
               <div className="psc-capture-actions">
                 <button
                   className="paw-button primary"
                   disabled={!!busy}
-                  onClick={() => phoneCamera.current?.click()}
+                  onClick={() => camera.current?.click()}
                 >
                   Take photo
                 </button>
@@ -953,12 +885,43 @@ export default function PaperScanWorkspace({
                 >
                   Choose photos
                 </button>
-                <button className="psc-link" disabled={!!busy} onClick={() => setCameraOpen(true)}>Capture a stack</button>
               </div>
               <small>
                 Photos stay on this device. Reviewed answers are saved securely.
               </small>
               </> : null}
+              {session && !batch.length ? (
+                <div className="psc-session-list">
+                  <strong>Latest print session</strong>
+                  <span>
+                    {session.sheets.filter((s) => s.reviewedAnswers).length}/
+                    {session.sheets.length} pages reviewed
+                  </span>
+                  {session.sheets
+                    .filter(
+                      (s) =>
+                        s.scanId &&
+                        !s.confirmedAt &&
+                        !s.heldAt &&
+                        packet.students.find((p) => p.id === s.studentId)
+                          ?.status !== "completed",
+                    )
+                    .map((s) => (
+                      <button
+                        key={s.id}
+                        className="psc-session-row"
+                        disabled={!!busy}
+                        onClick={() => void openSavedPage(s.id)}
+                      >
+                        {s.studentName}
+                        <span>
+                          Page {s.pageNumber}/{s.pageCount} ·{" "}
+                          {s.reviewedAnswers ? "Reviewed" : "Resume review"} →
+                        </span>
+                      </button>
+                    ))}
+                </div>
+              ) : null}
             </section>
           ) : (
             <section className="psc-review">
