@@ -38,7 +38,22 @@ function pack(s) {
       logo_url: null,
     },
     lesson_code: "IELTS-01",
-    version: "1.0.0",
+    version: "1.1.0",
+    reading_backup: {
+      code: "bh-ielts-targeted-reading-r1-v1",
+      display_code: "R-001",
+      title: "Approved reading",
+      version: "0.1.0",
+      content_sha256: "c".repeat(64),
+      instructions: "Choose TRUE FALSE NOT GIVEN.",
+      passage: "An approved Reading practice passage.",
+      teacher_notes: "PRIVATE READING NOTES",
+      questions: Array.from({ length: 6 }, (_, i) => ({
+        id: `r${i + 1}`,
+        prompt: `Statement ${i + 1}`,
+        accepted_answers: ["SECRET READING KEY"],
+      })),
+    },
     materials: [3, 4].map((n) => ({
       code: `bh-ielts-targeted-listening-l${n}-v1`,
       display_code: `L-00${n}`,
@@ -167,6 +182,38 @@ test("LB-05/06/09 complete ZIP includes both presentation modes and bound versio
   assert.equal(manifest.school.name, "School A");
   assert.equal(manifest.presentation_version, "2.0.0");
   assert.equal(manifest.lesson_bible_version, "1.0.0");
+  assert.equal(manifest.teacher_guide_version, "1.1.0");
+  assert.ok(files["01-START-HERE.html"]);
+  assert.ok(files["IELTS-01-plan-b.html"]);
+  assert.ok(files["IELTS-01-reading-paper.html"]);
+  assert.ok(files["IELTS-01-reading-paper-keys.html"]);
+  const paper = strFromU8(files["IELTS-01-reading-paper.html"]);
+  assert.ok(paper.includes("An approved Reading practice passage."));
+  assert.ok(!paper.includes("SECRET READING KEY"));
+  assert.ok(!paper.includes("PRIVATE READING NOTES"));
+  assert.ok(
+    strFromU8(files["IELTS-01-reading-paper-keys.html"]).includes(
+      "SECRET READING KEY",
+    ),
+  );
+  assert.equal(manifest.reading_backup.code, "R-001");
+  assert.equal(Object.keys(files)[0], "01-START-HERE.html");
+  const guide = new JSDOM(strFromU8(files["01-START-HERE.html"])).window
+    .document;
+  for (const a of guide.querySelectorAll("a[href]")) {
+    const href = a.getAttribute("href");
+    if (!href.startsWith("https://"))
+      assert.ok(files[href], `Guide link must resolve in ZIP: ${href}`);
+  }
+  const audio = new JSDOM(strFromU8(files["Audio-player.html"])).window
+    .document;
+  for (const t of audio.querySelectorAll("audio"))
+    assert.ok(files[t.getAttribute("src")]);
+  assert.ok(
+    strFromU8(files["START-HERE.txt"]).includes(
+      "Open 01-START-HERE.html first",
+    ),
+  );
   assert.ok(!strFromU8(files["IELTS-01-students.html"]).includes("SECRET KEY"));
   const staticSlides = Object.entries(
     unzipSync(files["IELTS-01-presentation-static.pptx"]),

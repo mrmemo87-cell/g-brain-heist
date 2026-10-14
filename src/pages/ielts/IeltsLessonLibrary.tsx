@@ -1,3 +1,7 @@
+import {
+  lessonFiles,
+  lessonGuideVersion,
+} from "../../../services/ieltsLessonPlan";
 import { lessonProduction } from "../../../services/ieltsLessonPresentation";
 import { lessonPowerPoint } from "../../../services/ieltsLessonPowerPoint";
 import React, { useEffect, useRef, useState } from "react";
@@ -12,6 +16,8 @@ import {
 import {
   downloadLessonFile,
   lessonResourceHtml,
+  lessonAudioPlayerHtml,
+  lessonStartText,
   type ResourceKind,
 } from "../../../services/ieltsLessonResources";
 import "../../styles/ielts-lessons.css";
@@ -92,13 +98,23 @@ export default function IeltsLessonLibrary({
     if (data && ready)
       downloadLessonFile(
         new Blob([lessonResourceHtml(data, kind)], { type: "text/html" }),
-        `${data.lesson_code}-${kind}.html`,
+        kind === "start"
+          ? lessonFiles.start
+          : kind === "backup"
+            ? lessonFiles.backup
+            : kind === "reading-paper"
+              ? lessonFiles.readingPaper
+              : kind === "reading-paper-keys"
+                ? lessonFiles.readingPaperKeys
+                : `${data.lesson_code}-${kind}.html`,
       );
   };
   const bundle = () =>
     act(async () => {
       if (!data || !ready) return;
-      const files: Record<string, Uint8Array> = {};
+      const files: Record<string, Uint8Array> = {
+        [lessonFiles.start]: strToU8(lessonResourceHtml(data, "start")),
+      };
       const pptx = await lessonPowerPoint(data);
       if (current.current !== schoolId) return;
       files["IELTS-01-presentation.pptx"] = new Uint8Array(
@@ -123,12 +139,17 @@ export default function IeltsLessonLibrary({
           await blob.arrayBuffer(),
         );
       }
-      files["Audio-player.html"] = strToU8(
-        `<!doctype html><html lang="en"><meta charset="utf-8"><title>IELTS lesson audio</title><h1>Lesson 1 audio</h1>${data.materials.map((m) => `<p>${m.display_code}</p><audio controls preload="none" src="${m.display_code}.mp3"></audio>`).join("")}</html>`,
-      );
-      files["START-HERE.txt"] = strToU8(
-        "Extract this complete folder. Open IELTS-01-presentation.pptx in PowerPoint or IELTS-01-slides.html in a browser to present. Use IELTS-01-presentation-static.pptx for motion-free presenting. Both presentations contain guided-practice answers on separate reveal slides. Advance only after students commit an answer. Keep decks private before listening. In HTML use Reduce motion and Teacher notes controls. Open Audio-player.html separately. Print the students file or save it as PDF using your browser. Keep keys and scripts private. Use the actual Reading Screener in Brains Heist. Paper guided listening and reflections do not automatically enter student records. Targeted practice uses existing assignment/source/exposure checks.",
-      );
+      files[lessonFiles.backup] = strToU8(lessonResourceHtml(data, "backup"));
+      if (data.reading_backup) {
+        files[lessonFiles.readingPaper] = strToU8(
+          lessonResourceHtml(data, "reading-paper"),
+        );
+        files[lessonFiles.readingPaperKeys] = strToU8(
+          lessonResourceHtml(data, "reading-paper-keys"),
+        );
+      }
+      files[lessonFiles.audio] = strToU8(lessonAudioPlayerHtml(data));
+      files["START-HERE.txt"] = strToU8(lessonStartText());
       files["versions.json"] = strToU8(
         JSON.stringify(
           {
@@ -136,7 +157,16 @@ export default function IeltsLessonLibrary({
             version: data.version,
             lesson_bible_version: lessonProduction.bibleVersion,
             presentation_version: lessonProduction.presentationVersion,
+            teacher_guide_version: lessonGuideVersion,
             school: data.school,
+            reading_backup: data.reading_backup
+              ? {
+                  code: data.reading_backup.display_code,
+                  version: data.reading_backup.version,
+                  content_sha256: data.reading_backup.content_sha256,
+                  purpose: "guided_practice",
+                }
+              : null,
             materials: data.materials.map((m) => ({
               code: m.display_code,
               version: m.version,
@@ -247,6 +277,29 @@ export default function IeltsLessonLibrary({
               each reveal after students commit. Keep the decks private before
               listening.
             </p>
+            <h3>Start here: which material do I use?</h3>
+            <p>
+              Open 01-START-HERE.html after extracting the complete pack. It
+              gives the exact file, slide, teacher cue and checkpoint for each
+              step.
+            </p>
+            <p>
+              <strong>Listening:</strong> use L-003 then L-004.
+              Audio-player.html plays the same MP3s included in the ZIP. The
+              Listening Screener is a separate assessment.
+            </p>
+            <p>
+              <strong>Reading:</strong> students use the real Reading Screener
+              in their own Brains Heist accounts. The workbook contains
+              directions only. Reading uses no lesson audio.
+            </p>
+            <p>
+              <strong>Plan B:</strong> if online Reading cannot start, open
+              IELTS-01-plan-b.html.{" "}
+              {data.reading_backup
+                ? "Print the R-001 paper Reading sheet before class and keep its teacher key separate. This is guided practice; the online screener is completed later."
+                : "The approved paper Reading fallback is currently unavailable. The Plan B guide provides a quiet workbook activity and a later screener session."}
+            </p>
             <h3>Prepare</h3>
             <p>
               Check student access to Reading Screener A and its published
@@ -254,26 +307,49 @@ export default function IeltsLessonLibrary({
               workbooks and the downloaded audio. Record any help or replay.
             </p>
             <div className="lesson-actions">
-              {(["plan", "slides", "students", "keys"] as ResourceKind[]).map(
-                (kind) => (
-                  <button
-                    key={kind}
-                    className="sp-secondary"
-                    disabled={!ready || busy}
-                    onClick={() => resource(kind)}
-                  >
-                    Download{" "}
-                    {kind === "plan"
+              {(
+                [
+                  "start",
+                  "plan",
+                  "slides",
+                  "students",
+                  "keys",
+                  "backup",
+                  "reading-paper",
+                  "reading-paper-keys",
+                ] as ResourceKind[]
+              ).map((kind) => (
+                <button
+                  key={kind}
+                  className="sp-secondary"
+                  disabled={
+                    !ready ||
+                    busy ||
+                    ((kind === "reading-paper" ||
+                      kind === "reading-paper-keys") &&
+                      !data.reading_backup)
+                  }
+                  onClick={() => resource(kind)}
+                >
+                  Download{" "}
+                  {kind === "start"
+                    ? "step-by-step guide (open first)"
+                    : kind === "plan"
                       ? "teacher plan"
                       : kind === "slides"
                         ? "presentation"
                         : kind === "students"
                           ? "student workbook"
-                          : "scripts & keys"}{" "}
-                    (.html)
-                  </button>
-                ),
-              )}
+                          : kind === "backup"
+                            ? "Plan B teacher guide"
+                            : kind === "reading-paper"
+                              ? "paper Reading practice (students)"
+                              : kind === "reading-paper-keys"
+                                ? "paper Reading key (teacher only)"
+                                : "scripts & keys"}{" "}
+                  (.html)
+                </button>
+              ))}
             </div>
             <p>
               Printable files open in a browser. Use Print → Save as PDF. The
