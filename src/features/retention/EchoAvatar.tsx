@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { echoAsset, type EchoPose } from './echoModel';
 
 function FoxFallback() {
@@ -15,6 +15,7 @@ const STRANDS: Record<EchoPose, { ears: string; tail: string; coat: string }> = 
 };
 
 export default function EchoAvatar({ pose, floating = false, motion = true }: { pose: EchoPose; floating?: boolean; motion?: boolean }) {
+ const gradientId = `echo-strand-${useId().replace(/:/g, '')}`;
  const root = useRef<HTMLSpanElement>(null); const [visible, setVisible] = useState(false); const [pageVisible, setPageVisible] = useState(() => typeof document !== 'undefined' && document.visibilityState !== 'hidden');
  const [reduced, setReduced] = useState(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
  const [failed, setFailed] = useState(false); const [displayPose, setDisplayPose] = useState<EchoPose>('greeting');
@@ -37,10 +38,10 @@ export default function EchoAvatar({ pose, floating = false, motion = true }: { 
  return <span ref={root} className={`echo-avatar ${floating ? 'is-floating' : ''} ${moving ? 'is-moving' : ''}`} data-echo-pose={displayPose}>
   <span className="echo-pose-frame" key={source}>{failed ? <FoxFallback/> : <img src={source} width="512" height="512" loading="lazy" decoding="async" alt="" onError={() => { if (displayPose !== 'greeting') { setDisplayPose('greeting'); } else setFailed(true); }}/>}</span>
   {!failed ? <span className="echo-energy-mask" style={{ maskImage: `url("${source}")`, WebkitMaskImage: `url("${source}")` }} aria-hidden="true"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" strokeLinecap="round" className="echo-energy-strands">
-   <path className="echo-strand echo-strand-ear" d={strands.ears}/>
-   <path className="echo-strand echo-strand-tail" d={strands.tail}/>
-   <path className="echo-strand echo-strand-coat" d={strands.coat}/>
+   <defs><linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="currentColor" stopOpacity="0"/><stop offset=".22" stopColor="currentColor" stopOpacity=".8"/><stop offset=".5" stopColor="currentColor"/><stop offset=".78" stopColor="currentColor" stopOpacity=".8"/><stop offset="1" stopColor="currentColor" stopOpacity="0"/></linearGradient></defs>
+   {[strands.ears, strands.tail, strands.coat].map((path, index) => <g key={index}><path className="echo-strand-soft" d={path} stroke={`url(#${gradientId})`}/><path className="echo-strand" d={path} stroke={`url(#${gradientId})`}/><path className="echo-strand-highlight" d={path} stroke="#fff"/></g>)}
 
   </svg></span> : null}
  </span>;
 }
+
