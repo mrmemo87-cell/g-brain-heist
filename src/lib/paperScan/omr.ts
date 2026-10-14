@@ -72,12 +72,12 @@ export function warp(source: Raster, canonicalToSource: number[]): Raster {
     }
   return { width: LAYOUT.width, height: LAYOUT.height, data };
 }
-export function markerCandidates(
+export function markerCentres(
   image: Raster,
   searchRadius = 100,
   expected: readonly Point[] = LAYOUT.markers,
   markerScale = 1,
-): Point[][] {
+): Point[] {
   return expected.map((p) => {
     const minX = Math.max(0, Math.round(p.x - searchRadius)),
       maxX = Math.min(image.width - 1, Math.round(p.x + searchRadius));
@@ -185,12 +185,8 @@ export function markerCandidates(
       throw new Error(
         "Keep all four corner squares visible. Retake the photo.",
       );
-    return candidates.slice(0, 6).map(candidate => candidate.point);
+    return candidates[0].point;
   });
-}
-/** Existing callers retain their single nearest-marker behaviour. */
-export function markerCentres(image: Raster, searchRadius = 100, expected: readonly Point[] = LAYOUT.markers, markerScale = 1): Point[] {
-  return markerCandidates(image, searchRadius, expected, markerScale).map(candidates => candidates[0]);
 }
 /** Register the printed circle grid locally before measuring its interiors.
  * Phone/print distortion can leave rows several pixels off after page calibration.
