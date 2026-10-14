@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Point } from '../../src/lib/paperScan/omr';
 type Props = { file: File; onClose: () => void; onUse: (points: Point[]) => void };
-const names = ['Top left', 'Top right', 'Bottom right', 'Bottom left'];
+const names = ['Square 1', 'Square 2', 'Square 3', 'Square 4'];
 export default function ScanCornerAdjust({ file, onClose, onUse }: Props) {
   const [url, setUrl] = useState('');
   const [points, setPoints] = useState<(Point | null)[]>([null, null, null, null]);
@@ -26,10 +26,10 @@ export default function ScanCornerAdjust({ file, onClose, onUse }: Props) {
     }
   }}>
     <header><h3 id="psc-align-title">Adjust this photo’s corners</h3><button ref={close} className="paw-button" onClick={onClose}>Close</button></header>
-    <p>Tap the centre of each black corner square on the printed sheet, clockwise from its top left. Keep the QR code visible. Zoom in for a precise tap.</p>
-    <div className="psc-align-targets">{names.map((name, index) => <button className="paw-button" key={name} aria-pressed={selected === index} onClick={() => setSelected(index)}>{index + 1} · {name}{points[index] ? ' ✓' : ''}</button>)}</div>
+    <p>Tap the centre of the four black corner squares in any order. The QR code tells us how to align the page. Zoom in for a precise tap.</p>
+    <div className="psc-align-targets">{names.map((name, index) => <button className="paw-button" key={name} aria-pressed={selected === index} onClick={() => setSelected(index)}>{name}{points[index] ? ' ✓' : ''}</button>)}</div>
     <label className="psc-align-zoom">Photo zoom <input type="range" min="1" max="3" step="0.25" value={zoom} onChange={e => setZoom(Number(e.target.value))} /> {zoom}×</label>
-    <p role="status">Choose {selected + 1}: {names[selected]} square. Tap a numbered button to adjust that corner.</p>
+    <p role="status">Choose {names[selected]}. Tap a numbered button to adjust that square.</p>
     <div className="psc-align-scroll"><div className="psc-align-image" style={{ width: `${zoom * 100}%` }}>
       <img src={url || undefined} alt="Original answer sheet; tap the black corner square centres" onLoad={() => setOpened(true)} onClick={e => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -37,7 +37,7 @@ export default function ScanCornerAdjust({ file, onClose, onUse }: Props) {
         setPoints(values => values.map((old, index) => index === selected ? point : old));
         setSelected(value => Math.min(3, value + 1));
       }} />
-      {points.map((point, index) => point ? <button className="psc-align-point" key={index} aria-label={`Adjust ${names[index]} square`} style={{ left: `${point.x * 100}%`, top: `${point.y * 100}%` }} onClick={() => setSelected(index)}>{index + 1}</button> : null)}
+      {points.map((point, index) => point ? <button className="psc-align-point" key={index} aria-label={`Adjust ${names[index]}`} style={{ left: `${point.x * 100}%`, top: `${point.y * 100}%` }} onClick={() => setSelected(index)}>{index + 1}</button> : null)}
     </div></div>
     <p className="psc-hint">Your photo stays in the tray. The scanner still validates the QR and all four squares. After alignment, check every answer before confirming the result.</p>
     <footer><button className="psc-link" onClick={() => { setPoints([null, null, null, null]); setSelected(0); }}>Reset corners</button><button className="paw-button primary" disabled={!opened || points.some(point => !point)} onClick={() => onUse(points as Point[])}>Read adjusted photo</button></footer>
