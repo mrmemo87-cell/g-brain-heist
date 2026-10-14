@@ -4,18 +4,18 @@ import { build } from 'esbuild';
 import { JSDOM, VirtualConsole } from 'jsdom';
 const mock = `
 export const fetchScanInbox=async()=>window.sessions;
-export const resolveScanSheet=async id=>window.sessions.find(s=>s.sheets.some(p=>p.id===id));
+export const resolveScanSheet=async id=>{if(window.rejectIdentity)throw new Error('Wrong assignment');return window.sessions.find(s=>s.sheets.some(p=>p.id===id))};
 export const confirmScan=async(session,id,replace)=>{window.confirmed.push({session,id,replace});window.sessions=window.sessions.map(s=>({...s,sheets:s.sheets.map(p=>p.studentId===id?{...p,confirmedAt:'now'}:p)}))};
 export const issueScanSheets=async()=>null;export const issueUnnamedSheets=async()=>null;export const holdGuest=async()=>null;export const saveScan=async(scanId,sheetId,hash,detected)=>{window.sessions=window.sessions.map(s=>({...s,sheets:s.sheets.map(p=>p.id===sheetId?{...p,scanId,imageHash:hash,detected}:p)}));return window.sessions[0]};export const reviewScan=async()=>null;
 `;
-const bundle = await build({ stdin:{contents:`import React from 'react'; import {createRoot} from 'react-dom/client'; import Workspace from './components/teacher/PaperScanWorkspace'; window.root=createRoot(document.getElementById('root'));window.root.render(<Workspace packet={window.packet} userId="teacher" schoolName="School" flush={{current:()=>{}}} canLeave={{current:()=>true}} onConfirmed={async()=>window.refreshed++}/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,format:'iife',write:false,loader:{'.css':'empty'},logLevel:'silent',plugins:[{name:'mocks',setup(build){
+const bundle = await build({ stdin:{contents:`import React from 'react'; import {createRoot} from 'react-dom/client'; import Workspace from './components/teacher/PaperScanWorkspace'; window.root=createRoot(document.getElementById('root'));window.root.render(<Workspace packet={window.packet} userId="teacher" schoolName="School" flush={{current:()=>{}}} canLeave={{current:()=>true}} onConfirmed={async()=>window.refreshed++} renderManualEntry={(id,date)=>{window.manualTarget={id,date};return <p>Verified manual editor</p>}}/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,format:'iife',write:false,loader:{'.css':'empty'},logLevel:'silent',plugins:[{name:'mocks',setup(build){
  build.onResolve({filter:/services\/paperScanService$/},()=>({path:'scan',namespace:'mock'}));
  build.onResolve({filter:/paperScanImage$/},()=>({path:'image',namespace:'mock'}));
  build.onResolve({filter:/paperScanPreviewCache$/},()=>({path:'cache',namespace:'mock'}));
  build.onResolve({filter:/supabaseClient$/},()=>({path:'db',namespace:'mock'}));
  build.onResolve({filter:/\.\/ClassroomPrintPanel$/},()=>({path:'print',namespace:'mock'}));
  build.onResolve({filter:/\.\/GuestResultsPanel$/},()=>({path:'guest',namespace:'mock'}));
- build.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='scan'?mock:args.path==='image'?`export async function loadScanPhoto(file,signal,anchors){window.scanCalls.push({file,anchors});if(!anchors)throw new Error('The page corners could not be matched.');return {sheetId:'sheet2',hash:'photo-hash',image:{},manuallyAligned:true}};export const detectedAnswers=()=>({q:{state:'uncertain',choice:null,coverage:[0,1]}});export const rowPreviews=()=>({q:'data:image/png;base64,preview'});`:args.path==='cache'?`export const saveRowPreviews=async()=>{};export const loadRowPreviews=async()=>null;`:args.path==='db'?`export const supabase={rpc:async()=>({data:null,error:null})}`:`export default function Panel(){return null}`,loader:'js'}));
+ build.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='scan'?mock:args.path==='image'?`export class ScanPhotoReadError extends Error {constructor(message,sheetId){super(message);this.sheetId=sheetId}};export async function loadScanPhoto(file,signal,anchors){window.scanCalls.push({file,anchors});if(!anchors)throw new ScanPhotoReadError('The page corners could not be matched.','sheet2');return {sheetId:'sheet2',hash:'photo-hash',image:{},manuallyAligned:true}};export const detectedAnswers=()=>({q:{state:'uncertain',choice:null,coverage:[0,1]}});export const rowPreviews=()=>({q:'data:image/png;base64,preview'});`:args.path==='cache'?`export const saveRowPreviews=async()=>{};export const loadRowPreviews=async()=>null;`:args.path==='db'?`export const supabase={rpc:async()=>({data:null,error:null})}`:`export default function Panel(){return null}`,loader:'js'}));
 }}]});
 const pause=()=>new Promise(resolve=>setTimeout(resolve,20));
 async function until(predicate) { for(let i=0;i<100;i++){if(predicate())return;await pause();}assert.ok(predicate(),"UI did not become ready"); }
@@ -64,5 +64,24 @@ test('failed original photo stays in the tray and Adjust corners reprocesses it 
   await until(()=>t.button('Read adjusted photo') && !t.button('Read adjusted photo').disabled);t.button('Read adjusted photo').click();await until(()=>t.button('Start review'));assert.equal(t.w.scanCalls.length,2);assert.equal(t.w.scanCalls[1].file,file);assert.equal(t.w.scanCalls[1].anchors.length,4);
   assert.match(t.w.document.querySelector('.psc-batch').textContent,/Ready to review/);t.button('Start review').click();await until(()=>t.button('Save page & continue'));
   assert.equal(t.button('Save page & continue').disabled,true);assert.equal(t.w.confirmed.length,0);assert.deepEqual(t.errors,[]);
+ }finally{t.w.root.unmount();t.dom.window.close();}
+});
+
+
+test('native camera remains primary; QR-verified manual entry retains the scan tray and never auto-confirms',async()=>{
+ const t=await setup();try{
+  const input=t.w.document.querySelector('[aria-label="Take answer sheet photo with phone camera"]');assert.equal(input.getAttribute('capture'),'environment');
+  const file=new t.w.File(['photo'],'native.jpg',{type:'image/jpeg'});Object.defineProperty(input,'files',{value:[file]});input.dispatchEvent(new t.w.Event('change',{bubbles:true}));await until(()=>t.button('Enter answers from photo'));
+  t.button('Enter answers from photo').click();await until(()=>t.w.manualTarget);
+  assert.equal(t.w.manualTarget.id,'student2');assert.equal(t.w.manualTarget.date,'2026-01-02');assert.equal(t.w.confirmed.length,0);
+  assert.ok(t.w.document.querySelector('.psc-manual-recovery'));t.button('Back to scan tray').click();await until(()=>t.w.document.querySelector('.psc-batch'));
+  assert.match(t.w.document.querySelector('.psc-batch').textContent,/native.jpg/);assert.equal(t.w.confirmed.length,0);
+ }finally{t.w.root.unmount();t.dom.window.close();}
+});
+test('manual fallback cannot bypass QR assignment authorization',async()=>{
+ const t=await setup();try{
+  const input=t.w.document.querySelector('[aria-label="Take answer sheet photo with phone camera"]');Object.defineProperty(input,'files',{value:[new t.w.File(['photo'],'wrong.jpg',{type:'image/jpeg'})]});input.dispatchEvent(new t.w.Event('change',{bubbles:true}));await until(()=>t.button('Enter answers from photo'));
+  t.w.rejectIdentity=true;t.button('Enter answers from photo').click();await until(()=>t.w.document.querySelector('[role="alert"]'));
+  assert.match(t.w.document.querySelector('[role="alert"]').textContent,/Wrong assignment/);assert.equal(t.w.manualTarget,undefined);assert.equal(t.w.confirmed.length,0);
  }finally{t.w.root.unmount();t.dom.window.close();}
 });
