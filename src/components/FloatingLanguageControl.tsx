@@ -87,6 +87,7 @@ export default function FloatingLanguageControl({ language, setLanguage }: { lan
   useEffect(() => {
     if (!open) return;
     if (!companion || languageOpen) panel.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus();
+    else fan.current?.querySelector<HTMLButtonElement>('button')?.focus();
     const outside = (event: PointerEvent) => { if (!wrapper.current?.contains(event.target as Node)) setOpen(false); };
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);

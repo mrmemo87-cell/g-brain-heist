@@ -131,7 +131,7 @@ test('pilot hub has one trigger, drag suppression, language back navigation and 
   m.button().click();await m.wait(()=>m.button().getAttribute('aria-expanded')==='true');assert.equal(m.w.greetings,1);
   const option=text=>[...m.w.document.querySelectorAll('.companion-hub-option')].find(b=>b.textContent===text);
   assert.equal(m.w.document.querySelectorAll('.companion-hub-option').length,4);option('Language').click();await m.wait(()=>m.w.document.querySelector('.language-dock-panel'));
-  m.w.document.querySelector('[aria-label="Back to companion options"]').click();await m.wait(()=>!m.w.document.querySelector('.language-dock-panel'));
+  m.w.document.querySelector('[aria-label="Back to companion options"]').click();await m.wait(()=>!m.w.document.querySelector('.language-dock-panel'));assert.equal(m.w.document.activeElement.textContent,'Language');
   option('Keepsakes').click();await m.wait(()=>m.w.keepsakes);assert.equal(m.button().getAttribute('aria-expanded'),'false');
   m.button().click();await m.wait(()=>m.button().getAttribute('aria-expanded')==='true');option('Tuck away').click();await m.wait(()=>!m.control().classList.contains('is-companion'));assert.equal(m.button().getAttribute('aria-label'),'Interface language');
   m.button().click();await m.wait(()=>m.w.document.querySelector('.language-dock-panel'));m.w.document.querySelector('[aria-label="العربية"]').click();await m.wait(()=>m.w.chosenLanguage==='ar');
