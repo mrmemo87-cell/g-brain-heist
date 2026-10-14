@@ -18,6 +18,7 @@ const bundle = await build({ stdin:{contents:`import React from 'react'; import 
  build.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='scan'?mock:args.path==='image'?`export async function loadScanPhoto(file,signal,anchors){window.scanCalls.push({file,anchors});if(!anchors)throw new Error('The page corners could not be matched.');return {sheetId:'sheet2',hash:'photo-hash',image:{},manuallyAligned:true}};export const detectedAnswers=()=>({q:{state:'uncertain',choice:null,coverage:[0,1]}});export const rowPreviews=()=>({q:'data:image/png;base64,preview'});`:args.path==='cache'?`export const saveRowPreviews=async()=>{};export const loadRowPreviews=async()=>null;`:args.path==='db'?`export const supabase={rpc:async()=>({data:null,error:null})}`:`export default function Panel(){return null}`,loader:'js'}));
 }}]});
 const pause=()=>new Promise(resolve=>setTimeout(resolve,20));
+async function until(predicate) { for(let i=0;i<100;i++){if(predicate())return;await pause();}assert.ok(predicate(),"UI did not become ready"); }
 async function setup() {
  const errors=[];const console=new VirtualConsole();console.on('jsdomError',e=>errors.push(e.message));
  const dom=new JSDOM('<div id="root"></div>',{url:'https://test.local',runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:console});const w=dom.window;
@@ -56,12 +57,12 @@ test('failed original photo stays in the tray and Adjust corners reprocesses it 
  const t=await setup();try{
   t.w.sessions[0].sheets[2].scanId=null;t.w.sessions[0].sheets[2].reviewedAnswers=null;
   const file=new t.w.File(['photo'],'original.jpg',{type:'image/jpeg'});
-  const input=t.w.document.querySelector('[aria-label="Choose answer sheet photos"]');Object.defineProperty(input,'files',{value:[file]});input.dispatchEvent(new t.w.Event('change',{bubbles:true}));await pause();await pause();
+  const input=t.w.document.querySelector('[aria-label="Choose answer sheet photos"]');Object.defineProperty(input,'files',{value:[file]});input.dispatchEvent(new t.w.Event('change',{bubbles:true}));await until(()=>t.button('Adjust corners'));
   assert.match(t.w.document.querySelector('.psc-batch').textContent,/1 need attention/);assert.equal(t.w.scanCalls.length,1);assert.equal(t.w.confirmed.length,0);
-  t.button('Adjust corners').click();await pause();const image=t.w.document.querySelector('.psc-align img');assert.equal(image.src,'blob:photo');image.getBoundingClientRect=()=>({left:0,top:0,width:100,height:200});image.dispatchEvent(new t.w.Event('load'));await pause();
+  t.button('Adjust corners').click();await until(()=>t.w.document.querySelector('.psc-align img')?.src==='blob:photo');const image=t.w.document.querySelector('.psc-align img');assert.equal(image.src,'blob:photo');image.getBoundingClientRect=()=>({left:0,top:0,width:100,height:200});image.dispatchEvent(new t.w.Event('load'));await pause();
   for(const [x,y] of [[5,10],[95,10],[95,190],[5,190]]){image.dispatchEvent(new t.w.MouseEvent('click',{bubbles:true,clientX:x,clientY:y}));await pause();}
-  t.button('Read adjusted photo').click();await pause();await pause();assert.equal(t.w.scanCalls.length,2);assert.equal(t.w.scanCalls[1].file,file);assert.equal(t.w.scanCalls[1].anchors.length,4);
-  assert.match(t.w.document.querySelector('.psc-batch').textContent,/Ready to review/);t.button('Start review').click();await pause();await pause();
+  await until(()=>t.button('Read adjusted photo') && !t.button('Read adjusted photo').disabled);t.button('Read adjusted photo').click();await until(()=>t.button('Start review'));assert.equal(t.w.scanCalls.length,2);assert.equal(t.w.scanCalls[1].file,file);assert.equal(t.w.scanCalls[1].anchors.length,4);
+  assert.match(t.w.document.querySelector('.psc-batch').textContent,/Ready to review/);t.button('Start review').click();await until(()=>t.button('Save page & continue'));
   assert.equal(t.button('Save page & continue').disabled,true);assert.equal(t.w.confirmed.length,0);assert.deepEqual(t.errors,[]);
  }finally{t.w.root.unmount();t.dom.window.close();}
 });
