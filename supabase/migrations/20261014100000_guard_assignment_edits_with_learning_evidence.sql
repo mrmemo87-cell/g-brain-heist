@@ -184,3 +184,8 @@ begin
 end;
 $function$
 
+
+-- Preserve the existing authenticated teacher RPC contract; explicitly deny
+-- PUBLIC/anon execution on the replaced SECURITY DEFINER overload.
+revoke all on function public.rpc_update_teacher_assignment(uuid,text,text,text,text,uuid[],timestamptz,timestamptz,text,text,text,text,text,uuid[],text,boolean,boolean) from public, anon;
+grant execute on function public.rpc_update_teacher_assignment(uuid,text,text,text,text,uuid[],timestamptz,timestamptz,text,text,text,text,text,uuid[],text,boolean,boolean) to authenticated;
