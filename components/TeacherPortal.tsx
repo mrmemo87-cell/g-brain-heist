@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
+import RetentionTrialGate from '../src/features/retention/RetentionTrialGate';
+const RetentionTeacherPanel = React.lazy(() => import('../src/features/retention/RetentionTeacherPanel'));
 import { createPortal } from 'react-dom';
 import DOMPurify from 'dompurify';
 import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, QuestionType, TeacherAssignmentSummary, TeacherAssignmentReportRow, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis, AssignmentBatch, AssignmentCategory } from '../types';
@@ -4586,6 +4588,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         <p className="teacher-section-subtitle">Manage your classes, questions, and track student progress</p>
       </div>
 
+      <RetentionTrialGate userId={profile.id}>
+        <RetentionTeacherPanel userId={profile.id} name={profile.username} submissions={assignmentSuccess ? totalSubmissions : null}
+          activeAssignments={activeAssignments} pendingReviews={pendingWriting} followups={assignmentSuccess?.followups || []}
+          reportsAllowed={canUseTeacherFeature(FEATURE_KEYS.REPORTS)} assignmentsAllowed={canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
+          onReports={() => openEntitledView('reports', 'Reports')} onAssignments={() => openEntitledView('assignments', 'Assignments')}
+          onInterventions={() => openEntitledView('interventions', 'Interventions')} />
+      </RetentionTrialGate>
       {/* Dashboard shortcuts */}
       <TeacherIeltsProgrammeShortcut entry={ieltsProgramme.entry} failed={ieltsProgramme.failed} onRetry={ieltsProgramme.retry} />
       <div className="teacher-stats-grid">
