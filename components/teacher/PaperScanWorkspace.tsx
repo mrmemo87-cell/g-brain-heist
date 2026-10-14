@@ -11,6 +11,7 @@ import {
 } from "../../services/paperScanService";
 import {
   detectedAnswers,
+  ScanPhotoReadError,
   loadScanPhoto,
   rowPreviews,
   type ProcessedPhoto,
@@ -59,6 +60,7 @@ type BatchItem = {
   error?: string;
   draft?: BatchDraft;
   anchors?: Point[];
+  decodedSheetId?: string;
 };
 type Props = {
   packet: PaperWorkspace;
@@ -68,6 +70,7 @@ type Props = {
   flush: React.MutableRefObject<() => Promise<void>>;
   canLeave: React.MutableRefObject<() => boolean>;
   onConfirmed: () => Promise<void>;
+  renderManualEntry?: (studentId: string, assessedAt: string) => React.ReactNode;
 };
 const errorText = (e: unknown) =>
   e instanceof Error ? e.message : "Could not save. Try again.";
@@ -86,6 +89,7 @@ export default function PaperScanWorkspace({
   flush,
   canLeave,
   onConfirmed,
+  renderManualEntry,
 }: Props) {
   const [tab, setTab] = useState<"print" | "scan" | "guests">("print");
   const [guestName, setGuestName] = useState("");
@@ -116,6 +120,14 @@ export default function PaperScanWorkspace({
   const abort = useRef<AbortController | null>(null);
   const request = useRef<{ key: string; id: string } | null>(null);
   const upload = useRef<HTMLInputElement>(null);
+  const phoneCamera = useRef<HTMLInputElement>(null);
+  const [manualScan, setManualScan] = useState<{ studentId: string; name: string; assessedAt: string; file: File; sheetIds: string[] } | null>(null);
+  const [manualPhotoUrl, setManualPhotoUrl] = useState("");
+  useEffect(() => {
+    if (!manualScan) { setManualPhotoUrl(""); return; }
+    const url = URL.createObjectURL(manualScan.file); setManualPhotoUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [manualScan?.file]);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [adjusting, setAdjusting] = useState<BatchItem | null>(null);
   const cameraOpenRef = useRef(cameraOpen);
@@ -190,6 +202,7 @@ export default function PaperScanWorkspace({
     }
   }, [sheetId, flow]);
   useEffect(() => {
+    if (manualScan) return;
     flush.current = () =>
       (busyRef.current || cameraOpenRef.current)
         ? Promise.reject(
@@ -209,7 +222,7 @@ export default function PaperScanWorkspace({
       batchAbort.current?.abort();
       abort.current?.abort();
     };
-  }, [flush, canLeave]);
+  }, [flush, canLeave, !!manualScan]);
   useEffect(() => {
     let active = true;
     let id: string | null = null;
@@ -542,7 +555,7 @@ export default function PaperScanWorkspace({
           ? { ...page, file: undefined, draft, state: draft.sheet.reviewedAnswers ? "reviewed" : "ready" } : page));
       }, (item, e) => {
         updateBatch((list) => list.map((page) => page.id === item.id
-          ? { ...page, state: "error", error: errorText(e) } : page));
+          ? { ...page, state: "error", error: errorText(e), decodedSheetId: e instanceof ScanPhotoReadError ? e.sheetId : undefined } : page));
       }, stopping.signal);
       if (controller.signal.aborted) return;
       await refreshInbox();
@@ -551,7 +564,8 @@ export default function PaperScanWorkspace({
       const restored = sheetId && !photo ? batchRef.current.find((item) => item.draft?.sheet.id === sheetId) : null;
       if (restored?.draft) showDraft(restored.draft);
       else setFlow("capture");
-      setMessage(stopping.signal.aborted ? "Paused after this photo. Continue when ready." : "Photos are ready. Tap Start review to check one page at a time.");
+      const failed = batchRef.current.filter(item => item.state === "error").length;
+      setMessage(stopping.signal.aborted ? "Paused after this photo. Continue when ready." : failed ? `${failed} photos need attention. Review ready pages, adjust corners, or enter answers using the original photo.` : "Photos are ready. Tap Start review to check one page at a time.");
     } finally {
       if (!controller.signal.aborted) { busyRef.current = ""; setBusy(""); }
       batchAbort.current = null;
@@ -570,6 +584,19 @@ export default function PaperScanWorkspace({
     const additions: BatchItem[] = files.map((file) => ({ id: crypto.randomUUID(), name: file.name, file, state: "queued" }));
     updateBatch((items) => [...items, ...additions]);
     void readBatch(additions);
+  };
+  const enterPhotoAnswers = async (item: BatchItem) => {
+    if (busyRef.current || !item.file || !item.decodedSheetId || !renderManualEntry || !retainReview()) return;
+    busyRef.current = "Checking paper identity…"; setBusy(busyRef.current); setError("");
+    try {
+      const current = await resolveScanSheet(item.decodedSheetId, packet.assignment.id);
+      const page = current.sheets.find(page => page.id === item.decodedSheetId);
+      const student = packet.students.find(student => student.id === page?.studentId);
+      if (!page || !student) throw new Error("This booklet must be linked to an assigned student before using manual entry.");
+      if (student.status === "completed" || page.confirmedAt) throw new Error("This student already has a completed result.");
+      setManualScan({ studentId: student.id, name: student.name, assessedAt: current.assessedAt, file: item.file, sheetIds: current.sheets.filter(page => page.studentId === student.id).map(page => page.id) });
+    } catch (e) { setError(errorText(e)); }
+    finally { busyRef.current = ""; setBusy(""); }
   };
   const confirmBatch = async () => {
     if (busyRef.current || !retainReview()) return;
@@ -706,6 +733,15 @@ export default function PaperScanWorkspace({
     setFlow(batchRef.current.some((item) => item.state === "ready") ? "capture" : "finish");
     setMessage("");
   };
+  if (manualScan && renderManualEntry) return <div className="psc psc-manual-recovery">
+    <header className="psc-review-heading"><div><span className="paw-eyebrow">QR identity checked · enter paper answers</span><h3>{manualScan.name}</h3></div><button className="paw-button" onClick={async () => { try { await flush.current();
+      if (packet.students.find(student => student.id === manualScan.studentId)?.status === "completed") updateBatch(items => items.map(item => item.draft?.sheet.studentId === manualScan.studentId || (item.decodedSheetId && manualScan.sheetIds.includes(item.decodedSheetId)) ? { ...item, state: "completed" } : item));
+      setManualScan(null); await refreshInbox(); } catch (e) { setError(errorText(e)); } }}>Back to scan tray</button></header>
+    <p>The QR identified this student and assignment. Alignment failed, so no answers were guessed. Use the original photo below to enter each answer, review and confirm it.</p>
+    {error ? <p role="alert">{error}</p> : null}
+    <details className="psc-original" open><summary>Original paper photo</summary>{manualPhotoUrl ? <img src={manualPhotoUrl} alt={`Original paper for ${manualScan.name}`} /> : null}</details>
+    {renderManualEntry(manualScan.studentId, manualScan.assessedAt)}
+  </div>;
   return (
     <div className="psc">
       <div
@@ -830,6 +866,7 @@ export default function PaperScanWorkspace({
               addPhotos(files);
             }}
           />
+          <input ref={phoneCamera} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="psc-file" aria-label="Take answer sheet photo with phone camera" onChange={e => { const files = Array.from(e.target.files || []); e.target.value = ""; addPhotos(files); }} />
           {adjusting?.file ? <ScanCornerAdjust file={adjusting.file} onClose={() => setAdjusting(null)} onUse={anchors => { const item = { ...adjusting, anchors }; setAdjusting(null); updateBatch(items => items.map(old => old.id === item.id ? item : old)); void readBatch([item]); }} /> : null}
           {cameraOpen ? <ScanPhotoCapture limit={MAX_SCAN_BATCH - batch.length} onClose={() => setCameraOpen(false)} onUse={files => { setCameraOpen(false); addPhotos(files); }} /> : null}
           {!sheet ? <section className="psc-inbox" aria-label="Saved scan results">
@@ -852,8 +889,9 @@ export default function PaperScanWorkspace({
                 <div><span className="paw-eyebrow">Your scan tray</span><h3>{flow === "finish" ? "Finish this batch" : `${batch.length} ${batch.length === 1 ? "photo" : "photos"} in your tray`}</h3>
                   <p>{batch.filter((item) => item.state === "ready").length} to review · {batch.filter((item) => item.state === "reviewed").length} reviewed · {batch.filter((item) => item.state === "completed").length} finished · {batch.filter(item => item.state === "error").length} need attention</p></div>
                 <div className="psc-batch-actions">
-                  <button className="paw-button" disabled={!!busy} onClick={() => setCameraOpen(true)}>+ Take photo</button>
+                  <button className="paw-button" disabled={!!busy} onClick={() => phoneCamera.current?.click()}>+ Take photo</button>
                   <button className="paw-button" disabled={!!busy} onClick={() => upload.current?.click()}>+ Add photos</button>
+                  <button className="psc-link" disabled={!!busy || batch.length >= MAX_SCAN_BATCH} onClick={() => setCameraOpen(true)}>Capture a stack</button>
                 </div>
               </header>
               <div className="psc-batch-actions">
@@ -870,6 +908,7 @@ export default function PaperScanWorkspace({
                       <span>{item.draft ? `Page ${item.draft.sheet.pageNumber}/${item.draft.sheet.pageCount} · ` : ""}{item.state === "ready" ? "Ready to review" : item.state === "completed" ? "Result saved" : item.state === "error" ? "Needs another look" : item.state === "reading" ? "Reading…" : item.state === "queued" ? "Waiting" : "Page reviewed"}</span>
                       {item.error ? <p role="status">{item.error}</p> : null}</div>
                     {item.draft && item.state !== "completed" ? <button className="psc-link" disabled={!!busy} aria-pressed={sheetId === item.draft.sheet.id} onClick={() => void openBatchPage(item)}>{item.state === "reviewed" ? "Finish student →" : "Review page →"}</button> : null}
+                    {item.state === "error" && item.decodedSheetId && renderManualEntry ? <button className="paw-button" disabled={!!busy} onClick={() => void enterPhotoAnswers(item)}>Enter answers from photo</button> : null}
                     {item.state === "error" && item.file && /corners|corner|calibrat/i.test(item.error || "") ? <button className="paw-button" disabled={!!busy} onClick={() => setAdjusting(item)}>Adjust corners</button> : null}
                     {item.state === "error" ? <button className="psc-link" disabled={!!busy} onClick={() => void readBatch([item])}>Retry</button> : null}
                     {item.state !== "completed" ? <button className="psc-link" disabled={!!busy} aria-label={`Remove ${item.name} from tray`} onClick={() => {
@@ -898,12 +937,12 @@ export default function PaperScanWorkspace({
               </div>
               <span className="paw-eyebrow">Your phone is the scanner</span>
               <h3>A stack of papers. One scan batch.</h3>
-              <p>Take the whole stack one shot after another, then tap Use photos. You can also choose existing photos together. One page per photo, with its QR code and four corner squares visible.</p>
+              <p>Use your phone camera for one page, or choose Capture a stack to take several shots before tapping Use photos. One page per photo, with its QR code and four corner squares visible.</p>
               <div className="psc-capture-actions">
                 <button
                   className="paw-button primary"
                   disabled={!!busy}
-                  onClick={() => setCameraOpen(true)}
+                  onClick={() => phoneCamera.current?.click()}
                 >
                   Take photo
                 </button>
@@ -914,6 +953,7 @@ export default function PaperScanWorkspace({
                 >
                   Choose photos
                 </button>
+                <button className="psc-link" disabled={!!busy} onClick={() => setCameraOpen(true)}>Capture a stack</button>
               </div>
               <small>
                 Photos stay on this device. Reviewed answers are saved securely.
