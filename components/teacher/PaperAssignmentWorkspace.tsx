@@ -237,14 +237,7 @@ export default function PaperAssignmentWorkspace(props: Props) {
                   onConfirmed={async () => {
                     setScanConfirmed(true);
                     props.onRecorded();
-                    setPacket(await fetchPaperWorkspace(props.assignmentId));
-                  }}
-                  renderManualEntry={(studentId, assessedAt) => {
-                    const target = packet.students.find(student => student.id === studentId);
-                    if (!target) return <p role="alert">This student is no longer assigned.</p>;
-                    return <PaperStudentEditor key={target.id} packet={packet} student={target} userId={props.userId} flush={flush} canLeave={canLeave} initialAssessedAt={assessedAt}
-                      onDraft={draft => setPacket(value => value ? { ...value, students: value.students.map(student => student.id === target.id ? { ...student, draft } : student) } : value)}
-                      onConfirmed={async () => { props.onRecorded(); setPacket(await fetchPaperWorkspace(props.assignmentId)); }} />;
+                    await load();
                   }}
                 />
               </Suspense>
@@ -395,7 +388,6 @@ function PaperStudentEditor({
   canLeave,
   onDraft,
   onConfirmed,
-  initialAssessedAt,
 }: {
   packet: PaperWorkspace;
   student: PaperStudent;
@@ -404,7 +396,6 @@ function PaperStudentEditor({
   canLeave: React.MutableRefObject<() => boolean>;
   onDraft: (draft: NonNullable<PaperStudent["draft"]>) => void;
   onConfirmed: () => Promise<void>;
-  initialAssessedAt?: string;
 }) {
   const storageKey = `bh:paper-draft:v1:${userId}:${packet.assignment.id}:${student.id}`;
   const initial = useRef<{
@@ -441,7 +432,7 @@ function PaperStudentEditor({
           : {},
       assessedAt: compatible
         ? local!.assessedAt
-        : draft?.assessedAt || initialAssessedAt || new Date().toISOString(),
+        : draft?.assessedAt || new Date().toISOString(),
       revision: draft?.revision || 0,
       conflict: !!local && !compatible,
     };
