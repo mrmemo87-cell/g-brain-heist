@@ -850,3 +850,11 @@
   .psc-camera-shots img { height: 80px; }
   .psc-inbox .psc-batch-actions { display: grid; grid-template-columns: 1fr; }
 }
+.psc-align-targets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.psc-align-targets button[aria-pressed="true"] { border-color: #2563eb; background: #eaf0ff; color: #1d4ed8; }
+.psc-align-zoom { display: flex; align-items: center; gap: 10px; margin: 14px 0; }
+.psc-align-zoom input { flex: 1; min-width: 0; }
+.psc-align-scroll { max-height: 42dvh; overflow: auto; background: #182033; border-radius: 12px; }
+.psc-align-image { position: relative; }
+.psc-align-image img { display: block; width: 100%; max-width: none; cursor: crosshair; }
+.psc-align-point { position: absolute; transform: translate(-50%, -50%); width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; background: #2563eb; color: white; font-weight: 800; box-shadow: 0 0 0 2px #2563eb; }

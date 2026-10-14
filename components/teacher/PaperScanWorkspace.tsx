@@ -38,6 +38,8 @@ import GuestResultsPanel from "./GuestResultsPanel";
 import { MAX_SCAN_BATCH, runScanBatch } from "../../src/lib/paperScan/batch";
 import { saveRowPreviews, loadRowPreviews } from "../../services/paperScanPreviewCache";
 import ScanPhotoCapture from "./ScanPhotoCapture";
+import ScanCornerAdjust from "./ScanCornerAdjust";
+import type { Point } from "../../src/lib/paperScan/omr";
 import { scanInbox } from "../../src/lib/paperScan/inbox";
 import "./PaperScanWorkspace.css";
 type BatchDraft = {
@@ -56,6 +58,7 @@ type BatchItem = {
   state: "queued" | "reading" | "ready" | "error" | "reviewed" | "completed";
   error?: string;
   draft?: BatchDraft;
+  anchors?: Point[];
 };
 type Props = {
   packet: PaperWorkspace;
@@ -114,8 +117,9 @@ export default function PaperScanWorkspace({
   const request = useRef<{ key: string; id: string } | null>(null);
   const upload = useRef<HTMLInputElement>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [adjusting, setAdjusting] = useState<BatchItem | null>(null);
   const cameraOpenRef = useRef(cameraOpen);
-  cameraOpenRef.current = cameraOpen;
+  cameraOpenRef.current = cameraOpen || !!adjusting;
   const [inboxSessions, setInboxSessions] = useState<ScanSession[]>([]);
   const [inboxError, setInboxError] = useState("");
   const refreshInbox = useCallback(async () => {
@@ -360,8 +364,8 @@ export default function PaperScanWorkspace({
       setBusy("");
     }
   };
-  const process = async (file: File, controller: AbortController): Promise<BatchDraft> => {
-      const nextPhoto = await loadScanPhoto(file, controller.signal);
+  const process = async (file: File, controller: AbortController, anchors?: Point[]): Promise<BatchDraft> => {
+      const nextPhoto = await loadScanPhoto(file, controller.signal, anchors);
       setBusy("Checking student and assignment…");
       const result = await resolveScanSheet(
         nextPhoto.sheetId,
@@ -532,7 +536,7 @@ export default function PaperScanWorkspace({
         if (!item.file) return;
         updateBatch((list) => list.map((page) => page.id === item.id ? { ...page, state: "reading", error: undefined } : page));
         setBusy(`Reading photo ${++done} of ${items.length}…`);
-        const draft = await process(item.file, controller);
+        const draft = await process(item.file, controller, item.anchors);
         if (controller.signal.aborted) return;
         updateBatch((list) => list.map((page) => page.id === item.id
           ? { ...page, file: undefined, draft, state: draft.sheet.reviewedAnswers ? "reviewed" : "ready" } : page));
@@ -826,6 +830,7 @@ export default function PaperScanWorkspace({
               addPhotos(files);
             }}
           />
+          {adjusting?.file ? <ScanCornerAdjust file={adjusting.file} onClose={() => setAdjusting(null)} onUse={anchors => { const item = { ...adjusting, anchors }; setAdjusting(null); updateBatch(items => items.map(old => old.id === item.id ? item : old)); void readBatch([item]); }} /> : null}
           {cameraOpen ? <ScanPhotoCapture limit={MAX_SCAN_BATCH - batch.length} onClose={() => setCameraOpen(false)} onUse={files => { setCameraOpen(false); addPhotos(files); }} /> : null}
           {!sheet ? <section className="psc-inbox" aria-label="Saved scan results">
             <span className="paw-eyebrow">{packet.students.filter(student => student.status === "completed").length}/{packet.students.length} students completed · saved across your scan sessions</span>
@@ -844,8 +849,8 @@ export default function PaperScanWorkspace({
           {batch.length && !sheet ? (
             <section className="psc-batch" aria-label="Scan batch">
               <header className="psc-batch-heading">
-                <div><span className="paw-eyebrow">Your scan tray</span><h3>{flow === "finish" ? "Finish this batch" : `${batch.length} ${batch.length === 1 ? "photo" : "photos"} ready in your tray`}</h3>
-                  <p>{batch.filter((item) => item.state === "ready").length} to review · {batch.filter((item) => item.state === "reviewed").length} reviewed · {batch.filter((item) => item.state === "completed").length} finished</p></div>
+                <div><span className="paw-eyebrow">Your scan tray</span><h3>{flow === "finish" ? "Finish this batch" : `${batch.length} ${batch.length === 1 ? "photo" : "photos"} in your tray`}</h3>
+                  <p>{batch.filter((item) => item.state === "ready").length} to review · {batch.filter((item) => item.state === "reviewed").length} reviewed · {batch.filter((item) => item.state === "completed").length} finished · {batch.filter(item => item.state === "error").length} need attention</p></div>
                 <div className="psc-batch-actions">
                   <button className="paw-button" disabled={!!busy} onClick={() => setCameraOpen(true)}>+ Take photo</button>
                   <button className="paw-button" disabled={!!busy} onClick={() => upload.current?.click()}>+ Add photos</button>
@@ -865,6 +870,7 @@ export default function PaperScanWorkspace({
                       <span>{item.draft ? `Page ${item.draft.sheet.pageNumber}/${item.draft.sheet.pageCount} · ` : ""}{item.state === "ready" ? "Ready to review" : item.state === "completed" ? "Result saved" : item.state === "error" ? "Needs another look" : item.state === "reading" ? "Reading…" : item.state === "queued" ? "Waiting" : "Page reviewed"}</span>
                       {item.error ? <p role="status">{item.error}</p> : null}</div>
                     {item.draft && item.state !== "completed" ? <button className="psc-link" disabled={!!busy} aria-pressed={sheetId === item.draft.sheet.id} onClick={() => void openBatchPage(item)}>{item.state === "reviewed" ? "Finish student →" : "Review page →"}</button> : null}
+                    {item.state === "error" && item.file && /corners|corner|calibrat/i.test(item.error || "") ? <button className="paw-button" disabled={!!busy} onClick={() => setAdjusting(item)}>Adjust corners</button> : null}
                     {item.state === "error" ? <button className="psc-link" disabled={!!busy} onClick={() => void readBatch([item])}>Retry</button> : null}
                     {item.state !== "completed" ? <button className="psc-link" disabled={!!busy} aria-label={`Remove ${item.name} from tray`} onClick={() => {
                       if (!retainReview()) return;
