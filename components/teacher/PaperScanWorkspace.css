@@ -858,3 +858,11 @@
 .psc-align-image { position: relative; }
 .psc-align-image img { display: block; width: 100%; max-width: none; cursor: crosshair; }
 .psc-align-point { position: absolute; transform: translate(-50%, -50%); width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; background: #2563eb; color: white; font-weight: 800; box-shadow: 0 0 0 2px #2563eb; }
+/* Stack preview and the saved crop are the same portrait A4 field of view. */
+.psc-camera-view { aspect-ratio: 210 / 297; width: auto; height: min(48dvh, 560px); max-width: 100%; margin: 0 auto; }
+.psc-camera-view video { object-fit: cover; }
+.psc-camera-guide { inset: 5%; }
+.psc-manual-recovery .psc-original img { max-height: 65dvh; width: 100%; object-fit: contain; }
+@media (max-width: 600px) { .psc-camera-view { height: 42dvh; } }
+.psc-camera-view { width: min(100%, calc(48dvh * 210 / 297), 396px); height: auto; }
+@media (max-width: 600px) { .psc-camera-view { width: min(100%, calc(42dvh * 210 / 297)); height: auto; } }
