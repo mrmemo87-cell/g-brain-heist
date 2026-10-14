@@ -67,7 +67,7 @@ export default function RetentionCompanion({ userId, teacher = false, runs = 0, 
  const celebrate = (text: string, sound: 'tap' | 'unlock' | 'complete' | 'thanks' = 'unlock') => {
   primeRetentionSound(userId); playRetentionSound(userId, sound); setMessage(text); setCue(value => value + 1);
  };
- const save = async (event: React.FormEvent) => {
+ const save = async (event: { preventDefault(): void }) => {
   event.preventDefault(); if (lock.current) return; lock.current = true; setBusy(true); setError('');
   primeRetentionSound(userId);
   try { const profile = await saveCompanion(userId, { name: draft.trim(), palette });
