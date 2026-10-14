@@ -4,6 +4,9 @@ import {
   type DetectedRow,
 } from "../src/lib/paperScan/layout";
 import { readBubbles, registeredBubbleCentres, bubblePreviewSamples, type Raster, type Point } from "../src/lib/paperScan/omr";
+export class ScanPhotoReadError extends Error {
+  constructor(message: string, public readonly sheetId?: string) { super(message); this.name = "ScanPhotoReadError"; }
+}
 export interface ProcessedPhoto {
   sheetId: string;
   image: Raster;
@@ -82,7 +85,7 @@ export async function loadScanPhoto(
         e: MessageEvent<{ error?: string; sheetId: string; image: Raster }>,
       ) => {
         clean();
-        if (e.data.error) reject(new Error(e.data.error));
+        if (e.data.error) reject(new ScanPhotoReadError(e.data.error, e.data.sheetId));
         else resolve({ sheetId: e.data.sheetId, image: e.data.image, hash, manuallyAligned: !!anchors });
       };
       worker.onerror = () => {
