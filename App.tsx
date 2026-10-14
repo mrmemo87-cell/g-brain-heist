@@ -38,6 +38,8 @@ import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey, ty
 import { listMyPendingProgrammeAccessRequests, requestProgrammeAccess } from './services/programmeAccessRequestService';
 import { enrollInApprovedSchoolClass, listMySchoolClasses, type ApprovedSignupClass } from './services/authService';
 import AssignmentDesk from './components/student/AssignmentDesk';
+import RetentionTrialGate from './src/features/retention/RetentionTrialGate';
+const RetentionStudentPanel = React.lazy(() => import('./src/features/retention/RetentionStudentPanel'));
 import ProgramIdentityBanner from './src/components/ProgramIdentityBanner';
 import { PROGRAM_ARTWORK } from './src/lib/programArtwork';
 
@@ -2460,6 +2462,26 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
 
             const nextActionLabel = activeAssignment ? t("Start assignment") : t("Start today’s practice");
             const nextActionTitle = activeAssignment?.title || t("Daily skill practice");
+            const nextMissionCard = (
+                        <article className="student-feed-card student-next-mission relative p-5 sm:p-6" data-testid="dashboard-start-quest">
+                          <div className="student-next-mission__atmosphere pointer-events-none absolute inset-0" aria-hidden />
+                          <div className="relative">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="student-theme-pill rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wider">{t("Up next")}</span>
+                              <span className="text-xs font-semibold text-slate-300">{activeAssignment ? t("Teacher assignment") : t("Matched to your progress")}</span>
+                            </div>
+                            <h2 className="mt-4 font-heading text-2xl text-white sm:text-3xl"><bdi>{nextActionTitle}</bdi></h2>
+                            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">
+                              {activeAssignment
+                                ? `${activeAssignment.subject_name || t("General")} · ${activeAssignment.due_at ? t('Due {date}', { date: new Date(activeAssignment.due_at).toLocaleString(language) }) : t("No deadline")}`
+                                : t("A short adaptive mission based on your current level. Finish it to keep your streak moving.")}
+                            </p>
+                            <button type="button" onClick={handleQuestAction} className="student-primary-button mt-5">
+                              {nextActionLabel} <span className="ml-2" aria-hidden>→</span>
+                            </button>
+                          </div>
+                        </article>
+            );
 
             return (
               <main className="localized-ui mt-4 sm:mt-6" lang={language} dir={direction}>
@@ -2482,24 +2504,10 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                     {studentDashboardTab === 'home' && (
                       <>
                         {renderProfileSlot()}
-                        <article className="student-feed-card student-next-mission relative p-5 sm:p-6" data-testid="dashboard-start-quest">
-                          <div className="student-next-mission__atmosphere pointer-events-none absolute inset-0" aria-hidden />
-                          <div className="relative">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="student-theme-pill rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wider">{t("Up next")}</span>
-                              <span className="text-xs font-semibold text-slate-300">{activeAssignment ? t("Teacher assignment") : t("Matched to your progress")}</span>
-                            </div>
-                            <h2 className="mt-4 font-heading text-2xl text-white sm:text-3xl"><bdi>{nextActionTitle}</bdi></h2>
-                            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">
-                              {activeAssignment
-                                ? `${activeAssignment.subject_name || t("General")} · ${activeAssignment.due_at ? t('Due {date}', { date: new Date(activeAssignment.due_at).toLocaleString(language) }) : t("No deadline")}`
-                                : t("A short adaptive mission based on your current level. Finish it to keep your streak moving.")}
-                            </p>
-                            <button type="button" onClick={handleQuestAction} className="student-primary-button mt-5">
-                              {nextActionLabel} <span className="ml-2" aria-hidden>→</span>
-                            </button>
-                          </div>
-                        </article>
+                        <RetentionTrialGate userId={profile.id} fallback={nextMissionCard}>
+                          <RetentionStudentPanel userId={profile.id} name={profile.username} hasSchool={hasSchool} nextMove={nextMissionCard}
+                            onOpenProgress={() => { setStudentDashboardTab('learn'); setStudentLearningView('academic-profile'); }} />
+                        </RetentionTrialGate>
 
                         <section className="student-quick-stats" aria-label={t("Player stats")}>
                           <button type="button" onClick={() => { setHelpInitialSection('streak'); setShowHelp(true); }} aria-label={t('Open streak rewards guide. Current streak: {count} days', { count: profile?.streak || 0 })} className="student-feed-card student-quick-stat text-left transition hover:-translate-y-0.5 hover:border-orange-300/50"><span className="student-quick-stat__icon" aria-hidden>🔥</span><span><strong>{t("Streak")}</strong><b>{t('Days: {count}', { count: profile?.streak || 0 })}</b><small>{t("Tap to view the reward ladder")}</small></span></button>
