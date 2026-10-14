@@ -37,7 +37,7 @@ function contrast(image: Raster): Raster {
 /** Retry QR decoding at a quieter resolution and with contrast normalization.
  * Coordinates are always converted back to the untouched original photograph.
  */
-export function decodeSheetQr(image: Raster) {
+export function* decodeSheetQrCandidates(image: Raster) {
   const reducedWidth = Math.round(image.width * Math.min(1, 1400 / Math.max(image.width, image.height)));
   const candidates = [() => image, () => resize(image, reducedWidth), () => contrast(image)];
   for (const candidate of candidates) {
@@ -47,16 +47,29 @@ export function decodeSheetQr(image: Raster) {
     const sheetId = parseSheetToken(qr.data);
     const sx = image.width / raster.width, sy = image.height / raster.height;
     const point = (p: Point) => ({ x: p.x * sx, y: p.y * sy });
-    return { sheetId, version: qr.version, corners: [
+    yield { sheetId, version: qr.version, corners: [
       point(qr.location.topLeftCorner), point(qr.location.topRightCorner),
       point(qr.location.bottomRightCorner), point(qr.location.bottomLeftCorner),
     ] };
   }
-  throw new Error("The QR code could not be read. Keep it visible and avoid glare.");
 }
 
+export function decodeSheetQr(image: Raster) {
+  const first = decodeSheetQrCandidates(image).next();
+  if (first.done) throw new Error("The QR code could not be read. Keep it visible and avoid glare.");
+  return first.value;
+}
 export function normalizeScanPhoto(image: Raster, anchors?: readonly Point[]) {
-  const qr = decodeSheetQr(image);
+  let identity: string | undefined, cause: unknown;
+  for (const qr of decodeSheetQrCandidates(image)) {
+    identity ||= qr.sheetId;
+    if (qr.sheetId !== identity) continue;
+    try { return normalizeFromQr(image, qr, anchors); } catch (error) { cause = error; }
+  }
+  if (!identity) throw new Error("The QR code could not be read. Keep it visible and avoid glare.");
+  throw cause;
+}
+function normalizeFromQr(image: Raster, qr: ReturnType<typeof decodeSheetQr>, anchors?: readonly Point[]) {
   const modules = 17 + qr.version * 4;
   const unit = LAYOUT.qr.size / (modules + 8);
   const left = LAYOUT.qr.x + 4 * unit, top = LAYOUT.qr.y + 4 * unit, size = modules * unit;
