@@ -30,3 +30,9 @@ Six-week metrics count server-authoritative online assignments, completed quests
 ## Release validation
 
 Run npm run test:retention, the standard CI portal guard/typecheck/security/build/test suite, and database identity/scope/pause checks. Use Gulzada's existing account as the named student pilot; preserve all prior work. Wider rollout follows pilot/device acceptance. Actual concurrent load testing is separate from the bounded traffic design above.
+
+## Original SVG and sound polish
+
+Agent emblems, Weekly Drop card art, an interactive Class Vault and a practice-completion seal are code-native SVGs with unique IDs and no external assets. Vault opening is decorative and does not issue rewards or change class completion. It is available only when the current class goal is complete.
+
+Original Web Audio chimes cover taps, vault opening, successful practice completion and optional thank-yous. Sound defaults off per account/device, is activated by a user gesture, uses low-volume envelopes and short bounded cues, and stops on mute/backgrounding. Unsupported audio silently leaves the controls usable. No sound files, new dependencies, database reads/writes or realtime subscriptions were added for these effects. Reduced-motion preferences disable the short vector animations without hiding the final state.
