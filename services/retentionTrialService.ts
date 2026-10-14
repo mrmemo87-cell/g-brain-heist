@@ -1,5 +1,6 @@
 import {supabase} from './supabaseClient';
 import type{KudosKey,PracticeKind,PracticeResult,PracticeRun,RetentionMetrics,RetentionSnapshot,TrialControl}from '../src/features/retention/retentionModel';
+import type { CompanionProfile, CompanionSnapshot, CrewSignal } from '../src/features/retention/companionModel';
 const cache=new Map<string,{expires:number;data:RetentionSnapshot}>();
 const pending=new Map<string,Promise<RetentionSnapshot>>();
 async function rpc<T>(name:string,args?:Record<string,unknown>):Promise<T>{const{data,error}=await supabase.rpc(name,args).abortSignal(AbortSignal.timeout(8000));if(error)throw error;return data as T;}
@@ -11,5 +12,26 @@ export async function sendTrialKudos(userId:string,assignmentId:string,key:Kudos
 export const getTrialControl=()=>rpc<TrialControl>('rpc_retention_trial_control');
 export const setTrialControl=(c:TrialControl)=>rpc<TrialControl>('rpc_retention_trial_control',{p_enabled:c.enabled,p_audience:c.audience,p_pilot_user_ids:c.pilot_user_ids,p_school_id:c.school_id});
 export const getTrialMetrics=()=>rpc<RetentionMetrics>('rpc_retention_trial_metrics');
+const companionCache = new Map<string, { expires: number; data: CompanionSnapshot }>();
+const companionPending = new Map<string, Promise<CompanionSnapshot>>();
+export function getCompanionSnapshot(userId: string, fresh = false): Promise<CompanionSnapshot> {
+ if (fresh) companionCache.delete(userId);
+ const cached = companionCache.get(userId);
+ if (cached && cached.expires > Date.now()) return Promise.resolve(cached.data);
+ const inFlight = companionPending.get(userId); if (inFlight) return inFlight;
+ const request = rpc<CompanionSnapshot>('rpc_retention_companion_snapshot').then(data => {
+  if (companionCache.size > 8) companionCache.clear();
+  companionCache.set(userId, { expires: Date.now() + 60000, data }); return data;
+ }).finally(() => companionPending.delete(userId));
+ companionPending.set(userId, request); return request;
+}
+export async function saveCompanion(userId: string, profile: CompanionProfile) {
+ const saved = await rpc<CompanionProfile>('rpc_retention_companion_save', { p_name: profile.name, p_palette: profile.palette });
+ companionCache.delete(userId); return saved;
+}
+export async function sendCrewSignal(userId: string, assignmentId: string, kind: CrewSignal) {
+ await rpc<boolean>('rpc_retention_crew_signal', { p_assignment_id: assignmentId, p_kind: kind });
+ companionCache.delete(userId);
+}
 const events=new Set<string>();let timer:ReturnType<typeof setTimeout>|undefined;let eventUser:string|undefined;
 export function recordTrialEvent(userId:string,kind:string){if(eventUser!==userId){events.clear();if(timer)clearTimeout(timer);timer=undefined;eventUser=userId;}events.add(kind);if(timer)return;timer=setTimeout(()=>{const batch=Array.from(events).slice(0,6);events.clear();timer=undefined;void supabase.auth.getSession().then(({data})=>{if(data.session?.user.id===userId)return rpc<boolean>('rpc_retention_trial_events',{p_kinds:batch});}).catch(()=>{/* Never interrupt learning for analytics. */});},1500);}
