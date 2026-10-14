@@ -1,6 +1,6 @@
 import jsQR from "jsqr";
 import { LAYOUT, parseSheetToken } from "./layout";
-import { homography, markerCentres, transform, warp, type Raster, type Point } from "./omr";
+import { homography, markerCentres, markerCandidates, transform, warp, type Raster, type Point } from "./omr";
 
 function resize(image: Raster, width: number): Raster {
   const scale = width / image.width;
@@ -55,7 +55,7 @@ export function decodeSheetQr(image: Raster) {
   throw new Error("The QR code could not be read. Keep it visible and avoid glare.");
 }
 
-export function normalizeScanPhoto(image: Raster) {
+export function normalizeScanPhoto(image: Raster, anchors?: readonly Point[]) {
   const qr = decodeSheetQr(image);
   const modules = 17 + qr.version * 4;
   const unit = LAYOUT.qr.size / (modules + 8);
@@ -65,32 +65,42 @@ export function normalizeScanPhoto(image: Raster) {
   const [tl, tr, br, bl] = qr.corners;
   const scale = (Math.hypot(tr.x - tl.x, tr.y - tl.y) + Math.hypot(bl.x - tl.x, bl.y - tl.y)) / (2 * size);
   const affine = [tl, tr, { x: tr.x + bl.x - tl.x, y: tr.y + bl.y - tl.y }, bl];
+  const calibrate = (centres: Point[]) => {
+    if (centres.length !== 4 || centres.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y) || p.x < 0 || p.y < 0 || p.x >= image.width || p.y >= image.height)) throw new Error("Four visible corner squares are required.");
+    if (new Set(centres.map(p => `${p.x}:${p.y}`)).size !== 4) throw new Error("Page corners overlap.");
+    for (let i = 0; i < 4; i++) {
+      const a = centres[i], b = centres[(i + 1) % 4], c = centres[(i + 2) % 4];
+      if ((b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x) <= 0) throw new Error("Choose the corners clockwise, starting at the printed page’s top left.");
+    }
+    const sourceToCanonical = homography(centres, LAYOUT.markers);
+    if (qr.corners.some((p, i) => {
+      const mapped = transform(sourceToCanonical, p);
+      return !Number.isFinite(mapped.x) || !Number.isFinite(mapped.y) || Math.hypot(mapped.x - canonical[i].x, mapped.y - canonical[i].y) > 10;
+    })) throw new Error("Page corners disagree with the QR position.");
+    const normalized = warp(image, homography(LAYOUT.markers, centres));
+    const verified = markerCentres(normalized, 28);
+    if (verified.some((p, i) => Math.hypot(p.x - LAYOUT.markers[i].x, p.y - LAYOUT.markers[i].y) > 4)) throw new Error("Page calibration could not be verified.");
+    return { sheetId: qr.sheetId, image: normalized };
+  };
+  if (anchors) {
+    if (anchors.length !== 4 || anchors.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y) || p.x < 0 || p.y < 0 || p.x > 1 || p.y > 1)) throw new Error("Choose all four corner squares.");
+    const expected = anchors.map(p => ({ x: p.x * image.width, y: p.y * image.height }));
+    // Taps locate the search, never override square, QR, or geometry validation.
+    const localScale = (Math.hypot(expected[1].x - expected[0].x, expected[1].y - expected[0].y) / 910 + Math.hypot(expected[3].x - expected[0].x, expected[3].y - expected[0].y) / 1324) / 2;
+    return calibrate(markerCentres(image, 45 * localScale, expected, localScale));
+  }
   let lastError: unknown;
-  // Find the squares in the ORIGINAL image, not in a clipped coarse warp.
+  // QR extrapolation is noisy far from the code. Match candidate sets jointly
+  // against the independent QR; a nearby dark blob cannot reject a real square.
   for (const corners of [qr.corners, affine]) {
     for (const radius of [140, 260]) {
       try {
         const estimate = homography(canonical, corners);
-        const expected = LAYOUT.markers.map((p) => transform(estimate, p));
-        const centres = markerCentres(image, radius * scale, expected, scale);
-        if (new Set(centres.map((p) => `${p.x}:${p.y}`)).size !== 4) throw new Error("Page corners overlap.");
-        for (let i = 0; i < 4; i++) {
-          const a = centres[i], b = centres[(i + 1) % 4], c = centres[(i + 2) % 4];
-          if ((b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x) <= 0)
-            throw new Error("Page corners do not form a complete sheet.");
+        const expected = LAYOUT.markers.map(p => transform(estimate, p));
+        const candidates = markerCandidates(image, radius * scale, expected, scale);
+        for (const tl of candidates[0]) for (const tr of candidates[1]) for (const br of candidates[2]) for (const bl of candidates[3]) {
+          try { return calibrate([tl, tr, br, bl]); } catch (error) { lastError = error; }
         }
-        // Four plausible dark blobs alone are insufficient: the decoded QR
-        // must independently land at its printed location after calibration.
-        const sourceToCanonical = homography(centres, LAYOUT.markers);
-        if (qr.corners.some((p, i) => {
-          const mapped = transform(sourceToCanonical, p);
-          return Math.hypot(mapped.x - canonical[i].x, mapped.y - canonical[i].y) > 10;
-        })) throw new Error("Page corners disagree with the QR position.");
-        const normalized = warp(image, homography(LAYOUT.markers, centres));
-        const verified = markerCentres(normalized, 28);
-        if (verified.some((p, i) => Math.hypot(p.x - LAYOUT.markers[i].x, p.y - LAYOUT.markers[i].y) > 4))
-          throw new Error("Page calibration could not be verified.");
-        return { sheetId: qr.sheetId, image: normalized };
       } catch (error) { lastError = error; }
     }
   }
