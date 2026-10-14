@@ -3,20 +3,15 @@ import {
   type ScanSheet,
   type DetectedRow,
 } from "../src/lib/paperScan/layout";
-import { readBubbles, registeredBubbleCentres, bubblePreviewSamples, type Raster, type Point } from "../src/lib/paperScan/omr";
-export class ScanPhotoReadError extends Error {
-  constructor(message: string, public readonly sheetId?: string) { super(message); this.name = "ScanPhotoReadError"; }
-}
+import { readBubbles, registeredBubbleCentres, bubblePreviewSamples, type Raster } from "../src/lib/paperScan/omr";
 export interface ProcessedPhoto {
   sheetId: string;
   image: Raster;
   hash: string;
-  manuallyAligned?: boolean;
 }
 export async function loadScanPhoto(
   file: File,
   signal?: AbortSignal,
-  anchors?: Point[],
 ): Promise<ProcessedPhoto> {
   if (file.size > 20 * 1024 * 1024)
     throw new Error("Choose a photo smaller than 20 MB.");
@@ -85,8 +80,8 @@ export async function loadScanPhoto(
         e: MessageEvent<{ error?: string; sheetId: string; image: Raster }>,
       ) => {
         clean();
-        if (e.data.error) reject(new ScanPhotoReadError(e.data.error, e.data.sheetId));
-        else resolve({ sheetId: e.data.sheetId, image: e.data.image, hash, manuallyAligned: !!anchors });
+        if (e.data.error) reject(new Error(e.data.error));
+        else resolve({ sheetId: e.data.sheetId, image: e.data.image, hash });
       };
       worker.onerror = () => {
         clean();
@@ -95,7 +90,7 @@ export async function loadScanPhoto(
         );
       };
       worker.postMessage(
-        { width: pixels.width, height: pixels.height, data: pixels.data, anchors },
+        { width: pixels.width, height: pixels.height, data: pixels.data },
         [pixels.data.buffer],
       );
     });
@@ -109,9 +104,7 @@ export function detectedAnswers(
 ): Record<string, DetectedRow> {
   if (sheet.layoutVersion !== LAYOUT.version)
     throw new Error("Unsupported sheet version. Print a current sheet.");
-  const detected = readBubbles(photo.image, sheet.questions);
-  // Recovery is a teacher-assisted alignment: require every answer to be checked.
-  return photo.manuallyAligned ? Object.fromEntries(Object.entries(detected).map(([id, row]) => [id, { ...row, choice: null, state: "uncertain" as const }])) : detected;
+  return readBubbles(photo.image, sheet.questions);
 }
 export function rowPreviews(
   photo: ProcessedPhoto,

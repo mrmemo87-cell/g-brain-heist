@@ -40,7 +40,7 @@ const errors: Record<string, string> = {
   ASSIGNMENT_NOT_PUBLISHED:
     "Publish the assignment before issuing unnamed sheets.",
   ASSIGNMENT_CLOSED: "This test date falls after the assignment closed.",
-  WRONG_ASSIGNMENT: "This paper belongs to another assignment. Open the assignment code printed on the sheet; its answers cannot be saved to this one.",
+  WRONG_ASSIGNMENT: "This sheet belongs to a different assignment.",
   NOT_AUTHORIZED: "Only the assignment teacher can scan these sheets.",
   PAPER_VERSION_CHANGED: "The assignment changed. Print a new set of sheets.",
   SCAN_SESSION_CONFLICT: "This print session changed. Start a new set.",
@@ -51,7 +51,7 @@ const errors: Record<string, string> = {
     "This page was already reviewed. Scan it again to make a correction.",
   INVALID_ASSESSMENT_DATE:
     "Choose an assessment time between publication and now.",
-  SHEET_NOT_FOUND: "This paper’s QR is not registered to an available sheet. Check the assignment code printed on the paper and open that assignment. If it was deleted, print a new sheet from the current assignment.",
+  SHEET_NOT_FOUND: "This sheet could not be found.",
   ONLINE_PROGRESS_EXISTS:
     "Confirm replacement of unfinished online answers first.",
 };
@@ -175,6 +175,3 @@ export async function linkGuest(
   if (result?.success !== true)
     throw new Error("The result was not linked. Please retry.");
 }
-
-/** Resume every scanned booklet for this assignment, including earlier devices/sessions. */
-export const fetchScanInbox = (assignmentId: string) => rpc<ScanSession[]>("rpc_teacher_scan_inbox", { p_assignment_id: assignmentId });

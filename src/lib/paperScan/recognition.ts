@@ -1,6 +1,6 @@
 import jsQR from "jsqr";
 import { LAYOUT, parseSheetToken } from "./layout";
-import { homography, markerCentres, markerCandidates, transform, warp, type Raster, type Point } from "./omr";
+import { homography, markerCentres, transform, warp, type Raster, type Point } from "./omr";
 
 function resize(image: Raster, width: number): Raster {
   const scale = width / image.width;
@@ -37,7 +37,7 @@ function contrast(image: Raster): Raster {
 /** Retry QR decoding at a quieter resolution and with contrast normalization.
  * Coordinates are always converted back to the untouched original photograph.
  */
-export function* decodeSheetQrCandidates(image: Raster) {
+export function decodeSheetQr(image: Raster) {
   const reducedWidth = Math.round(image.width * Math.min(1, 1400 / Math.max(image.width, image.height)));
   const candidates = [() => image, () => resize(image, reducedWidth), () => contrast(image)];
   for (const candidate of candidates) {
@@ -47,29 +47,16 @@ export function* decodeSheetQrCandidates(image: Raster) {
     const sheetId = parseSheetToken(qr.data);
     const sx = image.width / raster.width, sy = image.height / raster.height;
     const point = (p: Point) => ({ x: p.x * sx, y: p.y * sy });
-    yield { sheetId, version: qr.version, corners: [
+    return { sheetId, version: qr.version, corners: [
       point(qr.location.topLeftCorner), point(qr.location.topRightCorner),
       point(qr.location.bottomRightCorner), point(qr.location.bottomLeftCorner),
     ] };
   }
+  throw new Error("The QR code could not be read. Keep it visible and avoid glare.");
 }
 
-export function decodeSheetQr(image: Raster) {
-  const first = decodeSheetQrCandidates(image).next();
-  if (first.done) throw new Error("The QR code could not be read. Keep it visible and avoid glare.");
-  return first.value;
-}
-export function normalizeScanPhoto(image: Raster, anchors?: readonly Point[]) {
-  let identity: string | undefined, cause: unknown;
-  for (const qr of decodeSheetQrCandidates(image)) {
-    identity ||= qr.sheetId;
-    if (qr.sheetId !== identity) continue;
-    try { return normalizeFromQr(image, qr, anchors); } catch (error) { cause = error; }
-  }
-  if (!identity) throw new Error("The QR code could not be read. Keep it visible and avoid glare.");
-  throw cause;
-}
-function normalizeFromQr(image: Raster, qr: ReturnType<typeof decodeSheetQr>, anchors?: readonly Point[]) {
+export function normalizeScanPhoto(image: Raster) {
+  const qr = decodeSheetQr(image);
   const modules = 17 + qr.version * 4;
   const unit = LAYOUT.qr.size / (modules + 8);
   const left = LAYOUT.qr.x + 4 * unit, top = LAYOUT.qr.y + 4 * unit, size = modules * unit;
@@ -78,54 +65,32 @@ function normalizeFromQr(image: Raster, qr: ReturnType<typeof decodeSheetQr>, an
   const [tl, tr, br, bl] = qr.corners;
   const scale = (Math.hypot(tr.x - tl.x, tr.y - tl.y) + Math.hypot(bl.x - tl.x, bl.y - tl.y)) / (2 * size);
   const affine = [tl, tr, { x: tr.x + bl.x - tl.x, y: tr.y + bl.y - tl.y }, bl];
-  const calibrate = (centres: Point[]) => {
-    if (centres.length !== 4 || centres.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y) || p.x < 0 || p.y < 0 || p.x >= image.width || p.y >= image.height)) throw new Error("Four visible corner squares are required.");
-    if (new Set(centres.map(p => `${p.x}:${p.y}`)).size !== 4) throw new Error("Page corners overlap.");
-    for (let i = 0; i < 4; i++) {
-      const a = centres[i], b = centres[(i + 1) % 4], c = centres[(i + 2) % 4];
-      if ((b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x) <= 0) throw new Error("Choose the corners clockwise, starting at the printed page’s top left.");
-    }
-    const sourceToCanonical = homography(centres, LAYOUT.markers);
-    if (qr.corners.some((p, i) => {
-      const mapped = transform(sourceToCanonical, p);
-      return !Number.isFinite(mapped.x) || !Number.isFinite(mapped.y) || Math.hypot(mapped.x - canonical[i].x, mapped.y - canonical[i].y) > 10;
-    })) throw new Error("Page corners disagree with the QR position.");
-    const normalized = warp(image, homography(LAYOUT.markers, centres));
-    const verified = markerCentres(normalized, 28);
-    if (verified.some((p, i) => Math.hypot(p.x - LAYOUT.markers[i].x, p.y - LAYOUT.markers[i].y) > 4)) throw new Error("Page calibration could not be verified.");
-    return { sheetId: qr.sheetId, image: normalized };
-  };
-  if (anchors) {
-    if (anchors.length !== 4 || anchors.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y) || p.x < 0 || p.y < 0 || p.x > 1 || p.y > 1)) throw new Error("Choose all four corner squares.");
-    const selected = anchors.map(p => ({ x: p.x * image.width, y: p.y * image.height }));
-    const centre = { x: selected.reduce((sum, p) => sum + p.x, 0) / 4, y: selected.reduce((sum, p) => sum + p.y, 0) / 4 };
-    // Teachers identify squares in any order. Geometry supplies clockwise order;
-    // the QR independently identifies the printed page's first corner.
-    const expected = selected.sort((a, b) => Math.atan2(a.y - centre.y, a.x - centre.x) - Math.atan2(b.y - centre.y, b.x - centre.x));
-    const localScale = (Math.hypot(expected[1].x - expected[0].x, expected[1].y - expected[0].y) / 910 + Math.hypot(expected[3].x - expected[0].x, expected[3].y - expected[0].y) / 1324) / 2;
-    let cause: unknown;
-    for (let offset = 0; offset < 4; offset++) {
-      const ordered = [...expected.slice(offset), ...expected.slice(0, offset)];
-      try {
-        // Taps locate the search, never override square, QR or frame validation.
-        return calibrate(markerCentres(image, 45 * localScale, ordered, localScale));
-      } catch (error) { cause = error; }
-    }
-    throw new Error("The four selected corner squares could not be aligned with the QR. Select each black square once, or retake a clear photo with the whole sheet visible.", { cause });
-  }
-
   let lastError: unknown;
-  // QR extrapolation is noisy far from the code. Match candidate sets jointly
-  // against the independent QR; a nearby dark blob cannot reject a real square.
+  // Find the squares in the ORIGINAL image, not in a clipped coarse warp.
   for (const corners of [qr.corners, affine]) {
     for (const radius of [140, 260]) {
       try {
         const estimate = homography(canonical, corners);
-        const expected = LAYOUT.markers.map(p => transform(estimate, p));
-        const candidates = markerCandidates(image, radius * scale, expected, scale);
-        for (const tl of candidates[0]) for (const tr of candidates[1]) for (const br of candidates[2]) for (const bl of candidates[3]) {
-          try { return calibrate([tl, tr, br, bl]); } catch (error) { lastError = error; }
+        const expected = LAYOUT.markers.map((p) => transform(estimate, p));
+        const centres = markerCentres(image, radius * scale, expected, scale);
+        if (new Set(centres.map((p) => `${p.x}:${p.y}`)).size !== 4) throw new Error("Page corners overlap.");
+        for (let i = 0; i < 4; i++) {
+          const a = centres[i], b = centres[(i + 1) % 4], c = centres[(i + 2) % 4];
+          if ((b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x) <= 0)
+            throw new Error("Page corners do not form a complete sheet.");
         }
+        // Four plausible dark blobs alone are insufficient: the decoded QR
+        // must independently land at its printed location after calibration.
+        const sourceToCanonical = homography(centres, LAYOUT.markers);
+        if (qr.corners.some((p, i) => {
+          const mapped = transform(sourceToCanonical, p);
+          return Math.hypot(mapped.x - canonical[i].x, mapped.y - canonical[i].y) > 10;
+        })) throw new Error("Page corners disagree with the QR position.");
+        const normalized = warp(image, homography(LAYOUT.markers, centres));
+        const verified = markerCentres(normalized, 28);
+        if (verified.some((p, i) => Math.hypot(p.x - LAYOUT.markers[i].x, p.y - LAYOUT.markers[i].y) > 4))
+          throw new Error("Page calibration could not be verified.");
+        return { sheetId: qr.sheetId, image: normalized };
       } catch (error) { lastError = error; }
     }
   }
