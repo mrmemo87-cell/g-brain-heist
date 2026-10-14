@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { a4CaptureFrame } from '../../src/lib/paperScan/capture';
 type Shot = { file: File; url: string; id: string };
 type Props = { limit: number; onUse: (files: File[]) => void; onClose: () => void };
 /** Capture a stack locally; no scanning starts until the teacher chooses Use photos. */
@@ -35,7 +36,7 @@ export default function ScanPhotoCapture({ limit, onUse, onClose }: Props) {
     void (async () => {
       try {
         if (!navigator.mediaDevices?.getUserMedia) throw new Error('Camera unavailable');
-        const next = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 2560 }, height: { ideal: 1920 } }, audio: false });
+        const next = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 2560 }, aspectRatio: { ideal: 210 / 297 } }, audio: false });
         if (!active || document.hidden) { next.getTracks().forEach(track => track.stop()); return; }
         stream.current = next;
         if (video.current) { video.current.srcObject = next; await video.current.play(); }
@@ -55,11 +56,11 @@ export default function ScanPhotoCapture({ limit, onUse, onClose }: Props) {
     capturing.current = true; setWorking(true);
     try {
       const canvas = document.createElement('canvas');
-      const scale = Math.min(1, 2600 / Math.max(source.videoWidth, source.videoHeight));
-      canvas.width = Math.round(source.videoWidth * scale); canvas.height = Math.round(source.videoHeight * scale);
+      const frame = a4CaptureFrame(source.videoWidth, source.videoHeight);
+      canvas.width = frame.outputWidth; canvas.height = frame.outputHeight;
       const context = canvas.getContext('2d');
       if (!context) throw new Error('Could not capture photo.');
-      context.drawImage(source, 0, 0, canvas.width, canvas.height);
+      context.drawImage(source, frame.x, frame.y, frame.width, frame.height, 0, 0, canvas.width, canvas.height);
       const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error('Could not capture photo.')), 'image/jpeg', 0.95));
       add([new File([blob], `answer-sheet-${Date.now()}.jpg`, { type: 'image/jpeg' })]);
     } catch (e) { if (alive.current) setError(e instanceof Error ? e.message : 'Could not capture photo.'); }
