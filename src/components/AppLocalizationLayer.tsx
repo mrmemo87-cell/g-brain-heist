@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { FloatingCompanionContext, type FloatingCompanion } from '../contexts/FloatingCompanionContext';
 import FloatingLanguageControl from './FloatingLanguageControl';
 import type { Language } from '../i18n/language';
 import { hasInterfaceTranslation, normalizeInterfaceSource, translateInterfaceText } from '../i18n/interfaceTranslations';
@@ -126,6 +127,7 @@ export function AppLocalizationLayer({
   direction: 'ltr' | 'rtl';
   setLanguage: (language: Language) => void;
 }) {
+  const [companion, registerCompanion] = useState<FloatingCompanion | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const [hideLanguageControl, setHideLanguageControl] = useState(() => isIeltsScope(null));
   useLayoutEffect(() => {
@@ -238,7 +240,7 @@ export function AppLocalizationLayer({
   }, [language]);
 
   return (
-    <div
+    <FloatingCompanionContext.Provider value={{ companion, register: registerCompanion }}><div
       ref={rootRef}
       className="app-localization-layer"
       data-interface-language={language}
@@ -248,8 +250,9 @@ export function AppLocalizationLayer({
     >
       {children}
       {!hideLanguageControl && <FloatingLanguageControl language={language} setLanguage={setLanguage} />}
-    </div>
+    </div></FloatingCompanionContext.Provider>
   );
 }
 
 export default AppLocalizationLayer;
+
