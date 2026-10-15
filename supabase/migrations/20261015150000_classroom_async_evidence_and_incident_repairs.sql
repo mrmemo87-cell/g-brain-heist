@@ -317,13 +317,55 @@ BEGIN
 END;
 $function$;
 
--- Student attempt-history reads must not fail on unrelated teacher-only mapping.
-alter table public.school_subject_group_teachers enable row level security;
-drop policy if exists school_subject_group_teachers_own_active_read on public.school_subject_group_teachers;
-create policy school_subject_group_teachers_own_active_read
- on public.school_subject_group_teachers for select to authenticated
- using (teacher_user_id = (select auth.uid()) and active=true);
-grant select on public.school_subject_group_teachers to authenticated;
+-- Keep all three internal school-subject mapping tables fully private.
+-- The old assignments teacher policies accessed them as SECURITY INVOKER RLS,
+-- raising 42501 during unrelated student question-attempt reads.
+-- This helper is explicit, caller-bound, and only answers teacher membership.
+create or replace function public.can_access_assigned_school_subject_group(
+  p_school_id uuid, p_group_id uuid, p_academic_year_id uuid,
+  p_require_create boolean default false
+) returns boolean
+language sql stable security definer set search_path = '' as $helper$
+  select auth.uid() is not null
+    and exists(
+      select 1
+      from public.school_subject_group_teachers gt
+      join public.school_subject_groups g
+        on g.id=gt.group_id and g.school_id=gt.school_id and g.status='active'
+      join public.school_subject_offerings o
+        on o.id=g.school_subject_offering_id and o.school_id=g.school_id and o.status='active'
+      where gt.group_id=p_group_id and gt.school_id=p_school_id
+        and gt.teacher_user_id=auth.uid() and gt.active
+        and o.academic_year_id=p_academic_year_id
+        and (not p_require_create or gt.can_create)
+    )
+$helper$;
+revoke all on function public.can_access_assigned_school_subject_group(uuid,uuid,uuid,boolean)
+  from public,anon,service_role;
+grant execute on function public.can_access_assigned_school_subject_group(uuid,uuid,uuid,boolean)
+  to authenticated;
+
+drop policy if exists assignments_teacher_group_select on public.assignments;
+create policy assignments_teacher_group_select on public.assignments
+  for select to authenticated
+  using (
+    subject_group_id is not null
+    and public.can_access_assigned_school_subject_group(
+      school_id,subject_group_id,academic_year_id,false)
+  );
+drop policy if exists assignments_teacher_group_update on public.assignments;
+create policy assignments_teacher_group_update on public.assignments
+  for update to authenticated
+  using (
+    subject_group_id is not null
+    and public.can_access_assigned_school_subject_group(
+      school_id,subject_group_id,academic_year_id,true)
+  )
+  with check (
+    subject_group_id is not null
+    and public.can_access_assigned_school_subject_group(
+      school_id,subject_group_id,academic_year_id,true)
+  );
 
 -- Service role still needs GRANT despite BYPASSRLS.
 grant select,update on public.assignment_email_notifications to service_role;
