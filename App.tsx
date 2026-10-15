@@ -39,6 +39,7 @@ import { listMyPendingProgrammeAccessRequests, requestProgrammeAccess } from './
 import { enrollInApprovedSchoolClass, listMySchoolClasses, type ApprovedSignupClass } from './services/authService';
 import AssignmentDesk from './components/student/AssignmentDesk';
 import RetentionTrialGate from './src/features/retention/RetentionTrialGate';
+import StudentMascotDock from './src/features/studentMascot/StudentMascotDock';
 const RetentionStudentPanel = React.lazy(() => import('./src/features/retention/RetentionStudentPanel'));
 import ProgramIdentityBanner from './src/components/ProgramIdentityBanner';
 import { PROGRAM_ARTWORK } from './src/lib/programArtwork';
@@ -2748,6 +2749,10 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
         <div className={cinematicViewClass}>
           {renderView()}
         </div>
+        {profile?.role === 'student' && isPlayerMode && !isTeacherRole && !isSchoolAdminRole && !isAdminMode &&
+          !isFullScreenView && !isCambridgeView &&
+          (view === 'dashboard' || ['leaderboard', 'shop', 'inventory', 'pvp', 'lockdown', 'tournament', 'achievements', 'clan'].includes(view)) &&
+          <StudentMascotDock userId={profile.id} />}
         {profile && isPlayerMode && !isTeacherRole && !isSchoolAdminRole && view !== 'dashboard' && ['leaderboard', 'shop', 'inventory', 'pvp', 'lockdown', 'tournament', 'achievements', 'cambridge', 'clan'].includes(view) && (
           <StudentDashboardBottomNavigation
             assignmentCount={actionableAssignments.length}
