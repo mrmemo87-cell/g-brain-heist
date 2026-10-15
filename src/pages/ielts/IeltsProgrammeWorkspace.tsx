@@ -16,6 +16,7 @@ const Practice = React.lazy(() => import("./IeltsLearningTeacher"));
 const LearningPlanDesk = React.lazy(() => import("./IeltsLearningPlanDesk"));
 const PracticeDesk = React.lazy(() => import("./IeltsTeacherPracticeDesk"));
 const Lessons = React.lazy(() => import("./IeltsLessonLibrary"));
+const Batches = React.lazy(() => import("./IeltsCourseBatches"));
 const Exams = React.lazy(() => import("./IeltsExamManager"));
 type Section =
   | "overview"
@@ -425,9 +426,10 @@ export default function IeltsProgrammeWorkspace({
                         <Mark />
                         <strong>Assign practice</strong>
                         <span>
-                          Choose tasks, assign a class and track completion.
+                          Choose tasks, assign a batch or class and track completion.
                         </span>
                       </button>
+                      <button onClick={() => open("team")}><Mark /><strong>Course batches</strong><span>One IELTS roster across school classes. Manage members and late joiners.</span></button>
                       <button onClick={() => open("exams")}>
                         <Mark />
                         <strong>Manage exams</strong>
@@ -577,6 +579,7 @@ export default function IeltsProgrammeWorkspace({
               </div>
             </section>
           )}
+          {section === "team" && data.can_manage && <React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense>}
           {section === "team" && (
             <section className="sp-card">
               <p className="sp-eyebrow">A clear owner for your programme</p>
