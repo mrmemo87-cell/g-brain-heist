@@ -6,6 +6,14 @@ This migration preserves **all existing student answers, scores and result rows*
 
 Do not report a permanent fix until staging has passed real authenticated 30-student (then 100-student) tests and production has completed a comparable pilot. There is no scientifically justified promise that future outages can never occur.
 
+## Time-driven pilot expiry
+
+School/billing change triggers still maintain lifecycle, but wall-clock trial expiry
+requires an independent five-minute reconciliation cron. Check job
+`brains-heist-school-pilot-expiry` alongside the evidence queue jobs. This
+runs only for active lifecycle rows whose trial expiration has passed, not for
+every school-plan read. It is not a generic polling write storm.
+
 ## Deployment order
 
 1. Take a schema backup / snapshot; record active job list, current trigger definitions and function definitions. Avoid classroom hours.
