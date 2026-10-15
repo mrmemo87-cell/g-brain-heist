@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import type { AnimationAction } from 'three';
 import './StudentMascotDock.css';
 
 type ActionName = 'idle' | 'cheer' | 'angry' | 'greet' | 'box' | 'clap';
@@ -57,7 +58,7 @@ export default function StudentMascotDock({ userId }: { userId: string }) {
         const camera = new THREE.PerspectiveCamera(40, 1, .1, 20);
         camera.position.set(0, .05, 2.65); camera.lookAt(0, 0, 0);
         const mixer = new THREE.AnimationMixer(gltf.scene);
-        const actions = new Map<ActionName, THREE.AnimationAction>();
+        const actions = new Map<ActionName, AnimationAction>();
         for (const [name, prefix] of [['idle','idle'],['cheer','cheer'],['angry','angry_03'],['greet','greet_03'],['box','box_01'],['clap','clap']] as const) {
           const clip = gltf.animations.find(a => a.name.toLowerCase().startsWith(prefix));
           if (clip) actions.set(name, mixer.clipAction(clip));
@@ -75,14 +76,14 @@ export default function StudentMascotDock({ userId }: { userId: string }) {
           else action.setLoop(THREE.LoopRepeat, Infinity);
           action.play(); current = action;
         };
-        const done = (event: { action: THREE.AnimationAction }) => { if (event.action === current) play('idle'); };
+        const done = (event: { action: AnimationAction }) => { if (event.action === current) play('idle'); };
         mixer.addEventListener('finished', done);
         const size = () => { const w = Math.max(stage.clientWidth, 1), h = Math.max(stage.clientHeight, 1); camera.aspect = w/h; camera.updateProjectionMatrix(); renderer.setSize(w, h, false); };
         size();
         const resize = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(size) : null;
         resize?.observe(stage);
         const clock = new THREE.Clock();
-        let lastFrame = 0, visible = true, lastVisible = !document.hidden;
+        let lastFrame = 0, visible = true;
         const draw = (t: number) => {
           frame = 0;
           if (!visible || document.hidden) { clock.getDelta(); return; }
