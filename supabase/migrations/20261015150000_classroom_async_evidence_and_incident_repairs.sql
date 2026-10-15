@@ -105,6 +105,30 @@ $cron$set lock_timeout = '2s';
 set statement_timeout = '120s';
 select private.process_one_verified_assignment_evidence();$cron$);
 
+-- A cheap five-minute watchdog makes retries / stuck evidence visible in PG logs.
+create or replace function private.check_assignment_evidence_backlog()
+returns text language plpgsql security definer set search_path = '' as $body$
+declare v_pending bigint; v_failed bigint; v_oldest timestamptz;
+begin
+  select count(*) filter(where status='pending'),
+         count(*) filter(where status='failed'),
+         min(requested_at) filter(where status='pending')
+    into v_pending,v_failed,v_oldest
+  from private.assignment_evidence_jobs;
+  if v_failed > 0 or (v_oldest is not null
+      and v_oldest < clock_timestamp() - interval '10 minutes') then
+    raise warning 'BH assignment evidence backlog: pending %, failed %, oldest %',
+       v_pending, v_failed, v_oldest;
+    return 'warning';
+  end if;
+  return 'ok';
+end;
+$body$;
+revoke all on function private.check_assignment_evidence_backlog()
+  from public,anon,authenticated,service_role;
+select cron.schedule('brains-heist-assignment-evidence-watchdog','*/5 * * * *',
+  $cron$select private.check_assignment_evidence_backlog();$cron$);
+
 -- Lifecycle writes already happen on schools / billing_subscriptions triggers.
 CREATE OR REPLACE FUNCTION public.get_school_plan_details(p_school_id uuid DEFAULT NULL::uuid)
  RETURNS jsonb
