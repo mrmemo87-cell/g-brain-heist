@@ -24,7 +24,7 @@ export default function Echo3DAvatar({ pose, palette, retry = 0, onState }: { po
    const top = v?.offsetTop ?? 0, left = v?.offsetLeft ?? 0;
    return Boolean(r && r.width > 0 && r.height > 0 && r.bottom > top && r.top < top + (v?.height ?? window.innerHeight) && r.right > left && r.left < left + (v?.width ?? window.innerWidth));
   };
-  let inView = inViewport();
+  let inView = inViewport(); let lastVisible: boolean | null = null;
   const visible = () => inView && document.visibilityState !== 'hidden';
   const report = (next: Echo3DState) => { if (!alive) return; setState(next); latest.current.onState?.(next); };
   report({ status: 'loading' });
@@ -49,16 +49,17 @@ export default function Echo3DAvatar({ pose, palette, retry = 0, onState }: { po
    } catch (error) { controller.abort(); fail(timedOut ? 'timeout' : error instanceof Error && error.message === '3D unavailable' ? 'device' : phase); }
    finally { if (timeout) clearTimeout(timeout); }
   };
-  const visibility = () => { renderer.current?.setVisible(visible()); if (visible()) void load(); };
+  const visibility = () => { const next = visible(); if (next !== lastVisible) { renderer.current?.setVisible(next); lastVisible = next; } if (next) void load(); };
   const measure = () => { inView = inViewport(); visibility(); };
+  const resize = () => { measure(); renderer.current?.setPalette(latest.current.palette); };
   const motion = () => renderer.current?.setReduced(media.matches);
   const observer = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(entries => { inView = Boolean(entries[0]?.isIntersecting); visibility(); }, { threshold: .01 }) : null;
   if (root.current) observer?.observe(root.current);
   document.addEventListener('visibilitychange', visibility); media.addEventListener('change', motion);
-  window.addEventListener('resize', measure); window.addEventListener('scroll', measure, { passive: true }); window.visualViewport?.addEventListener('resize', measure); window.visualViewport?.addEventListener('scroll', measure);
+  window.addEventListener('resize', resize); window.addEventListener('scroll', measure, { passive: true }); window.visualViewport?.addEventListener('resize', resize); window.visualViewport?.addEventListener('scroll', measure);
   // Layout can settle after a floating hub registers; do not depend on an IO notification.
   const measuredFrame = requestAnimationFrame(measure); void load();
-  return () => { alive = false; controller.abort(); cancelAnimationFrame(measuredFrame); if (timeout) clearTimeout(timeout); observer?.disconnect(); document.removeEventListener('visibilitychange', visibility); media.removeEventListener('change', motion); window.removeEventListener('resize', measure); window.removeEventListener('scroll', measure); window.visualViewport?.removeEventListener('resize', measure); window.visualViewport?.removeEventListener('scroll', measure); renderer.current?.dispose(); renderer.current = null; };
+  return () => { alive = false; controller.abort(); cancelAnimationFrame(measuredFrame); if (timeout) clearTimeout(timeout); observer?.disconnect(); document.removeEventListener('visibilitychange', visibility); media.removeEventListener('change', motion); window.removeEventListener('resize', resize); window.removeEventListener('scroll', measure); window.visualViewport?.removeEventListener('resize', resize); window.visualViewport?.removeEventListener('scroll', measure); renderer.current?.dispose(); renderer.current = null; };
  }, [retry]);
  useEffect(() => { renderer.current?.setPose(pose); }, [pose]);
  useEffect(() => { renderer.current?.setPalette(palette); }, [palette]);
