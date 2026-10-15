@@ -43,6 +43,11 @@ test('school plan reads remain read-only and achievement awards remain idempoten
   assert.match(migration, /ON CONFLICT ON CONSTRAINT user_achievements_user_id_achievement_id_key/i);
   assert.match(migration, /GET DIAGNOSTICS v_new_award_count = ROW_COUNT/i);
 });
+test('pilot expiry remains event-driven after removing read writes', () => {
+  assert.match(migration, /private\.reconcile_due_school_pilots/);
+  assert.match(migration, /brains-heist-school-pilot-expiry/);
+  assert.match(migration, /s\.trial_ends_at <= clock_timestamp\(\)/);
+});
 test('RLS dependency is replaced without exposing internal tables', () => {
   assert.match(migration, /can_access_assigned_school_subject_group/);
   assert.match(migration, /gt.teacher_user_id=auth.uid\(\)/);
