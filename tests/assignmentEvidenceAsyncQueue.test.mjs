@@ -33,18 +33,18 @@ async function setup() {
       primary key(assignment_id,student_id,item,lane));
     create function private.ingest_verified_assignment_registry_evidence(a uuid,s uuid)
       returns void language sql as $fn$
-        insert into evidence select a,s,item,'registry' from answers
+        insert into public.evidence select a,s,item,'registry' from public.answers
         where assignment_id=a and student_id=s
-          and (select status from student_assignments where assignment_id=a and student_id=s)='completed'
-          and (select count(*) from answers where assignment_id=a and student_id=s)=2
+          and (select status from public.student_assignments where assignment_id=a and student_id=s)='completed'
+          and (select count(*) from public.answers where assignment_id=a and student_id=s)=2
         on conflict do nothing
       $fn$;
     create function private.ingest_verified_assignment_diagnostic_evidence(a uuid,s uuid)
       returns void language sql as $fn$
-        insert into evidence select a,s,item,'diagnostic' from answers
+        insert into public.evidence select a,s,item,'diagnostic' from public.answers
         where assignment_id=a and student_id=s
-          and (select status from student_assignments where assignment_id=a and student_id=s)='completed'
-          and (select count(*) from answers where assignment_id=a and student_id=s)=2
+          and (select status from public.student_assignments where assignment_id=a and student_id=s)='completed'
+          and (select count(*) from public.answers where assignment_id=a and student_id=s)=2
         on conflict do nothing
       $fn$;
   `);
