@@ -268,6 +268,31 @@ $function$;
 -- Re-declared public SECURITY DEFINER functions must explicitly deny PUBLIC/anon.
 revoke all on function public.get_school_plan_details(uuid) from public,anon;
 
+-- Pilot expiry is time-driven: no school or billing write occurs at expiry.
+-- Check only due active lifecycle rows periodically, not on every student read.
+create or replace function private.reconcile_due_school_pilots(p_limit integer default 25)
+returns integer language plpgsql security definer set search_path = '' as $body$
+declare v_school_id uuid; v_total integer := 0;
+begin
+  for v_school_id in
+    select s.id from public.schools s
+    join public.school_pilot_lifecycle l on l.school_id=s.id
+    where l.state='active' and s.trial_ends_at is not null
+      and s.trial_ends_at <= clock_timestamp()
+    order by s.trial_ends_at,s.id
+    limit greatest(1,least(coalesce(p_limit,25),100))
+  loop
+    perform private.sync_school_pilot_lifecycle(v_school_id);
+    v_total := v_total + 1;
+  end loop;
+  return v_total;
+end;
+$body$;
+revoke all on function private.reconcile_due_school_pilots(integer)
+  from public,anon,authenticated,service_role;
+select cron.schedule('brains-heist-school-pilot-expiry','*/5 * * * *',
+  $cron$select private.reconcile_due_school_pilots(25);$cron$);
+
 -- Idempotent rewards for concurrent achievement checks.
 CREATE OR REPLACE FUNCTION public.check_assignment_achievements(p_user_id uuid)
  RETURNS TABLE(achievement_id text, achievement_name text, achievement_icon text, xp_reward integer, coin_reward integer)
