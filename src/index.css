@@ -1,3 +1,4 @@
+@import './styles/brand-fonts.css';
 @import './pages/writing/WritingHub.css';
 @import './pages/writing/WritingMonitoringView.css';
 @import './pages/writing/WritingAnalyticsDashboard.css';

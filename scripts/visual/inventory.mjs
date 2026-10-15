@@ -84,6 +84,7 @@ export function fingerprint() {
   const paths = [
     ...new Set([
       "index.tsx",
+      "index.html",
       "App.tsx",
       "package.json",
       "package-lock.json",

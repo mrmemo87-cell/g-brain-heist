@@ -103,7 +103,7 @@ for (const scenario of cases)
                 ? "Back to student progress"
                 : "My IELTS Journey";
           await expect(
-        page.getByRole("link", { name: back }).first(),
+            page.getByRole("link", { name: back }).first(),
           ).toBeVisible();
         }
       }
@@ -146,7 +146,23 @@ for (const scenario of cases)
           await expect(page.getByRole("alert")).toBeVisible();
         else await expect(page.locator(".ij-skill-card")).toHaveCount(4);
       }
-      await page.evaluate(() => document.fonts.ready);
+      const loadedFonts = await page.evaluate(async () => {
+        // The actual app font must load; a fallback font is not valid evidence.
+        const faces = await Promise.all(
+          [400, 500, 600, 700].map((weight) =>
+            document.fonts.load(`${weight} 16px "IBM Plex Sans"`, "Aa ЖҚ"),
+          ),
+        );
+        await document.fonts.ready;
+        return faces.map(
+          (group) =>
+            group.length > 0 && group.every((face) => face.status === "loaded"),
+        );
+      });
+      expect(
+        loadedFonts,
+        "Pinned production typeface and weights loaded",
+      ).toEqual([true, true, true, true]);
       expect.soft(errors, "Browser errors").toEqual([]);
       expect.soft(external, "Unexpected external network").toEqual([]);
       expect
@@ -223,10 +239,13 @@ for (const scenario of cases)
         height: info.project.use.viewport.height,
       });
       await page.mouse.move(0, 0);
+      // Fixed dialogs need the actual viewport; a full-page image shrinks the
+      // dialog against off-screen questions that are not part of the view.
+      const fullPage = !["dialog", "reading-confirm"].includes(scenario.id);
       const candidate = info.outputPath("candidate.png");
       await page.screenshot({
         path: candidate,
-        fullPage: true,
+        fullPage,
         animations: "disabled",
       });
       await info.attach("candidate", {
@@ -242,6 +261,6 @@ for (const scenario of cases)
           fs.existsSync(info.snapshotPath(snapshot)),
           "Missing approved reference: review candidates; never auto-approve on CI",
         ).toBe(true);
-        await expect(page).toHaveScreenshot(snapshot, { fullPage: true });
+        await expect(page).toHaveScreenshot(snapshot, { fullPage });
       }
     });

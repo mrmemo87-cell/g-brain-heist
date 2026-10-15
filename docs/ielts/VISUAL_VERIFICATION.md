@@ -12,6 +12,8 @@ This is the implementation record for Visual & UX Bible 1.2.0. Diagnostic Bible 
 
 The inventory currently tracks 54 route, embedded and shared screen/component surfaces across 33 routes; the initial case matrix contains 39 scenarios (468 browser/mode/viewport combinations). Many inventoried surfaces still need dedicated fixtures and remain unchecked.
 
+Production and the harness bundle the same pinned IBM Plex Sans font files for the existing 400/500/600/700 weights and all supplied unicode subsets. The browser check explicitly loads and verifies those faces before capture. This prevents a fallback typeface from silently becoming a reference image. The font license is served at `/third-party/ibm-plex-sans-license.txt`.
+
 The GitHub workflow installs pinned Playwright browsers, runs normal/performance modes at phone/tablet/desktop widths in Chromium and WebKit and uploads screenshots, accessibility JSON, failure traces, HTML browser report and coverage. Artifact names include the exact commit. Artifacts expire after 30 days: commit approved reference images and preserve the relevant review evidence before expiry. Never treat a missing/expired artifact as a pass.
 
 ## Isolation and scope
