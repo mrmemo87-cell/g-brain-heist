@@ -8,7 +8,12 @@ const migration = readFileSync(
 const trigger = (name) => {
   const start = migration.toLowerCase().indexOf('create or replace function private.' + name.toLowerCase());
   assert.ok(start >= 0, name + ' is defined');
-  const opening = migration.indexOf('$body
+  const delimiter = "$body$";
+  const opening = migration.indexOf(delimiter, start);
+  assert.ok(opening > start, name + ' function body starts');
+  const closing = migration.indexOf(delimiter, opening + delimiter.length);
+  assert.ok(closing > opening, name + ' function body ends');
+  return migration.slice(start, closing + delimiter.length);
 };
 test('both completion triggers only queue evidence without performing costly ingestion', () => {
   const resultTrigger = trigger('capture_verified_assignment_diagnostic_evidence');
