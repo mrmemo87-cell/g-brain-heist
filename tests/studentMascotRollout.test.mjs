@@ -31,6 +31,6 @@ test('dock has hide, pause, reduced motion and original pilot conflict protectio
  assert.match(dock, /prefers-reduced-motion/);
  assert.match(dock, /visibilitychange/);
  assert.match(css, /language-dock\.is-companion/);
- assert.match(css, /data-ielts-route/);
+ assert.match(app, /!isCambridgeView/);
  assert.match(css, /safe-area-inset-bottom/);
 });
