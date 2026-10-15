@@ -36,3 +36,10 @@ test('visible 3D wrapper loads without any observer callback, confirms first dra
  await render(1);await act(async()=>new Promise(r=>setTimeout(r,40)));assert.equal(requests,2);assert.notEqual(document.querySelector('canvas'),first);assert.equal(states.at(-1),'ready');assert.ok(observers.some(o=>o.disconnected));
  }finally{await act(async()=>root.unmount());globalThis.fetch=previous;delete globalThis.IntersectionObserver;dom.window.close();fs.rmSync(tmp,{recursive:true,force:true})}
 });
+
+
+test('light mode keeps the functional companion canvas visible while hiding background effects',async()=>{
+ const {JSDOM}=await import('jsdom');const css=fs.readFileSync(new URL('../src/styles/light-mode.css',import.meta.url),'utf8');
+ const dom=new JSDOM(`<style>${css}</style><body class="light-mode"><span class="echo-3d-avatar"><canvas data-companion-canvas="3d"></canvas></span><canvas id="background"></canvas><div class="konvajs-content"><canvas id="diagram"></canvas></div></body>`);
+ try{const w=dom.window,d=w.document;assert.notEqual(w.getComputedStyle(d.querySelector('[data-companion-canvas]')).display,'none');assert.equal(w.getComputedStyle(d.querySelector('#background')).display,'none');assert.notEqual(w.getComputedStyle(d.querySelector('#diagram')).display,'none');d.body.classList.remove('light-mode');assert.notEqual(w.getComputedStyle(d.querySelector('[data-companion-canvas]')).display,'none');}finally{dom.window.close()}
+});

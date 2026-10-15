@@ -43,7 +43,7 @@ export default function Echo3DAvatar({ pose, palette, retry = 0, onState }: { po
     const api = module.createEcho3DRenderer(canvas.current, buffer, {
      palette: latest.current.palette, reduced: media.matches,
      onError: () => fail('render'),
-     onReady: () => { loaded = true; report({ status: 'ready' }); },
+     onReady: () => { if (!canvas.current || window.getComputedStyle(canvas.current).display === 'none') { fail('render'); return; } loaded = true; report({ status: 'ready' }); },
     });
     renderer.current = api; api.setVisible(visible()); api.setPose(latest.current.pose);
    } catch (error) { controller.abort(); fail(timedOut ? 'timeout' : error instanceof Error && error.message === '3D unavailable' ? 'device' : phase); }
@@ -64,7 +64,7 @@ export default function Echo3DAvatar({ pose, palette, retry = 0, onState }: { po
  useEffect(() => { renderer.current?.setPose(pose); }, [pose]);
  useEffect(() => { renderer.current?.setPalette(palette); }, [palette]);
  return <span ref={root} className="echo-3d-avatar" data-echo-3d={state.status}>
-  <canvas key={retry} ref={canvas} className={state.status === 'ready' ? 'is-ready' : ''} aria-hidden="true"/>
+  <canvas data-companion-canvas="3d" key={retry} ref={canvas} className={state.status === 'ready' ? 'is-ready' : ''} aria-hidden="true"/>
   {state.status !== 'ready' ? <EchoAvatar pose={pose} motion={false}/> : null}
   <span className="language-dock-sr" role="status">{state.status === 'failed' ? '3D preview unavailable. Showing the original character.' : state.status === 'loading' ? 'Loading 3D companion.' : '3D companion ready.'}</span>
  </span>;
