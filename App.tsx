@@ -39,6 +39,7 @@ import { listMyPendingProgrammeAccessRequests, requestProgrammeAccess } from './
 import { enrollInApprovedSchoolClass, listMySchoolClasses, type ApprovedSignupClass } from './services/authService';
 import AssignmentDesk from './components/student/AssignmentDesk';
 import RetentionTrialGate from './src/features/retention/RetentionTrialGate';
+import StudentMascotDock from './src/features/studentMascot/StudentMascotDock';
 const RetentionStudentPanel = React.lazy(() => import('./src/features/retention/RetentionStudentPanel'));
 import ProgramIdentityBanner from './src/components/ProgramIdentityBanner';
 import { PROGRAM_ARTWORK } from './src/lib/programArtwork';
