@@ -50,3 +50,5 @@
 
 
 .echo-3d-avatar{position:relative;display:block;width:100%;aspect-ratio:1;isolation:isolate}.echo-3d-avatar>canvas{position:absolute;inset:0;display:block;width:100%;height:100%;opacity:0;pointer-events:none}.echo-3d-avatar>canvas.is-ready{opacity:1}.echo-3d-pilot-toggle{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}.echo-3d-pilot-toggle button{border:1px solid #527387;border-radius:12px;background:#14293b;color:#e3f7ff;padding:9px 12px;min-height:44px;font:inherit;font-size:12px;cursor:pointer}.echo-3d-pilot-toggle button:focus-visible{outline:3px solid #8eeafa;outline-offset:3px}
+
+.echo-3d-pilot-toggle .retention-note{flex-basis:100%;margin:0}

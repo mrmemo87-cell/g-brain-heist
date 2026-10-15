@@ -7,4 +7,4 @@ export interface Echo3DRenderer {
  setVisible(value: boolean): void;
  dispose(): void;
 }
-export function createEcho3DRenderer(canvas: HTMLCanvasElement, buffer: ArrayBuffer, options?: { palette?: CompanionPalette; reduced?: boolean; onError?: () => void }): Echo3DRenderer;
+export function createEcho3DRenderer(canvas: HTMLCanvasElement, buffer: ArrayBuffer, options?: { palette?: CompanionPalette; reduced?: boolean; onError?: () => void; onReady?: () => void }): Echo3DRenderer;
