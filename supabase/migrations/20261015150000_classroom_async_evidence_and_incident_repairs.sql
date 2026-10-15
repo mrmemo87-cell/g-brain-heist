@@ -203,7 +203,7 @@ begin
     'trial_expired', coalesce(v_plan = 'pilot' and (v_trial_end is null or v_trial_end <= now()), false)
   );
 end;
-$function$
+$function$;
 CREATE OR REPLACE FUNCTION private.sync_school_pilot_lifecycle(p_school_id uuid)
  RETURNS void
  LANGUAGE plpgsql
@@ -239,7 +239,7 @@ begin
     where school_id=p_school_id and state not in ('converted','cancelled','expired') and (state is distinct from 'not_started' or started_at is not null or ends_at is not null);
   end if;
 end;
-$function$
+$function$;
 
 -- Idempotent rewards for concurrent achievement checks.
 CREATE OR REPLACE FUNCTION public.check_assignment_achievements(p_user_id uuid)
@@ -315,7 +315,7 @@ BEGIN
     END IF;
   END LOOP;
 END;
-$function$
+$function$;
 
 -- Student attempt-history reads must not fail on unrelated teacher-only mapping.
 alter table public.school_subject_group_teachers enable row level security;
