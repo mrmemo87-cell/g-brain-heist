@@ -32,6 +32,8 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   // Used to detect state changes even if reducer mutates in place
   private lastStateSignature: string = "";
   private lastBroadcastAtMs: number = 0;
+  private broadcastInFlight = false;
+  private broadcastDirty = false;
 
   // ---- utilities ----
   private computeStateSignature(s: ClanTerritoryGameState): string {
@@ -378,6 +380,9 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   }
 
   cleanup() {
+    this.broadcastDirty = false;
+    this.broadcastInFlight = false;
+    this.lastBroadcastAtMs = 0;
     if (this.scheduledBroadcastTimer !== null) {
       clearTimeout(this.scheduledBroadcastTimer);
       this.scheduledBroadcastTimer = null;
@@ -519,7 +524,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
 
         if (this.isHost) {
           if (action.type === "REQUEST_STATE") {
-            // Always send an authoritative snapshot immediately — never throttle.
+            // Request the latest snapshot; bursts share a bounded trailing send.
             this.broadcastState(true);
             if (this.onStateUpdate) this.onStateUpdate(this.state);
             return;
@@ -558,19 +563,34 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       });
   }
 
-  private broadcastState(force: boolean = false) {
+  private broadcastState(_force: boolean = false) {
     if (!this.channel || !this.isHost || this.channel.state !== "joined") return;
-
-    // Throttle only non-forced (tick/visibility) broadcasts to reduce spam.
-    // Action-driven calls pass force=true via the scheduled timer, so they always go out.
-    const now = Date.now();
-    if (!force && now - this.lastBroadcastAtMs < 50) return;
-    this.lastBroadcastAtMs = now;
-
-    this.channel.send({
+    this.broadcastDirty = true;
+    if (this.broadcastInFlight || this.scheduledBroadcastTimer !== null) return;
+    const delay = Math.max(0, 100 - (Date.now() - this.lastBroadcastAtMs));
+    if (delay > 0) {
+      this.scheduledBroadcastTimer = setTimeout(() => {
+        this.scheduledBroadcastTimer = null;
+        this.broadcastState();
+      }, delay);
+      return;
+    }
+    const channel = this.channel;
+    this.broadcastDirty = false;
+    this.broadcastInFlight = true;
+    this.lastBroadcastAtMs = Date.now();
+    // At most one send in flight and one latest-state snapshot waiting. Host
+    // reducer/UI updates remain immediate; intermediate network snapshots merge.
+    void Promise.resolve().then(() => channel.send({
       type: "broadcast",
       event: "game_state",
       payload: this.state,
+    })).catch(() => {
+      // Reconnect/request-state/tick will request another authoritative snapshot.
+    }).finally(() => {
+      if (this.channel !== channel) return;
+      this.broadcastInFlight = false;
+      if (this.broadcastDirty) this.broadcastState();
     });
   }
 

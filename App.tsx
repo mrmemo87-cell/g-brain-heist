@@ -1,3 +1,4 @@
+import { touchPresence as touchPlayerPresence } from './services/presenceService';
 import { resolveAccountWorkspace as resolveWorkspace, type AccountWorkspace } from './src/lib/accountWorkspace';
 import { useLanguage } from './src/contexts/LanguageContext';
 import React, { Suspense, useState, useEffect, useRef, useMemo, useCallback } from 'react';
@@ -366,7 +367,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
 
     const touchPresence = () => {
       if (document.visibilityState !== 'visible') return;
-      void supabase.rpc('rpc_touch_last_seen').then(() => {}, () => {});
+      void touchPlayerPresence();
     };
 
     touchPresence();
