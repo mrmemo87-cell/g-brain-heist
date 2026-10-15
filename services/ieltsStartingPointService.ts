@@ -1,3 +1,4 @@
+import { responseCoverage } from './ieltsResponseCoverage';
 import { supabase } from './supabaseClient';
 import {
   parseIeltsScreenerCatalog,
@@ -29,6 +30,7 @@ export interface StartingPointEvidence {
   attempt_id: string;
   occurred_at: string;
   conditions_need_review: boolean;
+  items_answered?: number;
   raw_score?: number;
   total?: number;
   word_count?: number;
@@ -91,6 +93,7 @@ export function parseStartingPoint(value: unknown): IeltsStartingPoint {
         e.raw_score! > e.total!
       )
         fail();
+      if (e.items_answered !== undefined && responseCoverage(e.items_answered, e.total) === 'unknown') fail();
     } else {
       if (
         skill === 'writing' &&
@@ -164,7 +167,11 @@ export function startingPointCompleted(
 ) {
   return skill === 'speaking'
     ? data.results.speaking?.status === 'submitted'
-    : startingPointEntry(data, skill)?.status === 'completed';
+    : skill === 'reading' || skill === 'listening'
+      ? startingPointEntry(data, skill)?.status === 'completed'
+        && responseCoverage(data.results[skill]?.items_answered, data.results[skill]?.total) === 'complete'
+        && !data.results[skill]?.conditions_need_review
+      : startingPointEntry(data, skill)?.status === 'completed';
 }
 export function journeyNextStep(
   data: IeltsStartingPoint,
@@ -180,11 +187,13 @@ export function journeyNextStep(
   if (active) {
     const e = startingPointEntry(data, active);
     return {
-      title: 'Continue your saved work',
+      title: e?.status === 'expired' ? 'Review your timed-out check' : 'Continue your saved work',
       description:
         active === 'speaking'
           ? 'Your interview is in progress. Continue with your teacher.'
-          : `Your ${active} attempt is saved. Open it to continue or finish saving.`,
+          : e?.status === 'expired'
+            ? `Your ${active} timer has ended. Open the saved attempt to confirm its saved status, then ask your teacher about a fresh check.`
+            : `Your ${active} attempt is saved. Open it to continue or finish saving.`,
       label:
         active === 'speaking' ? 'Open saved interview' : 'Open saved attempt',
       route:
@@ -203,9 +212,10 @@ export function journeyNextStep(
       label: 'Open assigned practice',
       route: '/ielts/practice/assigned',
     };
-  const missing = startingPointSkills.find(
-    (s) => !startingPointCompleted(data, s),
-  );
+  // Gather other available skills before sending a student back to an exposed form.
+  const missing = startingPointSkills.find(s => !startingPointCompleted(data, s)
+    && (s === 'speaking' ? !data.results.speaking : startingPointEntry(data, s)?.status !== 'completed'));
+
   if (missing) {
     const e = startingPointEntry(data, missing);
     const available =
@@ -222,6 +232,13 @@ export function journeyNextStep(
       route: startingPointRoute(missing),
     };
   }
+  const incomplete = (['listening', 'reading'] as const).find(skill => !startingPointCompleted(data, skill));
+  if (incomplete) return {
+    title: 'A fresh check needs teacher help',
+    description: `Your ${incomplete} record needs a review of response coverage or assessment conditions. Ask your teacher to arrange a supervised fresh check. Repeating the same form is practice, not independent evidence.`,
+    label: 'View saved work',
+    route: startingPointRoute(incomplete, data.results[incomplete]),
+  };
   const pending = (['writing', 'speaking'] as const).find(
     (s) => !data.results[s]?.review,
   );
