@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const migration = readFileSync(new URL('../supabase/migrations/20261015184500_school_analytics_and_background_write_isolation.sql',import.meta.url),'utf8');
+const migration = readFileSync(new URL('../supabase/migrations/20261015223000_school_analytics_and_background_write_isolation.sql',import.meta.url),'utf8');
 const app = readFileSync(new URL('../App.tsx',import.meta.url),'utf8');
 const foundation = readFileSync(new URL('../supabase/migrations/20260809170000_student_learning_memory_foundation.sql',import.meta.url),'utf8');
 
