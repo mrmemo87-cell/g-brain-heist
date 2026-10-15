@@ -4,9 +4,11 @@ import test from 'node:test';
 
 const migration = readFileSync(new URL('../supabase/migrations/20261015184500_school_analytics_and_background_write_isolation.sql',import.meta.url),'utf8');
 const app = readFileSync(new URL('../App.tsx',import.meta.url),'utf8');
+const foundation = readFileSync(new URL('../supabase/migrations/20260809170000_student_learning_memory_foundation.sql',import.meta.url),'utf8');
 
 test('only new observations rely on AFTER INSERT refresh; replay keeps explicit recomputation', () => {
-  assert.match(migration, /trg_student_learning_refresh_focus_state/);
+  assert.match(foundation, /create trigger trg_student_learning_refresh_focus_state after insert on public\.student_learning_observations/i);
+  assert.match(foundation, /execute function public\.student_learning_after_observation_insert\(\)/);
   assert.match(migration, /get diagnostics v_observation_inserted = row_count/);
   assert.match(migration, /if v_observation_inserted = 0 then/);
   assert.match(migration, /perform public\.student_learning_refresh_focus_state\(p_student_id,v_skill_key\)/);
