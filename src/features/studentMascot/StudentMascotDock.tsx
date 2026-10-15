@@ -90,12 +90,12 @@ export default function StudentMascotDock({ userId }: { userId: string }) {
           if (t - lastFrame >= 1000/30) { mixer.update(Math.min(.08, clock.getDelta())); renderer.render(scene, camera); lastFrame=t; }
           frame = requestAnimationFrame(draw);
         };
-        const start = () => { if (visible && !document.hidden && !frame) { clock.getDelta(); frame=requestAnimationFrame(draw); } };
+        const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+        const start = () => { if (visible && !document.hidden && !media?.matches && !frame) { clock.getDelta(); frame=requestAnimationFrame(draw); } };
         const pause = () => { cancelAnimationFrame(frame); frame=0; };
         const observer = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(entries => { visible = Boolean(entries[0]?.isIntersecting); if (visible) start(); else pause(); }) : null;
         observer?.observe(stage);
-        const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-        const visibility = () => { if (document.hidden || media?.matches) pause(); else start(); };
+        const visibility = () => { if (document.hidden || media?.matches) { pause(); if (!document.hidden && media?.matches) renderer.render(scene, camera); } else start(); };
         document.addEventListener('visibilitychange', visibility); media?.addEventListener?.('change', visibility);
         if (media?.matches) { renderer.render(scene, camera); } else start();
         const dispose = () => {
