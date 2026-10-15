@@ -1,0 +1,94 @@
+import {test,expect} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import fs from 'node:fs';
+import {cases,modes} from './cases.mjs';
+for(const scenario of cases)for(const mode of modes)test(`${scenario.id}--${mode}`,async({page},info)=>{
+ const errors=[],external=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/*',route=>{
+  const u=new URL(route.request().url());
+  if(u.origin==='http://127.0.0.1:4175')return route.continue();
+  // No request may reach production, analytics, a real identity or a paid service.
+  if(u.href==='https://visual.invalid/tone.wav'){
+   const wav=Buffer.alloc(44+16000);wav.write('RIFF');wav.writeUInt32LE(wav.length-8,4);wav.write('WAVEfmt ',8);wav.writeUInt32LE(16,16);wav.writeUInt16LE(1,20);wav.writeUInt16LE(1,22);wav.writeUInt32LE(8000,24);wav.writeUInt32LE(16000,28);wav.writeUInt16LE(2,32);wav.writeUInt16LE(16,34);wav.write('data',36);wav.writeUInt32LE(16000,40);
+   return route.fulfill({body:wav,contentType:'audio/wav'});
+  }
+  external.push(u.origin+u.pathname);return route.abort();
+ });
+ await page.clock.setFixedTime(new Date('2026-10-15T09:00:00Z'));
+ await page.goto(`/e2e/visual/fixture/index.html?case=${scenario.id}&mode=${mode}`);
+ if(scenario.view==='shared')await expect(page.getByRole(scenario.id==='dialog'?'dialog':'alert')).toBeVisible();
+ if(scenario.view==='exam'){
+  if(scenario.id.endsWith('-error'))await expect(page.getByRole('heading',{name:'Could not load exam'})).toBeVisible();
+  else if(scenario.id.endsWith('-paused'))await expect(page.getByRole('heading',{name:'Paused by teacher'})).toBeVisible();
+  else{
+   await page.getByRole('button',{name:'Resume screener',exact:true}).click();
+   await expect(page.locator(scenario.skill==='writing'?'textarea':'#reading-questions')).toBeVisible();
+   if(scenario.skill==='reading'){
+    await expect(page.getByRole('button',{name:'Submit screener',exact:true})).toBeDisabled();
+    if(['reading-passage-2','reading-confirm'].includes(scenario.id)){
+     await page.getByRole('button',{name:'Open Passage 2',exact:true}).click();
+     await expect(page.getByRole('button',{name:'Submit screener',exact:true})).toBeEnabled();
+    }
+    if(scenario.id==='reading-confirm'){
+     await page.getByRole('button',{name:'Submit screener',exact:true}).click();
+     await expect(page.getByRole('dialog')).toBeVisible();
+     await expect(page.getByRole('button',{name:'Cancel',exact:true})).toBeFocused();
+    }
+   }
+  }
+ }
+ if(scenario.view==='result'){
+  if(scenario.loading)await expect(page.getByText('Opening saved evidence…')).toBeVisible();
+  else if(scenario.error)await expect(page.getByRole('alert')).toBeVisible();
+  else {await expect(page.locator('.isr-metrics')).toBeVisible();
+   const back=scenario.role==='teacher'?'Back to IELTS Programme':scenario.role==='school_admin'?'Back to student progress':'My IELTS Journey';
+   await expect(page.getByRole('link',{name:back,exact:true}).first()).toBeVisible();
+  }
+ }
+ if(scenario.view==='programme'){
+  if(scenario.loading)await expect(page.getByText('Opening your programme workspace…')).toBeVisible();
+  else if(scenario.error)await expect(page.getByRole('alert')).toBeVisible();
+  else {await expect(page.getByRole('button',{name:'Today',exact:true})).toBeVisible();await expect(page.getByText('Opening your programme workspace…')).toHaveCount(0);
+   if(scenario.section==='reviews')await expect(page.getByRole('heading',{name:'Assigned work and reviews',exact:true})).toBeVisible();
+   if(scenario.section==='team')await expect(page.getByRole('heading',{name:'Course batches',exact:true})).toBeVisible();
+  }
+ }
+ if(scenario.view==='hub'){
+  if(scenario.loading)await expect(page.getByText('Checking your saved screeners…')).toBeVisible();
+  else if(scenario.error)await expect(page.getByRole('alert')).toBeVisible();
+  else await expect(page.locator('.ij-skill-card')).toHaveCount(4);
+ }
+ await page.evaluate(()=>document.fonts.ready);
+ expect.soft(errors,'Browser errors').toEqual([]);
+ expect.soft(external,'Unexpected external network').toEqual([]);
+ expect.soft(await page.evaluate(()=>window.__visualUnexpected),'Unconfigured synthetic backend requests').toEqual([]);
+ const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']).analyze();
+ const accessibilityPath=info.outputPath('accessibility.json');fs.writeFileSync(accessibilityPath,JSON.stringify(accessibility,null,2));
+ await info.attach('accessibility',{path:accessibilityPath,contentType:'application/json'});
+ expect.soft(accessibility.violations.map(v=>({id:v.id,impact:v.impact,help:v.help,nodes:v.nodes.map(n=>n.target)})),'WCAG violations').toEqual([]);
+ const width=page.viewportSize().width;
+ for(const w of [...new Set([width,320,390,1024])]){
+  await page.setViewportSize({width:w,height:info.project.use.viewport.height});
+  expect.soft(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Page overflow at ${w}px`).toBe(true);
+  const overlaps=await page.evaluate(()=>{
+   const found=[];
+   for(const nav of document.querySelectorAll('nav[aria-label="Reading passages"],.sp-tabs,.ix-actions')){
+    const buttons=[...nav.querySelectorAll('button')].map(e=>({text:e.textContent,rect:e.getBoundingClientRect()})).filter(x=>x.rect.width&&x.rect.height);
+    for(let i=0;i<buttons.length;i++)for(let j=i+1;j<buttons.length;j++){
+     const a=buttons[i].rect,b=buttons[j].rect;
+     if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)found.push([buttons[i].text,buttons[j].text]);
+    }
+   }return found;
+  });expect.soft(overlaps,`Navigation overlap at ${w}px`).toEqual([]);
+ }
+ await page.setViewportSize({width,height:info.project.use.viewport.height});
+ await page.mouse.move(0,0);
+ const candidate=info.outputPath('candidate.png');await page.screenshot({path:candidate,fullPage:true,animations:'disabled'});
+ await info.attach('candidate',{path:candidate,contentType:'image/png'});
+ const snapshot=`${scenario.id}--${mode}.png`;
+ if(process.env.VISUAL_COMPARE==='1'||fs.existsSync(info.snapshotPath(snapshot))){
+  expect(fs.existsSync(info.snapshotPath(snapshot)),'Missing approved reference: review candidates; never auto-approve on CI').toBe(true);
+  await expect(page).toHaveScreenshot(snapshot,{fullPage:true});
+ }
+});

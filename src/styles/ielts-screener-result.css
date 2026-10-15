@@ -10,7 +10,7 @@
 .isr-metrics dt { font-size:.875rem; font-weight:600; color:var(--bh-ielts-foreground-muted); }
 .isr-metrics dd { margin:12px 0; font-size:2.5rem; line-height:1.2; font-weight:700; font-variant-numeric:tabular-nums; }
 .isr-metrics dd span { font-size:1.25rem; font-weight:500; color:var(--bh-ielts-foreground-muted); }
-.isr-metrics p { font-size:.875rem; color:var(--bh-ielts-foreground-muted); }
+.isr-metrics dd small { display:block; margin-top:12px; font-weight:400; line-height:1.6; font-size:.875rem; color:var(--bh-ielts-foreground-muted); }
 .isr-evidence .ix-notice { margin-top:20px; }
 .isr-next a { text-decoration:none; }
 .isr-next { border-left:4px solid var(--bh-ielts-primary); }

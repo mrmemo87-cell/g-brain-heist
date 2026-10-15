@@ -27,3 +27,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Isolated visual QA outputs; approved baselines remain versioned.
+.visual-results/
+.visual-dist/
