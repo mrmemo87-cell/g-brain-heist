@@ -2,215 +2,112 @@
   {
     "id": "IeltsAdminDashboard",
     "source": "components/IeltsAdminDashboard.tsx",
-    "routes": [
-      "/ielts/admin"
-    ],
-    "roles": [
-      "platform_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/admin"],
+    "roles": ["platform_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsScreenerCard",
     "source": "src/components/ielts/IeltsScreenerCard.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsScreenerHub",
     "source": "src/components/ielts/IeltsScreenerHub.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsUi",
     "source": "src/components/ielts/IeltsUi.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "confirmation",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["confirmation", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsWritingEditor",
     "source": "src/components/ielts/IeltsWritingEditor.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsWritingResult",
     "source": "src/components/ielts/IeltsWritingResult.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsWritingReviewWorkspace",
     "source": "src/components/ielts/IeltsWritingReviewWorkspace.tsx",
     "routes": [],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsAssignedPractice",
     "source": "src/pages/ielts/IeltsAssignedPractice.tsx",
-    "routes": [
-      "/ielts/practice/assigned"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/practice/assigned"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsBatchCatchUp",
     "source": "src/pages/ielts/IeltsBatchCatchUp.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsBatchPractice",
     "source": "src/pages/ielts/IeltsBatchPractice.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsContentManager",
     "source": "src/pages/ielts/IeltsContentManager.tsx",
     "routes": [],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsCourseBatches",
     "source": "src/pages/ielts/IeltsCourseBatches.tsx",
     "routes": [],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsExamManager",
     "source": "src/pages/ielts/IeltsExamManager.tsx",
-    "routes": [
-      "/ielts/exams/manage"
-    ],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/exams/manage"],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsExamMode",
     "source": "src/pages/ielts/IeltsExamMode.tsx",
-    "routes": [
-      "/ielts/exam/:examEventId"
-    ],
-    "roles": [
-      "student"
-    ],
+    "routes": ["/ielts/exam/:examEventId"],
+    "roles": ["student"],
     "requiredStates": [
       "reading-active",
       "reading-passage-2",
@@ -229,121 +126,57 @@
   {
     "id": "IeltsExamMonitor",
     "source": "src/pages/ielts/IeltsExamMonitor.tsx",
-    "routes": [
-      "/ielts/exam/:examEventId/monitor"
-    ],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/exam/:examEventId/monitor"],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsExtraPracticeGuard",
     "source": "src/pages/ielts/IeltsExtraPracticeGuard.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsFunnelAnalytics",
     "source": "src/pages/ielts/IeltsFunnelAnalytics.tsx",
-    "routes": [
-      "/ielts/funnel"
-    ],
-    "roles": [
-      "platform_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/funnel"],
+    "roles": ["platform_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsGovernedScreenerResult",
     "source": "src/pages/ielts/IeltsGovernedScreenerResult.tsx",
-    "routes": [
-      "/ielts/screener-result/:attemptId"
-    ],
-    "roles": [
-      "student",
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "partial",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/screener-result/:attemptId"],
+    "roles": ["student", "teacher", "school_admin"],
+    "requiredStates": ["populated", "partial", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsHome",
     "source": "src/pages/ielts/IeltsHome.tsx",
-    "routes": [
-      "/ielts"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsJourneyDashboard",
     "source": "src/pages/ielts/IeltsJourneyDashboard.tsx",
-    "routes": [
-      "/ielts/journey"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/journey"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsLearningPlanDesk",
     "source": "src/pages/ielts/IeltsLearningPlanDesk.tsx",
     "routes": [],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
@@ -353,109 +186,55 @@
       "/ielts/practice/targeted",
       "/ielts/practice/targeted/:allocationId"
     ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsLearningTeacher",
     "source": "src/pages/ielts/IeltsLearningTeacher.tsx",
     "routes": [],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsLessonLibrary",
     "source": "src/pages/ielts/IeltsLessonLibrary.tsx",
     "routes": [],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsMaterialOriginalityReview",
     "source": "src/pages/ielts/IeltsMaterialOriginalityReview.tsx",
     "routes": [],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsObjectiveResult",
     "source": "src/pages/ielts/IeltsObjectiveResult.tsx",
-    "routes": [
-      "/ielts/:skill/result/:attemptId"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/:skill/result/:attemptId"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsPrime",
     "source": "src/pages/ielts/IeltsPrime.tsx",
-    "routes": [
-      "/ielts/apply-prime"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/apply-prime"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsProgrammeWorkspace",
     "source": "src/pages/ielts/IeltsProgrammeWorkspace.tsx",
-    "routes": [
-      "/ielts/programme"
-    ],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
+    "routes": ["/ielts/programme"],
+    "roles": ["teacher", "school_admin"],
     "requiredStates": [
       "overview",
       "students",
@@ -470,54 +249,25 @@
   {
     "id": "IeltsReviewQueue",
     "source": "src/pages/ielts/IeltsReviewQueue.tsx",
-    "routes": [
-      "/ielts/reviews"
-    ],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/reviews"],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsReviewResult",
     "source": "src/pages/ielts/IeltsReviewResult.tsx",
-    "routes": [
-      "/ielts/review-result/:skill/:attemptId"
-    ],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/review-result/:skill/:attemptId"],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsSession",
     "source": "src/pages/ielts/IeltsSession.tsx",
-    "routes": [
-      "/ielts/session/:sessionId"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/session/:sessionId"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
@@ -528,66 +278,32 @@
       "/ielts/speaking-interviews",
       "/ielts/speaking-pilot/:sessionId"
     ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsSubmissionReview",
     "source": "src/pages/ielts/IeltsSubmissionReview.tsx",
-    "routes": [
-      "/ielts/reviews/:skill/:attemptId"
-    ],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/reviews/:skill/:attemptId"],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsTeacherPracticeDesk",
     "source": "src/pages/ielts/IeltsTeacherPracticeDesk.tsx",
     "routes": [],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsWritingDraftPreview",
     "source": "src/pages/ielts/IeltsWritingDraftPreview.tsx",
-    "routes": [
-      "/ielts/writing-screener/preview"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/writing-screener/preview"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
@@ -597,67 +313,32 @@
       "/ielts/writing-screener/reviews",
       "/ielts/writing-screener/reviews/:attemptId"
     ],
-    "roles": [
-      "teacher",
-      "school_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["teacher", "school_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "ListeningPractice",
     "source": "src/pages/ielts/ListeningPractice.tsx",
-    "routes": [
-      "/ielts/listening/:setId"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/listening/:setId"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "ReadingPractice",
     "source": "src/pages/ielts/ReadingPractice.tsx",
-    "routes": [
-      "/ielts/reading/:setId"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/reading/:setId"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "SpeakingPractice",
     "source": "src/pages/ielts/SpeakingPractice.tsx",
-    "routes": [
-      "/ielts/speaking/:taskId"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/speaking/:taskId"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
@@ -670,229 +351,120 @@
       "/ielts/writing-screener",
       "/ielts/reading-screener"
     ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "TrialListeningTest",
     "source": "src/pages/ielts/TrialListeningTest.tsx",
-    "routes": [
-      "/ielts/trial-test"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/trial-test"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "WritingPractice",
     "source": "src/pages/ielts/WritingPractice.tsx",
-    "routes": [
-      "/ielts/writing/:taskId"
-    ],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "routes": ["/ielts/writing/:taskId"],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "assignmentPracticeUi",
     "source": "src/pages/ielts/assignmentPracticeUi.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsAdminBadgeRow",
     "source": "src/pages/ielts/components/IeltsAdminBadgeRow.tsx",
     "routes": [],
-    "roles": [
-      "platform_admin"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["platform_admin"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsAssignmentTimeline",
     "source": "src/pages/ielts/components/IeltsAssignmentTimeline.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsBandGauge",
     "source": "src/pages/ielts/components/IeltsBandGauge.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsMissionCard",
     "source": "src/pages/ielts/components/IeltsMissionCard.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsMonthlyReportView",
     "source": "src/pages/ielts/components/IeltsMonthlyReportView.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsNextActionCard",
     "source": "src/pages/ielts/components/IeltsNextActionCard.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsReportOverview",
     "source": "src/pages/ielts/components/IeltsReportOverview.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsSchoolStudentProgressModal",
     "source": "src/pages/ielts/components/IeltsSchoolStudentProgressModal.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsSkillBreakdownGrid",
     "source": "src/pages/ielts/components/IeltsSkillBreakdownGrid.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsStudentJourney",
     "source": "src/pages/ielts/components/IeltsStudentJourney.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   },
   {
     "id": "IeltsStudentLearningPlan",
     "source": "src/pages/ielts/components/IeltsStudentLearningPlan.tsx",
     "routes": [],
-    "roles": [
-      "student"
-    ],
-    "requiredStates": [
-      "populated",
-      "empty",
-      "loading",
-      "error"
-    ],
+    "roles": ["student"],
+    "requiredStates": ["populated", "empty", "loading", "error"],
     "deviceReviewRequired": true
   }
 ]

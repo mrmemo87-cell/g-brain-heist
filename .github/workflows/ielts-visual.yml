@@ -2,7 +2,7 @@ name: IELTS visual verification
 on:
   pull_request:
   push:
-    branches: ['main']
+    branches: ["main"]
   workflow_dispatch:
 permissions:
   contents: read
