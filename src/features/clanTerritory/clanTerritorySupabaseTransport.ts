@@ -567,7 +567,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     if (!this.channel || !this.isHost || this.channel.state !== "joined") return;
     this.broadcastDirty = true;
     if (this.broadcastInFlight || this.scheduledBroadcastTimer !== null) return;
-    const delay = Math.max(0, 100 - (Date.now() - this.lastBroadcastAtMs));
+    const delay = Math.max(0, 125 - (Date.now() - this.lastBroadcastAtMs));
     if (delay > 0) {
       this.scheduledBroadcastTimer = setTimeout(() => {
         this.scheduledBroadcastTimer = null;
@@ -579,6 +579,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     this.broadcastDirty = false;
     this.broadcastInFlight = true;
     this.lastBroadcastAtMs = Date.now();
+    // Eight snapshots/second leaves room for discovery on the shared 10/s client.
     // At most one send in flight and one latest-state snapshot waiting. Host
     // reducer/UI updates remain immediate; intermediate network snapshots merge.
     void Promise.resolve().then(() => channel.send({

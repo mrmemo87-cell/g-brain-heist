@@ -22,7 +22,7 @@ test('live arena merges bursts, keeps the latest state and never overlaps snapsh
   }
   assert.deepEqual(sent, [1], 'a slow network must not create 49 queued sends');
   settle();
-  await new Promise(resolve => setTimeout(resolve, 130));
+  await new Promise(resolve => setTimeout(resolve, 180));
   assert.deepEqual(sent, [1,50], 'the final action must reach the next snapshot');
   transport.channel = null; // no real Realtime channel was opened
   settle();
@@ -38,6 +38,6 @@ test('cleanup cancels trailing snapshots and an old connection cannot resume the
   transport.broadcastState(true);
   transport.channel=null;
   transport.cleanup();
-  await new Promise(resolve=>setTimeout(resolve,130));
+  await new Promise(resolve=>setTimeout(resolve,180));
   assert.equal(sends,0);
 });

@@ -13,7 +13,7 @@ The earlier inspected `src/lib/lockdownSupabaseTransport.ts` is a separate legac
 - School analytics commit one school at a time. Explicit cancellation handling records a retry and earlier committed schools survive a later interrupted refresh. The loop starts at most three schools and checks a five-second elapsed budget between schools.
 - Tier, entitlements and school-plan requests share in-flight work per access token. Existing successful tier/entitlement TTLs remain five minutes; school-plan reads have a short fifteen-second TTL. Failed authoritative access reads do not cache stale privileges. Account/token changes and explicit invalidation isolate pending responses. Server authorization remains authoritative.
 - Presence requests coalesce and cool down in the browser for forty-five seconds, including failures, before reaching the existing database guard. The normal sixty-second heartbeat remains.
-- Live game snapshots send at most one in flight, merging intermediate state into a trailing latest-state snapshot at a maximum ten sends/second. Host reducer/UI updates remain immediate. Gameplay actions are not discarded or optimistically scored. Reconnect/state requests share this bound. Cleanup cancels trailing sends.
+- Live game snapshots send at most one in flight, merging intermediate state into a trailing latest-state snapshot at a maximum eight snapshot sends/second, leaving room for room discovery on the shared ten-message/second client. Host reducer/UI updates remain immediate. Gameplay actions are not discarded or optimistically scored. Reconnect/state requests share this bound. Cleanup cancels trailing sends.
 
 ## Verification and acceptance
 
