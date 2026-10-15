@@ -108,3 +108,22 @@ test('failed result transaction cannot leave orphan queue work',async()=>{
     assert.equal((await counts(db)).evidence.length,0);
   } finally { await db.close(); }
 });
+
+test('failed academic worker rolls back both lanes then retries safely',async()=>{
+  const db=await setup();
+  try {
+    await db.exec('begin');await db.exec(answers);await db.exec(complete);await db.exec(result);await db.exec('commit');
+    await db.exec("alter table public.evidence add constraint reject_diagnostic_test check (lane <> 'diagnostic')");
+    const attempt=await db.query('select private.process_one_verified_assignment_evidence() outcome');
+    assert.equal(attempt.rows[0].outcome,'retry');
+    const pending=(await counts(db));
+    assert.equal(pending.evidence.length,0,'registry evidence must roll back when diagnostic fails');
+    assert.equal(pending.queued[0].status,'pending');
+    assert.equal(pending.queued[0].attempts,1);
+    await db.exec('alter table public.evidence drop constraint reject_diagnostic_test');
+    await db.exec("update private.assignment_evidence_jobs set available_at=clock_timestamp()-interval '1 second'");
+    const retried=await db.query('select private.process_one_verified_assignment_evidence() outcome');
+    assert.equal(retried.rows[0].outcome,'done');
+    assert.equal((await counts(db)).evidence.length,4);
+  } finally { await db.close(); }
+});
