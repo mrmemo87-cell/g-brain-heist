@@ -265,6 +265,9 @@ begin
 end;
 $function$;
 
+-- Re-declared public SECURITY DEFINER functions must explicitly deny PUBLIC/anon.
+revoke all on function public.get_school_plan_details(uuid) from public,anon;
+
 -- Idempotent rewards for concurrent achievement checks.
 CREATE OR REPLACE FUNCTION public.check_assignment_achievements(p_user_id uuid)
  RETURNS TABLE(achievement_id text, achievement_name text, achievement_icon text, xp_reward integer, coin_reward integer)
@@ -340,6 +343,8 @@ BEGIN
   END LOOP;
 END;
 $function$;
+
+revoke all on function public.check_assignment_achievements(uuid) from public,anon;
 
 -- Keep all three internal school-subject mapping tables fully private.
 -- The old assignments teacher policies accessed them as SECURITY INVOKER RLS,
