@@ -30,6 +30,13 @@ const buildResult = await build({
   logLevel: "silent",
 });
 const wait = () => new Promise((r) => setTimeout(r, 35));
+async function waitFor(predicate) {
+  const deadline = Date.now() + 3000;
+  while (!predicate()) {
+    if (Date.now() >= deadline) throw new Error("Expected lesson UI state did not settle");
+    await wait();
+  }
+}
 function pack(s) {
   return {
     school: {
@@ -136,7 +143,7 @@ async function setup(deny = false, tamper = false) {
     );
   };
   w.eval(buildResult.outputFiles[0].text);
-  await wait();
+  await waitFor(() => w.document.body.textContent.includes("School A") || w.document.querySelector('[role="alert"]'));
   return { d, w, downloads, errors };
 }
 test("lesson library loads school resources and downloads a workbook without keys", async () => {
@@ -158,7 +165,7 @@ test("lesson library loads school resources and downloads a workbook without key
 test("school switch clears earlier content; access denial offers retry without downloads", async () => {
   const { d, w } = await setup();
   w.show("school-b");
-  await wait();
+  await waitFor(() => w.document.body.textContent.includes("School B") && !w.document.body.textContent.includes("School A"));
   assert.ok(w.document.body.textContent.includes("School B"));
   assert.ok(!w.document.body.textContent.includes("School A"));
   d.window.close();

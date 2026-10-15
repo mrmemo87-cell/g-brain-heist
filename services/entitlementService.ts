@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { createScopedReadCache } from './scopedReadCache';
 
 // ============================================================================
 // Entitlement Service — centralized feature gating
@@ -42,19 +43,18 @@ export interface EntitlementSet {
 }
 
 // ── Cache ──
-let cachedEntitlements: EntitlementSet | null = null;
-let entitlementsCacheTs = 0;
-const ENTITLEMENTS_CACHE_TTL = 5 * 60 * 1000; // 5 min
+const entitlementsCache = createScopedReadCache<EntitlementSet>(5 * 60 * 1000, value => value.authoritative);
 
 /**
  * Fetch entitlements for the current user's effective plan.
  * Cached for 5 minutes. Pass `force = true` to bypass cache.
  */
 export async function getEntitlements(force = false): Promise<EntitlementSet> {
-  if (!force && cachedEntitlements && Date.now() - entitlementsCacheTs < ENTITLEMENTS_CACHE_TTL) {
-    return cachedEntitlements;
-  }
+  const { data: sessionData } = await supabase.auth.getSession();
+  return entitlementsCache.read(sessionData.session?.access_token ?? 'signed-out', loadEntitlements, force);
+}
 
+async function loadEntitlements(): Promise<EntitlementSet> {
   const { data, error } = await supabase.rpc('get_my_effective_entitlements');
   const payload = data && typeof data === 'object' && !Array.isArray(data)
     ? data as Record<string, unknown>
@@ -135,8 +135,6 @@ export async function getEntitlements(force = false): Promise<EntitlementSet> {
     },
   };
 
-  cachedEntitlements = result;
-  entitlementsCacheTs = Date.now();
   return result;
 }
 
@@ -162,8 +160,7 @@ export async function getFeatureLimit(featureKey: string): Promise<number | null
  * Invalidate entitlement cache (call after plan changes).
  */
 export function invalidateEntitlementCache(): void {
-  cachedEntitlements = null;
-  entitlementsCacheTs = 0;
+  entitlementsCache.clear();
 }
 
 // ── Feature key constants (matches billing_entitlements seeded data) ──

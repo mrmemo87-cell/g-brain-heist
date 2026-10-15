@@ -1,3 +1,4 @@
+import { touchPresence as touchPlayerPresence } from './presenceService';
 import { fetchQuestionPage, fetchStudentQuestionSummary } from './questionBrowserService';
 import { economicsDisplayOptions, questionGameXp } from './economicsOptionPresentation';
 import { retryAssignmentOperation, isTransientAssignmentError } from './assignmentReliability';
@@ -1412,7 +1413,7 @@ export const whoamiTeacher = async (): Promise<Profile> => {
   }
 
   // Update presence without mutating profile metadata.
-  void supabase.rpc('rpc_touch_last_seen').then(() => {}, () => {});
+  void touchPlayerPresence();
 
   return profile;
 };
@@ -1461,7 +1462,7 @@ export const whoamiFast = async (): Promise<Profile> => {
   await streakRewardPromise;
 
   // Presence must never delay the dashboard.
-  void supabase.rpc('rpc_touch_last_seen').then(() => {}, () => {});
+  void touchPlayerPresence();
   return profile as Profile;
 };
 

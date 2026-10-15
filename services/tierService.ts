@@ -1,3 +1,4 @@
+import { createScopedReadCache } from './scopedReadCache';
 import { supabase } from './supabaseClient';
 
 // ============================================================================
@@ -111,28 +112,18 @@ export const QUOTA_LABELS: Record<PilotFeatureId, string> = {
 
 // ── Fetch effective tier (cached, calls get_effective_tier RPC) ──
 
-let cachedTier: AccountTier | null = null;
-let cacheTimestamp = 0;
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const tierReads = createScopedReadCache<AccountTier>(5 * 60 * 1000);
+const planReads = createScopedReadCache<SchoolPlanDetails>(15_000, value => value.success);
 
 export async function fetchEffectiveTier(): Promise<AccountTier> {
-  if (cachedTier && Date.now() - cacheTimestamp < CACHE_TTL_MS) {
-    return cachedTier;
-  }
-
+  const { data } = await supabase.auth.getSession();
   try {
-    const { data, error } = await supabase.rpc('get_effective_tier');
-    if (error) {
-      console.warn('[tierService] get_effective_tier error:', error.message);
-      return cachedTier || 'free';
-    }
-    cachedTier = (data as AccountTier) || 'free';
-    cacheTimestamp = Date.now();
-    return cachedTier;
-  } catch (err) {
-    console.warn('[tierService] fetchEffectiveTier failed:', err);
-    return cachedTier || 'free';
-  }
+    return await tierReads.read(data.session?.access_token ?? 'signed-out', async () => {
+      const { data: tier, error } = await supabase.rpc('get_effective_tier');
+      if (error) throw error;
+      return (tier as AccountTier) || 'free';
+    });
+  } catch { return 'free'; }
 }
 
 export function isPro(tier: AccountTier | null | undefined): boolean {
@@ -140,13 +131,18 @@ export function isPro(tier: AccountTier | null | undefined): boolean {
 }
 
 export function invalidateTierCache(): void {
-  cachedTier = null;
-  cacheTimestamp = 0;
+  tierReads.clear();
+  planReads.clear();
 }
 
 // ── Fetch school plan details ──
 
 export async function fetchSchoolPlanDetails(): Promise<SchoolPlanDetails> {
+  const { data } = await supabase.auth.getSession();
+  return planReads.read(data.session?.access_token ?? 'signed-out', loadSchoolPlanDetails);
+}
+
+async function loadSchoolPlanDetails(): Promise<SchoolPlanDetails> {
   try {
     const { data, error } = await supabase.rpc('get_school_plan_details');
     if (error || !data?.success) {
