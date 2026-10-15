@@ -31,10 +31,10 @@ body.light-mode [class*="backdrop"] {
   background-color: rgba(15, 23, 42, 0.85) !important;
 }
 
-/* Disable particle and canvas driven effects (except Konva diagram canvas) */
+/* Hide decorative canvases; retain functional diagrams and the opted-in 3D companion. */
 body.light-mode [class*="particle"],
 body.light-mode [class*="confetti"],
-body.light-mode canvas:not(.konvajs-content canvas) {
+body.light-mode canvas:not(.konvajs-content canvas):not([data-companion-canvas="3d"]) {
   display: none !important;
 }
 
@@ -186,3 +186,4 @@ body.light-mode .student-next-mission::after,
 body.light-mode .student-profile-panel::before {
   display: none !important;
 }
+
