@@ -12,15 +12,18 @@ const clipForPose = (pose: string): ActionName => pose === 'cheer' || pose === '
 export default function StudentMascotDock({ userId }: { userId: string }) {
   const [hidden, setHidden] = useState(() => isHidden(userId));
   const [ready, setReady] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [speech, setSpeech] = useState('Tap me for a little surprise ✨');
+  const [lastAction, setLastAction] = useState<ActionName>('idle');
   const host = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const controller = useRef<{ play: (name: ActionName) => void; dispose: () => void } | null>(null);
 
-  useEffect(() => setHidden(isHidden(userId)), [userId]);
+  useEffect(() => { setHidden(isHidden(userId)); setMenuOpen(false); }, [userId]);
   useEffect(() => {
     const callback = (event: Event) => {
       const detail = (event as CustomEvent<{ userId?: string; pose?: string }>).detail;
-      if (detail?.userId === userId && detail.pose) controller.current?.play(clipForPose(detail.pose));
+      if (detail?.userId === userId && detail.pose) { controller.current?.play(clipForPose(detail.pose)); setLastAction(clipForPose(detail.pose)); }
     };
     window.addEventListener('bh:echo-activity', callback);
     return () => window.removeEventListener('bh:echo-activity', callback);
@@ -121,13 +124,29 @@ export default function StudentMascotDock({ userId }: { userId: string }) {
     return () => { cancelled = true; abort.abort(); cleanup(); controller.current = null; };
   }, [hidden, userId]);
 
-  const toggle = (value: boolean) => { setHidden(value); try { if (value) localStorage.setItem(keyFor(userId), '1'); else localStorage.removeItem(keyFor(userId)); } catch {} };
-  return <aside className={`student-mascot-dock${hidden ? ' is-hidden' : ''}`} data-student-mascot aria-label="Brains Heist mascot" lang="en" dir="ltr">
-    {hidden ? <button className="student-mascot-return" type="button" onClick={() => toggle(false)}>🐱 Show mascot</button> :
-      <><div className="student-mascot-stage" ref={host}>
-        <canvas ref={canvas} data-companion-canvas="3d" className={ready ? 'ready' : ''} aria-hidden="true"/>
-        {!ready && <img src={poster} alt="" className="student-mascot-poster" draggable={false}/>}
-        <button className="student-mascot-touch" type="button" aria-label="Greet Brains Heist mascot" onClick={() => controller.current?.play('greet')}/>
-      </div><button className="student-mascot-close" type="button" aria-label="Hide mascot" onClick={() => toggle(true)}>×</button></>}
+  const react = (name: ActionName, text: string) => { controller.current?.play(name); setLastAction(name); setSpeech(text); setMenuOpen(false); };
+  const toggle = (value: boolean) => { setMenuOpen(false); setHidden(value); try { if (value) localStorage.setItem(keyFor(userId), '1'); else localStorage.removeItem(keyFor(userId)); } catch {} };
+  return <aside className={`student-mascot-dock${hidden ? ' is-hidden' : ''}${menuOpen ? ' is-open' : ''}`} data-student-mascot aria-label="Brains Heist mascot" lang="en" dir="ltr">
+    {hidden ? <button className="student-mascot-return" type="button" onClick={() => toggle(false)}>🐱 Bring me back</button> : <>
+      <div className="student-mascot-stage" ref={host}>
+        <div className="student-mascot-float">
+          <canvas ref={canvas} data-companion-canvas="3d" className={ready ? 'ready' : ''} aria-hidden="true"/>
+          {!ready && <img src={poster} alt="" className="student-mascot-poster" draggable={false}/>}
+        </div>
+        <button className="student-mascot-touch" type="button" aria-expanded={menuOpen} aria-controls="student-mascot-actions" aria-label={menuOpen ? 'Close mascot actions' : 'Interact with your mascot'} onClick={() => { setMenuOpen(open => !open); setSpeech('What shall we do next?'); }}/>
+      </div>
+      {menuOpen && <div className="student-mascot-popover" id="student-mascot-actions" role="group" aria-label="Mascot interactions">
+        <p className="student-mascot-popover-title">Your little sidekick <span aria-hidden="true">✦</span></p>
+        <div className="student-mascot-actions">
+          <button type="button" onClick={() => react('greet', 'Hey, agent! Ready for another adventure?')}>👋 <span>Wave</span></button>
+          <button type="button" onClick={() => react('cheer', 'You’ve got this! Keep going!')}>🎉 <span>Cheer</span></button>
+          <button type="button" onClick={() => react('clap', 'Every little win counts!')}>👏 <span>Clap</span></button>
+          <button type="button" onClick={() => react('box', 'Power up! Next challenge awaits.')}>⚡ <span>Power up</span></button>
+        </div>
+        <button className="student-mascot-hide-action" type="button" onClick={() => toggle(true)}>Hide companion</button>
+      </div>}
+      <div className="student-mascot-bubble" role="status" aria-live="polite" key={lastAction + speech}>{speech}</div>
+      <button className="student-mascot-close" type="button" aria-label="Hide mascot" onClick={() => toggle(true)}>×</button>
+    </>}
   </aside>;
 }
