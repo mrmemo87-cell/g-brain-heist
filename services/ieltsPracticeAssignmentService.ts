@@ -33,6 +33,8 @@ export interface IeltsPracticeAssignmentItem {
 }
 
 export interface IeltsPracticeAssignmentSummary {
+  batch_id?: string | null;
+  batch_name?: string | null;
   id: string;
   school_id: string;
   class_id: string | null;

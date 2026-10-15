@@ -22,8 +22,8 @@ export const teacherPracticeHistory = (school: string, filters: {search?: string
   read<{rows: PracticeHistoryRow[]; has_more: boolean}>('rpc_ielts_teacher_practice_history', {
     p_school: school, p_search: filters.search ?? '', p_skill: filters.skill ?? '', p_kind: filters.kind ?? '', p_status: filters.status ?? '', p_offset: filters.offset ?? 0,
   });
-export async function teacherMaterialUsage(school: string, items: {type: string; id: string}[], recipient: {student?: string; classId?: string}): Promise<MaterialUsage[]> {
-  const rows = await read<MaterialUsage[]>('rpc_ielts_teacher_material_usage', {p_school: school, p_items: items, p_student: recipient.student ?? null, p_class: recipient.classId ?? null});
+export async function teacherMaterialUsage(school: string, items: {type: string; id: string}[], recipient: {student?: string; classId?: string; batchId?: string}): Promise<MaterialUsage[]> {
+  const rows = await read<MaterialUsage[]>(recipient.batchId ? 'rpc_ielts_batch_material_usage' : 'rpc_ielts_teacher_material_usage', recipient.batchId ? {p_batch:recipient.batchId,p_items:items} : {p_school: school, p_items: items, p_student: recipient.student ?? null, p_class: recipient.classId ?? null});
   if (!Array.isArray(rows) || items.some(i => !rows.some(r => r.type===i.type && r.id===i.id && Number.isInteger(r.assigned_count) && r.assigned_count>=0)))
     throw new Error('Previous assignments could not be confirmed. Retry the history check.');
   return rows;

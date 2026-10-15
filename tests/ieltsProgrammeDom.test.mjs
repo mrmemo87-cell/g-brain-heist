@@ -84,6 +84,7 @@ async function check(admin) {
         confidence: "low",
         readiness_available: false,
       };
+    else if (fn === "rpc_ielts_batches") data = [];
     else throw Error("Unexpected request " + fn);
     return new Response(JSON.stringify(data), {
       status: 200,

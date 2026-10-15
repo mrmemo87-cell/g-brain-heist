@@ -1,0 +1,18 @@
+import React,{useEffect,useRef,useState} from 'react';
+import {allocateIeltsBatch,ieltsBatchRoster,type IeltsBatchStudent} from '../../../services/ieltsBatchService';
+import type {IeltsPracticeAssignmentDetail} from '../../../services/ieltsPracticeAssignmentService';
+import {useIeltsMaterialUsage} from './useIeltsMaterialUsage';
+import {IeltsButton,IeltsNotice} from '../../components/ielts/IeltsUi';
+export default function IeltsBatchCatchUp({assignment,schoolId,onUpdated}:{assignment:IeltsPracticeAssignmentDetail;schoolId:string;onUpdated:()=>void}){
+ const [open,setOpen]=useState(false),[members,setMembers]=useState<IeltsBatchStudent[]>([]),[selected,setSelected]=useState<string[]>([]),[loaded,setLoaded]=useState(false),[error,setError]=useState(''),[saving,setSaving]=useState(false),[ack,setAck]=useState('');
+ const lock=useRef(false),a=assignment.assignment;
+ const usage=useIeltsMaterialUsage(schoolId,open?assignment.items.map(i=>({type:i.content_type,id:i.content_id})):[],{batchId:a.batch_id??undefined});
+ const scope=JSON.stringify([selected,usage.data]);
+ useEffect(()=>{if(!open)return;let alive=true;setLoaded(false);setError('');ieltsBatchRoster(a.batch_id!).then(r=>{if(alive){setMembers(r.members.filter(m=>m.eligible&&!assignment.students.some(s=>s.student_id===m.id)));setLoaded(true);}}).catch(()=>{if(alive)setError('Batch members could not load. Close this panel and reopen it to retry.');});return()=>{alive=false;};},[open,a.batch_id,assignment.students]);
+ const save=async()=>{if(lock.current||!selected.length||!usage.data||usage.error||ack!==scope)return;lock.current=true;setSaving(true);setError('');try{await allocateIeltsBatch(a.id,selected);setSelected([]);setOpen(false);onUpdated();}catch{setError('Allocation could not be confirmed. Refresh assignment progress before retrying; existing work is retained.');}finally{lock.current=false;setSaving(false);}};
+ return <section className="ix-panel"><h3>Catch-up for late joiners</h3><p className="ix-muted">Add selected batch members to this open assignment. Existing attempts and completion stay in place.</p><IeltsButton disabled={saving} onClick={()=>setOpen(x=>!x)}>{open?'Close batch members':'Add batch members'}</IeltsButton>{open&&<div className="ix-list">
+ {error&&<IeltsNotice error>{error}</IeltsNotice>}{!loaded&&!error&&<p role="status">Checking batch members…</p>}{loaded&&!members.length&&<p>All eligible batch members already have this assignment.</p>}
+ {members.map(m=><label key={m.id} className="ix-check"><input disabled={saving} type="checkbox" checked={selected.includes(m.id)} onChange={e=>setSelected(x=>e.target.checked?[...x,m.id]:x.filter(id=>id!==m.id))}/><span>{m.name} · {m.class_name}</span></label>)}
+ {usage.loading?<p>Checking previous material use…</p>:usage.error?<IeltsNotice error>{usage.error}<IeltsButton onClick={usage.retry}>Retry history check</IeltsButton></IeltsNotice>:<>{usage.data?.map(u=><p key={u.type+u.id}>{assignment.items.find(i=>i.content_type===u.type&&i.content_id===u.id)?.title??'Selected material'} · {u.students_count} batch members previously assigned this material.</p>)}<label className="ix-check"><input type="checkbox" disabled={saving} checked={ack===scope} onChange={e=>setAck(e.target.checked?scope:'')}/><span>I checked prior use and want these students to receive this work for practice. The original instructions and due date apply.</span></label></>}
+ <IeltsButton variant="primary" disabled={saving||!selected.length||!usage.data||!!usage.error||usage.loading||ack!==scope} onClick={()=>void save()}>{saving?'Assigning…':`Assign to ${selected.length} selected students`}</IeltsButton></div>}</section>;
+}
