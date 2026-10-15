@@ -25,9 +25,14 @@ test('companion journey supports personalisation, real crews, teacher keepsakes 
   await act(async()=>window.dispatchEvent(new dom.window.CustomEvent('bh:echo-activity',{detail:{userId:'student',pose:'celebrate',practicing:false}})));assert.ok(document.querySelector('.is-companion'));
   await click(button('Dock Nova in the card'));assert.ok(!document.querySelector('.is-companion'));assert.ok(document.querySelector('.retention-companion-stage'));assert.equal(JSON.parse(localStorage.getItem('bh:echo-float:v1:student')).enabled,false);
  });
+ await t.test('Gulzada alone defaults to 3D and can revert while model loading fails safely',async()=>{
+ const previous=globalThis.fetch;let requests=0;globalThis.fetch=async()=>{requests++;throw Error('offline')};
+ try{await render(false,'b30e9c28-96f1-4d34-83e9-9b28b4926f42');assert.ok(button('Use original character'));assert.equal(requests,1);assert.ok(document.querySelector('[data-echo-3d="failed"]'));assert.ok(document.querySelector('.echo-avatar'));await click(button('Use original character'));assert.ok(!document.querySelector('[data-echo-3d]'));assert.equal(localStorage.getItem('bh:echo-3d:v1:b30e9c28-96f1-4d34-83e9-9b28b4926f42'),'0');await click(button('Try 3D character'));assert.equal(requests,2);await render(false,'other-student');assert.ok(!button('Use original character'));assert.ok(!document.querySelector('[data-echo-3d]'));assert.equal(requests,2);}finally{globalThis.fetch=previous}
+ });
  await t.test('teacher sees encouragement rather than personal student companion',async()=>{await render(true,'teacher');assert.ok(!document.querySelector('.retention-companion-touch'));assert.match(document.body.textContent,/Your teaching story/);await click(button('Your questions and curiosity'));assert.equal(kind,'curiosity');assert.match(document.body.textContent,/Your message for this mission is saved today/);});
  await t.test('empty room has no fabricated classmates or scores',async()=>{fixture.crews=[];fixture.memories=[];await render(false,'empty');assert.match(document.body.textContent,/published class assignment/);assert.ok(!button('Nice work, crew!'));assert.ok(button('Explore our hideout'));});
  }finally{await act(async()=>root.unmount());dom.window.close();delete globalThis.__companionTest;fs.rmSync(tmp,{recursive:true,force:true});}
 });
+
 
 
