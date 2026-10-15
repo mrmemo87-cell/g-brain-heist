@@ -35,6 +35,7 @@ jobs:
           name: ielts-visual-${{ github.sha }}
           path: .visual-results/
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 30
       - name: Publish coverage summary
         if: always()

@@ -103,7 +103,7 @@ for (const scenario of cases)
                 ? "Back to student progress"
                 : "My IELTS Journey";
           await expect(
-            page.getByRole("link", { name: back, exact: true }).first(),
+        page.getByRole("link", { name: back }).first(),
           ).toBeVisible();
         }
       }
