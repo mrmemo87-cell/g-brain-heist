@@ -1,6 +1,6 @@
 /** Small model-specific WebGL2 renderer. No framework, texture fetches or global render loop. */
 export function createEcho3DRenderer(canvas, arrayBuffer, options = {}) {
- const gl=canvas.getContext('webgl2',{antialias:true,alpha:true,powerPreference:'low-power'});
+ const gl=canvas.getContext('webgl2',{antialias:true,alpha:true,powerPreference:'low-power'}) || canvas.getContext('webgl2',{antialias:false,alpha:true});
  if(!gl)throw Error('3D unavailable');
  const bytes=new Uint8Array(arrayBuffer);if(bytes.length>3000000||bytes.length<28||new DataView(arrayBuffer).getUint32(0,true)!==0x46546c67)throw Error('Invalid character model');
  const buffers=[],shaders=[];
@@ -23,7 +23,7 @@ function view(eye,target){const z=normalize(eye.map((v,i)=>v-target[i])),x=norma
 function perspective(aspect){const f=1/Math.tan(.38),near=.1,far=100;return new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0])}
 const tracks=doc.animations.map(a=>a.channels.map(ch=>{const s=a.samplers[ch.sampler];return{node:ch.target.node,path:ch.target.path,times:acc(s.input),values:acc(s.output)}}));
 const inverse=acc(doc.skins[0].inverseBindMatrices);
-let clip=0,playing=false,time=0,last=0,endAt=0,raf=0,disposed=false,visible=true,reduced=Boolean(options.reduced),palette=options.palette||'cyan';
+let clip=0,playing=false,time=0,last=0,endAt=0,raf=0,disposed=false,visible=true,reduced=Boolean(options.reduced),palette=options.palette||'cyan',announced=false;
 const yaw=.25,pitch=.05,distance=5.6;
 let lastDraw=0;
 function draw(){raf=0;if(disposed||!visible)return;const now=performance.now()/1000;if(playing)time+=Math.min(.05,last?now-last:0);if(time>=endAt)playing=false;last=now;const ratio=Math.min(window.devicePixelRatio||1,1.5);const width=Math.round(Math.max(96,canvas.clientWidth)*ratio),height=Math.round(Math.max(96,canvas.clientHeight)*ratio);if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}gl.viewport(0,0,width,height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
@@ -31,8 +31,8 @@ function draw(){raf=0;if(disposed||!visible)return;const now=performance.now()/1
  for(const tr of tracks[clip]){const ts=tr.times,n=tr.path==='rotation'?4:3;let k=0;while(k<ts.length-2&&at>ts[k+1])k++;const a=(at-ts[k])/(ts[k+1]-ts[k]);const out=[];let sign=1;if(n===4){let dp=0;for(let i=0;i<4;i++)dp+=tr.values[k*4+i]*tr.values[(k+1)*4+i];if(dp<0)sign=-1}for(let i=0;i<n;i++)out.push(tr.values[k*n+i]*(1-a)+sign*tr.values[(k+1)*n+i]*a);if(n===4)local[tr.node].q=normalize(out);else local[tr.node].t=out;}
  const world=[];function walk(idx,parent){world[idx]=mul(parent,trs(local[idx].t,local[idx].q));for(const c of doc.nodes[idx].children||[])walk(c,world[idx]);}for(const n of doc.scenes[0].nodes)walk(n,I());const skin=new Float32Array(19*16);doc.skins[0].joints.forEach((j,i)=>skin.set(mul(world[j],inverse.subarray(i*16,i*16+16)),i*16));gl.uniformMatrix4fv(uniforms['joints[0]'],false,skin);
  const target=[-.35,1.95,0],eye=[target[0]+Math.sin(yaw)*Math.cos(pitch)*distance*Math.max(1,.65/(width/height)),target[1]+Math.sin(pitch)*distance*Math.max(1,.65/(width/height)),Math.cos(yaw)*Math.cos(pitch)*distance*Math.max(1,.65/(width/height))];gl.uniformMatrix4fv(uniforms.vp,false,mul(perspective(width/height),view(eye,target)));gl.uniform3fv(uniforms.camera,eye);
- for(const p of primitives){let m=p.material,c=m.pbrMetallicRoughness.baseColorFactor.slice(0,3),e=m.emissiveFactor;if(m.name==='Cyan energy strands'&&palette!=='cyan'){c=palette==='pink'?[1,.12,.48]:[.65,.34,1];e=c.map(v=>v*.7)}gl.uniform3fv(uniforms.color,c);gl.uniform3fv(uniforms.emit,e);gl.uniform1f(uniforms.rough,m.pbrMetallicRoughness.roughnessFactor);gl.uniform1f(uniforms.metal,m.pbrMetallicRoughness.metallicFactor);gl.bindVertexArray(p.vao);gl.drawElements(gl.TRIANGLES,p.count,gl.UNSIGNED_INT,0)}if(playing)schedule();}
-function schedule(){if(disposed||!visible||raf)return;raf=requestAnimationFrame(t=>{raf=0;if(playing&&t-lastDraw<1000/30){schedule();return}lastDraw=t;draw()});}
+ for(const p of primitives){let m=p.material,c=m.pbrMetallicRoughness.baseColorFactor.slice(0,3),e=m.emissiveFactor;if(m.name==='Cyan energy strands'&&palette!=='cyan'){c=palette==='pink'?[1,.12,.48]:[.65,.34,1];e=c.map(v=>v*.7)}gl.uniform3fv(uniforms.color,c);gl.uniform3fv(uniforms.emit,e);gl.uniform1f(uniforms.rough,m.pbrMetallicRoughness.roughnessFactor);gl.uniform1f(uniforms.metal,m.pbrMetallicRoughness.metallicFactor);gl.bindVertexArray(p.vao);gl.drawElements(gl.TRIANGLES,p.count,gl.UNSIGNED_INT,0)}if(!announced){const error=gl.getError();if(error!==gl.NO_ERROR)throw Error('3D draw failed');announced=true;options.onReady?.()}if(playing)schedule();}
+function schedule(){if(disposed||!visible||raf)return;raf=requestAnimationFrame(t=>{raf=0;if(playing&&t-lastDraw<1000/30){schedule();return}lastDraw=t;try{draw()}catch{playing=false;options.onError?.()}});}
 function play(next){clip=Math.max(0,Math.min(2,next));time=0;last=0;endAt=tracks[clip][0].times.at(-1)*2;playing=!reduced;schedule();}
 function lost(event){event.preventDefault();if(!disposed){playing=false;cancelAnimationFrame(raf);raf=0;options.onError?.();}}
 canvas.addEventListener('webglcontextlost',lost);
