@@ -575,6 +575,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
         <IeltsButton variant={creating ? 'secondary' : 'primary'} disabled={saving} onClick={() => { setCreating(!creating); setStep(0); setError(null); }}>{creating ? 'Back to assignments' : 'New assignment'}</IeltsButton>
       </header>
       {error && <IeltsNotice error>{error}</IeltsNotice>}
+      <IeltsNotice>Screeners are excluded from practice assignments. Released course tasks can be assigned from Programme team → Course batches → Assign tasks. Older catalogue material awaiting review is hidden.</IeltsNotice>
       {batchError && <IeltsNotice error>{batchError}</IeltsNotice>}
       {pendingAssignment && <IeltsNotice><p><strong>Saved assignment · allocation needs checking</strong></p><p>{pendingAssignment.title} is saved. Retry uses this assignment, without creating another.</p><IeltsButton disabled={saving} onClick={() => void retryAllocation(pendingAssignment)}>{saving ? 'Allocating…' : pendingAssignment.batch_id ? 'Retry batch allocation' : 'Retry class allocation'}</IeltsButton></IeltsNotice>}
 
