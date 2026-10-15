@@ -1,3 +1,4 @@
+import { responseCoverage, coverageLabel } from './ieltsResponseCoverage';
 import { supabase } from "./supabaseClient";
 export interface ProgrammeSchool {
   id: string;
@@ -7,6 +8,7 @@ export interface ProgrammeSchool {
 }
 export interface ProgrammeEvidence {
   attempt_id: string;
+  items_answered?: number;
   raw_score?: number;
   total?: number;
   reviewed?: boolean;
@@ -82,8 +84,12 @@ export function programmeEvidenceLabel(
   e: ProgrammeEvidence | null,
 ) {
   if (!e) return "No submitted evidence";
-  if (skill === "reading" || skill === "listening")
-    return `${e.raw_score ?? 0} / ${e.total ?? 0} · Screener`;
+  if (skill === "reading" || skill === "listening") {
+    const coverage = responseCoverage(e.items_answered, e.total);
+    const score = Number.isInteger(e.raw_score) && Number.isInteger(e.total)
+      ? `${e.raw_score} / ${e.total} · Screener` : 'Recorded result needs review';
+    return `${score} · ${coverage === 'complete' ? `${e.items_answered}/${e.total} answered` : coverageLabel(coverage)}`;
+  }
   if (e.reviewed) return "Teacher feedback ready";
   if (e.status === "in_progress") return "Interview in progress";
   return "Awaiting teacher review";

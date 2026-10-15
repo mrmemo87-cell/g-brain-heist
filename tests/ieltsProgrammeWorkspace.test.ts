@@ -18,8 +18,9 @@ test("programme distinguishes raw screener evidence from confirmed teacher feedb
       attempt_id: "a",
       raw_score: 8,
       total: 12,
+      items_answered: 12,
     }),
-    "8 / 12 · Screener",
+    "8 / 12 · Screener · 12/12 answered",
   );
   assert.equal(
     programmeEvidenceLabel("writing", { attempt_id: "a", reviewed: false }),
@@ -55,4 +56,10 @@ test("programme evidence links open the original governed submission", () => {
     programmeEvidenceRoute("speaking", { attempt_id: "a" }),
     "/ielts/speaking-pilot/a",
   );
+});
+
+test('programme labels empty and partial records without inventing attainment',()=>{
+  for (const [items_answered,label] of [[0,'No assessment evidence'],[6,'Incomplete evidence'],[undefined,'Response coverage unavailable']] as const)
+    assert.ok(programmeEvidenceLabel('reading',{attempt_id:'saved',raw_score:0,total:12,items_answered}).includes(label));
+  assert.doesNotMatch(programmeEvidenceLabel('reading',{attempt_id:'saved'}),/0 \/ 0/);
 });
