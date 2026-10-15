@@ -21,7 +21,7 @@ const errors = new Rate('classroom_errors');
 function rejectRun(message){errors.add(true);fail(message);}
 export const options = {
  scenarios:{students:{executor:'per-vu-iterations',vus:count,iterations:1,maxDuration:'10m',exec:'student'},teacher:{executor:'constant-vus',vus:1,duration:'2m',exec:'teacher'}},
- thresholds:{http_req_failed:['rate<0.001'],classroom_errors:['rate==0'],'http_req_duration{operation:answer}':['p(95)<500','p(99)<1500'],'http_req_duration{operation:catalog}':['p(95)<1500'],'http_req_duration{operation:detail}':['p(95)<1500'],'http_req_duration{operation:summary}':['p(95)<1500']},
+ thresholds:{http_req_failed:['rate<0.001'],classroom_errors:['rate==0'],'http_req_duration{operation:answer}':['p(95)<500','p(99)<1500'],'http_req_duration{operation:catalog}':['p(95)<1500'],'http_req_duration{operation:detail}':['p(95)<1500'],'http_req_duration{operation:summary}':['p(95)<1500'],'http_req_duration{operation:finalize}':['p(95)<2000','p(99)<5000']},
 };
 const params=(token,operation)=>({headers:{apikey:__ENV.SUPABASE_ANON_KEY,Authorization:`Bearer ${token}`,'Content-Type':'application/json'},tags:{operation},timeout:'15s'});
 const rpc=(name,body,token,operation)=>http.post(`${base}/rest/v1/rpc/${name}`,JSON.stringify(body),params(token,operation));
