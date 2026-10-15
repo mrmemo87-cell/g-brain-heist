@@ -29,7 +29,7 @@ for(const name of ['rpc_ielts_practice_create_assignment','rpc_ielts_practice_as
  const start=foundation.toLowerCase().indexOf('create or replace function public.'+name),end=foundation.indexOf('$$;',start)+3;
  await db.exec(foundation.slice(start,end));
 }
-await db.exec(readFileSync('supabase/migrations/20261015043835_ielts_course_batches.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261015044759_ielts_course_batches.sql','utf8'));
 test.after(()=>db.close());
 const actor=x=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[x]);
 const sql=async(q,args=[])=>(await db.query(q,args)).rows[0];
