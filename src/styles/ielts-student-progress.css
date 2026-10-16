@@ -327,3 +327,6 @@
 
 .ip-page .isi-matrix-accordion > .isi-section-content { padding: 0; }
 .ip-page .isi-matrix-accordion .isi-matrix { border: 0; border-top: 1px solid #e5eaf2; border-radius: 0; }
+
+.ip-page .ip-nav-icon { display: inline-grid; place-items: center; }
+.ip-page .ip-nav-icon svg { width: 17px; height: 17px; }
