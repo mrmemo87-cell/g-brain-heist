@@ -5,7 +5,7 @@ import subprocess
 name = "supabase_auth_brains-classroom-local"
 original = json.loads(subprocess.check_output(["docker", "inspect", name]))[0]
 config = original["Config"]
-assert config["Image"].startswith("public.ecr.aws/supabase/gotrue:")
+assert config["Image"].startswith(("public.ecr.aws/supabase/gotrue:", "supabase/gotrue:", "docker.io/supabase/gotrue:")), "Unexpected Auth image: " + config["Image"]
 assert not original["Mounts"] and not original["HostConfig"]["PortBindings"]
 networks = original["NetworkSettings"]["Networks"]
 assert list(networks) == ["supabase_network_brains-classroom-local"]
