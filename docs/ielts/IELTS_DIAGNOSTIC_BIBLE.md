@@ -1218,6 +1218,18 @@ Apply school isolation, bounded reads, idempotent requests, concurrent-edit chec
 
 ---
 
+## 15G. Post-screener course handoff and rolling intake
+
+**Owner-requested course policy (2026-10-14):** Use screener evidence to plan teaching through the companion Lessons Bible and its ordered course roadmap. Completion alone cannot choose a weakest skill, assign a fixed ability group or generate a band. Inspect actual trusted outcomes, missing/pending states and the required Writing/Speaking reviews. Keep per-skill foundation/focused/more-evidence-needed pathways under section 15C.1, and agree up to two immediate teaching priorities where supported. Record source references, teacher/date, intended support, next practice and next check.
+
+The class may proceed through shared lessons while individual students finish intake. Late joiners retain their own joining date, source history, catch-up teaching and report scope; do not restart a cohort, duplicate a valid completed screener or turn unfinished work into zero. Classroom paragraphs, paired speaking, live teacher observations, homework and guided corrections are separately identified teaching records. They never silently replace a required screener, finalized productive-skill review or trusted independent assessment. A teacher listening to a limited sample must record the actual students/parts observed; peer comments cannot provide teacher pronunciation ratings.
+
+Fresh follow-up work may check transfer only after its content, exposure, mapping, difficulty and delivery are reviewed for the intended claim. Freshness alone does not establish comparability or improvement. All section 8A policies still apply. Course milestones and monthly reviews schedule decisions; they cannot manufacture evidence, report attendance or imply a band increase. Teaching packs must distinguish privately prepared drafts from reviewed/released materials under sections 6 and 15E.
+
+No answer-save, scoring, recommendation automation, numerical threshold, content approval or release authority is introduced here. This policy defines the handoff; implementation and human review must be recorded separately.
+
+---
+
 ## 16. Current known legacy issues
 
 The following current/legacy behaviours are **not** canonical and must not be preserved merely because they already exist.
@@ -1646,6 +1658,14 @@ Affected implementation: practice inventory fingerprints, draft/publication and 
 ### 22.9 Revision record — v1.10.0 (2026-10-15)
 
 The owner requested cleanup of assignable practice, direct batch assignment and a permanent separation of screeners from later course materials. Section 15F records this internal product policy and strengthens the existing assessment/practice, rights, source-evidence and historical-preservation rules. Source: the owner's explicit instruction on 2026-10-15. No external IELTS format, scoring, criterion, calibration, published form or existing result changes. Review catalogue filters, allocation triggers, protected-content fingerprints, batch lifecycle/assignment RPCs, teacher UI and regressions. New private tables preserve operational history; no content approval or wider capacity is implied.
+
+---
+
+### 22.10 Consolidated course handoff record — v1.10.0 (2026-10-16)
+
+The owner requested consistent course Bibles and preparation of Lesson 2 after the post-screener course plan. Sections 15B/15C did not explicitly define the shared-class handoff, rolling intake or boundaries of limited classroom observations. Section 15G makes those distinctions explicit, with the companion Lessons Bible 1.1.0 and course roadmap. Basis: explicit owner instruction and existing evidence/review governance. No external IELTS format, criteria, grading, band conversion or scoring changes; current external sources are not presented as endorsement of the internal course plan.
+
+Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
 

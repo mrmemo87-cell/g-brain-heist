@@ -1,0 +1,238 @@
+{
+  "code": "IELTS-02",
+  "version": "1.0.0",
+  "presentation_version": "1.0.0",
+  "title": "Reading evidence and developed answers",
+  "status": "Private teacher-review draft",
+  "duration": 60,
+  "test_type": "Academic assumed; programme confirmation pending",
+  "audio": "No recording required. Teacher modelling and live student speech only.",
+  "bibles": {
+    "diagnostic": "1.10.0",
+    "lessons": "1.1.0",
+    "visual": "1.1.0"
+  },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. No third-party passages or assessment questions copied. Human editorial, keys, mapping, difficulty and originality review pending.",
+  "prerequisites": [
+    "Lesson 1 strategies or a short catch-up introduction.",
+    "Teacher checks actual four-screener and Writing/Speaking review states before class.",
+    "Completed screeners are reused by source reference. Pending work receives a separate full-session plan."
+  ],
+  "objectives": [
+    "Find a sentence that supports or contradicts a reading claim, or explain what the text does not say.",
+    "Develop one relevant idea with a reason and a specific example.",
+    "Extend a spoken answer with a reason and example while keeping it relevant."
+  ],
+  "reading": {
+    "id": "IELTS-02-R1",
+    "title": "A quiet place after school",
+    "mode": "Guided classroom practice",
+    "instructions": "Read the passage. Write TRUE if the statement agrees with the text, FALSE if it contradicts the text, or NOT GIVEN if the text does not tell you. Add a short quote for TRUE/FALSE. For NOT GIVEN, explain the missing information. Use only this passage.",
+    "paragraphs": [
+      "For a four-week pilot in April, Westbrook School opened a quiet study room on Tuesday, Wednesday and Thursday afternoons, from 3:30 to 5:00. The room had sixteen seats. Students needed to book by noon on the day they wanted to attend. They could use the school's website or ask the office to make the booking on paper.",
+      "The idea came from students who shared busy rooms at home and wanted somewhere with fewer distractions. Before the pilot, eleven students answered a short survey. Eight preferred a quiet room, while three wanted a space for group discussion. The school chose to test the quiet room first. Students could bring homework or read their own books, but they could not hold group conversations there.",
+      "At the end of the pilot, staff planned to ask students which features had helped them study. The pilot did not measure examination results. Staff had not yet decided whether to offer longer opening hours."
+    ],
+    "items": [
+      {
+        "id": "IELTS-02-R1-Q1",
+        "statement": "The study room opened on every weekday.",
+        "answer": "FALSE",
+        "evidence": "Tuesday, Wednesday and Thursday afternoons",
+        "reason": "The text names three weekdays, not all five.",
+        "focus": "detail discrimination"
+      },
+      {
+        "id": "IELTS-02-R1-Q2",
+        "statement": "Students had to book a place by noon on the day of their visit.",
+        "answer": "TRUE",
+        "evidence": "book by noon on the day they wanted to attend",
+        "reason": "The statement gives the same booking deadline.",
+        "focus": "locating explicit evidence"
+      },
+      {
+        "id": "IELTS-02-R1-Q3",
+        "statement": "All eleven students in the survey preferred a quiet room.",
+        "answer": "FALSE",
+        "evidence": "Eight preferred a quiet room, while three wanted a space for group discussion",
+        "reason": "Only eight of the eleven preferred a quiet room.",
+        "focus": "detail discrimination"
+      },
+      {
+        "id": "IELTS-02-R1-Q4",
+        "statement": "Students suggested the room because they wanted fewer distractions.",
+        "answer": "TRUE",
+        "evidence": "wanted somewhere with fewer distractions",
+        "reason": "The text explicitly gives this reason.",
+        "focus": "paraphrase recognition"
+      },
+      {
+        "id": "IELTS-02-R1-Q5",
+        "statement": "Students who used the room improved their examination results.",
+        "answer": "NOT GIVEN",
+        "evidence": "The pilot did not measure examination results.",
+        "reason": "Not measuring results does not show whether results improved or stayed the same.",
+        "focus": "True/False/Not Given reasoning"
+      },
+      {
+        "id": "IELTS-02-R1-Q6",
+        "statement": "The school will keep the room open next term.",
+        "answer": "NOT GIVEN",
+        "evidence": "No statement about next term.",
+        "reason": "A pilot and a review plan do not tell us the decision for next term.",
+        "focus": "True/False/Not Given reasoning"
+      }
+    ]
+  },
+  "writing": {
+    "id": "IELTS-02-W1",
+    "mode": "Independent classroom application after modelling; not a Writing Screener or full IELTS task",
+    "prompt": "What is one useful way schools can help students study after lessons? Write one paragraph explaining your suggestion, why it helps, and a specific example. Aim for 100-130 words as a classroom practice target.",
+    "model": "Schools can help students by offering a quiet study space after lessons. Some students share a room with younger brothers or sisters, so concentrating at home can be difficult. A supervised room gives them a calm place to finish one important task before going home. For example, a student preparing for a science quiz could spend thirty minutes reviewing difficult vocabulary without interruptions. Schools could open the room on a few afternoons each week and use a simple booking system. This would make the space manageable while giving students a useful choice. It would support home study rather than replace it.",
+    "support": "Optional frame: Schools could ... This would help because ... For example, ... Record use of the frame as support.",
+    "extension": "Explain one limitation of your suggestion and how the school could handle it.",
+    "feedback": [
+      "Does the paragraph answer the question with one clear suggestion?",
+      "Does the reason explain how the suggestion helps?",
+      "Does the example give a specific situation?",
+      "Do the sentences connect clearly, and is the meaning understandable?"
+    ]
+  },
+  "speaking": {
+    "id": "IELTS-02-S1",
+    "mode": "Guided paired practice; teacher observes selected learners live",
+    "prompt": "Where do you usually study, and what helps you concentrate there?",
+    "model": "I usually study at the kitchen table after dinner. It helps because the house is quieter then. For example, yesterday I reviewed ten new words there without checking my phone. If somebody needs the table, I move to my room.",
+    "followup": "Would you change anything about that place? Why?",
+    "instructions": "Partner A speaks for about 30-45 seconds, then answers a follow-up. Partner B listens for a direct answer, a reason and a specific example. Swap roles. This is a classroom practice time, not official IELTS timing.",
+    "support": "Optional starters: I usually ... It helps because ... For example ...",
+    "extension": "Explain a disadvantage and how you manage it.",
+    "observation": "Teacher listens to a manageable rotating sample. Record each learner actually heard and the exact observation. Peer feedback is practice support. Learners not heard individually remain not yet observed. No transcript-only pronunciation rating."
+  },
+  "stages": [
+    {
+      "start": 0,
+      "end": 5,
+      "title": "Starting point and one target",
+      "slides": "1-2",
+      "student": "Write one question about your feedback and a provisional goal.",
+      "teacher": "Privately use the pre-class progress checklist. Share an anonymized class need only if supported. If evidence is pending, explain the collection plan. Do not project individual results or screener items.",
+      "say": "Today we will practise showing the evidence for an answer and developing an idea. Your screeners help us choose what to work on. Some results still need review.",
+      "check": "Each learner has one next action or a missing-evidence plan."
+    },
+    {
+      "start": 5,
+      "end": 10,
+      "title": "Reading evidence model",
+      "slides": "3-4",
+      "student": "Decide whether the mini-example supports the claim before the reveal.",
+      "teacher": "Use the mini-example only, separate from the main passage. Explain agreement, contradiction and missing information. Students commit before slide 4.",
+      "say": "The text says: The club meets on Thursday. The claim says: The club meets on Tuesday. Which words decide the answer?",
+      "check": "Students can explain why the claim contradicts the sentence."
+    },
+    {
+      "start": 10,
+      "end": 20,
+      "title": "Reading practice",
+      "slides": "5",
+      "student": "Read workbook page 1, complete all six statements and add evidence. Answer alone first, then compare if invited.",
+      "teacher": "Keep answers private. Allow rereading. Offer a paragraph location only if needed and record the help. Extension: explain why a tempting alternative fails.",
+      "say": "Find evidence before deciding. If the text never tells us, explain exactly what is missing.",
+      "check": "Students have committed their original answers before discussion."
+    },
+    {
+      "start": 20,
+      "end": 25,
+      "title": "Reading review",
+      "slides": "6-9",
+      "student": "Explain difficult items and annotate corrections without erasing original answers.",
+      "teacher": "Reveal each answer group only after students explain their choices. Prioritize Q5 and Q6. Corrections remain guided practice.",
+      "say": "Not measuring exam results is different from proving that results did not improve.",
+      "check": "Students can explain one contradiction and one missing piece of information."
+    },
+    {
+      "start": 25,
+      "end": 30,
+      "title": "Paragraph model",
+      "slides": "10-11",
+      "student": "Identify the suggestion, reason and specific example in the model on workbook page 2.",
+      "teacher": "Contrast a bare suggestion with a developed explanation. Read the model aloud. Explain that the upcoming short paragraph is classroom work, not a full IELTS Writing paper.",
+      "say": "A useful example shows a particular situation. It helps the reader understand your reason.",
+      "check": "Students point to the model's reason and example."
+    },
+    {
+      "start": 30,
+      "end": 42,
+      "title": "Independent paragraph application",
+      "slides": "12",
+      "student": "Write a new paragraph on workbook page 3. Choose your own suggestion and example.",
+      "teacher": "Allow 2 minutes to plan and 10 to write. Avoid correcting during the attempt. Offer the optional frame only if needed and mark that support. Do not convert this sample to an IELTS band.",
+      "say": "Write your own idea. You can choose a different suggestion from the model. I will give feedback after you finish.",
+      "check": "Collect the original paragraph and note any support or interruption."
+    },
+    {
+      "start": 42,
+      "end": 53,
+      "title": "Developed spoken answers",
+      "slides": "13-15",
+      "student": "Listen to the example, then practise in pairs with the printed prompt. Swap roles and respond to the follow-up.",
+      "teacher": "Use about 2 minutes for modelling, 7 for pairs/rotating observations and 2 for brief feedback. Hear only as many students as time allows. Schedule remaining observations separately; never claim a whole-class speaking review.",
+      "say": "Answer the question, explain your reason, and give a real example. Your partner will tell you which parts they heard.",
+      "check": "Pairs have swapped roles. Teacher records only learners actually heard."
+    },
+    {
+      "start": 53,
+      "end": 60,
+      "title": "Exit, homework and follow-up",
+      "slides": "16-17",
+      "student": "Complete the exit ticket. Take the homework sheet and note any assigned Brains Heist task.",
+      "teacher": "Use 3 minutes for the exit ticket and 4 for next actions. Set one priority from observed work. Record a follow-up date and a separate missing-screener appointment where needed. Assign online practice only through existing eligibility/material checks.",
+      "say": "Keep your first version. Improve it using feedback, then we will try a different task later. Check IELTS Journey for work I actually assign.",
+      "check": "Everyone knows the homework, next check date or pending-assessment plan."
+    }
+  ],
+  "homework": [
+    "Revise today's paragraph after the teacher's feedback. Keep the first version and underline two changes. If feedback is still pending, use the printed checklist and label this self-review.",
+    "Practise today's speaking answer once, then explain your reason and example without reading a script. A phone recording is optional; no account or upload is required for this paper activity.",
+    "Complete only the Brains Heist practice your teacher actually assigns. A printed instruction does not create an online assignment. Suggested total practice time: about 20 minutes, adjusted by the teacher."
+  ],
+  "followup": {
+    "id": "IELTS-02-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week later, after feedback and practice. Teacher chooses a suitable uninterrupted block. No model, shared answers or coaching before responses. Log timing, support, prior exposure and conditions. Classroom observation only unless separately approved for stronger claims.",
+    "passage": "A town library tested a tool-lending shelf for six weeks. Members could borrow one tool at a time for up to seven days. They had to collect it from the main desk during normal opening hours. The trial began with twelve tools, including sewing kits and small gardening tools. Staff offered a short safety explanation at collection. Repairs to damaged tools came from the library's existing maintenance budget. At the end of the trial, staff planned to count loans and ask borrowers which tools they would like to see added. The library had not yet decided whether the shelf would become permanent.",
+    "items": [
+      {
+        "id": "IELTS-02-C1-Q1",
+        "statement": "Members could keep a borrowed tool for a maximum of seven days.",
+        "answer": "TRUE",
+        "evidence": "for up to seven days",
+        "reason": "The maximum loan period matches the claim."
+      },
+      {
+        "id": "IELTS-02-C1-Q2",
+        "statement": "Members could borrow two tools at the same time.",
+        "answer": "FALSE",
+        "evidence": "Members could borrow one tool at a time",
+        "reason": "One tool at a time contradicts borrowing two at the same time."
+      },
+      {
+        "id": "IELTS-02-C1-Q3",
+        "statement": "The trial included sewing kits.",
+        "answer": "TRUE",
+        "evidence": "including sewing kits",
+        "reason": "The passage names them explicitly."
+      },
+      {
+        "id": "IELTS-02-C1-Q4",
+        "statement": "Most borrowers preferred gardening tools to sewing kits.",
+        "answer": "NOT GIVEN",
+        "evidence": "No comparison of borrower preferences.",
+        "reason": "Listing tools does not establish which type most people preferred."
+      }
+    ],
+    "writing": "What is one useful way a library can help young people learn outside school? Write one paragraph with a suggestion, reason and specific example. Use the same 100-130-word classroom target only if suitable for this learner; log changes and assistance.",
+    "speaking": "What activity do you enjoy learning outside school, and why? Give a reason and a specific example. Follow-up: What is difficult about learning it?",
+    "review": "Compare only the observed response demand and conditions. Record what the new work shows, any counterevidence and the next check. Fresh content does not by itself establish improvement or comparable IELTS difficulty. No universal percentage or mastery cutoff."
+  }
+}

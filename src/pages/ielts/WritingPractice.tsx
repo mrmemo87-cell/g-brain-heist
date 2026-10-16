@@ -1,3 +1,6 @@
+import {IeltsPracticeChart} from '../../components/ielts/IeltsPracticeChart';
+import type {CleanupChart} from '../../../services/ieltsLegacyCleanupService';
+import {reviewedPracticeDelivery} from '../../../services/ieltsReviewedPracticeService';
 import IeltsMaterialProvenance from "../../components/ielts/IeltsMaterialProvenance";
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useState, useEffect, useRef } from 'react';
@@ -21,8 +24,12 @@ interface WritingTask {
   task_type: string;
   title: string;
   prompt: string;
+  chart?: CleanupChart|null;
+  minimum_words?:number;
   bands_target: string;
   sample_answer: string | null;
+  practice_revision?: string;
+  practice_scope?: string;
   required_tier?: string | null;
 }
 
@@ -138,7 +145,7 @@ const WritingPractice: React.FC = () => {
         .single();
       
       if (error) throw error;
-      return data as WritingTask;
+      return {...data,...await reviewedPracticeDelivery('ielts_writing_task',taskId!)} as WritingTask;
     },
     enabled: !!taskId,
   });
@@ -528,8 +535,8 @@ const WritingPractice: React.FC = () => {
                 <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#94a3b8' }}>Recommended: 20-40 min</div>
               </div>
               <div style={{ background: 'white', borderRadius: '0.5rem', padding: 'clamp(0.75rem, 2vw, 1rem)' }}>
-                <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>IELTS Task 2 target</div>
-                <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: '#0f766e' }}>250</div>
+                <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>Task word minimum</div>
+                <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: '#0f766e' }}>{task.minimum_words??(/task\s*1/i.test(task.task_type)?150:250)}</div>
                 <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#94a3b8' }}>Recommended target words</div>
               </div>
             </div>
@@ -563,7 +570,7 @@ const WritingPractice: React.FC = () => {
                   padding: '1.5rem'
                 }}>
                   <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#92400e', marginBottom: '0.75rem' }}>
-                    Sample Band 8+ Answer
+                    Example response · not a guaranteed band
                   </h4>
                   <div style={{ color: '#78350f', whiteSpace: 'pre-wrap', lineHeight: 1.75 }}>
                     {task.sample_answer}
@@ -713,7 +720,7 @@ const WritingPractice: React.FC = () => {
               padding: 'clamp(1rem, 3vw, 1.5rem)',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
             }}>
-              <h2 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>📋 Task</h2>
+              <h2 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>📋 Task</h2>{task.practice_scope&&<p style={{color:'#475569',marginBottom:16}}>{task.practice_scope}</p>}
               
               <div
                 ref={promptContainerRef}
@@ -732,7 +739,7 @@ const WritingPractice: React.FC = () => {
                   fontFamily: 'ui-monospace, SFMono-Regular, monospace', 
                   fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
                   margin: 0
-                }}>{task.prompt}</pre>
+                }}>{task.prompt}</pre>{task.chart&&<IeltsPracticeChart chart={task.chart}/>}
               </div>
 
               {/* Timer & Stats */}

@@ -151,6 +151,15 @@ export default function IeltsProgrammeWorkspace({
     if (data && !embedded) u.searchParams.set("school", data.school_id);
     window.history.pushState({}, "", u.pathname + u.search + u.hash);
   };
+  // Deep-link into the existing Practice Desk; do not create a second assignment flow.
+  const openPractice = (mode: "history" | "targeted" | "school") => {
+    const url = new URL(window.location.href);
+    if (mode === "history") url.searchParams.delete("practice");
+    else url.searchParams.set("practice", mode);
+    url.searchParams.delete("assignment");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    open("practice");
+  };
   const save = async () => {
     if (!data || lock.current || !confirmed) return;
     lock.current = true;
@@ -263,10 +272,9 @@ export default function IeltsProgrammeWorkspace({
             </a>
           )}
           <span className="sp-eyebrow">Brains Heist · IELTS Programme</span>
-          <h1>One programme. A clear next step.</h1>
+          <h1>Your IELTS teaching workspace</h1>
           <p>
-            {school?.name ?? "Your school workspace"} · Plan, review and guide
-            learning across all four skills.
+            {school?.name ?? "Your school workspace"} · Lessons, assignments, reviews and learner progress in one place.
           </p>
         </div>
         <div className="ip-brand">
@@ -355,122 +363,145 @@ export default function IeltsProgrammeWorkspace({
             )}
           </nav>
           {section === "overview" && (
-            <>
-              <section className="ip-grid">
-                <article className="sp-card">
-                  <p className="sp-eyebrow">Programme lead</p>
-                  <h2>{data.lead?.name ?? "Choose your programme lead"}</h2>
-                  <p>
-                    {data.lead
-                      ? data.lead.active
-                        ? "Responsible for school IELTS planning and reviews."
-                        : "This allocation is inactive. Choose an active teacher."
-                      : "Give one teacher a clear home for coordinating IELTS."}
-                  </p>
-                  <button className="sp-secondary" onClick={() => open("team")}>
-                    {data.can_allocate
-                      ? "Manage allocation"
-                      : "View programme team"}{" "}
-                    →
-                  </button>
-                </article>
-                <article className="sp-card">
-                  <p className="sp-eyebrow">Next action</p>
-                  <h2>
-                    {data.pending_count
-                      ? "Students are waiting for feedback."
-                      : "Build a starting point."}
+            <div className="ip-today">
+              <section className="sp-card ip-today-priority" aria-labelledby="ip-today-priority-title">
+                <div className="ip-today-priority-copy">
+                  <p className="sp-eyebrow">Your next step</p>
+                  <h2 id="ip-today-priority-title">
+                    {data.pending_count > 0
+                      ? "Student work is waiting for your review"
+                      : data.can_manage
+                        ? "Get your next IELTS lesson ready"
+                        : "See how your students are doing"}
                   </h2>
                   <p>
-                    {data.pending_count
-                      ? `${data.pending_count} submitted essays or interviews are ready for a teacher.`
-                      : "Check the four skills, then choose the next evidence or practice step."}
+                    {data.pending_count > 0
+                      ? `${data.pending_count} submitted ${data.pending_count === 1 ? "essay or interview needs" : "essays or interviews need"} a teacher's attention. Open the evidence, review it and decide the next step.`
+                      : data.can_manage
+                        ? "Open the lesson pack, prepare your resources and plan the practice students will do next."
+                        : "Open student progress to see available evidence across Listening, Reading, Writing and Speaking."}
                   </p>
-                  <button
-                    className="sp-primary"
-                    onClick={() =>
-                      open(data.pending_count ? "reviews" : "students")
-                    }
-                  >
-                    {data.pending_count
-                      ? "Open review desk"
-                      : "View student progress"}{" "}
-                    →
-                  </button>
-                </article>
-              </section>
-              <section className="sp-card">
-                <p className="sp-eyebrow">Your teaching toolkit</p>
-                <h2>Start with the work that matters today.</h2>
-                <div className="ip-tools">
-                  <button
-                    onClick={() => navigate("/ielts/speaking-interviews")}
-                  >
-                    <Mark kind="voice" />
-                    <strong>Conduct Speaking</strong>
-                    <span>
-                      Three parts, saved audio and teacher-confirmed feedback.
-                    </span>
-                  </button>
-                  <button onClick={() => open("reviews")}>
-                    <Mark kind="review" />
-                    <strong>Review Writing & Speaking</strong>
-                    <span>
-                      Original evidence, AI assistance and clear next steps.
-                    </span>
-                  </button>
-                  {data.can_manage && (
-                    <>
-                      <button onClick={() => open("lessons")}><Mark kind="review" /><strong>Lessons</strong><span>Ready teaching packs, presentations and approved audio.</span></button>
-                      <button onClick={() => open("practice")}>
-                        <Mark />
-                        <strong>Assign practice</strong>
-                        <span>
-                          Choose tasks, assign a batch or class and track completion.
-                        </span>
+                  <div className="ip-today-priority-actions">
+                    <button
+                      type="button"
+                      className="sp-primary"
+                      onClick={() => open(data.pending_count > 0 ? "reviews" : data.can_manage ? "lessons" : "students")}
+                    >
+                      {data.pending_count > 0
+                        ? "Open review desk"
+                        : data.can_manage
+                          ? "Open lesson library"
+                          : "View student progress"} →
+                    </button>
+                    {data.can_manage && data.pending_count > 0 && (
+                      <button type="button" className="sp-secondary" onClick={() => open("lessons")}>
+                        Prepare a lesson
                       </button>
-                      <button onClick={() => open("team")}><Mark /><strong>Course batches</strong><span>One IELTS roster across school classes. Manage members and late joiners.</span></button>
-                      <button onClick={() => open("exams")}>
-                        <Mark />
-                        <strong>Manage exams</strong>
-                        <span>
-                          Schedule, launch and monitor secure sessions.
-                        </span>
-                      </button>
-                    </>
-                  )}
+                    )}
+                  </div>
                 </div>
-                {data.platform_owner && (
-                  <details>
-                    <summary>Platform content & analytics</summary>
-                    <p>
-                      Content administration and marketing analytics are
-                      separate from school assessment evidence.
-                    </p>
-                    <button
-                      className="sp-secondary"
-                      onClick={() => navigate("/ielts/admin")}
-                    >
-                      Content administration
-                    </button>
-                    <button
-                      className="sp-secondary"
-                      onClick={() => navigate("/ielts/funnel")}
-                    >
-                      Launch analytics
-                    </button>
-                  </details>
+                {data.pending_count > 0 && (
+                  <div className="ip-today-priority-count" aria-label={`${data.pending_count} submissions waiting for review`}>
+                    <strong>{data.pending_count}</strong>
+                    <span>Awaiting review</span>
+                  </div>
                 )}
               </section>
-              <section className="ip-note">
-                <strong>Evidence before estimates.</strong>
-                <p>
-                  Screeners show a starting point. Confidence is low. Missing
-                  evidence is not a weakness, and these snapshots do not give an
-                  overall IELTS band.
-                </p>
+
+              <section className="ip-today-teaching" aria-labelledby="ip-today-teaching-title">
+                <div className="ip-today-heading">
+                  <p className="sp-eyebrow">Everyday teaching</p>
+                  <h2 id="ip-today-teaching-title">What would you like to do?</h2>
+                  <p>Choose the job you're here for. Each option opens the existing tools, with your school access preserved.</p>
+                </div>
+                <div className="ip-today-actions">
+                  {data.can_manage && (
+                    <button type="button" className="ip-today-action" onClick={() => open("lessons")}>
+                      <span className="ip-today-action-mark" aria-hidden="true"><Mark kind="review" /></span>
+                      <span className="ip-today-action-copy">
+                        <span className="ip-today-action-category">Prepare</span>
+                        <strong>Lessons & teaching packs</strong>
+                        <span>Lesson plans, presentations, workbooks, approved audio and downloads.</span>
+                      </span>
+                      <span className="ip-today-arrow" aria-hidden="true">→</span>
+                    </button>
+                  )}
+                  {data.can_manage && (
+                    <button type="button" className="ip-today-action" onClick={() => openPractice("school")}>
+                      <span className="ip-today-action-mark" aria-hidden="true"><Mark /></span>
+                      <span className="ip-today-action-copy">
+                        <span className="ip-today-action-category">Assign</span>
+                        <strong>School assignments</strong>
+                        <span>Choose approved materials for a class or IELTS course batch and track progress.</span>
+                      </span>
+                      <span className="ip-today-arrow" aria-hidden="true">→</span>
+                    </button>
+                  )}
+                  <button type="button" className="ip-today-action" onClick={() => open("reviews")}>
+                    <span className="ip-today-action-mark" aria-hidden="true"><Mark kind="review" /></span>
+                    <span className="ip-today-action-copy">
+                      <span className="ip-today-action-category">Review</span>
+                      <strong>Writing & Speaking reviews</strong>
+                      <span>Open saved work and provide feedback under your existing review permissions.</span>
+                    </span>
+                    <span className="ip-today-arrow" aria-hidden="true">→</span>
+                  </button>
+                  <button type="button" className="ip-today-action" onClick={() => open("students")}>
+                    <span className="ip-today-action-mark" aria-hidden="true"><Mark /></span>
+                    <span className="ip-today-action-copy">
+                      <span className="ip-today-action-category">Follow up</span>
+                      <strong>Student progress & plans</strong>
+                      <span>Find a learner, inspect four-skill evidence and open learning plans or reports.</span>
+                    </span>
+                    <span className="ip-today-arrow" aria-hidden="true">→</span>
+                  </button>
+                </div>
               </section>
-            </>
+
+              {data.can_manage && (
+                <section className="sp-card ip-today-more" aria-labelledby="ip-today-more-title">
+                  <div className="ip-today-heading">
+                    <p className="sp-eyebrow">More teaching tools</p>
+                    <h2 id="ip-today-more-title">Everything else is here when you need it</h2>
+                    <p>Specialist workflows stay one click away, without crowding your everyday teaching.</p>
+                  </div>
+                  <div className="ip-today-links">
+                    <button type="button" onClick={() => openPractice("targeted")}>
+                      <strong>Targeted practice</strong>
+                      <span>Assign evidence-led work to a student</span>
+                    </button>
+                    <button type="button" onClick={() => openPractice("history")}>
+                      <strong>Practice history</strong>
+                      <span>Find current and previous student work</span>
+                    </button>
+                    <button type="button" onClick={() => open("team")}>
+                      <strong>Course batches</strong>
+                      <span>Rosters, cross-class groups and late joiners</span>
+                    </button>
+                    <button type="button" onClick={() => navigate("/ielts/speaking-interviews")}>
+                      <strong>Speaking interviews</strong>
+                      <span>Conduct interviews and save recordings</span>
+                    </button>
+                    <button type="button" onClick={() => open("exams")}>
+                      <strong>Exam sessions</strong>
+                      <span>Schedule, launch and monitor exams</span>
+                    </button>
+                  </div>
+                </section>
+              )}
+              <section className="ip-note" aria-label="IELTS evidence guidance">
+                <strong>Evidence before estimates.</strong>
+                <p>Screeners show a starting point, not an official IELTS band. Missing evidence is not a weakness; use reviewed work and appropriate follow-up before drawing conclusions.</p>
+              </section>
+              {data.platform_owner && (
+                <details className="ip-today-admin">
+                  <summary>Platform content & analytics</summary>
+                  <p>Content administration and marketing analytics are separate from school assessment evidence.</p>
+                  <button className="sp-secondary" onClick={() => navigate("/ielts/admin")}>Content administration</button>
+                  <button className="sp-secondary" onClick={() => navigate("/ielts/funnel")}>Launch analytics</button>
+                </details>
+              )}
+            </div>
           )}
           {section === "lessons" && (data.can_manage ? <React.Suspense fallback={<p role="status">Opening lessons…</p>}><Lessons key={data.school_id} schoolId={data.school_id} onClose={() => open("overview")} onAssign={() => open("practice")} onProgress={() => open("students")} /></React.Suspense> : <section className="sp-card"><p>Your programme lead prepares school lessons.</p></section>)}
           {section === "reviews" && queue}

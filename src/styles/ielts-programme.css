@@ -200,3 +200,230 @@
     padding: 10px 14px;
   }
 }
+
+/* IELTS teacher Today: show the next decision first, keep advanced tools discoverable. */
+.ip-page .ip-today {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.ip-page .ip-today-priority {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-lg);
+  background: var(--bh-ielts-surface);
+}
+.ip-page .ip-today-priority-copy {
+  flex: 1 1 360px;
+  min-width: 0;
+}
+.ip-page .ip-today-priority h2 {
+  margin: 8px 0;
+  color: var(--bh-ielts-foreground);
+  font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+  line-height: 1.25;
+}
+.ip-page .ip-today-priority p,
+.ip-page .ip-today-heading p {
+  color: var(--bh-ielts-foreground-muted);
+}
+.ip-page .ip-today-priority .sp-eyebrow,
+.ip-page .ip-today-heading .sp-eyebrow {
+  color: var(--bh-ielts-primary);
+}
+.ip-page .ip-today-priority-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.ip-page .ip-today-priority-actions button {
+  min-height: 44px;
+}
+.ip-page .ip-today-priority-count {
+  flex: 0 0 140px;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 18px;
+  border: 1px solid var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-md);
+  background: var(--bh-ielts-surface-muted);
+  color: var(--bh-ielts-foreground);
+  text-align: center;
+}
+.ip-page .ip-today-priority-count strong {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.2;
+}
+.ip-page .ip-today-priority-count span {
+  color: var(--bh-ielts-foreground-muted);
+  font-size: 0.875rem;
+}
+.ip-page .ip-today-heading {
+  margin-bottom: 16px;
+}
+.ip-page .ip-today-heading h2 {
+  color: var(--bh-ielts-foreground);
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  margin: 6px 0;
+}
+.ip-page .ip-today-heading p {
+  margin: 6px 0;
+}
+.ip-page .ip-today-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.ip-page .ip-today-action {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  gap: 14px;
+  min-width: 0;
+  min-height: 130px;
+  padding: 18px;
+  border: 1px solid var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-md);
+  background: var(--bh-ielts-surface);
+  color: var(--bh-ielts-foreground);
+  text-align: left;
+  box-shadow: var(--bh-ielts-shadow-sm);
+}
+.ip-page .ip-today-action:hover,
+.ip-page .ip-today-links button:hover {
+  border-color: var(--bh-ielts-primary);
+  background: var(--bh-ielts-surface-muted);
+}
+.ip-page .ip-today-action-mark {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  padding: 9px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--bh-ielts-secondary);
+  color: var(--bh-ielts-primary);
+}
+.ip-page .ip-today-action-mark svg {
+  width: 24px;
+  height: 24px;
+}
+.ip-page .ip-today-action-copy {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+.ip-page .ip-today-action-category {
+  color: var(--bh-ielts-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.ip-page .ip-today-action-copy strong {
+  color: var(--bh-ielts-foreground);
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+.ip-page .ip-today-action-copy > span:last-child {
+  color: var(--bh-ielts-foreground-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.ip-page .ip-today-arrow {
+  margin-left: auto;
+  color: var(--bh-ielts-primary);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+.ip-page .ip-today-more {
+  border: 1px solid var(--bh-ielts-border);
+  background: var(--bh-ielts-surface);
+}
+.ip-page .ip-today-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.ip-page .ip-today-links button {
+  min-width: 0;
+  min-height: 80px;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  padding: 14px 16px;
+  border: 1px solid var(--bh-ielts-border);
+  border-radius: var(--bh-ielts-radius-sm);
+  background: var(--bh-ielts-surface-muted);
+  text-align: left;
+}
+.ip-page .ip-today-links button strong {
+  color: var(--bh-ielts-foreground);
+  font-size: 0.95rem;
+}
+.ip-page .ip-today-links button span {
+  color: var(--bh-ielts-foreground-muted);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+.ip-page .ip-today .ip-note {
+  padding: 14px 18px;
+  background: var(--bh-ielts-secondary);
+  color: var(--bh-ielts-foreground-muted);
+  border-left-color: var(--bh-ielts-primary);
+}
+.ip-page .ip-today .ip-note p {
+  margin: 4px 0 0;
+}
+.ip-page .ip-today-admin {
+  padding: 0 12px;
+  color: var(--bh-ielts-foreground-muted);
+}
+.ip-page .ip-today-admin summary {
+  color: var(--bh-ielts-secondary-foreground);
+}
+@media (max-width: 760px) {
+  .ip-page .ip-today-priority {
+    align-items: flex-start;
+  }
+  .ip-page .ip-today-priority-count {
+    flex-basis: 100px;
+  }
+}
+@media (max-width: 640px) {
+  .ip-page .ip-today {
+    gap: 18px;
+  }
+  .ip-page .ip-today-priority {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ip-page .ip-today-priority-count {
+    width: 100%;
+    flex-basis: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .ip-page .ip-today-actions,
+  .ip-page .ip-today-links {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ip-page .ip-today-action {
+    min-height: 108px;
+    padding: 14px;
+  }
+  .ip-page .ip-today-action-mark {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+  }
+}

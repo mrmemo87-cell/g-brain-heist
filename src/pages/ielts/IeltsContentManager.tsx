@@ -3,13 +3,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../../services/supabaseClient';
 import IeltsMaterialOriginalityReview, { type MaterialReviewTarget } from './IeltsMaterialOriginalityReview';
 
+const LegacyCleanup=React.lazy(()=>import('./IeltsLegacyCleanup'));
+
 type SkillTab = 'reading' | 'listening' | 'writing' | 'speaking';
 type Q = { question_order:number; question_type:string; body:string; options:string; correct_answer:string; explanation:string };
 type ReadingDraft = { id?:string; title:string; slug:string; description:string; level:string; est_band_min:string; est_band_max:string; duration_minutes:string; passage_text:string; is_active:boolean; questions:Q[] };
 type ListeningDraft = { id?:string; title:string; slug:string; description:string; level:string; est_band_min:string; est_band_max:string; duration_minutes:string; audio_url:string; transcript:string; is_active:boolean; instructions:string; example_prompt:string; example_answer:string; section_label:string; question_range_label:string; questions:Q[] };
 type WritingDraft = { id?:string; slug:string; task_type:string; title:string; prompt:string; bands_target:string; sample_answer:string; is_active:boolean };
 type SpeakingDraft = { id?:string; slug:string; part:string; prompt:string; follow_ups:string; is_active:boolean };
-type ContentItem = { id:string; title:string; skill:SkillTab; is_active:boolean; difficulty?:string|null; created_at?:string|null; ready_to_assign?:boolean; warnings?:string[] };
+type ContentItem = { id:string; title:string; skill:SkillTab; is_active:boolean; difficulty?:string|null; created_at?:string|null; ready_to_assign?:boolean; frozen_legacy?:boolean; warnings?:string[] };
 
 const tabs: SkillTab[] = ['reading', 'listening', 'writing', 'speaking'];
 const qBlank = (n:number):Q => ({
@@ -34,6 +36,7 @@ const isValidHttpUrl = (value: string): boolean => {
 };
 
 const IeltsContentManager: React.FC = () => {
+  const [showCleanup,setShowCleanup]=useState(false);
   const [activeTab, setActiveTab] = useState<SkillTab>('reading');
   const [items, setItems] = useState<ContentItem[]>([]);
   const [query, setQuery] = useState('');
@@ -191,6 +194,8 @@ const IeltsContentManager: React.FC = () => {
   };
 
   return <div className="ix-workspace space-y-4 rounded-xl border ix-border ix-surface p-4">{/* existing UI omitted for brevity in style parity */}
+    <button type="button" className="ix-button ix-button--secondary" aria-expanded={showCleanup} onClick={()=>setShowCleanup(x=>!x)}>{showCleanup?'Hide corrected materials':'Review corrected materials & retirements'}</button>
+    {showCleanup&&<React.Suspense fallback={<p role="status">Opening cleanup…</p>}><LegacyCleanup/></React.Suspense>}
     <div className="flex flex-wrap gap-3 items-center justify-between"><h2 className="text-xl font-bold ix-accent">IELTS Content</h2><input className="rounded border ix-border ix-surface px-3 py-2 text-sm ix-ink" aria-label="Search material title" placeholder="Search title" value={query} onChange={e=>setQuery(e.target.value)} /></div>
     <div className="flex flex-wrap gap-2">{tabs.map(t=><button key={t} aria-pressed={t===activeTab} onClick={()=>setActiveTab(t)} className={`rounded px-3 py-1 text-sm ${t===activeTab?'ix-action-primary ix-ink':'ix-surface ix-muted'}`}>{t[0].toUpperCase()+t.slice(1)}</button>)}</div>
     {activeTab==='reading'&&<button onClick={()=>setEditingReading(blankReading())} className="rounded ix-action-primary px-3 py-1 text-sm font-semibold ix-ink">New Reading Task</button>}
@@ -261,7 +266,7 @@ const IeltsContentManager: React.FC = () => {
     </div>}
 
     {loading&&<p className="ix-muted">Loading…</p>}{error&&<p className="ix-danger">{error}</p>}
-    <div className="space-y-2">{filtered.map(item=><div key={`${item.skill}-${item.id}`} className="rounded border ix-border ix-surface p-3"><div className="flex flex-wrap gap-3 items-center justify-between"><div><p className="font-semibold ix-ink">{item.title}</p><p className="text-sm ix-muted">{item.skill} · {item.difficulty??'—'} · {item.created_at?new Date(item.created_at).toLocaleDateString():'—'}</p></div><div className="flex flex-wrap items-center gap-2"><button className="rounded ix-action-primary px-2 py-1 text-sm disabled:opacity-50" disabled={saving||hasDraft} onClick={()=>setReviewTarget({type:`ielts_${item.skill}_${item.skill==='reading'||item.skill==='listening'?'set':'task'}`,id:String(item.id),title:item.title})}>Review originality</button>{item.skill==='listening'&&<button className="rounded ix-soft px-2 py-1 text-sm" onClick={()=>void loadListening(item.id)}>Edit</button>}{item.skill==='reading'&&<button className="rounded ix-soft px-2 py-1 text-sm" onClick={()=>void loadReading(item.id)}>Edit</button>}{item.skill==='writing'&&<button className="rounded ix-soft px-2 py-1 text-sm" onClick={()=>void loadWriting(item.id)}>Edit</button>}{item.skill==='speaking'&&<button className="rounded ix-soft px-2 py-1 text-sm" onClick={()=>void loadSpeaking(item.id)}>Edit</button>}<span className={`text-sm ${item.is_active?'ix-accent':'ix-accent'}`}>{item.is_active?'Active':'Inactive'}</span></div></div></div>)}</div>
+    <div className="space-y-2">{filtered.map(item=><div key={`${item.skill}-${item.id}`} className="rounded border ix-border ix-surface p-3"><div className="flex flex-wrap gap-3 items-center justify-between"><div><p className="font-semibold ix-ink">{item.title}</p><p className="text-sm ix-muted">{item.skill} · {item.difficulty??'—'} · {item.created_at?new Date(item.created_at).toLocaleDateString():'—'}</p></div><div className="flex flex-wrap items-center gap-2"><button className="rounded ix-action-primary px-2 py-1 text-sm disabled:opacity-50" disabled={saving||hasDraft||item.frozen_legacy} onClick={()=>setReviewTarget({type:`ielts_${item.skill}_${item.skill==='reading'||item.skill==='listening'?'set':'task'}`,id:String(item.id),title:item.title})}>Review originality</button>{item.skill==='listening'&&<button className="rounded ix-soft px-2 py-1 text-sm" disabled={item.frozen_legacy} onClick={()=>void loadListening(item.id)}>Edit</button>}{item.skill==='reading'&&<button className="rounded ix-soft px-2 py-1 text-sm" disabled={item.frozen_legacy} onClick={()=>void loadReading(item.id)}>Edit</button>}{item.skill==='writing'&&<button className="rounded ix-soft px-2 py-1 text-sm" disabled={item.frozen_legacy} onClick={()=>void loadWriting(item.id)}>Edit</button>}{item.skill==='speaking'&&<button className="rounded ix-soft px-2 py-1 text-sm" disabled={item.frozen_legacy} onClick={()=>void loadSpeaking(item.id)}>Edit</button>}<span className={`text-sm ${item.is_active?'ix-accent':'ix-accent'}`}>{item.ready_to_assign?'Available for assignment':item.frozen_legacy?'Held legacy source':item.is_active?'Active source · review checks pending':'Inactive'}</span></div></div>{!!item.warnings?.length&&<ul className="ix-muted">{item.warnings.map(w=><li key={w}>{w}</li>)}</ul>}</div>)}</div>
   </div>;
 };
 

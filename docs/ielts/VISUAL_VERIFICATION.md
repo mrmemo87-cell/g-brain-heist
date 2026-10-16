@@ -10,7 +10,7 @@ This is the implementation record for Visual & UX Bible 1.2.0. Diagnostic Bible 
 - `npm run visual:report`: write `.visual-results/coverage.md` and `.json`, including all unchecked surfaces and state gaps. Exit success is report generation only, not acceptance.
 - `npm run visual:release`: require current passing browser evidence, complete fixture coverage, named screenshot approval with exact reference hashes, and real-device review. Missing/stale evidence exits nonzero.
 
-The inventory currently tracks 54 route, embedded and shared screen/component surfaces across 33 routes; the initial case matrix contains 39 scenarios (468 browser/mode/viewport combinations). Many inventoried surfaces still need dedicated fixtures and remain unchecked.
+The inventory currently tracks 57 route, embedded and shared screen/component surfaces across 33 routes; the initial case matrix contains 55 scenarios (660 browser/mode/viewport combinations). Many inventoried surfaces still need dedicated fixtures and remain unchecked.
 
 Production and the harness bundle the same pinned IBM Plex Sans font files for the existing 400/500/600/700 weights and all supplied unicode subsets. The browser check explicitly loads and verifies those faces before capture. This prevents a fallback typeface from silently becoming a reference image. The font license is served at `/third-party/ibm-plex-sans-license.txt`.
 
@@ -38,3 +38,10 @@ A layout screenshot does not prove audio audibility/playback, recording permissi
 In GitHub branch rules for main, require **IELTS browser evidence** and **IELTS visual release gate**, require pull requests, and disallow direct/bypass pushes as appropriate. The connected GitHub tooling currently supports reads of branch rules, not administrative rule writes. This setting is therefore **not configured by committing the workflow** and must be confirmed in repository administration. Vercel deploys main automatically; enforce the merge restriction before calling the visual gate production protection. Do not add a production build command that falsely relies on CI-only local artifacts.
 
 Bootstrap may intentionally fail the strict release gate: initial references, missing page fixtures and device checks are not pre-approved. That failure is the honest coverage status, not a reason to bypass tests or certify all screens. The infrastructure PR is a concrete reviewable result; full visual acceptance remains blocked until the recorded checks pass.
+
+
+## 16 October reconciliation
+
+Current teacher Today and Lesson Library changes are included. Dedicated production-component fixtures now also cover Lesson Library for teacher/school-admin roles, student School Assignments and student Journey in populated/empty/loading/error states. Synthetic fixtures do not assert authorization, published content, human screenshot approval or real-device acceptance. All missing surfaces remain explicit release failures.
+
+Automated browser checks reproduced insufficient contrast on School Assignments (back link, section label, metadata and retry control) and Journey (back link and subtitle). The production components now use the existing Evidence Blue primary/muted-foreground tokens. These are narrow presentation changes; routes, requests, scoring, saved work and permissions are unchanged.

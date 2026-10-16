@@ -211,6 +211,22 @@ async function rpc(name: string, args: any = {}) {
     case "rpc_ielts_learning_workspace":
       data = { manager: true, pilot_only: false, tasks: [], allocations: [] };
       break;
+    case "rpc_ielts_teacher_lesson_one":
+      data={school:{id:id(2),name:"Synthetic School",logo_url:null},lesson_code:"IELTS-01",version:"1.1.0",materials:scenario.empty?[]:[3,4].map(n=>({code:`bh-ielts-targeted-listening-l${n}-v1`,display_code:`L-00${n}`,title:"Synthetic guided listening",version:"0.1.0",content_sha256:"a".repeat(64),instructions:"Read the synthetic questions before listening.",teacher_notes:"Synthetic teacher notes",questions:Array.from({length:6},(_,i)=>({id:`q${i+1}`,prompt:`Synthetic day ${i+1}`,accepted_answers:["synthetic"]})),audio_bucket:"synthetic",audio_path:"synthetic",audio_sha256:"a".repeat(64)}))};
+      break;
+    case "rpc_ielts_teacher_lesson_two":
+      data=null; // A scoped unavailable state, not a fabricated Lesson 2 release.
+      break;
+    case "rpc_ielts_student_journey":
+      data={student_id:id(1),target_band:7,current_estimates:{reading:null,listening:null,writing:null,speaking:null,overall:null},confidence_level:"low",assigned_practice:[],completed_practice:[],teacher_feedback:[],recent_exam_mode_submissions:[],assigned_practice_summary:{total:0,assigned:0,in_progress:0,completed:0,overdue:0},recent_practice:[],weak_skill:null,next_recommendation:null};
+      break;
+    case "rpc_ielts_practice_student_assignments":
+      data=scenario.empty?[]:[{id:id(60),school_id:id(2),class_id:id(61),assigned_by:id(7),title:"Synthetic reading and writing practice",description:"Practise locating evidence, then explain an example.",status:"assigned",student_status:"in_progress",due_at:"2026-10-20T09:00:00Z",created_at:now,updated_at:now,class_name:"Synthetic Class",item_count:2,items:[{id:id(62),assignment_id:id(60),skill:"reading",content_type:"ielts_reading_set",content_id:"101",title:"Synthetic reviewed reading",display_code:"R-008",required:true,order_index:1,created_at:now},{id:id(63),assignment_id:id(60),skill:"writing",content_type:"ielts_writing_task",content_id:"102",title:"Synthetic paragraph practice",display_code:"W-004",required:true,order_index:2,created_at:now}]}];
+      break;
+    case "rpc_school_admin_my_capabilities":
+    case "school_admin_get_my_capabilities":
+    case "school_admin_get_my_allocation_capabilities":
+      data=null;break;
     case "rpc_ielts_batches":
       data = [];
       break;
@@ -224,7 +240,7 @@ async function rpc(name: string, args: any = {}) {
   return { data, error: null };
 }
 function table(name: string) {
-  if (name !== "users")
+  if (!["users","ielts_profiles"].includes(name))
     (window as any).__visualUnexpected.push(`table:${name}`);
   const chain: any = {};
   for (const method of [
@@ -241,7 +257,7 @@ function table(name: string) {
   ])
     chain[method] = () => chain;
   const read = () =>
-    name === "users" ? { data: user, error: null } : { data: [], error: null };
+    name === "users" ? { data: user, error: null } : name === "ielts_profiles" ? { data:{tier:"free"},error:null } : { data: [], error: null };
   chain.single = chain.maybeSingle = async () => read();
   chain.then = (yes: any, no: any) => Promise.resolve(read()).then(yes, no);
   for (const method of ["insert", "update", "delete", "upsert"])

@@ -1,8 +1,10 @@
+import IeltsBatchCourseMaterials from './IeltsBatchCourseMaterials';
 import React, {useEffect,useRef,useState} from 'react';
 import {batchPracticePreview,assignBatchPractice,type BatchPracticePreview} from '../../../services/ieltsBatchService';
 import {programmeEvidenceRoute} from '../../../services/ieltsProgrammeService';
 import {IeltsButton,IeltsNotice} from '../../components/ielts/IeltsUi';
 export default function IeltsBatchPractice({batchId,onClose}:{batchId:string;onClose:()=>void}){
+ const [mode,setMode]=useState<'targeted'|'course'>('targeted');
  const [data,setData]=useState<BatchPracticePreview|null>(null),[task,setTask]=useState(''),[selected,setSelected]=useState<string[]>([]);
  const [reason,setReason]=useState(''),[due,setDue]=useState(''),[reviewed,setReviewed]=useState(false),[repeat,setRepeat]=useState(false);
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[refresh,setRefresh]=useState(0);
@@ -22,6 +24,8 @@ export default function IeltsBatchPractice({batchId,onClose}:{batchId:string;onC
   finally{lock.current=false;setSaving(false);}
  };
  return <section className="ix-panel" aria-label="Assign batch practice"><header className="ix-header"><div><p className="ix-eyebrow">Released practice · Four skills</p><h2>Assign tasks to {data?.batch.name??'your batch'}</h2></div><IeltsButton disabled={saving} onClick={onClose}>Back to batches</IeltsButton></header>
+<div className="ix-actions"><IeltsButton disabled={saving} aria-pressed={mode==='targeted'} onClick={()=>setMode('targeted')}>Targeted practice</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='course'} onClick={()=>setMode('course')}>Course materials</IeltsButton></div>
+ {mode==='course'?<IeltsBatchCourseMaterials batchId={batchId} onBusyChange={setSaving}/>:<>
  <IeltsNotice>Practice only. Screeners stay in initial assessments and are excluded from this material list.</IeltsNotice>
  {message&&<p role="status">{message}</p>}{error&&<IeltsNotice error>{error}</IeltsNotice>}{loading&&<p role="status">Checking materials and student readiness…</p>}
  <IeltsButton disabled={saving||loading} onClick={()=>setRefresh(n=>n+1)}>Refresh preview</IeltsButton>
@@ -37,5 +41,5 @@ export default function IeltsBatchPractice({batchId,onClose}:{batchId:string;onC
  <IeltsButton variant="primary" disabled={!reviewed||!selected.length||reason.trim().length<10||(repeating&&!repeat)} onClick={()=>void save()}>{saving?'Assigning…':`Confirm & assign to ${selected.length} students`}</IeltsButton><p className="ix-muted">Every selected student is checked. If anyone no longer qualifies, no partial batch is silently assigned. Existing student work remains intact.</p>
  </>}
  </fieldset>}
- </section>;
+ </>}</section>;
 }

@@ -1,10 +1,10 @@
 # Brains Heist IELTS Lessons Bible
 
-**Version:** 1.0.0  
-**Effective date:** 2026-10-13  
+**Version:** 1.1.0
+**Effective date:** 2026-10-14
 **Scope:** Lesson catalogue, teacher plans, presentations, audio references, student worksheets, keys, print packs and offline exports.
 
-This is the lesson production contract. The Diagnostic Bible 1.9.0 governs assessment, evidence, audio provenance, security and release authority. The Visual & UX Bible 1.1.0 governs platform presentation and accessibility. Those contracts take precedence. This file does not certify every lesson or introduce new scoring rules.
+This is the lesson production contract. The Diagnostic Bible 1.10.0 governs assessment, evidence, audio provenance, security and release authority. The Visual & UX Bible 1.1.0 governs platform presentation and accessibility. Those contracts take precedence. This file does not certify every lesson or introduce new scoring rules.
 
 ## 1. School identity and access — LB-01
 
@@ -59,3 +59,25 @@ A green build or DOM test does not replace visual/device acceptance. Record unco
 Keep the presentation source reproducible. The shared lesson sequence generates both formats. Public templates remain generic. The download manifest binds school, lesson source version, presentation version, Bible version, material versions and content/audio hashes. Changing visual presentation does not falsely bump or replace approved material versions. New lesson/content versions require their existing review gates.
 
 Lesson 1 implementation uses `services/ieltsLessonPresentation.ts`, the existing scoped teacher RPC, and `scripts/ielts/build-lesson-one-presentation.mjs`. Lesson production contract 1.0.0 and presentation 2.0.0 are distinct from approved material identities. Do not claim future lessons are automated until they are implemented and accepted.
+
+## 10. Course continuity and post-screener teaching — LB-10
+
+The owner-requested reference course has 12 teaching weeks and 24 lessons, two 60-minute lessons per week. This is a teaching framework, not a guaranteed attainment timeline. The ordered reference sequence and release inventory live in [IELTS_COURSE_ROADMAP.md](./IELTS_COURSE_ROADMAP.md). Keep stable lesson identities while allowing a teacher to revisit a strategy or adjust scaffolding from actual evidence. Record intended test type; the current draft sequence assumes Academic, subject to programme confirmation before release.
+
+After screeners, inspect saved outcomes and required productive-skill reviews. Record up to two immediate evidence-linked priorities per learner, the next activity and the next check. Pending evidence requires a collection plan, not invented priorities. Teach a shared core lesson with foundation support and extension tasks. Alternate receptive and productive work across each teaching week. A repeated or corrected task remains practice. Check transfer using a fresh task, then later follow up, subject to Diagnostic Bible section 8A; never use the ESL course's six/four-question routine as an automatic IELTS scoring rule.
+
+New students follow their own intake and essential catch-up pack, then join the current shared lesson. Do not restart the class, overwrite attempts or force retakes. Track joining date and missed teaching. Reports use actual exposure and period cutoffs under section 15C. Monthly reviews are scheduled teaching events, not evidence that improvement occurred. A full mock needs sufficient separately arranged time; never compress it into one 60-minute lesson.
+
+## 11. Pack handoff, dependencies and review states — LB-11
+
+Every pack begins with `01-START-HERE.html` stating lesson purpose, prerequisites, exact files to open/print, what needs internet, audio requirement or explicit 'No recording required', missing-evidence route, Plan B and next action. Include printable teacher guide, student workbook, homework, private keys/models and an observation/planning sheet. Paper work is classroom evidence until a separately governed capture route exists; do not claim it appears in IELTS Journey automatically.
+
+Keep question/reveal order, item identities and accepted answers aligned across HTML, PPTX, workbook and teacher keys. Keep fresh follow-up prompts in a separate teacher-controlled file, away from advance student homework. Log support and prior exposure. Do not call a new prompt comparable merely because it is fresh.
+
+New AI-authored content is a teacher-review draft until the required human editorial/key/mapping/difficulty/originality checks pass. Preserve a blank review record with exact hashes and outstanding gates; generation and technical QA cannot record human approval. Preparation authority does not itself authorize publication. Drafts may be delivered privately to the owner for review, but must not be placed in public assets or listed as released student materials. Lesson-local worksheet IDs must not impersonate server-assigned L/R/W/S catalogue codes. Installation into a catalogue needs the existing section 15D/15E registration and release path.
+
+## 12. Revision record — 1.1.0 (2026-10-14)
+
+The owner requested permanent consistency and preparation of the next lesson after the agreed course discussion. LB-02 defined complete individual lessons but did not define course continuity, rolling intake or the post-screener handoff. LB-10/LB-11 now bind those teaching and packaging requirements to Diagnostic Bible 1.10.0. Basis: explicit owner instruction and existing assessment/release governance. No official IELTS format, grading, scoring, thresholds, published assets or saved student work change. Visual & UX Bible 1.1.0 remains unchanged because the visual contract already covers this work.
+
+Affected production components: course roadmap, lesson authoring/export builders, teacher start guides, planning worksheets, release inventory and future scoped lesson-library installation. Lesson 2 is prepared as a private review pack; this revision does not certify its publication, phone acceptance, PowerPoint playback or programme availability.

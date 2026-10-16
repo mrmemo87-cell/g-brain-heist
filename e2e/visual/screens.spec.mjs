@@ -146,6 +146,18 @@ for (const scenario of cases)
           await expect(page.getByRole("alert")).toBeVisible();
         else await expect(page.locator(".ij-skill-card")).toHaveCount(4);
       }
+      if (scenario.view === "lessons") {
+        await expect(page.getByRole("heading", {name:"Lesson library",exact:true})).toBeVisible();
+        if(scenario.loading) await expect(page.getByText("Opening your school’s lesson pack…")).toBeVisible();
+        else if(scenario.error) await expect(page.getByRole("alert")).toBeVisible();
+        else await expect(page.getByRole("heading",{name:"Lesson resources",exact:true})).toBeVisible();
+      }
+      if (["assigned","journey"].includes(scenario.view)) {
+        const loading=scenario.view==="assigned"?"Loading assigned IELTS practice…":"Loading your IELTS journey…";
+        if(scenario.loading) await expect(page.getByText(loading)).toBeVisible();
+        else if(scenario.error) await expect(page.getByText(/Unable to load|could not|try again/i).first()).toBeVisible();
+        else await expect(page.getByText(loading)).toHaveCount(0);
+      }
       const loadedFonts = await page.evaluate(async () => {
         // The actual app font must load; a fallback font is not valid evidence.
         const faces = await Promise.all(

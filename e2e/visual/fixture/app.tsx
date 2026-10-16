@@ -15,6 +15,9 @@ import {
   IeltsConfirm,
   IeltsNotice,
 } from "../../../src/components/ielts/IeltsUi";
+import Lessons from "../../../src/pages/ielts/IeltsLessonLibrary";
+import Assigned from "../../../src/pages/ielts/IeltsAssignedPractice";
+import Journey from "../../../src/pages/ielts/IeltsJourneyDashboard";
 function Shared() {
   const [open, setOpen] = useState(scenario.id === "dialog");
   return (
@@ -58,7 +61,8 @@ history.replaceState(
   "",
   `${route}?programmeSection=${scenario.section ?? "overview"}`,
 );
-const element =
+const extra = scenario.view === "lessons" ? <Lessons schoolId={id(2)} onClose={()=>{}} onAssign={()=>{}} onProgress={()=>{}}/> : scenario.view === "assigned" ? <Assigned/> : scenario.view === "journey" ? <Journey/> : null;
+const element = extra ?? (
   scenario.view === "exam" ? (
     <Exam />
   ) : scenario.view === "result" ? (
@@ -69,7 +73,7 @@ const element =
     <Hub />
   ) : (
     <Shared />
-  );
+  ));
 const template =
   scenario.view === "exam"
     ? "/ielts/exam/:examEventId"
