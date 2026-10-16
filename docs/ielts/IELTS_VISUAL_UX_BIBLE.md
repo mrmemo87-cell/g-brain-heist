@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.1.0
-**Effective date:** 2026-10-10  
+**Version:** 1.2.0
+**Effective date:** 2026-10-15
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -222,3 +222,18 @@ Navigation tests cover unavailable, unfinished, completed and locked skill cards
 Finite entrance motion may remain; remove continuous CTA movement and decorative loops. Presentational animation cannot decide application state or delay save/feedback. Keep GSAP targets component-scoped and respect reduced motion.
 
 The full rendered-screen matrix in sections 7A and 10 remains a release gate. Passing DOM tests, typecheck or a build never replaces browser/device acceptance. Record covered and uncovered families in `IELTS_FRONTEND_QUALITY_2026-10-10.md` before promoting a broad redesign. Do not silently waive this gate or declare every screen professional without evidence.
+
+
+## 13. Versioned browser evidence and visual release gate — v1.2.0
+
+Owner-authorized engineering policy, 2026-10-15: every IELTS page must have a visible verification record; functional tests and builds alone cannot certify presentation. This implements the owner's explicit request for repeatable verification after the mobile confirmation contrast incident. Diagnostic Bible 1.10.0 retains higher authority. No assessment, scoring, academic confidence, content, entitlement or release eligibility rule changes.
+
+- `e2e/visual/inventory.json` inventories route and embedded page surfaces. The inventory guard detects new or removed pages/routes. Shared components have separate representative cases.
+- Browser fixtures use actual production components and styles with synthetic data only. They bypass route authentication solely inside an isolated test harness; they do not validate authentication, RLS, live data integration, or production device delivery. Production credentials, real students and provider/AI calls are prohibited in these fixtures. Unexpected network and backend fixture requests fail the checks.
+- Capture populated, empty, loading, error and workflow-specific states by role, at 375/768/1440 in Chromium and WebKit, in normal and performance modes. Also check overflow at 320/390/1024. Keep confirmed/incomplete/paused/submitted/reviewed states separate where the page supports them. Missing fixture states remain unchecked; never substitute a generic error page for a populated screen.
+- Store screenshots, browser errors, WCAG findings, traces on failure and exact source fingerprint with each run. Missing, failed, interrupted or stale evidence cannot pass. Candidate screenshots are not approved references. Never run snapshot updates automatically in the release gate.
+- Reviewed reference screenshots require a named actual reviewer, date, source fingerprint, exact image hash and evidence link in `e2e/visual/reviews.json`. Record real-device checks separately. Do not invent reviewer identity or infer physical iPhone acceptance from WebKit emulation.
+- `npm run visual:release` fails closed for missing current evidence, state coverage, approved references or device review. CI exposes the `IELTS visual release gate` check. Repository administration must make it required and prevent bypass for this to enforce merge policy; merely committing the workflow does not configure GitHub branch protection or Vercel deployment policy. Until that setting is confirmed, call it an available failing/passing gate, not enforced production protection.
+- A source change invalidates existing receipts under the conservative source fingerprint. Approved references can still be used for visual comparisons; a new review is required before current release acceptance. Preserve earlier evidence through retained CI artifacts and code history.
+
+Initial infrastructure rollout does not certify all screens. The coverage report must show missing fixtures, unapproved references and physical-device work explicitly. Current commands, approval instructions and the bootstrap record are maintained in `docs/ielts/VISUAL_VERIFICATION.md`.

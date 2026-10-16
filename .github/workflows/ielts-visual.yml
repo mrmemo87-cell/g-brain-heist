@@ -1,0 +1,60 @@
+name: IELTS visual verification
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ielts-visual-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser-evidence:
+    name: IELTS browser evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run visual:inventory
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Screenshots, WCAG, overflow, interaction states and approved comparisons
+        run: npm run visual:candidates
+      - name: Produce honest coverage report, including unchecked surfaces
+        if: always()
+        run: npm run visual:report
+      - name: Publish review evidence even when a check fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ielts-visual-${{ github.sha }}
+          path: .visual-results/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
+      - name: Publish coverage summary
+        if: always()
+        run: cat .visual-results/coverage.md >> "$GITHUB_STEP_SUMMARY"
+  release-gate:
+    name: IELTS visual release gate
+    needs: browser-evidence
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: ielts-visual-${{ github.sha }}
+          path: .visual-results/
+      - name: Require complete current evidence, reviewed references and device checks
+        run: npm run visual:release
