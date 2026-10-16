@@ -152,6 +152,23 @@ async function check(admin, pending = 0, manage = true) {
     Array.from(w.document.querySelectorAll("button")).find(
       (b) => b.textContent === label,
     );
+  const nav = w.document.querySelector('[aria-label="IELTS teacher workspace"]');
+  assert.ok(nav, "Professional teacher navigation exists");
+  const groupNames = [...nav.querySelectorAll(".ip-nav-group > summary")].map(el=>el.textContent.trim());
+  assert.deepEqual(groupNames, manage
+    ? ["◫Overview⌄","▤Teaching & Assignments⌄","✓Assessment & Reviews⌄","♧Programme Management⌄"]
+    : ["◫Overview⌄","▤Teaching & Assignments⌄","✓Assessment & Reviews⌄","♧Programme Management⌄"].filter(n=>!n.includes("Teaching & Assignments")));
+  if (manage) {
+    button("Create assignment").click();
+    await wait(() => !!w.document.querySelector(".ip-assignment-entry"));
+    assert.equal(w.document.querySelectorAll('input[name="ielts-assignment-scope"]').length,3);
+    assert.match(w.document.querySelector(".ip-assignment-entry").textContent,/Entire class/);
+    assert.match(w.document.querySelector(".ip-assignment-entry").textContent,/IELTS course batch/);
+    assert.match(w.document.querySelector(".ip-assignment-entry").textContent,/Individual student/);
+    button("Today").click();
+  } else {
+    assert.equal(button("Create assignment"),undefined, "Non-managers cannot open assignment creation");
+  }
   button("Student progress").click();
   await wait(() => w.document.body.textContent.includes("8 / 12 · Screener"));
   assert(w.document.body.textContent.includes("No submitted evidence"));
