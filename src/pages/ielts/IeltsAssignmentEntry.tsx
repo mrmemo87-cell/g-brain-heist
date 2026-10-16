@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import type { IeltsTeacherNavKey } from "./IeltsTeacherNavigation";
 
 type Scope = "class" | "batch" | "student";
 const options: { id: Scope; title: string; caption: string; icon: string }[] = [
