@@ -10,7 +10,7 @@ await db.exec("create function auth.uid() returns uuid language sql stable as $$
 await db.exec("create table public.users(id uuid primary key,is_banned boolean);create table public.schools(id uuid primary key,name text,logo_url text);");
 await db.exec("create function public.can_manage_ielts_practice_school(p_school uuid) returns boolean language sql stable as $$select auth.uid()='"+teacher+"'::uuid and p_school='"+school+"'::uuid$$;");
 await db.exec("insert into public.users values('"+teacher+"',false),('"+student+"',false);insert into public.schools values('"+school+"','Silk Road',null),('"+other+"','Another school',null);");
-await db.exec(readFileSync("supabase/migrations/20261016090000_ielts_lesson_two_teacher_delivery.sql","utf8"));
+await db.exec(readFileSync("supabase/migrations/20261016083435_ielts_lesson_two_teacher_delivery.sql","utf8"));
 await db.query("insert into private.ielts_teacher_lesson_two_content (school_id,lesson_code,version,source_blob_sha1,source,authorization_basis,released_at) values ($1,'IELTS-02','1.0.0',$2,$3::jsonb,'Owner approval',now())",[
  school,"a".repeat(40),JSON.stringify({code:"IELTS-02",version:"1.0.0",stages:[{start:0}],reading:{items:[{statement:"Public",answer:"PRIVATE ANSWER"}]},followup:{items:[{answer:"PRIVATE FOLLOWUP"}]}})
 ]);
