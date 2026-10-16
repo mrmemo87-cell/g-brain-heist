@@ -1,32 +1,63 @@
 import { useEffect, useRef } from 'react';
 
-type FanTimeline = { play(): unknown; reverse(): unknown; progress(value: number): unknown };
-/** One lazy, reversible timeline; CSS remains usable if animation loading fails. */
+type FanTimeline = { play(): unknown; reverse(): unknown; progress(value: number): unknown; kill(): unknown };
+/**
+ * One reversible, lazy-loaded GSAP timeline. Keep the fan mounted so closing
+ * retraces the opening instead of abruptly removing the controls.
+ * CSS provides a fully functional animated fallback until GSAP is ready.
+ */
 export function useCompanionFanMotion(root: { current: HTMLDivElement | null }, enabled: boolean, open: boolean, side: string) {
  const timeline = useRef<FanTimeline | null>(null);
- const opened = useRef(open); opened.current = open;
+ const opened = useRef(open);
+ opened.current = open;
  useEffect(() => {
-  if (!enabled || !root.current) return;
+  const element = root.current;
+  if (!enabled || !element) return;
   const media = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (media.matches) return;
-  const element = root.current;
-  let cancelled = false; let revert: (() => void) | undefined;
-  const stop = () => { cancelled = true; timeline.current = null; revert?.(); element.classList.remove('has-gsap'); };
-  const hidden = () => { if (document.visibilityState === 'hidden') stop(); };
+  let cancelled = false;
+  let revert: (() => void) | undefined;
+  const stop = () => {
+   cancelled = true;
+   timeline.current?.kill();
+   timeline.current = null;
+   revert?.();
+   element.classList.remove('has-gsap');
+  };
   void import('gsap').then(({ gsap }) => {
-   if (cancelled || media.matches) return;
-   element.classList.add('has-gsap');
+   if (cancelled || media.matches || !element.isConnected) return;
    const context = gsap.context(() => {
-    const animation = gsap.timeline({ paused: true }).fromTo('.companion-hub-option',
-     { x: side === 'left' ? -116 : 116, y: (index: number) => (1.5 - index) * 54, scale: .55, opacity: 0 },
-     { x: 0, y: 0, scale: 1, opacity: 1, duration: .32, stagger: .035, ease: 'power3.out' });
+    const buttons = gsap.utils.toArray<HTMLElement>('.companion-hub-option');
+    const direction = side === 'left' ? -1 : 1;
+    const animation = gsap.timeline({ paused: true, defaults: { overwrite: 'auto' } });
+    animation.fromTo(buttons,
+      { x: direction * 98, y: (index: number) => (index - 1.5) * 35, rotation: direction * 12,
+        scale: .38, opacity: 0, filter: 'blur(7px)', transformOrigin: side === 'left' ? 'left center' : 'right center' },
+      { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1, filter: 'blur(0px)',
+        duration: .56, ease: 'back.out(1.55)', stagger: { each: .055, from: 'start' } });
     timeline.current = animation;
-    animation.progress(opened.current ? 1 : 0);
+    // Start from the closed state, then play forward even if it opened during
+    // the async import. Reversals reuse the same timeline at its current time.
+    animation.progress(0);
+    element.classList.add('has-gsap');
+    if (opened.current) animation.play();
    }, element);
    revert = () => context.revert();
   }).catch(() => { element.classList.remove('has-gsap'); });
-  media.addEventListener('change', stop); document.addEventListener('visibilitychange', hidden);
-  return () => { stop(); media.removeEventListener('change', stop); document.removeEventListener('visibilitychange', hidden); };
+
+  const motionChange = () => { if (media.matches) stop(); };
+  const hidden = () => { if (document.visibilityState === 'hidden') timeline.current?.progress(opened.current ? 1 : 0); };
+  media.addEventListener('change', motionChange);
+  document.addEventListener('visibilitychange', hidden);
+  return () => {
+   stop();
+   media.removeEventListener('change', motionChange);
+   document.removeEventListener('visibilitychange', hidden);
+  };
  }, [root, enabled, side]);
- useEffect(() => { if (open) timeline.current?.play(); else timeline.current?.reverse(); }, [open]);
+
+ useEffect(() => {
+  if (open) timeline.current?.play();
+  else timeline.current?.reverse();
+ }, [open]);
 }
