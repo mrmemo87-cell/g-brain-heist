@@ -25,7 +25,7 @@ export default function IeltsTeacherDisclosure({
   className = "",
 }: Props) {
   return (
-    <details className={"ip-disclosure " + className} open={undefined} defaultOpen={defaultExpanded}>
+    <details className={"ip-disclosure " + className} defaultOpen={defaultExpanded}>
       <summary className="ip-disclosure-toggle">
         <span className="ip-disclosure-icon" aria-hidden="true">{icon ?? "▦"}</span>
         <span className="ip-disclosure-heading">
