@@ -20,6 +20,8 @@ import {
   lessonStartText,
   type ResourceKind,
 } from "../../../services/ieltsLessonResources";
+import { teacherLessonTwo, type TeacherLessonTwo } from "../../../services/ieltsLessonTwoService";
+import IeltsLessonTwoPanel from "./IeltsLessonTwoPanel";
 import "../../styles/ielts-lessons.css";
 export default function IeltsLessonLibrary({
   schoolId,
@@ -32,6 +34,7 @@ export default function IeltsLessonLibrary({
   onAssign: () => void;
   onProgress: () => void;
 }) {
+  const [lessonTwo, setLessonTwo] = useState<TeacherLessonTwo | null>(null);
   const [data, setData] = useState<TeacherLesson | null>(null),
     [error, setError] = useState(""),
     [retry, setRetry] = useState(0),
@@ -50,6 +53,8 @@ export default function IeltsLessonLibrary({
     setAudio({});
     urls.current.forEach(URL.revokeObjectURL);
     urls.current = [];
+    setLessonTwo(null);
+    teacherLessonTwo(schoolId).then((lesson) => { if (alive) setLessonTwo(lesson); }).catch(() => { if (alive) setLessonTwo(null); });
     teacherLessonOne(schoolId)
       .then((d) => {
         if (alive) setData(d);
@@ -356,7 +361,7 @@ export default function IeltsLessonLibrary({
               </div>
             </details>
           </section>
-          <p className="lesson-library-upcoming"><strong>Next lesson:</strong> IELTS-02 is in teacher review and is not released in this library.</p>
+          {lessonTwo ? <IeltsLessonTwoPanel pack={lessonTwo} onProgress={onProgress} /> : <p className="lesson-library-upcoming"><strong>Next lesson:</strong> IELTS-02 is not released for this school.</p>}
         </div>
       )}
     </section>
