@@ -1,0 +1,38 @@
+.ip-page .ip-nav-shell { margin: 8px 0 20px; min-width: 0; }
+.ip-page .ip-teacher-navigation { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; align-items: start; }
+.ip-page .ip-nav-group { min-width: 0; margin: 0; border: 1px solid #dce5f1; background: #fff; border-radius: 12px; overflow: hidden; }
+.ip-page .ip-nav-group > summary { padding: 13px 12px; min-height: 53px; display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; color: #1c2e4a; font-size: .83rem; font-weight: 750; }
+.ip-page .ip-nav-group > summary::-webkit-details-marker { display: none; }
+.ip-page .ip-nav-group > summary:hover { background: #eff6ff; }
+.ip-page .ip-nav-group-symbol { color: #2563eb; font-size: 1.1rem; }
+.ip-page .ip-nav-chevron { margin-left: auto; color: #64748b; transition: transform .15s ease; }
+.ip-page .ip-nav-group[open] .ip-nav-chevron { transform: rotate(180deg); }
+.ip-page .ip-nav-options { display: grid; gap: 3px; padding: 5px 7px 9px; border-top: 1px solid #eff2f7; }
+.ip-page .ip-nav-item { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; min-height: 38px; padding: 7px 11px; border: none; border-left: 3px solid transparent; border-radius: 7px; background: transparent; color: #475569; font-size: .8rem; font-weight: 600; cursor: pointer; }
+.ip-page .ip-nav-item:hover { background: #f1f7ff; color: #1d4ed8; }
+.ip-page .ip-nav-item-active { background: #eaf3ff; color: #1d4ed8; border-left-color: #2563eb; }
+.ip-page .ip-nav-active-dot { width: 7px; height: 7px; border-radius: 50%; background: #2563eb; }
+.ip-page .ip-navigation-toggle { display: none; }
+.ip-page .ip-assignment-entry { background: #fff; border: 1px solid #dce5f1; border-radius: 16px; padding: clamp(16px,2.5vw,28px); max-width: 980px; }
+.ip-page .ip-assignment-entry h2 { color: #111b38; font-size: clamp(1.35rem,2.5vw,1.85rem); margin: 7px 0; }
+.ip-page .ip-assignment-intro,.ip-page .ip-assignment-footnote { color: #64748b; font-size: .9rem; line-height: 1.6; }
+.ip-page .ip-assignment-scopes { padding: 0; margin: 22px 0; border: 0; min-width: 0; }
+.ip-page .ip-assignment-scopes legend { font-size: .87rem; color: #334155; font-weight: 750; padding: 0 0 12px; }
+.ip-page .ip-assignment-options { display: grid; gap: 12px; }
+.ip-page .ip-assignment-option { display: flex; gap: 13px; align-items: center; cursor: pointer; border: 1px solid #dce5f1; background: #fff; border-radius: 12px; padding: 17px 16px; }
+.ip-page .ip-assignment-option-selected { background: #eff6ff; border-color: #2563eb; box-shadow: inset 3px 0 #2563eb; }
+.ip-page .ip-assignment-option:focus-within { outline: 2px solid #2563eb; outline-offset: 2px; }
+.ip-page .ip-assignment-option input { accent-color: #2563eb; width: 18px; height: 18px; flex: none; }
+.ip-page .ip-assignment-option-symbol { color: #2563eb; background: #dbeafe; border-radius: 9px; width: 36px; height: 36px; display: grid; place-items: center; flex: none; }
+.ip-page .ip-assignment-option strong { display: block; color: #111b38; font-weight: 750; font-size: .95rem; }
+.ip-page .ip-assignment-option small { display: block; color: #64748b; font-size: .81rem; margin-top: 3px; line-height: 1.45; }
+.ip-page .ip-assignment-footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+.ip-page .ip-assignment-footnote { font-size: .8rem; margin: 15px 0 0; }
+@media(max-width:1120px) { .ip-page .ip-teacher-navigation { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:760px) {
+ .ip-page .ip-navigation-toggle { display: flex; width: 100%; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #dce5f1; border-radius: 10px; padding: 12px; color: #1d4ed8; font-weight: 700; }
+ .ip-page .ip-teacher-navigation { display: none; grid-template-columns: minmax(0,1fr); gap: 7px; padding-top: 8px; }
+ .ip-page .ip-teacher-navigation-open { display: grid; }
+ .ip-page .ip-assignment-footer button { width: 100%; }
+}
+@media(prefers-reduced-motion:reduce) { .ip-page .ip-nav-chevron { transition: none; } }
