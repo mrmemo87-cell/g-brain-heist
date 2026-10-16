@@ -34,7 +34,7 @@ export function useCompanionFanMotion(root: { current: HTMLDivElement | null }, 
       { x: direction * 98, y: (index: number) => (index - 1.5) * 35, rotation: direction * 12,
         scale: .38, opacity: 0, filter: 'blur(7px)', transformOrigin: side === 'left' ? 'left center' : 'right center' },
       { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1, filter: 'blur(0px)',
-        duration: .56, ease: 'back.out(1.55)', stagger: { each: .055, from: 'start' } });
+        duration: .43, ease: 'back.out(1.55)', stagger: { each: .045, from: 'start' } });
     timeline.current = animation;
     // Start from the closed state, then play forward even if it opened during
     // the async import. Reversals reuse the same timeline at its current time.
