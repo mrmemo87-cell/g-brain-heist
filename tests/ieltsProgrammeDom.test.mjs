@@ -19,7 +19,7 @@ const bundle = await build({
   logLevel: "silent",
 });
 const code = bundle.outputFiles[0].text;
-async function check(admin) {
+async function check(admin, pending = 0, manage = true) {
   const calls = [];
   let lead = null;
   const errors = [];
@@ -46,7 +46,7 @@ async function check(admin) {
         id: "school-a",
         name: "Test school",
         can_allocate: admin,
-        can_manage: true,
+        can_manage: manage,
       },
     ];
     let data;
@@ -64,7 +64,7 @@ async function check(admin) {
         schools,
         school_id: "school-a",
         can_allocate: admin,
-        can_manage: true,
+        can_manage: manage,
         lead,
         teachers: admin ? [{ id: "teacher-a", name: "Test teacher" }] : [],
         students: [
@@ -78,7 +78,7 @@ async function check(admin) {
           },
         ],
         total_students: 1,
-        pending_count: 0,
+        pending_count: pending,
         queue: [],
         classes: [],
         confidence: "low",
@@ -99,7 +99,30 @@ async function check(admin) {
     }
     throw Error("UI did not settle: " + w.document.body.textContent);
   };
-  await wait(() => w.document.body.textContent.includes("Start with the work"));
+  await wait(() => w.document.body.textContent.includes("What would you like to do?"));
+  // Today must offer an obvious next step, followed by the core teacher flow
+  // and then the less-frequent tools. Do not render invented band metrics.
+  const today = w.document.querySelector(".ip-today");
+  assert.ok(today, "Teacher Today workspace is visible");
+  const primary = today.querySelector(".ip-today-priority .sp-primary");
+  assert.ok(primary);
+  assert.match(primary.textContent, pending > 0 ? /Open review desk/ : manage ? /Open lesson library/ : /View student progress/);
+  const visibleTasks = [...today.querySelectorAll(".ip-today-action-copy strong")].map(x => x.textContent);
+  assert.deepEqual(visibleTasks, manage
+    ? ["Lessons & teaching packs", "School assignments", "Writing & Speaking reviews", "Student progress & plans"]
+    : ["Writing & Speaking reviews", "Student progress & plans"]);
+  const secondary = [...today.querySelectorAll(".ip-today-links button strong")].map(x => x.textContent);
+  if (manage) {
+    assert.deepEqual(secondary, [
+      "Targeted practice", "Practice history", "Course batches",
+      "Speaking interviews", "Exam sessions"
+    ]);
+  } else {
+    assert.deepEqual(secondary, []);
+  }
+  assert.doesNotMatch(today.textContent, /average band|average score|overall band/i);
+  assert.ok(today.querySelector(".ip-today-priority").compareDocumentPosition(today.querySelector(".ip-today-teaching")) & w.Node.DOCUMENT_POSITION_FOLLOWING);
+
   const button = (label) =>
     Array.from(w.document.querySelectorAll("button")).find(
       (b) => b.textContent === label,
@@ -148,4 +171,10 @@ test("school administrator confirms allocation before submitting a scoped reques
 });
 test("programme teacher can inspect evidence but cannot allocate a lead", async () => {
   await check(false);
+});
+test("pending reviews take priority over lesson preparation on Today", async () => {
+  await check(false, 3);
+});
+test("staff without programme management sees only permitted everyday actions", async () => {
+  await check(false, 0, false);
 });
