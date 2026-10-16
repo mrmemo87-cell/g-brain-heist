@@ -165,6 +165,12 @@ test("lesson library loads school resources and downloads a workbook without key
 test("teacher lesson library shows compact files by audience and keeps guidance collapsed", async () => {
   const { d, w, errors } = await setup();
   const groups = [...w.document.querySelectorAll(".lesson-resource-group h4")].map((h) => h.textContent);
+  const resourceDisclosures = [...w.document.querySelectorAll(".lesson-resource-grid > .ip-disclosure")];
+  assert.equal(resourceDisclosures.length, 4, "Classroom resource groups are individually collapsible");
+  assert.equal(resourceDisclosures[3].open, false, "Private keys remain collapsed by default");
+  resourceDisclosures[3].querySelector("summary").click();
+  await waitFor(() => resourceDisclosures[3].open);
+  assert.equal(resourceDisclosures[0].open, true, "Other resource sections keep their state");
   assert.deepEqual(groups, [
     "01 · Before class",
     "02 · Present",
