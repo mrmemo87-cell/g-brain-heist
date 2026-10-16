@@ -2,6 +2,7 @@ name: Isolated classroom load (30, 100, 500)
 on:
   push:
     branches: ["codex/classroom-staged-load-gates"]
+    paths: ["load-tests/**.js", "load-tests/**.mjs", "load-tests/**.py", "load-tests/**.sh", "load-tests/**.sql"]
   workflow_dispatch:
 permissions:
   contents: read

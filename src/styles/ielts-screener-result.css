@@ -1,6 +1,8 @@
 @import './ielts-ui.css';
 
-.isr-page { max-width:1040px; margin:24px auto; border-radius:0; }
+/* Keep short loading/error states on the IELTS canvas, including desktop gutters. */
+body:has(.isr-page) { background:var(--bh-ielts-background); }
+.isr-page { min-height:100vh; max-width:1040px; margin:0 auto; border-radius:0; }
 .isr-back { display:inline-flex; align-items:center; min-height:44px; color:var(--bh-ielts-primary); font-weight:600; text-decoration:none; }
 .isr-heading h1 { margin:8px 0 12px; font-size:clamp(1.875rem,4vw,2.75rem); font-weight:700; line-height:1.15; letter-spacing:-.025em; overflow-wrap:anywhere; }
 .isr-evidence-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
@@ -10,7 +12,7 @@
 .isr-metrics dt { font-size:.875rem; font-weight:600; color:var(--bh-ielts-foreground-muted); }
 .isr-metrics dd { margin:12px 0; font-size:2.5rem; line-height:1.2; font-weight:700; font-variant-numeric:tabular-nums; }
 .isr-metrics dd span { font-size:1.25rem; font-weight:500; color:var(--bh-ielts-foreground-muted); }
-.isr-metrics p { font-size:.875rem; color:var(--bh-ielts-foreground-muted); }
+.isr-metrics dd small { display:block; margin-top:12px; font-weight:400; line-height:1.6; font-size:.875rem; color:var(--bh-ielts-foreground-muted); }
 .isr-evidence .ix-notice { margin-top:20px; }
 .isr-next a { text-decoration:none; }
 .isr-next { border-left:4px solid var(--bh-ielts-primary); }

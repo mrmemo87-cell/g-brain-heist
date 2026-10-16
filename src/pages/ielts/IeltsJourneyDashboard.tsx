@@ -188,7 +188,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
           <button
             type="button"
             onClick={() => navigate('/ielts')}
-            style={{ background: 'none', border: 'none', color: '#0891b2', fontWeight: 700, textAlign: 'left', cursor: 'pointer', padding: '0.25rem 0', fontSize: '0.875rem' }}
+            style={{ background: 'none', border: 'none', color: 'var(--bh-ielts-primary)', fontWeight: 700, textAlign: 'left', cursor: 'pointer', padding: '0.25rem 0', fontSize: '0.875rem' }}
           >
             ← Back to IELTS Home
           </button>
@@ -197,12 +197,12 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
         {/* Page header */}
         <header data-anim="header" hidden={loadState === 'ready' && mode === 'student'} style={{ padding: '0.25rem 0' }}>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>{embedded ? 'Student IELTS Progress' : 'My IELTS Journey'}</h1>
-          <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>{embedded ? 'Review assignments, results, readiness, and feedback for this school.' : 'Track assignments, results, and reviewed feedback.'}</p>
+          <p style={{ margin: '0.35rem 0 0', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.82rem' }}>{embedded ? 'Review assignments, results, readiness, and feedback for this school.' : 'Track assignments, results, and reviewed feedback.'}</p>
         </header>
 
         {/* Loading */}
         {loadState === 'loading' && (
-          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.8rem', padding: '1.25rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem' }}>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.8rem', padding: '1.25rem', textAlign: 'center', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.875rem' }}>
             Loading your IELTS journey…
           </div>
         )}
@@ -220,7 +220,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div>
                   <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>School IELTS Results</h2>
-                  <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.82rem' }}>Select a student name to open their authorised IELTS progress record.</p>
+                  <p style={{ margin: '0.35rem 0 0', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.82rem' }}>Select a student name to open their authorised IELTS progress record.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <span style={{ background: '#ecfeff', color: '#0e7490', border: '1px solid #a5f3fc', borderRadius: '9999px', padding: '0.35rem 0.7rem', fontSize: '0.72rem', fontWeight: 700 }}>{schoolResults.summary.total_students} students</span>
@@ -231,7 +231,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
 
             <section data-anim="section" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.9rem', overflow: 'hidden' }}>
               {schoolResults.students.length === 0 ? (
-                <p style={{ margin: 0, padding: '1rem', color: '#94a3b8', fontSize: '0.875rem' }}>No IELTS students found for your school yet.</p>
+                <p style={{ margin: 0, padding: '1rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.875rem' }}>No IELTS students found for your school yet.</p>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '720px' }}>
@@ -253,10 +253,10 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
                               {student.username ?? student.email ?? 'Student'}
                             </button>
                           </td>
-                          <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.82rem' }}>{student.class_name ?? 'No class'}</td>
+                          <td style={{ padding: '0.75rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.82rem' }}>{student.class_name ?? 'No class'}</td>
                           <td style={{ padding: '0.75rem', color: '#334155', fontSize: '0.82rem', fontWeight: 700 }}>{student.completed_practice_total} / {student.assigned_practice_total} completed</td>
                           <td style={{ padding: '0.75rem', color: '#334155', fontSize: '0.82rem', fontWeight: 700 }}>{student.latest_overall_estimate == null ? 'Verified readiness pending' : `${student.latest_overall_estimate.toFixed(1)} / 9.0`}</td>
-                          <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.82rem' }}>{formatDate(student.last_activity_at, 'No activity yet')}</td>
+                          <td style={{ padding: '0.75rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.82rem' }}>{formatDate(student.last_activity_at, 'No activity yet')}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -284,7 +284,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
                     style={{ width: '100%', maxWidth: '360px', borderRadius: '0.9rem', border: '1px solid #e2e8f0', background: '#fff', boxShadow: '0 18px 44px rgba(15, 23, 42, 0.22)', padding: '1rem' }}
                   >
                     <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>Set target band</h3>
-                    <p style={{ margin: '0.35rem 0 0.75rem', fontSize: '0.75rem', color: '#64748b' }}>Choose your IELTS goal between 0.0 and 9.0 in 0.5 steps.</p>
+                    <p style={{ margin: '0.35rem 0 0.75rem', fontSize: '0.75rem', color: 'var(--bh-ielts-foreground-muted)' }}>Choose your IELTS goal between 0.0 and 9.0 in 0.5 steps.</p>
                     <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                       <input
                         type="number"

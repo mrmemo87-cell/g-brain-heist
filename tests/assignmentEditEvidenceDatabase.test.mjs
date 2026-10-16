@@ -28,7 +28,7 @@ insert into student_assignment_results(assignment_id,student_id,score) values('$
 insert into student_learning_item_evidence values('${assignment}','${student}');
 insert into student_learning_registry_item_evidence values('${assignment}','${student}');
 `);
-await db.exec(readFileSync('supabase/migrations/20261014100000_guard_assignment_edits_with_learning_evidence.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261016141838_guard_assignment_edits_with_learning_evidence.sql','utf8'));
 const actor = id => db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
 const edit = (questions=[q1,q2], students=[student]) => db.query('select rpc_update_teacher_assignment($1,null,\'English\',\'Topic\',null,$2,now(),null,\'Edited\',\'Description\',\'Instructions\',\'mixed\',\'custom\',$3,\'published\',false,false)',[assignment,questions,students]);
 const snapshot = async () => (await db.query(`select (select jsonb_agg(to_jsonb(a)) from student_assignment_answers a) answers,(select jsonb_agg(to_jsonb(r)) from student_assignment_results r) results,(select jsonb_agg(to_jsonb(e)) from student_learning_item_evidence e) evidence,(select jsonb_agg(to_jsonb(e)) from student_learning_registry_item_evidence e) registry`)).rows[0];

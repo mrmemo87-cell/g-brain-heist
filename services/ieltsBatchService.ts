@@ -12,7 +12,7 @@ export const ieltsBatches=(school:string,includeArchived=false)=>rpc<IeltsBatch[
 export const ieltsBatchRoster=(batch:string,search='',offset=0)=>rpc<IeltsBatchRoster>('rpc_ielts_batch_roster',{p_batch:batch,p_search:search,p_offset:offset});
 export const saveIeltsBatch=(school:string,name:string,students:string[],batch:string|null=null,revision:number|null=null)=>rpc<string>('rpc_ielts_batch_save',{p_school:school,p_name:name,p_students:students,p_batch:batch,p_revision:revision});
 export const allocateIeltsBatch=(assignment:string,students?:string[])=>rpc<IeltsPracticeAssignmentSummary>('rpc_ielts_batch_allocate',{p_assignment:assignment,p_students:students??null});
-export const createIeltsBatchAssignment=(batch:IeltsBatch,request:string,params:CreateIeltsPracticeAssignmentParams)=>rpc<IeltsPracticeAssignmentSummary>('rpc_ielts_batch_create_assignment',{
+export const createIeltsBatchAssignment=(batch:IeltsBatch,request:string,params:Omit<CreateIeltsPracticeAssignmentParams,'schoolId'>)=>rpc<IeltsPracticeAssignmentSummary>('rpc_ielts_batch_create_assignment',{
  p_batch:batch.id,p_revision:batch.revision,p_request:request,p_title:params.title,p_description:params.description??null,p_due_at:params.dueAt??null,
  p_items:(params.items??[]).map((i,n)=>({skill:i.skill,content_type:i.contentType,content_id:i.contentId,title:i.title??null,required:i.required??true,order_index:i.orderIndex??n})),
 });

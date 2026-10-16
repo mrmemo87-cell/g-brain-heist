@@ -1,6 +1,6 @@
 # Local classroom concurrency benchmark
 
-This benchmark runs **30 → 100 → 500 authenticated students**, plus one teacher,
+This benchmark runs **30 → 100 → 500 → 500 authenticated students**, plus one teacher,
 against a disposable local Supabase instance. It does not call production.
 
 The local gateway is configured for 8,192 connection slots before the stages.
@@ -21,14 +21,16 @@ catalog and detail, sends three simultaneous identical save requests per answer,
 checks resume state, and finalizes twice. Some fixture answers are intentionally
 wrong. The test checks the server's known score instead of trusting the forged
 score supplied by the client. The teacher polls the assignment report every five
-seconds for two minutes.
+seconds for ten minutes and ten seconds. Answer activity is paced over ten minutes, with a fresh assignment at each stage including the repeated 500-student recovery stage.
 
 ## Gates before escalation
 
 - Every expected student must complete the full flow.
 - All HTTP status checks must pass, with zero classroom correctness errors.
 - Answer saves: p95 below 500 ms and p99 below 1,500 ms.
-- Catalog, detail and teacher summary: p95 below 1,500 ms.
+- Catalog, full pending payload, detail and teacher summary: p95 below 1,500 ms.
+- Full pending payload p99 below 4,000 ms; finalization p95 below 2,000 ms and p99 below 5,000 ms.
+- Real durable queue drains within five minutes, with one completed job and exactly two deterministic ingestion receipts per student.
 - Database reconciliation: exactly 16 answers and one correct final result per
   student; no duplicates, missing completions or pending reviews.
 - The teacher's final report must contain the exact cumulative submission count.
@@ -69,7 +71,7 @@ production records or secrets were copied.
 The public table definitions are a focused contract fixture, not a full schema
 clone. Generated UUIDs and production index definitions are added. Direct table
 access is closed with RLS and revoked grants; the caller-bound RPCs retain their
-own authorization. Unrelated tables, production analytics/reward triggers,
+own authorization. The real durable queue, trigger and lease/drain functions are included, but academic ingestion is replaced by deterministic two-lane receipts. Unrelated tables, full production analytics/reward pipelines,
 foreign-key/check-constraint coverage and the billing pre-request hook are not
 reproduced. Therefore, this benchmark cannot certify the full production result
 pipeline, entitlement enforcement, or production query plans under historic data.

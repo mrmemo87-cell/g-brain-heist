@@ -1,3 +1,4 @@
+import {availablePracticeIds} from './ieltsReviewedPracticeService';
 import { supabase } from './supabaseClient';
 import { buildReadingAttemptPayload, type RawScoreInput } from '../src/lib/ieltsPracticeScoring';
 import { isPro, tryConsumePilotQuota } from './tierService';
@@ -330,47 +331,47 @@ const normalizeSessionRecord = (
 };
 
 export const fetchActiveReadingSets = async (): Promise<IELTSReadingSet[]> => {
-  const { data, error } = await supabase
+  const [{data,error},allowed] = await Promise.all([supabase
     .from('ielts_reading_sets')
     .select('id, display_code, originality_label, slug, title, description, level, est_band_min, est_band_max, duration_minutes, passage_text, required_tier, created_by, created_at, is_active')
     .eq('is_active', true)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }),availablePracticeIds('ielts_reading_set')]);
 
   handleSelectError(error, 'reading sets');
-  return (data ?? []) as IELTSReadingSet[];
+  return (data ?? []).filter(row=>allowed.has(String(row.id))) as IELTSReadingSet[];
 };
 
 export const fetchActiveListeningSets = async (): Promise<IELTSListeningSet[]> => {
-  const { data, error } = await supabase
+  const [{data,error},allowed] = await Promise.all([supabase
     .from('ielts_listening_sets')
     .select('id, display_code, originality_label, slug, title, description, instructions, example_prompt, example_answer, section_label, question_range_label, level, est_band_min, est_band_max, duration_minutes, audio_url, required_tier, created_by, created_at, is_active')
     .eq('is_active', true)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }),availablePracticeIds('ielts_listening_set')]);
 
   handleSelectError(error, 'listening sets');
-  return (data ?? []) as IELTSListeningSet[];
+  return (data ?? []).filter(row=>allowed.has(String(row.id))) as IELTSListeningSet[];
 };
 
 export const fetchActiveWritingTasks = async (): Promise<IELTSWritingTaskType[]> => {
-  const { data, error } = await supabase
+  const [{data,error},allowed] = await Promise.all([supabase
     .from('ielts_writing_tasks')
     .select('id, display_code, originality_label, slug, task_type, title, prompt, bands_target, sample_answer, required_tier, created_by, created_at, is_active')
     .eq('is_active', true)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }),availablePracticeIds('ielts_writing_task')]);
 
   handleSelectError(error, 'writing tasks');
-  return (data ?? []) as IELTSWritingTaskType[];
+  return (data ?? []).filter(row=>allowed.has(String(row.id))) as IELTSWritingTaskType[];
 };
 
 export const fetchActiveSpeakingTasks = async (): Promise<IELTSSpeakingTask[]> => {
-  const { data, error } = await supabase
+  const [{data,error},allowed] = await Promise.all([supabase
     .from('ielts_speaking_tasks')
     .select('id, display_code, originality_label, slug, part, prompt, follow_ups, required_tier, created_by, created_at, is_active')
     .eq('is_active', true)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }),availablePracticeIds('ielts_speaking_task')]);
 
   handleSelectError(error, 'speaking tasks');
-  return (data ?? []) as IELTSSpeakingTask[];
+  return (data ?? []).filter(row=>allowed.has(String(row.id))) as IELTSSpeakingTask[];
 };
 
 export const fetchActiveMockTests = async (): Promise<IELTSMockTest[]> => {

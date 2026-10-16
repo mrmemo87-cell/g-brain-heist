@@ -188,7 +188,7 @@ const IeltsAssignedPractice: React.FC = () => {
         <button
           type="button"
           onClick={() => navigate('/ielts')}
-          style={{ marginBottom: '1rem', color: '#0891b2', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem', padding: '0.25rem 0' }}
+          style={{ marginBottom: '1rem', color: 'var(--bh-ielts-primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem', padding: '0.25rem 0' }}
         >
           ← Back to IELTS Home
         </button>
@@ -196,9 +196,9 @@ const IeltsAssignedPractice: React.FC = () => {
         <IeltsSchoolLearnerLinks onNavigate={navigate} active="assigned" />
         {/* Header */}
         <header style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.25rem', marginBottom: '1rem', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <p style={{ margin: '0 0 0.35rem', color: '#0891b2', textTransform: 'uppercase', letterSpacing: '0.16em', fontSize: '0.65rem', fontWeight: 700 }}>SCHOOL IELTS PRACTICE</p>
+          <p style={{ margin: '0 0 0.35rem', color: 'var(--bh-ielts-primary)', textTransform: 'uppercase', letterSpacing: '0.16em', fontSize: '0.65rem', fontWeight: 700 }}>SCHOOL IELTS PRACTICE</p>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>School Assignments</h1>
-          <p style={{ margin: '0.5rem 0 0', color: '#64748b', lineHeight: 1.6, fontSize: '0.82rem' }}>
+          <p style={{ margin: '0.5rem 0 0', color: 'var(--bh-ielts-foreground-muted)', lineHeight: 1.6, fontSize: '0.82rem' }}>
             Multi-item practice sets assigned by your school. Short focused tasks are in Targeted Practice. Assignments complete automatically after all required items are finished.
           </p>
         </header>
@@ -212,7 +212,7 @@ const IeltsAssignedPractice: React.FC = () => {
 
         {/* Loading */}
         {loadState === 'loading' && (
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem', color: '#64748b', fontSize: '0.875rem' }}>
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.875rem' }}>
             Loading assigned IELTS practice…
           </div>
         )}
@@ -220,8 +220,8 @@ const IeltsAssignedPractice: React.FC = () => {
         {/* Load error */}
         {loadState === 'error' && (
           <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem' }}>
-            <p style={{ margin: '0 0 0.75rem', color: '#64748b' }}>We could not load your assigned practice.</p>
-            <button type="button" onClick={() => void loadAssignments()} style={{ background: '#0891b2', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.55rem 1rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem' }}>
+            <p style={{ margin: '0 0 0.75rem', color: 'var(--bh-ielts-foreground-muted)' }}>We could not load your assigned practice.</p>
+            <button type="button" onClick={() => void loadAssignments()} style={{ background: 'var(--bh-ielts-primary)', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.55rem 1rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem' }}>
               Try again
             </button>
           </div>
@@ -229,7 +229,7 @@ const IeltsAssignedPractice: React.FC = () => {
 
         {/* Empty */}
         {loadState === 'ready' && sortedAssignments.length === 0 && (
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1.25rem', color: '#64748b', fontSize: '0.875rem', lineHeight: 1.6 }}>
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1.25rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.875rem', lineHeight: 1.6 }}>
             <p>No school assignment sets right now. Your teacher may have assigned a focused task in Targeted Practice.</p>
             <button type="button" className="ij-link" onClick={() => navigate('/ielts/practice/targeted')}>Open Targeted Practice →</button>
           </div>
@@ -279,7 +279,7 @@ const IeltsAssignedPractice: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1 }}>
                   <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>{assignment.title}</h2>
-                  {assignment.description && <p style={{ margin: '0.35rem 0 0', color: '#64748b', lineHeight: 1.5, fontSize: '0.82rem' }}>{assignment.description}</p>}
+                  {assignment.description && <p style={{ margin: '0.35rem 0 0', color: 'var(--bh-ielts-foreground-muted)', lineHeight: 1.5, fontSize: '0.82rem' }}>{assignment.description}</p>}
                 </div>
                 <span style={{ background: lightBadge.bg, color: lightBadge.color, border: `1px solid ${lightBadge.border}`, borderRadius: '9999px', padding: '0.3rem 0.7rem', fontSize: '0.68rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
                   {badge.label}
@@ -287,7 +287,7 @@ const IeltsAssignedPractice: React.FC = () => {
               </div>
 
               {/* Meta */}
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.65rem', color: '#94a3b8', fontSize: '0.8rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.65rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.8rem' }}>
                 <span>Due: <strong style={{ color: isOverdue ? '#dc2626' : '#475569' }}>{formatDueDate(assignment.due_at)}</strong></span>
                 <span>Items: <strong style={{ color: '#475569' }}>{assignment.item_count ?? assignment.items?.length ?? 0}</strong></span>
                 <span>Status: <strong style={{ color: '#475569' }}>{(assignment.status === 'closed' && assignment.student_status !== 'completed' ? 'closed' : assignment.student_status).replace(/_/g, ' ')}</strong></span>
@@ -315,14 +315,14 @@ const IeltsAssignedPractice: React.FC = () => {
               {isExpanded && isBusy && <p role="status">Checking assignment details…</p>}
               {isExpanded && !isBusy && <div style={{ marginTop: '0.85rem' }}>
                 {visibleSkills.length === 0 && (
-                    <div data-testid={`ielts-assigned-no-items-${assignment.id}`} style={{ border: '1px dashed #cbd5e1', background: '#f8fafc', borderRadius: '0.75rem', padding: '0.875rem', color: '#94a3b8', fontSize: '0.82rem', fontWeight: 700 }}>
+                    <div data-testid={`ielts-assigned-no-items-${assignment.id}`} style={{ border: '1px dashed #cbd5e1', background: '#f8fafc', borderRadius: '0.75rem', padding: '0.875rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.82rem', fontWeight: 700 }}>
                     This assignment has no items yet. Ask your teacher to add practice content.
                   </div>
                 )}
 
                 {visibleSkills.map((skill) => (
                   <section key={skill} style={{ borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem', marginTop: '0.75rem' }}>
-                    <h3 style={{ margin: '0 0 0.5rem', color: '#0891b2', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>{skillLabels[skill] ?? skill}</h3>
+                    <h3 style={{ margin: '0 0 0.5rem', color: 'var(--bh-ielts-primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>{skillLabels[skill] ?? skill}</h3>
                     <div style={{ display: 'grid', gap: '0.45rem' }}>
                       {(groupedItems[skill] ?? []).map((item) => {
                         const route = getIeltsPracticeItemRoute(item);
@@ -343,7 +343,7 @@ const IeltsAssignedPractice: React.FC = () => {
                                 <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.875rem' }}>{ieltsMaterialTitle(item.display_code, item.title || `${skillLabels[skill] ?? skill} practice`)}<IeltsMaterialProvenance label={item.originality_label}/></p>
                                 <AssignmentItemStatusBadge status={itemStatus} />
                               </div>
-                              <p style={{ margin: '0.2rem 0 0', color: '#94a3b8', fontSize: '0.75rem' }}>{item.required ? 'Required' : 'Optional'}</p>
+                              <p style={{ margin: '0.2rem 0 0', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.75rem' }}>{item.required ? 'Required' : 'Optional'}</p>
                             </div>
                             {route && assignedRoute ? (
                               isClosedReadOnly ? (
@@ -374,7 +374,7 @@ const IeltsAssignedPractice: React.FC = () => {
                                       ? '✓ Completed · Feedback not finalized yet'
                                       : 'Complete task first';
                                   return (
-                                    <span style={{ background: '#f8fafc', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 700, fontSize: '0.75rem' }}>
+                                    <span style={{ background: '#f8fafc', color: 'var(--bh-ielts-foreground-muted)', border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 700, fontSize: '0.75rem' }}>
                                       {unavailableCopy}
                                     </span>
                                   );
@@ -387,7 +387,7 @@ const IeltsAssignedPractice: React.FC = () => {
                                     event.preventDefault();
                                     void handleOpenItem(assignment, item, route);
                                   }}
-                                  style={{ background: itemStatus === 'in_progress' ? '#dbeafe' : '#eff6ff', color: itemStatus === 'in_progress' ? '#1d4ed8' : '#0891b2', border: `1px solid ${itemStatus === 'in_progress' ? '#93c5fd' : '#bfdbfe'}`, borderRadius: '0.5rem', padding: '0.45rem 0.85rem', fontWeight: 700, textDecoration: 'none', fontSize: '0.8rem', opacity: isBusy ? 0.65 : 1, pointerEvents: isBusy ? 'none' : 'auto' }}
+                                  style={{ background: itemStatus === 'in_progress' ? '#dbeafe' : '#eff6ff', color: itemStatus === 'in_progress' ? '#1d4ed8' : 'var(--bh-ielts-primary)', border: `1px solid ${itemStatus === 'in_progress' ? '#93c5fd' : '#bfdbfe'}`, borderRadius: '0.5rem', padding: '0.45rem 0.85rem', fontWeight: 700, textDecoration: 'none', fontSize: '0.8rem', opacity: isBusy ? 0.65 : 1, pointerEvents: isBusy ? 'none' : 'auto' }}
                                 >
                                   {itemStatus === 'in_progress' ? 'Continue →' : 'Open →'}
                                 </a>

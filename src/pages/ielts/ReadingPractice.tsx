@@ -15,7 +15,7 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import type { IELTSReadingQuestion } from '../../../types';
-import { toRawScoreResult } from '../../lib/ieltsPracticeScoring';
+import { doesAnswerMatchCorrectAnswer, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
 
 interface Answer {
   questionId: number;
@@ -212,7 +212,7 @@ const ReadingPractice: React.FC = () => {
       // correct_answer is already parsed from JSONB, no need to JSON.parse
       const correctAnswer = q.correct_answer;
       
-      if (userAnswer === correctAnswer) {
+      if (doesAnswerMatchCorrectAnswer(userAnswer, correctAnswer)) {
         correct++;
       }
     });
@@ -425,7 +425,7 @@ const ReadingPractice: React.FC = () => {
               {questions.map((q: IELTSReadingQuestion, idx: number) => {
                 const userAnswer = answers[q.id];
                 const correctAnswer = q.correct_answer;
-                const isCorrect = userAnswer === correctAnswer;
+                const isCorrect = doesAnswerMatchCorrectAnswer(userAnswer, correctAnswer);
 
                 return (
                   <div key={q.id} style={{
