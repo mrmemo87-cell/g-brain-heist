@@ -84,6 +84,18 @@ async function check(admin, pending = 0, manage = true) {
         confidence: "low",
         readiness_available: false,
       };
+    else if (fn === "rpc_ielts_learning_report_context")
+      data = {
+        school_id: "school-a",
+        student_id: args.p_student,
+        student_name: "Test student",
+        school_name: "Test school",
+        can_manage: manage,
+        plan: null,
+        years: [],
+        evidence: [],
+        reports: [],
+      };
     else if (fn === "rpc_ielts_batches") data = [];
     else throw Error("Unexpected request " + fn);
     return new Response(JSON.stringify(data), {
@@ -130,6 +142,22 @@ async function check(admin, pending = 0, manage = true) {
   button("Student progress").click();
   await wait(() => w.document.body.textContent.includes("8 / 12 · Screener"));
   assert(w.document.body.textContent.includes("No submitted evidence"));
+  assert.ok(w.document.querySelector(".isi-matrix"), "Student evidence matrix renders");
+  const learnerButton = w.document.querySelector(".isi-student-button");
+  assert.ok(learnerButton, "Each student has an accessible intelligence action");
+  learnerButton.click();
+  await wait(() => !!w.document.querySelector(".isi-drawer"));
+  assert.match(w.document.querySelector(".isi-drawer").textContent, /Student intelligence/);
+  assert.ok(w.document.querySelector(".isi-selected"), "Selected student is highlighted");
+  const sections = [...w.document.querySelectorAll(".isi-drawer .isi-accordion")];
+  assert.equal(sections.length, 5, "Five student intelligence sections can collapse");
+  assert.ok(sections.some((section) => section.textContent.includes("Recent activity")));
+  assert.ok(w.document.querySelector(".isi-evidence-grid"), "All four skill cards are visible");
+  assert.equal(w.document.querySelectorAll(".isi-evidence-card").length, 4);
+  await wait(() => calls.some((entry) => entry.fn === "rpc_ielts_learning_report_context"));
+  assert.equal(calls.find((entry) => entry.fn === "rpc_ielts_learning_report_context").args.p_student, "student-a");
+  w.document.querySelector(".isi-close").click();
+  await wait(() => !w.document.querySelector(".isi-drawer"));
   button("Programme team").click();
   await wait(() => w.document.body.textContent.includes("A clear owner"));
   if (admin) {

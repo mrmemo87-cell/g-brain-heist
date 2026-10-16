@@ -10,6 +10,7 @@ import {
   type ProgrammeWorkspace,
 } from "../../../services/ieltsProgrammeService";
 import SchoolAdminContext from "../../../components/school-admin/SchoolAdminContext";
+import IeltsStudentProgress from "./IeltsStudentProgress";
 import "../../styles/ielts-speaking-pilot.css";
 import "../../styles/ielts-programme.css";
 const Practice = React.lazy(() => import("./IeltsLearningTeacher"));
@@ -90,6 +91,8 @@ export default function IeltsProgrammeWorkspace({
     [saving, setSaving] = useState(false),
     [message, setMessage] = useState("");
   const [planStudent, setPlanStudent] = useState<string | null>(null);
+  const [planFocus, setPlanFocus] = useState<"plan" | "reports">("plan");
+  const [navOpen, setNavOpen] = useState(false);
   useEffect(() => {
     setPlanStudent(null);
   }, [data?.school_id]);
@@ -98,7 +101,8 @@ export default function IeltsProgrammeWorkspace({
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    setData(null);
+    // Keep the current student matrix mounted during search and pagination.
+    // School changes explicitly clear it before fetching a new scope.
     setError("");
     void (async () => {
       try {
@@ -108,6 +112,7 @@ export default function IeltsProgrammeWorkspace({
         const id = schoolId ?? selected ?? "";
         const chosen = id || access.schools[0]?.id;
         if (!chosen) {
+          setData(null);
           setLoading(false);
           return;
         }
@@ -117,10 +122,13 @@ export default function IeltsProgrammeWorkspace({
         setTeacher(workspace.lead?.teacher_id ?? "");
         setConfirmed(false);
       } catch {
-        if (alive)
+        if (alive) {
+          // Never keep previously visible learner data after a failed access refresh.
+          setData(null);
           setError(
             "Your programme workspace could not open. Check your access and connection, then try again.",
           );
+        }
       } finally {
         if (alive) setLoading(false);
       }
@@ -140,6 +148,7 @@ export default function IeltsProgrammeWorkspace({
     return () => window.removeEventListener("popstate", restore);
   }, [schoolId]);
   const open = (s: Section) => {
+    setNavOpen(false);
     if (s === "practice") {
       setApplied("");
       setSearch("");
@@ -160,6 +169,20 @@ export default function IeltsProgrammeWorkspace({
     window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
     open("practice");
   };
+  useEffect(() => {
+    if (section !== "students") return;
+    const timer = window.setTimeout(() => {
+      const next = search.trim();
+      if (next !== applied) { setApplied(next); setOffset(0); }
+    }, 380);
+    return () => window.clearTimeout(timer);
+  }, [search, applied, section]);
+  useEffect(() => {
+    if (!navOpen) return;
+    const closeMenu = (event: KeyboardEvent) => { if (event.key === "Escape") setNavOpen(false); };
+    window.addEventListener("keydown", closeMenu);
+    return () => window.removeEventListener("keydown", closeMenu);
+  }, [navOpen]);
   const save = async () => {
     if (!data || lock.current || !confirmed) return;
     lock.current = true;
@@ -301,7 +324,7 @@ export default function IeltsProgrammeWorkspace({
           {message}
         </p>
       )}
-      {loading ? (
+      {loading && !data ? (
         <section className="sp-card" role="status">
           Opening your programme workspace…
         </section>
@@ -324,6 +347,8 @@ export default function IeltsProgrammeWorkspace({
                 disabled={saving}
                 onChange={(e) => {
                   setSelected(e.target.value);
+                  setData(null);
+                  setPlanStudent(null);
                   setOffset(0);
                   setApplied("");
                   setSearch("");
@@ -342,7 +367,8 @@ export default function IeltsProgrammeWorkspace({
               </select>
             </label>
           )}
-          <nav className="ip-nav" aria-label="Programme workspace">
+          <button type="button" className="ip-mobile-nav-toggle" aria-controls="ielts-programme-nav" aria-expanded={navOpen} onClick={() => setNavOpen((value) => !value)}>☰ Programme navigation <span aria-hidden="true">{navOpen ? "⌃" : "⌄"}</span></button>
+          <nav id="ielts-programme-nav" className={"ip-nav" + (navOpen ? " ip-nav-open" : "")} aria-label="Programme workspace">
             {(["overview", "students", "reviews", "team"] as Section[]).map(
               (s) => (
                 <button
@@ -351,6 +377,7 @@ export default function IeltsProgrammeWorkspace({
                   onClick={() => open(s)}
                   disabled={saving}
                 >
+                  <span aria-hidden="true" className="ip-nav-icon"><Mark kind={s === "reviews" ? "review" : s === "overview" ? "voice" : "school"} /></span>
                   {s === "overview"
                     ? "Today"
                     : s === "students"
@@ -513,102 +540,26 @@ export default function IeltsProgrammeWorkspace({
                 key={data.school_id + planStudent}
                 schoolId={data.school_id}
                 studentId={planStudent}
+                initialFocus={planFocus}
                 onClose={() => setPlanStudent(null)}
               />
             </React.Suspense>
           )}
           {section === "students" && !planStudent && (
-            <section className="sp-card">
-              <p className="sp-eyebrow">
-                Four skills · Latest submitted evidence
-              </p>
-              <h2>See who needs their next step.</h2>
-              <p>
-                Scores refer to the submitted screener. Teacher feedback refers
-                to that essay or interview only. Confidence: low.
-              </p>
-              <form
-                className="ip-search"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setApplied(search.trim());
-                  setOffset(0);
-                }}
-              >
-                <label>
-                  Find a student
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </label>
-                <button className="sp-secondary">Search</button>
-              </form>
-              <div className="ip-students">
-                {data.students.map((s) => (
-                  <article className="ip-student" key={s.id}>
-                    <h3>{s.name}</h3>
-                    <button
-                      className="sp-primary"
-                      onClick={() => setPlanStudent(s.id)}
-                    >
-                      Learning plan & monthly reports →
-                    </button>
-                    <div className="ip-skills">
-                      {(
-                        ["listening", "reading", "writing", "speaking"] as const
-                      ).map((k) => {
-                        const route = programmeEvidenceRoute(k, s[k]);
-                        return (
-                          <div key={k}>
-                            <strong>{k[0].toUpperCase() + k.slice(1)}</strong>
-                            <span>{programmeEvidenceLabel(k, s[k])}</span>
-                            {route && (
-                              <button
-                                className="ip-link"
-                                onClick={() => navigate(route)}
-                              >
-                                Open evidence →
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </article>
-                ))}
-              </div>
-              {!data.students.length && (
-                <p>No matching eligible students in your authorized scope.</p>
-              )}
-              <div className="ip-heading">
-                <p>
-                  {data.total_students} matching students ·{" "}
-                  {data.students.length
-                    ? "Showing " +
-                      (offset + 1) +
-                      "–" +
-                      (offset + data.students.length)
-                    : "No results"}
-                </p>
-                <div>
-                  <button
-                    className="sp-secondary"
-                    disabled={offset === 0}
-                    onClick={() => setOffset((n) => Math.max(0, n - 50))}
-                  >
-                    Previous
-                  </button>
-                  <button
-                    className="sp-secondary"
-                    disabled={offset + 50 >= data.total_students}
-                    onClick={() => setOffset((n) => n + 50)}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            </section>
+            <IeltsStudentProgress
+              data={data}
+              search={search}
+              applied={applied}
+              offset={offset}
+              loading={loading}
+              onSearchChange={setSearch}
+              onSearch={(value) => { setApplied(value); setOffset(0); }}
+              onPage={setOffset}
+              onOpenPlan={(studentId, focus) => {
+                setPlanFocus(focus);
+                setPlanStudent(studentId);
+              }}
+            />
           )}
           {section === "team" && data.can_manage && <React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense>}
           {section === "team" && (
