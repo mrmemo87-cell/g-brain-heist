@@ -1,0 +1,140 @@
+/* IELTS teacher workspace: lightweight native accordions used across programme and lessons. */
+.ip-page .ip-disclosure,
+.ielts-lessons .ip-disclosure {
+  margin: 0;
+  min-width: 0;
+  width: 100%;
+  border: 1px solid #dce5f1;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(23,59,108,.045);
+  overflow: visible;
+}
+.ip-page .ip-disclosure-toggle,
+.ielts-lessons .ip-disclosure-toggle {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 60px;
+  padding: 12px 16px;
+  list-style: none;
+  cursor: pointer;
+  color: #15243a;
+  background: #fff;
+  border-radius: 13px;
+  font: inherit;
+}
+.ip-page .ip-disclosure-toggle::-webkit-details-marker,
+.ielts-lessons .ip-disclosure-toggle::-webkit-details-marker { display: none; }
+.ip-page .ip-disclosure-toggle:hover,
+.ielts-lessons .ip-disclosure-toggle:hover { background: #f3f8ff; }
+.ip-page .ip-disclosure-toggle:focus-visible,
+.ielts-lessons .ip-disclosure-toggle:focus-visible {
+  outline: 3px solid #0e7490;
+  outline-offset: -3px;
+}
+.ip-page .ip-disclosure-icon,
+.ielts-lessons .ip-disclosure-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 19px;
+}
+.ip-page .ip-disclosure-icon svg,
+.ielts-lessons .ip-disclosure-icon svg { width: 20px; height: 20px; }
+.ip-page .ip-disclosure-heading,
+.ielts-lessons .ip-disclosure-heading {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 2px;
+}
+.ip-page .ip-disclosure-heading strong,
+.ielts-lessons .ip-disclosure-heading strong {
+  color: #15243a;
+  font-size: .9rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+.ip-page .ip-disclosure-heading small,
+.ielts-lessons .ip-disclosure-heading small {
+  color: #64748b;
+  font-size: .75rem;
+  line-height: 1.4;
+  font-weight: 400;
+}
+.ip-page .ip-disclosure-marker,
+.ielts-lessons .ip-disclosure-marker {
+  flex: none;
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: #1e40af;
+  background: #eff6ff;
+  font-size: .72rem;
+  font-weight: 700;
+}
+.ip-page .ip-disclosure-chevron,
+.ielts-lessons .ip-disclosure-chevron {
+  flex: none;
+  color: #64748b;
+  transition: transform .16s ease;
+}
+.ip-page .ip-disclosure[open] > .ip-disclosure-toggle,
+.ielts-lessons .ip-disclosure[open] > .ip-disclosure-toggle {
+  border-bottom: 1px solid #e8eef7;
+  border-radius: 13px 13px 0 0;
+}
+.ip-page .ip-disclosure[open] > .ip-disclosure-toggle .ip-disclosure-chevron,
+.ielts-lessons .ip-disclosure[open] > .ip-disclosure-toggle .ip-disclosure-chevron {
+  transform: rotate(180deg);
+}
+.ip-page .ip-disclosure-content,
+.ielts-lessons .ip-disclosure-content { min-width: 0; padding: 16px; }
+.ip-page .ip-disclosure-content > :last-child,
+.ielts-lessons .ip-disclosure-content > :last-child { margin-bottom: 0; }
+.ip-page .ip-disclosure-content > .sp-card { margin: 0; border: 0; box-shadow: none; padding: 4px 0; }
+.ip-page .ip-disclosure-content > .ip-today-teaching { margin: 0; }
+.ip-page .ip-disclosure-content > .ip-note { margin: 0; }
+.ielts-lessons .ip-disclosure-content > .lesson-library-resources,
+.ielts-lessons .ip-disclosure-content > .lesson-audio-section,
+.ielts-lessons .ip-disclosure-content > .lesson-library-guidance { margin: 0; }
+.ielts-lessons .ip-disclosure-content > .lesson-resource-group { border: 0; box-shadow: none; padding: 0; }
+.ielts-lessons .ip-disclosure-content > .lesson-resource-group.lesson-resource-private { border-left: 3px solid #1d4ed8; padding-left: 12px; }
+.ip-page .ip-workspace-flow { display: grid; gap: 14px; min-width: 0; }
+@media (max-width: 640px) {
+  .ip-page .ip-disclosure-toggle,
+  .ielts-lessons .ip-disclosure-toggle { padding: 11px 12px; gap: 9px; }
+  .ip-page .ip-disclosure-content,
+  .ielts-lessons .ip-disclosure-content { padding: 12px; }
+  .ip-page .ip-disclosure-marker,
+  .ielts-lessons .ip-disclosure-marker { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ip-page .ip-disclosure-chevron,
+  .ielts-lessons .ip-disclosure-chevron { transition: none; }
+}
+
+/* Nested resource navigation: show the workflow title once, in the disclosure header. */
+.ielts-lessons .lesson-resource-grid > .ip-disclosure { align-self: start; }
+.ielts-lessons .lesson-resource-grid > .ip-disclosure .ip-disclosure-toggle { align-items: flex-start; }
+.ielts-lessons .lesson-resource-grid > .ip-disclosure .lesson-resource-group > h4 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.ielts-lessons .lesson-resource-grid .ip-disclosure-content > .lesson-resource-group {
+  min-width: 0;
+  background: #fff;
+}
+.ielts-lessons .lesson-resource-grid .ip-disclosure-content { padding-top: 14px; }

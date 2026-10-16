@@ -2,6 +2,7 @@ import { JSDOM, VirtualConsole } from "jsdom";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { build } from "esbuild";
+import { readFileSync } from "node:fs";
 const bundle = await build({
   stdin: {
     contents: `import React from 'react';import {createRoot} from 'react-dom/client';import {RouterProvider,createBrowserRouter} from './src/lib/router';import Programme from './src/pages/ielts/IeltsProgrammeWorkspace';createRoot(document.getElementById('root')).render(<RouterProvider router={createBrowserRouter([{path:'/_programme-check.html',element:<Programme schoolId="school-a"/>}])}/>);`,
@@ -116,6 +117,18 @@ async function check(admin, pending = 0, manage = true) {
   // and then the less-frequent tools. Do not render invented band metrics.
   const today = w.document.querySelector(".ip-today");
   assert.ok(today, "Teacher Today workspace is visible");
+  const todayDisclosures = [...today.querySelectorAll(".ip-disclosure")];
+  assert.ok(todayDisclosures.length >= (manage ? 4 : 3), "Today sections have accessible collapsible navigation");
+  assert.equal(todayDisclosures[0].open, true, "Primary action stays open");
+  const specialist = todayDisclosures.find((el) => el.querySelector("summary")?.textContent?.includes("More teaching tools"));
+  if (manage) {
+    assert.ok(specialist, "Specialist tools have an expandable section");
+    assert.equal(specialist.open, false, "Less-frequent tools begin collapsed");
+    specialist.querySelector("summary").click();
+    await wait(() => specialist.open);
+    specialist.querySelector("summary").click();
+    await wait(() => !specialist.open);
+  }
   const primary = today.querySelector(".ip-today-priority .sp-primary");
   assert.ok(primary);
   assert.match(primary.textContent, pending > 0 ? /Open review desk/ : manage ? /Open lesson library/ : /View student progress/);
@@ -152,6 +165,11 @@ async function check(admin, pending = 0, manage = true) {
   const sections = [...w.document.querySelectorAll(".isi-drawer .isi-accordion")];
   assert.equal(sections.length, 5, "Five student intelligence sections can collapse");
   assert.ok(sections.some((section) => section.textContent.includes("Recent activity")));
+  const recent = sections.find((section) => section.textContent.includes("Recent activity"));
+  assert.equal(recent.open, false, "Activity history starts collapsed");
+  recent.querySelector("summary").click();
+  await wait(() => recent.open);
+  assert.equal(w.document.querySelector(".isi-evidence-grid").closest("details").open, true, "Latest evidence remains expanded independently");
   assert.ok(w.document.querySelector(".isi-evidence-grid"), "All four skill cards are visible");
   assert.equal(w.document.querySelectorAll(".isi-evidence-card").length, 4);
   await wait(() => calls.some((entry) => entry.fn === "rpc_ielts_learning_report_context"));
@@ -159,6 +177,8 @@ async function check(admin, pending = 0, manage = true) {
   w.document.querySelector(".isi-close").click();
   await wait(() => !w.document.querySelector(".isi-drawer"));
   button("Programme team").click();
+  await wait(() => !!w.document.querySelector(".ip-disclosure"));
+  assert.ok([...w.document.querySelectorAll(".ip-disclosure")].some((section) => section.querySelector("summary")?.textContent?.includes("Programme lead & school access")));
   await wait(() => w.document.body.textContent.includes("A clear owner"));
   if (admin) {
     const select = w.document.querySelector("fieldset select");
@@ -205,4 +225,12 @@ test("pending reviews take priority over lesson preparation on Today", async () 
 });
 test("staff without programme management sees only permitted everyday actions", async () => {
   await check(false, 0, false);
+});
+
+// Regression: a scrollable grid used to compress every open drawer section to ~80px.
+test("student intelligence drawer scrolls complete panels without clipping", () => {
+  const css = readFileSync("src/styles/ielts-student-progress.css", "utf8");
+  assert.match(css, /\.ip-page \.isi-drawer-scroll\s*\{[^}]*display:\s*flex;/s);
+  assert.match(css, /\.ip-page \.isi-drawer-scroll\s*>\s*\.isi-accordion\s*\{[^}]*flex:\s*0 0 auto;/s);
+  assert.match(css, /\.ip-page \.isi-drawer-scroll \.isi-section-content\s*\{[^}]*overflow:\s*visible;/s);
 });

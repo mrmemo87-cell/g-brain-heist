@@ -22,6 +22,7 @@ import {
 } from "../../../services/ieltsLessonResources";
 import { teacherLessonTwo, type TeacherLessonTwo } from "../../../services/ieltsLessonTwoService";
 import IeltsLessonTwoPanel from "./IeltsLessonTwoPanel";
+import IeltsTeacherDisclosure from "../../components/ielts/IeltsTeacherDisclosure";
 import "../../styles/ielts-lessons.css";
 export default function IeltsLessonLibrary({
   schoolId,
@@ -210,6 +211,7 @@ export default function IeltsLessonLibrary({
       {!data && !error && <p role="status">Opening your school’s lesson pack…</p>}
       {data && (
         <div className="lesson-library-content">
+          <IeltsTeacherDisclosure title="Lesson 01 · Can you beat the IELTS trap?" hint="Lesson essentials, outcomes and quick teaching actions" icon="✦" marker="60 min" defaultExpanded>
           <article className="lesson-overview" aria-labelledby="lesson-one-title">
             <div className="lesson-overview-head">
               <div>
@@ -236,13 +238,16 @@ export default function IeltsLessonLibrary({
               <button type="button" className="sp-secondary" onClick={onAssign}>Open practice assignment tools</button>
             </div>
           </article>
+          </IeltsTeacherDisclosure>
 
+          <IeltsTeacherDisclosure title="Lesson resources" hint="Prepare, present, share student files and keep teacher keys safe" icon="▤" defaultExpanded>
           <section className="lesson-library-resources" aria-labelledby="lesson-resources-title">
             <div className="lesson-section-heading">
               <h3 id="lesson-resources-title">Lesson resources</h3>
               <p className="lesson-muted">Pick what you need. Teacher-only files contain answers.</p>
             </div>
             <div className="lesson-resource-grid">
+              <IeltsTeacherDisclosure title="01 · Before class" hint="Teacher plan and step-by-step setup" icon="▣" marker="2 files" defaultExpanded>
               <section className="lesson-resource-group" aria-labelledby="lesson-prep-title">
                 <h4 id="lesson-prep-title">01 · Before class</h4>
                 <div className="lesson-resource-actions">
@@ -250,6 +255,8 @@ export default function IeltsLessonLibrary({
                   <button type="button" className="sp-secondary" disabled={!ready || busy} onClick={() => resource("plan")}>Download teacher plan (HTML)</button>
                 </div>
               </section>
+              </IeltsTeacherDisclosure>
+              <IeltsTeacherDisclosure title="02 · Present" hint="Slides and PowerPoint teaching tools" icon="▤" marker="3 files" defaultExpanded>
               <section className="lesson-resource-group" aria-labelledby="lesson-present-title">
                 <h4 id="lesson-present-title">02 · Present</h4>
                 <div className="lesson-resource-actions">
@@ -275,6 +282,8 @@ export default function IeltsLessonLibrary({
                 </div>
                 <p className="lesson-resource-note">Teacher only: slides contain answer reveals. Advance manually after students commit.</p>
               </section>
+              </IeltsTeacherDisclosure>
+              <IeltsTeacherDisclosure title="03 · Give students" hint="Shareable student workbook and Reading practice" icon="▧" marker="2 files" defaultExpanded={false}>
               <section className="lesson-resource-group" aria-labelledby="lesson-students-title">
                 <h4 id="lesson-students-title">03 · Give students</h4>
                 <div className="lesson-resource-actions">
@@ -286,6 +295,8 @@ export default function IeltsLessonLibrary({
                 {!data.reading_backup && <p className="lesson-resource-note">Approved paper Reading backup is unavailable.</p>}
                 <p className="lesson-resource-note">Student files exclude teacher answers. Print from the browser if needed.</p>
               </section>
+              </IeltsTeacherDisclosure>
+              <IeltsTeacherDisclosure title="04 · Teacher only" hint="Private scripts, answer keys and backup" icon="◆" marker="3 files" defaultExpanded={false}>
               <section className="lesson-resource-group lesson-resource-private" aria-labelledby="lesson-keys-title">
                 <h4 id="lesson-keys-title">04 · Teacher only</h4>
                 <div className="lesson-resource-actions">
@@ -297,9 +308,12 @@ export default function IeltsLessonLibrary({
                 </div>
                 <p className="lesson-resource-note">Keep answer keys and listening scripts private.</p>
               </section>
+              </IeltsTeacherDisclosure>
             </div>
           </section>
+          </IeltsTeacherDisclosure>
 
+          <IeltsTeacherDisclosure title="Approved Listening audio" hint="Listen or download L-003 and L-004; no autoplay" icon="♫" defaultExpanded={false} onToggle={(expanded) => { if (!expanded) Object.values(players.current).forEach((player) => player?.pause()); }}>
           <section className="lesson-audio-section" aria-labelledby="lesson-audio-title">
             <div className="lesson-section-heading">
               <h3 id="lesson-audio-title">Approved Listening audio</h3>
@@ -334,7 +348,9 @@ export default function IeltsLessonLibrary({
               ))}
             </div>
           </section>
+          </IeltsTeacherDisclosure>
 
+          <IeltsTeacherDisclosure title="Teaching sequence & contingencies" hint="Minute-by-minute plan, preparation, Reading and backup" icon="◷" defaultExpanded={false}>
           <section className="lesson-library-guidance" aria-label="Optional lesson instructions">
             <details className="lesson-details">
               <summary>60-minute teaching sequence</summary>
@@ -361,7 +377,12 @@ export default function IeltsLessonLibrary({
               </div>
             </details>
           </section>
-          {lessonTwo ? <IeltsLessonTwoPanel pack={lessonTwo} onProgress={onProgress} /> : <p className="lesson-library-upcoming"><strong>Next lesson:</strong> IELTS-02 is not released for this school.</p>}
+          </IeltsTeacherDisclosure>
+          {lessonTwo ? (
+            <IeltsTeacherDisclosure title={"Lesson 02 · " + lessonTwo.content.title} hint="Open the next approved lesson pack and classroom resources" icon="✦" defaultExpanded={false}>
+              <IeltsLessonTwoPanel pack={lessonTwo} onProgress={onProgress} />
+            </IeltsTeacherDisclosure>
+          ) : <p className="lesson-library-upcoming"><strong>Next lesson:</strong> IELTS-02 is not released for this school.</p>}
         </div>
       )}
     </section>
