@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const app = readFileSync('App.tsx', 'utf8');
 const gameService = readFileSync('services/gameService.ts', 'utf8');
+const presenceService = readFileSync('services/presenceService.ts', 'utf8');
 const heartbeatCall = "supabase.rpc('rpc_touch_last_seen')";
 
 function assertHeartbeatQueriesAreExecuted(source: string, label: string, expectedCalls: number) {
@@ -38,6 +39,7 @@ test('presence heartbeats consume Supabase RPC builders instead of treating them
     'Supabase query builders expose then(), not catch(), at runtime',
   );
 
-  assertHeartbeatQueriesAreExecuted(app, 'App.tsx', 1);
-  assertHeartbeatQueriesAreExecuted(gameService, 'services/gameService.ts', 2);
+  assertHeartbeatQueriesAreExecuted(presenceService, 'services/presenceService.ts', 1);
+  assert.equal((app.match(/void touchPlayerPresence\(\)/g) || []).length, 1);
+  assert.equal((gameService.match(/void touchPlayerPresence\(\)/g) || []).length, 2);
 });

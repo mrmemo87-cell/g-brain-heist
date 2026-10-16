@@ -1,3 +1,4 @@
+import { responseCoverage, coverageLabel, coverageNextStep } from '../../../services/ieltsResponseCoverage';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchIeltsDiagnosticResult, type IeltsDiagnosticResult } from '../../../services/ieltsDiagnosticEvidenceService';
@@ -47,6 +48,7 @@ export default function IeltsGovernedScreenerResult() {
       .catch(() => { if (active) setError('This result could not open. Check your access and connection, then try again.'); });
     return () => { active = false; };
   }, [attemptId, retry]);
+  const coverage = responseCoverage(result?.confidence.items_answered, result?.confidence.items_possible);
   const warnings = result ? [...new Set(result.warnings)] : [];
   return <main className="ix-workspace isr-page">
     <a className="isr-back" href={back.href}>← {back.label}</a>
@@ -59,7 +61,7 @@ export default function IeltsGovernedScreenerResult() {
       : !result ? <section className="ix-panel" role="status">Opening saved evidence…</section>
       : <>
         <section className="ix-panel isr-evidence" aria-labelledby="isr-score-heading">
-          <div className="isr-evidence-header"><h2 id="isr-score-heading">Starting evidence</h2><span className="ix-status">Short check · More evidence needed</span></div>
+          <div className="isr-evidence-header"><h2 id="isr-score-heading">{coverage === 'complete' ? 'Starting evidence' : coverageLabel(coverage)}</h2><span className="ix-status">Short check · More evidence needed</span></div>
           <dl className="isr-metrics">
             <div className="isr-score"><dt>Screener score</dt><dd>{result.raw_score} <span>/ {result.marks_possible}</span></dd><p>Marks recorded in this short check</p></div>
             <div><dt>Items answered</dt><dd>{result.confidence.items_answered} <span>/ {result.confidence.items_possible}</span></dd><p>Response coverage</p></div>
@@ -69,7 +71,7 @@ export default function IeltsGovernedScreenerResult() {
         </section>
         <section className="ix-panel isr-next" aria-labelledby="isr-next-heading">
           <p className="ix-eyebrow">The next step</p><h2 id="isr-next-heading">{back.staff ? 'Guide the next learning conversation' : 'Make the next check count'}</h2>
-          <p>{result.next_step}</p>
+          <p>{coverageNextStep(coverage, result.next_step)}</p>
           <a className="ix-button ix-button--primary" href={back.href}>{back.label} →</a>
         </section>
         <section className="ix-panel isr-notes" aria-labelledby="isr-notes-heading">

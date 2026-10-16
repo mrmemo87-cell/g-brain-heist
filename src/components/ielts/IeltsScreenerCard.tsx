@@ -1,3 +1,4 @@
+import { responseCoverage, coverageLabel } from '../../../services/ieltsResponseCoverage';
 import React from 'react';
 import type { IeltsScreenerEntry } from '../../../services/ieltsScreenerLaunchService';
 import {
@@ -32,6 +33,8 @@ export const IeltsScreenerCard: React.FC<CardProps> = ({
     : entry?.status === 'in_progress';
   const expired = entry?.status === 'expired';
   const productive = skill === 'writing' || speaking;
+  const coverage = responseCoverage(evidence?.items_answered, evidence?.total);
+  const needsEvidence = completed && !productive && coverage !== 'complete';
   const discoveryRoute = startingPointRoute(skill);
   const savedRoute = evidence
     ? startingPointRoute(skill, evidence)
@@ -47,7 +50,7 @@ export const IeltsScreenerCard: React.FC<CardProps> = ({
       ? evidence?.review
         ? 'Feedback ready'
         : 'Awaiting review'
-      : 'Completed'
+      : coverageLabel(coverage)
     : resume
       ? 'In progress'
       : expired
@@ -97,7 +100,7 @@ export const IeltsScreenerCard: React.FC<CardProps> = ({
         <span className={`ij-icon ij-${skill}`}>
           <IeltsSkillIcon skill={skill} />
         </span>
-        <span className={`ij-status ${completed ? 'ij-status-saved' : ''}`}>
+        <span className={`ij-status ${completed && !needsEvidence ? 'ij-status-saved' : ''}`}>
           {resultPending ? 'Result pending' : status}
         </span>
       </div>
@@ -123,7 +126,7 @@ export const IeltsScreenerCard: React.FC<CardProps> = ({
       {evidence && (skill === 'listening' || skill === 'reading') && (
         <strong className="ij-result">
           {evidence.raw_score} / {evidence.total}
-          <small>Screener score · Confidence: low</small>
+          <small>Recorded score · {evidence.items_answered ?? 'Unknown'} of {evidence.total} answered · Confidence: low</small>
         </strong>
       )}
       <p className="ij-card-note">
@@ -132,7 +135,9 @@ export const IeltsScreenerCard: React.FC<CardProps> = ({
             ? evidence?.review
               ? 'Your teacher’s comments and next practice step are ready.'
               : 'Your work is saved. Your teacher will share feedback after review.'
-            : resultPending
+            : needsEvidence
+              ? 'This record needs teacher review and a fresh check. Missing responses do not show inability. Complete the other available screeners meanwhile.'
+              : resultPending
               ? 'Your answers are saved. Your result is not available yet.'
               : 'Your answers are saved. Open your record to see the result.'
           : resume
@@ -140,7 +145,7 @@ export const IeltsScreenerCard: React.FC<CardProps> = ({
               ? 'Continue this interview with your teacher.'
               : 'Continue your saved attempt with its remaining time.'
             : expired
-              ? 'Open your attempt to finish saving and see its result.'
+              ? 'Your timer has ended. Open the saved attempt to confirm its status, then ask your teacher about a fresh check.'
               : 'Build your starting point and find a useful practice focus.'}
       </p>
       {evidence?.conditions_need_review && (
