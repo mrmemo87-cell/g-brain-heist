@@ -104,5 +104,5 @@ test('coached practice cannot count as independent mastery evidence', () => {
 test('targeted practice stays inside the branded teacher portal shell', () => {
   assert.match(shell, /InterventionTargetedPracticeWorkspace/);
   assert.match(shell, /onCreateTargetedPractice=\{openTargetedPractice\}/);
-  assert.match(shell, /activeLabel = targetedPractice \? 'Assignments'/);
+  assert.match(shell, /activeNavigationSection=\{targetedPractice \? 'assignments'/);
 });

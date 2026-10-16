@@ -13,7 +13,7 @@
     "guard:school-admin-portal": "node scripts/check-school-admin-portal-integrity.mjs",
     "test:clean": "rm -rf dist-tests",
     "test:build": "tsc --project tsconfig.tests.json && node scripts/fix-test-esm-imports.mjs",
-    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js && npm run test:ielts:programme && npm run test:classroom:db",
+    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js && npm run test:ielts:programme && npm run test:language:dom && npm run test:classroom:db && npm run test:teacher-assignment-cards && npm run test:teacher-sidebar && npm run test:student-assignments && npm run test:retention",
     "load:leaderboard": "k6 run load-tests/leaderboard.js",
     "load:shop": "k6 run load-tests/shop.js",
     "load:pvp": "k6 run load-tests/pvp.js",
@@ -29,9 +29,15 @@
     "playwright:install": "playwright install --with-deps chromium",
     "verify": "npm run guard:school-admin-portal && npm run questions:validate-verified-package && npm run questions:validate-taxonomy-review && npm run typecheck && npm run security:migrations && npm run build && npm test && git diff --check",
     "prepr": "npm run verify",
-    "test:ielts:programme": "node --test tests/ieltsProgrammeDom.test.mjs tests/questAssignmentLoadingDom.test.mjs",
-    "test:classroom:db": "node --test tests/classroomDatabase.test.mjs tests/classroomScopedReads.test.mjs tests/authBootstrapDatabase.test.mjs tests/ieltsGovernedEvidenceDatabase.test.mjs tests/ieltsSpeakingPilotDatabase.test.mjs",
-    "load:classroom": "k6 run load-tests/classroom.js"
+    "test:ielts:programme": "node --test --test-concurrency=1 tests/ieltsReadingSubmissionDom.test.mjs tests/ieltsScreenerResultDom.test.mjs tests/ieltsUiDom.test.mjs tests/ieltsPlanAiFunction.test.mjs tests/ieltsMonthlyReportsDom.test.mjs tests/ieltsPlanAiDraft.test.mjs tests/ieltsTeacherPracticeHistoryDom.test.mjs tests/ieltsStudentNavigationDom.test.mjs tests/ieltsProgrammeDom.test.mjs tests/questAssignmentLoadingDom.test.mjs tests/ieltsJourneyDom.test.mjs tests/ieltsTeacherProgrammeEntryDom.test.mjs tests/ieltsWritingDeliveryDom.test.mjs tests/ieltsLearningDom.test.mjs tests/ieltsMaterialOriginalityDom.test.mjs tests/ieltsLessonDom.test.mjs tests/ieltsLessonResources.test.mjs tests/ieltsLessonDatabase.test.mjs tests/ieltsLessonPowerPoint.test.mjs tests/ieltsCourseBatchesDom.test.mjs tests/ieltsBatchPracticeDom.test.mjs tests/ieltsLegacyCleanupDom.test.mjs tests/ieltsLessonTwoResources.test.mjs",
+    "test:language:dom": "node --test tests/floatingLanguageControlDom.test.mjs",
+    "test:teacher-assignment-cards": "node --test tests/teacherAssignmentCardDom.test.mjs tests/teacherAssignmentToolbarDom.test.mjs",
+    "test:student-assignments": "node --test tests/studentAssignmentDeskDom.test.mjs tests/studentAssignmentNavigationDom.test.mjs",
+    "test:teacher-sidebar": "node --test tests/teacherSidebarViewportDom.test.mjs tests/teacherAcademicMobileNavigationDom.test.mjs",
+    "test:classroom:db": "node --test tests/assignmentEditEvidenceGuard.test.mjs tests/assignmentEditEvidenceDatabase.test.mjs tests/dashboardReadCoalescing.test.mjs tests/workerLeaseRecovery.test.mjs tests/classroomAnalyticsLoadIsolation.test.mjs tests/classroomPreventiveHardening.test.mjs tests/classroomAsyncEvidenceMigration.test.mjs tests/assignmentEvidenceAsyncQueue.test.mjs tests/classroomGuestDatabase.test.mjs tests/classroomPaperDatabase.test.mjs tests/classroomScanDatabase.test.mjs tests/ieltsMonthlyReportsDatabase.test.mjs tests/ieltsTeacherPracticeHistoryDatabase.test.mjs tests/assignmentEvidenceCompletion.test.mjs tests/classroomDatabase.test.mjs tests/classroomScopedReads.test.mjs tests/authBootstrapDatabase.test.mjs tests/ieltsGovernedEvidenceDatabase.test.mjs tests/ieltsDeliveryStatusDatabase.test.mjs tests/ieltsSpeakingPilotDatabase.test.mjs tests/ieltsStartingPointDatabase.test.mjs tests/ieltsTeacherProgrammeEntryDatabase.test.mjs tests/ieltsLearningDatabase.test.mjs tests/ieltsMaterialOriginalityDatabase.test.mjs tests/ieltsEligiblePracticeReleaseDatabase.test.mjs tests/ieltsCourseBatchesDatabase.test.mjs tests/ieltsPracticeBoundariesDatabase.test.mjs tests/ieltsLegacyCleanup.test.mjs tests/ieltsLessonTwoDatabase.test.mjs",
+    "load:classroom": "k6 run load-tests/classroom.js",
+    "load:ielts": "k6 run load-tests/ielts.js",
+    "test:retention": "node --test tests/echo3dRenderer.test.mjs tests/retentionTrialDatabase.test.mjs tests/retentionTrialDom.test.mjs tests/retentionTrialModel.test.mjs tests/retentionSound.test.mjs tests/retentionArtwork.test.mjs tests/retentionCompanionDatabase.test.mjs tests/retentionCompanionDom.test.mjs tests/echoModel.test.mjs tests/echoAvatarDom.test.mjs tests/studentMascotRollout.test.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -40,24 +46,28 @@
     "dompurify": "^3.3.1",
     "fflate": "^0.8.2",
     "gsap": "^3.14.2",
+    "jsqr": "1.4.0",
     "konva": "^10.0.12",
     "lottie-react": "^2.4.1",
+    "qrcode": "1.5.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-konva": "^19.2.1",
-    "react-router-dom": "^7.10.1"
+    "react-router-dom": "^7.10.1",
+    "three": "^0.186.1"
   },
   "devDependencies": {
-    "esbuild": "0.25.11",
     "@electric-sql/pglite": "0.3.14",
     "@types/jsdom": "21.1.7",
     "@types/node": "^22.14.0",
+    "@types/qrcode": "1.5.6",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@vercel/node": "^5.5.15",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.20",
     "canvas": "^3.2.1",
+    "esbuild": "0.25.11",
     "jsdom": "26.1.0",
     "mammoth": "^1.11.0",
     "pdf-parse": "^2.4.5",
@@ -67,6 +77,7 @@
     "tailwindcss": "^3.4.16",
     "tesseract.js": "^7.0.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "@types/three": "^0.186.0"
   }
 }

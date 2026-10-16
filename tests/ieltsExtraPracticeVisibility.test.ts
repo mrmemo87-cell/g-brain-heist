@@ -55,7 +55,8 @@ test('school administrators use the persistent IELTS shell and its single settin
 test('IELTS staff home retires the generic control centre in favour of the shared programme workspace', () => {
   const home = read('src/pages/ielts/IeltsHome.tsx');
   const programme = read('src/pages/ielts/IeltsProgrammeWorkspace.tsx');
-  assert.match(home, /return <IeltsProgrammeWorkspace \/>/);
+  assert.match(home, /<React\.Suspense[^>]*>[\s\S]*?<IeltsProgrammeWorkspace \/>/);
+  assert.match(home, /lazyRetry\(\(\) => import\('\.\/IeltsProgrammeWorkspace'\)/);
   assert.doesNotMatch(home, /Control Center|const adminCards/);
   assert.match(programme, /Student progress/);
   assert.match(programme, /Programme team/);
@@ -88,8 +89,8 @@ test('Extra Practice restriction gates only the catalog and keeps the authentica
   assert.match(home, /hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate=\{navigate\} \/>/, 'non-Prime and pre-diagnostic dashboard users should keep school assignment and journey links');
 
   const schoolLinks = read('src/components/ielts/IeltsSchoolLearnerLinks.tsx');
-  assert.match(schoolLinks, /onNavigate\('\/ielts\/practice\/assigned'\)/, 'school dashboard links should open assigned work');
-  assert.match(schoolLinks, /onNavigate\('\/ielts\/journey'\)/, 'school dashboard links should open the student journey');
+  assert.match(schoolLinks, /route: '\/ielts\/practice\/assigned'/, 'school dashboard links should open assigned work');
+  assert.match(schoolLinks, /route: '\/ielts\/journey'/, 'school dashboard links should open the student journey');
 });
 
 test('IELTS Home resolves auth failures and emits one landing/dashboard view per user identity', () => {

@@ -1,21 +1,25 @@
+@import "./ielts-design-system.css";
+
 :root {
+  /* Compatibility aliases for legacy IELTS pages. */
   --ielts-blue-900: #0b3d91;
-  --ielts-blue-700: #1e5cb3;
-  --ielts-blue-100: #e6f0ff;
-  --ielts-sky-50: #f5f8ff;
-  --ielts-sky-100: #eef3ff;
-  --ielts-slate-900: #0f172a;
-  --ielts-slate-600: #475569;
+  --ielts-blue-700: var(--bh-ielts-primary);
+  --ielts-blue-100: var(--bh-ielts-secondary);
+  --ielts-sky-50: var(--bh-ielts-surface-muted);
+  --ielts-sky-100: var(--bh-ielts-secondary);
+  --ielts-slate-900: var(--bh-ielts-foreground);
+  --ielts-slate-600: var(--bh-ielts-foreground-muted);
   --ielts-slate-400: #94a3b8;
-  --ielts-white: #ffffff;
-  --ielts-border: #d4dcf0;
+  --ielts-white: var(--bh-ielts-surface);
+  --ielts-border: var(--bh-ielts-border);
   --ielts-success: #0f9d58;
   --ielts-warning: #fbbf24;
   --ielts-error: #ef4444;
 }
 
+/* Legacy force-light rules are retained until separate browser/cascade QA. */
 body.ielts-theme {
-  background: #FFFFFF !important;
+  background: var(--bh-ielts-surface) !important;
   background-attachment: fixed !important;
   background-image: none !important;
   color: #0f172a !important;

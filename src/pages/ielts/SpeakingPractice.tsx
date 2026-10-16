@@ -1,3 +1,5 @@
+import IeltsMaterialProvenance from "../../components/ielts/IeltsMaterialProvenance";
+import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -9,6 +11,8 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { buildSpeakingAttemptPayload } from '../../lib/ieltsPracticeScoring';
 
 interface SpeakingTask {
+  originality_label?: string | null;
+  display_code?: string | null;
   id: number;
   slug: string;
   part: number;
@@ -346,7 +350,7 @@ const SpeakingPractice: React.FC = () => {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%)',
+        background: 'linear-gradient(135deg, #15243A 0%, #193E65 55%, #15243A 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -394,7 +398,7 @@ const SpeakingPractice: React.FC = () => {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        background: 'linear-gradient(135deg, #15243A 0%, #234566 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -458,6 +462,7 @@ const SpeakingPractice: React.FC = () => {
           <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
             Speaking submitted
           </h1>
+          <p>{ieltsMaterialTitle(task.display_code, `Speaking Practice · Part ${task.part}`)}<IeltsMaterialProvenance label={task.originality_label}/></p>
           <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b', marginBottom: '1rem' }}>
             Your recording was saved.
           </p>
@@ -494,7 +499,7 @@ const SpeakingPractice: React.FC = () => {
             onClick={() => navigate('/ielts')}
             style={{
               padding: '0.875rem 2rem',
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              background: 'linear-gradient(135deg, #1746B0 0%, #103B9A 100%)',
               color: 'white',
               border: 'none',
               borderRadius: '0.5rem',
@@ -537,7 +542,7 @@ const SpeakingPractice: React.FC = () => {
                 IELTS Speaking - Part {task.part}
               </div>
               <h1 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>
-                Speaking Practice
+                {ieltsMaterialTitle(task.display_code, "Speaking Practice")}<IeltsMaterialProvenance label={task.originality_label}/>
               </h1>
             </div>
             <button

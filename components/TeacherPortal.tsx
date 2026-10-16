@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
+import RetentionTrialGate from '../src/features/retention/RetentionTrialGate';
+const RetentionTeacherPanel = React.lazy(() => import('../src/features/retention/RetentionTeacherPanel'));
 import { createPortal } from 'react-dom';
 import DOMPurify from 'dompurify';
 import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, QuestionType, TeacherAssignmentSummary, TeacherAssignmentReportRow, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis, AssignmentBatch, AssignmentCategory } from '../types';
@@ -14,7 +16,6 @@ import {
 import { supabase } from '../services/supabaseClient';
 import { getAcademicReportingContext, type AcademicReportingYear } from '../services/academicReportingService';
 import { fetchTeacherAssignmentDiagnosticIntelligence, type TeacherAssignmentDiagnosticIntelligence } from '../services/teacherDiagnosticService';
-import { fetchPrintableTeacherAssignment, openPrintableTeacherAssignment } from '../services/teacherAssignmentPrintService';
 import type { PreparedDiagnostic } from '../services/diagnosticComposerService';
 import { useAssignmentQuestionSelection } from '../src/hooks/useAssignmentQuestionSelection';
 import BackButton from './BackButton';
@@ -25,15 +26,20 @@ import { NotificationCenter } from './NotificationCenter';
 const DiagramBuilder = React.lazy(() => import('./geometry/DiagramBuilder'));
 const QuestionBank = React.lazy(() => import('./teacher/QuestionBank'));
 const QuestionBatchWorkspace = React.lazy(() => import('./teacher/QuestionBatchWorkspace'));
+const PaperAssignmentWorkspace = React.lazy(() => import('./teacher/PaperAssignmentWorkspace'));
 const AssignmentWizard = React.lazy(() => import('./teacher/AssignmentWizard'));
 const DiagnosticComposer = React.lazy(() => import('./teacher/DiagnosticComposer'));
 import DiagnosticIntelligencePanel, { DiagnosticStudentSkillMap } from './teacher/DiagnosticIntelligencePanel';
+import AssignmentCard from './teacher/AssignmentCard';
+import AssignmentToolbar from './teacher/AssignmentToolbar';
+import TeacherWorkspaceIcon, { teacherMobileLabel } from './teacher/TeacherWorkspaceIcon';
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
+import '../src/styles/teacher-professional.css';
 import { brainsAlert, brainsConfirm } from '../src/utils/brainsAlert';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz } from './biologyReviewAnswerKey';
-import { getQuestionsForQuiz, type QuestionData } from './cambridgeQuestionData';
+import type { QuestionData } from './cambridgeQuestionData';
 import {
   CAMBRIDGE_LISTENING_TEST_1_ANSWER_KEY,
   CAMBRIDGE_LISTENING_TEST_1_QUESTIONS,
@@ -61,6 +67,7 @@ import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
+import { useTeacherSidebarViewport } from '../src/hooks/useTeacherSidebarViewport';
 import {
   createSchoolDocumentId,
   escapeSchoolDocumentHtml,
@@ -76,6 +83,9 @@ import {
 } from '../src/lib/teacherQuestionBulkImport';
 
 import { ProfileIcon } from './student-progress/AcademicProfilePremium';
+import { useIeltsTeacherProgrammeEntry } from '../src/hooks/useIeltsTeacherProgrammeEntry';
+import TeacherIeltsProgrammeShortcut, { IeltsProgrammeIcon } from './teacher/TeacherIeltsProgrammeShortcut';
+import { teacherProgrammeRoute } from '../services/ieltsTeacherProgrammeEntry';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -86,6 +96,8 @@ interface TeacherPortalProps {
   onOpenSchoolAdmin?: () => void;
   initialView?: PortalView;
   academicProfilePresentation?: boolean;
+  activeNavigationSection?: TeacherNavSection;
+  onNavigateSection?: (section: TeacherNavSection) => boolean;
   onAssignmentSummary?: (summary: GameService.TeacherAssignmentSuccessSummary | null) => void;
 }
 
@@ -93,7 +105,7 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 
 export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'question-batch' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
-type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school';
+export type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school' | 'ielts-programme';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
 const TEACHER_VIEW_FEATURES: Partial<Record<PortalView, FeatureKey>> = {
@@ -195,7 +207,8 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
   return { grammar, punctuation };
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard', onAssignmentSummary, academicProfilePresentation = false }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard', onAssignmentSummary, academicProfilePresentation = false, activeNavigationSection, onNavigateSection }) => {
+  const ieltsProgramme = useIeltsTeacherProgrammeEntry(profile.id, profile.role, profile.school_id);
   const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
   const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
   const initialWritingSection: WritingHubSection =
@@ -607,6 +620,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentCloseAfterDue, setAssignmentCloseAfterDue] = useState(false);
   const [assignmentNotifyByEmail, setAssignmentNotifyByEmail] = useState(false);
   const [assignmentSuccess, setAssignmentSuccess] = useState<GameService.TeacherAssignmentSuccessSummary | null>(null);
+  const [paperWorkspaceMode, setPaperWorkspaceMode] = useState<"manual" | "scan">("manual");
+  const [paperAssignment, setPaperAssignment] = useState<TeacherAssignmentSummary | null>(null);
+  const [assignmentDelivery, setAssignmentDelivery] = useState<'online' | 'paper' | 'mixed'>('online');
   const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
   const [assignmentBatches, setAssignmentBatches] = useState<string[]>([]);
   const [assignmentGroupId, setAssignmentGroupId] = useState('');
@@ -720,6 +736,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [showCambridgeReport, setShowCambridgeReport] = useState(false);
   const [showCambridgeAnswers, setShowCambridgeAnswers] = useState(false);
   const [selectedCambridgeStudent, setSelectedCambridgeStudent] = useState<any | null>(null);
+  const [cambridgeQuestionLookup, setCambridgeQuestionLookup] = useState<typeof import('./cambridgeQuestionData')['getQuestionsForQuiz'] | null>(null);
+  const [cambridgeQuestionsError, setCambridgeQuestionsError] = useState(false);
+  const [cambridgeQuestionsRetry, setCambridgeQuestionsRetry] = useState(0);
+  useEffect(() => {
+    if (!showCambridgeAnswers || !selectedCambridgeStudent || cambridgeQuestionLookup) return;
+    let cancelled = false; setCambridgeQuestionsError(false);
+    void import('./cambridgeQuestionData').then((module) => { if (!cancelled) setCambridgeQuestionLookup(() => module.getQuestionsForQuiz); })
+      .catch(() => { if (!cancelled) setCambridgeQuestionsError(true); });
+    return () => { cancelled = true; };
+  }, [showCambridgeAnswers, selectedCambridgeStudent?.quiz_name, cambridgeQuestionLookup, cambridgeQuestionsRetry]);
   const [showStudentOverviewReport, setShowStudentOverviewReport] = useState(false);
   const [studentOverviewData, setStudentOverviewData] = useState<StudentOverviewReportData | null>(null);
   const [cambridgeDrawerOpen, setCambridgeDrawerOpen] = useState(false);
@@ -1010,6 +1036,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       if (!labels.has(key)) labels.set(key, label);
     };
 
+    teachingGroups.forEach((group) => rememberClass(group.name));
     allocatedClasses.forEach((item) => {
       if (item.is_active) rememberClass(item.class_code);
     });
@@ -1022,7 +1049,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     });
 
     return [...labels.values()].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-  }, [allocatedClasses, assignments]);
+  }, [allocatedClasses, assignments, teachingGroups]);
 
   const assignmentFolderCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -1100,6 +1127,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     );
   }, [availableStudents, studentSearchTerm]);
   const primarySection = useMemo<TeacherNavSection>(() => {
+    if (activeNavigationSection) return activeNavigationSection;
     if (view === 'dashboard') return 'dashboard';
     if (view === 'students') return 'students';
     if (view === 'academic-profiles') return 'academic-profiles';
@@ -1113,11 +1141,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (view === 'clan-wars') return 'clan-wars';
     if (view === 'cambridge-reports') return 'cambridge';
     return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
-  }, [view]);
+  }, [view, activeNavigationSection]);
   const {
     navigationRef: mobileNavigationRef,
     revealNavigation: revealMobileNavigation,
   } = useSmartCollapsedNavigation(view, TEACHER_MOBILE_NAV_QUERY);
+  const desktopSidebarRef = useTeacherSidebarViewport();
 
   const changeSection = async (section: TeacherNavSection) => {
     revealMobileNavigation();
@@ -1150,7 +1179,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         if (!confirmed) return;
       }
     }
+    // Notify the shell only after access checks and any discard confirmation.
+    if (onNavigateSection?.(section)) return;
     switch (section) {
+      case 'ielts-programme':
+        if (ieltsProgramme.entry) window.location.assign(teacherProgrammeRoute(ieltsProgramme.entry));
+        break;
       case 'dashboard':
         setView('dashboard');
         break;
@@ -3824,6 +3858,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentAssignedAt(new Date().toISOString().slice(0, 16));
     setAssignmentPublishStatus('published');
     setAssignmentCategory(null);
+    setAssignmentDelivery('online');
     setAssignmentCloseAfterDue(false);
     setAssignmentNotifyByEmail(false);
     setEditingAssignment(null);
@@ -3919,6 +3954,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setAssignmentDifficulty((assignment.difficulty || 'easy') as QuestionDifficulty);
     setAssignmentGroupId(assignment.subject_group_id || '');
     setAssignmentMode(assignment.assignment_mode || 'batch');
+    setAssignmentDelivery(assignment.delivery_mode || 'online');
     setAssignmentBatches(assignment.assignment_mode === 'custom' ? [] : assignment.batch ? [assignment.batch] : []);
     setSelectedStudentIds(assignment.student_ids || []);
     setAssignmentPublishStatus(assignment.publish_status || (new Date(assignment.assigned_at).getTime() > Date.now() ? 'scheduled' : 'published'));
@@ -4035,6 +4071,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         description: assignmentDescription || undefined,
         instructions: assignmentInstructions || undefined,
         difficulty: assignmentDifficulty,
+        delivery_mode: assignmentDelivery,
         assignment_category: assignmentCategory,
         client_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
         publish_status: publishStatus,
@@ -4159,6 +4196,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       p_assignment_id: assignment.id,
       p_teacher_id: teacherId,
     });
+    const completionRequest = supabase.rpc('rpc_teacher_assignment_delivery_context', { p_assignment_ids: [assignment.id] });
     const analysisRequest = supabase.rpc('rpc_get_assignment_question_analysis', {
       p_assignment_id: assignment.id,
       p_teacher_id: teacherId,
@@ -4169,12 +4207,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     const loadReportRows = async () => {
       try {
-        const { data, error } = await reportRequest;
+        const [{ data, error }, { data: completionData, error: completionError }] = await Promise.all([reportRequest, completionRequest]);
+        if (completionError) throw new Error('Completion details could not be loaded. Please retry.');
+        const completionByStudent = new Map<string, { completion_source: 'paper' | 'online'; timing_available: boolean }>((completionData?.[0]?.completions || []).map((row: { student_id: string; completion_source: 'paper' | 'online'; timing_available: boolean }) => [row.student_id, row]));
         if (error) throw new Error(error.message || 'Failed to load report');
         if (requestId !== reportLoadRequestRef.current) return;
         const rows = (((data as TeacherAssignmentReportRow[] | null) || [])).map((row) => ({
           ...row,
           student_name: officialNames.get(row.student_id) || row.student_name || 'Student name unavailable',
+          ...completionByStudent.get(row.student_id),
         }));
         setAssignmentReport(rows);
         setAssignments((current) => current.map((item) => item.id === assignment.id ? { ...item, completed_count: rows.length } : item));
@@ -4257,7 +4298,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
 
-    const csvHeader = 'Student,Class,Score,Correct,Incorrect,Accuracy (%),Completed At';
+    const csvHeader = 'Student,Class,Score,Correct,Incorrect,Accuracy (%),Completed At,Completion source';
     const header = csvHeader.split(',').map(safeCsvCell).join(',');
     const rows = assignmentReport.map((row) => (
       [
@@ -4268,6 +4309,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         row.incorrect,
         row.accuracy,
         new Date(row.completed_at).toLocaleString(),
+        row.completion_source === 'paper' ? 'Paper - Teacher confirmed' : 'Online',
       ].map(safeCsvCell).join(',')
     ));
     const csv = [header, ...rows].join('\n');
@@ -4286,7 +4328,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const answerRows = audience === 'teacher' && studentAnswers.length
       ? studentAnswers.map((answer, index) => `
         <article class="document-card">
-          <strong>Question ${index + 1} · ${answer.is_correct ? 'Correct' : 'Needs review'} · ${Math.round(answer.time_taken_ms / 1000)}s</strong>
+          <strong>Question ${index + 1} · ${answer.is_correct ? 'Correct' : 'Needs review'} · ${selectedAnalysisStudent?.completion_source === 'paper' ? 'Paper · Timing unavailable' : `${Math.round(answer.time_taken_ms / 1000)}s`}</strong>
           <p>${escapeSchoolDocumentHtml(answer.question_text)}</p>
           <div class="document-grid"><div><strong>Student answer</strong><p>${escapeSchoolDocumentHtml(answer.student_answer || 'No answer')}</p></div><div><strong>Correct answer</strong><p>${escapeSchoolDocumentHtml(answer.correct_answer)}</p></div></div>
           ${answer.explanation ? `<div class="document-callout"><strong>Teacher explanation</strong><p>${escapeSchoolDocumentHtml(answer.explanation)}</p></div>` : ''}
@@ -4546,7 +4588,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         <p className="teacher-section-subtitle">Manage your classes, questions, and track student progress</p>
       </div>
 
+      <RetentionTrialGate userId={profile.id}>
+        <RetentionTeacherPanel userId={profile.id} name={profile.username} submissions={assignmentSuccess ? totalSubmissions : null}
+          activeAssignments={activeAssignments} pendingReviews={pendingWriting} followups={assignmentSuccess?.followups || []}
+          reportsAllowed={canUseTeacherFeature(FEATURE_KEYS.REPORTS)} assignmentsAllowed={canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
+          onReports={() => openEntitledView('reports', 'Reports')} onAssignments={() => openEntitledView('assignments', 'Assignments')}
+          onInterventions={() => openEntitledView('interventions', 'Interventions')} />
+      </RetentionTrialGate>
       {/* Dashboard shortcuts */}
+      <TeacherIeltsProgrammeShortcut entry={ieltsProgramme.entry} failed={ieltsProgramme.failed} onRetry={ieltsProgramme.retry} />
       <div className="teacher-stats-grid">
         <button type="button" onClick={() => setView('students')} className="teacher-dashboard-stat cyan text-left" aria-label="Open My Classes">
           <div className="teacher-dashboard-stat-info">
@@ -4554,7 +4604,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <div className="teacher-dashboard-stat-value">{myClasses.length || 0}</div>
             <p className="teacher-dashboard-stat-sub">{myClasses.join(' · ') || 'No classes assigned'}</p>
           </div>
-          <div className="teacher-dashboard-stat-icon">🏫</div>
+          <div className="teacher-dashboard-stat-icon"><TeacherWorkspaceIcon name="classes" /></div>
         </button>
 
         <button
@@ -4569,7 +4619,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <div className="teacher-dashboard-stat-value">{assignments.length}</div>
             <p className="teacher-dashboard-stat-sub">{activeAssignments} in progress</p>
           </div>
-          <div className="teacher-dashboard-stat-icon">📋</div>
+          <div className="teacher-dashboard-stat-icon"><TeacherWorkspaceIcon name="assignments" /></div>
         </button>
 
         <button
@@ -4672,7 +4722,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           >
             {isDisabled('Question Bank') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
             {quotaBadge('Question Bank')}
-            <div className="teacher-action-icon">📚</div>
+            <div className="teacher-action-icon"><TeacherWorkspaceIcon name="questions" /></div>
             <h4 className="teacher-action-title">Question Bank</h4>
             <p className="teacher-action-desc">View and manage all questions</p>
           </button>
@@ -4685,7 +4735,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           >
             {isDisabled('New Assignment') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
             {quotaBadge('New Assignment')}
-            <div className="teacher-action-icon">📋</div>
+            <div className="teacher-action-icon"><TeacherWorkspaceIcon name="assignments" /></div>
             <h4 className="teacher-action-title">New Assignment</h4>
             <p className="teacher-action-desc">Assign work to students</p>
           </button>
@@ -4958,7 +5008,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       </button>
 
       <h2 className="text-2xl font-bold text-slate-800 mb-6">
-        {editingQuestion ? '✏️ Edit Question' : '➕ Create New Question'}
+        {editingQuestion ? 'Edit Question' : 'Create New Question'}
       </h2>
 
       {/* Question type selector */}
@@ -5891,7 +5941,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       <div className="space-y-6">
         <div className="teacher-section-header">
           <div>
-            <h2>🏫 My Classes</h2>
+            <h2>My Classes</h2>
             <p className="text-sm text-slate-500 mt-1">Each teaching group stays separate, including custom groups such as ESL.</p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -6002,212 +6052,29 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
 
-    setPrintingAssignmentId(assignment.id);
-    try {
-      const packet = await fetchPrintableTeacherAssignment(assignment.id);
-      if (!packet.questions.length) {
-        brainsAlert('This assignment does not contain printable questions.', 'info');
-        return;
-      }
-      openPrintableTeacherAssignment({
-        packet,
-        schoolName: resolvedBranding.schoolName,
-        schoolLogoUrl: resolvedBranding.schoolLogoUrl,
-        schoolId: profile.school_id,
-        teacherName: profile.full_name || profile.username || 'Teacher',
-      });
-    } catch (error) {
-      console.error('Error preparing assignment paper:', error);
-      brainsAlert(error instanceof Error ? error.message : 'Unable to prepare the printable assignment.', 'error');
-    } finally {
-      setPrintingAssignmentId(null);
-    }
+    setPaperWorkspaceMode('scan');
+    setPaperAssignment(assignment);
   };
 
   const renderAssignments = () => (
-    <div className="space-y-6">
-      {/* Header with Title and Create Button */}
-      <div className="teacher-section-header">
-        <div>
-          <h2>🗂️ Assignments</h2>
-          <p className="mt-1 text-sm text-slate-500">Create normal assignments or prepare a governed diagnostic, then review everything in the same Assignment Wizard.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => openDiagnosticComposer()}
-            className={`teacher-btn border border-cyan-200 bg-cyan-50 text-cyan-800 hover:bg-cyan-100 ${!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            disabled={!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
-          >
-            ✦ Create Diagnostic
-          </button>
-          <button
-            onClick={openBlankAssignmentForm}
-            className={`teacher-btn teacher-btn-primary ${!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            disabled={!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
-          >
-            ➕ New Assignment
-          </button>
-        </div>
-      </div>
-
-      {assignments.length > 0 && (
-        <div className="teacher-card p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Class folders</p>
-              <p className="mt-1 text-sm text-slate-500">Keep each class's assignments separate while preserving one shared assignment system.</p>
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Assignment folders by class">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={assignmentClassFilter === 'all'}
-              onClick={() => setAssignmentClassFilter('all')}
-              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition ${assignmentClassFilter === 'all' ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50'}`}
-            >
-              <span aria-hidden="true">🗂️</span> All <span className={`rounded-full px-2 py-0.5 text-xs ${assignmentClassFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>{assignments.length}</span>
-            </button>
-            {assignmentClassFolders.map((classCode) => {
-              const selected = assignmentClassFilter.toLocaleLowerCase() === classCode.toLocaleLowerCase();
-              const count = assignmentFolderCounts.get(classCode.toLocaleLowerCase()) || 0;
-              return (
-                <button
-                  key={classCode}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => setAssignmentClassFilter(classCode)}
-                  className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition ${selected ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50'}`}
-                >
-                  <span aria-hidden="true">📁</span> {classCode} <span className={`rounded-full px-2 py-0.5 text-xs ${selected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>{count}</span>
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              role="tab"
-              aria-selected={assignmentClassFilter === 'individual'}
-              onClick={() => setAssignmentClassFilter('individual')}
-              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition ${assignmentClassFilter === 'individual' ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50'}`}
-            >
-              <span aria-hidden="true">👤</span> Individual <span className={`rounded-full px-2 py-0.5 text-xs ${assignmentClassFilter === 'individual' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>{assignmentFolderCounts.get('individual') || 0}</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Existing search / subject / status filters stay scoped to the selected class folder. */}
-      {assignments.length > 0 && (
-        <div className="teacher-card p-4">
-          <div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_minmax(0,1.5fr)_minmax(0,1fr)]">
-            {/* Search Bar */}
-            <div className="flex-1 w-full lg:w-auto">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                <input
-                  type="text"
-                  placeholder="Search assignments..."
-                  value={assignmentSearchTerm}
-                  onChange={(e) => setAssignmentSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white text-slate-700"
-                />
-              </div>
-            </div>
-
-            <fieldset className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-500">Subject</legend>
-              <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setAssignmentSubjectFilter('all')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  assignmentSubjectFilter === 'all'
-                    ? 'bg-cyan-500 text-white shadow-md'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                📁 All Subjects
-              </button>
-              {assignmentSubjects.map(subject => (
-                <button
-                  key={subject}
-                  onClick={() => setAssignmentSubjectFilter(subject as Subject)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    assignmentSubjectFilter === subject
-                      ? 'bg-purple-500 text-white shadow-md'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  📂 {subject}
-                </button>
-              ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-500">Progress</legend>
-              <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setAssignmentStatusFilter('all')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  assignmentStatusFilter === 'all'
-                    ? 'bg-slate-700 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setAssignmentStatusFilter('in-progress')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  assignmentStatusFilter === 'in-progress'
-                    ? 'bg-amber-500 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                ⏳ In Progress
-              </button>
-              <button
-                onClick={() => setAssignmentStatusFilter('completed')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  assignmentStatusFilter === 'completed'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                ✅ Completed
-              </button>
-              </div>
-            </fieldset>
-          </div>
-
-          {/* Results Summary */}
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-sm text-slate-500">
-              Showing {filteredAssignments.length} of {assignments.length} assignments
-            </span>
-            {(assignmentSearchTerm || assignmentSubjectFilter !== 'all' || assignmentStatusFilter !== 'all') && (
-              <button
-                onClick={() => {
-                  setAssignmentSearchTerm('');
-                  setAssignmentSubjectFilter('all');
-                  setAssignmentStatusFilter('all');
-                }}
-                className="text-sm text-cyan-600 hover:text-cyan-700 font-medium"
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+    <div className="teacher-assignment-workspace">
+      <AssignmentToolbar
+        classes={assignmentClassFolders} counts={assignmentFolderCounts}
+        total={assignments.length} shown={filteredAssignments.length}
+        selectedClass={assignmentClassFilter} onClass={setAssignmentClassFilter}
+        search={assignmentSearchTerm} onSearch={setAssignmentSearchTerm}
+        subjects={assignmentSubjects} subject={assignmentSubjectFilter}
+        onSubject={(value) => setAssignmentSubjectFilter(value as Subject | 'all')}
+        status={assignmentStatusFilter} onStatus={setAssignmentStatusFilter}
+        canCreate={canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
+        onAssignment={openBlankAssignmentForm} onDiagnostic={() => openDiagnosticComposer()}
+      />
 
       {assignments.length === 0 ? (
         <div className="teacher-card p-12 text-center">
           <div className="text-6xl mb-4">🧭</div>
           <p className="text-xl text-slate-500 mb-4">No assignments yet</p>
-          <p className="text-slate-400">Create a mission to block normal quests until students finish.</p>
+          <p className="text-slate-400">Choose Create to add an assignment or diagnostic.</p>
         </div>
       ) : filteredAssignments.length === 0 ? (
         <div className="teacher-card p-12 text-center">
@@ -6215,6 +6082,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           <p className="text-lg text-slate-500 mb-2">No assignments match your filters</p>
           <button
             onClick={() => {
+              setAssignmentClassFilter('all');
               setAssignmentSearchTerm('');
               setAssignmentSubjectFilter('all');
               setAssignmentStatusFilter('all');
@@ -6225,79 +6093,24 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           </button>
         </div>
       ) : (
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4">
-            <div><span className="text-xs font-bold uppercase tracking-wider text-blue-600">{assignmentClassFilter === 'all' ? 'All assignments' : assignmentClassFilter === 'individual' ? 'Individual assignments' : `${assignmentClassFilter} assignments`}</span><h3 className="mt-1 text-lg font-bold text-slate-800">Assignment workspace</h3></div>
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{filteredAssignments.length} shown</span>
-          </header>
-          <div className="grid gap-3 p-4 xl:grid-cols-2">
-            {filteredAssignments.map((assignment) => {
-                          const completed = assignment.student_count > 0 && assignment.completed_count >= assignment.student_count;
-                          const completionPercent = assignment.student_count > 0
-                            ? Math.round((assignment.completed_count / assignment.student_count) * 100)
-                            : 0;
-                          const now = Date.now();
-                          const due = assignment.due_at ? new Date(assignment.due_at) : null;
-                          const assigned = new Date(assignment.assigned_at);
-                          const duePast = Boolean(due && due.getTime() < now);
-                          const dueToday = Boolean(due && due.toDateString() === new Date().toDateString());
-                          const dueSoon = Boolean(due && !duePast && due.getTime() - now <= 24 * 60 * 60 * 1000);
-                          const statusLabel = assignment.publish_status === 'draft' ? 'Draft'
-                            : (assignment.publish_status === 'scheduled' && assigned.getTime() > now) ? 'Scheduled'
-                            : completed ? 'Completed'
-                            : duePast && assignment.close_submissions_after_due ? 'Closed'
-                            : duePast ? 'Late / overdue'
-                            : dueToday ? 'Due today'
-                            : dueSoon ? 'Due soon'
-                            : `${completionPercent}% complete`;
-                          return (
-                            <article key={assignment.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <span className="text-xs font-bold text-blue-600">{assignment.subject_name} · {assignment.topic_name}</span>
-                                  <h5 className="mt-1 text-lg font-bold text-slate-800">{assignment.title || assignment.topic_name}</h5>
-                                  <span className="mt-2 inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">
-                                    {assignment.subject_group_name ? `👥 ${assignment.subject_group_name}` : assignment.assignment_mode === 'custom' ? '👤 Individual' : `🏫 ${assignment.batch || 'Class'}`} · {assignment.student_count} student{assignment.student_count === 1 ? '' : 's'}
-                                  </span>
-                                </div>
-                                <span className={`rounded-full px-3 py-1 text-xs font-bold ${completed ? 'bg-emerald-100 text-emerald-800' : duePast ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>{statusLabel}</span>
-                              </div>
-                              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100" aria-label={`${completionPercent}% completed`}>
-                                <span className={`block h-full rounded-full ${completed ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${completionPercent}%` }} />
-                              </div>
-                              <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Group</dt><dd>{assignment.subject_group_name || (assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—')}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(assignment.assigned_at).toLocaleDateString()}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Questions</dt><dd>{assignment.question_count}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{assignment.student_count}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Completed</dt><dd>{assignment.completed_count}/{assignment.student_count}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'None'}</dd></div>
-                              </dl>
-                              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                                <button onClick={() => handleOpenReport(assignment)} className="teacher-btn teacher-btn-secondary w-full">View report</button>
-                                <button
-                                  type="button"
-                                  onClick={() => void handlePrintAssignmentPaper(assignment)}
-                                  disabled={printingAssignmentId !== null}
-                                  className="teacher-btn teacher-btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60"
-                                  aria-label={`Print ${assignment.title || assignment.topic_name} question paper`}
-                                >
-                                  {printingAssignmentId === assignment.id ? 'Preparing paper…' : '🖨️ Print paper'}
-                                </button>
-                                <button type="button" onClick={() => handleEditAssignment(assignment)} className="teacher-btn teacher-btn-secondary w-full" aria-label={`Edit ${assignment.title || assignment.topic_name}`}>Edit assignment</button>
-                                <button
-                                  type="button"
-                                  onClick={() => void handleDeleteAssignment(assignment)}
-                                  disabled={deletingAssignmentId !== null}
-                                  className="teacher-btn w-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                                  aria-label={`Delete ${assignment.title || assignment.topic_name}`}
-                                >
-                                  {deletingAssignmentId === assignment.id ? 'Deleting…' : 'Delete assignment'}
-                                </button>
-                              </div>
-                            </article>
-                          );
-            })}
+        <section aria-label={assignmentClassFilter === 'all' ? 'All assignments' : assignmentClassFilter === 'individual' ? 'Individual assignments' : `${assignmentClassFilter} assignments`}>
+          <div className="teacher-assignment-workspace__list">
+            {filteredAssignments.map((assignment) => (
+              <AssignmentCard
+                key={assignment.id}
+                assignment={assignment}
+                canManage={assignment.teacher_id === teacher?.id}
+                printing={printingAssignmentId === assignment.id}
+                printDisabled={printingAssignmentId !== null}
+                deleting={deletingAssignmentId === assignment.id}
+                deleteDisabled={deletingAssignmentId !== null}
+                onReport={() => handleOpenReport(assignment)}
+                onPrint={() => void handlePrintAssignmentPaper(assignment)}
+                onRecord={() => { setPaperWorkspaceMode("manual"); setPaperAssignment(assignment); }}
+                onEdit={() => handleEditAssignment(assignment)}
+                onDelete={() => void handleDeleteAssignment(assignment)}
+              />
+            ))}
           </div>
         </section>
       )}
@@ -6335,6 +6148,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           initialStep={preparedDiagnostic ? 3 : assignmentLockedSubject ? 2 : 1}
           lockedSubject={assignmentLockedSubject}
           preparedDiagnostic={preparedDiagnostic}
+          assignmentDelivery={assignmentDelivery}
+          setAssignmentDelivery={setAssignmentDelivery}
           assignmentMode={assignmentMode}
           setAssignmentMode={setAssignmentMode}
           assignmentBatches={assignmentBatches}
@@ -6396,7 +6211,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       {reportAssignmentsLoading && <div className="teacher-info-message">Loading archived assignment reports…</div>}
       <div className="teacher-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <h2 style={{ margin: 0 }}>📊 Assignment Reports</h2>
+          <h2 style={{ margin: 0 }}>Assignment Reports</h2>
           {reportAcademicYears.length > 0 && <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700 }}>
             Academic Year
             <select
@@ -6612,7 +6427,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   <tbody>
                     {assignmentReport.map((row, i) => (
                       <tr key={row.student_id} className={`border-b border-slate-100 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
-                        <td className="py-3 px-4 text-slate-800 font-medium">{row.student_name}</td>
+                        <td className="py-3 px-4 text-slate-800 font-medium">{row.student_name}{row.completion_source === 'paper' && <span className="mt-1 block text-xs font-medium text-blue-700">Paper · Teacher confirmed</span>}</td>
                         <td className="py-3 px-4 text-slate-600">{row.batch ?? '—'}</td>
                         <td className="py-3 px-4 text-slate-700">{row.score}</td>
                         <td className="py-3 px-4 text-green-600 font-medium">{row.correct}</td>
@@ -6807,7 +6622,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     <div key={answer.question_id} className="bg-red-50 border border-red-200 rounded-xl p-4 mb-3">
                       <div className="flex items-start justify-between mb-2">
                         <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">INCORRECT</span>
-                        <span className="text-xs text-slate-500">⏱️ {Math.round(answer.time_taken_ms / 1000)}s</span>
+                        <span className="text-xs text-slate-500">{selectedAnalysisStudent?.completion_source === 'paper' ? 'Paper · Timing unavailable' : `⏱️ ${Math.round(answer.time_taken_ms / 1000)}s`}</span>
                       </div>
                       <p className="text-slate-800 font-medium mb-3">{answer.question_text}</p>
                       <div className="grid grid-cols-2 gap-4 text-sm">
@@ -6841,7 +6656,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     <div key={answer.question_id} className="bg-green-50 border border-green-200 rounded-xl p-4 mb-3">
                       <div className="flex items-start justify-between mb-2">
                         <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">CORRECT</span>
-                        <span className="text-xs text-slate-500">⏱️ {Math.round(answer.time_taken_ms / 1000)}s</span>
+                        <span className="text-xs text-slate-500">{selectedAnalysisStudent?.completion_source === 'paper' ? 'Paper · Timing unavailable' : `⏱️ ${Math.round(answer.time_taken_ms / 1000)}s`}</span>
                       </div>
                       <p className="text-slate-800 font-medium mb-2">{answer.question_text}</p>
                       <div className="bg-green-100 rounded-lg p-3 text-sm">
@@ -6874,7 +6689,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   <span className="text-purple-500">•</span>
                   <span>Consider assigning targeted practice on the topics where mistakes occurred</span>
                 </li>
-                {studentAnswers.some(a => !a.is_correct && a.time_taken_ms < 5000) && (
+                {selectedAnalysisStudent?.completion_source !== 'paper' && studentAnswers.some(a => !a.is_correct && a.time_taken_ms < 5000) && (
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">⚠️</span>
                     <span>Some questions were answered very quickly - encourage the student to read more carefully</span>
@@ -7069,7 +6884,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         <div className="cambridge-reports-title-row flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-3 min-w-0">
             <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 whitespace-nowrap">
-              <span className="text-xl">📊</span> Cambridge Tests
+              <TeacherWorkspaceIcon name="cambridge" /> Cambridge Tests
             </h2>
           </div>
           <div className="cambridge-summary-chips flex flex-wrap items-center gap-2 text-xs flex-shrink-0">
@@ -8122,13 +7937,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           );
         }
         
+        if (quizName !== 'Cambridge Listening Test 1' && !cambridgeQuestionLookup) return createPortal(
+          <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/70"><div className="rounded-2xl bg-white p-8 text-slate-800" role="status">
+            {cambridgeQuestionsError ? <><p>Questions could not be loaded.</p><button className="teacher-btn teacher-btn-primary mt-3" onClick={() => setCambridgeQuestionsRetry((n) => n + 1)}>Retry</button></> : 'Preparing answer review…'}
+            <button className="teacher-btn teacher-btn-secondary mt-3" onClick={() => setShowCambridgeAnswers(false)}>Close</button>
+          </div></div>, document.body);
         // Regular test handling
         const answerKey = isChemistryTest ? getScienceAnswerKey(quizName, selectedCambridgeStudent) : (correctAnswers[quizName] || {});
         const sections = testSections[quizName] || [];
         const summary = buildResponseSummary(selectedCambridgeStudent, answerKey);
         const questionBank = quizName === 'Cambridge Listening Test 1'
           ? CAMBRIDGE_LISTENING_TEST_1_QUESTIONS as QuestionData[]
-          : getQuestionsForQuiz(quizName);
+          : cambridgeQuestionLookup!(quizName);
         const questionMap = new Map<number, QuestionData>();
         questionBank.forEach(q => questionMap.set(q.number, q));
         const mistakes = summary.details
@@ -9184,25 +9004,26 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const canAccessWritingInsights =
     profile.role === 'admin' || teachesEnglish;
 
-  const navTabs: Array<{ id: TeacherNavSection; label: string; icon: string; description: string; proOnly?: boolean; highlight?: boolean }> = [
-    { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
-    { id: 'students', label: 'My Classes', icon: '🏫', description: 'Allocated Classes & Students' },
-    ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: '🏫', description: 'Use your invite code to unlock school features', highlight: true }] : []),
-    { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
-    { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
-    { id: 'academic-profiles', label: 'Academic Profiles', icon: '🎓', description: 'Progress, Strengths & Focus Areas', proOnly: true },
-    { id: 'curriculum-intelligence', label: 'Curriculum Intelligence', icon: '🧭', description: 'Curriculum Map & Evidence Readiness', proOnly: true },
-    { id: 'interventions', label: 'Interventions', icon: '🎯', description: 'Targeted Support & Follow-up', proOnly: true },
-    { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
+  const navTabs: Array<{ id: TeacherNavSection; label: string; icon: React.ReactNode; description: string; proOnly?: boolean; highlight?: boolean }> = [
+    { id: 'dashboard', label: 'Dashboard', icon: <TeacherWorkspaceIcon name="home" />, description: 'Overview & Quick Actions' },
+    ...(ieltsProgramme.entry ? [{ id: 'ielts-programme' as const, label: 'IELTS Programme', icon: <IeltsProgrammeIcon />, description: 'Review, plan & guide your school programme', highlight: true }] : []),
+    { id: 'students', label: 'My Classes', icon: <TeacherWorkspaceIcon name="classes" />, description: 'Allocated Classes & Students' },
+    ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: <TeacherWorkspaceIcon name="classes" />, description: 'Use your invite code to unlock school features', highlight: true }] : []),
+    { id: 'assignments', label: 'Assignments', icon: <TeacherWorkspaceIcon name="assignments" />, description: 'Assign Work to Students', proOnly: true },
+    { id: 'reports', label: 'Reports', icon: <TeacherWorkspaceIcon name="reports" />, description: 'Student Performance', proOnly: true },
+    { id: 'academic-profiles', label: 'Academic Profiles', icon: <TeacherWorkspaceIcon name="profiles" />, description: 'Progress, Strengths & Focus Areas', proOnly: true },
+    { id: 'curriculum-intelligence', label: 'Curriculum Intelligence', icon: <TeacherWorkspaceIcon name="curriculum" />, description: 'Curriculum Map & Evidence Readiness', proOnly: true },
+    { id: 'interventions', label: 'Interventions', icon: <TeacherWorkspaceIcon name="interventions" />, description: 'Targeted Support & Follow-up', proOnly: true },
+    { id: 'questions', label: 'Question Bank', icon: <TeacherWorkspaceIcon name="questions" />, description: 'Create & Manage Questions', proOnly: true },
     ...(canAccessWritingInsights && canUseWritingModule
       ? [
-          { id: 'writing-hub' as const, label: 'Writing Hub', icon: '✍️', description: 'Monitor, analyse, and export writing progress', proOnly: true },
+          { id: 'writing-hub' as const, label: 'Writing Hub', icon: <TeacherWorkspaceIcon name="writing" />, description: 'Monitor, analyse, and export writing progress', proOnly: true },
         ]
       : []),
     ...(canUseCambridgeModule
-      ? [{ id: 'cambridge' as const, label: 'Cambridge Tests', icon: '🧾', description: 'Writing & Test Results', proOnly: true }]
+      ? [{ id: 'cambridge' as const, label: 'Cambridge Tests', icon: <TeacherWorkspaceIcon name="cambridge" />, description: 'Writing & Test Results', proOnly: true }]
       : []),
-    { id: 'clan-wars', label: 'Clan Wars', icon: '⚔️', description: 'Host official class battles' },
+    { id: 'clan-wars', label: 'Clan Wars', icon: <TeacherWorkspaceIcon name="battle" />, description: 'Host official class battles' },
   ];
 
   // Plan badge info for top bar
@@ -9253,7 +9074,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   return (
     <div
-      className="teacher-portal"
+      className="teacher-portal teacher-professional"
       style={{ '--teacher-top-nav-height': `${topNavHeight || 76}px` } as React.CSSProperties}
     >
       {/* Top Navigation Bar */}
@@ -9427,6 +9248,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           </div>
         </div>
       </header>
+      {paperAssignment && <React.Suspense fallback={<div role="status" className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/70 text-white">Opening paper workspace…</div>}>
+        <PaperAssignmentWorkspace initialMode={paperWorkspaceMode} assignmentId={paperAssignment.id} userId={profile.id} schoolName={resolvedBranding.schoolName}
+          schoolLogoUrl={resolvedBranding.schoolLogoUrl} teacherName={profile.full_name || profile.username || 'Teacher'}
+          onClose={() => setPaperAssignment(null)} onRecorded={() => { void GameService.get_teacher_assignments().then(setAssignments).catch((error) => console.warn('Assignment refresh failed:', error)); }} />
+      </React.Suspense>}
       {showSettingsModal && (
         <SettingsModal
           onClose={() => setShowSettingsModal(false)}
@@ -9470,7 +9296,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         </React.Suspense>
       ) : null}
 
-      <div className="teacher-portal-container">
+      <div className={`teacher-portal-container${view === 'assignments' ? ' teacher-assignment-view' : ''}`}>
         {/* Professional Header */}
         <div className="teacher-header">
           <div className="teacher-header-content">
@@ -9486,11 +9312,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
               
               {/* Canonical teaching responsibilities. */}
-              {teacherHasClassAllocations && (
+              {teacherHasClassAllocations && view === 'dashboard' && (
+                <details className="teacher-group-summary">
+                  <summary>Your teaching groups <span>{teachingGroups.length || allocatedClasses.length}</span></summary>
                 <div className="teacher-assigned-classes mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sky-700 font-semibold text-sm">📚 Your Teaching Groups ({teachingGroups.length || allocatedClasses.length})</span>
-                  </div>
                   <div className="flex flex-wrap gap-2">
                     {(teachingGroups.length
                       ? teachingGroups.map((group) => ({ key: group.id, label: group.name, subject: group.schoolSubjectName }))
@@ -9499,8 +9324,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       .map((item) => (
                         <div key={item.key} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs">
                           <span className="font-semibold text-slate-700">{item.label}</span>
-                          <span className="text-slate-400">•</span>
-                          <span className="text-slate-600">{item.subject}</span>
+                          {!item.label.toLocaleLowerCase().includes(item.subject.toLocaleLowerCase()) && <><span className="text-slate-400">•</span><span className="text-slate-600">{item.subject}</span></>}
                         </div>
                       ))}
                     {(teachingGroups.length || allocatedClasses.length) > 6 && (
@@ -9510,6 +9334,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     )}
                   </div>
                 </div>
+                </details>
               )}
               
               {!teacherHasClassAllocations && (
@@ -9532,7 +9357,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
         <div className={`teacher-workspace-shell ${desktopSidebarCollapsed ? 'is-sidebar-collapsed' : ''}`}>
           {/* Navigation */}
-          <aside className={`teacher-sidebar teacher-desktop-sidebar ${desktopSidebarCollapsed ? 'is-collapsed' : ''}`}>
+          <aside ref={desktopSidebarRef} className={`teacher-sidebar teacher-desktop-sidebar ${desktopSidebarCollapsed ? 'is-collapsed' : ''}`}>
             <div className="teacher-nav-container teacher-nav-container--sidebar">
               <button
                 type="button"
@@ -9546,7 +9371,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 <span className="teacher-sidebar-toggle__icon" aria-hidden="true">{desktopSidebarCollapsed ? '›' : '‹'}</span>
                 <span>{desktopSidebarCollapsed ? 'Expand' : 'Collapse'}</span>
               </button>
-              <div id="teacher-primary-navigation" className="teacher-nav-grid teacher-nav-grid--sidebar">
+              <div id="teacher-primary-navigation" className="teacher-nav-grid teacher-nav-grid--sidebar" role="navigation" aria-label="Teacher tools">
                 {navTabs.map((tab) => {
                   const { isPilot, quota: tq, pilotExhausted, locked } = getNavTabState(tab);
                   return (
@@ -9564,7 +9389,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       onFocus={(event) => desktopSidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })}
                       onBlur={() => setNavTooltip(null)}
                     >
-                      <span className="teacher-nav-icon">{academicProfilePresentation ? <ProfileIcon name={tab.id === 'dashboard' ? 'home' : tab.id === 'questions' ? 'book' : tab.id === 'students' ? 'support' : tab.id === 'interventions' ? 'target' : tab.id === 'reports' ? 'result' : tab.id === 'clan-wars' ? 'shield' : 'document'}/> : tab.icon}</span>
+                      <span className="teacher-nav-icon" aria-hidden="true">{tab.icon}</span>
                       <div className="teacher-nav-text">
                         <span className="teacher-nav-label">
                           {tab.label}
@@ -9646,7 +9471,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               <div className="teacher-writing-hub__header">
                 <div>
                   <span className="teacher-writing-hub__eyebrow">Writing workspace</span>
-                  <h2 id="writing-hub-title">✍️ Writing Hub</h2>
+                  <h2 id="writing-hub-title">Writing Hub</h2>
                   <p>Follow student progress, understand class patterns, and prepare reports in one place.</p>
                 </div>
                 <div className="teacher-writing-hub__tabs" role="tablist" aria-label="Writing Hub sections">
@@ -9765,7 +9590,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 aria-label={tab.label}
               >
                 <span aria-hidden="true">{tab.icon}</span>
-                <small>{tab.id === 'dashboard' ? 'Home' : tab.id === 'students' ? 'Classes' : tab.id === 'assignments' ? 'Tasks' : tab.label}</small>
+                <small>{teacherMobileLabel(tab.id, tab.label)}</small>
               </button>
             );
           })}
@@ -9779,7 +9604,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             aria-expanded={mobileWorkspaceMenuOpen}
             aria-label="More"
           >
-            <span aria-hidden="true">•••</span>
+            <span aria-hidden="true"><TeacherWorkspaceIcon name="more" /></span>
             <small>More</small>
           </button>
         </nav>

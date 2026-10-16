@@ -38,6 +38,23 @@ test('verified question preview prefers registry-native mappings and fails close
   assert.ok(legacyBranch > verifiedUnavailableBranch);
 });
 
+
+test('verified question preview hides machine taxonomy tags from teacher-facing metadata', () => {
+  for (const prefix of [
+    'strand:',
+    'skill:',
+    'subskill:',
+    'evidence-focus:',
+    'assessment-process:',
+    'cognitive-process:',
+    'registry:',
+  ]) {
+    assert.match(preview, new RegExp(`'${prefix.replace('-', '\\-')}`));
+  }
+  assert.match(preview, /question\.tags\?\.some\(isDisplayTag\)/);
+  assert.match(preview, /question\.tags\.filter\(isDisplayTag\)/);
+});
+
 test('verified question list displays canonical registry mapping rather than legacy skill labels', () => {
   assert.match(bank, /question\.registry_mappings\?\.length/);
   assert.match(bank, /question\.registry_mappings\[0\]\.skill/);

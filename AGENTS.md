@@ -42,6 +42,10 @@ Before making **any** change that can affect IELTS diagnostics, screeners, basel
 
 This gate applies in particular to files/routes/tables/services matching or affecting `ielts_*`, `/ielts/*`, diagnostic funnels, readiness engines, productive-skill review, and school IELTS reporting.
 
+## Mandatory IELTS lesson production gate
+
+Before changing IELTS lesson plans, presentations, teacher packs, worksheets, audio references or printing, read `docs/ielts/IELTS_LESSONS_BIBLE.md` and verify the relevant numbered contracts. Diagnostic and Visual & UX Bibles retain their authority. Report exact versions, test evidence and uncovered acceptance checks.
+
 ## Implementation discipline
 
 ### Default pre-publication student pilot

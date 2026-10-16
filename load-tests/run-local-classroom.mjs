@@ -62,8 +62,8 @@ for(const [i,u] of [teacher,...students].entries()){
 }
 sql(seed);
 }
-const rpcFiles=['20260928055401_classroom_reliability.sql','20260928163701_auth_bootstrap_v1.sql','20261007153922_classroom_scoped_reads.sql'];
-const report={scope:'Local Supabase classroom RPC benchmark; focused schema, no production capacity certification',versions:{node:process.version,source:process.env.CLASSROOM_SOURCE_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),rpcSha256:Object.fromEntries(rpcFiles.map(f=>[f,createHash('sha256').update(readFileSync('supabase/migrations/'+f)).digest('hex')]))},host:{platform:os.platform(),cpuModel:os.cpus()[0].model,cpuCount:os.cpus().length,memoryBytes:os.totalmem()},limitations:['Focused classroom schema; unrelated tables, production analytics/reward triggers and billing pre-request hook omitted','Synthetic data: 500 students, one teacher, 16 questions per fresh assignment','Real Supabase Auth users and password-issued sessions; signup/login provisioning is outside the measured load','Loopback HTTP; no WAN/CDN/TLS latency, browser rendering or hosted connection limits','Load generator and database share the test host; results do not certify hosted production capacity'],stages:[]};
+const rpcFiles=['20260928055401_classroom_reliability.sql','20260928163701_auth_bootstrap_v1.sql','20261007153922_classroom_scoped_reads.sql','20261015150000_classroom_async_evidence_and_incident_repairs.sql','20261015223001_durable_worker_leases_and_bounded_drain.sql'];
+const report={scope:'Local Supabase classroom RPC benchmark; focused schema, no production capacity certification',versions:{node:process.version,source:process.env.CLASSROOM_SOURCE_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),rpcSha256:Object.fromEntries(rpcFiles.map(f=>[f,createHash('sha256').update(readFileSync('supabase/migrations/'+f)).digest('hex')]))},host:{platform:os.platform(),cpuModel:os.cpus()[0].model,cpuCount:os.cpus().length,memoryBytes:os.totalmem()},limitations:['Focused schema with current answer/result/read RPCs and real durable queue/leases; academic ingestion replaced by deterministic receipts, rewards and billing hook omitted','Synthetic data: 500 students, one teacher, 16 questions per fresh assignment','Real Supabase Auth users and password-issued sessions; signup/login provisioning is outside the measured load','Loopback HTTP; no WAN/CDN/TLS latency, browser rendering or hosted connection limits','Load generator and database share the test host; results do not certify hosted production capacity'],stages:[]};
 report.initialDatabaseRows=JSON.parse(sql("select json_build_object('users',(select count(*) from users),'assignments',(select count(*) from assignments),'answers',(select count(*) from student_assignment_answers),'results',(select count(*) from student_assignment_results));"));
 // A synchronous k6 child can leave a Node fetch keep-alive socket idle for two
 // minutes while preventing its close event from being processed. Reconcile over
@@ -79,7 +79,7 @@ if(baseline.status!==200||!Number.isInteger(baseline.data.submission_count))thro
 let cumulative=baseline.data.submission_count;report.initialTeacherSubmissions=cumulative;report.reusedSyntheticSessions=!!process.env.LOCAL_CLASSROOM_REUSE_FIXTURE;
 report.versions.harnessSha256=createHash('sha256').update(readFileSync('load-tests/classroom.js')).digest('hex');
 report.versions.runnerSha256=createHash('sha256').update(readFileSync('load-tests/run-local-classroom.mjs')).digest('hex');
-for(const count of [30,100,500]){
+for(const [stageIndex,count] of [30,100,500,500].entries()){
  const assignment=randomUUID();const questions=[];let expectedCorrect=0;
  let setup=`insert into assignments(id,teacher_id,school_id,academic_year_id,class_id,subject_name,title,assignment_mode,publish_status,assigned_at,close_submissions_after_due) values(${quote(assignment)},${quote(teacherId)},${quote(school)},${quote(year)},${quote(klass)},'ESL','Synthetic load ${count}','batch','published',now(),false);\n`;
  for(let i=0;i<16;i++){
@@ -91,18 +91,25 @@ for(const count of [30,100,500]){
  }
  for(const s of students.slice(0,count))setup+=`insert into student_assignments(id,assignment_id,student_id,status,assigned_at) values(gen_random_uuid(),${quote(assignment)},${quote(s.id)},'pending',now());\n`;
  sql(setup);sql('analyze;');
- const fixture=`${output}/fixture-${count}.json`;
+ const fixture=`${output}/fixture-${stageIndex}-${count}.json`;
  writeFileSync(fixture,JSON.stringify({teacher:{token:teacher.token},students:students.slice(0,count).map(s=>({studentId:s.id,token:s.token,assignmentId:assignment,questions,expectedCorrect,expectedScore:expectedCorrect*10}))}),{mode:0o600});
  console.log(`Starting ${count} concurrent students + one teacher`);
  const started=new Date().toISOString();
- const run=spawnSync(k6,['run','--summary-export',`${output}/summary-${count}.json`,'load-tests/classroom.js'],{stdio:'inherit',env:{...process.env,SUPABASE_URL:base,SUPABASE_ANON_KEY:info.ANON_KEY,LOCAL_CLASSROOM_TEST:'1',CLASSROOM_FIXTURE:fixture,STUDENTS:String(count)},timeout:12*60*1000});
+ const run=spawnSync(k6,['run','--summary-export',`${output}/summary-${stageIndex}-${count}.json`,'load-tests/classroom.js'],{stdio:'inherit',env:{...process.env,SUPABASE_URL:base,SUPABASE_ANON_KEY:info.ANON_KEY,LOCAL_CLASSROOM_TEST:'1',CLASSROOM_FIXTURE:fixture,STUDENTS:String(count)},timeout:12*60*1000});
  const actual=JSON.parse(sql(`select json_build_object('answers',(select count(*) from student_assignment_answers where assignment_id=${quote(assignment)}),'results',(select count(*) from student_assignment_results where assignment_id=${quote(assignment)}),'completed',(select count(*) from student_assignments where assignment_id=${quote(assignment)} and status='completed'),'wrong_results',(select count(*) from student_assignment_results where assignment_id=${quote(assignment)} and (score IS DISTINCT FROM ${expectedCorrect*10} or correct IS DISTINCT FROM ${expectedCorrect} or incorrect IS DISTINCT FROM ${16-expectedCorrect} or pending_review_count IS DISTINCT FROM 0)),'duplicate_answers',(select count(*) from (select student_id,question_id from student_assignment_answers where assignment_id=${quote(assignment)} group by student_id,question_id having count(*)<>1) d));`));
+ const drainStarted=Date.now();let queue;
+ do{
+  queue=JSON.parse(sql(`select json_build_object('pending',count(*) filter(where status in ('pending','processing')),'failed',count(*) filter(where status='failed'),'done',count(*) filter(where status='done')) from private.assignment_evidence_jobs where assignment_id=${quote(assignment)};`));
+  if(queue.pending===0)break;
+  await new Promise(resolve=>setTimeout(resolve,1000));
+ }while(Date.now()-drainStarted<300000);
+ const receipts=Number(sql(`select count(*) from private.load_evidence_receipts where assignment_id=${quote(assignment)};`));
  cumulative+=count;
  let teacherResult,reconciliationError;
  try{teacherResult=await teacherSummary();}catch(error){reconciliationError=error.message;}
  const summary=teacherResult?.data||{};
- const verified=actual.answers===count*16&&actual.results===count&&actual.completed===count&&actual.wrong_results===0&&actual.duplicate_answers===0&&teacherResult?.status===200&&summary.submission_count===cumulative;
- const stage={students:count,started,finished:new Date().toISOString(),k6ExitCode:run.status,database:actual,teacherSubmissionCount:summary.submission_count,expectedTeacherSubmissions:cumulative,reconciliationError,passed:run.status===0&&verified};
+ const verified=queue.pending===0&&queue.failed===0&&queue.done===count&&receipts===count*2&&actual.answers===count*16&&actual.results===count&&actual.completed===count&&actual.wrong_results===0&&actual.duplicate_answers===0&&teacherResult?.status===200&&summary.submission_count===cumulative;
+ const stage={stageIndex,students:count,minimumMeasuredSeconds:600,started,finished:new Date().toISOString(),k6ExitCode:run.status,database:actual,queue,receiptCount:receipts,receiptDrainSeconds:(Date.now()-drainStarted)/1000,teacherSubmissionCount:summary.submission_count,expectedTeacherSubmissions:cumulative,reconciliationError,passed:run.status===0&&verified};
  report.stages.push(stage);writeFileSync(`${output}/report.json`,JSON.stringify(report,null,2));
  console.log(JSON.stringify(stage));
  if(!stage.passed){console.error('Stage failed: escalation stopped.');process.exitCode=1;break;}

@@ -9,7 +9,15 @@ test('IELTS Diagnostic Bible is wired into the repository agent contract', () =>
   const agents = read('AGENTS.md');
   const bible = read('docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md');
 
-  assert.match(bible, /\*\*Version:\*\* 1\.2\.0/i);
+  assert.match(bible, /\*\*Version:\*\* 1\.10\.0/i);
+  assert.match(bible, /## 15F\. Screeners remain separate from later practice/);
+  assert.match(bible, /Screeners are initial assessments\. They must never appear/i);
+  assert.match(bible, /## 15E\. Material originality and intentional variants/);
+  assert.match(bible, /All new content requires a human content comparison/);
+  assert.match(bible, /An exact complete copy has no override/);
+  assert.match(bible, /## 15D\. Stable task codes and assignment history/);
+  assert.match(bible, /never.*reuse a retired code/is);
+  assert.match(bible, /code identifies a canonical material, not an allocation, an attempt/);
   assert.match(agents, /docs\/ielts\/IELTS_DIAGNOSTIC_BIBLE\.md/i);
   assert.match(agents, /Before making \*\*any\*\* change that can affect IELTS diagnostics/i);
 });
@@ -67,7 +75,7 @@ test('school readiness fails closed until governed diagnostic evidence exists', 
   );
   assert.doesNotMatch(migration, /\nas \$(?!\$)\n|\n\$(?!\$);\n/, 'migration must not contain single-dollar function delimiters');
   const schoolResults = read('components/school-admin/tabs/IeltsResultsTab.tsx');
-  const journey = read('src/pages/ielts/IeltsJourneyDashboard.tsx');
+  const journey = read('src/pages/ielts/components/IeltsStudentJourney.tsx').replace(/\s+/g, ' ');
 
   assert.match(migration, /ielts_latest_skill_readiness[\s\S]*where false;/i);
   assert.match(migration, /revoke all on function public\.ielts_estimated_readiness_band\(numeric,numeric,numeric\) from public, anon, authenticated/i);
@@ -75,7 +83,7 @@ test('school readiness fails closed until governed diagnostic evidence exists', 
   assert.match(migration, /'\{summary,average_estimated_overall\}'[\s\S]*'null'::jsonb/i);
 
   assert.match(schoolResults, /Practice results are not promoted into readiness/i);
-  assert.match(journey, /Verified four-skill readiness is not available yet/i);
+  assert.match(journey, /cannot give a reliable overall band/i);
 });
 
 test('productive-skill AI remains provisional and evidence-bounded', () => {

@@ -1,3 +1,5 @@
+import { IeltsConfirm } from '../../components/ielts/IeltsUi';
+import { responseCoverage, coverageLabel, coverageNextStep } from '../../../services/ieltsResponseCoverage';
 import { IeltsWritingEditor } from '../../components/ielts/IeltsWritingEditor';
 import { IeltsWritingResult } from '../../components/ielts/IeltsWritingResult';
 import { fetchWritingScreenerResult } from '../../../services/ieltsWritingScreenerService';
@@ -6,6 +8,7 @@ import type { WritingScreenerResult } from '../../../services/ieltsWritingScreen
 import { getIeltsReadingPassages, restoreReadingPassage, saveReadingPassage } from '../../../services/ieltsReadingDelivery';
 import { makeIeltsAudioCheckpointKey, saveIeltsAudioCheckpoint, restoreIeltsAudioCheckpoint } from '../../../services/ieltsAudioCheckpoint';
 import { fetchIeltsDiagnosticResult, getIeltsScreenerAudio, type IeltsDiagnosticResult } from '../../../services/ieltsDiagnosticEvidenceService';
+import { ieltsRequestDelay } from '../../../services/ieltsDeliveryRequestPolicy';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '../../styles/ielts-exam.css';
 import { useParams } from 'react-router-dom';
@@ -13,6 +16,7 @@ import {
   createExamIdempotencyKey,
   rpcIeltsAutosaveAttempt,
   rpcIeltsExamWhoami,
+  rpcIeltsExamStatus,
   rpcIeltsLogIncident,
   rpcIeltsStartAttempt,
   rpcIeltsSubmitAttempt,
@@ -152,6 +156,9 @@ const IeltsExamMode: React.FC = () => {
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
   const [isStarting, setIsStarting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmIncomplete, setConfirmIncomplete] = useState(false);
+  const [passageVisits, setPassageVisits] = useState<{ attemptId: string; ids: string[] }>({ attemptId: '', ids: [] });
+  const submitInFlightRef = useRef(false);
   const [submission, setSubmission] = useState<IeltsSubmitResponse | null>(null);
   const [serverOffsetMs, setServerOffsetMs] = useState(0);
   const [nowTick, setNowTick] = useState(() => Date.now());
@@ -211,6 +218,16 @@ const IeltsExamMode: React.FC = () => {
   const attemptRef = useRef<IeltsStartAttemptResponse | null>(attempt);
   const lockTokenRef = useRef<string | null>(lockToken);
   const saveInFlightRef = useRef(false);
+  const serverOffsetRef = useRef(serverOffsetMs);
+  serverOffsetRef.current = serverOffsetMs;
+  const statusInFlightRef = useRef(false);
+  const statusFailuresRef = useRef(0);
+  const statusRetryAtRef = useRef(0);
+  const saveFailuresRef = useRef(0);
+  const saveRetryAtRef = useRef(0);
+  const whoamiRef = useRef<IeltsExamWhoamiResponse | null>(null);
+  const eventRef = useRef(examEventId);
+  eventRef.current = examEventId;
   const dirtySectionsRef = useRef(new Set<string>());
   const draftVersionsRef = useRef<Record<string, number>>({});
   const incidentInFlightRef = useRef(false);
@@ -244,6 +261,7 @@ const IeltsExamMode: React.FC = () => {
       }
     }
 
+    const serverAnswers = JSON.parse(JSON.stringify(nextAnswers)) as typeof nextAnswers;
     if (response.attempt_id) {
       const localDraft = readLocalDraft(response.attempt_id);
       if (localDraft) {
@@ -253,12 +271,14 @@ const IeltsExamMode: React.FC = () => {
       }
     }
     answersRef.current = nextAnswers;
-    dirtySectionsRef.current = new Set(Object.keys(nextAnswers));
+    dirtySectionsRef.current = new Set(Object.keys(nextAnswers).filter(section =>
+      JSON.stringify(nextAnswers[section]) !== JSON.stringify(serverAnswers[section])));
     setAnswers(nextAnswers);
     draftVersionsRef.current = Object.fromEntries((response.drafts ?? []).map((draft) => [draft.section, draft.draft_version ?? 0]));
   }, []);
 
   const applyWhoamiState = useCallback((response: IeltsExamWhoamiResponse, options: { hydrateDrafts: boolean } = { hydrateDrafts: false }) => {
+    whoamiRef.current = response;
     setWhoami(response);
     syncServerClock(response.server_now);
     setRemainingSeconds(response.remaining_seconds ?? 0);
@@ -269,7 +289,8 @@ const IeltsExamMode: React.FC = () => {
     const attemptStatus = response.attempt_status ?? response.status;
     const eventStatus = response.event_status ?? (!response.attempt_id ? response.status : null);
     const previousSyncState = syncStateRef.current;
-    const nextSyncState = resolveIeltsStudentExamSyncState(attemptStatus, eventStatus, response.reason);
+    const resolvedState = resolveIeltsStudentExamSyncState(attemptStatus, eventStatus, response.reason);
+    const nextSyncState = !response.allowed && resolvedState === 'active' ? 'not_in_progress' : resolvedState;
     const syncMessage = getIeltsStudentExamSyncMessage(nextSyncState);
     syncStateRef.current = nextSyncState;
     setSyncState(nextSyncState);
@@ -306,14 +327,34 @@ const IeltsExamMode: React.FC = () => {
   }, [hydrateAnswers, syncServerClock]);
 
   const refreshLiveState = useCallback(async () => {
-    if (!examEventId || !navigator.onLine) return;
+    if (!examEventId || !navigator.onLine || !whoamiRef.current || statusInFlightRef.current
+      || Date.now() < statusRetryAtRef.current) return;
+    statusInFlightRef.current = true;
+    const eventId = examEventId;
     try {
-      const response = await rpcIeltsExamWhoami(examEventId);
-      applyWhoamiState(response);
+      const response = await rpcIeltsExamStatus(eventId);
+      if (eventRef.current !== eventId) return;
+      statusFailuresRef.current = 0;
+      statusRetryAtRef.current = 0;
+      const previous = whoamiRef.current;
+      // Another tab starting a different attempt must never attach our edits to it.
+      if (previous?.assignment_id && response.assignment_id && previous.assignment_id !== response.assignment_id) {
+        applyWhoamiState({ ...previous, allowed: false, reason: 'not_assigned', server_now: response.server_now });
+      } else if (response.allowed && !previous?.form_public_payload) {
+        // Content is fetched once when a previously unavailable event becomes live.
+        const full = await rpcIeltsExamWhoami(eventId);
+        if (eventRef.current === eventId) applyWhoamiState(full, { hydrateDrafts: true });
+      } else {
+        applyWhoamiState({ ...response, form_public_payload: previous?.form_public_payload });
+      }
     } catch (refreshError) {
+      if (eventRef.current !== eventId) return;
+      statusRetryAtRef.current = Date.now() + ieltsRequestDelay('status', ++statusFailuresRef.current);
       // Autosave owns connectivity feedback, avoiding a second interruption banner.
       setSaveState('error');
       setSaveMessage('Connection interrupted. Keep this page open; saving will retry automatically.');
+    } finally {
+      statusInFlightRef.current = false;
     }
   }, [applyWhoamiState, examEventId]);
 
@@ -323,6 +364,11 @@ const IeltsExamMode: React.FC = () => {
     setError(null);
     try {
       const response = await rpcIeltsExamWhoami(examEventId);
+      if (eventRef.current !== examEventId) return;
+      if (whoamiRef.current?.assignment_id && whoamiRef.current.assignment_id !== response.assignment_id) {
+        setAttempt(null);
+        setLockToken(null);
+      }
       applyWhoamiState(response, { hydrateDrafts: true });
       setLoadState('ready');
     } catch (loadError) {
@@ -337,21 +383,28 @@ const IeltsExamMode: React.FC = () => {
 
   useEffect(() => {
     if (loadState !== 'ready' || syncState === 'submitted' || syncState === 'voided') return undefined;
-    const timer = window.setInterval(() => {
-      void refreshLiveState();
-    }, 10000);
-    return () => window.clearInterval(timer);
+    let timer: number;
+    let stopped = false;
+    const poll = async () => {
+      if (document.visibilityState !== 'hidden') await refreshLiveState();
+      if (!stopped) timer = window.setTimeout(poll, ieltsRequestDelay('status', statusFailuresRef.current));
+    };
+    timer = window.setTimeout(poll, ieltsRequestDelay('status'));
+    return () => { stopped = true; window.clearTimeout(timer); };
   }, [loadState, refreshLiveState, syncState]);
 
   useEffect(() => {
+    let timer: number | undefined;
     const onFocusOrVisible = () => {
+      window.clearTimeout(timer);
       if (document.visibilityState !== 'hidden') {
-        void refreshLiveState();
+        timer = window.setTimeout(() => void refreshLiveState(), ieltsRequestDelay('recovery'));
       }
     };
     window.addEventListener('focus', onFocusOrVisible);
     document.addEventListener('visibilitychange', onFocusOrVisible);
     return () => {
+      window.clearTimeout(timer);
       window.removeEventListener('focus', onFocusOrVisible);
       document.removeEventListener('visibilitychange', onFocusOrVisible);
     };
@@ -446,6 +499,8 @@ const IeltsExamMode: React.FC = () => {
       setSaveMessage(syncMessage ?? 'Autosave paused because the exam is not active.');
       return false;
     }
+    if (!dirtySectionsRef.current.has(section)) return true;
+    if (reason === 'auto' && Date.now() < saveRetryAtRef.current) return false;
     if (saveInFlightRef.current || !navigator.onLine) return false;
 
     const payload = answersRef.current[section] ?? {};
@@ -460,8 +515,10 @@ const IeltsExamMode: React.FC = () => {
         section,
         payload,
         draftVersion: nextVersion,
-        clientSavedAt: new Date(Date.now() + serverOffsetMs).toISOString(),
+        clientSavedAt: new Date(Date.now() + serverOffsetRef.current).toISOString(),
       });
+      saveFailuresRef.current = 0;
+      saveRetryAtRef.current = 0;
       syncServerClock(response.server_now);
       draftVersionsRef.current[section] = Math.max(draftVersionsRef.current[section] ?? 0, response.draft_version ?? nextVersion);
       if (answersRef.current[section] === payload) dirtySectionsRef.current.delete(section);
@@ -470,6 +527,7 @@ const IeltsExamMode: React.FC = () => {
       setSaveMessage(pending ? 'Saving your latest changes…' : 'All answers saved.');
       return true;
     } catch (saveError) {
+      saveRetryAtRef.current = Date.now() + ieltsRequestDelay('save', ++saveFailuresRef.current);
       const message = saveError instanceof Error ? saveError.message : 'Autosave failed.';
       if (/attempt_not_in_progress|assignment_void|exam_paused/i.test(message)) {
         await refreshLiveState();
@@ -483,10 +541,10 @@ const IeltsExamMode: React.FC = () => {
     } finally {
       saveInFlightRef.current = false;
     }
-  }, [refreshLiveState, serverOffsetMs, submission, syncServerClock]);
+  }, [refreshLiveState, submission, syncServerClock]);
 
   const savePendingSections = useCallback(async () => {
-    const sections = dirtySectionsRef.current.size ? [...dirtySectionsRef.current] : [activeSectionRef.current];
+    const sections = [...dirtySectionsRef.current];
     for (const section of sections) {
       if (!await autosaveSection(section, 'auto')) break;
     }
@@ -498,18 +556,30 @@ const IeltsExamMode: React.FC = () => {
       setWarning(null);
       setLocalDraftSaved(writeLocalDraft(attemptRef.current?.attempt_id ?? null, answersRef.current));
     };
+    let recoveryTimer: number | undefined;
     const onOnline = () => {
       setOffline(false);
-      setSaveState('saving');
-      setSaveMessage('Back online. Saving your answers…');
-      void savePendingSections();
-      void refreshLiveState();
+      setSaveMessage('Back online. Checking your saved answers…');
+      window.clearTimeout(recoveryTimer);
+      recoveryTimer = window.setTimeout(() => {
+        void savePendingSections();
+        void refreshLiveState();
+      }, ieltsRequestDelay('recovery'));
     };
     window.addEventListener('offline', onOffline);
     window.addEventListener('online', onOnline);
-    const timer = window.setInterval(() => { void savePendingSections(); }, 8000);
+    let timer: number;
+    let stopped = false;
+    const save = async () => {
+      await savePendingSections();
+      if (!stopped) timer = window.setTimeout(save, ieltsRequestDelay('save', saveFailuresRef.current));
+    };
+    timer = window.setTimeout(save, ieltsRequestDelay('save'));
+
     return () => {
-      window.clearInterval(timer);
+      stopped = true;
+      window.clearTimeout(timer);
+      window.clearTimeout(recoveryTimer);
       window.removeEventListener('offline', onOffline);
       window.removeEventListener('online', onOnline);
     };
@@ -534,7 +604,7 @@ const IeltsExamMode: React.FC = () => {
         payload: {
           ...payload,
           active_section: activeSectionRef.current,
-          client_logged_at: new Date(Date.now() + serverOffsetMs).toISOString(),
+          client_logged_at: new Date(Date.now() + serverOffsetRef.current).toISOString(),
         },
       });
     } catch {
@@ -608,10 +678,25 @@ const IeltsExamMode: React.FC = () => {
     setSaveMessage('Unsaved changes');
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (confirmedIncomplete = false) => {
     const currentAttempt = attemptRef.current;
     const currentLockToken = lockTokenRef.current;
-    if (!currentAttempt?.attempt_id || !currentLockToken || isSubmitting || submission || !shouldIeltsAutosaveRun(syncStateRef.current)) return;
+    if (!currentAttempt?.attempt_id || !currentLockToken || submitInFlightRef.current || isSubmitting || submission || !shouldIeltsAutosaveRun(syncStateRef.current)) return;
+    if (readingPassages.length > 1 && (passageVisits.attemptId !== currentAttempt.attempt_id
+      || readingPassages.some(passage => !passageVisits.ids.includes(passage.id)))) {
+      setError('Open every Reading passage before submitting. Use the passage buttons to continue.');
+      return;
+    }
+    // Count the current draft across every section, not only the visible passage.
+    const missing = availableSections.flatMap(section => extractIeltsQuestions(
+      getPayloadForSection(formPayload, section.id), section.id,
+    ).filter(question => !answersRef.current[section.id]?.[question.id]?.trim()));
+    if (missing.length && !confirmedIncomplete) {
+      setConfirmIncomplete(true);
+      return;
+    }
+    submitInFlightRef.current = true;
+    setConfirmIncomplete(false);
     pauseScreenerAudio();
     setIsSubmitting(true);
     setError(null);
@@ -632,6 +717,7 @@ const IeltsExamMode: React.FC = () => {
     } catch (submitError) {
       setError('Your submission could not be confirmed. Keep this page open, check your connection and submit again.');
     } finally {
+      submitInFlightRef.current = false;
       setIsSubmitting(false);
     }
   };
@@ -652,6 +738,42 @@ const IeltsExamMode: React.FC = () => {
   }, [readingAttemptId, readingPassages]);
   const currentReadingPassage = readingPassages.find((passage) => passage.id === selectedPassage) ?? readingPassages[0];
   const displayedQuestions = currentReadingPassage ? activeQuestions.filter((question) => question.passageId === currentReadingPassage.id) : activeQuestions;
+  const currentPassageIndex = readingPassages.findIndex(passage => passage.id === currentReadingPassage?.id);
+  const nextPassage = readingPassages[currentPassageIndex + 1];
+  useEffect(() => {
+    const id = attempt?.attempt_id;
+    if (!id || !currentReadingPassage || !selectedPassage || activeSection !== 'reading') return;
+    let ids = passageVisits.attemptId === id ? passageVisits.ids : [];
+    if (passageVisits.attemptId !== id) {
+      try {
+        const saved: unknown = JSON.parse(window.localStorage.getItem(`ielts_reading_visited_${id}`) ?? '[]');
+        if (Array.isArray(saved)) ids = saved.filter((value): value is string => typeof value === 'string' && readingPassages.some(p => p.id === value));
+      } catch { /* Passage navigation still works when browser storage is unavailable. */ }
+    }
+    if (passageVisits.attemptId === id && ids.includes(currentReadingPassage.id)) return;
+    const next = [...new Set([...ids, currentReadingPassage.id])];
+    try { window.localStorage.setItem(`ielts_reading_visited_${id}`, JSON.stringify(next)); } catch { /* Keep visits for this session. */ }
+    setPassageVisits({ attemptId: id, ids: next });
+  }, [attempt?.attempt_id, currentReadingPassage, selectedPassage, activeSection, passageVisits, readingPassages]);
+  const unvisitedPassages = readingPassages.filter(passage => passageVisits.attemptId !== readingAttemptId || !passageVisits.ids.includes(passage.id));
+
+  const selectPassage = (id: string) => {
+    setSelectedPassage(id);
+    if (readingAttemptId) saveReadingPassage(readingAttemptId, id);
+    window.requestAnimationFrame(() => {
+      const heading = document.getElementById('reading-passage-title');
+      heading?.focus();
+      heading?.scrollIntoView?.({ block: 'start' });
+    });
+  };
+  const submissionCoverage = availableSections.map(section => {
+    const questions = extractIeltsQuestions(getPayloadForSection(formPayload, section.id), section.id);
+    return { label: section.label, total: questions.length,
+      answered: questions.filter(question => Boolean(answers[section.id]?.[question.id]?.trim())).length };
+  });
+  const unansweredCount = submissionCoverage.reduce((count, section) => count + section.total - section.answered, 0);
+  const resultCoverage = responseCoverage(diagnosticResult?.confidence.items_answered, diagnosticResult?.confidence.items_possible);
+
 
   const status = submission?.status ?? whoami?.attempt_status ?? attempt?.status ?? whoami?.status;
   const eventStatus = whoami?.event_status ?? (!whoami?.attempt_id ? whoami?.status : null);
@@ -766,13 +888,13 @@ const IeltsExamMode: React.FC = () => {
         />}
         {diagnosticError && <div className="mx-auto max-w-2xl p-5" role="alert"><p>{diagnosticError}</p><button type="button" className="mt-3 rounded-xl bg-slate-900 px-5 py-3 text-white" onClick={() => setResultRetry((n) => n + 1)}>Load result again</button></div>}
         {diagnosticResult && <section aria-label="Screener result" className="mx-auto my-8 max-w-2xl rounded-2xl border border-cyan-200 bg-white p-6 text-slate-900 shadow-sm">
-          <h2 className="text-xl font-bold">Your starting point</h2>
+          <h2 className="text-xl font-bold">{coverageLabel(resultCoverage)}</h2>
           <p className="mt-3 text-3xl font-bold">{diagnosticResult.raw_score} / {diagnosticResult.marks_possible}</p>
           <p className="mt-2 text-sm text-slate-600">Screener score · Confidence: low</p>
           <p className="mt-3 text-sm">This short check samples part of your learning. It does not give an IELTS band.</p>
           <p className="mt-3 text-sm">{diagnosticResult.confidence.items_answered} of {diagnosticResult.confidence.items_possible} items answered · {diagnosticResult.confidence.constructs_with_responses} of {diagnosticResult.confidence.constructs_sampled} sampled skills have responses.</p>
           {diagnosticResult.integrity_state === 'review_required' && <p className="mt-3 text-sm text-amber-800">Your teacher should review the assessment conditions before interpreting this result.</p>}
-          <p className="mt-4 font-medium">{diagnosticResult.next_step}</p>
+          <p className="mt-4 font-medium">{coverageNextStep(resultCoverage, diagnosticResult.next_step)}</p>
           <a href="/ielts" className="mt-5 inline-flex rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white">Back to IELTS</a>
           <details className="mt-4 text-sm"><summary className="cursor-pointer font-semibold">What this result can tell us</summary><ul className="mt-2 list-disc space-y-2 pl-5">{diagnosticResult.warnings.map((message) => <li key={message}>{message}</li>)}</ul></details>
         </section>}
@@ -842,7 +964,7 @@ const IeltsExamMode: React.FC = () => {
                 <button
                   key={section.id}
                   type="button"
-                  disabled={!shouldIeltsAutosaveRun(syncState)}
+                  disabled={isSubmitting || !shouldIeltsAutosaveRun(syncState)}
                   onClick={() => void handleSectionChange(section.id)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeSection === section.id ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
                 >
@@ -929,19 +1051,19 @@ const IeltsExamMode: React.FC = () => {
               </p>
             </div>}
             {currentReadingPassage && <div className="mb-6">
+              <p className="mb-3 font-semibold" role="status">Passage {currentPassageIndex + 1} of {readingPassages.length} · {activeQuestions.filter(question => answers.reading?.[question.id]?.trim()).length} of {activeQuestions.length} questions answered. Visit every passage before submitting.</p>
               <nav aria-label="Reading passages" className="mb-5 flex flex-wrap gap-3">
                 {readingPassages.map((passage, index) => <button type="button" key={passage.id}
                   aria-pressed={currentReadingPassage.id === passage.id}
                   onClick={() => {
-                    setSelectedPassage(passage.id);
-                    if (readingAttemptId) saveReadingPassage(readingAttemptId, passage.id);
+                    selectPassage(passage.id);
                   }}
                   className={`min-h-11 rounded-xl border px-4 py-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${currentReadingPassage.id === passage.id ? 'border-teal-700 bg-teal-700 text-white' : 'border-slate-300 bg-white text-slate-800'}`}>
-                  Passage {index + 1} · {activeQuestions.filter((question) => question.passageId === passage.id && Boolean(answers.reading?.[question.id])).length}/{activeQuestions.filter((question) => question.passageId === passage.id).length} answered
+                  Passage {index + 1} · {activeQuestions.filter((question) => question.passageId === passage.id && Boolean(answers.reading?.[question.id]?.trim())).length}/{activeQuestions.filter((question) => question.passageId === passage.id).length} answered
                 </button>)}
               </nav>
               <article aria-labelledby="reading-passage-title" className="rounded-2xl border border-teal-200 bg-teal-50/40 p-5 sm:p-7">
-                <h3 id="reading-passage-title" className="mb-5 text-xl font-bold text-slate-950">{currentReadingPassage.title}</h3>
+                <h3 id="reading-passage-title" tabIndex={-1} className="mb-5 text-xl font-bold text-slate-950">{currentReadingPassage.title}</h3>
                 <div className="max-w-3xl space-y-5">
                   {currentReadingPassage.paragraphs.map((paragraph) => <p key={paragraph.label} className="text-base leading-8 text-slate-900"><span className="mr-3 font-bold text-teal-800">{paragraph.label}</span>{paragraph.text}</p>)}
                 </div>
@@ -949,7 +1071,7 @@ const IeltsExamMode: React.FC = () => {
             </div>}
             {isWritingScreener && activeSection === 'writing' && activeQuestions[0] && <IeltsWritingEditor
               prompt={activeQuestions[0].prompt} value={answers.writing?.[activeQuestions[0].id] ?? ''}
-              disabled={!shouldIeltsAutosaveRun(syncState)} onChange={value => handleAnswerChange('writing', activeQuestions[0].id, value)} />}
+              disabled={isSubmitting || !shouldIeltsAutosaveRun(syncState)} onChange={value => handleAnswerChange('writing', activeQuestions[0].id, value)} />}
             {!(isWritingScreener && activeSection === 'writing') && <div id="reading-questions" className="space-y-5">
               {activeQuestions.length === 0 && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
@@ -970,7 +1092,7 @@ const IeltsExamMode: React.FC = () => {
                             name={`${activeSection}-${question.id}`}
                             value={option}
                             checked={(answers[activeSection]?.[question.id] ?? '') === option}
-                            disabled={!shouldIeltsAutosaveRun(syncState)}
+                            disabled={isSubmitting || !shouldIeltsAutosaveRun(syncState)}
                             onChange={(event) => handleAnswerChange(activeSection, question.id, event.target.value)}
                           />
                           <span>{question.options?.length === 4 && <span className="mr-2 font-semibold">{String.fromCharCode(65 + optionIndex)}.</span>}{option}</span>
@@ -982,7 +1104,7 @@ const IeltsExamMode: React.FC = () => {
                       id={`${activeSection}-${question.id}`}
                       className="mt-3 min-h-48 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm leading-6 text-slate-900 placeholder:text-slate-600 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                       value={answers[activeSection]?.[question.id] ?? ''}
-                      disabled={!shouldIeltsAutosaveRun(syncState)}
+                      disabled={isSubmitting || !shouldIeltsAutosaveRun(syncState)}
                       onChange={(event) => handleAnswerChange(activeSection, question.id, event.target.value)}
                       placeholder="Type your answer here…"
                     />
@@ -991,7 +1113,7 @@ const IeltsExamMode: React.FC = () => {
                       id={`${activeSection}-${question.id}`}
                       className="mt-3 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 placeholder:text-slate-600 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                       value={answers[activeSection]?.[question.id] ?? ''}
-                      disabled={!shouldIeltsAutosaveRun(syncState)}
+                      disabled={isSubmitting || !shouldIeltsAutosaveRun(syncState)}
                       onChange={(event) => handleAnswerChange(activeSection, question.id, event.target.value)}
                       placeholder="Your answer"
                     />
@@ -999,21 +1121,40 @@ const IeltsExamMode: React.FC = () => {
                 </article>
               ))}
             </div>}
+            {nextPassage && <div className="mt-6">
+              <p className="mb-3 text-sm">There are more questions in the next passage.</p>
+              <button type="button" className="ix-button ix-button--primary" onClick={() => selectPassage(nextPassage.id)}>
+                Continue to Passage {currentPassageIndex + 2}
+              </button>
+            </div>}
           </section>
 
-          <footer className="sticky bottom-0 mt-6 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur">
+          <footer className="sticky bottom-0 mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-lg">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <p className="text-sm text-slate-600">Check your answers before submitting. If the connection drops, keep this page open and retry.</p>
+              <p className="text-sm text-slate-600">{unansweredCount} unanswered. Check every section before submitting. If the connection drops, keep this page open and retry.</p>
               <button
                 type="button"
-                disabled={isSubmitting || saveState === 'saving' || !shouldIeltsAutosaveRun(syncState)}
+                disabled={unvisitedPassages.length > 0 || isSubmitting || saveState === 'saving' || !shouldIeltsAutosaveRun(syncState)}
                 onClick={() => void handleSubmit()}
                 className="rounded-xl bg-blue-700 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-400"
               >
                 {isSubmitting ? 'Submitting…' : isScreener ? 'Submit screener' : 'Submit IELTS Exam'}
               </button>
             </div>
+            {unvisitedPassages.length > 0 && <div className="mt-3" role="status">
+              <p className="mb-2 text-sm font-semibold">Open every passage before submitting. Opening a passage does not mean its questions are answered.</p>
+              <button type="button" className="ix-button ix-button--primary" onClick={() => selectPassage(unvisitedPassages[0].id)}>
+                Open Passage {readingPassages.findIndex(passage => passage.id === unvisitedPassages[0].id) + 1}
+              </button>
+            </div>}
           </footer>
+          {confirmIncomplete && <IeltsConfirm title="Submit with unanswered questions?" busy={isSubmitting}
+            action="Submit incomplete work" onCancel={() => setConfirmIncomplete(false)}
+            onConfirm={() => void handleSubmit(true)}>
+            <p>{unansweredCount} questions are unanswered. You can cancel and continue answering while time remains.</p>
+            <ul>{submissionCoverage.map(section => <li key={section.label}>{section.label}: {section.answered} of {section.total} answered</li>)}</ul>
+            <p>Unanswered questions receive no marks. Missing responses do not show inability; your teacher may need a fresh check.</p>
+          </IeltsConfirm>}
         </main>
       </div>
     </ExamFrame>

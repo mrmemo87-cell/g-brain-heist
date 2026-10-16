@@ -217,7 +217,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
     const bodyHtml = `
       ${isStudentCopy ? '<p class="document-callout"><strong>Final school feedback copy.</strong> This is a Brains Heist practice report and is not an official IELTS Test Report Form or an endorsement by IELTS.</p>' : `<p class="document-callout document-callout--private"><strong>Confidential reviewer copy.</strong> Contains assessment evidence and private working notes. Do not distribute to students or families.</p>`}
       <div class="document-grid">
-        <div class="document-card"><strong>Reviewed task band</strong><span style="font-size:28px;font-weight:900">${escapeSchoolDocumentHtml(overallBand ?? '—')}</span></div>
+        <div class="document-card"><strong>Reviewed task band</strong><span style="font-size:28px;font-weight:700">${escapeSchoolDocumentHtml(overallBand ?? '—')}</span></div>
         <div class="document-card"><strong>Review status</strong>${escapeSchoolDocumentHtml(locked ? 'Finalized' : 'Draft / in review')}</div>
       </div>
       <h2>Rubric profile</h2>
@@ -259,7 +259,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
   };
 
   return (
-    <main data-testid={embedded ? 'embedded-ielts-submission-review' : 'ielts-submission-review'} style={{ minHeight: embedded ? undefined : '100vh', background: '#f8fafc', padding: '2rem' }}>
+    <main data-testid={embedded ? 'embedded-ielts-submission-review' : 'ielts-submission-review'} className="bh-ielts-page bh-ielts-review-form" style={{ minHeight: embedded ? undefined : '100vh', background: '#f8fafc', padding: '2rem' }}>
       <section style={{ maxWidth: '76rem', margin: '0 auto' }}>
         <button onClick={() => onBack ? onBack() : navigate('/ielts/reviews')} style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', marginBottom: '1rem' }}>← Back to IELTS Review Queue</button>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>

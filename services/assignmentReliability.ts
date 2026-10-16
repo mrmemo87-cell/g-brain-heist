@@ -50,7 +50,7 @@ export function readAssignmentDraft(storage: DraftStorage | null, userId: string
   try {
     const value = JSON.parse(storage?.getItem(key(userId, assignmentId, questionId)) || 'null');
     if (!value || typeof value.answer !== 'string' || !Number.isFinite(value.timeTakenMs)
-      || !Number.isFinite(value.savedAt) || Date.now() - value.savedAt > 7 * 86400000) {
+      || !Number.isFinite(value.savedAt) || value.savedAt <= 0) {
       storage?.removeItem(key(userId, assignmentId, questionId));
       return null;
     }
@@ -62,4 +62,12 @@ export function writeAssignmentDraft(storage: DraftStorage | null, userId: strin
 }
 export function clearAssignmentDraft(storage: DraftStorage | null, userId: string, assignmentId: string, questionId: string) {
   try { storage?.removeItem(key(userId, assignmentId, questionId)); } catch { /* Private browsing may block storage. */ }
+}
+
+const submissionKey = (userId: string, assignmentId: string) => `bh:assignment-submit:v1:${userId}:${assignmentId}`;
+export function setAssignmentSubmissionIntent(storage: DraftStorage | null, userId: string, assignmentId: string, pending: boolean): boolean {
+  try { if (!storage) return false; if (pending) storage.setItem(submissionKey(userId, assignmentId), 'pending'); else storage.removeItem(submissionKey(userId, assignmentId)); return true; } catch { return false; }
+}
+export function hasAssignmentSubmissionIntent(storage: DraftStorage | null, userId: string, assignmentId: string): boolean {
+  try { return storage?.getItem(submissionKey(userId, assignmentId)) === 'pending'; } catch { return false; }
 }

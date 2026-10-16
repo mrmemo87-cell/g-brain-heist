@@ -1,3 +1,4 @@
+import { touchPresence as touchPlayerPresence } from './presenceService';
 import { fetchQuestionPage, fetchStudentQuestionSummary } from './questionBrowserService';
 import { economicsDisplayOptions, questionGameXp } from './economicsOptionPresentation';
 import { retryAssignmentOperation, isTransientAssignmentError } from './assignmentReliability';
@@ -1412,7 +1413,7 @@ export const whoamiTeacher = async (): Promise<Profile> => {
   }
 
   // Update presence without mutating profile metadata.
-  void supabase.rpc('rpc_touch_last_seen').then(() => {}, () => {});
+  void touchPlayerPresence();
 
   return profile;
 };
@@ -1461,7 +1462,7 @@ export const whoamiFast = async (): Promise<Profile> => {
   await streakRewardPromise;
 
   // Presence must never delay the dashboard.
-  void supabase.rpc('rpc_touch_last_seen').then(() => {}, () => {});
+  void touchPlayerPresence();
   return profile as Profile;
 };
 
@@ -5495,6 +5496,7 @@ export const create_assignment = async (
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
+        p_delivery_mode: payload.delivery_mode ?? 'online',
         p_assignment_category: payload.assignment_category ?? null,
         p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
@@ -5571,12 +5573,16 @@ export const get_teacher_assignments = async (teacherId?: string): Promise<Teach
     if (error) throw new Error(error.message || 'Failed to load assignments');
 
     const assignments = (data as TeacherAssignmentSummary[]) || [];
-    const [{ data: contextData, error: contextError }, { data: groupContextData, error: groupContextError }] = await Promise.all([
+    const [{ data: contextData, error: contextError }, { data: groupContextData, error: groupContextError }, { data: deliveryContext, error: deliveryError }] = await Promise.all([
         supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId }),
         supabase.rpc('rpc_teacher_assignment_group_context', { p_teacher_id: resolvedTeacherId }),
+        supabase.rpc('rpc_teacher_assignment_delivery_context', { p_assignment_ids: assignments.map((a) => a.id) }),
     ]);
     if (contextError) throw new Error(contextError.message || 'Failed to load assignment category context');
     if (groupContextError) throw new Error(groupContextError.message || 'Failed to load assignment teaching-group context');
+    if (deliveryError) throw new Error('Assignment delivery could not be loaded. Please retry.');
+    const deliveryById = new Map((deliveryContext || []).map((row: { id: string; delivery_mode: 'online' | 'paper' | 'mixed' }) => [row.id, row.delivery_mode]));
+    assignments.forEach((assignment) => { assignment.delivery_mode = deliveryById.get(assignment.id) as TeacherAssignmentSummary['delivery_mode'] || 'online'; });
     const withCategory = mergeAssignmentCategoryContext(assignments, (contextData as AssignmentCategoryContextRow[]) || []) as TeacherAssignmentSummary[];
     const groupContext = new Map(((groupContextData as Array<{
         assignment_id: string;
@@ -5628,6 +5634,7 @@ export const update_teacher_assignment = async (
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
+        p_delivery_mode: payload.delivery_mode ?? 'online',
         p_assignment_category: payload.assignment_category ?? null,
         p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
@@ -5898,7 +5905,10 @@ export const get_teacher_assignment_report = async (
 
     if (error) throw new Error(error.message || 'Failed to load report');
 
-    return (data as TeacherAssignmentReportRow[]) || [];
+    const { data: context, error: contextError } = await supabase.rpc('rpc_teacher_assignment_delivery_context', { p_assignment_ids: [assignmentId] });
+    if (contextError) throw new Error('Completion details could not be loaded. Please retry.');
+    const completions = new Map<string, { completion_source: 'paper' | 'online'; timing_available: boolean }>((context?.[0]?.completions || []).map((row: { student_id: string; completion_source: 'paper' | 'online'; timing_available: boolean }) => [row.student_id, row]));
+    return ((data as TeacherAssignmentReportRow[]) || []).map((row) => ({ ...row, ...completions.get(row.student_id) }));
 };
 
 /**
@@ -6030,11 +6040,12 @@ export const get_assignment_question_analysis = async (
 /**
  * Get student's completed assignments for achievement display
  */
-export const get_student_completed_assignments = async (): Promise<CompletedAssignment[]> => {
+export const get_student_completed_assignments = async (options: { throwOnError?: boolean } = {}): Promise<CompletedAssignment[]> => {
     const { data, error } = await rpcGetStudentCompletedAssignments();
 
     if (error) {
         console.error('Failed to load completed assignments:', error);
+        if (options.throwOnError) throw new Error(error.message || 'Failed to load completed assignments');
         return [];
     }
 

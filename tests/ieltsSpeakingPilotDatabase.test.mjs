@@ -606,5 +606,36 @@ test("IELTS programme delegation is school-scoped, audited, idempotent and immed
     await assert.rejects(db.query(`delete from private.${table}`),/immutable/);
   }
   assert.equal((await db.query("select has_function_privilege('anon','rpc_ielts_set_programme_lead(uuid,uuid,uuid,uuid)','execute') ok")).rows[0].ok,false);
+  // Apply the real seat helper and release migration after preserving the existing pilot checks.
+  await db.exec('create table school_programme_seat_assignments(school_id uuid,module_key text,student_user_id uuid,released_at timestamptz)');
+  const seats=readFileSync('supabase/migrations/20260816170000_strict_student_programme_seat_access.sql','utf8');
+  const helperStart=seats.indexOf('create or replace function private.student_has_programme_seat(');
+  await db.exec(seats.slice(helperStart,seats.indexOf('$$;',helperStart)+3));
+  await db.exec(readFileSync('supabase/migrations/20261008065539_ielts_speaking_school_seat_access.sql','utf8'));
+  await actor(student);
+  const preserved=(await db.query('select * from private.ielts_speaking_sessions order by id')).rows;
+  assert.equal((await db.query('select rpc_ielts_speaking_home() h')).rows[0].h.available,false);
+  await db.query("insert into school_programme_seat_assignments values($1,'writing',$2,null)",[school,student]);
+  assert.equal((await db.query('select rpc_ielts_speaking_home() h')).rows[0].h.available,false);
+  await db.query("insert into school_programme_seat_assignments values($1,'ielts',$2,null)",[id(92),student]);
+  assert.equal((await db.query('select rpc_ielts_speaking_home() h')).rows[0].h.available,false);
+  await db.query("insert into school_programme_seat_assignments values($1,'ielts',$2,null)",[school,student]);
+  const eligible=(await db.query('select rpc_ielts_speaking_home() h')).rows[0].h;
+  assert.equal(eligible.available,true);assert.equal(eligible.sessions[0].reviewed,true);
+  await db.query("update school_programme_seat_assignments set released_at=now() where school_id=$1 and module_key='ielts'",[school]);
+  assert.equal((await db.query('select rpc_ielts_speaking_home() h')).rows[0].h.available,false);
+  await assert.rejects(db.query('select rpc_ielts_speaking_session($1)',[session]),/not_authorized/);
+  await db.query("update school_programme_seat_assignments set released_at=null where school_id=$1 and module_key='ielts'",[school]);
+  await db.query("update school_members set status='pending' where user_id=$1",[student]);
+  assert.equal((await db.query('select rpc_ielts_speaking_home() h')).rows[0].h.available,false);
+  await db.query("update school_members set status='active' where user_id=$1",[student]);
+  await db.query('update users set is_banned=true where id=$1',[student]);
+  assert.equal((await db.query('select rpc_ielts_speaking_home() h')).rows[0].h.available,false);
+  await db.query('update users set is_banned=false where id=$1',[student]);
+  await db.exec('create or replace function public.school_has_module_access(uuid,text) returns boolean language sql as $$select false$$');
+  assert.equal((await db.query('select rpc_ielts_speaking_home() h')).rows[0].h.available,false);
+  await actor(id(93));assert.equal((await db.query('select rpc_ielts_speaking_home() h')).rows[0].h.available,true);
+  assert.deepEqual((await db.query('select * from private.ielts_speaking_sessions order by id')).rows,preserved);
+  for(const role of ['anon','authenticated','service_role'])assert.equal((await db.query("select has_function_privilege($1,'private.ielts_speaking_student_eligible(uuid)','execute') ok",[role])).rows[0].ok,false);
   await db.close();
 });

@@ -1,3 +1,5 @@
+import IeltsMaterialProvenance from "../../components/ielts/IeltsMaterialProvenance";
+import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -9,6 +11,8 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { buildListeningAttemptPayload, doesAnswerMatchCorrectAnswer, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
 
 interface ListeningSet {
+  originality_label?: string | null;
+  display_code?: string | null;
   id: number;
   slug: string;
   title: string;
@@ -393,7 +397,7 @@ const ListeningPractice: React.FC = () => {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%)',
+        background: 'linear-gradient(135deg, #15243A 0%, #193E65 55%, #15243A 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -444,7 +448,7 @@ const ListeningPractice: React.FC = () => {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        background: 'linear-gradient(135deg, #15243A 0%, #234566 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -518,6 +522,7 @@ const ListeningPractice: React.FC = () => {
             <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
               Practice Completed
             </h1>
+            <p>{ieltsMaterialTitle(listeningSet.display_code, listeningSet.title)}<IeltsMaterialProvenance label={listeningSet.originality_label}/></p>
           </div>
           
           <AssignmentCompletionStatus
@@ -744,7 +749,7 @@ const ListeningPractice: React.FC = () => {
               style={{
                 flex: 1,
                 padding: '0.875rem 1.5rem',
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                background: 'linear-gradient(135deg, #1746B0 0%, #103B9A 100%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '0.5rem',
@@ -781,7 +786,7 @@ const ListeningPractice: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
             <div style={{ flex: 1, minWidth: '200px' }}>
               <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.875rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
-                {listeningSet.title}
+                {ieltsMaterialTitle(listeningSet.display_code, listeningSet.title)}<IeltsMaterialProvenance label={listeningSet.originality_label}/>
               </h1>
               <div style={{ display: 'flex', gap: '0.5rem', fontSize: 'clamp(0.7rem, 2vw, 0.875rem)', color: '#64748b', flexWrap: 'wrap' }}>
                 <span>Level: {listeningSet.level}</span>
@@ -1126,7 +1131,7 @@ const ListeningPractice: React.FC = () => {
                     style={{
                       flex: 1,
                       padding: '0.75rem 1.5rem',
-                      background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                      background: 'linear-gradient(135deg, #1746B0 0%, #103B9A 100%)',
                       color: 'white',
                       border: 'none',
                       borderRadius: '0.5rem',

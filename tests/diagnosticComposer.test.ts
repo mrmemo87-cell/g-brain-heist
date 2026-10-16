@@ -10,6 +10,7 @@ const service = readFileSync('services/diagnosticComposerService.ts', 'utf8');
 const composer = readFileSync('components/teacher/DiagnosticComposer.tsx', 'utf8');
 const wizard = readFileSync('components/teacher/AssignmentWizard.tsx', 'utf8');
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
+const assignmentToolbar = readFileSync('components/teacher/AssignmentToolbar.tsx', 'utf8');
 const curriculum = readFileSync('components/teacher/TeacherCurriculumIntelligencePage.tsx', 'utf8');
 
 test('new assignment snapshots balance MCQ positions without rewriting canonical questions', () => {
@@ -123,7 +124,9 @@ test('prepared diagnostics lock academic context while leaving teacher review an
 });
 
 test('the same composer is available from Assignments and Curriculum Intelligence', () => {
-  assert.match(portal, /Create Diagnostic/);
+  assert.match(assignmentToolbar, /Create diagnostic/);
+  assert.match(assignmentToolbar, /create\(props\.onDiagnostic\)/);
+  assert.match(portal, /onDiagnostic=\{\(\) => openDiagnosticComposer\(\)\}/);
   assert.match(portal, /DiagnosticComposer/);
   assert.match(curriculum, /onCreateDiagnostic\?: \(groupId: string\) => void/);
   assert.match(curriculum, /onCreateDiagnostic\?\.\(selectedGroup\.id\)/);

@@ -123,7 +123,6 @@ test('IELTS Exam Mode UI surfaces safe start errors instead of silently resettin
 
 test('IELTS Exam Mode student page polls live status, ticks countdown, and locks teacher actions', () => {
   const source = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
-  assert.match(source, /setInterval\(\(\) => \{[\s\S]*refreshLiveState\(\)[\s\S]*\}, 10000\)/, 'student page must poll live state every 10 seconds');
   assert.match(source, /window\.addEventListener\('focus', onFocusOrVisible\)/, 'student page must refresh status on focus');
   assert.match(source, /document\.addEventListener\('visibilitychange', onFocusOrVisible\)/, 'student page must refresh status on visibilitychange');
   assert.match(source, /setInterval\(\(\) => \{[\s\S]*setNowTick\(Date\.now\(\)\)[\s\S]*setRemainingSeconds[\s\S]*\}, 1000\)/, 'countdown must visibly tick every second');

@@ -86,7 +86,7 @@ export const createAssignment = (
   payload: Record<string, unknown>,
   client?: RpcClient
 ): RpcResult<unknown> => {
-  return execute('rpc_create_assignment', payload, client);
+  return payload['p_delivery_mode'] ? execute('rpc_create_assignment_classroom', { p_payload: payload, p_delivery_mode: payload['p_delivery_mode'] }, client) : execute('rpc_create_assignment', payload, client);
 };
 
 export const getAssignmentsForTeacher = (
@@ -108,7 +108,7 @@ export const updateTeacherAssignment = (
   payload: Record<string, unknown>,
   client?: RpcClient
 ): RpcResult<unknown> => {
-  return execute('rpc_update_teacher_assignment', { p_assignment_id: assignmentId, ...payload }, client);
+  return payload['p_delivery_mode'] ? execute('rpc_update_assignment_classroom', { p_payload: { p_assignment_id: assignmentId, ...payload }, p_delivery_mode: payload['p_delivery_mode'] }, client) : execute('rpc_update_teacher_assignment', { p_assignment_id: assignmentId, ...payload }, client);
 };
 
 export const getTeacherAssignmentSuccessSummary = (

@@ -1175,7 +1175,7 @@ const IeltsAdminDashboard: React.FC = () => {
   }, [resetConfirmText, selectedUser]);
 
   return (
-    <div className="space-y-6">
+    <div className="bh-ielts-admin space-y-6">
       <div className="flex flex-wrap gap-2 justify-center">
         {NAV_SECTIONS.map((section) => (
           <button

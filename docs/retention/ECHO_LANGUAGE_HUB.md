@@ -1,0 +1,11 @@
+# Echo language hub pilot
+
+The existing floating language control becomes the student's character while the retention pilot mounts an enabled, floating, untucked companion. It retains the original pointer capture, six-pixel drag threshold, saved edge/height ratio, keyboard movement, safe-area probe, visual viewport listeners and docking transition. Dragging the character does not open its menu.
+
+Tap the character for four labelled SVG actions: Language, Personalise, Keepsakes and Tuck away. A reversible, lazily loaded GSAP timeline draws the options from behind the character; CSS provides a fallback, and reduced-motion preferences remove transitions. Escape, tapping outside and leaving keyboard focus close the menu. Languages use the existing setter and saved language preference, with a back button to return to character options.
+
+Personalise opens and focuses the existing editor. Keepsakes opens the existing scrapbook, including attributed teacher encouragement. Tuck away restores the normal language globe and a small bring-back chip. The card's existing dock action turns floating off. Hiding/pausing the pilot, starting retention practice, navigating away, or unmounting the character unregisters it and restores the globe. IELTS route and embedded visibility rules remain unchanged. Small visual viewports temporarily use the globe and restore the character when room returns.
+
+The old character float preference remains compatible; floating enabled/tucked status are still per account/device. Movement now deliberately shares the language control's existing device dock preference rather than the previous character-only x/y coordinates. No database migration, polling, new RPC, dependency or character asset is added. Existing teacher appreciation and teacher UI are retained. Audience remains Gulzada/Jess; teacher Jess does not gain a student mascot.
+
+Validation: focused strict TypeScript and DOM journeys cover single-character rendering, language selection/back navigation, drag suppression, keyboard docking, blocked storage, Safari-style viewport offsets and keyboard shrink, rapid GSAP reversal, tuck/practice/unmount fallback, personalisation, teacher keepsakes, and IELTS suppression. Full repository CI is required before merge. These automated checks do not constitute a physical iPhone/Safari visual acceptance test.

@@ -1,0 +1,641 @@
+@import "./ielts-design-system.css";
+
+.ilr-panel {
+  color: var(--bh-ielts-foreground);
+  font-family: var(--bh-ielts-font-body);
+}
+.ilr-panel input,
+.ilr-panel select,
+.ilr-panel textarea {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--bh-ielts-input-border);
+  border-radius: var(--bh-ielts-radius-sm);
+  background: var(--bh-ielts-surface);
+  color: var(--bh-ielts-foreground);
+  font: inherit;
+  box-sizing: border-box;
+}
+.ilr-panel textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+.ilr-panel label {
+  display: block;
+  font-weight: 650;
+  margin: 12px 0;
+}
+.ilr-panel button,
+.ilr-source {
+  min-height: 44px;
+}
+.ilr-panel input[type="checkbox"],
+.ilr-panel input[type="radio"] {
+  display: inline-block;
+  width: auto;
+  min-height: 0;
+  margin-right: 8px;
+}
+.ilr-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.ilr-skill {
+  border: 1px solid #d9e3ee;
+  border-radius: 16px;
+  padding: 20px;
+  background: #f8fbff;
+}
+.ilr-source {
+  display: block;
+  border: 0;
+  background: none;
+  color: #234ac2;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ilr-teacher {
+  padding: 22px;
+  border-left: 4px solid #2948bf;
+  border-radius: 12px;
+  background: #eef3ff;
+  line-height: 1.6;
+}
+.ilr-teacher strong {
+  color: #1b3595;
+}
+.ilr-goals {
+  display: grid;
+  gap: 12px;
+}
+.ilr-goals article {
+  padding: 20px;
+  border: 1px solid #dce5ef;
+  border-radius: 12px;
+}
+.ilr-goals span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #234ac2;
+}
+.ilr-trail {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.ilr-trail li {
+  padding: 14px 18px;
+  border-left: 3px solid #16bdd4;
+  background: #f8fafc;
+}
+.ilr-trail li > span {
+  display: block;
+  font-size: 13px;
+  color: #52677a;
+  margin: 5px 0;
+}
+.ilr-pathway {
+  color: #1b3595 !important;
+  font-size: 14px !important;
+}
+.ilr-overlay .arb-subjects article > p {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.6;
+}
+.ilr-overlay .arb-report details {
+  margin-top: 15px;
+}
+.ilr-overlay summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.ilr-overlay .arb-report p {
+  line-height: 1.65;
+}
+.ilr-panel button:focus-visible,
+.ilr-overlay button:focus-visible,
+.ilr-panel input:focus-visible,
+.ilr-panel textarea:focus-visible,
+.ilr-panel select:focus-visible {
+  outline: 3px solid #295dc7;
+  outline-offset: 3px;
+}
+.ilr-panel fieldset {
+  border: 0;
+  padding: 0;
+}
+.ilr-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.ilr-hint {
+  color: #536579;
+  font-size: 13px;
+}
+.ilr-shared {
+  padding: 20px;
+  border: 1px solid #dce5ef;
+  border-radius: 14px;
+  margin: 14px 0;
+  background: #f8fbff;
+}
+@media (max-width: 650px) {
+  .ilr-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .ilr-skill {
+    padding: 15px;
+  }
+  .ilr-overlay .arb-title h1 {
+    overflow-wrap: anywhere;
+  }
+}
+@media print {
+  .ilr-trail li,
+  .ilr-goals article,
+  .ilr-teacher {
+    break-inside: avoid;
+  }
+  .ilr-overlay details > * {
+    display: block;
+  }
+  .ilr-overlay details summary {
+    display: none;
+  }
+  .ilr-overlay .arb-report {
+    font-size: 11pt;
+  }
+  .ilr-overlay .arb-report details {
+    content-visibility: visible;
+  }
+}
+/* IELTS report editorial layout; academic snapshots and decisions stay unchanged. */
+.ilr-document {
+  max-width: 1040px;
+  margin: 24px auto;
+  padding: 38px 42px;
+  border-radius: 16px;
+}
+.ilr-report-title {
+  padding: 32px 0 26px;
+}
+.ilr-report-title h1 {
+  font-size: 42px;
+  line-height: 1.15;
+}
+.ilr-overview {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 28px;
+  padding: 26px;
+  border: 1px solid #cddcf0;
+  border-radius: 16px;
+  background: #f4f8ff;
+}
+.ilr-overview h2 {
+  margin: 6px 0 10px;
+  font-size: 21px;
+}
+.ilr-overview p {
+  margin: 0;
+  color: #293b54;
+}
+.ilr-kicker {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #214da6;
+}
+.ilr-next {
+  padding-left: 24px;
+  border-left: 2px solid #bfd1ee;
+}
+.ilr-next p {
+  margin: 10px 0;
+}
+.ilr-next small {
+  color: #52677a;
+}
+.ilr-overlay .ilr-goals {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.ilr-goals article {
+  background: #fff;
+  border-top: 3px solid #16bdd4;
+  padding: 22px;
+}
+.ilr-goals h3 {
+  margin: 10px 0 18px;
+  font-size: 17px;
+  line-height: 1.5;
+}
+.ilr-goals dl {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+.ilr-goals dt {
+  font-size: 11px;
+  font-weight: 700;
+  color: #52677a;
+}
+.ilr-goals dd {
+  margin: 4px 0 0;
+  line-height: 1.6;
+  font-size: 14px;
+}
+.ilr-overlay .ilr-profile {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.ilr-overlay .ilr-profile article {
+  padding: 23px;
+  background: #fff;
+}
+.ilr-profile header {
+  align-items: center !important;
+}
+.ilr-overlay .ilr-profile .ilr-score {
+  font-size: 18px;
+  color: #172b49;
+  font-weight: 700;
+  margin: 14px 0 4px;
+}
+.ilr-profile small {
+  font-size: 12px;
+  color: #52677a;
+  display: block;
+}
+.ilr-profile .ilr-pathway {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #edf3ff;
+  margin: 18px 0 !important;
+}
+.ilr-pathway small {
+  margin-top: 4px;
+}
+.ilr-observation strong {
+  display: block;
+  font-size: 12px;
+  color: #52677a;
+  margin-bottom: 5px;
+}
+.ilr-evidence-meta {
+  font-size: 12px !important;
+  color: #52677a !important;
+}
+.ilr-source-detail {
+  padding: 12px 0;
+  border-top: 1px solid #e2e8f0;
+  overflow-wrap: anywhere;
+}
+.ilr-overlay .ilr-progress-note {
+  margin-top: 28px;
+  padding: 22px 24px;
+  border-radius: 14px;
+  background: #f0f9fb;
+  border: 1px solid #b8dfe5;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 28px;
+}
+.ilr-progress-note h2 {
+  font-size: 20px;
+  margin: 6px 0;
+}
+.ilr-progress-note p {
+  margin: 0;
+  color: #36505b;
+}
+.ilr-evidence-ledger {
+  padding: 18px 20px;
+  border: 1px solid #dce5ef;
+  border-radius: 12px;
+}
+.ilr-overlay .arb-footer {
+  font-family: inherit;
+}
+.ilr-overlay .arb-footer .arb-final {
+  font-family: inherit;
+  font-size: 14px;
+}
+.ilr-overlay .arb-final span {
+  font-size: 12px;
+}
+.ilr-overlay .arb-report summary {
+  min-height: 32px;
+  padding: 5px 0;
+  color: #25456c;
+}
+.ilr-overlay summary:focus-visible {
+  outline: 3px solid #295dc7;
+  outline-offset: 3px;
+}
+.ilr-overlay .arb-correction textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+@media (max-width: 700px) {
+  .ilr-document {
+    margin: 8px;
+    padding: 22px 18px;
+  }
+  .ilr-report-title h1 {
+    font-size: 32px;
+  }
+  .ilr-overview,
+  .ilr-overlay .ilr-progress-note {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 20px;
+  }
+  .ilr-next {
+    border-left: 0;
+    border-top: 1px solid #bfd1ee;
+    padding: 16px 0 0;
+  }
+  .ilr-overlay .ilr-profile {
+    grid-template-columns: 1fr;
+  }
+  .ilr-overlay .arb-report-header {
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .ilr-overlay .arb-brand strong {
+    overflow-wrap: anywhere;
+  }
+}
+@media print {
+  .ilr-document {
+    max-width: none;
+    border-radius: 0;
+  }
+  .ilr-overlay .ilr-overview,
+  .ilr-overlay .ilr-profile,
+  .ilr-overlay .ilr-goals,
+  .ilr-overlay .ilr-progress-note {
+    display: block;
+  }
+  .ilr-overview > div,
+  .ilr-goals article,
+  .ilr-profile article,
+  .ilr-progress-note {
+    break-inside: avoid;
+    margin-bottom: 14px;
+  }
+  .ilr-overlay .arb-section {
+    break-inside: auto;
+  }
+  .ilr-overlay .arb-report details summary {
+    display: block;
+    font-size: 11pt;
+  }
+  .ilr-next {
+    border: 0;
+    padding: 12px 0 0;
+  }
+  .ilr-overlay .arb-report-header {
+    break-inside: avoid;
+  }
+}
+
+/* Audience overview: the same academic report shell, with a concise A4 hierarchy. */
+.ilr-overview-document {
+  max-width: 880px;
+  padding: 36px 42px;
+}
+.ilr-summary h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.ilr-summary-intro {
+  padding: 22px 24px;
+  background: #f3f7fa;
+  border-left: 4px solid #0e6477;
+}
+.ilr-summary-intro h2 {
+  margin: 6px 0 8px;
+  font-size: 22px;
+}
+.ilr-summary p {
+  margin: 0;
+  line-height: 1.6;
+  color: #405266;
+  font-size: 13px;
+}
+.ilr-summary-skills,
+.ilr-summary-priorities {
+  margin-top: 24px;
+}
+.ilr-summary table {
+  font-size: 12px;
+}
+.ilr-summary table th,
+.ilr-summary table td {
+  padding: 13px 12px;
+  border: 0;
+  border-bottom: 1px solid #dfe7ef;
+}
+.ilr-summary table thead th {
+  color: #405266;
+  background: #f3f7fa;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+.ilr-summary table tbody th {
+  color: #14283b;
+  font-size: 13px;
+  text-transform: none;
+  background: transparent;
+}
+.ilr-summary .ilr-summary-caption {
+  margin-top: 10px;
+  font-size: 10px;
+  color: #617286;
+}
+.ilr-summary-priorities ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.ilr-summary-priorities li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.ilr-summary-priorities li > span {
+  width: 29px;
+  height: 29px;
+  flex: 0 0 29px;
+  display: grid;
+  place-items: center;
+  background: #e9f1f4;
+  color: #0e6477;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 11px;
+}
+.ilr-summary-priorities strong {
+  font-size: 12px;
+  color: #14283b;
+}
+.ilr-summary-review {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  margin-top: 24px;
+  padding: 16px 0;
+  border-top: 1px solid #dfe7ef;
+  border-bottom: 1px solid #dfe7ef;
+}
+.ilr-summary-review strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+}
+.ilr-overview-document .arb-footer {
+  margin-top: 18px;
+  border-top: 0;
+  padding-top: 0;
+}
+.ilr-overview-document .arb-final {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.ilr-overview-document .arb-final strong {
+  color: #14283b;
+  font-size: 11px;
+}
+.ilr-overview-document .arb-final span,
+.ilr-overview-document .arb-footer > small {
+  font-size: 10px;
+}
+.ilr-school-monogram {
+  font-size: 14px !important;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 700px) {
+  .ilr-overview-document {
+    padding: 22px 18px;
+  }
+  .ilr-summary-intro {
+    padding: 18px;
+  }
+  .ilr-summary-review {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .ilr-summary table th,
+  .ilr-summary table td {
+    padding: 10px 7px;
+    font-size: 11px;
+  }
+  .ilr-overview-document .arb-report-header {
+    align-items: flex-start;
+  }
+  .ilr-overview-document .arb-brand img {
+    width: 48px;
+    height: 48px;
+  }
+}
+@media print {
+  @page ilrOverview {
+    size: A4;
+    margin: 12mm;
+  }
+  .ilr-overview-document {
+    page: ilrOverview;
+    padding: 0 !important;
+    max-width: none;
+  }
+  .ilr-overview-document .arb-title {
+    padding: 18px 0 14px;
+  }
+  .ilr-overview-document .arb-title h1 {
+    font-size: 28px;
+  }
+  .ilr-summary-intro {
+    padding: 14px 18px;
+  }
+  .ilr-summary-skills,
+  .ilr-summary-priorities {
+    margin-top: 18px;
+  }
+  .ilr-summary table th,
+  .ilr-summary table td {
+    padding: 10px;
+  }
+  .ilr-summary-intro,
+  .ilr-summary-priorities li,
+  .ilr-summary-review {
+    break-inside: avoid;
+  }
+  .ilr-overview-document .arb-final {
+    display: block;
+  }
+}
+
+@media (max-width: 700px) {
+  .ilr-shell .arb-toolbar > div:last-child {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+  }
+  .ilr-shell .arb-toolbar > div:last-child > button:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Compact A4 overview. Detailed records keep their natural pagination. */
+@media print {
+  .ilr-overview-document {
+    margin: 0;
+    width: auto;
+    font-size: 10pt;
+    line-height: 1.35;
+  }
+  .ilr-overview-document .arb-report-header { padding-bottom: 3mm; }
+  .ilr-overview-document .arb-brand img,
+  .ilr-overview-document .arb-brand > b { width: 12mm; height: 12mm; }
+  .ilr-overview-document .arb-title { padding: 4mm 0 3mm; }
+  .ilr-overview-document .arb-title h1 { font-size: 22pt; }
+  .ilr-overview-document .ilr-summary-intro { padding: 3mm 4mm; }
+  .ilr-overview-document .ilr-summary-intro h2 { font-size: 14pt; }
+  .ilr-overview-document .ilr-summary h2 { margin-bottom: 2mm; }
+  .ilr-overview-document .ilr-summary p { font-size: 9.5pt; line-height: 1.4; }
+  .ilr-overview-document .ilr-summary-skills,
+  .ilr-overview-document .ilr-summary-priorities { margin-top: 3mm; }
+  .ilr-overview-document .ilr-summary table th,
+  .ilr-overview-document .ilr-summary table td { padding: 2mm; }
+  .ilr-overview-document .ilr-summary-priorities ol { gap: 2mm; }
+  .ilr-overview-document .ilr-summary-priorities li > span { width: 6mm; height: 6mm; flex-basis: 6mm; }
+  .ilr-overview-document .ilr-summary-review {
+    grid-template-columns: 1fr auto;
+    gap: 4mm;
+    margin-top: 3mm;
+    padding: 3mm 0;
+  }
+  .ilr-overview-document .ilr-summary .ilr-summary-caption { margin-top: 2mm; font-size: 8pt; }
+  .ilr-overview-document .arb-footer { margin-top: 3mm; gap: 2mm; grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+  .ilr-overview-document .arb-footer .arb-final strong,
+  .ilr-overview-document .arb-footer .arb-final span,
+  .ilr-overview-document .arb-footer > small { font-size: 8pt; }
+}

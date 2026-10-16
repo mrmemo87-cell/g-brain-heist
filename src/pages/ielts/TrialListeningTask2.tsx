@@ -50,7 +50,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing
         minHeight: '100vh',
         display: 'grid',
         placeItems: 'center',
-        background: 'linear-gradient(145deg,#f8fafc 0%,#eef2ff 52%,#ecfeff 100%)',
+        background: 'var(--bh-ielts-background)',
         padding: 'clamp(1rem,4vw,2.5rem)',
       }}
     >
@@ -62,7 +62,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing
           border: '1px solid #dbeafe',
           borderRadius: '1.5rem',
           padding: 'clamp(1.4rem,5vw,2.5rem)',
-          boxShadow: '0 28px 80px rgba(37,99,235,0.12)',
+          boxShadow: 'var(--bh-ielts-shadow-md)',
         }}
       >
         <div
@@ -86,7 +86,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing
             margin: '0 0 .65rem',
             color: '#0369a1',
             fontSize: '.76rem',
-            fontWeight: 900,
+            fontWeight: 700,
             letterSpacing: '.12em',
             textTransform: 'uppercase',
           }}
@@ -163,7 +163,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing
             padding: '.95rem 1.2rem',
             background: 'linear-gradient(135deg,#0891b2,#2563eb 58%,#6d28d9)',
             color: '#ffffff',
-            fontWeight: 900,
+            fontWeight: 700,
             fontSize: '.96rem',
             cursor: 'pointer',
           }}

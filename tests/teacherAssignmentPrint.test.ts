@@ -3,11 +3,13 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
+const card = readFileSync('components/teacher/AssignmentCard.tsx', 'utf8');
 const service = readFileSync('services/teacherAssignmentPrintService.ts', 'utf8');
 const migration = readFileSync('supabase/migrations/20260928103000_teacher_assignment_print_packet.sql', 'utf8');
 
 test('teacher assignment workspace exposes professional paper printing', () => {
-  assert.match(portal, /Print paper/);
+  assert.match(card, /Print papers/);
+  assert.match(portal, /onPrint=\{\(\) => void handlePrintAssignmentPaper\(assignment\)\}/);
   assert.match(portal, /handlePrintAssignmentPaper/);
   assert.match(service, /student-question-paper-v1/);
   assert.match(service, /openSchoolDocumentPreview/);

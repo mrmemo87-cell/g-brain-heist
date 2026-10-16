@@ -1,0 +1,12 @@
+.teacher-ielts-shortcut { display:flex; align-items:center; gap:20px; padding:24px; border:1px solid #c7d2fe; border-radius:20px; background:linear-gradient(120deg,#eef2ff,#fff); color:#172554; }
+.teacher-ielts-shortcut__mark { display:grid; place-items:center; flex-shrink:0; width:52px; height:52px; border-radius:16px; background:#dbeafe; color:#1e40af; }
+.teacher-ielts-shortcut__mark svg { width:28px; height:28px; }
+.teacher-ielts-shortcut__copy { flex:1; min-width:0; }
+.teacher-ielts-shortcut__eyebrow { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:#3730a3; }
+.teacher-ielts-shortcut h3 { margin:5px 0; font-size:22px; font-weight:800; line-height:1.2; color:#172554; }
+.teacher-ielts-shortcut p { margin:4px 0; font-size:14px; line-height:1.5; color:#334155; }
+.teacher-ielts-shortcut a,.teacher-ielts-shortcut button { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:48px; padding:12px 18px; border:0; border-radius:12px; background:#1e40af; color:#fff; font-size:14px; font-weight:700; text-decoration:none; cursor:pointer; }
+.teacher-ielts-shortcut a:hover,.teacher-ielts-shortcut button:hover { background:#1e3a8a; }
+.teacher-ielts-shortcut a:focus-visible,.teacher-ielts-shortcut button:focus-visible { outline:3px solid #2563eb; outline-offset:4px; }
+.teacher-nav-icon > svg,.teacher-mobile-menu-icon > svg { width:24px; height:24px; }
+@media(max-width:700px) { .teacher-ielts-shortcut { flex-wrap:wrap; padding:20px; gap:14px; } .teacher-ielts-shortcut__copy { flex-basis:calc(100% - 70px); } .teacher-ielts-shortcut a { width:100%; } }

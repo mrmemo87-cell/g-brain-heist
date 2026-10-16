@@ -13,6 +13,27 @@ interface QuestionPreviewModalProps {
 const textForOption = (option: TeacherQuestion['options'][number]) =>
   typeof option === 'string' ? option : option.text;
 
+const hiddenMetadataTagPrefixes = [
+  'purpose:',
+  'strand:',
+  'skill:',
+  'subskill:',
+  'evidence-focus:',
+  'evidence_focus:',
+  'assessment-process:',
+  'assessment_process:',
+  'cognitive-process:',
+  'cognitive_process:',
+  'registry:',
+  'registry-code:',
+  'registry_code:',
+];
+
+const isDisplayTag = (tag: string) => {
+  const normalized = tag.trim().toLowerCase();
+  return !hiddenMetadataTagPrefixes.some((prefix) => normalized.startsWith(prefix));
+};
+
 export default function QuestionPreviewModal({ question, onClose, onEdit, optionOrderNote }: QuestionPreviewModalProps) {
   const topic = question.topic_name || question.topic || 'General';
   const purpose = questionPurposeLabel(question);
@@ -70,7 +91,7 @@ export default function QuestionPreviewModal({ question, onClose, onEdit, option
         {purpose ? <section className="question-preview__section"><h3>{purpose}</h3><p>{purpose === 'Reassessment candidate'
           ? 'Keep this item for a later independent quiz. If the student has already answered it, the result is recorded as repetition rather than fresh evidence.'
           : 'Use this item to rehearse the skill. Create it through Targeted Practice so the answers remain separate from independent assessment evidence.'}</p></section> : null}
-        {question.tags?.length ? <div className="question-preview__tags">{question.tags.filter(tag => !tag.startsWith('purpose:') && !tag.startsWith('subskill:')).map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
+        {question.tags?.some(isDisplayTag) ? <div className="question-preview__tags">{question.tags.filter(isDisplayTag).map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
         <section className="question-preview__section question-preview__tracking">
           <h3>What this question assesses</h3>
           {question.registry_mappings?.length ? question.registry_mappings.map((mapping, index) => (

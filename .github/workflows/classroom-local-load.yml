@@ -1,5 +1,7 @@
 name: Isolated classroom load (30, 100, 500)
 on:
+  push:
+    branches: ["codex/classroom-staged-load-gates"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -9,7 +11,7 @@ concurrency:
 jobs:
   staged-load:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 80
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

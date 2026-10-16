@@ -3,16 +3,20 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
+const toolbar = readFileSync('components/teacher/AssignmentToolbar.tsx', 'utf8');
+const card = readFileSync('components/teacher/AssignmentCard.tsx', 'utf8');
 
 test('assignment workspace groups existing assignments by class without changing assignment creation', () => {
   assert.match(portal, /const \[assignmentClassFilter, setAssignmentClassFilter\]/);
-  assert.match(portal, /aria-label="Assignment folders by class"/);
-  assert.match(portal, /assignmentClassFolders\.map/);
+  assert.match(toolbar, /aria-label="Assignment folders by class"/);
+  assert.match(portal, /classes=\{assignmentClassFolders\}/);
   assert.match(portal, /assignment\.assignment_mode === 'custom'/);
   assert.match(portal, /assignment\.batch/);
   assert.match(portal, /Individual assignments/);
-  assert.match(portal, /Class folders/);
-  assert.match(portal, /🏫 \$\{assignment\.batch \|\| 'Class'\}/);
+  assert.match(portal, /<AssignmentToolbar/);
+  assert.match(portal, /<AssignmentCard/);
+  assert.match(card, /assignment\.subject_group_name/);
+  assert.match(card, /assignment\.batch \|\| 'Class'/);
 });
 
 test('class folder selection participates in display filtering only', () => {

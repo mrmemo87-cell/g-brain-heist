@@ -1,0 +1,170 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {PGlite} from '@electric-sql/pglite';
+const db=new PGlite();
+const uuid=n=>'00000000-0000-0000-0000-'+String(n).padStart(12,'0');
+const school=uuid(1),other=uuid(2),teacher=uuid(3),student=uuid(4),second=uuid(5),cls=uuid(6),assignment=uuid(7),item=uuid(8),target=uuid(9);
+await db.exec(`create role anon;create role authenticated;create role service_role; create schema private;create schema auth;
+create function auth.uid() returns uuid language sql as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+create table users(id uuid primary key,username text,is_banned boolean default false);
+create table school_members(school_id uuid,user_id uuid,status text);
+create table classes(id uuid primary key,school_id uuid,class_name text);
+create table class_students(class_id uuid,student_id uuid);
+create table ielts_practice_assignments(id uuid primary key,school_id uuid,class_id uuid,title text,status text,due_at timestamptz);
+create table ielts_practice_assignment_items(id uuid primary key,assignment_id uuid,content_type text,content_id text,title text,skill text);
+create table ielts_practice_assignment_students(assignment_id uuid,student_id uuid,status text,created_at timestamptz);
+create table ielts_practice_assignment_item_students(assignment_id uuid,assignment_item_id uuid,student_id uuid,status text,submitted_at timestamptz);
+create table private.ielts_learning_allocations(id uuid primary key,school_id uuid,student_id uuid,task_code text,status text,created_at timestamptz,submitted_at timestamptz,due_at timestamptz,reason text);
+create table private.ielts_learning_tasks(code text,version text,title text,skill text,purpose text,pilot_student uuid,success_description text,instructions text,content jsonb,content_sha256 text,requires_review boolean,questions jsonb);
+create table private.ielts_learning_reviews(id uuid,allocation_id uuid,reviewed_at timestamptz);
+create table private.ielts_learning_content_reviews(school_id uuid,task_code text,content_sha256 text);
+create table academic_skill_registry_nodes(id uuid,name text);
+create function public.can_manage_ielts_practice_school(uuid) returns boolean language sql as $$select $1='${school}'::uuid and auth.uid()='${teacher}'::uuid$$;
+create function public.can_manage_ielts_practice_class(uuid,uuid) returns boolean language sql as $$select public.can_manage_ielts_practice_school($1) and exists(select 1 from public.classes where id=$2 and school_id=$1)$$;
+create function public.can_manage_ielts_practice_assignment(uuid) returns boolean language sql as $$select exists(select 1 from public.ielts_practice_assignments where id=$1 and public.can_manage_ielts_practice_school(school_id))$$;
+create function private.can_access_ielts_learning(uuid,boolean default false) returns boolean language sql as $$select exists(select 1 from private.ielts_learning_allocations where id=$1 and public.can_manage_ielts_practice_school(school_id))$$;
+create function private.ielts_speaking_student_eligible(uuid) returns boolean language sql as $$select true$$;
+insert into users(id,username) values('${teacher}','Teacher'),('${student}','Student A'),('${second}','Student B');
+insert into school_members values('${school}','${student}','active'),('${school}','${second}','active');
+insert into classes values('${cls}','${school}','Class 9');insert into class_students values('${cls}','${student}'),('${cls}','${second}');
+insert into private.ielts_learning_tasks(code,version,title,skill,purpose,pilot_student,requires_review) values('exact-task','0.1.0','Same title','listening','guided_practice','${student}',false);
+insert into private.ielts_learning_allocations(id,school_id,student_id,task_code,status,created_at,submitted_at) values('${target}','${school}','${student}','exact-task','submitted','2026-10-01','2026-10-02');
+insert into private.ielts_learning_reviews values('${uuid(10)}','${target}','2026-10-03');
+insert into ielts_practice_assignments values('${assignment}','${school}','${cls}','Class practice','assigned','2020-01-01');
+insert into ielts_practice_assignment_items values('${item}','${assignment}','ielts_listening_set','1','Same title','listening');
+insert into ielts_practice_assignment_students values('${assignment}','${student}','in_progress','2026-10-04'),('${assignment}','${second}','assigned','2026-10-04');
+insert into ielts_practice_assignment_item_students values('${assignment}','${item}','${student}','in_progress','2026-10-05');
+select set_config('request.jwt.claim.sub','${teacher}',false);`);
+await db.exec(readFileSync('supabase/migrations/20261009084159_ielts_teacher_practice_history.sql','utf8'));
+await db.exec(`
+create table private.ielts_learning_submissions(allocation_id uuid);
+create function private.lock_code_fixture_task() returns trigger language plpgsql as $$begin raise exception 'source_is_immutable'; end;$$;
+create trigger preserve_source before update or delete on private.ielts_learning_tasks for each row execute function private.lock_code_fixture_task();
+alter table users add column school_id uuid,add column email text;
+update users set school_id='${school}' where id in ('${student}','${second}');
+alter table ielts_practice_assignments add column academic_year_id uuid,add column assigned_by uuid,add column description text,add column created_at timestamptz,add column updated_at timestamptz;
+alter table ielts_practice_assignment_items add column required boolean default true,add column order_index integer default 0,add column created_at timestamptz;
+alter table ielts_practice_assignment_students add column id uuid,add column completed_at timestamptz,add column updated_at timestamptz;
+alter table ielts_practice_assignment_item_students add column practice_attempt_type text,add column practice_attempt_id uuid,add column started_at timestamptz,add column completed_at timestamptz,add column updated_at timestamptz;
+
+create table ielts_reading_sets(id bigint primary key,slug text,title text,description text,level text,est_band_min numeric,est_band_max numeric,created_at timestamptz,is_active boolean);
+create table ielts_listening_sets(id bigint primary key,slug text,title text,description text,level text,est_band_min numeric,est_band_max numeric,created_at timestamptz,is_active boolean,audio_url text);
+create table ielts_listening_questions(set_id bigint);
+create table ielts_writing_tasks(id bigint primary key,slug text,title text,prompt text,task_type text,bands_target text,created_at timestamptz,is_active boolean);
+create table ielts_speaking_tasks(id bigint primary key,slug text,prompt text,part integer,created_at timestamptz,is_active boolean);
+insert into ielts_reading_sets(id,title,is_active) values(1,'Reading one',true),(2,'Retired',false);
+insert into ielts_listening_sets(id,title,is_active,audio_url) values(1,'Listening one',true,'recording'),(2,'No recording',true,null);
+insert into ielts_listening_questions values(1);
+insert into ielts_writing_tasks(id,title,is_active) values(1,'Writing one',true);
+insert into ielts_speaking_tasks(id,slug,is_active) values(1,'Speaking one',true);
+`);
+await db.exec(readFileSync('supabase/migrations/20261009235621_ielts_stable_material_codes.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261010011014_ielts_task_code_read_payloads.sql','utf8'));
+await db.exec(`alter table users add column role text default 'superadmin';
+alter table private.ielts_learning_tasks add column audio_sha256 text,add column audio_path text,add column review_record jsonb;
+alter table public.ielts_reading_sets add column passage_text text;
+alter table public.ielts_listening_questions add column body text,add column options jsonb,add column correct_answer jsonb;
+create table public.ielts_reading_questions(set_id bigint,body text,options jsonb,correct_answer jsonb);
+alter table public.ielts_speaking_tasks add column follow_ups jsonb;
+create table public.ielts_reading_attempts(user_id uuid,set_id bigint);
+create table public.ielts_listening_attempts(user_id uuid,set_id bigint);
+create table public.ielts_writing_attempts(user_id uuid,task_id bigint);
+create table public.ielts_speaking_attempts(user_id uuid,task_id bigint);
+create function private.ielts_learning_immutable() returns trigger language plpgsql as $$begin raise exception 'immutable';end;$$;`);
+await db.exec(readFileSync('supabase/migrations/20261010014023_ielts_material_originality_gate.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261010015030_ielts_material_originality_payloads.sql','utf8'));
+
+
+const actor=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
+const history=async(filters={})=>(await db.query('select rpc_ielts_teacher_practice_history($1,$2,$3,$4,$5,$6) d',[school,filters.search??'',filters.skill??'',filters.kind??'',filters.status??'',filters.offset??0])).rows[0].d;
+const usage=async(items,recipient={student})=>(await db.query('select rpc_ielts_teacher_material_usage($1,$2,$3,$4) d',[school,JSON.stringify(items),recipient.student??null,recipient.classId??null])).rows[0].d;
+test('both assignment types appear, with independent work/feedback states and no protected content',async()=>{
+ const d=await history();assert.equal(d.rows.length,3);assert.equal(d.has_more,false);
+ const t=d.rows.find(r=>r.kind==='targeted');assert.equal(t.display_code,'L-001');assert.equal((await history({search:'l-001'})).rows.length,1);assert.equal(t.status,'submitted');assert.equal(t.feedback_status,'shared');assert.equal(t.material_version,'0.1.0');
+ const s=d.rows.find(r=>r.kind==='school'&&r.student_id===student);assert.equal(s.display_code,'L-002');assert.equal(s.status,'submitted');assert.equal(s.feedback_status,'not_tracked');assert.equal(s.class_name,'Class 9');assert.equal(s.material_version,null);
+ assert.doesNotMatch(JSON.stringify(d),/accepted_answers|response|recording|essay/);
+ assert.equal((await history({search:'Student A',kind:'school'})).rows.length,1);
+ assert.equal((await history({status:'overdue'})).rows.length,1);
+ assert.equal((await history({status:'shared'})).rows.length,1);
+});
+test('workspace and assignment/progress payloads carry codes without replacing canonical IDs or statuses',async()=>{
+ const workspace=(await db.query('select rpc_ielts_learning_workspace($1) d',[school])).rows[0].d;
+ assert.equal(workspace.tasks[0].originality_label,'Existing material');assert.equal(workspace.allocations[0].originality_label,'Existing material');
+ assert.equal(workspace.tasks[0].code,'exact-task');assert.equal(workspace.tasks[0].display_code,'L-001');
+ assert.equal(workspace.allocations[0].task_code,'exact-task');assert.equal(workspace.allocations[0].display_code,'L-001');assert.equal(workspace.allocations[0].status,'submitted');
+ const payload=(await db.query('select ielts_practice_assignment_payload($1) d',[assignment])).rows[0].d;
+ assert.equal(payload.items[0].content_id,'1');assert.equal(payload.items[0].display_code,'L-002');assert.equal(payload.items[0].id,item);
+ const progress=(await db.query('select ielts_practice_assignment_progress_payload($1,$2) d',[assignment,student])).rows[0].d;
+ assert.equal(progress.items[0].display_code,'L-002');assert.equal(progress.items[0].status,'in_progress');
+ const detail=(await db.query('select rpc_ielts_practice_assignment_detail($1) d',[assignment])).rows[0].d;
+ assert.equal(detail.items[0].display_code,'L-002');assert.equal(detail.assignment.items[0].display_code,'L-002');
+ await actor(student);await assert.rejects(db.query('select rpc_ielts_practice_assignment_detail($1)',[assignment]),/forbidden/);await actor(teacher);
+});
+test('usage uses exact identity rather than matching titles and includes current class members',async()=>{
+ const d=await usage([{type:'targeted',id:'exact-task'},{type:'targeted',id:'new-task'},{type:'ielts_listening_set',id:'1'}]);
+ assert.equal(d.find(r=>r.id==='exact-task').shared_count,1);assert.equal(d.find(r=>r.id==='new-task').assigned_count,0);assert.equal(d.find(r=>r.id==='1').assigned_count,1);
+ const c=(await usage([{type:'ielts_listening_set',id:'1'}],{classId:cls}))[0];assert.equal(c.students_count,2);assert.equal(c.active_count,1);assert.equal(c.submitted_count,1);
+ await db.exec(`update ielts_practice_assignments set status='archived' where id='${assignment}'`);
+ const archived=(await usage([{type:'ielts_listening_set',id:'1'}],{classId:cls}))[0];assert.equal(archived.assigned_count,2);assert.equal(archived.active_count,0);assert.equal((await history({status:'archived'})).rows.length,2);
+});
+test('history is paginated; usage does not lose older exposure outside the first page',async()=>{
+ for(let i=100;i<160;i++) await db.query("insert into private.ielts_learning_allocations(id,school_id,student_id,task_code,status,created_at) values($1,$2,$3,'exact-task','closed','2026-10-06')",[uuid(i),school,student]);
+ const first=await history(),next=await history({offset:50});assert.equal(first.rows.length,50);assert.ok(first.rows.every(r=>r.display_code==='L-001'));assert.equal(first.has_more,true);assert.equal(next.rows.length,13);assert.equal(next.has_more,false);
+ assert.equal(new Set([...first.rows,...next.rows].map(r=>r.row_id)).size,63);
+ assert.equal((await usage([{type:'targeted',id:'exact-task'}]))[0].assigned_count,61);
+});
+test('students, cross-school requests, banned actors, bad recipient scope and public execution fail closed',async()=>{
+ await actor(student);await assert.rejects(history(),/not_authorized/);await assert.rejects(usage([{type:'targeted',id:'exact-task'}]),/not_authorized/);
+ await actor(teacher);await assert.rejects(db.query('select rpc_ielts_teacher_practice_history($1)',[other]),/not_authorized/);
+ await assert.rejects(usage([{type:'targeted',id:'exact-task'}],{student:uuid(999)}),/not_authorized/);
+ await assert.rejects(usage([{type:'targeted',id:'exact-task'}],{classId:uuid(999)}),/not_authorized/);
+ await assert.rejects(usage([{type:'targeted',id:'exact-task'}],{student,classId:cls}),/recipient_scope_required/);
+ await assert.rejects(history({offset:-1}),/invalid_filter/);
+ await assert.rejects(usage(Array.from({length:51},()=>({type:'targeted',id:'exact-task'}))),/recipient_scope_required/);
+ await db.exec(`update users set is_banned=true where id='${teacher}'`);await assert.rejects(history(),/not_authorized/);
+ const p=(await db.query("select has_function_privilege('anon','public.rpc_ielts_teacher_practice_history(uuid,text,text,text,text,integer)','execute') anon,has_function_privilege('authenticated','private.ielts_teacher_practice_rows(uuid,uuid,uuid,jsonb)','execute') helper")).rows[0];assert.equal(p.anon,false);assert.equal(p.helper,false);
+});
+test('codes are distinct across catalogues, server assigned, immutable and never reused',async()=>{
+ await db.exec(`update users set is_banned=false where id='${teacher}'`);
+ const registry=(await db.query('select * from private.ielts_material_codes')).rows;
+ assert.equal(registry.length,7);assert.equal(new Set(registry.map(r=>r.display_code)).size,7);
+ assert.equal((await db.query('select display_code from ielts_listening_sets where id=1')).rows[0].display_code,'L-002');
+ assert.equal((await db.query("select private.ielts_material_code('targeted','exact-task') display_code")).rows[0].display_code,'L-001');
+ await db.exec("update ielts_reading_sets set title='New title' where id=1");
+ assert.equal((await db.query('select display_code from ielts_reading_sets where id=1')).rows[0].display_code,'R-001');
+ await assert.rejects(db.exec("update ielts_reading_sets set display_code='R-999' where id=1"),/immutable/);
+ await assert.rejects(db.exec("insert into ielts_writing_tasks(id,display_code) values(8,'W-999')"),/server_assigned/);
+ await assert.rejects(db.exec("delete from private.ielts_material_codes where display_code='R-001'"),/immutable/);
+ await db.exec('delete from ielts_reading_sets where id=2; insert into ielts_reading_sets(id) values(3)');
+ assert.equal((await db.query('select display_code from ielts_reading_sets where id=3')).rows[0].display_code,'R-003');
+ await db.exec('insert into ielts_reading_sets(id) values(2)');
+ assert.equal((await db.query('select display_code from ielts_reading_sets where id=2')).rows[0].display_code,'R-002');
+ await db.exec("update private.ielts_material_code_counters set last_number=999 where prefix='S'; insert into ielts_speaking_tasks(id) values(2)");
+ assert.equal((await db.query('select display_code from ielts_speaking_tasks where id=2')).rows[0].display_code,'S-1000');
+ await Promise.all(Array.from({length:10},(_,i)=>db.query('insert into ielts_writing_tasks(id) values($1)',[20+i])));
+ const codes=(await db.query('select display_code from ielts_writing_tasks')).rows.map(r=>r.display_code);
+ assert.equal(new Set(codes).size,codes.length);
+ const rights=(await db.query("select has_table_privilege('authenticated','private.ielts_material_codes','select') directory,has_function_privilege('authenticated','private.register_ielts_material_code(text,text,text)','execute') allocate")).rows[0];assert.equal(rights.directory,false);assert.equal(rights.allocate,false);
+});
+test('new targeted materials receive a code without altering immutable source content',async()=>{
+ await db.exec("insert into private.ielts_learning_tasks(code,skill,title) values('new-writing-material','writing','New writing')");
+ const code=(await db.query("select private.ielts_material_code('targeted','new-writing-material') code")).rows[0].code;
+ assert.match(code,/^W-[0-9]{3}$/);
+ await assert.rejects(db.exec("update private.ielts_learning_tasks set title='Changed' where code='exact-task'"),/source_is_immutable/);
+});
+test('catalogue code search preserves active and deliverable material filters',async()=>{
+ const search=async(term)=>(await db.query('select * from rpc_ielts_practice_content_catalog_with_provenance(null,$1,100)',[term])).rows;
+ assert.equal((await search('l-002'))[0].title,'Listening one');
+ assert.equal((await search('L-003')).length,0); // active but no deliverable audio
+ assert.equal((await search('New title'))[0].display_code,'R-001');assert.equal((await search('New title'))[0].originality_label,'Existing material');
+ assert.equal((await search('R-002')).length,0); // reinserted inactive/unpublished
+ const rights=(await db.query("select has_function_privilege('anon','public.rpc_ielts_practice_content_catalog_with_codes(text,text,integer)','execute') anon")).rows[0];assert.equal(rights.anon,false);
+});
+test('provenance catalogue keeps invoker RLS and cannot reveal private snapshots',async()=>{
+ await db.exec(`grant select on public.ielts_reading_sets,public.ielts_listening_sets,public.ielts_writing_tasks,public.ielts_speaking_tasks,public.ielts_listening_questions to authenticated;
+ alter table public.ielts_reading_sets enable row level security;create policy scoped_read on public.ielts_reading_sets for select to authenticated using(id=1);set role authenticated;`);
+ try {const rows=(await db.query("select * from rpc_ielts_practice_content_catalog_with_provenance('reading',null,100)")).rows;assert.equal(rows.length,1);assert.equal(rows[0].content_id,'1');assert.equal(rows[0].originality_label,'Existing material');assert.doesNotMatch(JSON.stringify(rows),/snapshot|correct_answer|transcript/);}finally{await db.exec('reset role');}
+ const rights=(await db.query("select prosecdef from pg_proc where oid='public.rpc_ielts_practice_content_catalog_with_provenance(text,text,integer)'::regprocedure")).rows[0];assert.equal(rights.prosecdef,false);
+});
+await test('close database'  ,async()=>db.close());

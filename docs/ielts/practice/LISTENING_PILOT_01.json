@@ -1,0 +1,271 @@
+[
+  {
+    "code": "bh-ielts-targeted-listening-l1-v1",
+    "version": "0.1.0",
+    "title": "Follow the correction: photography workshop",
+    "purpose": "guided_practice",
+    "instructions": "Complete the notes. Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each answer. You may pause and replay. Listen for the final confirmed detail.",
+    "success_description": "Identify the final confirmed details and explain why earlier or inapplicable details are not the answers.",
+    "audio_path": "starter-pack-01/d29a35b3c3843c94fc15281fc6587a93e6610e042b2ea545f72ad273fe0d5357/L1_review_v1.mp3",
+    "audio_sha256": "d29a35b3c3843c94fc15281fc6587a93e6610e042b2ea545f72ad273fe0d5357",
+    "taxonomy_version_id": "d4ad52b6-fd0f-4068-9982-28b89ff389c5",
+    "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+    "questions": [
+      {
+        "id": "q1",
+        "prompt": "Workshop day",
+        "accepted_answers": [
+          "Sunday"
+        ],
+        "taxonomy_node_id": "0dbe1c8f-403a-493f-afd3-c219310fb18a",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      },
+      {
+        "id": "q2",
+        "prompt": "Starting time",
+        "accepted_answers": [
+          "10:30",
+          "10.30",
+          "ten thirty"
+        ],
+        "taxonomy_node_id": "0dbe1c8f-403a-493f-afd3-c219310fb18a",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      },
+      {
+        "id": "q3",
+        "prompt": "Meeting room",
+        "accepted_answers": [
+          "20",
+          "twenty"
+        ],
+        "taxonomy_node_id": "d5b1fddb-ba6f-4be1-8513-bb26d822357a",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      },
+      {
+        "id": "q4",
+        "prompt": "Student fee (\u00a3)",
+        "accepted_answers": [
+          "12",
+          "twelve"
+        ],
+        "taxonomy_node_id": "d5b1fddb-ba6f-4be1-8513-bb26d822357a",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      },
+      {
+        "id": "q5",
+        "prompt": "Bring a",
+        "accepted_answers": [
+          "notebook"
+        ],
+        "taxonomy_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      },
+      {
+        "id": "q6",
+        "prompt": "Maximum group size",
+        "accepted_answers": [
+          "10",
+          "ten"
+        ],
+        "taxonomy_node_id": "d5b1fddb-ba6f-4be1-8513-bb26d822357a",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      }
+    ],
+    "review_record": {
+      "owner": "Sobbi \u2014 Brains Heist owner",
+      "date": "2026-10-09",
+      "bible": "1.5.0",
+      "audio_approval": {
+        "reviewer": "Sobbi \u2014 Brains Heist owner",
+        "date": "2026-10-09",
+        "timezone": "Asia/Bishkek",
+        "owner_statement": "I\u2019ve reviewed and they are perfect",
+        "scope": [
+          "sound and clarity",
+          "voice separation",
+          "pacing",
+          "reading and response pauses"
+        ],
+        "files": [
+          {
+            "file": "L1_review_v1.mp3",
+            "sha256": "d29a35b3c3843c94fc15281fc6587a93e6610e042b2ea545f72ad273fe0d5357"
+          },
+          {
+            "file": "L2_review_v1.mp3",
+            "sha256": "ddf37276bdc6c477181fcc2cfa162ca5e69b56669df6d67898534c3caf1b848b"
+          }
+        ],
+        "not_implied": [
+          "answer-key/editorial approval",
+          "canonical taxonomy mapping approval",
+          "rights clearance",
+          "difficulty/comparability validation",
+          "device/player acceptance",
+          "assignment integration",
+          "student publication",
+          "calibration"
+        ]
+      },
+      "content_approval": {
+        "reviewer": "Sobbi \u2014 Brains Heist owner",
+        "date": "2026-10-09",
+        "timezone": "Asia/Bishkek",
+        "source_task_version": "0.1.0",
+        "scope": [
+          "scripts and naturalness",
+          "target answers",
+          "proposed distractor-resistance teaching focus"
+        ],
+        "owner_statement": "These are well-crafted listening practice tasks perfectly mirror an IELTS-style section by effectively testing distractor resistance through realistic dialogue shifts. The audio scripts feel natural, the target answers are structurally sound, and the pedagogical focus on identifying final, confirmed details over initial mentions is excellent.",
+        "limits": [
+          "IELTS-style practice, not official IELTS material or complete section coverage",
+          "canonical item mappings and registry IDs pending",
+          "comparability/calibration not established",
+          "assignment integration and device checks pending",
+          "not published"
+        ]
+      },
+      "mapping_basis": "Owner-approved named constructs resolved to published bh-ielts-listening-v1 nodes; no pooling with ESL nodes.",
+      "reading_seconds": 30,
+      "response_seconds": 15,
+      "comparability": "Not calibrated equivalent forms; task scores alone cannot establish improvement.",
+      "rights": "Original Brains Heist AI-assisted scripts; generated through owner-authorized connected Runway account; no third-party content copied; public rights review remains pending."
+    }
+  },
+  {
+    "code": "bh-ielts-targeted-listening-l2-v1",
+    "version": "0.1.0",
+    "title": "Final arrangements: museum visit",
+    "purpose": "independent_check",
+    "instructions": "Complete the notes. Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each answer. Listen once without hints. If interrupted, resume; tell your teacher if you replayed or received help.",
+    "success_description": "Identify the final confirmed details and explain why earlier or inapplicable details are not the answers.",
+    "audio_path": "starter-pack-01/ddf37276bdc6c477181fcc2cfa162ca5e69b56669df6d67898534c3caf1b848b/L2_review_v1.mp3",
+    "audio_sha256": "ddf37276bdc6c477181fcc2cfa162ca5e69b56669df6d67898534c3caf1b848b",
+    "taxonomy_version_id": "d4ad52b6-fd0f-4068-9982-28b89ff389c5",
+    "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+    "questions": [
+      {
+        "id": "q1",
+        "prompt": "Visit day",
+        "accepted_answers": [
+          "Thursday"
+        ],
+        "taxonomy_node_id": "0dbe1c8f-403a-493f-afd3-c219310fb18a",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      },
+      {
+        "id": "q2",
+        "prompt": "Departure time",
+        "accepted_answers": [
+          "8:00",
+          "08:00",
+          "8",
+          "eight"
+        ],
+        "taxonomy_node_id": "0dbe1c8f-403a-493f-afd3-c219310fb18a",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      },
+      {
+        "id": "q3",
+        "prompt": "Meeting point",
+        "accepted_answers": [
+          "side gate"
+        ],
+        "taxonomy_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      },
+      {
+        "id": "q4",
+        "prompt": "Student ticket (\u00a3)",
+        "accepted_answers": [
+          "9",
+          "nine"
+        ],
+        "taxonomy_node_id": "d5b1fddb-ba6f-4be1-8513-bb26d822357a",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      },
+      {
+        "id": "q5",
+        "prompt": "Bring a",
+        "accepted_answers": [
+          "pencil"
+        ],
+        "taxonomy_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      },
+      {
+        "id": "q6",
+        "prompt": "Places available",
+        "accepted_answers": [
+          "24",
+          "twenty-four",
+          "twenty four"
+        ],
+        "taxonomy_node_id": "d5b1fddb-ba6f-4be1-8513-bb26d822357a",
+        "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+      }
+    ],
+    "review_record": {
+      "owner": "Sobbi \u2014 Brains Heist owner",
+      "date": "2026-10-09",
+      "bible": "1.5.0",
+      "audio_approval": {
+        "reviewer": "Sobbi \u2014 Brains Heist owner",
+        "date": "2026-10-09",
+        "timezone": "Asia/Bishkek",
+        "owner_statement": "I\u2019ve reviewed and they are perfect",
+        "scope": [
+          "sound and clarity",
+          "voice separation",
+          "pacing",
+          "reading and response pauses"
+        ],
+        "files": [
+          {
+            "file": "L1_review_v1.mp3",
+            "sha256": "d29a35b3c3843c94fc15281fc6587a93e6610e042b2ea545f72ad273fe0d5357"
+          },
+          {
+            "file": "L2_review_v1.mp3",
+            "sha256": "ddf37276bdc6c477181fcc2cfa162ca5e69b56669df6d67898534c3caf1b848b"
+          }
+        ],
+        "not_implied": [
+          "answer-key/editorial approval",
+          "canonical taxonomy mapping approval",
+          "rights clearance",
+          "difficulty/comparability validation",
+          "device/player acceptance",
+          "assignment integration",
+          "student publication",
+          "calibration"
+        ]
+      },
+      "content_approval": {
+        "reviewer": "Sobbi \u2014 Brains Heist owner",
+        "date": "2026-10-09",
+        "timezone": "Asia/Bishkek",
+        "source_task_version": "0.1.0",
+        "scope": [
+          "scripts and naturalness",
+          "target answers",
+          "proposed distractor-resistance teaching focus"
+        ],
+        "owner_statement": "These are well-crafted listening practice tasks perfectly mirror an IELTS-style section by effectively testing distractor resistance through realistic dialogue shifts. The audio scripts feel natural, the target answers are structurally sound, and the pedagogical focus on identifying final, confirmed details over initial mentions is excellent.",
+        "limits": [
+          "IELTS-style practice, not official IELTS material or complete section coverage",
+          "canonical item mappings and registry IDs pending",
+          "comparability/calibration not established",
+          "assignment integration and device checks pending",
+          "not published"
+        ]
+      },
+      "mapping_basis": "Owner-approved named constructs resolved to published bh-ielts-listening-v1 nodes; no pooling with ESL nodes.",
+      "reading_seconds": 30,
+      "response_seconds": 15,
+      "comparability": "Not calibrated equivalent forms; task scores alone cannot establish improvement.",
+      "rights": "Original Brains Heist AI-assisted scripts; generated through owner-authorized connected Runway account; no third-party content copied; public rights review remains pending."
+    }
+  }
+]

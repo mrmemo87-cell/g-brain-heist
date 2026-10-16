@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { withPortalLocalization } from '../src/components/PortalLocalizationBoundary';
 import { createPortal } from 'react-dom';
-import TeacherPortal from './TeacherPortal';
+import TeacherPortal, { type TeacherNavSection } from './TeacherPortal';
 import './student-progress/AcademicProfileWorkspace.css';
 
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
@@ -18,11 +18,6 @@ type TeacherDashboardAssignmentMetrics = {
   submission_count: number;
   answered_question_count: number;
   correct_answer_count: number;
-};
-
-const TOOL_LABELS: Record<AcademicTool, string> = {
-  'academic-profiles': 'Academic Profiles',
-  interventions: 'Interventions',
 };
 
 const resolveAcademicTool = (button: HTMLButtonElement | null): AcademicTool | null => {
@@ -125,34 +120,10 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
     panel.appendChild(host);
     setPortalHost(host);
 
-    const navButtons = Array.from(shell.querySelectorAll<HTMLButtonElement>('button'));
-    const navState = navButtons.map((button) => ({
-      button,
-      className: button.className,
-      ariaCurrent: button.getAttribute('aria-current'),
-    }));
-    const activeLabel = targetedPractice ? 'Assignments' : activeTool ? TOOL_LABELS[activeTool] : null;
-
-    navButtons.forEach((button) => {
-      const label = button.getAttribute('aria-label') || '';
-      if (activeLabel && label === activeLabel) {
-        button.classList.add('active', 'is-active');
-        button.setAttribute('aria-current', 'page');
-      } else if (button.classList.contains('teacher-nav-btn') || button.classList.contains('is-active')) {
-        button.classList.remove('active', 'is-active');
-        button.removeAttribute('aria-current');
-      }
-    });
-
     panel.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 
     return () => {
       setPortalHost(null);
-      navState.forEach(({ button, className, ariaCurrent }) => {
-        button.className = className;
-        if (ariaCurrent == null) button.removeAttribute('aria-current');
-        else button.setAttribute('aria-current', ariaCurrent);
-      });
       panel.classList.remove('teacher-main-panel--academic-tool');
       host.remove();
     };
@@ -161,6 +132,9 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
     const button = target.closest<HTMLButtonElement>('button');
+    // Navigation buttons must reach the portal handler so the More sheet closes
+    // and entitlement/discard checks run. Only contextual tool links use capture.
+    if (button?.closest('.teacher-nav-container, .teacher-mobile-bottom-nav, .teacher-mobile-menu-grid')) return;
     const tool = resolveAcademicTool(button);
 
     if (tool) {
@@ -191,11 +165,21 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
       setActiveTool(tool);
       return;
     }
+  };
 
-    if (overlayActive && button && (button.classList.contains('teacher-nav-btn') || button.closest('.teacher-nav-container'))) {
-      setActiveTool(null);
-      setTargetedPractice(null);
+  const navigateSection = (section: TeacherNavSection) => {
+    setTargetedPractice(null);
+    if (section === 'academic-profiles' || section === 'interventions') {
+      if (section === 'interventions') {
+        const url = new URL(window.location.href);
+        ['student', 'subject', 'focus'].forEach(key => url.searchParams.delete(key));
+        window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+      }
+      setActiveTool(section);
+      return true;
     }
+    setActiveTool(null);
+    return false;
   };
 
   const closeAcademicTool = () => {
@@ -238,7 +222,7 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
           padding: 0;
         }
       `}</style>
-      <TeacherPortal {...props} academicProfilePresentation={activeTool === 'academic-profiles' && !targetedPractice} onAssignmentSummary={setDashboardAssignmentMetrics} />
+      <TeacherPortal {...props} onNavigateSection={navigateSection} activeNavigationSection={targetedPractice ? 'assignments' : activeTool || undefined} academicProfilePresentation={activeTool === 'academic-profiles' && !targetedPractice} onAssignmentSummary={setDashboardAssignmentMetrics} />
       {overlayActive && portalHost
         ? createPortal(
           <Suspense fallback={<div className="p-6 text-sm text-slate-500">Preparing Brains Heist workspace…</div>}>

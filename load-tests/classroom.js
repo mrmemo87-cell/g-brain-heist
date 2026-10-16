@@ -32,8 +32,8 @@ export function setup(){completed.add(0);}
 function rejectRun(message){errors.add(true);fail(message);}
 export const options = {
  summaryTrendStats:['avg','med','p(95)','p(99)','max'],
- scenarios:{students:{executor:'per-vu-iterations',vus:count,iterations:1,maxDuration:'10m',exec:'student'},teacher:{executor:'constant-vus',vus:1,duration:'2m',exec:'teacher'}},
- thresholds:{http_req_failed:['rate<0.001'],classroom_errors:['rate==0'],classroom_students_completed:[`count==${count}`],checks:['rate==1'],'http_req_duration{operation:answer}':['p(95)<500','p(99)<1500'],'http_req_duration{operation:catalog}':['p(95)<1500'],'http_req_duration{operation:detail}':['p(95)<1500'],'http_req_duration{operation:summary}':['p(95)<1500']},
+ scenarios:{students:{executor:'per-vu-iterations',vus:count,iterations:1,maxDuration:'12m',exec:'student'},teacher:{executor:'constant-vus',vus:1,duration:'10m10s',exec:'teacher'}},
+ thresholds:{http_req_failed:['rate<0.001'],classroom_errors:['rate==0'],classroom_students_completed:[`count==${count}`],checks:['rate==1'],'http_req_duration{operation:answer}':['p(95)<500','p(99)<1500'],'http_req_duration{operation:catalog}':['p(95)<1500'],'http_req_duration{operation:pending_full}':['p(95)<1500','p(99)<4000'],'http_req_duration{operation:finalize}':['p(95)<2000','p(99)<5000'],'http_req_duration{operation:detail}':['p(95)<1500'],'http_req_duration{operation:summary}':['p(95)<1500']},
 };
 const params=(token,operation)=>({headers:{apikey:__ENV.SUPABASE_ANON_KEY,Authorization:`Bearer ${token}`,'Content-Type':'application/json'},tags:{operation},timeout:'15s'});
 const rpc=(name,body,token,operation)=>http.post(`${base}/rest/v1/rpc/${name}`,JSON.stringify(body),params(token,operation));
@@ -45,6 +45,8 @@ export function student(){
  const bootstrap=requireSuccess(rpc('rpc_auth_bootstrap_v1',{},f.token,'bootstrap'),'bootstrap');
  if(bootstrap.user_id!==f.studentId || bootstrap.is_banned || bootstrap.needs_setup || !bootstrap.email_verified)rejectRun('Student cannot enter the normal app');
  const pending=requireSuccess(rpc('rpc_get_student_assignment_summaries',{},f.token,'catalog'),'catalog');
+ const fullPending=requireSuccess(rpc('rpc_get_student_pending_assignments_v2',{},f.token,'pending_full'),'full pending assignment data');
+ if(!Array.isArray(fullPending) || !fullPending.some(a=>a.assignment_id===f.assignmentId && Array.isArray(a.questions)))rejectRun('Full pending assignment payload missing assigned questions');
  if(!pending.some(a=>a.assignment_id===f.assignmentId))rejectRun('Fresh assigned fixture missing');
  const detail=requireSuccess(rpc('rpc_get_student_assignment_detail',{p_assignment_id:f.assignmentId},f.token,'detail'),'detail')[0];
  if(!detail || detail.questions.length!==f.questions.length || detail.resume_answered_count!==0)rejectRun('Assignment detail does not match a fresh fixture');
@@ -54,7 +56,7 @@ export function student(){
   const replies=http.batch(Array.from({length:3},()=>['POST',`${base}/rest/v1/rpc/rpc_submit_assignment_answer_v2`,JSON.stringify(body),params(f.token,'answer')]));
   const saved=replies.map(r=>requireSuccess(r,'answer save'));
   const stable=saved.every(r=>r.success===true&&r.is_correct===saved[0].is_correct&&r.grading_status===saved[0].grading_status);errors.add(!stable);if(!stable)rejectRun('Concurrent answer replays diverged');
-  sleep(0.3+Math.random()*0.7);
+  sleep(600/f.questions.length);
  }
  const resume=requireSuccess(rpc('rpc_get_student_assignment_detail',{p_assignment_id:f.assignmentId},f.token,'detail'),'resume').find(a=>a.assignment_id===f.assignmentId);
  const exact=resume?.resume_answered_count===f.questions.length&&new Set(resume?.answered_question_ids).size===f.questions.length;

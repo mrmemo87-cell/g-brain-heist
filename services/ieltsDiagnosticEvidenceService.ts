@@ -1,3 +1,4 @@
+import { responseCoverage } from './ieltsResponseCoverage';
 import { supabase } from './supabaseClient';
 
 export interface IeltsDiagnosticResult {
@@ -19,6 +20,8 @@ export async function fetchIeltsDiagnosticResult(attemptId: string): Promise<Iel
   const value = data as IeltsDiagnosticResult;
   if (!Number.isInteger(value.raw_score) || !Number.isInteger(value.marks_possible)
     || value.raw_score < 0 || value.marks_possible < 1 || value.raw_score > value.marks_possible
+    || responseCoverage(value.confidence?.items_answered, value.confidence?.items_possible) === 'unknown'
+    || value.confidence.items_possible !== value.marks_possible
     || value.confidence?.level !== 'low' || value.readiness_available !== false
     || value.persistent_weakness_available !== false || !Array.isArray(value.warnings)) {
     throw new Error('Your answers are saved. Your result needs review before it can be shown.');

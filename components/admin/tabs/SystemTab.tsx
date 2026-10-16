@@ -1,15 +1,17 @@
 import React from 'react';
+const RetentionTrialAdmin = React.lazy(() => import('../../../src/features/retention/RetentionTrialAdmin'));
 import { useAdmin } from '../AdminContext';
 import * as CompetitionService from '../../../services/competitionService';
 
 const SystemTab: React.FC = () => {
   const {
-    addToast, featureToggles, isResettingAll, refreshAdminData, reportRpcError, setFeatureToggles, 
+    isSuperadmin, addToast, featureToggles, isResettingAll, refreshAdminData, reportRpcError, setFeatureToggles, 
     setIsResettingAll, stats, supabase, users,
   } = useAdmin();
 
   return (
     <div className="space-y-6">
+      {isSuperadmin ? <React.Suspense fallback={<p>Loading trial controls…</p>}><RetentionTrialAdmin /></React.Suspense> : null}
       {/* Feature Toggles */}
       <div className="card-glass p-6 border-2 border-cyan-400/50">
         <h3 className="text-2xl font-heading font-bold text-cyan-300 mb-4">🎛️ Feature Toggles</h3>

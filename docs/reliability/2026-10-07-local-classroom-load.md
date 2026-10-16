@@ -37,3 +37,10 @@ Reproduction scripts and a manual-only GitHub Actions workflow are included in t
 Do not advertise support for 500 or thousands of concurrent users from these results. First complete the bounded-pool rerun, then test a separate hosted environment with the full production schema, triggers, entitlement hook, comparable resource limits and representative historic data. Measure database connection use and queueing throughout. Pool limits must fit the combined database budget; the local value of 20 is an experimental configuration, not a prescribed managed-Supabase setting.
 
 This benchmark omits production analytics/reward triggers, foreign-key/check-constraint coverage, the billing pre-request hook, browser rendering, realtime, network/TLS/CDN delays and other app features. Generator and services share one machine. It simulates concurrent classroom API activity, not thousands of complete human browser sessions. No failure-free guarantee is justified.
+
+
+## 16 October follow-up (execution pending)
+
+The current branch preserves the existing failed 500-student report. A new isolated run exercises the current full pending payload, finalization budgets, durable queue/lease SQL, 10 minutes of paced answer activity at each stage, and a repeated 500-student recovery stage. Escalation stops at the first failure. Auth pooling stays bounded to 20 on the disposable stack; this changes no hosted setting.
+
+The real academic ingestion pipelines are replaced by deterministic two-lane receipts in this focused diagnostic. Queue completion and exact receipts are reconciled with a five-minute drain deadline, but this is **not** evidence of full academic-pipeline throughput, IELTS capacity or hosted production capacity. No new pass is claimed until the exact workflow result is retained.

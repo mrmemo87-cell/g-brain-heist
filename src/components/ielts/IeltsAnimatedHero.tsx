@@ -23,6 +23,7 @@ export const IeltsScreenerRing: React.FC = () => {
   const ringRef = useRef<SVGCircleElement>(null);
   const glowRef = useRef<SVGCircleElement>(null);
   const orbitRef = useRef<SVGGElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   const circumference = 2 * Math.PI * 94;
   const targetOffset = circumference * 0.18;
 
@@ -36,9 +37,7 @@ export const IeltsScreenerRing: React.FC = () => {
     const ctx = gsap.context(() => {
       gsap.set([ringRef.current, glowRef.current], { strokeDasharray: circumference, strokeDashoffset: circumference });
       gsap.to([ringRef.current, glowRef.current], { strokeDashoffset: targetOffset, duration: 1.55, ease: 'power3.out', delay: 0.28 });
-      gsap.to(orbitRef.current, { rotate: 360, transformOrigin: '50% 50%', duration: 26, repeat: -1, ease: 'none' });
-      gsap.to('[data-band-pulse]', { scale: 1.04, opacity: 0.82, transformOrigin: '50% 50%', duration: 1.8, repeat: -1, yoyo: true, ease: 'sine.inOut' });
-    });
+    }, svgRef);
     return () => ctx.revert();
   }, [circumference, targetOffset]);
 
@@ -52,7 +51,7 @@ export const IeltsScreenerRing: React.FC = () => {
   }), []);
 
   return (
-    <svg viewBox="0 0 320 320" aria-hidden="true" style={{ width: 'min(100%, 340px)', display: 'block', margin: '0 auto' }}>
+    <svg ref={svgRef} viewBox="0 0 320 320" aria-hidden="true" style={{ width: 'min(100%, 340px)', display: 'block', margin: '0 auto' }}>
       <defs>
         <linearGradient id="ieltsRing" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#22d3ee" /><stop offset="0.54" stopColor="#2563eb" /><stop offset="1" stopColor="#7c3aed" /></linearGradient>
         <filter id="ieltsGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
@@ -77,7 +76,6 @@ export const IeltsSkillConstellation: React.FC = () => {
     if (useReducedMotion() || !ref.current) return;
     const ctx = gsap.context(() => {
       gsap.fromTo('[data-skill-node]', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, stagger: 0.08, ease: 'back.out(1.7)', delay: 0.55 });
-      gsap.to('[data-skill-dot]', { y: -5, duration: 1.8, repeat: -1, yoyo: true, ease: 'sine.inOut', stagger: 0.18 });
     }, ref);
     return () => ctx.revert();
   }, []);
@@ -97,8 +95,8 @@ const IeltsAnimatedHero: React.FC<IeltsAnimatedHeroProps> = ({ onStartDiagnostic
   useEffect(() => {
     if (useReducedMotion() || !rootRef.current) return;
     const ctx = gsap.context(() => {
-      gsap.fromTo('[data-ielts-hero-reveal]', { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.62, stagger: 0.08, ease: 'power3.out' });
-      gsap.to(ctaRef.current, { y: -2, boxShadow: '0 18px 42px rgba(37,99,235,0.24)', duration: 1.4, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+      gsap.fromTo('[data-ielts-hero-reveal]', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.08, ease: 'power3.out' });
+
     }, rootRef);
     return () => ctx.revert();
   }, []);
@@ -107,12 +105,12 @@ const IeltsAnimatedHero: React.FC<IeltsAnimatedHeroProps> = ({ onStartDiagnostic
     <section ref={rootRef} style={{ padding: compact ? '2rem 0 1rem' : 'clamp(2.5rem,7vw,5rem) 0 clamp(2rem,5vw,4rem)' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,320px),1fr))', gap: 'clamp(1.25rem,4vw,3rem)', alignItems: 'center' }}>
         <div>
-          <p data-ielts-hero-reveal style={{ display: 'inline-flex', margin: '0 0 1rem', color: '#0f766e', background: '#ccfbf1', border: '1px solid #99f6e4', borderRadius: 999, padding: '.45rem .75rem', fontSize: '.74rem', fontWeight: 950, letterSpacing: '.14em', textTransform: 'uppercase' }}>Reviewed Listening Screener</p>
-          <h1 data-ielts-hero-reveal style={{ margin: 0, fontSize: 'clamp(2.55rem, 8vw, 5.6rem)', lineHeight: 0.94, fontWeight: 950, letterSpacing: '-0.06em', color: '#0f172a' }}>Discover your Listening starting point</h1>
+          <p data-ielts-hero-reveal style={{ display: 'inline-flex', margin: '0 0 1rem', color: '#0f766e', background: '#ccfbf1', border: '1px solid #99f6e4', borderRadius: 999, padding: '.45rem .75rem', fontSize: '.74rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase' }}>Reviewed Listening Screener</p>
+          <h1 data-ielts-hero-reveal style={{ margin: 0, fontSize: 'clamp(2.55rem, 8vw, 5.6rem)', lineHeight: 0.94, fontWeight: 700, letterSpacing: '-0.06em', color: '#0f172a' }}>Discover your Listening starting point</h1>
           <h2 data-ielts-hero-reveal style={{ margin: '1rem 0 0', color: '#1e3a8a', fontSize: 'clamp(1.45rem,4vw,2.5rem)', lineHeight: 1.04, letterSpacing: '-0.045em' }}>Listen. Respond. Find your next step.</h2>
           <p data-ielts-hero-reveal style={{ margin: '1rem 0 0', color: '#475569', fontSize: 'clamp(1rem,2vw,1.18rem)', lineHeight: 1.7, maxWidth: 690 }}>Explore the reviewed Listening screener: 12 questions across three recordings, with time to read and learner-controlled replay. Your result shows performance and evidence coverage without an unsupported IELTS band.</p>
           <div data-ielts-hero-reveal style={{ display: 'flex', gap: '.8rem', flexWrap: 'wrap', alignItems: 'center', marginTop: '1.5rem' }}>
-            <button ref={ctaRef} type="button" onClick={onStartDiagnostic} style={{ background: 'linear-gradient(135deg,#0ea5e9,#2563eb 54%,#7c3aed)', color: '#fff', border: 0, borderRadius: 999, padding: '1rem 1.35rem', fontWeight: 950, cursor: 'pointer', fontSize: '1rem' }}>Open Listening Screener →</button>
+            <button ref={ctaRef} type="button" onClick={onStartDiagnostic} style={{ background: 'linear-gradient(135deg,#0ea5e9,#2563eb 54%,#7c3aed)', color: '#fff', border: 0, borderRadius: 999, padding: '1rem 1.35rem', fontWeight: 700, cursor: 'pointer', fontSize: '1rem' }}>Open Listening Screener →</button>
             <span style={{ color: '#64748b', fontSize: '.9rem', fontWeight: 700 }}>{authenticated ? 'Start, resume or view your saved result.' : 'No payment required · Sign in to check availability'}</span>
           </div>
         </div>

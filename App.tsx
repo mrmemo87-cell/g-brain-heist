@@ -1,3 +1,4 @@
+import { touchPresence as touchPlayerPresence } from './services/presenceService';
 import { resolveAccountWorkspace as resolveWorkspace, type AccountWorkspace } from './src/lib/accountWorkspace';
 import { useLanguage } from './src/contexts/LanguageContext';
 import React, { Suspense, useState, useEffect, useRef, useMemo, useCallback } from 'react';
@@ -37,7 +38,10 @@ import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoo
 import { FEATURE_KEYS, getEntitlements, type EntitlementSet, type FeatureKey, type StudentProgrammeKey } from './services/entitlementService';
 import { listMyPendingProgrammeAccessRequests, requestProgrammeAccess } from './services/programmeAccessRequestService';
 import { enrollInApprovedSchoolClass, listMySchoolClasses, type ApprovedSignupClass } from './services/authService';
-import { assignmentCategoryBadgeStyle, getAssignmentCategoryMeta } from './src/lib/assignmentCategory';
+import AssignmentDesk from './components/student/AssignmentDesk';
+import RetentionTrialGate from './src/features/retention/RetentionTrialGate';
+import StudentMascotDock from './src/features/studentMascot/StudentMascotDock';
+const RetentionStudentPanel = React.lazy(() => import('./src/features/retention/RetentionStudentPanel'));
 import ProgramIdentityBanner from './src/components/ProgramIdentityBanner';
 import { PROGRAM_ARTWORK } from './src/lib/programArtwork';
 
@@ -363,7 +367,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
 
     const touchPresence = () => {
       if (document.visibilityState !== 'visible') return;
-      void supabase.rpc('rpc_touch_last_seen').then(() => {}, () => {});
+      void touchPlayerPresence();
     };
 
     touchPresence();
@@ -1957,56 +1961,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
       return <SectionPlaceholder title={t("Teacher assignments")} lines={3} />;
     }
 
-    if (!pendingAssignments.length) {
-      return (
-        <div className="student-assignment-section card-glass rounded-2xl p-5">
-          <h3 className="student-assignment-heading font-heading mb-2 text-lg">{t("Teacher assignments")}</h3>
-          <p className="text-sm text-gray-300">{t("No active assignments right now.")}</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="student-assignment-section card-glass rounded-2xl p-5">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h3 className="student-assignment-heading font-heading text-lg">{t("Teacher assignments")}</h3>
-            <p className="mt-1 text-xs text-gray-400">{t('Ready to complete: {count} · open any card for full details', { count: actionableAssignments.length })}</p>
-          </div>
-        </div>
-        <div className="grid gap-3">
-          {pendingAssignments.map((assignment) => {
-            const dueLabel = assignment.due_at ? new Date(assignment.due_at).toLocaleString() : t("No deadline");
-            const statusLabel = assignment.is_closed ? t("Closed") : assignment.is_late ? t("Late · still open") : t("Ready");
-            const categoryMeta = getAssignmentCategoryMeta(assignment.assignment_category);
-            return (
-              <details key={assignment.assignment_id} className="student-assignment-card rounded-xl border border-slate-700 bg-slate-950/45">
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 p-4 focus-visible:outline focus-visible:outline-2">
-                  <span className="min-w-0">
-                    <span className="block text-sm font-black text-white">{assignment.title || assignment.topic_name || t("New assignment")}</span>
-                    <span className="mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide" style={assignmentCategoryBadgeStyle(assignment.assignment_category)}>{categoryMeta.label}</span>
-                    <span className="mt-1 block text-xs text-slate-400">{assignment.subject_name || t("General")} · {assignment.teacher_username || t("Your teacher")} · {t('Due {date}', { date: dueLabel })}</span>
-                  </span>
-                  <span className={`flex-none rounded-full px-2.5 py-1 text-[11px] font-bold ${assignment.is_closed ? 'bg-slate-700 text-slate-200' : assignment.is_late ? 'bg-amber-500/20 text-amber-200' : 'bg-emerald-500/20 text-emerald-200'}`}>{statusLabel}</span>
-                </summary>
-                <div className="border-t border-slate-700/70 p-4">
-                  <dl className="grid gap-3 text-xs text-slate-300 sm:grid-cols-2">
-                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Topic")}</dt><dd className="mt-1">{assignment.topic_name || t("General")}</dd></div>
-                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Questions")}</dt><dd className="mt-1">{assignment.question_count ?? assignment.questions.length}</dd></div>
-                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Given")}</dt><dd className="mt-1">{new Date(assignment.assigned_at).toLocaleString()}</dd></div>
-                    <div><dt className="font-bold uppercase tracking-wide text-slate-500">{t("Class")}</dt><dd className="mt-1">{assignment.batch || t("Selected students")}</dd></div>
-                  </dl>
-                  {assignment.instructions ? <div className="mt-4 rounded-lg bg-white/5 p-3 text-sm leading-6 text-slate-300"><strong className="text-white">{t("Teacher instructions:")}</strong> <span dir="auto">{assignment.instructions}</span></div> : null}
-                  <button type="button" disabled={assignment.is_closed} onClick={() => handleOpenStudentAssignment(assignment)} className="student-primary-button mt-4 w-full sm:w-auto">
-                    {assignment.is_closed ? t("Assignment closed") : t("Go to this assignment")} <span aria-hidden>{assignment.is_closed ? '🔒' : '→'}</span>
-                  </button>
-                </div>
-              </details>
-            );
-          })}
-        </div>
-      </div>
-    );
+    return <AssignmentDesk studentId={profile.id} assignments={pendingAssignments} onOpen={handleOpenStudentAssignment} />;
   };
 
   const renderCapsSection = () => {
@@ -2265,7 +2220,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
             );
         case 'ielts':
             return renderLazy(
-              <div className="relative">
+              <div className="relative" data-ielts-route="embedded">
                   {!isIeltsOnlyUser && (
                     <button
                         onClick={() => handleViewChange('dashboard')}
@@ -2430,7 +2385,6 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
             }
             
             // Student Dashboard - full gameplay experience
-            const pendingTasks = tasks.filter((task) => !task.claimed && task.progress < task.target).length;
 
             // ── Suspension overlay ──
             const bannedUntil = profile?.banned_until ? new Date(profile.banned_until) : null;
@@ -2510,6 +2464,26 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
 
             const nextActionLabel = activeAssignment ? t("Start assignment") : t("Start today’s practice");
             const nextActionTitle = activeAssignment?.title || t("Daily skill practice");
+            const nextMissionCard = (
+                        <article className="student-feed-card student-next-mission relative p-5 sm:p-6" data-testid="dashboard-start-quest">
+                          <div className="student-next-mission__atmosphere pointer-events-none absolute inset-0" aria-hidden />
+                          <div className="relative">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="student-theme-pill rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wider">{t("Up next")}</span>
+                              <span className="text-xs font-semibold text-slate-300">{activeAssignment ? t("Teacher assignment") : t("Matched to your progress")}</span>
+                            </div>
+                            <h2 className="mt-4 font-heading text-2xl text-white sm:text-3xl"><bdi>{nextActionTitle}</bdi></h2>
+                            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">
+                              {activeAssignment
+                                ? `${activeAssignment.subject_name || t("General")} · ${activeAssignment.due_at ? t('Due {date}', { date: new Date(activeAssignment.due_at).toLocaleString(language) }) : t("No deadline")}`
+                                : t("A short adaptive mission based on your current level. Finish it to keep your streak moving.")}
+                            </p>
+                            <button type="button" onClick={handleQuestAction} className="student-primary-button mt-5">
+                              {nextActionLabel} <span className="ml-2" aria-hidden>→</span>
+                            </button>
+                          </div>
+                        </article>
+            );
 
             return (
               <main className="localized-ui mt-4 sm:mt-6" lang={language} dir={direction}>
@@ -2532,24 +2506,10 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                     {studentDashboardTab === 'home' && (
                       <>
                         {renderProfileSlot()}
-                        <article className="student-feed-card student-next-mission relative p-5 sm:p-6" data-testid="dashboard-start-quest">
-                          <div className="student-next-mission__atmosphere pointer-events-none absolute inset-0" aria-hidden />
-                          <div className="relative">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="student-theme-pill rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wider">{t("Up next")}</span>
-                              <span className="text-xs font-semibold text-slate-300">{activeAssignment ? t("Teacher assignment") : t("Matched to your progress")}</span>
-                            </div>
-                            <h2 className="mt-4 font-heading text-2xl text-white sm:text-3xl"><bdi>{nextActionTitle}</bdi></h2>
-                            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">
-                              {activeAssignment
-                                ? `${activeAssignment.subject_name || t("General")} · ${activeAssignment.due_at ? t('Due {date}', { date: new Date(activeAssignment.due_at).toLocaleString(language) }) : t("No deadline")}`
-                                : t("A short adaptive mission based on your current level. Finish it to keep your streak moving.")}
-                            </p>
-                            <button type="button" onClick={handleQuestAction} className="student-primary-button mt-5">
-                              {nextActionLabel} <span className="ml-2" aria-hidden>→</span>
-                            </button>
-                          </div>
-                        </article>
+                        <RetentionTrialGate userId={profile.id} fallback={nextMissionCard}>
+                          <RetentionStudentPanel userId={profile.id} name={profile.username} hasSchool={hasSchool} nextMove={nextMissionCard}
+                            onOpenProgress={() => { setStudentDashboardTab('learn'); setStudentLearningView('academic-profile'); }} />
+                        </RetentionTrialGate>
 
                         <section className="student-quick-stats" aria-label={t("Player stats")}>
                           <button type="button" onClick={() => { setHelpInitialSection('streak'); setShowHelp(true); }} aria-label={t('Open streak rewards guide. Current streak: {count} days', { count: profile?.streak || 0 })} className="student-feed-card student-quick-stat text-left transition hover:-translate-y-0.5 hover:border-orange-300/50"><span className="student-quick-stat__icon" aria-hidden>🔥</span><span><strong>{t("Streak")}</strong><b>{t('Days: {count}', { count: profile?.streak || 0 })}</b><small>{t("Tap to view the reward ladder")}</small></span></button>
@@ -2568,7 +2528,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                     {studentDashboardTab === 'tasks' && (
                       <div className="grid gap-4">
                         {renderAssignmentSection()}
-                        {renderTasksSection()}
+                        <details className="card-glass rounded-2xl p-5"><summary className="cursor-pointer font-semibold">Daily & weekly rewards</summary><div className="mt-4">{renderTasksSection()}</div></details>
                       </div>
                     )}
 
@@ -2632,7 +2592,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                     {studentDashboardTab === 'more' && (
                       <div className="student-more-grid">
                         {([
-                          { id: 'tasks', icon: '✅', label: t("Tasks"), description: pendingTasks > 0 ? t('Tasks waiting: {count}', { count: pendingTasks }) : t("Review assignments and completed work") },
+                          { id: 'tasks', icon: '📋', label: 'Assignments', description: t("Review assignments and completed work") },
                           { id: 'tournaments', icon: '🏅', label: t("Tournaments"), description: t("View live events and competition standings") },
                           { id: 'leaderboard', icon: '🏆', label: t("Leaderboard"), description: t("See your position in your school community") },
                         ] as Array<{ id: StudentDashboardDestination; icon: string; label: string; description: string }>).map((item) => <button key={item.id} type="button" onClick={() => dashboardNavigate(item.id)} className="student-feed-card student-more-card"><span className="student-more-card__icon" aria-hidden>{item.icon}</span><span className="student-more-card__copy"><strong>{item.label}</strong><small>{item.description}</small></span><span className="student-more-card__arrow" aria-hidden>→</span></button>)}
@@ -2790,6 +2750,10 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
         <div className={cinematicViewClass}>
           {renderView()}
         </div>
+        {profile?.role === 'student' && isPlayerMode && !isTeacherRole && !isSchoolAdminRole && !isAdminMode &&
+          !isFullScreenView && !isCambridgeView &&
+          (view === 'dashboard' || ['leaderboard', 'shop', 'inventory', 'pvp', 'lockdown', 'tournament', 'achievements', 'clan'].includes(view)) &&
+          <StudentMascotDock userId={profile.id} />}
         {profile && isPlayerMode && !isTeacherRole && !isSchoolAdminRole && view !== 'dashboard' && ['leaderboard', 'shop', 'inventory', 'pvp', 'lockdown', 'tournament', 'achievements', 'cambridge', 'clan'].includes(view) && (
           <StudentDashboardBottomNavigation
             assignmentCount={actionableAssignments.length}
