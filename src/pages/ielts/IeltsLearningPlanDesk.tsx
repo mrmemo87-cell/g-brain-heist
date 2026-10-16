@@ -26,10 +26,12 @@ export default function IeltsLearningPlanDesk({
   schoolId,
   studentId,
   onClose,
+  initialFocus = "plan",
 }: {
   schoolId: string;
   studentId: string;
   onClose: () => void;
+  initialFocus?: "plan" | "reports";
 }) {
   const [data, setData] = useState<LearningReportContext | null>(null),
     [fields, setFields] = useState<LearningPlanFields>(emptyLearningPlan),
@@ -47,6 +49,7 @@ export default function IeltsLearningPlanDesk({
     [end, setEnd] = useState(""),
     [report, setReport] = useState<IeltsMonthlyReport | null>(null);
   const reportRequest = useRef<{ key: string; cutoff: string } | null>(null);
+  const reportsRef = useRef<HTMLElement>(null);
   const request = useRef<string | null>(null),
     lock = useRef(false),
     epoch = useRef(0);
@@ -78,6 +81,11 @@ export default function IeltsLearningPlanDesk({
       epoch.current++;
     };
   }, [schoolId, studentId, revision]);
+  useEffect(() => {
+    if (loading || !data || initialFocus !== "reports") return;
+    const frame = window.requestAnimationFrame(() => reportsRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [loading, data, initialFocus]);
   const change = (f: LearningPlanFields) => {
     setFields(f);
     setConfirmed(false);
@@ -484,7 +492,7 @@ export default function IeltsLearningPlanDesk({
               {busy ? "Saving…" : "Confirm and share learning plan"}
             </button>
           </fieldset>
-          <section className="ilr-shared">
+          <section className="ilr-shared" ref={reportsRef}>
             <p className="sp-eyebrow">Brains Heist smart reporting</p>
             <h3>Your monthly learning report</h3>
             <p>
