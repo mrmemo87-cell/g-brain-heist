@@ -112,6 +112,7 @@ export default function IeltsProgrammeWorkspace({
         const id = schoolId ?? selected ?? "";
         const chosen = id || access.schools[0]?.id;
         if (!chosen) {
+          setData(null);
           setLoading(false);
           return;
         }
@@ -121,10 +122,13 @@ export default function IeltsProgrammeWorkspace({
         setTeacher(workspace.lead?.teacher_id ?? "");
         setConfirmed(false);
       } catch {
-        if (alive)
+        if (alive) {
+          // Never keep previously visible learner data after a failed access refresh.
+          setData(null);
           setError(
             "Your programme workspace could not open. Check your access and connection, then try again.",
           );
+        }
       } finally {
         if (alive) setLoading(false);
       }
