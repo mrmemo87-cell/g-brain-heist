@@ -1,3 +1,4 @@
+import {reviewedPracticeDelivery} from '../../../services/ieltsReviewedPracticeService';
 import IeltsMaterialProvenance from "../../components/ielts/IeltsMaterialProvenance";
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useState, useRef, useEffect } from 'react';
@@ -17,6 +18,8 @@ interface SpeakingTask {
   slug: string;
   part: number;
   prompt: string;
+  practice_revision?: string;
+  practice_scope?: string;
   required_tier?: string | null;
   follow_ups: {
     questions?: string[];
@@ -49,7 +52,6 @@ const SpeakingPractice: React.FC = () => {
   const [userTier, setUserTier] = useState('free');
   const isPrimeUser = isIeltsPrime({ tier: userTier });
 
-  const MIN_RECORDING_SECONDS = 120;
   const MAX_RECORDING_SECONDS = 600;
   
 
@@ -98,10 +100,13 @@ const SpeakingPractice: React.FC = () => {
         .single();
       
       if (error) throw error;
-      return data as SpeakingTask;
+      return {...data,...await reviewedPracticeDelivery('ielts_speaking_task',taskId!)} as SpeakingTask;
     },
     enabled: !!taskId,
   });
+
+  // Guided-practice completion means an actual non-empty recording, not an IELTS score.
+  const MIN_RECORDING_SECONDS = task?.practice_revision ? 1 : 120;
 
   const submitMutation = useMutation({
     mutationFn: async (blob: Blob) => {
@@ -600,7 +605,7 @@ const SpeakingPractice: React.FC = () => {
             </div>
           )}
 
-          {task.follow_ups?.questions && (
+          {task.follow_ups?.questions && (task.part !== 2 || Boolean(audioBlob)) && (
             <div style={{
               background: '#f8fafc',
               border: '1px solid #e2e8f0',
