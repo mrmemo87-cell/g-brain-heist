@@ -9,6 +9,7 @@ type Props = {
   defaultExpanded?: boolean;
   children: React.ReactNode;
   className?: string;
+  onToggle?: (expanded: boolean) => void;
 };
 
 /**
@@ -23,9 +24,10 @@ export default function IeltsTeacherDisclosure({
   defaultExpanded = true,
   children,
   className = "",
+  onToggle,
 }: Props) {
   return (
-    <details className={"ip-disclosure " + className} defaultOpen={defaultExpanded}>
+    <details className={"ip-disclosure " + className} defaultOpen={defaultExpanded} onToggle={(event) => onToggle?.(event.currentTarget.open)}>
       <summary className="ip-disclosure-toggle">
         <span className="ip-disclosure-icon" aria-hidden="true">{icon ?? "▦"}</span>
         <span className="ip-disclosure-heading">
