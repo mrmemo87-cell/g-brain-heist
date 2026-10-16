@@ -64,7 +64,7 @@ async function check(admin, pending = 0, manage = true) {
         schools,
         school_id: "school-a",
         can_allocate: admin,
-        can_manage: true,
+        can_manage: manage,
         lead,
         teachers: admin ? [{ id: "teacher-a", name: "Test teacher" }] : [],
         students: [
