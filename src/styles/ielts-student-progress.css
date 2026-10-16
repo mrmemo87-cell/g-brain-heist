@@ -1,0 +1,287 @@
+/* Light-theme IELTS Student Progress. Scoped to the programme workspace only. */
+.ip-page .isi-layout {
+  --isi-blue: #2563eb;
+  --isi-navy: #111b38;
+  --isi-border: #e5eaf2;
+  --isi-muted: #64748b;
+  --isi-green: #15803d;
+  --isi-amber: #a35d06;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  color: var(--isi-navy);
+}
+.ip-page .isi-layout.isi-with-drawer {
+  grid-template-columns: minmax(0, 1fr) 430px;
+}
+.ip-page .isi-main { min-width: 0; display: grid; gap: 14px; }
+.ip-page .isi-accordion {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--isi-border);
+  background: #fff;
+  border-radius: 13px;
+  box-shadow: 0 2px 8px rgba(23,59,108,.035);
+}
+.ip-page .isi-accordion > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 12px 16px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--isi-navy);
+  font-size: .875rem;
+  font-weight: 700;
+  margin: 0;
+}
+.ip-page .isi-accordion > summary::-webkit-details-marker { display: none; }
+.ip-page .isi-accordion > summary:hover { background: #f7faff; }
+.ip-page .isi-accordion > summary:focus-visible {
+  outline: 3px solid var(--bh-ielts-focus); outline-offset: -3px;
+}
+.ip-page .isi-section-title, .ip-page .isi-section-right {
+  display: inline-flex; align-items: center; gap: 9px; min-width: 0;
+}
+.ip-page .isi-section-icon {
+  display: inline-grid; place-items: center; width: 23px; height: 23px;
+  flex: none; color: var(--isi-blue); font-size: 1.12rem;
+}
+.ip-page .isi-chevron { color: #64748b; font-size: 1.25rem; transform: rotate(0); transition: transform .18s ease; }
+.ip-page .isi-accordion[open] > summary .isi-chevron { transform: rotate(180deg); }
+.ip-page .isi-section-count { color: #64748b; font-size: .75rem; font-weight: 500; white-space: nowrap; }
+.ip-page .isi-section-content { padding: 0 16px 16px; }
+.ip-page .isi-intro h2 { color: var(--isi-navy); margin: 5px 0 6px; font-size: clamp(1.2rem, 2vw, 1.55rem); line-height: 1.25; }
+.ip-page .isi-intro .sp-eyebrow { font-size: .74rem; color: #62769a; margin: 2px 0 0; }
+.ip-page .isi-muted { color: var(--isi-muted); font-size: .82rem; line-height: 1.5; margin: 7px 0 10px; }
+.ip-page .isi-intro .isi-muted { margin-bottom: 2px; }
+.ip-page .isi-search-form { display: flex; gap: 10px; align-items: stretch; }
+.ip-page .isi-search-input {
+  display: flex; flex: 1; min-width: 0; align-items: center; gap: 8px;
+  padding: 0 12px; border: 1px solid #cfd9e6; border-radius: 9px; background: #fff;
+  color: #8a9ab2;
+}
+.ip-page .isi-search-input:focus-within { outline: 2px solid #bfdbfe; border-color: var(--isi-blue); }
+.ip-page .isi-search-input input {
+  padding: 10px 0; min-height: 44px; flex: 1; width: 100%; min-width: 0;
+  color: var(--isi-navy); border: none; background: transparent;
+  font-size: .875rem; outline: none; box-shadow: none;
+}
+.ip-page .isi-search-input button {
+  border: none; background: transparent; color: #6b7f9b; cursor: pointer;
+  font-size: 1.3rem; min-width: 28px; min-height: 34px;
+}
+.ip-page .isi-search-submit, .ip-page .isi-secondary, .ip-page .isi-primary {
+  display: inline-flex; justify-content: center; align-items: center;
+  min-height: 42px; padding: 9px 13px; font-size: .8rem; font-weight: 700;
+  border-radius: 9px; cursor: pointer; transition: background .15s ease, border-color .15s ease;
+}
+.ip-page .isi-search-submit, .ip-page .isi-primary {
+  border: 1px solid #2563eb; color: #fff; background: #2563eb;
+}
+.ip-page .isi-search-submit:hover, .ip-page .isi-primary:hover { background: #1d4ed8; }
+.ip-page .isi-secondary { border: 1px solid #cbd9ef; color: #1d4ed8; background: #f8fbff; }
+.ip-page .isi-secondary:hover { background: #eff6ff; }
+.ip-page .isi-search-note { margin-bottom: 0; }
+.ip-page .isi-matrix {
+  border: 1px solid var(--isi-border); border-radius: 13px;
+  background: #fff; overflow: hidden;
+}
+.ip-page .isi-table-scroll { overflow-x: auto; max-width: 100%; }
+.ip-page .isi-matrix table {
+  width: 100%; min-width: 840px; border-collapse: collapse; table-layout: fixed;
+}
+.ip-page .isi-matrix th:first-child { width: 28%; }
+.ip-page .isi-matrix thead th {
+  padding: 12px 13px; text-align: left; font-size: .75rem;
+  color: #64748b; font-weight: 700; background: #f7faff;
+  border-bottom: 1px solid var(--isi-border);
+}
+.ip-page .isi-matrix tbody th, .ip-page .isi-matrix tbody td {
+  padding: 12px 11px; text-align: left; vertical-align: middle;
+  border-bottom: 1px solid #edf1f7; font-size: .76rem;
+}
+.ip-page .isi-matrix tbody tr:last-child th,
+.ip-page .isi-matrix tbody tr:last-child td { border-bottom: 0; }
+.ip-page .isi-matrix tbody tr { cursor: pointer; }
+.ip-page .isi-matrix tbody tr:hover { background: #f8fbff; }
+.ip-page .isi-matrix tbody tr.isi-selected, .ip-page .isi-matrix tbody tr.isi-selected:hover {
+  background: #eaf3ff; box-shadow: inset 3px 0 0 #2563eb;
+}
+.ip-page .isi-student-identity { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.ip-page .isi-avatar {
+  display: inline-grid; place-items: center; flex: none; width: 34px; height: 34px;
+  border-radius: 50%; background: #dbeafe; color: #19488e; font-size: .92rem; font-weight: 700;
+}
+.ip-page .isi-avatar-large { width: 46px; height: 46px; font-size: 1.1rem; }
+.ip-page .isi-student-names { min-width: 0; display: grid; gap: 4px; justify-items: start; }
+.ip-page .isi-student-button {
+  display: block; padding: 0; min-width: 0; max-width: 100%;
+  border: 0; background: none; color: #172441; font-size: .83rem; font-weight: 700;
+  text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;
+}
+.ip-page .isi-student-button:hover { color: var(--isi-blue); text-decoration: underline; }
+.ip-page .isi-text-link {
+  color: #1d4ed8; font-size: .735rem; font-weight: 650;
+  padding: 0; min-height: 18px; line-height: 1.3;
+  text-decoration: none; background: none; border: 0; text-align: left; cursor: pointer;
+}
+.ip-page .isi-text-link:hover { text-decoration: underline; }
+.ip-page .isi-plan-link { font-weight: 500; }
+.ip-page .isi-cell { display: flex; align-items: flex-start; min-width: 0; gap: 7px; }
+.ip-page .isi-cell-body { min-width: 0; display: grid; gap: 4px; }
+.ip-page .isi-cell-description { overflow-wrap: anywhere; line-height: 1.45; color: #334155; }
+.ip-page .isi-status-dot {
+  flex: none; width: 7px; height: 7px; border-radius: 50%;
+  margin-top: 5px; background: #94a3b8;
+}
+.ip-page .isi-status-reviewed .isi-status-dot { background: #16a34a; }
+.ip-page .isi-status-complete .isi-status-dot { background: #2563eb; }
+.ip-page .isi-status-partial .isi-status-dot,
+.ip-page .isi-status-empty .isi-status-dot { background: #d97706; }
+.ip-page .isi-status-reviewed .isi-cell-description { color: #166534; font-weight: 650; }
+.ip-page .isi-status-partial .isi-cell-description { color: #92400e; }
+.ip-page .isi-status-none .isi-cell-description { color: #94a3b8; }
+.ip-page .isi-no-results { text-align: center; padding: 35px 14px; }
+.ip-page .isi-no-results strong { color: var(--isi-navy); }
+.ip-page .isi-no-results p { color: var(--isi-muted); }
+.ip-page .isi-pagination {
+  display: flex; gap: 12px; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-top: 1px solid var(--isi-border);
+  color: #64748b; font-size: .75rem;
+}
+.ip-page .isi-pagination-actions { display: flex; gap: 7px; align-items: center; }
+.ip-page .isi-pagination-actions button {
+  min-height: 36px; padding: 7px 9px; border: 1px solid #d8e2ef;
+  background: #fff; border-radius: 8px; color: #1d4ed8;
+  font-weight: 650; font-size: .75rem;
+}
+.ip-page .isi-pagination-actions button:disabled { color: #94a3b8; background: #f8fafc; }
+.ip-page .isi-page-number {
+  min-width: 30px; min-height: 30px; display: grid; place-items: center;
+  background: #e8f1ff; border-radius: 7px; color: #1d4ed8; font-weight: 700;
+}
+.ip-page .isi-drawer {
+  position: sticky; top: 12px; align-self: start; min-width: 0;
+  height: min(880px, calc(100vh - 24px));
+  display: flex; flex-direction: column; overflow: hidden;
+  background: #fff; border: 1px solid var(--isi-border); border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(21, 40, 73, .08);
+}
+.ip-page .isi-drawer-header {
+  display: flex; align-items: center; gap: 12px; padding: 16px;
+  border-bottom: 1px solid var(--isi-border); flex: none;
+}
+.ip-page .isi-identity { min-width: 0; display: grid; gap: 3px; flex: 1; }
+.ip-page .isi-identity strong {
+  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 1.13rem; color: var(--isi-navy);
+}
+.ip-page .isi-identity small { color: #64748b; font-size: .75rem; }
+.ip-page .isi-icon-button {
+  border: 0; background: transparent; color: #64748b; border-radius: 8px;
+  min-height: 34px; min-width: 34px; font-size: 1.6rem; line-height: 1; cursor: pointer;
+}
+.ip-page .isi-icon-button:hover { background: #eff6ff; color: #1d4ed8; }
+.ip-page .isi-drawer-scroll { padding: 14px; display: grid; align-content: start; gap: 12px; overflow-y: auto; overscroll-behavior: contain; }
+.ip-page .isi-confidence {
+  background: #fffaf0; color: #844807; border: 1px solid #fde6b1;
+  padding: 12px; border-radius: 9px; font-size: .79rem;
+}
+.ip-page .isi-confidence p { margin: 5px 0 0; line-height: 1.5; color: #805716; }
+.ip-page .isi-evidence-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ip-page .isi-evidence-card {
+  border: 1px solid #e4ebf4; background: #fff; border-radius: 10px;
+  padding: 11px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start;
+  gap: 7px; transition: border-color .15s ease;
+}
+.ip-page .isi-evidence-card:hover { border-color: #93c5fd; }
+.ip-page .isi-card-heading { width: 100%; display: flex; gap: 7px; justify-content: space-between; flex-wrap: wrap; align-items: center; }
+.ip-page .isi-skill-name { font-weight: 700; font-size: .79rem; color: #1e293b; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+.ip-page .isi-skill-icon { color: var(--isi-blue); font-size: 1.15rem; width: 17px; }
+.ip-page .isi-chip {
+  background: #f1f5f9; color: #64748b; border-radius: 20px;
+  padding: 3px 7px; font-size: .64rem; font-weight: 700;
+}
+.ip-page .isi-status-reviewed .isi-chip { background: #dcfce7; color: #166534; }
+.ip-page .isi-status-complete .isi-chip { background: #dbeafe; color: #1e40af; }
+.ip-page .isi-status-partial .isi-chip, .ip-page .isi-status-empty .isi-chip { background: #fef3c7; color: #92400e; }
+.ip-page .isi-card-score { font-size: 1.45rem; line-height: 1.15; color: #111b38; }
+.ip-page .isi-card-state { color: #1e293b; font-size: .83rem; line-height: 1.4; }
+.ip-page .isi-card-meta { color: #64748b; line-height: 1.45; font-size: .72rem; margin: 0; }
+.ip-page .isi-evidence-card .isi-text-link { margin-top: auto; }
+.ip-page .isi-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ip-page .isi-actions button { min-width: 0; }
+.ip-page .isi-next-steps, .ip-page .isi-timeline { padding: 0; margin: 10px 0 0; list-style: none; }
+.ip-page .isi-next-steps { display: grid; gap: 13px; }
+.ip-page .isi-next-steps li { display: flex; gap: 10px; align-items: flex-start; }
+.ip-page .isi-number {
+  flex: none; width: 26px; height: 26px; display: grid; place-items: center;
+  background: #dbeafe; border-radius: 50%; color: #1d4ed8; font-size: .8rem; font-weight: 800;
+}
+.ip-page .isi-next-steps strong { color: #1e293b; font-size: .8rem; }
+.ip-page .isi-next-steps p { color: #64748b; font-size: .76rem; line-height: 1.45; margin: 4px 0 0; }
+.ip-page .isi-timeline { display: grid; gap: 3px; }
+.ip-page .isi-timeline li { position: relative; display: flex; align-items: flex-start; gap: 10px; padding: 8px 0 8px 2px; }
+.ip-page .isi-timeline li:not(:last-child):after {
+  content: ""; position: absolute; top: 23px; bottom: -12px; left: 5px;
+  width: 1px; background: #dbe3ef;
+}
+.ip-page .isi-timeline-dot { flex: none; width: 8px; height: 8px; background: #60a5fa; border-radius: 50%; margin-top: 5px; }
+.ip-page .isi-timeline li > div { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.ip-page .isi-timeline strong { font-size: .76rem; color: #1e293b; }
+.ip-page .isi-timeline small, .ip-page .isi-timeline time { font-size: .7rem; color: #64748b; }
+.ip-page .isi-timeline time { flex: none; white-space: nowrap; }
+.ip-page .isi-visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+.ip-page .isi-backdrop { display: none; }
+@media (max-width: 1199px) {
+  .ip-page .isi-layout.isi-with-drawer { grid-template-columns: minmax(0,1fr); }
+  .ip-page .isi-backdrop {
+    display: block; position: fixed; inset: 0; width: 100%; height: 100%;
+    z-index: 1998; border: 0; background: rgba(15,23,42,.32);
+  }
+  .ip-page .isi-drawer {
+    position: fixed; z-index: 1999; right: 0; top: 0;
+    height: 100dvh; width: min(460px, 90vw); max-height: none;
+    border-radius: 0; box-shadow: -8px 0 28px rgba(15,23,42,.15);
+  }
+}
+@media (max-width: 760px) {
+  .ip-page .isi-matrix { border: 0; background: transparent; }
+  .ip-page .isi-matrix table { display: block; min-width: 0; }
+  .ip-page .isi-matrix thead { display: none; }
+  .ip-page .isi-matrix tbody { display: grid; gap: 10px; }
+  .ip-page .isi-matrix tbody tr {
+    display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 6px; border: 1px solid var(--isi-border); border-radius: 12px;
+    padding: 12px; background: #fff;
+  }
+  .ip-page .isi-matrix tbody th { grid-column: 1/-1; width: 100%; }
+  .ip-page .isi-matrix tbody th, .ip-page .isi-matrix tbody td { display: block; border: 0; padding: 6px; }
+  .ip-page .isi-matrix tbody td:before {
+    display: block; font-size: .7rem; font-weight: 750; color: #64748b; margin-bottom: 5px;
+  }
+  .ip-page .isi-matrix tbody td:nth-of-type(1):before { content: "Listening"; }
+  .ip-page .isi-matrix tbody td:nth-of-type(2):before { content: "Reading"; }
+  .ip-page .isi-matrix tbody td:nth-of-type(3):before { content: "Writing"; }
+  .ip-page .isi-matrix tbody td:nth-of-type(4):before { content: "Speaking"; }
+  .ip-page .isi-pagination { background: #fff; border: 1px solid var(--isi-border); border-radius: 12px; margin-top: 10px; }
+}
+@media (max-width: 500px) {
+  .ip-page .isi-drawer { width: 100vw; }
+  .ip-page .isi-actions { grid-template-columns: 1fr; }
+  .ip-page .isi-pagination { flex-direction: column; align-items: flex-start; }
+  .ip-page .isi-search-form { flex-wrap: wrap; }
+  .ip-page .isi-search-input { flex-basis: 100%; }
+  .ip-page .isi-evidence-grid { gap: 7px; }
+  .ip-page .isi-evidence-card { padding: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ip-page .isi-chevron, .ip-page .isi-evidence-card, .ip-page .isi-secondary, .ip-page .isi-primary { transition: none; }
+}
