@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.9.0\
-**Effective date:** 2026-10-10\
+**Version:** 1.10.0\
+**Effective date:** 2026-10-15\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -1204,6 +1204,32 @@ Acceptance covers disguised copies, shared sources, near wording, unflagged mate
 
 ---
 
+## 15F. Screeners remain separate from later practice
+
+**Owner-authorized policy (2026-10-15):** Screeners are initial assessments. They must never appear as selectable materials for later school, batch or targeted-practice assignments. The separate initial-assessment/late-joiner assessment route remains available under its existing release and entitlement rules; do not erase, revoke or repurpose historical attempts.
+
+- Filter practice discovery and enforce the boundary again at allocation, including manual IDs, direct RPCs, new recipients and raw privileged application writes. A title change or new material ID cannot make a screener into a new practice task.
+- Preserve private fingerprints of protected screener stimulus, substantive question prompts and recording references, including retained earlier versions. Register future screener publication on the content cold path. Exact source/stimulus/recording reuse must be blocked from new practice allocation. Fingerprints are private and are not semantic-originality or audio-byte equivalence guarantees; existing human originality/rights review remains necessary for paraphrases, transformed recordings and exposure families.
+- Grandfathered catalogue availability is not evidence of current editorial, keys, rights or delivery approval. Hold unreviewed legacy material from new assignment without deleting its source, code, existing student work or approved reports. Releasing a held source requires a separate documented, exact-version human review; do not manufacture approvals during cleanup.
+- Batch assignment of released targeted practice must use each selected student's matching qualified source and the canonical allocator, with current membership/entitlement, teacher source-review confirmation, reason, material release and independent-check exposure gates. Missing evidence excludes readiness, not attainment. Never silently skip failing recipients or substitute screeners. Guided repeats remain labelled practice; original histories and individual allocation identities remain intact.
+- Batch archive prevents new batch allocation but retains existing work, feedback and access. Restore is explicit. Delete is limited to an empty, never-used batch; retain a private audit tombstone. Archiving/deleting a course group does not alter assessment scores or regular school registration classes.
+
+Apply school isolation, bounded reads, idempotent requests, concurrent-edit checks and section 13 capacity obligations. This policy does not calibrate a score, approve new content, waive source evidence or establish 500-user capacity.
+
+---
+
+## 15G. Post-screener course handoff and rolling intake
+
+**Owner-requested course policy (2026-10-14):** Use screener evidence to plan teaching through the companion Lessons Bible and its ordered course roadmap. Completion alone cannot choose a weakest skill, assign a fixed ability group or generate a band. Inspect actual trusted outcomes, missing/pending states and the required Writing/Speaking reviews. Keep per-skill foundation/focused/more-evidence-needed pathways under section 15C.1, and agree up to two immediate teaching priorities where supported. Record source references, teacher/date, intended support, next practice and next check.
+
+The class may proceed through shared lessons while individual students finish intake. Late joiners retain their own joining date, source history, catch-up teaching and report scope; do not restart a cohort, duplicate a valid completed screener or turn unfinished work into zero. Classroom paragraphs, paired speaking, live teacher observations, homework and guided corrections are separately identified teaching records. They never silently replace a required screener, finalized productive-skill review or trusted independent assessment. A teacher listening to a limited sample must record the actual students/parts observed; peer comments cannot provide teacher pronunciation ratings.
+
+Fresh follow-up work may check transfer only after its content, exposure, mapping, difficulty and delivery are reviewed for the intended claim. Freshness alone does not establish comparability or improvement. All section 8A policies still apply. Course milestones and monthly reviews schedule decisions; they cannot manufacture evidence, report attendance or imply a band increase. Teaching packs must distinguish privately prepared drafts from reviewed/released materials under sections 6 and 15E.
+
+No answer-save, scoring, recommendation automation, numerical threshold, content approval or release authority is introduced here. This policy defines the handoff; implementation and human review must be recorded separately.
+
+---
+
 ## 16. Current known legacy issues
 
 The following current/legacy behaviours are **not** canonical and must not be preserved merely because they already exist.
@@ -1626,6 +1652,20 @@ Affected implementation: material registry and insert/update triggers, catalogue
 The owner requested safeguards so newly created IELTS material is meaningfully different and repetition cannot happen unnoticed. Section 15E establishes content comparison, exact-copy blocking, required human originality decisions, explicit parent-linked variants, private listening transcripts, version/inventory binding and exposure-family checks. Basis: explicit owner product-policy authorisation and the existing evidence, privacy and release contracts. The token similarity threshold is an internal editorial rule, not an external IELTS standard or calibration claim.
 
 Affected implementation: practice inventory fingerprints, draft/publication and allocation triggers, content-admin comparison/review UI, private transcripts, scoped provenance labels and tests. Existing inventory is grandfathered without originality certification; no content, scores, evidence, approved reports or official assessment rules are rewritten. Diagnostic form publication remains separately governed. No semantic-uniqueness guarantee or 500-user capacity claim follows.
+
+---
+
+### 22.9 Revision record — v1.10.0 (2026-10-15)
+
+The owner requested cleanup of assignable practice, direct batch assignment and a permanent separation of screeners from later course materials. Section 15F records this internal product policy and strengthens the existing assessment/practice, rights, source-evidence and historical-preservation rules. Source: the owner's explicit instruction on 2026-10-15. No external IELTS format, scoring, criterion, calibration, published form or existing result changes. Review catalogue filters, allocation triggers, protected-content fingerprints, batch lifecycle/assignment RPCs, teacher UI and regressions. New private tables preserve operational history; no content approval or wider capacity is implied.
+
+---
+
+### 22.10 Consolidated course handoff record — v1.10.0 (2026-10-16)
+
+The owner requested consistent course Bibles and preparation of Lesson 2 after the post-screener course plan. Sections 15B/15C did not explicitly define the shared-class handoff, rolling intake or boundaries of limited classroom observations. Section 15G makes those distinctions explicit, with the companion Lessons Bible 1.1.0 and course roadmap. Basis: explicit owner instruction and existing evidence/review governance. No external IELTS format, criteria, grading, band conversion or scoring changes; current external sources are not presented as endorsement of the internal course plan.
+
+Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
 

@@ -17,6 +17,17 @@ export interface TeacherLesson {
   lesson_code: string;
   version: string;
   materials: LessonMaterial[];
+  reading_backup?: {
+    code: string;
+    display_code: string;
+    title: string;
+    version: string;
+    content_sha256: string;
+    instructions: string;
+    passage: string;
+    teacher_notes: string | null;
+    questions: { id: string; prompt: string; accepted_answers: string[] }[];
+  } | null;
 }
 export { lessonStages } from "./ieltsLessonPlan";
 export async function teacherLessonOne(
@@ -34,6 +45,23 @@ export async function teacherLessonOne(
   )
     throw new Error(
       "The lesson pack could not open. Check your programme access and connection, then retry.",
+    );
+  const r = data.reading_backup;
+  if (
+    r &&
+    (r.code !== "bh-ielts-targeted-reading-r1-v1" ||
+      r.display_code !== "R-001" ||
+      typeof r.passage !== "string" ||
+      !r.passage.trim() ||
+      !Array.isArray(r.questions) ||
+      r.questions.length !== 6 ||
+      r.questions.some(
+        (q: { accepted_answers?: unknown }) =>
+          !Array.isArray(q.accepted_answers) || !q.accepted_answers.length,
+      ))
+  )
+    throw new Error(
+      "The paper Reading task could not be verified. Please reopen the lesson pack.",
     );
   return data;
 }

@@ -6,7 +6,7 @@ const id = (n: number) => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}
 const journey = { assigned_practice: [], completed_practice: [], teacher_feedback: [] } as unknown as IeltsStudentJourney;
 const data: IeltsStartingPoint = { student_name: 'Test learner', school_managed: true, speaking_available: true, confidence: 'low', band_estimate: null, readiness_available: false,
   catalog: ['listening','reading','writing'].map((s,i) => ({ title:s,code:`bh-${s}-screener-a`,status:'completed',attempt_id:id(i+10),assignment_id:id(i+20),exam_event_id:id(i+30),duration_minutes:20,starts_at:'2026-10-08T09:00:00Z' })),
-  results: { listening: { attempt_id:id(10),occurred_at:'2026-10-08T09:00:00Z',conditions_need_review:false,raw_score:8,total:12 }, speaking: {attempt_id:id(40),occurred_at:'2026-10-08T09:00:00Z',conditions_need_review:false,status:'submitted',review:null} } };
+  results: { listening: { attempt_id:id(10),occurred_at:'2026-10-08T09:00:00Z',conditions_need_review:false,raw_score:8,total:12,items_answered:12 }, reading: { attempt_id:id(11),occurred_at:'2026-10-08T09:00:00Z',conditions_need_review:false,raw_score:6,total:12,items_answered:12 }, speaking: {attempt_id:id(40),occurred_at:'2026-10-08T09:00:00Z',conditions_need_review:false,status:'submitted',review:null} } };
 test('parser rejects inferred bands, bad raw scores and unconfirmed statuses',()=>{
  assert.equal(parseStartingPoint(data).band_estimate,null);
  for (const change of [{band_estimate:6.5},{confidence:'high'},{readiness_available:true},{results:{listening:{...data.results.listening,raw_score:13}}},{results:{speaking:{...data.results.speaking,status:'unknown'}}}]) assert.throws(()=>parseStartingPoint({...data,...change}));

@@ -24,6 +24,15 @@ await db.exec(
     "utf8",
   ),
 );
+await db.exec(
+  `insert into private.ielts_learning_tasks values ('bh-ielts-targeted-reading-r1-v1','Reading guided','1','reading','guided_practice','readinghash','{"passage":"Approved passage","teacher_notes":"PRIVATE READING NOTES"}','Choose TRUE FALSE NOT GIVEN','[{"id":"q1","prompt":"One","accepted_answers":["TRUE"]},{"id":"q2","prompt":"Two","accepted_answers":["FALSE"]},{"id":"q3","prompt":"Three","accepted_answers":["NOT GIVEN"]},{"id":"q4","prompt":"Four","accepted_answers":["TRUE"]},{"id":"q5","prompt":"Five","accepted_answers":["FALSE"]},{"id":"q6","prompt":"Six","accepted_answers":["NOT GIVEN"]}]',null,null,true);`,
+);
+await db.exec(
+  readFileSync(
+    "supabase/migrations/20261014085646_ielts_lesson_one_printable_reading_backup.sql",
+    "utf8",
+  ),
+);
 const actor = (id) =>
   db.query("select set_config('request.jwt.claim.sub',$1,false)", [id]);
 test("teacher pack is school-scoped, branded and released guided material only", async () => {
@@ -103,5 +112,62 @@ test("audio preparation is limited and retains assignment-bound student access",
     ).rows[0].ok,
     false,
   );
+});
+
+test("released guided Reading backup is teacher-only and unavailable content is omitted", async () => {
+  await db.exec("update users set is_banned=false where id='" + teacher + "'");
+  await actor(teacher);
+  const p = (
+    await db.query("select rpc_ielts_teacher_lesson_one($1) pack", [school])
+  ).rows[0].pack;
+  assert.equal(p.reading_backup.code, "bh-ielts-targeted-reading-r1-v1");
+  assert.equal(p.reading_backup.passage, "Approved passage");
+  assert.equal(p.reading_backup.questions.length, 6);
+  assert.equal(p.version, "1.1.0");
+  for (const id of [student, ""]) {
+    await actor(id);
+    await assert.rejects(
+      db.query("select rpc_ielts_teacher_lesson_one($1)", [school]),
+      /not_authorized/,
+    );
+  }
+  await actor(teacher);
+  await assert.rejects(
+    db.query("select rpc_ielts_teacher_lesson_one($1)", [other]),
+    /not_authorized/,
+  );
+  await db.exec(
+    "update private.ielts_learning_tasks set released=false where code='bh-ielts-targeted-reading-r1-v1'",
+  );
+  assert.equal(
+    (await db.query("select rpc_ielts_teacher_lesson_one($1) pack", [school]))
+      .rows[0].pack.reading_backup,
+    null,
+  );
+  await db.exec(
+    "update private.ielts_learning_tasks set released=true,purpose='independent_check' where code='bh-ielts-targeted-reading-r1-v1'",
+  );
+  assert.equal(
+    (await db.query("select rpc_ielts_teacher_lesson_one($1) pack", [school]))
+      .rows[0].pack.reading_backup,
+    null,
+  );
+  await db.exec("update users set is_banned=true where id='" + teacher + "'");
+  await assert.rejects(
+    db.query("select rpc_ielts_teacher_lesson_one($1)", [school]),
+    /not_authorized/,
+  );
+  await db.exec("update users set is_banned=false where id='" + teacher + "'");
+  assert.equal(
+    (
+      await db.query(
+        "select has_function_privilege('anon','public.rpc_ielts_teacher_lesson_one(uuid)','EXECUTE') permitted",
+      )
+    ).rows[0].permitted,
+    false,
+  );
+});
+
+test.after(async () => {
   await db.close();
 });

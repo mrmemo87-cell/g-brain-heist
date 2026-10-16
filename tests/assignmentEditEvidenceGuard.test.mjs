@@ -9,7 +9,7 @@ const sql = readFileSync(
 
 test('preserves teacher ownership and assignment update authorization', () => {
   assert.match(sql, /auth\.uid\(\)/);
-  assert.match(sql, /v_teacher_user_id <> v_actor/);
+  assert.match(sql, /v_teacher_user_id is distinct from v_actor/);
   assert.match(sql, /private\.teacher_assignment_authorized_students/);
   assert.match(sql, /SECURITY DEFINER/i);
 });

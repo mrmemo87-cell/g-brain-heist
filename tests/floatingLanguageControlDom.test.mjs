@@ -4,17 +4,18 @@ import { build } from 'esbuild';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
 const bundle = await build({
-  stdin: { contents: `import React from 'react';import {createRoot} from 'react-dom/client';import Layer from './src/components/AppLocalizationLayer';const root=createRoot(document.getElementById('root'));window.renderScope=(scope='public')=>root.render(<Layer language="en" setLanguage={value=>window.chosenLanguage=value}><main data-ielts-route={scope==='embedded'?'embedded':undefined} className={scope==='admin'?'school-admin-ielts-tab':undefined}><p data-language-lock="en">English assessment</p></main></Layer>);window.unmount=()=>root.unmount();window.renderScope();`, loader: 'tsx', resolveDir: process.cwd() },
+  stdin: { contents: `import React from 'react';import {createRoot} from 'react-dom/client';import Layer from './src/components/AppLocalizationLayer';import {useFloatingCompanion} from './src/contexts/FloatingCompanionContext';function Pilot(){const {register}=useFloatingCompanion();React.useEffect(()=>{register({name:'Gulla',palette:'violet',avatar:<span data-character>fox</span>,greet:()=>window.greetings=(window.greetings||0)+1,personalise:()=>window.personalised=true,keepsakes:()=>window.keepsakes=true,tuck:()=>window.renderScope()});return ()=>register(null)},[register]);return null}const root=createRoot(document.getElementById('root'));window.renderScope=(scope='public',hub=false)=>root.render(<Layer language="en" setLanguage={value=>window.chosenLanguage=value}><>{hub?<Pilot/>:null}<main data-ielts-route={scope==='embedded'?'embedded':undefined} className={scope==='admin'?'school-admin-ielts-tab':undefined}><p data-language-lock="en">English assessment</p></main></></Layer>);window.unmount=()=>root.unmount();window.renderScope();`, loader: 'tsx', resolveDir: process.cwd() },
   bundle: true, format: 'iife', write: false, loader: { '.css': 'empty' }, logLevel: 'silent',
 });
 const key = 'brains-heist-language-dock-v1';
-async function mount(path = '/', saved = null, blocked = false) {
+async function mount(path = '/', saved = null, blocked = false, reduced = true) {
   const errors = [], console = new VirtualConsole();
   console.on('jsdomError', error => errors.push(error.message));
   const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost' + path, runScripts: 'outside-only', pretendToBeVisual: true, virtualConsole: console });
   const w = dom.window;
   if (saved) w.localStorage.setItem(key, JSON.stringify(saved));
   if (blocked) Object.defineProperty(w, 'localStorage', { get() { throw Error('Storage blocked'); } });
+  w.matchMedia=()=>({matches:reduced,addEventListener(){},removeEventListener(){}});
   w.eval(bundle.outputFiles[0].text);
   const wait = async predicate => { for (let i = 0; i < 100; i++) { if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); } throw Error('UI did not settle'); };
   await wait(() => w.document.querySelector('main'));
@@ -117,4 +118,52 @@ test('route and embedded school-admin transitions remove the control and restore
     m.w.history.pushState(null, '', '/dashboard'); m.w.dispatchEvent(new m.w.PopStateEvent('popstate')); await m.wait(() => m.control());
     for (const scope of ['admin', 'embedded']) { m.w.renderScope(scope); await m.wait(() => !m.control()); m.w.renderScope(); await m.wait(() => m.control()); }
   } finally { m.close(); }
+});
+
+
+
+test('pilot hub has one trigger, drag suppression, language back navigation and fallback on tuck', async () => {
+ const m=await mount();try {
+  m.w.renderScope('public',true);await m.wait(()=>m.control()?.classList.contains('is-companion'));
+  assert.equal(m.w.document.querySelectorAll('.language-dock-trigger').length,1);assert.equal(m.w.document.querySelectorAll('[data-character]').length,1);
+  await m.pointer('pointerdown',30,380);await m.pointer('pointermove',600,300);await m.pointer('pointerup',600,300);m.button().click();
+  assert.equal(m.button().getAttribute('aria-expanded'),'false');assert.equal(m.w.greetings,undefined);assert.equal(m.point()[0],916);
+  m.button().click();await m.wait(()=>m.button().getAttribute('aria-expanded')==='true');assert.equal(m.w.greetings,1);
+  const option=text=>[...m.w.document.querySelectorAll('.companion-hub-option')].find(b=>b.textContent===text);
+  assert.equal(m.w.document.querySelectorAll('.companion-hub-option').length,4);option('Language').click();await m.wait(()=>m.w.document.querySelector('.language-dock-panel'));
+  m.w.document.querySelector('[aria-label="Back to companion options"]').click();await m.wait(()=>!m.w.document.querySelector('.language-dock-panel'));assert.equal(m.w.document.activeElement.textContent,'Language');
+  option('Keepsakes').click();await m.wait(()=>m.w.keepsakes);assert.equal(m.button().getAttribute('aria-expanded'),'false');
+  m.button().click();await m.wait(()=>m.button().getAttribute('aria-expanded')==='true');option('Tuck away').click();await m.wait(()=>!m.control().classList.contains('is-companion'));assert.equal(m.button().getAttribute('aria-label'),'Interface language');
+  m.button().click();await m.wait(()=>m.w.document.querySelector('.language-dock-panel'));m.w.document.querySelector('[aria-label="العربية"]').click();await m.wait(()=>m.w.chosenLanguage==='ar');
+ }finally{m.close()}
+});
+
+test('pilot hub adapts to keyboard viewport, cleans up in IELTS and restores the globe on unmount', async()=>{
+ const m=await mount('/',{side:'right',ratio:1});try{
+  const viewport=new m.w.EventTarget();Object.assign(viewport,{width:375,height:667,offsetLeft:20,offsetTop:40});Object.defineProperty(m.w,'visualViewport',{value:viewport,configurable:true});
+  m.w.renderScope('public',true);await m.wait(()=>m.control()?.classList.contains('is-companion'));assert.deepEqual(m.point(),[287,527]);
+  viewport.height=300;viewport.dispatchEvent(new m.w.Event('resize'));await m.wait(()=>!m.control().classList.contains('is-companion'));assert.deepEqual(m.point(),[329,274]);
+  viewport.height=600;viewport.dispatchEvent(new m.w.Event('resize'));await m.wait(()=>m.control().classList.contains('is-companion'));assert.deepEqual(m.point(),[287,460]);
+  m.w.renderScope('embedded',true);await m.wait(()=>!m.control());m.w.renderScope('public',true);await m.wait(()=>m.control()?.classList.contains('is-companion'));
+  m.button().click();await m.wait(()=>m.button().getAttribute('aria-expanded')==='true');await m.keyboard('Escape');assert.equal(m.button().getAttribute('aria-expanded'),'false');
+  m.w.renderScope();await m.wait(()=>!m.control().classList.contains('is-companion'));assert.ok(m.button());
+ }finally{m.close()}
+});
+
+
+test('GSAP fan reverses through rapid taps and releases animation state on pilot unmount', async()=>{
+ const m=await mount('/',null,false,false);try{
+  m.w.renderScope('public',true);await m.wait(()=>m.control()?.classList.contains('is-companion'));
+  await m.wait(()=>m.w.document.querySelector('.companion-hub-fan.has-gsap'));
+  const fan=m.w.document.querySelector('.companion-hub-fan');
+  m.button().click();await m.wait(()=>m.button().getAttribute('aria-expanded')==='true');
+  m.button().click();await m.wait(()=>m.button().getAttribute('aria-expanded')==='false');
+  m.button().click();await m.wait(()=>m.button().getAttribute('aria-expanded')==='true');
+  await new Promise(r=>setTimeout(r,650));
+  for(const item of fan.querySelectorAll('button')){assert.equal(item.style.opacity,'1');assert.equal(item.tabIndex,0);}
+  m.w.document.body.dispatchEvent(new m.w.Event('pointerdown',{bubbles:true}));await m.wait(()=>m.button().getAttribute('aria-expanded')==='false');
+  await new Promise(r=>setTimeout(r,650));
+  for(const item of fan.querySelectorAll('button')){assert.equal(item.style.opacity,'0');assert.equal(item.tabIndex,-1);}
+  m.w.renderScope();await m.wait(()=>!m.control().classList.contains('is-companion'));assert.ok(!fan.classList.contains('has-gsap'));
+ }finally{m.close()}
 });

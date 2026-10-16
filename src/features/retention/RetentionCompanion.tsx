@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { getCompanionSnapshot, saveCompanion, sendCrewSignal } from '../../../services/retentionTrialService';
 import { companionError, CREW_MESSAGES, hideoutStage, MYSTERY_CHAPTERS, type CompanionPalette, type CompanionSnapshot, type CrewSignal } from './companionModel';
 import { playRetentionSound, primeRetentionSound } from './retentionSound';
+import Echo3DAvatar, { ECHO_3D_PILOT, readEcho3DPreference, type Echo3DState } from './Echo3DAvatar';
 import EchoAvatar from './EchoAvatar';
 import EchoFloating from './EchoFloating';
 import { ECHO_ACTIVITY_EVENT, ECHO_POSES, ECHO_POSE_LABELS, readEchoPreference, saveEchoPreference, type EchoPose, type EchoPosition } from './echoModel';
@@ -58,7 +59,12 @@ export default function RetentionCompanion({ userId, teacher = false, runs = 0, 
  const [refreshAt, setRefreshAt] = useState(0);
  const [pose, setPose] = useState<EchoPose>('greeting');
  const [floatPreference, setFloatPreference] = useState(() => readEchoPreference(userId));
+ const [threeD, setThreeD] = useState(() => readEcho3DPreference(userId));
+ const [threeDState, setThreeDState] = useState<Echo3DState>({ status: 'loading' });
+ const [threeDRetry, setThreeDRetry] = useState(0);
+ const threeDPilot = false; // Retired prototype; the global student mascot owns 3D.
  const [practicing, setPracticing] = useState(false);
+ const greetingIndex = useRef(0);
  const poseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
  const respond = (next: EchoPose) => { if (poseTimer.current) clearTimeout(poseTimer.current); setPose(next); if (next !== 'greeting' && next !== 'thinking') poseTimer.current = setTimeout(() => { setPose('greeting'); poseTimer.current = null; }, 6500); };
  const rememberFloat = (changes: Partial<typeof floatPreference>) => setFloatPreference(current => { const next = { ...current, ...changes }; saveEchoPreference(userId, next); return next; });
@@ -72,11 +78,13 @@ export default function RetentionCompanion({ userId, teacher = false, runs = 0, 
   return () => { active = false; mounted.current = false; };
  }, [userId]);
  useCompanionCelebration(root, cue);
+ const companionName = data?.companion?.name ?? 'Echo';
  const room = data?.crews.find(item => item.id === selected) ?? data?.crews[0];
  const stage = hideoutStage(room); const chapter = MYSTERY_CHAPTERS[Math.min(3, Math.max(0, runs))];
  const celebrate = (text: string, sound: 'tap' | 'unlock' | 'complete' | 'thanks' = 'unlock', nextPose: EchoPose = 'curious') => {
   primeRetentionSound(userId); playRetentionSound(userId, sound); setMessage(text); setCue(value => value + 1); respond(nextPose);
  };
+ const greet = () => { const lines = [`${companionName}, reporting for curiosity.`, 'Detective ears: on. What’s our next clue?', 'Tiny clue. Big possibility.']; const line = lines[greetingIndex.current++ % lines.length]; celebrate(line, 'tap', 'greeting'); };
  const save = async (event: { preventDefault(): void }) => {
   event.preventDefault(); if (lock.current) return; lock.current = true; setBusy(true); setError('');
   primeRetentionSound(userId);
@@ -98,16 +106,17 @@ export default function RetentionCompanion({ userId, teacher = false, runs = 0, 
  };
  if (data && !data.enabled) return null;
  return <section ref={root} className={`retention-companion-world retention-palette-${data?.companion?.palette ?? 'cyan'}`} aria-label={teacher ? 'Your crew connections' : 'Your companion and crew hideout'} data-retention-reveal>
-  {!teacher ? <div className="retention-companion-hero">
-   <div className="retention-companion-stage"><div className="retention-companion-halo" aria-hidden="true"/>
-    <button type="button" className="retention-companion-touch" aria-label={`Greet ${data?.companion?.name ?? 'Echo'}`} onClick={() => celebrate(runs ? `We’ve explored ${runs} practice ${runs === 1 ? 'round' : 'rounds'} together. Your next clue is waiting.` : 'Hey, partner! No rush. One good question is a great start.', 'tap')}>
-     <span className="retention-companion-body"><EchoAvatar pose={pose}/></span>
+  {!teacher ? <div className="retention-companion-hero is-floating-mode">
+   {false ? <div className="retention-companion-stage"><div className="retention-companion-halo" aria-hidden="true"/>
+    <button type="button" className="retention-companion-touch" aria-label={`Greet ${data?.companion?.name ?? 'Echo'}`} onClick={greet}>
+     <span className="retention-companion-body">{threeDPilot && threeD ? <Echo3DAvatar pose={pose} palette={data?.companion?.palette ?? 'cyan'} retry={threeDRetry} onState={setThreeDState}/> : <EchoAvatar pose={pose}/>}</span>
     </button>
     <div className="retention-orbit" aria-hidden="true">{Array.from({ length: 12 }, (_, index) => <span className="retention-orbit-particle" key={index}><svg viewBox="0 0 12 12"><path d="m6 0 2 4 4 2-4 2-2 4-2-4-4-2 4-2Z" fill={index % 2 ? '#ff2d91' : '#00d0e8'}/></svg></span>)}</div>
-   </div>
-   <div className="retention-companion-intro"><span className="retention-eyebrow">Your partner in curiosity</span><h2>{data?.companion?.name ?? 'Echo'} <span className="retention-tag">Cyber-fox · Agent 01</span></h2><p role="status" className="retention-companion-message">{message}</p>
-    <div className="retention-actions"><button type="button" disabled={!data} aria-expanded={editing} onClick={() => { setDraft(data?.companion?.name ?? 'Echo'); setPalette(data?.companion?.palette ?? 'cyan'); setEditing(value => !value); }}>Name & personalise</button><button type="button" aria-expanded={scrapbook} onClick={() => { setScrapbook(value => !value); respond('keepsake'); }}>Our keepsakes ♡</button></div>
-    <div className="retention-actions echo-mode-actions"><button type="button" aria-pressed={floatPreference.enabled} onClick={() => rememberFloat({ enabled: !floatPreference.enabled, tucked: false })}>{floatPreference.enabled ? 'Dock Echo in the card' : 'Let Echo float ✦'}</button><span className="retention-note">Drag the grip · tuck away anytime</span></div><details className="echo-pose-picker"><summary>Meet Echo’s expressions</summary><div className="retention-actions">{ECHO_POSES.map(item => <button type="button" key={item} aria-pressed={pose === item} onClick={() => { respond(item); setMessage(ECHO_POSE_LABELS[item]); }}>{item === 'keepsake' ? 'Teacher keepsake' : item.charAt(0).toUpperCase() + item.slice(1)}</button>)}</div></details>
+   </div> : null}
+   <div className="retention-companion-intro"><span className="retention-eyebrow">Your partner in curiosity</span><h2>{data?.companion?.name ?? 'Echo'} <span className="retention-tag">Neon Cat · Agent 01</span></h2><p role="status" className="retention-companion-message">{message}</p>
+    {threeDPilot ? <div className="echo-3d-pilot-toggle"><span className="retention-tag">{!threeD ? 'Original character' : threeDState.status === 'ready' ? '3D live · prototype' : threeDState.status === 'failed' ? 'Original shown · 3D unavailable' : 'Loading 3D…'}</span><button type="button" aria-pressed={threeD} onClick={() => { const next = !threeD; if (next) setThreeDState({ status: 'loading' }); setThreeD(next); try { localStorage.setItem(`bh:echo-3d:v1:${userId}`, next ? '1' : '0'); } catch { /* Session comparison still works. */ } }}>{threeD ? 'Use original character' : 'Try 3D character'}</button>{threeD && threeDState.status === 'failed' ? <><span role="status" className="retention-note">{threeDState.reason === 'device' ? 'This browser could not start 3D.' : threeDState.reason === 'timeout' ? 'The 3D download took too long.' : threeDState.reason === 'network' ? 'The 3D preview could not download.' : 'The 3D preview could not render.'}</span><button type="button" onClick={() => { setThreeDState({ status: 'loading' }); setThreeDRetry(value => value + 1); }}>Retry 3D</button></> : null}</div> : null}
+    <details className="echo-companion-menu"><summary>Companion options</summary><div className="retention-actions"><button type="button" disabled={!data} aria-expanded={editing} onClick={() => { setDraft(data?.companion?.name ?? 'Echo'); setPalette(data?.companion?.palette ?? 'cyan'); setEditing(value => !value); }}>Name & personalise</button><button type="button" aria-expanded={scrapbook} onClick={() => { setScrapbook(value => !value); respond('keepsake'); }}>Our keepsakes ♡</button></div>
+    <p className="retention-note">The animated mascot stays with you throughout your student tabs. Tap it for reactions, hide it, or personalise your partner here.</p><details className="echo-pose-picker"><summary>Meet {companionName}’s expressions</summary><div className="retention-actions">{ECHO_POSES.map(item => <button type="button" key={item} aria-pressed={pose === item} onClick={() => { respond(item); setMessage(ECHO_POSE_LABELS[item]); }}>{item === 'keepsake' ? 'Teacher keepsake' : item.charAt(0).toUpperCase() + item.slice(1)}</button>)}</div></details></details>
     <p className="retention-note">Always happy to see you. Your companion never loses progress when you take a break.</p>
    </div>
   </div> : <div className="retention-crew-heading"><span className="retention-eyebrow">Your teaching story</span><h2>A crew remembers who cheered them on.</h2><p>Leave a small encouragement with your class’s work. Their private keepsakes remember it.</p></div>}
@@ -127,6 +136,9 @@ export default function RetentionCompanion({ userId, teacher = false, runs = 0, 
   {!teacher ? <article className="retention-mystery"><span className="retention-eyebrow">Echo’s case file</span><h3>{chapter.title}</h3><p>{chapter.line}</p><div className="retention-case-track" aria-label={`Chapter ${Math.min(4, runs + 1)} of 4`}>{MYSTERY_CHAPTERS.map((item, index) => <span key={item.title} className={runs >= index ? 'is-found' : ''}>{index + 1}</span>)}</div><button type="button" onClick={() => celebrate(chapter.clue, 'unlock')}>Reveal this clue ◎</button><p className="retention-note">A new chapter after each saved practice round, up to four. The story stays here whenever you return.</p><div className="retention-companion-milestone"><strong>{runs}</strong><span>practice rounds together</span><strong>{contributions}</strong><span>assignments completed this month</span></div></article> : <article className="retention-teaching-keepsakes"><span className="retention-eyebrow">A little teaching history</span><h3>Encouragement that stays.</h3>{data?.memories.length ? data.memories.slice(0, 4).map((memory, index) => <blockquote key={`${memory.created_at}:${index}`}><p>“{CREW_MESSAGES[memory.kind]}”</p><cite>{memory.title} · {new Date(memory.created_at).toLocaleDateString('en', { timeZone: 'Asia/Bishkek', month: 'short', day: 'numeric' })}</cite></blockquote>) : <p>Your saved encouragements will appear here. Your students’ thank-yous are kept in your appreciation card.</p>}</article>}
   </div>
   {scrapbook && !teacher ? <div className="retention-scrapbook"><h3>Our keepsakes</h3><p>{runs ? `${runs} practice rounds explored together. Each saved round is part of your story.` : 'The first page is yours to write. One short practice round is enough to begin.'}</p>{data?.memories.length ? data.memories.map((memory, index) => <blockquote key={`${memory.created_at}:${index}`}><p>“{CREW_MESSAGES[memory.kind]}”</p><cite>{memory.teacher_name} · {memory.title}</cite></blockquote>) : <p>Teacher encouragements from your class missions will be saved here.</p>}</div> : null}
- {!teacher && data?.enabled && floatPreference.enabled ? <EchoFloating name={data.companion?.name ?? 'Echo'} palette={data.companion?.palette ?? 'cyan'} pose={pose} position={floatPreference.position} tucked={floatPreference.tucked} practicing={practicing} onPosition={(position: EchoPosition) => rememberFloat({ position })} onTuck={tucked => rememberFloat({ tucked })} onStop={() => rememberFloat({ enabled: false })} onGreet={() => celebrate('Hey, partner! Ready whenever you are.', 'tap', 'greeting')}/> : null}
+ {false ? <EchoFloating threeD={threeDPilot && threeD} threeDRetry={threeDRetry} onThreeDState={setThreeDState} name={data.companion?.name ?? 'Echo'} palette={data.companion?.palette ?? 'cyan'} pose={pose} position={floatPreference.position} tucked={floatPreference.tucked} practicing={practicing} onPosition={(position: EchoPosition) => rememberFloat({ position })} onTuck={tucked => rememberFloat({ tucked })} onStop={() => rememberFloat({ enabled: false })} onGreet={greet} onPersonalise={() => { setDraft(companionName); setPalette(data.companion?.palette ?? 'cyan'); setEditing(true); requestAnimationFrame(() => root.current?.querySelector<HTMLInputElement>('.retention-companion-editor input')?.focus()); }} onKeepsakes={() => { setScrapbook(true); respond('keepsake'); requestAnimationFrame(() => root.current?.querySelector<HTMLElement>('.retention-scrapbook')?.scrollIntoView?.({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' })); }} message={message}/> : null}
  </section>;
 }
+
+
+

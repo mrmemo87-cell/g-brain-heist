@@ -14,10 +14,10 @@ declare
   v_content_changed boolean; v_focus record; v_audience_count integer := 0; v_requested_count integer := 0;
 begin
   if v_actor is null then raise exception 'Authentication required'; end if;
-  select a.* into v_assignment from public.assignments a where a.id = p_assignment_id;
+  select a.* into v_assignment from public.assignments a where a.id = p_assignment_id for update;
   if v_assignment.id is null then raise exception 'Assignment not found or you are not its creator'; end if;
   select t.user_id into v_teacher_user_id from public.teachers t where t.id = v_assignment.teacher_id;
-  if v_teacher_user_id <> v_actor then raise exception 'Assignment not found or you are not its creator'; end if;
+  if v_teacher_user_id is distinct from v_actor then raise exception 'Assignment not found or you are not its creator'; end if;
   select sm.school_id into v_teacher_school_id from public.school_members sm
   where sm.user_id = v_teacher_user_id and sm.status = 'active'
   order by sm.joined_at desc nulls last, sm.id limit 1;
@@ -66,6 +66,11 @@ begin
   elsif p_publish_status <> 'draft' and v_audience_count = 0 then
     raise exception 'CLASS_HAS_NO_REGISTERED_STUDENTS: %. Ask the school admin to register students in this class, or save the assignment as a draft', coalesce(v_class_code, trim(p_batch));
   end if;
+
+  -- Match the per-student save/finalize lock before checking for protected work.
+  -- A concurrent answer either commits first and blocks the edit, or waits for it.
+  perform 1 from public.student_assignments sa
+  where sa.assignment_id = p_assignment_id order by sa.student_id for update;
 
   select coalesce(array_agg(student_id), '{}'::uuid[]) into v_old_students from public.student_assignments where assignment_id = p_assignment_id;
   select coalesce(array_agg(question_id order by order_index), '{}'::uuid[]) into v_old_questions from public.assignment_questions where assignment_id = p_assignment_id;
@@ -182,7 +187,7 @@ begin
   values (p_assignment_id, v_actor, 'update', v_removed_students, v_removed_questions);
   return v_assignment;
 end;
-$function$
+$function$;
 
 
 -- Preserve the existing authenticated teacher RPC contract; explicitly deny

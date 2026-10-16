@@ -4,10 +4,10 @@ import { build } from 'esbuild';
 import { JSDOM, VirtualConsole } from 'jsdom';
 const result = { label:'Screener result',raw_score:9,marks_possible:12,confidence:{level:'low',items_answered:12,items_possible:12,constructs_sampled:8,constructs_with_responses:8},warnings:['No band estimate: this form has not been calibrated.','One sitting cannot establish a persistent weakness.'],integrity_state:'unreviewed',next_step:'Review the sampled items with your teacher.',readiness_available:false,persistent_weakness_available:false };
 const bundle=(await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import {RouterProvider,createBrowserRouter} from './src/lib/router';import Page from './src/pages/ielts/IeltsGovernedScreenerResult';window.root=createRoot(document.getElementById('root'));window.root.render(<RouterProvider router={createBrowserRouter([{path:'/ielts/screener-result/:attemptId',element:<Page/>}])}/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,format:'iife',write:false,loader:{'.css':'empty'},plugins:[{name:'saved-result-fixture',setup(b){b.onLoad({filter:/services\/supabaseClient\.ts$/},()=>({contents:`export const supabase={auth:{getUser:async()=>({data:{user:{id:'viewer'}}})},from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>window.profileError?{data:null,error:{message:'Unavailable'}}:{data:{role:window.role,is_admin:false},error:null}})})})};`,loader:'js'}));b.onLoad({filter:/services\/ieltsTeacherProgrammeEntry\.ts$/},()=>({contents:`export async function fetchTeacherProgrammeEntries(){return window.schools;}export function teacherProgrammeRoute(entry){return '/ielts/programme?school='+entry.id;}`,loader:'js'}));b.onLoad({filter:/services\/ieltsDiagnosticEvidenceService\.ts$/},()=>({contents:`export async function fetchIeltsDiagnosticResult(id){window.reads.push(id);if(window.fail&&window.reads.length===1)throw Error('Unavailable');return window.result;}`,loader:'js'}));}}],logLevel:'silent'})).outputFiles[0].text;
-async function mount(role,{fail=false,profileError=false,review=false,schools=[{id:'11111111-1111-4111-8111-111111111111',name:'School'}]}={}){
+async function mount(role,{fail=false,profileError=false,review=false,answered=12,score=9,schools=[{id:'11111111-1111-4111-8111-111111111111',name:'School'}]}={}){
  const errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
  const dom=new JSDOM('<div id="root"></div>',{url:'https://app.test/ielts/screener-result/saved-attempt',runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:vc});const w=dom.window;
- Object.assign(w,{role,profileError,fail,schools,reads:[],result:{...result,integrity_state:review?'review_required':'unreviewed'}});w.eval(bundle);
+ Object.assign(w,{role,profileError,fail,schools,reads:[],result:{...result,raw_score:score,confidence:{...result.confidence,items_answered:answered},integrity_state:review?'review_required':'unreviewed'}});w.eval(bundle);
  const wait=async f=>{for(let i=0;i<100;i++){if(f())return;await new Promise(r=>setTimeout(r,10));}throw Error(w.document.body.textContent);};
  await wait(()=>fail?w.document.querySelector('[role=alert]'):w.document.querySelector('.isr-metrics'));
  return {w,dom,wait,errors,close:()=>{w.root.unmount();w.close();}};
@@ -29,3 +29,14 @@ test('failed reads retry the same saved attempt; integrity flags remain visible'
  }finally{m.close();}});
 
 test('teacher without a current programme allocation returns to the teacher workspace',async()=>{const m=await mount('teacher',{schools:[]});try{await m.wait(()=>m.w.document.querySelector('a').textContent.includes('teacher workspace'));assert.equal(m.w.document.querySelector('a').getAttribute('href'),'/');assert.doesNotMatch(m.w.document.body.textContent,/My IELTS Journey/);}finally{m.close();}});
+
+test('empty and half-finished records explain missing evidence and retain original scores',async()=>{
+ for(const [answered,score,label] of [[0,0,'No assessment evidence'],[6,5,'Incomplete evidence']]) {
+  const m=await mount('student',{answered,score});
+  try{assert.match(m.w.document.querySelector('#isr-score-heading').textContent,new RegExp(label));
+   assert.equal(m.w.document.querySelector('dd').textContent,`${score} / 12`);
+   assert.match(m.w.document.querySelector('.isr-next').textContent,/fresh check/);
+   assert.deepEqual(m.w.reads,['saved-attempt']);
+  }finally{m.close();}
+ }
+});

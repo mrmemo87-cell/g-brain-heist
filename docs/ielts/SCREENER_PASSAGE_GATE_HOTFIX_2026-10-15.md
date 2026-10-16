@@ -1,0 +1,13 @@
+# Reading passage gate and performance-mode contrast hotfix
+
+Diagnostic Bible 1.10.0; Visual & UX Bible 1.1.0. Follow-up to #1624 and the owner's mobile screenshot/instruction on 2026-10-15.
+
+The screenshot exposed a CSS collision: performance mode targeted every class containing `dialog` and applied an important dark background to the semantic white IELTS dialog, leaving dark foreground text. The exam footer's `backdrop-blur` class matched a second performance-mode dark-background rule. Exclude semantic dialog/alertdialog surfaces from legacy overlay recoloring, and make the exam footer opaque white without blur. Existing theme tokens, text colors and contrast pairings are retained; no competing palette or new important override is introduced. Legacy overlay wrappers still receive their performance treatment.
+
+The owner explicitly requires opening Passage 2 before manual submission. Disable Submit until every Reading passage has been opened and guard the submission handler too. Show an actionable Open Passage button beside the disabled control. Track only passages displayed during the active attempt; preserve visits in attempt-scoped browser storage when available. Blocked storage retains visits in memory, with a safe re-visit requirement after refresh. Opening a passage does not prove reading or answering it. Unanswered work still requires the existing explicit confirmation after all passages have been opened. Server-governed timeout finalization is unchanged: expiry must still preserve whatever answers were saved.
+
+Visits are UI recovery/navigation metadata, not academic evidence or a server authorization boundary. No score, response, entitlement, published form, teacher approval, database schema or server finalization policy changes. No new requests, polling or server locks. This narrow delivery change supplies no concurrency-capacity claim.
+
+Validation: typecheck, school-admin guard and production build pass. Focused Reading/shared-dialog/Writing interaction suite: 14 passed. Latest focused Reading/dialog rerun with the opaque-footer assertion: 9 passed. Tests exercise passage blocking, passage switching, empty/complete/partial submissions, double clicks, refresh recovery, Escape/focus restoration and performance-mode CSS matching. Reading fixtures exercise 375/768/1440; they are DOM checks, not real-browser/mobile visual sign-off. The CSS cascade check loads the actual source styles and substitutes their declared token values for jsdom's limited variable support. Physical-device Safari acceptance remains unverified.
+
+The full automated suite and remote CI are checked before merge; final results are recorded in the PR. No database rollout is needed for this hotfix.

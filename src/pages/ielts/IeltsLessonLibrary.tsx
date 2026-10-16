@@ -1,3 +1,7 @@
+import {
+  lessonFiles,
+  lessonGuideVersion,
+} from "../../../services/ieltsLessonPlan";
 import { lessonProduction } from "../../../services/ieltsLessonPresentation";
 import { lessonPowerPoint } from "../../../services/ieltsLessonPowerPoint";
 import React, { useEffect, useRef, useState } from "react";
@@ -12,8 +16,12 @@ import {
 import {
   downloadLessonFile,
   lessonResourceHtml,
+  lessonAudioPlayerHtml,
+  lessonStartText,
   type ResourceKind,
 } from "../../../services/ieltsLessonResources";
+import { teacherLessonTwo, type TeacherLessonTwo } from "../../../services/ieltsLessonTwoService";
+import IeltsLessonTwoPanel from "./IeltsLessonTwoPanel";
 import "../../styles/ielts-lessons.css";
 export default function IeltsLessonLibrary({
   schoolId,
@@ -26,6 +34,7 @@ export default function IeltsLessonLibrary({
   onAssign: () => void;
   onProgress: () => void;
 }) {
+  const [lessonTwo, setLessonTwo] = useState<TeacherLessonTwo | null>(null);
   const [data, setData] = useState<TeacherLesson | null>(null),
     [error, setError] = useState(""),
     [retry, setRetry] = useState(0),
@@ -44,6 +53,8 @@ export default function IeltsLessonLibrary({
     setAudio({});
     urls.current.forEach(URL.revokeObjectURL);
     urls.current = [];
+    setLessonTwo(null);
+    teacherLessonTwo(schoolId).then((lesson) => { if (alive) setLessonTwo(lesson); }).catch(() => { if (alive) setLessonTwo(null); });
     teacherLessonOne(schoolId)
       .then((d) => {
         if (alive) setData(d);
@@ -92,13 +103,23 @@ export default function IeltsLessonLibrary({
     if (data && ready)
       downloadLessonFile(
         new Blob([lessonResourceHtml(data, kind)], { type: "text/html" }),
-        `${data.lesson_code}-${kind}.html`,
+        kind === "start"
+          ? lessonFiles.start
+          : kind === "backup"
+            ? lessonFiles.backup
+            : kind === "reading-paper"
+              ? lessonFiles.readingPaper
+              : kind === "reading-paper-keys"
+                ? lessonFiles.readingPaperKeys
+                : `${data.lesson_code}-${kind}.html`,
       );
   };
   const bundle = () =>
     act(async () => {
       if (!data || !ready) return;
-      const files: Record<string, Uint8Array> = {};
+      const files: Record<string, Uint8Array> = {
+        [lessonFiles.start]: strToU8(lessonResourceHtml(data, "start")),
+      };
       const pptx = await lessonPowerPoint(data);
       if (current.current !== schoolId) return;
       files["IELTS-01-presentation.pptx"] = new Uint8Array(
@@ -123,12 +144,17 @@ export default function IeltsLessonLibrary({
           await blob.arrayBuffer(),
         );
       }
-      files["Audio-player.html"] = strToU8(
-        `<!doctype html><html lang="en"><meta charset="utf-8"><title>IELTS lesson audio</title><h1>Lesson 1 audio</h1>${data.materials.map((m) => `<p>${m.display_code}</p><audio controls preload="none" src="${m.display_code}.mp3"></audio>`).join("")}</html>`,
-      );
-      files["START-HERE.txt"] = strToU8(
-        "Extract this complete folder. Open IELTS-01-presentation.pptx in PowerPoint or IELTS-01-slides.html in a browser to present. Use IELTS-01-presentation-static.pptx for motion-free presenting. Both presentations contain guided-practice answers on separate reveal slides. Advance only after students commit an answer. Keep decks private before listening. In HTML use Reduce motion and Teacher notes controls. Open Audio-player.html separately. Print the students file or save it as PDF using your browser. Keep keys and scripts private. Use the actual Reading Screener in Brains Heist. Paper guided listening and reflections do not automatically enter student records. Targeted practice uses existing assignment/source/exposure checks.",
-      );
+      files[lessonFiles.backup] = strToU8(lessonResourceHtml(data, "backup"));
+      if (data.reading_backup) {
+        files[lessonFiles.readingPaper] = strToU8(
+          lessonResourceHtml(data, "reading-paper"),
+        );
+        files[lessonFiles.readingPaperKeys] = strToU8(
+          lessonResourceHtml(data, "reading-paper-keys"),
+        );
+      }
+      files[lessonFiles.audio] = strToU8(lessonAudioPlayerHtml(data));
+      files["START-HERE.txt"] = strToU8(lessonStartText());
       files["versions.json"] = strToU8(
         JSON.stringify(
           {
@@ -136,7 +162,16 @@ export default function IeltsLessonLibrary({
             version: data.version,
             lesson_bible_version: lessonProduction.bibleVersion,
             presentation_version: lessonProduction.presentationVersion,
+            teacher_guide_version: lessonGuideVersion,
             school: data.school,
+            reading_backup: data.reading_backup
+              ? {
+                  code: data.reading_backup.display_code,
+                  version: data.reading_backup.version,
+                  content_sha256: data.reading_backup.content_sha256,
+                  purpose: "guided_practice",
+                }
+              : null,
             materials: data.materials.map((m) => ({
               code: m.display_code,
               version: m.version,
@@ -155,209 +190,179 @@ export default function IeltsLessonLibrary({
         );
     });
   return (
-    <section className="ielts-lessons sp-card">
-      <button className="sp-secondary" onClick={onClose}>
-        ← Today
-      </button>
-      <p className="sp-eyebrow">Teaching programme</p>
-      <h2>Lessons, ready to teach</h2>
-      <p>
-        Prepare the resources, conduct the lesson and review the saved platform
-        work.
-      </p>
+    <section className="ielts-lessons sp-card" aria-labelledby="ielts-lessons-title">
+      <header className="lesson-library-header">
+        <button type="button" className="sp-secondary" onClick={onClose}>← Today</button>
+        <div>
+          <p className="sp-eyebrow">IELTS teaching programme</p>
+          <h2 id="ielts-lessons-title">Lesson library</h2>
+          <p className="lesson-muted">Teaching packs and classroom resources, in one place.</p>
+        </div>
+      </header>
       {error && (
-        <div role="alert">
+        <div role="alert" className="lesson-alert">
           <p>{error}</p>
-          <button
-            className="sp-secondary"
-            disabled={busy}
-            onClick={() => setRetry((n) => n + 1)}
-          >
+          <button type="button" className="sp-secondary" disabled={busy} onClick={() => setRetry((n) => n + 1)}>
             Retry lesson pack
           </button>
         </div>
       )}
-      {!data && !error && (
-        <p role="status">Opening your school’s lesson pack…</p>
-      )}
+      {!data && !error && <p role="status">Opening your school’s lesson pack…</p>}
       {data && (
-        <>
-          <article>
-            <p>Lesson 1 · IELTS-01 · 60 minutes</p>
-            <h3>Can you beat the IELTS trap?</h3>
-            <p>{data.school.name} · Brains Heist materials</p>
-            <p>
-              Recognise corrections and distractors, explain an answer using
-              evidence, and establish a Reading starting point.
-            </p>
+        <div className="lesson-library-content">
+          <article className="lesson-overview" aria-labelledby="lesson-one-title">
+            <div className="lesson-overview-head">
+              <div>
+                <div className="lesson-badges">
+                  <span className="lesson-available">Available to teach</span>
+                  <span>{data.lesson_code}</span>
+                  <span>60 minutes</span>
+                </div>
+                <h3 id="lesson-one-title">Can you beat the IELTS trap?</h3>
+                <p className="lesson-muted">{data.school.name} · Guided Listening and a Reading starting point</p>
+              </div>
+            </div>
+            <p className="lesson-objective">Focus: corrections, distractors and answers supported by evidence.</p>
             {!ready && (
-              <p role="status">
-                The two released guided Listening materials are not both
-                available. Downloads will open when the approved pack is
-                available.
+              <p role="status" className="lesson-alert">
+                The approved Listening materials are incomplete. Teaching-pack downloads are unavailable until both are released.
               </p>
             )}
-            <div className="lesson-actions">
-              <button
-                className="sp-primary"
-                disabled={!ready || busy}
-                onClick={() => void bundle()}
-              >
+            <div className="lesson-primary-actions">
+              <button type="button" className="sp-primary" disabled={!ready || busy} onClick={() => void bundle()}>
                 {busy ? "Preparing files…" : "Download complete teaching pack"}
               </button>
-              <button className="sp-secondary" onClick={onProgress}>
-                Review student progress
-              </button>
+              <button type="button" className="sp-secondary" onClick={onProgress}>Review student progress</button>
+              <button type="button" className="sp-secondary" onClick={onAssign}>Open practice assignment tools</button>
             </div>
-            <button
-              className="sp-secondary"
-              disabled={!ready || busy}
-              onClick={() =>
-                void act(async () => {
-                  if (data) {
-                    const blob = await lessonPowerPoint(data);
-                    if (current.current === schoolId)
-                      downloadLessonFile(blob, "IELTS-01-presentation.pptx");
-                  }
-                })
-              }
-            >
-              Download PowerPoint (.pptx)
-            </button>
-            <button
-              className="sp-secondary"
-              disabled={!ready || busy}
-              onClick={() =>
-                void act(async () => {
-                  if (data) {
-                    const blob = await lessonPowerPoint(data, true);
-                    if (current.current === schoolId)
-                      downloadLessonFile(
-                        blob,
-                        "IELTS-01-presentation-static.pptx",
-                      );
-                  }
-                })
-              }
-            >
-              Download motion-free PowerPoint (.pptx)
-            </button>
-            <p>
-              Teacher presentations include guided-practice answers. Advance to
-              each reveal after students commit. Keep the decks private before
-              listening.
-            </p>
-            <h3>Prepare</h3>
-            <p>
-              Check student access to Reading Screener A and its published
-              duration. Bring devices, headphones where needed, printed
-              workbooks and the downloaded audio. Record any help or replay.
-            </p>
-            <div className="lesson-actions">
-              {(["plan", "slides", "students", "keys"] as ResourceKind[]).map(
-                (kind) => (
+          </article>
+
+          <section className="lesson-library-resources" aria-labelledby="lesson-resources-title">
+            <div className="lesson-section-heading">
+              <h3 id="lesson-resources-title">Lesson resources</h3>
+              <p className="lesson-muted">Pick what you need. Teacher-only files contain answers.</p>
+            </div>
+            <div className="lesson-resource-grid">
+              <section className="lesson-resource-group" aria-labelledby="lesson-prep-title">
+                <h4 id="lesson-prep-title">01 · Before class</h4>
+                <div className="lesson-resource-actions">
+                  <button type="button" className="sp-secondary" disabled={!ready || busy} onClick={() => resource("start")}>Download step-by-step guide (HTML)</button>
+                  <button type="button" className="sp-secondary" disabled={!ready || busy} onClick={() => resource("plan")}>Download teacher plan (HTML)</button>
+                </div>
+              </section>
+              <section className="lesson-resource-group" aria-labelledby="lesson-present-title">
+                <h4 id="lesson-present-title">02 · Present</h4>
+                <div className="lesson-resource-actions">
                   <button
-                    key={kind}
+                    type="button"
                     className="sp-secondary"
                     disabled={!ready || busy}
-                    onClick={() => resource(kind)}
-                  >
-                    Download{" "}
-                    {kind === "plan"
-                      ? "teacher plan"
-                      : kind === "slides"
-                        ? "presentation"
-                        : kind === "students"
-                          ? "student workbook"
-                          : "scripts & keys"}{" "}
-                    (.html)
-                  </button>
-                ),
-              )}
-            </div>
-            <p>
-              Printable files open in a browser. Use Print → Save as PDF. The
-              presentation works offline with arrow keys. Keep scripts and keys
-              private.
-            </p>
-            <h3>Conduct the lesson</h3>
-            <ol className="lesson-plan">
-              {lessonStages.map(([time, title, how]) => (
-                <li key={time}>
-                  <strong>
-                    {time} · {title}
-                  </strong>
-                  <p>{how}</p>
-                </li>
-              ))}
-            </ol>
-            <h3>Approved Listening recordings</h3>
-            {data.materials.map((m) => (
-              <article key={m.code} className="lesson-audio">
-                <h4>
-                  {m.display_code} · {m.title}
-                </h4>
-                <p>Guided practice · Material version {m.version}</p>
-                {audio[m.code] ? (
-                  <audio
-                    controls
-                    preload="none"
-                    src={audio[m.code]}
-                    ref={(node) => {
-                      players.current[m.code] = node;
-                    }}
-                    onPlay={() =>
-                      Object.entries(players.current).forEach(([code, p]) => {
-                        if (code !== m.code) p?.pause();
-                      })
-                    }
-                  />
-                ) : (
+                    onClick={() => void act(async () => {
+                      const blob = await lessonPowerPoint(data);
+                      if (current.current === schoolId) downloadLessonFile(blob, "IELTS-01-presentation.pptx");
+                    })}
+                  >Download PowerPoint (.pptx)</button>
                   <button
+                    type="button"
                     className="sp-secondary"
-                    disabled={busy}
-                    onClick={() => void loadAudio(m)}
-                  >
-                    Load recording
+                    disabled={!ready || busy}
+                    onClick={() => void act(async () => {
+                      const blob = await lessonPowerPoint(data, true);
+                      if (current.current === schoolId) downloadLessonFile(blob, "IELTS-01-presentation-static.pptx");
+                    })}
+                  >Download motion-free PowerPoint (.pptx)</button>
+                  <button type="button" className="sp-secondary" disabled={!ready || busy} onClick={() => resource("slides")}>Download offline presentation (HTML)</button>
+                </div>
+                <p className="lesson-resource-note">Teacher only: slides contain answer reveals. Advance manually after students commit.</p>
+              </section>
+              <section className="lesson-resource-group" aria-labelledby="lesson-students-title">
+                <h4 id="lesson-students-title">03 · Give students</h4>
+                <div className="lesson-resource-actions">
+                  <button type="button" className="sp-secondary" disabled={!ready || busy} onClick={() => resource("students")}>Download student workbook (HTML)</button>
+                  <button type="button" className="sp-secondary" disabled={!ready || busy || !data.reading_backup} onClick={() => resource("reading-paper")}>
+                    Download paper Reading practice (HTML)
                   </button>
-                )}
-                <button
-                  className="sp-secondary"
-                  disabled={busy}
-                  onClick={() =>
-                    void act(async () => {
-                      const blob = await lessonAudio(m);
-                      if (current.current === schoolId)
-                        downloadLessonFile(blob, `${m.display_code}.mp3`);
-                    })
-                  }
-                >
-                  Download MP3
-                </button>
-              </article>
-            ))}
-            <h3>Student work in Brains Heist</h3>
-            <p>
-              Students open <strong>/ielts/reading-screener</strong> on their
-              own accounts. Their existing Reading answers, submission and
-              result stay in IELTS Journey. A teacher should use Student
-              progress to check the actual saved result.
-            </p>
-            <button className="sp-secondary" onClick={onAssign}>
-              Open practice assignment tools
-            </button>
-            <p>
-              Targeted practice requires the normal completed source assessment
-              and allocation checks. These guided classroom Listening rounds and
-              paper reflections are teaching activities; they do not
-              automatically create student attempts or prove improvement.
-            </p>
-          </article>
-          <p>
-            Lesson 2 will appear after its teaching pack is prepared and
-            reviewed.
-          </p>
-        </>
+                </div>
+                {!data.reading_backup && <p className="lesson-resource-note">Approved paper Reading backup is unavailable.</p>}
+                <p className="lesson-resource-note">Student files exclude teacher answers. Print from the browser if needed.</p>
+              </section>
+              <section className="lesson-resource-group lesson-resource-private" aria-labelledby="lesson-keys-title">
+                <h4 id="lesson-keys-title">04 · Teacher only</h4>
+                <div className="lesson-resource-actions">
+                  <button type="button" className="sp-secondary" disabled={!ready || busy} onClick={() => resource("keys")}>Download scripts &amp; keys (HTML)</button>
+                  <button type="button" className="sp-secondary" disabled={!ready || busy || !data.reading_backup} onClick={() => resource("reading-paper-keys")}>
+                    Download paper Reading key (HTML)
+                  </button>
+                  <button type="button" className="sp-secondary" disabled={!ready || busy} onClick={() => resource("backup")}>Download Plan B teacher guide (HTML)</button>
+                </div>
+                <p className="lesson-resource-note">Keep answer keys and listening scripts private.</p>
+              </section>
+            </div>
+          </section>
+
+          <section className="lesson-audio-section" aria-labelledby="lesson-audio-title">
+            <div className="lesson-section-heading">
+              <h3 id="lesson-audio-title">Approved Listening audio</h3>
+              <p className="lesson-muted">Play in order: L-003, then L-004. No autoplay.</p>
+            </div>
+            <div className="lesson-audio-grid">
+              {data.materials.map((m) => (
+                <article key={m.code} className="lesson-audio">
+                  <div className="lesson-audio-heading">
+                    <h4>{m.display_code} · {m.title}</h4>
+                    <span>Guided practice · v{m.version}</span>
+                  </div>
+                  {audio[m.code] ? (
+                    <audio
+                      controls
+                      preload="none"
+                      src={audio[m.code]}
+                      aria-label={m.display_code + " approved Listening recording"}
+                      ref={(node) => { players.current[m.code] = node; }}
+                      onPlay={() => Object.entries(players.current).forEach(([code, p]) => {
+                        if (code !== m.code) p?.pause();
+                      })}
+                    />
+                  ) : (
+                    <button type="button" className="sp-secondary" disabled={busy} onClick={() => void loadAudio(m)}>Load recording</button>
+                  )}
+                  <button type="button" className="sp-secondary" disabled={busy} onClick={() => void act(async () => {
+                    const blob = await lessonAudio(m);
+                    if (current.current === schoolId) downloadLessonFile(blob, m.display_code + ".mp3");
+                  })}>Download MP3</button>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="lesson-library-guidance" aria-label="Optional lesson instructions">
+            <details className="lesson-details">
+              <summary>60-minute teaching sequence</summary>
+              <ol className="lesson-plan">
+                {lessonStages.map(([time, title, how]) => (
+                  <li key={time}><strong>{time} · {title}</strong><p>{how}</p></li>
+                ))}
+              </ol>
+            </details>
+            <details className="lesson-details">
+              <summary>Preparation, Reading &amp; backup</summary>
+              <div className="lesson-instructions">
+                <h4>Before class</h4>
+                <p>Open the step-by-step guide first. Check student access to Reading Screener A and its published duration. Prepare devices, headphones, workbooks and approved audio.</p>
+                <h4>Listening</h4>
+                <p>Use L-003, then L-004. Students read the questions before playback. Keep answers hidden until each response is committed. Record help and replays.</p>
+                <h4>Reading</h4>
+                <p>Students complete the governed Reading Screener in their own accounts. It is separate from guided classroom work. Open Student progress to inspect saved results.</p>
+                <h4>Plan B</h4>
+                <p>{data.reading_backup
+                  ? "If online Reading is unavailable, use the printable R-001 guided practice sheet and keep its teacher key separate. Complete the independent online screener later."
+                  : "The paper Reading backup is not released. Use the Plan B teacher guide and arrange the independent screener later."}</p>
+                <p>Classroom practice and paper work do not automatically create platform attempts, improvement claims or IELTS band estimates. Targeted assignments still require their normal eligibility and prior-exposure checks.</p>
+              </div>
+            </details>
+          </section>
+          {lessonTwo ? <IeltsLessonTwoPanel pack={lessonTwo} onProgress={onProgress} /> : <p className="lesson-library-upcoming"><strong>Next lesson:</strong> IELTS-02 is not released for this school.</p>}
+        </div>
       )}
     </section>
   );

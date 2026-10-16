@@ -1,3 +1,5 @@
+import { ieltsBatches, createIeltsBatchAssignment, allocateIeltsBatch, type IeltsBatch } from '../../../services/ieltsBatchService';
+import IeltsBatchCatchUp from '../../../src/pages/ielts/IeltsBatchCatchUp';
 import { IeltsButton, IeltsNotice, IeltsConfirm } from '../../../src/components/ielts/IeltsUi';
 import IeltsMaterialProvenance from "../../../src/components/ielts/IeltsMaterialProvenance";
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
@@ -123,6 +125,13 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
   const [description, setDescription] = useState('');
   const [dueAt, setDueAt] = useState('');
   const [classId, setClassId] = useState('');
+  const [batches,setBatches]=useState<IeltsBatch[]>([]);
+  const [batchError,setBatchError]=useState('');
+  const createRequest=useRef<string|null>(null);
+  useEffect(()=>{let alive=true;setBatches([]);setBatchError('');if(!school?.id)return;ieltsBatches(school.id).then(x=>{if(alive)setBatches(x);}).catch(()=>{if(alive)setBatchError('Course batches could not load. Refresh this screen before assigning to a batch.');});return()=>{alive=false;};},[school?.id]);
+  const batchId=classId.startsWith('batch:')?classId.slice(6):undefined;
+  const selectedBatch=batches.find(b=>b.id===batchId);
+  const recipientScope=batchId?{batchId}:{classId:classId||undefined};
   const [items, setItems] = useState<DraftItem[]>([newDraftItem()]);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [assignmentDetail, setAssignmentDetail] = useState<IeltsPracticeAssignmentDetail | null>(null);
@@ -141,16 +150,16 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
   const [historyRevision, setHistoryRevision] = useState(0);
   const [repeatScope, setRepeatScope] = useState('');
   const chosenMaterials = items.filter(i=>i.contentId.trim()).map(i=>({type:i.contentType,id:i.contentId.trim()}));
-  const selectedUsage = useIeltsMaterialUsage(school?.id, chosenMaterials.slice(0,50), {classId:classId || undefined}, historyRevision);
-  const catalogUsage = useIeltsMaterialUsage(school?.id, pickerOpenFor ? contentCatalog.map(c=>({type:c.content_type,id:c.content_id})).slice(0,50) : [], {classId:classId || undefined}, historyRevision);
+  const selectedUsage = useIeltsMaterialUsage(school?.id, chosenMaterials.slice(0,50), recipientScope, historyRevision);
+  const catalogUsage = useIeltsMaterialUsage(school?.id, pickerOpenFor ? contentCatalog.map(c=>({type:c.content_type,id:c.content_id})).slice(0,50) : [], recipientScope, historyRevision);
   const repeatedMaterials = selectedUsage.data?.filter(u=>u.assigned_count>0) ?? [];
   const currentRepeatScope = JSON.stringify([school?.id,classId,chosenMaterials,selectedUsage.data]);
   const repeatAcknowledged = repeatScope === currentRepeatScope;
 
 
   const selectedClass = useMemo(
-    () => classes.find((cls: any) => cls.id === classId) ?? null,
-    [classes, classId]
+    () => selectedBatch ? {class_name:selectedBatch.name,student_count:selectedBatch.student_count} : classes.find((cls: any) => cls.id === classId) ?? null,
+    [classes, classId, selectedBatch]
   );
 
   const selectedProgressAssignment = assignmentDetail?.assignment ?? assignments.find((row) => row.id === selectedAssignmentId) ?? null;
@@ -164,7 +173,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
     }).length;
   }, [classId, students, studentAssignments, selectedClass]);
 
-  const visibleAssignments = assignments.filter(row => !listClassId || row.class_id === listClassId);
+  const visibleAssignments = assignments.filter(row => !listClassId || (listClassId.startsWith("batch:") ? row.batch_id===listClassId.slice(6) : row.class_id === listClassId));
   useEffect(() => { if (creating) formHeading.current?.focus(); }, [creating, step]);
   useEffect(() => () => { detailRequest.current++; listRequest.current++; catalogRequest.current++; }, [school?.id]);
 
@@ -314,6 +323,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
   };
 
   const resetForm = () => {
+    createRequest.current=null;
     setTitle('');
     setDescription('');
     setDueAt('');
@@ -331,11 +341,12 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
       setError('Add an assignment title first.');
       return;
     }
-    if (!classId) {
+    if (!classId || (batchId && !selectedBatch)) {
       setError('Choose a class before assigning practice.');
       return;
     }
 
+    if (selectedBatch && selectedBatch.eligible_count !== selectedBatch.student_count) {setError('Review the batch roster: some members need their IELTS access checked.');return;}
     if (chosenMaterials.length > 50) {setError('Use up to 50 materials per assignment. Split larger plans into separate assignments.');return;}
     if (!selectedUsage.data || selectedUsage.error) {setError('Check previous material use before creating this assignment.');return;}
     if (repeatedMaterials.length && !repeatAcknowledged) {setError('Review previous use and confirm that this repeat is intentional.');return;}
@@ -383,16 +394,18 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
     setError(null);
     let created: IeltsPracticeAssignmentSummary | null = null;
     try {
-      created = await rpcIeltsPracticeCreateAssignment({
+      const params = {
         schoolId: school.id,
-        classId,
+        classId: batchId ? null : classId,
         title: title.trim(),
         description: description.trim() || null,
         dueAt: dueAt ? new Date(dueAt).toISOString() : null,
         items: validItems,
-      });
+      };
+      createRequest.current ??= crypto.randomUUID();
+      created = selectedBatch ? await createIeltsBatchAssignment(selectedBatch,createRequest.current,params) : await rpcIeltsPracticeCreateAssignment(params);
       setPendingAssignment(created);
-      const assigned = await rpcIeltsPracticeAssignToClass({ assignmentId: created.id, classId });
+      const assigned = selectedBatch ? await allocateIeltsBatch(created.id) : await rpcIeltsPracticeAssignToClass({ assignmentId: created.id, classId });
       setAssignmentStatusFilter('active');
       setAssignments((current) => [assigned, ...current.filter((row) => row.id !== assigned.id)]);
       setPendingAssignment(null);
@@ -403,7 +416,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
     } catch (saveError) {
       if (created) setAssignments(current => [created!, ...current.filter(row => row.id !== created!.id)]);
       const message = created
-        ? 'Your assignment was saved, but class allocation could not be confirmed. Retry allocation below; this uses the same saved assignment.'
+        ? 'Your assignment was saved, but allocation could not be confirmed. Retry allocation below; this uses the same saved assignment.'
         : friendlyIeltsAdminError(saveError, 'Creation could not be confirmed. Refresh the assignment list and check for your title before trying again.');
       setError(message);
       addToast?.(message, 'error');
@@ -415,15 +428,15 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
 
 
   const retryAllocation = async (assignment: IeltsPracticeAssignmentSummary) => {
-    if (saveLock.current || !assignment.class_id) return;
+    if (saveLock.current || (!assignment.class_id && !assignment.batch_id)) return;
     saveLock.current = true; setSaving(true); setError(null);
     try {
-      const assigned = await rpcIeltsPracticeAssignToClass({ assignmentId: assignment.id, classId: assignment.class_id });
+      const assigned = assignment.batch_id ? await allocateIeltsBatch(assignment.id) : await rpcIeltsPracticeAssignToClass({ assignmentId: assignment.id, classId: assignment.class_id });
       setAssignments(current => [assigned, ...current.filter(row => row.id !== assigned.id)]);
       setPendingAssignment(null); setCreating(false); resetForm(); setHistoryRevision(n => n + 1);
-      addToast?.('Assignment allocated to the class.', 'success');
+      addToast?.('Assignment allocated to the selected group.', 'success');
     } catch {
-      setError('Class allocation could not be confirmed. Your saved assignment is safe. Retry allocation when your connection is ready.');
+      setError('Allocation could not be confirmed. Your saved assignment is safe. Retry allocation when your connection is ready.');
     } finally { saveLock.current = false; setSaving(false); }
   };
 
@@ -558,16 +571,18 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
   return (
     <div className="ix-workspace" data-testid="ielts-practice-admin-tab">
       <header className="ix-header">
-        <div><p className="ix-eyebrow">{school?.name ?? 'IELTS Programme'}</p><h2>Class assignments</h2><p className="ix-muted">Assign purposeful practice and follow each student’s work.</p></div>
+        <div><p className="ix-eyebrow">{school?.name ?? 'IELTS Programme'}</p><h2>Course assignments</h2><p className="ix-muted">Assign purposeful practice and follow each student’s work.</p></div>
         <IeltsButton variant={creating ? 'secondary' : 'primary'} disabled={saving} onClick={() => { setCreating(!creating); setStep(0); setError(null); }}>{creating ? 'Back to assignments' : 'New assignment'}</IeltsButton>
       </header>
       {error && <IeltsNotice error>{error}</IeltsNotice>}
-      {pendingAssignment && <IeltsNotice><p><strong>Saved assignment · allocation needs checking</strong></p><p>{pendingAssignment.title} is saved. Retry uses this assignment, without creating another.</p><IeltsButton disabled={saving} onClick={() => void retryAllocation(pendingAssignment)}>{saving ? 'Allocating…' : 'Retry class allocation'}</IeltsButton></IeltsNotice>}
+      <IeltsNotice>Screeners are excluded from practice assignments. Released course tasks can be assigned from Programme team → Course batches → Assign tasks. Older catalogue material awaiting review is hidden.</IeltsNotice>
+      {batchError && <IeltsNotice error>{batchError}</IeltsNotice>}
+      {pendingAssignment && <IeltsNotice><p><strong>Saved assignment · allocation needs checking</strong></p><p>{pendingAssignment.title} is saved. Retry uses this assignment, without creating another.</p><IeltsButton disabled={saving} onClick={() => void retryAllocation(pendingAssignment)}>{saving ? 'Allocating…' : pendingAssignment.batch_id ? 'Retry batch allocation' : 'Retry class allocation'}</IeltsButton></IeltsNotice>}
 
       {!creating && <section className="ix-panel" aria-labelledby="ix-assignment-list-heading">
         <div className="ix-header"><div><h3 id="ix-assignment-list-heading">Assignments</h3><p className="ix-muted">Completion and teacher feedback are separate.</p></div><IeltsButton disabled={loading} onClick={() => void loadAssignments()}>{loading ? 'Refreshing…' : 'Refresh list'}</IeltsButton></div>
         <div className="ix-fields">
-          <label className="ix-field">Filter assignments by class<select value={listClassId} onChange={e => setListClassId(e.target.value)}><option value="">All classes</option>{classes.map((cls: any) => <option key={cls.id} value={cls.id}>{cls.class_name}</option>)}</select></label>
+          <label className="ix-field">Filter assignments by class or batch<select value={listClassId} onChange={e => setListClassId(e.target.value)}><option value="">All classes and batches</option>{batches.map(b=><option key={b.id} value={"batch:"+b.id}>{b.name} · Batch</option>)}{classes.map((cls: any) => <option key={cls.id} value={cls.id}>{cls.class_name}</option>)}</select></label>
           <div className="ix-field"><span>Assignment status</span><div className="ix-actions" aria-label="IELTS practice assignment status">{assignmentStatusFilters.map(filter => <IeltsButton key={filter.value} aria-pressed={assignmentStatusFilter === filter.value} variant={assignmentStatusFilter === filter.value ? 'primary' : 'secondary'} data-testid={`ielts-practice-${filter.value}-tab`} onClick={() => { setAssignmentStatusFilter(filter.value); cancelEditAssignment(); }}>{filter.label}</IeltsButton>)}</div></div>
         </div>
         <details data-testid="ielts-practice-status-helper"><summary>What do assignment statuses mean?</summary><p className="ix-muted">Active = students can work. Closed = read-only, no new submissions. Archived = hidden from active view, history preserved.</p></details>
@@ -576,7 +591,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
         <div className="ix-list">{visibleAssignments.map(assignment => {
           const isEditing = editingAssignmentId === assignment.id, isMutating = mutatingAssignmentId === assignment.id, isArchivedView = assignment.status === 'archived';
           return <article key={assignment.id} data-testid={`ielts-practice-assignment-${assignment.id}`} className={`ix-row${selectedAssignmentId === assignment.id ? ' ix-row--selected' : ''}`}>
-            <div className="ix-header"><div><h4>{assignment.title}</h4><p className="ix-muted">{assignment.class_name ?? 'No class'} · Due {formatDateTime(assignment.due_at)}</p></div><span data-testid={`ielts-practice-status-${assignment.id}`} className={`ix-status ix-status--${assignment.status}`}>{assignment.status === 'assigned' ? 'Active' : assignment.status === 'draft' ? 'Draft · not allocated' : assignment.status === 'closed' ? 'Closed' : 'Archived'}</span></div>
+            <div className="ix-header"><div><h4>{assignment.title}</h4><p className="ix-muted">{assignment.batch_name ?? assignment.class_name ?? 'Selected students'} · Due {formatDateTime(assignment.due_at)}</p></div><span data-testid={`ielts-practice-status-${assignment.id}`} className={`ix-status ix-status--${assignment.status}`}>{assignment.status === 'assigned' ? 'Active' : assignment.status === 'draft' ? 'Draft · not allocated' : assignment.status === 'closed' ? 'Closed' : 'Archived'}</span></div>
             {isArchivedView && <p className="ix-muted">Read-only archive</p>}
             <p>{assignment.completed_count ?? 0} of {assignment.total_students ?? 0} students completed · {assignment.in_progress_count ?? 0} in progress · {assignment.overdue_count ?? 0} overdue</p>
             <p className="ix-muted">{assignment.item_count ?? assignment.items?.length ?? 0} items</p>
@@ -589,7 +604,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
             </div>}
             <div className="ix-actions">
               <IeltsButton data-testid={`ielts-practice-view-progress-${assignment.id}`} disabled={progressLoading && selectedAssignmentId === assignment.id} onClick={() => void loadAssignmentDetail(assignment.id)}>View progress</IeltsButton>
-              {assignment.status === 'draft' && assignment.class_id && <IeltsButton disabled={saving} onClick={() => void retryAllocation(assignment)}>Allocate saved assignment</IeltsButton>}
+              {assignment.status === 'draft' && (assignment.class_id || assignment.batch_id) && <IeltsButton disabled={saving} onClick={() => void retryAllocation(assignment)}>Allocate saved assignment</IeltsButton>}
               {!isArchivedView && <><IeltsButton data-testid={`ielts-practice-edit-${assignment.id}`} disabled={isMutating} onClick={() => beginEditAssignment(assignment)}>Edit</IeltsButton><IeltsButton data-testid={`ielts-practice-close-${assignment.id}`} disabled={assignment.status === 'closed' || isMutating} onClick={() => setConfirmation({id:assignment.id,action:'close'})}>Close to new work</IeltsButton><IeltsButton variant="danger" data-testid={`ielts-practice-archive-${assignment.id}`} disabled={isMutating} onClick={() => setConfirmation({id:assignment.id,action:'archive'})}>Archive assignment</IeltsButton></>}
               {isArchivedView && <IeltsButton data-testid={`ielts-practice-restore-${assignment.id}`} disabled={isMutating} onClick={() => setConfirmation({id:assignment.id,action:'restore'})}>Restore as closed</IeltsButton>}
             </div>
@@ -602,7 +617,7 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
         <ol className="ix-steps" aria-label="New assignment steps">{['Class & instructions','Materials','Review & assign'].map((label,index) => <li key={label} aria-current={step === index ? 'step' : undefined}>{index+1}. {label}</li>)}</ol>
         <fieldset disabled={saving || !!pendingAssignment} className="ix-list" style={{border:0,padding:0,margin:0}}>
           {step === 0 && <div className="ix-list">
-            <div className="ix-fields"><label className="ix-field">Assign to class<select data-testid="ielts-practice-class-select" value={classId} onChange={e => setClassId(e.target.value)}><option value="">Choose a class</option>{classes.map((cls: any) => <option key={cls.id} value={cls.id}>{cls.class_name}</option>)}</select></label><label className="ix-field">Assignment title<input data-testid="ielts-practice-title-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Week 1 IELTS practice" /></label></div>
+            <div className="ix-fields"><label className="ix-field">Assign to class or batch<select data-testid="ielts-practice-class-select" value={classId} onChange={e => {setClassId(e.target.value);createRequest.current=null;}}><option value="">Choose a class or batch</option>{batches.map(b=><option key={b.id} value={"batch:"+b.id}>{b.name} · {b.student_count} students</option>)}{classes.map((cls: any) => <option key={cls.id} value={cls.id}>{cls.class_name}</option>)}</select></label><label className="ix-field">Assignment title<input data-testid="ielts-practice-title-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Week 1 IELTS practice" /></label></div>
             {classId && <p className="ix-muted">{selectedClassStudentCount} students in {selectedClass?.class_name ?? 'the selected class'}. Eligibility is checked when assigning.</p>}
             {classId && selectedClassStudentCount === 0 && <IeltsNotice>No students in this class. Add students before creating the assignment.</IeltsNotice>}
             <label className="ix-field">Due date (optional)<input type="datetime-local" value={dueAt} onChange={e => setDueAt(e.target.value)} /></label>
@@ -638,8 +653,8 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
           {step === 2 && <>
             <div className="ix-row"><h4>{title}</h4><p>{selectedClass?.class_name} · {selectedClassStudentCount} roster members · Due {dueAt ? formatDateTime(new Date(dueAt).toISOString()) : 'No due date'}</p>{description && <p>{description}</p>}</div>
             <div data-testid="ielts-practice-selected-items" className="ix-list">{items.map((item,index) => <div key={item.localId} data-testid={`ielts-practice-selected-item-${index}`} className="ix-row"><strong>{index+1}. {ieltsMaterialTitle(item.display_code,item.title || 'Selected material')}</strong><IeltsMaterialProvenance label={item.originality_label}/><p className="ix-muted">{item.skill} · {item.required ? 'Required' : 'Optional'}</p></div>)}</div>
-            {classId && chosenMaterials.length > 0 && <IeltsNotice><h4>Previous use for students in this class</h4>{selectedUsage.loading ? <p>Checking previous assignments…</p> : selectedUsage.error ? <><p>{selectedUsage.error}</p><IeltsButton onClick={selectedUsage.retry}>Retry history check</IeltsButton></> : selectedUsage.data?.map(u => <div key={u.type+':'+u.id}><strong>{ieltsMaterialTitle(items.find(i => i.contentType===u.type && i.contentId.trim()===u.id)?.display_code,items.find(i => i.contentType===u.type && i.contentId.trim()===u.id)?.title || 'Selected material')}</strong><p>{materialUsageLabel(u)}</p>{u.latest_assignment_id && <IeltsButton onClick={() => void loadAssignmentDetail(u.latest_assignment_id!)}>Open existing assignment progress</IeltsButton>}</div>)}{!!repeatedMaterials.length && <label className="ix-check"><input type="checkbox" checked={repeatAcknowledged} onChange={e => setRepeatScope(e.target.checked ? currentRepeatScope : '')}/><span>I checked existing work and intend to assign these materials again for practice.</span></label>}<p className="ix-muted">History covers current class members’ recorded assignments, including earlier classes and archived work. Repeating material does not establish improvement.</p></IeltsNotice>}
-            <IeltsButton variant="primary" data-testid="ielts-practice-create-assignment" onClick={() => void handleCreateAssignment()} disabled={saving || !!pendingAssignment || !selectedUsage.data || selectedUsage.loading || !!selectedUsage.error || (!!repeatedMaterials.length && !repeatAcknowledged)}>{saving ? 'Assigning…' : 'Confirm & assign to class'}</IeltsButton>
+            {classId && chosenMaterials.length > 0 && <IeltsNotice><h4>Previous use for students in this {batchId ? 'batch' : 'class'}</h4>{selectedUsage.loading ? <p>Checking previous assignments…</p> : selectedUsage.error ? <><p>{selectedUsage.error}</p><IeltsButton onClick={selectedUsage.retry}>Retry history check</IeltsButton></> : selectedUsage.data?.map(u => <div key={u.type+':'+u.id}><strong>{ieltsMaterialTitle(items.find(i => i.contentType===u.type && i.contentId.trim()===u.id)?.display_code,items.find(i => i.contentType===u.type && i.contentId.trim()===u.id)?.title || 'Selected material')}</strong><p>{materialUsageLabel(u)}</p>{u.latest_assignment_id && <IeltsButton onClick={() => void loadAssignmentDetail(u.latest_assignment_id!)}>Open existing assignment progress</IeltsButton>}</div>)}{!!repeatedMaterials.length && <label className="ix-check"><input type="checkbox" checked={repeatAcknowledged} onChange={e => setRepeatScope(e.target.checked ? currentRepeatScope : '')}/><span>I checked existing work and intend to assign these materials again for practice.</span></label>}<p className="ix-muted">History covers current group members’ recorded assignments, including earlier classes and archived work. Repeating material does not establish improvement.</p></IeltsNotice>}
+            <IeltsButton variant="primary" data-testid="ielts-practice-create-assignment" onClick={() => void handleCreateAssignment()} disabled={saving || !!pendingAssignment || !selectedUsage.data || selectedUsage.loading || !!selectedUsage.error || (!!repeatedMaterials.length && !repeatAcknowledged)}>{saving ? 'Assigning…' : batchId ? 'Confirm & assign to batch' : 'Confirm & assign to class'}</IeltsButton>
             {(!selectedUsage.data || selectedUsage.loading || !!selectedUsage.error) && <p className="ix-muted">Previous-use checks must finish successfully before assigning.</p>}
             {!!repeatedMaterials.length && !repeatAcknowledged && <p className="ix-muted">Confirm the intentional repeat above before assigning.</p>}
           </>}
@@ -647,8 +662,9 @@ const IeltsPracticeTab: React.FC<IeltsPracticeTabProps> = ({ onOpenReviews, init
         <div className="ix-actions"><IeltsButton disabled={step === 0 || saving || !!pendingAssignment} onClick={() => { setStep(n => n-1); setError(null); }}>Previous step</IeltsButton>{step < 2 && <IeltsButton variant="primary" disabled={saving || !!pendingAssignment} onClick={nextStep}>Continue</IeltsButton>}</div>
       </section>}
 
+      {assignmentDetail?.assignment.batch_id && assignmentDetail.assignment.status === "assigned" && <IeltsBatchCatchUp key={assignmentDetail.assignment.id} assignment={assignmentDetail} schoolId={school.id} onUpdated={() => {void loadAssignmentDetail(assignmentDetail.assignment.id);void loadAssignments();}} />}
       {(selectedAssignmentId || progressLoading) && <section className="ix-panel" aria-labelledby="ix-progress-heading">
-        <div className="ix-header"><div><h3 id="ix-progress-heading">Student progress</h3><p className="ix-muted">{selectedProgressAssignment ? `${selectedProgressAssignment.title} · ${selectedProgressAssignment.class_name ?? 'No class'}` : 'Loading selected assignment…'}</p>{selectedProgressAssignment && <p><span className={`ix-status ix-status--${selectedProgressAssignment.status}`}>{selectedProgressAssignment.status}</span></p>}</div><div className="ix-actions"><IeltsButton disabled={progressLoading} onClick={() => selectedAssignmentId && void loadAssignmentDetail(selectedAssignmentId)}>Refresh progress</IeltsButton><IeltsButton onClick={() => { detailRequest.current++; setSelectedAssignmentId(null); setAssignmentDetail(null); setProgressLoading(false); }}>Close progress</IeltsButton></div></div>
+        <div className="ix-header"><div><h3 id="ix-progress-heading">Student progress</h3><p className="ix-muted">{selectedProgressAssignment ? `${selectedProgressAssignment.title} · ${selectedProgressAssignment.batch_name ?? selectedProgressAssignment.class_name ?? 'Selected students'}` : 'Loading selected assignment…'}</p>{selectedProgressAssignment && <p><span className={`ix-status ix-status--${selectedProgressAssignment.status}`}>{selectedProgressAssignment.status}</span></p>}</div><div className="ix-actions"><IeltsButton disabled={progressLoading} onClick={() => selectedAssignmentId && void loadAssignmentDetail(selectedAssignmentId)}>Refresh progress</IeltsButton><IeltsButton onClick={() => { detailRequest.current++; setSelectedAssignmentId(null); setAssignmentDetail(null); setProgressLoading(false); }}>Close progress</IeltsButton></div></div>
         {progressLoading && <p role="status">Loading student progress…</p>}
         {!progressLoading && assignmentDetail && <><div className="ix-actions" aria-label="Student progress filters">{progressFilters.map(filter => <IeltsButton key={filter.value} aria-pressed={progressFilter === filter.value} variant={progressFilter === filter.value ? 'primary' : 'secondary'} onClick={() => setProgressFilter(filter.value)}>{filter.label}</IeltsButton>)}</div>
           {!filteredProgressStudents.length && <p className="ix-muted">{assignmentDetail.students.length === 0 ? 'No students in class for this assignment yet.' : 'No students match this filter.'}</p>}

@@ -1,0 +1,10 @@
+.student-mascot-hub-avatar{display:block;position:relative;width:96px;height:96px;overflow:visible;isolation:isolate;pointer-events:none}
+.student-mascot-hub-avatar .student-mascot-float{display:block;position:relative;width:96px;height:96px;animation:bh-mascot-hub-float 3.6s ease-in-out infinite;filter:drop-shadow(0 5px 8px rgba(0,208,232,.25))}
+.student-mascot-hub-avatar canvas{display:block;width:100%;height:100%;opacity:0;transition:opacity .25s}
+.student-mascot-hub-avatar canvas.ready{opacity:1}
+.student-mascot-hub-avatar .student-mascot-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.student-mascot-restore{position:fixed;right:12px;bottom:max(105px,calc(95px + env(safe-area-inset-bottom)));z-index:35;cursor:pointer;color:#e8ffff;border:1px solid #67e8f9;border-radius:99px;background:#142336;padding:8px 12px;font-size:12px;box-shadow:0 6px 20px #0009}
+.student-mascot-restore:focus-visible{outline:3px solid #67e8f9}
+@keyframes bh-mascot-hub-float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-5px) rotate(1deg)}}
+@media(prefers-reduced-motion:reduce){.student-mascot-hub-avatar .student-mascot-float{animation:none}.student-mascot-hub-avatar canvas{transition:none}}
+@media print{.student-mascot-restore{display:none!important}}
