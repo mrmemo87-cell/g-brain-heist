@@ -63,9 +63,9 @@ export default function IeltsGovernedScreenerResult() {
         <section className="ix-panel isr-evidence" aria-labelledby="isr-score-heading">
           <div className="isr-evidence-header"><h2 id="isr-score-heading">{coverage === 'complete' ? 'Starting evidence' : coverageLabel(coverage)}</h2><span className="ix-status">Short check · More evidence needed</span></div>
           <dl className="isr-metrics">
-            <div className="isr-score"><dt>Screener score</dt><dd>{result.raw_score} <span>/ {result.marks_possible}</span></dd><p>Marks recorded in this short check</p></div>
-            <div><dt>Items answered</dt><dd>{result.confidence.items_answered} <span>/ {result.confidence.items_possible}</span></dd><p>Response coverage</p></div>
-            <div><dt>Skill areas attempted</dt><dd>{result.confidence.constructs_with_responses} <span>/ {result.confidence.constructs_sampled}</span></dd><p>An area counts when you answer at least one question. This does not show mastery.</p></div>
+            <div className="isr-score"><dt>Screener score</dt><dd>{result.raw_score} <span>/ {result.marks_possible}</span><small>Marks recorded in this short check</small></dd></div>
+            <div><dt>Items answered</dt><dd>{result.confidence.items_answered} <span>/ {result.confidence.items_possible}</span><small>Response coverage</small></dd></div>
+            <div><dt>Skill areas attempted</dt><dd>{result.confidence.constructs_with_responses} <span>/ {result.confidence.constructs_sampled}</span><small>An area counts when you answer at least one question. This does not show mastery.</small></dd></div>
           </dl>
           {result.integrity_state === 'review_required' && <IeltsNotice>Assessment conditions need teacher review before this result is interpreted.</IeltsNotice>}
         </section>

@@ -139,6 +139,7 @@
   color: #475569;
 }
 .ip-link {
+  overflow-wrap: anywhere;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
