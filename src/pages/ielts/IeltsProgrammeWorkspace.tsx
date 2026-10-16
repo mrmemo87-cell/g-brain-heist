@@ -11,6 +11,7 @@ import {
 } from "../../../services/ieltsProgrammeService";
 import SchoolAdminContext from "../../../components/school-admin/SchoolAdminContext";
 import IeltsStudentProgress from "./IeltsStudentProgress";
+import IeltsTeacherDisclosure from "../../components/ielts/IeltsTeacherDisclosure";
 import "../../styles/ielts-speaking-pilot.css";
 import "../../styles/ielts-programme.css";
 const Practice = React.lazy(() => import("./IeltsLearningTeacher"));
@@ -218,6 +219,8 @@ export default function IeltsProgrammeWorkspace({
       ? `/ielts/writing-screener/reviews/${encodeURIComponent(id)}`
       : `/ielts/speaking-pilot/${encodeURIComponent(id)}`;
   const queue = (
+    <div className="ip-workspace-flow">
+      <IeltsTeacherDisclosure title="Writing & Speaking review queue" hint="Review submitted work and share verified feedback" icon={<Mark kind="review" />} marker={`${data?.pending_count ?? 0} awaiting review`} defaultExpanded>
     <section className="sp-card">
       <div className="ip-heading">
         <div>
@@ -267,9 +270,11 @@ export default function IeltsProgrammeWorkspace({
         </p>
       )}
       {data?.can_manage && (
-        <React.Suspense fallback={<p>Loading practice reviews…</p>}>
-          <Practice schoolId={data.school_id} reviewOnly />
-        </React.Suspense>
+        <IeltsTeacherDisclosure title="Additional practice reviews" hint="Open the existing teacher practice review workflow" icon="✎" defaultExpanded={false}>
+          <React.Suspense fallback={<p role="status">Loading practice reviews…</p>}>
+            <Practice schoolId={data.school_id} reviewOnly />
+          </React.Suspense>
+        </IeltsTeacherDisclosure>
       )}
       {data?.can_manage && (
         <details>
@@ -284,6 +289,8 @@ export default function IeltsProgrammeWorkspace({
         </details>
       )}
     </section>
+      </IeltsTeacherDisclosure>
+    </div>
   );
   return (
     <main className={`sp-page ip-page ${embedded ? "ip-embedded" : ""}`}>
@@ -391,6 +398,7 @@ export default function IeltsProgrammeWorkspace({
           </nav>
           {section === "overview" && (
             <div className="ip-today">
+              <IeltsTeacherDisclosure title="Today’s priority" hint="Your most useful next action" icon="◎" marker={data.pending_count > 0 ? `${data.pending_count} to review` : "Ready"} defaultExpanded>
               <section className="sp-card ip-today-priority" aria-labelledby="ip-today-priority-title">
                 <div className="ip-today-priority-copy">
                   <p className="sp-eyebrow">Your next step</p>
@@ -434,7 +442,9 @@ export default function IeltsProgrammeWorkspace({
                   </div>
                 )}
               </section>
+              </IeltsTeacherDisclosure>
 
+              <IeltsTeacherDisclosure title="Everyday teaching" hint="Prepare lessons, assign work, review and follow up" icon={<Mark />} defaultExpanded>
               <section className="ip-today-teaching" aria-labelledby="ip-today-teaching-title">
                 <div className="ip-today-heading">
                   <p className="sp-eyebrow">Everyday teaching</p>
@@ -484,8 +494,10 @@ export default function IeltsProgrammeWorkspace({
                   </button>
                 </div>
               </section>
+              </IeltsTeacherDisclosure>
 
               {data.can_manage && (
+                <IeltsTeacherDisclosure title="More teaching tools" hint="Specialist practice, batches, interviews and exams" icon="✧" defaultExpanded={false}>
                 <section className="sp-card ip-today-more" aria-labelledby="ip-today-more-title">
                   <div className="ip-today-heading">
                     <p className="sp-eyebrow">More teaching tools</p>
@@ -515,11 +527,14 @@ export default function IeltsProgrammeWorkspace({
                     </button>
                   </div>
                 </section>
+                </IeltsTeacherDisclosure>
               )}
+              <IeltsTeacherDisclosure title="Evidence guidance" hint="How to interpret screeners and missing evidence" icon="ⓘ" defaultExpanded={false}>
               <section className="ip-note" aria-label="IELTS evidence guidance">
                 <strong>Evidence before estimates.</strong>
                 <p>Screeners show a starting point, not an official IELTS band. Missing evidence is not a weakness; use reviewed work and appropriate follow-up before drawing conclusions.</p>
               </section>
+              </IeltsTeacherDisclosure>
               {data.platform_owner && (
                 <details className="ip-today-admin">
                   <summary>Platform content & analytics</summary>
@@ -561,8 +576,9 @@ export default function IeltsProgrammeWorkspace({
               }}
             />
           )}
-          {section === "team" && data.can_manage && <React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense>}
+          {section === "team" && data.can_manage && <IeltsTeacherDisclosure title="Course batches" hint="Manage IELTS course groups, rosters and participation" icon="♧" defaultExpanded><React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense></IeltsTeacherDisclosure>}
           {section === "team" && (
+            <IeltsTeacherDisclosure title="Programme lead & school access" hint="View ownership and manage teacher allocation when authorized" icon={<Mark />} defaultExpanded>
             <section className="sp-card">
               <p className="sp-eyebrow">A clear owner for your programme</p>
               <h2>
@@ -640,8 +656,10 @@ export default function IeltsProgrammeWorkspace({
                 Teacher workspace: brainsheist.com/ielts/programme →
               </a>
             </section>
+            </IeltsTeacherDisclosure>
           )}
           {(section === "practice" || section === "exams") && (
+            <IeltsTeacherDisclosure title={section === "practice" ? "Practice & assignments" : "Controlled exam manager"} hint={section === "practice" ? "Assign, revisit and review school IELTS practice" : "Manage authorized IELTS exam sessions"} icon="▤" defaultExpanded>
             <section className="sp-card">
               <button className="sp-secondary" onClick={() => open("overview")}>
                 ← Today
@@ -679,6 +697,7 @@ export default function IeltsProgrammeWorkspace({
                 <p>Your programme lead manages these school tools.</p>
               )}
             </section>
+            </IeltsTeacherDisclosure>
           )}
         </>
       )}
