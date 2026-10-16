@@ -108,7 +108,7 @@ function EvidenceCard({ skill, evidence, onOpen }: {
         <span className="isi-skill-name"><span className="isi-skill-icon" aria-hidden="true">{icons[skill]}</span>{names[skill]}</span>
         <span className="isi-chip">{label}</span>
       </div>
-      {hasScore ? <strong className="isi-card-score">{evidence.raw_score} / {evidence.total}</strong>
+      {hasScore && evidence ? <strong className="isi-card-score">{evidence.raw_score} / {evidence.total}</strong>
         : evidence?.reviewed ? <strong className="isi-card-state">Teacher feedback ready</strong>
         : <strong className="isi-card-state">{evidence ? "Evidence submitted" : "No submitted evidence"}</strong>}
       <p className="isi-card-meta">
