@@ -175,6 +175,3 @@ export async function linkGuest(
   if (result?.success !== true)
     throw new Error("The result was not linked. Please retry.");
 }
-
-/** Resume every scanned booklet for this assignment, including earlier devices/sessions. */
-export const fetchScanInbox = (assignmentId: string) => rpc<ScanSession[]>("rpc_teacher_scan_inbox", { p_assignment_id: assignmentId });

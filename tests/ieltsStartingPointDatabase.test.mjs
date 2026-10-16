@@ -31,11 +31,28 @@ insert into private.ielts_writing_screener_submissions values('${id(11)}',250,no
 insert into private.ielts_speaking_sessions values('${id(20)}','${student}','submitted',now(),now(),'first_sitting'),('${id(21)}','${other}','submitted',now(),now(),'first_sitting');`);
 await db.query('insert into private.fixture_catalog values($1,$2)',[student,JSON.stringify([{code:'bh-listening-screener-a',status:'completed',attempt_id:id(10)},{code:'bh-writing-screener-a',status:'completed',attempt_id:id(11)},{code:'bh-reading-screener-a',status:'completed',attempt_id:id(12)}])]);
 await db.exec(sql);
+await db.exec(`alter table private.ielts_diagnostic_scoring_runs add outcomes jsonb default '[]', add confidence jsonb default '{"items_answered":12}';
+create function public.rpc_ielts_diagnostic_result(p_attempt_id uuid) returns jsonb
+language plpgsql stable security definer set search_path='' as $$
+declare r private.ielts_diagnostic_scoring_runs%rowtype;
+begin
+ if auth.uid() is null then raise exception 'not_authenticated'; end if;
+ if not exists(select 1 from private.ielts_diagnostic_attempt_evidence where attempt_id=p_attempt_id and student_id=auth.uid()) then raise exception 'not_authorized'; end if;
+ select * into r from private.ielts_diagnostic_scoring_runs where attempt_id=p_attempt_id order by run_version desc limit 1;
+ return jsonb_build_object('raw_score',r.raw_score,'outcomes',r.outcomes,'next_step','Review the sampled items with your teacher, then gather evidence in the remaining skills.',
+ 'readiness_available',false);
+end; $$;`);
+const programmeSql = readFileSync('supabase/migrations/20261007130709_ielts_programme_workspace.sql','utf8');
+await db.exec(programmeSql.slice(programmeSql.indexOf('create function public.rpc_ielts_programme_workspace('),programmeSql.indexOf('revoke all on function public.rpc_ielts_programme_workspace(')));
+const coverageMigration = readdirSync('supabase/migrations').find(p => p.endsWith('_ielts_screener_response_coverage.sql'));
+const coverageSql = readFileSync(`supabase/migrations/${coverageMigration}`, 'utf8');
+const originalSummary = (await db.query("select pg_get_functiondef('public.rpc_ielts_starting_point_summary()'::regprocedure) d")).rows[0].d;
+await db.exec(coverageSql);
 const actor = u => db.query("select set_config('request.jwt.claim.sub',$1,false)",[u]);
 const read = async () => (await db.query('select rpc_ielts_starting_point_summary() as value')).rows[0].value;
 test('self-only projection shows latest trusted raw scores, pending work and no cross-school data', async () => {
  await actor(student); const r=await read();
- assert.equal(r.results.listening.raw_score,9); assert.equal(r.results.reading,null);
+ assert.equal(r.results.listening.raw_score,9); assert.equal(r.results.listening.items_answered,12); assert.equal(r.results.reading,null);
  assert.equal(r.results.writing.review,null); assert.equal(r.results.speaking.attempt_id,id(20));
  assert.equal(r.band_estimate,null); assert.equal(r.readiness_available,false); assert.equal(r.confidence,'low');
  assert.equal(JSON.stringify(r).includes('original-hash'),false);
@@ -61,5 +78,25 @@ test('anonymous, banned, non-student and revoked membership are denied; another 
  await actor(other); const r=await read(); assert.deepEqual(r.catalog,[]); assert.equal(r.results.writing,undefined); assert.equal(r.results.speaking.attempt_id,id(21));
  const grants=(await db.query("select has_function_privilege('anon','rpc_ielts_starting_point_summary()','execute') as anon,has_function_privilege('authenticated','rpc_ielts_starting_point_summary()','execute') as authenticated")).rows[0];
  assert.equal(grants.anon,false); assert.equal(grants.authenticated,true);
+});
+test('coverage projection preserves marks, classifies empty and partial, and retains self-only authorization',async()=>{
+ await actor(student); await db.query('update users set eligible=true where id=$1',[student]);
+ for (const [answered,expected] of [[0,'empty'],[6,'partial'],[12,'complete']]) {
+   await db.query("update private.ielts_diagnostic_scoring_runs set confidence=jsonb_build_object('items_answered',$1::int) where attempt_id=$2",[answered,id(10)]);
+   const value=(await db.query('select rpc_ielts_diagnostic_result($1) r',[id(10)])).rows[0].r;
+   assert.equal(value.response_coverage,expected); assert.equal(value.raw_score,9); assert.equal(value.readiness_available,false);
+   if(answered<12) assert.match(value.next_step,/fresh check/);
+   assert.equal((await read()).results.listening.items_answered,answered);
+ }
+ await actor(other); await assert.rejects(db.query('select rpc_ielts_diagnostic_result($1)',[id(10)]),/not_authorized/);
+ await actor(''); await assert.rejects(db.query('select rpc_ielts_diagnostic_result($1)',[id(10)]),/not_authenticated/);
+ for (const fn of ['rpc_ielts_starting_point_summary()','rpc_ielts_diagnostic_result(uuid)','rpc_ielts_programme_workspace(uuid,text,integer)']) {
+   assert.equal((await db.query("select has_function_privilege('anon',$1,'execute') ok",[fn])).rows[0].ok,false);
+ }
+});
+test('migration aborts on unexpected source drift instead of overwriting authorization',async()=>{
+ // Reapplication is a drift case, not an invitation to silently patch a different function.
+ await assert.rejects(db.exec(coverageSql),/starting_point_coverage_patch_drift/);
+ assert.ok(originalSummary.includes('not_authorized'));
 });
 test.after(async()=>db.close());

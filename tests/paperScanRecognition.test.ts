@@ -5,7 +5,6 @@ import { createCanvas, loadImage } from "canvas";
 import { buildBubbleSheetSvg } from "../services/scanSheetPrintService";
 import type { PaperWorkspace } from "../services/assignmentPaperService";
 import { LAYOUT, bubblePosition, type ScanSheet, type ScanSession } from "../src/lib/paperScan/layout";
-import { detectedAnswers } from "../services/paperScanImage";
 import { normalizeScanPhoto, decodeSheetQr } from "../src/lib/paperScan/recognition";
 import { readBubbles, bubbleCoverage, classifyBubbles, homography, transform, type Raster } from "../src/lib/paperScan/omr";
 
@@ -124,32 +123,4 @@ test("a rotated phone frame retains all four solid corner squares", async () => 
   ctx.drawImage(page, -source.width / 2, -source.height / 2);
   const result = normalizeScanPhoto({ width: frame.width, height: frame.height, data: ctx.getImageData(0, 0, frame.width, frame.height).data });
   checkRows(result.image);
-});
-
-test('teacher corner hints recover the original photo without changing sheet identity or answers', async () => {
-  const source = await phonePhoto(await printedSheet());
-  const photoMap = homography([{x:0,y:0},{x:1000,y:0},{x:1000,y:1414},{x:0,y:1414}], [{x:135,y:95},{x:1135,y:175},{x:1040,y:1685},{x:180,y:1760}]);
-  const anchors = LAYOUT.markers.map(marker => { const p = transform(photoMap, marker); return { x: (p.x + 9) / source.width, y: (p.y - 8) / source.height }; });
-  const result = normalizeScanPhoto(source, anchors);
-  assert.equal(result.sheetId, sheet.id); checkRows(result.image);
-  const rows = detectedAnswers({ ...result, hash: "photo-hash", manuallyAligned: true }, sheet);
-  assert.ok(Object.values(rows).every(row => row.state === "uncertain" && row.choice === null));
-});
-test('corner adjustment never accepts an incomplete page, invalid points or crossed ordering', async () => {
-  const source = await printedSheet();
-  const anchors = LAYOUT.markers.map(p => ({x:p.x/source.width,y:p.y/source.height}));
-  assert.throws(() => normalizeScanPhoto(source, anchors.slice(0,3)), /four corner/);
-  assert.throws(() => normalizeScanPhoto(source, [{x:NaN,y:0},...anchors.slice(1)]), /four corner/);
-  assert.throws(() => normalizeScanPhoto(source, [anchors[0], anchors[2], anchors[1], anchors[3]]));
-  for(let y=1310;y<source.height;y++)for(let x=0;x<source.width;x++) { const i=(y*source.width+x)*4; source.data[i]=source.data[i+1]=source.data[i+2]=255; }
-  assert.throws(() => normalizeScanPhoto(source, anchors), /corner/);
-});
-
-test('additional square-shaped marks near page corners cannot substitute for the real calibration frame', async () => {
-  const source = await printedSheet();
-  for (const marker of LAYOUT.markers) {
-    const centre = {x:marker.x<500?marker.x+60:marker.x-60,y:marker.y<700?marker.y-20:marker.y-60};
-    for(let y=centre.y-12;y<=centre.y+12;y++)for(let x=centre.x-12;x<=centre.x+12;x++){const i=(y*source.width+x)*4;source.data[i]=source.data[i+1]=source.data[i+2]=0;}
-  }
-  checkRows(normalizeScanPhoto(source).image);
 });

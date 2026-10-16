@@ -29,3 +29,18 @@ export const ECHO_ACTIVITY_EVENT = 'bh:echo-activity';
 export function announceEchoActivity(userId: string, pose: EchoPose, practicing?: boolean) {
  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(ECHO_ACTIVITY_EVENT, { detail: { userId, pose, practicing } }));
 }
+
+
+export interface EchoViewport { width: number; height: number; left: number; top: number; }
+export const echoFloatGeometry = (width: number) => width <= 680 ? { avatar: 96, width: 112, height: 112 } : { avatar: 112, width: 128, height: 128 };
+export function clampEchoViewport(position: EchoPosition, view: EchoViewport, expanded = false): EchoPosition {
+ const geometry = echoFloatGeometry(view.width);
+ const maxX = Math.max(view.left + 8, view.left + view.width - geometry.width - 8);
+ const maxY = Math.max(view.top + 8, view.top + view.height - geometry.height - 100);
+ const minY = Math.min(maxY, view.top + (expanded ? 176 : 8));
+ return { x: Math.min(maxX, Math.max(view.left + 8, position.x)), y: Math.min(maxY, Math.max(minY, position.y)) };
+}
+export function dockEchoViewport(position: EchoPosition, view: EchoViewport, expanded = false): EchoPosition {
+ const bounded = clampEchoViewport(position, view, expanded); const geometry = echoFloatGeometry(view.width);
+ return { ...bounded, x: bounded.x + geometry.width / 2 < view.left + view.width / 2 ? view.left + 8 : Math.max(view.left + 8, view.left + view.width - geometry.width - 8) };
+}
