@@ -373,7 +373,7 @@ export default function IeltsProgrammeWorkspace({
                   onClick={() => open(s)}
                   disabled={saving}
                 >
-                  <span aria-hidden="true" className="ip-nav-icon">{s === "overview" ? "◷" : s === "students" ? "▤" : s === "reviews" ? "▣" : "♧"}</span>
+                  <span aria-hidden="true" className="ip-nav-icon"><Mark kind={s === "reviews" ? "review" : s === "overview" ? "voice" : "school"} /></span>
                   {s === "overview"
                     ? "Today"
                     : s === "students"
