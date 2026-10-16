@@ -118,3 +118,23 @@
   .ip-page .ip-disclosure-chevron,
   .ielts-lessons .ip-disclosure-chevron { transition: none; }
 }
+
+/* Nested resource navigation: show the workflow title once, in the disclosure header. */
+.ielts-lessons .lesson-resource-grid > .ip-disclosure { align-self: start; }
+.ielts-lessons .lesson-resource-grid > .ip-disclosure .ip-disclosure-toggle { align-items: flex-start; }
+.ielts-lessons .lesson-resource-grid > .ip-disclosure .lesson-resource-group > h4 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.ielts-lessons .lesson-resource-grid .ip-disclosure-content > .lesson-resource-group {
+  min-width: 0;
+  background: #fff;
+}
+.ielts-lessons .lesson-resource-grid .ip-disclosure-content { padding-top: 14px; }
