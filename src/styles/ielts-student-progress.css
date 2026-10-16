@@ -324,3 +324,6 @@
   .ip-page .ip-nav button { justify-content: flex-start; border-bottom: 0; border-left: 3px solid transparent; border-radius: 7px; }
   .ip-page .ip-nav button[aria-current] { border-bottom-color: transparent; border-left-color: #2563eb; background: #eff6ff; }
 }
+
+.ip-page .isi-matrix-accordion > .isi-section-content { padding: 0; }
+.ip-page .isi-matrix-accordion .isi-matrix { border: 0; border-top: 1px solid #e5eaf2; border-radius: 0; }
