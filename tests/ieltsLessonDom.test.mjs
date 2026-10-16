@@ -162,6 +162,33 @@ test("lesson library loads school resources and downloads a workbook without key
   assert.deepEqual(errors, []);
   d.window.close();
 });
+test("teacher lesson library shows compact files by audience and keeps guidance collapsed", async () => {
+  const { d, w, errors } = await setup();
+  const groups = [...w.document.querySelectorAll(".lesson-resource-group h4")].map((h) => h.textContent);
+  assert.deepEqual(groups, [
+    "01 · Before class",
+    "02 · Present",
+    "03 · Give students",
+    "04 · Teacher only",
+  ]);
+  const overview = w.document.querySelector(".lesson-overview");
+  assert.match(overview.textContent, /Available to teach/);
+  assert.match(overview.textContent, /IELTS-01/);
+  assert.match(overview.textContent, /60 minutes/);
+  assert.equal(w.document.querySelectorAll(".lesson-primary-actions .sp-primary").length, 1);
+  const groupText = (id) => w.document.getElementById(id).closest("section").textContent;
+  assert.match(groupText("lesson-students-title"), /student workbook/);
+  assert.doesNotMatch(groupText("lesson-students-title"), /scripts & keys/);
+  assert.match(groupText("lesson-keys-title"), /scripts & keys/);
+  assert.match(groupText("lesson-present-title"), /motion-free PowerPoint/);
+  assert.equal(w.document.querySelectorAll(".lesson-audio").length, 2);
+  const instructions = [...w.document.querySelectorAll(".lesson-details")];
+  assert.equal(instructions.length, 2);
+  assert.ok(instructions.every((x) => !x.open), "Long teaching guidance stays collapsed initially");
+  assert.match(w.document.querySelector(".lesson-library-upcoming").textContent, /not released/);
+  assert.deepEqual(errors, []);
+  d.window.close();
+});
 test("school switch clears earlier content; access denial offers retry without downloads", async () => {
   const { d, w } = await setup();
   w.show("school-b");
