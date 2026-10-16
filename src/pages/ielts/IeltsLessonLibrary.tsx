@@ -247,6 +247,7 @@ export default function IeltsLessonLibrary({
               <p className="lesson-muted">Pick what you need. Teacher-only files contain answers.</p>
             </div>
             <div className="lesson-resource-grid">
+              <IeltsTeacherDisclosure title="01 · Before class" hint="Teacher plan and step-by-step setup" icon="▣" marker="2 files" defaultExpanded>
               <section className="lesson-resource-group" aria-labelledby="lesson-prep-title">
                 <h4 id="lesson-prep-title">01 · Before class</h4>
                 <div className="lesson-resource-actions">
@@ -254,6 +255,8 @@ export default function IeltsLessonLibrary({
                   <button type="button" className="sp-secondary" disabled={!ready || busy} onClick={() => resource("plan")}>Download teacher plan (HTML)</button>
                 </div>
               </section>
+              </IeltsTeacherDisclosure>
+              <IeltsTeacherDisclosure title="02 · Present" hint="Slides and PowerPoint teaching tools" icon="▤" marker="3 files" defaultExpanded>
               <section className="lesson-resource-group" aria-labelledby="lesson-present-title">
                 <h4 id="lesson-present-title">02 · Present</h4>
                 <div className="lesson-resource-actions">
@@ -279,6 +282,8 @@ export default function IeltsLessonLibrary({
                 </div>
                 <p className="lesson-resource-note">Teacher only: slides contain answer reveals. Advance manually after students commit.</p>
               </section>
+              </IeltsTeacherDisclosure>
+              <IeltsTeacherDisclosure title="03 · Give students" hint="Shareable student workbook and Reading practice" icon="▧" marker="2 files" defaultExpanded={false}>
               <section className="lesson-resource-group" aria-labelledby="lesson-students-title">
                 <h4 id="lesson-students-title">03 · Give students</h4>
                 <div className="lesson-resource-actions">
@@ -290,6 +295,8 @@ export default function IeltsLessonLibrary({
                 {!data.reading_backup && <p className="lesson-resource-note">Approved paper Reading backup is unavailable.</p>}
                 <p className="lesson-resource-note">Student files exclude teacher answers. Print from the browser if needed.</p>
               </section>
+              </IeltsTeacherDisclosure>
+              <IeltsTeacherDisclosure title="04 · Teacher only" hint="Private scripts, answer keys and backup" icon="◆" marker="3 files" defaultExpanded={false}>
               <section className="lesson-resource-group lesson-resource-private" aria-labelledby="lesson-keys-title">
                 <h4 id="lesson-keys-title">04 · Teacher only</h4>
                 <div className="lesson-resource-actions">
@@ -301,6 +308,7 @@ export default function IeltsLessonLibrary({
                 </div>
                 <p className="lesson-resource-note">Keep answer keys and listening scripts private.</p>
               </section>
+              </IeltsTeacherDisclosure>
             </div>
           </section>
           </IeltsTeacherDisclosure>
