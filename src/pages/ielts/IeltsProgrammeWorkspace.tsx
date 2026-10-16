@@ -12,6 +12,9 @@ import {
 import SchoolAdminContext from "../../../components/school-admin/SchoolAdminContext";
 import IeltsStudentProgress from "./IeltsStudentProgress";
 import IeltsTeacherDisclosure from "../../components/ielts/IeltsTeacherDisclosure";
+import IeltsTeacherNavigation, { type IeltsTeacherNavKey } from "./IeltsTeacherNavigation";
+import IeltsAssignmentEntry from "./IeltsAssignmentEntry";
+import "../../styles/ielts-teacher-navigation.css";
 import "../../styles/ielts-speaking-pilot.css";
 import "../../styles/ielts-programme.css";
 const Practice = React.lazy(() => import("./IeltsLearningTeacher"));
@@ -27,7 +30,9 @@ type Section =
   | "team"
   | "practice"
   | "exams"
-  | "lessons";
+  | "lessons"
+  | "assign"
+  | "batches";
 const sections = [
   "overview",
   "students",
@@ -36,6 +41,8 @@ const sections = [
   "practice",
   "exams",
   "lessons",
+  "assign",
+  "batches",
 ];
 function Mark({ kind = "school" }: { kind?: string }) {
   return (
@@ -169,6 +176,26 @@ export default function IeltsProgrammeWorkspace({
     url.searchParams.delete("assignment");
     window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
     open("practice");
+  };
+  const teacherNavActive: IeltsTeacherNavKey =
+    section === "overview" ? "today" : section === "students" ? "students" :
+    section === "lessons" ? "lessons" : section === "assign" ? "create" :
+    section === "reviews" ? "reviews" : section === "exams" ? "exams" :
+    section === "team" ? "team" : section === "batches" ? "batches" :
+    section === "practice" ? (new URLSearchParams(window.location.search).get("practice") === "school" ? "manage" :
+      new URLSearchParams(window.location.search).get("practice") === "targeted" ? "create" : "history") : "today";
+  const navigateTeacher = (key: IeltsTeacherNavKey) => {
+    if (key === "today") open("overview");
+    else if (key === "students") open("students");
+    else if (key === "lessons") open("lessons");
+    else if (key === "create") open("assign");
+    else if (key === "manage") openPractice("school");
+    else if (key === "history") openPractice("history");
+    else if (key === "reviews") open("reviews");
+    else if (key === "exams") open("exams");
+    else if (key === "batches") open("batches");
+    else if (key === "team") open("team");
+    else if (key === "interviews") navigate("/ielts/speaking-interviews");
   };
   useEffect(() => {
     if (section !== "students") return;
@@ -374,28 +401,7 @@ export default function IeltsProgrammeWorkspace({
               </select>
             </label>
           )}
-          <button type="button" className="ip-mobile-nav-toggle" aria-controls="ielts-programme-nav" aria-expanded={navOpen} onClick={() => setNavOpen((value) => !value)}>☰ Programme navigation <span aria-hidden="true">{navOpen ? "⌃" : "⌄"}</span></button>
-          <nav id="ielts-programme-nav" className={"ip-nav" + (navOpen ? " ip-nav-open" : "")} aria-label="Programme workspace">
-            {(["overview", "students", "reviews", "team"] as Section[]).map(
-              (s) => (
-                <button
-                  key={s}
-                  aria-current={section === s ? "page" : undefined}
-                  onClick={() => open(s)}
-                  disabled={saving}
-                >
-                  <span aria-hidden="true" className="ip-nav-icon"><Mark kind={s === "reviews" ? "review" : s === "overview" ? "voice" : "school"} /></span>
-                  {s === "overview"
-                    ? "Today"
-                    : s === "students"
-                      ? "Student progress"
-                      : s === "reviews"
-                        ? "Review desk"
-                        : "Programme team"}
-                </button>
-              ),
-            )}
-          </nav>
+          <IeltsTeacherNavigation active={teacherNavActive} onNavigate={navigateTeacher} canManage={data.can_manage} disabled={saving} />
           {section === "overview" && (
             <div className="ip-today">
               <IeltsTeacherDisclosure title="Today’s priority" hint="Your most useful next action" icon="◎" marker={data.pending_count > 0 ? `${data.pending_count} to review` : "Ready"} defaultExpanded>
@@ -464,12 +470,12 @@ export default function IeltsProgrammeWorkspace({
                     </button>
                   )}
                   {data.can_manage && (
-                    <button type="button" className="ip-today-action" onClick={() => openPractice("school")}>
+                    <button type="button" className="ip-today-action" onClick={() => open("assign")}>
                       <span className="ip-today-action-mark" aria-hidden="true"><Mark /></span>
                       <span className="ip-today-action-copy">
                         <span className="ip-today-action-category">Assign</span>
-                        <strong>School assignments</strong>
-                        <span>Choose approved materials for a class or IELTS course batch and track progress.</span>
+                        <strong>Create assignment</strong>
+                        <span>Choose a class, IELTS batch or individual student.</span>
                       </span>
                       <span className="ip-today-arrow" aria-hidden="true">→</span>
                     </button>
@@ -513,7 +519,7 @@ export default function IeltsProgrammeWorkspace({
                       <strong>Practice history</strong>
                       <span>Find current and previous student work</span>
                     </button>
-                    <button type="button" onClick={() => open("team")}>
+                    <button type="button" onClick={() => open("batches")}>
                       <strong>Course batches</strong>
                       <span>Rosters, cross-class groups and late joiners</span>
                     </button>
@@ -545,7 +551,10 @@ export default function IeltsProgrammeWorkspace({
               )}
             </div>
           )}
-          {section === "lessons" && (data.can_manage ? <React.Suspense fallback={<p role="status">Opening lessons…</p>}><Lessons key={data.school_id} schoolId={data.school_id} onClose={() => open("overview")} onAssign={() => open("practice")} onProgress={() => open("students")} /></React.Suspense> : <section className="sp-card"><p>Your programme lead prepares school lessons.</p></section>)}
+          {section === "lessons" && (data.can_manage ? <React.Suspense fallback={<p role="status">Opening lessons…</p>}><Lessons key={data.school_id} schoolId={data.school_id} onClose={() => open("overview")} onAssign={() => open("assign")} onProgress={() => open("students")} /></React.Suspense> : <section className="sp-card"><p>Your programme lead prepares school lessons.</p></section>)}
+          {section === "assign" && (data.can_manage ? (
+            <IeltsAssignmentEntry onBack={() => open("overview")} onContinue={(scope) => openPractice(scope === "student" ? "targeted" : "school")} />
+          ) : <section className="sp-card"><p>Your programme lead manages IELTS assignments.</p></section>)}
           {section === "reviews" && queue}
           {section === "students" && planStudent && (
             <React.Suspense
@@ -576,7 +585,7 @@ export default function IeltsProgrammeWorkspace({
               }}
             />
           )}
-          {section === "team" && data.can_manage && <IeltsTeacherDisclosure title="Course batches" hint="Manage IELTS course groups, rosters and participation" icon="♧" defaultExpanded><React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense></IeltsTeacherDisclosure>}
+          {section === "batches" && data.can_manage && <IeltsTeacherDisclosure title="Course batches" hint="Manage IELTS course groups, rosters and participation" icon="♧" defaultExpanded><React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense></IeltsTeacherDisclosure>}
           {section === "team" && (
             <IeltsTeacherDisclosure title="Programme lead & school access" hint="View ownership and manage teacher allocation when authorized" icon={<Mark />} defaultExpanded>
             <section className="sp-card">
