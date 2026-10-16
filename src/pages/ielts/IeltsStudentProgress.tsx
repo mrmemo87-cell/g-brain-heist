@@ -352,6 +352,7 @@ export default function IeltsStudentProgress({
           </form>
           {applied && <p className="isi-muted isi-search-note">Showing results for “{applied}”</p>}
         </Accordion>
+        <Accordion title="Student evidence matrix" icon="▦" className="isi-matrix-accordion">
         <section aria-label="Student evidence matrix" className="isi-matrix" aria-busy={loading}>
           <div className="isi-table-scroll">
             <table>
@@ -388,6 +389,7 @@ export default function IeltsStudentProgress({
             </div>
           </div>
         </section>
+        </Accordion>
       </div>
       {selected && <IntelligenceDrawer key={data.school_id + ":" + selected.id} student={selected} workspace={data} onClose={close} onOpenPlan={onOpenPlan} />}
     </div>
