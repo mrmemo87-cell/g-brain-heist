@@ -231,6 +231,9 @@ for (const scenario of cases)
           width: w,
           height: info.project.use.viewport.height,
         });
+        // WebKit can acknowledge a viewport resize before the next layout frame.
+        // Measure the settled viewport; keep the same overflow threshold.
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         expect
           .soft(
             await page.evaluate(

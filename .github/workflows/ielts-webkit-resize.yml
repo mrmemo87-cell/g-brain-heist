@@ -1,0 +1,30 @@
+name: IELTS WebKit resize diagnostic
+on:
+  push:
+    branches: ["fix/ielts-webkit-resize-verification"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  repeated-resize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps webkit
+      - name: Repeat the failing loading viewport case without weakening its assertions
+        run: npm run visual:candidates -- --project=webkit-phone --grep '^review-queue-loading-teacher--normal$' --repeat-each=12
+      - name: Preserve diagnostic evidence (not full visual acceptance)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webkit-resize-${{ github.sha }}
+          path: .visual-results/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
