@@ -14,7 +14,7 @@ async function mount(role,{fail=false,profileError=false,review=false,answered=1
 }
 test('student sees server evidence, bounded interpretation and Journey links',async()=>{const m=await mount('student');try{
  await m.wait(()=>m.w.document.querySelector('a').textContent.includes('My IELTS Journey'));assert.equal(m.w.document.querySelector('a').getAttribute('href'),'/ielts/journey');
- assert.deepEqual([...m.w.document.querySelectorAll('dd')].map(x=>x.textContent),['9 / 12','12 / 12','8 / 8']);assert.match(m.w.document.body.textContent,/Short check · More evidence needed/);assert.match(m.w.document.body.textContent,/No band estimate/);assert.match(m.w.document.body.textContent,/does not establish a band or a persistent weakness/);assert.deepEqual(m.w.reads,['saved-attempt']);assert.deepEqual(m.errors,[]);
+ assert.deepEqual([...m.w.document.querySelectorAll('dd')].map(x=>x.textContent),['9 / 12Marks recorded in this short check','12 / 12Response coverage','8 / 8An area counts when you answer at least one question. This does not show mastery.']);assert.match(m.w.document.body.textContent,/Short check · More evidence needed/);assert.match(m.w.document.body.textContent,/No band estimate/);assert.match(m.w.document.body.textContent,/does not establish a band or a persistent weakness/);assert.deepEqual(m.w.reads,['saved-attempt']);assert.deepEqual(m.errors,[]);
  }finally{m.close();}});
 test('teacher result links return to Programme student progress instead of personal Journey',async()=>{const m=await mount('teacher');try{
  await m.wait(()=>m.w.document.querySelector('a').textContent.includes('Back to IELTS Programme'));assert.ok([...m.w.document.querySelectorAll('a')].every(a=>a.getAttribute('href')==='/ielts/programme?school=11111111-1111-4111-8111-111111111111&programmeSection=students'));assert.doesNotMatch(m.w.document.body.textContent,/My IELTS Journey/);assert.match(m.w.document.body.textContent,/Guide the next learning conversation/);assert.deepEqual(m.w.reads,['saved-attempt']);
@@ -34,7 +34,7 @@ test('empty and half-finished records explain missing evidence and retain origin
  for(const [answered,score,label] of [[0,0,'No assessment evidence'],[6,5,'Incomplete evidence']]) {
   const m=await mount('student',{answered,score});
   try{assert.match(m.w.document.querySelector('#isr-score-heading').textContent,new RegExp(label));
-   assert.equal(m.w.document.querySelector('dd').textContent,`${score} / 12`);
+   assert.equal(m.w.document.querySelector('dd').textContent,`${score} / 12Marks recorded in this short check`);
    assert.match(m.w.document.querySelector('.isr-next').textContent,/fresh check/);
    assert.deepEqual(m.w.reads,['saved-attempt']);
   }finally{m.close();}
