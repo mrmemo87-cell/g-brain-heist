@@ -175,6 +175,15 @@ test("teacher lesson library shows compact files by audience and keeps guidance 
   assert.match(overview.textContent, /Available to teach/);
   assert.match(overview.textContent, /IELTS-01/);
   assert.match(overview.textContent, /60 minutes/);
+  const accordionSections = [...w.document.querySelectorAll(".lesson-library-content > .ip-disclosure")];
+  assert.equal(accordionSections.length, 4, "Lesson essentials, resources, audio and guidance have separate collapsible navigation");
+  assert.equal(accordionSections[0].open, true, "Lesson essentials visible by default");
+  assert.equal(accordionSections[1].open, true, "Resource downloads visible by default");
+  assert.equal(accordionSections[2].open, false, "Audio files initially compact");
+  assert.equal(accordionSections[3].open, false, "Long lesson guidance initially compact");
+  accordionSections[2].querySelector("summary").click();
+  await waitFor(() => accordionSections[2].open);
+  assert.equal(accordionSections[1].open, true, "Opening audio does not hide teaching resources");
   assert.equal(w.document.querySelectorAll(".lesson-primary-actions .sp-primary").length, 1);
   const groupText = (id) => w.document.getElementById(id).closest("section").textContent;
   assert.match(groupText("lesson-students-title"), /student workbook/);
