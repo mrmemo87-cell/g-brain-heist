@@ -18,7 +18,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps webkit
       - name: Repeat the failing loading viewport case without weakening its assertions
-        run: npm run visual:candidates -- --project=webkit-phone --grep '^review-queue-loading-teacher--normal$' --repeat-each=12
+        run: npm run visual:candidates -- --project=webkit-phone --grep 'review-queue-loading-teacher--normal$' --repeat-each=12
       - name: Preserve diagnostic evidence (not full visual acceptance)
         if: always()
         uses: actions/upload-artifact@v4
