@@ -1,0 +1,56 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { PGlite } from '@electric-sql/pglite';
+const db = new PGlite();
+const uid = n => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
+const teacher=uid(1), student=uid(2), extra=uid(3), assignment=uid(4), q1=uid(5), q2=uid(6), school=uid(7);
+await db.exec(readFileSync('tests/fixtures/classroomSchema.sql','utf8'));
+await db.exec(`
+create table school_members(id uuid,user_id uuid,school_id uuid,status text,joined_at timestamptz);
+create table assignment_students(assignment_id uuid,student_id uuid,unique(assignment_id,student_id));
+create table student_assignment_analyses(assignment_id uuid,student_id uuid);
+create table student_learning_item_evidence(assignment_id uuid,student_id uuid);
+create table student_learning_registry_item_evidence(assignment_id uuid,student_id uuid);
+create table student_learning_observations(source_type text,source_id uuid,student_id uuid,skill_key text);
+create function student_learning_refresh_focus_state(uuid,text) returns void language sql as $$ select $$;
+create table assignment_email_notifications(assignment_id uuid,student_id uuid,available_at timestamptz);
+create table assignment_change_audit(assignment_id uuid,actor_user_id uuid,action text,affected_student_ids uuid[],affected_question_ids uuid[]);
+create function private.teacher_assignment_authorized_students(uuid,uuid,text,uuid,uuid[]) returns table(student_id uuid,class_code text) language sql as $$ select x,'8A' from unnest($5) x where x in ('${student}'::uuid,'${extra}'::uuid) $$;
+insert into teachers(id,user_id) values('${teacher}','${teacher}');
+insert into school_members values('${teacher}','${teacher}','${school}','active',now());
+insert into assignments(id,teacher_id,school_id,assignment_mode,publish_status,subject_name,title) values('${assignment}','${teacher}','${school}','custom','published','English','Original');
+insert into student_assignments(assignment_id,student_id,status) values('${assignment}','${student}','completed');
+insert into assignment_students values('${assignment}','${student}');
+insert into assignment_questions(assignment_id,question_id,order_index,question_snapshot) values('${assignment}','${q1}',1,'{"immutable":1}'),('${assignment}','${q2}',2,'{"immutable":2}');
+insert into student_assignment_answers(assignment_id,student_id,question_id,student_answer) values('${assignment}','${student}','${q1}','A');
+insert into student_assignment_results(assignment_id,student_id,score) values('${assignment}','${student}',10);
+insert into student_learning_item_evidence values('${assignment}','${student}');
+insert into student_learning_registry_item_evidence values('${assignment}','${student}');
+`);
+await db.exec(readFileSync('supabase/migrations/20261016141838_guard_assignment_edits_with_learning_evidence.sql','utf8'));
+const actor = id => db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
+const edit = (questions=[q1,q2], students=[student]) => db.query('select rpc_update_teacher_assignment($1,null,\'English\',\'Topic\',null,$2,now(),null,\'Edited\',\'Description\',\'Instructions\',\'mixed\',\'custom\',$3,\'published\',false,false)',[assignment,questions,students]);
+const snapshot = async () => (await db.query(`select (select jsonb_agg(to_jsonb(a)) from student_assignment_answers a) answers,(select jsonb_agg(to_jsonb(r)) from student_assignment_results r) results,(select jsonb_agg(to_jsonb(e)) from student_learning_item_evidence e) evidence,(select jsonb_agg(to_jsonb(e)) from student_learning_registry_item_evidence e) registry`)).rows[0];
+test('real assignment edit RPC preserves answers/evidence on metadata, reorder and audience expansion',async()=>{
+ await actor(teacher); const before=await snapshot();
+ await edit(); await edit([q2,q1],[student,extra]);
+ assert.deepEqual(await snapshot(),before);
+ assert.deepEqual((await db.query('select question_id,question_snapshot from assignment_questions order by order_index')).rows,[{question_id:q2,question_snapshot:{immutable:2}},{question_id:q1,question_snapshot:{immutable:1}}]);
+ assert.equal((await db.query('select status from student_assignments where student_id=$1',[student])).rows[0].status,'completed');
+ assert.equal((await db.query('select status from student_assignments where student_id=$1',[extra])).rows[0].status,'pending');
+});
+test('question changes and assessed student removal fail without touching either ledger',async()=>{
+ await actor(teacher); const before=await snapshot();
+ await assert.rejects(edit([q1]),/Cannot change questions/);
+ await assert.rejects(edit([q2,q1],[extra]),/Cannot remove students/);
+ assert.deepEqual(await snapshot(),before);
+});
+test('unauthenticated, other-school teachers and missing teacher records fail closed',async()=>{
+ await actor(''); await assert.rejects(edit(),/Authentication required/);
+ await actor(uid(999)); await assert.rejects(edit(),/not its creator/);
+ await db.query('update assignments set teacher_id=$1',[uid(999)]);
+ await actor(teacher); await assert.rejects(edit(),/not its creator/);
+ assert.equal((await db.query("select has_function_privilege('anon','rpc_update_teacher_assignment(uuid,text,text,text,text,uuid[],timestamptz,timestamptz,text,text,text,text,text,uuid[],text,boolean,boolean)','execute') allowed")).rows[0].allowed,false);
+});
+test.after(()=>db.close());
