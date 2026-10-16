@@ -31,7 +31,8 @@ type Section =
   | "practice"
   | "exams"
   | "lessons"
-  | "assign";
+  | "assign"
+  | "batches";
 const sections = [
   "overview",
   "students",
@@ -41,6 +42,7 @@ const sections = [
   "exams",
   "lessons",
   "assign",
+  "batches",
 ];
 function Mark({ kind = "school" }: { kind?: string }) {
   return (
@@ -179,7 +181,7 @@ export default function IeltsProgrammeWorkspace({
     section === "overview" ? "today" : section === "students" ? "students" :
     section === "lessons" ? "lessons" : section === "assign" ? "create" :
     section === "reviews" ? "reviews" : section === "exams" ? "exams" :
-    section === "team" ? "team" :
+    section === "team" ? "team" : section === "batches" ? "batches" :
     section === "practice" ? (new URLSearchParams(window.location.search).get("practice") === "school" ? "manage" :
       new URLSearchParams(window.location.search).get("practice") === "targeted" ? "create" : "history") : "today";
   const navigateTeacher = (key: IeltsTeacherNavKey) => {
@@ -191,7 +193,8 @@ export default function IeltsProgrammeWorkspace({
     else if (key === "history") openPractice("history");
     else if (key === "reviews") open("reviews");
     else if (key === "exams") open("exams");
-    else if (key === "batches" || key === "team") open("team");
+    else if (key === "batches") open("batches");
+    else if (key === "team") open("team");
     else if (key === "interviews") navigate("/ielts/speaking-interviews");
   };
   useEffect(() => {
@@ -516,7 +519,7 @@ export default function IeltsProgrammeWorkspace({
                       <strong>Practice history</strong>
                       <span>Find current and previous student work</span>
                     </button>
-                    <button type="button" onClick={() => open("team")}>
+                    <button type="button" onClick={() => open("batches")}>
                       <strong>Course batches</strong>
                       <span>Rosters, cross-class groups and late joiners</span>
                     </button>
@@ -582,7 +585,7 @@ export default function IeltsProgrammeWorkspace({
               }}
             />
           )}
-          {section === "team" && data.can_manage && <IeltsTeacherDisclosure title="Course batches" hint="Manage IELTS course groups, rosters and participation" icon="♧" defaultExpanded><React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense></IeltsTeacherDisclosure>}
+          {section === "batches" && data.can_manage && <IeltsTeacherDisclosure title="Course batches" hint="Manage IELTS course groups, rosters and participation" icon="♧" defaultExpanded><React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense></IeltsTeacherDisclosure>}
           {section === "team" && (
             <IeltsTeacherDisclosure title="Programme lead & school access" hint="View ownership and manage teacher allocation when authorized" icon={<Mark />} defaultExpanded>
             <section className="sp-card">
