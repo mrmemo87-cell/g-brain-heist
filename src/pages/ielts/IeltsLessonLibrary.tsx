@@ -305,7 +305,7 @@ export default function IeltsLessonLibrary({
           </section>
           </IeltsTeacherDisclosure>
 
-          <IeltsTeacherDisclosure title="Approved Listening audio" hint="Listen or download L-003 and L-004; no autoplay" icon="♫" defaultExpanded={false}>
+          <IeltsTeacherDisclosure title="Approved Listening audio" hint="Listen or download L-003 and L-004; no autoplay" icon="♫" defaultExpanded={false} onToggle={(expanded) => { if (!expanded) Object.values(players.current).forEach((player) => player?.pause()); }}>
           <section className="lesson-audio-section" aria-labelledby="lesson-audio-title">
             <div className="lesson-section-heading">
               <h3 id="lesson-audio-title">Approved Listening audio</h3>
