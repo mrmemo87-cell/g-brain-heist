@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { AnimationAction } from 'three';
+import { useFloatingCompanion } from '../../contexts/FloatingCompanionContext';
 import './StudentMascotDock.css';
 
 type ActionName = 'idle' | 'cheer' | 'angry' | 'greet' | 'box' | 'clap';
@@ -9,28 +10,23 @@ const keyFor = (id: string) => `bh:student-mascot:hidden:v1:${id}`;
 const isHidden = (id: string) => { try { return localStorage.getItem(keyFor(id)) === '1'; } catch { return false; } };
 const clipForPose = (pose: string): ActionName => pose === 'cheer' || pose === 'celebrate' ? 'cheer' : pose === 'keepsake' ? 'clap' : pose === 'thinking' || pose === 'curious' ? 'box' : 'greet';
 
-export default function StudentMascotDock({ userId }: { userId: string }) {
-  const [hidden, setHidden] = useState(() => isHidden(userId));
+function MascotAvatar({ userId }: { userId: string }) {
   const [ready, setReady] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [speech, setSpeech] = useState('Tap me for a little surprise ✨');
-  const [lastAction, setLastAction] = useState<ActionName>('idle');
   const host = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const controller = useRef<{ play: (name: ActionName) => void; dispose: () => void } | null>(null);
 
-  useEffect(() => { setHidden(isHidden(userId)); setMenuOpen(false); }, [userId]);
   useEffect(() => {
     const callback = (event: Event) => {
       const detail = (event as CustomEvent<{ userId?: string; pose?: string }>).detail;
-      if (detail?.userId === userId && detail.pose) { controller.current?.play(clipForPose(detail.pose)); setLastAction(clipForPose(detail.pose)); }
+      if (detail?.userId === userId && detail.pose) { controller.current?.play(clipForPose(detail.pose)); }
     };
     window.addEventListener('bh:echo-activity', callback);
     return () => window.removeEventListener('bh:echo-activity', callback);
   }, [userId]);
 
   useEffect(() => {
-    if (hidden || !canvas.current || !host.current) return;
+    if (!canvas.current || !host.current) return;
     let cancelled = false, frame = 0;
     const abort = new AbortController();
     const element = canvas.current, stage = host.current;
@@ -122,31 +118,54 @@ export default function StudentMascotDock({ userId }: { userId: string }) {
       } catch { if (!cancelled) setReady(false); }
     })();
     return () => { cancelled = true; abort.abort(); cleanup(); controller.current = null; };
-  }, [hidden, userId]);
+  }, [userId]);
 
-  const react = (name: ActionName, text: string) => { controller.current?.play(name); setLastAction(name); setSpeech(text); setMenuOpen(false); };
-  const toggle = (value: boolean) => { setMenuOpen(false); setHidden(value); try { if (value) localStorage.setItem(keyFor(userId), '1'); else localStorage.removeItem(keyFor(userId)); } catch {} };
-  return <aside className={`student-mascot-dock${hidden ? ' is-hidden' : ''}${menuOpen ? ' is-open' : ''}`} data-student-mascot aria-label="Brains Heist mascot" lang="en" dir="ltr">
-    {hidden ? <button className="student-mascot-return" type="button" onClick={() => toggle(false)}>🐱 Bring me back</button> : <>
-      <div className="student-mascot-stage" ref={host}>
-        <div className="student-mascot-float">
-          <canvas ref={canvas} data-companion-canvas="3d" className={ready ? 'ready' : ''} aria-hidden="true"/>
-          {!ready && <img src={poster} alt="" className="student-mascot-poster" draggable={false}/>}
-        </div>
-        <button className="student-mascot-touch" type="button" aria-expanded={menuOpen} aria-controls="student-mascot-actions" aria-label={menuOpen ? 'Close mascot actions' : 'Interact with your mascot'} onClick={() => { setMenuOpen(open => !open); setSpeech('What shall we do next?'); }}/>
-      </div>
-      {menuOpen && <div className="student-mascot-popover" id="student-mascot-actions" role="group" aria-label="Mascot interactions">
-        <p className="student-mascot-popover-title">Your little sidekick <span aria-hidden="true">✦</span></p>
-        <div className="student-mascot-actions">
-          <button type="button" onClick={() => react('greet', 'Hey, agent! Ready for another adventure?')}>👋 <span>Wave</span></button>
-          <button type="button" onClick={() => react('cheer', 'You’ve got this! Keep going!')}>🎉 <span>Cheer</span></button>
-          <button type="button" onClick={() => react('clap', 'Every little win counts!')}>👏 <span>Clap</span></button>
-          <button type="button" onClick={() => react('box', 'Power up! Next challenge awaits.')}>⚡ <span>Power up</span></button>
-        </div>
-        <button className="student-mascot-hide-action" type="button" onClick={() => toggle(true)}>Hide companion</button>
-      </div>}
-      <div className="student-mascot-bubble" role="status" aria-live="polite" key={lastAction + speech}>{speech}</div>
-      <button className="student-mascot-close" type="button" aria-label="Hide mascot" onClick={() => toggle(true)}>×</button>
-    </>}
-  </aside>;
+
+ return <span ref={host} className="student-mascot-hub-avatar" data-student-mascot aria-label="Animated Brains Heist cat"><span className="student-mascot-float">
+   <canvas ref={canvas} data-companion-canvas="3d" className={ready ? 'ready' : ''} aria-hidden="true"/>
+   {!ready && <img src={poster} className="student-mascot-poster" alt="" draggable={false}/>}
+ </span></span>;
+}
+function findHomeAction(label: string) {
+ const button = Array.from(document.querySelectorAll<HTMLButtonElement>('.retention-companion-world button'))
+   .find(item => item.textContent?.includes(label));
+ if (button) {
+   const details = button.closest('details');
+   if (details) details.open = true;
+   button.click();
+   button.scrollIntoView({block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+   return true;
+ }
+ return false;
+}
+function openHomeAction(label: string) {
+ if (findHomeAction(label)) return;
+ const home = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
+   .find(item => item.textContent?.trim() === 'Home' || item.getAttribute('aria-label')?.toLowerCase() === 'home');
+ home?.click();
+ let attempts = 0;
+ const locate = () => { if (!findHomeAction(label) && ++attempts < 12) window.setTimeout(locate, 180); };
+ window.setTimeout(locate, 180);
+}
+export default function StudentMascotDock({userId}: {userId:string}) {
+ const {register} = useFloatingCompanion();
+ const [tucked,setTucked] = useState(() => isHidden(userId));
+ useEffect(() => setTucked(isHidden(userId)), [userId]);
+ const companion = useMemo(() => ({
+   name:'Neon Cat', palette:'cyan',
+   avatar:<MascotAvatar userId={userId}/>,
+   greet:() => window.dispatchEvent(new CustomEvent('bh:echo-activity',{detail:{userId,pose:'greeting'}})),
+   personalise:() => openHomeAction('Name & personalise'),
+   keepsakes:() => openHomeAction('Our keepsakes'),
+   tuck:() => {try{localStorage.setItem(keyFor(userId),'1');}catch{} setTucked(true);},
+ }),[userId]);
+ useEffect(() => {
+   register(tucked ? null : companion);
+   return () => register(null);
+ },[register,companion,tucked]);
+ if (!tucked) return null;
+ return <button type="button" className="student-mascot-restore" onClick={() => {
+   try{localStorage.removeItem(keyFor(userId));}catch{}
+   setTucked(false);
+ }}>🐱 Bring back mascot</button>;
 }

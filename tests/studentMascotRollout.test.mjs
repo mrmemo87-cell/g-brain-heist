@@ -30,8 +30,11 @@ test('dock has hide, pause, reduced motion and original pilot conflict protectio
  assert.match(dock, /IntersectionObserver/);
  assert.match(dock, /prefers-reduced-motion/);
  assert.match(dock, /visibilitychange/);
- assert.match(dock, /student-mascot-popover/);
- assert.match(css, /bh-mascot-float/);
+ assert.match(dock, /useFloatingCompanion/);
+ assert.match(dock, /register\(tucked \? null : companion\)/);
+ assert.match(dock, /personalise:/);
+ assert.match(dock, /keepsakes:/);
+ assert.match(css, /bh-mascot-hub-float/);
  assert.match(app, /!isCambridgeView/);
  assert.match(css, /safe-area-inset-bottom/);
 });
