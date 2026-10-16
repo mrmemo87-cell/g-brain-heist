@@ -55,8 +55,9 @@ function Accordion({
   trailing?: React.ReactNode;
   className?: string;
 }) {
+  const [expanded, setExpanded] = useState(initialOpen);
   return (
-    <details className={"isi-accordion " + className} defaultOpen={initialOpen}>
+    <details className={"isi-accordion " + className} open={expanded} onToggle={(event) => setExpanded(event.currentTarget.open)}>
       <summary>
         <span className="isi-section-title"><span aria-hidden="true" className="isi-section-icon">{icon}</span>{title}</span>
         <span className="isi-section-right">{trailing}<span className="isi-chevron" aria-hidden="true">⌄</span></span>
@@ -388,7 +389,7 @@ export default function IeltsStudentProgress({
           </div>
         </section>
       </div>
-      {selected && <IntelligenceDrawer key={data.school_id} student={selected} workspace={data} onClose={close} onOpenPlan={onOpenPlan} />}
+      {selected && <IntelligenceDrawer key={data.school_id + ":" + selected.id} student={selected} workspace={data} onClose={close} onOpenPlan={onOpenPlan} />}
     </div>
   );
 }
