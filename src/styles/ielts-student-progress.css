@@ -330,3 +330,8 @@
 
 .ip-page .ip-nav-icon { display: inline-grid; place-items: center; }
 .ip-page .ip-nav-icon svg { width: 17px; height: 17px; }
+
+/* Reset generous legacy programme button padding inside compact controls. */
+.ip-page .isi-icon-button,
+.ip-page .isi-search-input button { padding: 0; }
+.ip-page .isi-pagination-actions button { cursor: pointer; }
