@@ -186,7 +186,35 @@
   min-height: 34px; min-width: 34px; font-size: 1.6rem; line-height: 1; cursor: pointer;
 }
 .ip-page .isi-icon-button:hover { background: #eff6ff; color: #1d4ed8; }
-.ip-page .isi-drawer-scroll { padding: 14px; display: grid; align-content: start; gap: 12px; overflow-y: auto; overscroll-behavior: contain; }
+/* Flex column with non-shrinking disclosures: prevent open content being squeezed
+   into evenly-sized grid tracks when the drawer contains more than a viewport. */
+.ip-page .isi-drawer-scroll {
+  padding: 14px;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.ip-page .isi-drawer-scroll > .isi-accordion {
+  display: block;
+  flex: 0 0 auto;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+}
+.ip-page .isi-drawer-scroll .isi-section-content {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  min-width: 0;
+}
 .ip-page .isi-confidence {
   background: #fffaf0; color: #844807; border: 1px solid #fde6b1;
   padding: 12px; border-radius: 9px; font-size: .79rem;
@@ -335,3 +363,8 @@
 .ip-page .isi-icon-button,
 .ip-page .isi-search-input button { padding: 0; }
 .ip-page .isi-pagination-actions button { cursor: pointer; }
+
+/* Let the complete four-skill matrix fit beside the 430px drawer on desktop. */
+@media (min-width: 1200px) {
+  .ip-page .isi-with-drawer .isi-matrix table { min-width: 700px; }
+}
