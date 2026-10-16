@@ -46,3 +46,40 @@
 .companion-hub-option:nth-child(2) { transition-delay:30ms; }
 .companion-hub-option:nth-child(3) { transition-delay:60ms; }
 .companion-hub-option:nth-child(4) { transition-delay:90ms; }
+
+
+/* Cinematic companion fan: dock-side aware, staggered, fully reversible CSS fallback. */
+.language-dock.is-companion .companion-hub-fan { perspective:700px; }
+.language-dock.is-companion .companion-hub-option {
+  transform-origin:left center;
+  will-change:transform,opacity,filter;
+  filter:blur(6px);
+  transform:translate3d(-92px,18px,0) rotate(-9deg) scale(.52);
+  transition:
+    transform 480ms cubic-bezier(.18,.87,.25,1.24),
+    opacity 330ms ease,
+    filter 340ms ease;
+  transition-delay:0ms;
+}
+.language-dock.is-companion.is-right .companion-hub-option {
+  transform-origin:right center;
+  transform:translate3d(92px,18px,0) rotate(9deg) scale(.52);
+}
+.language-dock.is-companion .companion-hub-fan.is-visible .companion-hub-option,
+.language-dock.is-companion.is-right .companion-hub-fan.is-visible .companion-hub-option {
+  opacity:1; filter:blur(0); transform:translate3d(0,0,0) rotate(0) scale(1);
+}
+.language-dock.is-companion .companion-hub-fan.is-visible .companion-hub-option:nth-child(2){transition-delay:55ms}
+.language-dock.is-companion .companion-hub-fan.is-visible .companion-hub-option:nth-child(3){transition-delay:110ms}
+.language-dock.is-companion .companion-hub-fan.is-visible .companion-hub-option:nth-child(4){transition-delay:165ms}
+.language-dock.is-companion .companion-hub-fan.has-gsap .companion-hub-option{
+  transition:none!important;
+  will-change:transform,opacity,filter;
+}
+.language-dock.is-companion.is-open:not(.is-dragging) .language-dock-trigger {
+  filter:drop-shadow(0 0 12px rgba(0,208,232,.36));
+}
+@media(prefers-reduced-motion:reduce){
+ .language-dock.is-companion .companion-hub-option{transition:none!important;filter:none!important;will-change:auto}
+ .language-dock.is-companion .companion-hub-fan.is-visible .companion-hub-option{transform:none}
+}
