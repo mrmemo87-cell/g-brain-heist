@@ -144,7 +144,7 @@
 .ip-page .isi-status-empty .isi-status-dot { background: #d97706; }
 .ip-page .isi-status-reviewed .isi-cell-description { color: #166534; font-weight: 650; }
 .ip-page .isi-status-partial .isi-cell-description { color: #92400e; }
-.ip-page .isi-status-none .isi-cell-description { color: #94a3b8; }
+.ip-page .isi-status-none .isi-cell-description { color: #64748b; }
 .ip-page .isi-no-results { text-align: center; padding: 35px 14px; }
 .ip-page .isi-no-results strong { color: var(--isi-navy); }
 .ip-page .isi-no-results p { color: var(--isi-muted); }
