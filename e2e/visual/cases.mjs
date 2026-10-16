@@ -1,5 +1,6 @@
 // Every case renders production components with synthetic data. No case implies human approval.
 export const cases = [
+  ...["teacher","school_admin"].flatMap(role => ["batches","course-materials","review-queue"].flatMap(view => ["populated","empty","loading","error"].map(state=>({id:`${view}-${state}-${role}`,surface:view==="batches"?"IeltsCourseBatches":view==="course-materials"?"IeltsBatchCourseMaterials":"IeltsReviewQueue",state,view,role,empty:state==="empty",loading:state==="loading",error:state==="error"})))),
   ...["teacher","school_admin"].flatMap(role => ["populated","empty","loading","error"].map(state => ({id:`lessons-${state}-${role}`,surface:"IeltsLessonLibrary",state,view:"lessons",role,empty:state==="empty",loading:state==="loading",error:state==="error"}))),
   ...["assigned","journey"].flatMap(view => ["populated","empty","loading","error"].map(state => ({id:`${view}-${state}`,surface:view==="assigned"?"IeltsAssignedPractice":"IeltsJourneyDashboard",state,view,role:"student",empty:state==="empty",loading:state==="loading",error:state==="error"}))),
   { id: "dialog", surface: "IeltsUi", state: "confirmation", view: "shared" },

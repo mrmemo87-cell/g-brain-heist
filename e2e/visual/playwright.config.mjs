@@ -10,7 +10,7 @@ export default defineConfig({
     toHaveScreenshot: { animations: "disabled", maxDiffPixelRatio: 0.002 },
   },
   fullyParallel: true,
-  workers: process.env.CI ? 2 : 2,
+  workers: process.env.CI ? 4 : 2,
   retries: 0,
   outputDir: path.resolve(".visual-results/tests"),
   reporter: [

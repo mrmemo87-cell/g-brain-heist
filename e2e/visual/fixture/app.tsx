@@ -18,6 +18,11 @@ import {
 import Lessons from "../../../src/pages/ielts/IeltsLessonLibrary";
 import Assigned from "../../../src/pages/ielts/IeltsAssignedPractice";
 import Journey from "../../../src/pages/ielts/IeltsJourneyDashboard";
+import {QueryClient,QueryClientProvider} from "@tanstack/react-query";
+import Batches from "../../../src/pages/ielts/IeltsCourseBatches";
+import CourseMaterials from "../../../src/pages/ielts/IeltsBatchCourseMaterials";
+import ReviewQueue from "../../../src/pages/ielts/IeltsReviewQueue";
+const queryClient = new QueryClient({defaultOptions:{queries:{retry:false}}});
 function Shared() {
   const [open, setOpen] = useState(scenario.id === "dialog");
   return (
@@ -61,7 +66,8 @@ history.replaceState(
   "",
   `${route}?programmeSection=${scenario.section ?? "overview"}`,
 );
-const extra = scenario.view === "lessons" ? <Lessons schoolId={id(2)} onClose={()=>{}} onAssign={()=>{}} onProgress={()=>{}}/> : scenario.view === "assigned" ? <Assigned/> : scenario.view === "journey" ? <Journey/> : null;
+const staff = scenario.view === "batches" ? <main className="ix-workspace"><h1>IELTS course team</h1><Batches schoolId={id(2)} onAssign={()=>{}}/></main> : scenario.view === "course-materials" ? <main className="ix-workspace"><h1>IELTS course assignment</h1><CourseMaterials batchId={id(80)}/></main> : scenario.view === "review-queue" ? <ReviewQueue/> : null;
+const extra = staff ?? (scenario.view === "lessons" ? <Lessons schoolId={id(2)} onClose={()=>{}} onAssign={()=>{}} onProgress={()=>{}}/> : scenario.view === "assigned" ? <Assigned/> : scenario.view === "journey" ? <Journey/> : null);
 const element = extra ?? (
   scenario.view === "exam" ? (
     <Exam />
@@ -82,9 +88,9 @@ const template =
       : route;
 createRoot(document.getElementById("root")!).render(
   <div className="bh-ielts-experience" data-ielts-route={template}>
-    <RouterProvider
+    <QueryClientProvider client={queryClient}><RouterProvider
       router={createBrowserRouter([{ path: template, element }])}
-    />
+    /></QueryClientProvider>
   </div>,
 );
 (window as any).__visualMounted = true;

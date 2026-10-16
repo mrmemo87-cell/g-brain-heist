@@ -226,9 +226,15 @@ async function rpc(name: string, args: any = {}) {
     case "rpc_school_admin_my_capabilities":
     case "school_admin_get_my_capabilities":
     case "school_admin_get_my_allocation_capabilities":
-      data=null;break;
+      data={success:true,school_id:id(2),user_id:id(1),role:"student",can_administer:false};break;
+    case "rpc_ielts_review_queue":
+      data=scenario.empty?[]:[{skill:"writing",attempt_id:id(90),student_id:id(1),student_name:"Synthetic learner",class_id:id(61),class_name:"Synthetic Class",submitted_at:now,review_id:null,review_status:"pending",overall_band:null,reviewed_by:null,reviewed_at:null,prompt:"Explain an example.",task_title:"Synthetic guided writing",word_count:120,duration_seconds:null}];break;
+    case "rpc_ielts_batch_roster":
+      data={id:id(80),name:"Synthetic afternoon batch",revision:1,members:scenario.empty?[]:[{id:id(1),name:"Synthetic learner",username:"synthetic",class_name:"Synthetic Class",eligible:true}],candidates:[],has_more:false};break;
+    case "rpc_ielts_practice_content_catalog_with_provenance":
+      data=scenario.empty?[]:[{content_type:"ielts_reading_set",content_id:"101",display_code:"R-008",title:"Synthetic reviewed reading",skill:"reading",description:"Synthetic guided practice",originality_label:"Originality reviewed"}];break;
     case "rpc_ielts_batches":
-      data = [];
+      data = scenario.view==="batches"&&!scenario.empty?[{id:id(80),name:"Synthetic afternoon batch",revision:1,student_count:12,eligible_count:12,archived_at:null,delete_allowed:false}]:[];
       break;
     default:
       (window as any).__visualUnexpected.push(name);

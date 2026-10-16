@@ -156,7 +156,26 @@ for (const scenario of cases)
         const loading=scenario.view==="assigned"?"Loading assigned IELTS practice…":"Loading your IELTS journey…";
         if(scenario.loading) await expect(page.getByText(loading)).toBeVisible();
         else if(scenario.error) await expect(page.getByText(/Unable to load|could not|try again/i).first()).toBeVisible();
-        else await expect(page.getByText(loading)).toHaveCount(0);
+        else {
+          await expect(page.getByText(loading)).toHaveCount(0);
+          if(scenario.view === "journey") {
+            await expect(page.getByRole("heading",{name:"Build your IELTS starting point.",exact:true})).toBeVisible();
+            await expect(page.getByText("School access could not be verified.")).toHaveCount(0);
+          } else if(!scenario.empty) {
+            await expect(page.getByRole("heading",{name:"Synthetic reading and writing practice",exact:true})).toBeVisible();
+          } else await expect(page.getByText(/No school assignment sets right now/)).toBeVisible();
+        }
+      }
+      if(["batches","course-materials","review-queue"].includes(scenario.view)) {
+        const loading=scenario.view==="batches"?"Loading batches…":scenario.view==="course-materials"?"Loading released materials and batch members…":"Loading reviewable submissions…";
+        if(scenario.loading) await expect(page.getByText(loading)).toBeVisible();
+        else if(scenario.error) await expect(page.getByText(/could not load|could not be confirmed|Unable to load the review queue/i).first()).toBeVisible();
+        else {
+          await expect(page.getByText(loading)).toHaveCount(0);
+          if(scenario.view==="batches") await expect(page.getByRole("heading",{name:"Synthetic afternoon batch",exact:true})).toHaveCount(scenario.empty?0:1);
+          if(scenario.view==="course-materials") await expect(page.getByRole("option",{name:/R-008/})).toHaveCount(scenario.empty?0:1);
+          if(scenario.view==="review-queue") await expect(page.getByText("Synthetic guided writing")).toHaveCount(scenario.empty?0:1);
+        }
       }
       const loadedFonts = await page.evaluate(async () => {
         // The actual app font must load; a fallback font is not valid evidence.
