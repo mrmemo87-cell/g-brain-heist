@@ -130,6 +130,8 @@ function findHomeAction(label: string) {
  const button = Array.from(document.querySelectorAll<HTMLButtonElement>('.retention-companion-world button'))
    .find(item => item.textContent?.includes(label));
  if (button) {
+   const details = button.closest('details');
+   if (details) details.open = true;
    button.click();
    button.scrollIntoView({block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
    return true;
@@ -141,7 +143,9 @@ function openHomeAction(label: string) {
  const home = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
    .find(item => item.textContent?.trim() === 'Home' || item.getAttribute('aria-label')?.toLowerCase() === 'home');
  home?.click();
- window.setTimeout(() => { findHomeAction(label); }, 250);
+ let attempts = 0;
+ const locate = () => { if (!findHomeAction(label) && ++attempts < 12) window.setTimeout(locate, 180); };
+ window.setTimeout(locate, 180);
 }
 export default function StudentMascotDock({userId}: {userId:string}) {
  const {register} = useFloatingCompanion();
