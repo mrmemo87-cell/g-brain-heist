@@ -54,6 +54,7 @@ class Pack:
         self.school = args.school
         self.logo = Path(args.logo).resolve() if args.logo else None
         self.review_date = args.review_date
+        self.args = args
         self.out = Path(args.output).resolve()
         if self.out.exists() and any(self.out.iterdir()):
             raise SystemExit(f'Output directory {self.out} is not empty; use a new directory for each build.')
@@ -690,7 +691,20 @@ class Pack:
                'section{background:#fff;padding:24px;margin:20px 0}small{color:#4C6076}li{margin:10px 0}html{overflow-wrap:anywhere}'
                '@media print{body{background:#fff}main{padding:0}button,nav{display:none}section{break-inside:avoid}}')
         d, n = self.d, self.n
-        audio = ''.join(f"<li>{E(r['id'])}: {E(r['status'])}</li>" for r in d['audio']['recordings'])
+        audio_dir = Path(self.args.audio_dir) if getattr(self.args, 'audio_dir', None) else None
+        items = []
+        for r in d['audio']['recordings']:
+            src = audio_dir / f"{r['id']}_v1.mp3" if audio_dir else None
+            if src and src.is_file():
+                # Recordings travel inside the private pack for teacher listening review; status text says whether they are approved.
+                rel = f"Teacher-private/Audio/{r['id']}_v1.mp3"
+                (self.out / 'Teacher-private/Audio').mkdir(exist_ok=True)
+                shutil.copyfile(src, self.out / rel)
+                self.files.append({'file': rel, 'audience': 'teacher', 'recording': r['id'], 'status': r['status']})
+                items.append(f"<li><a href=\"{E(rel)}\">{E(r['id'])}</a>: {E(r['status'])}</li>")
+            else:
+                items.append(f"<li>{E(r['id'])}: {E(r['status'])}</li>")
+        audio = ''.join(items)
         audio_html = f"<p><strong>Recordings required.</strong> {E(d['audio']['statement'])}</p><ul>{audio}</ul>" if d['audio']['required'] else f"<p><strong>{E(d['audio']['statement'])}</strong></p>"
         start = (f'<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lesson {n} start guide</title><style>{css}</style><main>'
                  f'<p>{E(self.school)}<br>Brains Heist IELTS</p><h1>Lesson {n}<br>{E(d["title"])}</h1>'
@@ -757,6 +771,7 @@ def main():
     ap.add_argument('--school', default='School IELTS Programme')
     ap.add_argument('--logo')
     ap.add_argument('--review-date')
+    ap.add_argument('--audio-dir', help='Folder with produced <recording id>_v1.mp3 files to include for teacher review')
     args = ap.parse_args()
     check = subprocess.run(['node', str(ROOT / 'scripts/ielts/lesson-source-contract.mjs'), args.source], capture_output=True, text=True)
     if check.returncode:
