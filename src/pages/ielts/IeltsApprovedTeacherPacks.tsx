@@ -44,7 +44,7 @@ export default function IeltsApprovedTeacherPacks({schoolId}:{schoolId:string}) 
   {packs.map(pack=><IeltsTeacherDisclosure key={pack.object_path} title={`${pack.lesson_code} · ${pack.title}`} hint="Approved Academic IELTS pack · B1 foundation · 60 minutes" marker="Available to teach" defaultExpanded={false}>
    <p>Light presentation, school-branded smart print materials, homework, targeted support, teacher guide and private keys. Version {pack.version}.</p>
    {pack.lesson_code==='IELTS-03'&&<p>Includes the three approved recordings and offline audio players.</p>}
-   <div className="lesson-actions">
+   <div className="lesson-primary-actions">
     <button type="button" className="sp-primary" disabled={!!busy} onClick={()=>void download(pack,'zip')}>{busy===pack.lesson_code?'Preparing download…':'Download complete teacher pack'}</button>
     <button type="button" className="sp-secondary" disabled={!!busy} onClick={()=>void download(pack,'slides')}>Download light presentation</button>
     <button type="button" className="sp-secondary" disabled={!!busy} onClick={()=>void download(pack,'pptx')}>Editable PowerPoint</button>
