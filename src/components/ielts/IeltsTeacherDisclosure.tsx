@@ -26,8 +26,9 @@ export default function IeltsTeacherDisclosure({
   className = "",
   onToggle,
 }: Props) {
+  const [expanded, setExpanded] = React.useState(defaultExpanded);
   return (
-    <details className={"ip-disclosure " + className} defaultOpen={defaultExpanded} onToggle={(event) => onToggle?.(event.currentTarget.open)}>
+    <details className={"ip-disclosure " + className} open={expanded} onToggle={(event) => { setExpanded(event.currentTarget.open); onToggle?.(event.currentTarget.open); }}>
       <summary className="ip-disclosure-toggle">
         <span className="ip-disclosure-icon" aria-hidden="true">{icon ?? "▦"}</span>
         <span className="ip-disclosure-heading">

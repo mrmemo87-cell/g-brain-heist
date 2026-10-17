@@ -55,8 +55,9 @@ function Accordion({
   trailing?: React.ReactNode;
   className?: string;
 }) {
+  const [expanded, setExpanded] = useState(initialOpen);
   return (
-    <details className={"isi-accordion " + className} defaultOpen={initialOpen}>
+    <details className={"isi-accordion " + className} open={expanded} onToggle={event => setExpanded(event.currentTarget.open)}>
       <summary>
         <span className="isi-section-title"><span aria-hidden="true" className="isi-section-icon">{icon}</span>{title}</span>
         <span className="isi-section-right">{trailing}<span className="isi-chevron" aria-hidden="true">⌄</span></span>
