@@ -1,0 +1,317 @@
+{
+  "record": "IELTS-05 listening audio production",
+  "version": "1",
+  "produced": "2026-10-17",
+  "provider": "Runway MCP (workspace 'Sobbi', personal)",
+  "script_source": "docs/ielts/lessons/lesson-05/lesson.json",
+  "script_source_sha256_at_production": "feaac747738d8bae1e7f809cadf1bacf74abe975a7c738fd99ce07c5e7ca1356",
+  "production_method": {
+    "passages": "eleven_v4 multi-speaker dialogue (one call per conversation, natural turn-taking), stability 0.5, fixed seeds",
+    "instructions": "eleven_multilingual_v2, voice Tom, stability 0.7, separate calls",
+    "assembly": "48 kHz mono; edge silence trimmed from each speech segment; each segment loudness-matched to -18 LUFS; exact digital silences inserted (0.7 s after notice, 30.0 s reading, 1.0 s before passage, 1.2 s after passage, 15.0 s response); true-peak limiter at -1.5 dBFS; MP3 192 kbps with copyright metadata",
+    "effects": "none: no noise, phone filter, music or ambience"
+  },
+  "recordings": {
+    "IELTS-05-L1": {
+      "file": "IELTS-05-L1_v1.mp3",
+      "sha256": "f18e8aa423557fbf99c347492a9e25c57a99e4e8dea27e8da6d0d41aefbb859c",
+      "bytes": 4111206,
+      "duration_seconds": 171.264,
+      "transcript_sha256": "a21a18711b58beab9c7cbccb8239fd2dc33efc1bed8bccf9df1d40880c881a9f",
+      "voices": {
+        "instruction": "Tom (British, examiner style; steady model)",
+        "RUTH": "Paula (British, calm, conversational)",
+        "DANIEL": "James (Australian, casual)"
+      },
+      "runway_tasks": {
+        "notice": "76c04fc8-9b7e-4099-b60c-0777f7e58e56",
+        "L1_intro": "2f989355-37fb-4d0d-995a-559483dd9829",
+        "listen_1_6": "2531d7b8-910c-4bca-a16b-3716343b93b0",
+        "L1_passage": "413bdd1d-6aa1-4f04-bc80-8da681aeed05",
+        "end_check": "50e1fb1d-4e45-467e-96ee-0837f001fe91"
+      },
+      "passage_seconds": 95.92,
+      "passage_words": 282,
+      "passage_words_per_minute": 176,
+      "designed_cues": [
+        {
+          "label": "reading_silence",
+          "start": 19.534,
+          "seconds": 30.0
+        },
+        {
+          "label": "response_silence",
+          "start": 156.233,
+          "seconds": 15.0
+        }
+      ],
+      "segments": [
+        {
+          "segment": "notice",
+          "source_lufs": -21.2,
+          "gain_db": 3.2,
+          "start": 0.0,
+          "seconds": 4.412
+        },
+        {
+          "segment": "L1_intro",
+          "source_lufs": -21.9,
+          "gain_db": 3.9,
+          "start": 5.112,
+          "seconds": 14.422
+        },
+        {
+          "segment": "listen_1_6",
+          "source_lufs": -21.5,
+          "gain_db": 3.5,
+          "start": 49.534,
+          "seconds": 3.624
+        },
+        {
+          "segment": "L1_passage",
+          "source_lufs": -22.8,
+          "gain_db": 4.8,
+          "start": 54.158,
+          "seconds": 95.784
+        },
+        {
+          "segment": "end_check",
+          "source_lufs": -23.9,
+          "gain_db": 5.9,
+          "start": 151.142,
+          "seconds": 5.091
+        }
+      ],
+      "verification": {
+        "integrated_lufs": -18.6,
+        "true_peak_dbfs": -1.5,
+        "decoded_clipped_samples": 0,
+        "detected_pauses": [
+          {
+            "detected_start": 19.442,
+            "detected_end": 49.582,
+            "detected_seconds": 30.14
+          },
+          {
+            "detected_start": 156.145,
+            "detected_end": 171.233,
+            "detected_seconds": 15.089
+          }
+        ],
+        "unexpected_gaps_over_1_5s": []
+      },
+      "review": {
+        "status": "Owner listening review pending",
+        "scopes_pending": [
+          "every word, number, name and correction against the transcript",
+          "speaker distinctness (essential for L2 Questions 9-10)",
+          "naturalness, pace and pronunciation",
+          "keys still match the delivered audio",
+          "phone, laptop and classroom-speaker playback",
+          "generated-voice licence and distribution rights"
+        ]
+      }
+    },
+    "IELTS-05-L2": {
+      "file": "IELTS-05-L2_v1.mp3",
+      "sha256": "40a8a08a9b6d8b3bfa897aaf8f8b533c8e70e63f68157ce5cb08e4730320a401",
+      "bytes": 4355428,
+      "duration_seconds": 181.44,
+      "transcript_sha256": "aff572e16842f7d8a88bacdb5c685d091e432f491cc5c5e56adea687bbf1eed3",
+      "voices": {
+        "instruction": "Tom (British, examiner style; steady model)",
+        "DR PRICE": "Marlene (British, middle-aged, measured)",
+        "LENA": "Kylie (Australian, young, confident)",
+        "MARCO": "Frank (North American, young, deep)"
+      },
+      "runway_tasks": {
+        "notice": "76c04fc8-9b7e-4099-b60c-0777f7e58e56",
+        "L2_intro": "25f2890f-7bf0-499c-9844-c727590a85b1",
+        "listen_7_10": "efe1c7b8-c334-4781-aeab-7fe84e0fb5aa",
+        "L2_passage": "3764cf1e-10ba-47c2-a4a9-879d14e48c95",
+        "end_check": "50e1fb1d-4e45-467e-96ee-0837f001fe91"
+      },
+      "passage_seconds": 107.28,
+      "passage_words": 281,
+      "passage_words_per_minute": 157,
+      "designed_cues": [
+        {
+          "label": "reading_silence",
+          "start": 19.033,
+          "seconds": 30.0
+        },
+        {
+          "label": "response_silence",
+          "start": 166.411,
+          "seconds": 15.0
+        }
+      ],
+      "segments": [
+        {
+          "segment": "notice",
+          "source_lufs": -21.2,
+          "gain_db": 3.2,
+          "start": 0.0,
+          "seconds": 4.412
+        },
+        {
+          "segment": "L2_intro",
+          "source_lufs": -22.6,
+          "gain_db": 4.6,
+          "start": 5.112,
+          "seconds": 13.921
+        },
+        {
+          "segment": "listen_7_10",
+          "source_lufs": -21.1,
+          "gain_db": 3.1,
+          "start": 49.033,
+          "seconds": 3.017
+        },
+        {
+          "segment": "L2_passage",
+          "source_lufs": -22.1,
+          "gain_db": 4.1,
+          "start": 53.05,
+          "seconds": 107.07
+        },
+        {
+          "segment": "end_check",
+          "source_lufs": -23.9,
+          "gain_db": 5.9,
+          "start": 161.32,
+          "seconds": 5.091
+        }
+      ],
+      "verification": {
+        "integrated_lufs": -18.5,
+        "true_peak_dbfs": -1.3,
+        "decoded_clipped_samples": 0,
+        "detected_pauses": [
+          {
+            "detected_start": 18.94,
+            "detected_end": 49.079,
+            "detected_seconds": 30.139
+          },
+          {
+            "detected_start": 166.322,
+            "detected_end": 181.411,
+            "detected_seconds": 15.089
+          }
+        ],
+        "unexpected_gaps_over_1_5s": []
+      },
+      "review": {
+        "status": "Owner listening review pending",
+        "scopes_pending": [
+          "every word, number, name and correction against the transcript",
+          "speaker distinctness (essential for L2 Questions 9-10)",
+          "naturalness, pace and pronunciation",
+          "keys still match the delivered audio",
+          "phone, laptop and classroom-speaker playback",
+          "generated-voice licence and distribution rights"
+        ]
+      }
+    },
+    "IELTS-05-C1": {
+      "file": "IELTS-05-C1_v1.mp3",
+      "sha256": "223dfdd4b5e5b02858e902fdfa0ebf4b4a97a902ac4ca832f94c77ecb227d798",
+      "bytes": 3564588,
+      "duration_seconds": 148.488,
+      "transcript_sha256": "fe06fc588d85ac5f8b5df18beda5b27e891a8ab9b28831931b06f4e701d411c6",
+      "voices": {
+        "instruction": "Tom (British, examiner style; steady model)",
+        "SAM": "Vincent (Australian, older, calm)",
+        "AISHA": "Maggie (North American, young, calm)"
+      },
+      "runway_tasks": {
+        "notice": "76c04fc8-9b7e-4099-b60c-0777f7e58e56",
+        "C1_intro": "342d6e18-25a7-4256-a178-0d7f00e998ea",
+        "listen_1_6": "2531d7b8-910c-4bca-a16b-3716343b93b0",
+        "C1_passage": "86347741-d9d3-44a5-bd04-f912267c998c",
+        "end_check": "50e1fb1d-4e45-467e-96ee-0837f001fe91"
+      },
+      "passage_seconds": 77.92,
+      "passage_words": 221,
+      "passage_words_per_minute": 170,
+      "designed_cues": [
+        {
+          "label": "reading_silence",
+          "start": 14.708,
+          "seconds": 30.0
+        },
+        {
+          "label": "response_silence",
+          "start": 133.458,
+          "seconds": 15.0
+        }
+      ],
+      "segments": [
+        {
+          "segment": "notice",
+          "source_lufs": -21.2,
+          "gain_db": 3.2,
+          "start": 0.0,
+          "seconds": 4.412
+        },
+        {
+          "segment": "C1_intro",
+          "source_lufs": -22.6,
+          "gain_db": 4.6,
+          "start": 5.112,
+          "seconds": 9.596
+        },
+        {
+          "segment": "listen_1_6",
+          "source_lufs": -21.5,
+          "gain_db": 3.5,
+          "start": 44.708,
+          "seconds": 3.624
+        },
+        {
+          "segment": "C1_passage",
+          "source_lufs": -21.2,
+          "gain_db": 3.2,
+          "start": 49.332,
+          "seconds": 77.835
+        },
+        {
+          "segment": "end_check",
+          "source_lufs": -23.9,
+          "gain_db": 5.9,
+          "start": 128.367,
+          "seconds": 5.091
+        }
+      ],
+      "verification": {
+        "integrated_lufs": -18.6,
+        "true_peak_dbfs": -1.4,
+        "decoded_clipped_samples": 0,
+        "detected_pauses": [
+          {
+            "detected_start": 14.607,
+            "detected_end": 44.756,
+            "detected_seconds": 30.149
+          },
+          {
+            "detected_start": 133.369,
+            "detected_end": 148.458,
+            "detected_seconds": 15.089
+          }
+        ],
+        "unexpected_gaps_over_1_5s": []
+      },
+      "review": {
+        "status": "Owner listening review pending",
+        "scopes_pending": [
+          "every word, number, name and correction against the transcript",
+          "speaker distinctness (essential for L2 Questions 9-10)",
+          "naturalness, pace and pronunciation",
+          "keys still match the delivered audio",
+          "phone, laptop and classroom-speaker playback",
+          "generated-voice licence and distribution rights"
+        ]
+      }
+    }
+  }
+}

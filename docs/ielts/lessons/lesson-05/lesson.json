@@ -17,12 +17,12 @@
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Scripts, questions and keys are original. No third-party passages, recordings or assessment questions copied. Human editorial, key, mapping, difficulty, originality and audio review pending.",
   "audio": {
     "required": true,
-    "statement": "Two new recordings are required (IELTS-05-L1 and IELTS-05-L2), plus one withheld fresh-check recording (IELTS-05-C1). None has been produced. Scripts are drafts. Do not substitute generated speech outside the approved audio workflow.",
+    "statement": "Three recordings produced (v1, 2026-10-17): IELTS-05-L1, IELTS-05-L2 and the withheld IELTS-05-C1. Owner listening review is pending; do not use them with students until it is recorded.",
     "recordings": [
       {
         "id": "IELTS-05-L1",
         "block": "IELTS-05-L1",
-        "status": "Script draft; recording not produced",
+        "status": "Produced v1 2026-10-17; owner listening review pending",
         "voices": {
           "instruction": "Tom (British, examiner style; steady model)",
           "RUTH": "Paula (British, calm, conversational)",
@@ -61,12 +61,15 @@
             "type": "silence",
             "seconds": 15
           }
-        ]
+        ],
+        "delivered_sha256": "f18e8aa423557fbf99c347492a9e25c57a99e4e8dea27e8da6d0d41aefbb859c",
+        "duration_seconds": 171.264,
+        "production_record": "docs/ielts/lessons/lesson-05/AUDIO_PRODUCTION_v1.json"
       },
       {
         "id": "IELTS-05-L2",
         "block": "IELTS-05-L2",
-        "status": "Script draft; recording not produced",
+        "status": "Produced v1 2026-10-17; owner listening review pending",
         "voices": {
           "instruction": "Tom (British, examiner style; steady model)",
           "DR PRICE": "Marlene (British, middle-aged, measured)",
@@ -106,12 +109,15 @@
             "type": "silence",
             "seconds": 15
           }
-        ]
+        ],
+        "delivered_sha256": "40a8a08a9b6d8b3bfa897aaf8f8b533c8e70e63f68157ce5cb08e4730320a401",
+        "duration_seconds": 181.44,
+        "production_record": "docs/ielts/lessons/lesson-05/AUDIO_PRODUCTION_v1.json"
       },
       {
         "id": "IELTS-05-C1",
         "block": "IELTS-05-C1",
-        "status": "Withheld fresh-check script draft; recording not produced",
+        "status": "Produced v1 2026-10-17; owner listening review pending",
         "voices": {
           "instruction": "Tom (British, examiner style; steady model)",
           "SAM": "Vincent (Australian, older, calm)",
@@ -150,7 +156,10 @@
             "type": "silence",
             "seconds": 15
           }
-        ]
+        ],
+        "delivered_sha256": "223dfdd4b5e5b02858e902fdfa0ebf4b4a97a902ac4ca832f94c77ecb227d798",
+        "duration_seconds": 148.488,
+        "production_record": "docs/ielts/lessons/lesson-05/AUDIO_PRODUCTION_v1.json"
       }
     ],
     "production_requirements": "Follow Diagnostic Bible 6.1 and 6.1.1 and the existing Listening production record format (docs/ielts/practice/LISTENING_EXTENSION_02_DRAFT.json): assemble the segments in order with the spoken copyright notice first in the instruction voice; insert real silence (30 seconds after the reading instruction, 15 seconds after the passage) and verify it in the encoded file; clean natural speech with no added noise, phone effect or music; no clipping; record provider, model, voice identities, settings, script SHA-256, measured pauses, duration and delivered SHA-256; never overwrite an approved file. Human review covers sound, transcript fidelity (every number, correction and name), speaker distinctness, keys and device playback, each recorded separately. Generated-voice licence and distribution rights remain an open gate, as for existing tracks."
@@ -895,8 +904,8 @@
   "delayed_followup": "Two to three teaching weeks later, include one distractor item in a different context (for example, Lesson 10 or 14 materials) and check whether the learner still waits for the final decision without prompting. Record it as a later observation, not proof of retention.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.1 construct names. They are draft teaching focuses, not approved taxonomy mappings, and items from one recording are not independent longitudinal observations.",
   "release_blockers": [
-    "Recordings IELTS-05-L1, IELTS-05-L2 and IELTS-05-C1 not produced or reviewed.",
     "Human editorial, key, mapping, difficulty, originality and rights review pending.",
-    "Device, print and PowerPoint playback acceptance pending."
+    "Device, print and PowerPoint playback acceptance pending.",
+    "Recordings IELTS-05-L1, IELTS-05-L2 and IELTS-05-C1 produced (v1) but owner listening review, device playback and voice-rights review pending."
   ]
 }
