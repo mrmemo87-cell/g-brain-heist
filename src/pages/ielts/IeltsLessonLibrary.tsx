@@ -21,6 +21,7 @@ import {
   type ResourceKind,
 } from "../../../services/ieltsLessonResources";
 import { teacherLessonTwo, type TeacherLessonTwo } from "../../../services/ieltsLessonTwoService";
+import IeltsApprovedTeacherPacks from "./IeltsApprovedTeacherPacks";
 import IeltsLessonTwoPanel from "./IeltsLessonTwoPanel";
 import IeltsTeacherDisclosure from "../../components/ielts/IeltsTeacherDisclosure";
 import "../../styles/ielts-lessons.css";
@@ -385,6 +386,7 @@ export default function IeltsLessonLibrary({
           ) : <p className="lesson-library-upcoming"><strong>Next lesson:</strong> IELTS-02 is not released for this school.</p>}
         </div>
       )}
+      <IeltsApprovedTeacherPacks key={schoolId} schoolId={schoolId} />
     </section>
   );
 }
