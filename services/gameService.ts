@@ -56,17 +56,6 @@ import {
     XpStatus,
     DailyStreakRewardReceipt,
 } from '../types.js';
-import * as RaidFeatureService from '../src/features/raids/raidService.js';
-import {
-    BossUnlockState,
-    RaidAnswerPayload,
-    RaidFinalizationResult,
-    RaidParticipantState,
-    RaidQuestion,
-    RaidQuestionRequest,
-    RaidStatus,
-    RaidWaveState,
-} from '../src/features/raids/raidTypes.js';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService.js';
 import { supabase } from './supabaseClient.js';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from './cosmeticService.js';
@@ -898,7 +887,7 @@ const getCurrentUser = async (maxRetries = 3) => {
       lastError = err as Error;
       if (attempt < maxRetries) {
         // Exponential backoff: 500ms, 1000ms, 2000ms
-        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
         console.warn(`getCurrentUser attempt ${attempt} failed, retrying...`, err);
       }
     }
@@ -1019,7 +1008,7 @@ const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetri
       lastError = err as Error;
       if (attempt < maxRetries) {
         // Exponential backoff: 500ms, 1000ms, 2000ms
-        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
         console.warn(`[updateProfile] Attempt ${attempt} failed, retrying...`, err);
       }
     }
@@ -1524,7 +1513,7 @@ export const whoami = async (): Promise<Profile> => {
         throw profileError || new Error('Profile data is null');
       } catch (err) {
         if (attempt < 3) {
-          await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+          await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
           console.warn(`[whoami] Attempt ${attempt} failed, retrying...`, err);
         } else {
           profileError = err;
@@ -1974,7 +1963,7 @@ export const getPublicProfile = async (userId: string): Promise<Profile | null> 
     } catch (err) {
       fetchError = err;
       if (attempt < 3) {
-        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
         console.warn(`getPublicProfile attempt ${attempt} failed, retrying...`, err);
       }
     }
@@ -2831,47 +2820,6 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
 
     // Competitive targets must be real server-returned players only.
     return prioritizedTargets;
-};
-
-// Raid system integration -------------------------------------------------
-
-export const getActiveRaidStatus = (): Promise<RaidStatus | null> => {
-    return RaidFeatureService.getActiveRaid();
-};
-
-export const getRaidStatusById = (raidId: string): Promise<RaidStatus | null> => {
-    return RaidFeatureService.getRaidStatus(raidId);
-};
-
-export const getBossUnlockState = (userId: string): Promise<BossUnlockState> => {
-    return RaidFeatureService.getBossUnlockState(userId);
-};
-
-export const startRaidEncounter = (bossId: string): Promise<RaidStatus> => {
-    return RaidFeatureService.startRaid(bossId);
-};
-
-export const joinRaid = (raidId: string, username: string, userId: string): Promise<RaidParticipantState> => {
-    return RaidFeatureService.joinRaid(raidId, username, userId);
-};
-
-export const submitRaidWaveAnswer = (
-    payload: RaidAnswerPayload,
-    wave: RaidWaveState,
-    participant: RaidParticipantState,
-) => {
-    return RaidFeatureService.submitRaidAnswer(payload, wave, participant);
-};
-
-export const finalizeRaidEncounter = (
-    raidId: string,
-    participants: RaidParticipantState[],
-): Promise<RaidFinalizationResult> => {
-    return RaidFeatureService.finalizeRaid(raidId, participants);
-};
-
-export const getRaidWaveQuestions = (request: RaidQuestionRequest): Promise<RaidQuestion[]> => {
-    return RaidFeatureService.getRaidWaveQuestions(request);
 };
 
 export const raid_attack = async (

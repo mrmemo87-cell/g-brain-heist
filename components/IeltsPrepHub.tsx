@@ -104,7 +104,6 @@ const IeltsPrepHub: React.FC<IeltsPrepHubProps> = ({ onBack }) => {
           <ul className="mt-4 space-y-3 text-gray-300 text-sm">
             <li>✅ Push IELTS missions to selected classes</li>
             <li>✅ Track writing submissions and give inline feedback</li>
-            <li>✅ Unlock bonus raids tied to IELTS milestones</li>
           </ul>
         </div>
         <div className="rounded-3xl border border-gray-800 bg-black/30 p-6">

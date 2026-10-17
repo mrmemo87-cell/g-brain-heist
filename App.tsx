@@ -77,8 +77,6 @@ const Phase1PlayView = lazyRetry(() => import('./components/phase1/Phase1PlayVie
 const Phase1LeaderboardView = lazyRetry(() => import('./components/phase1/Phase1LeaderboardView'), 'Phase1LeaderboardView');
 const Phase1AdminDashboard = lazyRetry(() => import('./components/phase1/Phase1AdminDashboard'), 'Phase1AdminDashboard');
 const AnnouncementBanner = lazyRetry(() => import('./components/phase1/AnnouncementBanner'), 'AnnouncementBanner');
-const RaidView = lazyRetry(() => import('./src/features/raids/RaidView'), 'RaidView');
-const RaidAdminView = lazyRetry(() => import('./src/features/raids/RaidAdminView'), 'RaidAdminView');
 const ClanTerritoryManager = lazyRetry(() => import('./src/features/clanTerritory/ClanTerritoryManager'), 'ClanTerritoryManager');
 const CommanderHeadquarters = lazyRetry(() => import('./src/features/cursedCommander/CommanderHeadquarters'), 'CommanderHeadquarters');
 const LockdownManager = lazyRetry(() => import('./src/features/lockdown/LockdownManager'), 'LockdownManager');
@@ -184,7 +182,7 @@ const DEFAULT_SESSION_STATUS: SessionStatus = {
 
 type NonCriticalLoadState = 'idle' | 'loading' | 'ready' | 'error' | 'cached';
 type NonCriticalKey = 'tasks' | 'caps' | 'news' | 'assignment' | 'sessionStatus';
-type AppView = 'workspace_chooser' | 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'writing' | 'lockdown' | 'commander' | 'cambridge' | 'school_admin' | 'school_head' | 'parent';
+type AppView = 'workspace_chooser' | 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'rivalry' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'ielts' | 'writing' | 'lockdown' | 'commander' | 'cambridge' | 'school_admin' | 'school_head' | 'parent';
 const resolveAccountWorkspace = (
   profileRole: Profile['role'], capabilities: SchoolCapabilities | null, hasParentWorkspace: boolean,
 ): AppView => {
@@ -589,7 +587,6 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
       leaderboard: { key: FEATURE_KEYS.PVP_BATTLES, allowIndividual: true },
       achievements: { key: FEATURE_KEYS.PVP_BATTLES, allowIndividual: true },
       tournament: { key: FEATURE_KEYS.TOURNAMENTS, allowIndividual: true },
-      raids: { key: FEATURE_KEYS.RAIDS, allowIndividual: true },
       cambridge: { key: FEATURE_KEYS.CAMBRIDGE_TESTS },
       ielts: { key: FEATURE_KEYS.IELTS_TESTS },
     };
@@ -598,7 +595,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
       const labels: Record<string, string> = {
         pvp: 'Launch Attack', shop: 'Shop', clan: 'Clans', inventory: 'Inventory',
         leaderboard: 'Leaderboard', achievements: 'Achievements', tournament: 'Tournaments',
-        raids: 'Raids', rivalry: 'Clan Rivalry', cambridge: 'Cambridge Tests', ielts: 'IELTS Prep',
+        rivalry: 'Clan Rivalry', cambridge: 'Cambridge Tests', ielts: 'IELTS Prep',
       };
       setUpgradeFeatureLabel(labels[nextView] || nextView);
       setShowUpgradeModal(true);
@@ -1322,11 +1319,20 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
     };
 
     loadAnnouncement();
-    const interval = setInterval(loadAnnouncement, 60000);
+    // Background tabs do not poll; a tab that becomes visible refreshes at once,
+    // so visible users see the same announcements with less idle database load.
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') void loadAnnouncement();
+    }, 60000);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') void loadAnnouncement();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       cancelled = true;
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [isInteractive, isPlayerMode]);
 
@@ -2170,10 +2176,6 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
             );
         case 'achievements':
             return renderLazy(<AchievementView onComplete={handleViewComplete} addToast={addToast} />);
-        case 'raids':
-            return renderLazy(<RaidView profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
-        case 'raid_admin':
-            return renderLazy(<RaidAdminView profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
         case 'teacher':
             return renderLazy(
               <TeacherPortal
@@ -2551,7 +2553,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                     {studentDashboardTab === 'game' && (
                       <MainActions
                         onStartQuest={handleQuestAction} onStartPvp={() => handleViewChange('pvp')}
-                        onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined} onVisitShop={() => handleViewChange('shop')}
+                        onVisitShop={() => handleViewChange('shop')}
                         onGoToClan={() => dashboardNavigate('clan')} onOpenRivalry={() => handleViewChange('rivalry')}
                         onVisitInventory={() => handleViewChange('inventory')} onViewLeaderboard={() => dashboardNavigate('leaderboard')}
                         onViewAchievements={() => handleViewChange('achievements')} onOpenTournament={() => handleViewChange('tournament')}

@@ -101,7 +101,7 @@ interface HeaderProps {
   onBackToDashboard?: () => void;
   onShowHelp?: () => void;
   onShowStreak?: () => void;
-  onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'raids' | 'raid_admin') => void;
+  onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin') => void;
   onNotificationAction?: (notification: Notification) => void;
   liteMode?: boolean;
   onToggleLiteMode?: () => void;

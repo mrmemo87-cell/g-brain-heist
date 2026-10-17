@@ -9,10 +9,10 @@ import type {
   OnboardingStep,
 } from './onboardingTypes';
 
-const STUDENT_GATES: OnboardingFeatureKey[] = ['pvp', 'raids', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
-const SOLO_GATES: OnboardingFeatureKey[] = ['pvp', 'raids', 'clans', 'leaderboard', 'upgrade_prompts'];
-const TEACHER_GATES: OnboardingFeatureKey[] = ['pvp', 'raids', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
-const ADMIN_GATES: OnboardingFeatureKey[] = ['pvp', 'raids', 'clans', 'shop', 'inventory', 'leaderboard'];
+const STUDENT_GATES: OnboardingFeatureKey[] = ['pvp', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
+const SOLO_GATES: OnboardingFeatureKey[] = ['pvp', 'clans', 'leaderboard', 'upgrade_prompts'];
+const TEACHER_GATES: OnboardingFeatureKey[] = ['pvp', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
+const ADMIN_GATES: OnboardingFeatureKey[] = ['pvp', 'clans', 'shop', 'inventory', 'leaderboard'];
 
 const isMissingSchoolPlacement = (profile: OnboardingResolverInput['profile']) => {
   if (!profile || profile.role !== 'student' || !profile.school_id) return false;

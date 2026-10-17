@@ -9,14 +9,12 @@ const defaultSchoolIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d
 interface MainActionsProps {
   onStartQuest: () => void;
   onStartPvp: () => void;
-  onOpenRaid?: () => void;
   onVisitShop: () => void;
   onGoToClan: () => void;
   onOpenRivalry?: () => void;
   onVisitInventory: () => void;
   onViewLeaderboard: () => void;
   onViewAchievements: () => void;
-  onOpenRaidAdmin?: () => void;
   onOpenTeacherPortal?: () => void;
   onOpenAdminPortal?: () => void;
   onOpenSchoolAdmin?: () => void;
@@ -208,14 +206,12 @@ const QuestPlayButton: React.FC<QuestPlayButtonProps> = ({
 const MainActions: React.FC<MainActionsProps> = ({
   onStartQuest,
   onStartPvp,
-  onOpenRaid,
   onVisitShop,
   onGoToClan,
   onOpenRivalry,
   onVisitInventory,
   onViewLeaderboard,
   onViewAchievements,
-  onOpenRaidAdmin,
   onOpenTeacherPortal,
   onOpenAdminPortal,
   onOpenSchoolAdmin,
@@ -368,15 +364,6 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaInfo={q('Launch Attack')}
               quotaLabel={ql('Launch Attack')}
             />
-            {onOpenRaid && (
-              <ActionButton
-                onClick={onOpenRaid}
-                icon={<span aria-hidden className="text-3xl">🚀</span>}
-                label={t("Raids")}
-                color="72, 61, 139"
-                glowClass="glow-purple"
-              />
-            )}
             <ActionButton
               onClick={locked ? handleLocked('Visit Shop') : handlePilotClick('Visit Shop', onVisitShop)}
               icon={<img src="/mission-console-images/shop.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
@@ -504,15 +491,6 @@ const MainActions: React.FC<MainActionsProps> = ({
                 color="234, 179, 8"
                 glowClass="glow-warn"
                 className="col-span-2"
-              />
-            )}
-            {onOpenRaidAdmin && (
-              <ActionButton
-                onClick={onOpenRaidAdmin}
-                icon={<span aria-hidden className="text-3xl">🛡️</span>}
-                label="Raid Admin"
-                color="0, 191, 255"
-                glowClass="glow-ion"
               />
             )}
             {onOpenCompetitionAdmin && (

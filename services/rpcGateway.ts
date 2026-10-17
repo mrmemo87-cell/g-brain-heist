@@ -197,47 +197,6 @@ export const checkAssignmentAchievements = (
   return execute('check_assignment_achievements', { p_user_id: userId }, client);
 };
 
-export const createRaidSession = (
-  bossId: string,
-  waveInfo: Record<string, unknown>,
-  client?: RpcClient
-): RpcResult<{ raid_id: string }> => {
-  return execute('create_raid', { p_boss_id: bossId, p_wave_info: waveInfo }, client);
-};
-
-export const joinRaidSession = (
-  raidId: string,
-  client?: RpcClient
-): RpcResult<{ participant_id: string }> => {
-  return execute('join_raid', { p_raid_id: raidId }, client);
-};
-
-export const submitRaidAnswer = (
-  payload: { raid_id: string; question_id: string; answer: string; time_spent: number },
-  client?: RpcClient
-): RpcResult<{ event_id: string }> => {
-  return execute('submit_raid_answer', {
-    p_raid_id: payload.raid_id,
-    p_question_id: payload.question_id,
-    p_answer: payload.answer,
-    p_time: payload.time_spent,
-  }, client);
-};
-
-export const finalizeRaidSession = (
-  raidId: string,
-  client?: RpcClient
-): RpcResult<{ raid_id: string }> => {
-  return execute('finalize_raid', { p_raid_id: raidId }, client);
-};
-
-export const fetchRaidStatus = (
-  raidId: string,
-  client?: RpcClient
-): RpcResult<any> => {
-  return execute('get_raid_status', { p_raid_id: raidId }, client);
-};
-
 export const getMyAssignmentAnswers = (
   assignmentId: string,
   client?: RpcClient

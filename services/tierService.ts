@@ -74,7 +74,6 @@ export interface PilotQuotaStatus {
 export const FEATURE_TO_QUOTA: Record<string, PilotFeatureId> = {
   'Launch Attack': 'pvp_battles',
   'Visit Shop': 'shop_purchases',
-  'Raids': 'raid_attempts',
   'Cambridge Tests': 'cambridge_tests',
   'IELTS Prep': 'ielts_tests',
   'Tournament': 'tournament_entries',
@@ -314,7 +313,6 @@ export const PRO_FEATURES = [
   { id: 'inventory', label: 'Inventory', description: 'Manage your arsenal' },
   { id: 'leaderboard', label: 'Leaderboard', description: 'School rankings' },
   { id: 'achievements', label: 'Achievements', description: 'Badges & milestones' },
-  { id: 'raids', label: 'Raids', description: 'Boss battles with your clan' },
   { id: 'tournament', label: 'Tournaments', description: 'Inter-school competitions' },
   { id: 'cambridge', label: 'Cambridge Tests', description: 'Full exam practice library' },
   { id: 'ielts', label: 'IELTS Prep', description: 'Complete IELTS suite' },
