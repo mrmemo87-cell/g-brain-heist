@@ -1,0 +1,69 @@
+{
+  "scope": "Local Supabase classroom RPC benchmark; focused schema, no production capacity certification",
+  "versions": {
+    "node": "v24.21.0",
+    "source": "fe28b3e8bbac0c83641a59e3b86d16f79afeee81",
+    "rpcSha256": {
+      "20260928055401_classroom_reliability.sql": "7fab17379ff654eaca9f905757047c522a43fd6ed0b40b27a936d05d0d857395",
+      "20260928163701_auth_bootstrap_v1.sql": "3b38ca6e7b2ab016efc80f296694f21626de6c865abb7b433c2a645e19712047",
+      "20261007153922_classroom_scoped_reads.sql": "58ad5452c83e33986d56a4227e8bd5c524d7822745a2e5e7b718c16800ceb3d1"
+    },
+    "harnessSha256": "23506490f79af544e46378808fcd18cdbc43fee63a4c20d1c63f3c5d4a098936",
+    "runnerSha256": "8c1cdf3f51cbd9a528144609399b044acd55d36e293a83e4ed6483eb1e74b4ce"
+  },
+  "host": {
+    "platform": "linux",
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.50GHz",
+    "cpuCount": 4,
+    "memoryBytes": 8811360256
+  },
+  "limitations": [
+    "Focused classroom schema; unrelated tables, production analytics/reward triggers and billing pre-request hook omitted",
+    "Synthetic data: 500 students, one teacher, 16 questions per fresh assignment",
+    "Real Supabase Auth users and password-issued sessions; signup/login provisioning is outside the measured load",
+    "Loopback HTTP; no WAN/CDN/TLS latency, browser rendering or hosted connection limits",
+    "Load generator and database share the test host; results do not certify hosted production capacity"
+  ],
+  "stages": [
+    {
+      "students": 30,
+      "started": "2026-10-07T17:39:43.046Z",
+      "finished": "2026-10-07T17:41:44.077Z",
+      "k6ExitCode": 0,
+      "database": {
+        "answers": 480,
+        "results": 30,
+        "completed": 30,
+        "wrong_results": 0,
+        "duplicate_answers": 0
+      },
+      "teacherSubmissionCount": 552,
+      "expectedTeacherSubmissions": 552,
+      "passed": true
+    },
+    {
+      "students": 100,
+      "started": "2026-10-07T17:41:44.469Z",
+      "finished": "2026-10-07T17:42:36.007Z",
+      "k6ExitCode": 105,
+      "database": {
+        "answers": 1600,
+        "results": 100,
+        "completed": 100,
+        "wrong_results": 0,
+        "duplicate_answers": 0
+      },
+      "teacherSubmissionCount": 652,
+      "expectedTeacherSubmissions": 652,
+      "passed": false
+    }
+  ],
+  "initialDatabaseRows": {
+    "users": 1503,
+    "assignments": 8,
+    "answers": 13558,
+    "results": 835
+  },
+  "initialTeacherSubmissions": 522,
+  "reusedSyntheticSessions": true
+}
