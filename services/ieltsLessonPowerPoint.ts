@@ -1,3 +1,5 @@
+import { lessonOneTitle } from "./ieltsCourseCatalog";
+import { lessonProduction } from "./ieltsLessonPresentation";
 import { unzipSync, zipSync, strFromU8, strToU8 } from "fflate";
 import type { TeacherLesson } from "./ieltsLessonService";
 const xml = (s: string) =>
@@ -50,6 +52,19 @@ export function populateLessonPowerPoint(
         if (!(key in tokens)) throw new Error("Missing presentation content");
         replaced++;
         return xml(tokens[key]);
+      });
+      // Keep the editable template geometry; normalize delivered slides to the current light contract.
+      const darkBackground = /<p:bg>[\s\S]*?val="15243A"[\s\S]*?<\/p:bg>/.test(value);
+      if (darkBackground) {
+        value = value.replace(/val="FFFFFF"/g, 'val="15243A"').replace(/val="B6CEFF"/g, 'val="1746B0"');
+        value = value.replace(/<p:bg>[\s\S]*?<\/p:bg>/, bg => bg.replace(/val="15243A"/g, 'val="FFFFFF"'));
+      }
+      value = value.replace(/<p:sp>[\s\S]*?<\/p:sp>/g, shape => {
+        if (path === "ppt/slides/slide1.xml" && /<p:cNvPr\b[^>]*name="headline"/.test(shape)) {
+          return shape.replace(/<a:p(?:\s[^>]*)?>[\s\S]*?<\/a:p>/g, paragraph => paragraph.includes("Wrong answer. How?") ? "" : paragraph.replace("Good English.", () => xml(lessonOneTitle)));
+        }
+        return /<p:cNvPr\b[^>]*name="footer"/.test(shape)
+          ? shape.replace(/Presentation 2\.0\.0/g, `Presentation ${lessonProduction.presentationVersion}`) : shape;
       });
       if (reducedMotion)
         value = value.replace(

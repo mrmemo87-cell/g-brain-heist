@@ -9,7 +9,7 @@ test('IELTS Diagnostic Bible is wired into the repository agent contract', () =>
   const agents = read('AGENTS.md');
   const bible = read('docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md');
 
-  assert.match(bible, /\*\*Version:\*\* 1\.10\.0/i);
+  assert.match(bible, /\*\*Version:\*\* 1\.11\.0/i);
   assert.match(bible, /## 15F\. Screeners remain separate from later practice/);
   assert.match(bible, /Screeners are initial assessments\. They must never appear/i);
   assert.match(bible, /## 15E\. Material originality and intentional variants/);
@@ -83,7 +83,10 @@ test('school readiness fails closed until governed diagnostic evidence exists', 
   assert.match(migration, /'\{summary,average_estimated_overall\}'[\s\S]*'null'::jsonb/i);
 
   assert.match(schoolResults, /Practice results are not promoted into readiness/i);
-  assert.match(journey, /cannot give a reliable overall band/i);
+  assert.match(journey, /IeltsReadinessEstimate/);
+  const readiness = read('src/pages/ielts/components/IeltsReadinessEstimate.tsx');
+  assert.match(readiness, /No current teacher estimate is shared/);
+  assert.match(readiness, /Complete all four valid screeners/);
 });
 
 test('productive-skill AI remains provisional and evidence-bounded', () => {

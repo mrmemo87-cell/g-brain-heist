@@ -16,6 +16,8 @@ import IeltsSkillIcon from '../../../components/ielts/IeltsSkillIcon';
 import '../../../styles/ielts-journey.css';
 import IeltsSchoolLearnerLinks from '../../../components/ielts/IeltsSchoolLearnerLinks';
 import IeltsTargetedPractice from '../../../components/ielts/IeltsTargetedPractice';
+const IeltsReadinessEstimate = React.lazy(() => import('./IeltsReadinessEstimate'));
+const IeltsCourseLearningTrail = React.lazy(() => import('./IeltsCourseLearningTrail'));
 const IeltsStudentLearningPlan = React.lazy(() => import('./IeltsStudentLearningPlan'));
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
 const date = (v?: string | null) =>
@@ -144,42 +146,9 @@ export default function IeltsStudentJourney({
         </button>
       </section>
       <IeltsScreenerHub data={startingPoint} />
-      <section className="ij-band ij-panel" aria-labelledby="band-heading">
-        <div className="ij-section-heading">
-          <div>
-            <p className="ij-eyebrow">From starting point to fuller evidence</p>
-            <h2 id="band-heading">What about my estimated band?</h2>
-          </div>
-          <span className="ij-status">More evidence needed</span>
-        </div>
-        <p>
-          You have useful starting-point evidence. We cannot give a reliable
-          overall band from these checks yet.
-        </p>
-        <details>
-          <summary>What is needed for a band estimate?</summary>
-          <ul>
-            <li>
-              <strong>Listening and Reading:</strong> fuller reviewed tests with
-              a validated score-to-band method. These 12-question checks are not
-              calibrated for a band.
-            </li>
-            <li>
-              <strong>Writing:</strong> reviewed Task 1 and Task 2 work. This
-              screener covers one Task 2 essay.
-            </li>
-            <li>
-              <strong>Speaking:</strong> recorded, reviewed work rated through a
-              validated readiness method. The current interview gives teacher
-              observations.
-            </li>
-          </ul>
-          <p>
-            Your teacher can help plan the next assessments. Any future estimate
-            must show its evidence and confidence; it will not be an official
-            IELTS result.
-          </p>
-        </details>
+      {startingPoint.school_managed && <React.Suspense fallback={<p>Opening course record…</p>}><IeltsCourseLearningTrail /></React.Suspense>}
+      <section className="ij-band ij-panel" aria-label="Readiness and study goal">
+        {startingPoint.school_managed ? <React.Suspense fallback={<p>Opening readiness evidence…</p>}><IeltsReadinessEstimate /></React.Suspense> : <><h2>What about my estimated band?</h2><p>More evidence needed. Arrange a fuller assessment and an authorized teacher review.</p></>}
         <div className="ij-goal">
           <span>
             <strong>Your goal:</strong>{' '}

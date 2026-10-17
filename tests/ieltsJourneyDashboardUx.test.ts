@@ -54,7 +54,10 @@ test('light theme and verified readiness section are present', () => {
   assert.match(page, /background:\s*'#f8fafc'/);
   assert.match(page, /What about my estimated band/);
   assert.match(page, /Overall/);
-  assert.match(page, /cannot give a reliable overall band/);
+  assert.match(page, /IeltsReadinessEstimate/);
+  const estimate = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/components/IeltsReadinessEstimate.tsx'), 'utf8');
+  assert.match(estimate, /No current teacher estimate is shared/);
+  assert.match(estimate, /Not an official IELTS result/);
 });
 
 test('status labels are humanized and no raw in_progress token appears in UI copy', () => {

@@ -16,6 +16,8 @@ async function mount(data=point,fail=false){
  w.fetch=async(url,options)=>{const fn=String(url).split('/').pop();calls.push(fn);let result;
   if(fn==='rpc_ielts_starting_point_summary'){if(fail){fail=false;return new Response(JSON.stringify({message:'failed'}),{status:500,headers:{'Content-Type':'application/json'}});}result=data;}
   else if(fn==='rpc_ielts_student_journey')result=journey;
+  else if(fn==='rpc_ielts_course_journey')result={records:[],has_more:false};
+  else if(fn==='rpc_ielts_readiness_workspace')result={can_manage:false,eligible:false,evidence:[],latest_id:null,needs_review:false,estimate:null};
   else if(fn==='rpc_ielts_learning_workspace')result={manager:false,pilot_only:true,tasks:[],allocations:[]};
   else throw Error('Unexpected request '+fn);
   return new Response(JSON.stringify(result),{status:200,headers:{'Content-Type':'application/json'}});
@@ -27,8 +29,9 @@ async function mount(data=point,fail=false){
 }
 test('completed four-skill journey renders saved records and explicit teacher feedback with no duplicate reads',async()=>{
  const {dom,w,errors,calls,wait,button}=await mount();await wait(()=>w.document.body.textContent.includes('Your starting point is in.'));
+ await wait(()=>w.document.body.textContent.includes('No current teacher estimate is shared'));
  const body=w.document.body.textContent;
- assert.match(body,/4 of 4 completed/);assert.match(body,/2 of 2 teacher reviews shared/);assert.match(body,/8 \/ 12/);assert.match(body,/6 \/ 12/);assert.match(body,/Shared by Test teacher/);assert.match(body,/cannot give a reliable overall band/);assert.doesNotMatch(body,/No reviewed feedback yet|No results available yet|Legacy recommendation/);
+ assert.match(body,/4 of 4 completed/);assert.match(body,/2 of 2 teacher reviews shared/);assert.match(body,/8 \/ 12/);assert.match(body,/6 \/ 12/);assert.match(body,/Shared by Test teacher/);assert.match(body,/No current teacher estimate is shared/);assert.doesNotMatch(body,/No reviewed feedback yet|No results available yet|Legacy recommendation/);
  assert.equal(calls.filter(c=>c==='rpc_ielts_starting_point_summary').length,1);
  button(w.document,'Read teacher feedback →').click();assert.equal(w.document.activeElement.id,'teacher-feedback-heading');
  const listening=w.document.querySelector('[aria-label="Listening screener"]');assert.match(listening.textContent,/All questions answered/);button(listening,'View saved result').click();await wait(()=>w.location.pathname===`/ielts/screener-result/${id(10)}`);

@@ -31,7 +31,7 @@ export default function IeltsTeacherNavigation({
           const entries = group.entries.filter(e => canManage || !["lessons","create","manage","history","interviews","exams","batches"].includes(e.key));
           if (!entries.length) return null;
           return (
-            <details key={group.title + ":" + entries.some(e => e.key === active)} className="ip-nav-group" defaultOpen={index < 3 || entries.some(e => e.key === active)}>
+            <details key={group.title + ":" + entries.some(e => e.key === active)} className="ip-nav-group" ref={node => { if (node && !node.hasAttribute("data-open-initialized")) { node.open = index < 3 || entries.some(e => e.key === active); node.setAttribute("data-open-initialized", "true"); } }}>
               <summary><span className="ip-nav-group-symbol" aria-hidden="true">{group.icon}</span><span>{group.title}</span><span className="ip-nav-chevron" aria-hidden="true">⌄</span></summary>
               <div className="ip-nav-options">
                 {entries.map(entry => (

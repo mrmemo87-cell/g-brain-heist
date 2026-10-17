@@ -1,3 +1,4 @@
+import { lessonOneTitle } from "../../../services/ieltsCourseCatalog";
 import {
   lessonFiles,
   lessonGuideVersion,
@@ -211,7 +212,7 @@ export default function IeltsLessonLibrary({
       {!data && !error && <p role="status">Opening your school’s lesson pack…</p>}
       {data && (
         <div className="lesson-library-content">
-          <IeltsTeacherDisclosure title="Lesson 01 · Can you beat the IELTS trap?" hint="Lesson essentials, outcomes and quick teaching actions" icon="✦" marker="60 min" defaultExpanded>
+          <IeltsTeacherDisclosure title={"Lesson 01 · " + lessonOneTitle} hint="Lesson essentials, outcomes and quick teaching actions" icon="✦" marker="60 min" defaultExpanded>
           <article className="lesson-overview" aria-labelledby="lesson-one-title">
             <div className="lesson-overview-head">
               <div>
@@ -220,7 +221,7 @@ export default function IeltsLessonLibrary({
                   <span>{data.lesson_code}</span>
                   <span>60 minutes</span>
                 </div>
-                <h3 id="lesson-one-title">Can you beat the IELTS trap?</h3>
+                <h3 id="lesson-one-title">{lessonOneTitle}</h3>
                 <p className="lesson-muted">{data.school.name} · Guided Listening and a Reading starting point</p>
               </div>
             </div>

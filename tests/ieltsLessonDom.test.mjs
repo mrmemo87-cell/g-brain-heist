@@ -229,8 +229,8 @@ test("LB-05/06/09 complete ZIP includes both presentation modes and bound versio
   assert.ok(files["IELTS-01-presentation-static.pptx"]);
   const manifest = JSON.parse(strFromU8(files["versions.json"]));
   assert.equal(manifest.school.name, "School A");
-  assert.equal(manifest.presentation_version, "2.0.0");
-  assert.equal(manifest.lesson_bible_version, "1.0.0");
+  assert.equal(manifest.presentation_version, "3.0.0");
+  assert.equal(manifest.lesson_bible_version, "1.2.0");
   assert.equal(manifest.teacher_guide_version, "1.1.0");
   assert.ok(files["01-START-HERE.html"]);
   assert.ok(files["IELTS-01-plan-b.html"]);

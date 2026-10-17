@@ -22,7 +22,7 @@ export default function IeltsLessonTwoPanel({ pack, onProgress }:{
   function fullPack(){
     if(busy)return;
     setBusy(true);setError("");
-    try{downloadLessonFile(lessonTwoZip(pack),"IELTS-02-Silk-Road-teacher-pack.zip");}
+    try{downloadLessonFile(lessonTwoZip(pack),"IELTS-02-teacher-pack.zip");}
     catch{setError("The offline teaching pack could not be generated. Please retry.");}
     finally{setBusy(false);}
   }
@@ -44,7 +44,7 @@ export default function IeltsLessonTwoPanel({ pack, onProgress }:{
       </button>
       <button type="button" className="sp-secondary" onClick={onProgress}>Review student progress</button>
     </div>
-    <p className="lesson-resource-note">This printable HTML edition contains a four-page student workbook, homework, catch-up, teacher plan, keys, planning forms, private follow-up and an interactive 17-slide offline presentation. Open HTML files and choose Print → Save as PDF. Native PowerPoint and pre-rendered PDF files are not included in this edition.</p>
+    <p className="lesson-resource-note">This printable HTML edition contains a smart-paginated student workbook, homework, catch-up, teacher plan, keys, planning forms, private follow-up and an interactive 17-slide offline presentation. Open printable HTML files to use the shared smart print preview and Save as PDF. Native PowerPoint and pre-rendered PDF files are not included in this edition.</p>
     <div className="lesson-resource-grid">
       <section className="lesson-resource-group">
         <h4>Students · print without keys</h4>

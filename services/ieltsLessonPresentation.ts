@@ -1,8 +1,9 @@
+import { lessonOneTitle } from "./ieltsCourseCatalog";
 import type { TeacherLesson } from "./ieltsLessonService";
 
 export const lessonProduction = {
-  bibleVersion: "1.0.0",
-  presentationVersion: "2.0.0",
+  bibleVersion: "1.2.0",
+  presentationVersion: "3.0.0",
   motionMs: 250,
 } as const;
 export type LessonSlide = {
@@ -19,7 +20,7 @@ export function lessonPresentation(lesson: TeacherLesson): LessonSlide[] {
   const slides: LessonSlide[] = [
     {
       phase: "OPENING / 0–5 MIN",
-      title: "Good English.\nWrong answer. How?",
+      title: lessonOneTitle,
       body: "Can you beat the IELTS trap?",
       layout: "hero",
       notes:

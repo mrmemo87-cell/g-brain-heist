@@ -1,0 +1,167 @@
+import React, { useEffect, useRef, useState } from "react";
+import {
+  courseSuggestions,
+  type CourseSuggestion,
+} from "../../../../services/ieltsCourseService";
+import { allocateLearning } from "../../../../services/ieltsLearningService";
+import { IeltsButton, IeltsNotice } from "../../../components/ielts/IeltsUi";
+export default function IeltsSuggestedSupport({
+  schoolId,
+  studentId,
+}: {
+  schoolId: string;
+  studentId: string;
+}) {
+  const [rows, setRows] = useState<CourseSuggestion[]>([]),
+    [selected, setSelected] = useState<CourseSuggestion | null>(null),
+    [reason, setReason] = useState(""),
+    [confirmed, setConfirmed] = useState(false),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState(""),
+    [message, setMessage] = useState(""),
+    [revision, setRevision] = useState(0);
+  const lock = useRef(false),
+    epoch = useRef(0),
+    request = useRef<{ key: string; id: string } | null>(null);
+  useEffect(() => {
+    let active = true;
+    epoch.current++;
+    setRows([]);
+    setSelected(null);
+    setConfirmed(false);
+    setError("");
+    courseSuggestions(schoolId, studentId)
+      .then((d) => {
+        if (active) setRows(d);
+      })
+      .catch(() => {
+        if (active)
+          setError(
+            "Suggestions could not load. You can still assign reviewed practice from the Practice Desk.",
+          );
+      });
+    return () => {
+      active = false;
+      epoch.current++;
+    };
+  }, [schoolId, studentId, revision]);
+  async function assign() {
+    if (lock.current || !selected || !confirmed || reason.trim().length < 10)
+      return;
+    lock.current = true;
+    setBusy(true);
+    setError("");
+    const generation = epoch.current,
+      key = JSON.stringify([
+        schoolId,
+        studentId,
+        selected.code,
+        selected.source_id,
+        reason,
+      ]);
+    if (request.current?.key !== key)
+      request.current = { key, id: crypto.randomUUID() };
+    try {
+      await allocateLearning(
+        schoolId,
+        studentId,
+        selected.code,
+        selected.source_id,
+        reason,
+        request.current.id,
+      );
+      if (generation === epoch.current) {
+        setMessage(
+          "Targeted support assigned. Review fresh independent evidence afterwards.",
+        );
+        setRevision((n) => n + 1);
+      }
+    } catch (e) {
+      if (generation === epoch.current) setError((e as Error).message);
+    } finally {
+      lock.current = false;
+      if (generation === epoch.current) setBusy(false);
+    }
+  }
+  return (
+    <details className="ix-panel">
+      <summary>Suggested targeted support</summary>
+      <p>
+        Suggestions match an answered item to reviewed task mappings. Inspect
+        the source before confirming; one result does not establish a lasting
+        difficulty.
+      </p>
+      {error && (
+        <IeltsNotice error>
+          {error}
+          <IeltsButton
+            disabled={busy}
+            onClick={() => setRevision((n) => n + 1)}
+          >
+            Retry suggestions
+          </IeltsButton>
+        </IeltsNotice>
+      )}
+      {message && <IeltsNotice>{message}</IeltsNotice>}
+      {!rows.length && !error && (
+        <p>
+          No new matching support task is available here. Use teacher planning
+          and the Practice Desk for other needs.
+        </p>
+      )}
+      {rows.map((r) => (
+        <article className="ix-row" key={r.code}>
+          <h4>
+            {r.display_code} · {r.title}
+          </h4>
+          <p>{r.reason}</p>
+          <a href={`/ielts/screener-result/${encodeURIComponent(r.source_id)}`}>
+            Inspect source response
+          </a>
+          <IeltsButton
+            disabled={busy}
+            onClick={() => {
+              setSelected(r);
+              setReason(r.reason);
+              setConfirmed(false);
+            }}
+          >
+            Review suggestion
+          </IeltsButton>
+        </article>
+      ))}
+      {selected && (
+        <fieldset disabled={busy}>
+          <legend>{selected.display_code} · Confirm individual support</legend>
+          <label className="ix-field">
+            Reason and intended next check
+            <textarea
+              maxLength={1200}
+              value={reason}
+              onChange={(e) => {
+                setReason(e.target.value);
+                setConfirmed(false);
+              }}
+            />
+          </label>
+          <label className="ix-check">
+            <input
+              type="checkbox"
+              checked={confirmed}
+              onChange={(e) => setConfirmed(e.target.checked)}
+            />
+            I reviewed the original evidence and chose this task for this
+            student.
+          </label>
+          <IeltsButton
+            variant="primary"
+            disabled={!confirmed || reason.trim().length < 10}
+            onClick={() => void assign()}
+          >
+            Confirm and assign
+          </IeltsButton>
+        </fieldset>
+      )}
+    </details>
+  );
+}
