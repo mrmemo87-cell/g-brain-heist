@@ -11,7 +11,7 @@ test('catalogue accepts only exact school-scoped draft identities and verifies b
  const pack=await draft();rpcError=null;payload={school_id:school,release:'review_draft',can_decide:true,packs:[pack]};
  const c=await api.reviewDraftPacks(school);assert.equal(c.canDecide,true);assert.equal(c.packs.length,1);
  assert.equal((await api.reviewDraftPackBlob(pack)).size,pack.size_bytes);
- bytes=new Blob(['tamper']);await assert.rejects(api.reviewDraftPackBlob(pack),/verification failed/);
+ bytes=new Blob(['drafx']);await assert.rejects(api.reviewDraftPackBlob(pack),/verification failed/);
  bytes=new Blob(['x']);await assert.rejects(api.reviewDraftPackBlob(pack),/unavailable/);
  payload={...payload,packs:[{...pack,object_path:`review-drafts/other/IELTS-17/0.1.0/${pack.sha256}.zip`}]};await assert.rejects(api.reviewDraftPacks(school),/identity mismatch/);
  payload={...payload,packs:[{...pack,lesson_code:'IELTS-03',object_path:`review-drafts/${school}/IELTS-03/0.1.0/${pack.sha256}.zip`}]};await assert.rejects(api.reviewDraftPacks(school),/identity mismatch/);
