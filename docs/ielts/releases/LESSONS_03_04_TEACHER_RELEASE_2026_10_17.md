@@ -34,7 +34,7 @@ The temporary upload function accepted only the exact two compiled hash/size/pat
 - Local Postgres tests: authorized teacher, student, anonymous, banned, other school, unreleased objects, private-table/function grants, and an unrelated permissive Storage policy.
 - DOM tests: private pack controls, separate student workbook, embedded logo in standalone slides, no eager audio, duplicate-click lock, school-change race, denied-load retry.
 - Service tests: school/path identity, exact size, actual SHA-256, same-size tampering rejection.
-- Existing Lesson 1/2 regression tests; CI gates recorded on release PR.
+- Existing Lesson 1/2 and Programme regressions. Repaired unsupported native `defaultOpen` props in the shared disclosure and student-progress accordion; aligned the existing Today test with the current Create assignment label. CI gates recorded on release PR.
 - Hosted SQL role checks use actual existing identities without modifying their roles or student work: SRIS programme teacher sees exactly the two released objects; Gulzada remains an active student and sees zero objects. This is authorization verification, not a student lesson pilot or authenticated browser acceptance.
 - Prior exact-artifact evidence: 37 slide renders; 22 Chromium presentation/print workflows at 320/375/768/1440; school logo, keyboard/reduced motion, separate student keys and audio timing checks. See the retained pack acceptance record for details.
 
