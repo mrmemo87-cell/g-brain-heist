@@ -228,7 +228,7 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
       const speakers = new Set((block.stimulus.paragraphs ?? []).map((line) => line.split(':')[0].trim()));
       for (const speaker of speakers) if (!recording.voices?.[speaker]) errors.push(`recording ${block.id} has no voice assigned for ${speaker}`);
       if (!recording.voices?.instruction) errors.push(`recording ${block.id} needs a distinct instruction voice`);
-      if (!/approved/i.test(recording.status) && !(lesson.release_blockers ?? []).some((b) => b.includes(block.id))) {
+      if (!/^owner approved/i.test(recording.status) && !(lesson.release_blockers ?? []).some((b) => b.includes(block.id))) {
         errors.push(`unapproved recording ${block.id} must be listed in release_blockers`);
       }
     }

@@ -76,7 +76,8 @@ test('answers revealed before questions are rejected', () => {
 
 test('an unapproved recording missing from release blockers is rejected', () => {
   const lesson = lessonFive();
-  lesson.release_blockers = lesson.release_blockers.filter((b) => !b.includes('IELTS-05-L1'));
+  lesson.audio.recordings.find((r) => r.id === 'IELTS-05-L1').status = 'Script draft; recording not produced (unapproved)';
+  lesson.release_blockers = lesson.release_blockers.filter((b) => !b.includes('IELTS-05-L1') && !b.includes('Recordings'));
   assert.ok(has(validateLessonSource(lesson), 'must be listed in release_blockers'));
 });
 
