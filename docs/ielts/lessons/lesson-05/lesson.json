@@ -17,12 +17,12 @@
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Scripts, questions and keys are original. No third-party passages, recordings or assessment questions copied. Human editorial, key, mapping, difficulty, originality and audio review pending.",
   "audio": {
     "required": true,
-    "statement": "Three recordings produced (v1, 2026-10-17): IELTS-05-L1, IELTS-05-L2 and the withheld IELTS-05-C1. Owner listening review is pending; do not use them with students until it is recorded.",
+    "statement": "Three recordings produced (v1, 2026-10-17) and approved by the owner after listening: IELTS-05-L1, IELTS-05-L2 and the withheld IELTS-05-C1. The approval covers these exact files only.",
     "recordings": [
       {
         "id": "IELTS-05-L1",
         "block": "IELTS-05-L1",
-        "status": "Produced v1 2026-10-17; owner listening review pending",
+        "status": "Owner approved audio v1 on 2026-10-17 (exact delivered SHA-256 recorded); device/classroom playback and voice-rights confirmation pending",
         "voices": {
           "instruction": "Tom (British, examiner style; steady model)",
           "RUTH": "Paula (British, calm, conversational)",
@@ -69,7 +69,7 @@
       {
         "id": "IELTS-05-L2",
         "block": "IELTS-05-L2",
-        "status": "Produced v1 2026-10-17; owner listening review pending",
+        "status": "Owner approved audio v1 on 2026-10-17 (exact delivered SHA-256 recorded); device/classroom playback and voice-rights confirmation pending",
         "voices": {
           "instruction": "Tom (British, examiner style; steady model)",
           "DR PRICE": "Marlene (British, middle-aged, measured)",
@@ -117,7 +117,7 @@
       {
         "id": "IELTS-05-C1",
         "block": "IELTS-05-C1",
-        "status": "Produced v1 2026-10-17; owner listening review pending",
+        "status": "Owner approved audio v1 on 2026-10-17 (exact delivered SHA-256 recorded); device/classroom playback and voice-rights confirmation pending",
         "voices": {
           "instruction": "Tom (British, examiner style; steady model)",
           "SAM": "Vincent (Australian, older, calm)",
@@ -906,6 +906,6 @@
   "release_blockers": [
     "Human editorial, key, mapping, difficulty, originality and rights review pending.",
     "Device, print and PowerPoint playback acceptance pending.",
-    "Recordings IELTS-05-L1, IELTS-05-L2 and IELTS-05-C1 produced (v1) but owner listening review, device playback and voice-rights review pending."
+    "Recordings v1 approved; phone, laptop and classroom-speaker playback acceptance and written confirmation of voice-output rights pending."
   ]
 }

@@ -101,14 +101,17 @@
         "unexpected_gaps_over_1_5s": []
       },
       "review": {
-        "status": "Owner listening review pending",
-        "scopes_pending": [
-          "every word, number, name and correction against the transcript",
-          "speaker distinctness (essential for L2 Questions 9-10)",
-          "naturalness, pace and pronunciation",
-          "keys still match the delivered audio",
-          "phone, laptop and classroom-speaker playback",
-          "generated-voice licence and distribution rights"
+        "status": "Owner approved",
+        "approved_by": "Sobbi (Brains Heist owner)",
+        "approved_on": "2026-10-17 19:46 Asia/Bishkek",
+        "owner_words": "approved",
+        "approved_sha256": "f18e8aa423557fbf99c347492a9e25c57a99e4e8dea27e8da6d0d41aefbb859c",
+        "scope": "Audio of these exact files after listening review: transcript fidelity, speakers, pace and sound.",
+        "not_covered": [
+          "phone, laptop and classroom-speaker playback acceptance",
+          "voice-output rights confirmation (see rights_basis)",
+          "lesson content, keys, mapping and difficulty review (separate gate)",
+          "installation into private Storage"
         ]
       }
     },
@@ -202,14 +205,17 @@
         "unexpected_gaps_over_1_5s": []
       },
       "review": {
-        "status": "Owner listening review pending",
-        "scopes_pending": [
-          "every word, number, name and correction against the transcript",
-          "speaker distinctness (essential for L2 Questions 9-10)",
-          "naturalness, pace and pronunciation",
-          "keys still match the delivered audio",
-          "phone, laptop and classroom-speaker playback",
-          "generated-voice licence and distribution rights"
+        "status": "Owner approved",
+        "approved_by": "Sobbi (Brains Heist owner)",
+        "approved_on": "2026-10-17 19:46 Asia/Bishkek",
+        "owner_words": "approved",
+        "approved_sha256": "40a8a08a9b6d8b3bfa897aaf8f8b533c8e70e63f68157ce5cb08e4730320a401",
+        "scope": "Audio of these exact files after listening review: transcript fidelity, speakers, pace and sound.",
+        "not_covered": [
+          "phone, laptop and classroom-speaker playback acceptance",
+          "voice-output rights confirmation (see rights_basis)",
+          "lesson content, keys, mapping and difficulty review (separate gate)",
+          "installation into private Storage"
         ]
       }
     },
@@ -302,16 +308,25 @@
         "unexpected_gaps_over_1_5s": []
       },
       "review": {
-        "status": "Owner listening review pending",
-        "scopes_pending": [
-          "every word, number, name and correction against the transcript",
-          "speaker distinctness (essential for L2 Questions 9-10)",
-          "naturalness, pace and pronunciation",
-          "keys still match the delivered audio",
-          "phone, laptop and classroom-speaker playback",
-          "generated-voice licence and distribution rights"
+        "status": "Owner approved",
+        "approved_by": "Sobbi (Brains Heist owner)",
+        "approved_on": "2026-10-17 19:46 Asia/Bishkek",
+        "owner_words": "approved",
+        "approved_sha256": "223dfdd4b5e5b02858e902fdfa0ebf4b4a97a902ac4ca832f94c77ecb227d798",
+        "scope": "Audio of these exact files after listening review: transcript fidelity, speakers, pace and sound.",
+        "not_covered": [
+          "phone, laptop and classroom-speaker playback acceptance",
+          "voice-output rights confirmation (see rights_basis)",
+          "lesson content, keys, mapping and difficulty review (separate gate)",
+          "installation into private Storage"
         ]
       }
     }
+  },
+  "rights_basis": {
+    "checked_on": "2026-10-17",
+    "runway_usage_rights": "Runway help centre: outputs are owned by the user and may be used commercially without non-commercial restrictions from Runway (https://help.runwayml.com/hc/en-us/articles/18927776141715-Usage-rights).",
+    "open_point": "Runway pages checked do not specifically address speech generated with third-party voice models. Owner to confirm against the current Runway Terms of Use and keep a dated copy. Not legal advice.",
+    "safeguards": "Preset synthetic voices only; no cloned or real-person voices; spoken copyright notice and file metadata; original scripts."
   }
 }
