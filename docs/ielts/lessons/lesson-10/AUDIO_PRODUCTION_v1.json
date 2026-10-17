@@ -1,0 +1,204 @@
+{
+  "record": "IELTS-10 listening audio production",
+  "version": "1",
+  "produced": "2026-10-17",
+  "provider": "Runway MCP (workspace 'Sobbi', personal)",
+  "script_source": "docs/ielts/lessons/lesson-10/lesson.json",
+  "script_source_sha256_at_production": "2a3b14511d3c491dab839305082b15c408fa5416fc97ce8a2522a169e8f02e51",
+  "production_method": {
+    "instructions": "eleven_multilingual_v2, voice Tom, stability 0.7; copyright notice and closing cue reused from the IELTS-05 v1 production (identical text and voice)",
+    "assembly": "48 kHz mono; edge silence trimmed; each segment loudness-matched to -18 LUFS; exact digital silences (0.7 s, 30.0 s reading, 1.0 s, 1.2 s, 15.0 s response); true-peak limiter at -1.5 dBFS; MP3 192 kbps with copyright metadata",
+    "effects": "none"
+  },
+  "rights_basis": {
+    "owner_confirmation": "Owner confirmed on 2026-10-17 that rights to recordings produced in this workflow belong to Brains Heist LLC."
+  },
+  "recordings": {
+    "IELTS-10-L1": {
+      "file": "IELTS-10-L1_v1.mp3",
+      "sha256": "5438650ee5ca04816dd6c2a5da0d664d129e82f887819bda3d65421ead0aee10",
+      "bytes": 7028073,
+      "duration_seconds": 292.8,
+      "transcript_sha256": "16cf2f452d247029d95574259abde86e3164acd2443fd53c47d33234a1a5f5a0",
+      "voices": {
+        "instruction": "Tom (British, examiner style; steady model)",
+        "LECTURER": "Eleanor (Canadian, middle-aged, measured)"
+      },
+      "generation": {
+        "passage": {
+          "task": "f9c7f93d-be38-4409-aee2-93f3e43f0d2a",
+          "model": "eleven_v3",
+          "stability": 0.5,
+          "seed": 10011
+        },
+        "intro_task": "fa28ebb8-8ed5-4055-b30a-d848c436cddf",
+        "listen_cue_task": "d39e1165-36b9-4547-8de3-f144c7f843a8"
+      },
+      "passage_words": 525,
+      "passage_words_per_minute": 143,
+      "designed_cues": [
+        {
+          "label": "reading_silence",
+          "start": 17.18,
+          "seconds": 30.0
+        },
+        {
+          "label": "response_silence",
+          "start": 277.766,
+          "seconds": 15.0
+        }
+      ],
+      "segments": [
+        {
+          "segment": "notice",
+          "source_lufs": -21.2,
+          "gain_db": 3.2,
+          "start": 0.0,
+          "seconds": 4.412
+        },
+        {
+          "segment": "L10_intro",
+          "source_lufs": -23.2,
+          "gain_db": 5.2,
+          "start": 5.112,
+          "seconds": 12.068
+        },
+        {
+          "segment": "listen_1_8",
+          "source_lufs": -21.1,
+          "gain_db": 3.1,
+          "start": 47.18,
+          "seconds": 3.615
+        },
+        {
+          "segment": "L10_passage",
+          "source_lufs": -21.7,
+          "gain_db": 3.7,
+          "start": 51.795,
+          "seconds": 219.68
+        },
+        {
+          "segment": "end_check",
+          "source_lufs": -23.9,
+          "gain_db": 5.9,
+          "start": 272.675,
+          "seconds": 5.091
+        }
+      ],
+      "verification": {
+        "integrated_lufs": -18.9,
+        "true_peak_dbfs": -1.4,
+        "decoded_clipped_samples": 0,
+        "detected_pauses": [
+          {
+            "detected_start": 17.084,
+            "detected_end": 47.224,
+            "detected_seconds": 30.14
+          },
+          {
+            "detected_start": 277.677,
+            "detected_end": 292.766,
+            "detected_seconds": 15.089
+          }
+        ],
+        "unexpected_gaps_over_1_5s": []
+      },
+      "review": {
+        "status": "Owner listening review pending"
+      }
+    },
+    "IELTS-10-C1": {
+      "file": "IELTS-10-C1_v1.mp3",
+      "sha256": "07957cc6da4fe2a22c3f5be4540545e3745edef16ef907e0e5b70dd238ac2737",
+      "bytes": 4114667,
+      "duration_seconds": 171.408,
+      "transcript_sha256": "6bfd032583fbc8dc87dac5327018ff1446de518718ca4a4100a3bca8bf96bb5f",
+      "voices": {
+        "instruction": "Tom (British, examiner style; steady model)",
+        "LECTURER": "Elias (North American, older, calm)"
+      },
+      "generation": {
+        "passage": {
+          "task": "f1e5d0de-daa0-4614-93a5-00bf1d4eed36",
+          "model": "eleven_v3",
+          "stability": 0.5,
+          "seed": 10012
+        },
+        "intro_task": "b3a87c3a-57f3-45e0-a72d-2d6ed2a8ac69",
+        "listen_cue_task": "2531d7b8-910c-4bca-a16b-3716343b93b0"
+      },
+      "passage_words": 234,
+      "passage_words_per_minute": 141,
+      "designed_cues": [
+        {
+          "label": "reading_silence",
+          "start": 15.787,
+          "seconds": 30.0
+        },
+        {
+          "label": "response_silence",
+          "start": 156.382,
+          "seconds": 15.0
+        }
+      ],
+      "segments": [
+        {
+          "segment": "notice",
+          "source_lufs": -21.2,
+          "gain_db": 3.2,
+          "start": 0.0,
+          "seconds": 4.412
+        },
+        {
+          "segment": "L10C_intro",
+          "source_lufs": -22.5,
+          "gain_db": 4.5,
+          "start": 5.112,
+          "seconds": 10.674
+        },
+        {
+          "segment": "listen_1_6",
+          "source_lufs": -21.5,
+          "gain_db": 3.5,
+          "start": 45.787,
+          "seconds": 3.624
+        },
+        {
+          "segment": "L10C_passage",
+          "source_lufs": -16.2,
+          "gain_db": -1.8,
+          "start": 50.411,
+          "seconds": 99.68
+        },
+        {
+          "segment": "end_check",
+          "source_lufs": -23.9,
+          "gain_db": 5.9,
+          "start": 151.291,
+          "seconds": 5.091
+        }
+      ],
+      "verification": {
+        "integrated_lufs": -18.3,
+        "true_peak_dbfs": -1.7,
+        "decoded_clipped_samples": 0,
+        "detected_pauses": [
+          {
+            "detected_start": 15.688,
+            "detected_end": 45.835,
+            "detected_seconds": 30.147
+          },
+          {
+            "detected_start": 156.293,
+            "detected_end": 171.382,
+            "detected_seconds": 15.089
+          }
+        ],
+        "unexpected_gaps_over_1_5s": []
+      },
+      "review": {
+        "status": "Owner listening review pending"
+      }
+    }
+  }
+}

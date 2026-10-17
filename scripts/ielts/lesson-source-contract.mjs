@@ -57,6 +57,11 @@ function checkItem(item, block, errors, where) {
   if (evidenceMustBeQuoted && !answerIsAbsence && item.evidence && !stim.includes(normalize(item.evidence))) {
     errors.push(`${label}: evidence is not a verbatim quotation from the ${stimulusType}`);
   }
+  if (item.paragraph && block.stimulus?.type === 'passage') {
+    // Heading and purpose items name the paragraph they test; the evidence must come from that paragraph.
+    const paragraph = normalize(block.stimulus.paragraphs?.[item.paragraph.charCodeAt(0) - 65]);
+    if (!paragraph.includes(normalize(item.evidence))) errors.push(`${label}: evidence is not in paragraph ${item.paragraph}`);
+  }
   switch (item.type) {
     case 'mcq': {
       const letters = (item.options ?? []).map((o) => String(o).trim().charAt(0));
@@ -101,8 +106,35 @@ function checkItem(item, block, errors, where) {
   }
 }
 
+function checkFigure(block, errors, label) {
+  const fig = block.figure;
+  if (!['line', 'bar'].includes(fig.type)) errors.push(`${label}: figure type must be line or bar`);
+  for (const field of ['title', 'alt', 'note']) if (!fig[field]) errors.push(`${label}: figure needs ${field}`);
+  if (fig.note && !/fictional|illustrative/i.test(fig.note)) errors.push(`${label}: figure note must state the data are fictional practice data`);
+  const n = (fig.x ?? []).length;
+  if (!n) errors.push(`${label}: figure needs x values`);
+  for (const series of fig.series ?? []) {
+    if ((series.values ?? []).length !== n || series.values.some((v) => typeof v !== 'number')) errors.push(`${label}: series ${series.name} must have ${n} numeric values`);
+  }
+  const lookup = (series, x) => fig.series.find((s) => s.name === series)?.values[fig.x.map(String).indexOf(String(x))];
+  for (const item of block.items ?? []) {
+    for (const fact of item.facts ?? []) {
+      const actual = lookup(fact.series, fact.x);
+      if (actual !== fact.value) errors.push(`${label} ${item.id}: fact ${fact.series} ${fact.x} = ${fact.value} but the figure shows ${actual}`);
+    }
+  }
+  if (block.model) {
+    // Every number quoted in a model answer must come from the figure, so models never invent data.
+    const allowed = new Set([...fig.x.map(String), ...fig.series.flatMap((s) => s.values.map(String)), ...(block.model_derived_numbers ?? []).map(String)]);
+    for (const number of block.model.match(/\d+(?:\.\d+)?/g) ?? []) {
+      if (!allowed.has(number)) errors.push(`${label}: model quotes ${number}, which is not in the figure (declare genuine calculations in model_derived_numbers)`);
+    }
+  }
+}
+
 function checkBlock(block, code, errors, where, seenIds) {
   const label = `${where} ${block.id}`;
+  if (block.figure) checkFigure(block, errors, label);
   if (!block.id?.startsWith(`${code}-`)) errors.push(`${label}: block id must start with ${code}-`);
   if (seenIds.has(block.id)) errors.push(`${label}: duplicate id`);
   seenIds.add(block.id);
@@ -124,6 +156,7 @@ function checkBlock(block, code, errors, where, seenIds) {
     if (block.min_words && wordCount(block.model) < block.min_words) errors.push(`${label}: model has ${wordCount(block.model)} words, below the ${block.min_words}-word task minimum`);
     if (block.task === 'task2' && block.min_words !== 250) errors.push(`${label}: Academic Task 2 minimum is 250 words`);
     if (block.task === 'task1' && block.min_words !== 150) errors.push(`${label}: Academic Task 1 minimum is 150 words`);
+    if (block.task === 'task1' && !block.figure) errors.push(`${label}: Academic Task 1 needs a visual (figure)`);
   } else if (block.kind === 'speaking') {
     for (const field of ['prompts', 'instructions', 'observation']) {
       if (!block[field] || (Array.isArray(block[field]) && block[field].length === 0)) errors.push(`${label}: missing ${field}`);
@@ -139,7 +172,21 @@ function checkBlock(block, code, errors, where, seenIds) {
   }
 }
 
+// Standard IELTS task rubric sentences legitimately repeat across prompts and are ignored for overlap.
+const RUBRIC = [
+  'to what extent do you agree or disagree?',
+  'give reasons for your answer and include any relevant examples from your own knowledge or experience.',
+  'write at least 250 words.',
+  'write at least 150 words.',
+  'discuss both views and give your own opinion.',
+  'do the advantages of this development outweigh the disadvantages?',
+  'summarise the information by selecting and reporting the main features, and make comparisons where relevant.',
+];
+const stripRubric = (text) => RUBRIC.reduce((acc, sentence) => acc.split(sentence).join(' '), normalize(text));
+
 function jaccard(a, b) {
+  a = stripRubric(a);
+  b = stripRubric(b);
   const A = new Set(words(a).filter((w) => w.length > 3));
   const B = new Set(words(b).filter((w) => w.length > 3));
   if (!A.size || !B.size) return 0;
@@ -245,7 +292,8 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
     for (const block of followup.blocks) {
       checkBlock(block, code, errors, 'fresh check', seen);
       for (const item of block.items ?? []) {
-        if (lessonPrompts.has(normalize(item.prompt))) errors.push(`fresh check ${item.id} repeats a lesson prompt`);
+        // Short structural prompts such as 'Paragraph A' may repeat; substantive prompts may not.
+        if (wordCount(item.prompt) >= 4 && lessonPrompts.has(normalize(item.prompt))) errors.push(`fresh check ${item.id} repeats a lesson prompt`);
       }
       const freshText = [...(block.stimulus?.paragraphs ?? []), block.prompt ?? '', ...(block.prompts ?? [])].join(' ');
       const overlap = jaccard(freshText, lessonText);

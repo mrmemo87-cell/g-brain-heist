@@ -24,6 +24,8 @@ This factory prepares drafts. It does not install, register, assign or publish c
 - Answer keys: listening and reading evidence must be a verbatim quotation from the transcript or passage; paragraph-matching evidence must sit in the keyed paragraph; reading completion answers must be copied from the passage; word limits respected; MCQ and matching answers must be valid options.
 - Writing: models labelled illustrative; Task 1 and Task 2 minimums (150/250) checked against models.
 - Speaking: pronunciation judgments restricted to live hearing or audio.
+- Charts (Task 1): figures are data in the source; the contract checks every quoted data point and every number in a model answer against the chart, and requires a "fictional data" note. Task 1 blocks must have a figure.
+- Recordings: ordered production segments (copyright notice first, 30-second reading silence, passage, 15-second response silence) and a voice for every speaker; an audio blocker clears only when the status begins "Owner approved".
 - Audio honesty: every transcript has a recording entry; any unapproved recording must appear in `release_blockers`.
 - Withheld fresh check: present, labelled withheld, no repeated prompts, low content overlap with the lesson.
 - No hardcoded school names, band claims or "official examiner" language; no workbook page numbers (layout decides pages).

@@ -18,7 +18,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle, KeepTogether
+from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle, KeepTogether, Image
 
 INK, PRIMARY, MUTED, LINE, WASH = '#15243A', '#1746B0', '#4C6076', '#DCE5EF', '#EEF3FA'
 ROOT = Path(__file__).resolve().parents[2]
@@ -27,6 +27,10 @@ E = html.escape
 
 def sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def answers_title(title):
+    return f"{title} — answers" if title.rstrip().endswith('?') else f"{title}: answers"
 
 
 def letters(n):
@@ -125,6 +129,60 @@ class Pack:
         n = next(f['pages'] for f in self.files if f['file'] == rel)
         return f"{n} page" + ('' if n == 1 else 's')
 
+    # ---------- figures (Academic Writing Task 1 visuals) ----------
+    def figure_path(self, b):
+        fig = b.get('figure')
+        if not fig:
+            return None
+        dest = self.out / 'assets' / f"{b['id']}.png"
+        if dest.exists():
+            return dest
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        plt.rcParams.update({'font.family': 'DejaVu Sans', 'font.size': 11})
+        palette = ['#1746B0', '#C2410C', '#0E7490', '#6D28D9', '#4C6076']
+        markers = ['o', 's', '^', 'D', 'v']
+        fw, fh = (8, 4.6)
+        f, ax = plt.subplots(figsize=(fw, fh), dpi=200)
+        x = fig['x']
+        if fig['type'] == 'line':
+            for i, ser in enumerate(fig['series']):
+                ax.plot(x, ser['values'], marker=markers[i % 5], color=palette[i % 5], linewidth=2.2, label=ser['name'])
+        else:
+            n = len(fig['series']); width = 0.8 / n
+            for i, ser in enumerate(fig['series']):
+                pos = [j + (i - (n - 1) / 2) * width for j in range(len(x))]
+                bars = ax.bar(pos, ser['values'], width=width * 0.95, color=palette[i % 5], label=ser['name'],
+                              hatch=['', '//', '..', 'xx', '\\\\'][i % 5], edgecolor='white')
+            ax.set_xticks(range(len(x)), x)
+        ax.set_title(fig['title'], fontsize=13, fontweight='bold', color=INK, loc='left')
+        ax.set_xlabel(fig.get('x_label', '')); ax.set_ylabel(fig.get('y_label', ''))
+        ax.grid(axis='y', color='#DCE5EF'); ax.set_axisbelow(True)
+        for side in ('top', 'right'):
+            ax.spines[side].set_visible(False)
+        if fig.get('y_max') is not None:
+            ax.set_ylim(0, fig['y_max'])
+        if len(fig['series']) > 1:
+            ax.legend(frameon=False, loc='upper left', bbox_to_anchor=(1.0, 1.0))
+        f.text(0.01, 0.01, fig.get('note', ''), fontsize=8.5, color=MUTED)
+        f.tight_layout(rect=(0, 0.04, 1, 1))
+        f.savefig(dest); plt.close(f)
+        return dest
+
+    def figure_flow(self, b, with_table=False):
+        path = self.figure_path(b)
+        if not path:
+            return []
+        out = [Image(str(path), width=500, height=500 * 4.6 / 8)]
+        if with_table:
+            # The text description summarises trends, so it stays in teacher materials (and as HTML alt text).
+            out.append(self.p('Figure description: ' + b['figure']['alt'], 'S'))
+            fig = b['figure']
+            rows = [[fig.get('x_label', '') or ''] + [s_['name'] for s_ in fig['series']]] + [[str(xv)] + [str(s_['values'][i]) for s_ in fig['series']] for i, xv in enumerate(fig['x'])]
+            out += self.table(rows, [100] + [int(411 / len(fig['series']))] * len(fig['series']))
+        return out
+
     # ---------- content renderers ----------
     def student_items(self, b, number_from=None, show_hints=True):
         out = [self.p(b['title'], 'H'), self.p(b['instructions'])]
@@ -139,12 +197,13 @@ class Pack:
             out.extend(self.table([[st['title']]] + [[x] for x in st['paragraphs']], [511]))
         elif st.get('type') in ('transcript', 'teacher_script'):
             out.append(self.p('Listen. The script is not printed for students.', 'S'))
+        out += self.figure_flow(b, with_table=b['figure'].get('show_table', False) if b.get('figure') else False)
         if b.get('form_title'):
             out.append(self.p(b['form_title'], 'H'))
         for i, it in enumerate(b['items']):
             num = it['id'].rsplit('-Q', 1)[-1]
             body = [self.p(f"{num}.  {it['prompt']}")]
-            for opt in it.get('options', []) if it['type'] == 'mcq' else []:
+            for opt in it.get('options', []) if it['type'] in ('mcq', 'choice') else []:
                 body.append(self.p(opt, 'O'))
             if it['type'] in ('matching', 'paragraph_match') and st.get('type') == 'passage':
                 body.append(self.p('Answer: ______   Evidence: ________________________________________'))
@@ -176,7 +235,7 @@ class Pack:
             return out
         if k == 'writing':
             n = 30 if b.get('task') == 'task2' else 16
-            out = [self.p(b['title'], 'H'), self.p(b['prompt']), self.p('Conditions: ' + b['conditions'], 'S')]
+            out = [self.p(b['title'], 'H'), self.p(b['prompt'])] + self.figure_flow(b) + [self.p('Conditions: ' + b['conditions'], 'S')]
             if b.get('support'):
                 out.append(self.p('Support (tick if used) [ ]  ' + b['support'], 'S'))
             out += self.lines(n)
@@ -192,7 +251,7 @@ class Pack:
 
     def key_block(self, b):
         k = b['kind']
-        out = [self.p(f"{b['id']}  {b['title']}", 'H'), self.p('Conditions: ' + b['mode'], 'S')]
+        out = [self.p(f"{b['id']}  {b['title']}", 'H'), self.p('Conditions: ' + b['mode'], 'S')] + self.figure_flow(b, with_table=True)
         if k == 'items':
             st = b.get('stimulus') or {}
             if st.get('type') in ('transcript', 'teacher_script'):
@@ -245,6 +304,13 @@ class Pack:
         return chunks
 
     def block_slides(self, b, part):
+        out = self._block_slides(b, part)
+        if b.get('figure') and part in ('questions', 'prompt') and out:
+            self.figure_path(b)
+            out[0] = {**out[0], 'image': f"assets/{b['id']}.png", 'alt': b['figure']['alt']}
+        return out
+
+    def _block_slides(self, b, part):
         k, out = b['kind'], []
         notes_base = f"{b['id']} · {b['mode']}."
         if k == 'items' and part == 'questions':
@@ -252,20 +318,30 @@ class Pack:
             pre = []
             if st.get('type') == 'options_list':
                 pre = [st['title'] + ':  ' + '   '.join(st['paragraphs'])]
+            elif any(it['type'] in ('matching', 'paragraph_match') for it in b['items']):
+                # Option lists (headings, groups, speakers) must stay visible next to every item when projected.
+                text = b['instructions']
+                if 'List of' in text:
+                    head, _, rest = text.partition('List of')
+                    text = head.strip() + '\nList of' + rest.replace('; ', '\n')
+                pre = [text]
             groups, cur, size = [], [], 0
-            for it in b['items']:
+            short_matching = pre and all(it['type'] in ('matching', 'paragraph_match') and len(it['prompt']) < 40 for it in b['items'])
+            for it in ([] if short_matching else b['items']):
                 cost = len(it['prompt']) + sum(len(o) for o in it.get('options', []) if it['type'] == 'mcq') + 40
                 if cur and (size + cost > 360 or len(cur) == 4):
                     groups.append(cur); cur, size = [], 0
                 cur.append(it); size += cost
             if cur:
                 groups.append(cur)
+            if short_matching:
+                groups = [b['items']]
             for gi, g in enumerate(groups):
                 body = list(pre if gi == 0 else [])
                 for it in g:
                     num = it['id'].rsplit('-Q', 1)[-1]
                     line = f"{num}.  {it['prompt']}"
-                    if it['type'] == 'mcq':
+                    if it['type'] in ('mcq', 'choice') and it.get('options'):
                         line += '\n' + '\n'.join('      ' + o for o in it['options'])
                     body.append(line)
                 notes = notes_base + ' Learners commit answers before the reveal.'
@@ -284,7 +360,7 @@ class Pack:
                     ev = f"“{it['evidence']}”" if quotable else it['evidence']
                     body.append(f"{num}   {it['answer']}\n{ev}\n{it['reason']}")
                 ids = ', '.join(it['id'] for it in g)
-                out.append({'title': f"{b['title']}: answers", 'body': body, 'reveal': True, 'notes': f'Reveal only after learners explain their choices. {ids}. Corrections remain guided practice.'})
+                out.append({'title': answers_title(b['title']), 'body': body, 'reveal': True, 'notes': f'Reveal only after learners explain their choices. {ids}. Corrections remain guided practice.'})
         elif k == 'contrast' and part == 'questions':
             labels = letters(len(b['examples']))
             for i in range(0, len(b['examples']), 2):
@@ -330,8 +406,8 @@ class Pack:
         # Student workbook: one page per block, then reflection.
         pages = []
         for b in d['blocks']:
-            if b['kind'] == 'writing' and b.get('task') == 'task2':
-                continue  # full essay goes on the homework sheet
+            if b['kind'] == 'writing' and (b.get('task') == 'task2' or b.get('homework')):
+                continue  # full timed tasks go on the homework sheet
             if b.get('in_workbook') is False:
                 continue  # projected teaching contrast only; keeps analysis out of the practice pages
             needs_page = b['kind'] == 'writing' or (b.get('stimulus') or {}).get('type') == 'passage' and not (b.get('stimulus') or {}).get('workbook_reference')
@@ -350,16 +426,16 @@ class Pack:
                       self.p('Keep your first answers visible. Corrections and repeated tasks are practice. This workbook does not save to IELTS Journey.', 'S')])
         if d.get('progress_review'):
             pr = d['progress_review']
-            pages.append([self.p('My self-review: Lessons 1-8', 'H'), self.p('Write what you have actually done. Your teacher will add what the saved evidence shows.'),
+            pages.append([self.p('My self-review: ' + re.sub(r'^.*\((.*)\)$', r'\1', pr['title']), 'H'), self.p('Write what you have actually done. Your teacher will add what the saved evidence shows.'),
                           *self.table([['Skill', 'Tasks I completed on my own', 'What I find difficult', 'Question for my teacher']] + [[r, '', '', ''] for r in pr['rows']], [70, 150, 150, 141]),
                           self.p('My proposed priority for the next four weeks:'), *self.lines(2), self.p('This is a learning conversation, not an IELTS score.', 'S')])
         self.pdf('Students/Student_Workbook.pdf', f'Lesson {self.n} workbook', pages, 'student', 'Student workbook')
 
         hw = [self.p('Name: __________________________   Due: ________________'), self.p('Homework', 'H')] + [self.p(f'{i + 1}.  {x}', 'P') for i, x in enumerate(d['homework'])]
-        essay = [b for b in d['blocks'] if b['kind'] == 'writing' and b.get('task') == 'task2']
+        essay = [b for b in d['blocks'] if b['kind'] == 'writing' and (b.get('task') == 'task2' or b.get('homework'))]
         hw_pages = [hw + [self.p('A printed instruction does not create an online assignment. Keep your original work.', 'S')]]
         for b in essay:
-            hw_pages.append([self.p(b['title'], 'H'), self.p(b['prompt']), self.p('Conditions: ' + b['conditions'], 'S'), self.p('Start time: ________   Finish time: ________   Interruptions / help: ______________'), *self.lines(30)])
+            hw_pages.append([self.p(b['title'], 'H'), self.p(b['prompt']), *self.figure_flow(b), self.p('Conditions: ' + b['conditions'], 'S'), self.p('Start time: ________   Finish time: ________   Interruptions / help: ______________'), *self.lines(30)])
             hw_pages.append([self.p('Essay (continued)', 'H'), *self.lines(18), self.p('Plan used: ' + b['support'], 'S'), self.p('Criterion checklist', 'H'), *[self.p('[ ]  ' + c, 'S') for c in b['checklist']]])
         self.pdf('Students/Homework.pdf', f'Lesson {self.n} homework', hw_pages, 'student', 'Student homework')
 
@@ -462,8 +538,13 @@ class Pack:
             title.word_wrap = True; title.text = s['title']
             r = title.paragraphs[0].runs[0]; r.font.size = Pt(36 if len(s['title']) < 48 else 30); r.font.bold = True; r.font.color.rgb = rgb(fg); r.font.name = 'Arial'
             text = '\n\n'.join(s['body'])
-            size = self.body_size(text)
-            body = sl.shapes.add_textbox(Inches(0.6), Inches(2.0), Inches(12.1), Inches(4.9)).text_frame
+            if s.get('image'):
+                sl.shapes.add_picture(str(self.out / s['image']), Inches(0.5), Inches(2.0), width=Inches(7.4))
+                size = self.body_size(text, 4.9)
+                body = sl.shapes.add_textbox(Inches(8.1), Inches(2.0), Inches(4.9), Inches(4.9)).text_frame
+            else:
+                size = self.body_size(text)
+                body = sl.shapes.add_textbox(Inches(0.6), Inches(2.0), Inches(12.1), Inches(4.9)).text_frame
             body.word_wrap = True
             for li, line in enumerate(text.split('\n')):
                 para = body.paragraphs[0] if li == 0 else body.add_paragraph()
@@ -484,7 +565,7 @@ class Pack:
             pending = [sl]
             while pending:
                 cur = pending.pop(0)
-                if self.body_size('\n\n'.join(cur['body'])) >= self.MIN_SIZE:
+                if self.body_size('\n\n'.join(cur['body']), 4.9 if cur.get('image') else 12.1) >= self.MIN_SIZE - (2 if cur.get('image') else 0):
                     out.append(cur); continue
                 body = cur['body']
                 if len(body) > 1:
@@ -506,9 +587,9 @@ class Pack:
         return out
 
     @staticmethod
-    def body_size(text):
+    def body_size(text, width=12.1):
         for size in (26, 24, 22, 20, 18, 16, 14, 12, 10):
-            chars_per_line = 12.1 * 72 / (size * 0.52)
+            chars_per_line = width * 72 / (size * 0.52)
             lines = sum(max(1, -(-len(line) // int(chars_per_line))) for line in text.split('\n'))
             if lines * size * 1.2 / 72 <= 4.7:
                 return size
@@ -544,12 +625,12 @@ class Pack:
             body = '<br><br>'.join(E(x).replace('\n', '<br>') for x in s['body'])
             parts.append(f'<section class="slide{" dark" if s.get("dark") else ""}" data-slide="{i}"{" hidden" if i else ""} aria-roledescription="slide" aria-label="Slide {i + 1} of {len(self.slides)}">'
                          f'<p class="identity">{E(self.school)} · Brains Heist IELTS · {E(self.code)} · presentation {E(d["presentation_version"])} · {i + 1}/{len(self.slides)}{" · Answer reveal" if s.get("reveal") else ""}</p>'
-                         f'<h1>{E(s["title"])}</h1><p class="body">{body}</p><details><summary>Teacher notes</summary><p>{E(s["notes"])}</p></details></section>')
+                         f'<h1>{E(s["title"])}</h1>' + (f'<img class="fig" src="../{E(s["image"])}" alt="{E(s.get("alt", ""))}">' if s.get('image') else '') + f'<p class="body">{body}</p><details><summary>Teacher notes</summary><p>{E(s["notes"])}</p></details></section>')
         options = ''.join(f'<option value="{i}">{i + 1}. {E(s["title"])}</option>' for i, s in enumerate(self.slides))
         slidecss = ('.slide{min-height:72vh;margin:0;padding:32px 16px}.slide[hidden]{display:none}.dark{background:#15243A;color:#fff}.identity{font-size:14px}'
                     '.body{font-size:clamp(18px,2.6vw,28px);line-height:1.45}details{font-size:16px}nav{display:flex;flex-wrap:wrap;gap:12px;padding:12px 16px;background:#fff;position:sticky;bottom:0}'
                     'select{max-width:100%;min-width:0;flex:1}nav label{display:flex;align-items:center;gap:8px}main{max-width:1280px;padding:0}'
-                    '.slide.fade{animation:entry .25s ease-out}@keyframes entry{from{opacity:0}to{opacity:1}}@media(prefers-reduced-motion:reduce){.slide.fade{animation:none}}'
+                    '.fig{display:block;max-width:100%;height:auto;background:#fff;border-radius:8px;margin:8px 0}.slide.fade{animation:entry .25s ease-out}@keyframes entry{from{opacity:0}to{opacity:1}}@media(prefers-reduced-motion:reduce){.slide.fade{animation:none}}'
                     '@media print{.slide{display:block!important;break-after:page;min-height:0}details{display:none}}')
         js = ("const slides=[...document.querySelectorAll('.slide')],sel=document.getElementById('select'),status=document.getElementById('status'),motion=document.getElementById('motion');let index=0;"
               "function show(n){index=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,i)=>{s.hidden=i!==index;s.classList.toggle('fade',i===index&&motion.checked&&!matchMedia('(prefers-reduced-motion: reduce)').matches)});"

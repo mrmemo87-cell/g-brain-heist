@@ -1,6 +1,6 @@
 # IELTS course roadmap
 
-Version 1.0.3 · 2026-10-17. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
+Version 1.0.4 · 2026-10-17. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
 
 Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly. Owner-confirmed route: Academic only, beginning at B1 with gradually increasing demands. Adapt support and pace to actual evidence. The sequence does not promise a band or certify that all materials exist.
 
@@ -14,14 +14,14 @@ Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly.
 | 3 | IELTS-06 | Reading specific information | Private teacher-review draft 0.1.0; not installed/released |
 | 4 | IELTS-07 | Task 2 ideas and supporting examples | Private teacher-review draft 0.1.0; not installed/released |
 | 4 | IELTS-08 | Speaking development and first progress review | Private teacher-review draft 0.1.0; not installed/released |
-| 5 | IELTS-09 | Reading headings and paragraph purpose | Planned |
-| 5 | IELTS-10 | Listening notes and summaries | Planned |
-| 6 | IELTS-11 | Academic Task 1 overview and comparisons | Planned |
-| 6 | IELTS-12 | Speaking Part 2 organization | Planned |
-| 7 | IELTS-13 | Reading TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN | Planned |
-| 7 | IELTS-14 | Longer listening and reference tracking | Planned |
-| 8 | IELTS-15 | Task 2 planning and full responses | Planned |
-| 8 | IELTS-16 | Speaking Part 3 and second progress review | Planned |
+| 5 | IELTS-09 | Reading headings and paragraph purpose | Private teacher-review draft 0.1.0; not installed/released |
+| 5 | IELTS-10 | Listening notes and summaries | Private teacher-review draft 0.1.0; recordings v1 produced, owner listening review pending; not installed/released |
+| 6 | IELTS-11 | Academic Task 1 overview and comparisons | Private teacher-review draft 0.1.0; not installed/released |
+| 6 | IELTS-12 | Speaking Part 2 organization | Private teacher-review draft 0.1.0; not installed/released |
+| 7 | IELTS-13 | Reading TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN | Private teacher-review draft 0.1.0; not installed/released |
+| 7 | IELTS-14 | Longer listening and reference tracking | Private teacher-review draft 0.1.0; recordings v1 produced, owner listening review pending; not installed/released |
+| 8 | IELTS-15 | Task 2 planning and full responses | Private teacher-review draft 0.1.0; not installed/released |
+| 8 | IELTS-16 | Speaking Part 3 and second progress review | Private teacher-review draft 0.1.0; not installed/released |
 | 9 | IELTS-17 | Timed Listening sections and error review | Planned |
 | 9 | IELTS-18 | Timed Reading and question selection | Planned |
 | 10 | IELTS-19 | Task 1 and Task 2 revision workshop | Planned |
@@ -45,6 +45,7 @@ Silk Road first review target: 6 November 2026, Asia/Bishkek. This is a school-s
 2. Pilot the reviewed version in the normal authorized workflow before any platform release. Do not invent completed checks or approval records.
 3. Lessons 3–4 content and exact audio are owner approved; all-school teacher delivery with each school’s branding is recorded in [the versioned release record](releases/LESSONS_03_04_ALL_SCHOOLS_2026_10_17.md). Student task publication remains separate.
 4. Lessons 5–8 private review drafts and withheld fresh checks are prepared with the reusable [lesson factory](lessons/LESSON_FACTORY.md); review record: [LESSONS_05_08_REVIEW_DRAFT_2026-10-17.md](lessons/LESSONS_05_08_REVIEW_DRAFT_2026-10-17.md). Human review and Lesson 5 recordings remain open gates.
-5. Next batch: Lessons 9–16, starting with lessons that need no new recording (9, 11, 12, 13, 15, 16) while recordings for 10 and 14 are commissioned.
+5. Lessons 9–16 private review drafts prepared, including recordings for Lessons 10 and 14; review record: [LESSONS_09_16_REVIEW_DRAFT_2026-10-17.md](lessons/LESSONS_09_16_REVIEW_DRAFT_2026-10-17.md).
+6. Next batch: Lessons 17–24 (timed practice, revision clinics, fresh assessments, final review). Full mock sections are scheduled outside 60-minute lessons.
 
 All future runtime installation must use existing authorization, task code registration, originality and publication checks. This roadmap creates no automatic assignments or new scoring. Paper observation sheets are local teaching records until an independently governed capture implementation is added.

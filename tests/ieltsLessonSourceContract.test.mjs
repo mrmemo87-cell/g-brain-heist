@@ -126,3 +126,35 @@ test('every speaker in a script needs an assigned voice', () => {
   delete lesson.audio.recordings.find((r) => r.id === 'IELTS-05-L2').voices.MARCO;
   assert.ok(has(validateLessonSource(lesson), 'no voice assigned for MARCO'));
 });
+
+const lessonEleven = () => load(paths.find((p) => p.includes('lesson-11')));
+const lessonNine = () => load(paths.find((p) => p.includes('lesson-09')));
+
+test('chart facts in answer keys must match the chart data', () => {
+  const lesson = lessonEleven();
+  lesson.blocks.find((b) => b.id === 'IELTS-11-I1').items[0].facts[0].value = 60;
+  assert.ok(has(validateLessonSource(lesson), 'but the figure shows 62'));
+});
+
+test('model answers may not invent numbers that are not in the chart', () => {
+  const lesson = lessonEleven();
+  const block = lesson.blocks.find((b) => b.id === 'IELTS-11-W1');
+  block.model = block.model.replace('39%', '37%');
+  assert.ok(has(validateLessonSource(lesson), 'model quotes 37'));
+});
+
+test('Task 1 needs a chart and charts must be labelled as fictional data', () => {
+  const lesson = lessonEleven();
+  const task = lesson.blocks.find((b) => b.id === 'IELTS-11-W2');
+  task.figure.note = 'Source: city council.';
+  const errors = validateLessonSource(lesson);
+  assert.ok(has(errors, 'fictional practice data'));
+  delete task.figure;
+  assert.ok(has(validateLessonSource(lesson), 'needs a visual'));
+});
+
+test('heading evidence must come from the paragraph the item names', () => {
+  const lesson = lessonNine();
+  lesson.blocks.find((b) => b.id === 'IELTS-09-R1').items[1].paragraph = 'C';
+  assert.ok(has(validateLessonSource(lesson), 'evidence is not in paragraph C'));
+});

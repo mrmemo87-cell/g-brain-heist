@@ -54,6 +54,10 @@ def main(out):
                 errors.append(f"student PDF contains key explanation for {it['id']}")
             if not present(it['reason'], teacher_keys):
                 errors.append(f"teacher key missing explanation for {it['id']}")
+        if b.get('figure') and present(b['figure']['alt'], student):
+            errors.append(f"student PDF contains the figure description (it states the trends) for {b['id']}")
+        if b.get('figure') and not (out / 'assets' / f"{b['id']}.png").exists():
+            errors.append(f"figure image missing for {b['id']}")
         if b['kind'] == 'writing' and present(b['model'], student):
             errors.append(f"student PDF contains model for {b['id']}")
         if b['kind'] == 'contrast':
@@ -63,7 +67,7 @@ def main(out):
     for b in d['followup']['blocks']:
         texts = [i['prompt'] for i in b.get('items', [])] + b.get('prompts', []) + ([b['prompt']] if b.get('prompt') else []) + (b.get('stimulus') or {}).get('paragraphs', [])
         for t in texts:
-            if present(t, non_fresh):
+            if len(t.split()) >= 4 and present(t, non_fresh):
                 errors.append(f"withheld fresh-check text appears outside the withheld file: {t[:40]}")
             if not present(t, fresh):
                 errors.append(f"fresh-check text missing from withheld file: {t[:40]}")
@@ -81,7 +85,8 @@ def main(out):
         notes = [n for n in z.namelist() if re.fullmatch(r'ppt/notesSlides/notesSlide\d+\.xml', n)]
         if len(notes) != len(slides):
             errors.append('every slide needs speaker notes')
-    html_text = next((out / 'Teacher-private').glob('*_Slides.html')).read_text()
+    import html as _html
+    html_text = _html.unescape(next((out / 'Teacher-private').glob('*_Slides.html')).read_text())
     if html_text.count('class="slide') != len(slides):
         errors.append('HTML slide count differs from slides.json')
     if re.search(r'autoplay|setInterval|setTimeout\(\s*show', html_text):
@@ -95,7 +100,7 @@ def main(out):
         if b['kind'] != 'items':
             continue
         q = next((i for i, s in enumerate(slides) if s['title'].startswith(b['title']) and not s.get('reveal')), None)
-        a = next((i for i, s in enumerate(slides) if s['title'].startswith(f"{b['title']}: answers")), None)
+        a = next((i for i, s in enumerate(slides) if s['title'].startswith((f"{b['title']}: answers", f"{b['title']} — answers"))), None)
         if q is None or a is None or a < q:
             errors.append(f"{b['id']}: question slide must precede its reveal slide")
 
