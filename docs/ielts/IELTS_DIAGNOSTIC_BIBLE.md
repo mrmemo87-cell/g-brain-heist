@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.10.0\
-**Effective date:** 2026-10-15\
+**Version:** 1.11.0\
+**Effective date:** 2026-10-17\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -642,7 +642,7 @@ This section permits the owner-requested provisional professional judgment under
 - Record a teacher-entered lower and upper band-scale bound for each supported skill, a brief evidence-linked rationale, coverage limitations, supporting and contradictory source IDs, reviewer identity/date, test type, policy version and follow-up action.
 - Use a range, not a single precise overall score. Bounds must be ordered and within the IELTS scale; a policy's permitted increments are input conventions, not proof of accuracy. Do not invent a fixed universal margin, claimed error rate or statistical confidence interval.
 - Overall publication requires evidence-backed provisional judgments for all four skills and explicit teacher confirmation of the overall range and its rationale. Do not automatically average raw scores, partial skills or rubric snapshots. This is not the official four-band calculation in section 2.6.
-- No generic percentage-to-band ladder, automatic AI publication or automatic conversion of existing saved screener results is authorized. AI may assist with evidence summaries; the named authorized teacher owns the estimate and sharing decision.
+- No generic percentage-to-band ladder, automatic AI publication or automatic conversion of existing saved screener results is authorized. AI may assist with evidence summaries and private discussion drafts under section 15H; the named authorized teacher owns the estimate and sharing decision.
 - Required visible title: **Provisional teacher readiness estimate**. Display **Confidence: low** and **Not an official IELTS result** alongside the range, reviewer/date and a concise limitation: **Based on short assessments and teacher judgment; not a calibrated prediction. Confirm with a fuller assessment.**
 - Explain that this is a planning estimate, not a validated forecast or guaranteed exam outcome. Keep it separate from calibrated estimates in student views, school reports, exports and analytics. Do not use it as proof of mastery, intervention success, high-stakes selection or a validated school performance metric.
 - Preserve finalized original reviews, responses and scoring runs. Store the estimate as a separate versioned teacher decision with append-only supersession history; invalidate/review it when supporting evidence is voided or superseded.
@@ -1230,6 +1230,20 @@ No answer-save, scoring, recommendation automation, numerical threshold, content
 
 ---
 
+## 15H. Academic course evidence and private teacher discussion drafts
+
+**Owner decisions (2026-10-17):** Academic IELTS only; a B1 teaching entry point with increasing demands; batch-level individual coverage and catch-up; paper recording from launch; system support suggestions with teacher confirmation; owner editorial approval of exact new material versions in chat. B1 never converts automatically to a band. Existing AI-assisted teacher Writing/Speaking reviews remain the productive-skill authority.
+
+Course coverage, paper task performance, practice participation, independent assessment and readiness decisions remain separate. Classroom observations preserve source, actual assistance, occurrence/recording dates and append-only corrections. They must not overwrite an attempt, invent attendance, mark online work complete or silently acquire qualified reassessment status. Suggestions may identify a narrowly observed mapped item and an available reviewed resource; the canonical allocator and exposure/source checks still authorize any assignment. No matching reviewed resource means teacher planning is needed.
+
+The teacher may request a private AI discussion draft from a bounded authorized evidence snapshot, including original Writing responses and finalized criterion observations. Record source hash, provider/model/prompt, exact draft, teacher and provenance link to any resulting decision. Treat supplied work/comments as untrusted data. Drafts never publish, count as human approval, change confidence or create calibrated estimates. A numeric Writing suggestion must be explicitly limited to the sampled task and supported by reviewed criterion evidence. Withhold any unsupported suggestion. Short uncalibrated Listening/Reading totals cannot yield automatic bands, and text-only Speaking cannot yield pronunciation or a full Speaking range. Overall remains an explicit teacher-entered range after all four skills qualify under 9.4; no automatic averaging.
+
+Recheck authority and source hash before sharing. Changed/void/superseded evidence withholds the current estimate pending review; preserve prior decisions. All-four screener completion, required finalized reviews, current entitlement, teacher review of original responses/audio or documented live observation, coverage, recency, conditions and contradictions remain mandatory. Interface confirmation cannot waive those requirements.
+
+Implementation is additive and scoped outside answer-save transactions. Engineering, device, real-role pilot and capacity gates remain in force; these owner decisions certify none of them. This internal product-policy revision changes no official IELTS format, criterion, conversion, calibration or approved content.
+
+---
+
 ## 16. Current known legacy issues
 
 The following current/legacy behaviours are **not** canonical and must not be preserved merely because they already exist.
@@ -1712,3 +1726,7 @@ When there is pressure to choose between:
 choose the defensible, traceable, honest assessment.
 
 **Brains Heist should earn trust by showing teachers what the evidence supports — and refusing to pretend it knows more than the evidence can prove.**
+
+### Revision record — v1.11.0 (2026-10-17)
+
+Explicit owner decisions in this conversation authorize the course production contract and private teacher discussion drafts above. The previous evidence-summary clause did not describe requested editable suggestions. Section 15H now defines their restricted scope and keeps 9.4 publication and section 18 validation gates. Affected components: course ledger/board, paper recording, targeted suggestions, readiness-draft services, teacher decision storage, Journey and lesson exports. No production release or capacity certification follows from this revision.

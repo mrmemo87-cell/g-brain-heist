@@ -72,3 +72,47 @@ begin
  insert into private.ielts_readiness_decisions(school_id,student_id,author_id,supersedes,fields,source_snapshot,source_hash,request_id) values(p_school,p_student,auth.uid(),prev,p_fields,context->'evidence',p_hash,p_request) returning id into result;return result;
 end; $$;
 revoke all on function public.rpc_ielts_publish_readiness(uuid,uuid,jsonb,text,uuid,uuid) from public,anon,authenticated,service_role;grant execute on function public.rpc_ielts_publish_readiness(uuid,uuid,jsonb,text,uuid,uuid) to authenticated;
+
+-- Teacher-only discussion drafts; generation never shares or publishes a result.
+create table private.ielts_readiness_ai_drafts(
+ id uuid primary key default gen_random_uuid(),school_id uuid not null references public.schools(id),student_id uuid not null references public.users(id),reviewer_id uuid not null references public.users(id),
+ source_hash text not null,context jsonb not null,model text not null,state text not null default 'working' check(state in ('working','ready','failed')),fields jsonb,provider_id text,prompt_version text not null default 'ielts-readiness-discussion-v1',created_at timestamptz not null default now(),finished_at timestamptz);
+create index ielts_readiness_ai_reviewer on private.ielts_readiness_ai_drafts(reviewer_id,created_at desc);
+alter table private.ielts_readiness_ai_drafts enable row level security;revoke all on private.ielts_readiness_ai_drafts from public,anon,authenticated,service_role;
+create table private.ielts_readiness_ai_links(decision_id uuid primary key references private.ielts_readiness_decisions(id),draft_id uuid not null references private.ielts_readiness_ai_drafts(id));
+alter table private.ielts_readiness_ai_links enable row level security;revoke all on private.ielts_readiness_ai_links from public,anon,authenticated,service_role;
+create trigger ielts_readiness_ai_link_append_only before update or delete on private.ielts_readiness_ai_links for each row execute function private.academic_report_records_are_append_only();
+
+create function public.rpc_ielts_claim_readiness_ai(p_school uuid,p_student uuid,p_model text) returns jsonb language plpgsql security definer set search_path='' as $$
+declare context jsonb;prior private.ielts_readiness_ai_drafts;result uuid;fingerprint text;
+begin
+ if not private.ielts_report_staff(p_school,p_student) then raise exception using errcode='42501',message='not_authorized';end if;
+ if length(coalesce(p_model,'')) not between 1 and 100 then raise exception 'invalid_model';end if;
+ context:=private.ielts_readiness_context(p_school,p_student);if context->'eligible'<>'true'::jsonb then raise exception 'four_reviewed_screeners_required';end if;fingerprint:=context->>'source_hash';
+ perform pg_advisory_xact_lock(hashtextextended('ielts-readiness-ai-admission',0));
+ select * into prior from private.ielts_readiness_ai_drafts where school_id=p_school and student_id=p_student and reviewer_id=auth.uid() and source_hash=fingerprint and model=p_model order by created_at desc limit 1;
+ if prior.state='ready' then return jsonb_build_object('id',prior.id,'fields',prior.fields,'source_hash',fingerprint);end if;
+ if prior.state='working' and prior.created_at>now()-interval '2 minutes' then raise exception 'ai_already_working';end if;
+ if (select count(*) from private.ielts_readiness_ai_drafts where reviewer_id=auth.uid() and created_at>now()-interval '1 hour')>=6 or (select count(*) from private.ielts_readiness_ai_drafts where state='working' and created_at>now()-interval '2 minutes')>=8 then raise exception 'ai_rate_limit';end if;
+ context:=context||jsonb_build_object('writing_samples',(select coalesce(jsonb_agg(jsonb_build_object('source_id',w.attempt_id,'text',w.response_text)),'[]') from private.ielts_writing_screener_submissions w where exists(select 1 from jsonb_array_elements(context->'evidence') e where e->>'source_id'=w.attempt_id::text and e->>'review_id' is not null)));
+ if length(context::text)>60000 then raise exception 'evidence_scope_too_large_review_manually';end if;
+ insert into private.ielts_readiness_ai_drafts(school_id,student_id,reviewer_id,source_hash,context,model) values(p_school,p_student,auth.uid(),fingerprint,context,p_model) returning id into result;
+ return jsonb_build_object('id',result,'context',context,'source_hash',fingerprint);
+end; $$;
+revoke all on function public.rpc_ielts_claim_readiness_ai(uuid,uuid,text) from public,anon,authenticated,service_role;grant execute on function public.rpc_ielts_claim_readiness_ai(uuid,uuid,text) to authenticated;
+create function public.rpc_ielts_finish_readiness_ai(p_id uuid,p_fields jsonb,p_provider text) returns void language plpgsql security definer set search_path='' as $$
+begin
+ update private.ielts_readiness_ai_drafts set fields=p_fields,provider_id=left(p_provider,200),state=case when p_fields is null then 'failed' else 'ready' end,finished_at=now() where id=p_id and state='working';if not found then raise exception 'draft_not_working';end if;
+end; $$;
+revoke all on function public.rpc_ielts_finish_readiness_ai(uuid,jsonb,text) from public,anon,authenticated,service_role;grant execute on function public.rpc_ielts_finish_readiness_ai(uuid,jsonb,text) to service_role;
+create function public.rpc_ielts_publish_readiness_with_draft(p_school uuid,p_student uuid,p_fields jsonb,p_hash text,p_expected uuid,p_request uuid,p_draft uuid) returns uuid language plpgsql security definer set search_path='' as $$
+declare d private.ielts_readiness_ai_drafts;result uuid;
+begin
+ if not private.ielts_report_staff(p_school,p_student) then raise exception using errcode='42501',message='not_authorized';end if;
+ select * into d from private.ielts_readiness_ai_drafts where id=p_draft and school_id=p_school and student_id=p_student and reviewer_id=auth.uid() and state='ready' and source_hash=p_hash;
+ if d.id is null then raise exception 'draft_needs_review';end if;
+ result:=public.rpc_ielts_publish_readiness(p_school,p_student,p_fields,p_hash,p_expected,p_request);
+ if exists(select 1 from private.ielts_readiness_ai_links where decision_id=result and draft_id<>p_draft) then raise exception 'request_conflict';end if;
+ insert into private.ielts_readiness_ai_links values(result,p_draft) on conflict do nothing;return result;
+end; $$;
+revoke all on function public.rpc_ielts_publish_readiness_with_draft(uuid,uuid,jsonb,text,uuid,uuid,uuid) from public,anon,authenticated,service_role;grant execute on function public.rpc_ielts_publish_readiness_with_draft(uuid,uuid,jsonb,text,uuid,uuid,uuid) to authenticated;

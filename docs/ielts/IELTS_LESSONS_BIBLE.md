@@ -1,10 +1,10 @@
 # Brains Heist IELTS Lessons Bible
 
-**Version:** 1.1.0
-**Effective date:** 2026-10-14
+**Version:** 1.2.0
+**Effective date:** 2026-10-17
 **Scope:** Lesson catalogue, teacher plans, presentations, audio references, student worksheets, keys, print packs and offline exports.
 
-This is the lesson production contract. The Diagnostic Bible 1.10.0 governs assessment, evidence, audio provenance, security and release authority. The Visual & UX Bible 1.1.0 governs platform presentation and accessibility. Those contracts take precedence. This file does not certify every lesson or introduce new scoring rules.
+This is the lesson production contract. The Diagnostic Bible 1.11.0 governs assessment, evidence, audio provenance, security and release authority. The Visual & UX Bible 1.1.0 governs platform presentation and accessibility. Those contracts take precedence. This file does not certify every lesson or introduce new scoring rules.
 
 ## 1. School identity and access — LB-01
 
@@ -20,13 +20,13 @@ Every catalogue entry must distinguish available lessons from planned/unpublishe
 
 ## 3. Teaching sequence and creativity — LB-03
 
-Use a concrete opening challenge, purposeful practice, student commitment, evidence discussion and a next step. Vary the composition to communicate purpose: dark opening/round slides, spacious question slides, clear answer reveals and quiet reading/reflective sections. Use a coherent type hierarchy and substantial whitespace. Creative choices must help learners notice, decide or explain. Avoid decorative loops, invented quotations, score promises and unrelated effects.
+Use a concrete opening challenge, purposeful practice, student commitment, evidence discussion and a next step. Vary the composition to communicate purpose: light opening/round slides, spacious question slides, clear answer reveals and quiet reading/reflective sections. Use a coherent type hierarchy and substantial whitespace. Creative choices must help learners notice, decide or explain. Avoid decorative loops, invented quotations, score promises and unrelated effects.
 
 Each guided question precedes its answer reveal. Students commit before the teacher advances. The authorized accepted answer is verbatim, including permitted alternatives. The teacher uses the approved script to locate supporting detail. Generic reflection prompts must never masquerade as an item-specific explanation. Every question needs a corresponding workbook item and reveal. Presentations include speaker notes for conducting the activity.
 
 ## 4. Presentation and motion — LB-04
 
-PowerPoint and offline HTML use the same ordered teaching sequence. Required slide identity: school, lesson code, presentation version and slide position. Use Evidence Blue: ink #15243A, primary #1746B0, white/light canvas, and readable contrasting text on dark slides. Use an available font and editable native PowerPoint text. Aim for title 48–60 px and body 30 px on the 1280×720 source canvas. Never truncate approved content to fit a template.
+PowerPoint and offline HTML use the same ordered teaching sequence. Required slide identity: school, lesson code, presentation version and slide position. Use Evidence Blue: ink #15243A, primary #1746B0, white/light canvas throughout, including opening and round slides. Use an available font and editable native PowerPoint text. Aim for title 48–60 px and body 30 px on the 1280×720 source canvas. Never truncate approved content to fit a template.
 
 Finite fades are allowed at 250 ms. Advance and answer disclosure require a teacher action. No automatic slide advancement, timer-driven disclosure, audio autoplay or animation dependency. Answers occupy separate reveal slides, so motion-free presentation preserves the teaching sequence. Provide a motion-free PPTX and respect system reduced motion in HTML, with a manual control. HTML supports Previous/Next, arrow keys, Space, Home/End and a slide selector, clear keyboard focus, 44 px controls and live slide status. Keyboard shortcuts must not hijack focused controls. Teacher notes remain hidden unless requested.
 
@@ -62,7 +62,7 @@ Lesson 1 implementation uses `services/ieltsLessonPresentation.ts`, the existing
 
 ## 10. Course continuity and post-screener teaching — LB-10
 
-The owner-requested reference course has 12 teaching weeks and 24 lessons, two 60-minute lessons per week. This is a teaching framework, not a guaranteed attainment timeline. The ordered reference sequence and release inventory live in [IELTS_COURSE_ROADMAP.md](./IELTS_COURSE_ROADMAP.md). Keep stable lesson identities while allowing a teacher to revisit a strategy or adjust scaffolding from actual evidence. Record intended test type; the current draft sequence assumes Academic, subject to programme confirmation before release.
+The owner-requested reference course has 12 teaching weeks and 24 lessons, two 60-minute lessons per week. This is a teaching framework, not a guaranteed attainment timeline. The ordered reference sequence and release inventory live in [IELTS_COURSE_ROADMAP.md](./IELTS_COURSE_ROADMAP.md). Keep stable lesson identities while allowing a teacher to revisit a strategy or adjust scaffolding from actual evidence. The owner confirmed Academic IELTS only, with a B1 teaching entry point and gradually increasing demands. B1 is not an IELTS band conversion; actual support and advancement follow individual evidence.
 
 After screeners, inspect saved outcomes and required productive-skill reviews. Record up to two immediate evidence-linked priorities per learner, the next activity and the next check. Pending evidence requires a collection plan, not invented priorities. Teach a shared core lesson with foundation support and extension tasks. Alternate receptive and productive work across each teaching week. A repeated or corrected task remains practice. Check transfer using a fresh task, then later follow up, subject to Diagnostic Bible section 8A; never use the ESL course's six/four-question routine as an automatic IELTS scoring rule.
 
@@ -81,3 +81,15 @@ New AI-authored content is a teacher-review draft until the required human edito
 The owner requested permanent consistency and preparation of the next lesson after the agreed course discussion. LB-02 defined complete individual lessons but did not define course continuity, rolling intake or the post-screener handoff. LB-10/LB-11 now bind those teaching and packaging requirements to Diagnostic Bible 1.10.0. Basis: explicit owner instruction and existing assessment/release governance. No official IELTS format, grading, scoring, thresholds, published assets or saved student work change. Visual & UX Bible 1.1.0 remains unchanged because the visual contract already covers this work.
 
 Affected production components: course roadmap, lesson authoring/export builders, teacher start guides, planning worksheets, release inventory and future scoped lesson-library installation. Lesson 2 is prepared as a private review pack; this revision does not certify its publication, phone acceptance, PowerPoint playback or programme availability.
+
+## 13. Coordinated course production — LB-12 (2026-10-17)
+
+Owner-authorized contract: every printable IELTS resource uses the shared Brains Heist smart printing paginator and sheet-planning system, authorized school name/logo, readable A4 layout and page identity. Student handouts exclude keys, scripts and withheld checks. Missing or failed logos must be explicit. Duplex/pages-per-side settings are instructions for the real printer dialog, never automatic hardware configuration.
+
+Use one canonical lesson title and code across the plan, library, first slide, workbook and downloads. Presentations use a light theme in both HTML and PowerPoint. Retain approved task identities, keys, scripts and audio unchanged.
+
+The teacher records each batch member's coverage, missed lessons and catch-up individually. Coverage is exposure, not attainment. Paper responses are separate teacher-entered classroom observations, with date, assistance, source/version and correction history; they do not create fictional online submissions or independently prove improvement. Teacher-reviewed Writing/Speaking continue through their existing review workflow.
+
+Prepare all 24 lessons and a separate targeted bank, with guided support, independent practice and protected fresh checks. The owner provides final editorial approval here in chat against exact versions, scripts, questions, keys, explanations and mappings in copyable text. Generation and engineering QA never substitute for that approval. Audio listening and visual/device acceptance remain separate.
+
+Revision 1.2.0 basis: explicit owner decisions on 17 October 2026. The previous dark-slide allowance and draft programme scope were insufficient. This revision changes presentation and production requirements, not IELTS format, approved content, scoring, confidence or publication authority. See the course implementation record for delivered scope and remaining gates.

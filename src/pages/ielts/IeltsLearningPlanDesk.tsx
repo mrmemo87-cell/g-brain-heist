@@ -21,6 +21,7 @@ import {
 import IeltsMonthlyReportView from "./components/IeltsMonthlyReportView";
 import { reportDate } from "./components/IeltsMonthlyReportView";
 import "../../styles/ielts-learning-report.css";
+const IeltsSuggestedSupport = React.lazy(() => import("./components/IeltsSuggestedSupport"));
 const IeltsReadinessEstimate = React.lazy(() => import("./components/IeltsReadinessEstimate"));
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
 export default function IeltsLearningPlanDesk({
@@ -261,6 +262,7 @@ export default function IeltsLearningPlanDesk({
             edit; sharing stays your decision. Unsaved edits will be replaced
             when you apply a draft.
           </p>
+          <React.Suspense fallback={<p>Opening support suggestions…</p>}><IeltsSuggestedSupport key={schoolId+studentId} schoolId={schoolId} studentId={studentId}/></React.Suspense>
           <React.Suspense fallback={<p>Opening readiness evidence…</p>}><IeltsReadinessEstimate key={schoolId+studentId} schoolId={schoolId} studentId={studentId} teacher /></React.Suspense>
           <fieldset disabled={busy}>
             <legend>

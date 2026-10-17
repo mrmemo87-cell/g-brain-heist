@@ -98,3 +98,23 @@ insert into private.ielts_course_lessons(code,version,week,title) values
 ('IELTS-22',1,11,'Fresh productive-skill evidence and review'),
 ('IELTS-23',1,12,'Individual priorities from mock/check evidence'),
 ('IELTS-24',1,12,'Final course review and next learning plan');
+
+-- Narrow suggestions from reviewed mapped outcomes; canonical allocation gates still apply.
+create function public.rpc_ielts_course_suggestions(p_school uuid,p_student uuid) returns jsonb language plpgsql stable security definer set search_path='' as $$
+declare result jsonb;
+begin
+ if not private.ielts_report_staff(p_school,p_student) then raise exception using errcode='42501',message='not_authorized';end if;
+ with recent as(select e.* from private.ielts_diagnostic_attempt_evidence e join public.ielts_exam_attempts a on a.id=e.attempt_id where e.school_id=p_school and e.student_id=p_student and a.status='submitted' order by e.started_at desc,e.attempt_id limit 20),
+ observed as(select e.attempt_id,e.started_at,i->>'skill' skill,i->>'taxonomy_node_id' node,i#>>'{taxonomy,name}' construct from recent e
+ join lateral(select r.* from private.ielts_diagnostic_scoring_runs r where r.attempt_id=e.attempt_id and r.server_verified order by r.run_version desc,r.id limit 1) r on true
+ cross join lateral jsonb_array_elements(r.outcomes) o join lateral jsonb_array_elements(e.form_snapshot->'items') i on i->>'item_key'=o->>'item_key' and i->>'skill'=o->>'skill'
+ where r.integrity_state<>'review_required' and o->>'response_state'='answered' and (o->>'marks_awarded')::numeric<(o->>'marks_possible')::numeric),
+ suggestions as(select distinct on(t.code) t.code,t.title,t.skill,t.purpose,private.ielts_material_code('targeted',t.code) display_code,o.attempt_id source_id,o.construct,o.started_at,
+ 'An answered item needs another look: '||o.construct||'. Review the original response before assigning support.' reason
+ from observed o join private.ielts_learning_tasks t on t.skill=o.skill where t.purpose='guided_practice' and private.ielts_learning_publicly_released(t.code)
+ and exists(select 1 from jsonb_array_elements(t.questions) q where q->>'taxonomy_node_id'=o.node)
+ and not exists(select 1 from private.ielts_learning_allocations a where a.student_id=p_student and a.task_code=t.code) order by t.code,o.started_at desc,o.attempt_id)
+ select coalesce(jsonb_agg(to_jsonb(s) order by s.started_at desc,s.code),'[]') into result from(select * from suggestions order by started_at desc,code limit 6)s;
+ return result;
+end; $$;
+revoke all on function public.rpc_ielts_course_suggestions(uuid,uuid) from public,anon,authenticated,service_role;grant execute on function public.rpc_ielts_course_suggestions(uuid,uuid) to authenticated;

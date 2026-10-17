@@ -1,13 +1,13 @@
 # IELTS course roadmap
 
-Version 1.0.0 · 2026-10-14. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
+Version 1.1.0 · 2026-10-17. Diagnostic Bible 1.11.0; Lessons Bible 1.2.0; Visual & UX Bible 1.1.0.
 
-Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly. Intended route: Academic, to be confirmed for each programme before release. Adapt support and pace to actual evidence. The sequence does not promise a band or certify that all materials exist.
+Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly. Confirmed route: Academic IELTS only, starting teaching at B1 and increasing demands gradually. B1 does not imply a band. Adapt support and pace to actual evidence. The sequence does not promise a band or certify that all materials exist.
 
 | Week | Code | Lesson | Production state |
 |---|---|---|---|
 | 1 | IELTS-01 | Listening corrections and Reading starting point | Implemented; retain recorded device/playback acceptance gaps |
-| 1 | IELTS-02 | Reading evidence and developed answers | Private teacher-review pack prepared; not installed/released |
+| 1 | IELTS-02 | Reading evidence and developed answers | School-scoped teacher HTML delivery implemented; check exact school release and remaining export/device gates |
 | 2 | IELTS-03 | Listening details, spelling and word limits | Planned |
 | 2 | IELTS-04 | Clear paragraphs and Speaking Part 1 | Planned |
 | 3 | IELTS-05 | Listening distractors and paraphrases | Planned |
@@ -41,7 +41,7 @@ Silk Road first review target: 6 November 2026, Asia/Bishkek. This is a school-s
 
 ## Immediate production order
 
-1. Review Lesson 2 exact content, keys, proposed mappings, difficulty and originality. Confirm Academic route, private distribution and supported devices. Record actual reviewer decisions.
+1. Review Lesson 2 exact content, keys, proposed mappings, difficulty and originality. Retain the confirmed Academic route; check private distribution and supported devices. Record actual reviewer decisions.
 2. Pilot the reviewed version in the normal authorized workflow before any platform release. Do not invent completed checks or approval records.
 3. Prepare Lesson 3 and Lesson 4 with their own complete packs and approved audio where required.
 4. Prepare Lessons 5–8 for the first monthly review, plus fresh check materials distinct from rehearsed work.

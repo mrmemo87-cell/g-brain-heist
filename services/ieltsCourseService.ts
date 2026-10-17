@@ -8,3 +8,5 @@ export const courseBoard=(batch:string,lesson='IELTS-01')=>rpc<CourseBoard>('rpc
 export const courseJourney=(before:string|null=null,beforeId:string|null=null)=>rpc<{records:CourseRecord[];has_more:boolean}>('rpc_ielts_course_journey',{p_before:before,p_before_id:beforeId});
 export const recordCourse=(batch:string,student:string,lesson:string,kind:'coverage'|'paper',fields:Record<string,unknown>,on:string,request:string,expected:string|null,allocation:string|null=null)=>rpc<string>('rpc_ielts_course_record',{p_batch:batch,p_student:student,p_lesson:lesson,p_kind:kind,p_fields:fields,p_on:on,p_request:request,p_expected:expected,p_allocation:allocation});
 export const courseToday=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bishkek',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+export interface CourseSuggestion{code:string;title:string;display_code:string;source_id:string;construct:string;reason:string;skill:string}
+export const courseSuggestions=(school:string,student:string)=>rpc<CourseSuggestion[]>('rpc_ielts_course_suggestions',{p_school:school,p_student:student});

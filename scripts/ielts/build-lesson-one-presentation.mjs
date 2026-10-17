@@ -70,7 +70,7 @@ function text(
 }
 for (const [i, s] of slides.entries()) {
   const slide = deck.slides.add();
-  const dark = s.layout === "hero";
+  const dark = false;
   slide.background.fill = dark ? "#15243A" : "#FFFFFF";
   text(
     slide,
