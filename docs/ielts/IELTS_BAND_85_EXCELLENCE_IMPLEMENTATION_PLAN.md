@@ -20,8 +20,8 @@ Canonical authority: [Diagnostic Bible v1.10.0](IELTS_DIAGNOSTIC_BIBLE.md), [Les
 | Area | Verified source state | Release meaning |
 | --- | --- | --- |
 | IELTS-01 | Implemented, with device/playback acceptance gaps | Existing teacher lesson; no blanket QA claim |
-| IELTS-02 | Private draft and teacher-only delivery implementation; separate live release must be confirmed | Cannot count as general student release |
-| IELTS-03 and -04 | Owner-approved immutable Silk Road teacher ZIPs and private library release recorded on main | Teacher delivery only; students' assignable tasks and diagnostic use remain separate |
+| IELTS-02 | One teacher content record marked released in production (read-only SQL checked 2026-10-17); student-assignment release remains separate | Cannot count as general student release |
+| IELTS-03 and -04 | Owner-approved immutable Silk Road teacher ZIPs and private library release recorded on main; production Storage contains two teacher-pack objects | Teacher delivery only; students' assignable tasks and diagnostic use remain separate |
 | IELTS-05 to -24 | Roadmap planned; other independent practice resources exist | Do not count as 20 published full lesson packs |
 | Targeted practice | Four-skill source-linked tasks, reviewed versions, allocation/exposure guards | Human teacher selects; practice is not longitudinal mastery |
 | Broader school/batch assignments | Released course-material catalogue, per-recipient allocations | Selector is not an adaptive achievement-level engine |
@@ -29,6 +29,9 @@ Canonical authority: [Diagnostic Bible v1.10.0](IELTS_DIAGNOSTIC_BIBLE.md), [Les
 | PR #1644 | Proposed paper practice, coverage, teacher readiness, print improvements; reported test results | Draft code only, no proof of deployed hosted/security/device acceptance |
 
 Sources: existing roadmap, `docs/ielts/releases/LESSONS_03_04_TEACHER_RELEASE_2026_10_17.md`, `docs/ielts/practice/REVIEWED_RELEASE_2026-10-16.md`, `docs/ielts/IELTS_MONTHLY_LEARNING_REPORTS_2026-10-09.md`, PR #1644.
+
+### Live production verification (read-only, 2026-10-17)
+Against verified Supabase project `g-brain-heist` (`sozodkxwhubespiedgxm`): `private.ielts_teacher_lesson_two_content` has 1 record, 1 with non-null `released_at`; `private.ielts_reviewed_practice_releases` has 15 release events; `private.ielts_learning_tasks` has 10 targeted tasks; private course-pack Storage bucket contains 2 objects. These are inventory checks **not** classroom acceptance, quality certification, or proof of a complete 24-lesson student course. No data was changed.
 
 ## Four evidence-separated learning lanes
 These lanes are **teaching scaffolds**, not a numeric band prediction or permission to auto-promote learners.
