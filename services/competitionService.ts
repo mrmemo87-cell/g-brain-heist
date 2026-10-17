@@ -471,7 +471,6 @@ export const resetPlayerAcademics = async (userId: string): Promise<void> => {
   await Promise.all([
     supabase.from('school_members').delete().eq('user_id', userId),
     supabase.from('class_students').delete().eq('student_id', userId),
-    supabase.from('brains_heist_class_memberships').delete().eq('student_id', userId),
   ]).catch(() => {
     // Ignore relation cleanup failures (table might be absent or RLS-restricted in some environments).
   });
