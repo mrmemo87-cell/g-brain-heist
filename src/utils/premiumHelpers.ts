@@ -38,7 +38,6 @@ const INDIVIDUAL_FEATURE_ACCESS: Record<string, boolean> = {
   achievements: true,
   quest: true,
   tournament: true,
-  raids: true,
   lockdown: true,
   rivalry: true,
   cambridge: false,

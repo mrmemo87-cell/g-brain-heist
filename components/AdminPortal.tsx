@@ -162,7 +162,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     leaderboard_enabled: true,
     tournaments_enabled: true,
     quests_enabled: true,
-    raids_enabled: true,
     cambridge_tests_enabled: true,
     ielts_enabled: true,
     announcements_enabled: true,

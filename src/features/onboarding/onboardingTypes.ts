@@ -45,7 +45,6 @@ export type OnboardingFeatureKey =
   | 'xp_streak'
   | 'leaderboard'
   | 'pvp'
-  | 'raids'
   | 'clans'
   | 'shop'
   | 'inventory'

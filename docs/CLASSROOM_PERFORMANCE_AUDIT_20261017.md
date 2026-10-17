@@ -92,3 +92,25 @@ Capacity evidence (§13.2) does not exist yet and is not claimed.
 - 1,142 overlapping permissive policies, 316 unused and 8 duplicate indexes,
   235 loose `.sql` files at repo root.
 - Still required by the 15 Oct runbook: 30 → 100 student staging load test.
+
+## 7. Raids feature retired (owner decision, 2026-10-17)
+
+The boss-raid "Raids" feature was planned then cancelled. Removed safely:
+
+- App: `src/features/raids/*` (RaidView, RaidAdminView, raidService, raidTypes),
+  `raids`/`raid_admin` routes and view types, Raids / Raid Admin dashboard buttons,
+  the boss-raid wrappers in `gameService.ts` and RPC callers in `rpcGateway.ts`,
+  the Raids entry in the plan feature list and pilot-quota UI mapping, the
+  onboarding `raids` gate, the session-only admin toggle, and the IELTS page line
+  promising "bonus raids".
+- Database (`20261017070000_retire_cancelled_raids_feature.sql`): tables `raids`,
+  `raid_waves`, `raid_participants`, `raid_events` (rows kept) and the RPCs
+  `create_raid`, `join_raid`, `submit_raid_answer`, `finalize_raid`,
+  `get_raid_status` move to schema `archive_raids`, which app roles cannot use.
+  `rpc_superadmin_user_intelligence` reads the archived participants table, so its
+  output is unchanged. Rollback script in `supabase/rollbacks/`.
+- Rehearsed on production (rolled back): superadmin output identical for 5 users,
+  rows 1/4/3/3 preserved, anon/authenticated denied, public objects gone.
+- Not touched: PvP "raids" (PvP attack flow, `raid_targets`, `raid_attack`),
+  billing/plan keys `raids` and `raid_attempts` stored in entitlement and
+  pilot-quota data, the unused "Raids" translation entry, legacy `brains_heist_*`.
