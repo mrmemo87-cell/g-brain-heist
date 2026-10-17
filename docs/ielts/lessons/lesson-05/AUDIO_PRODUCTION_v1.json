@@ -326,7 +326,8 @@
   "rights_basis": {
     "checked_on": "2026-10-17",
     "runway_usage_rights": "Runway help centre: outputs are owned by the user and may be used commercially without non-commercial restrictions from Runway (https://help.runwayml.com/hc/en-us/articles/18927776141715-Usage-rights).",
-    "open_point": "Runway pages checked do not specifically address speech generated with third-party voice models. Owner to confirm against the current Runway Terms of Use and keep a dated copy. Not legal advice.",
-    "safeguards": "Preset synthetic voices only; no cloned or real-person voices; spoken copyright notice and file metadata; original scripts."
+    "open_point": "Closed by owner confirmation. Keep a dated copy of the Runway Terms of Use with the company records.",
+    "safeguards": "Preset synthetic voices only; no cloned or real-person voices; spoken copyright notice and file metadata; original scripts.",
+    "owner_confirmation": "2026-10-17 19:51 Asia/Bishkek: the owner confirmed that the rights to these recordings belong to Brains Heist LLC."
   }
 }
