@@ -1,0 +1,186 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-06",
+  "number": 6,
+  "week": 3,
+  "version": "0.1.0",
+  "presentation_version": "0.1.0",
+  "title": "Reading for specific information",
+  "status": "Private teacher-review draft",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. The passages are original academic-style texts written for this lesson and describe general, widely reported ideas without citing specific studies. No third-party passages or assessment questions copied. Human editorial, factual, key, mapping, difficulty and originality review pending.",
+  "audio": { "required": false, "statement": "No recording required. Reading-only lesson.", "recordings": [] },
+  "prerequisites": [
+    "Lesson 2 (TRUE/FALSE/NOT GIVEN evidence) and Lesson 5 (paraphrase recognition).",
+    "Teacher has checked actual Reading Screener states privately. Do not use screener passages or items in this lesson.",
+    "Each learner has a printed workbook. The passage is long enough that phone-only reading is not recommended."
+  ],
+  "objectives": [
+    { "text": "Locate the paragraph that contains a specific type of information (a reason, a description, an example) rather than a matching word.", "focus": ["locating explicit evidence", "scanning"] },
+    { "text": "Complete sentences using words copied accurately from an academic passage within a word limit.", "focus": ["detail discrimination", "vocabulary in context"] },
+    { "text": "Match views to the groups who hold them in an argument-based passage.", "focus": ["writer stance/purpose", "paraphrase recognition"] }
+  ],
+  "levels": {
+    "foundation": "Paragraph topic labels written together after skimming; teacher may name two possible paragraphs for a matching item, recorded as support.",
+    "core": "Complete Questions 1-9 independently in 12 minutes and justify each answer with a quotation.",
+    "extension": "Questions 10-12 (matching features) independently, then explain the trap in one wrong option.",
+    "high_band": "Complete all twelve questions in 17 minutes with no support, then write the paraphrase pair (question words / passage words) for every answer."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-06-M1",
+      "kind": "items",
+      "title": "Sixty-second scan",
+      "mode": "Opening challenge; timed by the teacher",
+      "instructions": "Find each answer in the notice as quickly as you can. Write ONE WORD AND/OR A NUMBER.",
+      "stimulus": { "type": "passage", "title": "Campus library: summer arrangements", "paragraphs": [
+        "From 1 July the library will open at 10.00 instead of 8.30, and close at 18.00. The silent study floor will be closed for painting until 20 July; group rooms remain available but must be booked online. Printing is moved to the ground floor. Books borrowed in June may be kept until the start of term without renewal."
+      ] },
+      "items": [
+        { "id": "IELTS-06-M1-Q1", "prompt": "New opening time: ________", "answer": "10.00", "accept": ["10", "10:00", "ten"], "evidence": "open at 10.00 instead of 8.30", "reason": "8.30 is the old time.", "focus": "scanning", "type": "completion", "word_limit": 1, "level": "core" },
+        { "id": "IELTS-06-M1-Q2", "prompt": "Group rooms must be booked ________.", "answer": "online", "evidence": "must be booked online", "reason": "The key word 'booked' appears just before the answer.", "focus": "scanning", "type": "completion", "word_limit": 1, "level": "core" },
+        { "id": "IELTS-06-M1-Q3", "prompt": "Which floor is closed for painting?", "answer": "silent", "accept": ["silent study", "the silent study floor"], "evidence": "The silent study floor will be closed for painting", "reason": "The ground floor is mentioned for printing, not painting.", "focus": "detail discrimination", "type": "completion", "word_limit": 1, "level": "core" }
+      ]
+    },
+    {
+      "id": "IELTS-06-R1",
+      "kind": "items",
+      "title": "Cooling the city from the roof up",
+      "mode": "Independent classroom practice after strategy modelling; not a Reading Screener",
+      "instructions": "Questions 1-5: the passage has six paragraphs, A-F. Which paragraph contains the following information? Write the correct letter, A-F.",
+      "stimulus": { "type": "passage", "title": "Cooling the city from the roof up", "labelled": true, "paragraphs": [
+        "On a still summer afternoon, the centre of a large city can be several degrees warmer than the countryside around it. This difference, known as the urban heat island effect, occurs because roads, roofs and walls absorb sunlight during the day and release the stored heat slowly after dark. Cities also produce heat of their own, from vehicles, air-conditioning units and industry. As a result, the temperature gap between town and country is often greatest not at midday but late in the evening.",
+        "The effect is more than a matter of comfort. During heatwaves, hospital admissions rise, particularly among older people and those living alone in upper-floor flats. Demand for electricity also climbs as households and offices run air conditioners for longer, which in turn releases more waste heat into the streets. For city authorities, reducing urban temperatures has therefore become a question of public health as well as energy planning.",
+        "One response that has attracted growing attention is the green roof: a layer of soil and plants laid over a waterproof membrane on top of a building. Plants cool their surroundings through evapotranspiration, the process by which water drawn up through roots evaporates from leaves, taking heat with it. The soil layer also acts as insulation, slowing the transfer of heat into the rooms below. Measurements on individual buildings have recorded roof surfaces that are far cooler than nearby dark roofs on hot days.",
+        "However, the benefits are not evenly shared. A green roof on a tall office block may cool the offices beneath it but have little effect on the air at street level, where pedestrians actually feel the heat. Ecologists have also pointed out that a thin layer of drought-tolerant plants supports far fewer insects and birds than a deeper, more varied planting scheme. Deeper soil, though, is heavy, and many older buildings cannot carry the extra load without costly structural work.",
+        "Cost is the obstacle most often raised by building owners. Installing a green roof typically costs considerably more than replacing a conventional roof, and maintenance, such as watering during dry periods, weeding and checking drains, adds a further annual expense. Owners point out that while the public gains from cooler streets, the bill falls on them. Some cities have responded with grants or reduced charges for rainwater drainage, since planted roofs hold water that would otherwise run straight into the sewers during storms.",
+        "City planners increasingly argue that green roofs work best as one part of a wider strategy. Street trees provide shade exactly where people walk, and light-coloured 'cool roofs', which reflect sunlight rather than absorbing it, are cheaper to install on buildings that cannot support soil. In the planners' view, the most useful question is not whether green roofs are effective in general, but which combination of measures suits each neighbourhood's buildings, budget and residents."
+      ] },
+      "items": [
+        { "id": "IELTS-06-R1-Q1", "prompt": "a reference to the time of day when the difference in temperature is largest", "options": ["A", "B", "C", "D", "E", "F"], "answer": "A", "evidence": "often greatest not at midday but late in the evening", "reason": "'Largest' paraphrases 'greatest'; the time of day is late evening.", "focus": "locating explicit evidence", "type": "paragraph_match", "level": "core" },
+        { "id": "IELTS-06-R1-Q2", "prompt": "an explanation of how plants lower temperatures", "options": ["A", "B", "C", "D", "E", "F"], "answer": "C", "evidence": "Plants cool their surroundings through evapotranspiration", "reason": "The paragraph describes the process step by step. Paragraph D mentions plants but discusses wildlife.", "focus": "paraphrase recognition", "type": "paragraph_match", "level": "core" },
+        { "id": "IELTS-06-R1-Q3", "prompt": "a reason why some buildings are unsuitable for deep planting", "options": ["A", "B", "C", "D", "E", "F"], "answer": "D", "evidence": "many older buildings cannot carry the extra load", "reason": "'Unsuitable' paraphrases 'cannot carry the extra load'. Paragraph F mentions buildings that cannot support soil, but gives an alternative, not the reason.", "focus": "detail discrimination", "type": "paragraph_match", "level": "core" },
+        { "id": "IELTS-06-R1-Q4", "prompt": "a mention of a financial incentive offered by some local governments", "options": ["A", "B", "C", "D", "E", "F"], "answer": "E", "evidence": "Some cities have responded with grants or reduced charges", "reason": "Grants and reduced charges are incentives. The word 'cost' alone does not answer the question.", "focus": "paraphrase recognition", "type": "paragraph_match", "level": "core" },
+        { "id": "IELTS-06-R1-Q5", "prompt": "the health risks linked to high urban temperatures", "options": ["A", "B", "C", "D", "E", "F"], "answer": "B", "evidence": "During heatwaves, hospital admissions rise", "reason": "Hospital admissions show a health risk, and the paragraph names public health directly.", "focus": "locating explicit evidence", "type": "paragraph_match", "level": "core" }
+      ],
+      "support": "Foundation: after the two-minute skim, the class agrees a three-word topic label for each paragraph. The teacher may name two candidate paragraphs for one item; record which item.",
+      "extension": "For Question 3, explain why paragraph F is tempting but wrong.",
+      "high_band": "Write the question words and the passage words for each answer as paraphrase pairs."
+    },
+    {
+      "id": "IELTS-06-R2",
+      "kind": "items",
+      "title": "Sentence completion",
+      "mode": "Independent classroom practice; same passage as Questions 1-5",
+      "instructions": "Questions 6-9: complete the sentences. Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+      "stimulus": { "type": "passage", "title": "Cooling the city from the roof up (same passage)", "labelled": true, "paragraphs": [
+        "On a still summer afternoon, the centre of a large city can be several degrees warmer than the countryside around it. This difference, known as the urban heat island effect, occurs because roads, roofs and walls absorb sunlight during the day and release the stored heat slowly after dark. Cities also produce heat of their own, from vehicles, air-conditioning units and industry. As a result, the temperature gap between town and country is often greatest not at midday but late in the evening.",
+        "The effect is more than a matter of comfort. During heatwaves, hospital admissions rise, particularly among older people and those living alone in upper-floor flats. Demand for electricity also climbs as households and offices run air conditioners for longer, which in turn releases more waste heat into the streets. For city authorities, reducing urban temperatures has therefore become a question of public health as well as energy planning.",
+        "One response that has attracted growing attention is the green roof: a layer of soil and plants laid over a waterproof membrane on top of a building. Plants cool their surroundings through evapotranspiration, the process by which water drawn up through roots evaporates from leaves, taking heat with it. The soil layer also acts as insulation, slowing the transfer of heat into the rooms below. Measurements on individual buildings have recorded roof surfaces that are far cooler than nearby dark roofs on hot days.",
+        "However, the benefits are not evenly shared. A green roof on a tall office block may cool the offices beneath it but have little effect on the air at street level, where pedestrians actually feel the heat. Ecologists have also pointed out that a thin layer of drought-tolerant plants supports far fewer insects and birds than a deeper, more varied planting scheme. Deeper soil, though, is heavy, and many older buildings cannot carry the extra load without costly structural work.",
+        "Cost is the obstacle most often raised by building owners. Installing a green roof typically costs considerably more than replacing a conventional roof, and maintenance, such as watering during dry periods, weeding and checking drains, adds a further annual expense. Owners point out that while the public gains from cooler streets, the bill falls on them. Some cities have responded with grants or reduced charges for rainwater drainage, since planted roofs hold water that would otherwise run straight into the sewers during storms.",
+        "City planners increasingly argue that green roofs work best as one part of a wider strategy. Street trees provide shade exactly where people walk, and light-coloured 'cool roofs', which reflect sunlight rather than absorbing it, are cheaper to install on buildings that cannot support soil. In the planners' view, the most useful question is not whether green roofs are effective in general, but which combination of measures suits each neighbourhood's buildings, budget and residents."
+      ], "workbook_reference": "Use the passage printed with Questions 1-5." },
+      "items": [
+        { "id": "IELTS-06-R2-Q6", "prompt": "Urban surfaces release the heat they absorb ________ after dark.", "answer": "slowly", "evidence": "release the stored heat slowly after dark", "reason": "The sentence paraphrases 'release the stored heat'. One word is enough.", "focus": "detail discrimination", "type": "completion", "word_limit": 2, "level": "core" },
+        { "id": "IELTS-06-R2-Q7", "prompt": "The soil on a green roof works as a form of ________ for the building.", "answer": "insulation", "evidence": "The soil layer also acts as insulation", "reason": "'Works as' paraphrases 'acts as'.", "focus": "paraphrase recognition", "type": "completion", "word_limit": 2, "level": "core" },
+        { "id": "IELTS-06-R2-Q8", "prompt": "A green roof on a tall building may do little to cool the air at ________.", "answer": "street level", "evidence": "have little effect on the air at street level", "reason": "'Do little to cool' paraphrases 'have little effect on'.", "focus": "paraphrase recognition", "type": "completion", "word_limit": 2, "level": "core" },
+        { "id": "IELTS-06-R2-Q9", "prompt": "Planted roofs can reduce the rainwater that flows into the ________ during storms.", "answer": "sewers", "accept": ["the sewers"], "evidence": "would otherwise run straight into the sewers during storms", "reason": "Copy the word exactly; 'drains' appears in the paragraph but refers to roof maintenance.", "focus": "detail discrimination", "type": "completion", "word_limit": 2, "level": "core" }
+      ],
+      "support": "Foundation: the teacher may name the paragraph for one item; record which item.",
+      "extension": "Explain why 'drains' is wrong for Question 9."
+    },
+    {
+      "id": "IELTS-06-K1",
+      "kind": "contrast",
+      "in_workbook": false,
+      "title": "Word match or meaning match?",
+      "mode": "Teacher-led review after Questions 1-9",
+      "instructions": "For each pair, decide which choice is based on meaning and which only on a matching word.",
+      "examples": [
+        { "label": "Question 4, tempting choice: paragraph E, sentence 1", "text": "'Cost is the obstacle most often raised by building owners.'", "comment": "Word match only. 'Financial' suggests money, but an obstacle is not an incentive." },
+        { "label": "Question 4, real match: paragraph E, last sentence", "text": "'Some cities have responded with grants or reduced charges for rainwater drainage.'", "comment": "Meaning match. Grants and reduced charges encourage owners to act: a financial incentive from local government." },
+        { "label": "Question 3, tempting choice: paragraph F", "text": "'cool roofs ... are cheaper to install on buildings that cannot support soil.'", "comment": "This names the problem but offers an alternative. It does not explain why the buildings are unsuitable." },
+        { "label": "Question 3, real match: paragraph D", "text": "'Deeper soil, though, is heavy, and many older buildings cannot carry the extra load.'", "comment": "Meaning match. Weight is the reason deep planting is unsuitable for some buildings." }
+      ]
+    },
+    {
+      "id": "IELTS-06-R3",
+      "kind": "items",
+      "title": "Who holds which view?",
+      "mode": "Extension practice for all learners; foundation group guided by the teacher",
+      "instructions": "Questions 10-12: look at the following views and the list of groups below. Match each view with the correct group, A, B or C. A: city planners  B: building owners  C: ecologists",
+      "stimulus": { "type": "passage", "title": "Cooling the city from the roof up (same passage, paragraphs D-F)", "labelled": true, "paragraphs": [
+        "However, the benefits are not evenly shared. A green roof on a tall office block may cool the offices beneath it but have little effect on the air at street level, where pedestrians actually feel the heat. Ecologists have also pointed out that a thin layer of drought-tolerant plants supports far fewer insects and birds than a deeper, more varied planting scheme. Deeper soil, though, is heavy, and many older buildings cannot carry the extra load without costly structural work.",
+        "Cost is the obstacle most often raised by building owners. Installing a green roof typically costs considerably more than replacing a conventional roof, and maintenance, such as watering during dry periods, weeding and checking drains, adds a further annual expense. Owners point out that while the public gains from cooler streets, the bill falls on them. Some cities have responded with grants or reduced charges for rainwater drainage, since planted roofs hold water that would otherwise run straight into the sewers during storms.",
+        "City planners increasingly argue that green roofs work best as one part of a wider strategy. Street trees provide shade exactly where people walk, and light-coloured 'cool roofs', which reflect sunlight rather than absorbing it, are cheaper to install on buildings that cannot support soil. In the planners' view, the most useful question is not whether green roofs are effective in general, but which combination of measures suits each neighbourhood's buildings, budget and residents."
+      ], "workbook_reference": "Use paragraphs D-F of the passage printed with Questions 1-5." },
+      "items": [
+        { "id": "IELTS-06-R3-Q10", "prompt": "Shallow planting offers limited support for wildlife.", "options": ["A", "B", "C"], "answer": "C", "evidence": "a thin layer of drought-tolerant plants supports far fewer insects and birds", "reason": "'Shallow planting' paraphrases 'a thin layer'; 'wildlife' covers insects and birds.", "focus": "writer stance/purpose", "type": "matching", "level": "extension" },
+        { "id": "IELTS-06-R3-Q11", "prompt": "The people who pay for green roofs are not the main beneficiaries.", "options": ["A", "B", "C"], "answer": "B", "evidence": "while the public gains from cooler streets, the bill falls on them", "reason": "The owners pay; the public gains.", "focus": "paraphrase recognition", "type": "matching", "level": "extension" },
+        { "id": "IELTS-06-R3-Q12", "prompt": "Different areas need different combinations of solutions.", "options": ["A", "B", "C"], "answer": "A", "evidence": "which combination of measures suits each neighbourhood", "reason": "'Different areas' paraphrases 'each neighbourhood'.", "focus": "writer stance/purpose", "type": "matching", "level": "extension" }
+      ],
+      "support": "Foundation: the teacher reads paragraph D aloud and asks which group is named before learners answer.",
+      "high_band": "Paragraph D begins 'However, the benefits are not evenly shared.' Explain what this sentence contributes to the writer's argument."
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 5, "title": "Opening challenge: sixty-second scan", "show": [{ "block": "IELTS-06-M1", "part": "questions" }, { "block": "IELTS-06-M1", "part": "answers" }], "student": "Scan the notice for three answers in sixty seconds.", "teacher": "Time sixty seconds aloud. Reveal after everyone has stopped writing. Ask how learners found each answer: number shape, key word, or meaning.", "say": "You did not read every word. You looked for the kind of information you needed.", "check": "Learners can say what they looked for in Q1 (a time)." },
+    { "start": 5, "end": 10, "title": "Strategy: what kind of information?", "show": [], "student": "Underline the information-type word in each of Questions 1-5 (reference, explanation, reason, mention, risks). Skim the passage for two minutes and write a three-word label beside each paragraph.", "teacher": "Model one question: 'an explanation of how plants lower temperatures' means we need a process, not just the word 'plants'. Run the two-minute skim. Foundation group agrees labels together; record this support.", "say": "Matching information asks what a paragraph contains. The same word may appear in several paragraphs; the right paragraph contains the right kind of information.", "check": "Every learner has six paragraph labels." },
+    { "start": 10, "end": 22, "title": "Independent practice: Questions 1-9", "show": [{ "block": "IELTS-06-R1", "part": "questions" }, { "block": "IELTS-06-R2", "part": "questions" }], "student": "Answer Questions 1-9 alone in 12 minutes. Write a short quotation as evidence for each answer.", "teacher": "Keep answers private. Circulate and record any support given and to whom. High-band learners continue to Questions 10-12 when finished.", "say": "Find the evidence first, then write the letter or words. Copy words exactly from the passage.", "check": "Original answers committed before the review." },
+    { "start": 22, "end": 31, "title": "Review Questions 1-5: word match or meaning match?", "show": [{ "block": "IELTS-06-R1", "part": "answers" }, { "block": "IELTS-06-K1", "part": "questions" }, { "block": "IELTS-06-K1", "part": "answers" }], "student": "Check answers. For any wrong answer, write whether you chose by word or by meaning. Keep your first answer visible.", "teacher": "Reveal Q1-Q5 in groups, asking for learner evidence first. Then use the contrast slides for Q3 and Q4 to show the word-match trap.", "say": "The word 'cost' is in paragraph E, but the question asks for an incentive. What encourages people to act?", "check": "Learners can explain why paragraph F is wrong for Q3." },
+    { "start": 31, "end": 36, "title": "Review Questions 6-9: copy exactly, respect the limit", "show": [{ "block": "IELTS-06-R2", "part": "answers" }], "student": "Check spelling and word count. Mark any answer that changed the passage's words.", "teacher": "Point out that 'drains' in paragraph E is a trap for Q9. A changed word form or misspelling would not be accepted in the test. Corrections remain guided practice.", "say": "In completion tasks the passage gives you the words. Your job is to copy them accurately.", "check": "Learners can explain the Q9 trap." },
+    { "start": 36, "end": 44, "title": "Questions 10-12: who holds which view?", "show": [{ "block": "IELTS-06-R3", "part": "questions" }], "student": "Answer Questions 10-12 using paragraphs D-F.", "teacher": "Foundation group: read paragraph D aloud and guide the first item; record support. Others work independently. High-band learners also answer the paragraph D purpose question.", "say": "Find the group's name, then read the words around it carefully.", "check": "All learners have committed answers." },
+    { "start": 44, "end": 50, "title": "Review Questions 10-12", "show": [{ "block": "IELTS-06-R3", "part": "answers" }], "student": "Check answers and quote the evidence.", "teacher": "Reveal answers. Ask a high-band learner to explain the function of 'However, the benefits are not evenly shared' (it turns from advantages to limitations).", "say": "Matching features tests who says what, just like matching speakers in Listening.", "check": "Learners connect this task to Lesson 5's speaker matching." },
+    { "start": 50, "end": 55, "title": "My reading log", "show": [], "student": "In the reading log at the end of the workbook, record each wrong answer, the trap type (word match, word limit, wrong group) and one strategy for next time.", "teacher": "Circulate and note trap types learners actually record. Do not convert this score to a band.", "say": "Your log shows which strategy to practise. One task is not your reading level.", "check": "Each learner has one strategy target." },
+    { "start": 55, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket and take the homework sheet.", "teacher": "Collect exit tickets. Assign online practice only through the existing reviewed workflow. Record the date for the withheld fresh check.", "say": "Next lesson you will build arguments for Writing Task 2. The reading skill you used today, finding exact support, will help you there too.", "check": "Everyone knows the homework and next check date." }
+  ],
+  "exit_ticket": [
+    "The kind of information I look for in a matching information question:",
+    "One trap I avoided or fell into today:",
+    "My reading target for next week:"
+  ],
+  "homework": [
+    "Choose one paragraph from today's passage. Write three questions a classmate could answer from it: one detail, one paraphrase and one 'which group' question. Include your own answers.",
+    "Read one short article in English on any topic. Write a three-word label for each paragraph.",
+    "Complete only the Brains Heist reading practice your teacher actually assigns. Suggested time: about 25 minutes, adjusted by your teacher."
+  ],
+  "followup": {
+    "id": "IELTS-06-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 6. Allow 10 minutes, no dictionary, no teacher support. Log timing, support, interruptions and prior exposure. Classroom observation only unless separately approved for stronger claims.",
+    "blocks": [
+      {
+        "id": "IELTS-06-C1",
+        "kind": "items",
+        "title": "Saving seeds for the future",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Questions 1-3: which paragraph, A-E, contains the following information? Questions 4-6: complete the sentences with NO MORE THAN TWO WORDS from the passage.",
+        "stimulus": { "type": "passage", "title": "Saving seeds for the future", "labelled": true, "paragraphs": [
+          "Around the world, more than a thousand seed banks store the seeds of crops and wild plants. Their purpose is simple to state: if a variety disappears from farms or from the wild, stored seeds can be used to grow it again. Some collections are small and serve a single region; others hold samples from almost every country.",
+          "Seeds survive longest when they are dry and cold. Before storage, they are dried until they contain very little moisture, then sealed in airtight packets and kept at around minus twenty degrees Celsius. Under these conditions, the seeds of many species can remain alive for decades, and some for far longer.",
+          "Not every plant cooperates. The seeds of oaks, avocados and many tropical trees are killed by drying, so they cannot be stored in the usual way. For these species, banks are experimenting with freezing small pieces of the seed's embryo in liquid nitrogen, a technique that is expensive and requires specialist staff.",
+          "Storage alone is not enough. Staff must test samples regularly by germinating a few seeds, because a collection that appears healthy may have quietly lost its ability to sprout. When germination rates fall, the remaining seeds must be planted and new seed harvested, a process called regeneration.",
+          "Some scientists argue that seed banks should complement rather than replace conservation in the field. A variety stored in a freezer stops evolving, while one grown by farmers continues to adapt to changing pests and climate. For this reason, several banks now work directly with farming communities, returning seeds to the regions they came from."
+        ] },
+        "items": [
+          { "id": "IELTS-06-C1-Q1", "prompt": "a reason why some species need a different storage method", "options": ["A", "B", "C", "D", "E"], "answer": "C", "evidence": "are killed by drying, so they cannot be stored in the usual way", "reason": "Drying kills these seeds, so normal storage fails.", "focus": "locating explicit evidence", "type": "paragraph_match" },
+          { "id": "IELTS-06-C1-Q2", "prompt": "an explanation of why stored seeds must be checked", "options": ["A", "B", "C", "D", "E"], "answer": "D", "evidence": "may have quietly lost its ability to sprout", "reason": "Testing is needed because seeds can die without visible signs.", "focus": "paraphrase recognition", "type": "paragraph_match" },
+          { "id": "IELTS-06-C1-Q3", "prompt": "a benefit of growing crops on farms rather than only storing them", "options": ["A", "B", "C", "D", "E"], "answer": "E", "evidence": "continues to adapt to changing pests and climate", "reason": "Field-grown varieties keep adapting; stored ones stop evolving.", "focus": "paraphrase recognition", "type": "paragraph_match" },
+          { "id": "IELTS-06-C1-Q4", "prompt": "Before storage, dried seeds are sealed in ________ packets.", "answer": "airtight", "evidence": "sealed in airtight packets", "reason": "Copy the word exactly.", "focus": "detail discrimination", "type": "completion", "word_limit": 2 },
+          { "id": "IELTS-06-C1-Q5", "prompt": "Pieces of some embryos are frozen in ________.", "answer": "liquid nitrogen", "evidence": "freezing small pieces of the seed's embryo in liquid nitrogen", "reason": "Two words, within the limit.", "focus": "detail discrimination", "type": "completion", "word_limit": 2 },
+          { "id": "IELTS-06-C1-Q6", "prompt": "Planting old seeds to produce new seed is called ________.", "answer": "regeneration", "evidence": "a process called regeneration", "reason": "'Is called' paraphrases 'a process called'.", "focus": "vocabulary in context", "type": "completion", "word_limit": 2 }
+        ]
+      }
+    ],
+    "review": "Compare only the observed demands and conditions with Lesson 6 work. Record what the new work shows, counterevidence and the next check. A fresh passage does not by itself establish comparable difficulty or improvement. No percentage, band or mastery cutoff."
+  },
+  "delayed_followup": "Two to three teaching weeks later, include one matching-information item in an unfamiliar topic (for example, during Lesson 9 or 13) and note whether the learner chooses by meaning without prompting. Record it as a later observation only.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. They are draft teaching focuses, not approved taxonomy mappings. Items from one passage are not independent longitudinal observations.",
+  "release_blockers": [
+    "Human editorial, factual, key, mapping, difficulty, originality and rights review pending.",
+    "Device, print and PowerPoint playback acceptance pending."
+  ]
+}
