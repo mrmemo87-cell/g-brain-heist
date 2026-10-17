@@ -9,17 +9,151 @@
   "status": "Private teacher-review draft",
   "duration": 60,
   "test_type": "Academic",
-  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "bibles": {
+    "diagnostic": "1.10.0",
+    "lessons": "1.1.0",
+    "visual": "1.1.0"
+  },
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Scripts, questions and keys are original. No third-party passages, recordings or assessment questions copied. Human editorial, key, mapping, difficulty, originality and audio review pending.",
   "audio": {
     "required": true,
     "statement": "Two new recordings are required (IELTS-05-L1 and IELTS-05-L2), plus one withheld fresh-check recording (IELTS-05-C1). None has been produced. Scripts are drafts. Do not substitute generated speech outside the approved audio workflow.",
     "recordings": [
-      { "id": "IELTS-05-L1", "block": "IELTS-05-L1", "status": "Script draft; recording not produced", "voices": "Instruction voice; two passage voices (Ruth, coordinator; Daniel, caller)", "conditions": "Guided practice. First play once without pausing; optional teacher-controlled second play for review only." },
-      { "id": "IELTS-05-L2", "block": "IELTS-05-L2", "status": "Script draft; recording not produced", "voices": "Instruction voice; three passage voices (Dr Price, tutor; Lena; Tom)", "conditions": "Guided practice. First play once without pausing; optional teacher-controlled second play for review only." },
-      { "id": "IELTS-05-C1", "block": "IELTS-05-C1", "status": "Withheld fresh-check script draft; recording not produced", "voices": "Instruction voice; two passage voices (Sam, museum officer; Aisha, student)", "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions." }
+      {
+        "id": "IELTS-05-L1",
+        "block": "IELTS-05-L1",
+        "status": "Script draft; recording not produced",
+        "voices": {
+          "instruction": "Distinct instruction voice (existing roster: Tom)",
+          "RUTH": "Adult female, calm and friendly (proposed: Paula)",
+          "DANIEL": "Young adult male (proposed: James)"
+        },
+        "conditions": "Guided practice. First play once without pausing; optional teacher-controlled second play for review only.",
+        "segments": [
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "You will hear a telephone conversation between a man who wants to volunteer and the coordinator of a community garden. First, you have thirty seconds to look at questions one to six."
+          },
+          {
+            "type": "silence",
+            "seconds": 30
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "Now listen carefully and answer questions one to six."
+          },
+          {
+            "type": "passage"
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
+          },
+          {
+            "type": "silence",
+            "seconds": 15
+          }
+        ]
+      },
+      {
+        "id": "IELTS-05-L2",
+        "block": "IELTS-05-L2",
+        "status": "Script draft; recording not produced",
+        "voices": {
+          "instruction": "Distinct instruction voice (existing roster: Tom)",
+          "DR PRICE": "Older adult, clearly different from both students (new voice to select)",
+          "LENA": "Young adult female (proposed: Katie)",
+          "MARCO": "Young adult male (proposed: James)"
+        },
+        "conditions": "Guided practice. First play once without pausing; optional teacher-controlled second play for review only. Questions 9-10 depend on telling the three speakers apart: voices must be clearly distinct in pitch and character, and the reviewer must confirm this.",
+        "segments": [
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "You will hear two students, Lena and Marco, discussing their research project with their tutor, Dr Price. First, you have thirty seconds to look at questions seven to ten."
+          },
+          {
+            "type": "silence",
+            "seconds": 30
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "Now listen carefully and answer questions seven to ten."
+          },
+          {
+            "type": "passage"
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
+          },
+          {
+            "type": "silence",
+            "seconds": 15
+          }
+        ]
+      },
+      {
+        "id": "IELTS-05-C1",
+        "block": "IELTS-05-C1",
+        "status": "Withheld fresh-check script draft; recording not produced",
+        "voices": {
+          "instruction": "Distinct instruction voice (existing roster: Tom)",
+          "SAM": "Adult, either gender (proposed: an existing roster voice not used in L1)",
+          "AISHA": "Young adult female, different from SAM"
+        },
+        "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions.",
+        "segments": [
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "You will hear a student calling a museum about a summer work placement. First, you have thirty seconds to look at questions one to six."
+          },
+          {
+            "type": "silence",
+            "seconds": 30
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "Now listen carefully and answer questions one to six."
+          },
+          {
+            "type": "passage"
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
+          },
+          {
+            "type": "silence",
+            "seconds": 15
+          }
+        ]
+      }
     ],
-    "production_requirements": "Diagnostic Bible 6.1 and 6.1.1: spoken rights notice in the instruction voice, measured silence (30 seconds to read questions before each recording, 15 seconds after it), clear natural speech, no added noise, exact delivered SHA-256, separate review of sound, transcript fidelity, keys and device playback."
+    "production_requirements": "Follow Diagnostic Bible 6.1 and 6.1.1 and the existing Listening production record format (docs/ielts/practice/LISTENING_EXTENSION_02_DRAFT.json): assemble the segments in order with the spoken copyright notice first in the instruction voice; insert real silence (30 seconds after the reading instruction, 15 seconds after the passage) and verify it in the encoded file; clean natural speech with no added noise, phone effect or music; no clipping; record provider, model, voice identities, settings, script SHA-256, measured pauses, duration and delivered SHA-256; never overwrite an approved file. Human review covers sound, transcript fidelity (every number, correction and name), speaker distinctness, keys and device playback, each recorded separately. Generated-voice licence and distribution rights remain an open gate, as for existing tracks."
   },
   "prerequisites": [
     "Lessons 1 and 3 strategies: wait for the final detail and respect word limits. Late joiners use the catch-up sheet from the Lesson 2 pack, which covers the Lesson 1 correction strategy.",
@@ -27,9 +161,26 @@
     "Approved recordings IELTS-05-L1 and IELTS-05-L2 exist with verified hashes. Without them this lesson is not releasable; see Plan B."
   ],
   "objectives": [
-    { "text": "Recognise three distractor patterns: a corrected detail, a rejected option and a changed or contrasting opinion.", "focus": ["distractor resistance", "speaker attitude/opinion"] },
-    { "text": "Match spoken paraphrases to the words in a question before and while listening.", "focus": ["paraphrase recognition"] },
-    { "text": "Track who holds which view in a three-speaker academic discussion.", "focus": ["matching/reference tracking", "speaker attitude/opinion"] }
+    {
+      "text": "Recognise three distractor patterns: a corrected detail, a rejected option and a changed or contrasting opinion.",
+      "focus": [
+        "distractor resistance",
+        "speaker attitude/opinion"
+      ]
+    },
+    {
+      "text": "Match spoken paraphrases to the words in a question before and while listening.",
+      "focus": [
+        "paraphrase recognition"
+      ]
+    },
+    {
+      "text": "Track who holds which view in a three-speaker academic discussion.",
+      "focus": [
+        "matching/reference tracking",
+        "speaker attitude/opinion"
+      ]
+    }
   ],
   "levels": {
     "foundation": "Answer-type hints beside each gap; teacher-controlled second play with a pause after each answer, recorded as support.",
@@ -44,15 +195,53 @@
       "title": "Three traps in one sentence",
       "mode": "Teacher-led mini-model; read aloud live from the slide",
       "instructions": "Listen to your teacher read each short line once. Write the final answer only.",
-      "stimulus": { "type": "teacher_script", "title": "Mini-model lines (teacher reads aloud)", "paragraphs": [
-        "A: Can we meet on Tuesday? B: I have a lecture then. Let's say Thursday.",
-        "A: The library is noisy, so let's not work there. The café upstairs is quieter.",
-        "A: I thought the first article was the most useful. B: Really? I found the second one far clearer, and that's the one I'll use."
-      ] },
+      "stimulus": {
+        "type": "teacher_script",
+        "title": "Mini-model lines (teacher reads aloud)",
+        "paragraphs": [
+          "A: Can we meet on Tuesday? B: I have a lecture then. Let's say Thursday.",
+          "A: The library is noisy, so let's not work there. The café upstairs is quieter.",
+          "A: I thought the first article was the most useful. B: Really? I found the second one far clearer, and that's the one I'll use."
+        ]
+      },
       "items": [
-        { "id": "IELTS-05-M1-Q1", "prompt": "Meeting day: ________", "answer": "Thursday", "evidence": "Let's say Thursday", "reason": "Tuesday is mentioned first, then rejected. The final arrangement is Thursday.", "focus": "distractor resistance", "type": "completion", "word_limit": 1, "level": "core" },
-        { "id": "IELTS-05-M1-Q2", "prompt": "Place to work: ________", "answer": "café", "accept": ["cafe", "the café", "café upstairs"], "evidence": "The café upstairs is quieter", "reason": "The library is named but rejected.", "focus": "distractor resistance", "type": "completion", "word_limit": 2, "level": "core" },
-        { "id": "IELTS-05-M1-Q3", "prompt": "Which article will speaker B use? First / second", "answer": "second", "evidence": "the second one far clearer, and that's the one I'll use", "reason": "Speaker A's opinion is about the first article; the question asks about speaker B.", "focus": "speaker attitude/opinion", "type": "choice", "level": "core" }
+        {
+          "id": "IELTS-05-M1-Q1",
+          "prompt": "Meeting day: ________",
+          "answer": "Thursday",
+          "evidence": "Let's say Thursday",
+          "reason": "Tuesday is mentioned first, then rejected. The final arrangement is Thursday.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 1,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-M1-Q2",
+          "prompt": "Place to work: ________",
+          "answer": "café",
+          "accept": [
+            "cafe",
+            "the café",
+            "café upstairs"
+          ],
+          "evidence": "The café upstairs is quieter",
+          "reason": "The library is named but rejected.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 2,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-M1-Q3",
+          "prompt": "Which article will speaker B use? First / second",
+          "answer": "second",
+          "evidence": "the second one far clearer, and that's the one I'll use",
+          "reason": "Speaker A's opinion is about the first article; the question asks about speaker B.",
+          "focus": "speaker attitude/opinion",
+          "type": "choice",
+          "level": "core"
+        }
       ]
     },
     {
@@ -61,23 +250,141 @@
       "title": "Spoken words and question words",
       "mode": "Guided classroom practice; no recording required",
       "instructions": "Match each spoken phrase (1-6) with the question wording (A-H) that means the same. Two options are not used.",
-      "stimulus": { "type": "options_list", "title": "Question wording", "paragraphs": [
-        "A  register",
-        "B  limit the number",
-        "C  9.15",
-        "D  interview in person",
-        "E  reasons for not doing something",
-        "F  not compulsory",
-        "G  cancel",
-        "H  9.45"
-      ] },
+      "stimulus": {
+        "type": "options_list",
+        "title": "Question wording",
+        "paragraphs": [
+          "A  register",
+          "B  limit the number",
+          "C  9.15",
+          "D  interview in person",
+          "E  reasons for not doing something",
+          "F  not compulsory",
+          "G  cancel",
+          "H  9.45"
+        ]
+      },
       "items": [
-        { "id": "IELTS-05-P1-Q1", "prompt": "put my name down", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "A", "evidence": "put my name down = register", "reason": "Both mean adding yourself to a list of participants.", "focus": "paraphrase recognition", "type": "matching", "level": "core" },
-        { "id": "IELTS-05-P1-Q2", "prompt": "we cap each day at twenty people", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "B", "evidence": "cap ... at twenty = limit the number", "reason": "To cap something is to set a maximum.", "focus": "paraphrase recognition", "type": "matching", "level": "core" },
-        { "id": "IELTS-05-P1-Q3", "prompt": "a quarter past nine", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "C", "evidence": "a quarter past nine = 9.15", "reason": "Quarter past means fifteen minutes after the hour. 9.45 is a quarter to ten.", "focus": "numerical information", "type": "matching", "level": "core" },
-        { "id": "IELTS-05-P1-Q4", "prompt": "talk to people face to face", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "D", "evidence": "face to face = in person", "reason": "Face to face means meeting directly, not online.", "focus": "paraphrase recognition", "type": "matching", "level": "core" },
-        { "id": "IELTS-05-P1-Q5", "prompt": "what stops everyone else", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "E", "evidence": "what stops = reasons for not doing", "reason": "Something that stops you is a reason you do not act.", "focus": "paraphrase recognition", "type": "matching", "level": "extension" },
-        { "id": "IELTS-05-P1-Q6", "prompt": "you don't have to come to that part", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "F", "evidence": "don't have to = not compulsory", "reason": "Don't have to removes an obligation. It does not mean the event is cancelled.", "focus": "paraphrase recognition", "type": "matching", "level": "extension" }
+        {
+          "id": "IELTS-05-P1-Q1",
+          "prompt": "put my name down",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "answer": "A",
+          "evidence": "put my name down = register",
+          "reason": "Both mean adding yourself to a list of participants.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-P1-Q2",
+          "prompt": "we cap each day at twenty people",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "answer": "B",
+          "evidence": "cap ... at twenty = limit the number",
+          "reason": "To cap something is to set a maximum.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-P1-Q3",
+          "prompt": "a quarter past nine",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "answer": "C",
+          "evidence": "a quarter past nine = 9.15",
+          "reason": "Quarter past means fifteen minutes after the hour. 9.45 is a quarter to ten.",
+          "focus": "numerical information",
+          "type": "matching",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-P1-Q4",
+          "prompt": "talk to people face to face",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "answer": "D",
+          "evidence": "face to face = in person",
+          "reason": "Face to face means meeting directly, not online.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-P1-Q5",
+          "prompt": "what stops everyone else",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "answer": "E",
+          "evidence": "what stops = reasons for not doing",
+          "reason": "Something that stops you is a reason you do not act.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "extension"
+        },
+        {
+          "id": "IELTS-05-P1-Q6",
+          "prompt": "you don't have to come to that part",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "answer": "F",
+          "evidence": "don't have to = not compulsory",
+          "reason": "Don't have to removes an obligation. It does not mean the event is cancelled.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "extension"
+        }
       ],
       "support": "Foundation: give learners the first answer as a worked example and allow a bilingual note beside each phrase. Record the support.",
       "extension": "Write a second paraphrase of your own for two of the phrases."
@@ -88,36 +395,122 @@
       "title": "Volunteer weekend",
       "mode": "Guided listening practice: one play under practice conditions, then teacher-controlled review",
       "instructions": "Questions 1-4: complete the form. Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each answer. Questions 5-6: choose the correct letter, A, B or C.",
-      "stimulus": { "type": "transcript", "title": "Recording IELTS-05-L1 transcript (teacher-private)", "paragraphs": [
-        "RUTH: Riverside Community Garden, Ruth speaking.",
-        "DANIEL: Hello. I saw your notice about the volunteer weekend, and I'd like to put my name down.",
-        "RUTH: Lovely. Let me take a few details. Which day would you like to come? We run sessions on Saturday and Sunday.",
-        "DANIEL: Saturday would suit me best.",
-        "RUTH: Ah, I'm sorry, Saturday's already full. We cap each day at twenty people.",
-        "DANIEL: Oh. In that case, I'll come on Sunday.",
-        "RUTH: Sunday it is. Now, people often go to the library entrance, because that's where we met last year, but this time we're meeting at the north gate of the park. It's closer to the new vegetable beds.",
-        "DANIEL: The north gate. Got it.",
-        "RUTH: Do you have your own boots?",
-        "DANIEL: I don't, actually.",
-        "RUTH: That's fine. We provide boots in all sizes. What we can't provide this year is gloves, so please bring a pair.",
-        "DANIEL: Gloves. OK. And what time do we start?",
-        "RUTH: The leaflet says nine o'clock, but that's a mistake. We've moved it to a quarter past nine, so the tools can be unloaded first.",
-        "DANIEL: Nine fifteen, then.",
-        "RUTH: Can I ask what made you interested? It helps us place people.",
-        "DANIEL: Well, a couple of friends said it's a great way to meet people, and I suppose it's good exercise. But really, I'm studying environmental science, and I need some practical experience with soil and planting for my course.",
-        "RUTH: Perfect. I'll put you with our soil-testing group.",
-        "DANIEL: Great. Will you send me a map?",
-        "RUTH: There's a map on our website, so I won't post one. And the timetable for the day isn't finished yet. But I'll email you a safety form tonight. Please sign it and bring it on Sunday.",
-        "DANIEL: I will. Thanks very much."
-      ] },
+      "stimulus": {
+        "type": "transcript",
+        "title": "Recording IELTS-05-L1 transcript (teacher-private)",
+        "paragraphs": [
+          "RUTH: Riverside Community Garden, Ruth speaking.",
+          "DANIEL: Hello. I saw your notice about the volunteer weekend, and I'd like to put my name down.",
+          "RUTH: Lovely. Let me take a few details. Which day would you like to come? We run sessions on Saturday and Sunday.",
+          "DANIEL: Saturday would suit me best.",
+          "RUTH: Ah, I'm sorry, Saturday's already full. We cap each day at twenty people.",
+          "DANIEL: Oh. In that case, I'll come on Sunday.",
+          "RUTH: Sunday it is. Now, people often go to the library entrance, because that's where we met last year, but this time we're meeting at the north gate of the park. It's closer to the new vegetable beds.",
+          "DANIEL: The north gate. Got it.",
+          "RUTH: Do you have your own boots?",
+          "DANIEL: I don't, actually.",
+          "RUTH: That's fine. We provide boots in all sizes. What we can't provide this year is gloves, so please bring a pair.",
+          "DANIEL: Gloves. OK. And what time do we start?",
+          "RUTH: The leaflet says nine o'clock, but that's a mistake. We've moved it to a quarter past nine, so the tools can be unloaded first.",
+          "DANIEL: Nine fifteen, then.",
+          "RUTH: Can I ask what made you interested? It helps us place people.",
+          "DANIEL: Well, a couple of friends said it's a great way to meet people, and I suppose it's good exercise. But really, I'm studying environmental science, and I need some practical experience with soil and planting for my course.",
+          "RUTH: Perfect. I'll put you with our soil-testing group.",
+          "DANIEL: Great. Will you send me a map?",
+          "RUTH: There's a map on our website, so I won't post one. And the timetable for the day isn't finished yet. But I'll email you a safety form tonight. Please sign it and bring it on Sunday.",
+          "DANIEL: I will. Thanks very much."
+        ]
+      },
       "form_title": "Riverside Community Garden: volunteer registration",
       "items": [
-        { "id": "IELTS-05-L1-Q1", "prompt": "Day of session: ________", "answer": "Sunday", "evidence": "In that case, I'll come on Sunday", "reason": "Saturday is his first choice but it is full.", "focus": "distractor resistance", "type": "completion", "word_limit": 2, "hint": "a day", "level": "core" },
-        { "id": "IELTS-05-L1-Q2", "prompt": "Meeting point: the ________ of the park", "answer": "north gate", "evidence": "this time we're meeting at the north gate of the park", "reason": "The library entrance was last year's meeting point.", "focus": "distractor resistance", "type": "completion", "word_limit": 2, "hint": "a place", "level": "core" },
-        { "id": "IELTS-05-L1-Q3", "prompt": "Volunteers must bring: ________", "answer": "gloves", "accept": ["a pair of gloves"], "evidence": "What we can't provide this year is gloves, so please bring a pair", "reason": "Boots are provided, so they are not the answer.", "focus": "distractor resistance", "type": "completion", "word_limit": 2, "hint": "a thing (plural noun)", "level": "core" },
-        { "id": "IELTS-05-L1-Q4", "prompt": "Start time: ________", "answer": "9.15", "accept": ["9:15", "nine fifteen", "quarter past nine", "9.15 am", "9:15 am"], "evidence": "We've moved it to a quarter past nine", "reason": "The leaflet time (nine o'clock) is corrected.", "focus": "numerical information", "type": "completion", "word_limit": 2, "hint": "a time", "level": "core" },
-        { "id": "IELTS-05-L1-Q5", "prompt": "Daniel's main reason for volunteering is", "options": ["A  to meet new people.", "B  to gain experience for his studies.", "C  to improve his health."], "answer": "B", "evidence": "But really, I'm studying environmental science, and I need some practical experience", "reason": "Meeting people and exercise are mentioned, but 'But really' introduces his main reason.", "focus": "distractor resistance", "type": "mcq", "level": "core" },
-        { "id": "IELTS-05-L1-Q6", "prompt": "What will Ruth send Daniel?", "options": ["A  a map", "B  a safety form", "C  a timetable"], "answer": "B", "evidence": "I'll email you a safety form tonight", "reason": "The map is already online and the timetable is not finished.", "focus": "distractor resistance", "type": "mcq", "level": "core" }
+        {
+          "id": "IELTS-05-L1-Q1",
+          "prompt": "Day of session: ________",
+          "answer": "Sunday",
+          "evidence": "In that case, I'll come on Sunday",
+          "reason": "Saturday is his first choice but it is full.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 2,
+          "hint": "a day",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-L1-Q2",
+          "prompt": "Meeting point: the ________ of the park",
+          "answer": "north gate",
+          "evidence": "this time we're meeting at the north gate of the park",
+          "reason": "The library entrance was last year's meeting point.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 2,
+          "hint": "a place",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-L1-Q3",
+          "prompt": "Volunteers must bring: ________",
+          "answer": "gloves",
+          "accept": [
+            "a pair of gloves"
+          ],
+          "evidence": "What we can't provide this year is gloves, so please bring a pair",
+          "reason": "Boots are provided, so they are not the answer.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 2,
+          "hint": "a thing (plural noun)",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-L1-Q4",
+          "prompt": "Start time: ________",
+          "answer": "9.15",
+          "accept": [
+            "9:15",
+            "nine fifteen",
+            "quarter past nine",
+            "9.15 am",
+            "9:15 am"
+          ],
+          "evidence": "We've moved it to a quarter past nine",
+          "reason": "The leaflet time (nine o'clock) is corrected.",
+          "focus": "numerical information",
+          "type": "completion",
+          "word_limit": 2,
+          "hint": "a time",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-L1-Q5",
+          "prompt": "Daniel's main reason for volunteering is",
+          "options": [
+            "A  to meet new people.",
+            "B  to gain experience for his studies.",
+            "C  to improve his health."
+          ],
+          "answer": "B",
+          "evidence": "But really, I'm studying environmental science, and I need some practical experience",
+          "reason": "Meeting people and exercise are mentioned, but 'But really' introduces his main reason.",
+          "focus": "distractor resistance",
+          "type": "mcq",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-L1-Q6",
+          "prompt": "What will Ruth send Daniel?",
+          "options": [
+            "A  a map",
+            "B  a safety form",
+            "C  a timetable"
+          ],
+          "answer": "B",
+          "evidence": "I'll email you a safety form tonight",
+          "reason": "The map is already online and the timetable is not finished.",
+          "focus": "distractor resistance",
+          "type": "mcq",
+          "level": "core"
+        }
       ],
       "support": "Foundation: the workbook shows the answer type beside Questions 1-4. A second, paused play is allowed after the first attempt and is recorded as support.",
       "extension": "For Questions 5 and 6, write the words that made each wrong option tempting.",
@@ -128,49 +521,247 @@
       "kind": "items",
       "title": "A research plan: cycling to campus",
       "mode": "Guided listening practice: one play under practice conditions, then teacher-controlled review",
-      "instructions": "Questions 7-8: choose the correct letter, A, B or C. Questions 9-10: who expresses each view? Write L for Lena, T for Tom or P for Dr Price.",
-      "stimulus": { "type": "transcript", "title": "Recording IELTS-05-L2 transcript (teacher-private)", "paragraphs": [
-        "DR PRICE: So, Lena and Tom, how's the cycling project going?",
-        "TOM: Quite well. Our plan was to send an online questionnaire to all first-year students.",
-        "DR PRICE: Hmm. Online questionnaires often get very few replies in the first term. Have you thought about other options?",
-        "LENA: We did consider watching the main entrance and counting bikes, but we'd need to be there every morning for weeks.",
-        "DR PRICE: Yes, observation would take far too long for a project this size.",
-        "TOM: So we've decided to talk to people face to face instead. We'll interview students at the bike racks outside the library.",
-        "DR PRICE: Good. Now, about your sample. You mentioned sixty students.",
-        "TOM: I thought you were going to tell us that wasn't enough.",
-        "DR PRICE: No, sixty is fine for this stage. My concern is who those sixty people are. If you only speak to people who already cycle, you'll never find out what stops everyone else.",
-        "LENA: So we should include students who don't cycle at all.",
-        "DR PRICE: Exactly.",
-        "TOM: For the questions, I think weather is the main reason people don't cycle. It rains so much here.",
-        "LENA: I'm not sure. When we tried our questions on ten classmates, most of them talked about feeling unsafe on the main road. Hardly anyone mentioned rain.",
-        "TOM: Maybe, but ten people isn't many. I still think weather will come out on top.",
-        "DR PRICE: Well, that's exactly what your interviews can test. What about the final report?",
-        "TOM: We'll include charts of the results. Somebody suggested a map of cycle routes as well, but I don't think it adds much.",
-        "DR PRICE: Actually, I'd like to see one. A map would show where the dangerous junctions are, which links directly to the safety question.",
-        "LENA: Then we'll need to decide who draws it."
-      ] },
+      "instructions": "Questions 7-8: choose the correct letter, A, B or C. Questions 9-10: who expresses each view? Write L for Lena, M for Marco or P for Dr Price.",
+      "stimulus": {
+        "type": "transcript",
+        "title": "Recording IELTS-05-L2 transcript (teacher-private)",
+        "paragraphs": [
+          "DR PRICE: So, Lena and Marco, how's the cycling project going?",
+          "MARCO: Quite well. Our plan was to send an online questionnaire to all first-year students.",
+          "DR PRICE: Hmm. Online questionnaires often get very few replies in the first term. Have you thought about other options?",
+          "LENA: We did consider watching the main entrance and counting bikes, but we'd need to be there every morning for weeks.",
+          "DR PRICE: Yes, observation would take far too long for a project this size.",
+          "MARCO: So we've decided to talk to people face to face instead. We'll interview students at the bike racks outside the library.",
+          "DR PRICE: Good. Now, about your sample. You mentioned sixty students.",
+          "MARCO: I thought you were going to tell us that wasn't enough.",
+          "DR PRICE: No, sixty is fine for this stage. My concern is who those sixty people are. If you only speak to people who already cycle, you'll never find out what stops everyone else.",
+          "LENA: So we should include students who don't cycle at all.",
+          "DR PRICE: Exactly.",
+          "MARCO: For the questions, I think weather is the main reason people don't cycle. It rains so much here.",
+          "LENA: I'm not sure. When we tried our questions on ten classmates, most of them talked about feeling unsafe on the main road. Hardly anyone mentioned rain.",
+          "MARCO: Maybe, but ten people isn't many. I still think weather will come out on top.",
+          "DR PRICE: Well, that's exactly what your interviews can test. What about the final report?",
+          "MARCO: We'll include charts of the results. Somebody suggested a map of cycle routes as well, but I don't think it adds much.",
+          "DR PRICE: Actually, I'd like to see one. A map would show where the dangerous junctions are, which links directly to the safety question.",
+          "LENA: Then we'll need to decide who draws it."
+        ]
+      },
       "items": [
-        { "id": "IELTS-05-L2-Q7", "prompt": "How will the students now collect their data?", "options": ["A  by interviewing students at bike racks", "B  by sending an online questionnaire", "C  by counting bikes at the main entrance"], "answer": "A", "evidence": "We'll interview students at the bike racks outside the library", "reason": "The questionnaire was the original plan; observation was considered and rejected.", "focus": "distractor resistance", "type": "mcq", "level": "core" },
-        { "id": "IELTS-05-L2-Q8", "prompt": "What problem does Dr Price see with the sample?", "options": ["A  It is too small.", "B  It includes only people who cycle.", "C  It was collected at one time of day."], "answer": "B", "evidence": "If you only speak to people who already cycle, you'll never find out what stops everyone else", "reason": "Tom expects a comment about size, but Dr Price says sixty is fine.", "focus": "speaker attitude/opinion", "type": "mcq", "level": "core" },
-        { "id": "IELTS-05-L2-Q9", "prompt": "Concerns about safety may matter more than the weather.", "options": ["L", "T", "P"], "answer": "L", "evidence": "most of them talked about feeling unsafe on the main road. Hardly anyone mentioned rain", "reason": "Tom keeps his view about weather; Dr Price says the interviews can test it but takes no side.", "focus": "matching/reference tracking", "type": "matching", "level": "extension" },
-        { "id": "IELTS-05-L2-Q10", "prompt": "A map would make the report more useful.", "options": ["L", "T", "P"], "answer": "P", "evidence": "Actually, I'd like to see one. A map would show where the dangerous junctions are", "reason": "Tom mentions the map first but rejects it. Lena only asks who will draw it.", "focus": "matching/reference tracking", "type": "matching", "level": "extension" }
+        {
+          "id": "IELTS-05-L2-Q7",
+          "prompt": "How will the students now collect their data?",
+          "options": [
+            "A  by interviewing students at bike racks",
+            "B  by sending an online questionnaire",
+            "C  by counting bikes at the main entrance"
+          ],
+          "answer": "A",
+          "evidence": "We'll interview students at the bike racks outside the library",
+          "reason": "The questionnaire was the original plan; observation was considered and rejected.",
+          "focus": "distractor resistance",
+          "type": "mcq",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-L2-Q8",
+          "prompt": "What problem does Dr Price see with the sample?",
+          "options": [
+            "A  It is too small.",
+            "B  It includes only people who cycle.",
+            "C  It was collected at one time of day."
+          ],
+          "answer": "B",
+          "evidence": "If you only speak to people who already cycle, you'll never find out what stops everyone else",
+          "reason": "Marco expects a comment about size, but Dr Price says sixty is fine.",
+          "focus": "speaker attitude/opinion",
+          "type": "mcq",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-05-L2-Q9",
+          "prompt": "Concerns about safety may matter more than the weather.",
+          "options": [
+            "L",
+            "M",
+            "P"
+          ],
+          "answer": "L",
+          "evidence": "most of them talked about feeling unsafe on the main road. Hardly anyone mentioned rain",
+          "reason": "Marco keeps his view about weather; Dr Price says the interviews can test it but takes no side.",
+          "focus": "matching/reference tracking",
+          "type": "matching",
+          "level": "extension"
+        },
+        {
+          "id": "IELTS-05-L2-Q10",
+          "prompt": "A map would make the report more useful.",
+          "options": [
+            "L",
+            "M",
+            "P"
+          ],
+          "answer": "P",
+          "evidence": "Actually, I'd like to see one. A map would show where the dangerous junctions are",
+          "reason": "Marco mentions the map first but rejects it. Lena only asks who will draw it.",
+          "focus": "matching/reference tracking",
+          "type": "matching",
+          "level": "extension"
+        }
       ],
-      "support": "Foundation: before playing, the teacher reads the three speaker names aloud and learners write L, T and P in the margin.",
-      "extension": "For Question 8, explain why option A is tempting, quoting Tom.",
-      "high_band": "Explain in one sentence why Question 9 is not answered by Tom even though he talks about weather and safety."
+      "support": "Foundation: before playing, the teacher reads the three speaker names aloud and learners write L, M and P in the margin.",
+      "extension": "For Question 8, explain why option A is tempting, quoting Marco.",
+      "high_band": "Explain in one sentence why Question 9 is not answered by Marco even though he talks about weather and safety."
     }
   ],
   "stages": [
-    { "start": 0, "end": 5, "title": "Opening challenge: the first answer is a trap", "show": [{ "block": "IELTS-05-M1", "part": "questions" }, { "block": "IELTS-05-M1", "part": "answers" }], "student": "Listen to three short lines read aloud and write only the final answer.", "teacher": "Read each mini-model line once at natural speed. Students write before the reveal. Ask which word made the first answer wrong. This is a live mini-model, not an assessed recording.", "say": "In IELTS Listening, the first thing you hear is not always the answer. Listen for the final decision.", "check": "Most learners can name the word that signalled the change (then, so, but)." },
-    { "start": 5, "end": 12, "title": "Three distractor patterns and paraphrase", "show": [{ "block": "IELTS-05-P1", "part": "questions" }, { "block": "IELTS-05-P1", "part": "answers" }], "student": "Complete the paraphrase matching in the workbook alone (4 minutes), then check with the reveal.", "teacher": "Teach the three patterns from the mini-model: correction, rejected option, contrasting opinion. Then run the matching task. Reveal answers only after learners commit. Stress that question wording rarely repeats the recording.", "say": "The recording and the question say the same thing in different words. Your job is to hear the meaning.", "check": "Learners can explain Q3 (quarter past) and Q6 (don't have to)." },
-    { "start": 12, "end": 15, "title": "Prepare for Recording 1", "show": [{ "block": "IELTS-05-L1", "part": "questions" }], "student": "Read Questions 1-6. Predict the type of answer for each gap.", "teacher": "Give 30 seconds' reading time inside the recording plus up to 2 minutes of prediction. Do not pre-teach the answers. Foundation learners use the printed answer-type hints.", "say": "Before you listen, decide: is the answer a day, a place, a thing or a time?", "check": "Each learner has written a prediction beside at least two gaps." },
-    { "start": 15, "end": 22, "title": "Recording 1: one play", "show": [{ "block": "IELTS-05-L1", "part": "questions" }], "student": "Listen once and answer Questions 1-6. Keep your first answers.", "teacher": "Play IELTS-05-L1 once without pausing. Do not repeat or react to answers. If audio fails, stop and use Plan B; never read the transcript as a substitute for this practice play.", "say": "You will hear the recording once. Write as you listen.", "check": "All learners have committed answers before the review." },
-    { "start": 22, "end": 29, "title": "Review Recording 1 and trap analysis", "show": [{ "block": "IELTS-05-L1", "part": "answers" }], "student": "Compare your answers with the reveal. Mark the trap you fell into, without erasing your first answer.", "teacher": "Reveal answers in pairs. For each, ask what was said first and what changed it. Optional: a teacher-controlled second play with pauses for foundation learners, recorded as support. Corrections remain guided practice.", "say": "Boots, nine o'clock and the library were all in the recording. Why were they wrong?", "check": "Learners can name the trap type for Q1, Q2 and Q4." },
-    { "start": 29, "end": 31, "title": "Prepare for Recording 2", "show": [{ "block": "IELTS-05-L2", "part": "questions" }], "student": "Read Questions 7-10. Underline the key idea in each option.", "teacher": "Point out the three speaker names. Explain that in matching tasks you match the view to the person who actually says it, not the person who mentions the topic.", "say": "Three people, different opinions. Listen for who agrees and who disagrees.", "check": "Learners have written L, T and P beside Questions 9-10." },
-    { "start": 31, "end": 38, "title": "Recording 2: one play", "show": [{ "block": "IELTS-05-L2", "part": "questions" }], "student": "Listen once and answer Questions 7-10.", "teacher": "Play IELTS-05-L2 once without pausing. Note interruptions or learners arriving late.", "say": "Listen for changes of plan and for who holds each view.", "check": "All answers committed." },
-    { "start": 38, "end": 48, "title": "Review Recording 2: who said it?", "show": [{ "block": "IELTS-05-L2", "part": "answers" }], "student": "Check answers. For Questions 9-10, write the speaker's exact words that prove the answer.", "teacher": "Reveal Q7-Q8, then Q9-Q10. Model the reasoning for Q10: Tom mentions the map but rejects it; Dr Price supports it. Extension and high-band learners complete their written tasks from the workbook.", "say": "Mentioning an idea is not the same as agreeing with it.", "check": "Learners explain Q10 using the word 'Actually'." },
-    { "start": 48, "end": 54, "title": "My error log", "show": [], "student": "Complete the error log at the end of the workbook: for each wrong answer, name the trap type and the signal you missed. Choose one target.", "teacher": "Circulate. Note the trap types learners actually record. Do not convert raw scores from these guided tasks to bands.", "say": "Your error log tells us what to practise next, not your IELTS score.", "check": "Each learner has one target written in their own words." },
-    { "start": 54, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket. Take the homework sheet.", "teacher": "Collect exit tickets. Assign online practice only through the existing workflow, and only where a reviewed task is eligible. Record a follow-up date for the withheld fresh check.", "say": "Next lesson we will read for specific information, using the same idea: find the meaning, not the matching word.", "check": "Everyone knows the homework and the next check date." }
+    {
+      "start": 0,
+      "end": 5,
+      "title": "Opening challenge: the first answer is a trap",
+      "show": [
+        {
+          "block": "IELTS-05-M1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-05-M1",
+          "part": "answers"
+        }
+      ],
+      "student": "Listen to three short lines read aloud and write only the final answer.",
+      "teacher": "Read each mini-model line once at natural speed. Students write before the reveal. Ask which word made the first answer wrong. This is a live mini-model, not an assessed recording.",
+      "say": "In IELTS Listening, the first thing you hear is not always the answer. Listen for the final decision.",
+      "check": "Most learners can name the word that signalled the change (then, so, but)."
+    },
+    {
+      "start": 5,
+      "end": 12,
+      "title": "Three distractor patterns and paraphrase",
+      "show": [
+        {
+          "block": "IELTS-05-P1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-05-P1",
+          "part": "answers"
+        }
+      ],
+      "student": "Complete the paraphrase matching in the workbook alone (4 minutes), then check with the reveal.",
+      "teacher": "Teach the three patterns from the mini-model: correction, rejected option, contrasting opinion. Then run the matching task. Reveal answers only after learners commit. Stress that question wording rarely repeats the recording.",
+      "say": "The recording and the question say the same thing in different words. Your job is to hear the meaning.",
+      "check": "Learners can explain Q3 (quarter past) and Q6 (don't have to)."
+    },
+    {
+      "start": 12,
+      "end": 15,
+      "title": "Prepare for Recording 1",
+      "show": [
+        {
+          "block": "IELTS-05-L1",
+          "part": "questions"
+        }
+      ],
+      "student": "Read Questions 1-6. Predict the type of answer for each gap.",
+      "teacher": "Give 30 seconds' reading time inside the recording plus up to 2 minutes of prediction. Do not pre-teach the answers. Foundation learners use the printed answer-type hints.",
+      "say": "Before you listen, decide: is the answer a day, a place, a thing or a time?",
+      "check": "Each learner has written a prediction beside at least two gaps."
+    },
+    {
+      "start": 15,
+      "end": 22,
+      "title": "Recording 1: one play",
+      "show": [
+        {
+          "block": "IELTS-05-L1",
+          "part": "questions"
+        }
+      ],
+      "student": "Listen once and answer Questions 1-6. Keep your first answers.",
+      "teacher": "Play IELTS-05-L1 once without pausing. Do not repeat or react to answers. If audio fails, stop and use Plan B; never read the transcript as a substitute for this practice play.",
+      "say": "You will hear the recording once. Write as you listen.",
+      "check": "All learners have committed answers before the review."
+    },
+    {
+      "start": 22,
+      "end": 29,
+      "title": "Review Recording 1 and trap analysis",
+      "show": [
+        {
+          "block": "IELTS-05-L1",
+          "part": "answers"
+        }
+      ],
+      "student": "Compare your answers with the reveal. Mark the trap you fell into, without erasing your first answer.",
+      "teacher": "Reveal answers in pairs. For each, ask what was said first and what changed it. Optional: a teacher-controlled second play with pauses for foundation learners, recorded as support. Corrections remain guided practice.",
+      "say": "Boots, nine o'clock and the library were all in the recording. Why were they wrong?",
+      "check": "Learners can name the trap type for Q1, Q2 and Q4."
+    },
+    {
+      "start": 29,
+      "end": 31,
+      "title": "Prepare for Recording 2",
+      "show": [
+        {
+          "block": "IELTS-05-L2",
+          "part": "questions"
+        }
+      ],
+      "student": "Read Questions 7-10. Underline the key idea in each option.",
+      "teacher": "Point out the three speaker names. Explain that in matching tasks you match the view to the person who actually says it, not the person who mentions the topic.",
+      "say": "Three people, different opinions. Listen for who agrees and who disagrees.",
+      "check": "Learners have written L, M and P beside Questions 9-10."
+    },
+    {
+      "start": 31,
+      "end": 38,
+      "title": "Recording 2: one play",
+      "show": [
+        {
+          "block": "IELTS-05-L2",
+          "part": "questions"
+        }
+      ],
+      "student": "Listen once and answer Questions 7-10.",
+      "teacher": "Play IELTS-05-L2 once without pausing. Note interruptions or learners arriving late.",
+      "say": "Listen for changes of plan and for who holds each view.",
+      "check": "All answers committed."
+    },
+    {
+      "start": 38,
+      "end": 48,
+      "title": "Review Recording 2: who said it?",
+      "show": [
+        {
+          "block": "IELTS-05-L2",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers. For Questions 9-10, write the speaker's exact words that prove the answer.",
+      "teacher": "Reveal Q7-Q8, then Q9-Q10. Model the reasoning for Q10: Marco mentions the map but rejects it; Dr Price supports it. Extension and high-band learners complete their written tasks from the workbook.",
+      "say": "Mentioning an idea is not the same as agreeing with it.",
+      "check": "Learners explain Q10 using the word 'Actually'."
+    },
+    {
+      "start": 48,
+      "end": 54,
+      "title": "My error log",
+      "show": [],
+      "student": "Complete the error log at the end of the workbook: for each wrong answer, name the trap type and the signal you missed. Choose one target.",
+      "teacher": "Circulate. Note the trap types learners actually record. Do not convert raw scores from these guided tasks to bands.",
+      "say": "Your error log tells us what to practise next, not your IELTS score.",
+      "check": "Each learner has one target written in their own words."
+    },
+    {
+      "start": 54,
+      "end": 60,
+      "title": "Exit ticket and homework",
+      "show": [],
+      "student": "Complete the exit ticket. Take the homework sheet.",
+      "teacher": "Collect exit tickets. Assign online practice only through the existing workflow, and only where a reviewed task is eligible. Record a follow-up date for the withheld fresh check.",
+      "say": "Next lesson we will read for specific information, using the same idea: find the meaning, not the matching word.",
+      "check": "Everyone knows the homework and the next check date."
+    }
   ],
   "exit_ticket": [
     "One trap pattern I can now recognise:",
@@ -193,31 +784,109 @@
         "title": "Summer placement at the City Museum",
         "mode": "Withheld fresh check; one play",
         "instructions": "Questions 1-4: complete the notes. Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each answer. Questions 5-6: choose the correct letter, A, B or C.",
-        "stimulus": { "type": "transcript", "title": "Recording IELTS-05-C1 transcript (teacher-private)", "paragraphs": [
-          "SAM: City Museum, education office. Sam speaking.",
-          "AISHA: Hi. I'm calling about the summer work placement. I've been offered a place, and I need to confirm a few details.",
-          "SAM: Congratulations. Could I take your name?",
-          "AISHA: Aisha Karimova. That's K-A-R-I-M-O-V-A.",
-          "SAM: Thank you. Right, you'll be working in the education department. Actually, no, sorry, I've just checked, and you're with the archive team this year.",
-          "AISHA: The archive. That sounds interesting.",
-          "SAM: The placement lasts three weeks. Most people start on the first of July, but your start date is the eighth of July, because the archive is closed for repairs in the first week.",
-          "AISHA: And where should I go on my first day?",
-          "SAM: Not the main reception. It gets very crowded in summer. Please come to the staff entrance on Mill Street.",
-          "AISHA: Do I need to bring anything?",
-          "SAM: You'll get a uniform on the day, and lunch is provided. Just bring your passport. A student card isn't accepted for security reasons.",
-          "AISHA: What will I mostly be doing?",
-          "SAM: Some people expect to give tours, but placements don't do that. You'll mainly be scanning old photographs so they can go online, and occasionally helping at weekend family events.",
-          "AISHA: Will I be paid?",
-          "SAM: It's unpaid, I'm afraid, but we cover your bus fares, and you'll get a reference letter at the end."
-        ] },
+        "stimulus": {
+          "type": "transcript",
+          "title": "Recording IELTS-05-C1 transcript (teacher-private)",
+          "paragraphs": [
+            "SAM: City Museum, education office. Sam speaking.",
+            "AISHA: Hi. I'm calling about the summer work placement. I've been offered a place, and I need to confirm a few details.",
+            "SAM: Congratulations. Could I take your name?",
+            "AISHA: Aisha Karimova. That's K-A-R-I-M-O-V-A.",
+            "SAM: Thank you. Right, you'll be working in the education department. Actually, no, sorry, I've just checked, and you're with the archive team this year.",
+            "AISHA: The archive. That sounds interesting.",
+            "SAM: The placement lasts three weeks. Most people start on the first of July, but your start date is the eighth of July, because the archive is closed for repairs in the first week.",
+            "AISHA: And where should I go on my first day?",
+            "SAM: Not the main reception. It gets very crowded in summer. Please come to the staff entrance on Mill Street.",
+            "AISHA: Do I need to bring anything?",
+            "SAM: You'll get a uniform on the day, and lunch is provided. Just bring your passport. A student card isn't accepted for security reasons.",
+            "AISHA: What will I mostly be doing?",
+            "SAM: Some people expect to give tours, but placements don't do that. You'll mainly be scanning old photographs so they can go online, and occasionally helping at weekend family events.",
+            "AISHA: Will I be paid?",
+            "SAM: It's unpaid, I'm afraid, but we cover your bus fares, and you'll get a reference letter at the end."
+          ]
+        },
         "form_title": "City Museum summer placement",
         "items": [
-          { "id": "IELTS-05-C1-Q1", "prompt": "Team: ________", "answer": "archive", "accept": ["the archive", "archive team"], "evidence": "you're with the archive team this year", "reason": "The education department is corrected.", "focus": "distractor resistance", "type": "completion", "word_limit": 2 },
-          { "id": "IELTS-05-C1-Q2", "prompt": "Start date: ________", "answer": "8 July", "accept": ["8th July", "July 8", "July 8th", "the eighth of July", "8.7", "08/07"], "evidence": "your start date is the eighth of July", "reason": "The first of July applies to most people, not Aisha.", "focus": "distractor resistance", "type": "completion", "word_limit": 2 },
-          { "id": "IELTS-05-C1-Q3", "prompt": "First day: go to the ________ on Mill Street", "answer": "staff entrance", "evidence": "Please come to the staff entrance on Mill Street", "reason": "The main reception is rejected.", "focus": "distractor resistance", "type": "completion", "word_limit": 2 },
-          { "id": "IELTS-05-C1-Q4", "prompt": "Bring: your ________", "answer": "passport", "evidence": "Just bring your passport", "reason": "A student card is not accepted; the uniform and lunch are provided.", "focus": "distractor resistance", "type": "completion", "word_limit": 2 },
-          { "id": "IELTS-05-C1-Q5", "prompt": "What will Aisha mainly do?", "options": ["A  lead tours", "B  scan photographs", "C  run family events"], "answer": "B", "evidence": "You'll mainly be scanning old photographs", "reason": "Tours are ruled out; family events are only occasional.", "focus": "distractor resistance", "type": "mcq" },
-          { "id": "IELTS-05-C1-Q6", "prompt": "What does the museum provide?", "options": ["A  a weekly wage", "B  help with travel costs", "C  free museum membership"], "answer": "B", "evidence": "we cover your bus fares", "reason": "The placement is unpaid; membership is not mentioned.", "focus": "paraphrase recognition", "type": "mcq" }
+          {
+            "id": "IELTS-05-C1-Q1",
+            "prompt": "Team: ________",
+            "answer": "archive",
+            "accept": [
+              "the archive",
+              "archive team"
+            ],
+            "evidence": "you're with the archive team this year",
+            "reason": "The education department is corrected.",
+            "focus": "distractor resistance",
+            "type": "completion",
+            "word_limit": 2
+          },
+          {
+            "id": "IELTS-05-C1-Q2",
+            "prompt": "Start date: ________",
+            "answer": "8 July",
+            "accept": [
+              "8th July",
+              "July 8",
+              "July 8th",
+              "the eighth of July",
+              "8.7",
+              "08/07"
+            ],
+            "evidence": "your start date is the eighth of July",
+            "reason": "The first of July applies to most people, not Aisha.",
+            "focus": "distractor resistance",
+            "type": "completion",
+            "word_limit": 2
+          },
+          {
+            "id": "IELTS-05-C1-Q3",
+            "prompt": "First day: go to the ________ on Mill Street",
+            "answer": "staff entrance",
+            "evidence": "Please come to the staff entrance on Mill Street",
+            "reason": "The main reception is rejected.",
+            "focus": "distractor resistance",
+            "type": "completion",
+            "word_limit": 2
+          },
+          {
+            "id": "IELTS-05-C1-Q4",
+            "prompt": "Bring: your ________",
+            "answer": "passport",
+            "evidence": "Just bring your passport",
+            "reason": "A student card is not accepted; the uniform and lunch are provided.",
+            "focus": "distractor resistance",
+            "type": "completion",
+            "word_limit": 2
+          },
+          {
+            "id": "IELTS-05-C1-Q5",
+            "prompt": "What will Aisha mainly do?",
+            "options": [
+              "A  lead tours",
+              "B  scan photographs",
+              "C  run family events"
+            ],
+            "answer": "B",
+            "evidence": "You'll mainly be scanning old photographs",
+            "reason": "Tours are ruled out; family events are only occasional.",
+            "focus": "distractor resistance",
+            "type": "mcq"
+          },
+          {
+            "id": "IELTS-05-C1-Q6",
+            "prompt": "What does the museum provide?",
+            "options": [
+              "A  a weekly wage",
+              "B  help with travel costs",
+              "C  free museum membership"
+            ],
+            "answer": "B",
+            "evidence": "we cover your bus fares",
+            "reason": "The placement is unpaid; membership is not mentioned.",
+            "focus": "paraphrase recognition",
+            "type": "mcq"
+          }
         ]
       }
     ],

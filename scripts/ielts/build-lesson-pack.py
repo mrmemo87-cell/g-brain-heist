@@ -196,6 +196,17 @@ class Pack:
         if k == 'items':
             st = b.get('stimulus') or {}
             if st.get('type') in ('transcript', 'teacher_script'):
+                rec = next((r for r in self.d['audio'].get('recordings', []) if r['block'] == b['id']), None)
+                if rec:
+                    out.append(self.p(f"Recording {rec['id']}: production order ({rec['status']})", 'H'))
+                    for seg in rec.get('segments', []):
+                        if seg['type'] == 'silence':
+                            out.append(self.p(f"[{seg['seconds']} seconds of measured silence]", 'S'))
+                        elif seg['type'] == 'passage':
+                            out.append(self.p('[Passage: the transcript below]', 'S'))
+                        else:
+                            out.append(self.p(f"{seg['voice'].upper()} VOICE: {seg['text']}", 'P'))
+                    out.append(self.p('Voices: ' + '; '.join(f"{k}: {v}" for k, v in rec.get('voices', {}).items()), 'S'))
                 out.append(self.p(st['title'], 'H'))
                 out += [self.p(x, 'P') for x in st['paragraphs']]
             for it in b['items']:

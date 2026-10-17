@@ -109,3 +109,19 @@ test('a released status without a human approval record is rejected', () => {
   lesson.status = 'Released';
   assert.ok(has(validateLessonSource(lesson), 'human approval record'));
 });
+
+test('recordings must follow the audio production order with measured pauses', () => {
+  const lesson = lessonFive();
+  const recording = lesson.audio.recordings.find((r) => r.id === 'IELTS-05-L1');
+  recording.segments = recording.segments.filter((x) => !(x.type === 'silence' && x.seconds === 30));
+  recording.segments[0].text = 'Welcome.';
+  const errors = validateLessonSource(lesson);
+  assert.ok(has(errors, '30-second reading silence'));
+  assert.ok(has(errors, 'spoken copyright notice'));
+});
+
+test('every speaker in a script needs an assigned voice', () => {
+  const lesson = lessonFive();
+  delete lesson.audio.recordings.find((r) => r.id === 'IELTS-05-L2').voices.MARCO;
+  assert.ok(has(validateLessonSource(lesson), 'no voice assigned for MARCO'));
+});

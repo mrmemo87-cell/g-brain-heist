@@ -10,6 +10,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const HARDCODED_SCHOOLS = [/\bsobhy\b/i, /\bSRIS\b/, /silk\s*road/i];
 const OVERCLAIMS = [/(?<!not a |no )certified band/i, /guaranteed? (a )?band/i, /official (ielts )?examiner/i, /band\s*[5-9](\.5)?\s+(essay|answer|response|model)\b/i];
 const TFNG = ['TRUE', 'FALSE', 'NOT GIVEN'];
+export const COPYRIGHT_NOTICE = 'This recording is copyright Brains Heist LLC. All rights reserved.';
 const YNNG = ['YES', 'NO', 'NOT GIVEN'];
 
 export function normalize(text) {
@@ -212,8 +213,24 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
   for (const block of transcriptBlocks) {
     const recording = recordings.get(block.id);
     if (!recording) errors.push(`recording entry missing for ${block.id}`);
-    else if (!/approved/i.test(recording.status) && !(lesson.release_blockers ?? []).some((b) => b.includes(block.id))) {
-      errors.push(`unapproved recording ${block.id} must be listed in release_blockers`);
+    else {
+      // Production order follows Diagnostic Bible 6.1/6.1.1: notice, directions, measured reading silence, passage, measured response silence.
+      const segs = recording.segments ?? [];
+      const kinds = segs.map((x) => (x.type === 'silence' ? `silence:${x.seconds}` : x.type));
+      const passageAt = kinds.indexOf('passage');
+      if (!segs.length) errors.push(`recording ${block.id} needs ordered production segments`);
+      else {
+        if (segs[0].type !== 'speech' || segs[0].voice !== 'instruction' || segs[0].text !== COPYRIGHT_NOTICE) errors.push(`recording ${block.id} must open with the spoken copyright notice in the instruction voice`);
+        if (kinds.filter((k) => k === 'passage').length !== 1) errors.push(`recording ${block.id} needs exactly one passage segment`);
+        if (!kinds.slice(0, passageAt).includes('silence:30')) errors.push(`recording ${block.id} needs a measured 30-second reading silence before the passage`);
+        if (!kinds.slice(passageAt + 1).includes('silence:15')) errors.push(`recording ${block.id} needs a measured 15-second response silence after the passage`);
+      }
+      const speakers = new Set((block.stimulus.paragraphs ?? []).map((line) => line.split(':')[0].trim()));
+      for (const speaker of speakers) if (!recording.voices?.[speaker]) errors.push(`recording ${block.id} has no voice assigned for ${speaker}`);
+      if (!recording.voices?.instruction) errors.push(`recording ${block.id} needs a distinct instruction voice`);
+      if (!/approved/i.test(recording.status) && !(lesson.release_blockers ?? []).some((b) => b.includes(block.id))) {
+        errors.push(`unapproved recording ${block.id} must be listed in release_blockers`);
+      }
     }
   }
 
