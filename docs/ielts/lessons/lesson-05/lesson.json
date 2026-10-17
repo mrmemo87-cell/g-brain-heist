@@ -24,9 +24,9 @@
         "block": "IELTS-05-L1",
         "status": "Script draft; recording not produced",
         "voices": {
-          "instruction": "Distinct instruction voice (existing roster: Tom)",
-          "RUTH": "Adult female, calm and friendly (proposed: Paula)",
-          "DANIEL": "Young adult male (proposed: James)"
+          "instruction": "Tom (British, examiner style; steady model)",
+          "RUTH": "Paula (British, calm, conversational)",
+          "DANIEL": "James (Australian, casual)"
         },
         "conditions": "Guided practice. First play once without pausing; optional teacher-controlled second play for review only.",
         "segments": [
@@ -38,7 +38,7 @@
           {
             "type": "speech",
             "voice": "instruction",
-            "text": "You will hear a telephone conversation between a man who wants to volunteer and the coordinator of a community garden. First, you have thirty seconds to look at questions one to six."
+            "text": "Part 1. You will hear a telephone conversation between a man who wants to volunteer and the coordinator of a community garden. First, you have thirty seconds to look at questions one to six."
           },
           {
             "type": "silence",
@@ -68,10 +68,10 @@
         "block": "IELTS-05-L2",
         "status": "Script draft; recording not produced",
         "voices": {
-          "instruction": "Distinct instruction voice (existing roster: Tom)",
-          "DR PRICE": "Older adult, clearly different from both students (new voice to select)",
-          "LENA": "Young adult female (proposed: Katie)",
-          "MARCO": "Young adult male (proposed: James)"
+          "instruction": "Tom (British, examiner style; steady model)",
+          "DR PRICE": "Marlene (British, middle-aged, measured)",
+          "LENA": "Kylie (Australian, young, confident)",
+          "MARCO": "Frank (North American, young, deep)"
         },
         "conditions": "Guided practice. First play once without pausing; optional teacher-controlled second play for review only. Questions 9-10 depend on telling the three speakers apart: voices must be clearly distinct in pitch and character, and the reviewer must confirm this.",
         "segments": [
@@ -83,7 +83,7 @@
           {
             "type": "speech",
             "voice": "instruction",
-            "text": "You will hear two students, Lena and Marco, discussing their research project with their tutor, Dr Price. First, you have thirty seconds to look at questions seven to ten."
+            "text": "Part 3. You will hear two students, Lena and Marco, discussing their research project with their tutor, Dr Price. First, you have thirty seconds to look at questions seven to ten."
           },
           {
             "type": "silence",
@@ -113,9 +113,9 @@
         "block": "IELTS-05-C1",
         "status": "Withheld fresh-check script draft; recording not produced",
         "voices": {
-          "instruction": "Distinct instruction voice (existing roster: Tom)",
-          "SAM": "Adult, either gender (proposed: an existing roster voice not used in L1)",
-          "AISHA": "Young adult female, different from SAM"
+          "instruction": "Tom (British, examiner style; steady model)",
+          "SAM": "Vincent (Australian, older, calm)",
+          "AISHA": "Maggie (North American, young, calm)"
         },
         "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions.",
         "segments": [
@@ -127,7 +127,7 @@
           {
             "type": "speech",
             "voice": "instruction",
-            "text": "You will hear a student calling a museum about a summer work placement. First, you have thirty seconds to look at questions one to six."
+            "text": "Part 1. You will hear a student calling a museum about a summer work placement. First, you have thirty seconds to look at questions one to six."
           },
           {
             "type": "silence",
@@ -791,7 +791,7 @@
             "SAM: City Museum, education office. Sam speaking.",
             "AISHA: Hi. I'm calling about the summer work placement. I've been offered a place, and I need to confirm a few details.",
             "SAM: Congratulations. Could I take your name?",
-            "AISHA: Aisha Karimova. That's K-A-R-I-M-O-V-A.",
+            "AISHA: Aisha Karimova. That's K, A, R, I, M, O, V, A.",
             "SAM: Thank you. Right, you'll be working in the education department. Actually, no, sorry, I've just checked, and you're with the archive team this year.",
             "AISHA: The archive. That sounds interesting.",
             "SAM: The placement lasts three weeks. Most people start on the first of July, but your start date is the eighth of July, because the archive is closed for repairs in the first week.",
