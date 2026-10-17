@@ -22,6 +22,7 @@ import {
 } from "../../../services/ieltsLessonResources";
 import { teacherLessonTwo, type TeacherLessonTwo } from "../../../services/ieltsLessonTwoService";
 import IeltsApprovedTeacherPacks from "./IeltsApprovedTeacherPacks";
+import IeltsReviewDraftPacks from "./IeltsReviewDraftPacks";
 import IeltsLessonTwoPanel from "./IeltsLessonTwoPanel";
 import IeltsTeacherDisclosure from "../../components/ielts/IeltsTeacherDisclosure";
 import "../../styles/ielts-lessons.css";
@@ -387,6 +388,7 @@ export default function IeltsLessonLibrary({
         </div>
       )}
       <IeltsApprovedTeacherPacks key={schoolId} schoolId={schoolId} />
+      <IeltsReviewDraftPacks key={`review-${schoolId}`} schoolId={schoolId} />
     </section>
   );
 }

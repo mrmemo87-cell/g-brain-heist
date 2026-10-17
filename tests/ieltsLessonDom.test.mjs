@@ -132,6 +132,7 @@ async function setup(deny = false, tamper = false) {
           }),
       };
     const args = JSON.parse(opts.body);
+    if (String(url).endsWith("/rpc_ielts_review_draft_packs")) return new Response(JSON.stringify({school_id:args.p_school,release:"review_draft",can_decide:false,packs:[]}), {status:200,headers:{"Content-Type":"application/json"}});
     if (String(url).endsWith("/rpc_ielts_teacher_pack_catalogue")) return new Response(JSON.stringify({school_id:args.p_school,school:{id:args.p_school,name:"School",logo_url:null},release:"teacher_only",packs:[]}), {status:200,headers:{"Content-Type":"application/json"}});
     return new Response(
       JSON.stringify(
