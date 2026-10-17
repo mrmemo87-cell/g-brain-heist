@@ -1,0 +1,248 @@
+{
+  "record": "IELTS-17 listening audio production",
+  "version": "1",
+  "produced": "2026-10-17",
+  "provider": "Runway MCP (workspace 'Sobbi', personal)",
+  "script_source": "docs/ielts/lessons/lesson-17/lesson.json",
+  "script_source_sha256_at_production": "c1290159e5e74444da0df097fd7582ae668f0f023a07744eb58a95c487dc78ad",
+  "production_method": {
+    "instructions": "eleven_multilingual_v2, voice Tom, stability 0.7; copyright notice and closing cue reused from the IELTS-05 v1 production (identical text and voice)",
+    "assembly": "48 kHz mono; edge silence trimmed; each segment loudness-matched to -18 LUFS; exact digital silences (0.7 s, 30.0 s reading, 1.0 s, 1.2 s, 30.0 s mid-recording reading where the section is played in two parts, 15.0 s response); true-peak limiter at -1.5 dBFS; MP3 192 kbps with copyright metadata",
+    "effects": "none except the documented part-A tempo adjustment in IELTS-17-L1"
+  },
+  "rights_basis": {
+    "owner_confirmation": "Owner confirmed on 2026-10-17 that rights to recordings produced in this workflow belong to Brains Heist LLC."
+  },
+  "recordings": {
+    "IELTS-17-L1": {
+      "file": "IELTS-17-L1_v1.mp3",
+      "title": "IELTS-17 Recording 1: Riverside Sports Centre (timed practice)",
+      "sha256": "82ea5fb8b064f5e43859784a4000a9284ef9ae05ccab4b483575954ce7aad298",
+      "bytes": 5995307,
+      "duration_seconds": 249.768,
+      "transcript_sha256": "f2cdedb24f103268cc5a43c746f7d0d931cb9e59d5e360f863eaffa7ad936449",
+      "voices": {
+        "instruction": "Tom (British, examiner style; steady model)",
+        "GUIDE": "James (Australian, casual, friendly)"
+      },
+      "generation": {
+        "passage": {
+          "task": [
+            "5613f828-c1d2-489f-8305-f6fec4f8be27",
+            "18709823-2daf-465d-931e-f2c017595138"
+          ],
+          "model": "eleven_v4 text-to-speech, voice James, two calls joined at the designed mid-recording break (part A take 3 with [pause] tags; take 1 at about 195 words per minute and take 2 at speed 0.88 rejected as too fast)",
+          "stability": 0.5,
+          "seed": [
+            17014,
+            17012
+          ],
+          "post_processing": "Part A time-stretched by ffmpeg atempo=0.94 (pitch preserved) to match part B pacing; no other effects"
+        },
+        "intro_task": "59ef5364-41a5-4688-9c7e-b93429dfe208",
+        "listen_cue_task": "6fdef43d-ef10-442b-969d-a05173108024",
+        "mid_instruction_task": "ce2ae9f7-7ee8-4f04-8bab-784bf74fe817",
+        "second_listen_cue_task": "044c7111-81dc-4b2f-8d7a-494e243b1a9e"
+      },
+      "passage_words": 397,
+      "passage_words_per_minute": 176,
+      "designed_cues": [
+        {
+          "label": "reading_silence",
+          "start": 17.2,
+          "seconds": 30.0
+        },
+        {
+          "label": "reading_silence",
+          "start": 140.129,
+          "seconds": 30.0
+        },
+        {
+          "label": "response_silence",
+          "start": 234.722,
+          "seconds": 15.0
+        }
+      ],
+      "segments": [
+        {
+          "segment": "notice",
+          "source_lufs": -21.2,
+          "gain_db": 3.2,
+          "start": 0.0,
+          "seconds": 4.412
+        },
+        {
+          "segment": "L17_intro",
+          "source_lufs": -22.1,
+          "gain_db": 4.1,
+          "start": 5.112,
+          "seconds": 12.088
+        },
+        {
+          "segment": "listen_1_5",
+          "source_lufs": -19.9,
+          "gain_db": 1.9,
+          "start": 47.2,
+          "seconds": 3.011
+        },
+        {
+          "segment": "L17_passage_A",
+          "source_lufs": -21.6,
+          "gain_db": 3.6,
+          "start": 51.212,
+          "seconds": 81.068
+        },
+        {
+          "segment": "rest_talk_6_10",
+          "source_lufs": -22.8,
+          "gain_db": 4.8,
+          "start": 133.48,
+          "seconds": 6.649
+        },
+        {
+          "segment": "listen_6_10",
+          "source_lufs": -20.8,
+          "gain_db": 2.8,
+          "start": 170.129,
+          "seconds": 2.885
+        },
+        {
+          "segment": "L17_passage_B",
+          "source_lufs": -21.6,
+          "gain_db": 3.6,
+          "start": 174.014,
+          "seconds": 54.417
+        },
+        {
+          "segment": "end_check",
+          "source_lufs": -23.9,
+          "gain_db": 5.9,
+          "start": 229.631,
+          "seconds": 5.091
+        }
+      ],
+      "verification": {
+        "integrated_lufs": -18.3,
+        "true_peak_dbfs": -1.6,
+        "decoded_clipped_samples": 0,
+        "detected_pauses": [
+          {
+            "detected_start": 17.112,
+            "detected_end": 47.252,
+            "detected_seconds": 30.14
+          },
+          {
+            "detected_start": 140.03,
+            "detected_end": 170.166,
+            "detected_seconds": 30.136
+          },
+          {
+            "detected_start": 234.634,
+            "detected_end": 249.722,
+            "detected_seconds": 15.089
+          }
+        ],
+        "unexpected_gaps_over_1_5s": []
+      },
+      "word_accuracy_check": "Not automated: no speech-recognition tool is available in the production environment. The owner listening review must confirm every keyed answer is spoken exactly as scripted.",
+      "review": {
+        "status": "Owner listening review pending"
+      }
+    },
+    "IELTS-17-C1": {
+      "file": "IELTS-17-C1_v1.mp3",
+      "title": "IELTS-17 Fresh check: University library (WITHHELD, teacher only)",
+      "sha256": "34fa4780a8e0afa0d9012e18a13c6aff3c26d7c742dd28ce492863265b622f57",
+      "bytes": 3429230,
+      "duration_seconds": 142.848,
+      "transcript_sha256": "c8a71eb538bb7281bcfa7be2583e36d86fafb33f27932212a743fed93fd4e28c",
+      "voices": {
+        "instruction": "Tom (British, examiner style; steady model)",
+        "LIBRARIAN": "Marlene (British, middle-aged, measured)"
+      },
+      "generation": {
+        "passage": {
+          "task": "8e4ee36d-970c-4071-8eaa-89ba36cf2b96",
+          "model": "eleven_v4 text-to-speech, voice Marlene",
+          "stability": 0.5,
+          "seed": 17021
+        },
+        "intro_task": "29c512f7-cf15-44bd-8c6c-96ed219e0784",
+        "listen_cue": "reused listen_1_6 from the IELTS-05 v1 production (identical text and voice)"
+      },
+      "passage_words": 195,
+      "passage_words_per_minute": 166,
+      "designed_cues": [
+        {
+          "label": "reading_silence",
+          "start": 16.39,
+          "seconds": 30.0
+        },
+        {
+          "label": "response_silence",
+          "start": 127.817,
+          "seconds": 15.0
+        }
+      ],
+      "segments": [
+        {
+          "segment": "notice",
+          "source_lufs": -21.2,
+          "gain_db": 3.2,
+          "start": 0.0,
+          "seconds": 4.412
+        },
+        {
+          "segment": "L17C_intro",
+          "source_lufs": -22.0,
+          "gain_db": 4.0,
+          "start": 5.112,
+          "seconds": 11.278
+        },
+        {
+          "segment": "listen_1_6",
+          "source_lufs": -21.5,
+          "gain_db": 3.5,
+          "start": 46.39,
+          "seconds": 3.624
+        },
+        {
+          "segment": "L17C_passage",
+          "source_lufs": -20.2,
+          "gain_db": 2.2,
+          "start": 51.014,
+          "seconds": 70.512
+        },
+        {
+          "segment": "end_check",
+          "source_lufs": -23.9,
+          "gain_db": 5.9,
+          "start": 122.726,
+          "seconds": 5.091
+        }
+      ],
+      "verification": {
+        "integrated_lufs": -18.4,
+        "true_peak_dbfs": -1.6,
+        "decoded_clipped_samples": 0,
+        "detected_pauses": [
+          {
+            "detected_start": 16.296,
+            "detected_end": 46.438,
+            "detected_seconds": 30.142
+          },
+          {
+            "detected_start": 127.729,
+            "detected_end": 142.817,
+            "detected_seconds": 15.089
+          }
+        ],
+        "unexpected_gaps_over_1_5s": []
+      },
+      "word_accuracy_check": "Not automated: no speech-recognition tool is available in the production environment. The owner listening review must confirm every keyed answer is spoken exactly as scripted.",
+      "review": {
+        "status": "Owner listening review pending"
+      }
+    }
+  }
+}

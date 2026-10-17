@@ -1,0 +1,168 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-07",
+  "number": 7,
+  "week": 4,
+  "version": "0.1.0",
+  "presentation_version": "0.1.0",
+  "title": "Writing Task 2: positions and developed arguments",
+  "status": "Private teacher-review draft",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Prompts, sample paragraphs and the model essay are original. No third-party essays or assessment questions copied. Human editorial, model, criterion-alignment, difficulty and originality review pending.",
+  "audio": { "required": false, "statement": "No recording required. Writing lesson.", "recordings": [] },
+  "prerequisites": [
+    "Lessons 2 and 4: a developed paragraph needs a point, a reason and a specific example.",
+    "Teacher has checked actual Writing Screener and productive-review states privately. Pending reviews are not replaced by this lesson's paragraph.",
+    "Teacher has read the public IELTS Writing band descriptors (Task 2) before teaching. This lesson uses the four criterion names only; it does not assign bands."
+  ],
+  "objectives": [
+    { "text": "Write a clear position statement that answers every part of a Task 2 question.", "focus": ["thesis/position clarity", "register/task fulfilment"] },
+    { "text": "Develop a body paragraph through a full argument chain: point, explanation, example and link back to the question.", "focus": ["idea development", "evidence/example relevance", "paragraph control"] },
+    { "text": "Plan a complete 'discuss both views and give your opinion' essay, including a fair account of the opposing view.", "focus": ["paragraph control", "cohesion"] }
+  ],
+  "levels": {
+    "foundation": "Use the argument-chain frame (Point / Because / For example / This shows) for the body paragraph; record its use as support.",
+    "core": "Write one independent body paragraph of about 120-150 words in 15 minutes without a frame.",
+    "extension": "Add a concession inside the paragraph (Although ... , ...) and answer it.",
+    "high_band": "Write the paragraph so that every sentence moves the argument forward; then edit it to remove any sentence that only repeats an earlier idea, and replace one general word with a more precise one."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-07-K1",
+      "kind": "contrast",
+      "title": "Which position statement answers the question?",
+      "mode": "Opening challenge; students rank before the reveal",
+      "instructions": "Question: Some people believe universities should require every student to take courses outside their main subject. Others think students should focus only on their chosen field. Discuss both views and give your own opinion. Rank the four position statements from weakest (1) to strongest (4).",
+      "examples": [
+        { "label": "Statement A", "text": "There are many advantages and disadvantages of studying different subjects at university.", "comment": "Weakest. It does not refer to the question's specific issue (required courses outside the main subject) and gives no opinion." },
+        { "label": "Statement B", "text": "In my opinion, studying is very important for young people's future.", "comment": "Off-task. It gives an opinion, but about a different, much broader question." },
+        { "label": "Statement C", "text": "I completely agree that students should study other subjects.", "comment": "Partial. It gives a position but does not show that both views will be discussed, and 'completely' leaves no room for the other side the question asks about." },
+        { "label": "Statement D", "text": "Although specialisation has clear advantages, I believe a limited requirement to study outside one's field is worthwhile.", "comment": "Strongest. It acknowledges the other view, gives a precise, qualified opinion and previews the essay's direction." }
+      ]
+    },
+    {
+      "id": "IELTS-07-K2",
+      "kind": "contrast",
+      "title": "Listed ideas or a developed argument?",
+      "mode": "Teacher-led analysis",
+      "instructions": "Read both body paragraphs. Which one would convince a reader more, and why?",
+      "examples": [
+        { "label": "Paragraph 1", "text": "Studying other subjects is good. Students can learn many things. They can also meet new people and have new experiences. It is also good for their future jobs. Employers like this. Therefore, universities should make students study other subjects.", "comment": "Listed ideas. Five separate claims, none explained. 'Good', 'many things' and 'new experiences' are vague. No example shows how any claim works." },
+        { "label": "Paragraph 2", "text": "A breadth requirement prepares graduates for problems that cross disciplinary boundaries. A software developer building a health app, for instance, needs to understand how patients actually behave, not only how to write code. A course in psychology or public health gives that developer questions to ask that a computing degree alone would not. In this way, studying outside one's field can make specialist knowledge more useful rather than less.", "comment": "Developed argument. One point, explained (why it matters), illustrated with a specific example, and linked back to the question in the final sentence." }
+      ]
+    },
+    {
+      "id": "IELTS-07-I1",
+      "kind": "items",
+      "title": "Complete the argument chain",
+      "mode": "Guided practice; answer alone, then discuss",
+      "instructions": "Each paragraph is missing one step. Choose the sentence, A, B or C, that best completes the argument.",
+      "stimulus": { "type": "none" },
+      "items": [
+        { "id": "IELTS-07-I1-Q1", "prompt": "Point: Compulsory extra courses may delay graduation in crowded degrees. [missing explanation] Example: medical students already study for many years before they can qualify.", "options": ["A  Medicine is a very difficult and important subject.", "B  If the timetable is already full, extra courses must either replace core content or add time.", "C  Many students do not enjoy studying subjects they did not choose."], "answer": "B", "evidence": "Option B explains the mechanism: a full timetable means added courses cost time.", "reason": "A restates difficulty without explaining delay; C changes the topic to enjoyment.", "focus": "idea development", "type": "mcq", "level": "core" },
+        { "id": "IELTS-07-I1-Q2", "prompt": "Point: Courses in other fields improve communication with other specialists. Explanation: students learn the questions and vocabulary other disciplines use. [missing example]", "options": ["A  For example, communication is a very useful skill in many jobs.", "B  For example, an engineer who has studied basic economics can discuss a project's costs with financial advisers more effectively.", "C  For example, many people think university should be enjoyable."], "answer": "B", "evidence": "Option B gives a specific person, situation and result.", "reason": "A is a general claim, not an example; C is irrelevant.", "focus": "evidence/example relevance", "type": "mcq", "level": "core" },
+        { "id": "IELTS-07-I1-Q3", "prompt": "Point, explanation and example are complete. [missing link back to the question]", "options": ["A  This suggests that a limited breadth requirement can strengthen, rather than weaken, specialist education.", "B  In conclusion, there are many opinions about this topic.", "C  This example is very interesting."], "answer": "A", "evidence": "Option A connects the paragraph's evidence to the essay's position.", "reason": "B is a vague conclusion inside a body paragraph; C comments on the example instead of the argument.", "focus": "cohesion", "type": "mcq", "level": "core" },
+        { "id": "IELTS-07-I1-Q4", "prompt": "Which sentence presents the opposing view fairly before answering it?", "options": ["A  Some people foolishly believe that students should study only one subject.", "B  Admittedly, students who focus on one subject can reach an advanced level sooner, which matters in competitive fields.", "C  Everybody agrees that studying one subject is boring."], "answer": "B", "evidence": "Option B states a real strength of the other view in neutral language.", "reason": "A dismisses the view with an insult; C overgeneralises with 'everybody'.", "focus": "thesis/position clarity", "type": "mcq", "level": "extension" }
+      ],
+      "support": "Foundation: read each option aloud with the class before learners choose.",
+      "extension": "Rewrite option A in Question 4 so that it presents the view fairly."
+    },
+    {
+      "id": "IELTS-07-W1",
+      "kind": "writing",
+      "task": "paragraph",
+      "title": "Your body paragraph",
+      "mode": "Independent classroom application after modelling; not a full IELTS Writing task or Writing Screener",
+      "prompt": "Some people believe universities should require every student to take courses outside their main subject. Others think students should focus only on their chosen field. Discuss both views and give your own opinion. Write ONE body paragraph (about 120-150 words) presenting the view you find more convincing.",
+      "conditions": "2 minutes to plan, 15 minutes to write. No dictionary. Teacher does not correct during writing. Record any frame or vocabulary help.",
+      "support": "Optional frame: One reason ... is that ... This matters because ... For example, ... This shows that ...",
+      "extension": "Include one concession: Although ..., ...",
+      "high_band": "Edit for precision: delete any sentence that repeats an idea, and replace one general word (good, many, things) with a precise one.",
+      "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
+      "model": "Requiring students to study outside their main subject can make their specialist knowledge more valuable. Many problems that graduates face at work involve more than one discipline. A software developer designing a health app, for instance, must understand how patients actually behave, and a short course in psychology or public health would teach her which questions to ask. Without that knowledge, she might build a technically excellent product that patients find confusing. Although such courses take time away from the main subject, two or three well-chosen modules would not prevent a student from reaching an advanced level. Instead, they would help graduates apply their expertise to real situations, which suggests that a limited breadth requirement strengthens rather than weakens specialist education.",
+      "checklist": [
+        "Task Response: Does the paragraph clearly support one side of the question, and is every sentence relevant to it?",
+        "Coherence and Cohesion: Is there one central point, developed in a logical order, with clear links (for instance, without that, instead)?",
+        "Lexical Resource: Are the words precise rather than general (for example, 'discipline' rather than 'thing')? Are collocations natural?",
+        "Grammatical Range and Accuracy: Are complex sentences controlled? Are articles, verb forms and plurals accurate?"
+      ]
+    },
+    {
+      "id": "IELTS-07-W2",
+      "kind": "writing",
+      "task": "task2",
+      "min_words": 250,
+      "title": "Complete essay under time",
+      "mode": "Timed homework under declared conditions; teacher feedback in Lesson 15/19 cycle. Not a Writing Screener.",
+      "prompt": "Some people believe universities should require every student to take courses outside their main subject. Others think students should focus only on their chosen field. Discuss both views and give your own opinion. Write at least 250 words.",
+      "conditions": "40 minutes, in one sitting, without a dictionary, translator, AI tool or model essay. Write the start and finish time at the top. Record any interruption. You may reuse your class paragraph only if you mark it.",
+      "support": "Plan: Introduction (paraphrase + position) / Body 1 (the view you disagree with, fairly) / Body 2 (your view, developed) / Conclusion (restate position).",
+      "extension": "Use a concession in your conclusion that shows the limits of your position.",
+      "high_band": "After 40 minutes, take 5 extra minutes in a different colour to edit for repetition and precision. Keep both versions visible.",
+      "model_label": "Illustrative model essay for teacher discussion after learners submit their own essays. Not a certified band answer and not rated under official IELTS conditions.",
+      "model": "Universities differ in how much freedom they give students to study beyond their degree subject. Some argue that every student should be required to take courses in unrelated fields, while others believe that time at university is better spent mastering one discipline. Although specialisation has clear advantages, I believe a limited requirement to study outside one's field is worthwhile.\n\nThose who favour a narrow focus make a reasonable case. Degrees are expensive, and many students need specialist knowledge to compete for jobs as soon as they graduate. An engineering student who spends a semester on art history, for instance, has less time for the advanced mathematics that employers in that field expect. In professions such as medicine, where the curriculum is already crowded, compulsory extra courses could even lengthen the time needed to qualify.\n\nHowever, a well-designed breadth requirement offers benefits that a single subject rarely provides. Many of the problems graduates face at work cross disciplinary boundaries. A software developer designing a health app needs to understand how patients actually behave, and an economist advising on climate policy must be able to read basic scientific evidence. Courses in other fields train students to ask different kinds of questions and to communicate with specialists who think differently from them. These abilities are difficult to develop later, once a career has narrowed a person's daily work.\n\nThe strongest approach, in my view, is a modest requirement rather than a large one. If students took two or three courses outside their major, chosen from areas related to their likely careers, they would gain breadth without sacrificing depth. Universities should therefore require some study beyond the main subject, but design it carefully so that it complements specialist training instead of competing with it.",
+      "checklist": [
+        "Task Response: Are both views discussed, and is the writer's own opinion clear from the introduction to the conclusion?",
+        "Coherence and Cohesion: Does each body paragraph have one central idea? Does the essay progress logically, with paragraphing that matches the plan?",
+        "Lexical Resource: Is topic vocabulary precise and natural? Are there repeated words that could be varied without losing precision?",
+        "Grammatical Range and Accuracy: Is there a mix of simple and complex sentences, mostly error-free? Which error family repeats (articles, agreement, tense)?",
+        "Length and time: Is the essay at least 250 words, written within 40 minutes? Underlength responses are penalised in the real test."
+      ]
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 6, "title": "Opening challenge: rank four positions", "show": [{ "block": "IELTS-07-K1", "part": "questions" }], "student": "Read the question and the four statements. Rank them from weakest to strongest on your own.", "teacher": "Give 3 minutes alone, then 2 minutes to compare with a partner. Do not reveal yet.", "say": "In Task 2, the examiner first checks one thing: did you answer this question?", "check": "Every learner has written a ranking." },
+    { "start": 6, "end": 10, "title": "Reveal: what makes a strong position", "show": [{ "block": "IELTS-07-K1", "part": "answers" }], "student": "Compare your ranking with the reveal. Note one feature of Statement D.", "teacher": "Reveal statement by statement. Emphasise: answers every part of the question, gives a clear and qualified opinion, previews direction.", "say": "Statement D does three jobs in one sentence.", "check": "Learners can name two features of D." },
+    { "start": 10, "end": 18, "title": "Listed ideas or a developed argument?", "show": [{ "block": "IELTS-07-K2", "part": "questions" }, { "block": "IELTS-07-K2", "part": "answers" }], "student": "Read both paragraphs in the workbook. Label the point, explanation, example and link in Paragraph 2.", "teacher": "Teach the argument chain: Point, Explanation, Example, Link. Show that Paragraph 1 has more ideas but less argument.", "say": "One idea, fully developed, is more convincing than five ideas listed.", "check": "Learners have labelled all four parts of Paragraph 2." },
+    { "start": 18, "end": 26, "title": "Complete the argument chain", "show": [{ "block": "IELTS-07-I1", "part": "questions" }, { "block": "IELTS-07-I1", "part": "answers" }], "student": "Choose the missing step for Questions 1-4 alone, then check.", "teacher": "Reveal after everyone commits. Spend most time on Q4: presenting the other view fairly is part of 'discuss both views'.", "say": "A concession shows you understand the other side. It makes your own view stronger, not weaker.", "check": "Learners can explain why option A in Q4 is unfair." },
+    { "start": 26, "end": 29, "title": "Plan your paragraph", "show": [{ "block": "IELTS-07-W1", "part": "prompt" }], "student": "Choose your side. Write your point and one specific example in note form.", "teacher": "Two minutes of planning. Remind learners they may choose either side; the model on the next slide is not shown until after writing.", "say": "Choose the side you can explain best, not the side you think the teacher prefers.", "check": "Each learner has a point and an example noted." },
+    { "start": 29, "end": 44, "title": "Write independently", "show": [], "student": "Write your body paragraph in the workbook section 'Your body paragraph' in 15 minutes.", "teacher": "Do not correct during writing. Record any frame or vocabulary help next to the learner's name. Note interruptions.", "say": "Write your own argument. You can use the frame if you need it; just tick the box to show you used it.", "check": "Original paragraphs collected or kept unchanged." },
+    { "start": 44, "end": 52, "title": "Check against the four criteria", "show": [{ "block": "IELTS-07-W1", "part": "model" }], "student": "Read the illustrative model. Then use the criterion checklist under your paragraph in the workbook to mark one strength and one change in your own paragraph. Do not rewrite it yet.", "teacher": "Show the model only after writing. Point out its argument chain and the concession. Remind learners that it is a classroom model, not a target to memorise.", "say": "The examiner rewards your own clear argument, not memorised sentences.", "check": "Each learner has marked one strength and one change." },
+    { "start": 52, "end": 56, "title": "From paragraph to full essay", "show": [{ "block": "IELTS-07-W2", "part": "prompt" }], "student": "Copy the four-paragraph plan and the homework conditions.", "teacher": "Explain that the full essay is written at home under declared 40-minute conditions and is practice evidence, not a screener. Teacher feedback will use the four criteria; no band is given from this single essay.", "say": "Forty minutes, at least 250 words, no help. Write the time you start and finish.", "check": "Learners know the conditions and deadline." },
+    { "start": 56, "end": 60, "title": "Exit ticket", "show": [], "student": "Complete the exit ticket.", "teacher": "Collect paragraphs and exit tickets. Record the fresh-check date.", "say": "Next lesson we develop spoken answers the same way: point, reason, example.", "check": "Everyone has handed in their paragraph." }
+  ],
+  "exit_ticket": [
+    "The four parts of an argument chain:",
+    "One thing that made Statement D stronger than Statement C:",
+    "One change I will make when I write my full essay:"
+  ],
+  "homework": [
+    "Write the complete essay on the Homework sheet or on paper under the stated conditions: 40 minutes, at least 250 words, no dictionary, translator or AI tool. Write your start and finish times.",
+    "Keep today's paragraph unchanged. On a separate line, write the one change you would make using the checklist.",
+    "Complete only the Brains Heist writing practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-07-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 7, after feedback on the homework essay. 25 minutes: plan, introduction and one developed body paragraph. No model, frame or dictionary unless recorded as support. Log time, support and conditions. Classroom observation only.",
+    "blocks": [
+      {
+        "id": "IELTS-07-C1",
+        "kind": "writing",
+        "task": "partial",
+        "title": "Working from home",
+        "mode": "Withheld fresh check; independent, timed",
+        "prompt": "In many countries, more people now work from home for part of the week. Do the advantages of this development outweigh the disadvantages? Write a short plan, an introduction with a clear position, and one developed body paragraph.",
+        "conditions": "25 minutes, independent. No model, dictionary or teacher help. Record any support.",
+        "model_label": "Illustrative teacher-only reference for review discussion. Not a certified band answer.",
+        "model": "Over the past decade, it has become common for employees to spend some working days at home. While this arrangement has drawbacks for teamwork and career development, I believe its advantages are greater, provided that some time in the office is kept.\n\nThe most significant benefit is the time and energy saved by not commuting. An employee who previously spent ninety minutes a day travelling can use that time to rest, exercise or complete focused work before colleagues begin sending messages. Because tiredness affects concentration, this can improve the quality of work as well as the employee's wellbeing. Although some people find it harder to separate work from home life, clear routines, such as a fixed finishing time, can reduce this problem, so the overall effect of fewer commuting hours remains positive.",
+        "checklist": [
+          "Task Response: Does the introduction answer 'outweigh' with a clear position?",
+          "Coherence and Cohesion: Does the body paragraph follow point, explanation, example, link?",
+          "Lexical Resource and Grammatical Range and Accuracy: Note precise language and the main error family, with examples from the learner's text.",
+          "Compare only with similar observed demands from Lesson 7. A new prompt is not automatically comparable."
+        ]
+      }
+    ],
+    "review": "Compare only observed task demands and conditions. Record what the new work shows (position clarity, development, example relevance), counterevidence and the next check. No band, percentage or improvement claim from this check alone."
+  },
+  "delayed_followup": "In Lesson 15 (full Task 2 essays), look again at position clarity and paragraph development in a new prompt, without the argument-chain frame. Record it as a later observation, not proof of retention.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.3 teachable micro-skills. They are draft teaching focuses, not approved taxonomy mappings. The four criterion names are used for feedback structure only; no band is derived.",
+  "release_blockers": [
+    "Human editorial, model essay, criterion-alignment, difficulty and originality review pending.",
+    "Teacher calibration on the public Task 2 descriptors not yet recorded for this lesson.",
+    "Device, print and PowerPoint playback acceptance pending."
+  ]
+}

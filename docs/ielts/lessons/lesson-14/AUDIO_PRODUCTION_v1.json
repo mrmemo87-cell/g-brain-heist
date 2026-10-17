@@ -1,0 +1,221 @@
+{
+  "record": "IELTS-14 listening audio production",
+  "version": "1",
+  "produced": "2026-10-17",
+  "provider": "Runway MCP (workspace 'Sobbi', personal)",
+  "script_source": "docs/ielts/lessons/lesson-14/lesson.json",
+  "script_source_sha256_at_production": "9cc27bbabe78eb5176266c0e818d3c5f6a787503101742407bbe172c306e13a9",
+  "production_method": {
+    "instructions": "eleven_multilingual_v2, voice Tom, stability 0.7; copyright notice and closing cue reused from the IELTS-05 v1 production (identical text and voice)",
+    "assembly": "48 kHz mono; edge silence trimmed; each segment loudness-matched to -18 LUFS; exact digital silences (0.7 s, 30.0 s reading, 1.0 s, 1.2 s, 15.0 s response); true-peak limiter at -1.5 dBFS; MP3 192 kbps with copyright metadata",
+    "effects": "none"
+  },
+  "rights_basis": {
+    "owner_confirmation": "Owner confirmed on 2026-10-17 that rights to recordings produced in this workflow belong to Brains Heist LLC."
+  },
+  "recordings": {
+    "IELTS-14-L1": {
+      "file": "IELTS-14-L1_v1.mp3",
+      "sha256": "e043f4cad931ac60449388b06ec252247f8dc6a30bc7fba398423f262666b59e",
+      "bytes": 5320813,
+      "duration_seconds": 221.664,
+      "transcript_sha256": "5ee6dc0e1236748b477a7c1cb3616d8be97a8dbe2d3e37057aefd0f3cc0fa4fd",
+      "voices": {
+        "instruction": "Tom (British, examiner style; steady model)",
+        "PROFESSOR GRANT": "Miriam (British, middle-aged, calm)",
+        "AMIRA": "Kylie (Australian, young, confident)",
+        "JOSH": "Noah (North American, young, calm)"
+      },
+      "generation": {
+        "passage": {
+          "task": [
+            "c5707884-bcb0-4712-aa2b-ab4413cb91cf",
+            "53dcef9b-0599-410f-a244-2e861a2e41f3"
+          ],
+          "model": "eleven_v4 dialogue (two calls joined with a 0.45 s gap at a natural turn)",
+          "stability": 0.5,
+          "seed": [
+            14011,
+            14012
+          ]
+        },
+        "intro_task": "06b721b7-7cab-4ec9-8622-1750c7d18404",
+        "listen_cue_task": "d39e1165-36b9-4547-8de3-f144c7f843a8"
+      },
+      "passage_words": 399,
+      "passage_words_per_minute": 165,
+      "designed_cues": [
+        {
+          "label": "reading_silence",
+          "start": 20.121,
+          "seconds": 30.0
+        },
+        {
+          "label": "response_silence",
+          "start": 206.633,
+          "seconds": 15.0
+        }
+      ],
+      "segments": [
+        {
+          "segment": "notice",
+          "source_lufs": -21.2,
+          "gain_db": 3.2,
+          "start": 0.0,
+          "seconds": 4.412
+        },
+        {
+          "segment": "L14_intro",
+          "source_lufs": -21.6,
+          "gain_db": 3.6,
+          "start": 5.112,
+          "seconds": 15.009
+        },
+        {
+          "segment": "listen_1_8",
+          "source_lufs": -21.1,
+          "gain_db": 3.1,
+          "start": 50.121,
+          "seconds": 3.615
+        },
+        {
+          "segment": "L14_passage_A",
+          "source_lufs": -24.5,
+          "gain_db": 6.5,
+          "start": 54.736,
+          "seconds": 93.028
+        },
+        {
+          "segment": "L14_passage_B",
+          "source_lufs": -24.8,
+          "gain_db": 6.8,
+          "start": 148.213,
+          "seconds": 52.128
+        },
+        {
+          "segment": "end_check",
+          "source_lufs": -23.9,
+          "gain_db": 5.9,
+          "start": 201.542,
+          "seconds": 5.091
+        }
+      ],
+      "verification": {
+        "integrated_lufs": -18.6,
+        "true_peak_dbfs": -1.2,
+        "decoded_clipped_samples": 0,
+        "detected_pauses": [
+          {
+            "detected_start": 20.025,
+            "detected_end": 50.166,
+            "detected_seconds": 30.14
+          },
+          {
+            "detected_start": 206.544,
+            "detected_end": 221.633,
+            "detected_seconds": 15.089
+          }
+        ],
+        "unexpected_gaps_over_1_5s": []
+      },
+      "review": {
+        "status": "Owner listening review pending"
+      }
+    },
+    "IELTS-14-C1": {
+      "file": "IELTS-14-C1_v1.mp3",
+      "sha256": "5b73b884545864b293eb07b22f1b025d6851a9e3c51dabb65fee0de9b25a1b2b",
+      "bytes": 3380849,
+      "duration_seconds": 140.832,
+      "transcript_sha256": "0857e1ecb41be1ac502b85d09b422f03ee83578d687e3ad9e416b07aecee41ec",
+      "voices": {
+        "instruction": "Tom (British, examiner style; steady model)",
+        "DR OKAFOR": "Benjamin (North American, middle-aged, deep)",
+        "LUCY": "Paula (British, calm)",
+        "BEN": "Frank (North American, young)"
+      },
+      "generation": {
+        "passage": {
+          "task": "d97e03da-3941-443e-bdb3-17b79575a1dd",
+          "model": "eleven_v4 dialogue",
+          "stability": 0.5,
+          "seed": 14013
+        },
+        "intro_task": "2f779e93-88e6-4187-9b41-cf4a3ae319dd",
+        "listen_cue_task": "2531d7b8-910c-4bca-a16b-3716343b93b0"
+      },
+      "passage_words": 183,
+      "passage_words_per_minute": 167,
+      "designed_cues": [
+        {
+          "label": "reading_silence",
+          "start": 18.939,
+          "seconds": 30.0
+        },
+        {
+          "label": "response_silence",
+          "start": 125.795,
+          "seconds": 15.0
+        }
+      ],
+      "segments": [
+        {
+          "segment": "notice",
+          "source_lufs": -21.2,
+          "gain_db": 3.2,
+          "start": 0.0,
+          "seconds": 4.412
+        },
+        {
+          "segment": "L14C_intro",
+          "source_lufs": -22.8,
+          "gain_db": 4.8,
+          "start": 5.112,
+          "seconds": 13.827
+        },
+        {
+          "segment": "listen_1_6",
+          "source_lufs": -21.5,
+          "gain_db": 3.5,
+          "start": 48.939,
+          "seconds": 3.624
+        },
+        {
+          "segment": "L14C_passage",
+          "source_lufs": -20.1,
+          "gain_db": 2.1,
+          "start": 53.563,
+          "seconds": 65.94
+        },
+        {
+          "segment": "end_check",
+          "source_lufs": -23.9,
+          "gain_db": 5.9,
+          "start": 120.704,
+          "seconds": 5.091
+        }
+      ],
+      "verification": {
+        "integrated_lufs": -18.5,
+        "true_peak_dbfs": -1.6,
+        "decoded_clipped_samples": 0,
+        "detected_pauses": [
+          {
+            "detected_start": 18.846,
+            "detected_end": 48.987,
+            "detected_seconds": 30.141
+          },
+          {
+            "detected_start": 125.706,
+            "detected_end": 140.795,
+            "detected_seconds": 15.089
+          }
+        ],
+        "unexpected_gaps_over_1_5s": []
+      },
+      "review": {
+        "status": "Owner listening review pending"
+      }
+    }
+  }
+}

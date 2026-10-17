@@ -1,0 +1,155 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-08",
+  "number": 8,
+  "week": 4,
+  "version": "0.1.0",
+  "presentation_version": "0.1.0",
+  "title": "Speaking development and first progress review",
+  "status": "Private teacher-review draft",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Questions, sample answers and review materials are original. No third-party speaking material copied. Human editorial, model, criterion-alignment and originality review pending.",
+  "audio": { "required": false, "statement": "No pre-recorded audio required. Live speech only. Optional learner self-recording on a personal phone is practice, not uploaded evidence.", "recordings": [] },
+  "prerequisites": [
+    "Lesson 4 (Speaking Part 1 answers) and Lesson 7 (argument chain).",
+    "Before class, the teacher completes the first progress review sheet privately for each learner from saved evidence (screeners, review states, Lessons 1-7 observations). Missing evidence is recorded as missing, not estimated.",
+    "Teacher has read the public IELTS Speaking band descriptors. This lesson uses criterion names for feedback only; it does not assign bands."
+  ],
+  "objectives": [
+    { "text": "Extend a Part 1 answer naturally with a reason, an example or a contrast, without sounding memorised.", "focus": ["topic development", "sustained turn"] },
+    { "text": "Answer an abstract Part 3 question by moving from a general view to an explanation and a consequence.", "focus": ["discourse organization", "topic development"] },
+    { "text": "Understand your own evidence so far and agree one or two next priorities with your teacher.", "focus": ["learner planning"] }
+  ],
+  "levels": {
+    "foundation": "Use the printed development moves card (because / for example / but / so) during pair practice; record its use.",
+    "core": "Give Part 1 answers of two to four sentences and Part 3 answers of about 30-45 seconds without the card.",
+    "extension": "In Part 3, compare two situations (in the past / now, in cities / in villages) and give a consequence.",
+    "high_band": "In Part 3, qualify your view (it depends on, to some extent), speculate about the future and paraphrase the examiner's question rather than repeating it."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-08-K1",
+      "kind": "contrast",
+      "title": "Three answers to one Part 1 question",
+      "mode": "Opening challenge; teacher reads each answer aloud",
+      "instructions": "Question: Do you like the area where you live? Which answer sounds most natural and most developed? Why?",
+      "examples": [
+        { "label": "Answer 1", "text": "Yes, I like it.", "comment": "Too short. It answers the question but gives the examiner nothing to assess beyond a few words." },
+        { "label": "Answer 2", "text": "My neighbourhood is a picturesque and vibrant area with a plethora of amenities which cater to the needs of residents of all ages and backgrounds.", "comment": "Sounds memorised. Rare words used without a real situation; it does not sound like a personal answer and may not even be true for the speaker." },
+        { "label": "Answer 3", "text": "Mostly, yes. It's quite a quiet street, but there's a market ten minutes away, so I can get fresh vegetables easily. The only thing I'd change is the traffic in the mornings; it can take twenty minutes just to reach the main road.", "comment": "Developed and natural. Direct answer, a reason with a specific detail, and a contrast, in everyday language the speaker controls." }
+      ]
+    },
+    {
+      "id": "IELTS-08-S1",
+      "kind": "speaking",
+      "title": "Part 1 rounds",
+      "mode": "Guided paired practice; teacher observes a rotating sample live",
+      "prompts": [
+        "Topic: where you live. Do you like the area where you live? What would you change about it?",
+        "Topic: daily routine. What is the busiest part of your day? Has your routine changed recently?",
+        "Topic: technology. Which app do you use most? Is there an app you have stopped using?",
+        "Topic: food. Do you usually cook for yourself? What did you eat as a child that you rarely eat now?"
+      ],
+      "instructions": "Partner A asks two questions from one topic; Partner B answers in two to four sentences each. Partner A ticks which development moves they heard (reason, example, contrast, consequence). Swap after each topic. Classroom timing, not official IELTS timing.",
+      "model": "Is there an app you have stopped using? Yes, a language-learning app. I used it every day for about three months, but the lessons started to feel repetitive, so now I practise with podcasts instead because they're about real topics.",
+      "support": "Development moves card: because ... / for example ... / but ... / so ...",
+      "extension": "Answer at least one question with a contrast between the past and now.",
+      "high_band": "Avoid repeating the question's words in your first sentence; paraphrase instead.",
+      "observation": "Teacher listens live to a rotating sample of learners. Record only learners actually heard, with the exact observation (for example, 'gave reason but no example in 3 of 4 answers'). Pronunciation comments only from live hearing or audio, never from notes or a transcript. Peer ticks are practice support, not teacher review."
+    },
+    {
+      "id": "IELTS-08-I1",
+      "kind": "items",
+      "title": "Choose the best next sentence",
+      "mode": "Guided practice before Part 3",
+      "instructions": "A speaker has started an answer. Choose the sentence, A, B or C, that develops it best.",
+      "stimulus": { "type": "none" },
+      "items": [
+        { "id": "IELTS-08-I1-Q1", "prompt": "Why do some people prefer to spend free time in public parks? 'I think parks give people space that their homes don't have.' Next:", "options": ["A  Parks are very nice.", "B  In cities, many families live in small flats, so a park is often the only place where children can run around safely.", "C  I like parks too."], "answer": "B", "evidence": "Option B explains the reason with a specific situation.", "reason": "A repeats a vague opinion; C switches to a personal preference the question did not ask for.", "focus": "topic development", "type": "mcq", "level": "core" },
+        { "id": "IELTS-08-I1-Q2", "prompt": "Should cities spend more on parks or on public transport? 'It depends on the city, but in most cases I'd choose transport.' Next:", "options": ["A  Because transport is important.", "B  Parks are also important.", "C  If people can't get to work or school easily, that affects their income and education, which matters even more than leisure space."], "answer": "C", "evidence": "Option C gives a reason and a consequence that justify the choice.", "reason": "A is circular; B weakens the answer without explaining the balance.", "focus": "discourse organization", "type": "mcq", "level": "core" },
+        { "id": "IELTS-08-I1-Q3", "prompt": "How might public spaces change in the future? 'I imagine they'll become more flexible.' Next:", "options": ["A  For instance, a car park could be used as a market at weekends, so the same land serves more people.", "B  The future is difficult to predict.", "C  Public spaces are spaces for the public."], "answer": "A", "evidence": "Option A gives a concrete example and its consequence.", "reason": "B avoids the question; C only defines the term.", "focus": "topic development", "type": "mcq", "level": "extension" }
+      ],
+      "support": "Foundation: read each option aloud with the class before learners choose.",
+      "high_band": "For Question 2, add a qualification that explains when you would choose parks instead."
+    },
+    {
+      "id": "IELTS-08-S2",
+      "kind": "speaking",
+      "title": "Part 3 discussion: public spaces",
+      "mode": "Small-group practice; teacher acts as examiner for one group at a time and observes live",
+      "prompts": [
+        "Why do some people prefer to spend their free time in public spaces such as parks or squares?",
+        "Should cities spend more money on parks or on public transport? Why?",
+        "How have public spaces in your town changed since you were a child?",
+        "How might public spaces change in the next twenty years?"
+      ],
+      "instructions": "In groups of three: one examiner, one candidate, one observer. The examiner asks two questions and one follow-up ('Why do you think that?' or 'Can you give an example?'). The candidate answers each in about 30-45 seconds. The observer notes development moves heard. Rotate roles.",
+      "model": "Should cities spend more money on parks or on public transport? It depends on the city, but in most cases I'd choose transport. If people can't reach work or school easily, that affects their income and their education, and those effects last much longer than the benefit of a nicer park. That said, in very crowded cities where flats are small, parks probably matter more than we think, especially for children's health.",
+      "support": "Development moves card plus Part 3 openers: It depends on ... / On the one hand ... / The main reason is ...",
+      "extension": "Use a comparison (now and in the past; cities and villages) in at least one answer.",
+      "high_band": "Qualify your view and speculate: 'I suspect that ...', 'unless ...', 'to some extent'.",
+      "observation": "Teacher acts as examiner with one group at a time and records only what was heard live: development (reason, example, comparison, consequence), coherence, range and any intelligibility issue. No pronunciation judgment from notes alone. Learners not heard are recorded as not yet observed and scheduled for a separate speaking check."
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 6, "title": "Opening challenge: three answers", "show": [{ "block": "IELTS-08-K1", "part": "questions" }, { "block": "IELTS-08-K1", "part": "answers" }], "student": "Listen to the three answers. Decide which is best and why before the reveal.", "teacher": "Read each answer naturally. Learners vote, then reveal the comments. Stress that Answer 2 is a common memorisation trap.", "say": "The examiner is listening to how you communicate, not counting rare words.", "check": "Learners can explain why Answer 2 is weaker than Answer 3." },
+    { "start": 6, "end": 18, "title": "Part 1 rounds in pairs", "show": [{ "block": "IELTS-08-S1", "part": "prompt" }, { "block": "IELTS-08-S1", "part": "model" }], "student": "Practise two topics in pairs. Tick the development moves you hear. Swap roles.", "teacher": "Model one answer first. Then circulate, listening to a rotating sample. Record exact observations for learners actually heard.", "say": "Two to four sentences: answer, then one development move. Keep it true and personal.", "check": "Pairs have completed at least two topics each." },
+    { "start": 18, "end": 24, "title": "From Part 1 to Part 3: choose the best next sentence", "show": [{ "block": "IELTS-08-I1", "part": "questions" }, { "block": "IELTS-08-I1", "part": "answers" }], "student": "Choose the best next sentence for Questions 1-3, then check.", "teacher": "Explain that Part 3 questions are about people and society in general, not only about you. Reveal after everyone commits.", "say": "In Part 3, move from a general view to a reason, then to an example or a consequence.", "check": "Learners explain why C in Question 2 is stronger than A." },
+    { "start": 24, "end": 40, "title": "Part 3 discussion in groups", "show": [{ "block": "IELTS-08-S2", "part": "prompt" }, { "block": "IELTS-08-S2", "part": "model" }], "student": "Rotate roles: examiner, candidate, observer. Answer two Part 3 questions and a follow-up.", "teacher": "Show the model briefly, then join groups in turn as examiner. Record live observations only for learners actually heard.", "say": "It is fine to say 'It depends'. Then explain what it depends on.", "check": "Every learner has been candidate at least once. Teacher has a list of learners heard and not yet heard." },
+    { "start": 40, "end": 54, "title": "First progress review: my evidence so far", "show": [], "student": "Complete the self-review at the end of the workbook: what you have practised in Lessons 1-8, which tasks you completed independently, and one thing you find difficult. Then meet the teacher briefly if called.", "teacher": "While learners complete the self-review, hold 1-2 minute conferences with as many learners as time allows, using the private progress review sheet prepared before class. Share only supported observations and missing evidence. Agree up to two priorities, the next activity and a check date. Learners not seen today get a scheduled conference. No band, percentage or readiness label.", "say": "This review shows what we know so far and what we still need to find out. It is not an IELTS score.", "check": "Each learner seen has an agreed priority and check date; others have a scheduled conference." },
+    { "start": 54, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket and take the homework sheet.", "teacher": "Collect exit tickets and self-reviews. Record the fresh speaking-check date and the conference schedule.", "say": "Next lesson begins the second stage of the course: longer texts and more independent work.", "check": "Everyone knows their next check date or conference time." }
+  ],
+  "exit_ticket": [
+    "A development move I used today:",
+    "One thing my partner or teacher noticed in my speaking:",
+    "My priority for the next four weeks (agreed or proposed):"
+  ],
+  "homework": [
+    "Choose two Part 1 questions from today. Answer each aloud three times on different days, changing your example each time so the answer does not become memorised. Recording on your own phone is optional and is not uploaded.",
+    "Think of one public place in your town. Prepare notes (not a script) to explain how it has changed and why.",
+    "Complete only the Brains Heist speaking practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-08-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 8, one learner at a time, about 5 minutes per learner outside pair work. Teacher asks the questions without preparation time or a development card. Use an approved Brains Heist speaking recording route if one is released for this purpose; otherwise record live observations only and make no pronunciation claim beyond what was heard. Log conditions and prior exposure.",
+    "blocks": [
+      {
+        "id": "IELTS-08-C1",
+        "kind": "speaking",
+        "title": "Fresh speaking check",
+        "mode": "Withheld fresh check; individual, live",
+        "prompts": [
+          "Part 1. Let's talk about weather. What kind of weather do you enjoy most? Does the weather ever change your plans?",
+          "Part 1. Let's talk about reading. Do you read more on paper or on a screen? Did you read more when you were younger?",
+          "Part 3. Do you think schools should teach students how to manage money? Why or why not?",
+          "Part 3. How might the way people learn new skills change in the future?"
+        ],
+        "instructions": "Ask both Part 1 topics, then both Part 3 questions, adding one follow-up ('Why?' or 'Can you give an example?'). Do not model answers or prompt development moves.",
+        "observation": "Record, for each answer, the development moves actually heard (reason, example, contrast, consequence), relevance, any long hesitation, and intelligibility only as heard live or on approved audio. Compare only with Lesson 8 observations of similar demand. No band or pronunciation rating from notes."
+      }
+    ],
+    "review": "Compare only the observed demands and conditions with Lesson 8 work. Record what the new speech shows, counterevidence and the next check. New questions do not by themselves establish comparable difficulty or improvement. No band, percentage or mastery label."
+  },
+  "delayed_followup": "In Lesson 12 (Part 2) and Lesson 16 (Part 3 and second progress review), check whether learners extend answers without the development card. Record these as later observations.",
+  "progress_review": {
+    "title": "First progress review (Lessons 1-8)",
+    "rows": ["Listening", "Reading", "Writing", "Speaking"],
+    "columns": ["Saved evidence (task, date, conditions)", "Supported observation", "Missing or pending evidence", "Agreed next action and check date"],
+    "rules": [
+      "Use only saved platform evidence, teacher-confirmed reviews and dated classroom observations.",
+      "Write 'not yet observed' or 'pending review' instead of a guess. Never write a band or percentage.",
+      "Guided, corrected or repeated work is practice; label it as such.",
+      "Agree at most two priorities, each linked to evidence, with one next activity and one check date.",
+      "This is a teaching conference, not a learning report. Monthly reports follow their own governed process."
+    ]
+  },
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.4 teachable micro-skills. They are draft teaching focuses, not approved taxonomy mappings. Peer ticks and short guided turns are not whole-interview evidence.",
+  "release_blockers": [
+    "Human editorial, sample answer, criterion-alignment and originality review pending.",
+    "Teacher calibration on the public Speaking descriptors not yet recorded for this lesson.",
+    "Device, print and PowerPoint playback acceptance pending."
+  ]
+}

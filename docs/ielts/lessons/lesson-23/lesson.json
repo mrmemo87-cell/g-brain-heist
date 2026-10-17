@@ -1,0 +1,166 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-23",
+  "number": 23,
+  "week": 12,
+  "version": "0.1.0",
+  "presentation_version": "0.1.0",
+  "title": "Individual priorities from check evidence: targeted stations",
+  "status": "Private teacher-review draft",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Reading passages, items, error sentences and speaking questions are original. Human editorial, item, criterion-alignment and originality review pending.",
+  "audio": { "required": false, "statement": "No new recording required. The Listening repair station replays an owner-approved recording from an earlier lesson that learners have already answered, with its transcript, as review practice. If no approved recording is available, the station is skipped and recorded as not run.", "recordings": [] },
+  "prerequisites": [
+    "Lessons 21 and 22: learners' Listening and Reading check results, the returned Lesson 22 essay with criterion comments, and Lesson 20 and 22 speaking observation notes.",
+    "Station materials printed; tables arranged as four stations.",
+    "The teacher has drafted, from saved evidence only, up to two suggested priorities per learner to discuss."
+  ],
+  "objectives": [
+    { "text": "Choose two priorities that are linked to specific evidence, with one next action and one check date each.", "focus": ["learner planning"] },
+    { "text": "Practise the chosen priorities: True/False/Not Given reasoning, sentence accuracy in essays, or developed Part 3 answers.", "focus": ["True/False/Not Given reasoning", "grammatical error families", "idea development"] },
+    { "text": "Act on one written comment by rewriting one essay paragraph, keeping the first version visible.", "focus": ["learner planning", "grammatical control"] }
+  ],
+  "levels": {
+    "foundation": "Work through stations with a partner and the teacher's guiding questions; record this as supported practice.",
+    "core": "Complete two stations independently and write a specific personal plan.",
+    "extension": "In the Reading station, write the evidence for every answer, including why NOT GIVEN items are not FALSE.",
+    "high_band": "Set a measurable check for each priority (for example, a fresh passage with no Not Given errors) and explain what evidence would show the plan is not working."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-23-K1",
+      "kind": "contrast",
+      "title": "Which priority is based on evidence?",
+      "mode": "Opening challenge; learners decide before the reveal",
+      "instructions": "Three learners wrote their priority for the next two weeks. Which one is most likely to lead to real improvement?",
+      "examples": [
+        { "label": "Learner 1", "text": "I need to improve everything.", "comment": "Not a priority: it names no skill, no evidence and no action." },
+        { "label": "Learner 2", "text": "My Reading is weak, so I will do more practice tests.", "comment": "Too vague. More tests without knowing which question type causes the errors usually repeats the same errors." },
+        { "label": "Learner 3", "text": "In the Lesson 21 passage I lost four True/False/Not Given questions because I treated missing information as False. For two weeks I will write the evidence for every T/F/NG answer, and I will check it on a fresh passage.", "comment": "Useful: specific evidence, a cause, one action and a planned check." }
+      ]
+    },
+    {
+      "id": "IELTS-23-R1",
+      "kind": "items",
+      "title": "Station A: Reading accuracy",
+      "mode": "Station practice; independent, about 12 minutes",
+      "instructions": "Questions 1-7: write TRUE if the statement agrees with the information, FALSE if it contradicts it, or NOT GIVEN if there is no information on this. Write the evidence for every answer.",
+      "stimulus": {
+        "type": "passage",
+        "title": "Lights out for migrating birds",
+        "labelled": true,
+        "paragraphs": [
+          "Every spring and autumn, billions of birds migrate between their breeding and wintering grounds. Many species travel at night, when the air is cooler and calmer and when predators such as hawks are less active. For thousands of years, these birds have used the stars, the Earth's magnetic field and landmarks such as coastlines to find their way.",
+          "Artificial light has changed the night sky over much of the planet. Researchers estimate that bright buildings, streetlights and advertising screens can attract night-flying birds from many kilometres away. Once drawn into a lit area, birds may circle for hours, using up the energy they need for their journey, and many collide with glass windows. In one city, volunteers collected more than a thousand dead birds beneath a single group of tall buildings in one season.",
+          "Some cities have responded with 'lights out' programmes. Owners of tall buildings are asked to switch off or dim unnecessary lights late at night during the main migration weeks. Taking part is usually voluntary, although a small number of cities have made it a legal requirement for new buildings. Studies of these programmes suggest that collisions fall noticeably on nights when fewer windows are lit.",
+          "Reducing light also brings benefits for people. Lower electricity use cuts costs for building owners, and many residents report that they can see more stars. However, some business owners worry that darker streets will make city centres feel less safe, and engineers point out that certain lights are needed for aircraft and security. Supporters argue that the goal is not darkness, but light that is used only where and when it is needed."
+        ]
+      },
+      "items": [
+        { "id": "IELTS-23-R1-Q1", "prompt": "Birds that migrate at night face fewer predators.", "answer": "TRUE", "evidence": "when predators such as hawks are less active", "reason": "Fewer active predators at night matches the statement.", "focus": "paraphrase recognition", "type": "tfng", "level": "core" },
+        { "id": "IELTS-23-R1-Q2", "prompt": "Birds have only recently started using coastlines to navigate.", "answer": "FALSE", "evidence": "For thousands of years, these birds have used the stars, the Earth's magnetic field and landmarks such as coastlines", "reason": "'Thousands of years' contradicts 'only recently'.", "focus": "True/False/Not Given reasoning", "type": "tfng", "level": "core" },
+        { "id": "IELTS-23-R1-Q3", "prompt": "Artificial light can draw birds from a long distance.", "answer": "TRUE", "evidence": "can attract night-flying birds from many kilometres away", "reason": "'Many kilometres away' is a long distance.", "focus": "paraphrase recognition", "type": "tfng", "level": "core" },
+        { "id": "IELTS-23-R1-Q4", "prompt": "Birds circling lit areas are more likely to be caught by predators.", "answer": "NOT GIVEN", "evidence": "Paragraph B mentions lost energy and collisions with glass, but not predators in lit areas.", "reason": "Predators appear only in paragraph A, about night travel in general. Do not combine ideas the passage does not connect.", "focus": "True/False/Not Given reasoning", "type": "tfng", "level": "extension" },
+        { "id": "IELTS-23-R1-Q5", "prompt": "Every city with a lights out programme requires building owners to take part.", "answer": "FALSE", "evidence": "Taking part is usually voluntary", "reason": "Usually voluntary contradicts 'every city requires'.", "focus": "detail discrimination", "type": "tfng", "level": "core" },
+        { "id": "IELTS-23-R1-Q6", "prompt": "Lights out programmes reduce collisions more in spring than in autumn.", "answer": "NOT GIVEN", "evidence": "Paragraph C says collisions fall when fewer windows are lit, but does not compare seasons.", "reason": "Spring and autumn are mentioned only in paragraph A, about migration timing.", "focus": "True/False/Not Given reasoning", "type": "tfng", "level": "extension" },
+        { "id": "IELTS-23-R1-Q7", "prompt": "Some business owners are concerned that less lighting could affect safety.", "answer": "TRUE", "evidence": "some business owners worry that darker streets will make city centres feel less safe", "reason": "'Worry' and 'feel less safe' match the statement.", "focus": "paraphrase recognition", "type": "tfng", "level": "core" }
+      ]
+    },
+    {
+      "id": "IELTS-23-I1",
+      "kind": "items",
+      "title": "Station B: Sentence accuracy in essays",
+      "mode": "Station practice; independent, then rewrite one paragraph of your Lesson 22 essay",
+      "instructions": "Each sentence comes from an essay about young people leaving rural areas and contains one error. Choose the correct version. Then name the error family.",
+      "stimulus": { "type": "none" },
+      "items": [
+        { "id": "IELTS-23-I1-Q1", "prompt": "'The number of young people who leaves villages is increasing.'", "options": ["A  The number of young people who leave villages is increasing.", "B  The number of young people who leaves villages are increasing.", "C  The number of young people which leave villages are increasing."], "answer": "A", "evidence": "'who' refers to 'young people', so the verb is plural (leave); 'the number' takes a singular verb (is).", "reason": "B makes both verbs wrong; C uses 'which' for people. Error family: subject-verb agreement.", "focus": "grammatical error families", "type": "mcq", "level": "core" },
+        { "id": "IELTS-23-I1-Q2", "prompt": "'Many young people move to cities for find better jobs.'", "options": ["A  Many young people move to cities for finding better jobs.", "B  Many young people move to cities to find better jobs.", "C  Many young people move to cities for to find better jobs."], "answer": "B", "evidence": "Purpose is expressed with 'to' + infinitive.", "reason": "A and C mix 'for' with a verb form. Error family: verb form.", "focus": "grammatical error families", "type": "mcq", "level": "core" },
+        { "id": "IELTS-23-I1-Q3", "prompt": "'Rural areas has lost many services in recent years.'", "options": ["A  Rural areas lost many services in recent years.", "B  Rural areas has been losing many services in recent years.", "C  Rural areas have lost many services in recent years."], "answer": "C", "evidence": "Plural subject with 'have'; present perfect with 'in recent years'.", "reason": "A uses the past simple with 'in recent years'; B keeps the agreement error. Error families: agreement and tense.", "focus": "grammatical error families", "type": "mcq", "level": "core" },
+        { "id": "IELTS-23-I1-Q4", "prompt": "'Government should invest in public transport in rural area.'", "options": ["A  The government should invest in public transport in rural area.", "B  Governments should invest in public transport in rural areas.", "C  Government should invest in a public transport in rural areas."], "answer": "B", "evidence": "Countable nouns need a plural or an article: 'governments', 'rural areas'.", "reason": "A still has 'rural area' without an article; C adds an article to an uncountable phrase. Error family: articles and plurals.", "focus": "grammatical error families", "type": "mcq", "level": "core" },
+        { "id": "IELTS-23-I1-Q5", "prompt": "'If the school closes, families will leaving the village too.'", "options": ["A  If the school will close, families leave the village too.", "B  If the school closed, families will leave the village too.", "C  If the school closes, families will leave the village too."], "answer": "C", "evidence": "First conditional: if + present simple, will + base verb.", "reason": "A and B mix conditional forms. Error family: verb form.", "focus": "grammatical error families", "type": "mcq", "level": "core" },
+        { "id": "IELTS-23-I1-Q6", "prompt": "'This is a serious problem, it affects elderly residents most.'", "options": ["A  This is a serious problem, it is affecting elderly residents most.", "B  This is a serious problem because it affects elderly residents most.", "C  This is a serious problem, which affect elderly residents most."], "answer": "B", "evidence": "Two clauses joined by a comma need a conjunction or relative pronoun; 'because' shows the link.", "reason": "A keeps the comma splice; C has an agreement error ('which affect'). Error family: sentence boundaries.", "focus": "grammatical range", "type": "mcq", "level": "extension" }
+      ]
+    },
+    {
+      "id": "IELTS-23-S1",
+      "kind": "speaking",
+      "title": "Station C: Developed Part 3 answers",
+      "mode": "Station practice; pairs or teacher-led group",
+      "prompts": [
+        "Which jobs do you think will change most because of technology? Why?",
+        "Is it better to stay in one career for life or to have several different careers?",
+        "What skills will young people need most in the workplace of the future?",
+        "Should employers or workers themselves pay for training? Why?"
+      ],
+      "instructions": "Take turns. Answer each question with a view, a reason and an example, then add one of: a comparison, a consequence or a qualification. The listener ticks the moves they hear and asks one follow-up question ('Why?', 'Can you give an example?', 'Would everyone agree?').",
+      "support": "Foundation: the Lesson 16 move card, recorded as support.",
+      "extension": "Qualify every view and add a comparison with the past or another country.",
+      "observation": "When the teacher runs this station, record for each learner heard the moves actually used, relevance and long hesitation, with exact examples. Learners not heard are recorded as not yet observed. No band or pronunciation rating from notes."
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 4, "title": "Opening challenge: which priority is based on evidence?", "show": [{ "block": "IELTS-23-K1", "part": "questions" }, { "block": "IELTS-23-K1", "part": "answers" }], "student": "Decide which priority is most useful, then compare with the reveal.", "teacher": "Reveal. Set the rule: every priority names evidence, one action and one check.", "say": "A priority is specific, linked to evidence and checkable.", "check": "Learners can say what Learner 3's priority has that the others lack." },
+    { "start": 4, "end": 12, "title": "Read your evidence and choose two priorities", "show": [], "student": "Read your returned Lesson 22 essay, your Lesson 21 check results and your speaking notes. Choose two priorities and the two stations you will work at.", "teacher": "Circulate. Discuss your suggested priorities with each learner; the learner decides. Where evidence is missing, say so and plan a check instead of guessing.", "say": "Choose from your evidence, not from what feels hardest.", "check": "Every learner has two priorities and two stations." },
+    { "start": 12, "end": 26, "title": "Station round 1", "show": [{ "block": "IELTS-23-R1", "part": "questions" }, { "block": "IELTS-23-I1", "part": "questions" }, { "block": "IELTS-23-S1", "part": "prompt" }], "student": "Work at your first station. Station A: Reading accuracy. Station B: sentence accuracy, then rewrite one paragraph of your essay. Station C: developed Part 3 answers. Station D: Listening repair with an earlier approved recording and its transcript.", "teacher": "Run Station C or D yourself for part of the round. At Station D, learners replay a recording they have already answered and mark where each lost answer was in the transcript; this is review practice, not a new check.", "say": "Keep your first answers visible. Corrections go in a different colour.", "check": "Every learner has completed one station." },
+    { "start": 26, "end": 40, "title": "Station round 2", "show": [], "student": "Move to your second station.", "teacher": "Move to the other teacher-led station. Note who has not yet been observed speaking.", "say": "Same rules: first answers stay visible.", "check": "Every learner has completed two stations." },
+    { "start": 40, "end": 47, "title": "Check stations A and B", "show": [{ "block": "IELTS-23-R1", "part": "answers" }, { "block": "IELTS-23-I1", "part": "answers" }], "student": "Check your answers. For each error, write the reason in your error log.", "teacher": "Focus on Q4 and Q6: why Not Given is not False.", "say": "If the passage does not connect two ideas, you cannot connect them for it.", "check": "Each learner has logged at least one error with a reason." },
+    { "start": 47, "end": 56, "title": "Write your personal plan", "show": [], "student": "Complete the personal plan: for each priority, the evidence, the action, how often, and the check date.", "teacher": "Approve each plan or ask one question to make it more specific. Do not add priorities that the evidence does not support.", "say": "Two priorities, each with evidence, an action and a check.", "check": "Every learner has a plan with two priorities and check dates." },
+    { "start": 56, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket and take the homework sheet.", "teacher": "Schedule the fresh Reading check and any speaking observations still missing.", "say": "Next lesson: final review and your learning plan after the course.", "check": "Everyone knows their next check date." }
+  ],
+  "personal_plan": true,
+  "exit_ticket": [
+    "My two priorities and the evidence for each:",
+    "One thing I did differently at a station today:",
+    "How I will know in two weeks if my plan is working:"
+  ],
+  "homework": [
+    "Follow your personal plan for one week. Record what you did, when, and under what conditions.",
+    "Rewrite one more paragraph of your Lesson 22 essay using a different comment. Keep both versions.",
+    "Complete only the Brains Heist practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-23-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 23, at the start of a lesson or in a separate slot, for learners whose priority includes Reading. Ten minutes, no dictionary, no support. Log conditions and prior exposure.",
+    "blocks": [
+      {
+        "id": "IELTS-23-C1",
+        "kind": "items",
+        "title": "Fresh check: the writer's views",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Questions 1-6: Do the following statements agree with the views of the writer? Write YES, NO or NOT GIVEN.",
+        "stimulus": {
+          "type": "passage",
+          "title": "The case for slower tourism",
+          "labelled": true,
+          "paragraphs": [
+            "For most of the last century, tourism grew on the promise of speed: cheap flights, packed itineraries and the chance to see five cities in a week. In my view, this model has delivered less than it promised. Travellers often return home exhausted, having seen the main sights only through a crowd or a camera screen.",
+            "Slow tourism offers a different approach. Instead of moving constantly, visitors stay longer in one place, use local transport and spend their money in small businesses. Its supporters claim it is better for the environment, and this is largely true, since the greatest source of tourism's carbon emissions is the flight itself rather than the activities at the destination.",
+            "Critics argue that slow tourism is only for people with plenty of time and money. This objection deserves to be taken seriously. Many workers have just a few days of holiday each year, and a two-week stay in a rented village house is beyond their reach. Yet the principle can be applied on a smaller scale: a weekend spent in one nearby town is still slower than a weekend spent in three.",
+            "Local communities, too, may gain from the change, although the evidence here is mixed. Longer stays can provide steadier income than day visitors, but in some popular areas, holiday rentals have pushed up housing costs for residents. Whether slow tourism helps a place probably depends less on the travellers than on how local authorities manage it."
+          ]
+        },
+        "items": [
+          { "id": "IELTS-23-C1-Q1", "prompt": "Fast-paced travel has failed to live up to its promise.", "answer": "YES", "evidence": "In my view, this model has delivered less than it promised", "reason": "The writer states this view directly.", "focus": "writer stance/purpose", "type": "ynng", "level": "core" },
+          { "id": "IELTS-23-C1-Q2", "prompt": "Flying produces more of tourism's carbon emissions than holiday activities do.", "answer": "YES", "evidence": "the greatest source of tourism's carbon emissions is the flight itself rather than the activities at the destination", "reason": "The writer accepts this claim as 'largely true'.", "focus": "paraphrase recognition", "type": "ynng", "level": "core" },
+          { "id": "IELTS-23-C1-Q3", "prompt": "The view that slow tourism suits only wealthy people can be dismissed.", "answer": "NO", "evidence": "This objection deserves to be taken seriously", "reason": "The writer says the objection should be taken seriously, not dismissed.", "focus": "writer stance/purpose", "type": "ynng", "level": "core" },
+          { "id": "IELTS-23-C1-Q4", "prompt": "Short trips can still follow the idea of slow tourism.", "answer": "YES", "evidence": "the principle can be applied on a smaller scale", "reason": "A weekend in one town is given as an example.", "focus": "paraphrase recognition", "type": "ynng", "level": "core" },
+          { "id": "IELTS-23-C1-Q5", "prompt": "Slow tourism will eventually replace traditional holidays.", "answer": "NOT GIVEN", "evidence": "The writer makes no prediction about the future popularity of either type of tourism.", "reason": "Do not infer a prediction from the writer's general support.", "focus": "True/False/Not Given reasoning", "type": "ynng", "level": "extension" },
+          { "id": "IELTS-23-C1-Q6", "prompt": "Holiday rentals are good for everyone living in tourist areas.", "answer": "NO", "evidence": "holiday rentals have pushed up housing costs for residents", "reason": "Higher housing costs show rentals can harm residents.", "focus": "detail discrimination", "type": "ynng", "level": "core" }
+        ]
+      }
+    ],
+    "review": "Compare only with earlier Yes/No/Not Given and True/False/Not Given work of similar demand and conditions. Record what the new check shows, counterevidence and the next check. A new passage does not by itself establish comparable difficulty or improvement. No band, percentage or mastery label."
+  },
+  "delayed_followup": "In Lesson 24, each learner reports what they did on their plan for one week, with dates, and the teacher records whether the planned check has taken place.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.4 teachable micro-skills. Draft teaching focuses only. Station work is practice. Priorities are chosen from saved evidence, dated observations and fresh checks only; missing evidence is recorded as missing, never estimated.",
+  "release_blockers": [
+    "Human editorial, item, passage and originality review pending.",
+    "Teacher calibration on the public Speaking descriptors not yet recorded for this lesson.",
+    "Confirm which earlier recordings are owner-approved before running the Listening repair station.",
+    "Device, print and PowerPoint playback acceptance pending."
+  ]
+}

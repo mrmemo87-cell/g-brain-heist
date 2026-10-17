@@ -1,0 +1,153 @@
+{
+  "record": "IELTS-21 listening audio production",
+  "version": "1",
+  "produced": "2026-10-17",
+  "provider": "Runway MCP (workspace 'Sobbi', personal)",
+  "script_source": "docs/ielts/lessons/lesson-21/lesson.json",
+  "script_source_sha256_at_production": "2ed172da2da7002ea5dd668f221a050343eba4653aeae2792945301133a49c5f",
+  "production_method": {
+    "instructions": "eleven_multilingual_v2, voice Tom, stability 0.7; copyright notice and closing cue reused from the IELTS-05 v1 production (identical text and voice)",
+    "assembly": "48 kHz mono; edge silence trimmed; each segment loudness-matched to -18 LUFS; exact digital silences (0.7 s, 30.0 s reading, 1.0 s, 1.2 s, 30.0 s mid-recording reading where the section is played in two parts, 15.0 s response); true-peak limiter at -1.5 dBFS; MP3 192 kbps with copyright metadata",
+    "effects": "none"
+  },
+  "rights_basis": {
+    "owner_confirmation": "Owner confirmed on 2026-10-17 that rights to recordings produced in this workflow belong to Brains Heist LLC."
+  },
+  "recordings": {
+    "IELTS-21-L1": {
+      "file": "IELTS-21-L1_v1.mp3",
+      "title": "IELTS-21 Recording 1: Room booking (fresh classroom check)",
+      "sha256": "56bb4b8c59e2b313ca798aec433ee80b02bfbf1ba1fb0d074fcbb4615708f4ed",
+      "bytes": 4885351,
+      "duration_seconds": 203.52,
+      "transcript_sha256": "7e28cc864e14de9381a774fa38b56dccb3097daa0cb80d6f995bed30865eec9b",
+      "voices": {
+        "instruction": "Tom (British, examiner style; steady model)",
+        "CLERK": "Niki (North American, middle-aged, friendly)",
+        "DANIELA": "Marlene (British, middle-aged)"
+      },
+      "generation": {
+        "passage": {
+          "task": [
+            "9cc0e8e6-508e-4109-99fa-f50101773f80",
+            "d0772720-9c48-4ad8-9988-f4277169d906"
+          ],
+          "model": "eleven_v4 dialogue (two calls split at the designed mid-recording break, before line 13)",
+          "stability": 0.5,
+          "seed": [
+            21011,
+            21012
+          ]
+        },
+        "intro_task": "ba09b1d2-5fa0-4e4c-a1a6-236529afd9cc",
+        "listen_cue_task": "6fdef43d-ef10-442b-969d-a05173108024",
+        "mid_instruction_task": "300b0dd4-7279-457c-ba0b-8d3bf8f90a35",
+        "second_listen_cue_task": "044c7111-81dc-4b2f-8d7a-494e243b1a9e"
+      },
+      "passage_words": 262,
+      "passage_words_per_minute": 171,
+      "designed_cues": [
+        {
+          "label": "reading_silence",
+          "start": 14.906,
+          "seconds": 30.0
+        },
+        {
+          "label": "reading_silence",
+          "start": 112.987,
+          "seconds": 30.0
+        },
+        {
+          "label": "response_silence",
+          "start": 188.473,
+          "seconds": 15.0
+        }
+      ],
+      "segments": [
+        {
+          "segment": "notice",
+          "source_lufs": -21.2,
+          "gain_db": 3.2,
+          "start": 0.0,
+          "seconds": 4.412
+        },
+        {
+          "segment": "L21_intro",
+          "source_lufs": -22.7,
+          "gain_db": 4.7,
+          "start": 5.112,
+          "seconds": 9.794
+        },
+        {
+          "segment": "listen_1_5",
+          "source_lufs": -19.9,
+          "gain_db": 1.9,
+          "start": 44.906,
+          "seconds": 3.011
+        },
+        {
+          "segment": "L21_passage_A",
+          "source_lufs": -20.7,
+          "gain_db": 2.7,
+          "start": 48.917,
+          "seconds": 56.698
+        },
+        {
+          "segment": "rest_conv_6_10",
+          "source_lufs": -22.4,
+          "gain_db": 4.4,
+          "start": 106.815,
+          "seconds": 6.172
+        },
+        {
+          "segment": "listen_6_10",
+          "source_lufs": -20.8,
+          "gain_db": 2.8,
+          "start": 142.987,
+          "seconds": 2.885
+        },
+        {
+          "segment": "L21_passage_B",
+          "source_lufs": -21.5,
+          "gain_db": 3.5,
+          "start": 146.873,
+          "seconds": 35.309
+        },
+        {
+          "segment": "end_check",
+          "source_lufs": -23.9,
+          "gain_db": 5.9,
+          "start": 183.382,
+          "seconds": 5.091
+        }
+      ],
+      "verification": {
+        "integrated_lufs": -18.4,
+        "true_peak_dbfs": -1.5,
+        "decoded_clipped_samples": 0,
+        "detected_pauses": [
+          {
+            "detected_start": 14.82,
+            "detected_end": 44.958,
+            "detected_seconds": 30.138
+          },
+          {
+            "detected_start": 112.893,
+            "detected_end": 143.025,
+            "detected_seconds": 30.132
+          },
+          {
+            "detected_start": 188.384,
+            "detected_end": 203.473,
+            "detected_seconds": 15.089
+          }
+        ],
+        "unexpected_gaps_over_1_5s": []
+      },
+      "word_accuracy_check": "Not automated: no speech-recognition tool is available in the production environment. The owner listening review must confirm every keyed answer is spoken exactly as scripted.",
+      "review": {
+        "status": "Owner listening review pending"
+      }
+    }
+  }
+}

@@ -1,0 +1,249 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-11",
+  "number": 11,
+  "week": 6,
+  "version": "0.1.0",
+  "presentation_version": "0.1.0",
+  "title": "Academic Writing Task 1: overviews and accurate comparisons",
+  "status": "Private teacher-review draft",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Charts use fictional data created for practice. Prompts, sample sentences and models are original. Human editorial, model, criterion-alignment, difficulty and originality review pending.",
+  "audio": { "required": false, "statement": "No recording required. Writing lesson.", "recordings": [] },
+  "prerequisites": [
+    "Lessons 4 and 7: paragraph control and accurate, relevant development.",
+    "Teacher has read the public IELTS Writing Task 1 band descriptors (Academic). This lesson uses criterion names for feedback only; it does not assign bands.",
+    "Projector or printed charts: learners must see the chart clearly. Every chart has a text description and a data table in the teacher key."
+  ],
+  "objectives": [
+    { "text": "Write an overview that states the main trends or differences without quoting detailed numbers.", "focus": ["register/task fulfilment", "thesis/position clarity"] },
+    { "text": "Select the most significant features and support them with accurate figures.", "focus": ["evidence/example relevance", "lexical precision"] },
+    { "text": "Compare data accurately using contrast and comparison language (while, by contrast, overtook, the least variable).", "focus": ["cohesion", "grammatical range"] }
+  ],
+  "levels": {
+    "foundation": "Use the overview frame (Overall, ... while ...) and the comparison phrase bank; record their use as support.",
+    "core": "Write an overview and one body paragraph of about 80-100 words in 15 minutes.",
+    "extension": "Group two categories that behave similarly in one sentence, and include one exception.",
+    "high_band": "Use no more than six numbers in the whole body paragraph, choosing only those that prove a significant feature, and vary comparison structures without losing accuracy."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-11-M1",
+      "kind": "items",
+      "title": "What matters most?",
+      "mode": "Opening challenge; one minute to look at the chart",
+      "instructions": "Look at the chart for one minute. Which TWO features are the most significant? Choose two letters, A-E.",
+      "stimulus": { "type": "figure" },
+      "figure": {
+        "type": "line",
+        "title": "Commuters by main mode of travel, one city, 2000-2020",
+        "x_label": "Year",
+        "y_label": "% of commuters",
+        "y_max": 70,
+        "x": ["2000", "2005", "2010", "2015", "2020"],
+        "series": [
+          { "name": "Car", "values": [62, 58, 51, 44, 39] },
+          { "name": "Bus", "values": [21, 22, 24, 25, 22] },
+          { "name": "Bicycle", "values": [5, 7, 11, 16, 24] },
+          { "name": "Walking", "values": [12, 13, 14, 15, 15] }
+        ],
+        "alt": "Line graph of four modes of travel to work from 2000 to 2020. Car falls steadily from 62 to 39 per cent. Bus rises from 21 to a peak of 25 in 2015 then falls to 22. Bicycle rises from 5 to 24, overtaking bus in 2020. Walking stays between 12 and 15.",
+        "note": "Fictional data created for practice."
+      },
+      "items": [
+        { "id": "IELTS-11-M1-Q1", "prompt": "Which TWO features are the most significant?", "options": ["A  Car use fell sharply but stayed the most common.", "B  Walking rose by 1% between 2010 and 2015.", "C  Cycling grew more than any other mode.", "D  Bus use was 24% in 2010.", "E  Walking was 13% in 2005."], "answer": "A and C", "evidence": "Car 62 to 39; bicycle 5 to 24", "reason": "A and C describe the largest changes across the whole period. B, D and E are true but minor details that belong, if at all, in a body paragraph.", "focus": "evidence/example relevance", "type": "choice", "level": "core", "facts": [{ "series": "Car", "x": "2000", "value": 62 }, { "series": "Car", "x": "2020", "value": 39 }, { "series": "Bicycle", "x": "2000", "value": 5 }, { "series": "Bicycle", "x": "2020", "value": 24 }, { "series": "Bus", "x": "2010", "value": 24 }, { "series": "Walking", "x": "2005", "value": 13 }] }
+      ]
+    },
+    {
+      "id": "IELTS-11-K1",
+      "kind": "contrast",
+      "title": "Which overview works?",
+      "mode": "Teacher-led analysis; learners rank before the reveal",
+      "instructions": "Three learners wrote an overview for the commuter chart. Which is the most effective, and what is wrong with the other two?",
+      "examples": [
+        { "label": "Overview 1", "text": "Overall, in 2000, 62% of people used cars, 21% used buses, 5% cycled and 12% walked.", "comment": "Not an overview. It lists numbers from one year and says nothing about change over the period." },
+        { "label": "Overview 2", "text": "Overall, all forms of transport became more popular, especially bicycles.", "comment": "Inaccurate. Car use fell sharply, and bus use fell after 2015. An overview must be true for the whole chart." },
+        { "label": "Overview 3", "text": "Overall, cars were used by the largest share of commuters throughout, although their popularity declined markedly, whereas cycling saw the greatest increase. The proportions travelling by bus or on foot remained fairly steady.", "comment": "Effective. It names the main trends, groups the two stable modes together, and needs no numbers." }
+      ]
+    },
+    {
+      "id": "IELTS-11-I1",
+      "kind": "items",
+      "title": "Accurate or inaccurate?",
+      "mode": "Guided practice; answer alone, then check",
+      "instructions": "Look at the commuter chart again. Write Accurate or Inaccurate for each sentence. If it is inaccurate, correct it.",
+      "stimulus": { "type": "figure" },
+      "figure": {
+        "type": "line",
+        "title": "Commuters by main mode of travel, one city, 2000-2020",
+        "x_label": "Year",
+        "y_label": "% of commuters",
+        "y_max": 70,
+        "x": ["2000", "2005", "2010", "2015", "2020"],
+        "series": [
+          { "name": "Car", "values": [62, 58, 51, 44, 39] },
+          { "name": "Bus", "values": [21, 22, 24, 25, 22] },
+          { "name": "Bicycle", "values": [5, 7, 11, 16, 24] },
+          { "name": "Walking", "values": [12, 13, 14, 15, 15] }
+        ],
+        "alt": "Line graph of four modes of travel to work from 2000 to 2020. Car falls steadily from 62 to 39 per cent. Bus rises from 21 to a peak of 25 in 2015 then falls to 22. Bicycle rises from 5 to 24, overtaking bus in 2020. Walking stays between 12 and 15.",
+        "note": "Fictional data created for practice."
+      },
+      "items": [
+        { "id": "IELTS-11-I1-Q1", "prompt": "Car use fell by 23 percentage points over the period.", "answer": "Accurate", "evidence": "Car: 62% in 2000, 39% in 2020", "reason": "62 minus 39 is 23 percentage points. Note 'percentage points', not 'per cent'.", "focus": "lexical precision", "type": "choice", "level": "core", "facts": [{ "series": "Car", "x": "2000", "value": 62 }, { "series": "Car", "x": "2020", "value": 39 }] },
+        { "id": "IELTS-11-I1-Q2", "prompt": "Cycling overtook bus use in 2015.", "answer": "Inaccurate", "evidence": "2015: bicycle 16%, bus 25%; 2020: bicycle 24%, bus 22%", "reason": "Cycling was still well below bus use in 2015; it had overtaken buses by 2020.", "focus": "evidence/example relevance", "type": "choice", "level": "core", "facts": [{ "series": "Bicycle", "x": "2015", "value": 16 }, { "series": "Bus", "x": "2015", "value": 25 }, { "series": "Bicycle", "x": "2020", "value": 24 }, { "series": "Bus", "x": "2020", "value": 22 }] },
+        { "id": "IELTS-11-I1-Q3", "prompt": "The proportion of people walking stayed between 12% and 15%.", "answer": "Accurate", "evidence": "Walking: 12% in 2000, 15% in 2015 and 2020", "reason": "Walking never went below 12% or above 15%.", "focus": "evidence/example relevance", "type": "choice", "level": "core", "facts": [{ "series": "Walking", "x": "2000", "value": 12 }, { "series": "Walking", "x": "2020", "value": 15 }] },
+        { "id": "IELTS-11-I1-Q4", "prompt": "Bus use rose steadily throughout the period.", "answer": "Inaccurate", "evidence": "Bus: 25% in 2015, 22% in 2020", "reason": "Bus use rose until 2015 and then fell. A better sentence: bus use peaked at 25% in 2015 before falling to 22%.", "focus": "lexical precision", "type": "choice", "level": "core", "facts": [{ "series": "Bus", "x": "2015", "value": 25 }, { "series": "Bus", "x": "2020", "value": 22 }] },
+        { "id": "IELTS-11-I1-Q5", "prompt": "Cycling more than quadrupled between 2000 and 2020.", "answer": "Accurate", "evidence": "Bicycle: 5% in 2000, 24% in 2020", "reason": "Four times 5 is 20, and 24 is more than 20.", "focus": "lexical precision", "type": "choice", "level": "extension", "facts": [{ "series": "Bicycle", "x": "2000", "value": 5 }, { "series": "Bicycle", "x": "2020", "value": 24 }] }
+      ],
+      "support": "Foundation: the teacher reads each line of the chart aloud with the class before learners decide.",
+      "extension": "Rewrite each inaccurate sentence so that it is accurate and uses a comparison word (while, whereas, by contrast)."
+    },
+    {
+      "id": "IELTS-11-W1",
+      "kind": "writing",
+      "task": "paragraph",
+      "title": "Your overview and one body paragraph",
+      "mode": "Independent classroom application after modelling; not a full Task 1 or Writing Screener",
+      "prompt": "The graph shows the percentage of commuters in one city who used four main ways of travelling to work between 2000 and 2020. Write an overview and ONE body paragraph (about 80-100 words in total) describing the most significant features.",
+      "figure": {
+        "type": "line",
+        "title": "Commuters by main mode of travel, one city, 2000-2020",
+        "x_label": "Year",
+        "y_label": "% of commuters",
+        "y_max": 70,
+        "x": ["2000", "2005", "2010", "2015", "2020"],
+        "series": [
+          { "name": "Car", "values": [62, 58, 51, 44, 39] },
+          { "name": "Bus", "values": [21, 22, 24, 25, 22] },
+          { "name": "Bicycle", "values": [5, 7, 11, 16, 24] },
+          { "name": "Walking", "values": [12, 13, 14, 15, 15] }
+        ],
+        "alt": "Line graph of four modes of travel to work from 2000 to 2020. Car falls steadily from 62 to 39 per cent. Bus rises from 21 to a peak of 25 in 2015 then falls to 22. Bicycle rises from 5 to 24, overtaking bus in 2020. Walking stays between 12 and 15.",
+        "note": "Fictional data created for practice."
+      },
+      "conditions": "15 minutes, independent. No model visible. Record any frame or phrase-bank use.",
+      "support": "Overview frame: Overall, although ..., ... while ... Phrase bank: fell sharply / rose steadily / peaked at / overtook / remained stable / by contrast.",
+      "extension": "Group bus use and walking in one sentence and state the exception (the fall in bus use after 2015).",
+      "high_band": "Use no more than six numbers; every number must prove a significant feature.",
+      "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
+      "model": "Overall, although the car remained the most common way to travel to work throughout the period, its share fell sharply, while cycling grew more than any other mode. Bus use and walking changed relatively little.\n\nIn 2000, 62% of commuters drove, but this proportion declined steadily to 39% by 2020. Cycling followed the opposite pattern: only 5% cycled at the start of the period, compared with 24% at the end, which meant that bicycles had overtaken buses as the second most popular option.",
+      "checklist": [
+        "Task Achievement: Is there a clear overview of the main trends, without detailed numbers? Are the features selected the significant ones?",
+        "Task Achievement: Is every number accurate and correctly described (per cent vs percentage points; peaked, overtook)?",
+        "Coherence and Cohesion: Are related categories grouped? Are comparisons linked clearly (while, by contrast, as a result)?",
+        "Lexical Resource and Grammatical Range and Accuracy: Is trend vocabulary precise and varied? Are tenses (past simple for completed periods) and prepositions (from ... to, by, at) accurate?"
+      ]
+    },
+    {
+      "id": "IELTS-11-W2",
+      "kind": "writing",
+      "task": "task1",
+      "min_words": 150,
+      "homework": true,
+      "title": "Complete Task 1 under time",
+      "mode": "Timed homework under declared conditions; teacher feedback uses the four criteria. Not a Writing Screener.",
+      "prompt": "The graph below shows the percentage of commuters in one city who used four main ways of travelling to work between 2000 and 2020. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+      "figure": {
+        "type": "line",
+        "title": "Commuters by main mode of travel, one city, 2000-2020",
+        "x_label": "Year",
+        "y_label": "% of commuters",
+        "y_max": 70,
+        "x": ["2000", "2005", "2010", "2015", "2020"],
+        "series": [
+          { "name": "Car", "values": [62, 58, 51, 44, 39] },
+          { "name": "Bus", "values": [21, 22, 24, 25, 22] },
+          { "name": "Bicycle", "values": [5, 7, 11, 16, 24] },
+          { "name": "Walking", "values": [12, 13, 14, 15, 15] }
+        ],
+        "alt": "Line graph of four modes of travel to work from 2000 to 2020. Car falls steadily from 62 to 39 per cent. Bus rises from 21 to a peak of 25 in 2015 then falls to 22. Bicycle rises from 5 to 24, overtaking bus in 2020. Walking stays between 12 and 15.",
+        "note": "Fictional data created for practice."
+      },
+      "conditions": "20 minutes, in one sitting, without a dictionary, translator, AI tool or model. Write the start and finish time. You may reuse your class paragraph only if you mark it.",
+      "support": "Plan: Introduction (paraphrase the task) / Overview (main trends, no numbers) / Body 1 (car and cycling) / Body 2 (bus and walking, with the exception).",
+      "extension": "End Body 2 with one sentence comparing the most and least variable modes.",
+      "high_band": "After 20 minutes, take 3 extra minutes in a different colour to check every number against the chart.",
+      "model_label": "Illustrative model for teacher discussion after learners submit their own responses. Not a certified band answer and not rated under official IELTS conditions.",
+      "model_derived_numbers": ["23"],
+      "model": "The line graph compares the proportion of commuters in one city who travelled to work by car, bus, bicycle and on foot between 2000 and 2020.\n\nOverall, the car remained the most common way to commute, but its share fell considerably, while cycling increased more than any other mode. Bus use and walking were relatively stable.\n\nIn 2000, 62% of commuters drove to work. This figure decreased at every point shown, reaching 39% in 2020, a fall of 23 percentage points. Cycling, by contrast, grew from just 5% to 24% over the same period, with the fastest growth after 2010.\n\nBus use rose gradually from 21% in 2000 to a peak of 25% in 2015, before falling back to 22% in 2020. As a result, cycling overtook the bus to become the second most popular option by the end of the period. Walking accounted for between 12% and 15% of journeys throughout, making it the least variable of the four modes.",
+      "checklist": [
+        "Task Achievement: Is there an introduction that paraphrases the task, a clear overview, and accurate key features with data?",
+        "Coherence and Cohesion: Are paragraphs organised by trend (not year by year)? Are comparisons clearly linked?",
+        "Lexical Resource: Is trend and comparison vocabulary precise (peaked, overtook, percentage points)? Is it varied without errors?",
+        "Grammatical Range and Accuracy: Is there a mix of simple and complex sentences? Which error family repeats?",
+        "Length and time: At least 150 words within 20 minutes? Underlength responses are penalised in the real test."
+      ]
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 5, "title": "Opening challenge: what matters most?", "show": [{ "block": "IELTS-11-M1", "part": "questions" }, { "block": "IELTS-11-M1", "part": "answers" }], "student": "Look at the chart for one minute, then choose the two most significant features.", "teacher": "Time one minute in silence. Reveal after everyone commits. Stress that Task 1 rewards selecting key features, not describing every point.", "say": "The examiner wants the big picture first. Which two changes would you tell a friend about?", "check": "Learners can explain why D and E are details." },
+    { "start": 5, "end": 12, "title": "Which overview works?", "show": [{ "block": "IELTS-11-K1", "part": "questions" }, { "block": "IELTS-11-K1", "part": "answers" }], "student": "Rank the three overviews, then compare with the reveal.", "teacher": "Reveal each comment after learners explain. Teach the overview rule: main trends, true for the whole chart, usually no numbers.", "say": "An overview must be true for the whole chart. If one line goes down, 'all increased' is wrong.", "check": "Learners can say what is wrong with Overviews 1 and 2." },
+    { "start": 12, "end": 22, "title": "Accurate or inaccurate?", "show": [{ "block": "IELTS-11-I1", "part": "questions" }, { "block": "IELTS-11-I1", "part": "answers" }], "student": "Decide Accurate or Inaccurate for five sentences, correct the inaccurate ones, then check.", "teacher": "Give 5 minutes, then reveal. Teach 'percentage points' (Q1), 'peaked' (Q4) and 'overtook' (Q2). Accuracy errors are Task Achievement problems, not only grammar.", "say": "One wrong number or wrong trend word changes the meaning of the whole sentence.", "check": "Learners can correct Q2 and Q4." },
+    { "start": 22, "end": 26, "title": "Plan: group, select, compare", "show": [{ "block": "IELTS-11-W1", "part": "prompt" }], "student": "Plan your overview and decide which two modes your body paragraph will compare.", "teacher": "Model grouping on the board: car and cycling (big changes, opposite directions); bus and walking (stable, with one exception). Foundation group uses the frame and phrase bank, recorded as support.", "say": "Organise by trend, not year by year.", "check": "Each learner has an overview idea and a grouping plan." },
+    { "start": 26, "end": 41, "title": "Write independently", "show": [], "student": "Write your overview and one body paragraph in the workbook in 15 minutes.", "teacher": "Do not correct during writing. Record any frame or phrase-bank use and interruptions.", "say": "Write your own overview first. Check every number against the chart.", "check": "Original work collected or kept unchanged." },
+    { "start": 41, "end": 50, "title": "Compare with the model and the criteria", "show": [{ "block": "IELTS-11-W1", "part": "model" }], "student": "Read the model. Use the checklist under your paragraph to mark one strength and one change. Check two of your numbers against the chart.", "teacher": "Show the model only after writing. Point out how it uses only four numbers to prove two trends. Remind learners it is a classroom model, not a template.", "say": "Fewer, well-chosen numbers are better than many numbers in a list.", "check": "Each learner has marked one strength, one change and two checked numbers." },
+    { "start": 50, "end": 56, "title": "Full Task 1 at home", "show": [{ "block": "IELTS-11-W2", "part": "prompt" }], "student": "Copy the four-paragraph plan and the homework conditions.", "teacher": "Explain the 20-minute condition and the 150-word minimum. The homework is practice evidence; feedback uses the four criteria, and no band is given from one response.", "say": "Twenty minutes, at least 150 words, no help. Write your start and finish times.", "check": "Learners know the conditions and deadline." },
+    { "start": 56, "end": 60, "title": "Exit ticket", "show": [], "student": "Complete the exit ticket.", "teacher": "Collect paragraphs and exit tickets. Record the fresh-check date.", "say": "Next lesson: Speaking Part 2, where you will plan and speak for up to two minutes.", "check": "Everyone has handed in their paragraph." }
+  ],
+  "exit_ticket": [
+    "What an overview must include, and what it should not include:",
+    "The difference between 'per cent' and 'percentage points':",
+    "One comparison phrase I will use in my homework:"
+  ],
+  "homework": [
+    "Write the complete Task 1 response on the Homework sheet under the stated conditions: 20 minutes, at least 150 words, no dictionary, translator or AI tool.",
+    "Keep today's paragraph unchanged. On a separate line, rewrite your overview if the checklist showed a problem.",
+    "Complete only the Brains Heist writing practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-11-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 11, after feedback on the homework. 20 minutes: overview and one body paragraph for a new chart type. No model, frame or phrase bank unless recorded as support. Classroom observation only.",
+    "blocks": [
+      {
+        "id": "IELTS-11-C1",
+        "kind": "writing",
+        "task": "partial",
+        "title": "How students spend their week",
+        "mode": "Withheld fresh check; independent, timed",
+        "prompt": "The bar chart shows the average number of hours per week that students in three age groups spent on four activities. Write an overview and one body paragraph describing the most significant features.",
+        "figure": {
+          "type": "bar",
+          "title": "Average hours per week spent on four activities, by age group",
+          "x_label": "Activity",
+          "y_label": "Hours per week",
+          "y_max": 25,
+          "x": ["Study", "Paid work", "Sport", "Social media"],
+          "series": [
+            { "name": "Aged 16-18", "values": [20, 4, 6, 14] },
+            { "name": "Aged 19-21", "values": [16, 12, 4, 12] },
+            { "name": "Aged 22-24", "values": [12, 18, 3, 9] }
+          ],
+          "alt": "Bar chart of weekly hours for three age groups. Study falls from 20 to 16 to 12 hours with age. Paid work rises from 4 to 12 to 18 hours. Sport falls from 6 to 4 to 3 hours. Social media falls from 14 to 12 to 9 hours.",
+          "note": "Fictional data created for practice."
+        },
+        "conditions": "20 minutes, independent. No model, frame or phrase bank. Record any support.",
+        "model_label": "Illustrative teacher-only reference for review discussion. Not a certified band answer.",
+        "model_derived_numbers": ["16", "18", "19", "21", "22", "24"],
+        "model": "Overall, the youngest students spent the most time studying, while the oldest group spent the most time in paid work. Time spent on sport and social media fell as students got older.\n\nStudents aged 16 to 18 studied for 20 hours a week, compared with 16 hours for those aged 19 to 21 and 12 hours for the oldest group. Paid work showed the opposite pattern, rising from 4 hours for the youngest students to 12 and then 18 hours, so that the oldest group worked more hours than they studied.",
+        "checklist": [
+          "Task Achievement: Is the overview accurate for all three groups, without detailed numbers?",
+          "Task Achievement: Are the selected features significant and the figures accurate?",
+          "Coherence and Cohesion: Are comparisons organised by activity or by trend, with clear links?",
+          "Compare only with similar observed demands from Lesson 11. A new chart type is not automatically comparable."
+        ]
+      }
+    ],
+    "review": "Compare only observed demands and conditions. Record what the new work shows (overview accuracy, selection, comparison), counterevidence and the next check. No band, percentage or improvement claim from this check alone."
+  },
+  "delayed_followup": "In Lesson 19 (writing revision clinic), check overview accuracy and selection on a different visual (table, map or process) without the frame. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.3 teachable micro-skills. Draft teaching focuses only. Criterion names structure feedback; no band is derived.",
+  "release_blockers": [
+    "Human editorial, model, chart, criterion-alignment, difficulty and originality review pending.",
+    "Teacher calibration on the public Task 1 descriptors not yet recorded for this lesson.",
+    "Device, print and PowerPoint playback acceptance pending; projector legibility of charts to be checked."
+  ]
+}
