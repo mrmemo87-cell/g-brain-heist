@@ -51,7 +51,7 @@ export default function IeltsReviewDraftPacks({ schoolId }: { schoolId: string }
   <h3>Review drafts: Lessons 5–24</h3>
   <p className="lesson-muted">Not approved for classroom use. Download a draft, review it, then record your decision. Recording an approval does not release a lesson to teachers or students; release stays a separate step.</p>
   {loading && <p role="status">Opening review drafts…</p>}
-  {error && <div role="alert" className="lesson-alert"><p>{error}</p><button type="button" className="sp-secondary" disabled={!!busy} onClick={() => setRetry(n => n + 1)}>Retry review drafts</button></div>}
+  {error && <div className="lesson-alert"><p role="status">{error}</p><button type="button" className="sp-secondary" disabled={!!busy} onClick={() => setRetry(n => n + 1)}>Retry review drafts</button></div>}
   {saved && <p role="status">{saved}</p>}
   {!loading && packs.length > 0 && <p className="lesson-muted">{reviewed} of {packs.length} approved.</p>}
   {packs.map(pack => {
