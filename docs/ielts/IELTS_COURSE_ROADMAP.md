@@ -4,6 +4,8 @@ Version 1.1.0 · 2026-10-17. Diagnostic Bible 1.11.0; Lessons Bible 1.2.0; Visua
 
 Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly. Confirmed route: Academic IELTS only, starting teaching at B1 and increasing demands gradually. B1 does not imply a band. Adapt support and pace to actual evidence. The sequence does not promise a band or certify that all materials exist.
 
+Owner approval recorded 2026-10-17: the owner approved the exact 24-lesson sequence and titles below in chat ("Great and approved"). Scope: sequence and titles only. This does not approve unwritten lesson content, generated recordings, taxonomy mappings, originality, device acceptance, database changes or production release. New Lessons 3–4 content revision 2026-10-17.1 is a separate private review draft, not a released pack.
+
 | Week | Code | Lesson | Production state |
 |---|---|---|---|
 | 1 | IELTS-01 | Listening corrections and Reading starting point | Implemented; retain recorded device/playback acceptance gaps |
