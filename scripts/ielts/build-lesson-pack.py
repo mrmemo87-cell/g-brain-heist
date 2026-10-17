@@ -33,6 +33,10 @@ def answers_title(title):
     return f"{title} — answers" if title.rstrip().endswith('?') else f"{title}: answers"
 
 
+def normalize_title(t):
+    return re.sub(r'\W+', ' ', t).strip().lower()
+
+
 def letters(n):
     return [chr(65 + i) for i in range(n)]
 
@@ -143,6 +147,8 @@ class Pack:
         plt.rcParams.update({'font.family': 'DejaVu Sans', 'font.size': 11})
         palette = ['#1746B0', '#C2410C', '#0E7490', '#6D28D9', '#4C6076']
         markers = ['o', 's', '^', 'D', 'v']
+        if fig['type'] in ('plan', 'table'):
+            return self._render_special(fig, dest, plt)
         fw, fh = (8, 4.6)
         f, ax = plt.subplots(figsize=(fw, fh), dpi=200)
         x = fig['x']
@@ -170,17 +176,67 @@ class Pack:
         f.savefig(dest); plt.close(f)
         return dest
 
+    def _render_special(self, fig, dest, plt):
+        from matplotlib.patches import FancyBboxPatch
+        if fig['type'] == 'plan':
+            # Map/plan labelling: fixed places are named; blank places carry a letter for matching.
+            f, ax = plt.subplots(figsize=(8, 5.6), dpi=200)
+            W, H = fig.get('width', 100), fig.get('height', 70)
+            ax.set_xlim(0, W); ax.set_ylim(0, H); ax.set_aspect('equal'); ax.axis('off')
+            ax.add_patch(FancyBboxPatch((0.5, 0.5), W - 1, H - 1, boxstyle='round,pad=0,rounding_size=1.5', fill=False, linewidth=1.6, edgecolor=INK))
+            for path_ in fig.get('paths', []):
+                xs, ys = zip(*path_['points'])
+                ax.plot(xs, ys, color='#B8C4D6', linewidth=path_.get('width', 7), solid_capstyle='round', zorder=0)
+                if path_.get('label'):
+                    lx, ly = path_.get('label_at', path_['points'][0])
+                    ax.text(lx, ly, path_['label'], fontsize=8.5, color=MUTED, ha='center', va='center', style='italic')
+            for area in fig['areas']:
+                blank = area.get('letter') is not None
+                ax.add_patch(FancyBboxPatch((area['x'], area['y']), area['w'], area['h'], boxstyle='round,pad=0,rounding_size=0.8',
+                                            facecolor='#FFFFFF' if blank else '#EEF3FA', edgecolor=PRIMARY if blank else MUTED,
+                                            linewidth=1.8 if blank else 1, linestyle='-' if blank else '-'))
+                ax.text(area['x'] + area['w'] / 2, area['y'] + area['h'] / 2, area['letter'] if blank else area['label'],
+                        ha='center', va='center', fontsize=15 if blank else 9, fontweight='bold' if blank else 'normal', color=PRIMARY if blank else INK, wrap=True)
+            if fig.get('compass', True):
+                cx, cy = fig.get('compass_at', (W - 6, 1.5))
+                ax.annotate('', xy=(cx, cy + 5), xytext=(cx, cy), arrowprops=dict(arrowstyle='->', color=INK, lw=1.5))
+                ax.text(cx + 2, cy + 2.5, 'N', fontsize=10, fontweight='bold', color=INK, va='center')
+            ax.set_title(fig['title'], fontsize=13, fontweight='bold', color=INK, loc='left')
+            f.text(0.01, 0.01, fig.get('note', ''), fontsize=8.5, color=MUTED)
+        else:
+            rows = [[str(x)] + [str(s_['values'][i]) for s_ in fig['series']] for i, x in enumerate(fig['x'])]
+            cols = [fig.get('x_label', '')] + [s_['name'] for s_ in fig['series']]
+            f, ax = plt.subplots(figsize=(8, 0.9 + 0.42 * (len(rows) + 1)), dpi=200)
+            ax.axis('off')
+            t = ax.table(cellText=rows, colLabels=cols, loc='center', cellLoc='center')
+            t.auto_set_font_size(False); t.set_fontsize(10.5); t.scale(1, 1.55)
+            for (r, c), cell in t.get_celld().items():
+                cell.set_edgecolor('#DCE5EF')
+                if r == 0:
+                    cell.set_facecolor('#EEF3FA'); cell.set_text_props(fontweight='bold', color=INK)
+                if c == 0 and r > 0:
+                    cell.set_text_props(ha='left', color=INK); cell.set_facecolor('#F8FAFD')
+            ax.set_title(fig['title'], fontsize=13, fontweight='bold', color=INK, loc='left')
+            f.text(0.01, 0.01, fig.get('note', ''), fontsize=8.5, color=MUTED)
+        f.tight_layout(rect=(0, 0.04, 1, 1))
+        f.savefig(dest); plt.close(f)
+        return dest
+
     def figure_flow(self, b, with_table=False):
         path = self.figure_path(b)
         if not path:
             return []
-        out = [Image(str(path), width=500, height=500 * 4.6 / 8)]
-        if with_table:
+        from PIL import Image as PILImage
+        iw, ih = PILImage.open(path).size
+        out = [Image(str(path), width=500, height=500 * ih / iw)]
+        if with_table and b['figure']['type'] != 'plan':
             # The text description summarises trends, so it stays in teacher materials (and as HTML alt text).
             out.append(self.p('Figure description: ' + b['figure']['alt'], 'S'))
             fig = b['figure']
             rows = [[fig.get('x_label', '') or ''] + [s_['name'] for s_ in fig['series']]] + [[str(xv)] + [str(s_['values'][i]) for s_ in fig['series']] for i, xv in enumerate(fig['x'])]
             out += self.table(rows, [100] + [int(411 / len(fig['series']))] * len(fig['series']))
+        elif with_table:
+            out.append(self.p('Figure description: ' + b['figure']['alt'], 'S'))
         return out
 
     # ---------- content renderers ----------
@@ -188,7 +244,8 @@ class Pack:
         out = [self.p(b['title'], 'H'), self.p(b['instructions'])]
         st = b.get('stimulus') or {}
         if st.get('type') == 'passage' and not st.get('workbook_reference'):
-            out.append(self.p(st['title'], 'H'))
+            if normalize_title(st['title']) != normalize_title(b['title']):
+                out.append(self.p(st['title'], 'H'))
             for i, para in enumerate(st['paragraphs']):
                 out.append(self.p((f"{chr(65 + i)}   " if st.get('labelled') else '') + para, 'P' if st.get('labelled') else 'B'))
         elif st.get('workbook_reference'):
@@ -222,7 +279,8 @@ class Pack:
 
     def student_block(self, b):
         flow = self._student_block(b)
-        return [KeepTogether(flow[:3])] + flow[3:] if len(flow) > 3 else flow
+        # Keep the heading with its instructions; nested KeepTogether groups can force empty pages.
+        return [KeepTogether(flow[:2])] + flow[2:] if len(flow) > 2 else flow
 
     def _student_block(self, b):
         k = b['kind']
@@ -234,12 +292,12 @@ class Pack:
                 out += [self.p(f"{letters(len(b['examples']))[i]}.  {ex['text']}", 'P'), self.p('My notes: ______________________________________________')]
             return out
         if k == 'writing':
-            n = 30 if b.get('task') == 'task2' else 16
+            n = {'task2': 30, 'paragraph': 12}.get(b.get('task'), 16)
             out = [self.p(b['title'], 'H'), self.p(b['prompt'])] + self.figure_flow(b) + [self.p('Conditions: ' + b['conditions'], 'S')]
             if b.get('support'):
                 out.append(self.p('Support (tick if used) [ ]  ' + b['support'], 'S'))
             out += self.lines(n)
-            out += [self.p('Criterion checklist for your review', 'H')] + [self.p('[ ]  ' + c, 'S') for c in b['checklist']]
+            out.append(KeepTogether([self.p('Criterion checklist for your review', 'H')] + [self.p('[ ]  ' + c, 'S') for c in b['checklist']]))
             return out
         if k == 'speaking':
             out = [self.p(b['title'], 'H'), self.p(b['instructions'])] + [self.p('•  ' + q, 'P') for q in b['prompts']]
@@ -410,7 +468,7 @@ class Pack:
                 continue  # full timed tasks go on the homework sheet
             if b.get('in_workbook') is False:
                 continue  # projected teaching contrast only; keeps analysis out of the practice pages
-            needs_page = b['kind'] == 'writing' or (b.get('stimulus') or {}).get('type') == 'passage' and not (b.get('stimulus') or {}).get('workbook_reference')
+            needs_page = b['kind'] == 'writing' or bool(b.get('figure')) or (b.get('stimulus') or {}).get('type') == 'passage' and not (b.get('stimulus') or {}).get('workbook_reference')
             if not pages or needs_page:
                 pages.append([])
             elif pages[-1]:
@@ -420,6 +478,21 @@ class Pack:
                 pages.append([])
         pages = [pg for pg in pages if pg]
         pages[0] = [self.p('Name: __________________________   Date: ________________')] + pages[0]
+        if d.get('answer_grid'):
+            n_ans = d['answer_grid']
+            grid = [['No.', 'Answer', 'No.', 'Answer']]
+            half = -(-n_ans // 2)
+            for i in range(half):
+                right = i + half + 1
+                grid.append([str(i + 1), '', str(right) if right <= n_ans else '', ''])
+            pages.append([self.p('Answer grid', 'H'), self.p('Transfer your answers here. One answer per box; for "choose TWO", write both letters. Spelling counts.'),
+                          *self.table(grid, [40, 215, 40, 216], row_height=30)])
+        if d.get('feedback_form'):
+            rows = [['Round', 'Criterion', 'Quote: what the candidate said', 'Next step']] + [[str(r), '', '', ''] for r in (1, 1, 2, 2)]
+            pages.append([self.p('Peer feedback form', 'H'),
+                          self.p('The examiner writes two comments per round. Each comment names one criterion, quotes the candidate exactly, and gives one next step.'),
+                          *self.table(rows, [44, 100, 210, 157], row_height=60),
+                          self.p('Criteria: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, Pronunciation. Peer comments are practice notes, not band scores.', 'S')])
         pages.append([self.p('My error log and reflection', 'H'),
                       *self.table([['Question', 'My first answer', 'Trap or difficulty', 'What I will do next time']] + [['', '', '', ''] for _ in range(6)], [62, 100, 160, 189], row_height=26),
                       self.p('Exit ticket', 'H'), *[x for q in d['exit_ticket'] for x in [self.p(q)] + self.lines(1)],

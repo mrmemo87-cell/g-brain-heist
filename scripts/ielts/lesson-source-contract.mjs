@@ -108,7 +108,25 @@ function checkItem(item, block, errors, where) {
 
 function checkFigure(block, errors, label) {
   const fig = block.figure;
-  if (!['line', 'bar'].includes(fig.type)) errors.push(`${label}: figure type must be line or bar`);
+  if (!['line', 'bar', 'table', 'plan'].includes(fig.type)) errors.push(`${label}: figure type must be line, bar, table or plan`);
+  if (fig.type === 'plan') {
+    for (const field of ['title', 'alt', 'note']) if (!fig[field]) errors.push(`${label}: figure needs ${field}`);
+    const letters = (fig.areas ?? []).filter((a) => a.letter).map((a) => a.letter);
+    if (new Set(letters).size !== letters.length) errors.push(`${label}: plan letters must be unique`);
+    // Map-labelling keys: the answer must be a lettered place, and its hidden name must be stated in the transcript or passage.
+    const stim = stimulusText(block);
+    for (const item of block.items ?? []) {
+      const area = (fig.areas ?? []).find((a) => a.letter === item.answer);
+      if (item.type === 'matching' && item.options?.every((o) => letters.includes(o))) {
+        if (!area) errors.push(`${label} ${item.id}: answer ${item.answer} is not a lettered place on the plan`);
+        else if (area.hidden_name && !normalize(item.prompt).includes(normalize(area.hidden_name))) errors.push(`${label} ${item.id}: prompt does not name the place hidden at ${item.answer}`);
+      }
+    }
+    for (const area of fig.areas ?? []) {
+      if (area.letter && area.hidden_name && stim && !stim.includes(normalize(area.hidden_name)) && !area.distractor) errors.push(`${label}: hidden place '${area.hidden_name}' is never mentioned in the script`);
+    }
+    return;
+  }
   for (const field of ['title', 'alt', 'note']) if (!fig[field]) errors.push(`${label}: figure needs ${field}`);
   if (fig.note && !/fictional|illustrative/i.test(fig.note)) errors.push(`${label}: figure note must state the data are fictional practice data`);
   const n = (fig.x ?? []).length;
@@ -125,7 +143,7 @@ function checkFigure(block, errors, label) {
   }
   if (block.model) {
     // Every number quoted in a model answer must come from the figure, so models never invent data.
-    const allowed = new Set([...fig.x.map(String), ...fig.series.flatMap((s) => s.values.map(String)), ...(block.model_derived_numbers ?? []).map(String)]);
+    const allowed = new Set([...fig.x.map(String), ...fig.series.map((s) => String(s.name)), ...fig.series.flatMap((s) => s.values.map(String)), ...(block.model_derived_numbers ?? []).map(String)]);
     for (const number of block.model.match(/\d+(?:\.\d+)?/g) ?? []) {
       if (!allowed.has(number)) errors.push(`${label}: model quotes ${number}, which is not in the figure (declare genuine calculations in model_derived_numbers)`);
     }
@@ -264,13 +282,23 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
       // Production order follows Diagnostic Bible 6.1/6.1.1: notice, directions, measured reading silence, passage, measured response silence.
       const segs = recording.segments ?? [];
       const kinds = segs.map((x) => (x.type === 'silence' ? `silence:${x.seconds}` : x.type));
-      const passageAt = kinds.indexOf('passage');
       if (!segs.length) errors.push(`recording ${block.id} needs ordered production segments`);
       else {
         if (segs[0].type !== 'speech' || segs[0].voice !== 'instruction' || segs[0].text !== COPYRIGHT_NOTICE) errors.push(`recording ${block.id} must open with the spoken copyright notice in the instruction voice`);
-        if (kinds.filter((k) => k === 'passage').length !== 1) errors.push(`recording ${block.id} needs exactly one passage segment`);
-        if (!kinds.slice(0, passageAt).includes('silence:30')) errors.push(`recording ${block.id} needs a measured 30-second reading silence before the passage`);
-        if (!kinds.slice(passageAt + 1).includes('silence:15')) errors.push(`recording ${block.id} needs a measured 15-second response silence after the passage`);
+        // A recording may be played in parts (as in IELTS Part 2), each preceded by its own reading time.
+        const passages = segs.map((x, i) => (x.type === 'passage' ? i : -1)).filter((i) => i >= 0);
+        const lastPassage = passages[passages.length - 1];
+        if (!passages.length) errors.push(`recording ${block.id} needs a passage segment`);
+        for (const [n, at] of passages.entries()) {
+          const from = n === 0 ? 0 : passages[n - 1] + 1;
+          if (!kinds.slice(from, at).includes('silence:30')) errors.push(`recording ${block.id} needs a measured 30-second reading silence before passage part ${n + 1}`);
+        }
+        if (passages.length > 1) {
+          const lines = block.stimulus.paragraphs.length;
+          const starts = passages.map((at) => segs[at].from_line ?? 0);
+          if (starts[0] !== 0 || starts.some((v, i) => i && v <= starts[i - 1]) || starts[starts.length - 1] >= lines) errors.push(`recording ${block.id} passage parts need increasing from_line values covering the transcript`);
+        }
+        if (!kinds.slice(lastPassage + 1).includes('silence:15')) errors.push(`recording ${block.id} needs a measured 15-second response silence after the passage`);
       }
       const speakers = new Set((block.stimulus.paragraphs ?? []).map((line) => line.split(':')[0].trim()));
       for (const speaker of speakers) if (!recording.voices?.[speaker]) errors.push(`recording ${block.id} has no voice assigned for ${speaker}`);

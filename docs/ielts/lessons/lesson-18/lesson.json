@@ -1,0 +1,134 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-18",
+  "number": 18,
+  "week": 9,
+  "version": "0.1.0",
+  "presentation_version": "0.1.0",
+  "title": "Timed Academic Reading: one passage in twenty minutes",
+  "answer_grid": 13,
+  "status": "Private teacher-review draft",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Passages are original texts using general, widely known historical facts; no specific statistics are claimed. Human editorial, factual, key, mapping, difficulty and originality review pending.",
+  "audio": { "required": false, "statement": "No recording required. Reading lesson.", "recordings": [] },
+  "prerequisites": [
+    "Lessons 2, 6, 9 and 13: evidence, locating information, headings, and TRUE/FALSE/NOT GIVEN.",
+    "Teacher has checked actual Reading Screener and review states privately. Screener passages are never used in lessons.",
+    "Printed workbook and a visible clock for every learner."
+  ],
+  "objectives": [
+    { "text": "Complete a full Academic passage with thirteen questions in twenty minutes, the time available per passage in the real test.", "focus": ["scanning", "locating explicit evidence"] },
+    { "text": "Choose a sensible question order: answer questions that follow the passage order first and leave paragraph-matching until you know the text.", "focus": ["sequencing"] },
+    { "text": "Analyse your own errors by question type and time, and plan how to use the full sixty minutes in the test.", "focus": ["True/False/Not Given reasoning", "detail discrimination"] }
+  ],
+  "levels": {
+    "foundation": "Twenty-five minutes instead of twenty, recorded as an adjusted condition; teacher reminds learners of the time at 10 and 18 minutes.",
+    "core": "Answer all thirteen questions in twenty minutes and transfer them to the answer grid.",
+    "extension": "Finish in eighteen minutes and use the remaining time to check two NOT GIVEN decisions.",
+    "high_band": "Finish in seventeen minutes, then write one sentence explaining the writer's overall view of canals and which paragraph states it."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-18-K1",
+      "kind": "contrast",
+      "title": "Three ways to spend twenty minutes",
+      "mode": "Opening challenge; learners choose before the reveal",
+      "instructions": "Three students approach the same passage with thirteen questions. Which plan is best?",
+      "examples": [
+        { "label": "Plan 1", "text": "Read the whole passage slowly and carefully, then start Question 1.", "comment": "Too slow. Detailed reading of every sentence uses most of the time before any question is answered." },
+        { "label": "Plan 2", "text": "Skim the passage for two to three minutes, answer the questions that follow the passage order (TRUE/FALSE/NOT GIVEN, completion), then do paragraph-matching, guessing any unanswered item in the last minute.", "comment": "Best. Skimming gives a map of the text; ordered questions are faster to locate; matching is easier once you know what each paragraph contains; no answer is left blank." },
+        { "label": "Plan 3", "text": "Start with Question 1 and refuse to move on until each answer is certain.", "comment": "Risky. One difficult item can take five minutes and leave several easy items unanswered." }
+      ]
+    },
+    {
+      "id": "IELTS-18-R1",
+      "kind": "items",
+      "title": "The second life of the canals",
+      "mode": "Timed practice under test-like conditions: twenty minutes, no dictionary, no support",
+      "instructions": "Questions 1-4: which paragraph, A-G, contains the following information? Questions 5-9: write TRUE, FALSE or NOT GIVEN. Questions 10-13: complete the summary using NO MORE THAN TWO WORDS from the passage.",
+      "stimulus": { "type": "passage", "title": "The second life of the canals", "labelled": true, "paragraphs": [
+        "In many British cities, narrow waterways run quietly behind old warehouses and under busy roads. For a few generations they were vital routes for industry; for much of the following century, many were left to decay; today, a large part of the network is busy again, though not with the kind of traffic its builders imagined. Their history is often told as a story of rise and fall, but it is better described as a series of reinventions.",
+        "Before canals, goods were often carried by packhorse or along rough roads that turned to mud in winter, and a broken load of pottery or a delay of several days could ruin a merchant. The first canals of the industrial age were built in the second half of the eighteenth century to move heavy goods such as coal, which was expensive and slow to carry by road. A horse pulling a boat on calm water could move a far heavier load than the same horse pulling a cart along an uneven track. Investors were quick to see the profits, and within a few decades a network of canals linked major industrial towns with each other and with the coast. Towns that were connected to the network often grew rapidly, while those left out could struggle to compete.",
+        "Building these routes was a considerable engineering challenge. To take canals across hills, engineers used locks, tunnels and aqueducts. Some tunnels were so narrow that there was no room for a towpath, so the horse was led over the hill while boatmen lay on their backs and pushed the boat through with their legs against the walls. Aqueducts, by contrast, carried canals over valleys and rivers, and some became admired landmarks in their own right. Locks raise and lower boats in stages, but each lock takes time to operate, and a long series of them could slow a journey considerably. Many canals were also built narrow in order to save money, a decision that later limited the size of boats that could use them.",
+        "The arrival of the railways in the nineteenth century changed everything. Trains were faster, could carry more, and could reach places that water could not. Some canal companies were bought by railway companies, which had little interest in keeping a competitor in good condition, and maintenance was reduced. Independent canal companies tried to compete by lowering their charges, but this left less money for repairs, and a poorly maintained canal became even less attractive to customers. By the middle of the twentieth century, commercial traffic had almost disappeared, and a number of canals had been filled in or blocked.",
+        "Their revival began with volunteers. From the middle of the twentieth century onwards, groups of enthusiasts spent their weekends clearing rubbish and repairing locks, arguing that canals had value for recreation and for wildlife. Their efforts were helped by a growing interest in industrial history and by the realisation that canals ran through the centres of many towns, where green space was scarce. Restoration was slow and expensive, and some routes remain closed today, but many abandoned stretches have been reopened.",
+        "The canals now serve very different users. Holidaymakers hire boats, walkers and cyclists use the old towpaths, and a growing number of people live permanently on boats. The water and its banks also provide habitats for birds, fish and plants. In some cities, old warehouses beside the water have been turned into flats, offices and restaurants, and the canal has become a selling point rather than a forgotten backyard. Some campaigners argue that canals could carry freight again and so reduce the number of lorries on the roads, but most transport experts are doubtful, since modern supply chains depend on speed and flexibility that narrow canals cannot offer.",
+        "The story of the canals is a reminder that infrastructure can outlive the purpose for which it was built. Their engineers would hardly recognise the uses to which their work is now put, yet the canals are arguably more valued today than at any time since their commercial decline. Whether a structure is worth keeping, it seems, depends less on its original function than on what later generations are able to imagine for it."
+      ] },
+      "items": [
+        { "id": "IELTS-18-R1-Q1", "prompt": "a reason why canal journeys could be slow", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "C", "evidence": "each lock takes time to operate", "reason": "A long series of locks slowed journeys. Paragraph D mentions speed, but of trains.", "focus": "locating explicit evidence", "type": "paragraph_match", "level": "core" },
+        { "id": "IELTS-18-R1-Q2", "prompt": "a description of unpaid work by members of the public", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "E", "evidence": "groups of enthusiasts spent their weekends clearing rubbish and repairing locks", "reason": "'Unpaid work by members of the public' paraphrases volunteers' weekend work.", "focus": "paraphrase recognition", "type": "paragraph_match", "level": "core" },
+        { "id": "IELTS-18-R1-Q3", "prompt": "an explanation of why water transport suited heavy loads", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "B", "evidence": "could move a far heavier load than the same horse pulling a cart", "reason": "The comparison of a horse on water and on a road explains the advantage.", "focus": "paraphrase recognition", "type": "paragraph_match", "level": "core" },
+        { "id": "IELTS-18-R1-Q4", "prompt": "a proposal for a possible future commercial use", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "F", "evidence": "canals could carry freight again", "reason": "Freight is commercial; the proposal comes from campaigners.", "focus": "locating explicit evidence", "type": "paragraph_match", "level": "extension" },
+        { "id": "IELTS-18-R1-Q5", "prompt": "The first industrial canals were built mainly to carry passengers.", "answer": "FALSE", "evidence": "to move heavy goods such as coal", "reason": "They were built for heavy goods, not passengers.", "focus": "True/False/Not Given reasoning", "type": "tfng", "level": "core" },
+        { "id": "IELTS-18-R1-Q6", "prompt": "Some canals came under the ownership of railway companies.", "answer": "TRUE", "evidence": "Some canal companies were bought by railway companies", "reason": "Buying the companies means owning their canals.", "focus": "paraphrase recognition", "type": "tfng", "level": "core" },
+        { "id": "IELTS-18-R1-Q7", "prompt": "Restoring the canals cost more than building the original railways.", "answer": "NOT GIVEN", "evidence": "No comparison of these costs.", "reason": "Restoration was 'expensive', but no comparison with railway costs is made.", "focus": "True/False/Not Given reasoning", "type": "tfng", "level": "core" },
+        { "id": "IELTS-18-R1-Q8", "prompt": "All abandoned canals have now been reopened.", "answer": "FALSE", "evidence": "some routes remain closed today", "reason": "'All' is contradicted by 'some routes remain closed'.", "focus": "detail discrimination", "type": "tfng", "level": "core" },
+        { "id": "IELTS-18-R1-Q9", "prompt": "Most transport experts expect canals to carry large amounts of freight in the near future.", "answer": "FALSE", "evidence": "most transport experts are doubtful", "reason": "The campaigners hope for this; the experts doubt it.", "focus": "True/False/Not Given reasoning", "type": "tfng", "level": "core" },
+        { "id": "IELTS-18-R1-Q10", "prompt": "To cross hills, engineers built locks, tunnels and ________.", "answer": "aqueducts", "evidence": "engineers used locks, tunnels and aqueducts", "reason": "The third item in the list.", "focus": "detail discrimination", "type": "completion", "word_limit": 2, "level": "core" },
+        { "id": "IELTS-18-R1-Q11", "prompt": "Many canals were made narrow to save ________, which later restricted the size of boats.", "answer": "money", "evidence": "built narrow in order to save money", "reason": "'Restricted' paraphrases 'limited'.", "focus": "paraphrase recognition", "type": "completion", "word_limit": 2, "level": "core" },
+        { "id": "IELTS-18-R1-Q12", "prompt": "By the middle of the twentieth century, commercial ________ had almost disappeared.", "answer": "traffic", "evidence": "commercial traffic had almost disappeared", "reason": "Copy the noun exactly.", "focus": "detail discrimination", "type": "completion", "word_limit": 2, "level": "core" },
+        { "id": "IELTS-18-R1-Q13", "prompt": "Today, canals also provide ________ for birds, fish and plants.", "answer": "habitats", "evidence": "also provide habitats for birds, fish and plants", "reason": "The plural form must be copied.", "focus": "detail discrimination", "type": "completion", "word_limit": 2, "level": "core" }
+      ],
+      "support": "Foundation: twenty-five minutes instead of twenty, recorded as an adjusted condition.",
+      "extension": "Finish in eighteen minutes and recheck Q7.",
+      "high_band": "In one sentence, state the writer's overall view and the paragraph that expresses it."
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 5, "title": "Opening challenge: plan your twenty minutes", "show": [{ "block": "IELTS-18-K1", "part": "questions" }, { "block": "IELTS-18-K1", "part": "answers" }], "student": "Choose the best plan, then compare with the reveal.", "teacher": "Reveal comments. Explain that the Academic Reading test has three passages in sixty minutes, with no extra time to transfer answers, so about twenty minutes per passage is a realistic target.", "say": "Twenty minutes per passage. Skim, answer in order, then match, then guess.", "check": "Learners can describe Plan 2." },
+    { "start": 5, "end": 7, "title": "Get ready", "show": [], "student": "Write your start time. Put away dictionaries and phones. Look only at the passage and questions.", "teacher": "Check the clock is visible. Foundation learners have 25 minutes, recorded as an adjusted condition.", "say": "Remember: no answer left blank.", "check": "Everyone is ready." },
+    { "start": 7, "end": 27, "title": "Timed passage: twenty minutes", "show": [{ "block": "IELTS-18-R1", "part": "questions" }], "student": "Answer Questions 1-13 and write your answers on the answer grid.", "teacher": "Give time calls at 10 and 18 minutes. Do not answer questions about meaning. Record interruptions, late arrivals and adjusted times.", "say": "Ten minutes left... two minutes left: guess any blanks.", "check": "All grids collected or completed." },
+    { "start": 27, "end": 38, "title": "Review answers by question type", "show": [{ "block": "IELTS-18-R1", "part": "answers" }], "student": "Mark your grid. Group wrong answers by type: matching information, TRUE/FALSE/NOT GIVEN, summary completion. Note the time you finished.", "teacher": "Reveal in groups. Focus on Q7 (NOT GIVEN: no comparison), Q8 ('all' vs 'some') and Q9 (campaigners vs experts).", "say": "Which type cost you most? That is your next priority.", "check": "Each learner has grouped their errors." },
+    { "start": 38, "end": 48, "title": "Time analysis and question order", "show": [], "student": "On your error log, note where you spent too long. Rework one difficult question with the passage, explaining the exact evidence.", "teacher": "Ask learners when they finished and which question took longest. Compare those who answered in order with those who did not.", "say": "Time spent on one hard question is time lost on three easy ones.", "check": "Each learner can name one time-saving change." },
+    { "start": 48, "end": 54, "title": "My sixty-minute plan", "show": [], "student": "Write a personal plan for the full sixty-minute test: target time per passage, your question order and what you will do with the last two minutes.", "teacher": "Collect scores as classroom observations with conditions. No band conversion. A raw score on one passage is not a band.", "say": "Your plan should fit your error pattern.", "check": "Every learner has a written plan." },
+    { "start": 54, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket and take the homework sheet.", "teacher": "Collect exit tickets. Assign online practice only through the existing workflow. Record the fresh-check date.", "say": "Next lesson: a writing revision clinic using your own feedback.", "check": "Everyone knows the homework and check date." }
+  ],
+  "exit_ticket": [
+    "My score, finishing time and most costly question type:",
+    "My question order for the next timed passage:",
+    "What I will do in the last two minutes:"
+  ],
+  "homework": [
+    "Read one academic-style article of 700-900 words in exactly twenty minutes. Write ten words to describe each paragraph and one sentence stating the writer's view.",
+    "Rewrite your sixty-minute plan after trying it once at home on any practice passage your teacher provides.",
+    "Complete only the Brains Heist reading practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-18-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 18. Nine minutes, no dictionary, no support. Log timing, support and prior exposure. Classroom observation only.",
+    "blocks": [
+      {
+        "id": "IELTS-18-C1",
+        "kind": "items",
+        "title": "Keepers of the light",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Questions 1-4: write TRUE, FALSE or NOT GIVEN. Questions 5-6: complete the sentences with NO MORE THAN TWO WORDS from the passage.",
+        "stimulus": { "type": "passage", "title": "Keepers of the light", "labelled": true, "paragraphs": [
+          "For centuries, sailors approaching dangerous coasts relied on fires burning on hilltops or towers. These early lights were weak and unreliable, especially in rain or fog, and many ships were still lost close to land.",
+          "Improvements came gradually. Oil lamps replaced open fires, and polished mirrors were placed behind the flames to direct more light towards the sea. In the nineteenth century, a new type of lens, made of rings of glass, allowed a single lamp to be seen from much greater distances.",
+          "Each lighthouse needed keepers, who lived on site, often in isolated places, to trim the lamps, clean the glass and record the weather. The work was repetitive and, on remote rocks, lonely, but it was considered essential to the safety of shipping.",
+          "During the twentieth century, electric lights and automatic controls gradually made resident keepers unnecessary. Today most lighthouses are monitored from a distance, and some former keepers' cottages have become holiday homes or museums."
+        ] },
+        "items": [
+          { "id": "IELTS-18-C1-Q1", "prompt": "Early coastal fires were difficult to see in poor weather.", "answer": "TRUE", "evidence": "weak and unreliable, especially in rain or fog", "reason": "'Poor weather' paraphrases rain or fog.", "focus": "paraphrase recognition", "type": "tfng" },
+          { "id": "IELTS-18-C1-Q2", "prompt": "Mirrors were used to send more light out to sea.", "answer": "TRUE", "evidence": "to direct more light towards the sea", "reason": "Direct paraphrase.", "focus": "paraphrase recognition", "type": "tfng" },
+          { "id": "IELTS-18-C1-Q3", "prompt": "Lighthouse keepers were well paid for their work.", "answer": "NOT GIVEN", "evidence": "Pay is not mentioned.", "reason": "The passage describes duties and loneliness, not pay.", "focus": "True/False/Not Given reasoning", "type": "tfng" },
+          { "id": "IELTS-18-C1-Q4", "prompt": "Most lighthouses today still have keepers living on site.", "answer": "FALSE", "evidence": "most lighthouses are monitored from a distance", "reason": "Resident keepers became unnecessary.", "focus": "True/False/Not Given reasoning", "type": "tfng" },
+          { "id": "IELTS-18-C1-Q5", "prompt": "In the nineteenth century, a new kind of ________ let one lamp be seen much further away.", "answer": "lens", "evidence": "a new type of lens, made of rings of glass", "reason": "Copy the noun.", "focus": "detail discrimination", "type": "completion", "word_limit": 2 },
+          { "id": "IELTS-18-C1-Q6", "prompt": "Some keepers' cottages are now holiday homes or ________.", "answer": "museums", "evidence": "have become holiday homes or museums", "reason": "Plural form required.", "focus": "detail discrimination", "type": "completion", "word_limit": 2 }
+        ]
+      }
+    ],
+    "review": "Compare only observed demand and conditions with Lesson 18 work. Record what the new work shows, counterevidence and the next check. A fresh passage does not by itself establish comparable difficulty or improvement. No percentage, band or mastery cutoff."
+  },
+  "delayed_followup": "In Lesson 21, check the learner's personal timing plan on a new passage under the same twenty-minute condition. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. A raw score on one passage is a classroom observation, not a band.",
+  "release_blockers": [
+    "Human editorial, factual, key, mapping, difficulty, originality and rights review pending.",
+    "Device, print and PowerPoint playback acceptance pending."
+  ]
+}
