@@ -898,7 +898,7 @@ const getCurrentUser = async (maxRetries = 3) => {
       lastError = err as Error;
       if (attempt < maxRetries) {
         // Exponential backoff: 500ms, 1000ms, 2000ms
-        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
         console.warn(`getCurrentUser attempt ${attempt} failed, retrying...`, err);
       }
     }
@@ -1019,7 +1019,7 @@ const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetri
       lastError = err as Error;
       if (attempt < maxRetries) {
         // Exponential backoff: 500ms, 1000ms, 2000ms
-        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
         console.warn(`[updateProfile] Attempt ${attempt} failed, retrying...`, err);
       }
     }
@@ -1524,7 +1524,7 @@ export const whoami = async (): Promise<Profile> => {
         throw profileError || new Error('Profile data is null');
       } catch (err) {
         if (attempt < 3) {
-          await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+          await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
           console.warn(`[whoami] Attempt ${attempt} failed, retrying...`, err);
         } else {
           profileError = err;
@@ -1974,7 +1974,7 @@ export const getPublicProfile = async (userId: string): Promise<Profile | null> 
     } catch (err) {
       fetchError = err;
       if (attempt < 3) {
-        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
         console.warn(`getPublicProfile attempt ${attempt} failed, retrying...`, err);
       }
     }

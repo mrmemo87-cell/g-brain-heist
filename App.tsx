@@ -1322,11 +1322,20 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
     };
 
     loadAnnouncement();
-    const interval = setInterval(loadAnnouncement, 60000);
+    // Background tabs do not poll; a tab that becomes visible refreshes at once,
+    // so visible users see the same announcements with less idle database load.
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') void loadAnnouncement();
+    }, 60000);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') void loadAnnouncement();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       cancelled = true;
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [isInteractive, isPlayerMode]);
 
