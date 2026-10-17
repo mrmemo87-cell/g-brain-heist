@@ -1,6 +1,6 @@
 # IELTS course roadmap
 
-Version 1.0.1 · 2026-10-17. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
+Version 1.0.2 · 2026-10-17. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
 
 Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly. Owner-confirmed route: Academic only, beginning at B1 with gradually increasing demands. Adapt support and pace to actual evidence. The sequence does not promise a band or certify that all materials exist.
 
@@ -8,8 +8,8 @@ Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly.
 |---|---|---|---|
 | 1 | IELTS-01 | Listening corrections and Reading starting point | Implemented; retain recorded device/playback acceptance gaps |
 | 1 | IELTS-02 | Reading evidence and developed answers | Private teacher-review pack prepared; not installed/released |
-| 2 | IELTS-03 | Listening details, spelling and word limits | SRIS private teacher pack 1.0.1; student tasks unreleased |
-| 2 | IELTS-04 | Clear paragraphs and Speaking Part 1 | SRIS private teacher pack 1.0.1; student tasks unreleased |
+| 2 | IELTS-03 | Listening details, spelling and word limits | All-school teacher pack 1.0.1 with school branding; student tasks unreleased |
+| 2 | IELTS-04 | Clear paragraphs and Speaking Part 1 | All-school teacher pack 1.0.1 with school branding; student tasks unreleased |
 | 3 | IELTS-05 | Listening distractors and paraphrases | Planned |
 | 3 | IELTS-06 | Reading specific information | Planned |
 | 4 | IELTS-07 | Task 2 ideas and supporting examples | Planned |
@@ -43,7 +43,7 @@ Silk Road first review target: 6 November 2026, Asia/Bishkek. This is a school-s
 
 1. Review Lesson 2 exact content, keys, proposed mappings, difficulty and originality. Confirm Academic route, private distribution and supported devices. Record actual reviewer decisions.
 2. Pilot the reviewed version in the normal authorized workflow before any platform release. Do not invent completed checks or approval records.
-3. Lessons 3–4 content and exact audio are owner approved; private SRIS teacher delivery is recorded in [the versioned release record](releases/LESSONS_03_04_TEACHER_RELEASE_2026_10_17.md). Student task publication remains separate.
+3. Lessons 3–4 content and exact audio are owner approved; all-school teacher delivery with each school’s branding is recorded in [the versioned release record](releases/LESSONS_03_04_ALL_SCHOOLS_2026_10_17.md). Student task publication remains separate.
 4. Prepare Lessons 5–8 for the first monthly review, plus fresh check materials distinct from rehearsed work.
 
 All future runtime installation must use existing authorization, task code registration, originality and publication checks. This roadmap creates no automatic assignments or new scoring. Paper observation sheets are local teaching records until an independently governed capture implementation is added.

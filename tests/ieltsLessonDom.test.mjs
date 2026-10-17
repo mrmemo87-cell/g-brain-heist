@@ -132,7 +132,7 @@ async function setup(deny = false, tamper = false) {
           }),
       };
     const args = JSON.parse(opts.body);
-    if (String(url).endsWith("/rpc_ielts_approved_teacher_packs")) return new Response(JSON.stringify({school_id:args.p_school,release:"teacher_only",packs:[]}), {status:200,headers:{"Content-Type":"application/json"}});
+    if (String(url).endsWith("/rpc_ielts_teacher_pack_catalogue")) return new Response(JSON.stringify({school_id:args.p_school,school:{id:args.p_school,name:"School",logo_url:null},release:"teacher_only",packs:[]}), {status:200,headers:{"Content-Type":"application/json"}});
     return new Response(
       JSON.stringify(
         deny ? { message: "not_authorized" } : pack(args.p_school),

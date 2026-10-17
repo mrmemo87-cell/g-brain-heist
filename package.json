@@ -38,10 +38,11 @@
     "load:classroom": "k6 run load-tests/classroom.js",
     "load:ielts": "k6 run load-tests/ielts.js",
     "test:retention": "node --test tests/echo3dRenderer.test.mjs tests/retentionTrialDatabase.test.mjs tests/retentionTrialDom.test.mjs tests/retentionTrialModel.test.mjs tests/retentionSound.test.mjs tests/retentionArtwork.test.mjs tests/retentionCompanionDatabase.test.mjs tests/retentionCompanionDom.test.mjs tests/echoModel.test.mjs tests/echoAvatarDom.test.mjs tests/studentMascotRollout.test.mjs",
-    "test:ielts:teacher-packs": "node --test --test-concurrency=1 tests/ieltsApprovedTeacherPacksDatabase.test.mjs tests/ieltsApprovedTeacherPacksDom.test.mjs tests/ieltsApprovedTeacherPacksService.test.mjs"
+    "test:ielts:teacher-packs": "node --test --test-concurrency=1 tests/ieltsApprovedTeacherPacksDatabase.test.mjs tests/ieltsApprovedTeacherPacksDom.test.mjs tests/ieltsApprovedTeacherPacksService.test.mjs tests/ieltsGlobalTeacherPacksDatabase.test.mjs tests/ieltsPackBranding.test.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@pdf-lib/fontkit": "1.1.1",
     "@supabase/supabase-js": "^2.78.0",
     "@tanstack/react-query": "^5.90.12",
     "dompurify": "^3.3.1",
@@ -50,6 +51,7 @@
     "jsqr": "1.4.0",
     "konva": "^10.0.12",
     "lottie-react": "^2.4.1",
+    "pdf-lib": "1.17.1",
     "qrcode": "1.5.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -64,6 +66,7 @@
     "@types/qrcode": "1.5.6",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "@types/three": "^0.186.0",
     "@vercel/node": "^5.5.15",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.20",
@@ -78,7 +81,6 @@
     "tailwindcss": "^3.4.16",
     "tesseract.js": "^7.0.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0",
-    "@types/three": "^0.186.0"
+    "vite": "^6.2.0"
   }
 }

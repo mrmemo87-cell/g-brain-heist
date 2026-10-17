@@ -17,7 +17,7 @@ export default function IeltsApprovedTeacherPacks({schoolId}:{schoolId:string}) 
  async function download(pack:ApprovedTeacherPack,kind:'zip'|'slides'|'workbook'|'pptx') {
   if(lock.current)return; lock.current=true; const run=epoch.current;setBusy(pack.lesson_code);setError('');
   try {
-   const blob=await approvedTeacherPackBlob(pack);
+   const blob=await approvedTeacherPackBlob(pack,kind);
    if(epoch.current!==run)return;
    if(kind==='zip')downloadLessonFile(blob,`${pack.lesson_code}-Teacher-Pack-v${pack.version}.zip`);
    else {
@@ -34,7 +34,7 @@ export default function IeltsApprovedTeacherPacks({schoolId}:{schoolId:string}) 
     } else output=new Blob([new Uint8Array(bytes)],{type:kind==='workbook'?'application/pdf':'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
     if(epoch.current===run)downloadLessonFile(output,`${pack.lesson_code}-${kind==='slides'?'Presentation.html':kind==='workbook'?'Workbook.pdf':'Editable.pptx'}`);
    }
-  } catch {if(epoch.current===run)setError('The download could not finish or verify. Please retry.');}
+  } catch(e) {if(epoch.current===run)setError(e instanceof Error&&e.message==='School logo could not load.'?'Your school logo could not load. Ask your school administrator to check it, then retry.':'The download could not finish or verify. Please retry.');}
   finally {if(epoch.current===run){lock.current=false;setBusy('');}}
  }
  return <section aria-label="Approved Lessons 3 and 4" className="lesson-library-content">
@@ -42,6 +42,7 @@ export default function IeltsApprovedTeacherPacks({schoolId}:{schoolId:string}) 
   {error&&<div role="alert" className="lesson-alert"><p>{error}</p><button type="button" className="sp-secondary" disabled={!!busy} onClick={()=>setRetry(n=>n+1)}>Retry Lessons 3–4</button></div>}
   {!loading&&!error&&packs.length===0&&<p className="lesson-muted">No additional approved teaching packs are released for this school.</p>}
   {packs.map(pack=><IeltsTeacherDisclosure key={pack.object_path} title={`${pack.lesson_code} · ${pack.title}`} hint="Approved Academic IELTS pack · B1 foundation · 60 minutes" marker="Available to teach" defaultExpanded={false}>
+   <p className="lesson-muted">{pack.school.name}{!pack.school.logo_url&&' · School name branding; add a school logo in settings to include it.'}</p>
    <p>Light presentation, school-branded smart print materials, homework, targeted support, teacher guide and private keys. Version {pack.version}.</p>
    {pack.lesson_code==='IELTS-03'&&<p>Includes the three approved recordings and offline audio players.</p>}
    <div className="lesson-primary-actions">
