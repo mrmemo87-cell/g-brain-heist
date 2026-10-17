@@ -158,3 +158,43 @@ test('heading evidence must come from the paragraph the item names', () => {
   lesson.blocks.find((b) => b.id === 'IELTS-09-R1').items[1].paragraph = 'C';
   assert.ok(has(validateLessonSource(lesson), 'evidence is not in paragraph C'));
 });
+
+const lessonOf = (n) => load(paths.find((p) => p.includes(`lesson-${n}/`)));
+
+test('Lessons 05-24 are all present as schema-2 sources', () => {
+  const codes = new Set(paths.map((p) => load(p).code));
+  for (let n = 5; n <= 24; n += 1) assert.ok(codes.has(`IELTS-${String(n).padStart(2, '0')}`), `IELTS-${n} source missing`);
+});
+
+test('plan labelling answers must be lettered places on the plan', () => {
+  const lesson = lessonOf(17);
+  lesson.blocks.find((b) => b.id === 'IELTS-17-L1').items[0].answer = 'Z';
+  assert.ok(has(validateLessonSource(lesson), 'is not a lettered place on the plan'));
+});
+
+test('plan labelling prompts must name the place hidden at the keyed letter', () => {
+  const lesson = lessonOf(17);
+  lesson.blocks.find((b) => b.id === 'IELTS-17-L1').items[0].prompt = 'changing rooms for visiting teams';
+  assert.ok(has(validateLessonSource(lesson), 'prompt does not name the place hidden at'));
+});
+
+test('plan letters must be unique', () => {
+  const lesson = lessonOf(17);
+  const areas = lesson.blocks.find((b) => b.id === 'IELTS-17-L1').figure.areas.filter((a) => a.letter);
+  areas[1].letter = areas[0].letter;
+  assert.ok(has(validateLessonSource(lesson), 'plan letters must be unique'));
+});
+
+test('table models may not invent numbers that are not in the table', () => {
+  const lesson = lessonOf(19);
+  const block = [...lesson.blocks, ...lesson.followup.blocks].find((b) => b.figure?.type === 'table' && b.model);
+  const first = block.figure.series[0].values[0];
+  block.model = `${block.model} One town reached ${first + 1001} litres.`;
+  assert.ok(has(validateLessonSource(lesson), `model quotes ${first + 1001}`));
+});
+
+test('the final review never awards a band or readiness label', () => {
+  const lesson = lessonOf(24);
+  lesson.blocks[0].examples[0].comment = 'This learner is a guaranteed band 7.';
+  assert.ok(validateLessonSource(lesson).length > 0);
+});

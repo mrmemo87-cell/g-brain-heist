@@ -1,0 +1,161 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-22",
+  "number": 22,
+  "week": 11,
+  "version": "0.1.0",
+  "presentation_version": "0.1.0",
+  "title": "Fresh productive-skill evidence: a timed essay and a new long turn",
+  "status": "Private teacher-review draft",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Essay question, model, task-type items, speaking card and chart data are original; the chart data is fictional. Human editorial, criterion-alignment and originality review pending.",
+  "audio": { "required": false, "statement": "No pre-recorded audio required. Live speech only. Optional learner self-recording on a personal phone is practice, not uploaded evidence.", "recordings": [] },
+  "prerequisites": [
+    "Lessons 3, 7, 11, 15 and 19 (Writing) and Lesson 20 (full Speaking interview).",
+    "A quiet room, a visible clock and enough lined paper for a 40-minute essay. Phones collected or switched off during the essay.",
+    "Teacher has the Lesson 20 repaired-pattern notes for each learner, for the delayed speaking check."
+  ],
+  "objectives": [
+    { "text": "Identify the type of Task 2 question and what every part of it requires before planning.", "focus": ["thesis/position clarity", "register/task fulfilment"] },
+    { "text": "Write a complete Task 2 essay on a new question in 40 minutes under observed conditions, with no frame, model or phrase list.", "focus": ["idea development", "discourse organization"] },
+    { "text": "Give a new Part 2 long turn and use the patterns repaired in Lesson 20 without prompting.", "focus": ["sustained turn", "grammatical control"] }
+  ],
+  "levels": {
+    "foundation": "May keep the Lesson 7 plan frame on the desk during the essay; the teacher records it as support and the essay as supported work.",
+    "core": "Write at least 250 words in 40 minutes with no support, answering both parts of the question.",
+    "extension": "Develop each cause or effect with a specific example and a consequence; finish with time to proofread.",
+    "high_band": "Plan in under five minutes, write a clear position on which effect matters most, and use the last three minutes to correct your own most frequent error family."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-22-K1",
+      "kind": "contrast",
+      "title": "Which essay is fresh evidence?",
+      "mode": "Opening challenge; learners decide before the reveal",
+      "instructions": "Three learners each wrote an essay this week. Which essay shows what the learner can do alone, on a new question, under known conditions?",
+      "examples": [
+        { "label": "Aida", "text": "Aida rewrote her Lesson 7 essay at home after reading her teacher's comments.", "comment": "Valuable revision practice. It shows how she responds to feedback, but it is not independent work on a new question." },
+        { "label": "Bek", "text": "Bek wrote an essay on a new question in class, in 40 minutes, with no plan frame, model or dictionary.", "comment": "Fresh evidence: a new question, a time limit and recorded conditions. It still shows one essay on one topic, so it is one observation, not a final judgement." },
+        { "label": "Chen", "text": "Chen wrote an essay on a new question at home over two evenings, using the plan frame and a phrase list.", "comment": "A new question, but supported and untimed. Record it as supported practice with its conditions." }
+      ]
+    },
+    {
+      "id": "IELTS-22-I1",
+      "kind": "items",
+      "title": "What is the question asking?",
+      "mode": "Guided practice; answer alone, then check",
+      "instructions": "Choose the question type for each Task 2 question. A Opinion (agree or disagree); B Discuss two views and give an opinion; C Problems and solutions; D Advantages and disadvantages; E Two-part question.",
+      "stimulus": { "type": "none" },
+      "items": [
+        { "id": "IELTS-22-I1-Q1", "prompt": "Many cities are becoming more crowded. What problems does this cause, and what can be done about them?", "options": ["A  Opinion", "B  Two views", "C  Problems and solutions", "D  Advantages and disadvantages", "E  Two-part question"], "answer": "C", "evidence": "'What problems does this cause' and 'what can be done' ask for problems and solutions.", "reason": "Not E: although there are two questions, they follow the fixed problem-solution pattern.", "focus": "register/task fulfilment", "type": "mcq", "level": "core" },
+        { "id": "IELTS-22-I1-Q2", "prompt": "Some people think teenagers should do unpaid community work in their free time. To what extent do you agree or disagree?", "options": ["A  Opinion", "B  Two views", "C  Problems and solutions", "D  Advantages and disadvantages", "E  Two-part question"], "answer": "A", "evidence": "'To what extent do you agree or disagree' asks for your position on one view.", "reason": "Not B: only one view is given; you may discuss the other side, but your position must be clear throughout.", "focus": "thesis/position clarity", "type": "mcq", "level": "core" },
+        { "id": "IELTS-22-I1-Q3", "prompt": "More people now work from home. Do the advantages of this outweigh the disadvantages?", "options": ["A  Opinion", "B  Two views", "C  Problems and solutions", "D  Advantages and disadvantages", "E  Two-part question"], "answer": "D", "evidence": "'Do the advantages outweigh the disadvantages' asks you to weigh both and decide.", "reason": "Listing advantages and disadvantages is not enough: the question needs a judgement about which is greater.", "focus": "thesis/position clarity", "type": "mcq", "level": "core" },
+        { "id": "IELTS-22-I1-Q4", "prompt": "Some argue that governments should spend money on exploring space; others believe this money is needed for problems on Earth. Discuss both views and give your own opinion.", "options": ["A  Opinion", "B  Two views", "C  Problems and solutions", "D  Advantages and disadvantages", "E  Two-part question"], "answer": "B", "evidence": "Two opposing views are given, and the instruction asks you to discuss both and give your opinion.", "reason": "Not A: discussing only your own side would leave part of the task unanswered.", "focus": "register/task fulfilment", "type": "mcq", "level": "core" },
+        { "id": "IELTS-22-I1-Q5", "prompt": "Many people now read news on social media rather than in newspapers. Why is this happening? Is it a positive or negative development?", "options": ["A  Opinion", "B  Two views", "C  Problems and solutions", "D  Advantages and disadvantages", "E  Two-part question"], "answer": "E", "evidence": "Two different questions: the reasons, and your evaluation of the change.", "reason": "Not D: the second question asks for a judgement (positive or negative), not a list of advantages and disadvantages. Both questions need a full answer.", "focus": "register/task fulfilment", "type": "mcq", "level": "extension" }
+      ]
+    },
+    {
+      "id": "IELTS-22-W1",
+      "kind": "writing",
+      "task": "task2",
+      "min_words": 250,
+      "in_class": true,
+      "title": "Timed essay: leaving the countryside",
+      "mode": "Fresh in-class essay under observed conditions; not a Writing Screener and not an IELTS result",
+      "prompt": "In many countries, young people are leaving rural areas to live and work in cities. Why is this happening? What effects does it have on the areas they leave behind? Write at least 250 words.",
+      "conditions": "40 minutes in class, observed by the teacher. No dictionary, translator, phone, AI tool, plan frame, model or phrase list. The teacher records the start and finish times and any interruption or support.",
+      "support": "Foundation only: the Lesson 7 plan frame may stay on the desk. The teacher records this as support.",
+      "extension": "Develop each cause or effect with a specific example and a consequence.",
+      "high_band": "State which effect matters most and why; use the last three minutes to correct your most frequent error family.",
+      "model_label": "Illustrative model essay for teacher discussion after learners hand in their own essays. Not a certified band answer and not rated under official IELTS conditions.",
+      "model": "In many parts of the world, villages and small towns are losing their young people to large cities. This movement is mainly driven by work and education, and it leaves rural communities older, smaller and often less able to support themselves.\n\nThe most important reason is economic. Agriculture, which was once the main source of jobs in the countryside, now needs far fewer workers because of machinery, and the wages it offers are usually lower than those available in cities. Young people who want a career in areas such as technology, finance or health care often have no choice but to move. Education plays a similar role: universities and specialist colleges are concentrated in cities, and students who leave home to study frequently stay after graduating because that is where employers are. In addition, many young adults are attracted by the variety of city life, from entertainment to the chance to meet people with different backgrounds.\n\nThe effects on the places they leave behind can be serious. When young families move away, rural schools lose pupils and may close, which in turn makes the area less attractive to the families who remain. Local shops, clinics and bus services also become harder to sustain with a shrinking population. At the same time, the people who stay are increasingly elderly, so there are fewer workers to care for them. On the other hand, some villages benefit from money sent home by relatives working in cities, and a smaller number of residents can mean less pressure on land.\n\nIn conclusion, young people leave rural areas mainly to find better jobs and education. Although some families gain financially, the overall effect on many rural communities is a gradual loss of services and a population that is ageing faster than the national average.",
+      "checklist": [
+        "Task Response: Are both questions answered fully (why it is happening, and its effects on rural areas)? Is the main idea of each paragraph relevant?",
+        "Coherence and Cohesion: Does each body paragraph answer one question, with ideas in a logical order and clear links between them?",
+        "Lexical Resource: Is topic vocabulary precise (for example rural, population, services, employment)? Are words repeated where a precise alternative exists?",
+        "Grammatical Range and Accuracy: Is there a mix of simple and complex sentences? Which error family appears most often?",
+        "Length and time: At least 250 words, written within 40 minutes, with conditions and any support recorded."
+      ]
+    },
+    {
+      "id": "IELTS-22-S1",
+      "kind": "speaking",
+      "title": "New long turn: a skill",
+      "mode": "Delayed check of Lesson 20 repairs; pairs, timed; teacher observes a rotating sample",
+      "prompts": [
+        "Describe a skill you learned outside school. You should say: what the skill is; who helped you learn it; how long it took to learn; and explain how the skill has been useful to you. You have one minute to prepare.",
+        "Rounding-off question: Would you like to learn another skill like this in the future?"
+      ],
+      "instructions": "Pairs. The listener times one minute of preparation and up to two minutes of speech, then asks the rounding-off question. Swap roles. Do not look at your Lesson 20 notes before you speak.",
+      "support": "Foundation: the Part 2 four-box frame, recorded as support.",
+      "extension": "Include one comparison (before and after you learned the skill) and one consequence.",
+      "observation": "Teacher listens live to a rotating sample. For each learner heard, note whether the two patterns repaired in Lesson 20 appear, and whether they are accurate, without prompting. Record exact examples. Learners not heard are recorded as not yet observed. No band or pronunciation rating from notes."
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 4, "title": "Opening challenge: which essay is fresh evidence?", "show": [{ "block": "IELTS-22-K1", "part": "questions" }, { "block": "IELTS-22-K1", "part": "answers" }], "student": "Decide which essay shows independent work on a new question, then compare with the reveal.", "teacher": "Reveal. Explain that today's essay is one fresh observation with recorded conditions, used to plan the next weeks, not a score.", "say": "Today you show what you can do alone, on a new question, in 40 minutes.", "check": "Learners can say why Bek's essay is fresh and Chen's is supported practice." },
+    { "start": 4, "end": 9, "title": "What is the question asking?", "show": [{ "block": "IELTS-22-I1", "part": "questions" }, { "block": "IELTS-22-I1", "part": "answers" }], "student": "Choose the question type for five questions, then check.", "teacher": "Reveal. Stress Q5: two questions need two full answers.", "say": "Underline every question word before you plan.", "check": "Learners can say how many parts Q5 has." },
+    { "start": 9, "end": 49, "title": "Timed essay", "show": [{ "block": "IELTS-22-W1", "part": "prompt" }], "student": "Write the essay in 40 minutes. Write your start and finish times at the top. No dictionary, phone or notes.", "teacher": "Collect phones. Start the clock. Record support given to foundation learners and any interruption. Give a ten-minute and a five-minute warning only. Collect essays at 40 minutes.", "say": "Answer both questions. Plan for about five minutes. Keep three minutes to check.", "check": "Every essay is collected with start and finish times and recorded conditions." },
+    { "start": 49, "end": 57, "title": "New long turn", "show": [{ "block": "IELTS-22-S1", "part": "prompt" }], "student": "In pairs, give a two-minute talk on the new card, then swap.", "teacher": "Observe a rotating sample. Note whether each learner's Lesson 20 repairs appear accurately without prompting.", "say": "One minute to prepare. Speak until the listener stops you.", "check": "Every learner has spoken; the teacher has observation notes for the sample." },
+    { "start": 57, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket. Do not rewrite today's essay before it is returned.", "teacher": "Schedule individual long turns for learners not observed and the separate Task 1 check.", "say": "Next lesson we use this evidence to choose your personal priorities.", "check": "Everyone knows the date of their next check." }
+  ],
+  "exit_ticket": [
+    "How many words I wrote, and how much time I had left:",
+    "The part of the essay question I found hardest to answer:",
+    "Did my Lesson 20 repaired patterns appear in my long turn? Example:"
+  ],
+  "homework": [
+    "Do not rewrite today's essay yet. Your teacher will return it with comments; the first version stays as the record.",
+    "From memory, list the two body-paragraph ideas you used, and one idea you thought of too late. Bring the list to Lesson 23.",
+    "Complete only the Brains Heist writing or speaking practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-22-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "Within one teaching week of Lesson 22, in a separately scheduled 20-minute slot under observed conditions. Learners have not seen this chart. No dictionary, model, frame or phrase list. Log start and finish times, conditions and any prior exposure.",
+    "blocks": [
+      {
+        "id": "IELTS-22-C1",
+        "kind": "writing",
+        "task": "task1",
+        "min_words": 150,
+        "title": "How shoppers pay",
+        "mode": "Withheld fresh check; independent, timed",
+        "prompt": "The chart below shows the percentage of shopping payments made using four methods in one country in 2014 and 2024. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+        "figure": {
+          "type": "bar",
+          "title": "Share of shopping payments by method, 2014 and 2024 (%)",
+          "x_label": "Payment method",
+          "y_label": "Percentage of payments",
+          "y_max": 50,
+          "x": ["Cash", "Debit card", "Credit card", "Mobile phone"],
+          "series": [
+            { "name": "2014", "values": [48, 32, 17, 3] },
+            { "name": "2024", "values": [14, 38, 20, 28] }
+          ],
+          "alt": "Bar chart of payment shares in 2014 and 2024. Cash falls from 48 to 14 percent. Debit card rises from 32 to 38. Credit card rises from 17 to 20. Mobile phone rises from 3 to 28.",
+          "note": "Fictional data created for practice."
+        },
+        "conditions": "20 minutes, independent, observed. No model, frame or phrase bank. Record any support.",
+        "model_label": "Illustrative teacher-only reference for review discussion. Not a certified band answer.",
+        "model": "The bar chart compares how shoppers in one country paid for their purchases in 2014 and 2024, showing the percentage of payments made by cash, debit card, credit card and mobile phone.\n\nOverall, cash lost its position as the most common method, while mobile phone payments grew from almost nothing to a major share. Card payments changed relatively little over the period.\n\nIn 2014, cash accounted for 48% of payments, followed by debit cards at 32%. Credit cards made up 17%, and mobile phones only 3%. A decade later, the share of cash had fallen sharply to 14%, making it the least used of the four methods.\n\nBy contrast, mobile phone payments rose to 28%, which made them the second most popular method after debit cards. Debit card use increased slightly to 38%, and credit card use also grew a little, from 17% to 20%. As a result, payments were spread more evenly across the four methods in 2024 than they had been ten years earlier, when almost half were made in cash.",
+        "checklist": [
+          "Task Achievement: Does the overview identify the fall in cash and the rise in mobile payments without detailed numbers?",
+          "Task Achievement: Are the selected figures accurate and are both years compared for each method?",
+          "Coherence and Cohesion: Are the methods grouped logically (falling and rising), with clear comparison language?",
+          "Compare only with similar observed demands from Lessons 11, 15 and 19. A new chart topic is not automatically comparable."
+        ]
+      }
+    ],
+    "review": "Compare only observed demands and conditions with earlier Task 1 work. Record what the new response shows, counterevidence and the next check. A new chart does not by itself establish comparable difficulty or improvement. No band, percentage or mastery label."
+  },
+  "delayed_followup": "In Lesson 23, return the essay with criterion comments. Each learner chooses one comment to act on and rewrites one paragraph, keeping the first version visible as the record.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.4 teachable micro-skills. Draft teaching focuses only. The timed essay is one fresh observation under recorded conditions; it is not a Writing Screener attempt and does not produce a band. Peer long turns are practice; only teacher-observed or approved-audio evidence informs reviews.",
+  "release_blockers": [
+    "Human editorial, essay-question, model and criterion-alignment review pending.",
+    "Teacher calibration on the public Writing and Speaking descriptors not yet recorded for this lesson.",
+    "Device, print and PowerPoint playback acceptance pending."
+  ]
+}

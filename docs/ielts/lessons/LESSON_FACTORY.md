@@ -1,6 +1,6 @@
 # IELTS lesson factory (source schema 2)
 
-Version 0.1.0 · 2026-10-17. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
+Version 0.2.0 · 2026-10-17. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
 
 A reusable route from one reviewed `lesson.json` to a complete private teacher-review pack, replacing the one-off Lesson 2 builder for Lessons 05 onward. Lessons 01–04 keep their existing, separately approved builders and assets; nothing here changes them.
 
@@ -24,13 +24,26 @@ This factory prepares drafts. It does not install, register, assign or publish c
 - Answer keys: listening and reading evidence must be a verbatim quotation from the transcript or passage; paragraph-matching evidence must sit in the keyed paragraph; reading completion answers must be copied from the passage; word limits respected; MCQ and matching answers must be valid options.
 - Writing: models labelled illustrative; Task 1 and Task 2 minimums (150/250) checked against models.
 - Speaking: pronunciation judgments restricted to live hearing or audio.
-- Charts (Task 1): figures are data in the source; the contract checks every quoted data point and every number in a model answer against the chart, and requires a "fictional data" note. Task 1 blocks must have a figure.
-- Recordings: ordered production segments (copyright notice first, 30-second reading silence, passage, 15-second response silence) and a voice for every speaker; an audio blocker clears only when the status begins "Owner approved".
+- Visuals: line and bar charts, tables and plans are data in the source. For charts and tables the contract checks every quoted data point and every number in a model answer against the figure (series names such as years count as figure data; genuine calculations go in `model_derived_numbers`), and requires a "fictional data" note. Task 1 blocks must have a figure.
+- Plans and maps (Listening labelling): areas, lettered unknown places, corridors and a compass are drawn from the source. Every answer must be a lettered place, each prompt must name the place hidden at its letter, letters must be unique, and every hidden place must be mentioned in the script.
+- Recordings: ordered production segments (copyright notice first, 30-second reading silence, passage, 15-second response silence) and a voice for every speaker. A section can be played in two parts: a second `passage` segment with `from_line` follows a 30-second mid-recording reading silence. An audio blocker clears only when the status begins "Owner approved".
 - Audio honesty: every transcript has a recording entry; any unapproved recording must appear in `release_blockers`.
 - Withheld fresh check: present, labelled withheld, no repeated prompts, low content overlap with the lesson.
 - No hardcoded school names, band claims or "official examiner" language; no workbook page numbers (layout decides pages).
 
 Automated checks support but never replace editorial, key, mapping, difficulty, originality and rights review.
+
+## Optional pack features
+
+| Source field | Effect |
+|---|---|
+| `answer_grid: N` | Adds an N-row answer transfer grid to the workbook (timed Listening and Reading). |
+| `feedback_form: true` | Adds a peer feedback form (round, criterion, quote, next step) for paired Speaking practice. Peer comments are practice notes, not scores. |
+| `personal_plan: true` or a title | Adds a two-priority plan page (evidence, action, check). |
+| `progress_review` | Adds the self-review page and the teacher's review sheet. |
+| `in_class: true` on a Task 2 block | Keeps an observed, timed essay in the workbook instead of the homework sheet. |
+| `homework: true` on a writing block | Moves the task to the homework sheet. |
+| `in_workbook: false` on a block | Projected only; kept out of the workbook. |
 
 ## Build
 

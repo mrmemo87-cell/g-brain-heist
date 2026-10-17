@@ -33,6 +33,11 @@ def answers_title(title):
     return f"{title} — answers" if title.rstrip().endswith('?') else f"{title}: answers"
 
 
+def is_homework_essay(b):
+    # Full Task 2 essays default to the homework sheet; 'in_class': true keeps a timed, observed essay in the workbook.
+    return b['kind'] == 'writing' and not b.get('in_class') and (b.get('task') == 'task2' or bool(b.get('homework')))
+
+
 def normalize_title(t):
     return re.sub(r'\W+', ' ', t).strip().lower()
 
@@ -292,11 +297,13 @@ class Pack:
                 out += [self.p(f"{letters(len(b['examples']))[i]}.  {ex['text']}", 'P'), self.p('My notes: ______________________________________________')]
             return out
         if k == 'writing':
-            n = {'task2': 30, 'paragraph': 12}.get(b.get('task'), 16)
+            n = {'task2': 25 if b.get('in_class') else 30, 'paragraph': 12}.get(b.get('task'), 16)
             out = [self.p(b['title'], 'H'), self.p(b['prompt'])] + self.figure_flow(b) + [self.p('Conditions: ' + b['conditions'], 'S')]
             if b.get('support'):
                 out.append(self.p('Support (tick if used) [ ]  ' + b['support'], 'S'))
             out += self.lines(n)
+            if b.get('task') == 'task2':
+                out += [self.p('Essay (continued)', 'H'), *self.lines(14)]
             out.append(KeepTogether([self.p('Criterion checklist for your review', 'H')] + [self.p('[ ]  ' + c, 'S') for c in b['checklist']]))
             return out
         if k == 'speaking':
@@ -464,7 +471,7 @@ class Pack:
         # Student workbook: one page per block, then reflection.
         pages = []
         for b in d['blocks']:
-            if b['kind'] == 'writing' and (b.get('task') == 'task2' or b.get('homework')):
+            if is_homework_essay(b):
                 continue  # full timed tasks go on the homework sheet
             if b.get('in_workbook') is False:
                 continue  # projected teaching contrast only; keeps analysis out of the practice pages
@@ -493,19 +500,26 @@ class Pack:
                           self.p('The examiner writes two comments per round. Each comment names one criterion, quotes the candidate exactly, and gives one next step.'),
                           *self.table(rows, [44, 100, 210, 157], row_height=60),
                           self.p('Criteria: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, Pronunciation. Peer comments are practice notes, not band scores.', 'S')])
+        if d.get('progress_review'):
+            pr = d['progress_review']
+            pages.append([self.p('My self-review: ' + re.sub(r'^.*\((.*)\)$', r'\1', pr['title']), 'H'), self.p('Write what you have actually done. Your teacher will add what the saved evidence shows.'),
+                          *self.table([['Skill', 'Tasks I completed on my own', 'What I find difficult', 'Question for my teacher']] + [[r, '', '', ''] for r in pr['rows']], [70, 150, 150, 141], row_height=64),
+                          *([] if d.get('personal_plan') else [self.p('My proposed priority for the next four weeks:'), *self.lines(2)]), self.p('This is a learning conversation, not an IELTS score.', 'S')])
+        if d.get('personal_plan'):
+            rows = [['', 'Evidence (task, date, conditions)', 'Action and how often', 'Check: what and when']] + [[f'Priority {i}', '', '', ''] for i in (1, 2)]
+            pages.append([self.p(d['personal_plan'] if isinstance(d['personal_plan'], str) else 'My personal plan', 'H'),
+                          self.p('Two priorities only. Each one must come from evidence you can point to: a saved task, a returned essay, a check result or a teacher observation.'),
+                          *self.table(rows, [62, 150, 150, 149], row_height=110),
+                          self.p('If the evidence for a skill is missing, write "not yet observed" and plan a check instead of guessing.', 'S'),
+                          self.p('Teacher comment:'), *self.lines(2)])
         pages.append([self.p('My error log and reflection', 'H'),
                       *self.table([['Question', 'My first answer', 'Trap or difficulty', 'What I will do next time']] + [['', '', '', ''] for _ in range(6)], [62, 100, 160, 189], row_height=26),
                       self.p('Exit ticket', 'H'), *[x for q in d['exit_ticket'] for x in [self.p(q)] + self.lines(1)],
                       self.p('Keep your first answers visible. Corrections and repeated tasks are practice. This workbook does not save to IELTS Journey.', 'S')])
-        if d.get('progress_review'):
-            pr = d['progress_review']
-            pages.append([self.p('My self-review: ' + re.sub(r'^.*\((.*)\)$', r'\1', pr['title']), 'H'), self.p('Write what you have actually done. Your teacher will add what the saved evidence shows.'),
-                          *self.table([['Skill', 'Tasks I completed on my own', 'What I find difficult', 'Question for my teacher']] + [[r, '', '', ''] for r in pr['rows']], [70, 150, 150, 141]),
-                          self.p('My proposed priority for the next four weeks:'), *self.lines(2), self.p('This is a learning conversation, not an IELTS score.', 'S')])
         self.pdf('Students/Student_Workbook.pdf', f'Lesson {self.n} workbook', pages, 'student', 'Student workbook')
 
         hw = [self.p('Name: __________________________   Due: ________________'), self.p('Homework', 'H')] + [self.p(f'{i + 1}.  {x}', 'P') for i, x in enumerate(d['homework'])]
-        essay = [b for b in d['blocks'] if b['kind'] == 'writing' and (b.get('task') == 'task2' or b.get('homework'))]
+        essay = [b for b in d['blocks'] if is_homework_essay(b)]
         hw_pages = [hw + [self.p('A printed instruction does not create an online assignment. Keep your original work.', 'S')]]
         for b in essay:
             hw_pages.append([self.p(b['title'], 'H'), self.p(b['prompt']), *self.figure_flow(b), self.p('Conditions: ' + b['conditions'], 'S'), self.p('Start time: ________   Finish time: ________   Interruptions / help: ______________'), *self.lines(30)])

@@ -14,9 +14,9 @@
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Script, passage, questions and keys are original; the passage uses general, widely reported findings without specific statistics. Human editorial, factual, key, mapping, difficulty and originality review pending.",
   "audio": {
     "required": true,
-    "statement": "Two recordings: IELTS-21-L1 (Part 1 section, played in two parts like the real test) and the withheld delayed check IELTS-21-C1 is reading only.",
+    "statement": "Recordings produced (v1, 2026-10-17): IELTS-21-L1. Played in two parts with a mid-recording reading pause where marked. Owner listening review pending; do not use with students until it is recorded.",
     "recordings": [
-      { "id": "IELTS-21-L1", "block": "IELTS-21-L1", "status": "Script draft; recording not produced", "conditions": "Fresh classroom check under test-like conditions: played once, no pausing, reading time inside the recording.",
+      { "id": "IELTS-21-L1", "block": "IELTS-21-L1", "status": "Produced v1 2026-10-17; owner listening review pending", "conditions": "Fresh classroom check under test-like conditions: played once, no pausing, reading time inside the recording.",
         "voices": { "instruction": "Tom (British, examiner style; steady model)", "CLERK": "Niki (North American, middle-aged, friendly)", "DANIELA": "Marlene (British, middle-aged)" },
         "segments": [
           { "type": "speech", "voice": "instruction", "text": "This recording is copyright Brains Heist LLC. All rights reserved." },
@@ -173,7 +173,7 @@
   "delayed_followup": "In the advanced continuation, schedule separately arranged full-length Listening and Reading practice under the published timings and record them as practice-test evidence with their conditions.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible sections 7.1 and 7.2 construct names. Draft teaching focuses only. One section and one passage are classroom evidence, not full-test or band evidence.",
   "release_blockers": [
-    "Recording IELTS-21-L1 not produced or reviewed.",
+    "Recordings IELTS-21-L1 produced (v1); owner listening review and device/classroom playback acceptance pending.",
     "Human editorial, factual, key, mapping, difficulty, originality and rights review pending; exposure check required before use.",
     "Device, print and PowerPoint playback acceptance pending."
   ]
