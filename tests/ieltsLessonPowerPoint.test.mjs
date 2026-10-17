@@ -100,3 +100,5 @@ test("LB-03/04 both formats share every headline, body and stage in the same ord
     assert.ok(files[`ppt/notesSlides/notesSlide${i + 1}.xml`]);
   }
 });
+
+test("presentation normalization never rewrites a school name or approved question text",()=>{const special={...lesson,school:{name:'Good English. Wrong answer. How?'},materials:lesson.materials.map(m=>({...m,questions:m.questions.map(q=>({...q,prompt:'Presentation 2.0.0 is the exact source text.'}))}))};const files=unzipSync(populateLessonPowerPoint(template,special));const first=strFromU8(files['ppt/slides/slide1.xml']);assert.match(first,/Good English\. Wrong answer\. How\?/);assert.match(strFromU8(files['ppt/slides/slide4.xml']),/Presentation 2\.0\.0 is the exact source text\./);});

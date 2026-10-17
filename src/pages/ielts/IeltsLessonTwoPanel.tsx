@@ -44,7 +44,7 @@ export default function IeltsLessonTwoPanel({ pack, onProgress }:{
       </button>
       <button type="button" className="sp-secondary" onClick={onProgress}>Review student progress</button>
     </div>
-    <p className="lesson-resource-note">This printable HTML edition contains a four-page student workbook, homework, catch-up, teacher plan, keys, planning forms, private follow-up and an interactive 17-slide offline presentation. Open printable HTML files to use the shared smart print preview and Save as PDF. Native PowerPoint and pre-rendered PDF files are not included in this edition.</p>
+    <p className="lesson-resource-note">This printable HTML edition contains a smart-paginated student workbook, homework, catch-up, teacher plan, keys, planning forms, private follow-up and an interactive 17-slide offline presentation. Open printable HTML files to use the shared smart print preview and Save as PDF. Native PowerPoint and pre-rendered PDF files are not included in this edition.</p>
     <div className="lesson-resource-grid">
       <section className="lesson-resource-group">
         <h4>Students · print without keys</h4>

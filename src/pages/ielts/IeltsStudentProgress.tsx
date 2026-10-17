@@ -56,7 +56,7 @@ function Accordion({
   className?: string;
 }) {
   return (
-    <details className={"isi-accordion " + className} defaultOpen={initialOpen}>
+    <details className={"isi-accordion " + className} ref={node => { if (node && !node.hasAttribute("data-open-initialized")) { node.open = initialOpen; node.setAttribute("data-open-initialized", "true"); } }}>
       <summary>
         <span className="isi-section-title"><span aria-hidden="true" className="isi-section-icon">{icon}</span>{title}</span>
         <span className="isi-section-right">{trailing}<span className="isi-chevron" aria-hidden="true">⌄</span></span>
@@ -261,8 +261,8 @@ function IntelligenceDrawer({
               {skills.map((skill) => <EvidenceCard key={skill} skill={skill} evidence={student[skill]} onOpen={navigate} />)}
             </div>
           </Accordion>
-          <Accordion title="Learning plan & monthly reports" icon="▣">
-            <p className="isi-muted">Open this learner's existing personalized plan, evidence history and saved reports.</p>
+          <Accordion title="Learning plan, readiness & reports" icon="▣">
+            <p className="isi-muted">Open this learner's plan, targeted support suggestions, provisional readiness estimates and saved reports.</p>
             {loading ? <p className="isi-muted" role="status">Checking saved learning record…</p>
               : error ? <p className="isi-muted">{error}</p>
               : <p className="isi-muted">{record?.plan ? "Learning plan available" : "No shared plan yet"} · {record?.reports.length ?? 0} saved reports</p>}

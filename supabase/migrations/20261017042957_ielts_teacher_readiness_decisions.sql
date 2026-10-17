@@ -8,13 +8,21 @@ alter table private.ielts_readiness_decisions enable row level security;
 revoke all on private.ielts_readiness_decisions from public,anon,authenticated,service_role;
 create trigger ielts_readiness_decision_append_only before update or delete on private.ielts_readiness_decisions for each row execute function private.academic_report_records_are_append_only();
 
+create function private.ielts_readiness_source_ok(e jsonb) returns boolean language sql immutable set search_path='' as $$
+ select coalesce(e->>'kind'='screener' and case
+ when e->>'skill' in ('listening','reading') then coalesce(e->>'conditions','')<>'review_required' and e->>'test_type' in ('academic','shared')
+ and jsonb_array_length(e->'item_observations')>0 and not exists(select 1 from jsonb_array_elements(e->'item_observations') i where i->>'response_state' is distinct from 'answered')
+ when e->>'skill'='writing' then e->>'review_id' is not null and e->>'test_type' in ('academic','shared') and coalesce((e->>'word_count')::integer,0)>0
+ when e->>'skill'='speaking' then e->>'review_id' is not null else false end,false);
+$$;
+revoke all on function private.ielts_readiness_source_ok(jsonb) from public,anon,authenticated,service_role;
+
 create function private.ielts_readiness_context(p_school uuid,p_student uuid) returns jsonb language plpgsql stable security definer set search_path='' as $$
 declare sources jsonb;eligible boolean:=true;sk text;
 begin
  sources:=private.ielts_report_evidence(p_school,p_student,now());
  foreach sk in array array['listening','reading','writing','speaking'] loop
- if not exists(select 1 from jsonb_array_elements(sources) e where e->>'skill'=sk and e->>'kind'='screener' and
- (case when sk in ('listening','reading') then coalesce(e->>'conditions','')<>'review_required' and coalesce(e->>'test_type','') in ('academic','shared') and jsonb_array_length(e->'item_observations')>0 and not exists(select 1 from jsonb_array_elements(e->'item_observations') i where i->>'response_state' is distinct from 'answered') else e->>'review_id' is not null end)) then eligible:=false;end if;
+ if not exists(select 1 from jsonb_array_elements(sources) e where e->>'skill'=sk and private.ielts_readiness_source_ok(e)) then eligible:=false;end if;
  end loop;
  return jsonb_build_object('evidence',sources,'eligible',eligible,'source_hash',encode(extensions.digest(convert_to(sources::text,'UTF8'),'sha256'),'hex'));
 end; $$;
@@ -33,8 +41,8 @@ begin
  lo:=(v->>'lower')::numeric;hi:=(v->>'upper')::numeric;
  if lo<0 or hi>9 or lo>=hi or mod(lo*2,1)<>0 or mod(hi*2,1)<>0 then raise exception 'invalid_range';end if;
  if sk='overall' and not all_skills then raise exception 'four_skill_ranges_required';end if;
- if sk<>'overall' and not exists(select 1 from jsonb_array_elements(p_sources) e where e->>'skill'=sk and e->>'kind'='screener' and (v->'sources') ? (e->>'source_id') and (sk in ('listening','reading') or e->>'review_id' is not null)) then raise exception 'evidence_required';end if;
- if sk='overall' and exists(select 1 from unnest(array['listening','reading','writing','speaking']) scope where not exists(select 1 from jsonb_array_elements(p_sources) e where e->>'skill'=scope and (v->'sources') ? (e->>'source_id'))) then raise exception 'overall_evidence_required';end if;
+ if sk<>'overall' and not exists(select 1 from jsonb_array_elements(p_sources) e where e->>'skill'=sk and private.ielts_readiness_source_ok(e) and (v->'sources') ? (e->>'source_id')) then raise exception 'evidence_required';end if;
+ if sk='overall' and exists(select 1 from unnest(array['listening','reading','writing','speaking']) scope where not exists(select 1 from jsonb_array_elements(p_sources) e where e->>'skill'=scope and private.ielts_readiness_source_ok(e) and (v->'sources') ? (e->>'source_id'))) then raise exception 'overall_evidence_required';end if;
  end if;
  for ref in select value from jsonb_array_elements(v->'sources') loop
  if not exists(select 1 from jsonb_array_elements(p_sources) e where e->>'source_id'=ref#>>'{}' and (sk='overall' or e->>'skill'=sk)) then raise exception 'invalid_source_reference';end if;

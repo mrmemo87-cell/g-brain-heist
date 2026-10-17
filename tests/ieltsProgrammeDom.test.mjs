@@ -134,7 +134,7 @@ async function check(admin, pending = 0, manage = true) {
   assert.match(primary.textContent, pending > 0 ? /Open review desk/ : manage ? /Open lesson library/ : /View student progress/);
   const visibleTasks = [...today.querySelectorAll(".ip-today-action-copy strong")].map(x => x.textContent);
   assert.deepEqual(visibleTasks, manage
-    ? ["Lessons & teaching packs", "School assignments", "Writing & Speaking reviews", "Student progress & plans"]
+    ? ["Lessons & teaching packs", "Create assignment", "Writing & Speaking reviews", "Student progress & plans"]
     : ["Writing & Speaking reviews", "Student progress & plans"]);
   const secondary = [...today.querySelectorAll(".ip-today-links button strong")].map(x => x.textContent);
   if (manage) {

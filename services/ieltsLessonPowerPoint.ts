@@ -59,10 +59,13 @@ export function populateLessonPowerPoint(
         value = value.replace(/val="FFFFFF"/g, 'val="15243A"').replace(/val="B6CEFF"/g, 'val="1746B0"');
         value = value.replace(/<p:bg>[\s\S]*?<\/p:bg>/, bg => bg.replace(/val="15243A"/g, 'val="FFFFFF"'));
       }
-      if (path === "ppt/slides/slide1.xml") {
-        value = value.replace(/<a:p(?:\s[^>]*)?>[\s\S]*?<\/a:p>/g, paragraph => paragraph.includes("Wrong answer. How?") ? "" : paragraph.replace("Good English.", () => xml(lessonOneTitle)));
-      }
-      value = value.replace(/Presentation 2\.0\.0/g, `Presentation ${lessonProduction.presentationVersion}`);
+      value = value.replace(/<p:sp>[\s\S]*?<\/p:sp>/g, shape => {
+        if (path === "ppt/slides/slide1.xml" && /<p:cNvPr\b[^>]*name="headline"/.test(shape)) {
+          return shape.replace(/<a:p(?:\s[^>]*)?>[\s\S]*?<\/a:p>/g, paragraph => paragraph.includes("Wrong answer. How?") ? "" : paragraph.replace("Good English.", () => xml(lessonOneTitle)));
+        }
+        return /<p:cNvPr\b[^>]*name="footer"/.test(shape)
+          ? shape.replace(/Presentation 2\.0\.0/g, `Presentation ${lessonProduction.presentationVersion}`) : shape;
+      });
       if (reducedMotion)
         value = value.replace(
           /<p:transition\b[^>]*>[\s\S]*?<\/p:transition>/g,

@@ -21,7 +21,7 @@ begin
  return jsonb_build_object('batch',jsonb_build_object('id',b.id,'name',b.name,'revision',b.revision,'archived',b.archived_at is not null),
  'lessons',(select jsonb_agg(to_jsonb(l) order by l.code) from private.ielts_course_lessons l),
  'members',(select coalesce(jsonb_agg(jsonb_build_object('id',u.id,'name',coalesce(nullif(u.full_name,''),u.username),'joined_at',m.joined_at) order by u.username,u.id),'[]') from private.ielts_course_batch_members m join public.users u on u.id=m.student_id where m.batch_id=b.id and m.left_at is null and u.school_id=b.school_id),
- 'records',(select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc,x.id),'[]') from(select r.id,r.student_id,r.lesson_code,r.kind,r.allocation_id,r.payload,r.occurred_on,r.created_at,u.username author
+ 'records',(select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc,x.id),'[]') from(select r.id,r.student_id,r.lesson_code,r.kind,r.allocation_id,r.payload-'outcomes' payload,r.occurred_on,r.created_at,u.username author
  from private.ielts_course_records r join public.users u on u.id=r.author_id where r.batch_id=b.id and r.lesson_code=p_lesson and not exists(select 1 from private.ielts_course_records n where n.supersedes=r.id) order by r.created_at desc,r.id limit 1001)x));
 end; $$;
 
@@ -64,7 +64,7 @@ declare school uuid; rows jsonb;
 begin
  select school_id into school from public.users where id=auth.uid();
  if auth.uid() is null or school is null or not private.ielts_speaking_student_eligible(auth.uid()) or not exists(select 1 from public.school_members where school_id=school and user_id=auth.uid() and status='active') then raise exception using errcode='42501',message='not_authorized';end if;
- select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc,x.id),'[]') into rows from(select r.id,r.lesson_code,l.title lesson_title,r.kind,r.payload,r.occurred_on,r.created_at,u.username author,b.name batch_name
+ select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc,x.id),'[]') into rows from(select r.id,r.lesson_code,l.title lesson_title,r.kind,r.payload-'outcomes' payload,r.occurred_on,r.created_at,u.username author,b.name batch_name
  from private.ielts_course_records r join private.ielts_course_lessons l on l.code=r.lesson_code and l.version=r.lesson_version join public.users u on u.id=r.author_id join private.ielts_course_batches b on b.id=r.batch_id
  where r.student_id=auth.uid() and r.school_id=school and (p_before is null or (r.created_at,r.id)<(p_before,coalesce(p_before_id,'00000000-0000-0000-0000-000000000000'::uuid))) and not exists(select 1 from private.ielts_course_records n where n.supersedes=r.id) order by r.created_at desc,r.id limit 51)x;
  return jsonb_build_object('records',rows,'has_more',jsonb_array_length(rows)>50);
@@ -118,3 +118,14 @@ begin
  return result;
 end; $$;
 revoke all on function public.rpc_ielts_course_suggestions(uuid,uuid) from public,anon,authenticated,service_role;grant execute on function public.rpc_ielts_course_suggestions(uuid,uuid) to authenticated;
+
+-- Answer detail is fetched only for an explicitly opened record.
+create function public.rpc_ielts_course_record_detail(p_id uuid) returns jsonb language plpgsql stable security definer set search_path='' as $$
+declare r private.ielts_course_records;
+begin
+ select * into r from private.ielts_course_records where id=p_id;
+ if auth.uid() is null or r.id is null or not coalesce(private.ielts_report_staff(r.school_id,r.student_id) or
+ (r.student_id=auth.uid() and private.ielts_speaking_student_eligible(auth.uid()) and exists(select 1 from public.users u join public.school_members m on m.user_id=u.id and m.school_id=r.school_id and m.status='active' where u.id=auth.uid() and u.school_id=r.school_id)),false) then raise exception using errcode='42501',message='not_authorized';end if;
+ return jsonb_build_object('id',r.id,'payload',r.payload);
+end; $$;
+revoke all on function public.rpc_ielts_course_record_detail(uuid) from public,anon,authenticated,service_role;grant execute on function public.rpc_ielts_course_record_detail(uuid) to authenticated;

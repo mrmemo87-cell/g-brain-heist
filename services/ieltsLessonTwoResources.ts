@@ -46,7 +46,7 @@ function workbook(pack:TeacherLessonTwo):string{
  const d=pack.content;
  return wrap(pack,"Student workbook",
  sheet(p("Name: _________________ Date: ____________")+h(d.reading.title)+p(d.reading.instructions)+d.reading.paragraphs.map(p).join(""))
- +sheet(h("Reading: first answers and evidence")+p("Keep your first answers when correcting.")+d.reading.items.map((x,i)=>p((i+1)+". "+x.statement)+p("Answer: __________ Evidence / missing information:")+blanks(1)).join(""))
+ +sheet(h("Reading: first answers and evidence")+p("Keep your first answers when correcting.")+d.reading.items.map((x,i)=>"<div class=\"document-card\">"+p((i+1)+". "+x.statement)+p("Answer: __________ Evidence / missing information:")+blanks(1)+"</div>").join(""))
  +sheet(h("Paragraph model")+p(d.writing.model)+p("Underline the suggestion, reason and example.")+h("Plan my paragraph")+blanks(4)+h("Speaking pairs")+p(d.speaking.prompt)+p(d.speaking.instructions)+p(d.speaking.followup))
  +sheet(h("Independent paragraph")+p(d.writing.prompt)+p("Support received (if any): _________________")+blanks(12)+h("Exit ticket")+blanks(2)),
  "Student only — no keys or fresh-check prompts");
@@ -80,7 +80,7 @@ export function lessonTwoFiles(pack:TeacherLessonTwo):Record<string,Uint8Array>{
  const html:Record<string,string>={
   "01-START-HERE.html":wrap(pack,"START HERE · IELTS-02",
     sheet(h("Before class")+p("Verify actual screener and Writing/Speaking review states. No recording is required.")
-      +h("For students")+ol(["Students/workbook.html (4 pages)","Students/homework.html","Students/catch-up.html, if needed"])
+      +h("For students")+ol(["Students/workbook.html (smart-paginated)","Students/homework.html","Students/catch-up.html, if needed"])
       +h("Teacher only")+ol(["Teacher-private/guide.html","Teacher-private/keys.html","Teacher-private/planning.html","Teacher-private/presentation.html","Teacher-private/fresh-check.html"])
       +p("Open each HTML in a browser and choose Print → Save as PDF for A4 handouts.")
       +p("Use Previous/Next to advance offline teaching slides. Do not give students keys or withheld fresh work.")
