@@ -37,3 +37,21 @@ test('mismatched school template and failed logo download do not export a mislea
  await assert.rejects(brandTeacherPack(blob,school,'IELTS-04','zip',logo),/template mismatch/);
  const old=globalThis.fetch;globalThis.fetch=async()=>new Response('',{status:404});try{await assert.rejects(schoolPackLogo(school),/School logo could not load/);}finally{globalThis.fetch=old;}
 });
+test('template contracts name their own resources and content revision (Lessons 5-24 layout)',async()=>{
+ const r='IELTS-17/',d17=r+'Teacher-private/Lesson_17_Presentation.pptx';
+ const files={
+  [r+'Teacher-private/Lesson_17_Slides.html']:strToU8('<p>'+token+'</p><img src="../assets/school-logo.png">'),
+  [r+'Teacher-private/Audio/IELTS-17-L1_v1.mp3']:new Uint8Array([5,6,7]),
+  [r+'assets/school-logo.png']:new Uint8Array([99]),
+  [d17]:zipSync({'ppt/media/image1.png':new Uint8Array([99]),'ppt/slides/slide1.xml':strToU8('<a:t>'+token+'</a:t>')}),
+  'BRANDING.json':strToU8(JSON.stringify({version:'1.0.0',lesson_code:'IELTS-17',pdfs:{},pptx_media:{[d17]:'ppt/media/image1.png'},source_archive_sha256:'s',approved_source_sha256:'a',content_revision:'0.2.0',
+   resources:{slides:r+'Teacher-private/Lesson_17_Slides.html',workbook:r+'Students/Student_Workbook.pdf',pptx:d17}})),
+ };
+ const b=new Blob([zipSync(files)]);
+ const one=unzipSync(new Uint8Array(await(await brandTeacherPack(b,school,'IELTS-17','slides',logo)).arrayBuffer()));
+ assert.match(strFromU8(one[r+'Teacher-private/Lesson_17_Slides.html']),/Школа/);assert.equal(one[r+'Teacher-private/Audio/IELTS-17-L1_v1.mp3'],undefined);assert.deepEqual(one[r+'assets/school-logo.png'],logo);
+ const all=unzipSync(new Uint8Array(await(await brandTeacherPack(b,school,'IELTS-17','zip',logo)).arrayBuffer()));
+ assert.equal(JSON.parse(strFromU8(all['MANIFEST.json'])).content_revision,'0.2.0');assert.deepEqual(unzipSync(all[d17])['ppt/media/image1.png'],logo);
+ const bad={...JSON.parse(strFromU8(files['BRANDING.json'])),resources:{slides:'IELTS-03/teacher/Presentation.html'}};
+ await assert.rejects(brandTeacherPack(new Blob([zipSync({...files,'BRANDING.json':strToU8(JSON.stringify(bad))})]),school,'IELTS-17','slides',logo),/template mismatch/);
+});

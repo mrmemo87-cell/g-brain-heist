@@ -25,15 +25,25 @@ export async function schoolPackLogo(school:PackSchool):Promise<Uint8Array>{
 }
 interface NameSlot{text:string;x:number;y:number;width:number;size:number;color:number;bold:boolean}
 interface PageSlots{names:NameSlot[];logos:number[][]}
-interface Branding{version:string;lesson_code:string;pdfs:Record<string,PageSlots[]>;pptx_media:Record<string,string>;source_archive_sha256:string;approved_source_sha256:string}
+interface Branding{version:string;lesson_code:string;pdfs:Record<string,PageSlots[]>;pptx_media:Record<string,string>;source_archive_sha256:string;approved_source_sha256:string;
+ content_revision?:string;resources?:Partial<Record<Exclude<PackResource,'zip'>,string>>}
+const legacyResource=(code:string,kind:Exclude<PackResource,'zip'>)=>code+'/'+(kind==='slides'?'teacher/Presentation.html':kind==='workbook'?'student/Workbook.pdf':`teacher/${code}-Editable.pptx`);
+/** Path of one downloadable resource inside a branded pack (template contract, or the Lessons 3-4 layout). */
+export function packResourcePath(code:string,kind:Exclude<PackResource,'zip'>,resources?:Branding['resources']):string{
+ const path=resources?.[kind]??legacyResource(code,kind);
+ if(!path.startsWith(code+'/')||path.includes('..'))throw new Error('School branding template mismatch');
+ return path;
+}
 export async function brandTeacherPack(source:Blob,school:PackSchool,code:string,kind:PackResource='zip',providedLogo?:Uint8Array):Promise<Blob>{
  if(!school.id||!school.name.trim()||school.name.length>200)throw new Error('School branding unavailable');
  const root=code+'/';
- const selected=kind==='slides'?root+'teacher/Presentation.html':kind==='workbook'?root+'student/Workbook.pdf':root+`teacher/${code}-Editable.pptx`;
- const files=unzipSync(new Uint8Array(await source.arrayBuffer()),{filter:f=>kind==='zip'||f.name===selected||f.name==='BRANDING.json'||f.name.startsWith('assets/')});
- if(!files['BRANDING.json'])throw new Error('School branding template missing');
- const contract=JSON.parse(strFromU8(files['BRANDING.json'])) as Branding;
+ const bytes=new Uint8Array(await source.arrayBuffer());
+ const head=unzipSync(bytes,{filter:f=>f.name==='BRANDING.json'});
+ if(!head['BRANDING.json'])throw new Error('School branding template missing');
+ const contract=JSON.parse(strFromU8(head['BRANDING.json'])) as Branding;
  if(contract.version!=='1.0.0'||contract.lesson_code!==code)throw new Error('School branding template mismatch');
+ const selected=kind==='zip'?'':packResourcePath(code,kind,contract.resources);
+ const files=unzipSync(bytes,{filter:f=>kind==='zip'||f.name===selected||f.name==='BRANDING.json'||f.name.startsWith('assets/')||f.name===root+'assets/school-logo.png'});
  const logo=school.logo_url?(providedLogo??await schoolPackLogo(school)):await schoolPackLogo(school);
  const pdfPaths=Object.keys(files).filter(p=>p.endsWith('.pdf'));
  if(pdfPaths.length){
@@ -74,6 +84,6 @@ export async function brandTeacherPack(source:Blob,school:PackSchool,code:string
  delete files['BRANDING.json'];delete files['TEMPLATE-MANIFEST.json'];
  delete files['assets/branding-regular.ttf'];delete files['assets/branding-bold.ttf'];
  const hashes:Record<string,string>={};for(const [path,bytes] of Object.entries(files))hashes[path]=await packDigest(bytes);
- files['MANIFEST.json']=strToU8(JSON.stringify({lesson_code:code,content_revision:'2026-10-17.1',branding_version:'1.0.0',school:{id:school.id,name:school.name,logo_sha256:school.logo_url?await packDigest(logo):null},source_archive_sha256:contract.source_archive_sha256,approved_source_sha256:contract.approved_source_sha256,files:hashes},null,2));
+ files['MANIFEST.json']=strToU8(JSON.stringify({lesson_code:code,content_revision:contract.content_revision??'2026-10-17.1',branding_version:'1.0.0',school:{id:school.id,name:school.name,logo_sha256:school.logo_url?await packDigest(logo):null},source_archive_sha256:contract.source_archive_sha256,approved_source_sha256:contract.approved_source_sha256,files:hashes},null,2));
  return new Blob([new Uint8Array(zipSync(files,{level:6}))],{type:'application/zip'});
 }
