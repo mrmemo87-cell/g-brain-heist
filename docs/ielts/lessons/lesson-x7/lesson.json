@@ -1,0 +1,605 @@
+{
+ "schema": "bh-ielts-lesson-source/2",
+ "code": "IELTS-X7",
+ "number": 7,
+ "extension": true,
+ "placement": "optional, after Week 10 (Lesson 19)",
+ "week": 10,
+ "version": "0.1.0",
+ "presentation_version": "0.1.0",
+ "title": "Academic Writing Task 1: pie charts and mixed visuals",
+ "status": "Draft for owner review: not approved for classroom use (optional extension lesson)",
+ "duration": 60,
+ "test_type": "Academic",
+ "bibles": {
+  "diagnostic": "1.10.0",
+  "lessons": "1.1.0",
+  "visual": "1.1.0"
+ },
+ "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Countries, colleges and data are fictional, created for practice. Human editorial, model, mapping and originality review pending.",
+ "audio": {
+  "required": false,
+  "statement": "No recording required.",
+  "recordings": []
+ },
+ "prerequisites": [
+  "Lesson 11 (Task 1 overviews) and Lesson 19 (Task 1 tables and accuracy).",
+  "Teacher has checked actual Writing Screener and review states privately.",
+  "Optional extension: use when learners need practice with pie charts and tasks that combine two visuals."
+ ],
+ "objectives": [
+  {
+   "text": "Write an overview that covers every visual in a mixed Task 1.",
+   "focus": [
+    "register/task fulfilment",
+    "discourse organization"
+   ]
+  },
+  {
+   "text": "Describe shares and changes in proportion accurately (accounted for, the share of, overtook).",
+   "focus": [
+    "lexical precision",
+    "numerical information"
+   ]
+  },
+  {
+   "text": "Link figures from a table to changes in pie charts without confusing different kinds of percentage.",
+   "focus": [
+    "detail discrimination",
+    "cohesion"
+   ]
+  }
+ ],
+ "levels": {
+  "foundation": "Mini-table of percentages made first; overview frame and proportion bank allowed and recorded.",
+  "core": "Write an accurate overview and body paragraph in 15 minutes.",
+  "extension": "Use \"whereas\" and \"overtook\" accurately and link the table to the pies.",
+  "high_band": "Select no more than six figures, each proving a key feature."
+ },
+ "blocks": [
+  {
+   "id": "IELTS-X7-K1",
+   "kind": "contrast",
+   "title": "An overview for two kinds of chart",
+   "mode": "Teacher-led analysis; learners rank before the reveal",
+   "instructions": "Three learners wrote an overview for the Kestovia task (pie charts and a table). Rank them and explain the problems.",
+   "examples": [
+    {
+     "label": "Overview A",
+     "text": "Overall, coal was the main source in 2000, but gas was the main source in 2020.",
+     "comment": "Incomplete: it ignores the table, and misses the growth of wind and solar, the most dramatic change."
+    },
+    {
+     "label": "Overview B",
+     "text": "Overall, coal fell from 46% to 18%, gas rose from 22% to 30%, and generation rose from 120 to 165 TWh.",
+     "comment": "Too many numbers: an overview identifies the main features; figures belong in the body paragraphs."
+    },
+    {
+     "label": "Overview C",
+     "text": "Overall, the country shifted from coal to gas and renewables, and both total generation and home solar panel use grew.",
+     "comment": "Best: it covers both the pies and the table, gives the main direction of change, and contains no detailed figures."
+    }
+   ]
+  },
+  {
+   "id": "IELTS-X7-I1",
+   "kind": "items",
+   "title": "The language of proportion",
+   "mode": "Guided practice; answer alone, then check",
+   "instructions": "Look at the Kestovia charts and table. Choose the correct option, A, B or C.",
+   "stimulus": {
+    "type": "figure"
+   },
+   "figure": {
+    "type": "pies",
+    "title": "Kestovia: sources of electricity, 2000 and 2020",
+    "note": "Fictional data for practice.",
+    "categories": [
+     "Coal",
+     "Gas",
+     "Hydro",
+     "Wind and solar",
+     "Nuclear"
+    ],
+    "charts": [
+     {
+      "title": "2000",
+      "values": [
+       46,
+       22,
+       18,
+       2,
+       12
+      ]
+     },
+     {
+      "title": "2020",
+      "values": [
+       18,
+       30,
+       20,
+       24,
+       8
+      ]
+     }
+    ],
+    "table": {
+     "title": "Electricity generation and home solar panels",
+     "columns": [
+      "Year",
+      "Electricity generated (TWh)",
+      "Homes with solar panels (%)"
+     ],
+     "rows": [
+      [
+       "2000",
+       "120",
+       "1"
+      ],
+      [
+       "2020",
+       "165",
+       "14"
+      ]
+     ]
+    },
+    "alt": "Two pie charts and a table for the fictional country Kestovia. In 2000, electricity came from coal 46%, gas 22%, hydro 18%, wind and solar 2% and nuclear 12%. In 2020: coal 18%, gas 30%, hydro 20%, wind and solar 24%, nuclear 8%. The table shows total generation rising from 120 to 165 terawatt hours, and homes with solar panels rising from 1% to 14%."
+   },
+   "items": [
+    {
+     "id": "IELTS-X7-I1-Q1",
+     "prompt": "In 2000, coal ______ almost half of all electricity generated.",
+     "answer": "A",
+     "evidence": "Coal 46% in 2000",
+     "reason": "'Accounted for' is the standard verb for a share of a total.",
+     "focus": "lexical precision",
+     "type": "mcq",
+     "options": [
+      "A  accounted for",
+      "B  consisted",
+      "C  took"
+     ],
+     "level": "core"
+    },
+    {
+     "id": "IELTS-X7-I1-Q2",
+     "prompt": "The share of wind and solar power rose ______ 2% ______ 24%.",
+     "answer": "A",
+     "evidence": "Wind and solar 2% (2000), 24% (2020)",
+     "reason": "'From ... to' gives the start and end points of a change.",
+     "focus": "grammatical control",
+     "type": "mcq",
+     "options": [
+      "A  from ... to",
+      "B  by ... to",
+      "C  at ... of"
+     ],
+     "level": "core"
+    },
+    {
+     "id": "IELTS-X7-I1-Q3",
+     "prompt": "Which sentence about gas and coal is accurate?",
+     "answer": "B",
+     "evidence": "Gas 30% and coal 18% in 2020",
+     "reason": "Gas was second in 2000 but overtook coal; by 2020 it was the largest source.",
+     "focus": "detail discrimination",
+     "type": "mcq",
+     "options": [
+      "A  Gas was the largest source in both years.",
+      "B  Gas overtook coal to become the largest source.",
+      "C  Coal and gas had equal shares in 2020."
+     ],
+     "level": "core"
+    },
+    {
+     "id": "IELTS-X7-I1-Q4",
+     "prompt": "The proportion of electricity from nuclear power ______ from 12% to 8%.",
+     "answer": "A",
+     "evidence": "Nuclear 12% (2000), 8% (2020)",
+     "reason": "A decrease: fell or declined.",
+     "focus": "numerical information",
+     "type": "mcq",
+     "options": [
+      "A  fell",
+      "B  rose",
+      "C  remained"
+     ],
+     "level": "core"
+    },
+    {
+     "id": "IELTS-X7-I1-Q5",
+     "prompt": "Hydro power ______ relatively stable, at around a fifth of the total.",
+     "answer": "A",
+     "evidence": "Hydro 18% (2000), 20% (2020)",
+     "reason": "A small change can be described as 'remained relatively stable'.",
+     "focus": "lexical precision",
+     "type": "mcq",
+     "options": [
+      "A  remained",
+      "B  became more",
+      "C  was fallen"
+     ],
+     "level": "core"
+    },
+    {
+     "id": "IELTS-X7-I1-Q6",
+     "prompt": "Which sentence links the table and the pie charts correctly?",
+     "answer": "A",
+     "evidence": "Table: 120 to 165 TWh; pies: coal 46% to 18%",
+     "reason": "C is the classic trap: 14% is the share of homes with panels, not the share of electricity.",
+     "focus": "detail discrimination",
+     "type": "mcq",
+     "options": [
+      "A  As total generation rose from 120 to 165 TWh, the share produced by coal fell sharply.",
+      "B  Coal production rose to 165 TWh in 2020.",
+      "C  Home solar panels produced 14% of all electricity in 2020."
+     ],
+     "level": "core"
+    }
+   ],
+   "support": "Foundation: the class first lists each category with its two percentages in a small table before answering.",
+   "extension": "Write two more accurate sentences that each link the table to the pies."
+  },
+  {
+   "id": "IELTS-X7-W1",
+   "kind": "writing",
+   "task": "paragraph",
+   "title": "Your overview and first body paragraph",
+   "mode": "Independent classroom application after modelling; not a full Task 1 or Writing Screener",
+   "prompt": "The pie charts show the sources of electricity in Kestovia in 2000 and 2020, and the table shows total generation and the share of homes with solar panels. Write an overview and a body paragraph about fossil fuels and nuclear power.",
+   "figure": {
+    "type": "pies",
+    "title": "Kestovia: sources of electricity, 2000 and 2020",
+    "note": "Fictional data for practice.",
+    "categories": [
+     "Coal",
+     "Gas",
+     "Hydro",
+     "Wind and solar",
+     "Nuclear"
+    ],
+    "charts": [
+     {
+      "title": "2000",
+      "values": [
+       46,
+       22,
+       18,
+       2,
+       12
+      ]
+     },
+     {
+      "title": "2020",
+      "values": [
+       18,
+       30,
+       20,
+       24,
+       8
+      ]
+     }
+    ],
+    "table": {
+     "title": "Electricity generation and home solar panels",
+     "columns": [
+      "Year",
+      "Electricity generated (TWh)",
+      "Homes with solar panels (%)"
+     ],
+     "rows": [
+      [
+       "2000",
+       "120",
+       "1"
+      ],
+      [
+       "2020",
+       "165",
+       "14"
+      ]
+     ]
+    },
+    "alt": "Two pie charts and a table for the fictional country Kestovia. In 2000, electricity came from coal 46%, gas 22%, hydro 18%, wind and solar 2% and nuclear 12%. In 2020: coal 18%, gas 30%, hydro 20%, wind and solar 24%, nuclear 8%. The table shows total generation rising from 120 to 165 terawatt hours, and homes with solar panels rising from 1% to 14%."
+   },
+   "conditions": "15 minutes, independent. No model visible. Record any frame or phrase-bank use.",
+   "support": "Overview frame: Overall, ... moved away from ... towards ..., while ... Proportion bank: accounted for / the share of / overtook / fell from ... to ... / remained relatively stable.",
+   "extension": "Use one \"whereas\" contrast and one \"overtook\".",
+   "high_band": "Select no more than six figures; each must prove a key feature.",
+   "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
+   "model": "Overall, Kestovia moved away from coal towards gas and renewable sources between 2000 and 2020, while both the total amount of electricity generated and the proportion of homes with solar panels increased.\n\nIn 2000, coal was by far the most important source, accounting for 46% of electricity, compared with 22% for gas. By 2020, however, the share of coal had fallen dramatically to 18%, whereas gas had risen to 30%, overtaking coal as the largest single source. Nuclear power also declined in relative terms, from 12% to 8%.",
+   "checklist": [
+    "Task Achievement: Does the overview cover BOTH the pie charts and the table? Are the key figures selected and accurate?",
+    "Coherence and Cohesion: Are the pies and the table connected where relevant, rather than described separately and mechanically?",
+    "Lexical Resource: Is the language of proportion precise (accounted for, the share of, the proportion of, overtook)?",
+    "Grammatical Range and Accuracy: Are past tenses, comparatives and \"while/whereas\" contrasts controlled?"
+   ]
+  },
+  {
+   "id": "IELTS-X7-W2",
+   "kind": "writing",
+   "task": "task1",
+   "min_words": 150,
+   "homework": true,
+   "title": "Complete Task 1 under time",
+   "mode": "Timed homework under declared conditions; teacher feedback uses the four criteria. Not a Writing Screener.",
+   "prompt": "The pie charts below show the sources of electricity in Kestovia in 2000 and 2020. The table shows the total amount of electricity generated and the percentage of homes with solar panels in the same years. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+   "figure": {
+    "type": "pies",
+    "title": "Kestovia: sources of electricity, 2000 and 2020",
+    "note": "Fictional data for practice.",
+    "categories": [
+     "Coal",
+     "Gas",
+     "Hydro",
+     "Wind and solar",
+     "Nuclear"
+    ],
+    "charts": [
+     {
+      "title": "2000",
+      "values": [
+       46,
+       22,
+       18,
+       2,
+       12
+      ]
+     },
+     {
+      "title": "2020",
+      "values": [
+       18,
+       30,
+       20,
+       24,
+       8
+      ]
+     }
+    ],
+    "table": {
+     "title": "Electricity generation and home solar panels",
+     "columns": [
+      "Year",
+      "Electricity generated (TWh)",
+      "Homes with solar panels (%)"
+     ],
+     "rows": [
+      [
+       "2000",
+       "120",
+       "1"
+      ],
+      [
+       "2020",
+       "165",
+       "14"
+      ]
+     ]
+    },
+    "alt": "Two pie charts and a table for the fictional country Kestovia. In 2000, electricity came from coal 46%, gas 22%, hydro 18%, wind and solar 2% and nuclear 12%. In 2020: coal 18%, gas 30%, hydro 20%, wind and solar 24%, nuclear 8%. The table shows total generation rising from 120 to 165 terawatt hours, and homes with solar panels rising from 1% to 14%."
+   },
+   "conditions": "20 minutes, in one sitting, without a dictionary, translator, AI tool or model. Write the start and finish time.",
+   "support": "Plan: Introduction (paraphrase) / Overview (pies + table) / Body 1 (coal, gas, nuclear) / Body 2 (renewables, hydro and the table).",
+   "extension": "Link one figure from the table to one change in the pies.",
+   "high_band": "Use at least two different structures for proportion.",
+   "model_label": "Illustrative model for teacher discussion after learners submit their own responses. Not a certified band answer.",
+   "model": "The pie charts compare the sources of electricity in Kestovia in 2000 and 2020, while the table shows total electricity generation and the percentage of homes with solar panels in those years.\n\nOverall, Kestovia moved away from coal towards gas and renewable sources over the period, while both the total amount of electricity generated and the use of home solar panels increased.\n\nIn 2000, coal was by far the most important source, accounting for 46% of electricity, compared with 22% for gas. By 2020, however, the share of coal had fallen dramatically to 18%, whereas gas had risen to 30%, overtaking coal as the largest single source. Nuclear power also declined in relative terms, from 12% to 8%.\n\nThe most dramatic growth was in wind and solar power, whose share rose from just 2% to 24%. Hydro power remained relatively stable at around a fifth of the total. These changes took place as total generation increased from 120 to 165 TWh, and as the proportion of homes with solar panels grew from 1% to 14%.",
+   "checklist": [
+    "Task Achievement: Does the overview cover BOTH the pie charts and the table? Are the key figures selected and accurate?",
+    "Coherence and Cohesion: Are the pies and the table connected where relevant, rather than described separately and mechanically?",
+    "Lexical Resource: Is the language of proportion precise (accounted for, the share of, the proportion of, overtook)?",
+    "Grammatical Range and Accuracy: Are past tenses, comparatives and \"while/whereas\" contrasts controlled?"
+   ]
+  }
+ ],
+ "stages": [
+  {
+   "start": 0,
+   "end": 6,
+   "title": "Opening challenge: an overview for two charts",
+   "show": [
+    {
+     "block": "IELTS-X7-K1",
+     "part": "questions"
+    },
+    {
+     "block": "IELTS-X7-K1",
+     "part": "answers"
+    }
+   ],
+   "student": "Rank the three overviews before the reveal.",
+   "teacher": "Reveal the comments. Stress: in a mixed task, the overview must cover every visual.",
+   "say": "If there are two visuals, your overview mentions both.",
+   "check": "Learners can say what Overview A is missing."
+  },
+  {
+   "start": 6,
+   "end": 15,
+   "title": "The language of proportion",
+   "show": [
+    {
+     "block": "IELTS-X7-I1",
+     "part": "questions"
+    }
+   ],
+   "student": "Answer the six questions alone.",
+   "teacher": "Learners work for 6 minutes. Foundation learners first make a mini-table of the percentages.",
+   "say": "Percentages are shares of a total: use \"accounted for\" and \"the share of\".",
+   "check": "Every learner has six answers."
+  },
+  {
+   "start": 15,
+   "end": 20,
+   "title": "Check and discuss",
+   "show": [
+    {
+     "block": "IELTS-X7-I1",
+     "part": "answers"
+    }
+   ],
+   "student": "Check answers with a partner.",
+   "teacher": "Reveal. Spend time on Q6: why a percentage of homes is not a percentage of electricity.",
+   "say": "Read the table headings as carefully as the charts.",
+   "check": "Learners can explain the Q6 trap."
+  },
+  {
+   "start": 20,
+   "end": 24,
+   "title": "Plan your paragraphs",
+   "show": [
+    {
+     "block": "IELTS-X7-W1",
+     "part": "prompt"
+    }
+   ],
+   "student": "Group the categories: falling sources in one paragraph, rising sources and the table in the other.",
+   "teacher": "Show how grouping by trend makes comparisons easier than describing each pie separately.",
+   "say": "Group by trend, not by chart.",
+   "check": "Each learner has a plan."
+  },
+  {
+   "start": 24,
+   "end": 39,
+   "title": "Write independently",
+   "show": [],
+   "student": "Write the overview and the first body paragraph in 15 minutes.",
+   "teacher": "Time 15 minutes. Do not show the model. Record any support used.",
+   "say": "Select the key figures; you do not need every number.",
+   "check": "Every learner has written both paragraphs."
+  },
+  {
+   "start": 39,
+   "end": 49,
+   "title": "Compare with the model and the criteria",
+   "show": [
+    {
+     "block": "IELTS-X7-W1",
+     "part": "model"
+    }
+   ],
+   "student": "Compare your paragraphs with the model and tick the checklist.",
+   "teacher": "Show the model. Ask learners to count its figures and check each one against the charts.",
+   "say": "Every number you use must be exactly right.",
+   "check": "Each learner has one specific improvement."
+  },
+  {
+   "start": 49,
+   "end": 55,
+   "title": "Full Task 1 at home",
+   "show": [
+    {
+     "block": "IELTS-X7-W2",
+     "part": "prompt"
+    }
+   ],
+   "student": "Note the homework conditions and the plan.",
+   "teacher": "Explain the 20-minute conditions.",
+   "say": "Homework under real conditions shows what you can do alone.",
+   "check": "Everyone knows the conditions."
+  },
+  {
+   "start": 55,
+   "end": 60,
+   "title": "Exit ticket",
+   "show": [],
+   "student": "Complete the exit ticket.",
+   "teacher": "Collect exit tickets. Record the fresh-check date.",
+   "say": "Next time: checking every figure before you finish.",
+   "check": "Exit tickets collected."
+  }
+ ],
+ "exit_ticket": [
+  "What a mixed-task overview must include:",
+  "Two phrases for describing a share:",
+  "My target for my next Task 1:"
+ ],
+ "homework": [
+  "Complete the full Task 1 (IELTS-X7-W2) under the stated conditions: 20 minutes, no help.",
+  "Write three sentences that each link a figure from a table to a pie chart in a task your teacher gives you.",
+  "Complete only the Brains Heist writing practice your teacher actually assigns."
+ ],
+ "followup": {
+  "id": "IELTS-X7-C1",
+  "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+  "delivery": "About one teaching week after this lesson, after feedback on the homework. 20 minutes: overview and one body paragraph for a new mixed task. No model, frame or phrase bank unless recorded as support. Classroom observation only.",
+  "blocks": [
+   {
+    "id": "IELTS-X7-C1",
+    "kind": "writing",
+    "task": "partial",
+    "title": "Travelling to college",
+    "mode": "Withheld fresh check; independent, timed",
+    "prompt": "Two pie charts compare how students reached Northfield College in 2010 and 2020; a table gives student numbers and parking spaces. Summarise the key developments in an overview and one detailed paragraph.",
+    "figure": {
+     "type": "pies",
+     "title": "Northfield College: how students travel to campus",
+     "note": "Fictional data for practice.",
+     "categories": [
+      "Car",
+      "Bus",
+      "Bicycle",
+      "Walk"
+     ],
+     "charts": [
+      {
+       "title": "2010",
+       "values": [
+        44,
+        30,
+        10,
+        16
+       ]
+      },
+      {
+       "title": "2020",
+       "values": [
+        26,
+        34,
+        25,
+        15
+       ]
+      }
+     ],
+     "table": {
+      "title": "Students and parking spaces",
+      "columns": [
+       "Year",
+       "Number of students",
+       "Campus parking spaces"
+      ],
+      "rows": [
+       [
+        "2010",
+        "3,200",
+        "900"
+       ],
+       [
+        "2020",
+        "4,100",
+        "600"
+       ]
+      ]
+     },
+     "alt": "Two pie charts and a table for a fictional college. In 2010, students travelled by car 44%, bus 30%, bicycle 10% and on foot 16%. In 2020: car 26%, bus 34%, bicycle 25%, walk 15%. The table shows student numbers rising from 3,200 to 4,100 while parking spaces fell from 900 to 600."
+    },
+    "conditions": "20 minutes, independent, no model or phrase bank. Record start and finish time and any support.",
+    "no_model": "Withheld fresh check: feedback uses the checklist only, so no model is shown or stored with the task.",
+    "checklist": [
+     "Task Achievement: Does the overview cover BOTH the pie charts and the table? Are the key figures selected and accurate?",
+     "Coherence and Cohesion: Are the pies and the table connected where relevant, rather than described separately and mechanically?",
+     "Lexical Resource: Is the language of proportion precise (accounted for, the share of, the proportion of, overtook)?",
+     "Grammatical Range and Accuracy: Are past tenses, comparatives and \"while/whereas\" contrasts controlled?"
+    ]
+   }
+  ],
+  "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence."
+ },
+ "delayed_followup": "In a later Writing review, check whether overviews cover all visuals and figures are accurate. Record it as a later observation.",
+ "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
+ "release_blockers": [
+  "Owner review of this new AI-assisted extension lesson (content, keys, models and figures) has not taken place.",
+  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+  "Student task publication and platform evidence capture remain separate, governed steps."
+ ]
+}

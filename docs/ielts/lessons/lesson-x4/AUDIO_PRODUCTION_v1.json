@@ -1,0 +1,168 @@
+{
+ "record": "IELTS-X4 listening audio production",
+ "version": "1",
+ "produced": "2026-10-18",
+ "provider": "Runway MCP (workspace 'Sobbi', personal)",
+ "script_source": "docs/ielts/lessons/lesson-x4/lesson.json",
+ "production_method": {
+  "instructions": "eleven_v4, voice Tom, stability 0.7; copyright notice reused from the IELTS-M1 production (identical text and voice)",
+  "assembly": "48 kHz mono; edge silence trimmed; each segment loudness-matched to -18 LUFS; exact digital silences (0.7 s, 30.0 s reading, 1.0 s, 1.2 s, 15.0 s response); true-peak limiter; MP3 96 kbps mono (keeps the pack under the 20 MB limit) with copyright metadata",
+  "effects": "none"
+ },
+ "rights_basis": {
+  "owner_confirmation": "Owner confirmed on 2026-10-17 that rights to recordings produced in this workflow belong to Brains Heist LLC."
+ },
+ "recordings": {
+  "IELTS-X4-L1": {
+   "file": "IELTS-X4-L1_v1.mp3",
+   "sha256": "349f208f48d20c00a36c8dd77ed6c7766cf0a882f682d05defb421bd39054592",
+   "bytes": 2598912,
+   "duration_seconds": 216.528,
+   "integrated_lufs": -18.7,
+   "true_peak_dbfs": -1.7,
+   "designed_cues": [
+    {
+     "label": "reading_silence",
+     "start": 14.105,
+     "seconds": 30.0
+    },
+    {
+     "label": "response_silence",
+     "start": 201.492,
+     "seconds": 15.0
+    }
+   ],
+   "detected_pauses_over_10s": [
+    30.13,
+    15.08
+   ],
+   "segments": [
+    {
+     "segment": "notice",
+     "source_lufs": -20.5,
+     "gain_db": 2.5,
+     "start": 0.0,
+     "seconds": 4.871
+    },
+    {
+     "segment": "L1_intro",
+     "source_lufs": -21.2,
+     "gain_db": 3.2,
+     "start": 5.571,
+     "seconds": 8.534
+    },
+    {
+     "segment": "L1_listen",
+     "source_lufs": -20.8,
+     "gain_db": 2.8,
+     "start": 44.105,
+     "seconds": 3.71
+    },
+    {
+     "segment": "L1_passage",
+     "source_lufs": -21.6,
+     "gain_db": 3.6,
+     "start": 48.815,
+     "seconds": 146.08
+    },
+    {
+     "segment": "end",
+     "source_lufs": -21.4,
+     "gain_db": 3.4,
+     "start": 196.095,
+     "seconds": 5.397
+    }
+   ],
+   "transcript_sha256": "43344b6da72d3ec20bb71f36d13ea7615335bbed9cb62021989b5b491dafd540",
+   "generation": {
+    "passage": {
+     "task": "6bc78a92-096c-432c-a607-304a69c8481a",
+     "model": "eleven_v4",
+     "voice": "James",
+     "stability": 0.5,
+     "seed": 4101
+    },
+    "intro_task": "a181448b-12a8-433d-b5c8-3ae95dd81c40",
+    "listen_cue_task": "7c78fe26-71ae-46f9-bfd9-508f976c9b1f",
+    "end_cue_task": "73a6d894-22dd-443f-a93d-5a42a9af2e0f",
+    "notice_task": "27432479-fca3-4fbb-a210-2d53aff3f703 (reused from IELTS-M1)"
+   }
+  },
+  "IELTS-X4-C1": {
+   "file": "IELTS-X4-C1_v1.mp3",
+   "sha256": "a9636195493468dc4cce7a7e8359309e7d243b87a51e29d1278620ae7504370f",
+   "bytes": 1607328,
+   "duration_seconds": 133.896,
+   "integrated_lufs": -18.5,
+   "true_peak_dbfs": -1.7,
+   "designed_cues": [
+    {
+     "label": "reading_silence",
+     "start": 13.39,
+     "seconds": 30.0
+    },
+    {
+     "label": "response_silence",
+     "start": 118.863,
+     "seconds": 15.0
+    }
+   ],
+   "detected_pauses_over_10s": [
+    30.14,
+    15.07
+   ],
+   "segments": [
+    {
+     "segment": "notice",
+     "source_lufs": -20.5,
+     "gain_db": 2.5,
+     "start": 0.0,
+     "seconds": 4.871
+    },
+    {
+     "segment": "C1_intro",
+     "source_lufs": -21.5,
+     "gain_db": 3.5,
+     "start": 5.571,
+     "seconds": 7.819
+    },
+    {
+     "segment": "C1_listen",
+     "source_lufs": -20.8,
+     "gain_db": 2.8,
+     "start": 43.39,
+     "seconds": 3.591
+    },
+    {
+     "segment": "C1_passage",
+     "source_lufs": -20.2,
+     "gain_db": 2.2,
+     "start": 47.981,
+     "seconds": 64.284
+    },
+    {
+     "segment": "end",
+     "source_lufs": -21.4,
+     "gain_db": 3.4,
+     "start": 113.466,
+     "seconds": 5.397
+    }
+   ],
+   "transcript_sha256": "eb0f2aab638c5174be83b2444ff6b8882698dac5d44b1a243bdb8cb790c694b6",
+   "generation": {
+    "passage": {
+     "task": "3307e9f3-7dfa-493f-a372-25ce896f6a36",
+     "model": "eleven_v4",
+     "voice": "Elias",
+     "stability": 0.5,
+     "seed": 4201
+    },
+    "intro_task": "b5dd59fb-380b-406d-8e10-7f063802d863",
+    "listen_cue_task": "2030c612-fa4b-437d-9363-b85a2627b0c1",
+    "end_cue_task": "73a6d894-22dd-443f-a93d-5a42a9af2e0f",
+    "notice_task": "27432479-fca3-4fbb-a210-2d53aff3f703 (reused from IELTS-M1)"
+   }
+  }
+ },
+ "status": "Produced v1; owner listening review pending"
+}

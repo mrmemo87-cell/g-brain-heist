@@ -6,6 +6,14 @@ import {
 import { downloadLessonFile } from '../../../services/ieltsLessonResources';
 import IeltsTeacherDisclosure from '../../components/ielts/IeltsTeacherDisclosure';
 
+// Mock tests (IELTS-M*) and optional extension lessons (IELTS-X*) share the review route with core lessons.
+const packKind = (code: string) => code.startsWith('IELTS-M') ? 'mock' : code.startsWith('IELTS-X') ? 'extension' : 'lesson';
+const packContents = {
+ lesson: 'Complete private pack: start guide, slides (PowerPoint and HTML), student workbook and homework, teacher guide, keys, scripts and models, withheld fresh check and review record.',
+ extension: 'Optional extension lesson outside the 24-lesson course: start guide, slides (PowerPoint and HTML), student workbook and homework, teacher guide, keys, scripts and models, withheld fresh check and review record.',
+ mock: 'Full paper-based mock test: Listening, Reading and Writing papers, answer sheet, Listening recording with a timed control page, answer key and transcripts, Speaking examiner script, feedback forms, administration guide and results record. Raw scores only; no band conversion.',
+};
+
 const decisionLabel = (p: ReviewDraftPack) => {
  const d = p.decision;
  if (!d || d.pack_sha256 !== p.sha256) return 'Awaiting review';
@@ -48,7 +56,7 @@ export default function IeltsReviewDraftPacks({ schoolId }: { schoolId: string }
  if (!loading && !error && packs.length === 0) return null;
  const reviewed = packs.filter(p => p.decision && p.decision.pack_sha256 === p.sha256 && p.decision.decision === 'approved').length;
  return <section aria-label="Lesson review drafts" className="lesson-library-content">
-  <h3>Review drafts: Lessons 5–24</h3>
+  <h3>Review drafts</h3>
   <p className="lesson-muted">Not approved for classroom use. Download a draft, review it, then record your decision. Recording an approval does not release a lesson to teachers or students; release stays a separate step.</p>
   {loading && <p role="status">Opening review drafts…</p>}
   {error && <div className="lesson-alert"><p role="status">{error}</p><button type="button" className="sp-secondary" disabled={!!busy} onClick={() => setRetry(n => n + 1)}>Retry review drafts</button></div>}
@@ -58,7 +66,7 @@ export default function IeltsReviewDraftPacks({ schoolId }: { schoolId: string }
    const label = decisionLabel(pack);
    const note = notes[pack.lesson_code] ?? '';
    return <IeltsTeacherDisclosure key={pack.object_path} title={`${pack.lesson_code} · ${pack.title}`} hint={`Review draft v${pack.version} · not approved for classroom use`} marker={label} defaultExpanded={false}>
-    <p>Complete private pack: start guide, slides (PowerPoint and HTML), student workbook and homework, teacher guide, keys, scripts and models, withheld fresh check and review record.</p>
+    <p>{packContents[packKind(pack.lesson_code)]}</p>
     {pack.recordings.length > 0 && <ul aria-label={`${pack.lesson_code} recordings`}>
      {pack.recordings.map(r => <li key={r.id}>{r.id}: {r.status}</li>)}
     </ul>}

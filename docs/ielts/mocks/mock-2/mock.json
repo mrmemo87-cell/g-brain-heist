@@ -1,0 +1,1449 @@
+{
+ "schema": "bh-ielts-mock-source/1",
+ "code": "IELTS-M2",
+ "number": 2,
+ "title": "Mock Test 2",
+ "version": "0.1.0",
+ "status": "Draft for owner review: not approved for classroom use",
+ "test_type": "Academic",
+ "bibles": {
+  "diagnostic": "1.10.0",
+  "lessons": "1.1.0",
+  "visual": "1.1.0"
+ },
+ "rights": "Original Brains Heist LLC practice test, AI-assisted. All people, places, organisations and data are fictional. Not official IELTS material and not endorsed by IELTS.",
+ "timing": {
+  "listening_minutes": 30,
+  "transfer_minutes": 10,
+  "reading_minutes": 60,
+  "writing_minutes": 60,
+  "speaking_minutes": "11-14 per candidate"
+ },
+ "scoring": {
+  "listening": "One mark per correct answer; raw score out of 40.",
+  "reading": "One mark per correct answer; raw score out of 40.",
+  "writing": "Teacher feedback on the four Writing criteria for each task; Task 2 counts for more than Task 1. No band is awarded from this mock.",
+  "speaking": "Teacher feedback on the four Speaking criteria from what is heard live or recorded. No band is awarded from this mock.",
+  "bands": "This mock reports raw scores and criterion feedback only. Brains Heist has no validated conversion from these forms to IELTS bands (Diagnostic Bible 2.2-2.3, 16.6); do not convert or average them."
+ },
+ "listening": {
+  "notice": "This recording is copyright Brains Heist LLC. All rights reserved.",
+  "opening": "You will hear a number of different recordings, and you will have to answer questions on what you hear. There will be time for you to read the instructions and questions, and you will have a chance to check your work. All the recordings will be played once only. The test is in four parts. Now turn to Part 1.",
+  "closing": "That is the end of the listening test. In the paper-based test, you now have ten minutes to transfer your answers to the answer sheet.",
+  "parts": [
+   {
+    "part": 1,
+    "title": "Booking a room for a family celebration",
+    "intro": "Part 1. You will hear a man phoning a hotel to book a room for a family celebration.",
+    "voices": {
+     "instruction": "Tom",
+     "SARAH": "Eleanor",
+     "DANIEL": "Jack"
+    },
+    "segments": [
+     {
+      "questions": "1 to 6",
+      "reading_seconds": 30,
+      "lines": [
+       "SARAH: Good afternoon, Riverside Hotel, events team. Sarah speaking.",
+       "DANIEL: Hello. I'm calling about hiring a room for a family party. It's for my parents' fortieth wedding anniversary.",
+       "SARAH: Congratulations to them! I can certainly help. Can I start with your name?",
+       "DANIEL: Yes, it's Daniel Fenwick. That's F-E-N-W-I-C-K.",
+       "SARAH: Thank you, Mr Fenwick. And what date were you thinking of?",
+       "DANIEL: We'd originally hoped for Saturday the fourteenth of June, but my sister can't come that weekend, so it'll have to be the twenty-first.",
+       "SARAH: The twenty-first of June. Let me check. Yes, we have two rooms free that evening. How many guests are you expecting?",
+       "DANIEL: We've invited about sixty people, but I think around fifty will actually come.",
+       "SARAH: Then I'd suggest the Garden Room. The Lake Room is bigger, but it holds a hundred and twenty, and it would feel rather empty with fifty. The Garden Room is ideal for up to seventy.",
+       "DANIEL: That sounds right. Does it have its own entrance? Some of the older relatives use wheelchairs.",
+       "SARAH: It has step-free access from the car park, and there's a lift to the main restaurant if you need it.",
+       "DANIEL: Perfect. And what's the cost for hiring it?",
+       "SARAH: For an evening, the room itself is three hundred and fifty pounds. That's reduced to two hundred and eighty if you book our catering as well.",
+       "DANIEL: We'll probably want catering, so that's good news. Do we have to pay a deposit?",
+       "SARAH: Yes, we ask for a deposit of one hundred pounds to confirm the booking, and the rest one week before the event."
+      ]
+     },
+     {
+      "questions": "7 to 10",
+      "reading_seconds": 30,
+      "lines": [
+       "DANIEL: Can you tell me about the food options?",
+       "SARAH: Of course. There are three menus. The buffet is the most popular for family parties. It's twenty-two pounds per person and includes hot and cold dishes. A sit-down dinner is thirty-five pounds, and there's also a lighter afternoon tea menu at fifteen.",
+       "DANIEL: I think the buffet would suit us best. My parents would like a cake, though. Can we bring our own?",
+       "SARAH: You're welcome to bring a cake. We just ask that you let the kitchen know in advance, and there's no extra charge for serving it.",
+       "DANIEL: Great. What about music? My cousin is a DJ.",
+       "SARAH: That's fine, but the music has to finish by eleven o'clock, because we have guests staying in the rooms above. The room itself is yours until half past eleven, so there's time to clear up.",
+       "DANIEL: That's reasonable. And decorations?",
+       "SARAH: You can decorate the room, but please don't use anything that sticks to the walls. We provide white tablecloths, and we can arrange fresh flowers on the tables for an extra forty pounds.",
+       "DANIEL: I'll talk to my sister about the flowers. One last thing: is there parking for guests?",
+       "SARAH: Yes, guests can park for free in the hotel car park. If it's full, there's a public car park on Bridge Street, about five minutes' walk away.",
+       "DANIEL: Lovely. I think that's everything for now. Could you send me the booking form?",
+       "SARAH: Of course. I'll email it to you this afternoon."
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       1,
+       6
+      ],
+      "type": "completion",
+      "instructions": "Complete the form below. Write ONE WORD AND/OR A NUMBER for each answer.",
+      "word_limit": 2,
+      "form_title": "Riverside Hotel: room booking",
+      "items": [
+       {
+        "n": 1,
+        "prompt": "Name: Daniel ______",
+        "answer": "Fenwick",
+        "accept": [],
+        "evidence": "That's F-E-N-W-I-C-K."
+       },
+       {
+        "n": 2,
+        "prompt": "Date of party: ______ June",
+        "answer": "21",
+        "accept": [
+         "21st",
+         "twenty-first"
+        ],
+        "evidence": "so it'll have to be the twenty-first"
+       },
+       {
+        "n": 3,
+        "prompt": "Expected number of guests: about ______",
+        "answer": "50",
+        "accept": [
+         "fifty"
+        ],
+        "evidence": "I think around fifty will actually come"
+       },
+       {
+        "n": 4,
+        "prompt": "Room: the ______ Room",
+        "answer": "Garden",
+        "accept": [],
+        "evidence": "Then I'd suggest the Garden Room."
+       },
+       {
+        "n": 5,
+        "prompt": "Room cost with catering: £______",
+        "answer": "280",
+        "accept": [
+         "two hundred and eighty"
+        ],
+        "evidence": "That's reduced to two hundred and eighty if you book our catering as well."
+       },
+       {
+        "n": 6,
+        "prompt": "Deposit: £______",
+        "answer": "100",
+        "accept": [
+         "one hundred",
+         "a hundred"
+        ],
+        "evidence": "we ask for a deposit of one hundred pounds"
+       }
+      ]
+     },
+     {
+      "range": [
+       7,
+       10
+      ],
+      "type": "completion",
+      "instructions": "Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.",
+      "word_limit": 2,
+      "form_title": "Party arrangements",
+      "items": [
+       {
+        "n": 7,
+        "prompt": "Buffet: £______ per person",
+        "answer": "22",
+        "accept": [
+         "twenty-two"
+        ],
+        "evidence": "It's twenty-two pounds per person"
+       },
+       {
+        "n": 8,
+        "prompt": "Own cake: tell the ______ in advance",
+        "answer": "kitchen",
+        "accept": [],
+        "evidence": "let the kitchen know in advance"
+       },
+       {
+        "n": 9,
+        "prompt": "Music must finish by ______ pm",
+        "answer": "11",
+        "accept": [
+         "eleven",
+         "11.00",
+         "11:00"
+        ],
+        "evidence": "the music has to finish by eleven o'clock"
+       },
+       {
+        "n": 10,
+        "prompt": "Extra parking: public car park on ______ Street",
+        "answer": "Bridge",
+        "accept": [],
+        "evidence": "a public car park on Bridge Street"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "part": 2,
+    "title": "A new community park",
+    "intro": "Part 2. You will hear a park manager talking to local residents about a new community park.",
+    "voices": {
+     "instruction": "Tom",
+     "TONY": "Rusty"
+    },
+    "segments": [
+     {
+      "questions": "11 to 15",
+      "reading_seconds": 30,
+      "lines": [
+       "TONY: Good evening, everyone, and thank you for coming. I'm Tony Hale, the manager of the new Hilltop Community Park, which opens to the public next month. Tonight I'd like to show you around the park on the plan, and then tell you about some of the activities we're planning.",
+       "TONY: If you look at the plan, you'll see the main entrance on Park Road, in the bottom left-hand corner. From there, the main path runs straight across the park from west to east, and a second path runs from south to north, crossing it in the middle.",
+       "TONY: Just to the right of the main entrance, before you reach the north-south path, you'll find the visitor centre. That's where you can pick up maps and information about events.",
+       "TONY: Now, if you follow the north-south path to the very top of the park, you'll come to the community garden. That's on the right of the path, at the far end, and it's where local schools will be growing vegetables.",
+       "TONY: Many of you have asked about the children's playground. It's on the left-hand side of the park, just above the main path, so parents can see it easily from the benches there.",
+       "TONY: The café is in a lovely position, right next to the lake, on its left side. It's on the far side of the main path from the entrance, so you walk up the north-south path, turn right, and you'll see it in front of the water.",
+       "TONY: And finally, the toilets. These are in the north-west corner of the park, at the top on the left, next to the play area for younger children.",
+       "TONY: There's one more building I should mention: the small hut beside the lake on its right side. That's the boat hire office, which will open in the summer."
+      ]
+     },
+     {
+      "questions": "16 to 20",
+      "reading_seconds": 30,
+      "lines": [
+       "TONY: Now let me tell you about some of the activities we're planning. Several people have asked whether dogs will be allowed. They will, but they must be kept on a lead everywhere except in the open field to the east of the community garden, where they can run freely.",
+       "TONY: We'd also like to involve local people as volunteers. We expected that most volunteers would want to help in the garden, and we do need people there, but the area where we're most short of help is actually the visitor centre, especially at weekends, when we need people to welcome visitors and answer questions.",
+       "TONY: The park will be open every day from seven in the morning. In summer, the gates will close at nine in the evening, and in winter at five. The café will keep its own hours, opening at nine.",
+       "TONY: For the opening day, we've planned a programme of events. There'll be a guided walk around the lake at ten, and a children's treasure hunt at two. We had hoped to have a concert in the evening, but unfortunately the stage won't be ready in time, so that will take place later in the summer instead.",
+       "TONY: We'd also like your ideas for the park's name. Hilltop Community Park is only a working title. We'll be collecting suggestions through the council website until the end of the month, and the final choice will be made by a vote of local residents, not by the council.",
+       "TONY: And lastly, a request. We're trying to reduce litter, so there won't be bins inside the park, except at the café. We're asking visitors to take their rubbish home with them. We know this is unusual, so we'll see how it works over the first year.",
+       "TONY: Right, are there any questions?"
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       11,
+       15
+      ],
+      "type": "matching",
+      "map": true,
+      "instructions": "Label the plan below. Write the correct letter, A–H, next to Questions 11–15.",
+      "figure": {
+       "type": "maps",
+       "title": "Hilltop Community Park",
+       "note": "Fictional plan for practice.",
+       "plans": [
+        {
+         "title": "Plan of the park",
+         "roads": [
+          {
+           "points": [
+            [
+             5,
+             40
+            ],
+            [
+             95,
+             40
+            ]
+           ],
+           "label": "Main path",
+           "label_at": [
+            50,
+            42.6
+           ],
+           "width": 7
+          },
+          {
+           "points": [
+            [
+             50,
+             5
+            ],
+            [
+             50,
+             75
+            ]
+           ],
+           "width": 5
+          }
+         ],
+         "areas": [
+          {
+           "x": 4,
+           "y": 4,
+           "w": 18,
+           "h": 12,
+           "label": "Main entrance (Park Road)",
+           "kind": "parking"
+          },
+          {
+           "x": 66,
+           "y": 46,
+           "w": 22,
+           "h": 16,
+           "label": "Lake",
+           "kind": "water"
+          },
+          {
+           "x": 22,
+           "y": 64,
+           "w": 14,
+           "h": 10,
+           "label": "Toddler play area",
+           "kind": "green"
+          },
+          {
+           "x": 26,
+           "y": 6,
+           "w": 14,
+           "h": 12,
+           "label": "A"
+          },
+          {
+           "x": 53,
+           "y": 66,
+           "w": 12,
+           "h": 10,
+           "label": "B"
+          },
+          {
+           "x": 70,
+           "y": 10,
+           "w": 14,
+           "h": 12,
+           "label": "C"
+          },
+          {
+           "x": 6,
+           "y": 22,
+           "w": 14,
+           "h": 12,
+           "label": "D"
+          },
+          {
+           "x": 52.5,
+           "y": 48,
+           "w": 11,
+           "h": 10,
+           "label": "E"
+          },
+          {
+           "x": 89,
+           "y": 50,
+           "w": 8,
+           "h": 8,
+           "label": "F"
+          },
+          {
+           "x": 6,
+           "y": 64,
+           "w": 14,
+           "h": 10,
+           "label": "G"
+          },
+          {
+           "x": 8,
+           "y": 44,
+           "w": 14,
+           "h": 12,
+           "label": "H"
+          }
+         ]
+        }
+       ]
+      },
+      "options_title": "Places",
+      "options": [
+       "A",
+       "B",
+       "C",
+       "D",
+       "E",
+       "F",
+       "G",
+       "H"
+      ],
+      "items": [
+       {
+        "n": 11,
+        "prompt": "Visitor centre",
+        "answer": "A",
+        "evidence": "Just to the right of the main entrance, before you reach the north-south path, you"
+       },
+       {
+        "n": 12,
+        "prompt": "Community garden",
+        "answer": "B",
+        "evidence": "That's on the right of the path, at the far end"
+       },
+       {
+        "n": 13,
+        "prompt": "Children's playground",
+        "answer": "H",
+        "evidence": "It's on the left-hand side of the park, just above the main path"
+       },
+       {
+        "n": 14,
+        "prompt": "Café",
+        "answer": "E",
+        "evidence": "right next to the lake, on its left side"
+       },
+       {
+        "n": 15,
+        "prompt": "Toilets",
+        "answer": "G",
+        "evidence": "These are in the north-west corner of the park"
+       }
+      ]
+     },
+     {
+      "range": [
+       16,
+       20
+      ],
+      "type": "mcq",
+      "instructions": "Choose the correct letter, A, B or C.",
+      "items": [
+       {
+        "n": 16,
+        "prompt": "Dogs can be let off the lead",
+        "options": [
+         "A  near the lake.",
+         "B  in the field east of the garden.",
+         "C  on the main path."
+        ],
+        "answer": "B",
+        "evidence": "except in the open field to the east of the community garden"
+       },
+       {
+        "n": 17,
+        "prompt": "Volunteers are most needed",
+        "options": [
+         "A  in the community garden.",
+         "B  in the café.",
+         "C  at the visitor centre."
+        ],
+        "answer": "C",
+        "evidence": "the area where we're most short of help is actually the visitor centre"
+       },
+       {
+        "n": 18,
+        "prompt": "In winter, the park gates close at",
+        "options": [
+         "A  5 pm.",
+         "B  7 pm.",
+         "C  9 pm."
+        ],
+        "answer": "A",
+        "evidence": "in winter at five"
+       },
+       {
+        "n": 19,
+        "prompt": "On the opening day, there will be",
+        "options": [
+         "A  an evening concert.",
+         "B  a treasure hunt for children.",
+         "C  a boat race on the lake."
+        ],
+        "answer": "B",
+        "evidence": "a children's treasure hunt at two"
+       },
+       {
+        "n": 20,
+        "prompt": "The park's final name will be chosen by",
+        "options": [
+         "A  the council.",
+         "B  local schools.",
+         "C  a vote of residents."
+        ],
+        "answer": "C",
+        "evidence": "the final choice will be made by a vote of local residents"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "part": 3,
+    "title": "Preparing a presentation on food labels",
+    "intro": "Part 3. You will hear two students, Mei and Josh, discussing a presentation they are preparing on food labelling.",
+    "voices": {
+     "instruction": "Tom",
+     "MEI": "Lisa",
+     "JOSH": "Noah"
+    },
+    "segments": [
+     {
+      "questions": "21 to 25",
+      "reading_seconds": 30,
+      "lines": [
+       "MEI: Josh, have you got a minute to go over our presentation? It's only two weeks away now.",
+       "JOSH: Sure. I've been reading about traffic-light labels, the ones that show red, amber or green for fat, sugar and salt.",
+       "MEI: Me too. What surprised me was that people do look at them, but mostly when they're buying something for the first time. Once they've chosen a product, they hardly ever check the label again.",
+       "JOSH: Yes, I read that as well. I'd assumed that the main problem would be that people don't understand the colours, but actually they understand them quite well. It's more that they don't use them regularly.",
+       "MEI: So should we focus on that in the presentation?",
+       "JOSH: I think so. And we should mention the research on portion sizes. A lot of labels give information per hundred grams, but people eat very different amounts, so the information can be misleading.",
+       "MEI: Good point. Now, for our own survey, I was going to interview shoppers outside the supermarket, but the manager said no.",
+       "JOSH: That's a pity. What about asking students instead? We could do it in the canteen.",
+       "MEI: That's what I was thinking, but students aren't typical shoppers. Maybe we could do an online questionnaire and send it to parents through the school newsletter as well.",
+       "JOSH: Good idea. That would give us a wider range of ages.",
+       "MEI: Now, how long should the presentation be? The guidelines say fifteen minutes.",
+       "JOSH: Fifteen including questions, or fifteen and then questions?",
+       "MEI: It's fifteen for the talk itself, then five minutes for questions. So we should aim for about seven minutes each.",
+       "JOSH: That's not very long, once we've introduced the topic. We'll have to be selective about the research we include.",
+       "MEI: I agree. Let's choose the three most important findings and leave the rest for the questions."
+      ]
+     },
+     {
+      "questions": "26 to 30",
+      "reading_seconds": 30,
+      "lines": [
+       "JOSH: Let's decide who does what. I'm happy to do the introduction, since I've read most of the background.",
+       "MEI: Fine. And I'll do the part on our survey results, because I'm organising the questionnaire.",
+       "JOSH: What about the slides? You're much better at design than I am.",
+       "MEI: I don't mind doing them, but you'll need to send me your notes by Friday.",
+       "JOSH: No problem. And I think we should both work on the conclusion, so it brings our two parts together.",
+       "MEI: Agreed. What about the handout? Dr Lewis said it was optional.",
+       "JOSH: I'd rather not have one. People read the handout instead of listening.",
+       "MEI: Actually, I think a short one would help, with the main statistics on it. But I'll write it, so you don't have to worry.",
+       "JOSH: OK, fair enough. And the practice session? Shall we book a room?",
+       "MEI: You know the library staff better than I do. Could you arrange that?",
+       "JOSH: Sure. I'll book one of the group study rooms for next Thursday.",
+       "MEI: Great. And then we'll rehearse together and time it properly.",
+       "JOSH: Sounds like a plan."
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       21,
+       25
+      ],
+      "type": "mcq",
+      "instructions": "Choose the correct letter, A, B or C.",
+      "items": [
+       {
+        "n": 21,
+        "prompt": "What did Mei find surprising about traffic-light labels?",
+        "options": [
+         "A  Most shoppers do not notice them.",
+         "B  Shoppers mainly check them for new products.",
+         "C  Shoppers find the colours confusing."
+        ],
+        "answer": "B",
+        "evidence": "mostly when they're buying something for the first time"
+       },
+       {
+        "n": 22,
+        "prompt": "According to Josh, the main problem with the labels is that people",
+        "options": [
+         "A  do not use them regularly.",
+         "B  do not understand the colours.",
+         "C  do not trust the information."
+        ],
+        "answer": "A",
+        "evidence": "It's more that they don't use them regularly."
+       },
+       {
+        "n": 23,
+        "prompt": "Why does Josh think information per hundred grams can be misleading?",
+        "options": [
+         "A  The figures are often wrong.",
+         "B  Products are sold in many sizes.",
+         "C  People eat different amounts."
+        ],
+        "answer": "C",
+        "evidence": "people eat very different amounts"
+       },
+       {
+        "n": 24,
+        "prompt": "How will the students collect data for their survey?",
+        "options": [
+         "A  by interviewing shoppers at the supermarket",
+         "B  through an online questionnaire",
+         "C  by speaking to students in the canteen"
+        ],
+        "answer": "B",
+        "evidence": "Maybe we could do an online questionnaire"
+       },
+       {
+        "n": 25,
+        "prompt": "How long will the talk itself last?",
+        "options": [
+         "A  7 minutes",
+         "B  15 minutes",
+         "C  20 minutes"
+        ],
+        "answer": "B",
+        "evidence": "It's fifteen for the talk itself"
+       }
+      ]
+     },
+     {
+      "range": [
+       26,
+       30
+      ],
+      "type": "matching",
+      "instructions": "Who will be responsible for each task? Write the correct letter, A, B or C, next to Questions 26–30.",
+      "options_title": "People",
+      "options": [
+       "A  Mei",
+       "B  Josh",
+       "C  both Mei and Josh"
+      ],
+      "items": [
+       {
+        "n": 26,
+        "prompt": "the introduction",
+        "answer": "B",
+        "evidence": "I'm happy to do the introduction"
+       },
+       {
+        "n": 27,
+        "prompt": "the slides",
+        "answer": "A",
+        "evidence": "I don't mind doing them"
+       },
+       {
+        "n": 28,
+        "prompt": "the conclusion",
+        "answer": "C",
+        "evidence": "we should both work on the conclusion"
+       },
+       {
+        "n": 29,
+        "prompt": "the handout",
+        "answer": "A",
+        "evidence": "But I'll write it, so you don't have to worry."
+       },
+       {
+        "n": 30,
+        "prompt": "booking a room for practice",
+        "answer": "B",
+        "evidence": "I'll book one of the group study rooms for next Thursday."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "part": 4,
+    "title": "How honeybees share information",
+    "intro": "Part 4. You will hear part of a lecture about how honeybees communicate.",
+    "voices": {
+     "instruction": "Tom",
+     "LECTURER": "Marlene"
+    },
+    "segments": [
+     {
+      "questions": "31 to 40",
+      "reading_seconds": 45,
+      "lines": [
+       "LECTURER: Today we're going to look at one of the most remarkable examples of communication in the animal world: the way honeybees tell each other where to find food.",
+       "LECTURER: A honeybee colony depends on a group of older workers called foragers. Their job is to find flowers and bring back nectar and pollen. Because flowers in any area bloom and fade quickly, the colony needs a fast way of sharing information about the best places to go.",
+       "LECTURER: The solution is a form of movement that scientists call the waggle dance. It was first described in detail in the mid-twentieth century by the Austrian researcher Karl von Frisch, who later received a Nobel Prize for this work.",
+       "LECTURER: When a forager returns to the hive with good news, she performs the dance on the vertical surface of the honeycomb, in the dark. She runs forward in a straight line while shaking her body from side to side, then circles back and repeats the movement many times.",
+       "LECTURER: The dance contains two key pieces of information. First, the direction of the straight run tells the other bees which way to fly. The bee uses the position of the sun as a reference. If the food is directly towards the sun, she dances straight up the comb. If it's at an angle to the sun, she changes the angle of her run to match.",
+       "LECTURER: Second, the length of the waggle run indicates distance. The longer she waggles, the further away the food is. Researchers have estimated that one second of waggling represents roughly one kilometre, although this varies between populations.",
+       "LECTURER: Interestingly, the dance also seems to communicate quality. When the food source is particularly rich, the dancer repeats the dance more times, which attracts more followers.",
+       "LECTURER: For food that is very close to the hive, usually within fifty metres, bees perform a simpler movement called the round dance, which tells others to search nearby without giving a precise direction.",
+       "LECTURER: Not all scientists accepted von Frisch's ideas at first. Some argued that bees found food simply by following smells carried on the dancer's body. The debate was finally settled in the 2000s, when researchers used radar to track individual bees after they had watched a dance. The bees flew directly towards the area indicated by the dance, which would not have been possible using smell alone.",
+       "LECTURER: Why does this matter today? Bee populations are under pressure in many parts of the world, and understanding how they find food helps us plan landscapes that support them. Some researchers now decode thousands of dances recorded on video to create maps of where bees are feeding. These maps have shown, for example, that bees in some cities travel surprisingly long distances, which suggests that suitable flowers are scarce.",
+       "LECTURER: In our next session, we'll look at how other social insects, such as ants, solve similar problems."
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       31,
+       40
+      ],
+      "type": "completion",
+      "instructions": "Complete the notes below. Write ONE WORD ONLY for each answer.",
+      "word_limit": 1,
+      "form_title": "The honeybee waggle dance",
+      "items": [
+       {
+        "n": 31,
+        "prompt": "Food is found by older workers known as ______.",
+        "answer": "foragers",
+        "accept": [],
+        "evidence": "a group of older workers called foragers"
+       },
+       {
+        "n": 32,
+        "prompt": "Information must be shared quickly because flowers bloom and ______ quickly.",
+        "answer": "fade",
+        "accept": [],
+        "evidence": "bloom and fade quickly"
+       },
+       {
+        "n": 33,
+        "prompt": "Von Frisch was awarded a ______ Prize for his research.",
+        "answer": "Nobel",
+        "accept": [],
+        "evidence": "who later received a Nobel Prize for this work"
+       },
+       {
+        "n": 34,
+        "prompt": "The dance takes place in the ______ on the comb.",
+        "answer": "dark",
+        "accept": [],
+        "evidence": "in the dark"
+       },
+       {
+        "n": 35,
+        "prompt": "The direction of the run is based on the position of the ______.",
+        "answer": "sun",
+        "accept": [],
+        "evidence": "The bee uses the position of the sun as a reference."
+       },
+       {
+        "n": 36,
+        "prompt": "The length of the waggle run shows the ______ to the food.",
+        "answer": "distance",
+        "accept": [],
+        "evidence": "the length of the waggle run indicates distance"
+       },
+       {
+        "n": 37,
+        "prompt": "When the food source is rich, the dancer ______ the dance more times.",
+        "answer": "repeats",
+        "accept": [],
+        "evidence": "the dancer repeats the dance more times"
+       },
+       {
+        "n": 38,
+        "prompt": "The round dance is used for food within about 50 ______.",
+        "answer": "metres",
+        "accept": [
+         "meters",
+         "m"
+        ],
+        "evidence": "usually within fifty metres"
+       },
+       {
+        "n": 39,
+        "prompt": "In the 2000s, ______ was used to follow individual bees.",
+        "answer": "radar",
+        "accept": [],
+        "evidence": "when researchers used radar to track individual bees"
+       },
+       {
+        "n": 40,
+        "prompt": "Long journeys by city bees suggest that suitable flowers are ______.",
+        "answer": "scarce",
+        "accept": [],
+        "evidence": "which suggests that suitable flowers are scarce"
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "reading": {
+  "passages": [
+   {
+    "n": 1,
+    "title": "Farming upwards: the rise of vertical farms",
+    "labelled": false,
+    "paragraphs": [
+     "In a former warehouse on the edge of a large city, lettuce is growing on shelves that reach almost to the ceiling. There is no soil and no sunlight. Instead, the plants grow under rows of purple-pink lamps, with their roots in trays of water containing dissolved nutrients. This is a vertical farm, and its supporters believe that buildings like this one could change the way cities are fed. Inside, the temperature, humidity and even the carbon dioxide level are adjusted automatically by computers, and workers wear protective clothing to avoid bringing in insects or disease from outside.",
+     "The idea of growing food in tall buildings is not new. It was popularised in the late 1990s by an American professor, Dickson Despommier, who challenged his students to design a farm that could feed a city from within its own boundaries. For many years, however, the concept remained largely theoretical. The cost of lighting was simply too high, and few investors believed that indoor crops could compete with those grown in fields. Small experimental farms were built in universities and research centres, but they were seen mainly as a way of studying plant growth rather than as businesses that could supply supermarkets.",
+     "What changed was the development of light-emitting diodes, or LEDs. Earlier indoor farms relied on lamps that wasted much of their energy as heat. LEDs produce little heat and can be tuned to emit only the colours of light that plants use most efficiently for photosynthesis, mainly red and blue. This is why many vertical farms are bathed in a purple glow. As the price of LEDs fell during the 2010s, commercial vertical farms began to open in Asia, Europe and North America. Japan was among the earliest adopters, partly because of concerns about food security after a major earthquake in 2011 disrupted supplies, and partly because land suitable for farming near its large cities is scarce and expensive.",
+     "Most vertical farms use a method called hydroponics, in which plants grow with their roots in water rather than soil. Some use a variation called aeroponics, where the roots hang in the air and are sprayed with a fine mist. Both methods use far less water than conventional agriculture, because the water is collected and reused. Some operators claim a reduction of more than ninety per cent. The nutrients that plants would normally take from the soil are dissolved in the water, and sensors monitor their levels continuously so that they can be adjusted for each crop.",
+     "Supporters point to several other advantages. Because the growing environment is completely controlled, crops can be harvested all year round, regardless of the weather. Pests are rare, so pesticides are seldom needed. And because farms can be built close to where people live, produce can reach shops within hours of being picked, reducing the need for long-distance transport and refrigeration.",
+     "However, the industry has faced serious difficulties. The most significant is energy. Although LEDs are efficient, they still consume large amounts of electricity, as do the systems that control temperature and humidity. In countries where electricity is expensive or generated mainly from fossil fuels, both the financial and the environmental case for vertical farming becomes much weaker. Several well-funded companies have closed in recent years after failing to make a profit.",
+     "There is also the question of which crops are suitable. At present, vertical farms grow mainly leafy greens and herbs. These plants are small, grow quickly and can be sold at relatively high prices. Staple crops such as wheat and rice, which provide most of the world's calories, are not economically viable indoors, because they need a great deal of space and light for a product that sells cheaply.",
+     "Even so, researchers continue to experiment. Some farms are now testing strawberries and tomatoes, which require pollination; a few have introduced bees into their growing rooms. Others are combining vertical farming with renewable energy, for example by building farms next to solar or wind installations. A further area of research involves breeding new plant varieties that are better suited to indoor conditions, for example dwarf fruit trees that can be grown on shelves. Whether vertical farms will ever produce more than a small share of our food remains uncertain, but they are likely to play a growing role in supplying fresh produce to cities."
+    ],
+    "groups": [
+     {
+      "range": [
+       1,
+       6
+      ],
+      "type": "tfng",
+      "instructions": "Do the following statements agree with the information given in Reading Passage 1? Write TRUE, FALSE or NOT GIVEN.",
+      "items": [
+       {
+        "n": 1,
+        "prompt": "The plants in the warehouse farm receive no natural light.",
+        "answer": "TRUE",
+        "evidence": "There is no soil and no sunlight."
+       },
+       {
+        "n": 2,
+        "prompt": "Despommier's students built the first working vertical farm.",
+        "answer": "NOT GIVEN",
+        "evidence": "who challenged his students to design a farm that could feed a city",
+        "note": "The passage says Despommier challenged students to design a farm; it does not say they built one."
+       },
+       {
+        "n": 3,
+        "prompt": "Investors were enthusiastic about vertical farming before the development of LEDs.",
+        "answer": "FALSE",
+        "evidence": "few investors believed that indoor crops could compete with those grown in fields"
+       },
+       {
+        "n": 4,
+        "prompt": "Aeroponics uses more water than hydroponics.",
+        "answer": "NOT GIVEN",
+        "evidence": "Both methods use far less water than conventional agriculture",
+        "note": "The passage compares both methods with conventional agriculture, not with each other."
+       },
+       {
+        "n": 5,
+        "prompt": "Vertical farms rarely need to use pesticides.",
+        "answer": "TRUE",
+        "evidence": "Pests are rare, so pesticides are seldom needed."
+       },
+       {
+        "n": 6,
+        "prompt": "Every vertical farm company that has received large investments has made a profit.",
+        "answer": "FALSE",
+        "evidence": "Several well-funded companies have closed in recent years after failing to make a profit."
+       }
+      ]
+     },
+     {
+      "range": [
+       7,
+       13
+      ],
+      "type": "completion",
+      "instructions": "Complete the table below. Choose ONE WORD ONLY from the passage for each answer.",
+      "word_limit": 1,
+      "form_title": "Vertical farming: key points",
+      "items": [
+       {
+        "n": 7,
+        "prompt": "Lighting: LEDs give off little ______.",
+        "answer": "heat",
+        "accept": [],
+        "evidence": "LEDs produce little heat"
+       },
+       {
+        "n": 8,
+        "prompt": "LEDs can provide the colours plants need for ______.",
+        "answer": "photosynthesis",
+        "accept": [],
+        "evidence": "the colours of light that plants use most efficiently for photosynthesis"
+       },
+       {
+        "n": 9,
+        "prompt": "Advantage: crops are produced all year, whatever the ______.",
+        "answer": "weather",
+        "accept": [],
+        "evidence": "regardless of the weather"
+       },
+       {
+        "n": 10,
+        "prompt": "Advantage: less need for transport and ______.",
+        "answer": "refrigeration",
+        "accept": [],
+        "evidence": "reducing the need for long-distance transport and refrigeration"
+       },
+       {
+        "n": 11,
+        "prompt": "Main problem: ______ use",
+        "answer": "energy",
+        "accept": [],
+        "evidence": "The most significant is energy."
+       },
+       {
+        "n": 12,
+        "prompt": "Suitable crops: leafy greens and ______",
+        "answer": "herbs",
+        "accept": [],
+        "evidence": "vertical farms grow mainly leafy greens and herbs"
+       },
+       {
+        "n": 13,
+        "prompt": "Experiments: ______ added to growing rooms for pollination",
+        "answer": "bees",
+        "accept": [],
+        "evidence": "a few have introduced bees into their growing rooms"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": 2,
+    "title": "The return of the sea otter",
+    "labelled": true,
+    "paragraphs": [
+     "Along the Pacific coast of North America, the sea otter is enjoying a remarkable recovery. Two centuries ago, hundreds of thousands of these animals lived in the coastal waters between Japan and California. By the early twentieth century, they had been hunted almost to extinction for their fur, which is the densest of any mammal, with up to a million hairs in a single square centimetre. Only a few small groups survived, in isolated places that hunters had failed to reach. Unlike most marine mammals, sea otters spend almost their whole lives at the surface, floating on their backs, and they often wrap themselves in kelp to avoid drifting away while they sleep. They are also one of the few animals known to use tools, frequently using a stone to break open the shells of their prey.",
+     "International protection came in 1911, when a treaty between the United States, Russia, Japan and Britain banned commercial hunting. Recovery was slow at first, but from the 1960s onwards, conservationists began moving otters from surviving populations to areas where they had disappeared. This was difficult and expensive work: the animals had to be caught at sea, kept in floating pens and then carried by boat or aircraft, sometimes over hundreds of kilometres. Some of these relocations failed, as the animals swam back towards their original homes or died soon after release. Others succeeded, and today several regions have populations numbering in the thousands. Scientists now count the animals regularly, usually from small aircraft or from the shore, and these surveys show that growth has been fastest in areas with large rocky reefs and plenty of food. In places where the coast is sandy, populations have increased much more slowly.",
+     "The return of the sea otter has had effects far beyond the species itself. Sea otters eat large quantities of sea urchins, spiny animals that feed on kelp, the giant seaweed that forms underwater forests along rocky coasts. When otters disappeared, urchin numbers exploded, and in many places the kelp forests were eaten away, leaving bare rock that scientists call urchin barrens. Where otters have returned, urchins have been brought under control and the kelp has grown back. In one well-studied area, kelp cover increased several times over within a decade of the otters' arrival. Urchins have not disappeared, but those that remain tend to hide in cracks in the rock and feed on drifting pieces of seaweed rather than on living plants.",
+     "Divers who knew these coasts before and after the otters' return describe the change as dramatic, comparing it to the difference between a desert and a forest. This chain of effects is an example of what ecologists call a trophic cascade, in which a predator influences an entire ecosystem by controlling the animals it eats. Kelp forests provide shelter and food for hundreds of other species, including many fish that are important to commercial fishing. They also absorb carbon dioxide, and some researchers have suggested that the recovery of sea otters has increased the amount of carbon stored along certain coastlines, although estimates of the scale of this effect vary widely.",
+     "Not everyone has welcomed the otters' return. Sea otters also eat shellfish such as crabs, clams and abalone, which support valuable fisheries. In some areas, fishermen have reported that catches fell sharply after otters arrived, and there has been tension between fishing communities and conservation groups. Some economists argue that the losses to shellfish fisheries are outweighed by gains in fin fish and tourism, but these benefits are not always felt by the same people who bear the costs. In some regions, local councils have tried to bring the groups together, for example by involving fishermen in counting otters and in deciding which areas should be protected.",
+     "Sea otters also face new threats. Because they lack a thick layer of fat, they depend entirely on their fur to stay warm, and oil spills can be fatal, as oil destroys its insulating properties. Disease, often linked to pollution flowing from the land, is a growing cause of death in some populations, and in parts of Alaska, numbers have fallen again, possibly because killer whales have begun to hunt otters more often. Managers therefore stress that the species' recovery cannot be taken for granted, and that continued monitoring will be essential."
+    ],
+    "groups": [
+     {
+      "range": [
+       14,
+       18
+      ],
+      "type": "matching",
+      "instructions": "Reading Passage 2 has six paragraphs, A–F. Which paragraph contains the following information? Write the correct letter, A–F. NB You may use any letter more than once.",
+      "options_title": "Paragraphs",
+      "options": [
+       "A",
+       "B",
+       "C",
+       "D",
+       "E",
+       "F"
+      ],
+      "items": [
+       {
+        "n": 14,
+        "prompt": "a reason why the fur of sea otters was so valuable",
+        "answer": "A",
+        "evidence": "the densest of any mammal"
+       },
+       {
+        "n": 15,
+        "prompt": "a description of attempts to establish otters in new areas that did not succeed",
+        "answer": "B",
+        "evidence": "Some of these relocations failed"
+       },
+       {
+        "n": 16,
+        "prompt": "a term for areas where kelp has disappeared",
+        "answer": "C",
+        "evidence": "leaving bare rock that scientists call urchin barrens"
+       },
+       {
+        "n": 17,
+        "prompt": "an example of a conflict between different groups of people",
+        "answer": "E",
+        "evidence": "there has been tension between fishing communities and conservation groups"
+       },
+       {
+        "n": 18,
+        "prompt": "a possible explanation for a recent decline in one region",
+        "answer": "F",
+        "evidence": "possibly because killer whales have begun to hunt otters more often"
+       }
+      ]
+     },
+     {
+      "range": [
+       19,
+       20
+      ],
+      "type": "multi",
+      "instructions": "Choose TWO letters, A–E.",
+      "stem": "Which TWO benefits of kelp forests are mentioned in the passage?",
+      "options": [
+       "A  They protect the coast from storms.",
+       "B  They provide a habitat for many species.",
+       "C  They are a source of food for humans.",
+       "D  They take in carbon dioxide.",
+       "E  They attract large numbers of tourists."
+      ],
+      "answer": [
+       "B",
+       "D"
+      ],
+      "evidence": [
+       "Kelp forests provide shelter and food for hundreds of other species",
+       "They also absorb carbon dioxide"
+      ]
+     },
+     {
+      "range": [
+       21,
+       22
+      ],
+      "type": "multi",
+      "instructions": "Choose TWO letters, A–E.",
+      "stem": "Which TWO threats to sea otters are mentioned in the passage?",
+      "options": [
+       "A  oil spills",
+       "B  a shortage of sea urchins",
+       "C  illegal hunting",
+       "D  disease",
+       "E  rising sea temperatures"
+      ],
+      "answer": [
+       "A",
+       "D"
+      ],
+      "evidence": [
+       "oil spills can be fatal",
+       "Disease, often linked to pollution flowing from the land, is a growing cause of death"
+      ]
+     },
+     {
+      "range": [
+       23,
+       26
+      ],
+      "type": "short",
+      "instructions": "Answer the questions below. Choose NO MORE THAN THREE WORDS from the passage for each answer.",
+      "word_limit": 3,
+      "items": [
+       {
+        "n": 23,
+        "prompt": "In which year was commercial hunting of sea otters banned?",
+        "answer": "1911",
+        "evidence": "International protection came in 1911"
+       },
+       {
+        "n": 24,
+        "prompt": "What do sea urchins feed on?",
+        "answer": "kelp",
+        "evidence": "spiny animals that feed on kelp"
+       },
+       {
+        "n": 25,
+        "prompt": "What name is given to the process in which a predator affects a whole ecosystem?",
+        "answer": "trophic cascade",
+        "evidence": "what ecologists call a trophic cascade",
+        "accept": [
+         "a trophic cascade"
+        ]
+       },
+       {
+        "n": 26,
+        "prompt": "Apart from fin fish, what do some economists say benefits from the return of otters?",
+        "answer": "tourism",
+        "evidence": "outweighed by gains in fin fish and tourism"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": 3,
+    "title": "Should schools still teach handwriting?",
+    "labelled": false,
+    "paragraphs": [
+     "In many classrooms, the pencil is giving way to the keyboard. Children who once spent hours practising joined-up writing now learn to type in their first years at school, and much of their written work is completed on screens. Some education systems have reduced or removed the requirement to teach cursive handwriting altogether. To many people this seems a sensible adjustment to modern life. After all, most adults now write far more on keyboards than by hand. Typing is faster for most people, it produces text that is easy to read and edit, and it allows students to share their work instantly. Yet I believe the case for abandoning handwriting is weaker than it first appears.",
+     "The strongest argument for continuing to teach handwriting comes from research on learning. Several studies have found that students who take notes by hand remember lectures better than those who type. One explanation is that typing is fast enough to allow students to record a lecturer's words almost exactly, without thinking about them. Writing by hand is slower, so students are forced to summarise and select, and this extra processing helps them to understand and remember. These findings have been widely reported, and although later studies have not always reproduced the effect, the overall pattern is consistent enough to take seriously.",
+     "There is also evidence that handwriting plays a role in learning to read. When young children form letters by hand, they appear to recognise them more quickly than children who learn the same letters by typing or tracing. Brain-imaging studies have shown that writing letters activates areas associated with reading in a way that typing does not. The precise mechanism is not fully understood, but it seems that the effort of producing each shape helps to fix it in memory. Similar results have been reported for spelling: children who practise words by writing them out appear to learn them more securely than those who type them, perhaps for the same reason.",
+     "Critics reply that these benefits do not require years of training in neat or joined-up writing. A child can gain the advantages of forming letters without spending hours perfecting a particular style, and the time saved could be used for other skills, such as coding or keyboard fluency, which are more relevant to the workplace. I accept that the traditional emphasis on beautiful handwriting was often excessive. Many adults still remember being criticised for untidy letters, and it is hard to argue that this was a good use of school time.",
+     "But this is an argument for changing how handwriting is taught, not for abandoning it. The goal should be fluent, legible writing that a student can produce without conscious effort, so that their attention is free for thinking. Students who struggle to form letters quickly are at a disadvantage in any task that requires writing by hand, including many examinations, which in most countries are still taken on paper. Removing handwriting from the curriculum would not remove these demands; it would simply leave weaker students less prepared for them.",
+     "There is a further consideration that is often overlooked. Technology is not equally available to all students. In schools with limited budgets, or in homes without reliable internet access, a pencil and paper remain the most dependable tools for learning. A curriculum that assumes every child has a device risks widening existing inequalities. Teaching handwriting well is, in this sense, a matter of fairness as well as effectiveness. It is also worth remembering that devices fail. Batteries run out, networks go down and software changes, while a pencil continues to work in almost any circumstances. In my own experience of visiting schools, the classrooms that coped best with technical problems were those in which children were equally comfortable with paper.",
+     "None of this means that typing should be neglected. Children need both skills, and the question is one of balance. A reasonable approach would be to teach fluent handwriting in the early years of primary school, when it supports reading and spelling, and to introduce typing gradually once that foundation is secure. Such an approach would also allow schools to spend less time on decorative styles and more on helping slower writers to build speed. The danger lies not in embracing new technology, but in assuming that it makes older skills unnecessary."
+    ],
+    "groups": [
+     {
+      "range": [
+       27,
+       32
+      ],
+      "type": "ynng",
+      "instructions": "Do the following statements agree with the claims of the writer in Reading Passage 3? Write YES, NO or NOT GIVEN.",
+      "items": [
+       {
+        "n": 27,
+        "prompt": "Most adults now write more on keyboards than by hand.",
+        "answer": "YES",
+        "evidence": "most adults now write far more on keyboards than by hand"
+       },
+       {
+        "n": 28,
+        "prompt": "The research on note-taking should be ignored because some later studies did not repeat the results.",
+        "answer": "NO",
+        "evidence": "the overall pattern is consistent enough to take seriously"
+       },
+       {
+        "n": 29,
+        "prompt": "Scientists fully understand why forming letters by hand helps children to read.",
+        "answer": "NO",
+        "evidence": "The precise mechanism is not fully understood"
+       },
+       {
+        "n": 30,
+        "prompt": "Schools in the past spent too much time on making handwriting neat.",
+        "answer": "YES",
+        "evidence": "the traditional emphasis on beautiful handwriting was often excessive"
+       },
+       {
+        "n": 31,
+        "prompt": "Coding should replace handwriting in the primary school curriculum.",
+        "answer": "NO",
+        "evidence": "this is an argument for changing how handwriting is taught, not for abandoning it"
+       },
+       {
+        "n": 32,
+        "prompt": "Students who write by hand in examinations achieve higher marks than those who type.",
+        "answer": "NOT GIVEN",
+        "evidence": "including many examinations, which in most countries are still taken on paper",
+        "note": "The writer says many examinations are taken on paper, but makes no comparison of marks between handwritten and typed examinations."
+       }
+      ]
+     },
+     {
+      "range": [
+       33,
+       36
+      ],
+      "type": "completion",
+      "instructions": "Complete the summary below. Choose ONE WORD ONLY from the passage for each answer.",
+      "word_limit": 1,
+      "form_title": "Handwriting and learning",
+      "items": [
+       {
+        "n": 33,
+        "prompt": "Students who take notes by hand cannot write as fast as those who type, so they have to ______ and select.",
+        "answer": "summarise",
+        "accept": [],
+        "evidence": "students are forced to summarise and select"
+       },
+       {
+        "n": 34,
+        "prompt": "This additional ______ improves understanding and memory.",
+        "answer": "processing",
+        "accept": [],
+        "evidence": "this extra processing helps them to understand and remember"
+       },
+       {
+        "n": 35,
+        "prompt": "Brain-imaging studies show that writing letters activates areas linked to ______.",
+        "answer": "reading",
+        "accept": [],
+        "evidence": "activates areas associated with reading"
+       },
+       {
+        "n": 36,
+        "prompt": "It seems that the ______ needed to produce each letter helps children remember it.",
+        "answer": "effort",
+        "accept": [],
+        "evidence": "the effort of producing each shape helps to fix it in memory"
+       }
+      ]
+     },
+     {
+      "range": [
+       37,
+       40
+      ],
+      "type": "mcq",
+      "instructions": "Choose the correct letter, A, B, C or D.",
+      "items": [
+       {
+        "n": 37,
+        "prompt": "According to the writer, the aim of handwriting teaching should be",
+        "options": [
+         "A  beautiful, joined-up writing.",
+         "B  writing that is fluent and easy to read.",
+         "C  speed rather than accuracy.",
+         "D  preparation for the workplace."
+        ],
+        "answer": "B",
+        "evidence": "The goal should be fluent, legible writing"
+       },
+       {
+        "n": 38,
+        "prompt": "Why does the writer mention schools with limited budgets?",
+        "options": [
+         "A  to show that handwriting is cheaper to teach",
+         "B  to argue that technology can be unreliable",
+         "C  to suggest that dropping handwriting could increase inequality",
+         "D  to explain why some schools have stopped teaching typing"
+        ],
+        "answer": "C",
+        "evidence": "risks widening existing inequalities"
+       },
+       {
+        "n": 39,
+        "prompt": "What does the writer recommend?",
+        "options": [
+         "A  teaching typing before handwriting",
+         "B  teaching handwriting and typing at the same time from the start",
+         "C  teaching handwriting first and typing later",
+         "D  replacing typing lessons with handwriting practice"
+        ],
+        "answer": "C",
+        "evidence": "introduce typing gradually once that foundation is secure"
+       },
+       {
+        "n": 40,
+        "prompt": "What is the writer's overall purpose?",
+        "options": [
+         "A  to argue that handwriting still has an important place in schools",
+         "B  to compare education systems in different countries",
+         "C  to criticise the use of technology in classrooms",
+         "D  to describe the history of handwriting teaching"
+        ],
+        "answer": "A",
+        "evidence": "I believe the case for abandoning handwriting is weaker than it first appears"
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "writing": {
+  "task1": {
+   "prompt": "The maps below show the centre of the town of Eastbridge in 2005 and today. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+   "figure": {
+    "type": "maps",
+    "title": "Eastbridge town centre",
+    "note": "Fictional maps for practice.",
+    "alt": "Two maps of Eastbridge town centre. In 2005, a main road crossed the centre from west to east, with a car park in the north-west, a bus station in the north-east, a row of shops along the south side of the road, a market square in the middle of the south, and a factory in the south-east by the river. Today, the main road through the centre is pedestrianised and traffic uses a new ring road to the north; the car park has become a park, the bus station has been replaced by a library, the shops remain, the market square has a new café, and the factory has been converted into apartments with a riverside walk.",
+    "plans": [
+     {
+      "title": "2005",
+      "areas": [
+       {
+        "x": 6,
+        "y": 52,
+        "w": 26,
+        "h": 18,
+        "label": "Car park",
+        "kind": "parking"
+       },
+       {
+        "x": 66,
+        "y": 52,
+        "w": 26,
+        "h": 18,
+        "label": "Bus station"
+       },
+       {
+        "x": 6,
+        "y": 22,
+        "w": 40,
+        "h": 12,
+        "label": "Shops"
+       },
+       {
+        "x": 50,
+        "y": 20,
+        "w": 18,
+        "h": 14,
+        "label": "Market square",
+        "kind": "parking"
+       },
+       {
+        "x": 72,
+        "y": 7,
+        "w": 22,
+        "h": 12,
+        "label": "Factory"
+       },
+       {
+        "x": 2,
+        "y": 1,
+        "w": 96,
+        "h": 5,
+        "label": "River",
+        "kind": "water"
+       }
+      ],
+      "roads": [
+       {
+        "points": [
+         [
+          0,
+          42
+         ],
+         [
+          100,
+          42
+         ]
+        ],
+        "label": "Main road (traffic)",
+        "label_at": [
+         50,
+         44.6
+        ],
+        "width": 9
+       }
+      ]
+     },
+     {
+      "title": "Today",
+      "areas": [
+       {
+        "x": 6,
+        "y": 52,
+        "w": 26,
+        "h": 18,
+        "label": "Park",
+        "kind": "green"
+       },
+       {
+        "x": 66,
+        "y": 52,
+        "w": 26,
+        "h": 18,
+        "label": "Library"
+       },
+       {
+        "x": 6,
+        "y": 22,
+        "w": 40,
+        "h": 12,
+        "label": "Shops"
+       },
+       {
+        "x": 50,
+        "y": 20,
+        "w": 18,
+        "h": 14,
+        "label": "Market square + café",
+        "kind": "parking"
+       },
+       {
+        "x": 72,
+        "y": 7,
+        "w": 22,
+        "h": 12,
+        "label": "Apartments"
+       },
+       {
+        "x": 2,
+        "y": 1,
+        "w": 96,
+        "h": 5,
+        "label": "River and riverside walk",
+        "kind": "water"
+       }
+      ],
+      "roads": [
+       {
+        "points": [
+         [
+          0,
+          42
+         ],
+         [
+          100,
+          42
+         ]
+        ],
+        "label": "Pedestrian street (no traffic)",
+        "label_at": [
+         50,
+         44.6
+        ],
+        "width": 9
+       },
+       {
+        "points": [
+         [
+          0,
+          75
+         ],
+         [
+          100,
+          75
+         ]
+        ],
+        "label": "New ring road",
+        "label_at": [
+         50,
+         71.5
+        ],
+        "width": 6
+       }
+      ]
+     }
+    ]
+   },
+   "model_label": "Illustrative model for teacher discussion after the mock. Not a certified band answer.",
+   "model": "The maps compare the centre of Eastbridge in 2005 with its layout today.\n\nOverall, the town centre has been transformed from an area designed around traffic into one focused on pedestrians and leisure. Through traffic has been moved away from the centre, and several buildings have been given new uses, although the row of shops has remained unchanged.\n\nIn 2005, a main road ran through the middle of the town from west to east. Today, this road has been pedestrianised, and vehicles instead use a new ring road to the north of the centre. The car park that stood in the north-west has been replaced by a park, while the bus station opposite it in the north-east has made way for a library.\n\nTo the south of the main street, the shops are still in the same place, and the market square remains, but a café has been added to it. The most striking change is in the south-east, where the old factory beside the river has been converted into apartments, and a riverside walk has been created along the water.",
+   "checklist": [
+    "Task Achievement: Is there a clear overview of the main changes? Are changes and things that stayed the same both reported accurately?",
+    "Coherence and Cohesion: Are the changes grouped logically (for example, by area of the town)?",
+    "Lexical Resource: Is the vocabulary of change precise (replaced by, converted into, made way for, pedestrianised)?",
+    "Grammatical Range and Accuracy: Are past and present perfect passives used accurately?"
+   ]
+  },
+  "task2": {
+   "prompt": "In many cities, traffic congestion is becoming worse every year. What are the main causes of this problem, and what measures could be taken to reduce it? Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.",
+   "model_label": "Illustrative model for teacher discussion after the mock. Not a certified band answer.",
+   "model": "Traffic congestion has become a daily frustration for residents of many growing cities, wasting time and polluting the air. In my view, the problem is caused mainly by rising car ownership and poorly planned urban growth, and it can be reduced through better public transport and policies that make driving into city centres less attractive.\n\nThe most obvious cause is the rapid increase in the number of private cars. As incomes rise, more families can afford a vehicle, and many see it as more comfortable and convenient than a crowded bus. A second cause is the way cities have expanded. When new housing is built on the edges of a city, far from offices, schools and shops, residents often have no realistic alternative to driving. Finally, in many places public transport is slow, unreliable or simply unavailable, which pushes even more people into their cars.\n\nSeveral measures could help to address these causes. The most effective long-term solution is to invest in fast and frequent public transport, such as metro lines and dedicated bus lanes, so that people have a genuine choice. Governments could also discourage unnecessary car journeys by introducing charges for driving into the busiest areas at peak times, as some European cities have done with considerable success. In addition, urban planners should ensure that new neighbourhoods include workplaces, schools and services, reducing the distances people need to travel.\n\nIn conclusion, congestion results from a combination of more cars, scattered development and inadequate public transport. Tackling it requires a combination of improved alternatives to driving and measures that make car use in city centres less convenient.",
+   "checklist": [
+    "Task Response: Are both parts of the question (causes and measures) answered fully, with each measure linked to a cause?",
+    "Coherence and Cohesion: Is there one main idea per paragraph, with clear progression?",
+    "Lexical Resource: Is vocabulary on transport and cities precise (congestion, peak times, public transport, urban planning)?",
+    "Grammatical Range and Accuracy: Are complex sentences, modals and conditionals controlled?"
+   ]
+  }
+ },
+ "speaking": {
+  "part1": [
+   {
+    "topic": "Work or studies",
+    "questions": [
+     "Do you work or are you a student?",
+     "What do you like about your work or studies?",
+     "Is there anything you would like to change about it?"
+    ]
+   },
+   {
+    "topic": "Music",
+    "questions": [
+     "How often do you listen to music?",
+     "What kind of music did you like when you were younger?",
+     "Have you ever learned to play an instrument?",
+     "Do you prefer listening to music alone or with other people?"
+    ]
+   },
+   {
+    "topic": "Public transport",
+    "questions": [
+     "How do you usually travel to work or school?",
+     "What do you think of the public transport where you live?",
+     "Do you prefer travelling by bus or by train?"
+    ]
+   }
+  ],
+  "part2": {
+   "card": "Describe a place where you like to relax.",
+   "points": [
+    "where it is",
+    "how often you go there",
+    "what you do there",
+    "and explain why you find it relaxing."
+   ],
+   "rounding_off": [
+    "Do you usually go there alone or with other people?",
+    "Is it a popular place?"
+   ]
+  },
+  "part3": {
+   "theme": "Free time and cities",
+   "questions": [
+    "Why do you think many people find it difficult to relax nowadays?",
+    "What kinds of public spaces should cities provide for people to relax?",
+    "Do you think people in cities relax in different ways from people in the countryside?",
+    "Should employers do more to help their staff manage stress?",
+    "How might the way people spend their free time change in the future?"
+   ]
+  }
+ },
+ "release_blockers": [
+  "Owner review of content, keys and recordings has not taken place (new AI-assisted draft).",
+  "Device, print and classroom audio acceptance not yet recorded (LB-08).",
+  "No validated raw-score-to-band conversion exists for these forms; results stay raw scores and criterion feedback."
+ ]
+}

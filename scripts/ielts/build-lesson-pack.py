@@ -26,6 +26,18 @@ E = html.escape
 TOKEN = '{{BH_SCHOOL_NAME}}'
 
 
+class LessonNo(int):
+    """Extension lessons (IELTS-X1..X8) keep an integer number but print as X1 in titles and file names."""
+    def __new__(cls, value, label):
+        obj = int.__new__(cls, value); obj.label = label; return obj
+
+    def __str__(self):
+        return self.label
+
+    def __format__(self, spec):
+        return self.label
+
+
 def sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
@@ -77,7 +89,7 @@ class Pack:
         elif self.logo:
             shutil.copyfile(self.logo, self.out / 'assets' / ('school-logo' + self.logo.suffix.lower()))
         self.code = self.d['code']
-        self.n = self.d['number']
+        self.n = LessonNo(self.d['number'], f"X{self.d['number']}") if self.d.get('extension') else self.d['number']
         self.files = []
         self._fonts()
         self.blocks = {b['id']: b for b in self.d['blocks']}
@@ -96,6 +108,7 @@ class Pack:
         s.add(ParagraphStyle('P', fontName='BHRegular', fontSize=10.5, leading=15.5, textColor=colors.HexColor(INK), spaceAfter=7, leftIndent=18, firstLineIndent=-18))
         s.add(ParagraphStyle('O', fontName='BHRegular', fontSize=10.5, leading=14, textColor=colors.HexColor(INK), spaceAfter=3, leftIndent=24))
         s.add(ParagraphStyle('S', fontName='BHRegular', fontSize=8.5, leading=12, textColor=colors.HexColor(MUTED), spaceAfter=5))
+        s.add(ParagraphStyle('Arrow', fontName='BHBold', fontSize=13, leading=15, textColor=colors.HexColor(PRIMARY), leftIndent=184, spaceBefore=1, spaceAfter=1))
         s.add(ParagraphStyle('Cell', fontName='BHRegular', fontSize=8.8, leading=11.5, textColor=colors.HexColor(INK)))
         self.st = s
 
@@ -172,6 +185,9 @@ class Pack:
         markers = ['o', 's', '^', 'D', 'v']
         if fig['type'] in ('plan', 'table'):
             return self._render_special(fig, dest, plt)
+        if fig['type'] in ('process', 'maps', 'pies', 'diagram'):
+            import mock_figures  # shared drawn visuals (process, maps, pies, labelled diagrams)
+            return mock_figures.render(fig, dest)
         fw, fh = (8, 4.6)
         f, ax = plt.subplots(figsize=(fw, fh), dpi=200)
         x = fig['x']
@@ -252,7 +268,7 @@ class Pack:
         from PIL import Image as PILImage
         iw, ih = PILImage.open(path).size
         out = [Image(str(path), width=500, height=500 * ih / iw)]
-        if with_table and b['figure']['type'] != 'plan':
+        if with_table and b['figure']['type'] in ('line', 'bar', 'table'):
             # The text description summarises trends, so it stays in teacher materials (and as HTML alt text).
             out.append(self.p('Figure description: ' + b['figure']['alt'], 'S'))
             fig = b['figure']
@@ -280,6 +296,15 @@ class Pack:
         out += self.figure_flow(b, with_table=b['figure'].get('show_table', False) if b.get('figure') else False)
         if b.get('form_title'):
             out.append(self.p(b['form_title'], 'H'))
+        if b.get('flow'):
+            # Flow-chart completion: each stage in a box, joined by arrows (as in the test).
+            chart = []
+            for i, it in enumerate(b['items']):
+                num = it['id'].rsplit('-Q', 1)[-1]
+                if i:
+                    chart.append(self.p('↓', 'Arrow'))
+                chart += self.table([[f"{num}.  {it['prompt']}"]], [380])[:1]
+            return [KeepTogether(out + chart)]
         for i, it in enumerate(b['items']):
             num = it['id'].rsplit('-Q', 1)[-1]
             body = [self.p(f"{num}.  {it['prompt']}")]
@@ -588,7 +613,7 @@ class Pack:
 
     def build_slides(self):
         d = self.d
-        slides = [{'title': d['title'], 'kind': 'cover', 'body': [f"Lesson {self.n} · Week {d['week']}", '\n'.join(o['text'] for o in d['objectives'][:2])],
+        slides = [{'title': d['title'], 'kind': 'cover', 'body': [(f"Extension lesson {self.n} · {d['placement']}" if d.get('extension') else f"Lesson {self.n} · Week {d['week']}"), '\n'.join(o['text'] for o in d['objectives'][:2])],
                    'meta': [{'t': 'kicker'}, {'t': 'lead'}], 'dark': True, 'notes': f"{d['status']}. Confirm the reviewed version before teaching. " + d['audio']['statement']},
                   {'title': 'Today you will', 'body': [o['text'] for o in d['objectives']], 'meta': [{'t': 'goal'} for _ in d['objectives']], 'build': True,
                    'notes': 'Objectives are teaching goals, not measured results.'}]

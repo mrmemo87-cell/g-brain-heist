@@ -106,9 +106,31 @@ function checkItem(item, block, errors, where) {
   }
 }
 
+// Drawn Task 1 and labelling visuals shared with the mock-test builder (scripts/ielts/mock_figures.py).
+const DRAWN = ['process', 'maps', 'pies', 'diagram'];
+
 function checkFigure(block, errors, label) {
   const fig = block.figure;
-  if (!['line', 'bar', 'table', 'plan'].includes(fig.type)) errors.push(`${label}: figure type must be line, bar, table or plan`);
+  if (![...['line', 'bar', 'table', 'plan'], ...DRAWN].includes(fig.type)) errors.push(`${label}: figure type must be line, bar, table, plan, process, maps, pies or diagram`);
+  if (DRAWN.includes(fig.type)) {
+    for (const field of ['title', 'alt', 'note']) if (!fig[field]) errors.push(`${label}: figure needs ${field}`);
+    if (fig.note && !/fictional|illustrative/i.test(fig.note)) errors.push(`${label}: figure note must state the content is fictional practice material`);
+    if (fig.type === 'pies') {
+      for (const chart of fig.charts ?? []) {
+        const total = (chart.values ?? []).reduce((a, b) => a + b, 0);
+        if ((chart.values ?? []).length !== (fig.categories ?? []).length) errors.push(`${label}: pie ${chart.title} needs one value per category`);
+        if (Math.abs(total - 100) > 0.5) errors.push(`${label}: pie ${chart.title} percentages total ${total}, not 100`);
+      }
+    }
+    if (block.model) {
+      // A model may only quote numbers that appear in the figure (or declared genuine calculations).
+      const allowed = new Set([...(JSON.stringify(fig).match(/\d+(?:\.\d+)?/g) ?? []), ...(block.model_derived_numbers ?? []).map(String)]);
+      for (const number of block.model.match(/\d+(?:\.\d+)?/g) ?? []) {
+        if (!allowed.has(number)) errors.push(`${label}: model quotes ${number}, which is not in the figure (declare genuine calculations in model_derived_numbers)`);
+      }
+    }
+    return;
+  }
   if (fig.type === 'plan') {
     for (const field of ['title', 'alt', 'note']) if (!fig[field]) errors.push(`${label}: figure needs ${field}`);
     const letters = (fig.areas ?? []).filter((a) => a.letter).map((a) => a.letter);
@@ -228,8 +250,12 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
   const errors = [];
   const code = lesson.code;
   if (lesson.schema !== SCHEMA) errors.push(`schema must be ${SCHEMA}`);
-  if (!/^IELTS-\d{2}$/.test(code ?? '')) errors.push('code must look like IELTS-05');
-  if (Number(code?.slice(6)) !== lesson.number) errors.push('number must match the lesson code');
+  // Core course lessons are IELTS-01..24; optional extension lessons (outside the 24-lesson sequence) are IELTS-X1..X8.
+  const extension = /^IELTS-X[1-8]$/.test(code ?? '');
+  if (!/^IELTS-\d{2}$/.test(code ?? '') && !extension) errors.push('code must look like IELTS-05 (core) or IELTS-X1 (extension)');
+  if (Number(code?.slice(extension ? 7 : 6)) !== lesson.number) errors.push('number must match the lesson code');
+  if (extension !== (lesson.extension === true)) errors.push('extension: true is required for (and only for) IELTS-X lessons');
+  if (extension && !lesson.placement) errors.push('extension lessons need a placement note (when in the course they fit)');
   if (lesson.duration !== 60) errors.push('core lessons are 60 minutes; schedule longer assessments separately');
   if (lesson.test_type !== 'Academic') errors.push('programme route is IELTS Academic only');
   if (!/draft/i.test(lesson.status ?? '') && !lesson.approval_record) errors.push('status must remain a draft until a human approval record is attached');

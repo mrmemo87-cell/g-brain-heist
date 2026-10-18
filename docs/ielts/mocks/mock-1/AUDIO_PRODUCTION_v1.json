@@ -1,0 +1,385 @@
+{
+ "record": "IELTS-M1 listening audio production",
+ "version": "1",
+ "produced": "2026-10-18",
+ "provider": "Runway MCP (workspace 'Sobbi', personal)",
+ "script_source": "docs/ielts/mocks/mock-1/mock.json",
+ "model": "eleven_v4 (instructions: voice Tom, stability 0.7; passages: dialogue/monologue, stability 0.5, fixed seeds)",
+ "assembly": "48 kHz mono; edge silence trimmed; each segment loudness-matched to -18 LUFS; exact digital silences (30 s reading time per half-part, 45 s before Part 4, 30 s checking time after each part); true-peak limiter; MP3 96 kbps mono (sized so the complete pack stays under the 20 MB pack limit) with copyright metadata",
+ "rights_basis": "Owner confirmed on 2026-10-17 that rights to recordings produced in this workflow belong to Brains Heist LLC.",
+ "file": "IELTS-M1_Listening_v1.mp3",
+ "sha256": "049fd8c477823314090d2937ee67175af2f6a12db5b1e7f0e540173a9d2618a6",
+ "bytes": 15866497,
+ "duration_seconds": 1322.16,
+ "integrated_lufs": -18.6,
+ "true_peak_dbfs": -1.2,
+ "part_starts": [
+  26.078,
+  352.171,
+  678.84,
+  1003.512
+ ],
+ "designed_pauses": [
+  {
+   "label": "reading_silence",
+   "start": 37.913,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 177.067,
+   "seconds": 30.0
+  },
+  {
+   "label": "check_silence",
+   "start": 322.171,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 362.958,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 522.417,
+   "seconds": 30.0
+  },
+  {
+   "label": "check_silence",
+   "start": 648.84,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 692.017,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 841.215,
+   "seconds": 30.0
+  },
+  {
+   "label": "check_silence",
+   "start": 973.512,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 1013.063,
+   "seconds": 45.0
+  },
+  {
+   "label": "check_silence",
+   "start": 1285.695,
+   "seconds": 30.0
+  }
+ ],
+ "detected_pauses_over_10s": [
+  30.13,
+  30.14,
+  30.15,
+  30.12,
+  30.13,
+  30.13,
+  30.13,
+  30.11,
+  30.03,
+  45.13,
+  30.13
+ ],
+ "segments": [
+  {
+   "segment": "notice",
+   "kind": "instruction",
+   "task": "27432479-fca3-4fbb-a210-2d53aff3f703",
+   "start": 0.0,
+   "seconds": 4.871,
+   "gain_db": 2.5,
+   "words": 10,
+   "words_per_minute": null
+  },
+  {
+   "segment": "opening",
+   "kind": "instruction",
+   "task": "d0b8f071-c624-4d9f-b5a8-df800bcbc2fa",
+   "start": 5.571,
+   "seconds": 19.007,
+   "gain_db": 3.3,
+   "words": 60,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p1_intro",
+   "kind": "instruction",
+   "task": "190216c8-9bd0-4797-a98f-0678ab82c1ed",
+   "start": 26.078,
+   "seconds": 11.835,
+   "gain_db": 2.5,
+   "words": 36,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p1_listen0",
+   "kind": "instruction",
+   "task": "6aee8d10-1fc1-40a1-928e-046d60bb52bd",
+   "start": 67.913,
+   "seconds": 3.738,
+   "gain_db": 2.7,
+   "words": 9,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p1_s0_d",
+   "kind": "dialogue",
+   "task": "e7eb74bf-7bb7-41c9-bdda-9afb9d63c11e",
+   "start": 72.651,
+   "seconds": 97.935,
+   "gain_db": 1.0,
+   "words": 272,
+   "words_per_minute": 167
+  },
+  {
+   "segment": "p1_rest1",
+   "kind": "instruction",
+   "task": "4843d0b4-0135-432c-9374-4783af3888af",
+   "start": 171.786,
+   "seconds": 5.281,
+   "gain_db": 3.4,
+   "words": 19,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p1_listen1",
+   "kind": "instruction",
+   "task": "be4d7e17-d4ef-43d3-b22f-54801ce0591d",
+   "start": 207.067,
+   "seconds": 3.319,
+   "gain_db": 3.2,
+   "words": 8,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p1_s1_d",
+   "kind": "dialogue",
+   "task": "3c3f6efe-ee57-43ec-bb4f-0362819e2133",
+   "start": 211.387,
+   "seconds": 104.37,
+   "gain_db": 0.2,
+   "words": 311,
+   "words_per_minute": 179
+  },
+  {
+   "segment": "p1_end",
+   "kind": "instruction",
+   "task": "08cc7052-1226-4ecc-8523-231918cfa650",
+   "start": 316.957,
+   "seconds": 5.214,
+   "gain_db": 2.4,
+   "words": 17,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p2_intro",
+   "kind": "instruction",
+   "task": "6a012272-015d-43fb-bf5f-cd06f17df6cb",
+   "start": 352.171,
+   "seconds": 10.787,
+   "gain_db": 3.3,
+   "words": 33,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p2_listen0",
+   "kind": "instruction",
+   "task": "29f1ee3f-0843-4beb-a003-b51554119562",
+   "start": 392.958,
+   "seconds": 3.998,
+   "gain_db": 3.0,
+   "words": 9,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p2_s0_m0",
+   "kind": "monologue",
+   "task": "b1fc3648-18b2-4fe2-accb-95dde2268b5f",
+   "start": 397.956,
+   "seconds": 118.116,
+   "gain_db": 11.9,
+   "words": 326,
+   "words_per_minute": 166
+  },
+  {
+   "segment": "p2_rest1",
+   "kind": "instruction",
+   "task": "6e9ce5c8-3810-4c02-9f0d-cbdd704b7999",
+   "start": 517.272,
+   "seconds": 5.145,
+   "gain_db": 3.1,
+   "words": 19,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p2_listen1",
+   "kind": "instruction",
+   "task": "d32fa2e9-5b0f-43a2-828c-fc9d52e55338",
+   "start": 552.417,
+   "seconds": 3.425,
+   "gain_db": 2.8,
+   "words": 8,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p2_s1_m0",
+   "kind": "monologue",
+   "task": "0121fe54-9776-4add-91f7-30b98b1a565b",
+   "start": 556.842,
+   "seconds": 85.61,
+   "gain_db": 11.7,
+   "words": 217,
+   "words_per_minute": 152
+  },
+  {
+   "segment": "p2_end",
+   "kind": "instruction",
+   "task": "e028236a-ed9c-4134-968f-1c26590ca7d7",
+   "start": 643.652,
+   "seconds": 5.188,
+   "gain_db": 2.3,
+   "words": 17,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p3_intro",
+   "kind": "instruction",
+   "task": "34426306-6feb-4d43-bcc5-dd7769ebcf60",
+   "start": 678.84,
+   "seconds": 13.177,
+   "gain_db": 3.2,
+   "words": 34,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p3_listen0",
+   "kind": "instruction",
+   "task": "292f5866-9680-41e7-ba5e-57ee0418178d",
+   "start": 722.017,
+   "seconds": 4.274,
+   "gain_db": 3.0,
+   "words": 9,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p3_s0_d",
+   "kind": "dialogue",
+   "task": "10380bf4-59c1-4679-9b9b-4aac9f4fface",
+   "start": 727.291,
+   "seconds": 107.258,
+   "gain_db": 4.3,
+   "words": 308,
+   "words_per_minute": 172
+  },
+  {
+   "segment": "p3_rest1",
+   "kind": "instruction",
+   "task": "41b2c7c0-ef51-4413-8a17-fe40072c8edf",
+   "start": 835.749,
+   "seconds": 5.465,
+   "gain_db": 2.9,
+   "words": 19,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p3_listen1",
+   "kind": "instruction",
+   "task": "ebc36235-89f3-4b3a-97fe-42ca8d7b93cb",
+   "start": 871.215,
+   "seconds": 3.645,
+   "gain_db": 2.2,
+   "words": 8,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p3_s1_d",
+   "kind": "dialogue",
+   "task": "d79f93d4-2783-46e4-99aa-f5d214b5a566",
+   "start": 875.859,
+   "seconds": 91.253,
+   "gain_db": 2.7,
+   "words": 259,
+   "words_per_minute": 170
+  },
+  {
+   "segment": "p3_end",
+   "kind": "instruction",
+   "task": "aa8c3451-d66d-4a5b-b881-9df6458b9f6d",
+   "start": 968.312,
+   "seconds": 5.2,
+   "gain_db": 2.0,
+   "words": 17,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p4_intro",
+   "kind": "instruction",
+   "task": "9452a646-16e0-44da-8c25-0bd3f8a66c89",
+   "start": 1003.512,
+   "seconds": 9.55,
+   "gain_db": 3.3,
+   "words": 26,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p4_listen0",
+   "kind": "instruction",
+   "task": "ab2ea5d9-e202-47ea-bf82-db450e5b5deb",
+   "start": 1058.063,
+   "seconds": 3.953,
+   "gain_db": 2.9,
+   "words": 9,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p4_s0_m0",
+   "kind": "monologue",
+   "task": "b6e36e0e-367b-4681-a82a-8c8588e14523",
+   "start": 1063.015,
+   "seconds": 126.307,
+   "gain_db": 2.4,
+   "words": 322,
+   "words_per_minute": 153
+  },
+  {
+   "segment": "p4_s0_m1",
+   "kind": "monologue",
+   "task": "e6e7e0d3-8664-4903-9f72-1fba0e956cd6",
+   "start": 1189.772,
+   "seconds": 89.697,
+   "gain_db": 1.7,
+   "words": 220,
+   "words_per_minute": 147
+  },
+  {
+   "segment": "p4_end",
+   "kind": "instruction",
+   "task": "b129ff45-e3b9-4e36-8526-4d2b486e7af4",
+   "start": 1280.669,
+   "seconds": 5.026,
+   "gain_db": 2.1,
+   "words": 17,
+   "words_per_minute": null
+  },
+  {
+   "segment": "closing",
+   "kind": "instruction",
+   "task": "ad3c25cc-7388-4939-9ebc-593f40340fc8",
+   "start": 1315.695,
+   "seconds": 6.436,
+   "gain_db": 3.0,
+   "words": 21,
+   "words_per_minute": null
+  }
+ ],
+ "status": "Produced v1; owner listening review pending"
+}
