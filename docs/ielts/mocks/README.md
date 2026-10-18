@@ -6,8 +6,15 @@ Listening (40 questions, one continuous recording of about 21 minutes), Reading 
 
 - **Status:** owner approved and released to all schools as v1.0.0 on 2026-10-18 (see
   `docs/ielts/releases/MOCKS_AND_EXTENSIONS_ALL_SCHOOLS_2026_10_18.md`).
-- **Scoring:** raw scores out of 40 for Listening and Reading, plus criterion feedback for Writing and Speaking. There is
-  **no band conversion**. Brains Heist has no validated conversion for these forms (Diagnostic Bible 2.2-2.3, 16.6).
+- **Scoring in the paper packs:** raw scores out of 40 for Listening and Reading, plus criterion feedback for Writing
+  and Speaking. The packs print no band conversion.
+- **From Diagnostic Bible 2.0.0:**
+  - When a mock is delivered in the platform, or captured item by item from paper (section 12A), its results feed each
+    student's learning record.
+  - Eligible full sittings give an **indicative band range** under policy bh-indicative-v1 (section 9.5). It is always a
+    range, always low confidence, and not an official result.
+  - It is calibrated over time against real IELTS results (section 18A).
+  - These platform features are not built yet.
 - **Recordings:** produced with Runway (eleven_v4) and assembled with exact silences: 30 s reading time per half-part,
   45 s before Part 4, and 30 s checking time after each part. Production records are in each `AUDIO_PRODUCTION_v1.json`.
   The recordings were approved with the packs; device and classroom playback acceptance is pending (LB-08).

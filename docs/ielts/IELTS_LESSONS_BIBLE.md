@@ -1,10 +1,10 @@
 # Brains Heist IELTS Lessons Bible
 
-**Version:** 1.1.0
-**Effective date:** 2026-10-14
+**Version:** 1.2.0
+**Effective date:** 2026-10-19
 **Scope:** Lesson catalogue, teacher plans, presentations, audio references, student worksheets, keys, print packs and offline exports.
 
-This is the lesson production contract. The Diagnostic Bible 1.10.0 governs assessment, evidence, audio provenance, security and release authority. The Visual & UX Bible 1.1.0 governs platform presentation and accessibility. Those contracts take precedence. This file does not certify every lesson or introduce new scoring rules.
+This is the lesson production contract. The Diagnostic Bible 2.0.0 governs assessment, evidence, audio provenance, security and release authority. The Visual & UX Bible 1.2.0 governs platform presentation and accessibility. Those contracts take precedence. This file does not certify every lesson or introduce new scoring rules.
 
 ## 1. School identity and access — LB-01
 
@@ -42,11 +42,11 @@ Download only scoped authorized audio and verify the recorded SHA-256 before inc
 
 Each available lesson includes teacher plan, editable presentation, motion-free alternative, offline presentation, student workbook, private scripts/keys, approved audio, offline player, start guide and a versions manifest. An offline ZIP retains everything required for guided practice. Platform assessments still require student access to Brains Heist.
 
-Student printing excludes answers and scripts. Separate student and teacher documents. A4 print styles, deliberate page breaks and browser Save as PDF are supported. Do not claim automatic printer selection, duplex detection, class-copy counts or response capture until implemented and tested. Printing a teacher presentation exposes its answer slides and must be clearly labeled teacher-only. No paper response automatically becomes diagnostic evidence.
+Student printing excludes answers and scripts. Separate student and teacher documents. A4 print styles, deliberate page breaks and browser Save as PDF are supported. Do not claim automatic printer selection, duplex detection, class-copy counts or response capture until implemented and tested. Printing a teacher presentation exposes its answer slides and must be clearly labeled teacher-only. No paper response automatically becomes diagnostic evidence; it enters the learning record only through the teacher capture route in Diagnostic Bible section 12A.
 
 ## 7. Platform evidence and follow-up — LB-07
 
-Use the real governed Reading Screener in the normal student workflow. Never replace it with a lesson passage or expose hints during an independent attempt. Use authorized Student progress for saved evidence and existing assignment/source/exposure checks for follow-up. Keep course goals and reflection distinct from measured readiness. No new band, calibration, scoring or improvement claims arise from this lesson.
+Use the real governed Reading Screener in the normal student workflow. Never replace it with a lesson passage or expose hints during an independent attempt. Use authorized Student progress for saved evidence and existing assignment/source/exposure checks for follow-up. Keep course goals and reflection distinct from measured readiness. A lesson creates no band, calibration, scoring or improvement claim by itself. Its designated fresh checks feed the learning record under Diagnostic Bible section 12A, and indicative band ranges arise only from eligible full forms under section 9.5.
 
 ## 8. Verification and release — LB-08
 
@@ -66,18 +66,58 @@ The owner-requested reference course has 12 teaching weeks and 24 lessons, two 6
 
 After screeners, inspect saved outcomes and required productive-skill reviews. Record up to two immediate evidence-linked priorities per learner, the next activity and the next check. Pending evidence requires a collection plan, not invented priorities. Teach a shared core lesson with foundation support and extension tasks. Alternate receptive and productive work across each teaching week. A repeated or corrected task remains practice. Check transfer using a fresh task, then later follow up, subject to Diagnostic Bible section 8A; never use the ESL course's six/four-question routine as an automatic IELTS scoring rule.
 
+**The course is shared in class and personal in practice (v1.2.0).** The 24 lessons are the shared classroom core. Around them, every week runs the learning loop in Diagnostic Bible section 15B.5:
+- batch targeted practice personalised to each student's qualified targets;
+- AI first-pass feedback on Writing and Speaking practice;
+- a short teacher confirmation queue;
+- fresh checks that update the learning record.
+
+Homework in each pack is the minimum shared task. Targeted practice is assigned in addition, not instead.
+
+**Pace follows evidence.**
+- A batch whose evidence shows a lesson's target is already secure may compress that lesson to a short check and spend the time on targeted practice or an extension lesson.
+- A batch that is not ready may add a lesson-length review.
+- Teachers record the decision and its evidence. Lesson identities and the order of the core sequence stay stable.
+
+**Extension lessons X1–X8** are optional 60-minute lessons for task types that need more practice. The batch view suggests the matching extension lesson when several students share a qualified target in its constructs; the teacher decides.
+
+**Mocks M1–M3** are full-length reassessments, scheduled outside the 60-minute lessons:
+- the reference placement is M1 after Week 6, M2 in Week 9 and M3 in Week 12;
+- deliver them on computer by default, or on paper with item capture (Diagnostic Bible section 12A);
+- their results update each student's record and give an indicative band range (section 9.5);
+- each mock is followed by a review lesson slot, using IELTS-21–24 where they fall, that turns the results into each student's next targets.
+
 New students follow their own intake and essential catch-up pack, then join the current shared lesson. Do not restart the class, overwrite attempts or force retakes. Track joining date and missed teaching. Reports use actual exposure and period cutoffs under section 15C. Monthly reviews are scheduled teaching events, not evidence that improvement occurred. A full mock needs sufficient separately arranged time; never compress it into one 60-minute lesson.
 
 ## 11. Pack handoff, dependencies and review states — LB-11
 
-Every pack begins with `01-START-HERE.html` stating lesson purpose, prerequisites, exact files to open/print, what needs internet, audio requirement or explicit 'No recording required', missing-evidence route, Plan B and next action. Include printable teacher guide, student workbook, homework, private keys/models and an observation/planning sheet. Paper work is classroom evidence until a separately governed capture route exists; do not claim it appears in IELTS Journey automatically.
+Every pack begins with `01-START-HERE.html` stating lesson purpose, prerequisites, exact files to open/print, what needs internet, audio requirement or explicit 'No recording required', missing-evidence route, Plan B and next action. Include printable teacher guide, student workbook, homework, private keys/models and an observation/planning sheet. Paper work is classroom evidence unless it is entered through the governed capture route (Diagnostic Bible section 12A). Do not claim it appears in IELTS Journey automatically.
 
 Keep question/reveal order, item identities and accepted answers aligned across HTML, PPTX, workbook and teacher keys. Keep fresh follow-up prompts in a separate teacher-controlled file, away from advance student homework. Log support and prior exposure. Do not call a new prompt comparable merely because it is fresh.
 
-New AI-authored content is a teacher-review draft until the required human editorial/key/mapping/difficulty/originality checks pass. Preserve a blank review record with exact hashes and outstanding gates; generation and technical QA cannot record human approval. Preparation authority does not itself authorize publication. Drafts may be delivered privately to the owner for review, but must not be placed in public assets or listed as released student materials. Lesson-local worksheet IDs must not impersonate server-assigned L/R/W/S catalogue codes. Installation into a catalogue needs the existing section 15D/15E registration and release path.
+New AI-authored lessons and mocks are teacher-review drafts until the required human editorial/key/mapping/difficulty/originality checks pass. AI-produced targeted-practice materials may instead use the recorded batch sample review in Diagnostic Bible section 15E.2A. Preserve a blank review record with exact hashes and outstanding gates; generation and technical QA cannot record human approval. Preparation authority does not itself authorize publication. Drafts may be delivered privately to the owner for review, but must not be placed in public assets or listed as released student materials. Lesson-local worksheet IDs must not impersonate server-assigned L/R/W/S catalogue codes. Installation into a catalogue needs the existing section 15D/15E registration and release path.
 
 ## 12. Revision record — 1.1.0 (2026-10-14)
 
 The owner requested permanent consistency and preparation of the next lesson after the agreed course discussion. LB-02 defined complete individual lessons but did not define course continuity, rolling intake or the post-screener handoff. LB-10/LB-11 now bind those teaching and packaging requirements to Diagnostic Bible 1.10.0. Basis: explicit owner instruction and existing assessment/release governance. No official IELTS format, grading, scoring, thresholds, published assets or saved student work change. Visual & UX Bible 1.1.0 remains unchanged because the visual contract already covers this work.
 
 Affected production components: course roadmap, lesson authoring/export builders, teacher start guides, planning worksheets, release inventory and future scoped lesson-library installation. Lesson 2 is prepared as a private review pack; this revision does not certify its publication, phone acceptance, PowerPoint playback or programme availability.
+
+## 13. Revision record — 1.2.0 (2026-10-19)
+
+**Authority and basis.** The owner instructed on 2026-10-19 that the Bibles follow best practice for results ("nothing is sacred"). This revision aligns lesson production with Diagnostic Bible 2.0.0's closed learning loop.
+
+**What changed**
+- LB-10: the course is shared in class and personal in practice; pace follows evidence.
+- LB-10: extension lessons X1–X8 and mocks M1–M3 are now part of the contract, and mocks feed the learning record.
+- LB-06/LB-07/LB-11: paper work enters evidence only through section 12A capture, and practice materials may use batch review.
+
+**What did not change.** Teacher-controlled motion and audio, student/teacher document separation, school identity, review states for lessons and mocks, and LB-08 acceptance evidence.
+
+**Affected components**
+- the course roadmap;
+- the teacher batch view;
+- mock delivery and capture;
+- pack start guides, at the next pack revision.
+
+Released packs keep the Bible versions they were approved under.

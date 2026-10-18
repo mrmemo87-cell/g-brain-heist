@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { mockSourcePaths, validateMockSource } from '../scripts/ielts/mock-source-contract.mjs';
-import { lessonSourcePaths, validateLessonSource } from '../scripts/ielts/lesson-source-contract.mjs';
+import { lessonSourcePaths, validateLessonSource, bibleVersionErrors, currentBibleVersions } from '../scripts/ielts/lesson-source-contract.mjs';
 
 const load = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const mocks = mockSourcePaths();
@@ -68,4 +68,14 @@ test('pie charts must total 100 and drawn-figure models may not invent numbers',
   const errors = validateLessonSource(x);
   assert.ok(has(errors, 'not 100'));
   assert.ok(has(errors, 'model quotes 77'));
+});
+
+test('drafts must use the current Bibles; approved sources keep the earlier version they were approved under', () => {
+  const current = currentBibleVersions();
+  const old = { diagnostic: '1.10.0', lessons: '1.1.0', visual: '1.1.0' };
+  assert.ok(bibleVersionErrors({ status: 'Private teacher-review draft', bibles: old }, current).length > 0);
+  assert.deepEqual(bibleVersionErrors({ status: 'Approved', approval_record: { version: '1.0.0' }, bibles: old }, current), []);
+  assert.ok(bibleVersionErrors({ approval_record: {}, bibles: { ...current, diagnostic: '99.0.0' } }, current).length > 0);
+  assert.ok(bibleVersionErrors({ approval_record: {}, bibles: { ...current, diagnostic: 'latest' } }, current).length > 0);
+  assert.deepEqual(bibleVersionErrors({ bibles: current }, current), []);
 });
