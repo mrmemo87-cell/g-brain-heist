@@ -21,3 +21,6 @@ begin
    left join private.ielts_reviewed_practice r on r.material_type=m.material_type and r.material_id=m.material_id
    where m.batch_id=b.id and m.status<>'superseded')) order by b.created_at desc) from private.ielts_content_review_batches b where b.kind='construct_mapping'),'[]');
 end $$;
+
+revoke all on function public.rpc_ielts_construct_mapping_queue() from public, anon;
+grant execute on function public.rpc_ielts_construct_mapping_queue() to authenticated;
