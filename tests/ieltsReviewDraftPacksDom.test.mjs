@@ -8,12 +8,12 @@ async function mount({canDecide=false,packs=[pack]}={}){const dom=new JSDOM('<di
  w.eval(compiled.outputFiles[0].text);await new Promise(r=>setTimeout(r,30));
  return{w,wait,button:t=>[...w.document.querySelectorAll('button')].find(b=>b.textContent===t),close:()=>{w.root.unmount();dom.window.close();}};}
 test('drafts are labelled as not approved and download the verified pack',async()=>{const m=await mount();try{
- await m.wait(()=>m.w.document.querySelector('summary'));assert.match(m.w.document.body.textContent,/Not approved for classroom use/);assert.match(m.w.document.body.textContent,/Awaiting review/);
+ await m.wait(()=>m.button('Download review draft'));assert.match(m.w.document.body.textContent,/Not approved for classroom use/);assert.match(m.w.document.body.textContent,/Awaiting review/);
  assert.equal(m.button('Approve this version'),undefined);
  m.button('Download review draft').click();await m.wait(()=>m.w.downloads.length===1);assert.equal(m.w.downloads[0].name,'IELTS-17-Review-Draft-v0.1.0.zip');
 }finally{m.close();}});
 test('owner can approve; change requests need notes',async()=>{const m=await mount({canDecide:true});try{
- await m.wait(()=>m.button('Approve this version'));assert.equal(m.button('Request changes').disabled,true);
+ await m.wait(()=>m.button('Approve this version'));m.button('Request changes').click();await m.wait(()=>m.button('Send change request'));assert.equal(m.button('Send change request').disabled,true);
  m.button('Approve this version').click();await m.wait(()=>m.w.decisions.length===1);assert.deepEqual(m.w.decisions[0],{s:'school',p:'IELTS-17',d:'approved',n:''});
  await m.wait(()=>/Approved by owner/.test(m.w.document.body.textContent));assert.match(m.w.document.body.textContent,/1 of 1 approved/);
 }finally{m.close();}});
